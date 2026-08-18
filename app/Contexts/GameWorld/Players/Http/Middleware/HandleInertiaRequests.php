@@ -47,10 +47,20 @@ final class HandleInertiaRequests extends Middleware
      *         kingdomNumber:?int,
      *         alliance:?array{
      *             id:string,
+     *             membershipId:string,
      *             name:string,
      *             rank:string,
      *             roles:list<array{key:string,name:string}>,
      *             capabilities:list<string>
+     *         },
+     *         contextFingerprint:array{
+     *             version:1,
+     *             key:string,
+     *             playerId:string,
+     *             kingdomId:string,
+     *             kingdomNumber:?int,
+     *             allianceId:?string,
+     *             membershipId:?string
      *         }
      *     }>
      * }
@@ -70,7 +80,7 @@ final class HandleInertiaRequests extends Middleware
 
         return [
             'activePlayerId' => $this->playerContext->playerOrNull()?->playerId,
-            'players' => array_map(static function (PlayerReference $player) use ($allianceContext): array {
+            'players' => array_map(function (PlayerReference $player) use ($allianceContext): array {
                 $membership = $allianceContext[$player->playerId] ?? null;
 
                 return [
@@ -80,13 +90,64 @@ final class HandleInertiaRequests extends Middleware
                     'kingdomNumber' => $player->kingdomNumber,
                     'alliance' => $membership === null ? null : [
                         'id' => $membership['allianceId'],
+                        'membershipId' => $membership['membershipId'],
                         'name' => $membership['allianceName'],
                         'rank' => $membership['rank'],
                         'roles' => $membership['roles'],
                         'capabilities' => $membership['capabilities'],
                     ],
+                    'contextFingerprint' => $this->fingerprint($player, $membership),
                 ];
             }, $players),
+        ];
+    }
+
+    /**
+     * @param  array{
+     *     membershipId:string,
+     *     allianceId:string,
+     *     allianceName:string,
+     *     rank:string,
+     *     roles:list<array{key:string,name:string}>,
+     *     capabilities:list<string>
+     * }|null  $membership
+     * @return array{
+     *     version:1,
+     *     key:string,
+     *     playerId:string,
+     *     kingdomId:string,
+     *     kingdomNumber:?int,
+     *     allianceId:?string,
+     *     membershipId:?string
+     * }
+     */
+    private function fingerprint(PlayerReference $player, ?array $membership): array
+    {
+        $roleKeys = array_map(
+            static fn (array $role): string => $role['key'],
+            $membership['roles'] ?? [],
+        );
+        sort($roleKeys);
+
+        $scope = [
+            'playerId' => $player->playerId,
+            'kingdomId' => $player->kingdomId,
+            'kingdomNumber' => $player->kingdomNumber,
+            'allianceId' => $membership['allianceId'] ?? null,
+            'membershipId' => $membership['membershipId'] ?? null,
+            'rank' => $membership['rank'] ?? null,
+            'roleKeys' => $roleKeys,
+            'capabilities' => $membership['capabilities'] ?? [],
+        ];
+
+        return [
+            'version' => 1,
+            'key' => 'ctx:v1:'.hash('sha256', json_encode($scope, JSON_THROW_ON_ERROR)),
+            'playerId' => $player->playerId,
+            'kingdomId' => $player->kingdomId,
+            'kingdomNumber' => $player->kingdomNumber,
+            'allianceId' => $membership['allianceId'] ?? null,
+            'membershipId' => $membership['membershipId'] ?? null,
         ];
     }
 }
