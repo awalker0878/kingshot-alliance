@@ -21,10 +21,7 @@ export function contextScopedStorageKey(contextKey: string, key: string): string
   return `context:${contextKey}:${key}`;
 }
 
-export function registerContextDisposer(
-  contextKey: string,
-  disposer: ContextDisposer,
-): () => void {
+export function registerContextDisposer(contextKey: string, disposer: ContextDisposer): () => void {
   const bucket = disposers.get(contextKey) ?? new Set<ContextDisposer>();
   bucket.add(disposer);
   disposers.set(contextKey, bucket);
