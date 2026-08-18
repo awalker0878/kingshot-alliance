@@ -80,7 +80,7 @@ jobs:
       - name: Prepare visual database
         run: |
           php artisan migrate --force
-          php artisan tinker --execute="App\\Contexts\\Accounts\\Models\\User::factory()->create(['name' => 'UX P9 Visual', 'email' => 'ux-p9-visual@example.test', 'timezone' => 'UTC']);"
+          php artisan tinker --execute="App\\Contexts\\Accounts\\Identity\\Models\\User::factory()->create(['name' => 'UX P9 Visual', 'email' => 'ux-p9-visual@example.test', 'timezone' => 'UTC']);"
 
       - name: Build production frontend
         run: npm run build
