@@ -25,7 +25,7 @@ const classes = {
     :type="type"
     :disabled="disabled"
     class="inline-flex min-h-11 items-center justify-center gap-2 rounded-[var(--ks-radius-sm)] border px-4 py-2.5 text-sm font-[var(--ks-font-display)] font-semibold transition disabled:cursor-not-allowed disabled:opacity-45"
-    :class="classes[variant]"
+    :class="classes[variant ?? 'primary']"
   >
     <slot />
   </button>

@@ -870,9 +870,10 @@ function parsedPollOptions(optionsText: string): Array<{ label: string; value: s
     .map((line) => line.trim())
     .filter(Boolean)
     .map((line) => {
-      const [label, ...rest] = line.split('|');
-      const value = rest.join('|').trim() || label.trim();
-      return { label: label.trim(), value };
+      const [rawLabel = '', ...rest] = line.split('|');
+      const label = rawLabel.trim();
+      const value = rest.join('|').trim() || label;
+      return { label, value };
     });
 }
 function savePoll(): void {

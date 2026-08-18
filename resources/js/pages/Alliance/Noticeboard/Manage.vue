@@ -506,7 +506,7 @@ function timestamp(value: string | null): string {
                   }}</label>
                   <select
                     :id="`type-${item.id}`"
-                    v-model="edits[item.id].content_type"
+                    v-model="edits[item.id]!.content_type"
                     class="ks-input mt-1.5"
                   >
                     <option value="notice">{{ t('contentExperience.notice') }}</option>
@@ -519,7 +519,7 @@ function timestamp(value: string | null): string {
                   }}</label>
                   <select
                     :id="`category-${item.id}`"
-                    v-model="edits[item.id].category_id"
+                    v-model="edits[item.id]!.category_id"
                     class="ks-input mt-1.5"
                   >
                     <option value="">{{ t('contentExperience.noCategory') }}</option>
@@ -534,7 +534,7 @@ function timestamp(value: string | null): string {
                   }}</label>
                   <input
                     :id="`title-${item.id}`"
-                    v-model="edits[item.id].title"
+                    v-model="edits[item.id]!.title"
                     class="ks-input mt-1.5"
                     maxlength="200"
                     required
@@ -546,7 +546,7 @@ function timestamp(value: string | null): string {
                   }}</label>
                   <input
                     :id="`slug-${item.id}`"
-                    v-model="edits[item.id].slug"
+                    v-model="edits[item.id]!.slug"
                     class="ks-input mt-1.5"
                     maxlength="160"
                     required
@@ -559,7 +559,7 @@ function timestamp(value: string | null): string {
                   }}</label>
                   <input
                     :id="`locale-${item.id}`"
-                    v-model="edits[item.id].locale"
+                    v-model="edits[item.id]!.locale"
                     class="ks-input mt-1.5"
                     maxlength="16"
                     required
@@ -571,7 +571,7 @@ function timestamp(value: string | null): string {
                   }}</label>
                   <select
                     :id="`visibility-${item.id}`"
-                    v-model="edits[item.id].visibility"
+                    v-model="edits[item.id]!.visibility"
                     class="ks-input mt-1.5"
                   >
                     <option value="members">{{ t('contentExperience.members') }}</option>
@@ -584,7 +584,7 @@ function timestamp(value: string | null): string {
                   }}</label>
                   <select
                     :id="`status-${item.id}`"
-                    v-model="edits[item.id].status"
+                    v-model="edits[item.id]!.status"
                     class="ks-input mt-1.5"
                   >
                     <option value="draft">{{ t('contentExperience.draft') }}</option>
@@ -597,7 +597,7 @@ function timestamp(value: string | null): string {
                   }}</label>
                   <textarea
                     :id="`summary-${item.id}`"
-                    v-model="edits[item.id].summary"
+                    v-model="edits[item.id]!.summary"
                     class="ks-input mt-1.5 min-h-20"
                     maxlength="1000"
                   />
@@ -608,7 +608,7 @@ function timestamp(value: string | null): string {
                   }}</label>
                   <textarea
                     :id="`body-${item.id}`"
-                    v-model="edits[item.id].body"
+                    v-model="edits[item.id]!.body"
                     class="ks-input mt-1.5 min-h-44"
                     required
                     maxlength="50000"

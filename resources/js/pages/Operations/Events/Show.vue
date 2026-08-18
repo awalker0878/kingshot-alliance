@@ -482,13 +482,13 @@ function statusTone(value: string): 'success' | 'warning' | 'danger' | 'info' {
                 }}</span>
               </div>
               <div class="mt-4 grid gap-3 sm:grid-cols-[10rem_1fr_auto]">
-                <select v-model="assignmentResponses[assignment.id].response" class="ks-input">
+                <select v-model="assignmentResponses[assignment.id]!.response" class="ks-input">
                   <option value="pending">{{ t('events.responses.pending') }}</option>
                   <option value="accepted">{{ t('events.responses.accepted') }}</option>
                   <option value="declined">{{ t('events.responses.declined') }}</option>
                 </select>
                 <input
-                  v-model="assignmentResponses[assignment.id].note"
+                  v-model="assignmentResponses[assignment.id]!.note"
                   class="ks-input"
                   :placeholder="t('events.rallies.note')"
                 />

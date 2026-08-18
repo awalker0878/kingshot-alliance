@@ -349,7 +349,7 @@ function stateTone(value: string): 'success' | 'warning' | 'info' {
                 }}</label>
                 <input
                   :id="`name-${entry.id}`"
-                  v-model="drafts[entry.id].name"
+                  v-model="drafts[entry.id]!.name"
                   class="ks-input mt-1.5"
                   maxlength="160"
                 />
@@ -360,7 +360,7 @@ function stateTone(value: string): 'success' | 'warning' | 'info' {
                 }}</label>
                 <input
                   :id="`role-${entry.id}`"
-                  v-model="drafts[entry.id].game_role"
+                  v-model="drafts[entry.id]!.game_role"
                   class="ks-input mt-1.5"
                   maxlength="64"
                 />
@@ -371,7 +371,7 @@ function stateTone(value: string): 'success' | 'warning' | 'info' {
                 }}</label>
                 <select
                   :id="`state-${entry.id}`"
-                  v-model="drafts[entry.id].state"
+                  v-model="drafts[entry.id]!.state"
                   class="ks-input mt-1.5"
                 >
                   <option v-for="state in states" :key="state" :value="state">
@@ -385,7 +385,7 @@ function stateTone(value: string): 'success' | 'warning' | 'info' {
                 }}</label>
                 <input
                   :id="`joined-${entry.id}`"
-                  v-model="drafts[entry.id].joined_at"
+                  v-model="drafts[entry.id]!.joined_at"
                   class="ks-input mt-1.5"
                   type="date"
                 />
@@ -396,7 +396,7 @@ function stateTone(value: string): 'success' | 'warning' | 'info' {
                 }}</label>
                 <textarea
                   :id="`notes-${entry.id}`"
-                  v-model="drafts[entry.id].manager_notes"
+                  v-model="drafts[entry.id]!.manager_notes"
                   class="ks-input mt-1.5 min-h-20"
                   maxlength="5000"
                 />

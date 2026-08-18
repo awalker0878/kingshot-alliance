@@ -161,7 +161,7 @@ function logout(): void {
       </div>
 
       <div class="px-3 py-4">
-        <IdentitySwitcher :alliance-name="playerAllianceName" />
+        <IdentitySwitcher :alliance-name="playerAllianceName ?? null" />
       </div>
 
       <nav
@@ -263,7 +263,7 @@ function logout(): void {
         </div>
       </div>
       <div class="w-[min(12rem,42vw)]">
-        <IdentitySwitcher :alliance-name="playerAllianceName" compact />
+        <IdentitySwitcher :alliance-name="playerAllianceName ?? null" compact />
       </div>
     </header>
 
@@ -299,7 +299,7 @@ function logout(): void {
         </div>
 
         <div class="border-b border-[var(--ks-border)] p-3">
-          <IdentitySwitcher :alliance-name="playerAllianceName" />
+          <IdentitySwitcher :alliance-name="playerAllianceName ?? null" />
         </div>
 
         <nav
@@ -385,7 +385,7 @@ function logout(): void {
           </div>
         </div>
         <div class="w-[20rem] max-w-[34vw]">
-          <IdentitySwitcher :alliance-name="playerAllianceName" />
+          <IdentitySwitcher :alliance-name="playerAllianceName ?? null" />
         </div>
       </div>
 
