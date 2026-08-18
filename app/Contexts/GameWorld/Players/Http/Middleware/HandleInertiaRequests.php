@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\Players\Http\Middleware;
 
-use App\Contexts\Accounts\Identity\Models\User;
+use App\Contexts\Accounts\Identity\Contracts\AuthenticatedAccount;
 use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Contexts\GameWorld\Players\Services\PlayerContext;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
@@ -39,7 +39,7 @@ final class HandleInertiaRequests extends Middleware
     private function playerContextPayload(Request $request): array
     {
         $user = $request->user();
-        if (! $user instanceof User) {
+        if (! $user instanceof AuthenticatedAccount) {
             return ['activePlayerId' => null, 'players' => []];
         }
 

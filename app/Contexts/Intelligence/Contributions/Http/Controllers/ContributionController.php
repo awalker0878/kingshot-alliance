@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Contributions\Http\Controllers;
 
-use App\Contexts\Accounts\Identity\Models\User;
+use App\Contexts\Accounts\Identity\Contracts\AuthenticatedAccount;
 use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
 use App\Contexts\Alliance\Lifecycle\Services\AllianceContext;
 use App\Contexts\Alliance\Lifecycle\ValueObjects\AllianceReference;
@@ -208,7 +208,7 @@ final class ContributionController extends Controller
         ]);
     }
 
-    /** @return array{User, AllianceScopeReference, AllianceReference, PlayerReference} */
+    /** @return array{AuthenticatedAccount, AllianceScopeReference, AllianceReference, PlayerReference} */
     private function requireManager(Request $request, AllianceContext $context, AllianceReferenceQuery $alliances, PlayerReferenceQuery $players, AllianceIntelligenceAuthorization $authorization): array
     {
         $user = $this->user($request); $scope = $context->scope(); $this->authorizeManager($scope, $authorization);
@@ -220,8 +220,8 @@ final class ContributionController extends Controller
         abort_unless($authorization->allows($scope->playerId, $scope->allianceId, IntelligencePermission::ContributionManage), 403);
     }
 
-    private function user(Request $request): User
+    private function user(Request $request): AuthenticatedAccount
     {
-        $user = $request->user(); abort_unless($user instanceof User, 401); return $user;
+        $user = $request->user(); abort_unless($user instanceof AuthenticatedAccount, 401); return $user;
     }
 }
