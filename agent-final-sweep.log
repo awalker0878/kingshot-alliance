@@ -1,17 +1,17 @@
 === rewrite script ===
 rewrite_status=0
 === prettier ===
-resources/js/pages/Kingdom/RoyalCourt/Roles.vue 219ms
+resources/js/pages/Kingdom/RoyalCourt/Roles.vue 198ms
 resources/js/pages/Kingdom/RoyalCourt/Settings.vue 26ms
-resources/js/pages/Kingdom/Transfer/Completion.vue 103ms
-resources/js/pages/Intelligence/GloryLedger/Manage.vue 228ms
-[90mresources/js/pages/Intelligence/KingdomWatch/Reports.vue[39m 138ms (unchanged)
-[90mresources/js/pages/Intelligence/Roster/History.vue[39m 95ms (unchanged)
-[90mresources/js/pages/Intelligence/Sharing/Index.vue[39m 91ms (unchanged)
+resources/js/pages/Kingdom/Transfer/Completion.vue 98ms
+resources/js/pages/Intelligence/GloryLedger/Manage.vue 218ms
+[90mresources/js/pages/Intelligence/KingdomWatch/Reports.vue[39m 137ms (unchanged)
+[90mresources/js/pages/Intelligence/Roster/History.vue[39m 88ms (unchanged)
+[90mresources/js/pages/Intelligence/Sharing/Index.vue[39m 83ms (unchanged)
 resources/js/pages/Intelligence/Sharing/Manage.vue 87ms
-resources/js/pages/Public/Alliance/Show.vue 79ms
-resources/js/pages/Public/Alliance/Notice.vue 21ms
-resources/js/pages/Public/Recruitment/Apply.vue 67ms
+resources/js/pages/Public/Alliance/Show.vue 69ms
+resources/js/pages/Public/Alliance/Notice.vue 20ms
+resources/js/pages/Public/Recruitment/Apply.vue 65ms
 prettier_status=0
 === eslint ===
 
