@@ -1,0 +1,66 @@
+name: Agent Diagnose Final UI Sweep
+
+on:
+  push:
+    branches:
+      - agent/full-ui-rewrite
+
+permissions:
+  contents: write
+
+jobs:
+  diagnose:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out rewrite branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: agent/full-ui-rewrite
+          fetch-depth: 0
+
+      - name: Configure Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install locked frontend dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Diagnose final sweep
+        shell: bash
+        run: |
+          set +e
+          : > /tmp/final-sweep.log
+
+          echo '=== rewrite script ===' >> /tmp/final-sweep.log
+          python3 scripts/agent-finish-ui-rewrite.py >> /tmp/final-sweep.log 2>&1
+          rewrite_status=$?
+          echo "rewrite_status=${rewrite_status}" >> /tmp/final-sweep.log
+
+          if [ "$rewrite_status" -eq 0 ]; then
+            echo '=== prettier ===' >> /tmp/final-sweep.log
+            npx prettier --write resources/js/pages/Kingdom/RoyalCourt/Roles.vue resources/js/pages/Kingdom/RoyalCourt/Settings.vue resources/js/pages/Kingdom/Transfer/Completion.vue resources/js/pages/Intelligence/GloryLedger/Manage.vue resources/js/pages/Intelligence/KingdomWatch/Reports.vue resources/js/pages/Intelligence/Roster/History.vue resources/js/pages/Intelligence/Sharing/Index.vue resources/js/pages/Intelligence/Sharing/Manage.vue resources/js/pages/Public/Alliance/Show.vue resources/js/pages/Public/Alliance/Notice.vue resources/js/pages/Public/Recruitment/Apply.vue >> /tmp/final-sweep.log 2>&1
+            prettier_status=$?
+            echo "prettier_status=${prettier_status}" >> /tmp/final-sweep.log
+
+            echo '=== eslint ===' >> /tmp/final-sweep.log
+            npx eslint resources/js/pages/Kingdom/RoyalCourt/Roles.vue resources/js/pages/Kingdom/RoyalCourt/Settings.vue resources/js/pages/Kingdom/Transfer/Completion.vue resources/js/pages/Intelligence/GloryLedger/Manage.vue resources/js/pages/Intelligence/KingdomWatch/Reports.vue resources/js/pages/Intelligence/Roster/History.vue resources/js/pages/Intelligence/Sharing/Index.vue resources/js/pages/Intelligence/Sharing/Manage.vue resources/js/pages/Public/Alliance/Show.vue resources/js/pages/Public/Alliance/Notice.vue resources/js/pages/Public/Recruitment/Apply.vue >> /tmp/final-sweep.log 2>&1
+            eslint_status=$?
+            echo "eslint_status=${eslint_status}" >> /tmp/final-sweep.log
+
+            echo '=== npm check ===' >> /tmp/final-sweep.log
+            npm run check >> /tmp/final-sweep.log 2>&1
+            check_status=$?
+            echo "check_status=${check_status}" >> /tmp/final-sweep.log
+          fi
+
+          cp /tmp/final-sweep.log agent-final-sweep.log
+          git restore resources/js/pages/ || true
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add agent-final-sweep.log
+          git commit -m "diagnose final ui sweep"
+          git push origin HEAD:agent/full-ui-rewrite
