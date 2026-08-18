@@ -6,7 +6,9 @@ namespace App\Contexts\GameWorld\Players\Http\Middleware;
 
 use App\Contexts\Accounts\Identity\Contracts\AuthenticatedAccount;
 use App\Contexts\Alliance\Membership\Queries\PlayerIdentityContextQuery;
+use App\Contexts\GameWorld\Governance\Queries\KingdomAuthorityFactsQuery;
 use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
+use App\Contexts\GameWorld\Players\Services\PlayerAuthorityContextVersion;
 use App\Contexts\GameWorld\Players\Services\PlayerContext;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use Illuminate\Http\Request;
@@ -30,6 +32,8 @@ final class HandleInertiaRequests extends Middleware
         private readonly PlayerContext $playerContext,
         private readonly PlayerReferenceQuery $players,
         private readonly PlayerIdentityContextQuery $identityContext,
+        private readonly KingdomAuthorityFactsQuery $kingdomAuthority,
+        private readonly PlayerAuthorityContextVersion $authorityVersions,
     ) {}
 
     public function version(Request $request): ?string
@@ -50,6 +54,7 @@ final class HandleInertiaRequests extends Middleware
     /**
      * @return array{
      *     activePlayerId:?string,
+     *     authorityContextVersion:?string,
      *     players:list<array{
      *         id:string,
      *         name:string,
@@ -79,7 +84,11 @@ final class HandleInertiaRequests extends Middleware
     {
         $user = $request->user();
         if (! $user instanceof AuthenticatedAccount) {
-            return ['activePlayerId' => null, 'players' => []];
+            return [
+                'activePlayerId' => null,
+                'authorityContextVersion' => null,
+                'players' => [],
+            ];
         }
 
         $players = $this->players->ownedByUser((int) $user->id);
@@ -87,9 +96,33 @@ final class HandleInertiaRequests extends Middleware
             static fn (PlayerReference $player): string => $player->playerId,
             $players,
         ));
+        $activePlayerId = $this->playerContext->playerOrNull()?->playerId;
+        $activePlayer = null;
+
+        foreach ($players as $player) {
+            if ($player->playerId === $activePlayerId) {
+                $activePlayer = $player;
+                break;
+            }
+        }
+
+        $authorityContextVersion = null;
+        if ($activePlayer instanceof PlayerReference) {
+            $activeAlliance = $allianceContext[$activePlayer->playerId] ?? null;
+            $kingdomPermissions = $this->kingdomAuthority
+                ->findCurrent($activePlayer->playerId, $activePlayer->kingdomId)
+                ?->permissionKeysObservedAtRead ?? [];
+
+            $authorityContextVersion = $this->authorityVersions->issue(
+                $activePlayer,
+                $activeAlliance,
+                $kingdomPermissions,
+            );
+        }
 
         return [
-            'activePlayerId' => $this->playerContext->playerOrNull()?->playerId,
+            'activePlayerId' => $activePlayerId,
+            'authorityContextVersion' => $authorityContextVersion,
             'players' => array_map(function (PlayerReference $player) use ($allianceContext): array {
                 $membership = $allianceContext[$player->playerId] ?? null;
 
