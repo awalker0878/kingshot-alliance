@@ -16,23 +16,27 @@ final class ActivePlayerUxContractV3Test extends TestCase
         $switcher = $this->source($root.'/resources/js/components/navigation/IdentitySwitcher.vue');
 
         self::assertStringContainsString('export type SharedPlayerContext', $types);
+        self::assertStringContainsString('export type PlayerContextFingerprint', $types);
+        self::assertStringContainsString('contextFingerprint: PlayerContextFingerprint', $types);
         self::assertStringContainsString('activePlayerFrom', $layout);
         self::assertStringContainsString('activePlayerFrom', $switcher);
         self::assertStringContainsString('playerHasCapability', $layout);
         self::assertStringContainsString("requiredCapability: 'recruitment.manage'", $layout);
     }
 
-    public function test_switcher_requests_only_a_player_activation_and_forces_context_replacement(): void
+    public function test_switcher_requests_only_player_activation_and_a_non_authoritative_route_hint(): void
     {
         $root = dirname(__DIR__, 3);
         $switcher = $this->source($root.'/resources/js/components/navigation/IdentitySwitcher.vue');
 
         self::assertStringContainsString('`/players/${playerId}/activate`', $switcher);
+        self::assertStringContainsString('{ returnTo: currentPath.value }', $switcher);
         self::assertStringContainsString('preserveState: false', $switcher);
         self::assertStringContainsString('preserveScroll: false', $switcher);
         self::assertStringNotContainsString('alliance_id', $switcher);
         self::assertStringNotContainsString('kingdom_id', $switcher);
         self::assertStringNotContainsString('membership_id', $switcher);
+        self::assertStringNotContainsString('capabilities:', $switcher);
     }
 
     public function test_switcher_exposes_identity_context_and_keyboard_accessibility(): void
@@ -56,6 +60,35 @@ final class ActivePlayerUxContractV3Test extends TestCase
         }
     }
 
+    public function test_switch_transition_freezes_and_invalidates_old_context_state(): void
+    {
+        $root = dirname(__DIR__, 3);
+        $switcher = $this->source($root.'/resources/js/components/navigation/IdentitySwitcher.vue');
+        $isolation = $this->source($root.'/resources/js/identity/context-isolation.ts');
+
+        foreach ([
+            'activeContextKey',
+            'beginContextTransition',
+            'completeContextTransition',
+            'cancelContextTransition',
+        ] as $expected) {
+            self::assertStringContainsString($expected, $switcher);
+        }
+
+        foreach ([
+            'createContextAbortController',
+            'registerContextDisposer',
+            'platformScopedStorageKey',
+            'playerScopedStorageKey',
+            'contextScopedStorageKey',
+            'kingshot:context-freeze',
+            'kingshot:context-invalidated',
+            'kingshot:context-thaw',
+        ] as $expected) {
+            self::assertStringContainsString($expected, $isolation);
+        }
+    }
+
     public function test_server_projects_display_context_but_remains_authoritative_for_activation(): void
     {
         $root = dirname(__DIR__, 3);
@@ -67,9 +100,13 @@ final class ActivePlayerUxContractV3Test extends TestCase
         self::assertStringContainsString("'alliance' =>", $middleware);
         self::assertStringContainsString("'roles' =>", $middleware);
         self::assertStringContainsString("'capabilities' =>", $middleware);
+        self::assertStringContainsString("'contextFingerprint' =>", $middleware);
+        self::assertStringContainsString("'membershipId' =>", $middleware);
 
         self::assertStringContainsString("->where('user_id', \$userId)", $activation);
-        self::assertStringContainsString("return redirect()->route('dashboard');", $controller);
+        self::assertStringContainsString('PlayerSwitchRouteResolver', $controller);
+        self::assertStringContainsString("\$request->input('returnTo')", $controller);
+        self::assertStringContainsString('return redirect()->to($destination);', $controller);
     }
 
     private function source(string $path): string
