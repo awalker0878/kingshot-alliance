@@ -8,7 +8,6 @@ use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Models\Role;
 use App\Contexts\Alliance\Access\Queries\AlliancePermissionQuery;
 use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\Alliance\Membership\Enums\AllianceRank;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 
@@ -58,7 +57,6 @@ final readonly class PlayerIdentityContextQuery
                 continue;
             }
 
-            $rank = $membership->rank;
             $roles = $membership->roles
                 ->map(static fn (Role $role): array => [
                     'key' => (string) $role->key,
@@ -79,7 +77,7 @@ final readonly class PlayerIdentityContextQuery
             $result[$playerId] = [
                 'allianceId' => (string) $alliance->id,
                 'allianceName' => (string) $alliance->name,
-                'rank' => $rank instanceof AllianceRank ? $rank->value : (string) $rank,
+                'rank' => $membership->rank->value,
                 'roles' => $roles,
                 'capabilities' => $capabilities,
             ];
