@@ -33,11 +33,13 @@ export type PlayerIdentity = {
 
 export type SharedPlayerContext = {
   activePlayerId: string | null;
+  authorityContextVersion: string | null;
   players: PlayerIdentity[];
 };
 
 export const EMPTY_PLAYER_CONTEXT: SharedPlayerContext = {
   activePlayerId: null,
+  authorityContextVersion: null,
   players: [],
 };
 
