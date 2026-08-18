@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Access\Services;
 
-use App\Contexts\Alliance\Access\Enums\DefaultAllianceRole;
 use App\Contexts\Alliance\Access\Queries\AllianceAuthorityFactsQuery;
 use App\Contexts\Alliance\Access\ValueObjects\AllianceAuthorityFacts;
 use App\Contexts\Alliance\Access\ValueObjects\AllianceMutationContext;
@@ -14,6 +13,8 @@ use Illuminate\Auth\Access\AuthorizationException;
 
 final class AllianceOperationsAuthorization
 {
+    private const EVENT_COORDINATOR_ROLE_KEY = 'event_coordinator';
+
     public function __construct(private AllianceAuthorityFactsQuery $authorityFacts) {}
 
     /**
@@ -33,7 +34,7 @@ final class AllianceOperationsAuthorization
         $isOfficer = in_array($context->membership->rank, [AllianceRank::R4, AllianceRank::R5], true);
         $isEventCoordinator = $context->membership->roles()
             ->where('roles.alliance_id', $context->alliance->id)
-            ->where('roles.key', DefaultAllianceRole::EventCoordinator->value)
+            ->where('roles.key', self::EVENT_COORDINATOR_ROLE_KEY)
             ->exists();
 
         if (! $this->allowsRoleState($isOfficer, $isEventCoordinator, $permission)) {
@@ -45,7 +46,7 @@ final class AllianceOperationsAuthorization
     {
         return $this->allowsRoleState(
             isOfficer: in_array($facts->rankObservedAtRead, [AllianceRank::R4, AllianceRank::R5], true),
-            isEventCoordinator: $facts->hasRoleObservedAtRead(DefaultAllianceRole::EventCoordinator->value),
+            isEventCoordinator: $facts->hasRoleObservedAtRead(self::EVENT_COORDINATOR_ROLE_KEY),
             permission: $permission,
         );
     }
