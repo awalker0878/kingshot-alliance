@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Contexts\Accounts\Identity\Models;
 
+use App\Contexts\Accounts\Identity\Contracts\AuthenticatedAccount;
 use App\Shared\Infrastructure\AuditTrail\Contracts\AuditActor;
 use Database\Factories\UserFactory;
 use Illuminate\Auth\MustVerifyEmail;
-use Illuminate\Contracts\Auth\MustVerifyEmail as MustVerifyEmailContract;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -24,7 +24,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property Carbon|null $deletion_requested_at
  * @property Carbon|null $anonymized_at
  */
-final class User extends Authenticatable implements AuditActor, MustVerifyEmailContract
+final class User extends Authenticatable implements AuditActor, AuthenticatedAccount
 {
     use HasApiTokens;
 
