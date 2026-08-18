@@ -16,7 +16,7 @@ type MembershipSummary = {
   canManageAlliance: boolean;
 };
 
-const props = defineProps<{
+defineProps<{
   user: { id: number; name: string; email: string; emailVerified: boolean; timezone: string };
   activePlayer: { id: string; name: string; gamePlayerId: string | null; kingdomNumber: number | null } | null;
   membership: MembershipSummary | null;
