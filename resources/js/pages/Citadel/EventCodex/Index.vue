@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import { computed } from 'vue';
 
+import RoomBanner from '@/components/game/RoomBanner.vue';
+import StatSeal from '@/components/game/StatSeal.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
@@ -45,6 +48,16 @@ const props = defineProps<{
 }>();
 
 const { t } = useLocale();
+
+const activeScopeCount = computed(() =>
+  props.eventTypes.reduce(
+    (total, type) => total + type.scopes.filter((scope) => scope.active).length,
+    0,
+  ),
+);
+const configuredScopeCount = computed(() =>
+  props.eventTypes.reduce((total, type) => total + type.scopes.length, 0),
+);
 
 function formFor(scope: ScopeRow) {
   return useForm({
@@ -91,48 +104,59 @@ function scopeLabel(scope: string): string {
 <template>
   <Head :title="t('events.catalogue.title')" />
   <AppLayout :user="props.user">
-    <header class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-      <div>
-        <p class="text-xs font-bold tracking-[0.2em] text-[var(--ks-gold)] uppercase">
-          {{ t('events.catalogue.eyebrow') }}
-        </p>
-        <h1 class="ks-display mt-2 text-3xl font-semibold sm:text-4xl">
-          {{ t('events.catalogue.title') }}
-        </h1>
-        <p class="mt-3 max-w-3xl text-sm leading-6 text-[var(--ks-text-muted)]">
-          {{ t('events.catalogue.description') }}
-        </p>
-      </div>
-      <Link
-        href="/platform"
-        class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] px-4 py-2 text-sm font-semibold"
-      >
-        {{ t('events.catalogue.back') }}
-      </Link>
-    </header>
+    <RoomBanner
+      :eyebrow="t('events.catalogue.eyebrow')"
+      :title="t('events.catalogue.title')"
+      :subtitle="t('events.catalogue.description')"
+      image="/images/kingshot/v4/event-command.svg"
+      compact
+    >
+      <template #actions>
+        <Link href="/platform" class="ks-command-link" data-variant="secondary">
+          ← {{ t('events.catalogue.back') }}
+        </Link>
+      </template>
+    </RoomBanner>
+
+    <section
+      class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4"
+      aria-label="Event catalogue summary"
+    >
+      <StatSeal :label="t('events.catalogue.title')" :value="props.eventTypes.length" icon="✦" />
+      <StatSeal
+        :label="t('events.catalogue.active')"
+        :value="activeScopeCount"
+        icon="✓"
+        tone="teal"
+      />
+      <StatSeal
+        :label="t('events.catalogue.capabilities')"
+        :value="props.capabilityOptions.length"
+        icon="⚙"
+        tone="stone"
+      />
+      <StatSeal
+        :label="t('events.catalogue.scheduleSource')"
+        :value="configuredScopeCount"
+        icon="⌛"
+      />
+    </section>
 
     <p
       v-if="props.status"
       role="status"
-      class="mb-6 rounded-[var(--ks-radius-md)] border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200"
+      class="ks-surface mt-5 border-emerald-400/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100"
     >
       {{ t('events.catalogue.saved') }}
     </p>
 
-    <div class="space-y-5">
-      <article
-        v-for="type in props.eventTypes"
-        :key="type.id"
-        class="rounded-[var(--ks-radius-lg)] border border-[var(--ks-border)] bg-[var(--ks-surface-1)] p-5"
-      >
+    <div class="mt-5 space-y-5">
+      <article v-for="type in props.eventTypes" :key="type.id" class="ks-surface-gold p-5 sm:p-6">
         <div class="mb-5 flex flex-wrap items-start justify-between gap-3">
           <div>
             <div class="flex items-center gap-2">
               <h2 class="text-xl font-semibold">{{ t(type.nameKey) }}</h2>
-              <span
-                class="rounded-full border border-[var(--ks-border)] px-2 py-0.5 text-xs text-[var(--ks-text-muted)]"
-                >{{ type.category }}</span
-              >
+              <span class="ks-chip">{{ type.category }}</span>
             </div>
             <p
               v-if="type.descriptionKey"
@@ -145,11 +169,7 @@ function scopeLabel(scope: string): string {
         </div>
 
         <div class="grid gap-4 xl:grid-cols-3">
-          <section
-            v-for="scope in type.scopes"
-            :key="scope.id"
-            class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[var(--ks-surface-2)] p-4"
-          >
+          <section v-for="scope in type.scopes" :key="scope.id" class="ks-surface p-4">
             <div class="mb-4 flex items-center justify-between">
               <h3 class="font-semibold">{{ scopeLabel(scope.scope) }}</h3>
               <label class="flex items-center gap-2 text-sm">
@@ -165,7 +185,7 @@ function scopeLabel(scope: string): string {
                   v-model.number="form(scope).default_duration_minutes"
                   type="number"
                   min="1"
-                  class="mt-1 w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-1)] px-3 py-2 text-sm"
+                  class="ks-input mt-1 text-sm disabled:opacity-50"
                 />
               </label>
               <label class="text-xs font-semibold text-[var(--ks-text-muted)]">
@@ -174,7 +194,7 @@ function scopeLabel(scope: string): string {
                   v-model.number="form(scope).default_capacity"
                   type="number"
                   min="1"
-                  class="mt-1 w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-1)] px-3 py-2 text-sm"
+                  class="ks-input mt-1 text-sm disabled:opacity-50"
                 />
               </label>
             </div>
@@ -184,7 +204,7 @@ function scopeLabel(scope: string): string {
                 {{ t('events.catalogue.scheduleSource') }}
                 <select
                   v-model="form(scope).schedule_source"
-                  class="mt-1 w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-1)] px-3 py-2 text-sm"
+                  class="ks-input mt-1 text-sm disabled:opacity-50"
                 >
                   <option v-for="value in props.scheduleSourceOptions" :key="value" :value="value">
                     {{ value.replaceAll('_', ' ') }}
@@ -195,7 +215,7 @@ function scopeLabel(scope: string): string {
                 {{ t('events.catalogue.recurrencePolicy') }}
                 <select
                   v-model="form(scope).recurrence_policy"
-                  class="mt-1 w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-1)] px-3 py-2 text-sm"
+                  class="ks-input mt-1 text-sm disabled:opacity-50"
                 >
                   <option
                     v-for="value in props.recurrencePolicyOptions"
@@ -211,7 +231,7 @@ function scopeLabel(scope: string): string {
                 <select
                   v-model="form(scope).default_recurrence_frequency"
                   :disabled="form(scope).recurrence_policy === 'disabled'"
-                  class="mt-1 w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-1)] px-3 py-2 text-sm disabled:opacity-50"
+                  class="ks-input mt-1 text-sm disabled:opacity-50"
                 >
                   <option
                     v-for="value in props.recurrenceFrequencyOptions"
@@ -229,7 +249,7 @@ function scopeLabel(scope: string): string {
                   :disabled="form(scope).recurrence_policy === 'disabled'"
                   type="number"
                   min="1"
-                  class="mt-1 w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-1)] px-3 py-2 text-sm disabled:opacity-50"
+                  class="ks-input mt-1 text-sm disabled:opacity-50"
                 />
               </label>
               <label class="text-xs font-semibold text-[var(--ks-text-muted)]">
@@ -239,7 +259,7 @@ function scopeLabel(scope: string): string {
                   :disabled="form(scope).recurrence_policy === 'disabled'"
                   type="number"
                   min="1"
-                  class="mt-1 w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-1)] px-3 py-2 text-sm disabled:opacity-50"
+                  class="ks-input mt-1 text-sm disabled:opacity-50"
                 />
               </label>
               <label class="text-xs font-semibold text-[var(--ks-text-muted)]">
@@ -248,7 +268,7 @@ function scopeLabel(scope: string): string {
                   v-model.number="form(scope).default_registration_opens_minutes_before"
                   type="number"
                   min="0"
-                  class="mt-1 w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-1)] px-3 py-2 text-sm"
+                  class="ks-input mt-1 text-sm disabled:opacity-50"
                 />
               </label>
               <label class="text-xs font-semibold text-[var(--ks-text-muted)]">
@@ -257,7 +277,7 @@ function scopeLabel(scope: string): string {
                   v-model.number="form(scope).default_registration_closes_minutes_before"
                   type="number"
                   min="0"
-                  class="mt-1 w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-1)] px-3 py-2 text-sm"
+                  class="ks-input mt-1 text-sm disabled:opacity-50"
                 />
               </label>
               <label class="text-xs font-semibold text-[var(--ks-text-muted)] sm:col-span-2">
@@ -265,7 +285,7 @@ function scopeLabel(scope: string): string {
                 <input
                   v-model="form(scope).default_instructions_key"
                   type="text"
-                  class="mt-1 w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-1)] px-3 py-2 text-sm"
+                  class="ks-input mt-1 text-sm disabled:opacity-50"
                 />
               </label>
             </div>
@@ -276,7 +296,7 @@ function scopeLabel(scope: string): string {
                 v-model="form(scope).default_settings_json"
                 rows="9"
                 spellcheck="false"
-                class="mt-1 w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-1)] px-3 py-2 font-mono text-xs"
+                class="ks-input mt-1 font-mono text-xs"
               />
             </label>
 
@@ -298,7 +318,7 @@ function scopeLabel(scope: string): string {
 
             <button
               type="button"
-              class="mt-4 rounded-[var(--ks-radius-sm)] bg-[var(--ks-gold)] px-4 py-2 text-sm font-bold text-[var(--ks-ink)] disabled:opacity-50"
+              class="ks-command-button mt-4 disabled:opacity-50"
               :disabled="form(scope).processing"
               @click="save(type, scope)"
             >
