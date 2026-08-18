@@ -1,1106 +1,348 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import { reactive } from 'vue';
+import { computed, reactive } from 'vue';
 
-import AppLayout from '@/layouts/AppLayout.vue';
-import RoomBanner from '@/components/game/RoomBanner.vue';
 import EventSigil from '@/components/game/EventSigil.vue';
+import RoomBanner from '@/components/game/RoomBanner.vue';
+import StatSeal from '@/components/game/StatSeal.vue';
+import AppButton from '@/components/ui/AppButton.vue';
+import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
-type Phase = {
+type RallyGuidance = { id: string; name: string; mode: string; troopType: string | null; notes: string | null };
+type PlayerFormation = { id: string; name: string; heroOne: string; heroTwo: string | null; heroThree: string | null; troopType: string | null; notes: string | null; active: boolean };
+type RallyFormation = { id: string; name: string; status: string; rallyCapacity: number | null; rallyLeadPlayerId: string | null; rallyLeadName: string | null; guidanceRule: { id: string; name: string } | null };
+type RallyAssignment = { id: string; role: string; response: string; note: string | null; player: { id: string; name: string }; formation: { id: string; name: string } | null; playerFormation: { id: string; name: string } | null };
+type BattlePlan = {
   id: string;
-  key: string;
-  nameKey: string | null;
-  name: string | null;
-  type: string;
-  startsAt: string | null;
-  endsAt: string | null;
+  title: string;
+  objective: string | null;
+  content: string | null;
   status: string;
-  storedStatus: string;
-  sortOrder: number;
+  publishedAt: string | null;
+  phases: Array<{
+    id: string;
+    label: string;
+    startsAt: string;
+    endsAt: string | null;
+    sortOrder: number;
+    rallyFormation: { id: string; name: string } | null;
+  }>;
 };
-type PollOption = {
-  id: string;
-  label: string;
-  value: string;
-  metadata: Record<string, unknown>;
-  votes: number | null;
-};
+
 type Poll = {
   id: string;
-  key: string;
-  type: 'choice' | 'time_vote';
-  questionKey: string | null;
-  question: string | null;
-  opensAt: string | null;
+  question: string;
   closesAt: string | null;
-  status: string;
-  votingOpen: boolean;
-  maxChoices: number;
-  selectedOptionIds: string[];
-  settings: Record<string, unknown>;
-  options: PollOption[];
+  allowMultiple: boolean;
+  options: Array<{ id: string; label: string; votes: number; selected: boolean }>;
 };
 
-type RosterAssignment = {
+type Roster = {
   id: string;
-  rosterId: string;
-  rosterKey: string;
-  rosterNameKey: string | null;
-  rosterName: string | null;
-  parentNameKey: string | null;
-  parentName: string | null;
-  type: string;
-  role: string | null;
-  slotNumber: number | null;
-  status: 'assigned' | 'confirmed' | 'declined' | 'removed' | 'participated' | 'absent';
-  warnings: string[];
-  notes: string | null;
-  respondedAt: string | null;
-};
-
-type SavedFormation = {
-  id: string;
-  name: string;
-  infantryPercent: number;
-  cavalryPercent: number;
-  archerPercent: number;
-  heroes: string[];
-  notes: string | null;
-  isDefault: boolean;
-};
-type RallyGuidance = {
-  id: string;
-  allianceId: string;
-  allianceName: string;
-  name: string;
-  infantryPercent: number;
-  cavalryPercent: number;
-  archerPercent: number;
-  heroes: string[];
-  leadRequirements: string | null;
-  joinerGuidance: string | null;
-  source: string | null;
-  rationale: string | null;
-  effectiveFrom: string | null;
-  effectiveUntil: string | null;
-};
-type RallyRecommendation = {
-  id: string;
-  allianceId: string;
-  allianceName: string;
-  guidanceRuleId: string | null;
-  key: string;
-  name: string;
-  assignmentRole: string | null;
-  infantryPercent: number;
-  cavalryPercent: number;
-  archerPercent: number;
-  heroes: string[];
-  notes: string | null;
-  sortOrder: number;
-};
-type RallyGroup = {
-  id: string;
-  allianceId: string;
-  allianceName: string;
-  name: string;
-  maxJoiners: number | null;
-  notes: string | null;
-  recommendedFormationId: string | null;
-  recommendedFormationName: string | null;
-  myAssignmentStatus: string | null;
-};
-type RallyAssignment = {
-  id: string;
-  groupId: string;
-  groupName: string;
-  allianceId: string;
-  allianceName: string;
-  role: 'lead' | 'joiner' | 'standby';
-  slotNumber: number | null;
-  status: 'assigned' | 'confirmed' | 'declined' | 'participated' | 'absent' | 'removed';
-  notes: string | null;
-  recommendedFormationName: string | null;
-  respondedAt: string | null;
-  recordedAt: string | null;
-};
-type RallyOperations = {
-  savedFormations: SavedFormation[];
-  alliances: Array<{ id: string; name: string }>;
-  guidance: RallyGuidance[];
-  recommendations: RallyRecommendation[];
-  groups: RallyGroup[];
-  myAssignments: RallyAssignment[];
-};
-
-type ObjectiveAssignment = {
-  id: string;
-  rosterId: string | null;
-  rosterName: string | null;
-  rosterNameKey: string | null;
-  rosterKey: string | null;
-  playerId: string | null;
-  playerName: string | null;
-  notes: string | null;
-  assignedAt: string | null;
-};
-type EventObjective = {
-  id: string;
-  parentId: string | null;
-  type: string;
   name: string;
   description: string | null;
-  priority: number;
-  startsAt: string | null;
-  endsAt: string | null;
-  status: 'planned' | 'active' | 'completed' | 'failed' | 'cancelled';
-  sortOrder: number;
-  metadata: Record<string, unknown>;
-  assignments: ObjectiveAssignment[];
-};
-type BattlePlan = { objectives: EventObjective[]; myAssignmentIds: string[] };
-
-type ResultSummary = {
-  id: string;
-  outcome: string | null;
-  score: number | null;
-  opponentScore: number | null;
-  rank: number | null;
-  metrics: Record<string, unknown>;
-  notes: string | null;
-  recordedAt: string | null;
-};
-type PlayerResult = {
-  id: string;
-  playerId: string;
-  playerName: string | null;
-  outcome: string | null;
-  score: number | null;
-  rank: number | null;
-  metrics: Record<string, unknown>;
-  notes: string | null;
-  recordedAt: string | null;
-};
-type PlayerIntelligence = {
-  playerId: string;
-  playerName: string;
-  commitments: number;
-  completed: number;
-  absent: number;
-  excused: number;
-  unresolved: number;
-  reliabilityPercent: number | null;
-  resultCount: number;
-  averageScore: number | null;
-  bestScore: number | null;
-  latestScore: number | null;
-};
-
-type Participation = {
-  playerId: string;
-  playerName: string;
-  response: {
-    response: 'going' | 'maybe' | 'unavailable';
-    preferredRole: string | null;
-    preferredTeam: string | null;
-    availableFrom: string | null;
-    availableUntil: string | null;
-    note: string | null;
-  } | null;
-  registration: {
-    status: 'registered' | 'waitlisted' | 'cancelled';
-    waitlistPosition: number | null;
-    registeredAt: string | null;
-  } | null;
-  attendance: { status: string; notes: string | null; recordedAt: string | null } | null;
-  registrationWindow: { opensAt: string | null; closesAt: string; isOpen: boolean };
+  members: Array<{
+    id: string;
+    player: { id: string; name: string };
+    response: string;
+    attendance: string | null;
+  }>;
 };
 
 const props = defineProps<{
   user: { name: string; email: string };
   userTimezone: string;
-  event: {
+  occurrence: {
     id: string;
     eventId: string;
+    eventTypeSlug: string;
     nameKey: string;
     title: string | null;
-    scope: string;
+    description: string | null;
+    scope: 'player' | 'alliance' | 'kingdom';
     targetLabel: string;
+    targetAllianceId: string | null;
     startsAt: string;
     endsAt: string;
     timezone: string;
     status: string;
-    instructions: string | null;
-    settings: Record<string, unknown>;
-    capacity: number | null;
-    recurrenceFrequency: string;
-    recurrenceInterval: number;
-    recurrenceUntil: string | null;
     capabilities: string[];
+    registrationMode: string;
+    visibility: string;
     canManage: boolean;
-    participation: Participation | null;
-    operations: { phases: Phase[]; polls: Poll[] };
-    battlePlan: BattlePlan;
-    results: { summary: ResultSummary | null; player: PlayerResult | null };
-    playerIntelligence: PlayerIntelligence | null;
-    rosters: RosterAssignment[];
-    rallies: RallyOperations;
+    responses: Array<{ playerId: string; response: string; attendance: string | null }>;
+    registrations: Array<{ playerId: string; status: string }>;
+    phases: Array<{ id: string; label: string; startsAt: string; endsAt: string | null }>;
+    polls: Poll[];
+    rosters: Roster[];
+    reminders: Array<{ id: string; minutesBefore: number; channel: string; requiredCapability: string | null }>;
+    formations: RallyFormation[];
+    assignments: RallyAssignment[];
+    battlePlans: BattlePlan[];
   };
+  activePlayer: { id: string; name: string };
+  currentResponse: string | null;
+  currentRegistration: string | null;
+  playerAssignments: RallyAssignment[];
+  availablePlayerFormations: PlayerFormation[];
+  availableRallyGuidance: RallyGuidance[];
 }>();
-const { t, formatDate } = useLocale();
-const title = props.event.title || t(props.event.nameKey);
-const responseForm = useForm({
-  response:
-    props.event.participation?.response?.response ?? ('going' as 'going' | 'maybe' | 'unavailable'),
-  preferred_role: '',
-  preferred_team: '',
-  note: '',
-});
+
+const { t, formatDate, formatNumber } = useLocale();
+const responseForm = useForm({ response: props.currentResponse ?? 'yes', attendance: '' });
 const registrationForm = useForm({});
-function registrationError(): string | undefined {
-  return (registrationForm.errors as Record<string, string | undefined>).registration;
-}
-const defaultSavedFormation =
-  props.event.rallies.savedFormations.find((formation) => formation.isDefault) ??
-  props.event.rallies.savedFormations[0];
-const formationForm = useForm({
-  name: defaultSavedFormation?.name ?? '',
-  infantry_percent: defaultSavedFormation?.infantryPercent ?? 10,
-  cavalry_percent: defaultSavedFormation?.cavalryPercent ?? 10,
-  archer_percent: defaultSavedFormation?.archerPercent ?? 80,
-  heroes_text: defaultSavedFormation?.heroes.join(', ') ?? '',
-  notes: defaultSavedFormation?.notes ?? '',
-  is_default: defaultSavedFormation?.isDefault ?? true,
-});
-const pollSelections = reactive<Record<string, string[]>>(
-  Object.fromEntries(
-    props.event.operations.polls.map((poll) => [poll.id, [...poll.selectedOptionIds]]),
-  ),
+const assignmentResponses = reactive<Record<string, { response: string; note: string }>>(
+  Object.fromEntries(props.playerAssignments.map((assignment) => [assignment.id, { response: assignment.response, note: assignment.note ?? '' }])),
 );
 
-function pollQuestion(poll: Poll): string {
-  return poll.question || (poll.questionKey ? t(poll.questionKey) : poll.key);
-}
-function phaseName(phase: Phase): string {
-  return phase.name || (phase.nameKey ? t(phase.nameKey) : phase.key);
-}
-function togglePollOption(poll: Poll, optionId: string): void {
-  const current = pollSelections[poll.id] ?? [];
-  if (poll.maxChoices === 1) {
-    pollSelections[poll.id] = [optionId];
-    return;
-  }
-  pollSelections[poll.id] = current.includes(optionId)
-    ? current.filter((id) => id !== optionId)
-    : current.length < poll.maxChoices
-      ? [...current, optionId]
-      : current;
-}
-function submitVote(poll: Poll): void {
-  router.put(
-    `/events/${props.event.id}/polls/${poll.id}/vote`,
-    { option_ids: pollSelections[poll.id] ?? [] },
-    { preserveScroll: true },
-  );
-}
+const displayName = computed(() => props.occurrence.title || t(props.occurrence.nameKey));
+const durationLabel = computed(() => {
+  const start = new Date(props.occurrence.startsAt).getTime();
+  const end = new Date(props.occurrence.endsAt).getTime();
+  const minutes = Math.max(0, Math.round((end - start) / 60000));
+  if (minutes >= 1440 && minutes % 1440 === 0) return `${minutes / 1440}d`;
+  if (minutes >= 60 && minutes % 60 === 0) return `${minutes / 60}h`;
+  return `${minutes}m`;
+});
+const responseCounts = computed(() => {
+  const counts: Record<string, number> = {};
+  for (const response of props.occurrence.responses) counts[response.response] = (counts[response.response] ?? 0) + 1;
+  return counts;
+});
 
-function respond(value: 'going' | 'maybe' | 'unavailable'): void {
-  responseForm.response = value;
-  responseForm.post(`/events/${props.event.id}/responses`, { preserveScroll: true });
+function respond(): void {
+  responseForm.post(`/events/${props.occurrence.id}/responses`, { preserveScroll: true });
 }
 function register(): void {
-  registrationForm.post(`/events/${props.event.id}/registrations`, { preserveScroll: true });
+  registrationForm.post(`/events/${props.occurrence.id}/registrations`, { preserveScroll: true });
 }
 function cancelRegistration(): void {
-  registrationForm.delete(`/events/${props.event.id}/registrations`, { preserveScroll: true });
+  router.delete(`/events/${props.occurrence.id}/registrations`, { preserveScroll: true });
 }
-function rosterName(assignment: RosterAssignment): string {
-  return (
-    assignment.rosterName ||
-    (assignment.rosterNameKey ? t(assignment.rosterNameKey) : assignment.rosterKey)
-  );
+function vote(pollId: string, optionId: string): void {
+  router.put(`/events/${props.occurrence.id}/polls/${pollId}/vote`, { option_id: optionId }, { preserveScroll: true });
 }
-function rosterParentName(assignment: RosterAssignment): string | null {
-  return assignment.parentName || (assignment.parentNameKey ? t(assignment.parentNameKey) : null);
+function updateRosterResponse(memberId: string, response: string): void {
+  router.put(`/events/${props.occurrence.id}/roster-members/${memberId}/response`, { response }, { preserveScroll: true });
 }
-function respondToRoster(assignment: RosterAssignment, status: 'confirmed' | 'declined'): void {
-  router.put(
-    `/events/${props.event.id}/roster-members/${assignment.id}/response`,
-    { status },
-    { preserveScroll: true },
-  );
+function respondToAssignment(assignmentId: string): void {
+  const draft = assignmentResponses[assignmentId];
+  if (!draft) return;
+  router.put(`/events/${props.occurrence.id}/rally-assignments/${assignmentId}/response`, draft, { preserveScroll: true });
 }
-function savePlayerFormation(): void {
-  formationForm.transform((data) => ({
-    ...data,
-    heroes: data.heroes_text
-      .split(',')
-      .map((hero) => hero.trim())
-      .filter(Boolean)
-      .slice(0, 5),
-  }));
-  formationForm.post('/player/formations', { preserveScroll: true });
+function eventDate(value: string): string {
+  return formatDate(value, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
 }
-function deletePlayerFormation(formationId: string): void {
-  router.delete(`/player/formations/${formationId}`, { preserveScroll: true });
+function shortDate(value: string): string {
+  return formatDate(value, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
 }
-function respondToRally(assignment: RallyAssignment, status: 'confirmed' | 'declined'): void {
-  router.put(
-    `/events/${props.event.id}/rally-assignments/${assignment.id}/response`,
-    { status },
-    { preserveScroll: true },
-  );
-}
-function compositionLabel(item: {
-  infantryPercent: number;
-  cavalryPercent: number;
-  archerPercent: number;
-}): string {
-  return `${item.infantryPercent}/${item.cavalryPercent}/${item.archerPercent}`;
-}
-function objectiveTargetLabel(assignment: ObjectiveAssignment): string {
-  return (
-    assignment.playerName ??
-    assignment.rosterName ??
-    assignment.rosterKey ??
-    t('events.objectives.assignment')
-  );
-}
-function objectiveAssignedToMe(objective: EventObjective): boolean {
-  return objective.assignments.some((assignment) =>
-    props.event.battlePlan.myAssignmentIds.includes(assignment.id),
-  );
+function humanize(value: string): string { return value.replaceAll('_', ' '); }
+function statusTone(value: string): 'success' | 'warning' | 'danger' | 'info' {
+  if (['completed', 'confirmed', 'accepted', 'yes', 'present', 'published', 'ready'].includes(value)) return 'success';
+  if (['cancelled', 'declined', 'no', 'absent', 'blocked'].includes(value)) return 'danger';
+  if (['pending', 'maybe', 'scheduled', 'draft'].includes(value)) return 'warning';
+  return 'info';
 }
 </script>
 
 <template>
-  <Head :title="title" />
-  <AppLayout :user="props.user">
-    <div class="mx-auto max-w-[94rem]">
-      <Link
-        href="/events"
-        class="text-sm font-semibold text-[var(--ks-text-muted)] hover:text-[var(--ks-text)]"
-        >← {{ t('events.show.back') }}</Link
-      >
-      <RoomBanner :eyebrow="`${t(`events.scope.${event.scope}`)} · ${event.targetLabel}`" :title="title" :subtitle="formatDate(new Date(event.startsAt), { weekday: 'long', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit' })" :image="title.toLowerCase().includes('bear') ? '/images/kingshot/bear-hunt.svg' : '/images/kingshot/realm-command.svg'">
-        <EventSigil :name="title" />
-        <template #actions><Link v-if="event.canManage" :href="`/events/${event.eventId}/manage`" class="ks-command-link">Event Orders</Link></template>
-      </RoomBanner>
-      <nav class="ks-tab-strip mt-4" aria-label="Event command rooms">
-        <a v-if="event.participation && (event.capabilities.includes('responses') || event.capabilities.includes('registration'))" href="#muster" class="ks-tab">Alliance Muster</a>
-        <a v-if="event.capabilities.includes('formations') || event.capabilities.includes('rally_guidance')" href="#rally-command" class="ks-tab">Rally Command</a>
-        <a v-if="event.capabilities.includes('objectives')" href="#battle-plan" class="ks-tab">Battle Plan</a>
-        <a v-if="event.operations.polls.length" href="#event-polls" class="ks-tab">Event Polls</a>
-        <a v-if="event.capabilities.includes('results') && (event.results.summary || event.results.player)" href="#war-report" class="ks-tab">War Report</a>
-        <Link v-if="event.capabilities.includes('king_perks')" :href="`/events/${event.eventId}/king-perks?occurrence=${event.id}`" class="ks-tab">King’s Court</Link>
-      </nav>
+  <Head :title="`${displayName} · ${t('events.calendar.title')}`" />
 
-      <section
-        id="muster"
-        v-if="
-          event.participation &&
-          (event.capabilities.includes('responses') || event.capabilities.includes('registration'))
-        "
-        class="mt-5 rounded-[var(--ks-radius-lg)] border border-[var(--ks-border)] bg-[var(--ks-surface-1)] p-6"
-      >
-        <div class="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <p class="text-xs font-bold tracking-[0.15em] text-[var(--ks-gold)] uppercase">
-              {{ t('events.participation.eyebrow') }}
-            </p>
-            <h2 class="mt-1 text-lg font-semibold">{{ event.participation.playerName }}</h2>
-          </div>
-          <span
-            v-if="event.participation.attendance"
-            class="rounded-full border border-[var(--ks-border)] px-2 py-1 text-xs"
-            >{{ t('events.participation.attendance') }}:
-            {{ t(`events.attendanceStatuses.${event.participation.attendance.status}`) }}</span
-          >
-        </div>
-
-        <div v-if="event.capabilities.includes('responses')" class="mt-5">
-          <h3 class="text-sm font-semibold">{{ t('events.participation.response') }}</h3>
-          <div class="mt-2 flex flex-wrap gap-2">
-            <button
-              v-for="choice in ['going', 'maybe', 'unavailable'] as const"
-              :key="choice"
-              type="button"
-              :disabled="responseForm.processing"
-              class="rounded px-4 py-2 text-sm font-semibold"
-              :class="
-                event.participation.response?.response === choice
-                  ? 'bg-[var(--ks-gold)] text-[var(--ks-ink)]'
-                  : 'border border-[var(--ks-border)]'
-              "
-              :aria-pressed="event.participation.response?.response === choice"
-              @click="respond(choice)"
-            >
-              {{ t(`events.responses.${choice}`) }}
-            </button>
-          </div>
-          <p v-if="responseForm.errors.response" class="mt-2 text-xs text-red-300">
-            {{ responseForm.errors.response }}
-          </p>
-        </div>
-
-        <div
-          v-if="event.capabilities.includes('registration')"
-          class="mt-5 border-t border-[var(--ks-border)] pt-5"
+  <AppLayout :user="user">
+    <RoomBanner
+      :eyebrow="t(`events.scope.${occurrence.scope}`)"
+      :title="displayName"
+      :subtitle="occurrence.description || occurrence.targetLabel"
+      image="/images/kingshot/v4/event-command.svg"
+      compact
+    >
+      <template #actions>
+        <Link href="/events" class="ks-command-link">← {{ t('events.calendar.title') }}</Link>
+        <Link
+          v-if="occurrence.canManage"
+          :href="`/events/${occurrence.eventId}/manage`"
+          class="ks-command-link"
+          data-variant="secondary"
         >
-          <h3 class="text-sm font-semibold">{{ t('events.participation.registration') }}</h3>
-          <p
-            v-if="
-              event.participation.registration &&
-              event.participation.registration.status !== 'cancelled'
-            "
-            class="mt-2 text-sm text-[var(--ks-text-secondary)]"
-          >
-            {{ t(`events.registration.${event.participation.registration.status}`)
-            }}<span v-if="event.participation.registration.waitlistPosition">
-              · #{{ event.participation.registration.waitlistPosition }}</span
-            >
-          </p>
-          <div class="mt-3">
-            <button
-              v-if="
-                event.participation.registration &&
-                event.participation.registration.status !== 'cancelled'
-              "
-              type="button"
-              :disabled="registrationForm.processing"
-              class="rounded border border-red-500/30 px-4 py-2 text-sm font-semibold text-red-200"
-              @click="cancelRegistration"
-            >
-              {{ t('events.participation.cancelRegistration') }}
-            </button>
-            <button
-              v-else-if="event.participation.registrationWindow.isOpen"
-              type="button"
-              :disabled="registrationForm.processing"
-              class="rounded bg-[var(--ks-blue-soft)] px-4 py-2 text-sm font-semibold text-[var(--ks-blue-strong)]"
-              @click="register"
-            >
-              {{ t('events.participation.register') }}
-            </button>
-            <p v-else class="text-xs text-[var(--ks-text-muted)]">
-              {{ t('events.participation.registrationClosed') }}
-            </p>
-          </div>
-          <p v-if="registrationError()" class="mt-2 text-xs text-red-300">
-            {{ registrationError() }}
-          </p>
-        </div>
-      </section>
+          {{ t('events.management.manage') }}
+        </Link>
+      </template>
+      <template #aside>
+        <span class="ks-status" :data-tone="statusTone(occurrence.status)">{{ humanize(occurrence.status) }}</span>
+      </template>
+    </RoomBanner>
 
-      <section
-        v-if="event.capabilities.includes('rosters') && event.rosters.length"
-        class="mt-5 rounded-[var(--ks-radius-lg)] border border-[var(--ks-border)] bg-[var(--ks-surface-1)] p-6"
-      >
-        <p class="text-xs font-bold tracking-[0.15em] text-[var(--ks-gold)] uppercase">
-          {{ t('events.rosters.eyebrow') }}
-        </p>
-        <h2 class="mt-1 text-lg font-semibold">{{ t('events.rosters.title') }}</h2>
-        <div class="mt-4 space-y-3">
-          <article
-            v-for="assignment in event.rosters"
-            :key="assignment.id"
-            class="rounded border border-[var(--ks-border)] p-4"
-          >
-            <div class="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <div class="font-semibold">
-                  <span v-if="rosterParentName(assignment)"
-                    >{{ rosterParentName(assignment) }} · </span
-                  >{{ rosterName(assignment) }}
-                </div>
-                <div class="mt-1 text-xs text-[var(--ks-text-muted)]">
-                  <span v-if="assignment.role">{{ assignment.role }}</span
-                  ><span v-if="assignment.slotNumber">
-                    · {{ t('events.rosters.slot') }} #{{ assignment.slotNumber }}</span
-                  >
-                </div>
-              </div>
-              <span class="rounded-full border border-[var(--ks-border)] px-2 py-1 text-xs">{{
-                t(`events.rosters.status.${assignment.status}`)
-              }}</span>
-            </div>
-            <div v-if="assignment.warnings.length" class="mt-3 flex flex-wrap gap-2">
-              <span
-                v-for="warning in assignment.warnings"
-                :key="warning"
-                class="rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-1 text-[0.68rem] text-amber-100"
-                >{{ t(`events.rosters.warnings.${warning}`) }}</span
-              >
-            </div>
-            <p
-              v-if="assignment.notes"
-              class="mt-3 text-sm whitespace-pre-line text-[var(--ks-text-secondary)]"
-            >
-              {{ assignment.notes }}
-            </p>
-            <div
-              v-if="['assigned', 'confirmed', 'declined'].includes(assignment.status)"
-              class="mt-4 flex flex-wrap gap-2"
-            >
-              <button
-                type="button"
-                class="rounded px-3 py-2 text-sm font-semibold"
-                :class="
-                  assignment.status === 'confirmed'
-                    ? 'bg-emerald-500/20 text-emerald-100'
-                    : 'border border-[var(--ks-border)]'
-                "
-                @click="respondToRoster(assignment, 'confirmed')"
-              >
-                {{ t('events.rosters.confirm') }}</button
-              ><button
-                type="button"
-                class="rounded px-3 py-2 text-sm font-semibold"
-                :class="
-                  assignment.status === 'declined'
-                    ? 'bg-red-500/20 text-red-100'
-                    : 'border border-[var(--ks-border)]'
-                "
-                @click="respondToRoster(assignment, 'declined')"
-              >
-                {{ t('events.rosters.decline') }}
-              </button>
-            </div>
-          </article>
-        </div>
-      </section>
+    <section class="mt-4 grid gap-3 sm:grid-cols-2 2xl:grid-cols-5">
+      <StatSeal :label="t('events.management.startsAt')" :value="shortDate(occurrence.startsAt)" icon="◷" />
+      <StatSeal :label="t('events.management.durationMinutes')" :value="durationLabel" icon="⌛" tone="stone" />
+      <StatSeal :label="t('events.management.registrationMode')" :value="humanize(occurrence.registrationMode)" icon="♟" tone="teal" />
+      <StatSeal :label="t('events.management.polls')" :value="formatNumber(occurrence.polls.length)" icon="◎" />
+      <StatSeal :label="t('events.management.rosters')" :value="formatNumber(occurrence.rosters.length)" icon="▤" tone="teal" />
+    </section>
 
-      <section
-        id="rally-command"
-        v-if="
-          event.capabilities.includes('formations') || event.capabilities.includes('rally_guidance')
-        "
-        class="mt-5 space-y-5"
-      >
-        <div
-          v-if="event.capabilities.includes('formations') && event.participation"
-          class="rounded-[var(--ks-radius-lg)] border border-[var(--ks-border)] bg-[var(--ks-surface-1)] p-6"
-        >
-          <p class="text-xs font-bold tracking-[0.15em] text-[var(--ks-gold)] uppercase">
-            {{ t('events.rallies.formationsEyebrow') }}
-          </p>
-          <h2 class="mt-1 text-lg font-semibold">{{ t('events.rallies.savedFormations') }}</h2>
-          <div v-if="event.rallies.savedFormations.length" class="mt-4 grid gap-3 md:grid-cols-2">
-            <article
-              v-for="formation in event.rallies.savedFormations"
-              :key="formation.id"
-              class="rounded border border-[var(--ks-border)] p-3"
-            >
-              <div class="flex items-start justify-between gap-3">
-                <div>
-                  <div class="font-semibold">
-                    {{ formation.name }}
-                    <span v-if="formation.isDefault" class="text-xs text-[var(--ks-gold)]">{{
-                      t('events.rallies.default')
-                    }}</span>
-                  </div>
-                  <div class="mt-1 text-xs text-[var(--ks-text-muted)]">
-                    {{ compositionLabel(formation) }} ·
-                    {{ formation.heroes.join(', ') || t('events.rallies.noHeroes') }}
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  class="text-xs text-red-200"
-                  @click="deletePlayerFormation(formation.id)"
-                >
-                  {{ t('events.rallies.delete') }}
-                </button>
-              </div>
-              <p v-if="formation.notes" class="mt-2 text-xs text-[var(--ks-text-secondary)]">
-                {{ formation.notes }}
-              </p>
-            </article>
-          </div>
-          <form class="mt-5 grid gap-3 md:grid-cols-2" @submit.prevent="savePlayerFormation">
-            <input
-              v-model="formationForm.name"
-              required
-              :placeholder="t('events.rallies.formationName')"
-              class="rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
-            />
-            <div class="grid grid-cols-3 gap-2">
-              <input
-                v-model.number="formationForm.infantry_percent"
-                type="number"
-                min="0"
-                max="100"
-                :aria-label="t('events.rallies.infantry')"
-                class="rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-2 py-2 text-sm"
-              /><input
-                v-model.number="formationForm.cavalry_percent"
-                type="number"
-                min="0"
-                max="100"
-                :aria-label="t('events.rallies.cavalry')"
-                class="rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-2 py-2 text-sm"
-              /><input
-                v-model.number="formationForm.archer_percent"
-                type="number"
-                min="0"
-                max="100"
-                :aria-label="t('events.rallies.archers')"
-                class="rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-2 py-2 text-sm"
-              />
-            </div>
-            <input
-              v-model="formationForm.heroes_text"
-              :placeholder="t('events.rallies.heroesHelp')"
-              class="rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
-            /><input
-              v-model="formationForm.notes"
-              :placeholder="t('events.rallies.notes')"
-              class="rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
-            /><label class="flex items-center gap-2 text-sm"
-              ><input v-model="formationForm.is_default" type="checkbox" />{{
-                t('events.rallies.makeDefault')
-              }}</label
-            ><button
-              type="submit"
-              :disabled="formationForm.processing"
-              class="rounded bg-[var(--ks-blue-soft)] px-4 py-2 text-sm font-semibold text-[var(--ks-blue-strong)]"
-            >
-              {{ t('events.rallies.saveFormation') }}
-            </button>
-          </form>
-        </div>
-        <div
-          v-if="event.capabilities.includes('rally_guidance')"
-          class="rounded-[var(--ks-radius-lg)] border border-[var(--ks-border)] bg-[var(--ks-surface-1)] p-6"
-        >
-          <p class="text-xs font-bold tracking-[0.15em] text-[var(--ks-gold)] uppercase">
-            {{ t('events.rallies.guidanceEyebrow') }}
-          </p>
-          <h2 class="mt-1 text-lg font-semibold">{{ t('events.rallies.guidance') }}</h2>
-          <div class="mt-4 grid gap-3 md:grid-cols-2">
-            <article
-              v-for="rule in event.rallies.guidance"
-              :key="rule.id"
-              class="rounded border border-[var(--ks-border)] p-4"
-            >
-              <div class="font-semibold">{{ rule.allianceName }} · {{ rule.name }}</div>
-              <div class="mt-1 text-xs text-[var(--ks-text-muted)]">
-                {{ compositionLabel(rule) }} · {{ rule.heroes.join(', ') }}
-              </div>
-              <p v-if="rule.leadRequirements" class="mt-3 text-sm">
-                <strong>{{ t('events.rallies.lead') }}:</strong> {{ rule.leadRequirements }}
-              </p>
-              <p v-if="rule.joinerGuidance" class="mt-2 text-sm">
-                <strong>{{ t('events.rallies.joiner') }}:</strong> {{ rule.joinerGuidance }}
-              </p>
-            </article>
-          </div>
-          <p v-if="!event.rallies.guidance.length" class="mt-3 text-sm text-[var(--ks-text-muted)]">
-            {{ t('events.rallies.noGuidance') }}
-          </p>
-        </div>
-        <div
-          v-if="event.rallies.recommendations.length"
-          class="rounded-[var(--ks-radius-lg)] border border-[var(--ks-border)] bg-[var(--ks-surface-1)] p-6"
-        >
-          <h2 class="text-lg font-semibold">{{ t('events.rallies.recommendedFormations') }}</h2>
-          <div class="mt-4 grid gap-3 md:grid-cols-2">
-            <article
-              v-for="formation in event.rallies.recommendations"
-              :key="formation.id"
-              class="rounded border border-[var(--ks-border)] p-4"
-            >
-              <div class="font-semibold">{{ formation.allianceName }} · {{ formation.name }}</div>
-              <div class="mt-1 text-xs text-[var(--ks-text-muted)]">
-                {{ compositionLabel(formation) }} · {{ formation.heroes.join(', ') }}
-              </div>
-              <p v-if="formation.notes" class="mt-2 text-sm text-[var(--ks-text-secondary)]">
-                {{ formation.notes }}
-              </p>
-            </article>
-          </div>
-        </div>
-        <div
-          v-if="event.rallies.myAssignments.length"
-          class="rounded-[var(--ks-radius-lg)] border border-[var(--ks-border)] bg-[var(--ks-surface-1)] p-6"
-        >
-          <h2 class="text-lg font-semibold">{{ t('events.rallies.myAssignments') }}</h2>
-          <div class="mt-4 space-y-3">
-            <article
-              v-for="assignment in event.rallies.myAssignments"
-              :key="assignment.id"
-              class="rounded border border-[var(--ks-border)] p-4"
-            >
-              <div class="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <div class="font-semibold">
-                    {{ assignment.allianceName }} · {{ assignment.groupName }}
-                  </div>
-                  <div class="mt-1 text-xs text-[var(--ks-text-muted)]">
-                    {{ t(`events.rallies.roles.${assignment.role}`)
-                    }}<span v-if="assignment.slotNumber">
-                      · {{ t('events.rallies.slot') }} #{{ assignment.slotNumber }}</span
-                    ><span v-if="assignment.recommendedFormationName">
-                      · {{ assignment.recommendedFormationName }}</span
-                    >
-                  </div>
-                </div>
-                <span class="rounded-full border border-[var(--ks-border)] px-2 py-1 text-xs">{{
-                  t(`events.rallies.status.${assignment.status}`)
-                }}</span>
-              </div>
-              <p v-if="assignment.notes" class="mt-2 text-sm text-[var(--ks-text-secondary)]">
-                {{ assignment.notes }}
-              </p>
-              <div
-                v-if="['assigned', 'confirmed', 'declined'].includes(assignment.status)"
-                class="mt-3 flex gap-2"
-              >
-                <button
-                  type="button"
-                  class="rounded bg-emerald-500/20 px-3 py-2 text-sm font-semibold text-emerald-100"
-                  @click="respondToRally(assignment, 'confirmed')"
-                >
-                  {{ t('events.rallies.confirm') }}</button
-                ><button
-                  type="button"
-                  class="rounded bg-red-500/15 px-3 py-2 text-sm font-semibold text-red-100"
-                  @click="respondToRally(assignment, 'declined')"
-                >
-                  {{ t('events.rallies.decline') }}
-                </button>
-              </div>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      <section
-        id="battle-plan"
-        v-if="event.capabilities.includes('objectives')"
-        class="mt-5 rounded-[var(--ks-radius-lg)] border border-[var(--ks-border)] bg-[var(--ks-surface-1)] p-6"
-      >
+    <section class="ks-surface-gold mt-5 p-5 sm:p-6" aria-labelledby="event-response-heading">
+      <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center">
         <div>
-          <p class="text-xs font-bold tracking-[0.15em] text-[var(--ks-gold)] uppercase">
-            {{ t('events.objectives.eyebrow') }}
+          <p class="ks-kicker">{{ activePlayer.name }}</p>
+          <h2 id="event-response-heading" class="ks-display mt-1 text-2xl font-semibold">
+            {{ t('events.participation.yourResponse') }}
+          </h2>
+          <p class="mt-2 text-sm leading-6 text-[var(--ks-text-secondary)]">
+            {{ eventDate(occurrence.startsAt) }} · {{ occurrence.targetLabel }}
           </p>
-          <h2 class="mt-1 text-lg font-semibold">{{ t('events.objectives.title') }}</h2>
-        </div>
-        <div v-if="event.battlePlan.objectives.length" class="mt-4 space-y-3">
-          <article
-            v-for="objective in event.battlePlan.objectives"
-            :key="objective.id"
-            class="rounded border p-4"
-            :class="
-              objectiveAssignedToMe(objective)
-                ? 'border-[var(--ks-gold)] bg-[var(--ks-gold)]/5'
-                : 'border-[var(--ks-border)]'
-            "
-          >
-            <div class="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <div class="font-semibold">
-                  {{ objective.name }}
-                  <span
-                    v-if="objectiveAssignedToMe(objective)"
-                    class="ms-2 text-xs text-[var(--ks-gold)]"
-                    >{{ t('events.objectives.assignedToYou') }}</span
-                  >
-                </div>
-                <div class="mt-1 text-xs text-[var(--ks-text-muted)]">
-                  P{{ objective.priority }} ·
-                  {{ t(`events.objectives.status.${objective.status}`) }} · {{ objective.type }}
-                </div>
-              </div>
-              <div v-if="objective.startsAt" class="text-xs text-[var(--ks-text-muted)]">
-                {{
-                  formatDate(new Date(objective.startsAt), {
-                    month: 'short',
-                    day: 'numeric',
-                    hour: 'numeric',
-                    minute: '2-digit',
-                  })
-                }}<span v-if="objective.endsAt">
-                  →
-                  {{
-                    formatDate(new Date(objective.endsAt), { hour: 'numeric', minute: '2-digit' })
-                  }}</span
-                >
-              </div>
-            </div>
-            <p v-if="objective.description" class="mt-3 text-sm text-[var(--ks-text-secondary)]">
-              {{ objective.description }}
-            </p>
-            <div v-if="objective.assignments.length" class="mt-3 flex flex-wrap gap-2">
-              <span
-                v-for="assignment in objective.assignments"
-                :key="assignment.id"
-                class="rounded-full border border-[var(--ks-border)] px-2 py-1 text-xs"
-                :class="
-                  event.battlePlan.myAssignmentIds.includes(assignment.id)
-                    ? 'border-[var(--ks-gold)] text-[var(--ks-gold)]'
-                    : ''
-                "
-                >{{ objectiveTargetLabel(assignment) }}</span
-              >
-            </div>
-          </article>
-        </div>
-        <p v-else class="mt-4 text-sm text-[var(--ks-text-muted)]">
-          {{ t('events.objectives.none') }}
-        </p>
-      </section>
-
-      <section
-        id="war-report"
-        v-if="
-          event.capabilities.includes('results') &&
-          (event.results.summary || event.results.player || event.playerIntelligence)
-        "
-        class="mt-5 rounded-[var(--ks-radius-lg)] border border-[var(--ks-border)] bg-[var(--ks-surface-1)] p-6"
-      >
-        <div>
-          <p class="text-xs font-bold tracking-[0.15em] text-[var(--ks-gold)] uppercase">
-            {{ t('events.results.eyebrow') }}
-          </p>
-          <h2 class="mt-1 text-lg font-semibold">{{ t('events.results.title') }}</h2>
-        </div>
-        <div class="mt-4 grid gap-4 md:grid-cols-2">
-          <article
-            v-if="event.results.summary"
-            class="rounded border border-[var(--ks-border)] p-4"
-          >
-            <h3 class="font-semibold">{{ t('events.results.occurrenceResult') }}</h3>
-            <div class="mt-3 grid grid-cols-2 gap-2 text-sm">
-              <span>{{ t('events.results.outcome') }}</span
-              ><strong>{{ event.results.summary.outcome ?? '—' }}</strong
-              ><span>{{ t('events.results.score') }}</span
-              ><strong>{{ event.results.summary.score ?? '—' }}</strong
-              ><span>{{ t('events.results.opponentScore') }}</span
-              ><strong>{{ event.results.summary.opponentScore ?? '—' }}</strong
-              ><span>{{ t('events.results.rank') }}</span
-              ><strong>{{ event.results.summary.rank ?? '—' }}</strong>
-            </div>
-            <p
-              v-if="event.results.summary.notes"
-              class="mt-3 text-sm text-[var(--ks-text-secondary)]"
-            >
-              {{ event.results.summary.notes }}
-            </p>
-          </article>
-          <article v-if="event.results.player" class="rounded border border-[var(--ks-border)] p-4">
-            <h3 class="font-semibold">{{ t('events.results.yourResult') }}</h3>
-            <div class="mt-3 grid grid-cols-2 gap-2 text-sm">
-              <span>{{ t('events.results.outcome') }}</span
-              ><strong>{{ event.results.player.outcome ?? '—' }}</strong
-              ><span>{{ t('events.results.score') }}</span
-              ><strong>{{ event.results.player.score ?? '—' }}</strong
-              ><span>{{ t('events.results.rank') }}</span
-              ><strong>{{ event.results.player.rank ?? '—' }}</strong>
-            </div>
-            <p
-              v-if="event.results.player.notes"
-              class="mt-3 text-sm text-[var(--ks-text-secondary)]"
-            >
-              {{ event.results.player.notes }}
-            </p>
-          </article>
-        </div>
-        <div v-if="event.playerIntelligence" class="mt-4 rounded bg-[var(--ks-surface-2)] p-4">
-          <h3 class="font-semibold">{{ t('events.results.yourHistory') }}</h3>
-          <div class="mt-3 grid gap-3 sm:grid-cols-3">
-            <div>
-              <div class="text-xs text-[var(--ks-text-muted)]">
-                {{ t('events.results.reliability') }}
-              </div>
-              <div class="text-lg font-semibold">
-                {{
-                  event.playerIntelligence.reliabilityPercent === null
-                    ? '—'
-                    : `${event.playerIntelligence.reliabilityPercent}%`
-                }}
-              </div>
-            </div>
-            <div>
-              <div class="text-xs text-[var(--ks-text-muted)]">
-                {{ t('events.results.averageScore') }}
-              </div>
-              <div class="text-lg font-semibold">
-                {{ event.playerIntelligence.averageScore ?? '—' }}
-              </div>
-            </div>
-            <div>
-              <div class="text-xs text-[var(--ks-text-muted)]">
-                {{ t('events.results.bestScore') }}
-              </div>
-              <div class="text-lg font-semibold">
-                {{ event.playerIntelligence.bestScore ?? '—' }}
-              </div>
-            </div>
+          <div class="mt-4 flex flex-wrap gap-2">
+            <span v-for="(count, response) in responseCounts" :key="response" class="ks-chip">
+              {{ humanize(String(response)) }} · {{ count }}
+            </span>
           </div>
         </div>
-      </section>
 
-      <section
-        v-if="event.operations.phases.length"
-        class="mt-5 rounded-[var(--ks-radius-lg)] border border-[var(--ks-border)] bg-[var(--ks-surface-1)] p-6"
-      >
-        <p class="text-xs font-bold tracking-[0.15em] text-[var(--ks-gold)] uppercase">
-          {{ t('events.phases.eyebrow') }}
-        </p>
-        <h2 class="mt-1 text-lg font-semibold">{{ t('events.phases.title') }}</h2>
-        <div class="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-          <div
-            v-for="phase in event.operations.phases"
-            :key="phase.id"
-            class="rounded border p-3"
-            :class="
-              phase.status === 'active'
-                ? 'border-[var(--ks-gold)] bg-[var(--ks-gold)]/5'
-                : 'border-[var(--ks-border)]'
-            "
-          >
-            <div class="flex items-center justify-between gap-2">
-              <span class="font-semibold">{{ phaseName(phase) }}</span
-              ><span class="text-[0.68rem] text-[var(--ks-text-muted)] uppercase">{{
-                t(`events.phaseStatuses.${phase.status}`)
-              }}</span>
+        <div class="grid gap-3 sm:grid-cols-[minmax(13rem,1fr)_auto]">
+          <select v-model="responseForm.response" class="ks-input">
+            <option value="yes">{{ t('events.responses.yes') }}</option>
+            <option value="maybe">{{ t('events.responses.maybe') }}</option>
+            <option value="no">{{ t('events.responses.no') }}</option>
+          </select>
+          <AppButton type="button" :disabled="responseForm.processing" @click="respond">
+            {{ t('events.participation.respond') }}
+          </AppButton>
+
+          <template v-if="occurrence.registrationMode !== 'none'">
+            <div class="sm:col-span-2 flex flex-wrap gap-2">
+              <AppButton v-if="!currentRegistration" type="button" variant="secondary" :disabled="registrationForm.processing" @click="register">
+                {{ t('events.participation.register') }}
+              </AppButton>
+              <AppButton v-else type="button" variant="danger" @click="cancelRegistration">
+                {{ t('events.participation.cancelRegistration') }}
+              </AppButton>
+              <span v-if="currentRegistration" class="ks-status" data-tone="success">{{ humanize(currentRegistration) }}</span>
             </div>
-            <p v-if="phase.startsAt" class="mt-2 text-xs text-[var(--ks-text-muted)]">
-              {{
-                formatDate(new Date(phase.startsAt), {
-                  month: 'short',
-                  day: 'numeric',
-                  hour: 'numeric',
-                  minute: '2-digit',
-                })
-              }}<span v-if="phase.endsAt">
-                →
-                {{
-                  formatDate(new Date(phase.endsAt), { hour: 'numeric', minute: '2-digit' })
-                }}</span
-              >
-            </p>
-          </div>
+          </template>
         </div>
-      </section>
-
-      <section id="event-polls" v-if="event.operations.polls.length" class="mt-5 space-y-4">
-        <article
-          v-for="poll in event.operations.polls"
-          :key="poll.id"
-          class="rounded-[var(--ks-radius-lg)] border border-[var(--ks-border)] bg-[var(--ks-surface-1)] p-6"
-        >
-          <div class="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <p class="text-xs font-bold tracking-[0.15em] text-[var(--ks-blue-strong)] uppercase">
-                {{
-                  poll.type === 'time_vote' ? t('events.polls.timeVote') : t('events.polls.poll')
-                }}
-              </p>
-              <h2 class="mt-1 text-lg font-semibold">{{ pollQuestion(poll) }}</h2>
-            </div>
-            <span class="rounded-full border border-[var(--ks-border)] px-2 py-1 text-xs">{{
-              t(`events.pollStatuses.${poll.status}`)
-            }}</span>
-          </div>
-          <p v-if="poll.closesAt" class="mt-2 text-xs text-[var(--ks-text-muted)]">
-            {{ t('events.polls.closes') }}
-            {{
-              formatDate(new Date(poll.closesAt), {
-                month: 'short',
-                day: 'numeric',
-                hour: 'numeric',
-                minute: '2-digit',
-              })
-            }}
-          </p>
-          <div class="mt-4 grid gap-2 sm:grid-cols-2">
-            <button
-              v-for="option in poll.options"
-              :key="option.id"
-              type="button"
-              :disabled="!poll.votingOpen || !event.participation"
-              class="flex items-center justify-between rounded border px-3 py-3 text-left text-sm disabled:opacity-60"
-              :class="
-                (pollSelections[poll.id] ?? []).includes(option.id)
-                  ? 'border-[var(--ks-gold)] bg-[var(--ks-gold)]/10'
-                  : 'border-[var(--ks-border)]'
-              "
-              :aria-pressed="(pollSelections[poll.id] ?? []).includes(option.id)"
-              @click="togglePollOption(poll, option.id)"
-            >
-              <span>{{ option.label }}</span
-              ><span v-if="option.votes !== null" class="text-xs text-[var(--ks-text-muted)]">{{
-                option.votes
-              }}</span>
-            </button>
-          </div>
-          <button
-            v-if="poll.votingOpen && event.participation"
-            type="button"
-            class="mt-4 rounded bg-[var(--ks-gold)] px-4 py-2 text-sm font-bold text-[var(--ks-ink)]"
-            @click="submitVote(poll)"
-          >
-            {{ t('events.polls.saveVote') }}
-          </button>
-          <p v-else-if="!event.participation" class="mt-3 text-xs text-[var(--ks-text-muted)]">
-            {{ t('events.polls.selectPlayer') }}
-          </p>
-        </article>
-      </section>
-
-      <div class="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1fr)_18rem]">
-        <section
-          class="rounded-[var(--ks-radius-lg)] border border-[var(--ks-border)] bg-[var(--ks-surface-1)] p-6"
-        >
-          <h2 class="text-lg font-semibold">{{ t('events.show.instructions') }}</h2>
-          <p class="mt-3 text-sm leading-7 whitespace-pre-line text-[var(--ks-text-secondary)]">
-            {{ event.instructions || t('events.show.noInstructions') }}
-          </p>
-        </section>
-        <aside class="space-y-4">
-          <section
-            class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[var(--ks-surface-1)] p-4"
-          >
-            <h2 class="text-sm font-semibold">{{ t('events.show.details') }}</h2>
-            <dl class="mt-3 space-y-2 text-xs">
-              <div class="flex justify-between gap-3">
-                <dt class="text-[var(--ks-text-muted)]">{{ t('events.show.status') }}</dt>
-                <dd>{{ t(`events.eventStatuses.${event.status}`) }}</dd>
-              </div>
-              <div class="flex justify-between gap-3">
-                <dt class="text-[var(--ks-text-muted)]">{{ t('events.show.capacity') }}</dt>
-                <dd>{{ event.capacity ?? '—' }}</dd>
-              </div>
-              <div class="flex justify-between gap-3">
-                <dt class="text-[var(--ks-text-muted)]">{{ t('events.show.recurrence') }}</dt>
-                <dd>
-                  {{
-                    event.recurrenceFrequency === 'none'
-                      ? '—'
-                      : `${t(`events.recurrenceFrequencies.${event.recurrenceFrequency}`)} × ${event.recurrenceInterval}`
-                  }}
-                </dd>
-              </div>
-            </dl>
-          </section>
-          <section
-            class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[var(--ks-surface-1)] p-4"
-          >
-            <h2 class="text-sm font-semibold">{{ t('events.show.modules') }}</h2>
-            <div class="mt-3 flex flex-wrap gap-2">
-              <span
-                v-for="capability in event.capabilities"
-                :key="capability"
-                class="rounded-full border border-[var(--ks-border)] px-2 py-1 text-[0.68rem]"
-                >{{ t(`events.capabilities.${capability}`) }}</span
-              >
-            </div>
-          </section>
-        </aside>
       </div>
+    </section>
+
+    <div class="mt-5 grid gap-5 2xl:grid-cols-[minmax(0,1.42fr)_minmax(20rem,.58fr)]">
+      <div class="min-w-0 space-y-5">
+        <section v-if="occurrence.phases.length" class="ks-surface p-5" aria-labelledby="phases-heading">
+          <p class="ks-kicker">{{ t('events.operations.phases') }}</p>
+          <h2 id="phases-heading" class="ks-display mt-1 text-xl font-semibold">{{ t('events.operations.phases') }}</h2>
+          <ol class="mt-5 space-y-4">
+            <li v-for="phase in occurrence.phases" :key="phase.id" class="relative border-s border-[var(--ks-border-strong)] ps-5">
+              <span class="absolute -start-1.5 top-1 h-3 w-3 rounded-full border border-[var(--ks-gold-dark)] bg-[var(--ks-teal)]" aria-hidden="true" />
+              <h3 class="font-[var(--ks-font-display)] text-lg font-semibold">{{ phase.label }}</h3>
+              <p class="mt-1 text-xs text-[var(--ks-muted)]">{{ eventDate(phase.startsAt) }}<template v-if="phase.endsAt"> → {{ eventDate(phase.endsAt) }}</template></p>
+            </li>
+          </ol>
+        </section>
+
+        <section v-if="occurrence.polls.length" class="ks-surface p-5 sm:p-6" aria-labelledby="polls-heading">
+          <div class="flex items-end justify-between gap-3">
+            <div><p class="ks-kicker">{{ t('events.management.polls') }}</p><h2 id="polls-heading" class="ks-display mt-1 text-2xl font-semibold">{{ t('events.operations.polls') }}</h2></div>
+            <span class="ks-chip">{{ occurrence.polls.length }}</span>
+          </div>
+          <div class="mt-5 grid gap-4 lg:grid-cols-2">
+            <article v-for="poll in occurrence.polls" :key="poll.id" class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-4">
+              <h3 class="font-[var(--ks-font-display)] text-lg font-semibold">{{ poll.question }}</h3>
+              <p v-if="poll.closesAt" class="mt-1 text-xs text-[var(--ks-muted)]">{{ t('events.operations.closes') }} · {{ eventDate(poll.closesAt) }}</p>
+              <div class="mt-4 space-y-2">
+                <button
+                  v-for="option in poll.options"
+                  :key="option.id"
+                  type="button"
+                  class="flex w-full items-center justify-between gap-3 rounded-[var(--ks-radius-sm)] border px-3 py-2 text-start text-sm transition"
+                  :class="option.selected ? 'border-[rgba(32,178,163,.48)] bg-[var(--ks-teal-soft)]' : 'border-[var(--ks-border)] bg-black/15 hover:border-[var(--ks-border-strong)]'"
+                  @click="vote(poll.id, option.id)"
+                >
+                  <span>{{ option.label }}</span><span class="text-xs text-[var(--ks-muted)]">{{ option.votes }}</span>
+                </button>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section v-if="occurrence.rosters.length" class="ks-surface overflow-hidden" aria-labelledby="rosters-heading">
+          <div class="border-b border-[var(--ks-border)] p-5">
+            <p class="ks-kicker">{{ t('events.management.rosters') }}</p>
+            <h2 id="rosters-heading" class="ks-display mt-1 text-2xl font-semibold">{{ t('events.operations.rosters') }}</h2>
+          </div>
+          <div class="divide-y divide-[var(--ks-border)]">
+            <article v-for="roster in occurrence.rosters" :key="roster.id" class="p-5">
+              <div class="flex flex-wrap items-end justify-between gap-3">
+                <div><h3 class="font-[var(--ks-font-display)] text-xl font-semibold">{{ roster.name }}</h3><p v-if="roster.description" class="mt-1 text-sm text-[var(--ks-muted)]">{{ roster.description }}</p></div><span class="ks-chip">{{ roster.members.length }}</span>
+              </div>
+              <div class="mt-4 grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+                <div v-for="member in roster.members" :key="member.id" class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/15 p-3">
+                  <div class="flex items-center justify-between gap-3"><strong class="truncate text-sm">{{ member.player.name }}</strong><span class="ks-status" :data-tone="statusTone(member.response)">{{ humanize(member.response) }}</span></div>
+                  <select v-if="member.player.id === activePlayer.id" class="ks-input mt-3" :value="member.response" @change="updateRosterResponse(member.id, ($event.target as HTMLSelectElement).value)">
+                    <option value="confirmed">{{ t('events.responses.confirmed') }}</option>
+                    <option value="declined">{{ t('events.responses.declined') }}</option>
+                    <option value="pending">{{ t('events.responses.pending') }}</option>
+                  </select>
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section v-if="playerAssignments.length" class="ks-surface p-5 sm:p-6" aria-labelledby="assignments-heading">
+          <p class="ks-kicker">{{ t('events.rallies.assignments') }}</p>
+          <h2 id="assignments-heading" class="ks-display mt-1 text-2xl font-semibold">{{ t('events.rallies.yourAssignments') }}</h2>
+          <div class="mt-4 space-y-3">
+            <article v-for="assignment in playerAssignments" :key="assignment.id" class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-4">
+              <div class="flex flex-wrap items-start justify-between gap-3">
+                <div><h3 class="font-[var(--ks-font-display)] text-lg font-semibold">{{ assignment.formation?.name ?? t('events.rallies.unassignedFormation') }}</h3><p class="mt-1 text-xs text-[var(--ks-muted)]">{{ humanize(assignment.role) }}<template v-if="assignment.playerFormation"> · {{ assignment.playerFormation.name }}</template></p></div><span class="ks-status" :data-tone="statusTone(assignment.response)">{{ humanize(assignment.response) }}</span>
+              </div>
+              <div class="mt-4 grid gap-3 sm:grid-cols-[10rem_1fr_auto]">
+                <select v-model="assignmentResponses[assignment.id].response" class="ks-input"><option value="pending">{{ t('events.responses.pending') }}</option><option value="accepted">{{ t('events.responses.accepted') }}</option><option value="declined">{{ t('events.responses.declined') }}</option></select>
+                <input v-model="assignmentResponses[assignment.id].note" class="ks-input" :placeholder="t('events.rallies.note')" />
+                <AppButton type="button" variant="secondary" @click="respondToAssignment(assignment.id)">{{ t('events.participation.respond') }}</AppButton>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section v-if="occurrence.battlePlans.length" class="ks-surface p-5 sm:p-6" aria-labelledby="battle-plans-heading">
+          <p class="ks-kicker">{{ t('events.battlePlans.title') }}</p>
+          <h2 id="battle-plans-heading" class="ks-display mt-1 text-2xl font-semibold">{{ t('events.battlePlans.title') }}</h2>
+          <div class="mt-4 grid gap-4 lg:grid-cols-2">
+            <article v-for="plan in occurrence.battlePlans" :key="plan.id" class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-4">
+              <div class="flex items-start justify-between gap-3"><h3 class="font-[var(--ks-font-display)] text-lg font-semibold">{{ plan.title }}</h3><span class="ks-status" :data-tone="statusTone(plan.status)">{{ humanize(plan.status) }}</span></div>
+              <p v-if="plan.objective" class="mt-3 text-sm leading-6 text-[var(--ks-text-secondary)]">{{ plan.objective }}</p>
+              <p v-if="plan.content" class="mt-3 line-clamp-5 whitespace-pre-line text-sm leading-6 text-[var(--ks-muted)]">{{ plan.content }}</p>
+              <ol v-if="plan.phases.length" class="mt-4 space-y-2 border-t border-[var(--ks-border)] pt-4"><li v-for="phase in plan.phases" :key="phase.id" class="flex items-start justify-between gap-3 text-xs"><span>{{ phase.label }}</span><span class="text-[var(--ks-muted)]">{{ shortDate(phase.startsAt) }}</span></li></ol>
+            </article>
+          </div>
+        </section>
+      </div>
+
+      <aside class="space-y-5">
+        <section class="ks-surface p-5 2xl:sticky 2xl:top-[6.5rem]">
+          <div class="flex items-center gap-3">
+            <EventSigil :name="displayName" />
+            <div class="min-w-0"><p class="ks-kicker">{{ t('events.calendar.title') }}</p><h2 class="ks-display truncate text-xl font-semibold">{{ displayName }}</h2></div>
+          </div>
+          <dl class="mt-5 space-y-4 text-sm">
+            <div><dt class="text-xs text-[var(--ks-muted)]">{{ t('events.management.startsAt') }}</dt><dd class="mt-1 font-semibold">{{ eventDate(occurrence.startsAt) }}</dd></div>
+            <div><dt class="text-xs text-[var(--ks-muted)]">{{ t('events.management.endsAt') }}</dt><dd class="mt-1 font-semibold">{{ eventDate(occurrence.endsAt) }}</dd></div>
+            <div><dt class="text-xs text-[var(--ks-muted)]">{{ t('events.management.visibility') }}</dt><dd class="mt-1"><span class="ks-chip">{{ humanize(occurrence.visibility) }}</span></dd></div>
+            <div><dt class="text-xs text-[var(--ks-muted)]">{{ t('events.management.capabilities') }}</dt><dd class="mt-2 flex flex-wrap gap-1.5"><span v-for="capability in occurrence.capabilities" :key="capability" class="ks-chip">{{ humanize(capability) }}</span></dd></div>
+          </dl>
+
+          <template v-if="availablePlayerFormations.length">
+            <div class="my-5 ks-divider" />
+            <p class="ks-kicker">{{ t('events.rallies.savedFormations') }}</p>
+            <div class="mt-3 space-y-2"><article v-for="formation in availablePlayerFormations.slice(0, 4)" :key="formation.id" class="rounded border border-[var(--ks-border)] bg-black/15 p-3"><strong class="text-sm">{{ formation.name }}</strong><p class="mt-1 text-xs text-[var(--ks-muted)]">{{ formation.heroOne }}<template v-if="formation.heroTwo"> · {{ formation.heroTwo }}</template><template v-if="formation.heroThree"> · {{ formation.heroThree }}</template></p></article></div>
+          </template>
+
+          <template v-if="availableRallyGuidance.length">
+            <div class="my-5 ks-divider" />
+            <p class="ks-kicker">{{ t('events.rallies.guidance') }}</p>
+            <div class="mt-3 space-y-2"><article v-for="guidance in availableRallyGuidance.slice(0, 4)" :key="guidance.id" class="rounded border border-[var(--ks-border)] bg-black/15 p-3"><strong class="text-sm">{{ guidance.name }}</strong><p class="mt-1 text-xs text-[var(--ks-muted)]">{{ humanize(guidance.mode) }}<template v-if="guidance.troopType"> · {{ guidance.troopType }}</template></p></article></div>
+          </template>
+        </section>
+      </aside>
     </div>
   </AppLayout>
 </template>
