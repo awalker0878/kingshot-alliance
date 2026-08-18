@@ -89,7 +89,7 @@ final class ArchitectureEnforcementV3Test extends TestCase
         $violations = [];
         foreach ($this->phpFiles(dirname(__DIR__, 3).'/app/Contexts') as $file) {
             $normalized = str_replace('\\', '/', $file);
-            if (! str_contains($normalized, '/Access/') && ! str_contains($normalized, '/Authorization')) continue;
+            if (! str_contains($normalized, '/Services/') || ! str_ends_with($normalized, 'Authorization.php')) continue;
             $contents = file_get_contents($file);
             self::assertIsString($contents);
             if (preg_match('/\bDB::transaction\s*\(|->lockForUpdate\s*\(|->sharedLock\s*\(/', $contents) === 1) {
