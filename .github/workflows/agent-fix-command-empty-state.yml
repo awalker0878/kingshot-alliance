@@ -1,0 +1,95 @@
+name: Agent Fix Command Overview Empty State
+
+on:
+  push:
+    branches:
+      - agent/full-ui-rewrite
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out rewrite branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: agent/full-ui-rewrite
+          fetch-depth: 0
+
+      - name: Configure Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install locked frontend dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Fix unselected Governor messaging
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('resources/js/pages/Command/Overview.vue')
+          text = path.read_text()
+
+          replacements = [
+              (
+                  """:subtitle="
+        membership
+          ? t('application.dashboard.playerAllianceIntro')
+          : t('application.dashboard.noPlayerAllianceIntro')
+      """,
+                  """:subtitle="
+        membership
+          ? t('application.dashboard.playerAllianceIntro')
+          : activePlayer
+            ? t('application.dashboard.noPlayerAllianceIntro')
+            : t('application.dashboard.playerContextIntro')
+      """,
+              ),
+              (
+                  "<p class=\"ks-kicker\">{{ t('application.dashboard.playerAllianceTitle') }}</p>",
+                  "<p class=\"ks-kicker\">{{ activePlayer ? t('application.dashboard.playerAllianceTitle') : t('application.dashboard.selectPlayer') }}</p>",
+              ),
+              (
+                  "{{ t('application.dashboard.noPlayerAllianceTitle') }}",
+                  "{{ activePlayer ? t('application.dashboard.noPlayerAllianceTitle') : t('application.dashboard.selectPlayer') }}",
+              ),
+              (
+                  "{{ t('application.dashboard.noPlayerAllianceIntro') }}",
+                  "{{ activePlayer ? t('application.dashboard.noPlayerAllianceIntro') : t('application.dashboard.playerContextIntro') }}",
+              ),
+          ]
+
+          for old, new in replacements:
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'Expected exactly one Command Overview match, found {count}: {old[:90]!r}')
+              text = text.replace(old, new, 1)
+
+          path.write_text(text)
+          PY
+
+      - name: Format Command Overview
+        run: npx prettier --write resources/js/pages/Command/Overview.vue
+
+      - name: Run full frontend checks
+        run: npm run check
+
+      - name: Commit Command Overview fix
+        shell: bash
+        run: |
+          if git diff --quiet -- resources/js/pages/Command/Overview.vue; then
+            echo "No Command Overview change required."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add resources/js/pages/Command/Overview.vue
+          git commit -m "fix unselected governor command state"
+          git push origin HEAD:agent/full-ui-rewrite
