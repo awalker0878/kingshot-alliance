@@ -9,8 +9,7 @@ let currentVersion: string | null = null;
 let currentContextKey: string | null = null;
 
 export function updateAuthorityContextFromPageProps(props: Record<string, unknown>): void {
-  const context =
-    (props.playerContext as SharedPlayerContext | undefined) ?? EMPTY_PLAYER_CONTEXT;
+  const context = (props.playerContext as SharedPlayerContext | undefined) ?? EMPTY_PLAYER_CONTEXT;
 
   currentVersion = context.authorityContextVersion;
   currentContextKey = activeContextKey(context);
@@ -41,7 +40,9 @@ export function isAuthorityContextStaleResponse(response: unknown): boolean {
   const candidate = response as { status?: unknown; headers?: unknown };
   if (candidate.status !== 409) return false;
 
-  return responseHeader(candidate.headers, AUTHORITY_CONTEXT_ERROR_HEADER)?.toLowerCase() === 'stale';
+  return (
+    responseHeader(candidate.headers, AUTHORITY_CONTEXT_ERROR_HEADER)?.toLowerCase() === 'stale'
+  );
 }
 
 export function dispatchAuthorityContextStale(): void {
