@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Contexts\GameWorld\Players\Http\Middleware;
 
 use App\Contexts\Accounts\Identity\Contracts\AuthenticatedAccount;
+use App\Contexts\Alliance\Membership\Queries\PlayerIdentityContextQuery;
 use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Contexts\GameWorld\Players\Services\PlayerContext;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
@@ -18,6 +19,7 @@ final class HandleInertiaRequests extends Middleware
     public function __construct(
         private readonly PlayerContext $playerContext,
         private readonly PlayerReferenceQuery $players,
+        private readonly PlayerIdentityContextQuery $identityContext,
     ) {}
 
     public function version(Request $request): ?string
@@ -35,7 +37,24 @@ final class HandleInertiaRequests extends Middleware
         ];
     }
 
-    /** @return array{activePlayerId:?string,players:list<array{id:string,name:string,gamePlayerId:?string,kingdomNumber:?int}>} */
+    /**
+     * @return array{
+     *     activePlayerId:?string,
+     *     players:list<array{
+     *         id:string,
+     *         name:string,
+     *         gamePlayerId:?string,
+     *         kingdomNumber:?int,
+     *         alliance:?array{
+     *             id:string,
+     *             name:string,
+     *             rank:string,
+     *             roles:list<array{key:string,name:string}>,
+     *             capabilities:list<string>
+     *         }
+     *     }>
+     * }
+     */
     private function playerContextPayload(Request $request): array
     {
         $user = $request->user();
@@ -44,15 +63,30 @@ final class HandleInertiaRequests extends Middleware
         }
 
         $players = $this->players->ownedByUser((int) $user->id);
+        $allianceContext = $this->identityContext->forPlayers(array_map(
+            static fn (PlayerReference $player): string => $player->playerId,
+            $players,
+        ));
 
         return [
             'activePlayerId' => $this->playerContext->playerOrNull()?->playerId,
-            'players' => array_map(static fn (PlayerReference $player): array => [
-                'id' => $player->playerId,
-                'name' => $player->currentName,
-                'gamePlayerId' => $player->gamePlayerId,
-                'kingdomNumber' => $player->kingdomNumber,
-            ], $players),
+            'players' => array_map(static function (PlayerReference $player) use ($allianceContext): array {
+                $membership = $allianceContext[$player->playerId] ?? null;
+
+                return [
+                    'id' => $player->playerId,
+                    'name' => $player->currentName,
+                    'gamePlayerId' => $player->gamePlayerId,
+                    'kingdomNumber' => $player->kingdomNumber,
+                    'alliance' => $membership === null ? null : [
+                        'id' => $membership['allianceId'],
+                        'name' => $membership['allianceName'],
+                        'rank' => $membership['rank'],
+                        'roles' => $membership['roles'],
+                        'capabilities' => $membership['capabilities'],
+                    ],
+                ];
+            }, $players),
         ];
     }
 }
