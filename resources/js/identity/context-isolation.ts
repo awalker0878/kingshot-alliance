@@ -6,7 +6,9 @@ const disposers = new Map<string, Set<ContextDisposer>>();
 const frozenContexts = new Set<string>();
 
 export function activeContextKey(context: SharedPlayerContext): string | null {
-  return context.authorityContextVersion ?? activePlayerFrom(context)?.contextFingerprint.key ?? null;
+  return (
+    context.authorityContextVersion ?? activePlayerFrom(context)?.contextFingerprint.key ?? null
+  );
 }
 
 export function platformScopedStorageKey(key: string): string {
@@ -21,7 +23,10 @@ export function contextScopedStorageKey(contextKey: string, key: string): string
   return `context:${contextKey}:${key}`;
 }
 
-export function registerContextDisposer(contextKey: string, disposer: ContextDisposer): () => void {
+export function registerContextDisposer(
+  contextKey: string,
+  disposer: ContextDisposer,
+): () => void {
   const bucket = disposers.get(contextKey) ?? new Set<ContextDisposer>();
   bucket.add(disposer);
   disposers.set(contextKey, bucket);
