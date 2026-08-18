@@ -35,15 +35,32 @@ export function authorityContextHeaders(
   };
 }
 
-export function isAuthorityContextStaleResponse(response: Response): boolean {
-  return (
-    response.status === 409 &&
-    response.headers.get(AUTHORITY_CONTEXT_ERROR_HEADER)?.toLowerCase() === 'stale'
-  );
+export function isAuthorityContextStaleResponse(response: unknown): boolean {
+  if (!response || typeof response !== 'object') return false;
+
+  const candidate = response as { status?: unknown; headers?: unknown };
+  if (candidate.status !== 409) return false;
+
+  return responseHeader(candidate.headers, AUTHORITY_CONTEXT_ERROR_HEADER)?.toLowerCase() === 'stale';
 }
 
 export function dispatchAuthorityContextStale(): void {
   if (typeof window === 'undefined') return;
 
   window.dispatchEvent(new CustomEvent(AUTHORITY_CONTEXT_STALE_EVENT));
+}
+
+function responseHeader(headers: unknown, name: string): string | null {
+  if (headers instanceof Headers) return headers.get(name);
+  if (!headers || typeof headers !== 'object') return null;
+
+  const source = headers as Record<string, unknown>;
+  const direct = source[name] ?? source[name.toLowerCase()];
+  if (typeof direct === 'string') return direct;
+  if (Array.isArray(direct)) {
+    const first = direct[0];
+    return typeof first === 'string' ? first : null;
+  }
+
+  return null;
 }
