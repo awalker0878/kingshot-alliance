@@ -24,6 +24,7 @@ final readonly class PlayerIdentityContextQuery
      *
      * @param  list<string>  $playerIds
      * @return array<string, array{
+     *     membershipId:string,
      *     allianceId:string,
      *     allianceName:string,
      *     rank:string,
@@ -75,6 +76,7 @@ final readonly class PlayerIdentityContextQuery
             sort($capabilities);
 
             $result[$playerId] = [
+                'membershipId' => (string) $membership->getKey(),
                 'allianceId' => (string) $alliance->id,
                 'allianceName' => (string) $alliance->name,
                 'rank' => $membership->rank->value,
