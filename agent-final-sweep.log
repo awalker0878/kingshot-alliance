@@ -1,0 +1,49 @@
+=== rewrite script ===
+rewrite_status=0
+=== prettier ===
+resources/js/pages/Kingdom/RoyalCourt/Roles.vue 219ms
+resources/js/pages/Kingdom/RoyalCourt/Settings.vue 26ms
+resources/js/pages/Kingdom/Transfer/Completion.vue 103ms
+resources/js/pages/Intelligence/GloryLedger/Manage.vue 228ms
+[90mresources/js/pages/Intelligence/KingdomWatch/Reports.vue[39m 138ms (unchanged)
+[90mresources/js/pages/Intelligence/Roster/History.vue[39m 95ms (unchanged)
+[90mresources/js/pages/Intelligence/Sharing/Index.vue[39m 91ms (unchanged)
+resources/js/pages/Intelligence/Sharing/Manage.vue 87ms
+resources/js/pages/Public/Alliance/Show.vue 79ms
+resources/js/pages/Public/Alliance/Notice.vue 21ms
+resources/js/pages/Public/Recruitment/Apply.vue 67ms
+prettier_status=0
+=== eslint ===
+
+/home/runner/work/kingshot-alliance/kingshot-alliance/resources/js/pages/Kingdom/Transfer/Completion.vue
+  45:24  error  'formatNumber' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+✖ 1 problem (1 error, 0 warnings)
+
+eslint_status=1
+=== npm check ===
+
+> check
+> npm run lint:check && npm run format:check && npm run types:check && npm run check:event-localization-coverage && npm run build && npm run check:localization-chunks
+
+
+> lint:check
+> eslint .
+
+
+/home/runner/work/kingshot-alliance/kingshot-alliance/resources/js/pages/Kingdom/Transfer/Completion.vue
+  45:24  error  'formatNumber' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/home/runner/work/kingshot-alliance/kingshot-alliance/resources/js/pages/Operations/Events/Manage.vue
+  1166:9  warning  Attribute "v-if" should go before "id"  vue/attributes-order
+  1289:9  warning  Attribute "v-if" should go before "id"  vue/attributes-order
+  1430:9  warning  Attribute "v-if" should go before "id"  vue/attributes-order
+  1699:9  warning  Attribute "v-if" should go before "id"  vue/attributes-order
+  2176:9  warning  Attribute "v-if" should go before "id"  vue/attributes-order
+  2440:9  warning  Attribute "v-if" should go before "id"  vue/attributes-order
+  2610:9  warning  Attribute "v-if" should go before "id"  vue/attributes-order
+
+✖ 8 problems (1 error, 7 warnings)
+  0 errors and 7 warnings potentially fixable with the `--fix` option.
+
+check_status=1
