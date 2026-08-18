@@ -1,8 +1,14 @@
 <script setup lang="ts">
 import { router, usePage } from '@inertiajs/vue3';
-import { computed, nextTick, ref } from 'vue';
+import { computed, nextTick, ref, watch } from 'vue';
 
 import { useLocale } from '@/localization';
+import {
+  activeContextKey,
+  beginContextTransition,
+  cancelContextTransition,
+  completeContextTransition,
+} from '@/identity/context-isolation';
 import {
   EMPTY_PLAYER_CONTEXT,
   activePlayerFrom,
@@ -28,6 +34,11 @@ const playerContext = computed<SharedPlayerContext>(
     EMPTY_PLAYER_CONTEXT,
 );
 const activePlayer = computed(() => activePlayerFrom(playerContext.value));
+const activeFingerprint = computed(() => activeContextKey(playerContext.value));
+const currentPath = computed(() => {
+  const [path] = page.url.split(/[?#]/);
+  return path?.startsWith('/') ? path : '/dashboard';
+});
 const canSwitch = computed(() => playerContext.value.players.length > 1);
 const switchingPlayer = computed(
   () => playerContext.value.players.find((player) => player.id === switching.value) ?? null,
@@ -40,6 +51,12 @@ const identityLabel = computed(() => {
 const switchStatus = computed(() =>
   switchingPlayer.value ? `${t('common.loading')}: ${switchingPlayer.value.name}` : '',
 );
+
+watch(activeFingerprint, (nextContextKey, previousContextKey) => {
+  if (previousContextKey && previousContextKey !== nextContextKey) {
+    completeContextTransition(previousContextKey);
+  }
+});
 
 function roleLabel(player: PlayerIdentity): string {
   if (!player.alliance) return '';
@@ -115,14 +132,21 @@ function activate(playerId: string): void {
     return;
   }
 
+  const previousContextKey = activeFingerprint.value;
   switching.value = playerId;
+  beginContextTransition(previousContextKey);
+
   router.post(
     `/players/${playerId}/activate`,
-    {},
+    { returnTo: currentPath.value },
     {
       preserveState: false,
       preserveScroll: false,
+      onSuccess: () => {
+        completeContextTransition(previousContextKey);
+      },
       onError: () => {
+        cancelContextTransition(previousContextKey);
         switching.value = null;
       },
       onFinish: () => {
