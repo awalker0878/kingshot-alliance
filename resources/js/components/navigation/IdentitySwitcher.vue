@@ -37,14 +37,18 @@ const playerContext = computed<SharedPlayerContext>(
     },
 );
 
-const activePlayer = computed(
-  () =>
-    playerContext.value.players.find(
-      (player) => player.id === playerContext.value.activePlayerId,
-    ) ??
-    playerContext.value.players[0] ??
-    null,
-);
+const activePlayer = computed(() => {
+  const activePlayerId = playerContext.value.activePlayerId;
+  if (!activePlayerId) return null;
+
+  return playerContext.value.players.find((player) => player.id === activePlayerId) ?? null;
+});
+
+const identityLabel = computed(() => {
+  if (activePlayer.value) return activePlayer.value.name;
+  if (playerContext.value.players.length > 0) return t('application.dashboard.selectPlayer');
+  return t('common.noPlayers');
+});
 
 function contextLabel(player: PlayerIdentity): string {
   const pieces: string[] = [];
@@ -100,7 +104,7 @@ function activate(playerId: string): void {
         <strong
           class="block truncate text-sm font-[var(--ks-font-display)] font-semibold text-[var(--ks-ivory)]"
         >
-          {{ activePlayer?.name ?? t('common.noPlayers') }}
+          {{ identityLabel }}
         </strong>
         <span
           v-if="!compact && activePlayer"
