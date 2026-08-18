@@ -28,7 +28,7 @@ jobs:
       - name: Install locked frontend dependencies
         run: npm ci --no-audit --no-fund
 
-      - name: Shorten localized Governor selection label
+      - name: Polish Governor selection states
         shell: bash
         run: |
           python3 - <<'PY'
@@ -64,23 +64,94 @@ jobs:
               if count != 1:
                   raise SystemExit(f'{path}: expected exactly one selectPlayer translation, found {count}.')
               path.write_text(updated)
+
+          overview = Path('resources/js/pages/Command/Overview.vue')
+          text = overview.read_text()
+
+          replacements = [
+              (
+                  "import { Head, Link, useForm } from '@inertiajs/vue3';\n",
+                  "import { Head, Link, useForm, usePage } from '@inertiajs/vue3';\nimport { computed } from 'vue';\n",
+              ),
+              (
+                  "type RoleSummary = { key: string; name: string };\n",
+                  "type PlayerIdentity = { id: string; name: string };\ntype SharedPlayerContext = { activePlayerId: string | null; players: PlayerIdentity[] };\ntype RoleSummary = { key: string; name: string };\n",
+              ),
+              (
+                  "const { t } = useLocale();\nconst allianceForm = useForm({",
+                  "const { t } = useLocale();\nconst page = usePage();\nconst playerContext = computed<SharedPlayerContext>(\n  () =>\n    ((page.props as Record<string, unknown>).playerContext as SharedPlayerContext | undefined) ?? {\n      activePlayerId: null,\n      players: [],\n    },\n);\nconst hasAvailablePlayers = computed(() => playerContext.value.players.length > 0);\nconst allianceForm = useForm({",
+              ),
+              (
+                  """:subtitle="
+        membership
+          ? t('application.dashboard.playerAllianceIntro')
+          : t('application.dashboard.noPlayerAllianceIntro')
+      """,
+                  """:subtitle="
+        membership
+          ? t('application.dashboard.playerAllianceIntro')
+          : activePlayer
+            ? t('application.dashboard.noPlayerAllianceIntro')
+            : hasAvailablePlayers
+              ? t('application.dashboard.playerContextIntro')
+              : t('common.noPlayers')
+      """,
+              ),
+              (
+                  """{{ t('application.dashboard.noPlayerAllianceTitle') }}""",
+                  """{{
+            activePlayer
+              ? t('application.dashboard.noPlayerAllianceTitle')
+              : hasAvailablePlayers
+                ? t('application.dashboard.selectPlayer')
+                : t('common.noPlayers')
+          }}""",
+              ),
+              (
+                  """{{ t('application.dashboard.noPlayerAllianceIntro') }}""",
+                  """{{
+            activePlayer
+              ? t('application.dashboard.noPlayerAllianceIntro')
+              : hasAvailablePlayers
+                ? t('application.dashboard.playerContextIntro')
+                : t('common.noPlayers')
+          }}""",
+              ),
+              (
+                  """{{ activePlayer?.name ?? t('common.noPlayers') }}""",
+                  """{{
+                  activePlayer?.name ??
+                  (hasAvailablePlayers
+                    ? t('application.dashboard.selectPlayer')
+                    : t('common.noPlayers'))
+                }}""",
+              ),
+          ]
+
+          for old, new in replacements:
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'Command Overview expected exactly one match, found {count}: {old[:80]!r}')
+              text = text.replace(old, new, 1)
+
+          overview.write_text(text)
           PY
 
-      - name: Format localization files
-        run: npx prettier --write resources/js/localization/messages/core/
+      - name: Format Governor selection surfaces
+        run: npx prettier --write resources/js/localization/messages/core/ resources/js/pages/Command/Overview.vue
 
       - name: Run full frontend checks
         run: npm run check
 
-      - name: Commit localized label polish
+      - name: Commit Governor selection polish
         shell: bash
         run: |
-          if git diff --quiet -- resources/js/localization/messages/core/; then
-            echo "No localization change required."
+          if git diff --quiet -- resources/js/localization/messages/core/ resources/js/pages/Command/Overview.vue; then
+            echo "No Governor selection change required."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add resources/js/localization/messages/core/
-          git commit -m "polish governor selection copy"
+          git add resources/js/localization/messages/core/ resources/js/pages/Command/Overview.vue
+          git commit -m "polish unselected governor experience"
           git push origin HEAD:agent/full-ui-rewrite
