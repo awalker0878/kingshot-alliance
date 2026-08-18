@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
 
+import RoomBanner from '@/components/game/RoomBanner.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
@@ -106,50 +107,22 @@ function recordSnapshot(): void {
   <Head :title="`${t('rosterHistory.title')} · ${entry.name}`" />
 
   <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
-    <header class="flex flex-wrap items-start justify-between gap-4">
-      <div class="max-w-3xl min-w-0">
-        <Link
-          class="inline-flex min-h-10 items-center text-sm font-semibold text-[var(--ks-blue-strong)] hover:text-[var(--ks-ivory)]"
-          href="/alliance/roster"
-        >
+    <RoomBanner
+      :eyebrow="t('roster.eyebrow', { kingdom: alliance.kingdom ?? t('roster.kingdomNotSet') })"
+      :title="entry.name"
+      :subtitle="`${t('roster.gameId')}: ${entry.gamePlayerId ?? t('rosterManage.unknown')} · ${entry.membership?.name ?? t('roster.unlinked')}`"
+      image="/images/kingshot/v4/roster-hall.svg"
+      compact
+    >
+      <template #actions>
+        <Link href="/alliance/roster" class="ks-command-link" data-variant="secondary">
           ← {{ t('roster.title') }}
         </Link>
-        <p class="mt-4 text-xs font-bold tracking-[0.2em] text-[var(--ks-gold)] uppercase">
-          {{ t('roster.eyebrow', { kingdom: alliance.kingdom ?? t('roster.kingdomNotSet') }) }}
-        </p>
-        <h1 class="ks-display mt-2 truncate text-3xl font-bold sm:text-4xl">{{ entry.name }}</h1>
-        <div class="mt-3 flex flex-wrap gap-2">
-          <span
-            class="rounded-full border border-[var(--ks-border)] bg-black/15 px-2.5 py-1 text-xs text-[var(--ks-text-secondary)]"
-          >
-            {{ t('roster.gameId') }}: {{ entry.gamePlayerId ?? t('rosterManage.unknown') }}
-          </span>
-          <span
-            v-if="entry.gameRole"
-            class="rounded-full border border-purple-400/20 bg-purple-500/10 px-2.5 py-1 text-xs font-semibold text-purple-200"
-          >
-            {{ entry.gameRole }}
-          </span>
-          <span
-            class="rounded-full border border-[var(--ks-border)] bg-[var(--ks-teal-soft)] px-2.5 py-1 text-xs font-semibold text-[var(--ks-gold-bright)]"
-          >
-            {{ stateLabel(entry.state) }}
-          </span>
-          <span
-            class="rounded-full border border-[var(--ks-border)] bg-black/15 px-2.5 py-1 text-xs text-[var(--ks-text-secondary)]"
-          >
-            {{ entry.membership?.name ?? t('roster.unlinked') }}
-          </span>
-        </div>
-      </div>
-      <Link
-        v-if="canManage"
-        class="inline-flex min-h-11 items-center justify-center rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] px-4 py-2 text-sm font-semibold text-[var(--ks-text-secondary)] transition hover:border-[var(--ks-gold)] hover:text-[var(--ks-ivory)]"
-        href="/alliance/roster/manage"
-      >
-        {{ t('roster.manage') }}
-      </Link>
-    </header>
+        <Link v-if="canManage" href="/alliance/roster/manage" class="ks-command-link">
+          {{ t('roster.manage') }}
+        </Link>
+      </template>
+    </RoomBanner>
 
     <section class="ks-surface-gold mt-6 overflow-hidden" :aria-label="t('rosterHistory.title')">
       <div

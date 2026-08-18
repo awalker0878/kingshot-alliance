@@ -2,6 +2,7 @@
 import { Head, Link, router } from '@inertiajs/vue3';
 import { reactive, ref } from 'vue';
 
+import RoomBanner from '@/components/game/RoomBanner.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
@@ -182,36 +183,27 @@ function formatDate(value: string | null): string {
   <Head :title="`${t('kingdomP7C.manageTitle')} · ${alliance.name}`" />
 
   <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
-    <header class="flex flex-wrap items-start justify-between gap-4">
-      <div>
-        <p class="text-sm font-semibold tracking-[0.2em] text-[var(--ks-blue-strong)] uppercase">
-          {{ t('kingdomP7C.manageEyebrow') }}
-        </p>
-        <h1 class="mt-2 text-3xl font-bold">{{ t('kingdomP7C.manageTitle') }}</h1>
-        <p class="mt-2 max-w-3xl text-sm text-[var(--ks-text-muted)]">
-          {{
-            t('kingdomP7C.manageSubtitle', {
-              alliance: alliance.name,
-              kingdom: alliance.kingdom ?? t('kingdomP7C.notConfigured'),
-            })
-          }}
-        </p>
-      </div>
-      <nav :aria-label="t('kingdomP7C.sharingNavigation')" class="flex flex-wrap gap-3">
-        <Link
-          class="rounded-lg border border-[var(--ks-border)] px-4 py-2 text-sm font-semibold text-[var(--ks-blue-strong)]"
-          href="/alliance/kingdom-sharing"
-        >
-          {{ t('kingdomP7C.receivedFacts') }}
+    <RoomBanner
+      :eyebrow="t('kingdomP7C.manageEyebrow')"
+      :title="t('kingdomP7C.manageTitle')"
+      :subtitle="
+        t('kingdomP7C.manageSubtitle', {
+          alliance: alliance.name,
+          kingdom: alliance.kingdom ?? t('kingdomP7C.notConfigured'),
+        })
+      "
+      image="/images/kingshot/v4/connections.svg"
+      compact
+    >
+      <template #actions>
+        <Link href="/alliance/kingdom-sharing" class="ks-command-link" data-variant="secondary">
+          ← {{ t('kingdomP7C.receivedFacts') }}
         </Link>
-        <Link
-          class="rounded-lg border border-[var(--ks-border)] px-4 py-2 text-sm font-semibold text-[var(--ks-text)]"
-          href="/dashboard"
-        >
+        <Link href="/dashboard" class="ks-command-link">
           {{ t('kingdomP7C.dashboard') }}
         </Link>
-      </nav>
-    </header>
+      </template>
+    </RoomBanner>
 
     <section aria-labelledby="invite-heading" class="ks-surface mt-6 p-5 sm:p-6">
       <h2 id="invite-heading" class="text-xl font-semibold">
@@ -222,7 +214,7 @@ function formatDate(value: string | null): string {
       </p>
 
       <button
-        class="mt-5 rounded-lg bg-[var(--ks-gold)] px-4 py-2 text-sm font-semibold text-[var(--ks-ink)] disabled:cursor-not-allowed disabled:opacity-60"
+        class="ks-command-button mt-5 disabled:cursor-not-allowed disabled:opacity-60"
         type="button"
         :disabled="invitationBusy || alliance.kingdom === null"
         @click="createInvitation"
@@ -247,7 +239,7 @@ function formatDate(value: string | null): string {
         </label>
         <input
           id="issued-sharing-token"
-          class="mt-2 w-full rounded-lg border border-amber-400/30 bg-[var(--ks-bg)] px-3 py-2 font-mono text-sm text-amber-100"
+          class="ks-input mt-2 border-amber-400/30 font-mono text-sm text-amber-100"
           readonly
           :value="invitationToken"
         />
@@ -287,13 +279,13 @@ function formatDate(value: string | null): string {
         id="sharing-consent-token"
         v-model.trim="consentToken"
         autocomplete="off"
-        class="mt-2 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2 font-mono text-sm text-[var(--ks-text)]"
+        class="ks-input mt-2 font-mono text-sm"
         maxlength="64"
         spellcheck="false"
       />
       <div class="mt-3 flex flex-wrap gap-3">
         <button
-          class="rounded-lg bg-[var(--ks-gold)] px-4 py-2 text-sm font-semibold text-[var(--ks-ink)] disabled:opacity-60"
+          class="ks-command-button disabled:opacity-60"
           type="button"
           :disabled="consentToken.length !== 64"
           @click="acceptInvitation"
@@ -412,7 +404,7 @@ function formatDate(value: string | null): string {
                 </select>
               </div>
               <button
-                class="rounded-lg bg-[var(--ks-gold)] px-4 py-2 text-sm font-semibold text-[var(--ks-ink)] disabled:opacity-60"
+                class="ks-command-button disabled:opacity-60"
                 type="button"
                 :disabled="!targetSelections[share.id]"
                 @click="addTarget(share.id)"

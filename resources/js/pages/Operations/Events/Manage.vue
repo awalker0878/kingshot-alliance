@@ -1162,8 +1162,8 @@ function cancel(): void {
       </div>
 
       <section
-        id="phases"
         v-if="event.capabilities.includes('phases')"
+        id="phases"
         class="ks-surface mt-5 scroll-mt-28 p-5"
       >
         <div class="flex flex-wrap items-center justify-between gap-3">
@@ -1285,8 +1285,8 @@ function cancel(): void {
       </section>
 
       <section
-        id="polls"
         v-if="event.capabilities.includes('polls')"
+        id="polls"
         class="ks-surface mt-5 scroll-mt-28 p-5"
       >
         <div class="flex flex-wrap items-center justify-between gap-3">
@@ -1426,8 +1426,8 @@ function cancel(): void {
       </section>
 
       <section
-        id="rosters"
         v-if="event.capabilities.includes('rosters')"
+        id="rosters"
         class="ks-surface mt-5 scroll-mt-28 p-5"
       >
         <div class="flex flex-wrap items-center justify-between gap-3">
@@ -1695,10 +1695,10 @@ function cancel(): void {
       </section>
 
       <section
-        id="rallies"
         v-if="
           event.capabilities.includes('rally_guidance') || event.capabilities.includes('formations')
         "
+        id="rallies"
         class="ks-surface mt-5 scroll-mt-28 p-5"
       >
         <p class="ks-kicker">
@@ -2172,8 +2172,8 @@ function cancel(): void {
       </section>
 
       <section
-        id="battle-plan"
         v-if="event.capabilities.includes('objectives')"
+        id="battle-plan"
         class="ks-surface mt-5 scroll-mt-28 p-5"
       >
         <div>
@@ -2436,8 +2436,8 @@ function cancel(): void {
       </section>
 
       <section
-        id="results"
         v-if="event.capabilities.includes('results')"
+        id="results"
         class="ks-surface mt-5 scroll-mt-28 p-5"
       >
         <div>
@@ -2606,12 +2606,12 @@ function cancel(): void {
       </section>
 
       <section
-        id="participants"
         v-if="
           event.capabilities.includes('responses') ||
           event.capabilities.includes('registration') ||
           event.capabilities.includes('attendance')
         "
+        id="participants"
         class="ks-surface mt-5 scroll-mt-28 p-5"
       >
         <div class="flex items-center justify-between gap-3">

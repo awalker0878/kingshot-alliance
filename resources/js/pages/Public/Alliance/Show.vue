@@ -97,6 +97,13 @@ function localeName(code: string): string {
         :src="alliance.bannerUrl"
         :alt="`${alliance.name} banner`"
       />
+      <img
+        v-else
+        class="absolute inset-0 -z-20 h-full w-full object-cover opacity-40"
+        src="/images/kingshot/v4/alliance-hall.svg"
+        alt=""
+        aria-hidden="true"
+      />
       <div
         class="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(5,11,20,0.98),rgba(5,11,20,0.82),rgba(5,11,20,0.55))]"
       />
@@ -165,15 +172,12 @@ function localeName(code: string): string {
           </span>
           <Link
             v-if="alliance.recruitmentApplicationUrl"
-            class="rounded-[var(--ks-radius-sm)] bg-[var(--ks-gold)] px-5 py-2.5 text-sm font-bold text-[var(--ks-ink)] transition hover:bg-[var(--ks-gold-strong)]"
+            class="ks-command-button"
             :href="alliance.recruitmentApplicationUrl"
           >
             {{ t('publicAlliance.applyToJoin') }}
           </Link>
-          <Link
-            class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[rgba(8,17,31,0.68)] px-5 py-2.5 text-sm font-semibold transition hover:border-[var(--ks-border-strong)] hover:bg-[var(--ks-surface-1)]"
-            href="/login"
-          >
+          <Link class="ks-command-link" href="/login">
             {{ t('common.signIn') }}
           </Link>
         </div>

@@ -2,6 +2,8 @@
 import { Head, Link, router } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
+import RoomBanner from '@/components/game/RoomBanner.vue';
+import StatSeal from '@/components/game/StatSeal.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
@@ -40,7 +42,7 @@ const props = defineProps<{
   participants: Participant[];
 }>();
 
-const { t, formatDate, formatNumber } = useLocale();
+const { t, formatDate } = useLocale();
 
 const completionCounts = computed(() => ({
   completed: props.participants.filter((participant) => participant.completion !== null).length,
@@ -132,76 +134,50 @@ function timestamp(value: string): string {
   <Head :title="`${t('kingdomP7D.completionTitle')} · ${alliance.name}`" />
 
   <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
-    <header class="flex flex-wrap items-start justify-between gap-5">
-      <div class="max-w-3xl">
-        <p class="text-xs font-bold tracking-[0.2em] text-[var(--ks-gold)] uppercase">
-          {{ t('kingdomP7D.completionEyebrow') }}
-        </p>
-        <h1 class="ks-display mt-2 text-3xl font-bold sm:text-4xl">
-          {{ t('kingdomP7D.completionTitle') }}
-        </h1>
-        <p class="mt-3 text-sm leading-6 text-[var(--ks-text-secondary)]">
-          {{
-            t('kingdomP7D.completionSubtitle', {
-              alliance: alliance.name,
-              kingdom: alliance.kingdom ?? t('kingdomP7D.notConfigured'),
-            })
-          }}
-        </p>
-      </div>
-      <nav :aria-label="t('kingdomP7D.overviewNavigation')" class="flex flex-wrap gap-2">
-        <Link
-          class="rounded-lg border border-[var(--ks-border)] px-3 py-2 text-sm font-semibold"
-          href="/alliance/transfers"
-          >{{ t('kingdomP7D.title') }}</Link
-        >
-        <Link
-          class="rounded-lg border border-[var(--ks-border-strong)] px-3 py-2 text-sm font-semibold text-[var(--ks-gold-bright)]"
-          href="/alliance/transfers/readiness"
-          >{{ t('kingdomP7D.readinessBoard') }}</Link
-        >
-        <Link
-          class="rounded-lg bg-[var(--ks-gold)] px-3 py-2 text-sm font-bold text-[var(--ks-ink)]"
-          href="/alliance/transfers/manage"
-          >{{ t('kingdomP7D.manageTransfers') }}</Link
-        >
-      </nav>
-    </header>
+    <RoomBanner
+      :eyebrow="t('kingdomP7D.completionEyebrow')"
+      :title="t('kingdomP7D.completionTitle')"
+      :subtitle="
+        t('kingdomP7D.completionSubtitle', {
+          alliance: alliance.name,
+          kingdom: alliance.kingdom ?? t('kingdomP7D.notConfigured'),
+        })
+      "
+      image="/images/kingshot/v4/kingdom-transfer.svg"
+      compact
+    >
+      <template #actions>
+        <Link href="/alliance/transfers" class="ks-command-link" data-variant="secondary">
+          ← {{ t('kingdomP7D.title') }}
+        </Link>
+        <Link href="/alliance/transfers/readiness" class="ks-command-link">
+          {{ t('kingdomP7D.readinessBoard') }}
+        </Link>
+        <Link href="/alliance/transfers/manage" class="ks-command-link">
+          {{ t('kingdomP7D.manageTransfers') }}
+        </Link>
+      </template>
+    </RoomBanner>
 
     <section
       v-if="plan"
-      class="mt-6 grid gap-3 sm:grid-cols-4"
+      class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4"
       :aria-label="t('kingdomP7D.summary')"
     >
-      <article class="ks-surface p-4">
-        <p class="text-xs font-semibold text-[var(--ks-text-muted)] uppercase">
-          {{ t('kingdomP7D.cycle') }}
-        </p>
-        <p class="mt-2 text-lg font-bold">{{ plan.label }}</p>
-        <p class="mt-1 text-xs text-[var(--ks-text-muted)]">{{ stateLabel(plan.state) }}</p>
-      </article>
-      <article class="ks-surface p-4">
-        <p class="text-xs font-semibold text-[var(--ks-text-muted)] uppercase">
-          {{ t('kingdomP7D.participants') }}
-        </p>
-        <p class="mt-2 text-2xl font-bold">{{ formatNumber(participants.length) }}</p>
-      </article>
-      <article class="ks-surface p-4">
-        <p class="text-xs font-semibold text-[var(--ks-text-muted)] uppercase">
-          {{ t('kingdomP7D.readinessConfirmed') }}
-        </p>
-        <p class="mt-2 text-2xl font-bold text-green-200">
-          {{ formatNumber(completionCounts.confirmed) }}
-        </p>
-      </article>
-      <article class="ks-surface p-4">
-        <p class="text-xs font-semibold text-[var(--ks-text-muted)] uppercase">
-          {{ t('kingdomP7D.completed') }}
-        </p>
-        <p class="mt-2 text-2xl font-bold text-green-200">
-          {{ formatNumber(completionCounts.completed) }}
-        </p>
-      </article>
+      <StatSeal :label="t('kingdomP7D.cycle')" :value="plan.label" icon="◇" />
+      <StatSeal
+        :label="t('kingdomP7D.participants')"
+        :value="participants.length"
+        icon="♟"
+        tone="stone"
+      />
+      <StatSeal
+        :label="t('kingdomP7D.readinessConfirmed')"
+        :value="completionCounts.confirmed"
+        icon="✓"
+        tone="teal"
+      />
+      <StatSeal :label="t('kingdomP7D.completed')" :value="completionCounts.completed" icon="✦" />
     </section>
 
     <section v-if="plan" class="ks-surface mt-6 p-5 sm:p-6">

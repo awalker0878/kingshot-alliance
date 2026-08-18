@@ -80,8 +80,14 @@ function setStringAnswer(questionId: string, event: Event): void {
 
   <PublicLayout>
     <section class="relative isolate overflow-hidden border-b border-[var(--ks-border)]">
+      <img
+        class="absolute inset-0 -z-20 h-full w-full object-cover opacity-42"
+        src="/images/kingshot/v4/recruitment-hall.svg"
+        alt=""
+        aria-hidden="true"
+      />
       <div
-        class="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_20%_10%,rgba(226,180,77,0.14),transparent_28rem),linear-gradient(180deg,rgba(11,22,38,0.72),rgba(5,11,20,0.94))]"
+        class="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(4,8,9,.98),rgba(5,14,15,.88),rgba(5,11,20,.78))]"
       />
       <div class="mx-auto max-w-7xl px-5 py-10 sm:py-14 lg:px-8 lg:py-16">
         <Link
@@ -162,7 +168,7 @@ function setStringAnswer(questionId: string, event: Event): void {
                   <input
                     id="recruitment-name"
                     v-model="form.full_name"
-                    class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 transition outline-none hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)]"
+                    class="ks-input mt-2"
                     maxlength="160"
                     required
                     autocomplete="name"
@@ -178,7 +184,7 @@ function setStringAnswer(questionId: string, event: Event): void {
                   <input
                     id="recruitment-email"
                     v-model="form.email"
-                    class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 transition outline-none hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)] disabled:cursor-not-allowed disabled:opacity-60"
+                    class="ks-input mt-2 disabled:cursor-not-allowed disabled:opacity-60"
                     type="email"
                     maxlength="320"
                     required
@@ -199,7 +205,7 @@ function setStringAnswer(questionId: string, event: Event): void {
                   <input
                     id="recruitment-handle"
                     v-model="form.contact_handle"
-                    class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 transition outline-none placeholder:text-[var(--ks-text-muted)] hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)]"
+                    class="ks-input mt-2"
                     maxlength="160"
                     :placeholder="t('publicRecruitment.optional')"
                   />
@@ -211,7 +217,7 @@ function setStringAnswer(questionId: string, event: Event): void {
                   <input
                     id="recruitment-source"
                     v-model="form.source"
-                    class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 transition outline-none placeholder:text-[var(--ks-text-muted)] hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)]"
+                    class="ks-input mt-2"
                     maxlength="120"
                     :placeholder="t('publicRecruitment.sourcePlaceholder')"
                   />
@@ -326,7 +332,7 @@ function setStringAnswer(questionId: string, event: Event): void {
                       v-else
                       :id="`question-${question.id}`"
                       :value="stringAnswer(question.id)"
-                      class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 transition outline-none hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)]"
+                      class="ks-input mt-2"
                       :required="question.required"
                       @input="setStringAnswer(question.id, $event)"
                     />
