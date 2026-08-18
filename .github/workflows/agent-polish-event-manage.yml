@@ -1,0 +1,51 @@
+name: Agent Event Manage Rewrite
+
+on:
+  push:
+    branches:
+      - agent/full-ui-rewrite
+
+permissions:
+  contents: write
+
+jobs:
+  rewrite:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out rewrite branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: agent/full-ui-rewrite
+          fetch-depth: 0
+
+      - name: Configure Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install locked frontend dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Rewrite Event organizer console
+        run: python3 scripts/agent-polish-event-manage.py
+
+      - name: Format rewritten console
+        run: npx prettier --write resources/js/pages/Operations/Events/Manage.vue
+
+      - name: Lint rewritten console
+        run: npx eslint resources/js/pages/Operations/Events/Manage.vue
+
+      - name: Commit Event organizer console
+        shell: bash
+        run: |
+          if git diff --quiet -- resources/js/pages/Operations/Events/Manage.vue; then
+            echo "No Event Manage changes required."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add resources/js/pages/Operations/Events/Manage.vue
+          git commit -m "rewrite event organizer console"
+          git push origin HEAD:agent/full-ui-rewrite
