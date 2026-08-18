@@ -5,10 +5,21 @@ export type PlayerRoleIdentity = {
 
 export type PlayerAllianceIdentity = {
   id: string;
+  membershipId: string;
   name: string;
   rank: string;
   roles: PlayerRoleIdentity[];
   capabilities: string[];
+};
+
+export type PlayerContextFingerprint = {
+  version: 1;
+  key: string;
+  playerId: string;
+  kingdomId: string;
+  kingdomNumber: number | null;
+  allianceId: string | null;
+  membershipId: string | null;
 };
 
 export type PlayerIdentity = {
@@ -17,6 +28,7 @@ export type PlayerIdentity = {
   gamePlayerId: string | null;
   kingdomNumber: number | null;
   alliance: PlayerAllianceIdentity | null;
+  contextFingerprint: PlayerContextFingerprint;
 };
 
 export type SharedPlayerContext = {
