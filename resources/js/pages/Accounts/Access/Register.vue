@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
 
+import AppButton from '@/components/ui/AppButton.vue';
 import AuthLayout from '@/layouts/AuthLayout.vue';
 import { useLocale } from '@/localization';
 
@@ -12,7 +13,6 @@ const props = defineProps<{
 }>();
 
 const { t } = useLocale();
-
 const form = useForm({
   name: '',
   email: props.invitedEmail ?? '',
@@ -23,9 +23,7 @@ const form = useForm({
 });
 
 function submit(): void {
-  form.post('/register', {
-    onFinish: () => form.reset('password', 'password_confirmation'),
-  });
+  form.post('/register', { onFinish: () => form.reset('password', 'password_confirmation') });
 }
 </script>
 
@@ -33,150 +31,101 @@ function submit(): void {
   <Head :title="t('auth.register.title')" />
 
   <AuthLayout>
-    <template #headline>{{ t('auth.register.title') }}</template>
-    <template #intro>{{ t('authExperience.register.intro') }}</template>
-
-    <div>
-      <p class="text-xs font-bold tracking-[0.2em] text-[var(--ks-gold)] uppercase">
-        {{ t('common.appName') }}
-      </p>
-      <h2 class="ks-display mt-2 text-2xl font-semibold sm:text-3xl">
-        {{ t('auth.register.title') }}
-      </h2>
-
+    <div class="flex items-start gap-4">
       <div
-        v-if="props.invitationToken"
-        class="mt-6 rounded-[var(--ks-radius-sm)] border border-[var(--ks-border-strong)] bg-[rgba(40,86,144,0.14)] p-4 text-sm leading-6 text-[var(--ks-text-secondary)]"
+        class="grid h-14 w-12 shrink-0 place-items-center border border-[var(--ks-gold-dark)] bg-[linear-gradient(160deg,#126b64,#092d2a)] font-[var(--ks-font-display)] text-xl text-[var(--ks-gold-bright)] [clip-path:polygon(50%_0,95%_16%,86%_77%,50%_100%,14%_77%,5%_16%)]"
+        aria-hidden="true"
       >
-        {{
-          t('authExperience.register.invitationNotice', {
-            alliance: props.invitedAllianceName ?? '',
-            email: props.invitedEmail ?? '',
-          })
-        }}
+        ◇
       </div>
-
-      <div
-        v-else-if="props.registrationMode !== 'open'"
-        class="mt-6 rounded-[var(--ks-radius-sm)] border border-amber-700/60 bg-amber-950/25 p-4 text-sm leading-6 text-amber-100"
-      >
-        {{ t('authExperience.register.invitationOnly') }}
+      <div>
+        <p class="ks-kicker">{{ t('common.appName') }}</p>
+        <h2 class="ks-display mt-1 text-3xl font-semibold sm:text-4xl">
+          {{ t('auth.register.title') }}
+        </h2>
+        <p class="mt-3 text-sm leading-6 text-[var(--ks-text-secondary)]">
+          {{ t('authExperience.register.intro') }}
+        </p>
       </div>
-
-      <form
-        v-if="props.registrationMode === 'open' || props.invitationToken"
-        class="mt-7 space-y-5"
-        @submit.prevent="submit"
-      >
-        <div class="grid gap-5 sm:grid-cols-2">
-          <div>
-            <label class="block text-sm font-semibold" for="name">{{
-              t('auth.register.name')
-            }}</label>
-            <input
-              id="name"
-              v-model="form.name"
-              autocomplete="name"
-              class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 transition outline-none hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)]"
-              required
-              type="text"
-            />
-            <p v-if="form.errors.name" class="mt-2 text-sm text-rose-300" role="alert">
-              {{ form.errors.name }}
-            </p>
-          </div>
-
-          <div>
-            <label class="block text-sm font-semibold" for="timezone">
-              {{ t('authExperience.register.timezone') }}
-            </label>
-            <input
-              id="timezone"
-              v-model="form.timezone"
-              class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 transition outline-none hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)]"
-              required
-              type="text"
-            />
-            <p v-if="form.errors.timezone" class="mt-2 text-sm text-rose-300" role="alert">
-              {{ form.errors.timezone }}
-            </p>
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-sm font-semibold" for="email">{{
-            t('auth.register.email')
-          }}</label>
-          <input
-            id="email"
-            v-model="form.email"
-            autocomplete="email"
-            class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 transition outline-none hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)] disabled:cursor-not-allowed disabled:opacity-70"
-            :disabled="Boolean(props.invitationToken)"
-            required
-            type="email"
-          />
-          <input v-if="props.invitationToken" :value="form.email" name="email" type="hidden" />
-          <p v-if="form.errors.email" class="mt-2 text-sm text-rose-300" role="alert">
-            {{ form.errors.email }}
-          </p>
-        </div>
-
-        <div class="grid gap-5 sm:grid-cols-2">
-          <div>
-            <label class="block text-sm font-semibold" for="password">
-              {{ t('auth.register.password') }}
-            </label>
-            <input
-              id="password"
-              v-model="form.password"
-              autocomplete="new-password"
-              class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 transition outline-none hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)]"
-              minlength="12"
-              required
-              type="password"
-            />
-            <p class="mt-2 text-xs leading-5 text-[var(--ks-text-muted)]">
-              {{ t('authExperience.register.passwordHint') }}
-            </p>
-            <p v-if="form.errors.password" class="mt-2 text-sm text-rose-300" role="alert">
-              {{ form.errors.password }}
-            </p>
-          </div>
-
-          <div>
-            <label class="block text-sm font-semibold" for="password_confirmation">
-              {{ t('auth.register.passwordConfirmation') }}
-            </label>
-            <input
-              id="password_confirmation"
-              v-model="form.password_confirmation"
-              autocomplete="new-password"
-              class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 transition outline-none hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)]"
-              required
-              type="password"
-            />
-          </div>
-        </div>
-
-        <button
-          class="w-full rounded-[var(--ks-radius-sm)] bg-[var(--ks-gold)] px-5 py-3 font-bold text-[var(--ks-ink)] transition hover:bg-[var(--ks-gold-strong)] disabled:cursor-not-allowed disabled:opacity-60"
-          :disabled="form.processing"
-          type="submit"
-        >
-          {{ t('auth.register.submit') }}
-        </button>
-      </form>
-
-      <p class="mt-6 text-sm text-[var(--ks-text-muted)]">
-        {{ t('authExperience.register.existingAccount') }}
-        <Link
-          class="font-semibold text-[var(--ks-gold)] transition hover:text-[var(--ks-gold-strong)]"
-          href="/login"
-        >
-          {{ t('common.signIn') }}
-        </Link>
-      </p>
     </div>
+
+    <div
+      v-if="props.invitationToken"
+      class="mt-6 rounded-[var(--ks-radius-md)] border border-[rgba(32,178,163,.3)] bg-[var(--ks-teal-soft)] p-4 text-sm leading-6 text-[var(--ks-text-secondary)]"
+    >
+      {{
+        t('authExperience.register.invitationNotice', {
+          alliance: props.invitedAllianceName ?? '',
+          email: props.invitedEmail ?? '',
+        })
+      }}
+    </div>
+
+    <div
+      v-else-if="props.registrationMode !== 'open'"
+      class="mt-6 rounded-[var(--ks-radius-md)] border border-amber-400/30 bg-amber-500/[.07] p-4 text-sm leading-6 text-amber-100"
+    >
+      {{ t('authExperience.register.invitationOnly') }}
+    </div>
+
+    <form
+      v-if="props.registrationMode === 'open' || props.invitationToken"
+      class="mt-7 space-y-5"
+      @submit.prevent="submit"
+    >
+      <div class="grid gap-5 sm:grid-cols-2">
+        <div>
+          <label class="block text-sm font-semibold" for="name">{{ t('auth.register.name') }}</label>
+          <input id="name" v-model="form.name" autocomplete="name" class="ks-input mt-2" required type="text" />
+          <p v-if="form.errors.name" class="mt-2 text-sm text-[var(--ks-red)]" role="alert">{{ form.errors.name }}</p>
+        </div>
+        <div>
+          <label class="block text-sm font-semibold" for="timezone">{{ t('authExperience.register.timezone') }}</label>
+          <input id="timezone" v-model="form.timezone" class="ks-input mt-2" required type="text" />
+          <p v-if="form.errors.timezone" class="mt-2 text-sm text-[var(--ks-red)]" role="alert">{{ form.errors.timezone }}</p>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-semibold" for="email">{{ t('auth.register.email') }}</label>
+        <input
+          id="email"
+          v-model="form.email"
+          autocomplete="email"
+          class="ks-input mt-2 disabled:cursor-not-allowed disabled:opacity-55"
+          :disabled="Boolean(props.invitationToken)"
+          required
+          type="email"
+        />
+        <input v-if="props.invitationToken" :value="form.email" name="email" type="hidden" />
+        <p v-if="form.errors.email" class="mt-2 text-sm text-[var(--ks-red)]" role="alert">{{ form.errors.email }}</p>
+      </div>
+
+      <div class="grid gap-5 sm:grid-cols-2">
+        <div>
+          <label class="block text-sm font-semibold" for="password">{{ t('auth.register.password') }}</label>
+          <input id="password" v-model="form.password" autocomplete="new-password" class="ks-input mt-2" minlength="12" required type="password" />
+          <p class="mt-2 text-xs leading-5 text-[var(--ks-muted)]">{{ t('authExperience.register.passwordHint') }}</p>
+          <p v-if="form.errors.password" class="mt-2 text-sm text-[var(--ks-red)]" role="alert">{{ form.errors.password }}</p>
+        </div>
+        <div>
+          <label class="block text-sm font-semibold" for="password_confirmation">{{ t('auth.register.passwordConfirmation') }}</label>
+          <input id="password_confirmation" v-model="form.password_confirmation" autocomplete="new-password" class="ks-input mt-2" required type="password" />
+        </div>
+      </div>
+
+      <AppButton class="w-full" type="submit" :disabled="form.processing">
+        {{ t('auth.register.submit') }}
+      </AppButton>
+    </form>
+
+    <div class="my-6 ks-divider" />
+
+    <p class="text-center text-sm text-[var(--ks-muted)]">
+      {{ t('authExperience.register.existingAccount') }}
+      <Link class="font-semibold text-[var(--ks-gold-bright)] hover:text-[var(--ks-ivory)]" href="/login">
+        {{ t('common.signIn') }}
+      </Link>
+    </p>
   </AuthLayout>
 </template>
