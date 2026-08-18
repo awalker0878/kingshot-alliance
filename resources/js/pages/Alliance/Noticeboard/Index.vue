@@ -2,8 +2,9 @@
 import { Head, Link, router } from '@inertiajs/vue3';
 import { computed, reactive } from 'vue';
 
-import AppLayout from '@/layouts/AppLayout.vue';
 import RoomBanner from '@/components/game/RoomBanner.vue';
+import StatSeal from '@/components/game/StatSeal.vue';
+import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
 type ContentCard = {
@@ -39,6 +40,11 @@ const publicCount = computed(
 const memberCount = computed(
   () => props.content.filter((item) => item.visibility === 'members').length,
 );
+const contentTypes = computed(() => {
+  const types = new Map<string, string>();
+  for (const item of props.content) types.set(item.type, item.typeLabel);
+  return [...types.entries()].map(([value, label]) => ({ value, label }));
+});
 
 function applyFilters(): void {
   router.get(
@@ -59,159 +65,161 @@ function clearFilters(): void {
 function published(value: string | null): string {
   return value ? formatDate(value, { dateStyle: 'medium', timeStyle: 'short' }) : '';
 }
+
+function visibilityTone(value: string): 'success' | 'warning' | 'info' {
+  if (value === 'public') return 'success';
+  if (value === 'members') return 'warning';
+  return 'info';
+}
 </script>
 
 <template>
   <Head :title="`${t('contentExperience.hubTitle')} · ${alliance.name}`" />
 
   <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
-    <RoomBanner eyebrow="Alliance" title="Noticeboard" subtitle="Read Alliance notices and published guidance from your officers before the next Event begins." image="/images/kingshot/noticeboard.svg" compact />
+    <RoomBanner
+      :eyebrow="t('contentExperience.eyebrow')"
+      :title="t('contentExperience.hubTitle')"
+      :subtitle="t('contentExperience.hubSubtitle', { alliance: alliance.name })"
+      image="/images/kingshot/v4/noticeboard.svg"
+    >
+      <template #actions>
+        <Link
+          v-if="canManageContent"
+          href="/alliance/content/manage"
+          class="ks-command-link"
+        >
+          {{ t('contentExperience.manageContent') }}
+        </Link>
+        <a
+          :href="`/alliances/${alliance.slug}`"
+          class="ks-command-link"
+          data-variant="secondary"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {{ t('contentExperience.viewPublicPage') }}
+        </a>
+      </template>
+    </RoomBanner>
 
-    <section class="ks-surface-gold mt-6 overflow-hidden">
-      <dl
-        class="grid grid-cols-2 divide-x divide-y divide-[var(--ks-border)] md:grid-cols-4 md:divide-y-0"
-      >
-        <div class="p-4 sm:p-5">
-          <dt
-            class="text-[0.68rem] font-bold tracking-[0.1em] text-[var(--ks-text-muted)] uppercase"
-          >
-            {{ t('contentExperience.results') }}
-          </dt>
-          <dd class="ks-display mt-2 text-3xl font-semibold">{{ formatNumber(content.length) }}</dd>
-        </div>
-        <div class="p-4 sm:p-5">
-          <dt class="text-[0.68rem] font-bold tracking-[0.1em] text-green-300 uppercase">
-            {{ t('contentExperience.publicItems') }}
-          </dt>
-          <dd class="ks-display mt-2 text-3xl font-semibold">{{ formatNumber(publicCount) }}</dd>
-        </div>
-        <div class="p-4 sm:p-5">
-          <dt class="text-[0.68rem] font-bold tracking-[0.1em] text-amber-300 uppercase">
-            {{ t('contentExperience.memberItems') }}
-          </dt>
-          <dd class="ks-display mt-2 text-3xl font-semibold">{{ formatNumber(memberCount) }}</dd>
-        </div>
-        <div class="p-4 sm:p-5">
-          <dt
-            class="text-[0.68rem] font-bold tracking-[0.1em] text-[var(--ks-text-muted)] uppercase"
-          >
-            {{ t('contentExperience.categories') }}
-          </dt>
-          <dd class="ks-display mt-2 text-3xl font-semibold">
-            {{ formatNumber(categories.length) }}
-          </dd>
-        </div>
-      </dl>
+    <section class="mt-4 grid gap-3 sm:grid-cols-2 2xl:grid-cols-4">
+      <StatSeal :label="t('contentExperience.results')" :value="formatNumber(content.length)" icon="▤" />
+      <StatSeal
+        :label="t('contentExperience.publicItems')"
+        :value="formatNumber(publicCount)"
+        icon="◉"
+        tone="teal"
+      />
+      <StatSeal
+        :label="t('contentExperience.memberItems')"
+        :value="formatNumber(memberCount)"
+        icon="♟"
+        tone="stone"
+      />
+      <StatSeal
+        :label="t('contentExperience.categories')"
+        :value="formatNumber(categories.length)"
+        icon="◇"
+      />
     </section>
 
-    <form
-      class="ks-surface mt-5 grid gap-4 p-5 sm:grid-cols-2 lg:grid-cols-4"
-      @submit.prevent="applyFilters"
-    >
-      <div class="sm:col-span-2 lg:col-span-4">
-        <label class="text-xs font-semibold text-[var(--ks-text-secondary)]" for="member-search">
-          {{ t('contentExperience.search') }}
-        </label>
-        <input
-          id="member-search"
-          v-model="filters.q"
-          class="mt-1.5 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
-          type="search"
-          :placeholder="t('contentExperience.searchPlaceholder')"
-        />
-      </div>
-      <div>
-        <label class="text-xs font-semibold text-[var(--ks-text-secondary)]" for="member-type">
-          {{ t('contentExperience.type') }}
-        </label>
-        <select
-          id="member-type"
-          v-model="filters.type"
-          class="mt-1.5 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
-        >
-          <option value="">{{ t('contentExperience.allTypes') }}</option>
-          <option value="announcement">Announcements</option>
-          <option value="guide">Guides</option>
-          <option value="rule">Rules</option>
-          <option value="event_instruction">Event instructions</option>
-          <option value="reference_page">Reference pages</option>
-        </select>
-      </div>
-      <div>
-        <label class="text-xs font-semibold text-[var(--ks-text-secondary)]" for="member-category">
-          {{ t('contentExperience.category') }}
-        </label>
-        <select
-          id="member-category"
-          v-model="filters.category"
-          class="mt-1.5 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
-        >
-          <option value="">{{ t('contentExperience.allCategories') }}</option>
-          <option v-for="category in categories" :key="category.slug" :value="category.slug">
-            {{ category.name }}
-          </option>
-        </select>
-      </div>
-      <div>
-        <label class="text-xs font-semibold text-[var(--ks-text-secondary)]" for="member-locale">
-          {{ t('contentExperience.locale') }}
-        </label>
-        <input
-          id="member-locale"
-          v-model="filters.locale"
-          class="mt-1.5 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
-          maxlength="16"
-          :placeholder="t('contentExperience.anyLocale')"
-        />
-      </div>
-      <div class="flex items-end gap-2">
-        <button
-          class="min-h-10 rounded-[var(--ks-radius-sm)] bg-[var(--ks-blue)] px-4 py-2 text-sm font-semibold text-[var(--ks-ivory)]"
-          type="submit"
-        >
-          {{ t('contentExperience.applyFilters') }}
-        </button>
-        <button
-          class="min-h-10 rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] px-4 py-2 text-sm font-semibold"
-          type="button"
-          @click="clearFilters"
-        >
-          {{ t('contentExperience.clear') }}
-        </button>
-      </div>
-    </form>
-
-    <section class="mt-6" aria-labelledby="member-content-heading">
+    <section class="ks-surface mt-5 p-5" aria-labelledby="noticeboard-filters-heading">
       <div class="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p class="text-xs font-bold tracking-[0.15em] text-[var(--ks-gold)] uppercase">
-            {{ t('contentExperience.eyebrow') }}
-          </p>
-          <h2 id="member-content-heading" class="ks-display mt-1 text-2xl font-semibold">
+          <p class="ks-kicker">{{ t('contentExperience.search') }}</p>
+          <h2 id="noticeboard-filters-heading" class="ks-display mt-1 text-xl font-semibold">
             {{ t('contentExperience.publishedContent') }}
           </h2>
         </div>
-        <p class="text-xs text-[var(--ks-text-muted)]">
+        <p class="text-xs text-[var(--ks-muted)]">
           {{ t('contentExperience.displayedIn', { timezone: viewerTimezone }) }}
         </p>
       </div>
 
-      <div v-if="content.length" class="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <form class="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-5" @submit.prevent="applyFilters">
+        <div class="md:col-span-2 xl:col-span-2">
+          <label class="text-xs font-semibold" for="member-search">
+            {{ t('contentExperience.search') }}
+          </label>
+          <input
+            id="member-search"
+            v-model="filters.q"
+            class="ks-input mt-1.5"
+            type="search"
+            :placeholder="t('contentExperience.searchPlaceholder')"
+          />
+        </div>
+        <div>
+          <label class="text-xs font-semibold" for="member-type">
+            {{ t('contentExperience.type') }}
+          </label>
+          <select id="member-type" v-model="filters.type" class="ks-input mt-1.5">
+            <option value="">{{ t('contentExperience.allTypes') }}</option>
+            <option v-for="item in contentTypes" :key="item.value" :value="item.value">
+              {{ item.label }}
+            </option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs font-semibold" for="member-category">
+            {{ t('contentExperience.category') }}
+          </label>
+          <select id="member-category" v-model="filters.category" class="ks-input mt-1.5">
+            <option value="">{{ t('contentExperience.allCategories') }}</option>
+            <option v-for="category in categories" :key="category.slug" :value="category.slug">
+              {{ category.name }}
+            </option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs font-semibold" for="member-locale">
+            {{ t('contentExperience.locale') }}
+          </label>
+          <input
+            id="member-locale"
+            v-model="filters.locale"
+            class="ks-input mt-1.5"
+            maxlength="16"
+            :placeholder="t('contentExperience.anyLocale')"
+          />
+        </div>
+        <div class="flex flex-wrap gap-2 md:col-span-2 xl:col-span-5">
+          <button type="submit" class="ks-command-button">
+            {{ t('contentExperience.applyFilters') }}
+          </button>
+          <button type="button" class="ks-command-button" data-variant="secondary" @click="clearFilters">
+            {{ t('contentExperience.clear') }}
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <section class="mt-5" aria-labelledby="member-content-heading">
+      <div class="flex flex-wrap items-end justify-between gap-3 px-1">
+        <div>
+          <p class="ks-kicker">{{ t('contentExperience.eyebrow') }}</p>
+          <h2 id="member-content-heading" class="ks-display mt-1 text-2xl font-semibold">
+            {{ t('contentExperience.publishedContent') }}
+          </h2>
+        </div>
+      </div>
+
+      <div v-if="content.length" class="mt-4 grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
         <article
           v-for="item in content"
           :key="item.id"
-          class="ks-surface group flex min-h-56 flex-col p-5"
+          class="ks-surface group flex min-h-64 flex-col p-5 transition hover:-translate-y-0.5 hover:border-[var(--ks-border-strong)]"
         >
-          <div
-            class="flex flex-wrap gap-2 text-[0.68rem] font-bold tracking-[0.08em] text-[var(--ks-text-muted)] uppercase"
-          >
-            <span>{{ item.typeLabel }}</span>
-            <span v-if="item.category">· {{ item.category.name }}</span>
-            <span>· {{ item.locale }}</span>
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="ks-chip">{{ item.typeLabel }}</span>
+            <span v-if="item.category" class="ks-chip">{{ item.category.name }}</span>
+            <span class="ks-chip">{{ item.locale }}</span>
           </div>
-          <h3 class="ks-display mt-3 text-xl font-semibold">
+
+          <h3 class="ks-display mt-5 text-2xl font-semibold leading-tight">
             <Link
-              class="transition group-hover:text-[var(--ks-blue-strong)]"
+              class="transition group-hover:text-[var(--ks-gold-bright)]"
               :href="`/alliance/content/${item.slug}`"
             >
               {{ item.title }}
@@ -223,28 +231,24 @@ function published(value: string | null): string {
           >
             {{ item.summary }}
           </p>
-          <div
-            class="mt-auto flex flex-wrap items-center justify-between gap-2 pt-5 text-xs text-[var(--ks-text-muted)]"
-          >
-            <span
-              v-if="item.visibility === 'members'"
-              class="rounded-full border border-amber-400/25 bg-amber-500/10 px-2.5 py-1 font-semibold text-amber-200"
-            >
-              {{ t('contentExperience.membersOnly') }}
+
+          <div class="mt-auto flex flex-wrap items-end justify-between gap-3 pt-6">
+            <span class="ks-status" :data-tone="visibilityTone(item.visibility)">
+              {{
+                item.visibility === 'members'
+                  ? t('contentExperience.membersOnly')
+                  : t('contentExperience.public')
+              }}
             </span>
-            <span
-              v-else
-              class="rounded-full border border-green-400/25 bg-green-500/10 px-2.5 py-1 font-semibold text-green-200"
-            >
-              {{ t('contentExperience.public') }}
+            <span v-if="item.publishedAt" class="text-xs text-[var(--ks-muted)]">
+              {{ published(item.publishedAt) }}
             </span>
-            <span v-if="item.publishedAt">{{ published(item.publishedAt) }}</span>
           </div>
         </article>
       </div>
-      <p v-else class="ks-surface mt-4 p-8 text-center text-sm text-[var(--ks-text-muted)]">
+      <div v-else class="ks-fantasy-empty mt-4">
         {{ t('contentExperience.noMatches') }}
-      </p>
+      </div>
     </section>
   </AppLayout>
 </template>
