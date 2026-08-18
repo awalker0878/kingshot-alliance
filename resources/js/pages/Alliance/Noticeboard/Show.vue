@@ -5,7 +5,7 @@ import RoomBanner from '@/components/game/RoomBanner.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
-const props = defineProps<{
+defineProps<{
   user: { name: string; email: string };
   alliance: { name: string; slug: string };
   canManageContent: boolean;
