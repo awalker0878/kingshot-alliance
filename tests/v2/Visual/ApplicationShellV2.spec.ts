@@ -44,7 +44,9 @@ test('multi-governor account selects and activates the first Governor', async ({
   });
 
   await identitySwitcher.click();
-  const options = page.getByRole('option');
+  const identityListbox = page.getByRole('listbox', { name: 'Active Governor' });
+  const options = identityListbox.getByRole('option');
+  await expect(identityListbox).toBeVisible();
   await expect(options).toHaveCount(2);
   await expect(options.nth(0)).toContainText('Lady Seraphina');
   await expect(options.nth(1)).toContainText('Lord Caspian');
