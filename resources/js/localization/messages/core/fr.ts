@@ -45,7 +45,7 @@ const messages = {
       playerKingdom: 'Royaume #{kingdom}',
       playerAuthorityIntro:
         'L’adhésion, le rang, les rôles, les autorisations de royaume et les actions de jeu sont déterminés uniquement par ce joueur.',
-      selectPlayer: 'Sélectionnez un joueur pour utiliser les outils du jeu.',
+      selectPlayer: 'Sélectionner le gouverneur',
       playerAllianceTitle: 'Alliance du joueur actif',
       playerAllianceIntro:
         'Les outils d’alliance utilisent uniquement l’adhésion, le rang et les rôles du joueur actif.',

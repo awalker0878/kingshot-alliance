@@ -46,7 +46,7 @@ const messages = {
       playerContextIntro: '切換玩家會改變聯盟與王國權限所使用的遊戲身分。',
       playerKingdom: '王國 #{kingdom}',
       playerAuthorityIntro: '聯盟成員關係、階級、角色、王國權限與遊戲操作只依此玩家判定。',
-      selectPlayer: '選擇玩家以使用遊戲功能。',
+      selectPlayer: '選擇總督',
       playerAllianceTitle: '目前玩家的聯盟',
       playerAllianceIntro: '聯盟工具只使用目前玩家的成員關係、階級與角色。',
       noPlayerAllianceTitle: '此玩家尚未加入聯盟',

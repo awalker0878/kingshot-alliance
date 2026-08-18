@@ -52,7 +52,7 @@ const messages = {
       playerKingdom: 'Kingdom {kingdom}',
       playerAuthorityIntro:
         'Alliance rank, offices, Kingdom duties, and Event actions follow this Governor.',
-      selectPlayer: 'Choose a Governor before entering the command rooms.',
+      selectPlayer: 'Select Governor',
       playerAllianceTitle: 'Active Governor’s Alliance',
       playerAllianceIntro: 'Alliance rooms follow the active Governor’s rank and offices.',
       noPlayerAllianceTitle: 'This Governor is not in an Alliance',

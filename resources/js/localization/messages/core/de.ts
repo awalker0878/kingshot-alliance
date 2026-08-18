@@ -47,7 +47,7 @@ const messages = {
       playerKingdom: 'Königreich #{kingdom}',
       playerAuthorityIntro:
         'Allianzmitgliedschaft, Rang, Rollen, Königreichsrechte und Spielaktionen werden nur aus diesem Spieler abgeleitet.',
-      selectPlayer: 'Wähle einen Spieler für die Spiel-Werkzeuge aus.',
+      selectPlayer: 'Gouverneur auswählen',
       playerAllianceTitle: 'Allianz des aktiven Spielers',
       playerAllianceIntro:
         'Allianz-Werkzeuge verwenden nur Mitgliedschaft, Rang und Rollen des aktiven Spielers.',

@@ -48,7 +48,7 @@ const messages = {
       playerKingdom: 'Vương quốc #{kingdom}',
       playerAuthorityIntro:
         'Tư cách thành viên, cấp bậc, vai trò, quyền vương quốc và hành động trong game chỉ được xác định từ người chơi này.',
-      selectPlayer: 'Chọn một người chơi để dùng công cụ trong game.',
+      selectPlayer: 'Chọn Thống đốc',
       playerAllianceTitle: 'Liên minh của người chơi đang hoạt động',
       playerAllianceIntro:
         'Công cụ liên minh chỉ dùng tư cách thành viên, cấp bậc và vai trò của người chơi đang hoạt động.',

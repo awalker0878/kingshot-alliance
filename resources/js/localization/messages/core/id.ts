@@ -47,7 +47,7 @@ const messages = {
       playerKingdom: 'Kingdom #{kingdom}',
       playerAuthorityIntro:
         'Keanggotaan, peringkat, peran, izin kingdom, dan tindakan game ditentukan hanya dari pemain ini.',
-      selectPlayer: 'Pilih pemain untuk menggunakan alat game.',
+      selectPlayer: 'Pilih Gubernur',
       playerAllianceTitle: 'Aliansi pemain aktif',
       playerAllianceIntro:
         'Alat aliansi hanya menggunakan keanggotaan, peringkat, dan peran pemain aktif.',

@@ -48,7 +48,7 @@ const messages = {
       playerKingdom: '왕국 #{kingdom}',
       playerAuthorityIntro:
         '연맹 멤버십, 등급, 역할, 왕국 권한 및 게임 행동은 이 플레이어만 기준으로 결정됩니다.',
-      selectPlayer: '게임 도구를 사용할 플레이어를 선택하세요.',
+      selectPlayer: '총독 선택',
       playerAllianceTitle: '활성 플레이어의 연맹',
       playerAllianceIntro: '연맹 도구는 활성 플레이어의 멤버십, 등급, 역할만 사용합니다.',
       noPlayerAllianceTitle: '이 플레이어는 연맹에 속해 있지 않습니다',

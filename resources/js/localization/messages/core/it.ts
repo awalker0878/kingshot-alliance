@@ -43,7 +43,7 @@ const messages = {
       playerKingdom: 'Regno #{kingdom}',
       playerAuthorityIntro:
         'Iscrizione, grado, ruoli, permessi del regno e azioni di gioco vengono determinati solo da questo giocatore.',
-      selectPlayer: 'Seleziona un giocatore per usare gli strumenti di gioco.',
+      selectPlayer: 'Seleziona governatore',
       playerAllianceTitle: 'Alleanza del giocatore attivo',
       playerAllianceIntro:
         'Gli strumenti dell’alleanza usano solo iscrizione, grado e ruoli del giocatore attivo.',

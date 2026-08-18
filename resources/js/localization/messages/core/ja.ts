@@ -48,7 +48,7 @@ const messages = {
       playerKingdom: '王国 #{kingdom}',
       playerAuthorityIntro:
         '同盟メンバーシップ、ランク、役割、王国権限、ゲーム操作はこのプレイヤーだけから判定されます。',
-      selectPlayer: 'ゲーム機能を使用するプレイヤーを選択してください。',
+      selectPlayer: '総督を選択',
       playerAllianceTitle: 'アクティブプレイヤーの同盟',
       playerAllianceIntro:
         '同盟ツールは、アクティブプレイヤーのメンバーシップ、ランク、役割のみを使用します。',
