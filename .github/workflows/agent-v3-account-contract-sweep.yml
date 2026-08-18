@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - agent/full-ui-rewrite
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -43,7 +44,8 @@ jobs:
           changed = []
 
           for path in sorted(root.rglob('*.php')):
-              if 'Accounts' in path.parts[path.parts.index('Contexts') + 1:path.parts.index('Contexts') + 2]:
+              context_index = path.parts.index('Contexts') + 1
+              if path.parts[context_index] == 'Accounts':
                   continue
               text = path.read_text()
               if model_import not in text:
@@ -62,7 +64,8 @@ jobs:
 
           remaining = []
           for path in sorted(root.rglob('*.php')):
-              if path.parts[path.parts.index('Contexts') + 1] == 'Accounts':
+              context_index = path.parts.index('Contexts') + 1
+              if path.parts[context_index] == 'Accounts':
                   continue
               if model_import in path.read_text():
                   remaining.append(str(path))
