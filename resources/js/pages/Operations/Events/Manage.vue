@@ -2,6 +2,8 @@
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
+import RoomBanner from '@/components/game/RoomBanner.vue';
+import StatSeal from '@/components/game/StatSeal.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
@@ -915,57 +917,123 @@ function cancel(): void {
 <template>
   <Head :title="t('events.manage.title')" />
   <AppLayout :user="props.user">
-    <div class="mx-auto max-w-6xl">
-      <header class="mb-7 flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p class="text-xs font-bold tracking-[0.2em] text-[var(--ks-gold)] uppercase">
-            {{ t('events.manage.eyebrow') }}
-          </p>
-          <h1 class="ks-display mt-2 text-3xl font-semibold">
-            {{ event.title || t(event.nameKey) }}
-          </h1>
-          <p class="mt-2 text-sm text-[var(--ks-text-muted)]">
-            {{ t(`events.scope.${event.scope}`) }} · {{ event.timezone }}
-          </p>
-        </div>
-        <Link
-          href="/events"
-          class="rounded border border-[var(--ks-border)] px-4 py-2 text-sm font-semibold"
-          >{{ t('events.manage.back') }}</Link
+    <div class="mx-auto max-w-[94rem]">
+      <RoomBanner
+        :eyebrow="t('events.manage.eyebrow')"
+        :title="event.title || t(event.nameKey)"
+        :subtitle="`${t(`events.scope.${event.scope}`)} · ${event.timezone}`"
+        image="/images/kingshot/v4/event-command.svg"
+        compact
+      >
+        <template #actions>
+          <Link href="/events" class="ks-command-link" data-variant="secondary">
+            ← {{ t('events.manage.back') }}
+          </Link>
+          <Link
+            v-if="event.occurrences[0]"
+            :href="`/events/${event.occurrences[0].id}`"
+            class="ks-command-link"
+          >
+            {{ t('events.calendar.agenda') }}
+          </Link>
+        </template>
+      </RoomBanner>
+
+      <section
+        class="mt-4 grid gap-3 sm:grid-cols-2 2xl:grid-cols-4"
+        aria-label="Event command summary"
+      >
+        <StatSeal
+          :label="t('events.manage.occurrences')"
+          :value="event.occurrences.length"
+          icon="▦"
+        />
+        <StatSeal
+          :label="t('events.manage.participants')"
+          :value="participants.length"
+          icon="♟"
+          tone="teal"
+        />
+        <StatSeal
+          :label="t('events.manage.reminders')"
+          :value="reminderRules.length"
+          icon="⌛"
+          tone="stone"
+        />
+        <StatSeal
+          :label="t('events.calendar.viewOptions')"
+          :value="event.capabilities.length"
+          icon="✦"
+        />
+      </section>
+
+      <nav class="ks-tab-strip mt-4" aria-label="Event organizer command sections">
+        <a href="#schedule" class="ks-tab">{{ t('events.manage.title') }}</a>
+        <a v-if="event.capabilities.includes('phases')" href="#phases" class="ks-tab">{{
+          t('events.phases.manageTitle')
+        }}</a>
+        <a v-if="event.capabilities.includes('polls')" href="#polls" class="ks-tab">{{
+          t('events.polls.manageTitle')
+        }}</a>
+        <a v-if="event.capabilities.includes('rosters')" href="#rosters" class="ks-tab">{{
+          t('events.rosters.manageTitle')
+        }}</a>
+        <a
+          v-if="
+            event.capabilities.includes('rally_guidance') ||
+            event.capabilities.includes('formations')
+          "
+          href="#rallies"
+          class="ks-tab"
+          >{{ t('events.rallies.manageTitle') }}</a
         >
-      </header>
-      <div class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_20rem]">
-        <form
-          class="space-y-5 rounded-[var(--ks-radius-lg)] border border-[var(--ks-border)] bg-[var(--ks-surface-1)] p-6"
-          @submit.prevent="save"
+        <a v-if="event.capabilities.includes('objectives')" href="#battle-plan" class="ks-tab">{{
+          t('events.objectives.manageTitle')
+        }}</a>
+        <a v-if="event.capabilities.includes('results')" href="#results" class="ks-tab">{{
+          t('events.results.manageTitle')
+        }}</a>
+        <a
+          v-if="
+            event.capabilities.includes('responses') ||
+            event.capabilities.includes('registration') ||
+            event.capabilities.includes('attendance')
+          "
+          href="#participants"
+          class="ks-tab"
+          >{{ t('events.manage.participants') }}</a
         >
+        <a href="#reminders" class="ks-tab">{{ t('events.manage.reminders') }}</a>
+      </nav>
+      <div
+        id="schedule"
+        class="mt-5 grid scroll-mt-28 gap-5 2xl:grid-cols-[minmax(0,1.35fr)_minmax(20rem,.65fr)]"
+      >
+        <form class="ks-surface-gold space-y-5 p-5 sm:p-6" @submit.prevent="save">
           <div class="grid gap-4 sm:grid-cols-2">
             <label class="text-sm font-semibold"
               >{{ t('events.create.start')
               }}<input
                 v-model="form.first_local_start"
                 type="datetime-local"
-                class="mt-2 w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2" /></label
+                class="ks-input mt-2 w-full" /></label
             ><label class="text-sm font-semibold"
               >{{ t('events.create.duration')
               }}<input
                 v-model.number="form.duration_minutes"
                 type="number"
                 min="1"
-                class="mt-2 w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2" /></label
+                class="ks-input mt-2 w-full" /></label
             ><label class="text-sm font-semibold"
               >{{ t('events.create.capacity')
               }}<input
                 v-model.number="form.capacity"
                 type="number"
                 min="1"
-                class="mt-2 w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2" /></label
+                class="ks-input mt-2 w-full" /></label
             ><label class="text-sm font-semibold"
               >{{ t('events.create.titleOverride')
-              }}<input
-                v-model="form.title"
-                type="text"
-                class="mt-2 w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2"
+              }}<input v-model="form.title" type="text" class="ks-input mt-2 w-full"
             /></label>
           </div>
           <div class="grid gap-4 sm:grid-cols-2">
@@ -975,14 +1043,14 @@ function cancel(): void {
                 v-model.number="form.registration_opens_minutes_before"
                 type="number"
                 min="0"
-                class="mt-2 w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2" /></label
+                class="ks-input mt-2 w-full" /></label
             ><label class="text-sm font-semibold"
               >{{ t('events.create.registrationCloses')
               }}<input
                 v-model.number="form.registration_closes_minutes_before"
                 type="number"
                 min="0"
-                class="mt-2 w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2"
+                class="ks-input mt-2 w-full"
             /></label>
           </div>
           <div v-if="event.recurrencePolicy !== 'disabled'" class="grid gap-4 sm:grid-cols-3">
@@ -991,7 +1059,7 @@ function cancel(): void {
               }}<select
                 v-model="form.recurrence_frequency"
                 :disabled="event.recurrencePolicy === 'fixed_interval'"
-                class="mt-2 w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 disabled:opacity-60"
+                class="ks-input mt-2 w-full disabled:opacity-60"
               >
                 <option value="none">{{ t('events.recurrenceFrequencies.none') }}</option>
                 <option value="daily">{{ t('events.recurrenceFrequencies.daily') }}</option>
@@ -1004,22 +1072,18 @@ function cancel(): void {
                 :disabled="event.recurrencePolicy === 'fixed_interval'"
                 type="number"
                 min="1"
-                class="mt-2 w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 disabled:opacity-60" /></label
+                class="ks-input mt-2 w-full disabled:opacity-60" /></label
             ><label class="text-sm font-semibold"
               >{{ t('events.create.recurrenceUntil')
               }}<input
                 v-model="form.recurrence_until_local"
                 type="datetime-local"
-                class="mt-2 w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2"
+                class="ks-input mt-2 w-full"
             /></label>
           </div>
           <label class="block text-sm font-semibold"
             >{{ t('events.create.instructions')
-            }}<textarea
-              v-model="form.instructions"
-              rows="8"
-              class="mt-2 w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2"
-            />
+            }}<textarea v-model="form.instructions" rows="8" class="ks-input mt-2 w-full" />
           </label>
           <div
             v-if="Object.keys(form.errors).length"
@@ -1027,25 +1091,19 @@ function cancel(): void {
           >
             {{ Object.values(form.errors)[0] }}
           </div>
-          <button
-            type="submit"
-            :disabled="form.processing"
-            class="rounded bg-[var(--ks-gold)] px-5 py-2.5 font-bold text-[var(--ks-ink)]"
-          >
+          <button type="submit" :disabled="form.processing" class="ks-command-button">
             {{ t('events.manage.save') }}
           </button>
         </form>
         <aside class="space-y-4">
-          <section
-            class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[var(--ks-surface-1)] p-4"
-          >
+          <section class="ks-surface p-4">
             <h2 class="font-semibold">{{ t('events.manage.occurrences') }}</h2>
             <div class="mt-3 space-y-2">
               <Link
                 v-for="occurrence in event.occurrences"
                 :key="occurrence.id"
                 :href="`/events/${occurrence.id}`"
-                class="block rounded border border-[var(--ks-border)] p-2 text-xs"
+                class="block rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/15 p-2 text-xs"
               >
                 <span class="font-semibold">{{
                   formatDate(new Date(occurrence.startsAt), {
@@ -1062,10 +1120,7 @@ function cancel(): void {
             </div>
           </section>
 
-          <form
-            class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[var(--ks-surface-1)] p-4"
-            @submit.prevent="saveTemplate"
-          >
+          <form class="ks-surface p-4" @submit.prevent="saveTemplate">
             <h2 class="font-semibold">{{ t('events.manage.templateTitle') }}</h2>
             <p class="mt-1 text-xs leading-5 text-[var(--ks-text-muted)]">
               {{ t('events.manage.templateHelp') }}
@@ -1077,7 +1132,7 @@ function cancel(): void {
                 required
                 type="text"
                 maxlength="120"
-                class="mt-1 w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2"
+                class="ks-input mt-1 w-full"
               />
             </label>
             <p
@@ -1089,7 +1144,7 @@ function cancel(): void {
             <button
               type="submit"
               :disabled="templateForm.processing || !templateForm.name.trim()"
-              class="mt-3 w-full rounded bg-[var(--ks-blue-soft)] px-4 py-2 text-sm font-semibold text-[var(--ks-blue-strong)] disabled:opacity-50"
+              class="ks-command-button mt-3 w-full disabled:opacity-50"
             >
               {{ t('events.manage.templateSave') }}
             </button>
@@ -1097,7 +1152,7 @@ function cancel(): void {
 
           <button
             type="button"
-            class="w-full rounded border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm font-semibold text-red-200"
+            class="w-full rounded-[var(--ks-radius-sm)] border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm font-semibold text-red-100 transition hover:border-red-300/50"
             @click="cancel"
           >
             {{ t('events.manage.cancel') }}
@@ -1106,12 +1161,13 @@ function cancel(): void {
       </div>
 
       <section
+        id="phases"
         v-if="event.capabilities.includes('phases')"
-        class="mt-5 rounded-[var(--ks-radius-lg)] border border-[var(--ks-border)] bg-[var(--ks-surface-1)] p-5"
+        class="ks-surface mt-5 scroll-mt-28 p-5"
       >
         <div class="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p class="text-xs font-bold tracking-[0.15em] text-[var(--ks-gold)] uppercase">
+            <p class="ks-kicker">
               {{ t('events.phases.eyebrow') }}
             </p>
             <h2 class="mt-1 text-lg font-semibold">{{ t('events.phases.manageTitle') }}</h2>
@@ -1127,11 +1183,7 @@ function cancel(): void {
         </div>
         <div class="mt-4 grid gap-5 lg:grid-cols-[minmax(0,1fr)_22rem]">
           <div class="space-y-3">
-            <div
-              v-for="group in operations"
-              :key="group.occurrenceId"
-              class="rounded border border-[var(--ks-border)] p-3"
-            >
+            <div v-for="group in operations" :key="group.occurrenceId" class="ks-surface p-3">
               <p class="mb-2 text-xs font-semibold text-[var(--ks-text-muted)]">
                 {{
                   formatDate(new Date(group.startsAt), {
@@ -1161,14 +1213,8 @@ function cancel(): void {
               </div>
             </div>
           </div>
-          <form
-            class="space-y-3 rounded border border-[var(--ks-border)] p-3"
-            @submit.prevent="savePhase"
-          >
-            <select
-              v-model="phaseForm.occurrence_id"
-              class="w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
-            >
+          <form class="ks-surface space-y-3 p-4" @submit.prevent="savePhase">
+            <select v-model="phaseForm.occurrence_id" class="ks-input w-full text-sm">
               <option
                 v-for="occurrence in event.occurrences"
                 :key="occurrence.id"
@@ -1187,16 +1233,13 @@ function cancel(): void {
               v-model="phaseForm.key"
               required
               :placeholder="t('events.phases.key')"
-              class="w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
+              class="ks-input w-full text-sm"
             /><input
               v-model="phaseForm.name"
               required
               :placeholder="t('events.phases.name')"
-              class="w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
-            /><select
-              v-model="phaseForm.phase_type"
-              class="w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
-            >
+              class="ks-input w-full text-sm"
+            /><select v-model="phaseForm.phase_type" class="ks-input w-full text-sm">
               <option
                 v-for="value in [
                   'preparation',
@@ -1218,17 +1261,10 @@ function cancel(): void {
               <input
                 v-model="phaseForm.starts_at"
                 type="datetime-local"
-                class="rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-2 py-2 text-xs"
-              /><input
-                v-model="phaseForm.ends_at"
-                type="datetime-local"
-                class="rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-2 py-2 text-xs"
-              />
+                class="ks-input text-xs"
+              /><input v-model="phaseForm.ends_at" type="datetime-local" class="ks-input text-xs" />
             </div>
-            <select
-              v-model="phaseForm.status"
-              class="w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
-            >
+            <select v-model="phaseForm.status" class="ks-input w-full text-sm">
               <option
                 v-for="value in ['scheduled', 'active', 'completed', 'cancelled']"
                 :key="value"
@@ -1239,7 +1275,7 @@ function cancel(): void {
             ><button
               type="submit"
               :disabled="phaseForm.processing"
-              class="w-full rounded bg-[var(--ks-gold)] px-3 py-2 text-sm font-bold text-[var(--ks-ink)]"
+              class="ks-command-button w-full"
             >
               {{ editingPhaseId ? t('events.actions.save') : t('events.phases.add') }}
             </button>
@@ -1248,12 +1284,13 @@ function cancel(): void {
       </section>
 
       <section
+        id="polls"
         v-if="event.capabilities.includes('polls')"
-        class="mt-5 rounded-[var(--ks-radius-lg)] border border-[var(--ks-border)] bg-[var(--ks-surface-1)] p-5"
+        class="ks-surface mt-5 scroll-mt-28 p-5"
       >
         <div class="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p class="text-xs font-bold tracking-[0.15em] text-[var(--ks-blue-strong)] uppercase">
+            <p class="ks-kicker">
               {{ t('events.polls.eyebrow') }}
             </p>
             <h2 class="mt-1 text-lg font-semibold">{{ t('events.polls.manageTitle') }}</h2>
@@ -1269,11 +1306,7 @@ function cancel(): void {
         </div>
         <div class="mt-4 grid gap-5 lg:grid-cols-[minmax(0,1fr)_24rem]">
           <div class="space-y-3">
-            <div
-              v-for="group in operations"
-              :key="group.occurrenceId"
-              class="rounded border border-[var(--ks-border)] p-3"
-            >
+            <div v-for="group in operations" :key="group.occurrenceId" class="ks-surface p-3">
               <p class="mb-2 text-xs font-semibold text-[var(--ks-text-muted)]">
                 {{
                   formatDate(new Date(group.startsAt), {
@@ -1288,7 +1321,7 @@ function cancel(): void {
                 v-for="poll in group.polls"
                 :key="poll.id"
                 type="button"
-                class="mb-2 block w-full rounded border border-[var(--ks-border)] p-3 text-left"
+                class="ks-surface mb-2 block w-full p-3 text-left"
                 @click="editPoll(group.occurrenceId, poll)"
               >
                 <div class="flex justify-between gap-2 text-sm font-semibold">
@@ -1309,14 +1342,8 @@ function cancel(): void {
               </p>
             </div>
           </div>
-          <form
-            class="space-y-3 rounded border border-[var(--ks-border)] p-3"
-            @submit.prevent="savePoll"
-          >
-            <select
-              v-model="pollForm.occurrence_id"
-              class="w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
-            >
+          <form class="ks-surface space-y-3 p-4" @submit.prevent="savePoll">
+            <select v-model="pollForm.occurrence_id" class="ks-input w-full text-sm">
               <option
                 v-for="occurrence in event.occurrences"
                 :key="occurrence.id"
@@ -1335,34 +1362,28 @@ function cancel(): void {
               v-model="pollForm.key"
               required
               :placeholder="t('events.polls.key')"
-              class="w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
-            /><select
-              v-model="pollForm.poll_type"
-              class="w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
-            >
+              class="ks-input w-full text-sm"
+            /><select v-model="pollForm.poll_type" class="ks-input w-full text-sm">
               <option value="choice">{{ t('events.polls.choice') }}</option>
               <option value="time_vote">{{ t('events.polls.timeVote') }}</option></select
             ><input
               v-model="pollForm.question"
               :placeholder="t('events.polls.question')"
-              class="w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
+              class="ks-input w-full text-sm"
             />
             <div class="grid grid-cols-2 gap-2">
               <input
                 v-model="pollForm.opens_at"
                 type="datetime-local"
-                class="rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-2 py-2 text-xs"
+                class="ks-input text-xs"
               /><input
                 v-model="pollForm.closes_at"
                 type="datetime-local"
-                class="rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-2 py-2 text-xs"
+                class="ks-input text-xs"
               />
             </div>
             <div class="grid grid-cols-2 gap-2">
-              <select
-                v-model="pollForm.status"
-                class="rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-2 py-2 text-sm"
-              >
+              <select v-model="pollForm.status" class="ks-input text-sm">
                 <option
                   v-for="value in ['draft', 'open', 'closed', 'cancelled']"
                   :key="value"
@@ -1375,7 +1396,7 @@ function cancel(): void {
                 type="number"
                 min="1"
                 max="20"
-                class="rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-2 py-2 text-sm"
+                class="ks-input text-sm"
               />
             </div>
             <textarea
@@ -1383,7 +1404,7 @@ function cancel(): void {
               :disabled="editingPollOptionsLocked"
               rows="5"
               :placeholder="t('events.polls.optionsHelp')"
-              class="w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm disabled:opacity-60"
+              class="ks-input w-full text-sm disabled:opacity-60"
             />
             <p v-if="editingPollOptionsLocked" class="text-xs text-[var(--ks-text-muted)]">
               {{ t('events.polls.optionsLocked') }}
@@ -1395,12 +1416,8 @@ function cancel(): void {
                 type="number"
                 min="1"
                 max="10080"
-                class="mt-1 w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2" /></label
-            ><button
-              type="submit"
-              :disabled="pollForm.processing"
-              class="w-full rounded bg-[var(--ks-blue-soft)] px-3 py-2 text-sm font-semibold text-[var(--ks-blue-strong)]"
-            >
+                class="ks-input mt-1 w-full" /></label
+            ><button type="submit" :disabled="pollForm.processing" class="ks-command-button w-full">
               {{ editingPollId ? t('events.actions.save') : t('events.polls.add') }}
             </button>
           </form>
@@ -1408,12 +1425,13 @@ function cancel(): void {
       </section>
 
       <section
+        id="rosters"
         v-if="event.capabilities.includes('rosters')"
-        class="mt-5 rounded-[var(--ks-radius-lg)] border border-[var(--ks-border)] bg-[var(--ks-surface-1)] p-5"
+        class="ks-surface mt-5 scroll-mt-28 p-5"
       >
         <div class="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p class="text-xs font-bold tracking-[0.15em] text-[var(--ks-gold)] uppercase">
+            <p class="ks-kicker">
               {{ t('events.rosters.eyebrow') }}
             </p>
             <h2 class="mt-1 text-lg font-semibold">{{ t('events.rosters.manageTitle') }}</h2>
@@ -1432,7 +1450,7 @@ function cancel(): void {
             <article
               v-for="group in rosterOperations"
               :key="group.occurrenceId"
-              class="rounded border border-[var(--ks-border)] p-4"
+              class="ks-surface p-4"
             >
               <p class="mb-3 text-xs font-semibold text-[var(--ks-text-muted)]">
                 {{
@@ -1445,11 +1463,7 @@ function cancel(): void {
                 }}
               </p>
               <div class="grid gap-3 lg:grid-cols-2">
-                <div
-                  v-for="roster in group.rosters"
-                  :key="roster.id"
-                  class="rounded border border-[var(--ks-border)] p-3"
-                >
+                <div v-for="roster in group.rosters" :key="roster.id" class="ks-surface p-3">
                   <button
                     type="button"
                     class="flex w-full items-center justify-between gap-2 text-left"
@@ -1470,7 +1484,7 @@ function cancel(): void {
                     <div
                       v-for="member in roster.members.filter((item) => item.status !== 'removed')"
                       :key="member.id"
-                      class="rounded bg-[var(--ks-surface-2)] p-2"
+                      class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border-quiet)] bg-black/15 p-2"
                     >
                       <div class="flex items-start justify-between gap-2">
                         <div>
@@ -1517,17 +1531,11 @@ function cancel(): void {
             </article>
           </div>
           <div class="space-y-4">
-            <form
-              class="space-y-3 rounded border border-[var(--ks-border)] p-3"
-              @submit.prevent="saveRoster"
-            >
+            <form class="ks-surface space-y-3 p-4" @submit.prevent="saveRoster">
               <h3 class="text-sm font-semibold">
                 {{ editingRosterId ? t('events.rosters.edit') : t('events.rosters.add') }}
               </h3>
-              <select
-                v-model="rosterForm.occurrence_id"
-                class="w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
-              >
+              <select v-model="rosterForm.occurrence_id" class="ks-input w-full text-sm">
                 <option
                   v-for="occurrence in event.occurrences"
                   :key="occurrence.id"
@@ -1546,18 +1554,15 @@ function cancel(): void {
                 v-model="rosterForm.key"
                 required
                 :placeholder="t('events.rosters.key')"
-                class="w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
+                class="ks-input w-full text-sm"
               /><input
                 v-model="rosterForm.name"
                 required
                 :placeholder="t('events.rosters.name')"
-                class="w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
+                class="ks-input w-full text-sm"
               />
               <div class="grid grid-cols-2 gap-2">
-                <select
-                  v-model="rosterForm.roster_type"
-                  class="rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-2 py-2 text-sm"
-                >
+                <select v-model="rosterForm.roster_type" class="ks-input text-sm">
                   <option
                     v-for="value in ['roster', 'combatants', 'substitutes', 'team', 'legion']"
                     :key="value"
@@ -1569,13 +1574,10 @@ function cancel(): void {
                   v-model="rosterForm.assignment_group"
                   required
                   :placeholder="t('events.rosters.group')"
-                  class="rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-2 py-2 text-sm"
+                  class="ks-input text-sm"
                 />
               </div>
-              <select
-                v-model="rosterForm.parent_id"
-                class="w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
-              >
+              <select v-model="rosterForm.parent_id" class="ks-input w-full text-sm">
                 <option value="">{{ t('events.rosters.noParent') }}</option>
                 <option
                   v-for="roster in rosterGroup(rosterForm.occurrence_id)?.rosters ?? []"
@@ -1592,31 +1594,28 @@ function cancel(): void {
                   type="number"
                   min="1"
                   :placeholder="t('events.rosters.capacity')"
-                  class="rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-2 py-2 text-sm"
+                  class="ks-input text-sm"
                 /><input
                   v-model.number="rosterForm.sort_order"
                   type="number"
                   min="0"
                   :placeholder="t('events.rosters.sortOrder')"
-                  class="rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-2 py-2 text-sm"
+                  class="ks-input text-sm"
                 />
               </div>
               <button
                 type="submit"
                 :disabled="rosterForm.processing"
-                class="w-full rounded bg-[var(--ks-gold)] px-3 py-2 text-sm font-bold text-[var(--ks-ink)]"
+                class="ks-command-button w-full"
               >
                 {{ t('events.actions.save') }}
               </button>
             </form>
-            <form
-              class="space-y-3 rounded border border-[var(--ks-border)] p-3"
-              @submit.prevent="assignRosterPlayer"
-            >
+            <form class="ks-surface space-y-3 p-4" @submit.prevent="assignRosterPlayer">
               <h3 class="text-sm font-semibold">{{ t('events.rosters.assignPlayer') }}</h3>
               <select
                 v-model="rosterAssignmentForm.occurrence_id"
-                class="w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
+                class="ks-input w-full text-sm"
                 @change="
                   rosterAssignmentForm.roster_id = '';
                   rosterAssignmentForm.player_id = '';
@@ -1639,7 +1638,7 @@ function cancel(): void {
               ><select
                 v-model="rosterAssignmentForm.roster_id"
                 required
-                class="w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
+                class="ks-input w-full text-sm"
               >
                 <option value="" disabled>{{ t('events.rosters.roster') }}</option>
                 <option
@@ -1652,7 +1651,7 @@ function cancel(): void {
               ><select
                 v-model="rosterAssignmentForm.player_id"
                 required
-                class="w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
+                class="ks-input w-full text-sm"
               >
                 <option value="" disabled>{{ t('events.rosters.player') }}</option>
                 <option
@@ -1668,24 +1667,24 @@ function cancel(): void {
                 <input
                   v-model="rosterAssignmentForm.role"
                   :placeholder="t('events.rosters.role')"
-                  class="rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-2 py-2 text-sm"
+                  class="ks-input text-sm"
                 /><input
                   v-model.number="rosterAssignmentForm.slot_number"
                   type="number"
                   min="1"
                   :placeholder="t('events.rosters.slot')"
-                  class="rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-2 py-2 text-sm"
+                  class="ks-input text-sm"
                 />
               </div>
               <textarea
                 v-model="rosterAssignmentForm.notes"
                 rows="2"
                 :placeholder="t('events.rosters.notes')"
-                class="w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
+                class="ks-input w-full text-sm"
               /><button
                 type="submit"
                 :disabled="rosterAssignmentForm.processing"
-                class="w-full rounded bg-[var(--ks-blue-soft)] px-3 py-2 text-sm font-semibold text-[var(--ks-blue-strong)]"
+                class="ks-command-button w-full"
               >
                 {{ t('events.rosters.assign') }}
               </button>
@@ -1695,19 +1694,20 @@ function cancel(): void {
       </section>
 
       <section
+        id="rallies"
         v-if="
           event.capabilities.includes('rally_guidance') || event.capabilities.includes('formations')
         "
-        class="mt-5 rounded-[var(--ks-radius-lg)] border border-[var(--ks-border)] bg-[var(--ks-surface-1)] p-5"
+        class="ks-surface mt-5 scroll-mt-28 p-5"
       >
-        <p class="text-xs font-bold tracking-[0.15em] text-[var(--ks-gold)] uppercase">
+        <p class="ks-kicker">
           {{ t('events.rallies.manageEyebrow') }}
         </p>
         <h2 class="mt-1 text-lg font-semibold">{{ t('events.rallies.manageTitle') }}</h2>
         <div class="mt-5 grid gap-5 xl:grid-cols-2">
           <form
             v-if="event.capabilities.includes('rally_guidance')"
-            class="space-y-3 rounded border border-[var(--ks-border)] p-4"
+            class="ks-surface space-y-3 p-4"
             @submit.prevent="saveGuidance"
           >
             <div class="flex items-center justify-between gap-2">
@@ -1721,11 +1721,7 @@ function cancel(): void {
                 {{ t('events.actions.cancel') }}
               </button>
             </div>
-            <select
-              v-model="guidanceForm.alliance_id"
-              required
-              class="w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
-            >
+            <select v-model="guidanceForm.alliance_id" required class="ks-input w-full text-sm">
               <option
                 v-for="alliance in firstRallyOccurrence?.alliances ?? []"
                 :key="alliance.id"
@@ -1737,7 +1733,7 @@ function cancel(): void {
               v-model="guidanceForm.name"
               required
               :placeholder="t('events.rallies.guidanceName')"
-              class="w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
+              class="ks-input w-full text-sm"
             />
             <div class="grid grid-cols-3 gap-2">
               <input
@@ -1746,60 +1742,60 @@ function cancel(): void {
                 min="0"
                 max="100"
                 :aria-label="t('events.rallies.infantry')"
-                class="rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-2 py-2 text-sm"
+                class="ks-input text-sm"
               /><input
                 v-model.number="guidanceForm.cavalry_percent"
                 type="number"
                 min="0"
                 max="100"
                 :aria-label="t('events.rallies.cavalry')"
-                class="rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-2 py-2 text-sm"
+                class="ks-input text-sm"
               /><input
                 v-model.number="guidanceForm.archer_percent"
                 type="number"
                 min="0"
                 max="100"
                 :aria-label="t('events.rallies.archers')"
-                class="rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-2 py-2 text-sm"
+                class="ks-input text-sm"
               />
             </div>
             <input
               v-model="guidanceForm.hero_recommendations_text"
               :placeholder="t('events.rallies.heroesHelp')"
-              class="w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
+              class="ks-input w-full text-sm"
             /><textarea
               v-model="guidanceForm.lead_requirements"
               rows="2"
               :placeholder="t('events.rallies.leadRequirements')"
-              class="w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
+              class="ks-input w-full text-sm"
             /><textarea
               v-model="guidanceForm.joiner_guidance"
               rows="2"
               :placeholder="t('events.rallies.joinerGuidance')"
-              class="w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
+              class="ks-input w-full text-sm"
             />
             <div class="grid grid-cols-2 gap-2">
               <input
                 v-model="guidanceForm.source"
                 :placeholder="t('events.rallies.source')"
-                class="rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-2 py-2 text-sm"
+                class="ks-input text-sm"
               /><input
                 v-model="guidanceForm.rationale"
                 :placeholder="t('events.rallies.rationale')"
-                class="rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-2 py-2 text-sm"
+                class="ks-input text-sm"
               />
             </div>
             <button
               type="submit"
               :disabled="guidanceForm.processing"
-              class="w-full rounded bg-[var(--ks-blue-soft)] px-3 py-2 text-sm font-semibold text-[var(--ks-blue-strong)]"
+              class="ks-command-button w-full"
             >
               {{ t('events.actions.save') }}
             </button>
           </form>
           <form
             v-if="event.capabilities.includes('formations')"
-            class="space-y-3 rounded border border-[var(--ks-border)] p-4"
+            class="ks-surface space-y-3 p-4"
             @submit.prevent="saveRallyFormation"
           >
             <div class="flex items-center justify-between gap-2">
@@ -1815,7 +1811,7 @@ function cancel(): void {
             </div>
             <select
               v-model="rallyFormationForm.occurrence_id"
-              class="w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
+              class="ks-input w-full text-sm"
               @change="syncRallyAlliance(rallyFormationForm.occurrence_id)"
             >
               <option
@@ -1835,7 +1831,7 @@ function cancel(): void {
             ><select
               v-model="rallyFormationForm.alliance_id"
               required
-              class="w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
+              class="ks-input w-full text-sm"
             >
               <option
                 v-for="alliance in rallyOccurrence(rallyFormationForm.occurrence_id)?.alliances ??
@@ -1851,18 +1847,15 @@ function cancel(): void {
                 v-model="rallyFormationForm.key"
                 required
                 :placeholder="t('events.rallies.key')"
-                class="rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-2 py-2 text-sm"
+                class="ks-input text-sm"
               /><input
                 v-model="rallyFormationForm.name"
                 required
                 :placeholder="t('events.rallies.formationName')"
-                class="rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-2 py-2 text-sm"
+                class="ks-input text-sm"
               />
             </div>
-            <select
-              v-model="rallyFormationForm.guidance_rule_id"
-              class="w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
-            >
+            <select v-model="rallyFormationForm.guidance_rule_id" class="ks-input w-full text-sm">
               <option value="">{{ t('events.rallies.noGuidanceRule') }}</option>
               <option
                 v-for="rule in rallyOccurrence(rallyFormationForm.occurrence_id)?.guidance.filter(
@@ -1880,29 +1873,29 @@ function cancel(): void {
                 type="number"
                 min="0"
                 max="100"
-                class="rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-2 py-2 text-sm"
+                class="ks-input text-sm"
               /><input
                 v-model.number="rallyFormationForm.cavalry_percent"
                 type="number"
                 min="0"
                 max="100"
-                class="rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-2 py-2 text-sm"
+                class="ks-input text-sm"
               /><input
                 v-model.number="rallyFormationForm.archer_percent"
                 type="number"
                 min="0"
                 max="100"
-                class="rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-2 py-2 text-sm"
+                class="ks-input text-sm"
               />
             </div>
             <input
               v-model="rallyFormationForm.heroes_text"
               :placeholder="t('events.rallies.heroesHelp')"
-              class="w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
+              class="ks-input w-full text-sm"
             /><button
               type="submit"
               :disabled="rallyFormationForm.processing"
-              class="w-full rounded bg-[var(--ks-gold)] px-3 py-2 text-sm font-bold text-[var(--ks-ink)]"
+              class="ks-command-button w-full"
             >
               {{ t('events.actions.save') }}
             </button>
@@ -1912,14 +1905,11 @@ function cancel(): void {
           v-if="event.capabilities.includes('rally_guidance')"
           class="mt-5 grid gap-5 xl:grid-cols-2"
         >
-          <form
-            class="space-y-3 rounded border border-[var(--ks-border)] p-4"
-            @submit.prevent="saveRallyGroup"
-          >
+          <form class="ks-surface space-y-3 p-4" @submit.prevent="saveRallyGroup">
             <h3 class="font-semibold">{{ t('events.rallies.groups') }}</h3>
             <select
               v-model="rallyGroupForm.occurrence_id"
-              class="w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
+              class="ks-input w-full text-sm"
               @change="syncRallyAlliance(rallyGroupForm.occurrence_id)"
             >
               <option
@@ -1936,11 +1926,7 @@ function cancel(): void {
                   })
                 }}
               </option></select
-            ><select
-              v-model="rallyGroupForm.alliance_id"
-              required
-              class="w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
-            >
+            ><select v-model="rallyGroupForm.alliance_id" required class="ks-input w-full text-sm">
               <option
                 v-for="alliance in rallyOccurrence(rallyGroupForm.occurrence_id)?.alliances ?? []"
                 :key="alliance.id"
@@ -1952,10 +1938,10 @@ function cancel(): void {
               v-model="rallyGroupForm.name"
               required
               :placeholder="t('events.rallies.groupName')"
-              class="w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
+              class="ks-input w-full text-sm"
             /><select
               v-model="rallyGroupForm.recommended_formation_id"
-              class="w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
+              class="ks-input w-full text-sm"
             >
               <option value="">{{ t('events.rallies.noRecommendedFormation') }}</option>
               <option
@@ -1974,23 +1960,20 @@ function cancel(): void {
               type="number"
               min="1"
               :placeholder="t('events.rallies.maxJoiners')"
-              class="w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
+              class="ks-input w-full text-sm"
             /><button
               type="submit"
               :disabled="rallyGroupForm.processing"
-              class="w-full rounded bg-[var(--ks-gold)] px-3 py-2 text-sm font-bold text-[var(--ks-ink)]"
+              class="ks-command-button w-full"
             >
               {{ t('events.actions.save') }}
             </button>
           </form>
-          <form
-            class="space-y-3 rounded border border-[var(--ks-border)] p-4"
-            @submit.prevent="assignRallyPlayer"
-          >
+          <form class="ks-surface space-y-3 p-4" @submit.prevent="assignRallyPlayer">
             <h3 class="font-semibold">{{ t('events.rallies.assignPlayer') }}</h3>
             <select
               v-model="rallyAssignmentForm.occurrence_id"
-              class="w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
+              class="ks-input w-full text-sm"
               @change="
                 rallyAssignmentForm.group_id = '';
                 rallyAssignmentForm.player_id = '';
@@ -2013,7 +1996,7 @@ function cancel(): void {
             ><select
               v-model="rallyAssignmentForm.group_id"
               required
-              class="w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
+              class="ks-input w-full text-sm"
               @change="rallyAssignmentForm.player_id = ''"
             >
               <option value="" disabled>{{ t('events.rallies.group') }}</option>
@@ -2027,7 +2010,7 @@ function cancel(): void {
             ><select
               v-model="rallyAssignmentForm.player_id"
               required
-              class="w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
+              class="ks-input w-full text-sm"
             >
               <option value="" disabled>{{ t('events.rallies.player') }}</option>
               <option
@@ -2043,10 +2026,7 @@ function cancel(): void {
               </option>
             </select>
             <div class="grid grid-cols-2 gap-2">
-              <select
-                v-model="rallyAssignmentForm.role"
-                class="rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-2 py-2 text-sm"
-              >
+              <select v-model="rallyAssignmentForm.role" class="ks-input text-sm">
                 <option value="lead">{{ t('events.rallies.roles.lead') }}</option>
                 <option value="joiner">{{ t('events.rallies.roles.joiner') }}</option>
                 <option value="standby">{{ t('events.rallies.roles.standby') }}</option></select
@@ -2055,18 +2035,18 @@ function cancel(): void {
                 type="number"
                 min="1"
                 :placeholder="t('events.rallies.slot')"
-                class="rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-2 py-2 text-sm"
+                class="ks-input text-sm"
               />
             </div>
             <textarea
               v-model="rallyAssignmentForm.notes"
               rows="2"
               :placeholder="t('events.rallies.notes')"
-              class="w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
+              class="ks-input w-full text-sm"
             /><button
               type="submit"
               :disabled="rallyAssignmentForm.processing"
-              class="w-full rounded bg-[var(--ks-blue-soft)] px-3 py-2 text-sm font-semibold text-[var(--ks-blue-strong)]"
+              class="ks-command-button w-full"
             >
               {{ t('events.rallies.assign') }}
             </button>
@@ -2076,7 +2056,7 @@ function cancel(): void {
           <article
             v-for="occurrence in rallyOperations"
             :key="occurrence.occurrenceId"
-            class="rounded border border-[var(--ks-border)] p-4"
+            class="ks-surface p-4"
           >
             <div class="text-sm font-semibold">
               {{
@@ -2125,7 +2105,7 @@ function cancel(): void {
               <div
                 v-for="group in occurrence.groups"
                 :key="group.id"
-                class="rounded bg-[var(--ks-surface-2)] p-3"
+                class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border-quiet)] bg-black/15 p-3"
               >
                 <div class="flex items-center justify-between gap-2">
                   <button
@@ -2191,20 +2171,18 @@ function cancel(): void {
       </section>
 
       <section
+        id="battle-plan"
         v-if="event.capabilities.includes('objectives')"
-        class="mt-5 rounded-[var(--ks-radius-lg)] border border-[var(--ks-border)] bg-[var(--ks-surface-1)] p-5"
+        class="ks-surface mt-5 scroll-mt-28 p-5"
       >
         <div>
-          <p class="text-xs font-bold tracking-[0.15em] text-[var(--ks-gold)] uppercase">
+          <p class="ks-kicker">
             {{ t('events.objectives.eyebrow') }}
           </p>
           <h2 class="mt-1 text-lg font-semibold">{{ t('events.objectives.manageTitle') }}</h2>
         </div>
         <div class="mt-4 grid gap-5 xl:grid-cols-2">
-          <form
-            class="space-y-3 rounded border border-[var(--ks-border)] p-4"
-            @submit.prevent="saveObjective"
-          >
+          <form class="ks-surface space-y-3 p-4" @submit.prevent="saveObjective">
             <div class="flex items-center justify-between gap-3">
               <h3 class="font-semibold">
                 {{ editingObjectiveId ? t('events.objectives.edit') : t('events.objectives.add') }}
@@ -2218,10 +2196,7 @@ function cancel(): void {
                 {{ t('events.actions.cancel') }}
               </button>
             </div>
-            <select
-              v-model="objectiveForm.occurrence_id"
-              class="w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
-            >
+            <select v-model="objectiveForm.occurrence_id" class="ks-input w-full text-sm">
               <option
                 v-for="occurrence in battlePlan"
                 :key="occurrence.occurrenceId"
@@ -2237,10 +2212,7 @@ function cancel(): void {
                 }}
               </option>
             </select>
-            <select
-              v-model="objectiveForm.parent_id"
-              class="w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
-            >
+            <select v-model="objectiveForm.parent_id" class="ks-input w-full text-sm">
               <option value="">{{ t('events.objectives.noParent') }}</option>
               <option
                 v-for="objective in battleOccurrence(objectiveForm.occurrence_id)?.objectives ?? []"
@@ -2256,19 +2228,19 @@ function cancel(): void {
                 v-model="objectiveForm.name"
                 required
                 :placeholder="t('events.objectives.name')"
-                class="rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
+                class="ks-input text-sm"
               /><input
                 v-model="objectiveForm.objective_type"
                 required
                 :placeholder="t('events.objectives.type')"
-                class="rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
+                class="ks-input text-sm"
               />
             </div>
             <textarea
               v-model="objectiveForm.description"
               rows="3"
               :placeholder="t('events.objectives.description')"
-              class="w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
+              class="ks-input w-full text-sm"
             />
             <div class="grid grid-cols-2 gap-2">
               <input
@@ -2277,11 +2249,8 @@ function cancel(): void {
                 min="0"
                 max="100"
                 :aria-label="t('events.objectives.priority')"
-                class="rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
-              /><select
-                v-model="objectiveForm.status"
-                class="rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
-              >
+                class="ks-input text-sm"
+              /><select v-model="objectiveForm.status" class="ks-input text-sm">
                 <option
                   v-for="status in ['planned', 'active', 'completed', 'failed', 'cancelled']"
                   :key="status"
@@ -2296,30 +2265,27 @@ function cancel(): void {
                 v-model="objectiveForm.starts_at"
                 type="datetime-local"
                 :aria-label="t('events.objectives.starts')"
-                class="rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
+                class="ks-input text-sm"
               /><input
                 v-model="objectiveForm.ends_at"
                 type="datetime-local"
                 :aria-label="t('events.objectives.ends')"
-                class="rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
+                class="ks-input text-sm"
               />
             </div>
             <button
               type="submit"
               :disabled="objectiveForm.processing"
-              class="w-full rounded bg-[var(--ks-gold)] px-3 py-2 text-sm font-bold text-[var(--ks-ink)]"
+              class="ks-command-button w-full"
             >
               {{ t('events.actions.save') }}
             </button>
           </form>
-          <form
-            class="space-y-3 rounded border border-[var(--ks-border)] p-4"
-            @submit.prevent="assignObjective"
-          >
+          <form class="ks-surface space-y-3 p-4" @submit.prevent="assignObjective">
             <h3 class="font-semibold">{{ t('events.objectives.assign') }}</h3>
             <select
               v-model="objectiveAssignmentForm.occurrence_id"
-              class="w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
+              class="ks-input w-full text-sm"
               @change="
                 objectiveAssignmentForm.objective_id = '';
                 objectiveAssignmentForm.player_id = '';
@@ -2344,7 +2310,7 @@ function cancel(): void {
             <select
               v-model="objectiveAssignmentForm.objective_id"
               required
-              class="w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
+              class="ks-input w-full text-sm"
             >
               <option value="" disabled>{{ t('events.objectives.objective') }}</option>
               <option
@@ -2356,10 +2322,7 @@ function cancel(): void {
                 {{ objective.name }}
               </option>
             </select>
-            <select
-              v-model="objectiveAssignmentForm.target_type"
-              class="w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
-            >
+            <select v-model="objectiveAssignmentForm.target_type" class="ks-input w-full text-sm">
               <option value="player">{{ t('events.objectives.player') }}</option>
               <option value="roster">{{ t('events.objectives.roster') }}</option>
             </select>
@@ -2367,7 +2330,7 @@ function cancel(): void {
               v-if="objectiveAssignmentForm.target_type === 'player'"
               v-model="objectiveAssignmentForm.player_id"
               required
-              class="w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
+              class="ks-input w-full text-sm"
             >
               <option value="" disabled>{{ t('events.objectives.player') }}</option>
               <option
@@ -2383,7 +2346,7 @@ function cancel(): void {
               v-else
               v-model="objectiveAssignmentForm.roster_id"
               required
-              class="w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
+              class="ks-input w-full text-sm"
             >
               <option value="" disabled>{{ t('events.objectives.roster') }}</option>
               <option
@@ -2399,12 +2362,9 @@ function cancel(): void {
               v-model="objectiveAssignmentForm.notes"
               rows="2"
               :placeholder="t('events.objectives.assignmentNotes')"
-              class="w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
+              class="ks-input w-full text-sm"
             />
-            <button
-              type="submit"
-              class="w-full rounded bg-[var(--ks-blue-soft)] px-3 py-2 text-sm font-semibold text-[var(--ks-blue-strong)]"
-            >
+            <button type="submit" class="ks-command-button w-full">
               {{ t('events.objectives.assign') }}
             </button>
           </form>
@@ -2413,7 +2373,7 @@ function cancel(): void {
           <article
             v-for="occurrence in battlePlan"
             :key="occurrence.occurrenceId"
-            class="rounded border border-[var(--ks-border)] p-4"
+            class="ks-surface p-4"
           >
             <div class="text-sm font-semibold">
               {{
@@ -2429,7 +2389,7 @@ function cancel(): void {
               <div
                 v-for="objective in occurrence.objectives"
                 :key="objective.id"
-                class="rounded bg-[var(--ks-surface-2)] p-3"
+                class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border-quiet)] bg-black/15 p-3"
               >
                 <div class="flex flex-wrap items-start justify-between gap-3">
                   <button
@@ -2475,24 +2435,22 @@ function cancel(): void {
       </section>
 
       <section
+        id="results"
         v-if="event.capabilities.includes('results')"
-        class="mt-5 rounded-[var(--ks-radius-lg)] border border-[var(--ks-border)] bg-[var(--ks-surface-1)] p-5"
+        class="ks-surface mt-5 scroll-mt-28 p-5"
       >
         <div>
-          <p class="text-xs font-bold tracking-[0.15em] text-[var(--ks-gold)] uppercase">
+          <p class="ks-kicker">
             {{ t('events.results.eyebrow') }}
           </p>
           <h2 class="mt-1 text-lg font-semibold">{{ t('events.results.manageTitle') }}</h2>
         </div>
         <div class="mt-4 grid gap-5 xl:grid-cols-2">
-          <form
-            class="space-y-3 rounded border border-[var(--ks-border)] p-4"
-            @submit.prevent="saveResult"
-          >
+          <form class="ks-surface space-y-3 p-4" @submit.prevent="saveResult">
             <h3 class="font-semibold">{{ t('events.results.occurrenceResult') }}</h3>
             <select
               v-model="resultForm.occurrence_id"
-              class="w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
+              class="ks-input w-full text-sm"
               @change="loadResultOccurrence(resultForm.occurrence_id)"
             >
               <option
@@ -2512,7 +2470,7 @@ function cancel(): void {
             ><input
               v-model="resultForm.outcome"
               :placeholder="t('events.results.outcome')"
-              class="w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
+              class="ks-input w-full text-sm"
             />
             <div class="grid grid-cols-3 gap-2">
               <input
@@ -2520,41 +2478,35 @@ function cancel(): void {
                 type="number"
                 min="0"
                 :placeholder="t('events.results.score')"
-                class="rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-2 py-2 text-sm"
+                class="ks-input text-sm"
               /><input
                 v-model.number="resultForm.opponent_score"
                 type="number"
                 min="0"
                 :placeholder="t('events.results.opponentScore')"
-                class="rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-2 py-2 text-sm"
+                class="ks-input text-sm"
               /><input
                 v-model.number="resultForm.rank"
                 type="number"
                 min="1"
                 :placeholder="t('events.results.rank')"
-                class="rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-2 py-2 text-sm"
+                class="ks-input text-sm"
               />
             </div>
             <textarea
               v-model="resultForm.notes"
               rows="2"
               :placeholder="t('events.results.notes')"
-              class="w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
-            /><button
-              type="submit"
-              class="w-full rounded bg-[var(--ks-gold)] px-3 py-2 text-sm font-bold text-[var(--ks-ink)]"
-            >
+              class="ks-input w-full text-sm"
+            /><button type="submit" class="ks-command-button w-full">
               {{ t('events.actions.save') }}
             </button>
           </form>
-          <form
-            class="space-y-3 rounded border border-[var(--ks-border)] p-4"
-            @submit.prevent="savePlayerResult"
-          >
+          <form class="ks-surface space-y-3 p-4" @submit.prevent="savePlayerResult">
             <h3 class="font-semibold">{{ t('events.results.playerResult') }}</h3>
             <select
               v-model="playerResultForm.occurrence_id"
-              class="w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
+              class="ks-input w-full text-sm"
               @change="
                 playerResultForm.player_id = '';
                 loadPlayerResult();
@@ -2577,7 +2529,7 @@ function cancel(): void {
             ><select
               v-model="playerResultForm.player_id"
               required
-              class="w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
+              class="ks-input w-full text-sm"
               @change="loadPlayerResult"
             >
               <option value="" disabled>{{ t('events.results.player') }}</option>
@@ -2591,7 +2543,7 @@ function cancel(): void {
             ><input
               v-model="playerResultForm.outcome"
               :placeholder="t('events.results.outcome')"
-              class="w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
+              class="ks-input w-full text-sm"
             />
             <div class="grid grid-cols-2 gap-2">
               <input
@@ -2599,24 +2551,21 @@ function cancel(): void {
                 type="number"
                 min="0"
                 :placeholder="t('events.results.score')"
-                class="rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-2 py-2 text-sm"
+                class="ks-input text-sm"
               /><input
                 v-model.number="playerResultForm.rank"
                 type="number"
                 min="1"
                 :placeholder="t('events.results.rank')"
-                class="rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-2 py-2 text-sm"
+                class="ks-input text-sm"
               />
             </div>
             <textarea
               v-model="playerResultForm.notes"
               rows="2"
               :placeholder="t('events.results.notes')"
-              class="w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2 text-sm"
-            /><button
-              type="submit"
-              class="w-full rounded bg-[var(--ks-blue-soft)] px-3 py-2 text-sm font-semibold text-[var(--ks-blue-strong)]"
-            >
+              class="ks-input w-full text-sm"
+            /><button type="submit" class="ks-command-button w-full">
               {{ t('events.actions.save') }}
             </button>
           </form>
@@ -2656,16 +2605,17 @@ function cancel(): void {
       </section>
 
       <section
+        id="participants"
         v-if="
           event.capabilities.includes('responses') ||
           event.capabilities.includes('registration') ||
           event.capabilities.includes('attendance')
         "
-        class="mt-5 rounded-[var(--ks-radius-lg)] border border-[var(--ks-border)] bg-[var(--ks-surface-1)] p-5"
+        class="ks-surface mt-5 scroll-mt-28 p-5"
       >
         <div class="flex items-center justify-between gap-3">
           <div>
-            <p class="text-xs font-bold tracking-[0.15em] text-[var(--ks-gold)] uppercase">
+            <p class="ks-kicker">
               {{ t('events.manage.participationEyebrow') }}
             </p>
             <h2 class="mt-1 text-lg font-semibold">{{ t('events.manage.participants') }}</h2>
@@ -2746,10 +2696,8 @@ function cancel(): void {
         </p>
       </section>
 
-      <section
-        class="mt-5 rounded-[var(--ks-radius-lg)] border border-[var(--ks-border)] bg-[var(--ks-surface-1)] p-5"
-      >
-        <p class="text-xs font-bold tracking-[0.15em] text-[var(--ks-gold)] uppercase">
+      <section id="reminders" class="ks-surface mt-5 scroll-mt-28 p-5">
+        <p class="ks-kicker">
           {{ t('events.manage.reminderEyebrow') }}
         </p>
         <h2 class="mt-1 text-lg font-semibold">{{ t('events.manage.reminders') }}</h2>
@@ -2762,22 +2710,15 @@ function cancel(): void {
                 type="number"
                 min="1"
                 max="10080"
-                class="mt-1 w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2" /></label
+                class="ks-input mt-1 w-full" /></label
             ><label class="block text-sm font-semibold"
               >{{ t('events.manage.audience')
-              }}<select
-                v-model="reminderForm.audience"
-                class="mt-1 w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-2"
-              >
+              }}<select v-model="reminderForm.audience" class="ks-input mt-1 w-full">
                 <option v-for="audience in reminderAudiences" :key="audience" :value="audience">
                   {{ t(`events.reminderAudiences.${audience}`) }}
                 </option>
               </select></label
-            ><button
-              type="submit"
-              :disabled="reminderForm.processing"
-              class="rounded bg-[var(--ks-blue-soft)] px-4 py-2 text-sm font-semibold text-[var(--ks-blue-strong)]"
-            >
+            ><button type="submit" :disabled="reminderForm.processing" class="ks-command-button">
               {{ t('events.manage.addReminder') }}
             </button>
           </form>
@@ -2785,7 +2726,7 @@ function cancel(): void {
             <div
               v-for="rule in reminderRules"
               :key="rule.id"
-              class="flex items-center justify-between gap-3 rounded border border-[var(--ks-border)] p-3 text-sm"
+              class="ks-surface flex items-center justify-between gap-3 p-3 text-sm"
             >
               <div>
                 <span class="font-semibold"
