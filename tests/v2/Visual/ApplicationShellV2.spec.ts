@@ -25,3 +25,43 @@ for (const surface of publicSurfaces) {
     });
   });
 }
+
+test('multi-governor account selects and activates the first Governor', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'desktop', 'Identity switching baseline is captured on desktop.');
+
+  await page.goto('/login');
+  await page.locator('#email').fill('ux-p9-visual@example.test');
+  await page.locator('#password').fill('password');
+  await page.locator('button[type="submit"]').click();
+  await page.waitForURL('**/dashboard');
+  await page.waitForLoadState('networkidle');
+  await page.evaluate(() => document.fonts.ready);
+
+  const identitySwitcher = page.locator('button[aria-haspopup="listbox"]').first();
+  await expect(identitySwitcher).toBeVisible();
+  await expect(identitySwitcher).toContainText(/select governor/i);
+
+  await expect(page).toHaveScreenshot('command-overview-select-governor.png', {
+    fullPage: true,
+  });
+
+  await identitySwitcher.click();
+  const options = page.getByRole('option');
+  await expect(options).toHaveCount(2);
+  await expect(options.nth(0)).toContainText('Lady Seraphina');
+  await expect(options.nth(1)).toContainText('Lord Caspian');
+
+  await expect(page).toHaveScreenshot('governor-switcher-open.png', {
+    fullPage: true,
+  });
+
+  await options.nth(0).click();
+  await page.waitForURL('**/dashboard');
+  await page.waitForLoadState('networkidle');
+  await expect(identitySwitcher).toContainText('Lady Seraphina');
+  await expect(identitySwitcher).toContainText('K1123');
+
+  await expect(page).toHaveScreenshot('command-overview-active-governor.png', {
+    fullPage: true,
+  });
+});
