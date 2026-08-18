@@ -3,15 +3,16 @@
 declare(strict_types=1);
 
 use App\Contexts\Alliance\Lifecycle\Http\Middleware\ResolveAllianceContext;
+use App\Contexts\GameWorld\Players\Http\Middleware\HandleInertiaRequests;
+use App\Contexts\GameWorld\Players\Http\Middleware\RequireCurrentPlayerContextVersion;
 use App\Contexts\GameWorld\Players\Http\Middleware\ResolvePlayerContext;
 use App\Contexts\Operations\KingPerks\Actions\QueueDueKingPerkReminders;
-use App\Shared\Infrastructure\Runtime\Http\Controllers\ReadinessController;
-use App\Shared\Infrastructure\Observability\Http\Middleware\AssignRequestContext;
-use App\Contexts\GameWorld\Players\Http\Middleware\HandleInertiaRequests;
-use App\Shared\Infrastructure\Observability\Http\Middleware\RecordRequestMetrics;
 use App\Contexts\Platform\Administration\Http\Middleware\RequirePlatformAdministrator;
-use App\Shared\Infrastructure\Security\Http\Middleware\SecurityHeaders;
 use App\Contexts\Platform\Integrations\Http\Middleware\AuthenticateApiCredential;
+use App\Shared\Infrastructure\Observability\Http\Middleware\AssignRequestContext;
+use App\Shared\Infrastructure\Observability\Http\Middleware\RecordRequestMetrics;
+use App\Shared\Infrastructure\Runtime\Http\Controllers\ReadinessController;
+use App\Shared\Infrastructure\Security\Http\Middleware\SecurityHeaders;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -60,6 +61,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->web(append: [
             ResolvePlayerContext::class,
+            RequireCurrentPlayerContextVersion::class,
             HandleInertiaRequests::class,
         ]);
     })

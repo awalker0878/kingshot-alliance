@@ -7,6 +7,12 @@ import IdentitySwitcher from '@/components/navigation/IdentitySwitcher.vue';
 import LocaleSwitcher from '@/components/navigation/LocaleSwitcher.vue';
 import NavIcon from '@/components/navigation/NavIcon.vue';
 import { useLocale } from '@/localization';
+import {
+  EMPTY_PLAYER_CONTEXT,
+  activePlayerFrom,
+  playerHasCapability,
+  type SharedPlayerContext,
+} from '@/types/player-context';
 
 type NavIconName =
   | 'dashboard'
@@ -36,19 +42,8 @@ type NavigationItem = {
   href: string;
   icon: NavIconName;
   allianceScoped?: boolean;
+  requiredCapability?: string;
   exact?: boolean;
-};
-
-type PlayerIdentity = {
-  id: string;
-  name: string;
-  gamePlayerId: string | null;
-  kingdomNumber: number | null;
-};
-
-type SharedPlayerContext = {
-  activePlayerId: string | null;
-  players: PlayerIdentity[];
 };
 
 const props = withDefaults(
@@ -66,23 +61,30 @@ const mobileOpen = ref(false);
 
 const playerContext = computed<SharedPlayerContext>(
   () =>
-    ((page.props as Record<string, unknown>).playerContext as SharedPlayerContext | undefined) ?? {
-      activePlayerId: null,
-      players: [],
-    },
+    ((page.props as Record<string, unknown>).playerContext as SharedPlayerContext | undefined) ??
+    EMPTY_PLAYER_CONTEXT,
 );
-const activePlayer = computed(() => {
-  const activePlayerId = playerContext.value.activePlayerId;
-  if (!activePlayerId) return null;
-
-  return playerContext.value.players.find((player) => player.id === activePlayerId) ?? null;
+const activePlayer = computed(() => activePlayerFrom(playerContext.value));
+const activeAllianceName = computed(() => {
+  if (activePlayer.value) return activePlayer.value.alliance?.name ?? null;
+  return props.playerAllianceName;
+});
+const hasActiveAlliance = computed(() => {
+  if (activePlayer.value) return activePlayer.value.alliance !== null;
+  return props.hasPlayerAlliance;
 });
 const currentPath = computed(() => page.url.split('?')[0]?.replace(/\/+$/, '') || '/');
 
 const rooms: NavigationItem[] = [
   { key: 'dashboard', href: '/dashboard', icon: 'dashboard', exact: true },
   { key: 'alliance', href: '/alliance', icon: 'alliance', allianceScoped: true, exact: true },
-  { key: 'recruitment', href: '/alliance/recruitment', icon: 'recruitment', allianceScoped: true },
+  {
+    key: 'recruitment',
+    href: '/alliance/recruitment',
+    icon: 'recruitment',
+    allianceScoped: true,
+    requiredCapability: 'recruitment.manage',
+  },
   { key: 'events', href: '/events', icon: 'events' },
   { key: 'kingdom', href: '/alliance/kingdom-alliances', icon: 'kingdom', allianceScoped: true },
   { key: 'roster', href: '/alliance/roster', icon: 'roster', allianceScoped: true },
@@ -103,7 +105,15 @@ const rooms: NavigationItem[] = [
 ];
 
 function isDisabled(item: NavigationItem): boolean {
-  return item.allianceScoped === true && !props.hasPlayerAlliance;
+  if (item.allianceScoped === true && !hasActiveAlliance.value) return true;
+  if (
+    item.requiredCapability &&
+    !playerHasCapability(activePlayer.value, item.requiredCapability)
+  ) {
+    return true;
+  }
+
+  return false;
 }
 
 function isActive(item: NavigationItem): boolean {
@@ -159,7 +169,7 @@ function logout(): void {
       </div>
 
       <div class="px-3 py-4">
-        <IdentitySwitcher :alliance-name="playerAllianceName ?? null" />
+        <IdentitySwitcher />
       </div>
 
       <nav
@@ -177,6 +187,7 @@ function logout(): void {
               v-if="isDisabled(room)"
               class="flex min-h-11 items-center gap-3 rounded-[var(--ks-radius-sm)] px-3 py-2 text-sm text-[var(--ks-muted)] opacity-30"
               :aria-label="t(`navigation.${room.key}`)"
+              aria-disabled="true"
             >
               <NavIcon :name="room.icon" class="h-5 w-5" />
               <span class="truncate">{{ t(`navigation.${room.key}`) }}</span>
@@ -251,7 +262,7 @@ function logout(): void {
         <div
           class="truncate text-base font-[var(--ks-font-display)] font-semibold text-[var(--ks-gold-bright)]"
         >
-          {{ playerAllianceName ?? 'KINGSHOT' }}
+          {{ activeAllianceName ?? 'KINGSHOT' }}
         </div>
         <div class="truncate text-[.65rem] text-[var(--ks-muted)]">
           {{ activePlayer?.name ?? user.name
@@ -261,7 +272,7 @@ function logout(): void {
         </div>
       </div>
       <div class="w-[min(12rem,42vw)]">
-        <IdentitySwitcher :alliance-name="playerAllianceName ?? null" compact />
+        <IdentitySwitcher compact />
       </div>
     </header>
 
@@ -297,7 +308,7 @@ function logout(): void {
         </div>
 
         <div class="border-b border-[var(--ks-border)] p-3">
-          <IdentitySwitcher :alliance-name="playerAllianceName ?? null" />
+          <IdentitySwitcher />
         </div>
 
         <nav
@@ -309,6 +320,7 @@ function logout(): void {
               <span
                 v-if="isDisabled(room)"
                 class="flex min-h-12 items-center gap-3 rounded px-3 text-sm text-[var(--ks-muted)] opacity-30"
+                aria-disabled="true"
               >
                 <NavIcon :name="room.icon" class="h-5 w-5" />
                 {{ t(`navigation.${room.key}`) }}
@@ -360,7 +372,7 @@ function logout(): void {
         class="sticky top-0 z-30 hidden min-h-[5.25rem] items-center gap-5 border-b border-[var(--ks-border)] bg-[rgba(5,10,11,.88)] px-6 backdrop-blur-xl xl:flex"
       >
         <div class="flex min-w-0 flex-1 items-center gap-4">
-          <AllianceCrest :name="playerAllianceName || activePlayer?.name || 'Kingshot'" size="md" />
+          <AllianceCrest :name="activeAllianceName || activePlayer?.name || 'Kingshot'" size="md" />
           <div class="min-w-0">
             <p class="ks-kicker">{{ t('common.currentPlayer') }}</p>
             <div class="mt-1 flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-1">
@@ -370,9 +382,14 @@ function logout(): void {
                 {{ activePlayer?.name ?? user.name }}
               </strong>
               <span
-                v-if="playerAllianceName"
+                v-if="activeAllianceName"
                 class="truncate text-sm text-[var(--ks-text-secondary)]"
-                >{{ playerAllianceName }}</span
+                >{{ activeAllianceName }}</span
+              >
+              <span
+                v-if="activePlayer?.alliance?.rank"
+                class="text-sm font-semibold text-[var(--ks-gold)]"
+                >{{ activePlayer.alliance.rank.toUpperCase() }}</span
               >
               <span
                 v-if="activePlayer?.kingdomNumber"
@@ -383,7 +400,7 @@ function logout(): void {
           </div>
         </div>
         <div class="w-[20rem] max-w-[34vw]">
-          <IdentitySwitcher :alliance-name="playerAllianceName ?? null" />
+          <IdentitySwitcher />
         </div>
       </div>
 
