@@ -18,6 +18,7 @@ final class ActivePlayerUxContractV3Test extends TestCase
         self::assertStringContainsString('export type SharedPlayerContext', $types);
         self::assertStringContainsString('export type PlayerContextFingerprint', $types);
         self::assertStringContainsString('contextFingerprint: PlayerContextFingerprint', $types);
+        self::assertStringContainsString('authorityContextVersion: string | null', $types);
         self::assertStringContainsString('activePlayerFrom', $layout);
         self::assertStringContainsString('activePlayerFrom', $switcher);
         self::assertStringContainsString('playerHasCapability', $layout);
@@ -76,6 +77,7 @@ final class ActivePlayerUxContractV3Test extends TestCase
         }
 
         foreach ([
+            'context.authorityContextVersion',
             'createContextAbortController',
             'registerContextDisposer',
             'platformScopedStorageKey',
@@ -86,6 +88,47 @@ final class ActivePlayerUxContractV3Test extends TestCase
             'kingshot:context-thaw',
         ] as $expected) {
             self::assertStringContainsString($expected, $isolation);
+        }
+    }
+
+    public function test_stale_authority_context_is_transported_and_recovered_centrally(): void
+    {
+        $root = dirname(__DIR__, 3);
+        $app = $this->source($root.'/resources/js/app.ts');
+        $authority = $this->source($root.'/resources/js/identity/authority-context.ts');
+        $guard = $this->source($root.'/app/Contexts/GameWorld/Players/Http/Middleware/RequireCurrentPlayerContextVersion.php');
+
+        foreach ([
+            'defaults:',
+            'visitOptions:',
+            'authorityContextHeaders(options.headers)',
+            "router.on('httpException'",
+            'installFetchInterceptor()',
+            "router.visit('/dashboard'",
+            'preserveState: false',
+            'preserveScroll: false',
+        ] as $expected) {
+            self::assertStringContainsString($expected, $app);
+        }
+
+        foreach ([
+            "X-Game-Context-Version",
+            "X-Game-Context-Error",
+            'kingshot:authority-context-stale',
+            'isAuthorityContextStaleResponse',
+        ] as $expected) {
+            self::assertStringContainsString($expected, $authority);
+        }
+
+        foreach ([
+            'CONTEXT_STALE',
+            'hash_equals',
+            'findOwnedByUser',
+            'KingdomAuthorityFactsQuery',
+            "'players.activate'",
+            "'profile.'",
+        ] as $expected) {
+            self::assertStringContainsString($expected, $guard);
         }
     }
 
@@ -101,6 +144,7 @@ final class ActivePlayerUxContractV3Test extends TestCase
         self::assertStringContainsString("'roles' =>", $middleware);
         self::assertStringContainsString("'capabilities' =>", $middleware);
         self::assertStringContainsString("'contextFingerprint' =>", $middleware);
+        self::assertStringContainsString("'authorityContextVersion' =>", $middleware);
         self::assertStringContainsString("'membershipId' =>", $middleware);
 
         self::assertStringContainsString("->where('user_id', \$userId)", $activation);
