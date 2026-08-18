@@ -1,0 +1,94 @@
+name: Agent V3 Account Contract Sweep
+
+on:
+  push:
+    branches:
+      - agent/full-ui-rewrite
+
+permissions:
+  contents: write
+
+jobs:
+  sweep:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out rewrite branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: agent/full-ui-rewrite
+          fetch-depth: 0
+
+      - name: Configure PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.5'
+          extensions: dom, intl, mbstring, simplexml, xml, xmlwriter, zip
+          coverage: none
+          tools: composer:v2
+
+      - name: Install locked PHP dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Replace foreign User model imports with Accounts owner contract
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          root = Path('app/Contexts')
+          model_import = 'use App\\Contexts\\Accounts\\Identity\\Models\\User;'
+          contract_import = 'use App\\Contexts\\Accounts\\Identity\\Contracts\\AuthenticatedAccount;'
+          changed = []
+
+          for path in sorted(root.rglob('*.php')):
+              if 'Accounts' in path.parts[path.parts.index('Contexts') + 1:path.parts.index('Contexts') + 2]:
+                  continue
+              text = path.read_text()
+              if model_import not in text:
+                  continue
+
+              text = text.replace(model_import, contract_import)
+              text = re.sub(r'\bUser\b', 'AuthenticatedAccount', text)
+              path.write_text(text)
+              changed.append(str(path))
+
+          if not changed:
+              raise SystemExit('No foreign Accounts User imports were found to migrate.')
+
+          print(f'Migrated {len(changed)} foreign-context files:')
+          print('\n'.join(changed))
+
+          remaining = []
+          for path in sorted(root.rglob('*.php')):
+              if path.parts[path.parts.index('Contexts') + 1] == 'Accounts':
+                  continue
+              if model_import in path.read_text():
+                  remaining.append(str(path))
+          if remaining:
+              raise SystemExit('Foreign User model imports remain:\n' + '\n'.join(remaining))
+          PY
+
+      - name: Verify changed PHP syntax
+        shell: bash
+        run: |
+          git diff --name-only -- '*.php' | while read -r file; do
+            php -l "$file"
+          done
+
+      - name: Run V3 architecture tests
+        run: php artisan test tests/v3/Architecture
+
+      - name: Commit V3 account boundary sweep
+        shell: bash
+        run: |
+          if git diff --quiet -- app/Contexts; then
+            echo 'No product changes to commit.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app/Contexts
+          git commit -m 'enforce account owner contract across contexts'
+          git push origin HEAD:agent/full-ui-rewrite
