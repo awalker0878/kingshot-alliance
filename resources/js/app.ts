@@ -78,7 +78,9 @@ function installFetchInterceptor(): void {
 
   const nativeFetch = window.fetch.bind(window);
   window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
-    const method = (init?.method ?? (input instanceof Request ? input.method : 'GET')).toUpperCase();
+    const method = (
+      init?.method ?? (input instanceof Request ? input.method : 'GET')
+    ).toUpperCase();
     const version = authorityContextVersion();
     const shouldAttach =
       version !== null &&
