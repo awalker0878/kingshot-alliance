@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Alliance\Recruitment\Http\Controllers;
 
-use App\Contexts\Accounts\Identity\Models\User;
+use App\Contexts\Accounts\Identity\Contracts\AuthenticatedAccount;
 use App\Contexts\Alliance\Lifecycle\Enums\AllianceStatus;
 use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Recruitment\Actions\SubmitRecruitmentApplication;
@@ -87,8 +87,8 @@ final class PublicRecruitmentController extends Controller
             ],
             'questions' => $questionData,
             'prefill' => [
-                'name' => $user instanceof User ? (string) $user->name : '',
-                'email' => $tokenEmail ?? ($user instanceof User ? (string) $user->email : ''),
+                'name' => $user instanceof AuthenticatedAccount ? (string) $user->name : '',
+                'email' => $tokenEmail ?? ($user instanceof AuthenticatedAccount ? (string) $user->email : ''),
                 'emailLocked' => $tokenEmail !== null,
             ],
             'submitted' => (bool) $request->session()->pull('recruitmentApplicationSubmitted', false),
@@ -119,7 +119,7 @@ final class PublicRecruitmentController extends Controller
             contactHandle: $validated['contact_handle'] ?? null,
             source: $validated['source'] ?? null,
             applicationToken: $validated['application_token'] ?? null,
-            applicantUserId: $user instanceof User ? (int) $user->id : null,
+            applicantUserId: $user instanceof AuthenticatedAccount ? (int) $user->id : null,
         );
 
         $request->session()->flash('recruitmentApplicationSubmitted', true);

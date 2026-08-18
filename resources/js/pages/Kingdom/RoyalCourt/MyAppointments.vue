@@ -199,7 +199,9 @@ function withdraw(id: string): void {
           </p>
         </section>
 
-        <section class="space-y-3 rounded-2xl border border-[var(--ks-border)] bg-[rgba(7,12,13,.70)] p-5">
+        <section
+          class="space-y-3 rounded-2xl border border-[var(--ks-border)] bg-[rgba(7,12,13,.70)] p-5"
+        >
           <div>
             <h2 class="text-lg font-semibold text-[var(--ks-ivory)]">My appointments</h2>
             <p class="text-sm text-[var(--ks-muted)]">
@@ -223,9 +225,10 @@ function withdraw(id: string): void {
               <div>
                 <div class="flex flex-wrap items-center gap-2">
                   <h3 class="font-semibold text-[var(--ks-ivory)]">{{ item.typeLabel }}</h3>
-                  <span class="rounded-full bg-[rgba(210,163,75,.05)] px-2 py-0.5 text-xs text-[var(--ks-muted)]">{{
-                    item.status.replaceAll('_', ' ')
-                  }}</span>
+                  <span
+                    class="rounded-full bg-[rgba(210,163,75,.05)] px-2 py-0.5 text-xs text-[var(--ks-muted)]"
+                    >{{ item.status.replaceAll('_', ' ') }}</span
+                  >
                 </div>
                 <p class="mt-2 text-sm text-[var(--ks-ivory)]">
                   {{ displayUtc(item.startsAt) }} → {{ displayUtc(item.endsAt) }}
@@ -236,7 +239,9 @@ function withdraw(id: string): void {
                 <p class="mt-2 text-xs text-[var(--ks-muted)]">
                   Occupancy: {{ item.durationMinutes }} minutes
                 </p>
-                <p v-if="item.notes" class="mt-2 text-sm text-[var(--ks-muted)]">{{ item.notes }}</p>
+                <p v-if="item.notes" class="mt-2 text-sm text-[var(--ks-muted)]">
+                  {{ item.notes }}
+                </p>
               </div>
               <div
                 v-if="item.status === 'scheduled' || item.status === 'confirmed'"
@@ -263,7 +268,9 @@ function withdraw(id: string): void {
         </section>
 
         <section class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_24rem]">
-          <div class="space-y-3 rounded-2xl border border-[var(--ks-border)] bg-[rgba(7,12,13,.70)] p-5">
+          <div
+            class="space-y-3 rounded-2xl border border-[var(--ks-border)] bg-[rgba(7,12,13,.70)] p-5"
+          >
             <div>
               <h2 class="text-lg font-semibold text-[var(--ks-ivory)]">My requests</h2>
               <p class="text-sm text-[var(--ks-muted)]">

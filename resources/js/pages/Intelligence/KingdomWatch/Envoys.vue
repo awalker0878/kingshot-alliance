@@ -442,7 +442,9 @@ function deactivateContact(contact: Contact): void {
                   {{ contact.handle }}
                 </p>
               </td>
-              <td class="px-3 py-4 text-[var(--ks-muted)]">{{ formatDate(contact.lastVerifiedAt) }}</td>
+              <td class="px-3 py-4 text-[var(--ks-muted)]">
+                {{ formatDate(contact.lastVerifiedAt) }}
+              </td>
               <td class="px-3 py-4 whitespace-pre-wrap text-[var(--ks-muted)]">
                 {{ contact.managerNotes ?? t('kingdomP7B.noNotes') }}
               </td>

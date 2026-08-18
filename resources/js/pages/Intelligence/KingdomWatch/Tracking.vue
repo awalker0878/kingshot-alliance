@@ -190,7 +190,9 @@ function archiveTracking(entry: TrackingRow): void {
             class="mt-2 min-h-24 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-night)] px-3 py-2"
             maxlength="5000"
           />
-          <p class="mt-1 text-xs text-[var(--ks-muted)]">Private to authorized Alliance officers.</p>
+          <p class="mt-1 text-xs text-[var(--ks-muted)]">
+            Private to authorized Alliance officers.
+          </p>
           <p v-if="createForm.errors.manager_notes" class="mt-1 text-sm text-rose-300">
             {{ createForm.errors.manager_notes }}
           </p>
@@ -236,9 +238,13 @@ function archiveTracking(entry: TrackingRow): void {
             <tr v-for="entry in tracking" :key="entry.id">
               <td class="px-3 py-4">
                 <p class="font-medium text-[var(--ks-ivory)]">{{ entry.name }}</p>
-                <p class="mt-1 text-xs text-[var(--ks-muted)]">{{ entry.tag ?? 'No tag recorded' }}</p>
+                <p class="mt-1 text-xs text-[var(--ks-muted)]">
+                  {{ entry.tag ?? 'No tag recorded' }}
+                </p>
               </td>
-              <td class="px-3 py-4 text-[var(--ks-muted)]">{{ entry.gameAllianceId ?? 'Unresolved' }}</td>
+              <td class="px-3 py-4 text-[var(--ks-muted)]">
+                {{ entry.gameAllianceId ?? 'Unresolved' }}
+              </td>
               <td class="px-3 py-4 text-[var(--ks-muted)]">
                 {{ entry.kingdom }}
                 <span

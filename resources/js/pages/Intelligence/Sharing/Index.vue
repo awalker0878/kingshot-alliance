@@ -2,6 +2,7 @@
 import { Head, Link } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
+import RoomBanner from '@/components/game/RoomBanner.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
@@ -77,24 +78,19 @@ function historyUrl(target: string, cursor?: string | null): string {
   <Head :title="`${t('kingdomP7C.title')} · ${alliance.name}`" />
 
   <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
-    <header class="flex flex-wrap items-start justify-between gap-5">
-      <div class="max-w-3xl">
-        <p class="text-xs font-bold tracking-[0.2em] text-[var(--ks-gold)] uppercase">
-          {{ t('kingdomP7C.eyebrow') }}
-        </p>
-        <h1 class="ks-display mt-2 text-3xl font-bold sm:text-4xl">{{ t('kingdomP7C.title') }}</h1>
-        <p class="mt-3 text-sm leading-6 text-[var(--ks-text-secondary)]">
-          {{ t('kingdomP7C.subtitle', { alliance: alliance.name }) }}
-        </p>
-      </div>
-      <Link
-        v-if="canManage"
-        href="/alliance/kingdom-sharing/manage"
-        class="rounded-[var(--ks-radius-sm)] bg-[var(--ks-gold)] px-4 py-2.5 text-sm font-bold text-[var(--ks-ink)]"
-      >
-        {{ t('kingdomP7C.manageSharing') }}
-      </Link>
-    </header>
+    <RoomBanner
+      :eyebrow="t('kingdomP7C.eyebrow')"
+      :title="t('kingdomP7C.title')"
+      :subtitle="t('kingdomP7C.subtitle', { alliance: alliance.name })"
+      image="/images/kingshot/v4/connections.svg"
+      compact
+    >
+      <template #actions>
+        <Link v-if="canManage" href="/alliance/kingdom-sharing/manage" class="ks-command-link">
+          {{ t('kingdomP7C.manageSharing') }}
+        </Link>
+      </template>
+    </RoomBanner>
 
     <section
       class="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4"

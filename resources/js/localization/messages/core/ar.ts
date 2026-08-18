@@ -47,7 +47,7 @@ const messages = {
       playerKingdom: 'المملكة #{kingdom}',
       playerAuthorityIntro:
         'تُحدد عضوية التحالف والرتبة والأدوار وصلاحيات المملكة وإجراءات اللعبة من هذا اللاعب فقط.',
-      selectPlayer: 'اختر لاعباً لاستخدام أدوات اللعبة.',
+      selectPlayer: 'اختر الحاكم',
       playerAllianceTitle: 'تحالف اللاعب النشط',
       playerAllianceIntro: 'تستخدم أدوات التحالف عضوية اللاعب النشط ورتبته وأدواره فقط.',
       noPlayerAllianceTitle: 'هذا اللاعب ليس في تحالف',

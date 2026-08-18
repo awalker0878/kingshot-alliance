@@ -95,7 +95,8 @@ const messages = {
     reverseReasonPrompt: 'Why should this record be reversed?',
     noPending: 'No pending approvals.',
     scheduledReport: 'Scheduled report',
-    scheduleHelp: 'Scheduled exports are prepared as dated entries in the Alliance dispatch ledger.',
+    scheduleHelp:
+      'Scheduled exports are prepared as dated entries in the Alliance dispatch ledger.',
     recipient: 'Recipient',
     cadence: 'Cadence',
     timezone: 'Time zone',

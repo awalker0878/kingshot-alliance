@@ -227,8 +227,8 @@ function invalidateObservation(): void {
         v-if="!tracking.contextCurrent"
         class="mt-4 rounded-xl border border-amber-900 bg-amber-950/40 p-4 text-sm text-amber-200"
       >
-        This tracked Alliance belongs to an earlier Kingdom. New scout findings are
-        blocked; history remains readable.
+        This tracked Alliance belongs to an earlier Kingdom. New scout findings are blocked; history
+        remains readable.
       </p>
 
       <form class="mt-6 grid gap-5 md:grid-cols-2" @submit.prevent="recordObservation">

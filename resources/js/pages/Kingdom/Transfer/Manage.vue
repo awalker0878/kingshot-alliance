@@ -407,7 +407,9 @@ const labelClass =
                 t('kingdomP7D.transferCycles')
               }}
             </caption>
-            <thead class="bg-[var(--ks-parchment)]/[0.03] text-xs text-[var(--ks-text-muted)] uppercase">
+            <thead
+              class="bg-[var(--ks-parchment)]/[0.03] text-xs text-[var(--ks-text-muted)] uppercase"
+            >
               <tr>
                 <th class="px-3 py-3" scope="col">{{ t('kingdomP7D.cycle') }}</th>
                 <th class="px-3 py-3" scope="col">{{ t('kingdomP7D.homeKingdom') }}</th>
@@ -569,7 +571,9 @@ const labelClass =
                 t('kingdomP7D.groupTableCaption')
               }}
             </caption>
-            <thead class="bg-[var(--ks-parchment)]/[0.03] text-xs text-[var(--ks-text-muted)] uppercase">
+            <thead
+              class="bg-[var(--ks-parchment)]/[0.03] text-xs text-[var(--ks-text-muted)] uppercase"
+            >
               <tr>
                 <th class="px-3 py-3" scope="col">{{ t('kingdomP7D.group') }}</th>
                 <th class="px-3 py-3" scope="col">{{ t('kingdomP7D.directionDestination') }}</th>
@@ -587,7 +591,7 @@ const labelClass =
                   }}</label
                   ><input
                     :id="`group-name-${group.id}`"
-                    v-model="groupDrafts[group.id].name"
+                    v-model="groupDrafts[group.id]!.name"
                     :class="inputClass"
                     :disabled="group.state !== 'active'"
                     maxlength="160"
@@ -600,7 +604,7 @@ const labelClass =
                   }}</label
                   ><select
                     :id="`group-direction-${group.id}`"
-                    v-model="groupDrafts[group.id].direction"
+                    v-model="groupDrafts[group.id]!.direction"
                     :class="inputClass"
                     :disabled="group.state !== 'active'"
                   >
@@ -608,13 +612,13 @@ const labelClass =
                     <option value="outgoing">
                       {{ t('kingdomP7D.directionOutgoing') }}
                     </option></select
-                  ><template v-if="groupDrafts[group.id].direction === 'outgoing'"
+                  ><template v-if="groupDrafts[group.id]!.direction === 'outgoing'"
                     ><label class="sr-only" :for="`group-destination-${group.id}`">{{
                       t('kingdomP7D.destinationKingdom')
                     }}</label
                     ><input
                       :id="`group-destination-${group.id}`"
-                      v-model="groupDrafts[group.id].destination_kingdom"
+                      v-model="groupDrafts[group.id]!.destination_kingdom"
                       :class="inputClass"
                       :disabled="group.state !== 'active'"
                       inputmode="numeric"
@@ -630,7 +634,7 @@ const labelClass =
                   }}</label
                   ><select
                     :id="`group-coordinator-${group.id}`"
-                    v-model="groupDrafts[group.id].coordinator_player_id"
+                    v-model="groupDrafts[group.id]!.coordinator_player_id"
                     :class="inputClass"
                     :disabled="group.state !== 'active'"
                   >
@@ -646,7 +650,7 @@ const labelClass =
                   }}</label
                   ><textarea
                     :id="`group-notes-${group.id}`"
-                    v-model="groupDrafts[group.id].manager_notes"
+                    v-model="groupDrafts[group.id]!.manager_notes"
                     :class="inputClass"
                     :disabled="group.state !== 'active'"
                     maxlength="5000"
@@ -815,7 +819,9 @@ const labelClass =
                 t('kingdomP7D.participantTableCaption')
               }}
             </caption>
-            <thead class="bg-[var(--ks-parchment)]/[0.03] text-xs text-[var(--ks-text-muted)] uppercase">
+            <thead
+              class="bg-[var(--ks-parchment)]/[0.03] text-xs text-[var(--ks-text-muted)] uppercase"
+            >
               <tr>
                 <th class="px-3 py-3" scope="col">{{ t('kingdomP7D.player') }}</th>
                 <th class="px-3 py-3" scope="col">{{ t('kingdomP7D.directionDestination') }}</th>
@@ -831,7 +837,7 @@ const labelClass =
                   <template v-if="participant.rosterEntryId"
                     ><p class="font-semibold">{{ participant.name }}</p>
                     <input
-                      v-model="drafts[participant.id].roster_entry_id"
+                      v-model="drafts[participant.id]!.roster_entry_id"
                       type="hidden" /></template
                   ><template v-else
                     ><label class="sr-only" :for="`incoming-name-${participant.id}`">{{
@@ -839,7 +845,7 @@ const labelClass =
                     }}</label
                     ><input
                       :id="`incoming-name-${participant.id}`"
-                      v-model="drafts[participant.id].name"
+                      v-model="drafts[participant.id]!.name"
                       :class="inputClass"
                       :disabled="participant.withdrawnAt !== null"
                       maxlength="160"
@@ -848,7 +854,7 @@ const labelClass =
                     }}</label
                     ><input
                       :id="`game-id-${participant.id}`"
-                      v-model="drafts[participant.id].game_player_id"
+                      v-model="drafts[participant.id]!.game_player_id"
                       :class="inputClass"
                       :disabled="participant.withdrawnAt !== null"
                       maxlength="100"
@@ -868,7 +874,7 @@ const labelClass =
                     }}</label
                     ><select
                       :id="`direction-${participant.id}`"
-                      v-model="drafts[participant.id].direction"
+                      v-model="drafts[participant.id]!.direction"
                       :class="inputClass"
                       :disabled="participant.withdrawnAt !== null"
                     >
@@ -876,13 +882,13 @@ const labelClass =
                       <option value="outgoing">
                         {{ t('kingdomP7D.directionOutgoing') }}
                       </option></select
-                    ><template v-if="drafts[participant.id].direction === 'outgoing'"
+                    ><template v-if="drafts[participant.id]!.direction === 'outgoing'"
                       ><label class="sr-only" :for="`destination-${participant.id}`">{{
                         t('kingdomP7D.destinationKingdom')
                       }}</label
                       ><input
                         :id="`destination-${participant.id}`"
-                        v-model="drafts[participant.id].destination_kingdom"
+                        v-model="drafts[participant.id]!.destination_kingdom"
                         :class="inputClass"
                         :disabled="participant.withdrawnAt !== null"
                         inputmode="numeric"
@@ -897,7 +903,7 @@ const labelClass =
                     }}</label
                     ><input
                       :id="`source-${participant.id}`"
-                      v-model="drafts[participant.id].source_kingdom"
+                      v-model="drafts[participant.id]!.source_kingdom"
                       :class="inputClass"
                       :disabled="participant.withdrawnAt !== null"
                       inputmode="numeric"
@@ -955,7 +961,7 @@ const labelClass =
                   }}</label
                   ><textarea
                     :id="`notes-${participant.id}`"
-                    v-model="drafts[participant.id].manager_notes"
+                    v-model="drafts[participant.id]!.manager_notes"
                     :class="inputClass"
                     :disabled="participant.withdrawnAt !== null"
                     maxlength="5000"

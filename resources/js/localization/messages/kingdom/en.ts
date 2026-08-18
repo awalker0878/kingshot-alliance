@@ -118,8 +118,7 @@ const messages = {
     disableConfirm: 'Stop Scout Reports from {adapter}?',
     replayConfirm:
       'Replay this quarantined candidate through the existing Kingdoms promotion rules?',
-    rejectConfirm:
-      'Dismiss this held scout finding? Accepted Kingdom history is not affected.',
+    rejectConfirm: 'Dismiss this held scout finding? Accepted Kingdom history is not affected.',
     latestBatchSummary: '{staged} staged · {quarantined} quarantined',
     candidateSummary: '{pending} pending · {quarantined} quarantined · {rejected} rejected',
     subscriptionsCount: 'Subscriptions',

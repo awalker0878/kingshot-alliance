@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\Governance\Http\Controllers;
 
-use App\Contexts\Accounts\Identity\Models\User;
+use App\Contexts\Accounts\Identity\Contracts\AuthenticatedAccount;
 use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
 use App\Contexts\Alliance\Lifecycle\Services\AllianceContext;
 use App\Contexts\GameWorld\Governance\Actions\AssignKingdomRole;
@@ -117,10 +117,10 @@ final class KingdomRoleController extends Controller
         return back()->with('status', 'kingdom-role-removed');
     }
 
-    private function user(Request $request): User
+    private function user(Request $request): AuthenticatedAccount
     {
         $user = $request->user();
-        abort_unless($user instanceof User, 401);
+        abort_unless($user instanceof AuthenticatedAccount, 401);
 
         return $user;
     }

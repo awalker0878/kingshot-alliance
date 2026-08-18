@@ -47,7 +47,7 @@ const messages = {
       playerKingdom: 'Królestwo #{kingdom}',
       playerAuthorityIntro:
         'Członkostwo, ranga, role, uprawnienia królestwa i akcje w grze są ustalane wyłącznie na podstawie tego gracza.',
-      selectPlayer: 'Wybierz gracza, aby korzystać z narzędzi gry.',
+      selectPlayer: 'Wybierz gubernatora',
       playerAllianceTitle: 'Sojusz aktywnego gracza',
       playerAllianceIntro:
         'Narzędzia sojuszu używają wyłącznie członkostwa, rangi i ról aktywnego gracza.',

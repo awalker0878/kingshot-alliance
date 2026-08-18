@@ -48,7 +48,16 @@ function localeName(code: string): string {
   <Head :title="`${content.title} · ${alliance.name}`" />
 
   <PublicLayout>
-    <section class="border-b border-[var(--ks-border)] bg-[rgba(8,17,31,0.58)]">
+    <section class="relative isolate overflow-hidden border-b border-[var(--ks-border)]">
+      <img
+        class="absolute inset-0 -z-20 h-full w-full object-cover opacity-25"
+        src="/images/kingshot/v4/noticeboard.svg"
+        alt=""
+        aria-hidden="true"
+      />
+      <div
+        class="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(4,8,9,.96),rgba(7,17,17,.82))]"
+      />
       <div class="mx-auto max-w-5xl px-5 py-8 lg:px-8">
         <Link
           class="inline-flex items-center gap-2 text-sm font-semibold text-[var(--ks-gold)] transition hover:text-[var(--ks-gold-strong)]"

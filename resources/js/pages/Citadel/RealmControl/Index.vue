@@ -2,6 +2,8 @@
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
+import RoomBanner from '@/components/game/RoomBanner.vue';
+import StatSeal from '@/components/game/StatSeal.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { hasLocaleCatalogue, useLocale } from '@/localization';
 import { defaultLocale, locales } from '@/localization/locales';
@@ -194,41 +196,64 @@ function lifecycle(operation: 'suspend' | 'close' | 'delete' | 'restore'): void 
   <Head :title="t('platformAdmin.title')" />
 
   <AppLayout :user="props.user">
-    <header class="mb-8 flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
-      <div class="max-w-4xl">
-        <p class="text-xs font-bold tracking-[0.2em] text-[var(--ks-gold)] uppercase">
-          {{ t('platformAdmin.eyebrow') }}
-        </p>
-        <h1 class="ks-display mt-2 text-3xl font-semibold sm:text-4xl">
-          {{ t('platformAdmin.title') }}
-        </h1>
-        <p class="mt-3 text-sm leading-6 text-[var(--ks-text-muted)] sm:text-base">
-          {{ t('platformAdmin.subtitle') }}
-        </p>
-      </div>
-      <Link
-        href="/dashboard"
-        class="inline-flex w-fit items-center justify-center rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-surface-1)] px-4 py-2.5 text-sm font-semibold text-[var(--ks-text-secondary)] transition hover:border-[var(--ks-border-strong)] hover:text-[var(--ks-text)]"
-      >
-        {{ t('platformAdmin.backDashboard') }}
-      </Link>
-    </header>
-
-    <div
-      class="mb-6 rounded-[var(--ks-radius-md)] border border-[var(--ks-blue)]/25 bg-[var(--ks-blue-soft)] px-4 py-3 text-sm leading-6 text-[var(--ks-text-secondary)]"
+    <RoomBanner
+      :eyebrow="t('platformAdmin.eyebrow')"
+      :title="t('platformAdmin.title')"
+      :subtitle="t('platformAdmin.subtitle')"
+      image="/images/kingshot/v4/account-vault.svg"
+      compact
     >
+      <template #actions>
+        <Link href="/dashboard" class="ks-command-link" data-variant="secondary">
+          ← {{ t('platformAdmin.backDashboard') }}
+        </Link>
+        <Link href="/platform/event-types" class="ks-command-link">
+          {{ t('events.catalogue.title') }}
+        </Link>
+      </template>
+    </RoomBanner>
+
+    <section
+      class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4"
+      aria-label="Platform command summary"
+    >
+      <StatSeal
+        :label="metricLabel('alliances')"
+        :value="platform.metrics.alliances ?? 0"
+        icon="♜"
+      />
+      <StatSeal
+        :label="metricLabel('activeAlliances')"
+        :value="platform.metrics.activeAlliances ?? 0"
+        icon="✓"
+        tone="teal"
+      />
+      <StatSeal
+        :label="metricLabel('pendingOutbox')"
+        :value="platform.metrics.pendingOutbox ?? 0"
+        icon="✉"
+        tone="stone"
+      />
+      <StatSeal
+        :label="t('platformAdmin.administrators')"
+        :value="platform.administrators.filter((admin) => !admin.revokedAt).length"
+        icon="♛"
+      />
+    </section>
+
+    <div class="ks-surface-gold mt-5 px-4 py-3 text-sm leading-6 text-[var(--ks-text-secondary)]">
       {{ t('platformAdmin.accessBoundary') }}
     </div>
 
     <p
       v-if="statusMessage"
       role="status"
-      class="mb-6 rounded-[var(--ks-radius-md)] border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200"
+      class="ks-surface mt-4 border-emerald-400/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100"
     >
       {{ statusMessage }}
     </p>
 
-    <section aria-labelledby="capacity-heading" class="mb-8 space-y-4">
+    <section aria-labelledby="capacity-heading" class="mt-6 space-y-4">
       <div>
         <h2 id="capacity-heading" class="ks-display text-2xl font-semibold">
           {{ t('platformAdmin.capacityTitle') }}
@@ -247,7 +272,7 @@ function lifecycle(operation: 'suspend' | 'close' | 'delete' | 'restore'): void 
             <div
               v-for="key in fleetMetricKeys"
               :key="key"
-              class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-surface-2)] p-4"
+              class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border-quiet)] bg-black/15 p-4"
             >
               <p class="text-xs leading-5 text-[var(--ks-text-muted)]">{{ metricLabel(key) }}</p>
               <p class="mt-1 text-2xl font-bold">{{ formatNumber(platform.metrics[key] ?? 0) }}</p>
@@ -263,7 +288,7 @@ function lifecycle(operation: 'suspend' | 'close' | 'delete' | 'restore'): void 
             <div
               v-for="key in queueMetricKeys"
               :key="key"
-              class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-surface-2)] p-3"
+              class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border-quiet)] bg-black/15 p-3"
             >
               <p class="text-[0.72rem] leading-5 text-[var(--ks-text-muted)]">
                 {{ metricLabel(key) }}
@@ -297,12 +322,12 @@ function lifecycle(operation: 'suspend' | 'close' | 'delete' | 'restore'): void 
               v-model="adminForm.email"
               type="email"
               required
-              class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 focus:border-[var(--ks-blue)]"
+              class="ks-input"
             />
           </label>
           <button
             type="submit"
-            class="rounded-[var(--ks-radius-sm)] bg-[var(--ks-gold)] px-4 py-2.5 font-bold text-[var(--ks-ink)] transition hover:bg-[var(--ks-gold-strong)] disabled:opacity-60"
+            class="ks-command-button disabled:opacity-60"
             :disabled="adminForm.processing"
           >
             {{ t('platformAdmin.grantAdministrator') }}
@@ -356,7 +381,7 @@ function lifecycle(operation: 'suspend' | 'close' | 'delete' | 'restore'): void 
           <article
             v-for="admin in platform.administrators"
             :key="admin.id"
-            class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-surface-2)] p-4"
+            class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border-quiet)] bg-black/15 p-4"
           >
             <div class="flex items-start justify-between gap-3">
               <div class="min-w-0">
@@ -813,7 +838,7 @@ function lifecycle(operation: 'suspend' | 'close' | 'delete' | 'restore'): void 
           <li
             v-for="hold in platform.legalHolds"
             :key="hold.id"
-            class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-surface-2)] p-3"
+            class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border-quiet)] bg-black/15 p-3"
           >
             <div class="flex items-start justify-between gap-3">
               <div>
@@ -850,7 +875,7 @@ function lifecycle(operation: 'suspend' | 'close' | 'delete' | 'restore'): void 
           </div>
           <dl class="grid grid-cols-3 gap-2 text-center text-xs">
             <div
-              class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-surface-2)] p-3"
+              class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border-quiet)] bg-black/15 p-3"
             >
               <dt class="text-[var(--ks-text-muted)]">
                 {{ t('platformAdmin.registeredLocales') }}
@@ -858,13 +883,13 @@ function lifecycle(operation: 'suspend' | 'close' | 'delete' | 'restore'): void 
               <dd class="mt-1 text-lg font-bold">{{ formatNumber(localeRows.length) }}</dd>
             </div>
             <div
-              class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-surface-2)] p-3"
+              class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border-quiet)] bg-black/15 p-3"
             >
               <dt class="text-[var(--ks-text-muted)]">{{ t('platformAdmin.defaultLocale') }}</dt>
               <dd class="mt-1 text-lg font-bold">{{ defaultLocale }}</dd>
             </div>
             <div
-              class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-surface-2)] p-3"
+              class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border-quiet)] bg-black/15 p-3"
             >
               <dt class="text-[var(--ks-text-muted)]">{{ t('platformAdmin.rtlLocales') }}</dt>
               <dd class="mt-1 text-lg font-bold">{{ formatNumber(rtlLocaleCount) }}</dd>
@@ -918,7 +943,7 @@ function lifecycle(operation: 'suspend' | 'close' | 'delete' | 'restore'): void 
           <article
             v-for="locale in localeRows"
             :key="locale.code"
-            class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-surface-2)] p-3"
+            class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border-quiet)] bg-black/15 p-3"
           >
             <div class="flex items-start justify-between gap-3">
               <div>

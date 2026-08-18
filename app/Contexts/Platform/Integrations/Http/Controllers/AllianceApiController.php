@@ -13,11 +13,11 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
-final readonly class AllianceApiController extends Controller
+final class AllianceApiController extends Controller
 {
     public function __construct(
-        private AllianceReferenceQuery $alliances,
-        private KingdomReferenceQuery $kingdoms,
+        private readonly AllianceReferenceQuery $alliances,
+        private readonly KingdomReferenceQuery $kingdoms,
     ) {}
 
     public function show(Request $request): JsonResponse

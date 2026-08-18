@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Alliance\Recruitment\Http\Controllers;
 
-use App\Contexts\Accounts\Identity\Models\User;
+use App\Contexts\Accounts\Identity\Contracts\AuthenticatedAccount;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
@@ -461,10 +461,10 @@ final class RecruitmentCandidateController extends Controller
             ->firstOrFail();
     }
 
-    private function user(Request $request): User
+    private function user(Request $request): AuthenticatedAccount
     {
         $user = $request->user();
-        abort_unless($user instanceof User, 401);
+        abort_unless($user instanceof AuthenticatedAccount, 401);
 
         return $user;
     }

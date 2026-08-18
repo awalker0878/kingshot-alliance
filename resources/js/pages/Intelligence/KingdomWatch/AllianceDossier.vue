@@ -513,7 +513,9 @@ function freshnessLabel(row: IntelligenceRow): string {
                 <span v-else>No accepted observation</span>
               </td>
               <td class="px-4 py-4 align-top text-[var(--ks-muted)]">
-                <span class="rounded-full border border-[var(--ks-border)] px-2 py-1 text-xs font-semibold">
+                <span
+                  class="rounded-full border border-[var(--ks-border)] px-2 py-1 text-xs font-semibold"
+                >
                   {{ freshnessLabel(row) }}
                 </span>
               </td>

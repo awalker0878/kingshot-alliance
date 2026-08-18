@@ -48,7 +48,7 @@ const messages = {
       playerKingdom: 'อาณาจักร #{kingdom}',
       playerAuthorityIntro:
         'สมาชิกภาพ ยศ บทบาท สิทธิ์ของอาณาจักร และการกระทำในเกมถูกกำหนดจากผู้เล่นนี้เท่านั้น',
-      selectPlayer: 'เลือกผู้เล่นเพื่อใช้เครื่องมือในเกม',
+      selectPlayer: 'เลือกผู้ว่าการ',
       playerAllianceTitle: 'พันธมิตรของผู้เล่นที่ใช้งานอยู่',
       playerAllianceIntro: 'เครื่องมือพันธมิตรใช้เฉพาะสมาชิกภาพ ยศ และบทบาทของผู้เล่นที่ใช้งานอยู่',
       noPlayerAllianceTitle: 'ผู้เล่นนี้ไม่ได้อยู่ในพันธมิตร',

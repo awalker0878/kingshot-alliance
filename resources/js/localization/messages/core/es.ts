@@ -48,7 +48,7 @@ const messages = {
       playerKingdom: 'Reino #{kingdom}',
       playerAuthorityIntro:
         'La membresía, el rango, los roles, los permisos de reino y las acciones de juego se resuelven únicamente desde este jugador.',
-      selectPlayer: 'Selecciona un jugador para usar las herramientas del juego.',
+      selectPlayer: 'Seleccionar gobernador',
       playerAllianceTitle: 'Alianza del jugador activo',
       playerAllianceIntro:
         'Las herramientas de alianza usan únicamente la membresía, el rango y los roles del jugador activo.',

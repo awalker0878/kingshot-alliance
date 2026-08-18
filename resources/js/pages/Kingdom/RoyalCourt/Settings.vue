@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
 
+import RoomBanner from '@/components/game/RoomBanner.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
@@ -16,36 +17,31 @@ const { t } = useLocale();
 <template>
   <Head :title="`${t('kingdomP7A.settingsTitle')} · ${alliance.name}`" />
   <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
-    <header class="flex flex-wrap items-start justify-between gap-5">
-      <div class="max-w-3xl">
-        <p class="text-xs font-bold tracking-[0.2em] text-[var(--ks-gold)] uppercase">
-          {{ t('kingdomP7A.settingsEyebrow') }}
-        </p>
-        <h1 class="ks-display mt-2 text-3xl font-bold sm:text-4xl">
-          {{ t('kingdomP7A.settingsTitle') }}
-        </h1>
-      </div>
-      <div class="flex flex-wrap gap-2">
-        <Link
-          href="/alliance/kingdom-alliances"
-          class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] px-3 py-2 text-sm font-semibold"
-          >{{ t('kingdomP7A.overviewTitle') }}</Link
-        >
-        <Link
-          href="/alliance/kingdom-ingestion/manage"
-          class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] px-3 py-2 text-sm font-semibold"
-          >{{ t('kingdomP7A.ingestion') }}</Link
-        >
+    <RoomBanner
+      :eyebrow="t('kingdomP7A.settingsEyebrow')"
+      :title="t('kingdomP7A.settingsTitle')"
+      :subtitle="alliance.kingdom ? `#${alliance.kingdom} · ${alliance.name}` : alliance.name"
+      image="/images/kingshot/v4/kingdom-map.svg"
+      compact
+    >
+      <template #actions>
+        <Link href="/alliance/kingdom-alliances" class="ks-command-link" data-variant="secondary">
+          ← {{ t('kingdomP7A.overviewTitle') }}
+        </Link>
+        <Link href="/alliance/kingdom-ingestion/manage" class="ks-command-link">
+          {{ t('kingdomP7A.ingestion') }}
+        </Link>
         <Link
           v-if="canManageKingdomRoles"
           href="/alliance/settings/kingdom/roles"
-          class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] px-3 py-2 text-sm font-semibold"
-          >{{ t('kingdomP7A.rolesManage') }}</Link
+          class="ks-command-link"
         >
-      </div>
-    </header>
+          {{ t('kingdomP7A.rolesManage') }}
+        </Link>
+      </template>
+    </RoomBanner>
 
-    <section class="ks-surface mt-6 p-5" aria-labelledby="kingdom-association-heading">
+    <section class="ks-surface-gold mt-5 p-5 sm:p-6" aria-labelledby="kingdom-association-heading">
       <p
         id="kingdom-association-heading"
         class="text-xs font-semibold text-[var(--ks-text-muted)] uppercase"

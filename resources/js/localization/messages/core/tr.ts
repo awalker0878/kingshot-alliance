@@ -48,7 +48,7 @@ const messages = {
       playerKingdom: 'Krallık #{kingdom}',
       playerAuthorityIntro:
         'İttifak üyeliği, rütbe, roller, krallık izinleri ve oyun eylemleri yalnızca bu oyuncudan belirlenir.',
-      selectPlayer: 'Oyun araçlarını kullanmak için bir oyuncu seçin.',
+      selectPlayer: 'Vali seç',
       playerAllianceTitle: 'Etkin oyuncunun ittifakı',
       playerAllianceIntro:
         'İttifak araçları yalnızca etkin oyuncunun üyeliğini, rütbesini ve rollerini kullanır.',

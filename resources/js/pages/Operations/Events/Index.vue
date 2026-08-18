@@ -2,10 +2,10 @@
 import { Head, Link } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 
-import AppLayout from '@/layouts/AppLayout.vue';
 import EventSigil from '@/components/game/EventSigil.vue';
-import StatSeal from '@/components/game/StatSeal.vue';
 import RoomBanner from '@/components/game/RoomBanner.vue';
+import StatSeal from '@/components/game/StatSeal.vue';
+import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
 type EventScope = 'player' | 'alliance' | 'kingdom';
@@ -69,7 +69,6 @@ function dateKey(date: Date): string {
   const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 }
-
 const visibleEvents = computed(() =>
   props.events.filter((event) => scope.value === 'all' || event.scope === scope.value),
 );
@@ -91,7 +90,6 @@ const monthDays = computed(() => {
     const key = dateKey(new Date(event.startsAt));
     eventsByDay.set(key, [...(eventsByDay.get(key) ?? []), event]);
   }
-
   const days: Array<{ date: Date; key: string; current: boolean; events: EventRow[] }> = [];
   const start = new Date(first);
   start.setDate(first.getDate() - first.getDay());
@@ -109,7 +107,6 @@ const monthDays = computed(() => {
   }
   return days;
 });
-
 function moveMonth(delta: number): void {
   monthCursor.value = new Date(
     monthCursor.value.getFullYear(),
@@ -120,19 +117,60 @@ function moveMonth(delta: number): void {
 function displayName(event: EventRow): string {
   return event.title || t(event.nameKey);
 }
+function scopeLabel(value: ScopeFilter): string {
+  return value === 'all' ? t('events.calendar.all') : t(`events.scope.${value}`);
+}
+function statusTone(status: string): 'success' | 'warning' | 'danger' | 'info' {
+  if (status === 'completed') return 'success';
+  if (status === 'cancelled') return 'danger';
+  if (status === 'scheduled' || status === 'published') return 'info';
+  return 'warning';
+}
 </script>
 
 <template>
   <Head :title="t('events.calendar.title')" />
   <AppLayout :user="props.user">
-    <RoomBanner eyebrow="Alliance Operations" title="Event Command" subtitle="Prepare for the real Kingshot Event cycle, answer registrations and polls, and open each Event’s command rooms when its capabilities are available." image="/images/kingshot/bear-hunt.svg">
-      <template #actions><Link v-if="props.canCreate" href="/events/create" class="ks-command-link">Call an Event</Link></template>
+    <RoomBanner
+      :eyebrow="t('events.calendar.eyebrow')"
+      :title="t('navigation.events')"
+      :subtitle="t('events.calendar.description')"
+      image="/images/kingshot/v4/event-command.svg"
+    >
+      <template #actions>
+        <Link v-if="props.canCreate" href="/events/create" class="ks-command-link">{{
+          t('events.calendar.create')
+        }}</Link>
+        <a href="/events/export.csv" class="ks-command-link" data-variant="secondary">{{
+          t('events.calendar.exportCsv')
+        }}</a>
+      </template>
     </RoomBanner>
-    <section class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4"><StatSeal label="Events" :value="props.events.length" icon="⚔"/><StatSeal label="Needs Attention" :value="props.attention.length" icon="!" tone="teal"/><StatSeal label="Reminders" :value="props.reminders.length" icon="⌛" tone="stone"/><StatSeal label="View" :value="view === 'agenda' ? 'War Clock' : 'Calendar'" icon="◷"/></section>
+
+    <section class="mt-4 grid gap-3 sm:grid-cols-2 2xl:grid-cols-4">
+      <StatSeal :label="t('events.calendar.title')" :value="props.events.length" icon="▦" />
+      <StatSeal
+        :label="t('events.attention.eyebrow')"
+        :value="props.attention.length"
+        icon="!"
+        tone="teal"
+      />
+      <StatSeal
+        :label="t('events.reminders.title')"
+        :value="props.reminders.length"
+        icon="⌛"
+        tone="stone"
+      />
+      <StatSeal
+        :label="t('events.calendar.viewOptions')"
+        :value="view === 'agenda' ? t('events.calendar.agenda') : t('events.calendar.month')"
+        icon="◉"
+      />
+    </section>
 
     <p
       v-if="props.status"
-      class="mb-5 rounded border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200"
+      class="mt-5 rounded-[var(--ks-radius-md)] border border-emerald-400/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200"
       role="status"
     >
       {{ props.status }}
@@ -140,82 +178,51 @@ function displayName(event: EventRow): string {
 
     <section
       v-if="props.attention.length"
-      class="mb-5 rounded-[var(--ks-radius-lg)] border border-[var(--ks-gold)]/30 bg-[var(--ks-surface-1)] p-4"
-      aria-labelledby="event-attention-title"
+      class="ks-surface-gold mt-5 p-4 sm:p-5"
+      aria-labelledby="attention-title"
     >
-      <p class="text-xs font-bold tracking-[0.15em] text-[var(--ks-gold)] uppercase">
-        {{ t('events.attention.eyebrow') }}
-      </p>
-      <h2 id="event-attention-title" class="mt-1 text-lg font-semibold">
-        {{ t('events.attention.title') }}
-      </h2>
-      <div class="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+      <div class="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p class="ks-kicker">{{ t('events.attention.eyebrow') }}</p>
+          <h2 id="attention-title" class="ks-display mt-1 text-2xl font-semibold">
+            {{ t('events.attention.title') }}
+          </h2>
+        </div>
+        <span class="ks-status" data-tone="warning">{{ props.attention.length }}</span>
+      </div>
+      <div class="mt-4 grid gap-3 md:grid-cols-2 2xl:grid-cols-4">
         <Link
           v-for="item in props.attention"
           :key="`${item.occurrenceId}:${item.action}:${item.pollId ?? ''}:${item.rosterMemberId ?? ''}`"
           :href="`/events/${item.occurrenceId}`"
-          class="rounded border border-[var(--ks-border)] p-3 transition hover:border-[var(--ks-border-strong)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ks-gold)]"
+          class="group rounded-[var(--ks-radius-md)] border border-[rgba(226,170,73,.22)] bg-[linear-gradient(145deg,rgba(87,45,24,.18),rgba(8,13,13,.72))] p-4 transition hover:border-[rgba(226,170,73,.45)]"
         >
-          <div class="text-sm font-semibold">{{ item.title || t(item.nameKey) }}</div>
-          <div class="mt-1 text-xs text-[var(--ks-text-muted)]">
-            {{ t(`events.attention.${item.action}`) }} ·
-            {{
-              formatDate(new Date(item.startsAt), {
-                month: 'short',
-                day: 'numeric',
-                hour: 'numeric',
-                minute: '2-digit',
-              })
-            }}
-          </div>
-        </Link>
-      </div>
-    </section>
-
-    <section
-      v-if="props.reminders.length"
-      class="mb-5 rounded-[var(--ks-radius-lg)] border border-[var(--ks-blue-strong)]/25 bg-[var(--ks-surface-1)] p-4"
-      aria-labelledby="event-reminders-title"
-    >
-      <p class="text-xs font-bold tracking-[0.15em] text-[var(--ks-blue-strong)] uppercase">
-        {{ t('events.reminders.eyebrow') }}
-      </p>
-      <h2 id="event-reminders-title" class="mt-1 text-lg font-semibold">
-        {{ t('events.reminders.title') }}
-      </h2>
-      <div class="mt-3 space-y-2">
-        <Link
-          v-for="reminder in props.reminders"
-          :key="reminder.id"
-          :href="`/events/${reminder.occurrenceId}`"
-          class="flex flex-wrap items-center justify-between gap-2 rounded border border-[var(--ks-border)] p-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ks-blue-strong)]"
-        >
-          <div>
-            <div class="text-sm font-semibold">{{ reminder.title || t(reminder.nameKey) }}</div>
-            <div class="mt-1 text-xs text-[var(--ks-text-muted)]">
-              {{ t('events.reminders.starts') }}
-              {{
-                formatDate(new Date(reminder.startsAt), {
-                  month: 'short',
-                  day: 'numeric',
-                  hour: 'numeric',
-                  minute: '2-digit',
-                })
-              }}
+          <div class="flex items-start gap-3">
+            <div
+              class="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-amber-400/30 bg-amber-500/10 font-bold text-amber-200"
+            >
+              !
+            </div>
+            <div class="min-w-0">
+              <strong class="block truncate text-sm">{{ item.title || t(item.nameKey) }}</strong>
+              <p class="mt-1 text-xs text-amber-200">{{ t(`events.attention.${item.action}`) }}</p>
+              <p class="mt-2 text-xs text-[var(--ks-muted)]">
+                {{
+                  formatDate(new Date(item.startsAt), {
+                    month: 'short',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit',
+                  })
+                }}
+              </p>
             </div>
           </div>
-          <span class="text-xs text-[var(--ks-text-muted)]">{{
-            reminder.sentAt
-              ? formatDate(new Date(reminder.sentAt), { hour: 'numeric', minute: '2-digit' })
-              : ''
-          }}</span>
         </Link>
       </div>
     </section>
 
-    <div
-      class="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[var(--ks-surface-1)] p-3"
-    >
+    <div class="ks-toolbar mt-5">
       <div
         class="flex flex-wrap gap-2"
         role="group"
@@ -225,23 +232,19 @@ function displayName(event: EventRow): string {
           v-for="value in scopeOptions"
           :key="value"
           type="button"
-          class="rounded-full px-3 py-1.5 text-xs font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ks-gold)]"
-          :class="
-            scope === value
-              ? 'bg-[var(--ks-gold)] text-[var(--ks-ink)]'
-              : 'border border-[var(--ks-border)]'
-          "
+          class="ks-chip"
+          :data-active="scope === value"
           :aria-pressed="scope === value"
           @click="scope = value"
         >
-          {{ value === 'all' ? t('events.calendar.all') : t(`events.scope.${value}`) }}
+          {{ scopeLabel(value) }}
         </button>
       </div>
       <div class="flex gap-2" role="group" :aria-label="t('events.calendar.viewOptions')">
         <button
           type="button"
-          class="rounded px-3 py-1.5 text-xs font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ks-blue-strong)]"
-          :class="view === 'agenda' ? 'bg-[var(--ks-blue-soft)] text-[var(--ks-blue-strong)]' : ''"
+          class="ks-chip"
+          :data-active="view === 'agenda'"
           :aria-pressed="view === 'agenda'"
           @click="view = 'agenda'"
         >
@@ -249,10 +252,8 @@ function displayName(event: EventRow): string {
         </button>
         <button
           type="button"
-          class="rounded px-3 py-1.5 text-xs font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ks-blue-strong)]"
-          :class="
-            view === 'calendar' ? 'bg-[var(--ks-blue-soft)] text-[var(--ks-blue-strong)]' : ''
-          "
+          class="ks-chip"
+          :data-active="view === 'calendar'"
           :aria-pressed="view === 'calendar'"
           @click="view = 'calendar'"
         >
@@ -261,106 +262,195 @@ function displayName(event: EventRow): string {
       </div>
     </div>
 
-    <div v-if="view === 'agenda'" class="space-y-6">
-      <section v-for="[date, rows] in grouped" :key="date">
-        <h2 class="mb-2 text-sm font-bold tracking-[0.13em] text-[var(--ks-text-muted)] uppercase">
-          {{
-            formatDate(new Date(`${date}T12:00:00`), {
-              weekday: 'long',
-              month: 'long',
-              day: 'numeric',
-            })
-          }}
-        </h2>
-        <div class="space-y-2">
-          <Link
-            v-for="event in rows"
-            :key="event.id"
-            :href="`/events/${event.id}`"
-            class="grid gap-3 rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[var(--ks-surface-1)] p-4 transition hover:border-[var(--ks-border-strong)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ks-gold)] sm:grid-cols-[8rem_minmax(0,1fr)_auto]"
-          >
-            <div class="text-sm font-semibold">
-              {{ formatDate(new Date(event.startsAt), { hour: 'numeric', minute: '2-digit' }) }}
+    <div class="mt-5 grid gap-5 2xl:grid-cols-[minmax(0,1.4fr)_minmax(20rem,.6fr)]">
+      <div class="min-w-0">
+        <div v-if="view === 'agenda'" class="space-y-5">
+          <section v-for="[date, rows] in grouped" :key="date" class="ks-surface overflow-hidden">
+            <div class="border-b border-[var(--ks-border)] bg-black/15 px-4 py-3">
+              <p class="ks-kicker">
+                {{
+                  formatDate(new Date(`${date}T12:00:00`), {
+                    weekday: 'long',
+                    month: 'long',
+                    day: 'numeric',
+                  })
+                }}
+              </p>
             </div>
-            <div>
-              <div class="flex flex-wrap items-center gap-2">
-                <EventSigil :name="displayName(event)" />
-                <h3 class="font-semibold">{{ displayName(event) }}</h3>
+            <div class="divide-y divide-[var(--ks-border)]">
+              <Link
+                v-for="event in rows"
+                :key="event.id"
+                :href="`/events/${event.id}`"
+                class="group grid gap-4 p-4 transition hover:bg-white/[0.018] sm:grid-cols-[7rem_minmax(0,1fr)_auto] sm:items-center"
+              >
+                <div>
+                  <div class="text-xl font-[var(--ks-font-display)] text-[var(--ks-gold-bright)]">
+                    {{
+                      formatDate(new Date(event.startsAt), { hour: 'numeric', minute: '2-digit' })
+                    }}
+                  </div>
+                  <div class="mt-1 text-[.66rem] text-[var(--ks-muted)]">{{ event.timezone }}</div>
+                </div>
+                <div class="min-w-0">
+                  <div class="flex items-center gap-3">
+                    <EventSigil :name="displayName(event)" />
+                    <div class="min-w-0">
+                      <h3 class="truncate text-lg font-[var(--ks-font-display)] font-semibold">
+                        {{ displayName(event) }}
+                      </h3>
+                      <p class="mt-1 truncate text-xs text-[var(--ks-muted)]">
+                        {{ event.targetLabel }}
+                      </p>
+                    </div>
+                  </div>
+                  <div class="mt-3 flex flex-wrap gap-1.5">
+                    <span class="ks-chip">{{ t(`events.scope.${event.scope}`) }}</span
+                    ><span class="ks-status" :data-tone="statusTone(event.status)">{{
+                      t(`events.occurrenceStatuses.${event.status}`)
+                    }}</span>
+                  </div>
+                </div>
                 <span
-                  class="rounded-full border border-[var(--ks-border)] px-2 py-0.5 text-[0.68rem] uppercase"
-                  >{{ t(`events.scope.${event.scope}`) }}</span
+                  v-if="event.canManage"
+                  class="ks-status justify-self-start sm:justify-self-end"
+                  data-tone="info"
+                  >{{ t('events.calendar.manageable') }}</span
                 >
-              </div>
-              <p class="mt-1 text-xs text-[var(--ks-text-muted)]">{{ event.targetLabel }}</p>
+              </Link>
             </div>
-            <span v-if="event.canManage" class="text-xs font-semibold text-[var(--ks-gold)]">{{
-              t('events.calendar.manageable')
-            }}</span>
-          </Link>
-        </div>
-      </section>
-      <div
-        v-if="grouped.length === 0"
-        class="rounded-[var(--ks-radius-lg)] border border-dashed border-[var(--ks-border)] p-10 text-center text-sm text-[var(--ks-text-muted)]"
-      >
-        {{ t('events.calendar.empty') }}
-      </div>
-    </div>
-
-    <section
-      v-else
-      class="rounded-[var(--ks-radius-lg)] border border-[var(--ks-border)] bg-[var(--ks-surface-1)] p-4"
-      aria-labelledby="events-month-title"
-    >
-      <div class="mb-4 flex items-center justify-between gap-3">
-        <button
-          type="button"
-          class="rounded border border-[var(--ks-border)] px-3 py-1.5 text-lg leading-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ks-gold)]"
-          :aria-label="t('events.calendar.previousMonth')"
-          @click="moveMonth(-1)"
-        >
-          ‹
-        </button>
-        <h2 id="events-month-title" class="font-semibold">
-          {{ formatDate(monthCursor, { month: 'long', year: 'numeric' }) }}
-        </h2>
-        <button
-          type="button"
-          class="rounded border border-[var(--ks-border)] px-3 py-1.5 text-lg leading-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ks-gold)]"
-          :aria-label="t('events.calendar.nextMonth')"
-          @click="moveMonth(1)"
-        >
-          ›
-        </button>
-      </div>
-      <div class="overflow-x-auto pb-1">
-        <div
-          class="grid min-w-[44rem] grid-cols-7 gap-px overflow-hidden rounded border border-[var(--ks-border)] bg-[var(--ks-border)]"
-        >
-          <div
-            v-for="date in weekdayDates"
-            :key="date.getDay()"
-            class="bg-[var(--ks-surface-2)] p-2 text-center text-xs font-bold text-[var(--ks-text-muted)]"
-          >
-            {{ formatDate(date, { weekday: 'short' }) }}
+          </section>
+          <div v-if="grouped.length === 0" class="ks-fantasy-empty">
+            {{ t('events.calendar.empty') }}
           </div>
-          <div
-            v-for="day in monthDays"
-            :key="day.key"
-            class="min-h-28 bg-[var(--ks-surface-1)] p-2"
-            :class="!day.current ? 'opacity-35' : ''"
-          >
-            <div class="mb-2 text-xs font-semibold">{{ day.date.getDate() }}</div>
+        </div>
+
+        <section v-else class="ks-surface p-4 sm:p-5" aria-labelledby="events-month-title">
+          <div class="mb-4 flex items-center justify-between gap-3">
+            <button
+              type="button"
+              class="grid h-10 w-10 place-items-center rounded border border-[var(--ks-border)]"
+              :aria-label="t('events.calendar.previousMonth')"
+              @click="moveMonth(-1)"
+            >
+              ‹
+            </button>
+            <h2 id="events-month-title" class="ks-display text-xl font-semibold">
+              {{ formatDate(monthCursor, { month: 'long', year: 'numeric' }) }}
+            </h2>
+            <button
+              type="button"
+              class="grid h-10 w-10 place-items-center rounded border border-[var(--ks-border)]"
+              :aria-label="t('events.calendar.nextMonth')"
+              @click="moveMonth(1)"
+            >
+              ›
+            </button>
+          </div>
+          <div class="overflow-x-auto pb-1">
+            <div
+              class="grid min-w-[44rem] grid-cols-7 gap-px overflow-hidden rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[var(--ks-border)]"
+            >
+              <div
+                v-for="date in weekdayDates"
+                :key="date.getDay()"
+                class="bg-[var(--ks-surface-2)] p-2 text-center text-xs font-bold text-[var(--ks-muted)]"
+              >
+                {{ formatDate(date, { weekday: 'short' }) }}
+              </div>
+              <div
+                v-for="day in monthDays"
+                :key="day.key"
+                class="min-h-28 bg-[var(--ks-bg-elevated)] p-2"
+                :class="day.current ? '' : 'opacity-35'"
+              >
+                <div class="text-xs font-semibold">{{ day.date.getDate() }}</div>
+                <div class="mt-2 space-y-1">
+                  <Link
+                    v-for="event in day.events.slice(0, 3)"
+                    :key="event.id"
+                    :href="`/events/${event.id}`"
+                    class="block truncate rounded border border-[var(--ks-border)] bg-black/20 px-2 py-1 text-[.65rem] hover:border-[var(--ks-border-strong)]"
+                    >{{ displayName(event) }}</Link
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <aside class="space-y-5">
+        <section class="ks-surface p-5">
+          <div class="flex items-center justify-between gap-3">
+            <div>
+              <p class="ks-kicker">{{ t('events.reminders.eyebrow') }}</p>
+              <h2 class="ks-display mt-1 text-xl font-semibold">
+                {{ t('events.reminders.title') }}
+              </h2>
+            </div>
+            <span class="ks-status" data-tone="info">{{ props.reminders.length }}</span>
+          </div>
+          <div v-if="props.reminders.length" class="mt-4 space-y-2">
             <Link
-              v-for="event in day.events.slice(0, 3)"
-              :key="event.id"
-              :href="`/events/${event.id}`"
-              class="mb-1 block truncate rounded bg-[var(--ks-blue-soft)] px-2 py-1 text-[0.68rem] text-[var(--ks-blue-strong)] focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--ks-blue-strong)]"
-              >{{ displayName(event) }}</Link
+              v-for="reminder in props.reminders"
+              :key="reminder.id"
+              :href="`/events/${reminder.occurrenceId}`"
+              class="block rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-3 transition hover:border-[var(--ks-border-strong)]"
+              ><strong class="block truncate text-sm">{{
+                reminder.title || t(reminder.nameKey)
+              }}</strong>
+              <p class="mt-1 text-xs text-[var(--ks-muted)]">
+                {{ t('events.reminders.starts') }} ·
+                {{
+                  formatDate(new Date(reminder.startsAt), {
+                    month: 'short',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit',
+                  })
+                }}
+              </p></Link
             >
           </div>
-        </div>
-      </div>
-    </section>
+          <p v-else class="mt-4 text-sm text-[var(--ks-muted)]">{{ t('events.calendar.empty') }}</p>
+        </section>
+
+        <section class="ks-surface p-5">
+          <p class="ks-kicker">{{ t('events.calendar.viewOptions') }}</p>
+          <h2 class="ks-display mt-1 text-xl font-semibold">
+            {{ formatDate(monthCursor, { month: 'long', year: 'numeric' }) }}
+          </h2>
+          <div class="mt-4 grid grid-cols-7 gap-1 text-center text-[.68rem]">
+            <div
+              v-for="date in weekdayDates"
+              :key="date.getDay()"
+              class="py-1 text-[var(--ks-muted)]"
+            >
+              {{ formatDate(date, { weekday: 'narrow' }) }}
+            </div>
+            <div
+              v-for="day in monthDays"
+              :key="`mini-${day.key}`"
+              class="relative grid aspect-square place-items-center rounded"
+              :class="[
+                day.current
+                  ? 'text-[var(--ks-text-secondary)]'
+                  : 'text-[var(--ks-muted)] opacity-35',
+                day.events.length
+                  ? 'border border-[rgba(32,178,163,.32)] bg-[var(--ks-teal-soft)]'
+                  : '',
+              ]"
+            >
+              {{ day.date.getDate()
+              }}<span
+                v-if="day.events.length"
+                class="absolute bottom-1 h-1 w-1 rounded-full bg-[var(--ks-teal-bright)]"
+              />
+            </div>
+          </div>
+        </section>
+      </aside>
+    </div>
   </AppLayout>
 </template>

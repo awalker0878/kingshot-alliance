@@ -2,14 +2,14 @@
 import { Head, Link, router } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
+import RoomBanner from '@/components/game/RoomBanner.vue';
+import StatSeal from '@/components/game/StatSeal.vue';
+import AppButton from '@/components/ui/AppButton.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
 const props = defineProps<{
-  user: {
-    name: string;
-    email: string;
-  };
+  user: { name: string; email: string };
   request: null | {
     status: string;
     requestedAt: string;
@@ -29,11 +29,15 @@ const statusMessage = computed(() =>
 );
 
 function requestDeletion(): void {
-  if (!window.confirm(t('accountExperience.deletion.confirm'))) {
-    return;
-  }
-
+  if (!window.confirm(t('accountExperience.deletion.confirm'))) return;
   router.post('/profile/delete-account');
+}
+
+function requestTone(status: string): 'success' | 'warning' | 'danger' | 'info' {
+  if (status === 'processed' || status === 'completed') return 'success';
+  if (status === 'blocked' || status === 'failed') return 'danger';
+  if (status === 'pending' || status === 'requested') return 'warning';
+  return 'info';
 }
 </script>
 
@@ -41,116 +45,114 @@ function requestDeletion(): void {
   <Head :title="t('accountExperience.deletion.title')" />
 
   <AppLayout :user="props.user">
-    <header class="mb-8 max-w-3xl">
-      <p class="text-xs font-bold tracking-[0.2em] text-[var(--ks-red)] uppercase">
-        {{ t('accountExperience.deletion.eyebrow') }}
-      </p>
-      <h1 class="ks-display mt-2 text-3xl font-semibold sm:text-4xl">
-        {{ t('accountExperience.deletion.title') }}
-      </h1>
-      <p class="mt-3 text-sm leading-6 text-[var(--ks-text-muted)] sm:text-base">
-        {{ t('accountExperience.deletion.intro') }}
-      </p>
-      <Link
-        href="/profile"
-        class="mt-4 inline-flex text-sm font-semibold text-[var(--ks-blue-strong)] transition hover:text-[var(--ks-ivory)]"
-      >
-        {{ t('accountExperience.deletion.backToAccount') }}
-      </Link>
-    </header>
+    <RoomBanner
+      :eyebrow="t('accountExperience.deletion.eyebrow')"
+      :title="t('accountExperience.deletion.title')"
+      :subtitle="t('accountExperience.deletion.intro')"
+      image="/images/kingshot/v4/account-vault.svg"
+      compact
+    >
+      <template #actions>
+        <Link href="/profile" class="ks-command-link">
+          {{ t('accountExperience.deletion.backToAccount') }}
+        </Link>
+      </template>
+    </RoomBanner>
 
     <p
       v-if="statusMessage"
       role="status"
-      class="mb-6 rounded-[var(--ks-radius-md)] border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200"
+      class="mt-5 rounded-[var(--ks-radius-md)] border border-emerald-400/25 bg-emerald-500/[.07] px-4 py-3 text-sm text-emerald-100"
     >
       {{ statusMessage }}
     </p>
 
-    <section
-      v-if="props.request"
-      aria-labelledby="request-heading"
-      class="ks-surface max-w-4xl p-5 sm:p-6"
-    >
-      <div
-        class="flex flex-col gap-2 border-b border-[var(--ks-border)] pb-5 sm:flex-row sm:items-center sm:justify-between"
-      >
-        <h2 id="request-heading" class="ks-display text-2xl font-semibold">
-          {{ t('accountExperience.deletion.currentRequest') }}
-        </h2>
-        <span
-          class="w-fit rounded-full border border-[var(--ks-border-strong)] bg-[var(--ks-gold-soft)] px-3 py-1 text-xs font-bold text-[var(--ks-gold-strong)]"
-        >
-          {{ props.request.status }}
-        </span>
-      </div>
+    <template v-if="props.request">
+      <section class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <StatSeal
+          :label="t('accountExperience.deletion.status')"
+          :value="props.request.status"
+          icon="⛨"
+          :tone="props.request.status === 'processed' ? 'teal' : 'stone'"
+        />
+        <StatSeal
+          :label="t('accountExperience.deletion.requestedAt')"
+          :value="formatDate(props.request.requestedAt)"
+          icon="◷"
+        />
+        <StatSeal
+          :label="t('accountExperience.deletion.eligibleAt')"
+          :value="formatDate(props.request.eligibleAt)"
+          icon="⌛"
+          tone="stone"
+        />
+        <StatSeal
+          :label="t('accountExperience.deletion.processedAt')"
+          :value="
+            props.request.processedAt
+              ? formatDate(props.request.processedAt)
+              : t('accountExperience.deletion.notYet')
+          "
+          icon="✓"
+          tone="teal"
+        />
+      </section>
 
-      <dl class="mt-6 grid gap-4 sm:grid-cols-2">
-        <div
-          class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[var(--ks-bg)]/65 p-4"
-        >
-          <dt class="text-xs font-bold tracking-[0.14em] text-[var(--ks-text-muted)] uppercase">
-            {{ t('accountExperience.deletion.status') }}
-          </dt>
-          <dd class="mt-2 font-semibold">{{ props.request.status }}</dd>
+      <section class="ks-surface mt-5 p-5 sm:p-6" aria-labelledby="request-heading">
+        <div class="flex flex-wrap items-start justify-between gap-4">
+          <div class="max-w-3xl">
+            <p class="ks-kicker">{{ t('accountExperience.deletion.currentRequest') }}</p>
+            <h2 id="request-heading" class="ks-display mt-1 text-2xl font-semibold">
+              {{ props.user.name }}
+            </h2>
+            <p class="mt-2 text-sm leading-6 text-[var(--ks-text-secondary)]">
+              {{ t('accountExperience.deletion.requestIntro') }}
+            </p>
+          </div>
+          <span class="ks-status" :data-tone="requestTone(props.request.status)">
+            {{ props.request.status }}
+          </span>
         </div>
-        <div
-          class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[var(--ks-bg)]/65 p-4"
-        >
-          <dt class="text-xs font-bold tracking-[0.14em] text-[var(--ks-text-muted)] uppercase">
-            {{ t('accountExperience.deletion.eligibleAt') }}
-          </dt>
-          <dd class="mt-2">{{ formatDate(props.request.eligibleAt) }}</dd>
-        </div>
-        <div
-          class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[var(--ks-bg)]/65 p-4"
-        >
-          <dt class="text-xs font-bold tracking-[0.14em] text-[var(--ks-text-muted)] uppercase">
-            {{ t('accountExperience.deletion.requestedAt') }}
-          </dt>
-          <dd class="mt-2">{{ formatDate(props.request.requestedAt) }}</dd>
-        </div>
-        <div
-          class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[var(--ks-bg)]/65 p-4"
-        >
-          <dt class="text-xs font-bold tracking-[0.14em] text-[var(--ks-text-muted)] uppercase">
-            {{ t('accountExperience.deletion.processedAt') }}
-          </dt>
-          <dd class="mt-2">
-            {{
-              props.request.processedAt
-                ? formatDate(props.request.processedAt)
-                : t('accountExperience.deletion.notYet')
-            }}
-          </dd>
-        </div>
-      </dl>
 
-      <p
-        v-if="props.request.blockedReason"
-        class="mt-5 rounded-[var(--ks-radius-md)] border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-sm leading-6 text-amber-100"
-      >
-        {{ props.request.blockedReason }}
-      </p>
-    </section>
+        <div
+          v-if="props.request.blockedReason"
+          class="mt-6 rounded-[var(--ks-radius-md)] border border-amber-400/25 bg-amber-500/[.07] p-4"
+        >
+          <p class="ks-kicker text-amber-200">{{ t('accountExperience.deletion.status') }}</p>
+          <p class="mt-2 text-sm leading-6 text-amber-100/90">
+            {{ props.request.blockedReason }}
+          </p>
+        </div>
+      </section>
+    </template>
 
     <section
       v-else
-      class="max-w-4xl rounded-[var(--ks-radius-lg)] border border-red-500/30 bg-red-500/5 p-5 shadow-[var(--ks-shadow-panel)] sm:p-6"
+      class="mt-5 overflow-hidden rounded-[var(--ks-radius-lg)] border border-red-400/25 bg-[linear-gradient(145deg,rgba(80,24,20,.13),rgba(8,13,13,.92))] shadow-[var(--ks-shadow-panel)]"
+      aria-labelledby="deletion-request-heading"
     >
-      <h2 class="ks-display text-2xl font-semibold">
-        {{ t('accountExperience.deletion.requestTitle') }}
-      </h2>
-      <p class="mt-3 max-w-2xl text-sm leading-6 text-[var(--ks-text-muted)]">
-        {{ t('accountExperience.deletion.requestIntro') }}
-      </p>
-      <button
-        type="button"
-        class="mt-6 rounded-[var(--ks-radius-sm)] border border-red-500/40 bg-red-500/10 px-4 py-2.5 font-semibold text-[var(--ks-red)] transition hover:bg-red-500/15"
-        @click="requestDeletion"
-      >
-        {{ t('accountExperience.deletion.requestButton') }}
-      </button>
+      <div class="border-b border-red-400/15 p-5 sm:p-6">
+        <p class="ks-kicker text-[var(--ks-red)]">
+          {{ t('accountExperience.account.dangerTitle') }}
+        </p>
+        <h2 id="deletion-request-heading" class="ks-display mt-2 text-3xl font-semibold">
+          {{ t('accountExperience.deletion.requestTitle') }}
+        </h2>
+        <p class="mt-3 max-w-3xl text-sm leading-7 text-[var(--ks-text-secondary)]">
+          {{ t('accountExperience.deletion.requestIntro') }}
+        </p>
+      </div>
+
+      <div class="grid gap-5 p-5 sm:p-6 lg:grid-cols-[1fr_auto] lg:items-center">
+        <div class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-4">
+          <p class="ks-kicker">{{ t('accountExperience.account.profileTitle') }}</p>
+          <p class="ks-display mt-2 text-xl">{{ props.user.name }}</p>
+          <p class="mt-1 text-sm text-[var(--ks-muted)]">{{ props.user.email }}</p>
+        </div>
+        <AppButton variant="danger" type="button" @click="requestDeletion">
+          {{ t('accountExperience.deletion.requestButton') }}
+        </AppButton>
+      </div>
     </section>
   </AppLayout>
 </template>

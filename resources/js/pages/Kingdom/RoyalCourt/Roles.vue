@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 
+import RoomBanner from '@/components/game/RoomBanner.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
@@ -47,27 +48,19 @@ function removeRole(assignment: Assignment): void {
 <template>
   <Head :title="`${t('kingdomP7A.rolesTitle')} · #${kingdom.number}`" />
   <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
-    <header class="flex flex-wrap items-start justify-between gap-5">
-      <div class="max-w-3xl">
-        <p class="text-xs font-bold tracking-[0.2em] text-[var(--ks-gold)] uppercase">
-          {{ t('kingdomP7A.rolesEyebrow') }}
-        </p>
-        <h1 class="ks-display mt-2 text-3xl font-bold sm:text-4xl">
-          {{ t('kingdomP7A.rolesTitle') }}
-        </h1>
-        <p class="mt-3 text-sm leading-6 text-[var(--ks-text-secondary)]">
-          {{ t('kingdomP7A.rolesSubtitle', { kingdom: kingdom.number }) }}
-        </p>
-      </div>
-      <div class="flex flex-wrap gap-2">
-        <Link
-          href="/alliance/kingdom-alliances"
-          class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] px-3 py-2 text-sm font-semibold"
-        >
-          {{ t('kingdomP7A.overviewTitle') }}
+    <RoomBanner
+      :eyebrow="t('kingdomP7A.rolesEyebrow')"
+      :title="t('kingdomP7A.rolesTitle')"
+      :subtitle="t('kingdomP7A.rolesSubtitle', { kingdom: kingdom.number })"
+      image="/images/kingshot/v4/kingdom-map.svg"
+      compact
+    >
+      <template #actions>
+        <Link href="/alliance/kingdom-alliances" class="ks-command-link" data-variant="secondary">
+          ← {{ t('kingdomP7A.overviewTitle') }}
         </Link>
-      </div>
-    </header>
+      </template>
+    </RoomBanner>
 
     <div class="mt-6 grid gap-5 xl:grid-cols-[minmax(320px,0.42fr)_minmax(0,1fr)]">
       <section class="ks-surface p-5" aria-labelledby="kingdom-role-assignment-heading">
@@ -85,7 +78,7 @@ function removeRole(assignment: Assignment): void {
             <select
               id="kingdom-role-player"
               v-model="form.player_id"
-              class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/20 px-3 py-2.5"
+              class="ks-input mt-2"
               :aria-invalid="form.errors.player_id ? 'true' : undefined"
             >
               <option v-for="player in players" :key="player.id" :value="player.id">
@@ -101,11 +94,7 @@ function removeRole(assignment: Assignment): void {
             <label for="kingdom-role-key" class="text-sm font-semibold">
               {{ t('kingdomP7A.rolesRole') }}
             </label>
-            <select
-              id="kingdom-role-key"
-              v-model="form.role"
-              class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/20 px-3 py-2.5"
-            >
+            <select id="kingdom-role-key" v-model="form.role" class="ks-input mt-2">
               <option v-for="role in roles" :key="role.key" :value="role.key">
                 {{ role.name }}
               </option>
@@ -118,7 +107,7 @@ function removeRole(assignment: Assignment): void {
           <button
             type="submit"
             :disabled="form.processing"
-            class="rounded-[var(--ks-radius-sm)] bg-[var(--ks-blue)] px-4 py-2.5 text-sm font-semibold text-[var(--ks-ivory)] disabled:opacity-60"
+            class="ks-command-button disabled:opacity-60"
           >
             {{ t('kingdomP7A.rolesAssignAction') }}
           </button>

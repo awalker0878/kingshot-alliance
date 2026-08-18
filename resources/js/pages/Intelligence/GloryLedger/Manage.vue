@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { computed } from 'vue';
+
+import RoomBanner from '@/components/game/RoomBanner.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
@@ -189,32 +191,25 @@ function member(id: string) {
 <template>
   <Head :title="`${t('contributions.managerTitle')} · ${alliance.name}`" />
   <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
-    <header class="flex flex-wrap items-start justify-between gap-4">
-      <div>
-        <Link
-          class="text-sm font-semibold text-[var(--ks-blue-strong)]"
-          href="/alliance/contributions"
-          >← {{ t('contributions.memberView') }}</Link
-        >
-        <p class="mt-4 text-xs font-bold tracking-[.2em] text-[var(--ks-gold)] uppercase">
-          {{ t('contributions.eyebrow') }}
-        </p>
-        <h1 class="ks-display mt-2 text-3xl font-bold">{{ t('contributions.managerTitle') }}</h1>
-        <p class="mt-2 text-sm text-[var(--ks-text-secondary)]">
-          {{ t('contributions.managerSubtitle', { alliance: alliance.name }) }}
-        </p>
-      </div>
-      <div class="flex gap-2">
-        <a class="btn" href="/alliance/contributions/export.csv">{{
+    <RoomBanner
+      :eyebrow="t('contributions.eyebrow')"
+      :title="t('contributions.managerTitle')"
+      :subtitle="t('contributions.managerSubtitle', { alliance: alliance.name })"
+      image="/images/kingshot/v4/glory-ledger.svg"
+      compact
+    >
+      <template #actions>
+        <Link href="/alliance/contributions" class="ks-command-link" data-variant="secondary">
+          ← {{ t('contributions.memberView') }}
+        </Link>
+        <a class="ks-command-link" href="/alliance/contributions/export.csv">{{
           t('contributions.exportCsv')
-        }}</a
-        ><a
-          class="btn border-[var(--ks-gold)]/50 text-[var(--ks-gold-strong)]"
-          href="/alliance/contributions/export.xls"
-          >{{ t('contributions.exportSpreadsheet') }}</a
-        >
-      </div>
-    </header>
+        }}</a>
+        <a class="ks-command-link" href="/alliance/contributions/export.xls">{{
+          t('contributions.exportSpreadsheet')
+        }}</a>
+      </template>
+    </RoomBanner>
 
     <section
       class="ks-surface-gold mt-6 overflow-hidden"
@@ -373,7 +368,7 @@ function member(id: string) {
           </p>
         </div>
         <div class="flex gap-2">
-          <button type="button" class="btn" @click="refresh">
+          <button type="button" class="ks-command-link" @click="refresh">
             {{ t('contributions.refreshQuality') }}
           </button>
         </div>

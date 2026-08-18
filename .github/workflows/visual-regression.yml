@@ -78,9 +78,10 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Prepare visual database
+        shell: bash
         run: |
           php artisan migrate --force
-          php artisan tinker --execute="App\\Contexts\\Accounts\\Models\\User::factory()->create(['name' => 'UX P9 Visual', 'email' => 'ux-p9-visual@example.test', 'timezone' => 'UTC']);"
+          php artisan tinker --execute='$user = \App\Contexts\Accounts\Identity\Models\User::factory()->create(["name" => "UX P9 Visual", "email" => "ux-p9-visual@example.test", "timezone" => "UTC"]); $k1123 = \App\Contexts\GameWorld\Kingdoms\Models\Kingdom::query()->create(["number" => 1123, "status" => "active"]); $k1198 = \App\Contexts\GameWorld\Kingdoms\Models\Kingdom::query()->create(["number" => 1198, "status" => "active"]); \App\Contexts\GameWorld\Players\Models\Player::query()->create(["user_id" => $user->id, "current_kingdom_id" => $k1123->id, "game_player_id" => "GOV-1123-A", "current_name" => "Lady Seraphina"]); \App\Contexts\GameWorld\Players\Models\Player::query()->create(["user_id" => $user->id, "current_kingdom_id" => $k1198->id, "game_player_id" => "GOV-1198-B", "current_name" => "Lord Caspian"]);'
 
       - name: Build production frontend
         run: npm run build
@@ -104,7 +105,7 @@ jobs:
 
       - name: Upload visual failure evidence
         if: failure()
-        uses: actions/upload-artifact@dcd7d59e9d2722a30ca9e6c79fb303ca8ac08048 # v7.0.1
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ux-p9-visual-failure
           path: |

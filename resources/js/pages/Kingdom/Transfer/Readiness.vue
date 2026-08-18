@@ -156,7 +156,7 @@ function saveReadiness(participant: Participant): void {
 
 function addBlocker(participant: Participant): void {
   if (props.plan === null || !props.plan.mutable || participant.withdrawnAt !== null) return;
-  const draft = blockerDrafts[participant.id];
+  const draft = blockerDrafts[participant.id]!;
   router.post(
     `/alliance/transfers/${props.plan.id}/participants/${participant.id}/blockers`,
     { summary: draft.summary, details: draft.details || null },
@@ -329,7 +329,9 @@ const inputClass =
         </div>
 
         <div class="mt-6 grid gap-5 lg:grid-cols-2">
-          <fieldset class="rounded-xl border border-[var(--ks-border)] bg-[var(--ks-parchment)]/[0.02] p-4">
+          <fieldset
+            class="rounded-xl border border-[var(--ks-border)] bg-[var(--ks-parchment)]/[0.02] p-4"
+          >
             <legend class="px-2 font-semibold">{{ t('kingdomP7D.readiness') }}</legend>
             <template v-if="participant.withdrawnAt === null">
               <label :for="`readiness-${participant.id}`" class="block text-sm font-semibold">{{
@@ -378,7 +380,9 @@ const inputClass =
             </p>
           </fieldset>
 
-          <fieldset class="rounded-xl border border-[var(--ks-border)] bg-[var(--ks-parchment)]/[0.02] p-4">
+          <fieldset
+            class="rounded-xl border border-[var(--ks-border)] bg-[var(--ks-parchment)]/[0.02] p-4"
+          >
             <legend class="px-2 font-semibold">{{ t('kingdomP7D.addBlocker') }}</legend>
             <template v-if="participant.withdrawnAt === null">
               <label
@@ -388,7 +392,7 @@ const inputClass =
               >
               <input
                 :id="`blocker-summary-${participant.id}`"
-                v-model="blockerDrafts[participant.id].summary"
+                v-model="blockerDrafts[participant.id]!.summary"
                 :disabled="!plan.mutable"
                 :class="inputClass"
                 maxlength="255"
@@ -401,7 +405,7 @@ const inputClass =
               >
               <textarea
                 :id="`blocker-details-${participant.id}`"
-                v-model="blockerDrafts[participant.id].details"
+                v-model="blockerDrafts[participant.id]!.details"
                 :disabled="!plan.mutable"
                 :class="inputClass"
                 maxlength="5000"
@@ -409,7 +413,7 @@ const inputClass =
               />
               <button
                 class="mt-3 rounded-lg bg-[var(--ks-gold)] px-3 py-2 text-sm font-bold text-[var(--ks-ink)] disabled:opacity-40"
-                :disabled="!plan.mutable || blockerDrafts[participant.id].summary.trim() === ''"
+                :disabled="!plan.mutable || blockerDrafts[participant.id]!.summary.trim() === ''"
                 type="button"
                 @click="addBlocker(participant)"
               >

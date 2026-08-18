@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Events\Http\Controllers;
 
-use App\Contexts\Accounts\Identity\Models\User;
+use App\Contexts\Accounts\Identity\Contracts\AuthenticatedAccount;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\GameWorld\Players\Services\PlayerContext;
 use App\Contexts\Operations\Events\Actions\CancelEvent;
@@ -293,7 +293,7 @@ final class EventManagementController extends Controller
     }
 
     /** @return array{name:string,email:string} */
-    private function identity(User $user): array
+    private function identity(AuthenticatedAccount $user): array
     {
         return ['name' => (string) $user->name, 'email' => (string) $user->email];
     }
@@ -306,10 +306,10 @@ final class EventManagementController extends Controller
         return $player;
     }
 
-    private function user(Request $request): User
+    private function user(Request $request): AuthenticatedAccount
     {
         $user = $request->user();
-        abort_unless($user instanceof User, 401);
+        abort_unless($user instanceof AuthenticatedAccount, 401);
 
         return $user;
     }

@@ -2,6 +2,7 @@
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
+import RoomBanner from '@/components/game/RoomBanner.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
@@ -148,30 +149,22 @@ function tone(value: string): string {
 <template>
   <Head :title="`${t('kingdomP7A.ingestionTitle')} · ${alliance.name}`" />
   <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
-    <header class="flex flex-wrap items-start justify-between gap-5">
-      <div class="max-w-3xl">
-        <p class="text-xs font-bold tracking-[0.2em] text-[var(--ks-gold)] uppercase">
-          {{ t('kingdomP7A.eyebrow') }}
-        </p>
-        <h1 class="ks-display mt-2 text-3xl font-bold sm:text-4xl">
-          {{ t('kingdomP7A.ingestionTitle') }}
-        </h1>
-        <p class="mt-3 text-sm leading-6 text-[var(--ks-text-secondary)]">
-          {{ t('kingdomP7A.ingestionSubtitle', { alliance: alliance.name }) }}
-        </p>
-      </div>
-      <div class="flex flex-wrap gap-2">
-        <Link
-          href="/alliance/kingdom-alliances"
-          class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] px-3 py-2 text-sm font-semibold"
-          >{{ t('kingdomP7A.overviewTitle') }}</Link
-        ><Link
-          href="/alliance/settings/kingdom"
-          class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] px-3 py-2 text-sm font-semibold"
-          >{{ t('kingdomP7A.settings') }}</Link
-        >
-      </div>
-    </header>
+    <RoomBanner
+      :eyebrow="t('kingdomP7A.eyebrow')"
+      :title="t('kingdomP7A.ingestionTitle')"
+      :subtitle="t('kingdomP7A.ingestionSubtitle', { alliance: alliance.name })"
+      image="/images/kingshot/v4/intel-room.svg"
+      compact
+    >
+      <template #actions>
+        <Link href="/alliance/kingdom-alliances" class="ks-command-link" data-variant="secondary">
+          ← {{ t('kingdomP7A.overviewTitle') }}
+        </Link>
+        <Link href="/alliance/settings/kingdom" class="ks-command-link">
+          {{ t('kingdomP7A.settings') }}
+        </Link>
+      </template>
+    </RoomBanner>
 
     <section class="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label="Ingestion summary">
       <article class="ks-surface p-4">
@@ -228,7 +221,7 @@ function tone(value: string): string {
           ><select
             id="ingestion-adapter"
             v-model="createForm.adapter_key"
-            class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/20 px-3 py-2.5"
+            class="ks-input mt-2"
             :disabled="adapters.length === 0"
           >
             <option v-if="adapters.length === 0" value="">{{ t('kingdomP7A.noAdapters') }}</option>

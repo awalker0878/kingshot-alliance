@@ -12,6 +12,7 @@ final readonly class AccountIdentity implements AuditActor
         public int $userId,
         public string $name,
         public string $email,
+        public string $timezone,
         public bool $emailVerified,
         public bool $multiFactorConfirmed,
         public bool $anonymized,

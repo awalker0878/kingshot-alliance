@@ -2,8 +2,10 @@
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { reactive, ref } from 'vue';
 
-import AppLayout from '@/layouts/AppLayout.vue';
 import RoomBanner from '@/components/game/RoomBanner.vue';
+import StatSeal from '@/components/game/StatSeal.vue';
+import AppButton from '@/components/ui/AppButton.vue';
+import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
 type Candidate = {
@@ -87,7 +89,7 @@ const { t, formatDate, formatNumber } = useLocale();
 
 const settingsForm = useForm({
   mode: props.settings?.mode ?? 'public',
-  title: props.settings?.title ?? 'Join our alliance',
+  title: props.settings?.title ?? t('recruitment.title'),
   introduction: props.settings?.introduction ?? '',
   retention_days: props.settings?.retentionDays ?? 90,
   open: props.settings?.open ?? true,
@@ -219,14 +221,15 @@ function percentage(value: number): string {
   return `${Math.round(value * 100)}%`;
 }
 
-function stageTone(stage: string): string {
-  if (stage === 'accepted' || stage === 'joined')
-    return 'border-green-400/25 bg-green-500/10 text-green-200';
-  if (stage === 'declined' || stage === 'withdrawn')
-    return 'border-red-400/25 bg-red-500/10 text-red-200';
-  if (stage === 'reviewing' || stage === 'interview')
-    return 'border-[var(--ks-border)] bg-[var(--ks-teal-soft)] text-[var(--ks-gold-bright)]';
-  return 'border-amber-400/25 bg-amber-500/10 text-amber-200';
+function stageTone(stage: string): 'success' | 'warning' | 'danger' | 'info' {
+  if (stage === 'accepted' || stage === 'joined') return 'success';
+  if (stage === 'declined' || stage === 'withdrawn') return 'danger';
+  if (stage === 'reviewing' || stage === 'interview') return 'info';
+  return 'warning';
+}
+
+function humanize(value: string): string {
+  return value.replaceAll('_', ' ');
 }
 </script>
 
@@ -234,81 +237,74 @@ function stageTone(stage: string): string {
   <Head :title="`${t('recruitment.title')} · ${alliance.name}`" />
 
   <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
-    <RoomBanner eyebrow="Alliance" title="Recruitment Hall" subtitle="Review Governors who answered your Alliance summons, keep officer notes, and invite the right warriors into your ranks." image="/images/kingshot/recruitment-hall.svg" />
+    <RoomBanner
+      :eyebrow="t('recruitment.eyebrow')"
+      :title="t('recruitment.pipeline')"
+      :subtitle="t('recruitment.subtitle', { alliance: alliance.name })"
+      image="/images/kingshot/v4/recruitment-hall.svg"
+    >
+      <template #actions>
+        <a
+          :href="`/alliances/${alliance.slug}/apply`"
+          class="ks-command-link"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {{ t('recruitment.publicForm') }}
+        </a>
+      </template>
+    </RoomBanner>
 
-    <section class="ks-surface-gold mt-6 overflow-hidden" :aria-label="t('recruitment.title')">
-      <div
-        class="grid grid-cols-2 divide-x divide-y divide-[var(--ks-border)] md:grid-cols-5 md:divide-y-0"
-      >
-        <article class="p-4 sm:p-5">
-          <p
-            class="text-[0.68rem] font-bold tracking-[0.1em] text-[var(--ks-text-muted)] uppercase"
-          >
-            {{ t('recruitment.candidates') }}
-          </p>
-          <p class="ks-display mt-2 text-3xl font-semibold">{{ formatNumber(metrics.total) }}</p>
-        </article>
-        <article class="p-4 sm:p-5">
-          <p
-            class="text-[0.68rem] font-bold tracking-[0.1em] text-[var(--ks-text-muted)] uppercase"
-          >
-            {{ t('recruitment.averageResponse') }}
-          </p>
-          <p class="ks-display mt-2 text-3xl font-semibold">
-            {{ metrics.averageResponseHours ?? '—'
-            }}<span v-if="metrics.averageResponseHours !== null" class="ms-1 text-sm">{{
-              t('recruitment.hours')
-            }}</span>
-          </p>
-        </article>
-        <article class="p-4 sm:p-5">
-          <p class="text-[0.68rem] font-bold tracking-[0.1em] text-green-300 uppercase">
-            {{ t('recruitment.accepted') }}
-          </p>
-          <p class="ks-display mt-2 text-3xl font-semibold">
-            {{ percentage(metrics.acceptedRate) }}
-          </p>
-        </article>
-        <article class="p-4 sm:p-5">
-          <p class="text-[0.68rem] font-bold tracking-[0.1em] text-[var(--ks-gold)] uppercase">
-            {{ t('recruitment.joined') }}
-          </p>
-          <p class="ks-display mt-2 text-3xl font-semibold">{{ percentage(metrics.joinedRate) }}</p>
-        </article>
-        <article class="col-span-2 p-4 sm:p-5 md:col-span-1">
-          <p
-            class="text-[0.68rem] font-bold tracking-[0.1em] text-[var(--ks-text-muted)] uppercase"
-          >
-            {{ t('recruitment.sources') }}
-          </p>
-          <p class="ks-display mt-2 text-3xl font-semibold">
-            {{ formatNumber(Object.keys(metrics.bySource).length) }}
-          </p>
-        </article>
-      </div>
+    <section class="mt-4 grid gap-3 sm:grid-cols-2 2xl:grid-cols-5">
+      <StatSeal
+        :label="t('recruitment.candidates')"
+        :value="formatNumber(metrics.total)"
+        icon="♟"
+      />
+      <StatSeal
+        :label="t('recruitment.averageResponse')"
+        :value="
+          metrics.averageResponseHours === null
+            ? '—'
+            : `${metrics.averageResponseHours}${t('recruitment.hours')}`
+        "
+        icon="◷"
+        tone="teal"
+      />
+      <StatSeal
+        :label="t('recruitment.accepted')"
+        :value="percentage(metrics.acceptedRate)"
+        icon="✓"
+        tone="stone"
+      />
+      <StatSeal :label="t('recruitment.joined')" :value="percentage(metrics.joinedRate)" icon="♜" />
+      <StatSeal
+        :label="t('recruitment.sources')"
+        :value="formatNumber(Object.keys(metrics.bySource).length)"
+        icon="◇"
+        tone="teal"
+      />
     </section>
 
     <section class="ks-surface mt-5 overflow-hidden" aria-labelledby="pipeline-heading">
-      <div class="border-b border-[var(--ks-border)] p-4 sm:p-5">
-        <div class="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <p class="text-xs font-bold tracking-[0.15em] text-[var(--ks-gold)] uppercase">
-              {{ t('recruitment.privateRecruiterView') }}
-            </p>
-            <h2 id="pipeline-heading" class="ks-display mt-1 text-2xl font-semibold">
-              {{ t('recruitment.pipeline') }}
-            </h2>
-          </div>
-          <div class="flex flex-wrap gap-2">
-            <span
-              v-for="stage in candidateStages"
-              :key="stage"
-              :class="stageTone(stage)"
-              class="rounded-full border px-2.5 py-1 text-xs font-semibold capitalize"
-            >
-              {{ stage }} {{ metrics.byStage[stage] ?? 0 }}
-            </span>
-          </div>
+      <div
+        class="flex flex-wrap items-end justify-between gap-4 border-b border-[var(--ks-border)] p-5"
+      >
+        <div>
+          <p class="ks-kicker">{{ t('recruitment.privateRecruiterView') }}</p>
+          <h2 id="pipeline-heading" class="ks-display mt-1 text-2xl font-semibold">
+            {{ t('recruitment.pipeline') }}
+          </h2>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <span
+            v-for="stage in candidateStages"
+            :key="stage"
+            class="ks-status"
+            :data-tone="stageTone(stage)"
+          >
+            {{ humanize(stage) }} · {{ metrics.byStage[stage] ?? 0 }}
+          </span>
         </div>
       </div>
 
@@ -318,37 +314,37 @@ function stageTone(stage: string): string {
           :key="candidate.id"
           class="border-b border-[var(--ks-border)] p-4 last:border-b-0"
         >
-          <div class="flex items-start justify-between gap-3">
-            <div class="min-w-0">
+          <div class="flex items-start gap-3">
+            <div
+              class="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-[var(--ks-gold-dark)] bg-black/20 font-[var(--ks-font-display)] text-[var(--ks-gold-bright)]"
+              aria-hidden="true"
+            >
+              {{ candidate.name.slice(0, 1).toUpperCase() }}
+            </div>
+            <div class="min-w-0 flex-1">
               <Link
-                class="block truncate font-semibold text-[var(--ks-blue-strong)] hover:text-[var(--ks-ivory)]"
+                class="block truncate text-lg font-[var(--ks-font-display)] font-semibold text-[var(--ks-gold-bright)] hover:text-[var(--ks-ivory)]"
                 :href="`/alliance/recruitment/${candidate.id}`"
               >
                 {{ candidate.name }}
               </Link>
-              <p class="mt-1 truncate text-xs text-[var(--ks-text-muted)]">{{ candidate.email }}</p>
-              <p class="mt-2 text-xs text-[var(--ks-text-secondary)]">
+              <p class="mt-1 truncate text-xs text-[var(--ks-muted)]">{{ candidate.email }}</p>
+              <p class="mt-1 truncate text-xs text-[var(--ks-text-secondary)]">
                 {{ candidate.source || t('recruitment.unspecified') }}
               </p>
             </div>
-            <span
-              :class="stageTone(candidate.stage)"
-              class="rounded-full border px-2.5 py-1 text-xs font-semibold capitalize"
-              >{{ candidate.stage }}</span
-            >
+            <span class="ks-status" :data-tone="stageTone(candidate.stage)">
+              {{ humanize(candidate.stage) }}
+            </span>
           </div>
           <dl class="mt-4 grid grid-cols-2 gap-3 text-xs">
             <div>
-              <dt class="text-[var(--ks-text-muted)]">{{ t('recruitment.submitted') }}</dt>
-              <dd class="mt-1 text-[var(--ks-text-secondary)]">
-                {{ date(candidate.submittedAt) }}
-              </dd>
+              <dt class="text-[var(--ks-muted)]">{{ t('recruitment.submitted') }}</dt>
+              <dd class="mt-1">{{ date(candidate.submittedAt) }}</dd>
             </div>
             <div>
-              <dt class="text-[var(--ks-text-muted)]">{{ t('recruitment.nextAction') }}</dt>
-              <dd class="mt-1 text-[var(--ks-text-secondary)]">
-                {{ date(candidate.nextActionAt) }}
-              </dd>
+              <dt class="text-[var(--ks-muted)]">{{ t('recruitment.nextAction') }}</dt>
+              <dd class="mt-1">{{ date(candidate.nextActionAt) }}</dd>
             </div>
           </dl>
         </article>
@@ -357,10 +353,10 @@ function stageTone(stage: string): string {
       <div v-if="candidates.length" class="hidden overflow-x-auto lg:block">
         <table class="w-full min-w-[60rem] text-sm">
           <thead
-            class="bg-black/25 text-[0.68rem] font-bold tracking-[0.08em] text-[var(--ks-text-muted)] uppercase"
+            class="bg-black/20 text-[.66rem] font-extrabold tracking-[.08em] text-[var(--ks-muted)] uppercase"
           >
             <tr>
-              <th class="px-4 py-3 text-start">{{ t('recruitment.candidate') }}</th>
+              <th class="px-5 py-3 text-start">{{ t('recruitment.candidate') }}</th>
               <th class="px-4 py-3 text-start">{{ t('recruitment.stage') }}</th>
               <th class="px-4 py-3 text-start">{{ t('recruitment.source') }}</th>
               <th class="px-4 py-3 text-start">{{ t('recruitment.submitted') }}</th>
@@ -371,60 +367,77 @@ function stageTone(stage: string): string {
             <tr
               v-for="candidate in candidates"
               :key="candidate.id"
-              class="transition hover:bg-[var(--ks-parchment)]/[0.025]"
+              class="transition hover:bg-white/[0.018]"
             >
-              <td class="px-4 py-3.5">
-                <Link
-                  class="font-semibold text-[var(--ks-blue-strong)] hover:text-[var(--ks-ivory)]"
-                  :href="`/alliance/recruitment/${candidate.id}`"
-                  >{{ candidate.name }}</Link
-                >
-                <p class="mt-1 text-xs text-[var(--ks-text-muted)]">{{ candidate.email }}</p>
+              <td class="px-5 py-4">
+                <div class="flex items-center gap-3">
+                  <div
+                    class="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-[var(--ks-gold-dark)] bg-black/20 font-[var(--ks-font-display)] text-[var(--ks-gold-bright)]"
+                    aria-hidden="true"
+                  >
+                    {{ candidate.name.slice(0, 1).toUpperCase() }}
+                  </div>
+                  <div class="min-w-0">
+                    <Link
+                      class="font-[var(--ks-font-display)] font-semibold text-[var(--ks-gold-bright)] hover:text-[var(--ks-ivory)]"
+                      :href="`/alliance/recruitment/${candidate.id}`"
+                    >
+                      {{ candidate.name }}
+                    </Link>
+                    <p class="mt-1 truncate text-xs text-[var(--ks-muted)]">
+                      {{ candidate.email }}
+                    </p>
+                  </div>
+                </div>
               </td>
-              <td class="px-4 py-3.5">
-                <span
-                  :class="stageTone(candidate.stage)"
-                  class="rounded-full border px-2.5 py-1 text-xs font-semibold capitalize"
-                  >{{ candidate.stage }}</span
-                >
+              <td class="px-4 py-4">
+                <span class="ks-status" :data-tone="stageTone(candidate.stage)">
+                  {{ humanize(candidate.stage) }}
+                </span>
               </td>
-              <td class="px-4 py-3.5 text-[var(--ks-text-secondary)]">
+              <td class="px-4 py-4 text-[var(--ks-text-secondary)]">
                 {{ candidate.source || t('recruitment.unspecified') }}
               </td>
-              <td class="px-4 py-3.5 text-[var(--ks-text-secondary)]">
+              <td class="px-4 py-4 text-[var(--ks-text-secondary)]">
                 {{ date(candidate.submittedAt) }}
               </td>
-              <td class="px-4 py-3.5 text-[var(--ks-text-secondary)]">
+              <td class="px-4 py-4 text-[var(--ks-text-secondary)]">
                 {{ date(candidate.nextActionAt) }}
               </td>
             </tr>
           </tbody>
         </table>
       </div>
-      <p v-if="!candidates.length" class="p-8 text-center text-sm text-[var(--ks-text-muted)]">
+      <div v-if="!candidates.length" class="ks-fantasy-empty m-5">
         {{ t('recruitment.noCandidates') }}
-      </p>
+      </div>
     </section>
 
-    <div class="mt-5 grid gap-5 xl:grid-cols-2">
+    <div class="mt-5 grid gap-5 2xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
       <section class="ks-surface p-5 sm:p-6" aria-labelledby="settings-heading">
-        <h2 id="settings-heading" class="ks-display text-xl font-semibold">
-          {{ t('recruitment.settings') }}
-        </h2>
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <p class="ks-kicker">{{ t('recruitment.settings') }}</p>
+            <h2 id="settings-heading" class="ks-display mt-1 text-xl font-semibold">
+              {{ t('recruitment.publicForm') }}
+            </h2>
+          </div>
+          <span class="ks-status" :data-tone="settingsForm.open ? 'success' : 'warning'">
+            {{ settingsForm.open ? t('recruitment.active') : t('recruitment.no') }}
+          </span>
+        </div>
+
         <form class="mt-5 space-y-4" @submit.prevent="saveSettings">
           <div>
             <label
               class="text-xs font-semibold text-[var(--ks-text-secondary)]"
               for="recruitment-mode"
-              >{{ t('recruitment.applicationMode') }}</label
             >
-            <select
-              id="recruitment-mode"
-              v-model="settingsForm.mode"
-              class="mt-1.5 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
-            >
-              <option v-for="mode in applicationModes" :key="mode" :value="mode" class="capitalize">
-                {{ mode }}
+              {{ t('recruitment.applicationMode') }}
+            </label>
+            <select id="recruitment-mode" v-model="settingsForm.mode" class="ks-input mt-1.5">
+              <option v-for="mode in applicationModes" :key="mode" :value="mode">
+                {{ humanize(mode) }}
               </option>
             </select>
           </div>
@@ -432,12 +445,13 @@ function stageTone(stage: string): string {
             <label
               class="text-xs font-semibold text-[var(--ks-text-secondary)]"
               for="recruitment-title"
-              >{{ t('recruitment.publicTitle') }}</label
             >
+              {{ t('recruitment.publicTitle') }}
+            </label>
             <input
               id="recruitment-title"
               v-model="settingsForm.title"
-              class="mt-1.5 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
+              class="ks-input mt-1.5"
               maxlength="160"
               required
             />
@@ -446,12 +460,13 @@ function stageTone(stage: string): string {
             <label
               class="text-xs font-semibold text-[var(--ks-text-secondary)]"
               for="recruitment-introduction"
-              >{{ t('recruitment.introduction') }}</label
             >
+              {{ t('recruitment.introduction') }}
+            </label>
             <textarea
               id="recruitment-introduction"
               v-model="settingsForm.introduction"
-              class="mt-1.5 min-h-28 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
+              class="ks-input mt-1.5 min-h-28"
               maxlength="5000"
             />
           </div>
@@ -460,89 +475,93 @@ function stageTone(stage: string): string {
               <label
                 class="text-xs font-semibold text-[var(--ks-text-secondary)]"
                 for="retention-days"
-                >{{ t('recruitment.retentionDays') }}</label
               >
+                {{ t('recruitment.retentionDays') }}
+              </label>
               <input
                 id="retention-days"
                 v-model.number="settingsForm.retention_days"
-                class="mt-1.5 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
+                class="ks-input mt-1.5"
                 type="number"
                 min="1"
                 max="3650"
                 required
               />
             </div>
-            <label class="flex items-center gap-2 pt-6 text-sm text-[var(--ks-text-secondary)]"
-              ><input v-model="settingsForm.open" type="checkbox" />
-              {{ t('recruitment.applicationsOpen') }}</label
+            <label
+              class="flex items-center gap-2 self-end pb-3 text-sm text-[var(--ks-text-secondary)]"
             >
+              <input v-model="settingsForm.open" type="checkbox" />
+              {{ t('recruitment.applicationsOpen') }}
+            </label>
           </div>
-          <button
-            class="min-h-10 rounded-[var(--ks-radius-sm)] bg-[var(--ks-blue)] px-4 py-2 text-sm font-semibold text-[var(--ks-ivory)]"
-            type="submit"
-          >
+          <AppButton type="submit" :disabled="settingsForm.processing">
             {{ t('recruitment.saveSettings') }}
-          </button>
+          </AppButton>
         </form>
 
-        <form class="mt-6 border-t border-[var(--ks-border)] pt-5" @submit.prevent="issueInvite">
-          <h3 class="font-semibold">{{ t('recruitment.inviteLink') }}</h3>
-          <p class="mt-1 text-sm leading-6 text-[var(--ks-text-secondary)]">
+        <div class="ks-divider my-6" />
+
+        <form @submit.prevent="issueInvite">
+          <p class="ks-kicker">{{ t('recruitment.inviteLink') }}</p>
+          <h3 class="ks-display mt-1 text-lg font-semibold">{{ t('recruitment.issue') }}</h3>
+          <p class="mt-2 text-sm leading-6 text-[var(--ks-muted)]">
             {{ t('recruitment.inviteHelp') }}
           </p>
           <div class="mt-4 grid gap-3 sm:grid-cols-[1fr_8rem_auto]">
             <input
               v-model="inviteForm.email"
-              class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
+              class="ks-input"
               type="email"
               :placeholder="t('recruitment.optionalEmail')"
             />
             <input
               v-model.number="inviteForm.ttl_hours"
-              class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
+              class="ks-input"
               type="number"
               min="1"
               max="720"
               :aria-label="t('recruitment.lifetimeHours')"
             />
-            <button
-              class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] px-4 py-2 text-sm font-semibold"
-              type="submit"
-            >
+            <AppButton type="submit" variant="ghost" :disabled="inviteForm.processing">
               {{ t('recruitment.issue') }}
-            </button>
+            </AppButton>
           </div>
           <div
             v-if="issuedApplicationLink"
-            class="mt-4 rounded-[var(--ks-radius-sm)] border border-green-400/25 bg-green-500/10 p-4 text-sm text-green-200"
+            class="mt-4 rounded-[var(--ks-radius-md)] border border-[rgba(73,201,140,.28)] bg-[rgba(73,201,140,.07)] p-4"
             role="status"
           >
-            <p class="font-semibold">{{ t('recruitment.issuedLink') }}</p>
+            <p class="ks-kicker">{{ t('recruitment.issuedLink') }}</p>
             <a
-              class="mt-2 block break-all underline"
+              class="mt-2 block text-sm break-all text-[#a7e7c4] underline"
               :href="issuedApplicationLink"
               target="_blank"
               rel="noopener noreferrer"
-              >{{ issuedApplicationLink }}</a
             >
+              {{ issuedApplicationLink }}
+            </a>
           </div>
         </form>
       </section>
 
       <section class="ks-surface p-5 sm:p-6" aria-labelledby="questions-heading">
-        <h2 id="questions-heading" class="ks-display text-xl font-semibold">
-          {{ t('recruitment.questions') }}
+        <p class="ks-kicker">{{ t('recruitment.questions') }}</p>
+        <h2 id="questions-heading" class="ks-display mt-1 text-xl font-semibold">
+          {{ t('recruitment.addQuestion') }}
         </h2>
+
         <form class="mt-5 grid gap-3 sm:grid-cols-2" @submit.prevent="createQuestion">
           <div class="sm:col-span-2">
             <label
               class="text-xs font-semibold text-[var(--ks-text-secondary)]"
               for="question-prompt"
               >{{ t('recruitment.prompt') }}</label
-            ><input
+            >
+            <input
               id="question-prompt"
               v-model="questionForm.prompt"
-              class="mt-1.5 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
+              class="ks-input mt-1.5"
               maxlength="240"
               required
             />
@@ -552,12 +571,11 @@ function stageTone(stage: string): string {
               class="text-xs font-semibold text-[var(--ks-text-secondary)]"
               for="question-type"
               >{{ t('recruitment.questionType') }}</label
-            ><select
-              id="question-type"
-              v-model="questionForm.type"
-              class="mt-1.5 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
             >
-              <option v-for="type in questionTypes" :key="type" :value="type">{{ type }}</option>
+            <select id="question-type" v-model="questionForm.type" class="ks-input mt-1.5">
+              <option v-for="type in questionTypes" :key="type" :value="type">
+                {{ humanize(type) }}
+              </option>
             </select>
           </div>
           <div>
@@ -565,10 +583,11 @@ function stageTone(stage: string): string {
               class="text-xs font-semibold text-[var(--ks-text-secondary)]"
               for="question-position"
               >{{ t('recruitment.position') }}</label
-            ><input
+            >
+            <input
               id="question-position"
               v-model.number="questionForm.position"
-              class="mt-1.5 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
+              class="ks-input mt-1.5"
               type="number"
               min="0"
               max="65535"
@@ -579,10 +598,11 @@ function stageTone(stage: string): string {
               class="text-xs font-semibold text-[var(--ks-text-secondary)]"
               for="question-help"
               >{{ t('recruitment.helpText') }}</label
-            ><textarea
+            >
+            <textarea
               id="question-help"
               v-model="questionForm.help_text"
-              class="mt-1.5 min-h-20 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
+              class="ks-input mt-1.5 min-h-20"
               maxlength="2000"
             />
           </div>
@@ -591,85 +611,88 @@ function stageTone(stage: string): string {
               class="text-xs font-semibold text-[var(--ks-text-secondary)]"
               for="question-options"
               >{{ t('recruitment.options') }}</label
-            ><textarea
+            >
+            <textarea
               id="question-options"
               v-model="questionOptions"
-              class="mt-1.5 min-h-20 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
+              class="ks-input mt-1.5 min-h-20"
             />
           </div>
           <label class="flex items-center gap-2 text-sm"
-            ><input v-model="questionForm.required" type="checkbox" />
-            {{ t('recruitment.required') }}</label
+            ><input v-model="questionForm.required" type="checkbox" />{{
+              t('recruitment.required')
+            }}</label
           >
           <label class="flex items-center gap-2 text-sm"
-            ><input v-model="questionForm.active" type="checkbox" />
-            {{ t('recruitment.active') }}</label
+            ><input v-model="questionForm.active" type="checkbox" />{{
+              t('recruitment.active')
+            }}</label
           >
-          <button
-            class="min-h-10 rounded-[var(--ks-radius-sm)] bg-[var(--ks-blue)] px-4 py-2 text-sm font-semibold text-[var(--ks-ivory)] sm:col-span-2"
-            type="submit"
-          >
+          <AppButton class="sm:col-span-2" type="submit" :disabled="questionForm.processing">
             {{ t('recruitment.createQuestion') }}
-          </button>
+          </AppButton>
         </form>
 
         <div v-if="questions.length" class="mt-6 space-y-3 border-t border-[var(--ks-border)] pt-5">
-          <article
+          <details
             v-for="question in questions"
             :key="question.id"
             class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-4"
           >
-            <div class="grid gap-3 sm:grid-cols-2">
-              <input
-                v-model="questionEdit(question.id).prompt"
-                class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2 text-sm sm:col-span-2"
-              />
-              <select
-                v-model="questionEdit(question.id).type"
-                class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2 text-sm"
-              >
-                <option v-for="type in questionTypes" :key="type" :value="type">{{ type }}</option>
+            <summary class="cursor-pointer list-none">
+              <div class="flex items-center justify-between gap-3">
+                <strong class="truncate">{{ question.prompt }}</strong>
+                <span class="ks-status" :data-tone="question.active ? 'success' : 'warning'">
+                  {{ question.active ? t('recruitment.active') : t('recruitment.no') }}
+                </span>
+              </div>
+            </summary>
+            <div class="mt-4 grid gap-3 sm:grid-cols-2">
+              <input v-model="questionEdit(question.id).prompt" class="ks-input sm:col-span-2" />
+              <select v-model="questionEdit(question.id).type" class="ks-input">
+                <option v-for="type in questionTypes" :key="type" :value="type">
+                  {{ humanize(type) }}
+                </option>
               </select>
               <input
                 v-model.number="questionEdit(question.id).position"
-                class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2 text-sm"
+                class="ks-input"
                 type="number"
                 min="0"
                 max="65535"
               />
               <textarea
                 v-model="questionEdit(question.id).helpText"
-                class="min-h-16 rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2 text-sm sm:col-span-2"
+                class="ks-input min-h-16 sm:col-span-2"
               />
               <textarea
                 v-model="questionEdit(question.id).optionsText"
-                class="min-h-16 rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2 text-sm sm:col-span-2"
+                class="ks-input min-h-16 sm:col-span-2"
               />
               <label class="flex items-center gap-2 text-sm"
-                ><input v-model="questionEdit(question.id).required" type="checkbox" />
-                {{ t('recruitment.required') }}</label
+                ><input v-model="questionEdit(question.id).required" type="checkbox" />{{
+                  t('recruitment.required')
+                }}</label
               >
               <label class="flex items-center gap-2 text-sm"
-                ><input v-model="questionEdit(question.id).active" type="checkbox" />
-                {{ t('recruitment.active') }}</label
+                ><input v-model="questionEdit(question.id).active" type="checkbox" />{{
+                  t('recruitment.active')
+                }}</label
               >
             </div>
-            <button
-              class="mt-3 rounded-[var(--ks-radius-sm)] border border-[var(--ks-gold)]/45 bg-[var(--ks-gold-soft)] px-3 py-2 text-sm font-semibold text-[var(--ks-gold-strong)]"
-              type="button"
-              @click="saveQuestion(question.id)"
-            >
+            <AppButton class="mt-3" variant="secondary" @click="saveQuestion(question.id)">
               {{ t('recruitment.saveQuestion') }}
-            </button>
-          </article>
+            </AppButton>
+          </details>
         </div>
       </section>
 
       <section class="ks-surface p-5 sm:p-6" aria-labelledby="templates-heading">
-        <h2 id="templates-heading" class="ks-display text-xl font-semibold">
-          {{ t('recruitment.decisionTemplates') }}
+        <p class="ks-kicker">{{ t('recruitment.decisionTemplates') }}</p>
+        <h2 id="templates-heading" class="ks-display mt-1 text-xl font-semibold">
+          {{ t('recruitment.communications') }}
         </h2>
-        <p class="mt-2 text-xs text-[var(--ks-text-muted)]">
+        <p class="mt-2 text-xs text-[var(--ks-muted)]">
           {{
             t('recruitment.placeholders', {
               candidate: candidatePlaceholder,
@@ -680,85 +703,80 @@ function stageTone(stage: string): string {
         <form class="mt-5 space-y-3" @submit.prevent="createDecisionTemplate">
           <input
             v-model="decisionForm.name"
-            class="w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
+            class="ks-input"
             :placeholder="t('recruitment.templateName')"
             maxlength="120"
             required
           />
-          <select
-            v-model="decisionForm.decision_stage"
-            class="w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
-          >
-            <option value="accepted">accepted</option>
-            <option value="declined">declined</option>
+          <select v-model="decisionForm.decision_stage" class="ks-input">
+            <option value="accepted">{{ t('recruitment.accepted') }}</option>
+            <option value="declined">{{ humanize('declined') }}</option>
           </select>
           <input
             v-model="decisionForm.subject"
-            class="w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
+            class="ks-input"
             :placeholder="t('recruitment.subject')"
             maxlength="200"
             required
           />
           <textarea
             v-model="decisionForm.body"
-            class="min-h-28 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
+            class="ks-input min-h-28"
             :placeholder="t('recruitment.body')"
             maxlength="10000"
             required
           />
           <label class="flex items-center gap-2 text-sm"
-            ><input v-model="decisionForm.active" type="checkbox" />
-            {{ t('recruitment.active') }}</label
+            ><input v-model="decisionForm.active" type="checkbox" />{{
+              t('recruitment.active')
+            }}</label
           >
-          <button
-            class="rounded-[var(--ks-radius-sm)] bg-[var(--ks-blue)] px-4 py-2 text-sm font-semibold text-[var(--ks-ivory)]"
-            type="submit"
-          >
-            {{ t('recruitment.createTemplate') }}
-          </button>
+          <AppButton type="submit" :disabled="decisionForm.processing">{{
+            t('recruitment.createTemplate')
+          }}</AppButton>
         </form>
         <div
           v-if="decisionTemplates.length"
           class="mt-5 space-y-2 border-t border-[var(--ks-border)] pt-4"
         >
-          <div
+          <article
             v-for="template in decisionTemplates"
             :key="template.id"
-            class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/15 p-3 text-sm"
+            class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-3 text-sm"
           >
             <div class="flex flex-wrap items-center justify-between gap-2">
               <strong>{{ template.name }}</strong
-              ><span class="text-xs text-[var(--ks-text-muted)] capitalize"
-                >{{ template.decisionStage }} ·
-                {{ template.active ? t('recruitment.active') : 'inactive' }}</span
-              >
+              ><span class="ks-status" :data-tone="template.active ? 'success' : 'warning'">{{
+                template.active ? t('recruitment.active') : t('recruitment.no')
+              }}</span>
             </div>
             <p class="mt-1 text-[var(--ks-text-secondary)]">{{ template.subject }}</p>
-          </div>
+          </article>
         </div>
       </section>
 
       <section class="ks-surface p-5 sm:p-6" aria-labelledby="onboarding-heading">
-        <h2 id="onboarding-heading" class="ks-display text-xl font-semibold">
-          {{ t('recruitment.onboarding') }}
+        <p class="ks-kicker">{{ t('recruitment.onboarding') }}</p>
+        <h2 id="onboarding-heading" class="ks-display mt-1 text-xl font-semibold">
+          {{ t('recruitment.onboardingProgress') }}
         </h2>
         <form class="mt-5 space-y-3" @submit.prevent="createOnboardingItem">
           <input
             v-model="onboardingForm.name"
-            class="w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
+            class="ks-input"
             :placeholder="t('recruitment.itemName')"
             maxlength="160"
             required
           />
           <textarea
             v-model="onboardingForm.description"
-            class="min-h-24 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
+            class="ks-input min-h-24"
             :placeholder="t('recruitment.description')"
             maxlength="5000"
           />
           <input
             v-model.number="onboardingForm.position"
-            class="w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
+            class="ks-input"
             type="number"
             min="0"
             max="65535"
@@ -766,37 +784,37 @@ function stageTone(stage: string): string {
           />
           <div class="flex flex-wrap gap-5">
             <label class="flex items-center gap-2 text-sm"
-              ><input v-model="onboardingForm.required" type="checkbox" />
-              {{ t('recruitment.required') }}</label
-            ><label class="flex items-center gap-2 text-sm"
-              ><input v-model="onboardingForm.active" type="checkbox" />
-              {{ t('recruitment.active') }}</label
+              ><input v-model="onboardingForm.required" type="checkbox" />{{
+                t('recruitment.required')
+              }}</label
+            >
+            <label class="flex items-center gap-2 text-sm"
+              ><input v-model="onboardingForm.active" type="checkbox" />{{
+                t('recruitment.active')
+              }}</label
             >
           </div>
-          <button
-            class="rounded-[var(--ks-radius-sm)] bg-[var(--ks-blue)] px-4 py-2 text-sm font-semibold text-[var(--ks-ivory)]"
-            type="submit"
-          >
-            {{ t('recruitment.createItem') }}
-          </button>
+          <AppButton type="submit" :disabled="onboardingForm.processing">{{
+            t('recruitment.createItem')
+          }}</AppButton>
         </form>
         <div
           v-if="onboardingItems.length"
           class="mt-5 space-y-2 border-t border-[var(--ks-border)] pt-4"
         >
-          <div
+          <article
             v-for="item in onboardingItems"
             :key="item.id"
-            class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/15 p-3 text-sm"
+            class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-3 text-sm"
           >
             <div class="flex items-center justify-between gap-3">
               <strong>{{ item.name }}</strong
-              ><span class="text-xs text-[var(--ks-text-muted)]">#{{ item.position }}</span>
+              ><span class="text-xs text-[var(--ks-muted)]">#{{ item.position }}</span>
             </div>
             <p v-if="item.description" class="mt-1 text-[var(--ks-text-secondary)]">
               {{ item.description }}
             </p>
-          </div>
+          </article>
         </div>
       </section>
     </div>

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Alliance\Lifecycle\Http\Controllers;
 
-use App\Contexts\Accounts\Identity\Models\User;
+use App\Contexts\Accounts\Identity\Contracts\AuthenticatedAccount;
 use App\Contexts\Alliance\Lifecycle\Actions\CreateAlliance;
 use App\Contexts\GameWorld\Players\Services\PlayerContext;
 use App\Shared\Infrastructure\Http\Controller;
@@ -17,7 +17,7 @@ final class CreateAllianceController extends Controller
     public function __invoke(Request $request, CreateAlliance $createAlliance, PlayerContext $players): RedirectResponse
     {
         $user = $request->user();
-        abort_unless($user instanceof User, 401);
+        abort_unless($user instanceof AuthenticatedAccount, 401);
         $player = $players->playerOrNull();
         abort_unless($player !== null, 409, 'Select a Player before creating an Alliance.');
         $validated = $request->validate([

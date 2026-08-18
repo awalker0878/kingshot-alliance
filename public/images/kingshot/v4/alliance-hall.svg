@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 640" role="img" aria-labelledby="title desc">
+<title id="title">Kingshot alliance hall</title><desc id="desc">An original stylized ceremonial alliance chamber with officers, banners, a crest, and a council table.</desc>
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#07100f"/><stop offset=".48" stop-color="#18211c"/><stop offset="1" stop-color="#090b0a"/></linearGradient>
+  <radialGradient id="light" cx="54%" cy="22%" r="54%"><stop stop-color="#f0c77a" stop-opacity=".34"/><stop offset=".46" stop-color="#ac7138" stop-opacity=".10"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+  <linearGradient id="cloth"><stop stop-color="#0a786f"/><stop offset="1" stop-color="#083b38"/></linearGradient>
+  <linearGradient id="metal"><stop stop-color="#f1cb78"/><stop offset=".5" stop-color="#9b7135"/><stop offset="1" stop-color="#4d351e"/></linearGradient>
+</defs>
+<rect width="1600" height="640" fill="url(#bg)"/><rect width="1600" height="640" fill="url(#light)"/>
+<!-- stone hall -->
+<g fill="#101713" stroke="#473b29" stroke-width="5"><path d="M150 560V104h130v456zM1320 560V104h130v456zM350 560V66h92v494zM1158 560V66h92v494z"/></g>
+<g fill="none" stroke="#5e4b2f" stroke-width="5" opacity=".72"><path d="M350 70Q800-76 1250 70"/><path d="M442 116Q800-22 1158 116"/><path d="M540 132Q800 32 1060 132"/></g>
+<!-- central crest -->
+<path d="M727 76h146v245l-73 58-73-58z" fill="url(#cloth)" stroke="#a67b39" stroke-width="6"/>
+<path d="M800 120l33 54-33 70-33-70z" fill="none" stroke="url(#metal)" stroke-width="12"/><path d="M760 245q40 34 80 0" fill="none" stroke="#e2bb69" stroke-width="7"/>
+<!-- banners -->
+<g fill="url(#cloth)" stroke="#8c6734" stroke-width="4"><path d="M505 116h94v214l-47 40-47-40z"/><path d="M1001 116h94v214l-47 40-47-40z"/></g>
+<g stroke="#d7ad5c" stroke-width="6" fill="none"><path d="m533 190 20-27 20 27-20 35zM1029 190l20-27 20 27-20 35z"/></g>
+<!-- council dais -->
+<path d="M646 338h308l80 94H566z" fill="#3c2f20" stroke="#806037" stroke-width="7"/><path d="M606 432h388v54H606z" fill="#191913" stroke="#6a5230" stroke-width="5"/>
+<!-- table -->
+<ellipse cx="800" cy="515" rx="378" ry="94" fill="#3c2a1d" stroke="#765631" stroke-width="8"/><ellipse cx="800" cy="500" rx="328" ry="66" fill="#85704a" opacity=".86"/><ellipse cx="800" cy="500" rx="264" ry="48" fill="#baa675" opacity=".62"/>
+<g stroke="#386d65" stroke-width="7" fill="none" opacity=".8"><path d="M588 502q100-54 194-10t178-9 83-4"/><path d="M684 468q18 44 103 60t169 4"/></g>
+<!-- officers around table -->
+<g fill="#090c0c" stroke="#30332d" stroke-width="3">
+ <g transform="translate(500 370)"><circle cx="0" cy="0" r="26" fill="#181c19"/><path d="M-40 46Q0 12 40 46l18 138H-58z"/></g>
+ <g transform="translate(635 346)"><circle cx="0" cy="0" r="27" fill="#181c19"/><path d="M-42 48Q0 13 42 48l15 127H-57z"/></g>
+ <g transform="translate(965 345)"><circle cx="0" cy="0" r="27" fill="#181c19"/><path d="M-42 48Q0 13 42 48l15 127H-57z"/></g>
+ <g transform="translate(1100 372)"><circle cx="0" cy="0" r="26" fill="#181c19"/><path d="M-40 46Q0 12 40 46l18 138H-58z"/></g>
+ <g transform="translate(800 332)"><circle cx="0" cy="0" r="31" fill="#1a1d1a"/><path d="M-50 56Q0 13 50 56l24 184H-74z"/></g>
+</g>
+<g stroke="#c79a4f" stroke-width="4" opacity=".62"><path d="M476 418h48M610 394h50M940 393h50M1076 420h48M770 390h60"/></g>
+<!-- candles -->
+<g fill="#e9b85a"><circle cx="585" cy="332" r="8"/><circle cx="1015" cy="332" r="8"/><circle cx="699" cy="312" r="7"/><circle cx="901" cy="312" r="7"/></g><g stroke="#f6d98b" stroke-width="4"><path d="M585 332v-34M1015 332v-34M699 312v-28M901 312v-28"/></g>
+<path d="M0 566q180-36 332 12t302 1 332-10 315 13 319-16v74H0z" fill="#030505" opacity=".7"/>
+</svg>

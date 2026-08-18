@@ -44,7 +44,8 @@ const messages = {
     eventsHelp: 'Comma or newline separated',
     noWebhooks: 'No Event dispatches have been created.',
     deliveryLog: 'Recent delivery log',
-    deliveryHelp: 'Latest recorded Event dispatch attempts. Opening this ledger does not send them again.',
+    deliveryHelp:
+      'Latest recorded Event dispatch attempts. Opening this ledger does not send them again.',
     event: 'Event',
     status: 'Status',
     attempts: 'Attempts',

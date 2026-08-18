@@ -106,8 +106,7 @@ const messages = {
       submit: 'Create event',
       templates: 'Saved Event patterns',
       template: 'Event pattern',
-      templateHelp:
-        'Call a saved Event pattern for the selected Governor, Alliance, or Kingdom.',
+      templateHelp: 'Call a saved Event pattern for the selected Governor, Alliance, or Kingdom.',
       noTemplates: 'No saved Event patterns are available here.',
       scheduleTemplate: 'Call saved Event',
       templateStart: 'First start',

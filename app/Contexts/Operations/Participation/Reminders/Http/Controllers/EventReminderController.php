@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Participation\Reminders\Http\Controllers;
 
-use App\Contexts\Accounts\Identity\Models\User;
+use App\Contexts\Accounts\Identity\Contracts\AuthenticatedAccount;
 use App\Contexts\GameWorld\Players\Services\PlayerContext;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Operations\Participation\Reminders\Actions\CreateEventReminderRule;
@@ -53,10 +53,10 @@ final class EventReminderController extends Controller
         return $player;
     }
 
-    private function user(Request $request): User
+    private function user(Request $request): AuthenticatedAccount
     {
         $user = $request->user();
-        abort_unless($user instanceof User, 401);
+        abort_unless($user instanceof AuthenticatedAccount, 401);
 
         return $user;
     }

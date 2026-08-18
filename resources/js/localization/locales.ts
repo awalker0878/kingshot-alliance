@@ -62,7 +62,7 @@ export function isLocaleCode(value: string): value is LocaleCode {
 }
 
 export function localeDefinition(code: LocaleCode): LocaleDefinition {
-  return locales.find((locale) => locale.code === code) ?? locales[0];
+  return locales.find((locale) => locale.code === code) ?? locales[0]!;
 }
 
 export function normalizeLocale(value: string | null | undefined): LocaleCode | null {

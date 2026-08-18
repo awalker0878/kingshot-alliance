@@ -43,8 +43,7 @@ const messages = {
     noResults: 'No roster entries match these filters.',
     noResultsBody: 'Adjust or clear the filters to see other recorded roster entries.',
     intelligenceTitle: 'Roster intelligence',
-    intelligenceSubtitle:
-      'Alliance summaries use only recorded roster and scout history.',
+    intelligenceSubtitle: 'Alliance summaries use only recorded roster and scout history.',
     asOf: 'As of {date}',
     trackedPlayers: 'Active / tracked Governors',
     totalRecordedPower: 'Total recorded power',
@@ -68,7 +67,7 @@ const messages = {
     trendMethodBody:
       'The baseline is the closest scout record at or before the target window, no older than twice that window. Missing observations are never invented.',
     currentTotalsBody:
-      "Current totals use each tracked Governor’s latest scout record. Missing records are excluded rather than treated as zero.",
+      'Current totals use each tracked Governor’s latest scout record. Missing records are excluded rather than treated as zero.',
     managerDetail: 'Officer comparison detail',
     managerDetailBody:
       'Alphabetical diagnostic view only. Governors are not ranked or scored by growth or decline.',

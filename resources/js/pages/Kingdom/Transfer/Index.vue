@@ -2,8 +2,9 @@
 import { Head, Link } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
-import AppLayout from '@/layouts/AppLayout.vue';
 import RoomBanner from '@/components/game/RoomBanner.vue';
+import StatSeal from '@/components/game/StatSeal.vue';
+import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
 type Plan = {
@@ -112,14 +113,19 @@ function timestamp(value: string): string {
   return formatDate(value, { dateStyle: 'medium', timeStyle: 'short' });
 }
 
-function readinessTone(state: Readiness): string {
-  if (state === 'confirmed' || state === 'ready')
-    return 'border-green-400/25 bg-green-500/10 text-green-200';
-  if (state === 'blocked') return 'border-red-400/25 bg-red-500/10 text-red-200';
-  if (state === 'preparing') return 'border-amber-400/25 bg-amber-500/10 text-amber-200';
-  if (state === 'withdrawn')
-    return 'border-[var(--ks-border)] bg-[rgba(210,163,75,.05)] text-[var(--ks-text-muted)]';
-  return 'border-[var(--ks-border)] bg-[var(--ks-teal-soft)] text-[var(--ks-gold-bright)]';
+function readinessTone(state: Readiness): 'success' | 'warning' | 'danger' | 'info' {
+  if (state === 'confirmed' || state === 'ready') return 'success';
+  if (state === 'blocked') return 'danger';
+  if (state === 'preparing') return 'warning';
+  return 'info';
+}
+
+function directionTone(
+  direction: Participant['direction'] | Group['direction'],
+): 'success' | 'warning' | 'info' {
+  if (direction === 'incoming') return 'success';
+  if (direction === 'outgoing') return 'warning';
+  return 'info';
 }
 </script>
 
@@ -127,245 +133,292 @@ function readinessTone(state: Readiness): string {
   <Head :title="`${t('kingdomP7D.title')} · ${alliance.name}`" />
 
   <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
-    <RoomBanner eyebrow="Kingdom" title="Kingdom Transfer" subtitle="Coordinate the transfer plan, readiness and completion for the Governors already enrolled in this Kingdom Transfer cycle." image="/images/kingshot/kingdom-transfer.svg">
-      <template #actions><Link v-if="canManage" href="/alliance/transfers/readiness" class="ks-command-link">Readiness Board</Link><Link v-if="canManage" href="/alliance/transfers/manage" class="ks-command-link">Transfer Orders</Link></template>
+    <RoomBanner
+      :eyebrow="t('kingdomP7D.eyebrow')"
+      :title="t('kingdomP7D.title')"
+      :subtitle="t('kingdomP7D.subtitle', { alliance: alliance.name })"
+      image="/images/kingshot/v4/kingdom-transfer.svg"
+    >
+      <template #actions>
+        <Link v-if="canManage" href="/alliance/transfers/readiness" class="ks-command-link">
+          {{ t('kingdomP7D.readinessBoard') }}
+        </Link>
+        <Link
+          v-if="canManage"
+          href="/alliance/transfers/manage"
+          class="ks-command-link"
+          data-variant="secondary"
+        >
+          {{ t('kingdomP7D.manageTransfers') }}
+        </Link>
+      </template>
     </RoomBanner>
 
-    <section
-      class="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-5"
-      :aria-label="t('kingdomP7D.summary')"
-    >
-      <article class="ks-surface p-4 sm:col-span-2 xl:col-span-1">
-        <p class="text-xs font-semibold text-[var(--ks-text-muted)] uppercase">
-          {{ t('kingdomP7D.currentCycle') }}
-        </p>
-        <p class="mt-2 text-lg font-bold">{{ plan?.label ?? '—' }}</p>
-        <p class="mt-1 text-xs text-[var(--ks-text-muted)]">
-          {{ plan ? stateLabel(plan.state) : t('kingdomP7D.noCurrentCycle') }}
-        </p>
-      </article>
-      <article class="ks-surface p-4">
-        <p class="text-xs font-semibold text-[var(--ks-text-muted)] uppercase">
-          {{ t('kingdomP7D.incoming') }}
-        </p>
-        <p class="mt-2 text-2xl font-bold">{{ formatNumber(participantCounts.incoming) }}</p>
-      </article>
-      <article class="ks-surface p-4">
-        <p class="text-xs font-semibold text-[var(--ks-text-muted)] uppercase">
-          {{ t('kingdomP7D.outgoing') }}
-        </p>
-        <p class="mt-2 text-2xl font-bold">{{ formatNumber(participantCounts.outgoing) }}</p>
-      </article>
-      <article class="ks-surface p-4">
-        <p class="text-xs font-semibold text-[var(--ks-text-muted)] uppercase">
-          {{ t('kingdomP7D.staying') }}
-        </p>
-        <p class="mt-2 text-2xl font-bold">{{ formatNumber(participantCounts.staying) }}</p>
-      </article>
-      <article class="ks-surface p-4">
-        <p class="text-xs font-semibold text-[var(--ks-text-muted)] uppercase">
-          {{ t('kingdomP7D.completed') }}
-        </p>
-        <p class="mt-2 text-2xl font-bold text-green-200">
-          {{ formatNumber(participantCounts.completed) }}
-        </p>
-      </article>
+    <section class="mt-4 grid gap-3 sm:grid-cols-2 2xl:grid-cols-5">
+      <StatSeal
+        :label="t('kingdomP7D.currentCycle')"
+        :value="plan?.label ?? t('kingdomP7D.noCurrentCycle')"
+        icon="◇"
+      />
+      <StatSeal
+        :label="t('kingdomP7D.incoming')"
+        :value="formatNumber(participantCounts.incoming)"
+        icon="←"
+        tone="teal"
+      />
+      <StatSeal
+        :label="t('kingdomP7D.outgoing')"
+        :value="formatNumber(participantCounts.outgoing)"
+        icon="→"
+        tone="stone"
+      />
+      <StatSeal
+        :label="t('kingdomP7D.staying')"
+        :value="formatNumber(participantCounts.staying)"
+        icon="◆"
+      />
+      <StatSeal
+        :label="t('kingdomP7D.completed')"
+        :value="formatNumber(participantCounts.completed)"
+        icon="✓"
+        tone="teal"
+      />
     </section>
 
-    <section class="ks-surface mt-6 p-5 sm:p-6" aria-labelledby="current-cycle-heading">
-      <h2 id="current-cycle-heading" class="text-xl font-semibold">
-        {{ t('kingdomP7D.currentCycle') }}
-      </h2>
-      <div v-if="plan" class="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-        <div class="rounded-xl border border-[var(--ks-border)] p-4 sm:col-span-2">
-          <p class="text-xs font-semibold text-[var(--ks-text-muted)] uppercase">
-            {{ t('kingdomP7D.cycle') }}
-          </p>
-          <p class="mt-2 text-lg font-bold">{{ plan.label }}</p>
+    <section class="ks-surface-gold mt-5 p-5 sm:p-6" aria-labelledby="current-cycle-heading">
+      <div class="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p class="ks-kicker">{{ t('kingdomP7D.currentCycle') }}</p>
+          <h2 id="current-cycle-heading" class="ks-display mt-1 text-2xl font-semibold">
+            {{ plan?.label ?? t('kingdomP7D.noCurrentCycle') }}
+          </h2>
         </div>
-        <div class="rounded-xl border border-[var(--ks-border)] p-4">
-          <p class="text-xs font-semibold text-[var(--ks-text-muted)] uppercase">
-            {{ t('kingdomP7D.state') }}
-          </p>
-          <p class="mt-2 font-semibold text-[var(--ks-gold-bright)]">{{ stateLabel(plan.state) }}</p>
-        </div>
-        <div class="rounded-xl border border-[var(--ks-border)] p-4">
-          <p class="text-xs font-semibold text-[var(--ks-text-muted)] uppercase">
-            {{ t('kingdomP7D.homeKingdom') }}
-          </p>
-          <p class="mt-2 font-semibold">{{ plan.homeKingdom }}</p>
-        </div>
-        <div class="rounded-xl border border-[var(--ks-border)] p-4">
-          <p class="text-xs font-semibold text-[var(--ks-text-muted)] uppercase">
-            {{ t('kingdomP7D.starts') }} / {{ t('kingdomP7D.ends') }}
-          </p>
-          <p class="mt-2 text-sm">{{ dateOnly(plan.startsOn) }} → {{ dateOnly(plan.endsOn) }}</p>
-        </div>
-      </div>
-      <p v-else class="mt-4 text-sm text-[var(--ks-text-muted)]">
-        {{ t('kingdomP7D.noCurrentCycle') }}
-      </p>
-    </section>
-
-    <section
-      v-if="plan"
-      class="ks-surface mt-6 p-5 sm:p-6"
-      aria-labelledby="transfer-groups-heading"
-    >
-      <h2 id="transfer-groups-heading" class="text-xl font-semibold">
-        {{ t('kingdomP7D.transferGroups') }}
-      </h2>
-      <p class="mt-2 max-w-3xl text-sm leading-6 text-[var(--ks-text-muted)]">
-        {{ t('kingdomP7D.groupsHelp') }}
-      </p>
-      <div v-if="groups.length" class="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        <article
-          v-for="group in groups"
-          :key="`${group.direction}-${group.name}`"
-          class="rounded-xl border border-[var(--ks-border)] bg-[var(--ks-parchment)]/[0.02] p-4"
+        <span
+          v-if="plan"
+          class="ks-status"
+          :data-tone="
+            plan.state === 'cancelled' ? 'danger' : plan.state === 'closed' ? 'success' : 'info'
+          "
         >
-          <div class="flex items-start justify-between gap-3">
-            <h3 class="font-semibold">{{ group.name }}</h3>
-            <span
-              class="rounded-full border border-[var(--ks-border)] bg-[var(--ks-teal-soft)] px-2.5 py-1 text-xs font-semibold text-[var(--ks-gold-bright)]"
-              >{{ directionLabel(group.direction) }}</span
-            >
-          </div>
-          <p class="mt-3 text-sm text-[var(--ks-text-secondary)]">
-            {{ t('kingdomP7D.kingdomValue', { kingdom: groupDestinationLabel(group) }) }}
-          </p>
-          <p class="mt-1 text-sm text-[var(--ks-text-muted)]">
-            {{ t('kingdomP7D.coordinator') }}:
-            {{ group.coordinator?.name ?? t('kingdomP7D.unassigned') }}
-          </p>
-        </article>
+          {{ stateLabel(plan.state) }}
+        </span>
       </div>
-      <p v-else class="mt-5 text-sm text-[var(--ks-text-muted)]">{{ t('kingdomP7D.noGroups') }}</p>
+
+      <dl v-if="plan" class="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <div class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-4">
+          <dt class="ks-kicker">{{ t('kingdomP7D.homeKingdom') }}</dt>
+          <dd class="ks-display mt-2 text-xl text-[var(--ks-gold-bright)]">
+            {{ plan.homeKingdom }}
+          </dd>
+        </div>
+        <div class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-4">
+          <dt class="ks-kicker">{{ t('kingdomP7D.starts') }}</dt>
+          <dd class="mt-2 text-sm font-semibold">{{ dateOnly(plan.startsOn) }}</dd>
+        </div>
+        <div class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-4">
+          <dt class="ks-kicker">{{ t('kingdomP7D.ends') }}</dt>
+          <dd class="mt-2 text-sm font-semibold">{{ dateOnly(plan.endsOn) }}</dd>
+        </div>
+        <div class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-4">
+          <dt class="ks-kicker">{{ t('kingdomP7D.participants') }}</dt>
+          <dd class="ks-display mt-2 text-xl">{{ formatNumber(participants.length) }}</dd>
+        </div>
+      </dl>
+      <p v-else class="mt-4 text-sm text-[var(--ks-muted)]">{{ t('kingdomP7D.noCurrentCycle') }}</p>
     </section>
 
-    <section v-if="plan" class="ks-surface mt-6 p-5 sm:p-6" aria-labelledby="participants-heading">
-      <h2 id="participants-heading" class="text-xl font-semibold">
-        {{ t('kingdomP7D.plannedParticipants') }}
-      </h2>
-      <p class="mt-2 max-w-4xl text-sm leading-6 text-[var(--ks-text-muted)]">
-        {{ t('kingdomP7D.participantsHelp') }}
-      </p>
+    <div v-if="plan" class="mt-5 grid gap-5 2xl:grid-cols-[minmax(0,1.4fr)_minmax(20rem,.6fr)]">
+      <section class="ks-surface overflow-hidden" aria-labelledby="participants-heading">
+        <div class="border-b border-[var(--ks-border)] p-5">
+          <p class="ks-kicker">{{ t('kingdomP7D.plannedParticipants') }}</p>
+          <h2 id="participants-heading" class="ks-display mt-1 text-2xl font-semibold">
+            {{ t('kingdomP7D.participants') }}
+          </h2>
+          <p class="mt-2 max-w-4xl text-sm leading-6 text-[var(--ks-muted)]">
+            {{ t('kingdomP7D.participantsHelp') }}
+          </p>
+        </div>
 
-      <div v-if="participants.length" class="mt-5 grid gap-3 md:hidden">
-        <article
-          v-for="participant in participants"
-          :key="participant.id"
-          class="rounded-xl border border-[var(--ks-border)] bg-[var(--ks-parchment)]/[0.02] p-4"
-        >
-          <div class="flex items-start justify-between gap-3">
-            <div>
-              <h3 class="font-semibold">{{ participant.name }}</h3>
-              <p v-if="participant.gamePlayerId" class="mt-1 text-xs text-[var(--ks-text-muted)]">
-                {{ t('kingdomP7D.stableId', { id: participant.gamePlayerId }) }}
-              </p>
-            </div>
-            <span
-              :class="[
-                'rounded-full border px-2.5 py-1 text-xs font-semibold',
-                readinessTone(participant.readiness),
-              ]"
-              >{{ readinessLabel(participant.readiness) }}</span
-            >
-          </div>
-          <dl class="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
-            <div>
-              <dt class="text-xs text-[var(--ks-text-muted)]">{{ t('kingdomP7D.direction') }}</dt>
-              <dd class="mt-1">{{ directionLabel(participant.direction) }}</dd>
-            </div>
-            <div>
-              <dt class="text-xs text-[var(--ks-text-muted)]">{{ t('kingdomP7D.destination') }}</dt>
-              <dd class="mt-1">{{ destinationLabel(participant) }}</dd>
-            </div>
-            <div>
-              <dt class="text-xs text-[var(--ks-text-muted)]">{{ t('kingdomP7D.group') }}</dt>
-              <dd class="mt-1">{{ participant.group?.name ?? t('kingdomP7D.unassigned') }}</dd>
-            </div>
-            <div>
-              <dt class="text-xs text-[var(--ks-text-muted)]">{{ t('kingdomP7D.outcome') }}</dt>
-              <dd class="mt-1">
-                {{ participant.completedAt ? t('kingdomP7D.completed') : t('kingdomP7D.planning') }}
-              </dd>
-            </div>
-          </dl>
-        </article>
-      </div>
-
-      <div
-        v-if="participants.length"
-        class="mt-5 hidden overflow-x-auto rounded-xl border border-[var(--ks-border)] md:block"
-      >
-        <table class="min-w-full divide-y divide-[var(--ks-border)] text-left text-sm">
-          <caption class="sr-only">
-            {{
-              t('kingdomP7D.plannedParticipants')
-            }}
-          </caption>
-          <thead
-            class="bg-[var(--ks-parchment)]/[0.03] text-xs tracking-wide text-[var(--ks-text-muted)] uppercase"
+        <div v-if="participants.length" class="md:hidden">
+          <article
+            v-for="participant in participants"
+            :key="participant.id"
+            class="border-b border-[var(--ks-border)] p-4 last:border-b-0"
           >
-            <tr>
-              <th class="px-4 py-3" scope="col">{{ t('kingdomP7D.player') }}</th>
-              <th class="px-4 py-3" scope="col">{{ t('kingdomP7D.direction') }}</th>
-              <th class="px-4 py-3" scope="col">{{ t('kingdomP7D.readiness') }}</th>
-              <th class="px-4 py-3" scope="col">{{ t('kingdomP7D.outcome') }}</th>
-              <th class="px-4 py-3" scope="col">{{ t('kingdomP7D.source') }}</th>
-              <th class="px-4 py-3" scope="col">{{ t('kingdomP7D.destination') }}</th>
-              <th class="px-4 py-3" scope="col">{{ t('kingdomP7D.group') }}</th>
-              <th class="px-4 py-3" scope="col">{{ t('kingdomP7D.membership') }}</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-[var(--ks-border)]">
-            <tr v-for="participant in participants" :key="participant.id">
-              <td class="px-4 py-4">
-                <span class="font-semibold">{{ participant.name }}</span
-                ><span
+            <div class="flex items-start gap-3">
+              <div
+                class="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-[var(--ks-gold-dark)] bg-black/20 font-[var(--ks-font-display)] text-[var(--ks-gold-bright)]"
+                aria-hidden="true"
+              >
+                {{ participant.name.slice(0, 1).toUpperCase() }}
+              </div>
+              <div class="min-w-0 flex-1">
+                <h3 class="truncate text-lg font-[var(--ks-font-display)] font-semibold">
+                  {{ participant.name }}
+                </h3>
+                <p
                   v-if="participant.gamePlayerId"
-                  class="block text-xs text-[var(--ks-text-muted)]"
-                  >{{ t('kingdomP7D.stableId', { id: participant.gamePlayerId }) }}</span
+                  class="mt-1 truncate text-xs text-[var(--ks-muted)]"
                 >
-              </td>
-              <td class="px-4 py-4">{{ directionLabel(participant.direction) }}</td>
-              <td class="px-4 py-4">
-                <span
-                  :class="[
-                    'rounded-full border px-2.5 py-1 text-xs font-semibold',
-                    readinessTone(participant.readiness),
-                  ]"
-                  >{{ readinessLabel(participant.readiness) }}</span
-                >
-              </td>
-              <td class="px-4 py-4">
-                <template v-if="participant.completedAt"
-                  ><span class="font-semibold text-green-200">{{ t('kingdomP7D.completed') }}</span
-                  ><span class="block text-xs text-[var(--ks-text-muted)]">{{
-                    timestamp(participant.completedAt)
-                  }}</span></template
-                ><span v-else>{{ t('kingdomP7D.planning') }}</span>
-              </td>
-              <td class="px-4 py-4">{{ participant.sourceKingdom ?? t('kingdomP7D.unknown') }}</td>
-              <td class="px-4 py-4">{{ destinationLabel(participant) }}</td>
-              <td class="px-4 py-4">
-                <span>{{ participant.group?.name ?? t('kingdomP7D.unassigned') }}</span
-                ><span v-if="participant.group" class="block text-xs text-[var(--ks-text-muted)]"
-                  >{{ t('kingdomP7D.coordinator') }}:
-                  {{ participant.group.coordinator?.name ?? t('kingdomP7D.unassigned') }}</span
-                >
-              </td>
-              <td class="px-4 py-4">
-                {{ participant.membership?.name ?? t('kingdomP7D.notLinked') }}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <p v-else class="mt-5 text-sm text-[var(--ks-text-muted)]">
-        {{ t('kingdomP7D.noParticipants') }}
-      </p>
-    </section>
+                  {{ t('kingdomP7D.stableId', { id: participant.gamePlayerId }) }}
+                </p>
+              </div>
+              <span class="ks-status" :data-tone="readinessTone(participant.readiness)">
+                {{ readinessLabel(participant.readiness) }}
+              </span>
+            </div>
+            <div class="mt-4 flex flex-wrap gap-2">
+              <span class="ks-status" :data-tone="directionTone(participant.direction)">
+                {{ directionLabel(participant.direction) }}
+              </span>
+              <span class="ks-chip">{{ destinationLabel(participant) }}</span>
+              <span v-if="participant.group" class="ks-chip">{{ participant.group.name }}</span>
+            </div>
+            <p v-if="participant.completedAt" class="mt-3 text-xs text-[var(--ks-green)]">
+              {{ t('kingdomP7D.completed') }} · {{ timestamp(participant.completedAt) }}
+            </p>
+          </article>
+        </div>
+
+        <div v-if="participants.length" class="hidden overflow-x-auto md:block">
+          <table class="w-full min-w-[70rem] text-start text-sm">
+            <thead
+              class="bg-black/20 text-[.66rem] font-extrabold tracking-[.08em] text-[var(--ks-muted)] uppercase"
+            >
+              <tr>
+                <th class="px-5 py-3 text-start">{{ t('kingdomP7D.player') }}</th>
+                <th class="px-4 py-3 text-start">{{ t('kingdomP7D.direction') }}</th>
+                <th class="px-4 py-3 text-start">{{ t('kingdomP7D.readiness') }}</th>
+                <th class="px-4 py-3 text-start">{{ t('kingdomP7D.source') }}</th>
+                <th class="px-4 py-3 text-start">{{ t('kingdomP7D.destination') }}</th>
+                <th class="px-4 py-3 text-start">{{ t('kingdomP7D.group') }}</th>
+                <th class="px-4 py-3 text-start">{{ t('kingdomP7D.outcome') }}</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-[var(--ks-border)]">
+              <tr
+                v-for="participant in participants"
+                :key="participant.id"
+                class="transition hover:bg-white/[0.018]"
+              >
+                <td class="px-5 py-4">
+                  <div class="flex items-center gap-3">
+                    <div
+                      class="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-[var(--ks-gold-dark)] bg-black/20 font-[var(--ks-font-display)] text-[var(--ks-gold-bright)]"
+                      aria-hidden="true"
+                    >
+                      {{ participant.name.slice(0, 1).toUpperCase() }}
+                    </div>
+                    <div>
+                      <strong>{{ participant.name }}</strong>
+                      <span
+                        v-if="participant.gamePlayerId"
+                        class="mt-1 block text-xs text-[var(--ks-muted)]"
+                      >
+                        {{ t('kingdomP7D.stableId', { id: participant.gamePlayerId }) }}
+                      </span>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-4 py-4">
+                  <span class="ks-status" :data-tone="directionTone(participant.direction)">{{
+                    directionLabel(participant.direction)
+                  }}</span>
+                </td>
+                <td class="px-4 py-4">
+                  <span class="ks-status" :data-tone="readinessTone(participant.readiness)">{{
+                    readinessLabel(participant.readiness)
+                  }}</span>
+                </td>
+                <td class="px-4 py-4">
+                  {{ participant.sourceKingdom ?? t('kingdomP7D.unknown') }}
+                </td>
+                <td class="px-4 py-4 font-semibold">{{ destinationLabel(participant) }}</td>
+                <td class="px-4 py-4">
+                  <span>{{ participant.group?.name ?? t('kingdomP7D.unassigned') }}</span
+                  ><span v-if="participant.group" class="mt-1 block text-xs text-[var(--ks-muted)]"
+                    >{{ t('kingdomP7D.coordinator') }}:
+                    {{ participant.group.coordinator?.name ?? t('kingdomP7D.unassigned') }}</span
+                  >
+                </td>
+                <td class="px-4 py-4">
+                  <template v-if="participant.completedAt"
+                    ><span class="text-[var(--ks-green)]">{{ t('kingdomP7D.completed') }}</span
+                    ><span class="mt-1 block text-xs text-[var(--ks-muted)]">{{
+                      timestamp(participant.completedAt)
+                    }}</span></template
+                  ><span v-else>{{ t('kingdomP7D.planning') }}</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div v-if="!participants.length" class="ks-fantasy-empty m-5">
+          {{ t('kingdomP7D.noParticipants') }}
+        </div>
+      </section>
+
+      <aside class="space-y-5">
+        <section class="ks-surface p-5" aria-labelledby="transfer-groups-heading">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <p class="ks-kicker">{{ t('kingdomP7D.transferGroups') }}</p>
+              <h2 id="transfer-groups-heading" class="ks-display mt-1 text-xl font-semibold">
+                {{ t('kingdomP7D.group') }}
+              </h2>
+            </div>
+            <span class="ks-chip" data-active="true">{{ groups.length }}</span>
+          </div>
+          <p class="mt-2 text-sm leading-6 text-[var(--ks-muted)]">
+            {{ t('kingdomP7D.groupsHelp') }}
+          </p>
+          <div v-if="groups.length" class="mt-4 space-y-2">
+            <article
+              v-for="group in groups"
+              :key="`${group.direction}-${group.name}`"
+              class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-3"
+            >
+              <div class="flex items-start justify-between gap-3">
+                <strong class="font-[var(--ks-font-display)]">{{ group.name }}</strong>
+                <span class="ks-status" :data-tone="directionTone(group.direction)">{{
+                  directionLabel(group.direction)
+                }}</span>
+              </div>
+              <p class="mt-2 text-sm text-[var(--ks-text-secondary)]">
+                {{ t('kingdomP7D.kingdomValue', { kingdom: groupDestinationLabel(group) }) }}
+              </p>
+              <p class="mt-1 text-xs text-[var(--ks-muted)]">
+                {{ t('kingdomP7D.coordinator') }}:
+                {{ group.coordinator?.name ?? t('kingdomP7D.unassigned') }}
+              </p>
+            </article>
+          </div>
+          <div v-else class="ks-fantasy-empty mt-4">{{ t('kingdomP7D.noGroups') }}</div>
+        </section>
+
+        <section v-if="canManage" class="ks-surface p-5">
+          <p class="ks-kicker">{{ t('kingdomP7D.overviewNavigation') }}</p>
+          <div class="mt-4 grid gap-2">
+            <Link href="/alliance/transfers/readiness" class="ks-command-link w-full">
+              {{ t('kingdomP7D.readinessBoard') }}
+            </Link>
+            <Link
+              href="/alliance/transfers/completion"
+              class="ks-command-link w-full"
+              data-variant="secondary"
+            >
+              {{ t('kingdomP7D.completion') }}
+            </Link>
+            <Link
+              href="/alliance/transfers/manage"
+              class="ks-command-link w-full"
+              data-variant="secondary"
+            >
+              {{ t('kingdomP7D.manageTransfers') }}
+            </Link>
+          </div>
+        </section>
+      </aside>
+    </div>
   </AppLayout>
 </template>

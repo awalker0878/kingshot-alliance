@@ -2,6 +2,9 @@
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
+import RoomBanner from '@/components/game/RoomBanner.vue';
+import StatSeal from '@/components/game/StatSeal.vue';
+import AppButton from '@/components/ui/AppButton.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
@@ -110,26 +113,25 @@ function humanize(value: string): string {
   return value.replaceAll('_', ' ');
 }
 
-function statusTone(status: string): string {
-  if (status === 'approved') return 'border-green-400/25 bg-green-500/10 text-green-200';
-  if (status === 'pending') return 'border-amber-400/25 bg-amber-500/10 text-amber-200';
-  if (status === 'reversed') return 'border-red-400/25 bg-red-500/10 text-red-200';
-  return 'border-[var(--ks-border)] bg-[var(--ks-teal-soft)] text-[var(--ks-gold-bright)]';
+function statusTone(status: string): 'success' | 'warning' | 'danger' | 'info' {
+  if (status === 'approved') return 'success';
+  if (status === 'pending') return 'warning';
+  if (status === 'reversed') return 'danger';
+  return 'info';
 }
 
-function dataClassTone(value: string): string {
-  if (value === 'calculated_metric') return 'border-purple-400/20 bg-purple-500/10 text-purple-200';
-  if (value === 'subjective_assessment')
-    return 'border-amber-400/20 bg-amber-500/10 text-amber-200';
-  return 'border-[var(--ks-border)] bg-[var(--ks-teal-soft)] text-[var(--ks-gold-bright)]';
+function dataClassTone(value: string): 'warning' | 'info' {
+  return value === 'subjective_assessment' ? 'warning' : 'info';
 }
 
 function explanation(row: RecordRow): string {
-  if (row.correctionReason)
+  if (row.correctionReason) {
     return t('contributions.correctedReason', { reason: row.correctionReason });
+  }
   if (row.reversalReason) return t('contributions.reversedReason', { reason: row.reversalReason });
-  if (row.calculationVersion)
+  if (row.calculationVersion) {
     return t('contributions.calculationVersion', { version: row.calculationVersion });
+  }
   return row.evidence || '—';
 }
 </script>
@@ -138,80 +140,50 @@ function explanation(row: RecordRow): string {
   <Head :title="`${t('contributions.title')} · ${alliance.name}`" />
 
   <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
-    <header class="flex flex-wrap items-start justify-between gap-4">
-      <div class="max-w-3xl">
-        <p class="text-xs font-bold tracking-[0.2em] text-[var(--ks-gold)] uppercase">
-          {{ t('contributions.eyebrow') }}
-        </p>
-        <h1 class="ks-display mt-2 text-3xl font-bold sm:text-4xl">
-          {{ t('contributions.title') }}
-        </h1>
-        <p class="mt-3 text-sm leading-6 text-[var(--ks-text-secondary)]">
-          {{ t('contributions.subtitle', { alliance: alliance.name }) }}
-        </p>
-      </div>
-      <Link
-        v-if="canManage"
-        class="inline-flex min-h-11 items-center justify-center rounded-[var(--ks-radius-sm)] border border-[var(--ks-gold)]/45 bg-[var(--ks-gold-soft)] px-4 py-2 text-sm font-semibold text-[var(--ks-gold-strong)] transition hover:border-[var(--ks-gold)] hover:text-[var(--ks-ivory)]"
-        href="/alliance/contributions/manage"
-      >
-        {{ t('contributions.manageReporting') }}
-      </Link>
-    </header>
+    <RoomBanner
+      :eyebrow="t('contributions.eyebrow')"
+      :title="t('contributions.title')"
+      :subtitle="t('contributions.subtitle', { alliance: alliance.name })"
+      image="/images/kingshot/v4/glory-ledger.svg"
+    >
+      <template #actions>
+        <Link v-if="canManage" href="/alliance/contributions/manage" class="ks-command-link">
+          {{ t('contributions.manageReporting') }}
+        </Link>
+      </template>
+    </RoomBanner>
 
-    <section class="ks-surface-gold mt-6 overflow-hidden" :aria-label="t('contributions.overview')">
-      <div
-        class="grid grid-cols-2 divide-x divide-y divide-[var(--ks-border)] lg:grid-cols-4 lg:divide-y-0"
-      >
-        <article class="p-4 sm:p-5">
-          <p
-            class="text-[0.68rem] font-bold tracking-[0.12em] text-[var(--ks-text-muted)] uppercase"
-          >
-            {{ t('contributions.activeCategories') }}
-          </p>
-          <p class="ks-display mt-2 text-3xl font-semibold">
-            {{ formatNumber(reporting.progress.length) }}
-          </p>
-        </article>
-        <article class="p-4 sm:p-5">
-          <p
-            class="text-[0.68rem] font-bold tracking-[0.12em] text-[var(--ks-text-muted)] uppercase"
-          >
-            {{ t('contributions.categoriesWithGoals') }}
-          </p>
-          <p class="ks-display mt-2 text-3xl font-semibold">{{ formatNumber(goalCategories) }}</p>
-        </article>
-        <article class="p-4 sm:p-5">
-          <p
-            class="text-[0.68rem] font-bold tracking-[0.12em] text-[var(--ks-text-muted)] uppercase"
-          >
-            {{ t('contributions.selfReportCategories') }}
-          </p>
-          <p class="ks-display mt-2 text-3xl font-semibold">
-            {{ formatNumber(selfReportCategories.length) }}
-          </p>
-        </article>
-        <article class="p-4 sm:p-5">
-          <p
-            class="text-[0.68rem] font-bold tracking-[0.12em] text-[var(--ks-text-muted)] uppercase"
-          >
-            {{ t('contributions.recentRecordsShown') }}
-          </p>
-          <p class="ks-display mt-2 text-3xl font-semibold">
-            {{ formatNumber(reporting.history.length) }}
-          </p>
-        </article>
-      </div>
+    <section class="mt-4 grid gap-3 sm:grid-cols-2 2xl:grid-cols-4">
+      <StatSeal
+        :label="t('contributions.activeCategories')"
+        :value="formatNumber(reporting.progress.length)"
+        icon="✦"
+      />
+      <StatSeal
+        :label="t('contributions.categoriesWithGoals')"
+        :value="formatNumber(goalCategories)"
+        icon="◎"
+        tone="teal"
+      />
+      <StatSeal
+        :label="t('contributions.selfReportCategories')"
+        :value="formatNumber(selfReportCategories.length)"
+        icon="✎"
+        tone="stone"
+      />
+      <StatSeal
+        :label="t('contributions.recentRecordsShown')"
+        :value="formatNumber(reporting.history.length)"
+        icon="▤"
+      />
     </section>
 
-    <div class="mt-6 grid gap-5 xl:grid-cols-3">
-      <div class="min-w-0 space-y-5 xl:col-span-2">
+    <div class="mt-5 grid gap-5 2xl:grid-cols-[minmax(0,1.4fr)_minmax(20rem,.6fr)]">
+      <div class="min-w-0 space-y-5">
         <section aria-labelledby="contribution-progress-heading">
           <div class="flex flex-wrap items-end justify-between gap-3 px-1">
             <div>
-              <p class="text-xs font-bold tracking-[0.15em] text-[var(--ks-gold)] uppercase">
-                {{ t('contributions.progress') }}
-              </p>
+              <p class="ks-kicker">{{ t('contributions.progress') }}</p>
               <h2 id="contribution-progress-heading" class="ks-display mt-1 text-2xl font-semibold">
                 {{ t('contributions.currentPeriods') }}
               </h2>
@@ -226,36 +198,31 @@ function explanation(row: RecordRow): string {
             >
               <div class="flex items-start justify-between gap-3">
                 <div class="min-w-0">
-                  <h3 class="ks-display truncate text-lg font-semibold">{{ item.name }}</h3>
+                  <h3 class="ks-display truncate text-xl font-semibold">{{ item.name }}</h3>
                   <div class="mt-2 flex flex-wrap gap-2">
-                    <span
-                      :class="dataClassTone(item.dataClass)"
-                      class="rounded-full border px-2.5 py-1 text-xs font-semibold capitalize"
-                    >
+                    <span class="ks-status" :data-tone="dataClassTone(item.dataClass)">
                       {{ humanize(item.dataClass) }}
                     </span>
-                    <span
-                      class="rounded-full border border-[var(--ks-border)] bg-black/15 px-2.5 py-1 text-xs text-[var(--ks-text-secondary)]"
-                    >
-                      {{ humanize(item.period) }}
-                    </span>
+                    <span class="ks-chip">{{ humanize(item.period) }}</span>
                   </div>
                 </div>
-                <span class="shrink-0 text-sm font-semibold text-[var(--ks-gold-strong)]">{{
-                  percent(item.progress)
-                }}</span>
+                <span
+                  class="shrink-0 text-lg font-[var(--ks-font-display)] text-[var(--ks-gold-bright)]"
+                >
+                  {{ percent(item.progress) }}
+                </span>
               </div>
 
-              <div class="mt-5 flex items-end justify-between gap-4">
+              <div class="mt-6 flex items-end justify-between gap-4">
                 <p>
-                  <span class="ks-display text-3xl font-semibold">{{
-                    formatNumber(item.approved, { maximumFractionDigits: 2 })
-                  }}</span>
-                  <span class="ms-1 text-sm text-[var(--ks-text-muted)]">{{ item.unit }}</span>
+                  <span class="ks-display text-3xl font-semibold">
+                    {{ formatNumber(item.approved, { maximumFractionDigits: 2 }) }}
+                  </span>
+                  <span class="ms-1 text-sm text-[var(--ks-muted)]">{{ item.unit }}</span>
                 </p>
-                <p class="text-end text-xs text-[var(--ks-text-muted)]">
-                  {{ t('contributions.goal') }}:
-                  <strong class="text-[var(--ks-text-secondary)]">
+                <p class="text-end text-xs text-[var(--ks-muted)]">
+                  {{ t('contributions.goal') }}
+                  <strong class="mt-1 block text-[var(--ks-text-secondary)]">
                     {{
                       item.goal === null
                         ? t('contributions.notConfigured')
@@ -267,51 +234,45 @@ function explanation(row: RecordRow): string {
 
               <div
                 v-if="item.progress !== null"
-                class="mt-3 h-1.5 overflow-hidden rounded-full bg-black/30"
+                class="mt-4 h-2 overflow-hidden rounded-full bg-white/[.05]"
               >
                 <div
-                  class="h-full rounded-full bg-[var(--ks-gold)]"
+                  class="h-full rounded-full bg-[linear-gradient(90deg,var(--ks-teal),var(--ks-gold-bright))]"
                   :style="{ width: progressWidth(item.progress) }"
                 />
               </div>
 
-              <p class="mt-4 text-xs text-[var(--ks-text-muted)]">
+              <p class="mt-4 text-xs text-[var(--ks-muted)]">
                 {{ dateOnly(item.periodStart) }} – {{ dateOnly(item.periodEnd) }}
               </p>
               <p
                 v-if="item.calculationDescription"
-                class="mt-3 border-t border-[var(--ks-border)] pt-3 text-sm leading-6 text-[var(--ks-text-secondary)]"
+                class="mt-4 border-t border-[var(--ks-border)] pt-4 text-sm leading-6 text-[var(--ks-text-secondary)]"
               >
                 {{ item.calculationDescription }}
-                <span v-if="item.calculationVersion" class="text-[var(--ks-text-muted)]">
+                <span v-if="item.calculationVersion" class="text-[var(--ks-muted)]">
                   · {{ t('contributions.version') }} {{ item.calculationVersion }}
                 </span>
               </p>
-              <p v-if="item.evidenceRequired" class="mt-3 text-xs font-semibold text-amber-300">
+              <span v-if="item.evidenceRequired" class="ks-status mt-3" data-tone="warning">
                 {{ t('contributions.evidenceRequired') }}
-              </p>
+              </span>
             </article>
           </div>
-          <p v-else class="ks-surface mt-4 p-8 text-center text-sm text-[var(--ks-text-muted)]">
-            {{ t('contributions.noCategories') }}
-          </p>
+          <div v-else class="ks-fantasy-empty mt-4">{{ t('contributions.noCategories') }}</div>
         </section>
 
         <section class="ks-surface overflow-hidden" aria-labelledby="contribution-history-heading">
-          <div class="border-b border-[var(--ks-border)] p-4 sm:p-5">
-            <div class="flex flex-wrap items-end justify-between gap-3">
-              <div>
-                <p class="text-xs font-bold tracking-[0.15em] text-[var(--ks-gold)] uppercase">
-                  {{ t('contributions.history') }}
-                </p>
-                <h2 id="contribution-history-heading" class="ks-display mt-1 text-xl font-semibold">
-                  {{ t('contributions.yourHistory') }}
-                </h2>
-              </div>
-              <p class="text-xs text-[var(--ks-text-muted)]">
-                {{ t('contributions.historyHelp') }}
-              </p>
+          <div
+            class="flex flex-wrap items-end justify-between gap-3 border-b border-[var(--ks-border)] p-5"
+          >
+            <div>
+              <p class="ks-kicker">{{ t('contributions.history') }}</p>
+              <h2 id="contribution-history-heading" class="ks-display mt-1 text-xl font-semibold">
+                {{ t('contributions.yourHistory') }}
+              </h2>
             </div>
+            <p class="text-xs text-[var(--ks-muted)]">{{ t('contributions.historyHelp') }}</p>
           </div>
 
           <div v-if="reporting.history.length" class="lg:hidden">
@@ -322,34 +283,29 @@ function explanation(row: RecordRow): string {
             >
               <div class="flex items-start justify-between gap-3">
                 <div class="min-w-0">
-                  <p class="truncate font-semibold">{{ row.categoryName ?? '—' }}</p>
-                  <p class="mt-1 text-xs text-[var(--ks-text-muted)]">
-                    {{ dateTime(row.recordedAt) }}
+                  <p class="truncate text-lg font-[var(--ks-font-display)] font-semibold">
+                    {{ row.categoryName ?? '—' }}
                   </p>
+                  <p class="mt-1 text-xs text-[var(--ks-muted)]">{{ dateTime(row.recordedAt) }}</p>
                 </div>
                 <div class="shrink-0 text-end">
                   <strong>{{ valueLabel(row.value, row.unit) }}</strong>
-                  <span
-                    :class="statusTone(row.status)"
-                    class="mt-2 block rounded-full border px-2.5 py-1 text-xs font-semibold capitalize"
-                  >
+                  <span class="ks-status mt-2" :data-tone="statusTone(row.status)">
                     {{ humanize(row.status) }}
                   </span>
                 </div>
               </div>
               <dl class="mt-4 grid grid-cols-2 gap-3 text-xs">
                 <div>
-                  <dt class="text-[var(--ks-text-muted)]">{{ t('contributions.source') }}</dt>
-                  <dd class="mt-1 text-[var(--ks-text-secondary)]">{{ humanize(row.source) }}</dd>
+                  <dt class="text-[var(--ks-muted)]">{{ t('contributions.source') }}</dt>
+                  <dd class="mt-1">{{ humanize(row.source) }}</dd>
                 </div>
                 <div>
-                  <dt class="text-[var(--ks-text-muted)]">{{ t('contributions.dataClass') }}</dt>
-                  <dd class="mt-1 text-[var(--ks-text-secondary)]">
-                    {{ humanize(row.dataClass) }}
-                  </dd>
+                  <dt class="text-[var(--ks-muted)]">{{ t('contributions.dataClass') }}</dt>
+                  <dd class="mt-1">{{ humanize(row.dataClass) }}</dd>
                 </div>
                 <div class="col-span-2">
-                  <dt class="text-[var(--ks-text-muted)]">{{ t('contributions.explanation') }}</dt>
+                  <dt class="text-[var(--ks-muted)]">{{ t('contributions.explanation') }}</dt>
                   <dd class="mt-1 text-[var(--ks-text-secondary)]">{{ explanation(row) }}</dd>
                 </div>
               </dl>
@@ -359,7 +315,7 @@ function explanation(row: RecordRow): string {
           <div v-if="reporting.history.length" class="hidden overflow-x-auto lg:block">
             <table class="w-full min-w-[64rem] text-sm">
               <thead
-                class="bg-black/25 text-[0.68rem] font-bold tracking-[0.08em] text-[var(--ks-text-muted)] uppercase"
+                class="bg-black/20 text-[.66rem] font-extrabold tracking-[.08em] text-[var(--ks-muted)] uppercase"
               >
                 <tr>
                   <th class="px-4 py-3 text-start">{{ t('contributions.category') }}</th>
@@ -374,50 +330,39 @@ function explanation(row: RecordRow): string {
                 <tr
                   v-for="row in reporting.history"
                   :key="row.id"
-                  class="transition hover:bg-[var(--ks-parchment)]/[0.025]"
+                  class="transition hover:bg-white/[0.018]"
                 >
-                  <td class="px-4 py-3.5 font-semibold">{{ row.categoryName ?? '—' }}</td>
-                  <td class="px-4 py-3.5">{{ valueLabel(row.value, row.unit) }}</td>
-                  <td class="px-4 py-3.5">
-                    <span
-                      :class="statusTone(row.status)"
-                      class="rounded-full border px-2.5 py-1 text-xs font-semibold capitalize"
-                    >
-                      {{ humanize(row.status) }}
-                    </span>
+                  <td class="px-4 py-4 font-semibold">{{ row.categoryName ?? '—' }}</td>
+                  <td class="px-4 py-4">{{ valueLabel(row.value, row.unit) }}</td>
+                  <td class="px-4 py-4">
+                    <span class="ks-status" :data-tone="statusTone(row.status)">{{
+                      humanize(row.status)
+                    }}</span>
                   </td>
-                  <td class="px-4 py-3.5 text-[var(--ks-text-secondary)]">
+                  <td class="px-4 py-4 text-[var(--ks-text-secondary)]">
                     {{ humanize(row.source) }}
                   </td>
-                  <td class="px-4 py-3.5 text-xs text-[var(--ks-text-muted)]">
+                  <td class="px-4 py-4 text-xs text-[var(--ks-muted)]">
                     {{ dateTime(row.recordedAt) }}
                   </td>
-                  <td class="px-4 py-3.5 text-[var(--ks-text-secondary)]">
-                    {{ explanation(row) }}
-                  </td>
+                  <td class="px-4 py-4 text-[var(--ks-text-secondary)]">{{ explanation(row) }}</td>
                 </tr>
               </tbody>
             </table>
           </div>
-
-          <p
-            v-if="!reporting.history.length"
-            class="p-8 text-center text-sm text-[var(--ks-text-muted)]"
-          >
+          <div v-if="!reporting.history.length" class="ks-fantasy-empty m-5">
             {{ t('contributions.noRecords') }}
-          </p>
+          </div>
         </section>
       </div>
 
-      <aside class="space-y-5 xl:col-span-1">
+      <aside class="space-y-5">
         <section
           v-if="selfReportCategories.length"
-          class="ks-surface p-5 xl:sticky xl:top-24"
+          class="ks-surface p-5 2xl:sticky 2xl:top-[6.5rem]"
           aria-labelledby="self-report-heading"
         >
-          <p class="text-xs font-bold tracking-[0.15em] text-[var(--ks-gold)] uppercase">
-            {{ t('contributions.selfReport') }}
-          </p>
+          <p class="ks-kicker">{{ t('contributions.selfReport') }}</p>
           <h2 id="self-report-heading" class="ks-display mt-1 text-xl font-semibold">
             {{ t('contributions.selfReportTitle') }}
           </h2>
@@ -427,17 +372,14 @@ function explanation(row: RecordRow): string {
 
           <form class="mt-5 space-y-4" @submit.prevent="submit">
             <div>
-              <label
-                class="text-xs font-semibold text-[var(--ks-text-secondary)]"
-                for="contribution-category"
-              >
+              <label class="text-xs font-semibold" for="contribution-category">
                 {{ t('contributions.category') }}
               </label>
               <select
                 id="contribution-category"
                 v-model="form.category_id"
                 required
-                class="mt-1.5 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
+                class="ks-input mt-1.5"
               >
                 <option value="" disabled>{{ t('contributions.selectCategory') }}</option>
                 <option
@@ -450,10 +392,7 @@ function explanation(row: RecordRow): string {
               </select>
             </div>
             <div>
-              <label
-                class="text-xs font-semibold text-[var(--ks-text-secondary)]"
-                for="contribution-value"
-              >
+              <label class="text-xs font-semibold" for="contribution-value">
                 {{ t('contributions.value') }}
               </label>
               <input
@@ -463,30 +402,23 @@ function explanation(row: RecordRow): string {
                 min="0"
                 step="0.01"
                 type="number"
-                class="mt-1.5 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
+                class="ks-input mt-1.5"
               />
             </div>
             <div>
-              <label
-                class="text-xs font-semibold text-[var(--ks-text-secondary)]"
-                for="contribution-evidence"
-              >
+              <label class="text-xs font-semibold" for="contribution-evidence">
                 {{ t('contributions.evidenceNote') }}
               </label>
               <textarea
                 id="contribution-evidence"
                 v-model="form.evidence"
                 maxlength="4000"
-                class="mt-1.5 min-h-24 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
+                class="ks-input mt-1.5 min-h-24"
               />
             </div>
-            <button
-              class="min-h-11 w-full rounded-[var(--ks-radius-sm)] bg-[var(--ks-blue)] px-4 py-2 text-sm font-semibold text-[var(--ks-ivory)] transition hover:bg-[var(--ks-blue-strong)] disabled:opacity-60"
-              :disabled="form.processing"
-              type="submit"
-            >
+            <AppButton class="w-full" type="submit" :disabled="form.processing">
               {{ t('contributions.submitApproval') }}
-            </button>
+            </AppButton>
           </form>
         </section>
       </aside>
@@ -498,9 +430,7 @@ function explanation(row: RecordRow): string {
       :aria-label="t('contributions.leaderboards')"
     >
       <div class="mb-4 px-1">
-        <p class="text-xs font-bold tracking-[0.15em] text-[var(--ks-gold)] uppercase">
-          {{ t('contributions.leaderboards') }}
-        </p>
+        <p class="ks-kicker">{{ t('contributions.leaderboards') }}</p>
         <h2 class="ks-display mt-1 text-2xl font-semibold">
           {{ t('contributions.approvedCategoryLeaderboards') }}
         </h2>
@@ -511,18 +441,15 @@ function explanation(row: RecordRow): string {
           :key="board.categoryId"
           class="ks-surface overflow-hidden"
         >
-          <div class="border-b border-[var(--ks-border)] p-4 sm:p-5">
+          <div class="border-b border-[var(--ks-border)] p-5">
             <div class="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <h3 class="ks-display text-lg font-semibold">{{ board.name }}</h3>
-                <p class="mt-1 text-xs text-[var(--ks-text-muted)]">
+                <h3 class="ks-display text-xl font-semibold">{{ board.name }}</h3>
+                <p class="mt-1 text-xs text-[var(--ks-muted)]">
                   {{ dateOnly(board.periodStart) }} – {{ dateOnly(board.periodEnd) }}
                 </p>
               </div>
-              <span
-                v-if="board.calculationVersion"
-                class="rounded-full border border-[var(--ks-border)] bg-black/15 px-2.5 py-1 text-xs text-[var(--ks-text-secondary)]"
-              >
+              <span v-if="board.calculationVersion" class="ks-chip">
                 {{ t('contributions.version') }} {{ board.calculationVersion }}
               </span>
             </div>
@@ -534,18 +461,18 @@ function explanation(row: RecordRow): string {
             <li
               v-for="(entry, index) in board.entries"
               :key="entry.playerId"
-              class="flex items-center justify-between gap-4 px-4 py-3 sm:px-5"
+              class="flex items-center gap-4 px-5 py-3"
             >
-              <span class="min-w-0 truncate"
-                ><strong class="me-2 text-[var(--ks-gold-strong)]">{{ index + 1 }}</strong
-                >{{ entry.name }}</span
+              <span
+                class="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-[var(--ks-border)] font-[var(--ks-font-display)] text-[var(--ks-gold-bright)]"
               >
+                {{ index + 1 }}
+              </span>
+              <span class="min-w-0 flex-1 truncate">{{ entry.name }}</span>
               <strong class="shrink-0">{{ valueLabel(entry.value, board.unit) }}</strong>
             </li>
           </ol>
-          <p v-else class="p-5 text-sm text-[var(--ks-text-muted)]">
-            {{ t('contributions.noApprovedRecords') }}
-          </p>
+          <div v-else class="ks-fantasy-empty m-4">{{ t('contributions.noApprovedRecords') }}</div>
         </article>
       </div>
     </section>
