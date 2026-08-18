@@ -50,6 +50,11 @@ const identityLabel = computed(() => {
   return t('common.noPlayers');
 });
 
+function compactContextLabel(player: PlayerIdentity): string {
+  if (player.kingdomNumber) return `K${player.kingdomNumber}`;
+  return player.gamePlayerId ?? '';
+}
+
 function contextLabel(player: PlayerIdentity): string {
   const pieces: string[] = [];
   if (player.kingdomNumber) pieces.push(`K${player.kingdomNumber}`);
@@ -107,10 +112,10 @@ function activate(playerId: string): void {
           {{ identityLabel }}
         </strong>
         <span
-          v-if="!compact && activePlayer"
+          v-if="activePlayer && (!compact || compactContextLabel(activePlayer))"
           class="mt-0.5 block truncate text-[0.68rem] text-[var(--ks-muted)]"
         >
-          {{ contextLabel(activePlayer) }}
+          {{ compact ? compactContextLabel(activePlayer) : contextLabel(activePlayer) }}
         </span>
       </span>
       <svg
