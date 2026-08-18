@@ -78,7 +78,10 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Prepare visual database
-        run: php artisan migrate --force
+        shell: bash
+        run: |
+          php artisan migrate --force
+          php artisan tinker --execute='$user = \App\Contexts\Accounts\Identity\Models\User::factory()->create(["name" => "UX P9 Visual", "email" => "ux-p9-visual@example.test", "timezone" => "UTC"]); $k1123 = \App\Contexts\GameWorld\Kingdoms\Models\Kingdom::query()->create(["number" => 1123, "status" => "active"]); $k1198 = \App\Contexts\GameWorld\Kingdoms\Models\Kingdom::query()->create(["number" => 1198, "status" => "active"]); \App\Contexts\GameWorld\Players\Models\Player::query()->create(["user_id" => $user->id, "current_kingdom_id" => $k1123->id, "game_player_id" => "GOV-1123-A", "current_name" => "Lady Seraphina"]); \App\Contexts\GameWorld\Players\Models\Player::query()->create(["user_id" => $user->id, "current_kingdom_id" => $k1198->id, "game_player_id" => "GOV-1198-B", "current_name" => "Lord Caspian"]);'
 
       - name: Build production frontend
         run: npm run build
