@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 
+import RoomBanner from '@/components/game/RoomBanner.vue';
+import StatSeal from '@/components/game/StatSeal.vue';
+import AppButton from '@/components/ui/AppButton.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
@@ -29,37 +32,10 @@ const props = defineProps<{
   reviewers: Array<{ id: string; name: string }>;
   notes: Array<{ id: string; body: string; author: string; createdAt: string | null }>;
   tags: Array<{ id: string; name: string }>;
-  history: Array<{
-    id: string;
-    from: string | null;
-    to: string;
-    reason: string | null;
-    changedAt: string;
-  }>;
-  communications: Array<{
-    id: string;
-    subject: string;
-    body: string;
-    status: string;
-    sentAt: string | null;
-    createdAt: string | null;
-  }>;
-  onboarding: Array<{
-    id: string;
-    name: string;
-    description: string | null;
-    required: boolean;
-    status: string;
-    completedAt: string | null;
-  }>;
-  duplicates: Array<{
-    id: string;
-    name: string;
-    email: string;
-    contactHandle: string | null;
-    stage: string;
-    submittedAt: string;
-  }>;
+  history: Array<{ id: string; from: string | null; to: string; reason: string | null; changedAt: string }>;
+  communications: Array<{ id: string; subject: string; body: string; status: string; sentAt: string | null; createdAt: string | null }>;
+  onboarding: Array<{ id: string; name: string; description: string | null; required: boolean; status: string; completedAt: string | null }>;
+  duplicates: Array<{ id: string; name: string; email: string; contactHandle: string | null; stage: string; submittedAt: string }>;
   members: Array<{ id: string; name: string; rank: string }>;
   conversionPlayers: Array<{ id: string; name: string; claimed: boolean }>;
   decisionTemplates: Array<{ id: string; name: string; decisionStage: string; subject: string }>;
@@ -68,13 +44,8 @@ const props = defineProps<{
   issuedMembershipInvitationLink: string | null;
 }>();
 
-const { t, formatDate } = useLocale();
-
-const stageForm = useForm({
-  stage: props.stageOptions[0] ?? props.candidate.stage,
-  reason: '',
-  next_action_at: '',
-});
+const { t, formatDate, formatNumber } = useLocale();
+const stageForm = useForm({ stage: props.stageOptions[0] ?? props.candidate.stage, reason: '', next_action_at: '' });
 const reviewerForm = useForm({ player_id: '' });
 const conversionForm = useForm({ player_id: props.candidate.playerId ?? '' });
 const noteForm = useForm({ body: '' });
@@ -82,72 +53,32 @@ const tagForm = useForm({ name: '' });
 const mergeReason = useForm({ reason: '' });
 const communicationForm = useForm({ template_id: '' });
 
-function updateStage(): void {
-  stageForm.patch(`/alliance/recruitment/${props.candidate.id}/stage`, { preserveScroll: true });
-}
-
+function updateStage(): void { stageForm.patch(`/alliance/recruitment/${props.candidate.id}/stage`, { preserveScroll: true }); }
 function assignReviewer(): void {
   if (!reviewerForm.player_id) return;
-  reviewerForm.put(
-    `/alliance/recruitment/${props.candidate.id}/reviewers/${reviewerForm.player_id}`,
-    {
-      preserveScroll: true,
-      onSuccess: () => reviewerForm.reset(),
-    },
-  );
+  reviewerForm.put(`/alliance/recruitment/${props.candidate.id}/reviewers/${reviewerForm.player_id}`, { preserveScroll: true, onSuccess: () => reviewerForm.reset() });
 }
-
-function addNote(): void {
-  noteForm.post(`/alliance/recruitment/${props.candidate.id}/notes`, {
-    preserveScroll: true,
-    onSuccess: () => noteForm.reset(),
-  });
-}
-
-function addTag(): void {
-  tagForm.put(`/alliance/recruitment/${props.candidate.id}/tags`, {
-    preserveScroll: true,
-    onSuccess: () => tagForm.reset(),
-  });
-}
-
+function addNote(): void { noteForm.post(`/alliance/recruitment/${props.candidate.id}/notes`, { preserveScroll: true, onSuccess: () => noteForm.reset() }); }
+function addTag(): void { tagForm.put(`/alliance/recruitment/${props.candidate.id}/tags`, { preserveScroll: true, onSuccess: () => tagForm.reset() }); }
 function mergeInto(targetId: string): void {
   if (!window.confirm(t('recruitment.mergeConfirm'))) return;
   mergeReason.post(`/alliance/recruitment/${props.candidate.id}/merge/${targetId}`);
 }
-
 function prepareCommunication(): void {
   if (!communicationForm.template_id) return;
-  communicationForm.post(
-    `/alliance/recruitment/${props.candidate.id}/communications/${communicationForm.template_id}`,
-    { preserveScroll: true, onSuccess: () => communicationForm.reset() },
-  );
+  communicationForm.post(`/alliance/recruitment/${props.candidate.id}/communications/${communicationForm.template_id}`, { preserveScroll: true, onSuccess: () => communicationForm.reset() });
 }
-
-function markCommunicationSent(id: string): void {
-  router.patch(`/alliance/recruitment/communications/${id}/sent`, {}, { preserveScroll: true });
-}
-
+function markCommunicationSent(id: string): void { router.patch(`/alliance/recruitment/communications/${id}/sent`, {}, { preserveScroll: true }); }
 function convertCandidate(): void {
   if (!conversionForm.player_id) return;
-  conversionForm.post(`/alliance/recruitment/${props.candidate.id}/convert`, {
-    preserveScroll: true,
-  });
+  conversionForm.post(`/alliance/recruitment/${props.candidate.id}/convert`, { preserveScroll: true });
 }
-
-function updateOnboarding(id: string, status: string): void {
-  router.patch(`/alliance/recruitment/onboarding/${id}`, { status }, { preserveScroll: true });
-}
-
+function updateOnboarding(id: string, status: string): void { router.patch(`/alliance/recruitment/onboarding/${id}`, { status }, { preserveScroll: true }); }
 function updateOnboardingFromEvent(id: string, event: Event): void {
   const target = event.target;
   if (target instanceof HTMLSelectElement) updateOnboarding(id, target.value);
 }
-
-function date(value: string | null): string {
-  return value ? formatDate(value) : '—';
-}
-
+function date(value: string | null): string { return value ? formatDate(value) : '—'; }
 function displayAnswer(answer: Record<string, unknown>): string {
   const value = answer.value;
   if (typeof value === 'boolean') return value ? t('recruitment.yes') : t('recruitment.no');
@@ -155,517 +86,260 @@ function displayAnswer(answer: Record<string, unknown>): string {
   const values = answer.values;
   return Array.isArray(values) ? values.join(', ') : '—';
 }
-
-function stageTone(stage: string): string {
-  if (stage === 'accepted' || stage === 'joined')
-    return 'border-green-400/25 bg-green-500/10 text-green-200';
-  if (stage === 'declined' || stage === 'withdrawn')
-    return 'border-red-400/25 bg-red-500/10 text-red-200';
-  if (stage === 'reviewing' || stage === 'interview')
-    return 'border-[var(--ks-border)] bg-[var(--ks-teal-soft)] text-[var(--ks-gold-bright)]';
-  return 'border-amber-400/25 bg-amber-500/10 text-amber-200';
+function stageTone(stage: string): 'success' | 'warning' | 'danger' | 'info' {
+  if (stage === 'accepted' || stage === 'joined') return 'success';
+  if (stage === 'declined' || stage === 'withdrawn') return 'danger';
+  if (stage === 'reviewing' || stage === 'interview') return 'info';
+  return 'warning';
 }
-
-function onboardingTone(status: string): string {
-  if (status === 'completed') return 'border-green-400/25 bg-green-500/10 text-green-200';
-  if (status === 'blocked') return 'border-red-400/25 bg-red-500/10 text-red-200';
-  return 'border-amber-400/25 bg-amber-500/10 text-amber-200';
+function onboardingTone(status: string): 'success' | 'warning' | 'danger' | 'info' {
+  if (status === 'completed') return 'success';
+  if (status === 'blocked') return 'danger';
+  if (status === 'in_progress') return 'info';
+  return 'warning';
 }
+function humanize(value: string): string { return value.replaceAll('_', ' '); }
 </script>
 
 <template>
   <Head :title="`${candidate.name} · ${t('recruitment.title')}`" />
 
   <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
-    <header class="flex flex-wrap items-start justify-between gap-4">
-      <div class="max-w-3xl min-w-0">
-        <Link
-          class="inline-flex min-h-10 items-center text-sm font-semibold text-[var(--ks-blue-strong)] hover:text-[var(--ks-ivory)]"
-          href="/alliance/recruitment"
-        >
+    <RoomBanner
+      :eyebrow="t('recruitment.candidateRecord')"
+      :title="candidate.name"
+      :subtitle="`${candidate.email}${candidate.contactHandle ? ` · ${candidate.contactHandle}` : ''}`"
+      image="/images/kingshot/v4/recruitment-hall.svg"
+      compact
+    >
+      <template #actions>
+        <Link href="/alliance/recruitment" class="ks-command-link">
           ← {{ t('recruitment.backToPipeline') }}
         </Link>
-        <p class="mt-4 text-xs font-bold tracking-[0.2em] text-[var(--ks-gold)] uppercase">
-          {{ t('recruitment.candidateRecord') }}
-        </p>
-        <h1 class="ks-display mt-2 truncate text-3xl font-bold sm:text-4xl">
-          {{ candidate.name }}
-        </h1>
-        <p class="mt-2 text-sm text-[var(--ks-text-secondary)]">{{ candidate.email }}</p>
-        <p v-if="candidate.contactHandle" class="mt-1 text-xs text-[var(--ks-text-muted)]">
-          {{ t('recruitment.contact') }}: {{ candidate.contactHandle }}
-        </p>
-      </div>
-      <span
-        :class="stageTone(candidate.stage)"
-        class="rounded-full border px-3 py-1.5 text-sm font-semibold capitalize"
-        >{{ candidate.stage }}</span
-      >
-    </header>
+      </template>
+      <template #aside>
+        <span class="ks-status" :data-tone="stageTone(candidate.stage)">{{ humanize(candidate.stage) }}</span>
+      </template>
+    </RoomBanner>
 
-    <section class="ks-surface-gold mt-6 overflow-hidden">
-      <dl
-        class="grid grid-cols-2 divide-x divide-y divide-[var(--ks-border)] md:grid-cols-4 md:divide-y-0"
-      >
-        <div class="p-4 sm:p-5">
-          <dt
-            class="text-[0.68rem] font-bold tracking-[0.1em] text-[var(--ks-text-muted)] uppercase"
-          >
-            {{ t('recruitment.source') }}
-          </dt>
-          <dd class="mt-2 font-semibold">{{ candidate.source || t('recruitment.unspecified') }}</dd>
-        </div>
-        <div class="p-4 sm:p-5">
-          <dt
-            class="text-[0.68rem] font-bold tracking-[0.1em] text-[var(--ks-text-muted)] uppercase"
-          >
-            {{ t('recruitment.submitted') }}
-          </dt>
-          <dd class="mt-2 text-sm font-semibold">{{ date(candidate.submittedAt) }}</dd>
-        </div>
-        <div class="p-4 sm:p-5">
-          <dt
-            class="text-[0.68rem] font-bold tracking-[0.1em] text-[var(--ks-text-muted)] uppercase"
-          >
-            {{ t('recruitment.firstResponse') }}
-          </dt>
-          <dd class="mt-2 text-sm font-semibold">{{ date(candidate.firstRespondedAt) }}</dd>
-        </div>
-        <div class="p-4 sm:p-5">
-          <dt
-            class="text-[0.68rem] font-bold tracking-[0.1em] text-[var(--ks-text-muted)] uppercase"
-          >
-            {{ t('recruitment.nextAction') }}
-          </dt>
-          <dd class="mt-2 text-sm font-semibold">{{ date(candidate.nextActionAt) }}</dd>
-        </div>
-      </dl>
+    <section class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <StatSeal :label="t('recruitment.source')" :value="candidate.source || t('recruitment.unspecified')" icon="◇" />
+      <StatSeal :label="t('recruitment.submitted')" :value="date(candidate.submittedAt)" icon="◷" tone="stone" />
+      <StatSeal :label="t('recruitment.firstResponse')" :value="date(candidate.firstRespondedAt)" icon="✉" tone="teal" />
+      <StatSeal :label="t('recruitment.nextAction')" :value="date(candidate.nextActionAt)" icon="→" />
     </section>
 
     <div
       v-if="issuedMembershipInvitationLink"
-      class="mt-4 rounded-[var(--ks-radius-md)] border border-green-400/25 bg-green-500/10 p-4 text-sm text-green-200"
+      class="mt-5 rounded-[var(--ks-radius-md)] border border-emerald-400/25 bg-emerald-500/[.07] p-4"
       role="status"
     >
-      <a
-        class="block break-all underline"
-        :href="issuedMembershipInvitationLink"
-        target="_blank"
-        rel="noopener noreferrer"
-        >{{ issuedMembershipInvitationLink }}</a
-      >
+      <p class="ks-kicker text-emerald-200">{{ t('recruitment.issuedLink') }}</p>
+      <a class="mt-2 block break-all text-sm text-emerald-100 underline" :href="issuedMembershipInvitationLink" target="_blank" rel="noopener noreferrer">
+        {{ issuedMembershipInvitationLink }}
+      </a>
     </div>
 
-    <div class="mt-5 grid gap-5 xl:grid-cols-3">
-      <section
-        class="ks-surface p-5 sm:p-6 xl:sticky xl:top-24 xl:col-span-1 xl:self-start"
-        aria-labelledby="stage-heading"
-      >
-        <h2 id="stage-heading" class="ks-display text-xl font-semibold">
-          {{ t('recruitment.stageNextAction') }}
-        </h2>
-        <form v-if="stageOptions.length" class="mt-5 space-y-4" @submit.prevent="updateStage">
-          <div>
-            <label
-              class="text-xs font-semibold text-[var(--ks-text-secondary)]"
-              for="candidate-stage"
-              >{{ t('recruitment.moveTo') }}</label
-            >
-            <select
-              id="candidate-stage"
-              v-model="stageForm.stage"
-              class="mt-1.5 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
-            >
-              <option v-for="stage in stageOptions" :key="stage" :value="stage" class="capitalize">
-                {{ stage }}
-              </option>
-            </select>
-          </div>
-          <div>
-            <label
-              class="text-xs font-semibold text-[var(--ks-text-secondary)]"
-              for="candidate-next-action"
-              >{{ t('recruitment.nextAction') }}</label
-            >
-            <input
-              id="candidate-next-action"
-              v-model="stageForm.next_action_at"
-              class="mt-1.5 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
-              type="datetime-local"
-            />
-          </div>
-          <div>
-            <label
-              class="text-xs font-semibold text-[var(--ks-text-secondary)]"
-              for="candidate-stage-reason"
-              >{{ t('recruitment.internalReason') }}</label
-            >
-            <textarea
-              id="candidate-stage-reason"
-              v-model="stageForm.reason"
-              class="mt-1.5 min-h-24 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
-              maxlength="5000"
-            />
-          </div>
-          <button
-            class="min-h-10 w-full rounded-[var(--ks-radius-sm)] bg-[var(--ks-blue)] px-4 py-2 text-sm font-semibold text-[var(--ks-ivory)]"
-            type="submit"
-          >
-            {{ t('recruitment.updateStage') }}
-          </button>
-        </form>
-        <p v-else class="mt-4 text-sm text-[var(--ks-text-muted)]">
-          {{ t('recruitment.noTransitions') }}
-        </p>
-
-        <div
-          v-if="candidate.stage === 'accepted'"
-          class="mt-5 border-t border-[var(--ks-border)] pt-5"
-        >
-          <select
-            v-if="!candidate.membershipInvitationId"
-            v-model="conversionForm.player_id"
-            class="mb-3 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
-            :aria-label="t('recruitment.choosePlayer')"
-          >
-            <option value="">{{ t('recruitment.choosePlayer') }}</option>
-            <option v-for="player in conversionPlayers" :key="player.id" :value="player.id">
-              {{ player.name }}
-            </option>
-          </select>
-          <button
-            class="w-full rounded-[var(--ks-radius-sm)] border border-green-400/25 bg-green-500/10 px-4 py-2 text-sm font-semibold text-green-200 disabled:cursor-not-allowed disabled:opacity-50"
-            type="button"
-            :disabled="!candidate.membershipInvitationId && !conversionForm.player_id"
-            @click="convertCandidate"
-          >
-            {{
-              candidate.membershipInvitationId
-                ? t('recruitment.existingInvitation')
-                : t('recruitment.createMembershipInvitation')
-            }}
-          </button>
-          <p class="mt-2 text-xs leading-5 text-[var(--ks-text-muted)]">
-            {{ t('recruitment.conversionHelp') }}
-          </p>
-        </div>
-        <p v-if="candidate.retentionDueAt" class="mt-4 text-xs text-amber-300">
-          {{ t('recruitment.retentionDue', { date: date(candidate.retentionDueAt) }) }}
-        </p>
-      </section>
-
-      <div class="min-w-0 space-y-5 xl:col-span-2">
-        <section class="ks-surface p-5 sm:p-6" aria-labelledby="answers-heading">
-          <h2 id="answers-heading" class="ks-display text-xl font-semibold">
-            {{ t('recruitment.answers') }}
+    <div class="mt-5 grid gap-5 2xl:grid-cols-[minmax(20rem,.55fr)_minmax(0,1.45fr)]">
+      <aside class="space-y-5">
+        <section class="ks-surface p-5 2xl:sticky 2xl:top-[6.5rem]" aria-labelledby="candidate-actions-heading">
+          <p class="ks-kicker">{{ t('recruitment.stageNextAction') }}</p>
+          <h2 id="candidate-actions-heading" class="ks-display mt-1 text-xl font-semibold">
+            {{ humanize(candidate.stage) }}
           </h2>
-          <dl v-if="answers.length" class="mt-4 grid gap-3 md:grid-cols-2">
-            <div
-              v-for="answer in answers"
-              :key="answer.id"
-              class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-4"
-            >
-              <dt class="font-semibold">{{ answer.prompt }}</dt>
-              <dd class="mt-2 text-sm whitespace-pre-line text-[var(--ks-text-secondary)]">
-                {{ displayAnswer(answer.answer) }}
-              </dd>
-            </div>
-          </dl>
-          <p v-else class="mt-4 text-sm text-[var(--ks-text-muted)]">
-            {{ t('recruitment.noAnswers') }}
-          </p>
-        </section>
 
-        <div class="grid gap-5 lg:grid-cols-2">
-          <section class="ks-surface p-5" aria-labelledby="review-heading">
-            <h2 id="review-heading" class="ks-display text-xl font-semibold">
-              {{ t('recruitment.reviewersTags') }}
-            </h2>
-            <div class="mt-4 flex flex-wrap gap-2">
-              <span
-                v-for="reviewer in reviewers"
-                :key="reviewer.id"
-                class="rounded-full border border-[var(--ks-border)] bg-[var(--ks-teal-soft)] px-3 py-1 text-sm text-[var(--ks-gold-bright)]"
-                >{{ reviewer.name }}</span
-              >
-              <span v-if="!reviewers.length" class="text-sm text-[var(--ks-text-muted)]">{{
-                t('recruitment.noReviewer')
-              }}</span>
+          <form v-if="stageOptions.length" class="mt-5 space-y-3" @submit.prevent="updateStage">
+            <div>
+              <label class="text-xs font-semibold" for="candidate-stage">{{ t('recruitment.moveTo') }}</label>
+              <select id="candidate-stage" v-model="stageForm.stage" class="ks-input mt-1.5">
+                <option v-for="stage in stageOptions" :key="stage" :value="stage">{{ humanize(stage) }}</option>
+              </select>
             </div>
-            <form class="mt-4 flex gap-2" @submit.prevent="assignReviewer">
-              <select
-                v-model="reviewerForm.player_id"
-                class="min-w-0 flex-1 rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
-                :aria-label="t('recruitment.chooseReviewer')"
-              >
-                <option value="">{{ t('recruitment.chooseReviewer') }}</option>
-                <option v-for="member in members" :key="member.id" :value="member.id">
-                  {{ member.name }} · {{ member.rank.toUpperCase() }}
+            <div>
+              <label class="text-xs font-semibold" for="candidate-next-action">{{ t('recruitment.nextAction') }}</label>
+              <input id="candidate-next-action" v-model="stageForm.next_action_at" class="ks-input mt-1.5" type="datetime-local" />
+            </div>
+            <div>
+              <label class="text-xs font-semibold" for="candidate-stage-reason">{{ t('recruitment.reason') }}</label>
+              <textarea id="candidate-stage-reason" v-model="stageForm.reason" class="ks-input mt-1.5 min-h-20" maxlength="5000" />
+            </div>
+            <AppButton class="w-full" type="submit" :disabled="stageForm.processing">{{ t('recruitment.updateStage') }}</AppButton>
+          </form>
+
+          <div class="my-5 ks-divider" />
+
+          <form class="space-y-3" @submit.prevent="assignReviewer">
+            <p class="ks-kicker">{{ t('recruitment.reviewers') }}</p>
+            <select v-model="reviewerForm.player_id" class="ks-input">
+              <option value="">{{ t('recruitment.selectReviewer') }}</option>
+              <option v-for="member in members" :key="member.id" :value="member.id">{{ member.name }} · {{ member.rank.toUpperCase() }}</option>
+            </select>
+            <AppButton class="w-full" variant="ghost" type="submit" :disabled="reviewerForm.processing || !reviewerForm.player_id">
+              {{ t('recruitment.assignReviewer') }}
+            </AppButton>
+            <div v-if="reviewers.length" class="flex flex-wrap gap-2">
+              <span v-for="reviewer in reviewers" :key="reviewer.id" class="ks-chip">{{ reviewer.name }}</span>
+            </div>
+          </form>
+
+          <template v-if="conversionPlayers.length">
+            <div class="my-5 ks-divider" />
+            <form class="space-y-3" @submit.prevent="convertCandidate">
+              <p class="ks-kicker">{{ t('recruitment.convertCandidate') }}</p>
+              <select v-model="conversionForm.player_id" class="ks-input">
+                <option value="">{{ t('recruitment.selectPlayer') }}</option>
+                <option v-for="player in conversionPlayers" :key="player.id" :value="player.id">
+                  {{ player.name }}{{ player.claimed ? ` · ${t('recruitment.claimed')}` : '' }}
                 </option>
               </select>
-              <button
-                class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] px-3 py-2 text-sm font-semibold"
-                type="submit"
-              >
-                {{ t('recruitment.assign') }}
-              </button>
+              <AppButton class="w-full" type="submit" :disabled="conversionForm.processing || !conversionForm.player_id">
+                {{ t('recruitment.convertCandidate') }}
+              </AppButton>
             </form>
-            <div class="mt-5 flex flex-wrap gap-2">
-              <span
-                v-for="tagItem in tags"
-                :key="tagItem.id"
-                class="rounded-full border border-[var(--ks-border)] px-3 py-1 text-sm"
-                >{{ tagItem.name }}</span
-              >
-            </div>
-            <form class="mt-3 flex gap-2" @submit.prevent="addTag">
-              <label class="sr-only" for="candidate-tag">{{ t('recruitment.addTag') }}</label>
-              <input
-                id="candidate-tag"
-                v-model="tagForm.name"
-                class="min-w-0 flex-1 rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
-                maxlength="80"
-                :placeholder="t('recruitment.addTag')"
-              />
-              <button
-                class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] px-3 py-2 text-sm font-semibold"
-                type="submit"
-              >
-                {{ t('recruitment.tag') }}
-              </button>
-            </form>
-          </section>
+          </template>
+        </section>
+      </aside>
 
+      <div class="min-w-0 space-y-5">
+        <section class="ks-surface p-5 sm:p-6" aria-labelledby="answers-heading">
+          <div class="flex items-end justify-between gap-3">
+            <div>
+              <p class="ks-kicker">{{ t('recruitment.answers') }}</p>
+              <h2 id="answers-heading" class="ks-display mt-1 text-2xl font-semibold">{{ t('recruitment.application') }}</h2>
+            </div>
+            <span class="ks-chip" data-active="true">{{ formatNumber(answers.length) }}</span>
+          </div>
+          <dl v-if="answers.length" class="mt-5 grid gap-3 md:grid-cols-2">
+            <div v-for="answer in answers" :key="answer.id" class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-4">
+              <dt class="text-xs font-semibold text-[var(--ks-muted)]">{{ answer.prompt }}</dt>
+              <dd class="mt-2 whitespace-pre-line text-sm leading-6 text-[var(--ks-text-secondary)]">{{ displayAnswer(answer.answer) }}</dd>
+            </div>
+          </dl>
+          <div v-else class="ks-fantasy-empty mt-4">{{ t('recruitment.noAnswers') }}</div>
+        </section>
+
+        <div class="grid gap-5 xl:grid-cols-2">
           <section class="ks-surface p-5" aria-labelledby="notes-heading">
-            <h2 id="notes-heading" class="ks-display text-xl font-semibold">
-              {{ t('recruitment.privateNotes') }}
-            </h2>
-            <form class="mt-4" @submit.prevent="addNote">
-              <label class="sr-only" for="new-recruitment-note">{{
-                t('recruitment.newPrivateNote')
-              }}</label>
-              <textarea
-                id="new-recruitment-note"
-                v-model="noteForm.body"
-                class="min-h-28 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
-                maxlength="10000"
-                :placeholder="t('recruitment.notePlaceholder')"
-                required
-              />
-              <button
-                class="mt-2 rounded-[var(--ks-radius-sm)] border border-[var(--ks-gold)]/45 bg-[var(--ks-gold-soft)] px-3 py-2 text-sm font-semibold text-[var(--ks-gold-strong)]"
-                type="submit"
-              >
-                {{ t('recruitment.addNote') }}
-              </button>
+            <p class="ks-kicker">{{ t('recruitment.notes') }}</p>
+            <h2 id="notes-heading" class="ks-display mt-1 text-xl font-semibold">{{ t('recruitment.internalNotes') }}</h2>
+            <form class="mt-4 space-y-3" @submit.prevent="addNote">
+              <textarea v-model="noteForm.body" class="ks-input min-h-24" maxlength="5000" required />
+              <AppButton type="submit" variant="ghost" :disabled="noteForm.processing">{{ t('recruitment.addNote') }}</AppButton>
             </form>
-            <div v-if="notes.length" class="mt-5 max-h-80 space-y-3 overflow-y-auto">
-              <article
-                v-for="note in notes"
-                :key="note.id"
-                class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/15 p-3"
-              >
-                <p class="text-sm whitespace-pre-line text-[var(--ks-text-secondary)]">
-                  {{ note.body }}
-                </p>
-                <p class="mt-2 text-xs text-[var(--ks-text-muted)]">
-                  {{ note.author }} · {{ date(note.createdAt) }}
-                </p>
+            <div v-if="notes.length" class="mt-5 space-y-2 border-t border-[var(--ks-border)] pt-4">
+              <article v-for="note in notes" :key="note.id" class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/15 p-3">
+                <p class="text-sm leading-6 whitespace-pre-line">{{ note.body }}</p>
+                <p class="mt-2 text-xs text-[var(--ks-muted)]">{{ note.author }} · {{ date(note.createdAt) }}</p>
               </article>
             </div>
+          </section>
+
+          <section class="ks-surface p-5" aria-labelledby="tags-heading">
+            <p class="ks-kicker">{{ t('recruitment.tags') }}</p>
+            <h2 id="tags-heading" class="ks-display mt-1 text-xl font-semibold">{{ t('recruitment.tags') }}</h2>
+            <form class="mt-4 grid grid-cols-[1fr_auto] gap-2" @submit.prevent="addTag">
+              <input v-model="tagForm.name" class="ks-input" maxlength="80" required />
+              <AppButton type="submit" variant="ghost" :disabled="tagForm.processing">{{ t('recruitment.addTag') }}</AppButton>
+            </form>
+            <div v-if="tags.length" class="mt-4 flex flex-wrap gap-2">
+              <span v-for="tag in tags" :key="tag.id" class="ks-chip">{{ tag.name }}</span>
+            </div>
+            <div v-else class="ks-fantasy-empty mt-4">{{ t('recruitment.noTags') }}</div>
           </section>
         </div>
 
         <section class="ks-surface p-5 sm:p-6" aria-labelledby="communications-heading">
-          <h2 id="communications-heading" class="ks-display text-xl font-semibold">
-            {{ t('recruitment.communications') }}
-          </h2>
-          <form
-            v-if="decisionTemplates.length"
-            class="mt-4 flex flex-col gap-3 sm:flex-row"
-            @submit.prevent="prepareCommunication"
-          >
-            <select
-              v-model="communicationForm.template_id"
-              class="min-w-0 flex-1 rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
-              :aria-label="t('recruitment.chooseTemplate')"
-            >
-              <option value="">{{ t('recruitment.chooseTemplate') }}</option>
-              <option v-for="template in decisionTemplates" :key="template.id" :value="template.id">
-                {{ template.name }} · {{ template.subject }}
-              </option>
+          <div class="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p class="ks-kicker">{{ t('recruitment.communications') }}</p>
+              <h2 id="communications-heading" class="ks-display mt-1 text-xl font-semibold">{{ t('recruitment.decisionTemplates') }}</h2>
+            </div>
+            <span class="ks-chip">{{ communications.length }}</span>
+          </div>
+          <form v-if="decisionTemplates.length" class="mt-4 grid gap-2 sm:grid-cols-[1fr_auto]" @submit.prevent="prepareCommunication">
+            <select v-model="communicationForm.template_id" class="ks-input">
+              <option value="">{{ t('recruitment.selectTemplate') }}</option>
+              <option v-for="template in decisionTemplates" :key="template.id" :value="template.id">{{ template.name }} · {{ humanize(template.decisionStage) }}</option>
             </select>
-            <button
-              class="rounded-[var(--ks-radius-sm)] bg-[var(--ks-blue)] px-4 py-2 text-sm font-semibold text-[var(--ks-ivory)]"
-              type="submit"
-            >
-              {{ t('recruitment.prepareCommunication') }}
-            </button>
+            <AppButton type="submit" :disabled="communicationForm.processing || !communicationForm.template_id">{{ t('recruitment.prepareCommunication') }}</AppButton>
           </form>
-          <div v-if="communications.length" class="mt-5 space-y-3">
-            <article
-              v-for="communication in communications"
-              :key="communication.id"
-              class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-4"
-            >
-              <div class="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <h3 class="font-semibold">{{ communication.subject }}</h3>
-                  <p class="mt-1 text-xs text-[var(--ks-text-muted)]">
-                    {{ communication.status }} ·
-                    {{ date(communication.sentAt ?? communication.createdAt) }}
-                  </p>
+          <div v-if="communications.length" class="mt-5 grid gap-3 md:grid-cols-2">
+            <article v-for="communication in communications" :key="communication.id" class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-4">
+              <div class="flex items-start justify-between gap-3">
+                <div class="min-w-0">
+                  <strong class="block truncate">{{ communication.subject }}</strong>
+                  <p class="mt-1 text-xs text-[var(--ks-muted)]">{{ date(communication.sentAt ?? communication.createdAt) }}</p>
                 </div>
-                <button
-                  v-if="communication.status !== 'sent'"
-                  class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] px-3 py-1.5 text-xs font-semibold"
-                  type="button"
-                  @click="markCommunicationSent(communication.id)"
-                >
-                  {{ t('recruitment.markSent') }}
-                </button>
+                <span class="ks-status" :data-tone="communication.status === 'sent' ? 'success' : 'warning'">{{ humanize(communication.status) }}</span>
               </div>
-              <p class="mt-3 text-sm whitespace-pre-line text-[var(--ks-text-secondary)]">
-                {{ communication.body }}
-              </p>
+              <p class="mt-3 line-clamp-4 text-sm leading-6 whitespace-pre-line text-[var(--ks-text-secondary)]">{{ communication.body }}</p>
+              <button v-if="communication.status !== 'sent'" type="button" class="ks-command-button mt-3 w-full" data-variant="secondary" @click="markCommunicationSent(communication.id)">
+                {{ t('recruitment.markSent') }}
+              </button>
             </article>
           </div>
-          <p v-else class="mt-4 text-sm text-[var(--ks-text-muted)]">
-            {{ t('recruitment.noCommunications') }}
-          </p>
+          <div v-else class="ks-fantasy-empty mt-4">{{ t('recruitment.noCommunications') }}</div>
         </section>
 
         <section class="ks-surface p-5 sm:p-6" aria-labelledby="onboarding-heading">
-          <h2 id="onboarding-heading" class="ks-display text-xl font-semibold">
-            {{ t('recruitment.onboardingProgress') }}
-          </h2>
+          <div class="flex items-end justify-between gap-3">
+            <div>
+              <p class="ks-kicker">{{ t('recruitment.onboarding') }}</p>
+              <h2 id="onboarding-heading" class="ks-display mt-1 text-xl font-semibold">{{ t('recruitment.onboardingProgress') }}</h2>
+            </div>
+            <span class="ks-chip">{{ onboarding.length }}</span>
+          </div>
           <div v-if="onboarding.length" class="mt-4 grid gap-3 md:grid-cols-2">
-            <article
-              v-for="item in onboarding"
-              :key="item.id"
-              class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-4"
-            >
+            <article v-for="item in onboarding" :key="item.id" class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-4">
               <div class="flex items-start justify-between gap-3">
                 <div>
                   <h3 class="font-semibold">{{ item.name }}</h3>
-                  <p
-                    v-if="item.description"
-                    class="mt-1 text-xs leading-5 text-[var(--ks-text-muted)]"
-                  >
-                    {{ item.description }}
-                  </p>
+                  <p v-if="item.description" class="mt-1 text-xs leading-5 text-[var(--ks-muted)]">{{ item.description }}</p>
                 </div>
-                <span
-                  :class="onboardingTone(item.status)"
-                  class="rounded-full border px-2.5 py-1 text-xs font-semibold capitalize"
-                  >{{ item.status }}</span
-                >
+                <span class="ks-status" :data-tone="onboardingTone(item.status)">{{ humanize(item.status) }}</span>
               </div>
-              <label
-                class="mt-4 block text-xs font-semibold text-[var(--ks-text-secondary)]"
-                :for="`onboarding-${item.id}`"
-                >{{ t('recruitment.stage') }}</label
-              >
-              <select
-                :id="`onboarding-${item.id}`"
-                class="mt-1.5 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2 text-sm"
-                :value="item.status"
-                @change="updateOnboardingFromEvent(item.id, $event)"
-              >
-                <option v-for="status in onboardingStatusOptions" :key="status" :value="status">
-                  {{ status }}
-                </option>
+              <select class="ks-input mt-4" :value="item.status" @change="updateOnboardingFromEvent(item.id, $event)">
+                <option v-for="status in onboardingStatusOptions" :key="status" :value="status">{{ humanize(status) }}</option>
               </select>
             </article>
           </div>
-          <p v-else class="mt-4 text-sm text-[var(--ks-text-muted)]">
-            {{ t('recruitment.noOnboarding') }}
-          </p>
+          <div v-else class="ks-fantasy-empty mt-4">{{ t('recruitment.noOnboarding') }}</div>
         </section>
 
         <div class="grid gap-5 lg:grid-cols-2">
           <section class="ks-surface p-5" aria-labelledby="history-heading">
-            <h2 id="history-heading" class="ks-display text-xl font-semibold">
-              {{ t('recruitment.stageHistory') }}
-            </h2>
-            <ol v-if="history.length" class="mt-4 space-y-3">
-              <li
-                v-for="entry in history"
-                :key="entry.id"
-                class="border-s-2 border-[var(--ks-border-strong)] ps-4"
-              >
+            <p class="ks-kicker">{{ t('recruitment.stageHistory') }}</p>
+            <h2 id="history-heading" class="sr-only">{{ t('recruitment.stageHistory') }}</h2>
+            <ol v-if="history.length" class="mt-4 space-y-4">
+              <li v-for="entry in history" :key="entry.id" class="relative border-s border-[var(--ks-border-strong)] ps-5">
+                <span class="absolute -start-1.5 top-1 h-3 w-3 rounded-full border border-[var(--ks-gold-dark)] bg-[var(--ks-teal)]" aria-hidden="true" />
                 <div class="flex flex-wrap items-center gap-2 text-sm">
-                  <span v-if="entry.from" class="text-[var(--ks-text-muted)] capitalize">{{
-                    entry.from
-                  }}</span
-                  ><span v-if="entry.from">→</span
-                  ><strong class="capitalize">{{ entry.to }}</strong>
+                  <span v-if="entry.from" class="text-[var(--ks-muted)]">{{ humanize(entry.from) }}</span><span v-if="entry.from">→</span><strong>{{ humanize(entry.to) }}</strong>
                 </div>
-                <p class="mt-1 text-xs text-[var(--ks-text-muted)]">{{ date(entry.changedAt) }}</p>
-                <p v-if="entry.reason" class="mt-2 text-sm text-[var(--ks-text-secondary)]">
-                  {{ entry.reason }}
-                </p>
+                <p class="mt-1 text-xs text-[var(--ks-muted)]">{{ date(entry.changedAt) }}</p>
+                <p v-if="entry.reason" class="mt-2 text-sm text-[var(--ks-text-secondary)]">{{ entry.reason }}</p>
               </li>
             </ol>
-            <p v-else class="mt-4 text-sm text-[var(--ks-text-muted)]">
-              {{ t('recruitment.noHistory') }}
-            </p>
+            <div v-else class="ks-fantasy-empty mt-4">{{ t('recruitment.noHistory') }}</div>
           </section>
 
           <section class="ks-surface p-5" aria-labelledby="duplicates-heading">
-            <h2 id="duplicates-heading" class="ks-display text-xl font-semibold">
-              {{ t('recruitment.duplicateCandidates') }}
-            </h2>
-            <p class="mt-2 text-xs leading-5 text-[var(--ks-text-muted)]">
-              {{ t('recruitment.duplicateHelp') }}
-            </p>
-            <label
-              v-if="duplicates.length"
-              class="mt-4 block text-xs font-semibold text-[var(--ks-text-secondary)]"
-              for="merge-reason"
-              >{{ t('recruitment.mergeReason') }}</label
-            >
-            <textarea
-              v-if="duplicates.length"
-              id="merge-reason"
-              v-model="mergeReason.reason"
-              class="mt-1.5 min-h-20 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
-              maxlength="5000"
-            />
-            <div v-if="duplicates.length" class="mt-4 space-y-3">
-              <article
-                v-for="duplicate in duplicates"
-                :key="duplicate.id"
-                class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/15 p-3"
-              >
-                <div class="flex items-start justify-between gap-3">
-                  <div class="min-w-0">
-                    <p class="truncate font-semibold">{{ duplicate.name }}</p>
-                    <p class="mt-1 truncate text-xs text-[var(--ks-text-muted)]">
-                      {{ duplicate.email }}
-                    </p>
-                    <p class="mt-1 text-xs text-[var(--ks-text-muted)]">
-                      {{ date(duplicate.submittedAt) }}
-                    </p>
+            <p class="ks-kicker">{{ t('recruitment.duplicateCandidates') }}</p>
+            <h2 id="duplicates-heading" class="sr-only">{{ t('recruitment.duplicateCandidates') }}</h2>
+            <p class="mt-2 text-xs leading-5 text-[var(--ks-muted)]">{{ t('recruitment.duplicateHelp') }}</p>
+            <template v-if="duplicates.length">
+              <textarea v-model="mergeReason.reason" class="ks-input mt-4 min-h-20" maxlength="5000" :placeholder="t('recruitment.mergeReason')" />
+              <div class="mt-4 space-y-2">
+                <article v-for="duplicate in duplicates" :key="duplicate.id" class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/15 p-3">
+                  <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0"><p class="truncate font-semibold">{{ duplicate.name }}</p><p class="mt-1 truncate text-xs text-[var(--ks-muted)]">{{ duplicate.email }} · {{ date(duplicate.submittedAt) }}</p></div>
+                    <span class="ks-status" :data-tone="stageTone(duplicate.stage)">{{ humanize(duplicate.stage) }}</span>
                   </div>
-                  <span
-                    :class="stageTone(duplicate.stage)"
-                    class="rounded-full border px-2 py-1 text-xs capitalize"
-                    >{{ duplicate.stage }}</span
-                  >
-                </div>
-                <button
-                  class="mt-3 rounded-[var(--ks-radius-sm)] border border-red-400/20 bg-red-500/5 px-3 py-1.5 text-xs font-semibold text-red-300"
-                  type="button"
-                  @click="mergeInto(duplicate.id)"
-                >
-                  {{ t('recruitment.mergeInto') }}
-                </button>
-              </article>
-            </div>
-            <p v-else class="mt-4 text-sm text-[var(--ks-text-muted)]">
-              {{ t('recruitment.noDuplicates') }}
-            </p>
+                  <AppButton class="mt-3" variant="danger" type="button" @click="mergeInto(duplicate.id)">{{ t('recruitment.mergeInto') }}</AppButton>
+                </article>
+              </div>
+            </template>
+            <div v-else class="ks-fantasy-empty mt-4">{{ t('recruitment.noDuplicates') }}</div>
           </section>
         </div>
       </div>
