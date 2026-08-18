@@ -71,14 +71,12 @@ const playerContext = computed<SharedPlayerContext>(
       players: [],
     },
 );
-const activePlayer = computed(
-  () =>
-    playerContext.value.players.find(
-      (player) => player.id === playerContext.value.activePlayerId,
-    ) ??
-    playerContext.value.players[0] ??
-    null,
-);
+const activePlayer = computed(() => {
+  const activePlayerId = playerContext.value.activePlayerId;
+  if (!activePlayerId) return null;
+
+  return playerContext.value.players.find((player) => player.id === activePlayerId) ?? null;
+});
 const currentPath = computed(() => page.url.split('?')[0]?.replace(/\/+$/, '') || '/');
 
 const rooms: NavigationItem[] = [
