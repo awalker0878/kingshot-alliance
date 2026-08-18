@@ -106,7 +106,10 @@ const rooms: NavigationItem[] = [
 
 function isDisabled(item: NavigationItem): boolean {
   if (item.allianceScoped === true && !hasActiveAlliance.value) return true;
-  if (item.requiredCapability && !playerHasCapability(activePlayer.value, item.requiredCapability)) {
+  if (
+    item.requiredCapability &&
+    !playerHasCapability(activePlayer.value, item.requiredCapability)
+  ) {
     return true;
   }
 
