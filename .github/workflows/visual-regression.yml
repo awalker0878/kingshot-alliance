@@ -104,7 +104,7 @@ jobs:
 
       - name: Upload visual failure evidence
         if: failure()
-        uses: actions/upload-artifact@dcd7d59e9d2722a30ca9e6c79fb303ca8ac08048 # v7.0.1
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ux-p9-visual-failure
           path: |
