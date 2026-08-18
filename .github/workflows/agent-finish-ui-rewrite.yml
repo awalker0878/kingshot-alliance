@@ -29,13 +29,27 @@ jobs:
         run: npm ci --no-audit --no-fund
 
       - name: Rewrite remaining legacy screens
-        run: python3 scripts/agent-finish-ui-rewrite.py
+        shell: bash
+        run: |
+          python3 scripts/agent-finish-ui-rewrite.py
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('resources/js/pages/Kingdom/Transfer/Completion.vue')
+          text = path.read_text()
+          old = 'const { t, formatDate, formatNumber } = useLocale();'
+          if old not in text:
+              raise SystemExit('Transfer Completion locale destructure was not found after rewrite.')
+          path.write_text(text.replace(old, 'const { t, formatDate } = useLocale();', 1))
+          PY
+
+      - name: Normalize Event organizer lint order
+        run: npx eslint --fix resources/js/pages/Operations/Events/Manage.vue
 
       - name: Format rewritten screens
-        run: npx prettier --write resources/js/pages/Kingdom/RoyalCourt/Roles.vue resources/js/pages/Kingdom/RoyalCourt/Settings.vue resources/js/pages/Kingdom/Transfer/Completion.vue resources/js/pages/Intelligence/GloryLedger/Manage.vue resources/js/pages/Intelligence/KingdomWatch/Reports.vue resources/js/pages/Intelligence/Roster/History.vue resources/js/pages/Intelligence/Sharing/Index.vue resources/js/pages/Intelligence/Sharing/Manage.vue resources/js/pages/Public/Alliance/Show.vue resources/js/pages/Public/Alliance/Notice.vue resources/js/pages/Public/Recruitment/Apply.vue
+        run: npx prettier --write resources/js/pages/Operations/Events/Manage.vue resources/js/pages/Kingdom/RoyalCourt/Roles.vue resources/js/pages/Kingdom/RoyalCourt/Settings.vue resources/js/pages/Kingdom/Transfer/Completion.vue resources/js/pages/Intelligence/GloryLedger/Manage.vue resources/js/pages/Intelligence/KingdomWatch/Reports.vue resources/js/pages/Intelligence/Roster/History.vue resources/js/pages/Intelligence/Sharing/Index.vue resources/js/pages/Intelligence/Sharing/Manage.vue resources/js/pages/Public/Alliance/Show.vue resources/js/pages/Public/Alliance/Notice.vue resources/js/pages/Public/Recruitment/Apply.vue
 
       - name: Lint rewritten screens
-        run: npx eslint resources/js/pages/Kingdom/RoyalCourt/Roles.vue resources/js/pages/Kingdom/RoyalCourt/Settings.vue resources/js/pages/Kingdom/Transfer/Completion.vue resources/js/pages/Intelligence/GloryLedger/Manage.vue resources/js/pages/Intelligence/KingdomWatch/Reports.vue resources/js/pages/Intelligence/Roster/History.vue resources/js/pages/Intelligence/Sharing/Index.vue resources/js/pages/Intelligence/Sharing/Manage.vue resources/js/pages/Public/Alliance/Show.vue resources/js/pages/Public/Alliance/Notice.vue resources/js/pages/Public/Recruitment/Apply.vue
+        run: npx eslint resources/js/pages/Operations/Events/Manage.vue resources/js/pages/Kingdom/RoyalCourt/Roles.vue resources/js/pages/Kingdom/RoyalCourt/Settings.vue resources/js/pages/Kingdom/Transfer/Completion.vue resources/js/pages/Intelligence/GloryLedger/Manage.vue resources/js/pages/Intelligence/KingdomWatch/Reports.vue resources/js/pages/Intelligence/Roster/History.vue resources/js/pages/Intelligence/Sharing/Index.vue resources/js/pages/Intelligence/Sharing/Manage.vue resources/js/pages/Public/Alliance/Show.vue resources/js/pages/Public/Alliance/Notice.vue resources/js/pages/Public/Recruitment/Apply.vue
 
       - name: Run full frontend checks
         run: npm run check
