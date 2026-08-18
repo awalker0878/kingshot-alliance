@@ -2,6 +2,9 @@
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 
+import RoomBanner from '@/components/game/RoomBanner.vue';
+import StatSeal from '@/components/game/StatSeal.vue';
+import AppButton from '@/components/ui/AppButton.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
@@ -89,18 +92,12 @@ function credentialState(revokedAt: string | null): string {
   return revokedAt ? t('integrationExperience.revoked') : t('integrationExperience.active');
 }
 
-function stateTone(state: string): string {
+function stateTone(state: string): 'success' | 'warning' | 'danger' | 'info' {
   const normalized = state.toLowerCase();
-  if (['active', 'delivered', 'success', 'succeeded'].includes(normalized)) {
-    return 'border-green-400/25 bg-green-500/10 text-green-200';
-  }
-  if (['failed', 'revoked', 'dead', 'exhausted'].includes(normalized)) {
-    return 'border-red-400/25 bg-red-500/10 text-red-200';
-  }
-  if (['pending', 'queued', 'retrying'].includes(normalized)) {
-    return 'border-amber-400/25 bg-amber-500/10 text-amber-200';
-  }
-  return 'border-[var(--ks-border)] bg-[var(--ks-teal-soft)] text-[var(--ks-gold-bright)]';
+  if (['active', 'delivered', 'success', 'succeeded'].includes(normalized)) return 'success';
+  if (['failed', 'revoked', 'dead', 'exhausted'].includes(normalized)) return 'danger';
+  if (['pending', 'queued', 'retrying'].includes(normalized)) return 'warning';
+  return 'info';
 }
 </script>
 
@@ -108,140 +105,100 @@ function stateTone(state: string): string {
   <Head :title="`${t('integrationExperience.title')} · ${alliance.name}`" />
 
   <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
-    <header class="max-w-3xl">
-      <p class="text-xs font-bold tracking-[0.2em] text-[var(--ks-gold)] uppercase">
-        {{ t('integrationExperience.eyebrow') }}
-      </p>
-      <h1 class="ks-display mt-2 text-3xl font-bold sm:text-4xl">
-        {{ t('integrationExperience.title') }}
-      </h1>
-      <p class="mt-3 text-sm leading-6 text-[var(--ks-text-secondary)]">
-        {{ t('integrationExperience.subtitle', { alliance: alliance.name }) }}
-      </p>
-      <p
-        v-if="status"
-        class="mt-4 rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/15 p-3 text-sm text-[var(--ks-text-secondary)]"
-        role="status"
-      >
-        {{ status }}
-      </p>
-    </header>
+    <RoomBanner
+      :eyebrow="t('integrationExperience.eyebrow')"
+      :title="t('integrationExperience.title')"
+      :subtitle="t('integrationExperience.subtitle', { alliance: alliance.name })"
+      image="/images/kingshot/v4/connections.svg"
+    />
 
-    <section class="ks-surface-gold mt-6 overflow-hidden">
-      <dl
-        class="grid grid-cols-2 divide-x divide-y divide-[var(--ks-border)] md:grid-cols-5 md:divide-y-0"
-      >
-        <div class="p-4 sm:p-5">
-          <dt class="text-[0.68rem] font-bold tracking-[0.1em] text-green-300 uppercase">
-            {{ t('integrationExperience.activeCredentials') }}
-          </dt>
-          <dd class="ks-display mt-2 text-3xl font-semibold">
-            {{ formatNumber(activeCredentialCount) }}
-          </dd>
-        </div>
-        <div class="p-4 sm:p-5">
-          <dt
-            class="text-[0.68rem] font-bold tracking-[0.1em] text-[var(--ks-text-muted)] uppercase"
-          >
-            {{ t('integrationExperience.credentialLimit') }}
-          </dt>
-          <dd class="ks-display mt-2 text-3xl font-semibold">
-            {{ formatNumber(limits.apiCredentials) }}
-          </dd>
-        </div>
-        <div class="p-4 sm:p-5">
-          <dt class="text-[0.68rem] font-bold tracking-[0.1em] text-green-300 uppercase">
-            {{ t('integrationExperience.activeWebhooks') }}
-          </dt>
-          <dd class="ks-display mt-2 text-3xl font-semibold">
-            {{ formatNumber(activeWebhookCount) }}
-          </dd>
-        </div>
-        <div class="p-4 sm:p-5">
-          <dt
-            class="text-[0.68rem] font-bold tracking-[0.1em] text-[var(--ks-text-muted)] uppercase"
-          >
-            {{ t('integrationExperience.webhookLimit') }}
-          </dt>
-          <dd class="ks-display mt-2 text-3xl font-semibold">
-            {{ formatNumber(limits.webhookSubscriptions) }}
-          </dd>
-        </div>
-        <div class="col-span-2 p-4 sm:p-5 md:col-span-1">
-          <dt
-            class="text-[0.68rem] font-bold tracking-[0.1em] text-[var(--ks-text-muted)] uppercase"
-          >
-            {{ t('integrationExperience.recentDeliveries') }}
-          </dt>
-          <dd class="ks-display mt-2 text-3xl font-semibold">
-            {{ formatNumber(recentDeliveries.length) }}
-          </dd>
-        </div>
-      </dl>
+    <section class="mt-4 grid gap-3 sm:grid-cols-2 2xl:grid-cols-5">
+      <StatSeal
+        :label="t('integrationExperience.activeCredentials')"
+        :value="formatNumber(activeCredentialCount)"
+        icon="⌘"
+      />
+      <StatSeal
+        :label="t('integrationExperience.credentialLimit')"
+        :value="formatNumber(limits.apiCredentials)"
+        icon="◇"
+        tone="stone"
+      />
+      <StatSeal
+        :label="t('integrationExperience.activeWebhooks')"
+        :value="formatNumber(activeWebhookCount)"
+        icon="↗"
+        tone="teal"
+      />
+      <StatSeal
+        :label="t('integrationExperience.webhookLimit')"
+        :value="formatNumber(limits.webhookSubscriptions)"
+        icon="◎"
+      />
+      <StatSeal
+        :label="t('integrationExperience.recentDeliveries')"
+        :value="formatNumber(recentDeliveries.length)"
+        icon="▤"
+        tone="teal"
+      />
     </section>
 
-    <section
-      v-if="issuedCredential"
-      class="mt-5 rounded-[var(--ks-radius-md)] border border-amber-400/30 bg-amber-500/10 p-5"
-      aria-labelledby="credential-secret-heading"
+    <p
+      v-if="status"
+      class="mt-5 rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[var(--ks-teal-soft)] px-4 py-3 text-sm text-[var(--ks-text-secondary)]"
+      role="status"
     >
-      <h2 id="credential-secret-heading" class="ks-display text-xl font-semibold text-amber-100">
-        {{ t('integrationExperience.saveCredentialNow') }}
-      </h2>
-      <p class="mt-2 text-sm text-amber-100/80">
-        {{ t('integrationExperience.credentialOneTime') }}
-      </p>
-      <code
-        class="mt-3 block overflow-x-auto rounded-[var(--ks-radius-sm)] bg-black/35 p-3 text-sm text-[var(--ks-ivory)]"
-        >{{ issuedCredential.token }}</code
-      >
-    </section>
+      {{ status }}
+    </p>
 
-    <section
-      v-if="issuedWebhookSecret"
-      class="mt-5 rounded-[var(--ks-radius-md)] border border-amber-400/30 bg-amber-500/10 p-5"
-      aria-labelledby="webhook-secret-heading"
-    >
-      <h2 id="webhook-secret-heading" class="ks-display text-xl font-semibold text-amber-100">
-        {{ t('integrationExperience.saveWebhookNow') }}
-      </h2>
-      <p class="mt-2 text-sm text-amber-100/80">{{ t('integrationExperience.webhookOneTime') }}</p>
-      <code
-        class="mt-3 block overflow-x-auto rounded-[var(--ks-radius-sm)] bg-black/35 p-3 text-sm text-[var(--ks-ivory)]"
-        >{{ issuedWebhookSecret.secret }}</code
+    <div v-if="issuedCredential || issuedWebhookSecret" class="mt-5 grid gap-4 lg:grid-cols-2">
+      <section
+        v-if="issuedCredential"
+        class="rounded-[var(--ks-radius-md)] border border-amber-400/30 bg-amber-500/[.07] p-5"
+        aria-labelledby="credential-secret-heading"
       >
-    </section>
+        <p class="ks-kicker">{{ t('integrationExperience.apiCredentials') }}</p>
+        <h2 id="credential-secret-heading" class="ks-display mt-1 text-xl font-semibold text-amber-100">
+          {{ t('integrationExperience.saveCredentialNow') }}
+        </h2>
+        <p class="mt-2 text-sm text-amber-100/80">{{ t('integrationExperience.credentialOneTime') }}</p>
+        <code class="mt-4 block overflow-x-auto rounded-[var(--ks-radius-sm)] bg-black/35 p-3 text-sm text-[var(--ks-ivory)]">
+          {{ issuedCredential.token }}
+        </code>
+      </section>
 
-    <div class="mt-5 grid gap-5 xl:grid-cols-2">
+      <section
+        v-if="issuedWebhookSecret"
+        class="rounded-[var(--ks-radius-md)] border border-amber-400/30 bg-amber-500/[.07] p-5"
+        aria-labelledby="webhook-secret-heading"
+      >
+        <p class="ks-kicker">{{ t('integrationExperience.webhookSubscriptions') }}</p>
+        <h2 id="webhook-secret-heading" class="ks-display mt-1 text-xl font-semibold text-amber-100">
+          {{ t('integrationExperience.saveWebhookNow') }}
+        </h2>
+        <p class="mt-2 text-sm text-amber-100/80">{{ t('integrationExperience.webhookOneTime') }}</p>
+        <code class="mt-4 block overflow-x-auto rounded-[var(--ks-radius-sm)] bg-black/35 p-3 text-sm text-[var(--ks-ivory)]">
+          {{ issuedWebhookSecret.secret }}
+        </code>
+      </section>
+    </div>
+
+    <div class="mt-5 grid gap-5 2xl:grid-cols-2">
       <section class="ks-surface overflow-hidden" aria-labelledby="api-heading">
         <div class="border-b border-[var(--ks-border)] p-5">
           <div class="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <h2 id="api-heading" class="ks-display text-xl font-semibold">
+            <div class="max-w-2xl">
+              <p class="ks-kicker">{{ t('integrationExperience.apiCredentials') }}</p>
+              <h2 id="api-heading" class="ks-display mt-1 text-2xl font-semibold">
                 {{ t('integrationExperience.apiCredentials') }}
               </h2>
-              <p class="mt-2 text-sm text-[var(--ks-text-secondary)]">
-                {{
-                  settings.apiAccessEnabled
-                    ? t('integrationExperience.apiEnabled')
-                    : t('integrationExperience.apiDisabled')
-                }}
+              <p class="mt-2 text-sm leading-6 text-[var(--ks-text-secondary)]">
+                {{ settings.apiAccessEnabled ? t('integrationExperience.apiEnabled') : t('integrationExperience.apiDisabled') }}
                 {{ t('integrationExperience.apiLimitHelp', { limit: limits.apiCredentials }) }}
               </p>
             </div>
-            <span
-              :class="
-                settings.apiAccessEnabled
-                  ? 'border-green-400/25 bg-green-500/10 text-green-200'
-                  : 'border-red-400/25 bg-red-500/10 text-red-200'
-              "
-              class="rounded-full border px-2.5 py-1 text-xs font-semibold"
-            >
-              {{
-                settings.apiAccessEnabled
-                  ? t('integrationExperience.enabled')
-                  : t('integrationExperience.disabled')
-              }}
+            <span class="ks-status" :data-tone="settings.apiAccessEnabled ? 'success' : 'danger'">
+              {{ settings.apiAccessEnabled ? t('integrationExperience.enabled') : t('integrationExperience.disabled') }}
             </span>
           </div>
         </div>
@@ -252,186 +209,82 @@ function stateTone(state: string): string {
           @submit.prevent="createCredential"
         >
           <div>
-            <label
-              class="text-xs font-semibold text-[var(--ks-text-secondary)]"
-              for="credential-name"
-              >{{ t('integrationExperience.name') }}</label
-            >
-            <input
-              id="credential-name"
-              v-model="credentialForm.name"
-              class="mt-1.5 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
-              maxlength="100"
-              required
-            />
+            <label class="text-xs font-semibold" for="credential-name">{{ t('integrationExperience.name') }}</label>
+            <input id="credential-name" v-model="credentialForm.name" class="ks-input mt-1.5" maxlength="100" required />
           </div>
           <div>
-            <label
-              class="text-xs font-semibold text-[var(--ks-text-secondary)]"
-              for="credential-expiry"
-              >{{ t('integrationExperience.expiresAt') }} ·
-              {{ t('integrationExperience.optional') }}</label
-            >
-            <input
-              id="credential-expiry"
-              v-model="credentialForm.expires_at"
-              class="mt-1.5 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
-              type="datetime-local"
-            />
+            <label class="text-xs font-semibold" for="credential-expiry">
+              {{ t('integrationExperience.expiresAt') }} · {{ t('integrationExperience.optional') }}
+            </label>
+            <input id="credential-expiry" v-model="credentialForm.expires_at" class="ks-input mt-1.5" type="datetime-local" />
           </div>
           <fieldset class="sm:col-span-2">
-            <legend class="text-xs font-semibold text-[var(--ks-text-secondary)]">
-              {{ t('integrationExperience.scopes') }}
-            </legend>
-            <div class="mt-2 flex flex-wrap gap-3">
+            <legend class="text-xs font-semibold">{{ t('integrationExperience.scopes') }}</legend>
+            <div class="mt-2 flex flex-wrap gap-2">
               <label
                 v-for="scope in allowedScopes"
                 :key="scope"
-                class="flex items-center gap-2 rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/15 px-3 py-2 text-sm"
+                class="ks-chip cursor-pointer"
               >
                 <input v-model="credentialForm.scopes" type="checkbox" :value="scope" />
                 <span class="font-mono text-xs">{{ scope }}</span>
               </label>
             </div>
           </fieldset>
-          <button
-            class="min-h-10 rounded-[var(--ks-radius-sm)] bg-[var(--ks-blue)] px-4 py-2 text-sm font-semibold text-[var(--ks-ivory)] sm:col-span-2"
-            type="submit"
-            :disabled="credentialForm.processing"
-          >
+          <AppButton class="sm:col-span-2" type="submit" :disabled="credentialForm.processing">
             {{ t('integrationExperience.createCredential') }}
-          </button>
+          </AppButton>
         </form>
 
-        <div v-if="credentials.length" class="lg:hidden">
-          <article
-            v-for="credential in credentials"
-            :key="credential.id"
-            class="border-b border-[var(--ks-border)] p-4 last:border-b-0"
-          >
-            <div class="flex items-start justify-between gap-3">
+        <div v-if="credentials.length" class="divide-y divide-[var(--ks-border)]">
+          <article v-for="credential in credentials" :key="credential.id" class="p-4 sm:p-5">
+            <div class="flex flex-wrap items-start justify-between gap-3">
               <div class="min-w-0">
-                <p class="truncate font-semibold">{{ credential.name }}</p>
-                <p class="mt-1 font-mono text-xs text-[var(--ks-text-muted)]">
-                  {{ credential.prefix }}
-                </p>
+                <div class="flex flex-wrap items-center gap-2">
+                  <strong class="font-[var(--ks-font-display)] text-lg">{{ credential.name }}</strong>
+                  <span class="ks-status" :data-tone="stateTone(credential.revokedAt ? 'revoked' : 'active')">
+                    {{ credentialState(credential.revokedAt) }}
+                  </span>
+                </div>
+                <p class="mt-1 font-mono text-xs text-[var(--ks-muted)]">{{ credential.prefix }}</p>
               </div>
-              <span
-                :class="stateTone(credential.revokedAt ? 'revoked' : 'active')"
-                class="rounded-full border px-2.5 py-1 text-xs font-semibold"
-                >{{ credentialState(credential.revokedAt) }}</span
+              <button
+                v-if="!credential.revokedAt"
+                type="button"
+                class="rounded border border-red-400/20 px-3 py-2 text-xs font-semibold text-red-300 transition hover:border-red-400/40"
+                @click="router.delete(`/alliance/integrations/api-credentials/${credential.id}`)"
               >
+                {{ t('integrationExperience.revoke') }}
+              </button>
             </div>
-            <p class="mt-3 text-xs text-[var(--ks-text-secondary)]">
-              {{ credential.scopes.join(', ') }}
-            </p>
-            <p class="mt-2 text-xs text-[var(--ks-text-muted)]">
-              {{ t('integrationExperience.lastUsed') }}:
-              {{
-                credential.lastUsedAt
-                  ? date(credential.lastUsedAt)
-                  : t('integrationExperience.never')
-              }}
-            </p>
-            <button
-              v-if="!credential.revokedAt"
-              class="mt-3 rounded-[var(--ks-radius-sm)] border border-red-400/20 bg-red-500/5 px-3 py-1.5 text-xs font-semibold text-red-300"
-              type="button"
-              @click="router.delete(`/alliance/integrations/api-credentials/${credential.id}`)"
-            >
-              {{ t('integrationExperience.revoke') }}
-            </button>
+            <div class="mt-3 flex flex-wrap gap-1.5">
+              <span v-for="scope in credential.scopes" :key="scope" class="ks-chip font-mono">{{ scope }}</span>
+            </div>
+            <div class="mt-4 grid gap-3 text-xs text-[var(--ks-muted)] sm:grid-cols-2">
+              <p>{{ t('integrationExperience.lastUsed') }}: {{ credential.lastUsedAt ? date(credential.lastUsedAt) : t('integrationExperience.never') }}</p>
+              <p>{{ t('integrationExperience.expiresAt') }}: {{ date(credential.expiresAt) }}</p>
+            </div>
           </article>
         </div>
-        <div v-if="credentials.length" class="hidden overflow-x-auto lg:block">
-          <table class="w-full min-w-[44rem] text-sm">
-            <thead
-              class="bg-black/25 text-[0.68rem] font-bold tracking-[0.08em] text-[var(--ks-text-muted)] uppercase"
-            >
-              <tr>
-                <th class="px-4 py-3 text-start">{{ t('integrationExperience.name') }}</th>
-                <th class="px-4 py-3 text-start">{{ t('integrationExperience.prefix') }}</th>
-                <th class="px-4 py-3 text-start">{{ t('integrationExperience.scopes') }}</th>
-                <th class="px-4 py-3 text-start">{{ t('integrationExperience.lastUsed') }}</th>
-                <th class="px-4 py-3 text-start">{{ t('integrationExperience.state') }}</th>
-                <th class="px-4 py-3 text-start"></th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-[var(--ks-border)]">
-              <tr v-for="credential in credentials" :key="credential.id">
-                <td class="px-4 py-3.5 font-semibold">{{ credential.name }}</td>
-                <td class="px-4 py-3.5 font-mono text-xs">{{ credential.prefix }}</td>
-                <td class="px-4 py-3.5 text-xs text-[var(--ks-text-secondary)]">
-                  {{ credential.scopes.join(', ') }}
-                </td>
-                <td class="px-4 py-3.5 text-xs text-[var(--ks-text-secondary)]">
-                  {{
-                    credential.lastUsedAt
-                      ? date(credential.lastUsedAt)
-                      : t('integrationExperience.never')
-                  }}
-                </td>
-                <td class="px-4 py-3.5">
-                  <span
-                    :class="stateTone(credential.revokedAt ? 'revoked' : 'active')"
-                    class="rounded-full border px-2.5 py-1 text-xs font-semibold"
-                    >{{ credentialState(credential.revokedAt) }}</span
-                  >
-                </td>
-                <td class="px-4 py-3.5">
-                  <button
-                    v-if="!credential.revokedAt"
-                    class="rounded-[var(--ks-radius-sm)] border border-red-400/20 px-2.5 py-1.5 text-xs font-semibold text-red-300"
-                    type="button"
-                    @click="
-                      router.delete(`/alliance/integrations/api-credentials/${credential.id}`)
-                    "
-                  >
-                    {{ t('integrationExperience.revoke') }}
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <p v-if="!credentials.length" class="p-6 text-sm text-[var(--ks-text-muted)]">
-          {{ t('integrationExperience.noCredentials') }}
-        </p>
+        <div v-else class="ks-fantasy-empty m-5">{{ t('integrationExperience.noCredentials') }}</div>
       </section>
 
       <section class="ks-surface overflow-hidden" aria-labelledby="webhook-heading">
         <div class="border-b border-[var(--ks-border)] p-5">
           <div class="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <h2 id="webhook-heading" class="ks-display text-xl font-semibold">
+            <div class="max-w-2xl">
+              <p class="ks-kicker">{{ t('integrationExperience.webhookSubscriptions') }}</p>
+              <h2 id="webhook-heading" class="ks-display mt-1 text-2xl font-semibold">
                 {{ t('integrationExperience.webhookSubscriptions') }}
               </h2>
-              <p class="mt-2 text-sm text-[var(--ks-text-secondary)]">
-                {{
-                  settings.webhooksEnabled
-                    ? t('integrationExperience.webhooksEnabled')
-                    : t('integrationExperience.webhooksDisabled')
-                }}
-                {{
-                  t('integrationExperience.webhookLimitHelp', {
-                    limit: limits.webhookSubscriptions,
-                  })
-                }}
+              <p class="mt-2 text-sm leading-6 text-[var(--ks-text-secondary)]">
+                {{ settings.webhooksEnabled ? t('integrationExperience.webhooksEnabled') : t('integrationExperience.webhooksDisabled') }}
+                {{ t('integrationExperience.webhookLimitHelp', { limit: limits.webhookSubscriptions }) }}
               </p>
             </div>
-            <span
-              :class="
-                settings.webhooksEnabled
-                  ? 'border-green-400/25 bg-green-500/10 text-green-200'
-                  : 'border-red-400/25 bg-red-500/10 text-red-200'
-              "
-              class="rounded-full border px-2.5 py-1 text-xs font-semibold"
-              >{{
-                settings.webhooksEnabled
-                  ? t('integrationExperience.enabled')
-                  : t('integrationExperience.disabled')
-              }}</span
-            >
+            <span class="ks-status" :data-tone="settings.webhooksEnabled ? 'success' : 'danger'">
+              {{ settings.webhooksEnabled ? t('integrationExperience.enabled') : t('integrationExperience.disabled') }}
+            </span>
           </div>
         </div>
 
@@ -441,139 +294,91 @@ function stateTone(state: string): string {
           @submit.prevent="createWebhook"
         >
           <div>
-            <label
-              class="text-xs font-semibold text-[var(--ks-text-secondary)]"
-              for="webhook-name"
-              >{{ t('integrationExperience.name') }}</label
-            ><input
-              id="webhook-name"
-              v-model="webhookForm.name"
-              class="mt-1.5 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
-              maxlength="100"
-              required
-            />
+            <label class="text-xs font-semibold" for="webhook-name">{{ t('integrationExperience.name') }}</label>
+            <input id="webhook-name" v-model="webhookForm.name" class="ks-input mt-1.5" maxlength="100" required />
           </div>
           <div>
-            <label
-              class="text-xs font-semibold text-[var(--ks-text-secondary)]"
-              for="webhook-url"
-              >{{ t('integrationExperience.httpsEndpoint') }}</label
-            ><input
-              id="webhook-url"
-              v-model="webhookForm.url"
-              class="mt-1.5 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
-              type="url"
-              maxlength="2048"
-              required
-            />
+            <label class="text-xs font-semibold" for="webhook-url">{{ t('integrationExperience.httpsEndpoint') }}</label>
+            <input id="webhook-url" v-model="webhookForm.url" class="ks-input mt-1.5" type="url" maxlength="2048" required />
           </div>
           <div class="sm:col-span-2">
-            <label
-              class="text-xs font-semibold text-[var(--ks-text-secondary)]"
-              for="webhook-events"
-              >{{ t('integrationExperience.events') }} ·
-              {{ t('integrationExperience.eventsHelp') }}</label
-            ><textarea
-              id="webhook-events"
-              v-model="webhookEventsText"
-              class="mt-1.5 min-h-24 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 font-mono text-sm"
-              required
-            />
+            <label class="text-xs font-semibold" for="webhook-events">
+              {{ t('integrationExperience.events') }} · {{ t('integrationExperience.eventsHelp') }}
+            </label>
+            <textarea id="webhook-events" v-model="webhookEventsText" class="ks-input mt-1.5 min-h-24 font-mono" required />
           </div>
-          <button
-            class="min-h-10 rounded-[var(--ks-radius-sm)] bg-[var(--ks-blue)] px-4 py-2 text-sm font-semibold text-[var(--ks-ivory)] sm:col-span-2"
-            type="submit"
-            :disabled="webhookForm.processing"
-          >
+          <AppButton class="sm:col-span-2" type="submit" :disabled="webhookForm.processing">
             {{ t('integrationExperience.createWebhook') }}
-          </button>
+          </AppButton>
         </form>
 
-        <div v-if="webhooks.length" class="space-y-px bg-[var(--ks-border)]">
-          <article
-            v-for="webhook in webhooks"
-            :key="webhook.id"
-            class="bg-[var(--ks-surface-1)] p-4"
-          >
-            <div class="flex items-start justify-between gap-3">
+        <div v-if="webhooks.length" class="divide-y divide-[var(--ks-border)]">
+          <article v-for="webhook in webhooks" :key="webhook.id" class="p-4 sm:p-5">
+            <div class="flex flex-wrap items-start justify-between gap-3">
               <div class="min-w-0">
-                <p class="font-semibold">{{ webhook.name }}</p>
-                <p class="mt-1 text-xs break-all text-[var(--ks-text-muted)]">{{ webhook.url }}</p>
+                <div class="flex flex-wrap items-center gap-2">
+                  <strong class="font-[var(--ks-font-display)] text-lg">{{ webhook.name }}</strong>
+                  <span class="ks-status" :data-tone="stateTone(webhook.active && !webhook.revokedAt ? 'active' : 'revoked')">
+                    {{ webhook.active && !webhook.revokedAt ? t('integrationExperience.active') : t('integrationExperience.revoked') }}
+                  </span>
+                </div>
+                <p class="mt-1 break-all text-xs text-[var(--ks-muted)]">{{ webhook.url }}</p>
               </div>
-              <span
-                :class="stateTone(webhook.active && !webhook.revokedAt ? 'active' : 'revoked')"
-                class="rounded-full border px-2.5 py-1 text-xs font-semibold"
-                >{{
-                  webhook.active && !webhook.revokedAt
-                    ? t('integrationExperience.active')
-                    : t('integrationExperience.revoked')
-                }}</span
+              <button
+                v-if="webhook.active && !webhook.revokedAt"
+                type="button"
+                class="rounded border border-red-400/20 px-3 py-2 text-xs font-semibold text-red-300 transition hover:border-red-400/40"
+                @click="router.delete(`/alliance/integrations/webhooks/${webhook.id}`)"
               >
+                {{ t('integrationExperience.revoke') }}
+              </button>
             </div>
-            <p class="mt-3 font-mono text-xs text-[var(--ks-text-secondary)]">
-              {{ webhook.events.join(', ') }}
-            </p>
-            <button
-              v-if="webhook.active && !webhook.revokedAt"
-              class="mt-3 rounded-[var(--ks-radius-sm)] border border-red-400/20 bg-red-500/5 px-3 py-1.5 text-xs font-semibold text-red-300"
-              type="button"
-              @click="router.delete(`/alliance/integrations/webhooks/${webhook.id}`)"
-            >
-              {{ t('integrationExperience.revoke') }}
-            </button>
+            <div class="mt-3 flex flex-wrap gap-1.5">
+              <span v-for="event in webhook.events" :key="event" class="ks-chip font-mono">{{ event }}</span>
+            </div>
           </article>
         </div>
-        <p v-if="!webhooks.length" class="p-6 text-sm text-[var(--ks-text-muted)]">
-          {{ t('integrationExperience.noWebhooks') }}
-        </p>
+        <div v-else class="ks-fantasy-empty m-5">{{ t('integrationExperience.noWebhooks') }}</div>
       </section>
     </div>
 
     <section class="ks-surface mt-5 overflow-hidden" aria-labelledby="delivery-heading">
-      <div class="border-b border-[var(--ks-border)] p-5">
-        <h2 id="delivery-heading" class="ks-display text-xl font-semibold">
-          {{ t('integrationExperience.deliveryLog') }}
-        </h2>
-        <p class="mt-2 text-sm text-[var(--ks-text-secondary)]">
-          {{ t('integrationExperience.deliveryHelp') }}
-        </p>
+      <div class="flex flex-wrap items-end justify-between gap-3 border-b border-[var(--ks-border)] p-5">
+        <div>
+          <p class="ks-kicker">{{ t('integrationExperience.recentDeliveries') }}</p>
+          <h2 id="delivery-heading" class="ks-display mt-1 text-2xl font-semibold">
+            {{ t('integrationExperience.deliveryLog') }}
+          </h2>
+        </div>
+        <p class="max-w-2xl text-xs text-[var(--ks-muted)]">{{ t('integrationExperience.deliveryHelp') }}</p>
       </div>
+
       <div v-if="recentDeliveries.length" class="lg:hidden">
-        <article
-          v-for="delivery in recentDeliveries"
-          :key="delivery.id"
-          class="border-b border-[var(--ks-border)] p-4 last:border-b-0"
-        >
+        <article v-for="delivery in recentDeliveries" :key="delivery.id" class="border-b border-[var(--ks-border)] p-4 last:border-b-0">
           <div class="flex items-start justify-between gap-3">
             <div class="min-w-0">
               <p class="truncate font-mono text-sm font-semibold">{{ delivery.event }}</p>
-              <p class="mt-1 text-xs text-[var(--ks-text-muted)]">
-                {{ t('integrationExperience.attempts') }}: {{ delivery.attempts }} · HTTP
-                {{ delivery.responseCode ?? '—' }}
+              <p class="mt-1 text-xs text-[var(--ks-muted)]">
+                {{ t('integrationExperience.attempts') }}: {{ delivery.attempts }} · HTTP {{ delivery.responseCode ?? '—' }}
               </p>
             </div>
-            <span
-              :class="stateTone(delivery.status)"
-              class="rounded-full border px-2.5 py-1 text-xs font-semibold capitalize"
-              >{{ delivery.status }}</span
-            >
+            <span class="ks-status" :data-tone="stateTone(delivery.status)">{{ delivery.status }}</span>
           </div>
           <p class="mt-3 text-xs text-[var(--ks-text-secondary)]">
             {{ t('integrationExperience.lastAttempt') }}: {{ date(delivery.lastAttemptAt) }}
           </p>
-          <p v-if="delivery.deliveredAt" class="mt-1 text-xs text-green-300">
+          <p v-if="delivery.deliveredAt" class="mt-1 text-xs text-[var(--ks-green)]">
             {{ t('integrationExperience.deliveredAt') }}: {{ date(delivery.deliveredAt) }}
           </p>
-          <p class="mt-2 text-xs text-[var(--ks-text-muted)]">
+          <p class="mt-2 text-xs text-[var(--ks-muted)]">
             {{ delivery.lastError || t('integrationExperience.noError') }}
           </p>
         </article>
       </div>
+
       <div v-if="recentDeliveries.length" class="hidden overflow-x-auto lg:block">
         <table class="w-full min-w-[62rem] text-sm">
-          <thead
-            class="bg-black/25 text-[0.68rem] font-bold tracking-[0.08em] text-[var(--ks-text-muted)] uppercase"
-          >
+          <thead class="bg-black/20 text-[.66rem] font-extrabold tracking-[.08em] text-[var(--ks-muted)] uppercase">
             <tr>
               <th class="px-4 py-3 text-start">{{ t('integrationExperience.event') }}</th>
               <th class="px-4 py-3 text-start">{{ t('integrationExperience.status') }}</th>
@@ -584,33 +389,18 @@ function stateTone(state: string): string {
             </tr>
           </thead>
           <tbody class="divide-y divide-[var(--ks-border)]">
-            <tr v-for="delivery in recentDeliveries" :key="delivery.id">
-              <td class="px-4 py-3.5 font-mono text-xs">{{ delivery.event }}</td>
-              <td class="px-4 py-3.5">
-                <span
-                  :class="stateTone(delivery.status)"
-                  class="rounded-full border px-2.5 py-1 text-xs font-semibold capitalize"
-                  >{{ delivery.status }}</span
-                >
-              </td>
-              <td class="px-4 py-3.5">{{ delivery.attempts }}</td>
-              <td class="px-4 py-3.5">{{ delivery.responseCode ?? '—' }}</td>
-              <td class="px-4 py-3.5 text-xs text-[var(--ks-text-secondary)]">
-                {{ date(delivery.lastAttemptAt ?? delivery.deliveredAt) }}
-              </td>
-              <td class="max-w-md px-4 py-3.5 text-xs text-[var(--ks-text-secondary)]">
-                {{ delivery.lastError || t('integrationExperience.noError') }}
-              </td>
+            <tr v-for="delivery in recentDeliveries" :key="delivery.id" class="transition hover:bg-white/[0.018]">
+              <td class="px-4 py-4 font-mono text-xs">{{ delivery.event }}</td>
+              <td class="px-4 py-4"><span class="ks-status" :data-tone="stateTone(delivery.status)">{{ delivery.status }}</span></td>
+              <td class="px-4 py-4">{{ delivery.attempts }}</td>
+              <td class="px-4 py-4">{{ delivery.responseCode ?? '—' }}</td>
+              <td class="px-4 py-4 text-xs text-[var(--ks-text-secondary)]">{{ date(delivery.lastAttemptAt ?? delivery.deliveredAt) }}</td>
+              <td class="max-w-md px-4 py-4 text-xs text-[var(--ks-text-secondary)]">{{ delivery.lastError || t('integrationExperience.noError') }}</td>
             </tr>
           </tbody>
         </table>
       </div>
-      <p
-        v-if="!recentDeliveries.length"
-        class="p-8 text-center text-sm text-[var(--ks-text-muted)]"
-      >
-        {{ t('integrationExperience.noDeliveries') }}
-      </p>
+      <div v-if="!recentDeliveries.length" class="ks-fantasy-empty m-5">{{ t('integrationExperience.noDeliveries') }}</div>
     </section>
   </AppLayout>
 </template>
