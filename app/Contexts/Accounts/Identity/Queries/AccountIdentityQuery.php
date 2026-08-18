@@ -47,6 +47,7 @@ final class AccountIdentityQuery
             userId: (int) $user->id,
             name: (string) $user->name,
             email: (string) $user->email,
+            timezone: (string) $user->timezone,
             emailVerified: $user->hasVerifiedEmail(),
             multiFactorConfirmed: $user->two_factor_confirmed_at !== null,
             anonymized: $user->anonymized_at !== null,
