@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\v3\Contexts\GameWorld\Players;
 
+use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Alliance\Membership\Enums\AllianceRank;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\Alliance\Membership\Queries\PlayerIdentityContextQuery;
@@ -118,7 +119,7 @@ final class PlayerAuthorityContextPreconditionV3Test extends TestCase
         );
     }
 
-    private function verify(object $user): void
+    private function verify(User $user): void
     {
         $user->forceFill(['email_verified_at' => now()])->save();
     }
