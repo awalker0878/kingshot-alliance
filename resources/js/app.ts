@@ -4,9 +4,11 @@ import { createInertiaApp, router } from '@inertiajs/vue3';
 import { createApp, h, type DefineComponent } from 'vue';
 
 import {
+  AUTHORITY_CONTEXT_HEADER,
   AUTHORITY_CONTEXT_STALE_EVENT,
   authorityContextHeaders,
   authorityContextKey,
+  authorityContextVersion,
   dispatchAuthorityContextStale,
   isAuthorityContextStaleResponse,
   updateAuthorityContextFromPageProps,
@@ -22,6 +24,7 @@ const appName = import.meta.env.VITE_APP_NAME ?? 'Kingshot Alliance';
 const pages = import.meta.glob<DefineComponent>('./pages/**/*.vue', { import: 'default' });
 let recoveringAuthorityContext = false;
 let authorityNoticeTimer: number | null = null;
+let fetchInterceptorInstalled = false;
 
 async function bootstrap(): Promise<void> {
   await initializeLocale();
@@ -53,6 +56,8 @@ async function bootstrap(): Promise<void> {
 }
 
 function installAuthorityContextRuntime(): void {
+  installFetchInterceptor();
+
   router.on('navigate', (event) => {
     updateAuthorityContextFromPageProps(event.detail.page.props as Record<string, unknown>);
   });
@@ -65,6 +70,44 @@ function installAuthorityContextRuntime(): void {
   });
 
   window.addEventListener(AUTHORITY_CONTEXT_STALE_EVENT, recoverFromStaleAuthorityContext);
+}
+
+function installFetchInterceptor(): void {
+  if (fetchInterceptorInstalled) return;
+  fetchInterceptorInstalled = true;
+
+  const nativeFetch = window.fetch.bind(window);
+  window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+    const method = (init?.method ?? (input instanceof Request ? input.method : 'GET')).toUpperCase();
+    const version = authorityContextVersion();
+    const shouldAttach =
+      version !== null &&
+      !['GET', 'HEAD', 'OPTIONS'].includes(method) &&
+      isSameOriginRequest(input);
+
+    let requestInit = init;
+    if (shouldAttach) {
+      const headers = new Headers(input instanceof Request ? input.headers : undefined);
+      new Headers(init?.headers).forEach((value, key) => headers.set(key, value));
+      headers.set(AUTHORITY_CONTEXT_HEADER, version);
+      requestInit = { ...init, headers };
+    }
+
+    const response = await nativeFetch(input, requestInit);
+    if (isAuthorityContextStaleResponse(response)) dispatchAuthorityContextStale();
+
+    return response;
+  };
+}
+
+function isSameOriginRequest(input: RequestInfo | URL): boolean {
+  const value = input instanceof Request ? input.url : input.toString();
+
+  try {
+    return new URL(value, window.location.href).origin === window.location.origin;
+  } catch {
+    return false;
+  }
 }
 
 function recoverFromStaleAuthorityContext(): void {
