@@ -26,9 +26,7 @@ for (const surface of publicSurfaces) {
   });
 }
 
-test('multi-governor account selects and activates the first Governor', async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name !== 'desktop', 'Identity switching baseline is captured on desktop.');
-
+test('multi-governor account selects and activates the first Governor', async ({ page }) => {
   await page.goto('/login');
   await page.locator('#email').fill('ux-p9-visual@example.test');
   await page.locator('#password').fill('password');
@@ -37,7 +35,7 @@ test('multi-governor account selects and activates the first Governor', async ({
   await page.waitForLoadState('networkidle');
   await page.evaluate(() => document.fonts.ready);
 
-  const identitySwitcher = page.locator('button[aria-haspopup="listbox"]').first();
+  const identitySwitcher = page.locator('button[aria-haspopup="listbox"]:visible').first();
   await expect(identitySwitcher).toBeVisible();
   await expect(identitySwitcher).toContainText(/select governor/i);
 
@@ -58,8 +56,10 @@ test('multi-governor account selects and activates the first Governor', async ({
   await options.nth(0).click();
   await page.waitForURL('**/dashboard');
   await page.waitForLoadState('networkidle');
-  await expect(identitySwitcher).toContainText('Lady Seraphina');
-  await expect(identitySwitcher).toContainText('K1123');
+
+  const activeIdentitySwitcher = page.locator('button[aria-haspopup="listbox"]:visible').first();
+  await expect(activeIdentitySwitcher).toContainText('Lady Seraphina');
+  await expect(activeIdentitySwitcher).toContainText('K1123');
 
   await expect(page).toHaveScreenshot('command-overview-active-governor.png', {
     fullPage: true,
