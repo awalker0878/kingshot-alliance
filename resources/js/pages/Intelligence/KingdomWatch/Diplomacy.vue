@@ -83,7 +83,8 @@ function stateTone(value: string): string {
     return 'border-green-400/25 bg-green-500/10 text-green-200';
   if (value === 'rival') return 'border-red-400/25 bg-red-500/10 text-red-200';
   if (value === 'nap') return 'border-purple-400/25 bg-purple-500/10 text-purple-200';
-  if (value === 'neutral') return 'border-[var(--ks-border)] bg-[var(--ks-teal-soft)] text-[var(--ks-gold-bright)]';
+  if (value === 'neutral')
+    return 'border-[var(--ks-border)] bg-[var(--ks-teal-soft)] text-[var(--ks-gold-bright)]';
   return 'border-[var(--ks-border)] bg-[rgba(210,163,75,.05)] text-[var(--ks-text-secondary)]';
 }
 

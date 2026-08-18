@@ -6,18 +6,23 @@ const messages = {
     heroLine2: 'Lead the realm together.',
     body: 'Prepare Alliance Events, gather your roster, recruit Governors, watch the Kingdom, and coordinate Kingdom Transfer from one command hall.',
     featuresTitle: 'Every Alliance command room',
-    eventsDesc: 'Answer Event calls, registrations and polls; coordinate Rally formations and attendance.',
-    rosterDesc: 'Keep the Alliance roster, scout history, roster imports, and intelligence together.',
-    recruitmentDesc: 'Review applications, officer notes, invitations, and new recruits in the Recruitment Hall.',
+    eventsDesc:
+      'Answer Event calls, registrations and polls; coordinate Rally formations and attendance.',
+    rosterDesc:
+      'Keep the Alliance roster, scout history, roster imports, and intelligence together.',
+    recruitmentDesc:
+      'Review applications, officer notes, invitations, and new recruits in the Recruitment Hall.',
     kingdomDesc: 'Watch Kingdom Alliances, diplomacy, Scout Reports, and shared intelligence.',
     transfersDesc: 'Coordinate Kingdom Transfer cycles, groups, readiness, and completion.',
-    contentDesc: 'Publish Alliance notices, Event guidance, rules, and reference pages to the Noticeboard.',
+    contentDesc:
+      'Publish Alliance notices, Event guidance, rules, and reference pages to the Noticeboard.',
     publicPagesTitle: 'Alliance Banner',
     publicPagesDesc: 'Present your Alliance banner, public notices, and open recruitment summons.',
     multilingualTitle: 'Realm languages',
     multilingualDesc: 'Open the command rooms in the major languages used by Kingshot Governors.',
     ctaTitle: 'Gather. Prepare. Lead together.',
-    ctaBody: 'Enter the realm to lead your Alliance, or begin a Governor account to answer an invitation.',
+    ctaBody:
+      'Enter the realm to lead your Alliance, or begin a Governor account to answer an invitation.',
   },
   publicAlliance: {
     publicAlliance: 'Public alliance',

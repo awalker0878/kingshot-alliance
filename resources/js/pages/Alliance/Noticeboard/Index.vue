@@ -84,11 +84,7 @@ function visibilityTone(value: string): 'success' | 'warning' | 'info' {
       image="/images/kingshot/v4/noticeboard.svg"
     >
       <template #actions>
-        <Link
-          v-if="canManageContent"
-          href="/alliance/content/manage"
-          class="ks-command-link"
-        >
+        <Link v-if="canManageContent" href="/alliance/content/manage" class="ks-command-link">
           {{ t('contentExperience.manageContent') }}
         </Link>
         <a
@@ -104,7 +100,11 @@ function visibilityTone(value: string): 'success' | 'warning' | 'info' {
     </RoomBanner>
 
     <section class="mt-4 grid gap-3 sm:grid-cols-2 2xl:grid-cols-4">
-      <StatSeal :label="t('contentExperience.results')" :value="formatNumber(content.length)" icon="▤" />
+      <StatSeal
+        :label="t('contentExperience.results')"
+        :value="formatNumber(content.length)"
+        icon="▤"
+      />
       <StatSeal
         :label="t('contentExperience.publicItems')"
         :value="formatNumber(publicCount)"
@@ -188,7 +188,12 @@ function visibilityTone(value: string): 'success' | 'warning' | 'info' {
           <button type="submit" class="ks-command-button">
             {{ t('contentExperience.applyFilters') }}
           </button>
-          <button type="button" class="ks-command-button" data-variant="secondary" @click="clearFilters">
+          <button
+            type="button"
+            class="ks-command-button"
+            data-variant="secondary"
+            @click="clearFilters"
+          >
             {{ t('contentExperience.clear') }}
           </button>
         </div>
@@ -217,7 +222,7 @@ function visibilityTone(value: string): 'success' | 'warning' | 'info' {
             <span class="ks-chip">{{ item.locale }}</span>
           </div>
 
-          <h3 class="ks-display mt-5 text-2xl font-semibold leading-tight">
+          <h3 class="ks-display mt-5 text-2xl leading-tight font-semibold">
             <Link
               class="transition group-hover:text-[var(--ks-gold-bright)]"
               :href="`/alliance/content/${item.slug}`"

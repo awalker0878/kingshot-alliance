@@ -157,7 +157,11 @@ function transferLeadership(playerId: string, playerName: string): void {
 }
 
 function leaveAlliance(): void {
-  if (!window.confirm(t('allianceOperations.overview.leaveConfirm', { alliance: props.alliance.name }))) {
+  if (
+    !window.confirm(
+      t('allianceOperations.overview.leaveConfirm', { alliance: props.alliance.name }),
+    )
+  ) {
     return;
   }
 
@@ -260,11 +264,7 @@ function formatInZone(value: string, timeZone: string): string {
           <Link href="/alliance/roster" class="ks-command-link" data-variant="secondary">
             {{ t('navigation.roster') }}
           </Link>
-          <Link
-            href="/alliance/kingdom-alliances"
-            class="ks-command-link"
-            data-variant="secondary"
-          >
+          <Link href="/alliance/kingdom-alliances" class="ks-command-link" data-variant="secondary">
             {{ t('navigation.kingdom') }}
           </Link>
         </div>
@@ -300,7 +300,9 @@ function formatInZone(value: string, timeZone: string): string {
 
     <div class="mt-5 grid gap-5 2xl:grid-cols-[minmax(0,1.45fr)_minmax(22rem,.55fr)]">
       <section class="ks-surface overflow-hidden" aria-labelledby="membership-heading">
-        <div class="flex flex-wrap items-end justify-between gap-4 border-b border-[var(--ks-border)] p-5">
+        <div
+          class="flex flex-wrap items-end justify-between gap-4 border-b border-[var(--ks-border)] p-5"
+        >
           <div class="max-w-2xl">
             <p class="ks-kicker">{{ t('allianceOperations.overview.membershipAdmin') }}</p>
             <h2 id="membership-heading" class="ks-display mt-1 text-2xl font-semibold">
@@ -408,11 +410,10 @@ function formatInZone(value: string, timeZone: string): string {
                 <th class="px-5 py-3 text-start">{{ t('navigation.roster') }}</th>
                 <th class="px-4 py-3 text-start">{{ t('allianceOperations.overview.status') }}</th>
                 <th class="px-4 py-3 text-start">{{ t('application.dashboard.roles') }}</th>
-                <th class="px-4 py-3 text-start">{{ t('allianceOperations.overview.yourRoles') }}</th>
-                <th
-                  v-if="membershipManagement.allowed"
-                  class="px-4 py-3 text-end"
-                >
+                <th class="px-4 py-3 text-start">
+                  {{ t('allianceOperations.overview.yourRoles') }}
+                </th>
+                <th v-if="membershipManagement.allowed" class="px-4 py-3 text-end">
                   {{ t('allianceOperations.overview.actions') }}
                 </th>
               </tr>
@@ -581,9 +582,8 @@ function formatInZone(value: string, timeZone: string): string {
                 :key="candidate.id"
                 :value="candidate.id"
               >
-                {{ candidate.name }}<template v-if="candidate.gamePlayerId">
-                  · {{ candidate.gamePlayerId }}</template
-                >
+                {{ candidate.name
+                }}<template v-if="candidate.gamePlayerId"> · {{ candidate.gamePlayerId }}</template>
               </option>
             </select>
             <input
@@ -603,12 +603,12 @@ function formatInZone(value: string, timeZone: string): string {
             class="mt-4 rounded-[var(--ks-radius-md)] border border-[rgba(32,178,163,.3)] bg-[var(--ks-teal-soft)] p-3"
           >
             <p class="ks-kicker">{{ t('allianceOperations.overview.newInvitationLink') }}</p>
-            <p class="mt-2 break-all text-xs text-[#b8efe8]">
+            <p class="mt-2 text-xs break-all text-[#b8efe8]">
               {{ invitationManagement.issuedLink }}
             </p>
           </div>
 
-          <div class="my-5 ks-divider" />
+          <div class="ks-divider my-5" />
 
           <div class="space-y-2">
             <article
@@ -652,10 +652,7 @@ function formatInZone(value: string, timeZone: string): string {
                 </button>
               </div>
             </article>
-            <p
-              v-if="!invitationManagement.invitations.length"
-              class="ks-fantasy-empty text-sm"
-            >
+            <p v-if="!invitationManagement.invitations.length" class="ks-fantasy-empty text-sm">
               {{ t('allianceOperations.overview.noInvitations') }}
             </p>
           </div>

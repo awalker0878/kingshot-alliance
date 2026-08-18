@@ -315,7 +315,19 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
 
   <AppLayout :user="user" :player-alliance-name="null" :has-player-alliance="false">
     <main class="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
-      <RoomBanner eyebrow="King’s Court · Kingdom of Power" :title="event.kingdomName" subtitle="Coordinate King Perk requests, appointments, cooldowns and Kingdom-wide skills inside this Event’s real preparation window." image="/images/kingshot/kings-court.svg"><template #actions><a :href="`/events/${event.id}/king-perks/my?occurrence=${occurrence.id}`" class="ks-command-link">My Appointments</a></template></RoomBanner>
+      <RoomBanner
+        eyebrow="King’s Court · Kingdom of Power"
+        :title="event.kingdomName"
+        subtitle="Coordinate King Perk requests, appointments, cooldowns and Kingdom-wide skills inside this Event’s real preparation window."
+        image="/images/kingshot/kings-court.svg"
+        ><template #actions
+          ><a
+            :href="`/events/${event.id}/king-perks/my?occurrence=${occurrence.id}`"
+            class="ks-command-link"
+            >My Appointments</a
+          ></template
+        ></RoomBanner
+      >
 
       <section class="rounded-2xl border border-[var(--ks-border)] bg-[rgba(7,12,13,.70)] p-5">
         <div class="flex flex-wrap items-center justify-between gap-4">
@@ -358,11 +370,14 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
       </section>
 
       <template v-if="plan">
-        <section class="space-y-4 rounded-2xl border border-[var(--ks-border)] bg-[rgba(7,12,13,.70)] p-5">
+        <section
+          class="space-y-4 rounded-2xl border border-[var(--ks-border)] bg-[rgba(7,12,13,.70)] p-5"
+        >
           <div>
             <h2 class="text-lg font-semibold text-[var(--ks-ivory)]">Court Auto-Assign</h2>
             <p class="text-sm text-[var(--ks-muted)]">
-              These arrangements help officers fill the Court. Alliance leadership remains in control.
+              These arrangements help officers fill the Court. Alliance leadership remains in
+              control.
             </p>
           </div>
           <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
@@ -409,7 +424,9 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
                 Now / next / following for each appointment position.
               </p>
             </div>
-            <p class="text-xs text-[var(--ks-muted)]">Court watch {{ displayUtc(live.generatedAt) }}</p>
+            <p class="text-xs text-[var(--ks-muted)]">
+              Court watch {{ displayUtc(live.generatedAt) }}
+            </p>
           </div>
           <div class="grid gap-3 xl:grid-cols-2">
             <article
@@ -435,7 +452,9 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
                     <p class="mt-1 text-sm font-semibold text-[var(--ks-ivory)]">
                       {{ entry.item.playerName ?? 'Unknown Governor' }}
                     </p>
-                    <p class="text-xs text-[var(--ks-muted)]">{{ displayUtc(entry.item.startsAt) }}</p>
+                    <p class="text-xs text-[var(--ks-muted)]">
+                      {{ displayUtc(entry.item.startsAt) }}
+                    </p>
                     <p
                       class="text-xs"
                       :class="entry.item.playerEligible ? 'text-emerald-300' : 'text-rose-300'"
@@ -475,11 +494,15 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
         </section>
 
         <section class="grid gap-5 xl:grid-cols-[minmax(0,1fr)_24rem]">
-          <div class="space-y-3 rounded-2xl border border-[var(--ks-border)] bg-[rgba(7,12,13,.70)] p-5">
+          <div
+            class="space-y-3 rounded-2xl border border-[var(--ks-border)] bg-[rgba(7,12,13,.70)] p-5"
+          >
             <div class="flex flex-wrap items-end justify-between gap-3">
               <div>
                 <h2 class="text-lg font-semibold text-[var(--ks-ivory)]">Governor Requests</h2>
-                <p class="text-sm text-[var(--ks-muted)]">Ranked only within each activity category.</p>
+                <p class="text-sm text-[var(--ks-muted)]">
+                  Ranked only within each activity category.
+                </p>
               </div>
               <span class="text-xs text-[var(--ks-muted)]"
                 >{{ submittedRequests.length }} awaiting scheduling</span
@@ -499,10 +522,13 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
               <div class="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <div class="flex flex-wrap items-center gap-2">
-                    <p class="font-semibold text-[var(--ks-ivory)]">{{ item.playerName ?? item.playerId }}</p>
-                    <span class="rounded-full bg-[rgba(210,163,75,.05)] px-2 py-0.5 text-xs text-[var(--ks-muted)]">{{
-                      item.categoryLabel
-                    }}</span>
+                    <p class="font-semibold text-[var(--ks-ivory)]">
+                      {{ item.playerName ?? item.playerId }}
+                    </p>
+                    <span
+                      class="rounded-full bg-[rgba(210,163,75,.05)] px-2 py-0.5 text-xs text-[var(--ks-muted)]"
+                      >{{ item.categoryLabel }}</span
+                    >
                     <span class="text-xs text-[var(--ks-muted)]">{{ item.status }}</span>
                   </div>
                   <p class="mt-1 text-sm text-[var(--ks-muted)]">
@@ -517,7 +543,9 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
                     Speedups {{ speedups(item.plannedSpeedupMinutes) }} · preferred
                     {{ humanize(item.preferredAppointmentType) }}
                   </p>
-                  <p v-if="item.notes" class="mt-1 text-xs text-[var(--ks-muted)]">{{ item.notes }}</p>
+                  <p v-if="item.notes" class="mt-1 text-xs text-[var(--ks-muted)]">
+                    {{ item.notes }}
+                  </p>
                 </div>
                 <button
                   v-if="item.status === 'submitted'"
@@ -592,7 +620,9 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
         </section>
 
         <section class="grid gap-5 xl:grid-cols-[minmax(0,1fr)_24rem]">
-          <div class="space-y-3 rounded-2xl border border-[var(--ks-border)] bg-[rgba(7,12,13,.70)] p-5">
+          <div
+            class="space-y-3 rounded-2xl border border-[var(--ks-border)] bg-[rgba(7,12,13,.70)] p-5"
+          >
             <div>
               <h2 class="text-lg font-semibold text-[var(--ks-ivory)]">Appointment rotation</h2>
               <p class="text-sm text-[var(--ks-muted)]">
@@ -616,9 +646,10 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
                     <p class="font-semibold text-[var(--ks-ivory)]">
                       {{ item.typeLabel }} · {{ item.playerName ?? item.playerId }}
                     </p>
-                    <span class="rounded-full bg-[rgba(210,163,75,.05)] px-2 py-0.5 text-xs text-[var(--ks-muted)]">{{
-                      humanize(item.status)
-                    }}</span>
+                    <span
+                      class="rounded-full bg-[rgba(210,163,75,.05)] px-2 py-0.5 text-xs text-[var(--ks-muted)]"
+                      >{{ humanize(item.status) }}</span
+                    >
                     <span
                       v-if="!item.playerEligible"
                       class="rounded-full bg-rose-400/10 px-2 py-0.5 text-xs text-rose-300"
@@ -643,7 +674,9 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
                     {{ item.actualStartedAt ? displayUtc(item.actualStartedAt) : 'not started' }} →
                     {{ item.actualEndedAt ? displayUtc(item.actualEndedAt) : 'in progress' }}
                   </p>
-                  <p v-if="item.notes" class="mt-1 text-xs text-[var(--ks-muted)]">{{ item.notes }}</p>
+                  <p v-if="item.notes" class="mt-1 text-xs text-[var(--ks-muted)]">
+                    {{ item.notes }}
+                  </p>
                 </div>
                 <div class="flex flex-wrap gap-2">
                   <button
@@ -780,7 +813,9 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
         </section>
 
         <section class="grid gap-5 xl:grid-cols-[minmax(0,1fr)_24rem]">
-          <div class="space-y-3 rounded-2xl border border-[var(--ks-border)] bg-[rgba(7,12,13,.70)] p-5">
+          <div
+            class="space-y-3 rounded-2xl border border-[var(--ks-border)] bg-[rgba(7,12,13,.70)] p-5"
+          >
             <div>
               <h2 class="text-lg font-semibold text-[var(--ks-ivory)]">King Skills</h2>
               <p class="text-sm text-[var(--ks-muted)]">

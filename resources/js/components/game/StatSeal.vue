@@ -17,7 +17,9 @@ withDefaults(
     <div class="ks-stat-seal__copy">
       <small>{{ label }}</small>
       <strong>{{ value }}</strong>
-      <span v-if="detail" class="mt-1 block truncate text-xs text-[var(--ks-text-muted)]">{{ detail }}</span>
+      <span v-if="detail" class="mt-1 block truncate text-xs text-[var(--ks-text-muted)]">{{
+        detail
+      }}</span>
       <slot />
     </div>
   </article>

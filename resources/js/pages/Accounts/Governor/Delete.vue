@@ -88,7 +88,11 @@ function requestTone(status: string): 'success' | 'warning' | 'danger' | 'info' 
         />
         <StatSeal
           :label="t('accountExperience.deletion.processedAt')"
-          :value="props.request.processedAt ? formatDate(props.request.processedAt) : t('accountExperience.deletion.notYet')"
+          :value="
+            props.request.processedAt
+              ? formatDate(props.request.processedAt)
+              : t('accountExperience.deletion.notYet')
+          "
           icon="✓"
           tone="teal"
         />
@@ -128,7 +132,9 @@ function requestTone(status: string): 'success' | 'warning' | 'danger' | 'info' 
       aria-labelledby="deletion-request-heading"
     >
       <div class="border-b border-red-400/15 p-5 sm:p-6">
-        <p class="ks-kicker text-[var(--ks-red)]">{{ t('accountExperience.account.dangerTitle') }}</p>
+        <p class="ks-kicker text-[var(--ks-red)]">
+          {{ t('accountExperience.account.dangerTitle') }}
+        </p>
         <h2 id="deletion-request-heading" class="ks-display mt-2 text-3xl font-semibold">
           {{ t('accountExperience.deletion.requestTitle') }}
         </h2>

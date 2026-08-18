@@ -147,11 +147,7 @@ function stateTone(value: string): 'success' | 'warning' | 'info' {
         <Link href="/alliance/roster" class="ks-command-link">
           {{ t('roster.title') }}
         </Link>
-        <Link
-          href="/alliance/roster/import"
-          class="ks-command-link"
-          data-variant="secondary"
-        >
+        <Link href="/alliance/roster/import" class="ks-command-link" data-variant="secondary">
           {{ t('rosterManage.csvMigration') }}
         </Link>
       </template>
@@ -179,7 +175,10 @@ function stateTone(value: string): 'success' | 'warning' | 'info' {
 
     <div class="mt-5 grid gap-5 2xl:grid-cols-[minmax(21rem,.58fr)_minmax(0,1.42fr)]">
       <aside class="space-y-5">
-        <section class="ks-surface p-5 2xl:sticky 2xl:top-[6.5rem]" aria-labelledby="add-roster-player">
+        <section
+          class="ks-surface p-5 2xl:sticky 2xl:top-[6.5rem]"
+          aria-labelledby="add-roster-player"
+        >
           <p class="ks-kicker">{{ t('rosterManage.addPlayer') }}</p>
           <h2 id="add-roster-player" class="ks-display mt-1 text-xl font-semibold">
             {{ t('rosterManage.playerName') }}
@@ -187,45 +186,92 @@ function stateTone(value: string): 'success' | 'warning' | 'info' {
 
           <form class="mt-5 space-y-4" @submit.prevent="createEntry">
             <div>
-              <label class="text-xs font-semibold" for="roster-name">{{ t('rosterManage.playerName') }}</label>
-              <input id="roster-name" v-model="createForm.name" class="ks-input mt-1.5" maxlength="160" required />
+              <label class="text-xs font-semibold" for="roster-name">{{
+                t('rosterManage.playerName')
+              }}</label>
+              <input
+                id="roster-name"
+                v-model="createForm.name"
+                class="ks-input mt-1.5"
+                maxlength="160"
+                required
+              />
             </div>
             <div>
-              <label class="text-xs font-semibold" for="roster-game-id">{{ t('rosterManage.stableGameId') }}</label>
-              <input id="roster-game-id" v-model="createForm.game_player_id" class="ks-input mt-1.5" maxlength="100" />
+              <label class="text-xs font-semibold" for="roster-game-id">{{
+                t('rosterManage.stableGameId')
+              }}</label>
+              <input
+                id="roster-game-id"
+                v-model="createForm.game_player_id"
+                class="ks-input mt-1.5"
+                maxlength="100"
+              />
             </div>
             <div>
               <label class="text-xs font-semibold" for="roster-role">{{ t('roster.role') }}</label>
-              <input id="roster-role" v-model="createForm.game_role" class="ks-input mt-1.5" maxlength="64" />
+              <input
+                id="roster-role"
+                v-model="createForm.game_role"
+                class="ks-input mt-1.5"
+                maxlength="64"
+              />
             </div>
             <div class="grid gap-3 sm:grid-cols-2 2xl:grid-cols-1">
               <div>
-                <label class="text-xs font-semibold" for="roster-state">{{ t('roster.state') }}</label>
+                <label class="text-xs font-semibold" for="roster-state">{{
+                  t('roster.state')
+                }}</label>
                 <select id="roster-state" v-model="createForm.state" class="ks-input mt-1.5">
-                  <option v-for="state in states" :key="state" :value="state">{{ stateLabel(state) }}</option>
+                  <option v-for="state in states" :key="state" :value="state">
+                    {{ stateLabel(state) }}
+                  </option>
                 </select>
               </div>
               <div>
-                <label class="text-xs font-semibold" for="roster-joined">{{ t('rosterManage.joinedDate') }}</label>
-                <input id="roster-joined" v-model="createForm.joined_at" class="ks-input mt-1.5" type="date" />
+                <label class="text-xs font-semibold" for="roster-joined">{{
+                  t('rosterManage.joinedDate')
+                }}</label>
+                <input
+                  id="roster-joined"
+                  v-model="createForm.joined_at"
+                  class="ks-input mt-1.5"
+                  type="date"
+                />
               </div>
             </div>
             <div>
-              <label class="text-xs font-semibold" for="roster-notes">{{ t('rosterManage.managerNotes') }}</label>
-              <textarea id="roster-notes" v-model="createForm.manager_notes" class="ks-input mt-1.5 min-h-24" maxlength="5000" />
+              <label class="text-xs font-semibold" for="roster-notes">{{
+                t('rosterManage.managerNotes')
+              }}</label>
+              <textarea
+                id="roster-notes"
+                v-model="createForm.manager_notes"
+                class="ks-input mt-1.5 min-h-24"
+                maxlength="5000"
+              />
             </div>
             <AppButton class="w-full" type="submit" :disabled="createForm.processing">
               {{ t('rosterManage.addToRoster') }}
             </AppButton>
-            <p v-if="Object.keys(createForm.errors).length" class="text-sm text-red-300" role="alert">
+            <p
+              v-if="Object.keys(createForm.errors).length"
+              class="text-sm text-red-300"
+              role="alert"
+            >
               {{ t('rosterManage.correctValues') }}
             </p>
           </form>
         </section>
 
-        <section v-if="gaps.membershipsWithoutRoster.length || gaps.rosterWithoutMembership" class="ks-surface p-5">
+        <section
+          v-if="gaps.membershipsWithoutRoster.length || gaps.rosterWithoutMembership"
+          class="ks-surface p-5"
+        >
           <p class="ks-kicker">{{ t('roster.linkage') }}</p>
-          <h2 class="ks-display mt-1 text-xl font-semibold">{{ t('rosterManage.membershipsWithoutProfile') }}</h2>
+          <h2 class="ks-display mt-1 text-xl font-semibold">
+            {{ t('rosterManage.membershipsWithoutProfile') }}
+          </h2>
           <div v-if="gaps.membershipsWithoutRoster.length" class="mt-4 space-y-2">
             <article
               v-for="membership in gaps.membershipsWithoutRoster"
@@ -240,7 +286,8 @@ function stateTone(value: string): 'success' | 'warning' | 'info' {
             </article>
           </div>
           <p v-if="gaps.rosterWithoutMembership" class="mt-4 text-sm text-[var(--ks-muted)]">
-            {{ t('rosterManage.profilesWithoutMembership') }} · {{ formatNumber(gaps.rosterWithoutMembership) }}
+            {{ t('rosterManage.profilesWithoutMembership') }} ·
+            {{ formatNumber(gaps.rosterWithoutMembership) }}
           </p>
         </section>
       </aside>
@@ -257,10 +304,12 @@ function stateTone(value: string): 'success' | 'warning' | 'info' {
 
         <div v-if="entries.length" class="mt-4 space-y-4">
           <article v-for="entry in entries" :key="entry.id" class="ks-surface overflow-hidden">
-            <div class="flex flex-wrap items-start justify-between gap-4 border-b border-[var(--ks-border)] p-4 sm:p-5">
+            <div
+              class="flex flex-wrap items-start justify-between gap-4 border-b border-[var(--ks-border)] p-4 sm:p-5"
+            >
               <div class="flex min-w-0 items-center gap-3">
                 <div
-                  class="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-[var(--ks-gold-dark)] bg-black/20 font-[var(--ks-font-display)] text-lg text-[var(--ks-gold-bright)]"
+                  class="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-[var(--ks-gold-dark)] bg-black/20 text-lg font-[var(--ks-font-display)] text-[var(--ks-gold-bright)]"
                   aria-hidden="true"
                 >
                   {{ entry.name.slice(0, 1).toUpperCase() }}
@@ -268,7 +317,9 @@ function stateTone(value: string): 'success' | 'warning' | 'info' {
                 <div class="min-w-0">
                   <div class="flex flex-wrap items-center gap-2">
                     <h3 class="ks-display truncate text-xl font-semibold">{{ entry.name }}</h3>
-                    <span class="ks-status" :data-tone="stateTone(entry.state)">{{ stateLabel(entry.state) }}</span>
+                    <span class="ks-status" :data-tone="stateTone(entry.state)">{{
+                      stateLabel(entry.state)
+                    }}</span>
                     <span v-if="entry.gameRole" class="ks-chip">{{ entry.gameRole }}</span>
                   </div>
                   <p class="mt-1 text-xs text-[var(--ks-muted)]">
@@ -282,39 +333,83 @@ function stateTone(value: string): 'success' | 'warning' | 'info' {
                   {{ entry.latestSnapshot ? formatPower(entry.latestSnapshot.power) : '—' }}
                 </p>
                 <p class="mt-1 text-xs text-[var(--ks-muted)]">
-                  {{ entry.latestSnapshot ? formatCaptured(entry.latestSnapshot.capturedAt) : t('rosterManage.noneRecorded') }}
+                  {{
+                    entry.latestSnapshot
+                      ? formatCaptured(entry.latestSnapshot.capturedAt)
+                      : t('rosterManage.noneRecorded')
+                  }}
                 </p>
               </div>
             </div>
 
             <div class="grid gap-4 p-4 sm:grid-cols-2 sm:p-5 xl:grid-cols-4">
               <div>
-                <label class="text-xs font-semibold" :for="`name-${entry.id}`">{{ t('rosterManage.observedName') }}</label>
-                <input :id="`name-${entry.id}`" v-model="drafts[entry.id].name" class="ks-input mt-1.5" maxlength="160" />
+                <label class="text-xs font-semibold" :for="`name-${entry.id}`">{{
+                  t('rosterManage.observedName')
+                }}</label>
+                <input
+                  :id="`name-${entry.id}`"
+                  v-model="drafts[entry.id].name"
+                  class="ks-input mt-1.5"
+                  maxlength="160"
+                />
               </div>
               <div>
-                <label class="text-xs font-semibold" :for="`role-${entry.id}`">{{ t('roster.role') }}</label>
-                <input :id="`role-${entry.id}`" v-model="drafts[entry.id].game_role" class="ks-input mt-1.5" maxlength="64" />
+                <label class="text-xs font-semibold" :for="`role-${entry.id}`">{{
+                  t('roster.role')
+                }}</label>
+                <input
+                  :id="`role-${entry.id}`"
+                  v-model="drafts[entry.id].game_role"
+                  class="ks-input mt-1.5"
+                  maxlength="64"
+                />
               </div>
               <div>
-                <label class="text-xs font-semibold" :for="`state-${entry.id}`">{{ t('roster.state') }}</label>
-                <select :id="`state-${entry.id}`" v-model="drafts[entry.id].state" class="ks-input mt-1.5">
-                  <option v-for="state in states" :key="state" :value="state">{{ stateLabel(state) }}</option>
+                <label class="text-xs font-semibold" :for="`state-${entry.id}`">{{
+                  t('roster.state')
+                }}</label>
+                <select
+                  :id="`state-${entry.id}`"
+                  v-model="drafts[entry.id].state"
+                  class="ks-input mt-1.5"
+                >
+                  <option v-for="state in states" :key="state" :value="state">
+                    {{ stateLabel(state) }}
+                  </option>
                 </select>
               </div>
               <div>
-                <label class="text-xs font-semibold" :for="`joined-${entry.id}`">{{ t('rosterManage.joinedDate') }}</label>
-                <input :id="`joined-${entry.id}`" v-model="drafts[entry.id].joined_at" class="ks-input mt-1.5" type="date" />
+                <label class="text-xs font-semibold" :for="`joined-${entry.id}`">{{
+                  t('rosterManage.joinedDate')
+                }}</label>
+                <input
+                  :id="`joined-${entry.id}`"
+                  v-model="drafts[entry.id].joined_at"
+                  class="ks-input mt-1.5"
+                  type="date"
+                />
               </div>
               <div class="sm:col-span-2 xl:col-span-4">
-                <label class="text-xs font-semibold" :for="`notes-${entry.id}`">{{ t('rosterManage.managerNotes') }}</label>
-                <textarea :id="`notes-${entry.id}`" v-model="drafts[entry.id].manager_notes" class="ks-input mt-1.5 min-h-20" maxlength="5000" />
+                <label class="text-xs font-semibold" :for="`notes-${entry.id}`">{{
+                  t('rosterManage.managerNotes')
+                }}</label>
+                <textarea
+                  :id="`notes-${entry.id}`"
+                  v-model="drafts[entry.id].manager_notes"
+                  class="ks-input mt-1.5 min-h-20"
+                  maxlength="5000"
+                />
               </div>
               <div class="flex flex-wrap gap-2 sm:col-span-2 xl:col-span-4">
                 <AppButton variant="secondary" @click="saveEntry(entry)">
                   {{ t('rosterManage.savePlayer') }}
                 </AppButton>
-                <Link :href="`/alliance/roster/${entry.id}/history`" class="ks-command-link" data-variant="secondary">
+                <Link
+                  :href="`/alliance/roster/${entry.id}/history`"
+                  class="ks-command-link"
+                  data-variant="secondary"
+                >
                   {{ t('rosterManage.historyRecordSnapshot') }}
                 </Link>
                 <button

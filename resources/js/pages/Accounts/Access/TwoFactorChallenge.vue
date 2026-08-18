@@ -23,7 +23,10 @@ function submitRecoveryCode(): void {
   <Head :title="t('auth.twoFactor.title')" />
 
   <AuthLayout>
-    <div class="mx-auto grid h-16 w-16 place-items-center rounded-full border border-[var(--ks-gold-dark)] bg-[var(--ks-gold-soft)] text-2xl text-[var(--ks-gold-bright)]" aria-hidden="true">
+    <div
+      class="mx-auto grid h-16 w-16 place-items-center rounded-full border border-[var(--ks-gold-dark)] bg-[var(--ks-gold-soft)] text-2xl text-[var(--ks-gold-bright)]"
+      aria-hidden="true"
+    >
       ⛨
     </div>
     <p class="ks-kicker mt-5 text-center">{{ t('authExperience.twoFactor.kicker') }}</p>
@@ -48,13 +51,15 @@ function submitRecoveryCode(): void {
         pattern="\d{6}"
         type="text"
       />
-      <p v-if="form.errors.code" class="text-sm text-[var(--ks-red)]" role="alert">{{ form.errors.code }}</p>
+      <p v-if="form.errors.code" class="text-sm text-[var(--ks-red)]" role="alert">
+        {{ form.errors.code }}
+      </p>
       <AppButton class="w-full" type="submit" :disabled="form.processing">
         {{ t('authExperience.twoFactor.verifyCode') }}
       </AppButton>
     </form>
 
-    <div class="my-7 ks-divider" aria-hidden="true" />
+    <div class="ks-divider my-7" aria-hidden="true" />
 
     <form class="space-y-4" @submit.prevent="submitRecoveryCode">
       <label class="block text-sm font-semibold" for="recovery-code">

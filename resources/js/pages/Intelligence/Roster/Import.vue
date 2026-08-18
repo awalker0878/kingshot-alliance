@@ -115,7 +115,8 @@ function resolutionLabel(row: PreviewRow): string {
 
 function outcomeTone(outcome: PreviewRow['outcome']): string {
   if (outcome === 'create') return 'border-green-400/25 bg-green-500/10 text-green-200';
-  if (outcome === 'update') return 'border-[var(--ks-border)] bg-[var(--ks-teal-soft)] text-[var(--ks-gold-bright)]';
+  if (outcome === 'update')
+    return 'border-[var(--ks-border)] bg-[var(--ks-teal-soft)] text-[var(--ks-gold-bright)]';
   if (outcome === 'ambiguous') return 'border-amber-400/25 bg-amber-500/10 text-amber-200';
   return 'border-red-400/25 bg-red-500/10 text-red-200';
 }

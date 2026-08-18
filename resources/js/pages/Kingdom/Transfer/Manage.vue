@@ -407,7 +407,9 @@ const labelClass =
                 t('kingdomP7D.transferCycles')
               }}
             </caption>
-            <thead class="bg-[var(--ks-parchment)]/[0.03] text-xs text-[var(--ks-text-muted)] uppercase">
+            <thead
+              class="bg-[var(--ks-parchment)]/[0.03] text-xs text-[var(--ks-text-muted)] uppercase"
+            >
               <tr>
                 <th class="px-3 py-3" scope="col">{{ t('kingdomP7D.cycle') }}</th>
                 <th class="px-3 py-3" scope="col">{{ t('kingdomP7D.homeKingdom') }}</th>
@@ -569,7 +571,9 @@ const labelClass =
                 t('kingdomP7D.groupTableCaption')
               }}
             </caption>
-            <thead class="bg-[var(--ks-parchment)]/[0.03] text-xs text-[var(--ks-text-muted)] uppercase">
+            <thead
+              class="bg-[var(--ks-parchment)]/[0.03] text-xs text-[var(--ks-text-muted)] uppercase"
+            >
               <tr>
                 <th class="px-3 py-3" scope="col">{{ t('kingdomP7D.group') }}</th>
                 <th class="px-3 py-3" scope="col">{{ t('kingdomP7D.directionDestination') }}</th>
@@ -815,7 +819,9 @@ const labelClass =
                 t('kingdomP7D.participantTableCaption')
               }}
             </caption>
-            <thead class="bg-[var(--ks-parchment)]/[0.03] text-xs text-[var(--ks-text-muted)] uppercase">
+            <thead
+              class="bg-[var(--ks-parchment)]/[0.03] text-xs text-[var(--ks-text-muted)] uppercase"
+            >
               <tr>
                 <th class="px-3 py-3" scope="col">{{ t('kingdomP7D.player') }}</th>
                 <th class="px-3 py-3" scope="col">{{ t('kingdomP7D.directionDestination') }}</th>

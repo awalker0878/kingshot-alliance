@@ -75,16 +75,21 @@ function published(value: string | null): string {
               }}
             </span>
           </div>
-          <h1 class="ks-display mt-5 text-3xl font-semibold leading-tight sm:text-4xl">
+          <h1 class="ks-display mt-5 text-3xl leading-tight font-semibold sm:text-4xl">
             {{ content.title }}
           </h1>
-          <p v-if="content.summary" class="mt-3 text-base leading-7 text-[var(--ks-text-secondary)]">
+          <p
+            v-if="content.summary"
+            class="mt-3 text-base leading-7 text-[var(--ks-text-secondary)]"
+          >
             {{ content.summary }}
           </p>
         </header>
 
         <div class="p-5 sm:p-7">
-          <div class="prose prose-invert max-w-none whitespace-pre-wrap leading-8 text-[var(--ks-text-secondary)]">
+          <div
+            class="prose prose-invert max-w-none leading-8 whitespace-pre-wrap text-[var(--ks-text-secondary)]"
+          >
             {{ content.body }}
           </div>
         </div>

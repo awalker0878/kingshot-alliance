@@ -193,7 +193,10 @@ function snapshotPercent(value: number): string {
             @submit.prevent="applyFilters"
           >
             <div class="md:col-span-2 xl:col-span-2">
-              <label class="text-xs font-semibold text-[var(--ks-text-secondary)]" for="roster-search">
+              <label
+                class="text-xs font-semibold text-[var(--ks-text-secondary)]"
+                for="roster-search"
+              >
                 {{ t('roster.search') }}
               </label>
               <input
@@ -205,7 +208,10 @@ function snapshotPercent(value: number): string {
               />
             </div>
             <div>
-              <label class="text-xs font-semibold text-[var(--ks-text-secondary)]" for="roster-state-filter">
+              <label
+                class="text-xs font-semibold text-[var(--ks-text-secondary)]"
+                for="roster-state-filter"
+              >
                 {{ t('roster.state') }}
               </label>
               <select id="roster-state-filter" v-model="filters.state" class="ks-input mt-1.5">
@@ -216,7 +222,10 @@ function snapshotPercent(value: number): string {
               </select>
             </div>
             <div>
-              <label class="text-xs font-semibold text-[var(--ks-text-secondary)]" for="roster-linkage-filter">
+              <label
+                class="text-xs font-semibold text-[var(--ks-text-secondary)]"
+                for="roster-linkage-filter"
+              >
                 {{ t('roster.linkage') }}
               </label>
               <select id="roster-linkage-filter" v-model="filters.linkage" class="ks-input mt-1.5">
@@ -226,7 +235,10 @@ function snapshotPercent(value: number): string {
               </select>
             </div>
             <div>
-              <label class="text-xs font-semibold text-[var(--ks-text-secondary)]" for="roster-role-filter">
+              <label
+                class="text-xs font-semibold text-[var(--ks-text-secondary)]"
+                for="roster-role-filter"
+              >
                 {{ t('roster.role') }}
               </label>
               <select id="roster-role-filter" v-model="filters.role" class="ks-input mt-1.5">
@@ -235,10 +247,17 @@ function snapshotPercent(value: number): string {
               </select>
             </div>
             <div>
-              <label class="text-xs font-semibold text-[var(--ks-text-secondary)]" for="roster-observation-filter">
+              <label
+                class="text-xs font-semibold text-[var(--ks-text-secondary)]"
+                for="roster-observation-filter"
+              >
                 {{ t('roster.freshness') }}
               </label>
-              <select id="roster-observation-filter" v-model="filters.observation" class="ks-input mt-1.5">
+              <select
+                id="roster-observation-filter"
+                v-model="filters.observation"
+                class="ks-input mt-1.5"
+              >
                 <option value="">{{ t('roster.anyFreshness') }}</option>
                 <option value="current">{{ t('roster.current') }}</option>
                 <option value="stale">{{ t('roster.stale') }}</option>
@@ -247,7 +266,12 @@ function snapshotPercent(value: number): string {
             </div>
             <div class="flex flex-wrap items-end gap-2 md:col-span-2 xl:col-span-6">
               <button type="submit" class="ks-command-button">{{ t('roster.apply') }}</button>
-              <button type="button" class="ks-command-button" data-variant="secondary" @click="clearFilters">
+              <button
+                type="button"
+                class="ks-command-button"
+                data-variant="secondary"
+                @click="clearFilters"
+              >
                 {{ t('roster.clear') }}
               </button>
             </div>
@@ -255,7 +279,9 @@ function snapshotPercent(value: number): string {
         </section>
 
         <section class="ks-surface overflow-hidden" aria-labelledby="roster-results-heading">
-          <div class="flex items-center justify-between gap-4 border-b border-[var(--ks-border)] px-4 py-3 sm:px-5">
+          <div
+            class="flex items-center justify-between gap-4 border-b border-[var(--ks-border)] px-4 py-3 sm:px-5"
+          >
             <div>
               <p class="ks-kicker">{{ t('roster.title') }}</p>
               <h2 id="roster-results-heading" class="sr-only">{{ t('roster.results') }}</h2>
@@ -280,7 +306,7 @@ function snapshotPercent(value: number): string {
                 </div>
                 <div class="min-w-0 flex-1">
                   <Link
-                    class="block truncate font-[var(--ks-font-display)] text-lg font-semibold text-[var(--ks-gold-bright)] hover:text-[var(--ks-ivory)]"
+                    class="block truncate text-lg font-[var(--ks-font-display)] font-semibold text-[var(--ks-gold-bright)] hover:text-[var(--ks-ivory)]"
                     :href="`/alliance/roster/${entry.id}/history`"
                   >
                     {{ entry.latestSnapshot?.observedName ?? entry.name }}
@@ -306,17 +332,41 @@ function snapshotPercent(value: number): string {
                 <span v-if="entry.gameRole" class="ks-chip">{{ entry.gameRole }}</span>
               </div>
               <dl class="mt-4 grid grid-cols-2 gap-3 text-xs">
-                <div><dt class="text-[var(--ks-muted)]">{{ t('roster.progression') }}</dt><dd class="mt-1 font-medium">{{ entry.latestSnapshot?.progressionLevel ?? '—' }}</dd></div>
-                <div><dt class="text-[var(--ks-muted)]">{{ t('roster.allianceTag') }}</dt><dd class="mt-1 font-medium">{{ entry.latestSnapshot?.observedAllianceTag ?? '—' }}</dd></div>
-                <div><dt class="text-[var(--ks-muted)]">{{ t('roster.linkedMember') }}</dt><dd class="mt-1 truncate font-medium">{{ entry.membership?.name ?? t('roster.unlinked') }}</dd></div>
-                <div><dt class="text-[var(--ks-muted)]">{{ t('roster.snapshotCaptured') }}</dt><dd class="mt-1 font-medium">{{ entry.latestSnapshot ? formatCaptured(entry.latestSnapshot.capturedAt) : '—' }}</dd></div>
+                <div>
+                  <dt class="text-[var(--ks-muted)]">{{ t('roster.progression') }}</dt>
+                  <dd class="mt-1 font-medium">
+                    {{ entry.latestSnapshot?.progressionLevel ?? '—' }}
+                  </dd>
+                </div>
+                <div>
+                  <dt class="text-[var(--ks-muted)]">{{ t('roster.allianceTag') }}</dt>
+                  <dd class="mt-1 font-medium">
+                    {{ entry.latestSnapshot?.observedAllianceTag ?? '—' }}
+                  </dd>
+                </div>
+                <div>
+                  <dt class="text-[var(--ks-muted)]">{{ t('roster.linkedMember') }}</dt>
+                  <dd class="mt-1 truncate font-medium">
+                    {{ entry.membership?.name ?? t('roster.unlinked') }}
+                  </dd>
+                </div>
+                <div>
+                  <dt class="text-[var(--ks-muted)]">{{ t('roster.snapshotCaptured') }}</dt>
+                  <dd class="mt-1 font-medium">
+                    {{
+                      entry.latestSnapshot ? formatCaptured(entry.latestSnapshot.capturedAt) : '—'
+                    }}
+                  </dd>
+                </div>
               </dl>
             </article>
           </div>
 
           <div v-if="entries.length" class="hidden overflow-x-auto lg:block">
             <table class="w-full min-w-[70rem] text-start text-sm">
-              <thead class="bg-black/20 text-[.66rem] font-extrabold tracking-[.08em] text-[var(--ks-muted)] uppercase">
+              <thead
+                class="bg-black/20 text-[.66rem] font-extrabold tracking-[.08em] text-[var(--ks-muted)] uppercase"
+              >
                 <tr>
                   <th class="px-4 py-3 text-start">{{ t('roster.player') }}</th>
                   <th class="px-4 py-3 text-start">{{ t('roster.role') }}</th>
@@ -328,26 +378,64 @@ function snapshotPercent(value: number): string {
                 </tr>
               </thead>
               <tbody class="divide-y divide-[var(--ks-border)]">
-                <tr v-for="entry in entries" :key="entry.id" class="transition hover:bg-white/[0.018]">
+                <tr
+                  v-for="entry in entries"
+                  :key="entry.id"
+                  class="transition hover:bg-white/[0.018]"
+                >
                   <td class="px-4 py-4">
                     <div class="flex items-center gap-3">
-                      <div class="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-[var(--ks-gold-dark)] bg-black/20 font-[var(--ks-font-display)] text-[var(--ks-gold-bright)]" aria-hidden="true">
-                        {{ (entry.latestSnapshot?.observedName ?? entry.name).slice(0, 1).toUpperCase() }}
+                      <div
+                        class="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-[var(--ks-gold-dark)] bg-black/20 font-[var(--ks-font-display)] text-[var(--ks-gold-bright)]"
+                        aria-hidden="true"
+                      >
+                        {{
+                          (entry.latestSnapshot?.observedName ?? entry.name)
+                            .slice(0, 1)
+                            .toUpperCase()
+                        }}
                       </div>
                       <div class="min-w-0">
-                        <Link class="font-[var(--ks-font-display)] font-semibold text-[var(--ks-gold-bright)] hover:text-[var(--ks-ivory)]" :href="`/alliance/roster/${entry.id}/history`">
+                        <Link
+                          class="font-[var(--ks-font-display)] font-semibold text-[var(--ks-gold-bright)] hover:text-[var(--ks-ivory)]"
+                          :href="`/alliance/roster/${entry.id}/history`"
+                        >
                           {{ entry.latestSnapshot?.observedName ?? entry.name }}
                         </Link>
-                        <p class="mt-1 text-xs text-[var(--ks-muted)]">{{ entry.gamePlayerId ?? '—' }}</p>
+                        <p class="mt-1 text-xs text-[var(--ks-muted)]">
+                          {{ entry.gamePlayerId ?? '—' }}
+                        </p>
                       </div>
                     </div>
                   </td>
-                  <td class="px-4 py-4"><span v-if="entry.gameRole" class="ks-chip">{{ entry.gameRole }}</span><span v-else class="text-[var(--ks-muted)]">—</span></td>
-                  <td class="px-4 py-4"><span class="ks-status" :data-tone="rosterTone(entry.state)">{{ stateLabel(entry.state) }}</span></td>
-                  <td class="px-4 py-4 font-semibold">{{ entry.latestSnapshot ? formatPower(entry.latestSnapshot.power) : '—' }}</td>
-                  <td class="px-4 py-4 text-[var(--ks-text-secondary)]">{{ entry.latestSnapshot?.progressionLevel ?? '—' }}</td>
-                  <td class="px-4 py-4"><span class="ks-status" :data-tone="freshnessTone(snapshotState(entry))">{{ stateLabel(snapshotState(entry)) }}</span><p class="mt-1.5 text-xs text-[var(--ks-muted)]">{{ entry.latestSnapshot ? formatCaptured(entry.latestSnapshot.capturedAt) : '—' }}</p></td>
-                  <td class="px-4 py-4 text-[var(--ks-text-secondary)]">{{ entry.membership?.name ?? t('roster.unlinked') }}</td>
+                  <td class="px-4 py-4">
+                    <span v-if="entry.gameRole" class="ks-chip">{{ entry.gameRole }}</span
+                    ><span v-else class="text-[var(--ks-muted)]">—</span>
+                  </td>
+                  <td class="px-4 py-4">
+                    <span class="ks-status" :data-tone="rosterTone(entry.state)">{{
+                      stateLabel(entry.state)
+                    }}</span>
+                  </td>
+                  <td class="px-4 py-4 font-semibold">
+                    {{ entry.latestSnapshot ? formatPower(entry.latestSnapshot.power) : '—' }}
+                  </td>
+                  <td class="px-4 py-4 text-[var(--ks-text-secondary)]">
+                    {{ entry.latestSnapshot?.progressionLevel ?? '—' }}
+                  </td>
+                  <td class="px-4 py-4">
+                    <span class="ks-status" :data-tone="freshnessTone(snapshotState(entry))">{{
+                      stateLabel(snapshotState(entry))
+                    }}</span>
+                    <p class="mt-1.5 text-xs text-[var(--ks-muted)]">
+                      {{
+                        entry.latestSnapshot ? formatCaptured(entry.latestSnapshot.capturedAt) : '—'
+                      }}
+                    </p>
+                  </td>
+                  <td class="px-4 py-4 text-[var(--ks-text-secondary)]">
+                    {{ entry.membership?.name ?? t('roster.unlinked') }}
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -361,31 +449,43 @@ function snapshotPercent(value: number): string {
       </div>
 
       <aside class="space-y-5">
-        <section class="ks-surface p-5 2xl:sticky 2xl:top-[6.5rem]" aria-labelledby="roster-quality-heading">
+        <section
+          class="ks-surface p-5 2xl:sticky 2xl:top-[6.5rem]"
+          aria-labelledby="roster-quality-heading"
+        >
           <p class="ks-kicker">{{ t('roster.snapshotQuality') }}</p>
           <h2 id="roster-quality-heading" class="ks-display mt-1 text-xl font-semibold">
             {{ t('roster.freshness') }}
           </h2>
 
           <div class="mt-5 space-y-5">
-            <div v-for="item in [
-              { key: 'current', value: snapshotCounts.current, tone: 'bg-[var(--ks-green)]' },
-              { key: 'stale', value: snapshotCounts.stale, tone: 'bg-[var(--ks-amber)]' },
-              { key: 'missing', value: snapshotCounts.missing, tone: 'bg-[var(--ks-red)]' },
-            ]" :key="item.key">
+            <div
+              v-for="item in [
+                { key: 'current', value: snapshotCounts.current, tone: 'bg-[var(--ks-green)]' },
+                { key: 'stale', value: snapshotCounts.stale, tone: 'bg-[var(--ks-amber)]' },
+                { key: 'missing', value: snapshotCounts.missing, tone: 'bg-[var(--ks-red)]' },
+              ]"
+              :key="item.key"
+            >
               <div class="flex items-center justify-between gap-3 text-sm">
                 <span>{{ t(`roster.${item.key}`) }}</span>
                 <strong>{{ formatNumber(item.value) }}</strong>
               </div>
               <div class="mt-2 h-1.5 overflow-hidden rounded-full bg-white/[.05]">
-                <div class="h-full rounded-full" :class="item.tone" :style="{ width: snapshotPercent(item.value) }" />
+                <div
+                  class="h-full rounded-full"
+                  :class="item.tone"
+                  :style="{ width: snapshotPercent(item.value) }"
+                />
               </div>
             </div>
           </div>
 
-          <div class="my-5 ks-divider" />
+          <div class="ks-divider my-5" />
 
-          <div class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-4">
+          <div
+            class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-4"
+          >
             <p class="ks-kicker">{{ t('roster.membershipLinkage') }}</p>
             <p class="ks-display mt-2 text-3xl font-semibold text-[var(--ks-gold-bright)]">
               {{ formatNumber(linkedResults) }} / {{ formatNumber(entries.length) }}

@@ -34,7 +34,7 @@ function invitationExpiry(): string {
 
   <AuthLayout>
     <div
-      class="mx-auto grid h-16 w-14 place-items-center border border-[var(--ks-gold-dark)] bg-[linear-gradient(160deg,#126b64,#092d2a)] font-[var(--ks-font-display)] text-2xl text-[var(--ks-gold-bright)] [clip-path:polygon(50%_0,95%_16%,86%_77%,50%_100%,14%_77%,5%_16%)]"
+      class="mx-auto grid h-16 w-14 place-items-center border border-[var(--ks-gold-dark)] bg-[linear-gradient(160deg,#126b64,#092d2a)] text-2xl font-[var(--ks-font-display)] text-[var(--ks-gold-bright)] [clip-path:polygon(50%_0,95%_16%,86%_77%,50%_100%,14%_77%,5%_16%)]"
       aria-hidden="true"
     >
       ✉
@@ -44,7 +44,9 @@ function invitationExpiry(): string {
       {{ t('authExperience.invitation.join', { alliance: invitation.alliance.name }) }}
     </h2>
 
-    <div class="mt-6 rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-4 text-center">
+    <div
+      class="mt-6 rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-4 text-center"
+    >
       <p class="text-sm leading-6 text-[var(--ks-text-secondary)]">
         {{ t('authExperience.invitation.forEmail', { email: invitation.email }) }}
       </p>
@@ -67,10 +69,17 @@ function invitationExpiry(): string {
     </div>
 
     <div v-else class="mt-7 grid gap-3">
-      <Link class="ks-command-link w-full" :href="`/register?invitation=${encodeURIComponent(invitation.token)}`">
+      <Link
+        class="ks-command-link w-full"
+        :href="`/register?invitation=${encodeURIComponent(invitation.token)}`"
+      >
         {{ t('authExperience.invitation.createAndJoin') }}
       </Link>
-      <Link class="ks-command-link w-full" data-variant="secondary" :href="`/login?invitation=${encodeURIComponent(invitation.token)}`">
+      <Link
+        class="ks-command-link w-full"
+        data-variant="secondary"
+        :href="`/login?invitation=${encodeURIComponent(invitation.token)}`"
+      >
         {{ t('authExperience.invitation.signInAccept') }}
       </Link>
     </div>

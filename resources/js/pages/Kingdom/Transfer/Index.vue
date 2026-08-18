@@ -120,7 +120,9 @@ function readinessTone(state: Readiness): 'success' | 'warning' | 'danger' | 'in
   return 'info';
 }
 
-function directionTone(direction: Participant['direction'] | Group['direction']): 'success' | 'warning' | 'info' {
+function directionTone(
+  direction: Participant['direction'] | Group['direction'],
+): 'success' | 'warning' | 'info' {
   if (direction === 'incoming') return 'success';
   if (direction === 'outgoing') return 'warning';
   return 'info';
@@ -138,11 +140,7 @@ function directionTone(direction: Participant['direction'] | Group['direction'])
       image="/images/kingshot/v4/kingdom-transfer.svg"
     >
       <template #actions>
-        <Link
-          v-if="canManage"
-          href="/alliance/transfers/readiness"
-          class="ks-command-link"
-        >
+        <Link v-if="canManage" href="/alliance/transfers/readiness" class="ks-command-link">
           {{ t('kingdomP7D.readinessBoard') }}
         </Link>
         <Link
@@ -195,7 +193,13 @@ function directionTone(direction: Participant['direction'] | Group['direction'])
             {{ plan?.label ?? t('kingdomP7D.noCurrentCycle') }}
           </h2>
         </div>
-        <span v-if="plan" class="ks-status" :data-tone="plan.state === 'cancelled' ? 'danger' : plan.state === 'closed' ? 'success' : 'info'">
+        <span
+          v-if="plan"
+          class="ks-status"
+          :data-tone="
+            plan.state === 'cancelled' ? 'danger' : plan.state === 'closed' ? 'success' : 'info'
+          "
+        >
           {{ stateLabel(plan.state) }}
         </span>
       </div>
@@ -203,7 +207,9 @@ function directionTone(direction: Participant['direction'] | Group['direction'])
       <dl v-if="plan" class="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <div class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-4">
           <dt class="ks-kicker">{{ t('kingdomP7D.homeKingdom') }}</dt>
-          <dd class="ks-display mt-2 text-xl text-[var(--ks-gold-bright)]">{{ plan.homeKingdom }}</dd>
+          <dd class="ks-display mt-2 text-xl text-[var(--ks-gold-bright)]">
+            {{ plan.homeKingdom }}
+          </dd>
         </div>
         <div class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-4">
           <dt class="ks-kicker">{{ t('kingdomP7D.starts') }}</dt>
@@ -247,8 +253,13 @@ function directionTone(direction: Participant['direction'] | Group['direction'])
                 {{ participant.name.slice(0, 1).toUpperCase() }}
               </div>
               <div class="min-w-0 flex-1">
-                <h3 class="truncate font-[var(--ks-font-display)] text-lg font-semibold">{{ participant.name }}</h3>
-                <p v-if="participant.gamePlayerId" class="mt-1 truncate text-xs text-[var(--ks-muted)]">
+                <h3 class="truncate text-lg font-[var(--ks-font-display)] font-semibold">
+                  {{ participant.name }}
+                </h3>
+                <p
+                  v-if="participant.gamePlayerId"
+                  class="mt-1 truncate text-xs text-[var(--ks-muted)]"
+                >
                   {{ t('kingdomP7D.stableId', { id: participant.gamePlayerId }) }}
                 </p>
               </div>
@@ -271,7 +282,9 @@ function directionTone(direction: Participant['direction'] | Group['direction'])
 
         <div v-if="participants.length" class="hidden overflow-x-auto md:block">
           <table class="w-full min-w-[70rem] text-start text-sm">
-            <thead class="bg-black/20 text-[.66rem] font-extrabold tracking-[.08em] text-[var(--ks-muted)] uppercase">
+            <thead
+              class="bg-black/20 text-[.66rem] font-extrabold tracking-[.08em] text-[var(--ks-muted)] uppercase"
+            >
               <tr>
                 <th class="px-5 py-3 text-start">{{ t('kingdomP7D.player') }}</th>
                 <th class="px-4 py-3 text-start">{{ t('kingdomP7D.direction') }}</th>
@@ -283,7 +296,11 @@ function directionTone(direction: Participant['direction'] | Group['direction'])
               </tr>
             </thead>
             <tbody class="divide-y divide-[var(--ks-border)]">
-              <tr v-for="participant in participants" :key="participant.id" class="transition hover:bg-white/[0.018]">
+              <tr
+                v-for="participant in participants"
+                :key="participant.id"
+                class="transition hover:bg-white/[0.018]"
+              >
                 <td class="px-5 py-4">
                   <div class="flex items-center gap-3">
                     <div
@@ -294,23 +311,51 @@ function directionTone(direction: Participant['direction'] | Group['direction'])
                     </div>
                     <div>
                       <strong>{{ participant.name }}</strong>
-                      <span v-if="participant.gamePlayerId" class="mt-1 block text-xs text-[var(--ks-muted)]">
+                      <span
+                        v-if="participant.gamePlayerId"
+                        class="mt-1 block text-xs text-[var(--ks-muted)]"
+                      >
                         {{ t('kingdomP7D.stableId', { id: participant.gamePlayerId }) }}
                       </span>
                     </div>
                   </div>
                 </td>
-                <td class="px-4 py-4"><span class="ks-status" :data-tone="directionTone(participant.direction)">{{ directionLabel(participant.direction) }}</span></td>
-                <td class="px-4 py-4"><span class="ks-status" :data-tone="readinessTone(participant.readiness)">{{ readinessLabel(participant.readiness) }}</span></td>
-                <td class="px-4 py-4">{{ participant.sourceKingdom ?? t('kingdomP7D.unknown') }}</td>
+                <td class="px-4 py-4">
+                  <span class="ks-status" :data-tone="directionTone(participant.direction)">{{
+                    directionLabel(participant.direction)
+                  }}</span>
+                </td>
+                <td class="px-4 py-4">
+                  <span class="ks-status" :data-tone="readinessTone(participant.readiness)">{{
+                    readinessLabel(participant.readiness)
+                  }}</span>
+                </td>
+                <td class="px-4 py-4">
+                  {{ participant.sourceKingdom ?? t('kingdomP7D.unknown') }}
+                </td>
                 <td class="px-4 py-4 font-semibold">{{ destinationLabel(participant) }}</td>
-                <td class="px-4 py-4"><span>{{ participant.group?.name ?? t('kingdomP7D.unassigned') }}</span><span v-if="participant.group" class="mt-1 block text-xs text-[var(--ks-muted)]">{{ t('kingdomP7D.coordinator') }}: {{ participant.group.coordinator?.name ?? t('kingdomP7D.unassigned') }}</span></td>
-                <td class="px-4 py-4"><template v-if="participant.completedAt"><span class="text-[var(--ks-green)]">{{ t('kingdomP7D.completed') }}</span><span class="mt-1 block text-xs text-[var(--ks-muted)]">{{ timestamp(participant.completedAt) }}</span></template><span v-else>{{ t('kingdomP7D.planning') }}</span></td>
+                <td class="px-4 py-4">
+                  <span>{{ participant.group?.name ?? t('kingdomP7D.unassigned') }}</span
+                  ><span v-if="participant.group" class="mt-1 block text-xs text-[var(--ks-muted)]"
+                    >{{ t('kingdomP7D.coordinator') }}:
+                    {{ participant.group.coordinator?.name ?? t('kingdomP7D.unassigned') }}</span
+                  >
+                </td>
+                <td class="px-4 py-4">
+                  <template v-if="participant.completedAt"
+                    ><span class="text-[var(--ks-green)]">{{ t('kingdomP7D.completed') }}</span
+                    ><span class="mt-1 block text-xs text-[var(--ks-muted)]">{{
+                      timestamp(participant.completedAt)
+                    }}</span></template
+                  ><span v-else>{{ t('kingdomP7D.planning') }}</span>
+                </td>
               </tr>
             </tbody>
           </table>
         </div>
-        <div v-if="!participants.length" class="ks-fantasy-empty m-5">{{ t('kingdomP7D.noParticipants') }}</div>
+        <div v-if="!participants.length" class="ks-fantasy-empty m-5">
+          {{ t('kingdomP7D.noParticipants') }}
+        </div>
       </section>
 
       <aside class="space-y-5">
@@ -324,18 +369,27 @@ function directionTone(direction: Participant['direction'] | Group['direction'])
             </div>
             <span class="ks-chip" data-active="true">{{ groups.length }}</span>
           </div>
-          <p class="mt-2 text-sm leading-6 text-[var(--ks-muted)]">{{ t('kingdomP7D.groupsHelp') }}</p>
+          <p class="mt-2 text-sm leading-6 text-[var(--ks-muted)]">
+            {{ t('kingdomP7D.groupsHelp') }}
+          </p>
           <div v-if="groups.length" class="mt-4 space-y-2">
-            <article v-for="group in groups" :key="`${group.direction}-${group.name}`" class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-3">
+            <article
+              v-for="group in groups"
+              :key="`${group.direction}-${group.name}`"
+              class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-3"
+            >
               <div class="flex items-start justify-between gap-3">
                 <strong class="font-[var(--ks-font-display)]">{{ group.name }}</strong>
-                <span class="ks-status" :data-tone="directionTone(group.direction)">{{ directionLabel(group.direction) }}</span>
+                <span class="ks-status" :data-tone="directionTone(group.direction)">{{
+                  directionLabel(group.direction)
+                }}</span>
               </div>
               <p class="mt-2 text-sm text-[var(--ks-text-secondary)]">
                 {{ t('kingdomP7D.kingdomValue', { kingdom: groupDestinationLabel(group) }) }}
               </p>
               <p class="mt-1 text-xs text-[var(--ks-muted)]">
-                {{ t('kingdomP7D.coordinator') }}: {{ group.coordinator?.name ?? t('kingdomP7D.unassigned') }}
+                {{ t('kingdomP7D.coordinator') }}:
+                {{ group.coordinator?.name ?? t('kingdomP7D.unassigned') }}
               </p>
             </article>
           </div>
@@ -348,10 +402,18 @@ function directionTone(direction: Participant['direction'] | Group['direction'])
             <Link href="/alliance/transfers/readiness" class="ks-command-link w-full">
               {{ t('kingdomP7D.readinessBoard') }}
             </Link>
-            <Link href="/alliance/transfers/completion" class="ks-command-link w-full" data-variant="secondary">
+            <Link
+              href="/alliance/transfers/completion"
+              class="ks-command-link w-full"
+              data-variant="secondary"
+            >
               {{ t('kingdomP7D.completion') }}
             </Link>
-            <Link href="/alliance/transfers/manage" class="ks-command-link w-full" data-variant="secondary">
+            <Link
+              href="/alliance/transfers/manage"
+              class="ks-command-link w-full"
+              data-variant="secondary"
+            >
               {{ t('kingdomP7D.manageTransfers') }}
             </Link>
           </div>

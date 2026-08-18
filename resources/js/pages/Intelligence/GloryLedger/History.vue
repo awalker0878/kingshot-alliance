@@ -165,7 +165,13 @@ function reliabilityLabel(): string {
 
   <AppLayout :user="user">
     <div class="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
-      <RoomBanner eyebrow="Glory Ledger" :title="player.name" subtitle="Follow this Governor’s recorded Event contributions and the deeds preserved in the Alliance chronicle." image="/images/kingshot/noticeboard.svg" compact />
+      <RoomBanner
+        eyebrow="Glory Ledger"
+        :title="player.name"
+        subtitle="Follow this Governor’s recorded Event contributions and the deeds preserved in the Alliance chronicle."
+        image="/images/kingshot/noticeboard.svg"
+        compact
+      />
 
       <section
         class="grid gap-3 sm:grid-cols-2 lg:grid-cols-6"
@@ -173,7 +179,9 @@ function reliabilityLabel(): string {
       >
         <div class="rounded-2xl border border-[var(--ks-border)] bg-[rgba(7,12,13,.78)] p-4">
           <p class="text-xs tracking-wide text-[var(--ks-muted)] uppercase">Events</p>
-          <p class="mt-2 text-2xl font-semibold text-[var(--ks-ivory)]">{{ formatNumber(summary.events) }}</p>
+          <p class="mt-2 text-2xl font-semibold text-[var(--ks-ivory)]">
+            {{ formatNumber(summary.events) }}
+          </p>
         </div>
         <div class="rounded-2xl border border-[var(--ks-border)] bg-[rgba(7,12,13,.78)] p-4">
           <p class="text-xs tracking-wide text-[var(--ks-muted)] uppercase">Reliability</p>
@@ -354,7 +362,10 @@ function reliabilityLabel(): string {
               <h2 v-if="row.event" class="mt-3 text-lg font-semibold text-[var(--ks-ivory)]">
                 {{ row.event.title || row.event.eventType.slug }}
               </h2>
-              <h2 v-else-if="row.contribution" class="mt-3 text-lg font-semibold text-[var(--ks-ivory)]">
+              <h2
+                v-else-if="row.contribution"
+                class="mt-3 text-lg font-semibold text-[var(--ks-ivory)]"
+              >
                 {{ row.contribution.categoryName }}
               </h2>
             </div>
@@ -386,7 +397,9 @@ function reliabilityLabel(): string {
             </div>
             <div v-if="row.event.playerContext.representedAllianceName" class="md:col-span-2">
               <span class="text-[var(--ks-muted)]">Represented Alliance</span>
-              <p class="text-[var(--ks-ivory)]">{{ row.event.playerContext.representedAllianceName }}</p>
+              <p class="text-[var(--ks-ivory)]">
+                {{ row.event.playerContext.representedAllianceName }}
+              </p>
             </div>
             <div v-if="row.event.result?.metrics.length" class="md:col-span-4">
               <span class="text-[var(--ks-muted)]">Metrics</span>
@@ -407,15 +420,21 @@ function reliabilityLabel(): string {
           <div v-else-if="row.contribution" class="mt-4 grid gap-3 text-sm md:grid-cols-4">
             <div>
               <span class="text-[var(--ks-muted)]">Value</span>
-              <p class="text-[var(--ks-ivory)]">{{ row.contribution.value }} {{ row.contribution.unit }}</p>
+              <p class="text-[var(--ks-ivory)]">
+                {{ row.contribution.value }} {{ row.contribution.unit }}
+              </p>
             </div>
             <div>
               <span class="text-[var(--ks-muted)]">Status</span>
-              <p class="text-[var(--ks-ivory)] capitalize">{{ humanize(row.contribution.status) }}</p>
+              <p class="text-[var(--ks-ivory)] capitalize">
+                {{ humanize(row.contribution.status) }}
+              </p>
             </div>
             <div>
               <span class="text-[var(--ks-muted)]">Source</span>
-              <p class="text-[var(--ks-ivory)] capitalize">{{ humanize(row.contribution.source) }}</p>
+              <p class="text-[var(--ks-ivory)] capitalize">
+                {{ humanize(row.contribution.source) }}
+              </p>
             </div>
             <div>
               <span class="text-[var(--ks-muted)]">Period</span>

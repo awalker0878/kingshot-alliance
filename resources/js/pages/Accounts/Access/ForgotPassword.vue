@@ -37,7 +37,14 @@ function submit(): void {
     <form class="mt-7 space-y-5" @submit.prevent="submit">
       <div>
         <label class="block text-sm font-semibold" for="email">{{ t('auth.login.email') }}</label>
-        <input id="email" v-model="form.email" autocomplete="email" class="ks-input mt-2" required type="email" />
+        <input
+          id="email"
+          v-model="form.email"
+          autocomplete="email"
+          class="ks-input mt-2"
+          required
+          type="email"
+        />
         <p v-if="form.errors.email" class="mt-2 text-sm text-[var(--ks-red)]" role="alert">
           {{ form.errors.email }}
         </p>
@@ -47,8 +54,11 @@ function submit(): void {
       </AppButton>
     </form>
 
-    <div class="my-6 ks-divider" />
-    <Link class="block text-center text-sm font-semibold text-[var(--ks-gold-bright)] hover:text-[var(--ks-ivory)]" href="/login">
+    <div class="ks-divider my-6" />
+    <Link
+      class="block text-center text-sm font-semibold text-[var(--ks-gold-bright)] hover:text-[var(--ks-ivory)]"
+      href="/login"
+    >
       {{ t('authExperience.password.backToSignIn') }}
     </Link>
   </AuthLayout>

@@ -26,7 +26,7 @@ function submit(): void {
   <AuthLayout>
     <div class="flex items-start gap-4">
       <div
-        class="grid h-14 w-12 shrink-0 place-items-center border border-[var(--ks-gold-dark)] bg-[linear-gradient(160deg,#126b64,#092d2a)] font-[var(--ks-font-display)] text-xl text-[var(--ks-gold-bright)] [clip-path:polygon(50%_0,95%_16%,86%_77%,50%_100%,14%_77%,5%_16%)]"
+        class="grid h-14 w-12 shrink-0 place-items-center border border-[var(--ks-gold-dark)] bg-[linear-gradient(160deg,#126b64,#092d2a)] text-xl font-[var(--ks-font-display)] text-[var(--ks-gold-bright)] [clip-path:polygon(50%_0,95%_16%,86%_77%,50%_100%,14%_77%,5%_16%)]"
         aria-hidden="true"
       >
         ♛
@@ -52,7 +52,14 @@ function submit(): void {
     <form class="mt-7 space-y-5" @submit.prevent="submit">
       <div>
         <label class="block text-sm font-semibold" for="email">{{ t('auth.login.email') }}</label>
-        <input id="email" v-model="form.email" autocomplete="email" class="ks-input mt-2" required type="email" />
+        <input
+          id="email"
+          v-model="form.email"
+          autocomplete="email"
+          class="ks-input mt-2"
+          required
+          type="email"
+        />
         <p v-if="form.errors.email" class="mt-2 text-sm text-[var(--ks-red)]" role="alert">
           {{ form.errors.email }}
         </p>
@@ -60,7 +67,9 @@ function submit(): void {
 
       <div>
         <div class="flex items-center justify-between gap-3">
-          <label class="block text-sm font-semibold" for="password">{{ t('auth.login.password') }}</label>
+          <label class="block text-sm font-semibold" for="password">{{
+            t('auth.login.password')
+          }}</label>
           <Link
             class="text-xs font-semibold text-[var(--ks-teal-bright)] transition hover:text-[var(--ks-gold-bright)]"
             href="/forgot-password"
@@ -68,14 +77,27 @@ function submit(): void {
             {{ t('auth.login.forgotPassword') }}
           </Link>
         </div>
-        <input id="password" v-model="form.password" autocomplete="current-password" class="ks-input mt-2" required type="password" />
+        <input
+          id="password"
+          v-model="form.password"
+          autocomplete="current-password"
+          class="ks-input mt-2"
+          required
+          type="password"
+        />
         <p v-if="form.errors.password" class="mt-2 text-sm text-[var(--ks-red)]" role="alert">
           {{ form.errors.password }}
         </p>
       </div>
 
-      <label class="flex cursor-pointer items-center gap-3 rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/15 px-3 py-2.5 text-sm text-[var(--ks-text-secondary)]">
-        <input v-model="form.remember" class="h-4 w-4 accent-[var(--ks-teal-bright)]" type="checkbox" />
+      <label
+        class="flex cursor-pointer items-center gap-3 rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/15 px-3 py-2.5 text-sm text-[var(--ks-text-secondary)]"
+      >
+        <input
+          v-model="form.remember"
+          class="h-4 w-4 accent-[var(--ks-teal-bright)]"
+          type="checkbox"
+        />
         {{ t('auth.login.remember') }}
       </label>
 
@@ -84,7 +106,7 @@ function submit(): void {
       </AppButton>
     </form>
 
-    <div class="my-6 ks-divider" />
+    <div class="ks-divider my-6" />
 
     <p class="text-center text-sm text-[var(--ks-muted)]">
       {{ t('authExperience.login.needAccount') }}

@@ -39,7 +39,9 @@ const playerContext = computed<SharedPlayerContext>(
 
 const activePlayer = computed(
   () =>
-    playerContext.value.players.find((player) => player.id === playerContext.value.activePlayerId) ??
+    playerContext.value.players.find(
+      (player) => player.id === playerContext.value.activePlayerId,
+    ) ??
     playerContext.value.players[0] ??
     null,
 );
@@ -90,18 +92,37 @@ function activate(playerId: string): void {
         {{ activePlayer?.name?.slice(0, 1).toUpperCase() ?? '—' }}
       </span>
       <span class="min-w-0 flex-1">
-        <span class="block text-[0.62rem] font-extrabold tracking-[0.12em] text-[var(--ks-muted)] uppercase">
+        <span
+          class="block text-[0.62rem] font-extrabold tracking-[0.12em] text-[var(--ks-muted)] uppercase"
+        >
           {{ t('common.currentPlayer') }}
         </span>
-        <strong class="block truncate font-[var(--ks-font-display)] text-sm font-semibold text-[var(--ks-ivory)]">
+        <strong
+          class="block truncate text-sm font-[var(--ks-font-display)] font-semibold text-[var(--ks-ivory)]"
+        >
           {{ activePlayer?.name ?? t('common.noPlayers') }}
         </strong>
-        <span v-if="!compact && activePlayer" class="mt-0.5 block truncate text-[0.68rem] text-[var(--ks-muted)]">
+        <span
+          v-if="!compact && activePlayer"
+          class="mt-0.5 block truncate text-[0.68rem] text-[var(--ks-muted)]"
+        >
           {{ contextLabel(activePlayer) }}
         </span>
       </span>
-      <svg v-if="playerContext.players.length > 1" class="h-4 w-4 shrink-0 text-[var(--ks-gold)] transition group-hover:text-[var(--ks-gold-bright)]" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-        <path d="m6 8 4 4 4-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+      <svg
+        v-if="playerContext.players.length > 1"
+        class="h-4 w-4 shrink-0 text-[var(--ks-gold)] transition group-hover:text-[var(--ks-gold-bright)]"
+        viewBox="0 0 20 20"
+        fill="none"
+        aria-hidden="true"
+      >
+        <path
+          d="m6 8 4 4 4-4"
+          stroke="currentColor"
+          stroke-width="1.7"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
       </svg>
     </button>
 
@@ -145,7 +166,9 @@ function activate(playerId: string): void {
             {{ player.name.slice(0, 1).toUpperCase() }}
           </span>
           <span class="min-w-0 flex-1">
-            <strong class="block truncate font-[var(--ks-font-display)] text-sm text-[var(--ks-ivory)]">
+            <strong
+              class="block truncate text-sm font-[var(--ks-font-display)] text-[var(--ks-ivory)]"
+            >
               {{ player.name }}
             </strong>
             <span class="mt-1 block truncate text-xs text-[var(--ks-muted)]">

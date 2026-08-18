@@ -329,7 +329,9 @@ const inputClass =
         </div>
 
         <div class="mt-6 grid gap-5 lg:grid-cols-2">
-          <fieldset class="rounded-xl border border-[var(--ks-border)] bg-[var(--ks-parchment)]/[0.02] p-4">
+          <fieldset
+            class="rounded-xl border border-[var(--ks-border)] bg-[var(--ks-parchment)]/[0.02] p-4"
+          >
             <legend class="px-2 font-semibold">{{ t('kingdomP7D.readiness') }}</legend>
             <template v-if="participant.withdrawnAt === null">
               <label :for="`readiness-${participant.id}`" class="block text-sm font-semibold">{{
@@ -378,7 +380,9 @@ const inputClass =
             </p>
           </fieldset>
 
-          <fieldset class="rounded-xl border border-[var(--ks-border)] bg-[var(--ks-parchment)]/[0.02] p-4">
+          <fieldset
+            class="rounded-xl border border-[var(--ks-border)] bg-[var(--ks-parchment)]/[0.02] p-4"
+          >
             <legend class="px-2 font-semibold">{{ t('kingdomP7D.addBlocker') }}</legend>
             <template v-if="participant.withdrawnAt === null">
               <label

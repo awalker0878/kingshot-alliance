@@ -58,7 +58,8 @@ const messages = {
       register: 'Register',
     },
     register: {
-      intro: 'One account may own several Governors. Alliance rank and Kingdom duty always follow the Governor you choose.',
+      intro:
+        'One account may own several Governors. Alliance rank and Kingdom duty always follow the Governor you choose.',
       invitationNotice:
         'You were invited to {alliance} as {email}. Creating your account will also accept this invitation.',
       invitationOnly:

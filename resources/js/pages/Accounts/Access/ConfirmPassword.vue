@@ -27,9 +27,20 @@ function submit(): void {
 
     <form class="mt-7 space-y-5" @submit.prevent="submit">
       <div>
-        <label class="block text-sm font-semibold" for="password">{{ t('auth.login.password') }}</label>
-        <input id="password" v-model="form.password" autocomplete="current-password" class="ks-input mt-2" required type="password" />
-        <p v-if="form.errors.password" class="mt-2 text-sm text-[var(--ks-red)]" role="alert">{{ form.errors.password }}</p>
+        <label class="block text-sm font-semibold" for="password">{{
+          t('auth.login.password')
+        }}</label>
+        <input
+          id="password"
+          v-model="form.password"
+          autocomplete="current-password"
+          class="ks-input mt-2"
+          required
+          type="password"
+        />
+        <p v-if="form.errors.password" class="mt-2 text-sm text-[var(--ks-red)]" role="alert">
+          {{ form.errors.password }}
+        </p>
       </div>
       <AppButton class="w-full" type="submit" :disabled="form.processing">
         {{ t('auth.password.confirmTitle') }}

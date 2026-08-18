@@ -147,11 +147,7 @@ function explanation(row: RecordRow): string {
       image="/images/kingshot/v4/glory-ledger.svg"
     >
       <template #actions>
-        <Link
-          v-if="canManage"
-          href="/alliance/contributions/manage"
-          class="ks-command-link"
-        >
+        <Link v-if="canManage" href="/alliance/contributions/manage" class="ks-command-link">
           {{ t('contributions.manageReporting') }}
         </Link>
       </template>
@@ -210,7 +206,9 @@ function explanation(row: RecordRow): string {
                     <span class="ks-chip">{{ humanize(item.period) }}</span>
                   </div>
                 </div>
-                <span class="shrink-0 font-[var(--ks-font-display)] text-lg text-[var(--ks-gold-bright)]">
+                <span
+                  class="shrink-0 text-lg font-[var(--ks-font-display)] text-[var(--ks-gold-bright)]"
+                >
                   {{ percent(item.progress) }}
                 </span>
               </div>
@@ -234,7 +232,10 @@ function explanation(row: RecordRow): string {
                 </p>
               </div>
 
-              <div v-if="item.progress !== null" class="mt-4 h-2 overflow-hidden rounded-full bg-white/[.05]">
+              <div
+                v-if="item.progress !== null"
+                class="mt-4 h-2 overflow-hidden rounded-full bg-white/[.05]"
+              >
                 <div
                   class="h-full rounded-full bg-[linear-gradient(90deg,var(--ks-teal),var(--ks-gold-bright))]"
                   :style="{ width: progressWidth(item.progress) }"
@@ -262,7 +263,9 @@ function explanation(row: RecordRow): string {
         </section>
 
         <section class="ks-surface overflow-hidden" aria-labelledby="contribution-history-heading">
-          <div class="flex flex-wrap items-end justify-between gap-3 border-b border-[var(--ks-border)] p-5">
+          <div
+            class="flex flex-wrap items-end justify-between gap-3 border-b border-[var(--ks-border)] p-5"
+          >
             <div>
               <p class="ks-kicker">{{ t('contributions.history') }}</p>
               <h2 id="contribution-history-heading" class="ks-display mt-1 text-xl font-semibold">
@@ -280,7 +283,7 @@ function explanation(row: RecordRow): string {
             >
               <div class="flex items-start justify-between gap-3">
                 <div class="min-w-0">
-                  <p class="truncate font-[var(--ks-font-display)] text-lg font-semibold">
+                  <p class="truncate text-lg font-[var(--ks-font-display)] font-semibold">
                     {{ row.categoryName ?? '—' }}
                   </p>
                   <p class="mt-1 text-xs text-[var(--ks-muted)]">{{ dateTime(row.recordedAt) }}</p>
@@ -311,7 +314,9 @@ function explanation(row: RecordRow): string {
 
           <div v-if="reporting.history.length" class="hidden overflow-x-auto lg:block">
             <table class="w-full min-w-[64rem] text-sm">
-              <thead class="bg-black/20 text-[.66rem] font-extrabold tracking-[.08em] text-[var(--ks-muted)] uppercase">
+              <thead
+                class="bg-black/20 text-[.66rem] font-extrabold tracking-[.08em] text-[var(--ks-muted)] uppercase"
+              >
                 <tr>
                   <th class="px-4 py-3 text-start">{{ t('contributions.category') }}</th>
                   <th class="px-4 py-3 text-start">{{ t('contributions.value') }}</th>
@@ -322,12 +327,24 @@ function explanation(row: RecordRow): string {
                 </tr>
               </thead>
               <tbody class="divide-y divide-[var(--ks-border)]">
-                <tr v-for="row in reporting.history" :key="row.id" class="transition hover:bg-white/[0.018]">
+                <tr
+                  v-for="row in reporting.history"
+                  :key="row.id"
+                  class="transition hover:bg-white/[0.018]"
+                >
                   <td class="px-4 py-4 font-semibold">{{ row.categoryName ?? '—' }}</td>
                   <td class="px-4 py-4">{{ valueLabel(row.value, row.unit) }}</td>
-                  <td class="px-4 py-4"><span class="ks-status" :data-tone="statusTone(row.status)">{{ humanize(row.status) }}</span></td>
-                  <td class="px-4 py-4 text-[var(--ks-text-secondary)]">{{ humanize(row.source) }}</td>
-                  <td class="px-4 py-4 text-xs text-[var(--ks-muted)]">{{ dateTime(row.recordedAt) }}</td>
+                  <td class="px-4 py-4">
+                    <span class="ks-status" :data-tone="statusTone(row.status)">{{
+                      humanize(row.status)
+                    }}</span>
+                  </td>
+                  <td class="px-4 py-4 text-[var(--ks-text-secondary)]">
+                    {{ humanize(row.source) }}
+                  </td>
+                  <td class="px-4 py-4 text-xs text-[var(--ks-muted)]">
+                    {{ dateTime(row.recordedAt) }}
+                  </td>
                   <td class="px-4 py-4 text-[var(--ks-text-secondary)]">{{ explanation(row) }}</td>
                 </tr>
               </tbody>
@@ -358,7 +375,12 @@ function explanation(row: RecordRow): string {
               <label class="text-xs font-semibold" for="contribution-category">
                 {{ t('contributions.category') }}
               </label>
-              <select id="contribution-category" v-model="form.category_id" required class="ks-input mt-1.5">
+              <select
+                id="contribution-category"
+                v-model="form.category_id"
+                required
+                class="ks-input mt-1.5"
+              >
                 <option value="" disabled>{{ t('contributions.selectCategory') }}</option>
                 <option
                   v-for="category in selfReportCategories"
@@ -373,13 +395,26 @@ function explanation(row: RecordRow): string {
               <label class="text-xs font-semibold" for="contribution-value">
                 {{ t('contributions.value') }}
               </label>
-              <input id="contribution-value" v-model.number="form.value" required min="0" step="0.01" type="number" class="ks-input mt-1.5" />
+              <input
+                id="contribution-value"
+                v-model.number="form.value"
+                required
+                min="0"
+                step="0.01"
+                type="number"
+                class="ks-input mt-1.5"
+              />
             </div>
             <div>
               <label class="text-xs font-semibold" for="contribution-evidence">
                 {{ t('contributions.evidenceNote') }}
               </label>
-              <textarea id="contribution-evidence" v-model="form.evidence" maxlength="4000" class="ks-input mt-1.5 min-h-24" />
+              <textarea
+                id="contribution-evidence"
+                v-model="form.evidence"
+                maxlength="4000"
+                class="ks-input mt-1.5 min-h-24"
+              />
             </div>
             <AppButton class="w-full" type="submit" :disabled="form.processing">
               {{ t('contributions.submitApproval') }}
@@ -389,7 +424,11 @@ function explanation(row: RecordRow): string {
       </aside>
     </div>
 
-    <section v-if="reporting.leaderboards.length" class="mt-5" :aria-label="t('contributions.leaderboards')">
+    <section
+      v-if="reporting.leaderboards.length"
+      class="mt-5"
+      :aria-label="t('contributions.leaderboards')"
+    >
       <div class="mb-4 px-1">
         <p class="ks-kicker">{{ t('contributions.leaderboards') }}</p>
         <h2 class="ks-display mt-1 text-2xl font-semibold">
@@ -397,7 +436,11 @@ function explanation(row: RecordRow): string {
         </h2>
       </div>
       <div class="grid gap-4 xl:grid-cols-2">
-        <article v-for="board in reporting.leaderboards" :key="board.categoryId" class="ks-surface overflow-hidden">
+        <article
+          v-for="board in reporting.leaderboards"
+          :key="board.categoryId"
+          class="ks-surface overflow-hidden"
+        >
           <div class="border-b border-[var(--ks-border)] p-5">
             <div class="flex flex-wrap items-start justify-between gap-3">
               <div>

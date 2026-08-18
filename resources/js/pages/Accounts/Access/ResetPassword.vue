@@ -36,17 +36,46 @@ function submit(): void {
     <form class="mt-7 space-y-5" @submit.prevent="submit">
       <div>
         <label class="block text-sm font-semibold" for="email">{{ t('auth.login.email') }}</label>
-        <input id="email" v-model="form.email" autocomplete="email" class="ks-input mt-2" required type="email" />
-        <p v-if="form.errors.email" class="mt-2 text-sm text-[var(--ks-red)]" role="alert">{{ form.errors.email }}</p>
+        <input
+          id="email"
+          v-model="form.email"
+          autocomplete="email"
+          class="ks-input mt-2"
+          required
+          type="email"
+        />
+        <p v-if="form.errors.email" class="mt-2 text-sm text-[var(--ks-red)]" role="alert">
+          {{ form.errors.email }}
+        </p>
       </div>
       <div>
-        <label class="block text-sm font-semibold" for="password">{{ t('authExperience.password.newPassword') }}</label>
-        <input id="password" v-model="form.password" autocomplete="new-password" class="ks-input mt-2" required type="password" />
-        <p v-if="form.errors.password" class="mt-2 text-sm text-[var(--ks-red)]" role="alert">{{ form.errors.password }}</p>
+        <label class="block text-sm font-semibold" for="password">{{
+          t('authExperience.password.newPassword')
+        }}</label>
+        <input
+          id="password"
+          v-model="form.password"
+          autocomplete="new-password"
+          class="ks-input mt-2"
+          required
+          type="password"
+        />
+        <p v-if="form.errors.password" class="mt-2 text-sm text-[var(--ks-red)]" role="alert">
+          {{ form.errors.password }}
+        </p>
       </div>
       <div>
-        <label class="block text-sm font-semibold" for="password_confirmation">{{ t('authExperience.password.confirmNewPassword') }}</label>
-        <input id="password_confirmation" v-model="form.password_confirmation" autocomplete="new-password" class="ks-input mt-2" required type="password" />
+        <label class="block text-sm font-semibold" for="password_confirmation">{{
+          t('authExperience.password.confirmNewPassword')
+        }}</label>
+        <input
+          id="password_confirmation"
+          v-model="form.password_confirmation"
+          autocomplete="new-password"
+          class="ks-input mt-2"
+          required
+          type="password"
+        />
       </div>
       <AppButton class="w-full" type="submit" :disabled="form.processing">
         {{ t('auth.password.resetSubmit') }}

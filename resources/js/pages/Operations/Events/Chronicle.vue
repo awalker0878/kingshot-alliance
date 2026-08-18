@@ -208,8 +208,8 @@ function evidenceDetail(evidence: StatusEvidence): string {
         </div>
         <p class="max-w-3xl text-sm text-[var(--ks-muted)]">
           History is owned by the original Event target. Current authority controls access, while
-          Governor names, represented Alliances, and Kingdom remain frozen at the
-          occurrence where they were recorded.
+          Governor names, represented Alliances, and Kingdom remain frozen at the occurrence where
+          they were recorded.
         </p>
       </header>
 
@@ -305,7 +305,9 @@ function evidenceDetail(evidence: StatusEvidence): string {
               </div>
               <div>
                 <span class="text-[var(--ks-muted)]">Samples</span>
-                <p class="font-semibold text-[var(--ks-ivory)]">{{ formatNumber(series.samples) }}</p>
+                <p class="font-semibold text-[var(--ks-ivory)]">
+                  {{ formatNumber(series.samples) }}
+                </p>
               </div>
             </div>
             <p class="mt-3 text-xs text-[var(--ks-muted)]">
@@ -387,8 +389,12 @@ function evidenceDetail(evidence: StatusEvidence): string {
               class="rounded-xl border border-[var(--ks-border)] bg-[rgba(210,163,75,.05)] px-4 py-3 text-right"
             >
               <p class="text-xs tracking-wide text-[var(--ks-muted)] uppercase">Result</p>
-              <p class="mt-1 text-lg font-semibold text-[var(--ks-ivory)]">{{ number(event.result.score) }}</p>
-              <p class="text-xs text-[var(--ks-muted)] capitalize">{{ humanize(event.result.outcome) }}</p>
+              <p class="mt-1 text-lg font-semibold text-[var(--ks-ivory)]">
+                {{ number(event.result.score) }}
+              </p>
+              <p class="text-xs text-[var(--ks-muted)] capitalize">
+                {{ humanize(event.result.outcome) }}
+              </p>
             </div>
           </div>
 
@@ -408,7 +414,9 @@ function evidenceDetail(evidence: StatusEvidence): string {
             class="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4"
             aria-label="Historical operational evidence"
           >
-            <article class="rounded-xl border border-[var(--ks-border)] bg-[rgba(210,163,75,.05)] p-4">
+            <article
+              class="rounded-xl border border-[var(--ks-border)] bg-[rgba(210,163,75,.05)] p-4"
+            >
               <p class="text-xs tracking-wide text-[var(--ks-muted)] uppercase">Attendance</p>
               <p class="mt-1 text-xl font-semibold text-[var(--ks-ivory)]">
                 {{ formatNumber(event.evidence.attendance.total) }}
@@ -417,7 +425,9 @@ function evidenceDetail(evidence: StatusEvidence): string {
                 {{ evidenceDetail(event.evidence.attendance) }}
               </p>
             </article>
-            <article class="rounded-xl border border-[var(--ks-border)] bg-[rgba(210,163,75,.05)] p-4">
+            <article
+              class="rounded-xl border border-[var(--ks-border)] bg-[rgba(210,163,75,.05)] p-4"
+            >
               <p class="text-xs tracking-wide text-[var(--ks-muted)] uppercase">Roster</p>
               <p class="mt-1 text-xl font-semibold text-[var(--ks-ivory)]">
                 {{ formatNumber(event.evidence.roster.total) }}
@@ -426,8 +436,12 @@ function evidenceDetail(evidence: StatusEvidence): string {
                 {{ evidenceDetail(event.evidence.roster) }}
               </p>
             </article>
-            <article class="rounded-xl border border-[var(--ks-border)] bg-[rgba(210,163,75,.05)] p-4">
-              <p class="text-xs tracking-wide text-[var(--ks-muted)] uppercase">Rally assignments</p>
+            <article
+              class="rounded-xl border border-[var(--ks-border)] bg-[rgba(210,163,75,.05)] p-4"
+            >
+              <p class="text-xs tracking-wide text-[var(--ks-muted)] uppercase">
+                Rally assignments
+              </p>
               <p class="mt-1 text-xl font-semibold text-[var(--ks-ivory)]">
                 {{ formatNumber(event.evidence.rallies.total) }}
               </p>
@@ -435,7 +449,9 @@ function evidenceDetail(evidence: StatusEvidence): string {
                 {{ evidenceDetail(event.evidence.rallies) }}
               </p>
             </article>
-            <article class="rounded-xl border border-[var(--ks-border)] bg-[rgba(210,163,75,.05)] p-4">
+            <article
+              class="rounded-xl border border-[var(--ks-border)] bg-[rgba(210,163,75,.05)] p-4"
+            >
               <p class="text-xs tracking-wide text-[var(--ks-muted)] uppercase">Objectives</p>
               <p class="mt-1 text-xl font-semibold text-[var(--ks-ivory)]">
                 {{ formatNumber(event.evidence.objectives.total) }}
@@ -466,7 +482,9 @@ function evidenceDetail(evidence: StatusEvidence): string {
                   </div>
                   <p class="font-semibold text-amber-200">{{ number(result.score) }}</p>
                 </div>
-                <p class="mt-2 text-xs text-[var(--ks-muted)] capitalize">{{ humanize(result.outcome) }}</p>
+                <p class="mt-2 text-xs text-[var(--ks-muted)] capitalize">
+                  {{ humanize(result.outcome) }}
+                </p>
               </article>
             </div>
           </div>
@@ -474,14 +492,18 @@ function evidenceDetail(evidence: StatusEvidence): string {
           <div class="mt-6">
             <div class="flex items-center justify-between gap-3">
               <h3 class="text-sm font-semibold text-[var(--ks-ivory)]">Historical participants</h3>
-              <span class="text-xs text-[var(--ks-muted)]">{{ event.participants.length }} Governors</span>
+              <span class="text-xs text-[var(--ks-muted)]"
+                >{{ event.participants.length }} Governors</span
+              >
             </div>
             <div
               v-if="event.participants.length"
               class="mt-3 overflow-x-auto rounded-xl border border-[var(--ks-border)]"
             >
               <table class="min-w-full divide-y divide-[var(--ks-border)] text-sm">
-                <thead class="bg-[rgba(210,163,75,.05)] text-left text-xs tracking-wide text-[var(--ks-muted)] uppercase">
+                <thead
+                  class="bg-[rgba(210,163,75,.05)] text-left text-xs tracking-wide text-[var(--ks-muted)] uppercase"
+                >
                   <tr>
                     <th class="px-4 py-3">Governor</th>
                     <th class="px-4 py-3">Represented Alliance</th>

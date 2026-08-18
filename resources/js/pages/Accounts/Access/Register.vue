@@ -33,7 +33,7 @@ function submit(): void {
   <AuthLayout>
     <div class="flex items-start gap-4">
       <div
-        class="grid h-14 w-12 shrink-0 place-items-center border border-[var(--ks-gold-dark)] bg-[linear-gradient(160deg,#126b64,#092d2a)] font-[var(--ks-font-display)] text-xl text-[var(--ks-gold-bright)] [clip-path:polygon(50%_0,95%_16%,86%_77%,50%_100%,14%_77%,5%_16%)]"
+        class="grid h-14 w-12 shrink-0 place-items-center border border-[var(--ks-gold-dark)] bg-[linear-gradient(160deg,#126b64,#092d2a)] text-xl font-[var(--ks-font-display)] text-[var(--ks-gold-bright)] [clip-path:polygon(50%_0,95%_16%,86%_77%,50%_100%,14%_77%,5%_16%)]"
         aria-hidden="true"
       >
         ◇
@@ -75,19 +75,36 @@ function submit(): void {
     >
       <div class="grid gap-5 sm:grid-cols-2">
         <div>
-          <label class="block text-sm font-semibold" for="name">{{ t('auth.register.name') }}</label>
-          <input id="name" v-model="form.name" autocomplete="name" class="ks-input mt-2" required type="text" />
-          <p v-if="form.errors.name" class="mt-2 text-sm text-[var(--ks-red)]" role="alert">{{ form.errors.name }}</p>
+          <label class="block text-sm font-semibold" for="name">{{
+            t('auth.register.name')
+          }}</label>
+          <input
+            id="name"
+            v-model="form.name"
+            autocomplete="name"
+            class="ks-input mt-2"
+            required
+            type="text"
+          />
+          <p v-if="form.errors.name" class="mt-2 text-sm text-[var(--ks-red)]" role="alert">
+            {{ form.errors.name }}
+          </p>
         </div>
         <div>
-          <label class="block text-sm font-semibold" for="timezone">{{ t('authExperience.register.timezone') }}</label>
+          <label class="block text-sm font-semibold" for="timezone">{{
+            t('authExperience.register.timezone')
+          }}</label>
           <input id="timezone" v-model="form.timezone" class="ks-input mt-2" required type="text" />
-          <p v-if="form.errors.timezone" class="mt-2 text-sm text-[var(--ks-red)]" role="alert">{{ form.errors.timezone }}</p>
+          <p v-if="form.errors.timezone" class="mt-2 text-sm text-[var(--ks-red)]" role="alert">
+            {{ form.errors.timezone }}
+          </p>
         </div>
       </div>
 
       <div>
-        <label class="block text-sm font-semibold" for="email">{{ t('auth.register.email') }}</label>
+        <label class="block text-sm font-semibold" for="email">{{
+          t('auth.register.email')
+        }}</label>
         <input
           id="email"
           v-model="form.email"
@@ -98,19 +115,44 @@ function submit(): void {
           type="email"
         />
         <input v-if="props.invitationToken" :value="form.email" name="email" type="hidden" />
-        <p v-if="form.errors.email" class="mt-2 text-sm text-[var(--ks-red)]" role="alert">{{ form.errors.email }}</p>
+        <p v-if="form.errors.email" class="mt-2 text-sm text-[var(--ks-red)]" role="alert">
+          {{ form.errors.email }}
+        </p>
       </div>
 
       <div class="grid gap-5 sm:grid-cols-2">
         <div>
-          <label class="block text-sm font-semibold" for="password">{{ t('auth.register.password') }}</label>
-          <input id="password" v-model="form.password" autocomplete="new-password" class="ks-input mt-2" minlength="12" required type="password" />
-          <p class="mt-2 text-xs leading-5 text-[var(--ks-muted)]">{{ t('authExperience.register.passwordHint') }}</p>
-          <p v-if="form.errors.password" class="mt-2 text-sm text-[var(--ks-red)]" role="alert">{{ form.errors.password }}</p>
+          <label class="block text-sm font-semibold" for="password">{{
+            t('auth.register.password')
+          }}</label>
+          <input
+            id="password"
+            v-model="form.password"
+            autocomplete="new-password"
+            class="ks-input mt-2"
+            minlength="12"
+            required
+            type="password"
+          />
+          <p class="mt-2 text-xs leading-5 text-[var(--ks-muted)]">
+            {{ t('authExperience.register.passwordHint') }}
+          </p>
+          <p v-if="form.errors.password" class="mt-2 text-sm text-[var(--ks-red)]" role="alert">
+            {{ form.errors.password }}
+          </p>
         </div>
         <div>
-          <label class="block text-sm font-semibold" for="password_confirmation">{{ t('auth.register.passwordConfirmation') }}</label>
-          <input id="password_confirmation" v-model="form.password_confirmation" autocomplete="new-password" class="ks-input mt-2" required type="password" />
+          <label class="block text-sm font-semibold" for="password_confirmation">{{
+            t('auth.register.passwordConfirmation')
+          }}</label>
+          <input
+            id="password_confirmation"
+            v-model="form.password_confirmation"
+            autocomplete="new-password"
+            class="ks-input mt-2"
+            required
+            type="password"
+          />
         </div>
       </div>
 
@@ -119,11 +161,14 @@ function submit(): void {
       </AppButton>
     </form>
 
-    <div class="my-6 ks-divider" />
+    <div class="ks-divider my-6" />
 
     <p class="text-center text-sm text-[var(--ks-muted)]">
       {{ t('authExperience.register.existingAccount') }}
-      <Link class="font-semibold text-[var(--ks-gold-bright)] hover:text-[var(--ks-ivory)]" href="/login">
+      <Link
+        class="font-semibold text-[var(--ks-gold-bright)] hover:text-[var(--ks-ivory)]"
+        href="/login"
+      >
         {{ t('common.signIn') }}
       </Link>
     </p>

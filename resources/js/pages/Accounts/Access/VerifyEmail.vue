@@ -18,7 +18,7 @@ function resend(): void {
 
   <AuthLayout>
     <div
-      class="mx-auto grid h-16 w-16 place-items-center rounded-full border border-[var(--ks-gold-dark)] bg-[var(--ks-gold-soft)] font-[var(--ks-font-display)] text-2xl text-[var(--ks-gold-bright)]"
+      class="mx-auto grid h-16 w-16 place-items-center rounded-full border border-[var(--ks-gold-dark)] bg-[var(--ks-gold-soft)] text-2xl font-[var(--ks-font-display)] text-[var(--ks-gold-bright)]"
       aria-hidden="true"
     >
       ✉

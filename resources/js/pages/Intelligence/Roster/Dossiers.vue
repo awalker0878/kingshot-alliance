@@ -110,7 +110,8 @@ function snapshotTone(value: string): string {
 
 function rosterStateTone(value: string): string {
   if (value === 'active') return 'border-green-400/20 bg-green-500/10 text-green-200';
-  if (value === 'tracked') return 'border-[var(--ks-border)] bg-[var(--ks-teal-soft)] text-[var(--ks-gold-bright)]';
+  if (value === 'tracked')
+    return 'border-[var(--ks-border)] bg-[var(--ks-teal-soft)] text-[var(--ks-gold-bright)]';
   return 'border-[var(--ks-border)] bg-[rgba(210,163,75,.08)] text-[var(--ks-muted)]';
 }
 </script>
@@ -119,8 +120,18 @@ function rosterStateTone(value: string): string {
   <Head :title="`${t('roster.intelligenceTitle')} · ${alliance.name}`" />
 
   <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
-    <RoomBanner eyebrow="Intel Room" title="Alliance Roster" subtitle="Study the Alliance roster, compare recorded Governor strength, and follow roster changes over time." image="/images/kingshot/intel-room.svg">
-      <template #actions><Link href="/alliance/roster" class="ks-command-link">Alliance Members</Link><Link href="/alliance/roster/history" class="ks-command-link">Roster Chronicle</Link></template>
+    <RoomBanner
+      eyebrow="Intel Room"
+      title="Alliance Roster"
+      subtitle="Study the Alliance roster, compare recorded Governor strength, and follow roster changes over time."
+      image="/images/kingshot/intel-room.svg"
+    >
+      <template #actions
+        ><Link href="/alliance/roster" class="ks-command-link">Alliance Members</Link
+        ><Link href="/alliance/roster/history" class="ks-command-link"
+          >Roster Chronicle</Link
+        ></template
+      >
     </RoomBanner>
 
     <section
