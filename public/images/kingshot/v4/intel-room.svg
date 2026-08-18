@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 640" role="img" aria-labelledby="title desc">
+<title id="title">Kingshot intelligence chamber</title><desc id="desc">An original stylized intelligence room with a kingdom map table, scouts, candles, dossiers, and pinned reports.</desc>
+<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#050d0e"/><stop offset=".46" stop-color="#16201c"/><stop offset="1" stop-color="#080a09"/></linearGradient><radialGradient id="light" cx="55%" cy="26%" r="55%"><stop stop-color="#e7ba6c" stop-opacity=".28"/><stop offset=".46" stop-color="#91602e" stop-opacity=".08"/><stop offset="1" stop-opacity="0"/></radialGradient><linearGradient id="paper"><stop stop-color="#c1ae7d"/><stop offset="1" stop-color="#806d47"/></linearGradient></defs>
+<rect width="1600" height="640" fill="url(#bg)"/><rect width="1600" height="640" fill="url(#light)"/>
+<!-- archive walls -->
+<g fill="#111612" stroke="#413725" stroke-width="5"><path d="M90 560V86h182v474zM1328 560V86h182v474z"/><path d="M300 560V54h90v506zM1210 560V54h90v506z"/></g>
+<g stroke="#57452b" stroke-width="4" opacity=".7"><path d="M108 155h146M108 244h146M108 333h146M108 422h146M1346 155h146M1346 244h146M1346 333h146M1346 422h146"/></g>
+<!-- pinned dossiers -->
+<g fill="url(#paper)" stroke="#5b482c" stroke-width="3" opacity=".85"><path d="M420 118h146v172H420z"/><path d="M1036 116h146v174h-146z"/><path d="M590 94h126v146H590z"/><path d="M884 94h126v146H884z"/></g>
+<g stroke="#405d55" stroke-width="5" opacity=".8"><path d="M444 160h94M444 188h72M444 216h105M1060 158h94M1060 188h68M1060 218h98M614 137h78M614 166h60M908 137h78M908 166h60"/></g>
+<g fill="#963e2c"><circle cx="492" cy="130" r="8"/><circle cx="1108" cy="130" r="8"/></g>
+<!-- central wall map -->
+<path d="M690 86h220v226H690z" fill="#7c6e4c" stroke="#735733" stroke-width="6"/><g fill="none" stroke="#315f58" stroke-width="7"><path d="M715 220q44-96 93-45t76-19"/><path d="M748 116q18 92 64 137t70 18"/></g><g fill="#453521"><circle cx="756" cy="181" r="11"/><circle cx="827" cy="219" r="11"/><circle cx="871" cy="154" r="11"/></g>
+<!-- work table -->
+<ellipse cx="812" cy="521" rx="430" ry="104" fill="#3d2d1e" stroke="#73552f" stroke-width="8"/><ellipse cx="812" cy="503" rx="376" ry="74" fill="#a18a5c" opacity=".86"/><ellipse cx="812" cy="503" rx="318" ry="55" fill="#bda978" opacity=".62"/>
+<g fill="none" stroke="#2a6d64" stroke-width="8"><path d="M512 505q105-74 201-17t184-14 217 3"/><path d="M644 458q28 57 103 93t185 22"/></g>
+<!-- markers and strings -->
+<g fill="#b94735" stroke="#3b2118" stroke-width="3"><circle cx="615" cy="502" r="13"/><circle cx="780" cy="466" r="13"/><circle cx="963" cy="522" r="13"/></g><g stroke="#c59a4f" stroke-width="4" opacity=".75"><path d="M615 502 780 466 963 522"/></g>
+<!-- scouts -->
+<g fill="#070a0a" stroke="#2b2e29" stroke-width="3"><g transform="translate(520 350)"><circle r="27" fill="#161a17"/><path d="M-45 50Q0 12 45 50l20 150H-65z"/><path d="M-32-3Q0-42 32-3l-13 14h-38z"/></g><g transform="translate(1088 350)"><circle r="27" fill="#161a17"/><path d="M-45 50Q0 12 45 50l20 150H-65z"/><path d="M-32-3Q0-42 32-3l-13 14h-38z"/></g><g transform="translate(811 345)"><circle r="30" fill="#181c19"/><path d="M-50 54Q0 12 50 54l24 183H-74z"/><path d="M-36-3Q0-48 36-3l-15 16h-42z"/></g></g>
+<g stroke="#bd9146" stroke-width="4" opacity=".58"><path d="M495 399h50M1063 399h50M782 397h58"/></g>
+<!-- candles -->
+<g stroke="#f2cf7d" stroke-width="4"><path d="M642 352v-36M972 352v-36M736 335v-31M884 335v-31"/></g><g fill="#e8ae50"><circle cx="642" cy="316" r="7"/><circle cx="972" cy="316" r="7"/><circle cx="736" cy="304" r="6"/><circle cx="884" cy="304" r="6"/></g>
+<path d="M0 568q166-44 326 8t309 4 331-12 318 12 316-15v75H0z" fill="#030505" opacity=".76"/>
+</svg>
