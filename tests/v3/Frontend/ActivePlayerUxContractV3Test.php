@@ -68,7 +68,7 @@ final class ActivePlayerUxContractV3Test extends TestCase
         self::assertStringContainsString("'roles' =>", $middleware);
         self::assertStringContainsString("'capabilities' =>", $middleware);
 
-        self::assertStringContainsString("->where('user_id', $userId)", $activation);
+        self::assertStringContainsString("->where('user_id', \$userId)", $activation);
         self::assertStringContainsString("return redirect()->route('dashboard');", $controller);
     }
 
