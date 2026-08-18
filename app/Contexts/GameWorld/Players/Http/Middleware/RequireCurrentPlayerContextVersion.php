@@ -23,6 +23,7 @@ final readonly class RequireCurrentPlayerContextVersion
 
     /** @var list<string> */
     private const EXEMPT_ROUTE_NAMES = [
+        'invitations.accept',
         'logout',
         'players.activate',
     ];
