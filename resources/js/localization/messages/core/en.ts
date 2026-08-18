@@ -21,6 +21,8 @@ const messages = {
     noPlayers: 'No Governors are linked to this account.',
     active: 'Active',
     skipToNoticeboard: 'Skip to content',
+    contextStale:
+      'Your Governor or permissions changed. The latest authority context has been reloaded; review it and try again.',
   },
   navigation: {
     home: 'Realm Gate',
