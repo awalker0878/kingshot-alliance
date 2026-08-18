@@ -12,6 +12,16 @@ use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
+/**
+ * @phpstan-type AllianceIdentityContext array{
+ *     membershipId:string,
+ *     allianceId:string,
+ *     allianceName:string,
+ *     rank:string,
+ *     roles:list<array{key:string,name:string}>,
+ *     capabilities:list<string>
+ * }
+ */
 final class HandleInertiaRequests extends Middleware
 {
     protected $rootView = 'app';
@@ -103,14 +113,7 @@ final class HandleInertiaRequests extends Middleware
     }
 
     /**
-     * @param  array{
-     *     membershipId:string,
-     *     allianceId:string,
-     *     allianceName:string,
-     *     rank:string,
-     *     roles:list<array{key:string,name:string}>,
-     *     capabilities:list<string>
-     * }|null  $membership
+     * @param  AllianceIdentityContext|null  $membership
      * @return array{
      *     version:1,
      *     key:string,
