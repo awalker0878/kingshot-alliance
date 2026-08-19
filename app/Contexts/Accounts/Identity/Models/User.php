@@ -66,6 +66,16 @@ final class User extends Authenticatable implements AuditActor, AuthenticatedAcc
         ];
     }
 
+    public function accountName(): string
+    {
+        return (string) $this->name;
+    }
+
+    public function accountEmail(): string
+    {
+        return (string) $this->email;
+    }
+
     public function auditUserId(): int
     {
         return (int) $this->id;
