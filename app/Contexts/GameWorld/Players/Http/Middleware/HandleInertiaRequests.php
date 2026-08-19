@@ -111,7 +111,7 @@ final class HandleInertiaRequests extends Middleware
             $activeAlliance = $allianceContext[$activePlayer->playerId] ?? null;
             $kingdomPermissions = $this->kingdomAuthority
                 ->findCurrent($activePlayer->playerId, $activePlayer->kingdomId)
-                ?->permissionKeysObservedAtRead ?? [];
+                ->permissionKeysObservedAtRead ?? [];
 
             $authorityContextVersion = $this->authorityVersions->issue(
                 $activePlayer,
