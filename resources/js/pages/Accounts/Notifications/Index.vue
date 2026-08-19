@@ -116,7 +116,7 @@ function typeLabel(type: string): string {
       <section class="ks-surface p-4 sm:p-5" aria-labelledby="notification-inbox-title">
         <div class="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <p class="ks-kicker">Recent activity</p>
+            <p class="ks-kicker">Latest notification activity</p>
             <h2 id="notification-inbox-title" class="ks-display mt-1 text-2xl font-semibold">
               Inbox
             </h2>
