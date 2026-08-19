@@ -81,8 +81,6 @@ function contextLabel(player: PlayerIdentity): string {
 
   const roles = roleLabel(player);
   if (roles) pieces.push(roles);
-  if (!player.alliance) pieces.push(t('common.noPlayerAlliance'));
-
   return pieces.join(' · ');
 }
 
