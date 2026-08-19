@@ -4,7 +4,7 @@ Status: Current
 
 Do not conflate three different concepts:
 
-1. **Operations Event** — scheduled game activity owned by `Operations/EventCore`;
+1. **Operations Event** — scheduled game activity owned by `Operations/Events`;
 2. **internal durable/outbox event** — implementation message representing a persisted transition;
 3. **public webhook event** — externally supported Platform Integration contract.
 
