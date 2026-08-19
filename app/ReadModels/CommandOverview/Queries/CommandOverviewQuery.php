@@ -13,7 +13,6 @@ use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeStatus;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeRedemption;
 use App\Contexts\GameWorld\GiftCodes\Queries\GiftCodeCatalogQuery;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
-use App\Contexts\Operations\Events\Models\Event;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Events\Queries\EventAttentionQuery;
 use App\Contexts\Operations\Events\Queries\EventCalendarQuery;
@@ -87,21 +86,21 @@ final readonly class CommandOverviewQuery
     /** @return list<array<string, mixed>> */
     private function upcomingEvents(PlayerReference $player): array
     {
-        return $this->calendar->calendar($player, pastDays: 0, futureDays: 30)
+        return array_values($this->calendar->calendar($player, pastDays: 0, futureDays: 30)
             ->take(4)
             ->map(static function (EventOccurrence $occurrence): array {
                 $event = $occurrence->event;
 
                 return [
                     'id' => (string) $occurrence->id,
-                    'title' => $event instanceof Event ? $event->title : null,
-                    'nameKey' => $event instanceof Event ? (string) $event->eventType->name_key : 'events.calendar.title',
-                    'scope' => $event instanceof Event ? $event->scope->value : 'player',
+                    'title' => $event->title,
+                    'nameKey' => (string) $event->eventType->name_key,
+                    'scope' => $event->scope->value,
                     'startsAt' => $occurrence->starts_at->toIso8601String(),
                 ];
             })
             ->values()
-            ->all();
+            ->all());
     }
 
     /** @return array{0:int,1:list<array<string,mixed>>} */
