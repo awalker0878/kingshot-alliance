@@ -109,10 +109,7 @@ jobs:
           routes/contributions.php
 
       - name: Intelligence V3 behavior contracts
-        run: >-
-          vendor/bin/phpunit --configuration phpunit.xml
-          --testsuite Laravel
-          --test-suffix V3Test.php
+        run: vendor/bin/phpunit --configuration phpunit.xml --testsuite "Architecture V3"
 
   frontend:
     name: Intelligence history frontend contracts
