@@ -267,14 +267,12 @@ final readonly class CompleteTransferParticipant
         }
 
         $activeAllianceIds = $this->memberships->activeAllianceIds([(string) $player->id]);
-        $disallowedMemberships = match ($direction) {
-            TransferDirection::Outgoing => array_values(array_filter(
+        $disallowedMemberships = $direction === TransferDirection::Outgoing
+            ? array_values(array_filter(
                 $activeAllianceIds,
                 static fn (string $activeAllianceId): bool => $activeAllianceId !== $allianceId,
-            )),
-            TransferDirection::Incoming => $activeAllianceIds,
-            TransferDirection::Staying => [],
-        };
+            ))
+            : $activeAllianceIds;
 
         if ($disallowedMemberships !== []) {
             throw ValidationException::withMessages([
