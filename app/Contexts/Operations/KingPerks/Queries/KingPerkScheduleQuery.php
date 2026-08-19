@@ -163,10 +163,12 @@ final readonly class KingPerkScheduleQuery
     /** @return array<string, mixed> */
     private function plan(KingPerkPlan $plan): array
     {
-        $playerIds = array_values($plan->appointments->pluck('assigned_player_id')
-            ->merge($plan->requests->pluck('player_id'))
-            ->map(static fn ($id): string => (string) $id)
-            ->unique()->values()->all());
+        $playerIds = array_values(
+            $plan->appointments->pluck('assigned_player_id')
+                ->merge($plan->requests->pluck('player_id'))
+                ->map(static fn ($id): string => (string) $id)
+                ->unique()->values()->all(),
+        );
         $players = $this->players->byIds($playerIds);
 
         return [
@@ -263,11 +265,11 @@ final readonly class KingPerkScheduleQuery
     /** @return array<string, mixed> */
     private function live(KingPerkPlan $plan): array
     {
-        $playerIds = array_values($plan->appointments->pluck('assigned_player_id')
-            ->map(static fn ($id): string => (string) $id)
-            ->unique()
-            ->values()
-            ->all());
+        $playerIds = array_values(
+            $plan->appointments->pluck('assigned_player_id')
+                ->map(static fn ($id): string => (string) $id)
+                ->unique()->values()->all(),
+        );
         $players = $this->players->byIds($playerIds);
         $now = CarbonImmutable::now('UTC');
         $activeStatuses = [
