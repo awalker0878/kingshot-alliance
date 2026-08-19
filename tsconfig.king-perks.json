@@ -1,7 +1,8 @@
 {
   "extends": "./tsconfig.json",
   "include": [
-    "resources/js/pages/KingPerks/**/*.vue",
+    "resources/js/pages/Kingdom/RoyalCourt/Appointments.vue",
+    "resources/js/pages/Kingdom/RoyalCourt/MyAppointments.vue",
     "resources/js/**/*.d.ts"
   ]
 }
