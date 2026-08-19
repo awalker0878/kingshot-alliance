@@ -8,8 +8,8 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       input: {
-        manage: 'resources/js/pages/KingPerks/Manage.vue',
-        my: 'resources/js/pages/KingPerks/My.vue',
+        manage: 'resources/js/pages/Kingdom/RoyalCourt/Appointments.vue',
+        my: 'resources/js/pages/Kingdom/RoyalCourt/MyAppointments.vue',
       },
     },
   },
