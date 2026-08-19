@@ -151,8 +151,8 @@ final class RecruitmentManagementController extends Controller
 
         return Inertia::render('Alliance/Recruitment/Hall', [
             'user' => [
-                'name' => (string) $user->name,
-                'email' => (string) $user->email,
+                'name' => $user->accountName(),
+                'email' => $user->accountEmail(),
             ],
             'alliance' => [
                 'id' => (string) $alliance->allianceId,
