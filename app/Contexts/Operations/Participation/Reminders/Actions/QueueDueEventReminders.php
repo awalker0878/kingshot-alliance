@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Participation\Reminders\Actions;
 
+use App\Contexts\Communications\Delivery\Enums\DeliveryChannel;
 use App\Contexts\Communications\Delivery\Services\NotificationDeliveryService;
 use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Contexts\Operations\Events\Enums\EventOccurrenceStatus;
@@ -58,13 +59,13 @@ final readonly class QueueDueEventReminders
                         return $queued;
                     }
 
-                    $created = DB::transaction(function () use ($rule, $occurrence, $player, $now): bool {
+                    $created = DB::transaction(function () use ($rule, $occurrence, $player, $now): int {
                         $currentEvent = Event::query()
                             ->whereKey($rule->event_id)
                             ->sharedLock()
                             ->first();
                         if (! $currentEvent instanceof Event) {
-                            return false;
+                            return 0;
                         }
 
                         $currentOccurrence = EventOccurrence::query()
@@ -74,7 +75,7 @@ final readonly class QueueDueEventReminders
                             ->sharedLock()
                             ->first();
                         if (! $currentOccurrence instanceof EventOccurrence) {
-                            return false;
+                            return 0;
                         }
 
                         $currentPoll = null;
@@ -85,7 +86,7 @@ final readonly class QueueDueEventReminders
                                 ->sharedLock()
                                 ->first();
                             if (! $currentPoll instanceof EventPoll) {
-                                return false;
+                                return 0;
                             }
                         }
 
@@ -95,47 +96,39 @@ final readonly class QueueDueEventReminders
                             ->sharedLock()
                             ->first();
                         if (! $currentRule instanceof EventReminderRule || ! $currentRule->is_enabled) {
-                            return false;
+                            return 0;
                         }
 
                         $currentDueAt = $this->dueAt($currentRule, $currentOccurrence, $currentPoll);
                         if ($currentDueAt === null || $currentDueAt->greaterThan($now)) {
-                            return false;
+                            return 0;
                         }
 
                         $currentPlayer = $this->players->lockCurrent($player->playerId);
                         if ($currentPlayer->userId === null
                             || ! $this->audiences->includes($currentOccurrence, $currentRule->audience, $currentPlayer)) {
-                            return false;
+                            return 0;
                         }
 
                         $notificationType = 'event.reminder';
-                        $channel = (string) $currentRule->channel;
-                        if (! $this->deliveries->isEnabled(
-                            $currentPlayer->userId,
-                            $currentPlayer->playerId,
-                            $notificationType,
-                            $channel,
-                        )) {
-                            return false;
-                        }
-
-                        $key = hash('sha256', implode(':', [
+                        $key = implode(':', [
                             'event-reminder',
                             $currentRule->id,
                             $currentOccurrence->id,
                             $currentPlayer->playerId,
-                        ]));
-                        $delivery = $this->deliveries->queue(
+                        ]);
+                        $deliveries = $this->deliveries->queueEnabledChannels(
                             notificationType: $notificationType,
                             recipientUserId: $currentPlayer->userId,
                             playerId: $currentPlayer->playerId,
-                            channel: $channel,
                             dueAt: $currentDueAt,
                             idempotencyKey: $key,
                             subjectType: 'event_occurrence',
                             subjectId: (string) $currentOccurrence->id,
                             metadata: [
+                                'title' => trim((string) $currentEvent->title) ?: 'Event reminder',
+                                'body' => 'An Alliance event is ready for your attention.',
+                                'action_url' => '/events/'.$currentOccurrence->id,
                                 'event_id' => (string) $currentEvent->id,
                                 'rule_id' => (string) $currentRule->id,
                                 'poll_id' => $currentRule->poll_id,
@@ -143,38 +136,44 @@ final readonly class QueueDueEventReminders
                             ],
                         );
 
-                        if (! $delivery->wasRecentlyCreated) {
-                            return false;
+                        $created = 0;
+                        foreach ($deliveries as $delivery) {
+                            if (! $delivery->wasRecentlyCreated) {
+                                continue;
+                            }
+                            $created++;
+
+                            if ($delivery->channel !== DeliveryChannel::InApp->value) {
+                                continue;
+                            }
+
+                            $target = $this->targets->forEvent($currentEvent);
+                            $payload = [
+                                'delivery_id' => (string) $delivery->id,
+                                'occurrence_id' => (string) $currentOccurrence->id,
+                                'event_id' => (string) $currentEvent->id,
+                                'poll_id' => $currentRule->poll_id,
+                                'trigger_type' => $currentRule->trigger_type->value,
+                                'recipient_user_id' => $currentPlayer->userId,
+                                'player_id' => $currentPlayer->playerId,
+                                'channel' => $delivery->channel,
+                                'due_at' => $currentDueAt->toIso8601String(),
+                                'origin' => 'system',
+                            ];
+                            $this->outbox->record(
+                                'event.reminder.requested',
+                                $target->allianceId,
+                                $delivery,
+                                $payload,
+                                idempotencyKey: 'event.reminder.requested:'.$delivery->id,
+                                partitionKey: $target->partitionKey(),
+                            );
                         }
 
-                        $target = $this->targets->forEvent($currentEvent);
-                        $payload = [
-                            'delivery_id' => (string) $delivery->id,
-                            'occurrence_id' => (string) $currentOccurrence->id,
-                            'event_id' => (string) $currentEvent->id,
-                            'poll_id' => $currentRule->poll_id,
-                            'trigger_type' => $currentRule->trigger_type->value,
-                            'recipient_user_id' => $currentPlayer->userId,
-                            'player_id' => $currentPlayer->playerId,
-                            'channel' => $channel,
-                            'due_at' => $currentDueAt->toIso8601String(),
-                            'origin' => 'system',
-                        ];
-                        $this->outbox->record(
-                            'event.reminder.requested',
-                            $target->allianceId,
-                            $delivery,
-                            $payload,
-                            idempotencyKey: 'event.reminder.requested:'.$delivery->id,
-                            partitionKey: $target->partitionKey(),
-                        );
-
-                        return true;
+                        return $created;
                     });
 
-                    if ($created) {
-                        $queued++;
-                    }
+                    $queued += $created;
                 }
             }
         }

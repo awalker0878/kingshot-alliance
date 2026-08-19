@@ -37,6 +37,7 @@ const messages = {
     transfers: 'Kingdom Transfer',
     integrations: 'Alliance Connections',
     giftCodes: 'Gift Codes',
+    notifications: 'Notifications',
     profile: 'Governor Account',
     settings: 'Realm Settings',
     allianceOperations: 'Alliance Command',

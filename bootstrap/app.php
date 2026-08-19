@@ -3,10 +3,12 @@
 declare(strict_types=1);
 
 use App\Contexts\Alliance\Lifecycle\Http\Middleware\ResolveAllianceContext;
+use App\Contexts\Communications\Delivery\Actions\ProcessNotificationDeliveries;
 use App\Contexts\GameWorld\Players\Http\Middleware\HandleInertiaRequests;
 use App\Contexts\GameWorld\Players\Http\Middleware\RequireCurrentPlayerContextVersion;
 use App\Contexts\GameWorld\Players\Http\Middleware\ResolvePlayerContext;
 use App\Contexts\Operations\KingPerks\Actions\QueueDueKingPerkReminders;
+use App\Contexts\Operations\Participation\Reminders\Actions\QueueDueEventReminders;
 use App\Contexts\Platform\Administration\Http\Middleware\RequirePlatformAdministrator;
 use App\Contexts\Platform\Integrations\Http\Middleware\AuthenticateApiCredential;
 use App\Shared\Infrastructure\Observability\Http\Middleware\AssignRequestContext;
@@ -37,12 +39,23 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::middleware('web')->group(base_path('routes/integrations.php'));
             Route::middleware('web')->group(base_path('routes/king-perks.php'));
             Route::middleware('web')->group(base_path('routes/kingdoms.php'));
+            Route::middleware('web')->group(base_path('routes/notifications.php'));
             Route::middleware('web')->group(base_path('routes/platform.php'));
         },
     )
     ->withSchedule(static function (Schedule $schedule): void {
+        $schedule->call(static fn (): int => app(QueueDueEventReminders::class)->handle(100))
+            ->name('events:queue-reminders')
+            ->everyMinute()
+            ->onOneServer()
+            ->withoutOverlapping(10);
         $schedule->call(static fn (): int => app(QueueDueKingPerkReminders::class)->handle(100))
             ->name('king-perks:queue-reminders')
+            ->everyMinute()
+            ->onOneServer()
+            ->withoutOverlapping(10);
+        $schedule->call(static fn (): int => app(ProcessNotificationDeliveries::class)->handle(100))
+            ->name('communications:deliver-notifications')
             ->everyMinute()
             ->onOneServer()
             ->withoutOverlapping(10);

@@ -25,6 +25,7 @@ type NavIconName =
   | 'kingdom'
   | 'transfers'
   | 'giftCodes'
+  | 'notifications'
   | 'integrations'
   | 'profile';
 
@@ -40,6 +41,7 @@ type NavigationItem = {
     | 'kingdom'
     | 'transfers'
     | 'giftCodes'
+    | 'notifications'
     | 'integrations';
   href: string;
   icon: NavIconName;
@@ -81,6 +83,7 @@ const currentPath = computed(() => page.url.split('?')[0]?.replace(/\/+$/, '') |
 const rooms: NavigationItem[] = [
   { key: 'dashboard', href: '/dashboard', icon: 'dashboard', exact: true },
   { key: 'giftCodes', href: '/gift-codes', icon: 'giftCodes', playerScoped: true },
+  { key: 'notifications', href: '/notifications', icon: 'notifications', exact: true },
   { key: 'alliance', href: '/alliance', icon: 'alliance', allianceScoped: true, exact: true },
   {
     key: 'recruitment',

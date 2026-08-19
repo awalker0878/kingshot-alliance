@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Contexts\Communications\Delivery\Services;
 
+use App\Contexts\Communications\Delivery\Enums\DeliveryChannel;
 use App\Contexts\Communications\Delivery\Enums\DeliveryStatus;
 use App\Contexts\Communications\Delivery\Models\NotificationDelivery;
+use App\Contexts\Communications\Delivery\Models\NotificationEndpoint;
 use App\Contexts\Communications\Delivery\Models\NotificationPreference;
 use DateTimeInterface;
 use Illuminate\Support\Carbon;
@@ -42,6 +44,78 @@ final class NotificationDeliveryService
                 'metadata' => $metadata === [] ? null : $metadata,
             ],
         );
+    }
+
+    /**
+     * Queue one idempotent delivery per enabled and configured channel.
+     *
+     * @param  array<string, mixed>  $metadata
+     * @return list<NotificationDelivery>
+     */
+    public function queueEnabledChannels(
+        string $notificationType,
+        int $recipientUserId,
+        ?string $playerId,
+        DateTimeInterface $dueAt,
+        string $idempotencyKey,
+        ?string $subjectType = null,
+        ?string $subjectId = null,
+        array $metadata = [],
+        int $maxAttempts = 5,
+    ): array {
+        $deliveries = [];
+        foreach ($this->enabledChannels($recipientUserId, $playerId, $notificationType) as $channel) {
+            $deliveries[] = $this->queue(
+                notificationType: $notificationType,
+                recipientUserId: $recipientUserId,
+                playerId: $playerId,
+                channel: $channel->value,
+                dueAt: $dueAt,
+                idempotencyKey: hash('sha256', $idempotencyKey.':'.$channel->value),
+                subjectType: $subjectType,
+                subjectId: $subjectId,
+                metadata: $metadata,
+                maxAttempts: $maxAttempts,
+            );
+        }
+
+        return $deliveries;
+    }
+
+    /** @return list<DeliveryChannel> */
+    public function enabledChannels(int $recipientUserId, ?string $playerId, string $notificationType): array
+    {
+        $channels = [DeliveryChannel::InApp];
+        $external = NotificationEndpoint::query()
+            ->where('recipient_user_id', $recipientUserId)
+            ->where('enabled', true)
+            ->where(static function ($query) use ($playerId): void {
+                $query->whereNull('player_id');
+                if ($playerId !== null) {
+                    $query->orWhere('player_id', $playerId);
+                }
+            })
+            ->get()
+            ->map(static fn (NotificationEndpoint $endpoint): DeliveryChannel => $endpoint->channel)
+            ->unique(static fn (DeliveryChannel $channel): string => $channel->value)
+            ->values()
+            ->all();
+
+        foreach ($external as $channel) {
+            if ($channel->isExternal()) {
+                $channels[] = $channel;
+            }
+        }
+
+        return array_values(array_filter(
+            $channels,
+            fn (DeliveryChannel $channel): bool => $this->isEnabled(
+                $recipientUserId,
+                $playerId,
+                $notificationType,
+                $channel->value,
+            ),
+        ));
     }
 
     public function markSent(string $deliveryId): void

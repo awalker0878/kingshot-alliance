@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\KingPerks\Actions;
 
+use App\Contexts\Communications\Delivery\Enums\DeliveryChannel;
 use App\Contexts\Communications\Delivery\Services\NotificationDeliveryService;
 use App\Contexts\GameWorld\Governance\Queries\KingdomAuthorityFactsQuery;
 use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
@@ -200,51 +201,71 @@ final readonly class QueueDueKingPerkReminders
             }
 
             $notificationType = 'king_perks.reminder';
-            $channel = 'in_app';
-            if (! $this->deliveries->isEnabled($currentPlayer->userId, $currentPlayer->playerId, $notificationType, $channel)) {
-                return false;
-            }
-
-            $key = hash('sha256', implode(':', [
+            $baseKey = implode(':', [
                 'king-perk-reminder', $kind->value, (string) $source->id, $currentPlayer->playerId,
-            ]));
-            $delivery = $this->deliveries->queue(
+            ]);
+            $title = $source instanceof KingPerkAppointment
+                ? $source->appointment_type->label()
+                : $source->skill_key->label();
+            $body = match ($kind) {
+                KingPerkReminderKind::AppointmentUnconfirmed10Minutes => 'This appointment still needs confirmation.',
+                KingPerkReminderKind::Appointment24Hours => 'Your King appointment starts within 24 hours.',
+                KingPerkReminderKind::Appointment1Hour => 'Your King appointment starts within one hour.',
+                KingPerkReminderKind::Appointment10Minutes => 'Your King appointment starts within 10 minutes.',
+                KingPerkReminderKind::SkillSchedulingAvailable => 'This King Skill can now be scheduled in game.',
+                KingPerkReminderKind::Skill1Hour => 'This King Skill is planned to activate within one hour.',
+            };
+            $deliveries = $this->deliveries->queueEnabledChannels(
                 notificationType: $notificationType,
                 recipientUserId: $currentPlayer->userId,
                 playerId: $currentPlayer->playerId,
-                channel: $channel,
                 dueAt: $dueAt,
-                idempotencyKey: $key,
+                idempotencyKey: $baseKey,
                 subjectType: $subjectType,
                 subjectId: (string) $source->id,
-                metadata: ['plan_id' => (string) $plan->id, 'kind' => $kind->value],
+                metadata: [
+                    'title' => $title,
+                    'body' => $body,
+                    'action_url' => '/events',
+                    'plan_id' => (string) $plan->id,
+                    'kind' => $kind->value,
+                ],
             );
-            if (! $delivery->wasRecentlyCreated) {
-                return false;
+
+            $created = false;
+            foreach ($deliveries as $delivery) {
+                if (! $delivery->wasRecentlyCreated) {
+                    continue;
+                }
+                $created = true;
+
+                if ($delivery->channel !== DeliveryChannel::InApp->value) {
+                    continue;
+                }
+
+                $payload = [
+                    'delivery_id' => (string) $delivery->id,
+                    'plan_id' => (string) $plan->id,
+                    'appointment_id' => $appointmentId,
+                    'skill_plan_id' => $skillId,
+                    'kind' => $kind->value,
+                    'recipient_user_id' => $currentPlayer->userId,
+                    'player_id' => $currentPlayer->playerId,
+                    'channel' => $delivery->channel,
+                    'due_at' => $dueAt->toIso8601String(),
+                    'origin' => 'system',
+                ];
+                $this->outbox->record(
+                    'king_perks.reminder.requested',
+                    null,
+                    $delivery,
+                    $payload,
+                    idempotencyKey: 'king_perks.reminder.requested:'.$delivery->id,
+                    partitionKey: 'kingdom:'.$plan->kingdom_id,
+                );
             }
 
-            $payload = [
-                'delivery_id' => (string) $delivery->id,
-                'plan_id' => (string) $plan->id,
-                'appointment_id' => $appointmentId,
-                'skill_plan_id' => $skillId,
-                'kind' => $kind->value,
-                'recipient_user_id' => $currentPlayer->userId,
-                'player_id' => $currentPlayer->playerId,
-                'channel' => $channel,
-                'due_at' => $dueAt->toIso8601String(),
-                'origin' => 'system',
-            ];
-            $this->outbox->record(
-                'king_perks.reminder.requested',
-                null,
-                $delivery,
-                $payload,
-                idempotencyKey: 'king_perks.reminder.requested:'.$delivery->id,
-                partitionKey: 'kingdom:'.$plan->kingdom_id,
-            );
-
-            return true;
+            return $created;
         });
     }
 }
