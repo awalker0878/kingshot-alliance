@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\KingPerks\Http\Controllers;
 
+use App\Contexts\Accounts\Identity\Contracts\AuthenticatedAccount;
 use App\Contexts\GameWorld\Players\Services\PlayerContext;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Operations\KingPerks\Actions\ReplaceNoShowAppointment;
@@ -33,7 +34,7 @@ final class KingPerkController extends Controller
         $payload = $query->management($this->player(), $event, $request->string('occurrence')->toString() ?: null);
 
         return Inertia::render('Kingdom/RoyalCourt/Appointments', [
-            'user' => ['name' => (string) $user->name, 'email' => (string) $user->email],
+            'user' => ['name' => $user->accountName(), 'email' => $user->accountEmail()],
             ...$payload,
         ]);
     }
@@ -44,7 +45,7 @@ final class KingPerkController extends Controller
         $payload = $query->player($this->player(), $event, $request->string('occurrence')->toString() ?: null);
 
         return Inertia::render('Kingdom/RoyalCourt/MyAppointments', [
-            'user' => ['name' => (string) $user->name, 'email' => (string) $user->email],
+            'user' => ['name' => $user->accountName(), 'email' => $user->accountEmail()],
             ...$payload,
         ]);
     }
@@ -256,10 +257,10 @@ final class KingPerkController extends Controller
         return back()->with('status', 'king-perk-skill-activated');
     }
 
-    private function authenticated(Request $request): object
+    private function authenticated(Request $request): AuthenticatedAccount
     {
         $user = $request->user();
-        abort_unless($user !== null, 401);
+        abort_unless($user instanceof AuthenticatedAccount, 401);
 
         return $user;
     }
