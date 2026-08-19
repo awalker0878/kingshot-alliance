@@ -6,117 +6,23 @@ import AllianceCrest from '@/components/game/AllianceCrest.vue';
 import IdentitySwitcher from '@/components/navigation/IdentitySwitcher.vue';
 import LocaleSwitcher from '@/components/navigation/LocaleSwitcher.vue';
 import NavIcon from '@/components/navigation/NavIcon.vue';
+import { useGameContext } from '@/composables/useGameContext';
 import { useLocale } from '@/localization';
-import {
-  EMPTY_PLAYER_CONTEXT,
-  activePlayerFrom,
-  playerHasCapability,
-  type SharedPlayerContext,
-} from '@/types/player-context';
-
-type NavIconName =
-  | 'dashboard'
-  | 'alliance'
-  | 'events'
-  | 'roster'
-  | 'recruitment'
-  | 'content'
-  | 'contributions'
-  | 'kingdom'
-  | 'transfers'
-  | 'integrations'
-  | 'profile';
-
-type NavigationItem = {
-  key:
-    | 'dashboard'
-    | 'alliance'
-    | 'events'
-    | 'roster'
-    | 'recruitment'
-    | 'content'
-    | 'contributions'
-    | 'kingdom'
-    | 'transfers'
-    | 'integrations';
-  href: string;
-  icon: NavIconName;
-  allianceScoped?: boolean;
-  requiredCapability?: string;
-  exact?: boolean;
-};
-
-const props = withDefaults(
-  defineProps<{
-    user: { name: string; email?: string };
-    playerAllianceName?: string | null;
-    hasPlayerAlliance?: boolean;
-  }>(),
-  { playerAllianceName: null, hasPlayerAlliance: false },
-);
+import type { GameNavigationItem } from '@/types/game-context';
 
 const { t } = useLocale();
 const page = usePage();
 const mobileOpen = ref(false);
-
-const playerContext = computed<SharedPlayerContext>(
-  () =>
-    ((page.props as Record<string, unknown>).playerContext as SharedPlayerContext | undefined) ??
-    EMPTY_PLAYER_CONTEXT,
-);
-const activePlayer = computed(() => activePlayerFrom(playerContext.value));
-const activeAllianceName = computed(() => {
-  if (activePlayer.value) return activePlayer.value.alliance?.name ?? null;
-  return props.playerAllianceName;
-});
-const hasActiveAlliance = computed(() => {
-  if (activePlayer.value) return activePlayer.value.alliance !== null;
-  return props.hasPlayerAlliance;
-});
+const {
+  viewer,
+  governor: activeGovernor,
+  alliance: activeAlliance,
+  navigation: rooms,
+} = useGameContext();
+const activeAllianceName = computed(() => activeAlliance.value?.name ?? null);
 const currentPath = computed(() => page.url.split('?')[0]?.replace(/\/+$/, '') || '/');
 
-const rooms: NavigationItem[] = [
-  { key: 'dashboard', href: '/dashboard', icon: 'dashboard', exact: true },
-  { key: 'alliance', href: '/alliance', icon: 'alliance', allianceScoped: true, exact: true },
-  {
-    key: 'recruitment',
-    href: '/alliance/recruitment',
-    icon: 'recruitment',
-    allianceScoped: true,
-    requiredCapability: 'recruitment.manage',
-  },
-  { key: 'events', href: '/events', icon: 'events' },
-  { key: 'kingdom', href: '/alliance/kingdom-alliances', icon: 'kingdom', allianceScoped: true },
-  { key: 'roster', href: '/alliance/roster', icon: 'roster', allianceScoped: true },
-  {
-    key: 'contributions',
-    href: '/alliance/contributions',
-    icon: 'contributions',
-    allianceScoped: true,
-  },
-  { key: 'transfers', href: '/alliance/transfers', icon: 'transfers', allianceScoped: true },
-  { key: 'content', href: '/alliance/content', icon: 'content', allianceScoped: true },
-  {
-    key: 'integrations',
-    href: '/alliance/integrations',
-    icon: 'integrations',
-    allianceScoped: true,
-  },
-];
-
-function isDisabled(item: NavigationItem): boolean {
-  if (item.allianceScoped === true && !hasActiveAlliance.value) return true;
-  if (
-    item.requiredCapability &&
-    !playerHasCapability(activePlayer.value, item.requiredCapability)
-  ) {
-    return true;
-  }
-
-  return false;
-}
-
-function isActive(item: NavigationItem): boolean {
+function isActive(item: GameNavigationItem): boolean {
   const href = item.href.replace(/\/+$/, '') || '/';
   return item.exact
     ? currentPath.value === href
@@ -137,7 +43,6 @@ function logout(): void {
   </a>
 
   <div class="min-h-screen bg-transparent text-[var(--ks-text)]">
-    <!-- Desktop command rail -->
     <aside
       class="fixed inset-y-0 start-0 z-50 hidden w-[18.5rem] flex-col border-e border-[var(--ks-border)] bg-[rgba(4,9,9,.96)] shadow-[18px_0_55px_rgba(0,0,0,.28)] backdrop-blur-xl xl:flex"
     >
@@ -182,39 +87,29 @@ function logout(): void {
           {{ t('navigation.allianceOperations') }}
         </div>
         <div class="space-y-1">
-          <template v-for="room in rooms" :key="room.href">
-            <span
-              v-if="isDisabled(room)"
-              class="flex min-h-11 items-center gap-3 rounded-[var(--ks-radius-sm)] px-3 py-2 text-sm text-[var(--ks-muted)] opacity-30"
-              :aria-label="t(`navigation.${room.key}`)"
-              aria-disabled="true"
-            >
-              <NavIcon :name="room.icon" class="h-5 w-5" />
-              <span class="truncate">{{ t(`navigation.${room.key}`) }}</span>
-            </span>
-            <Link
-              v-else
-              :href="room.href"
-              class="group relative flex min-h-11 items-center gap-3 overflow-hidden rounded-[var(--ks-radius-sm)] border px-3 py-2 text-[.9rem] font-[var(--ks-font-display)] transition"
+          <Link
+            v-for="room in rooms"
+            :key="room.href"
+            :href="room.href"
+            class="group relative flex min-h-11 items-center gap-3 overflow-hidden rounded-[var(--ks-radius-sm)] border px-3 py-2 text-[.9rem] font-[var(--ks-font-display)] transition"
+            :class="
+              isActive(room)
+                ? 'border-[rgba(32,178,163,.38)] bg-[linear-gradient(90deg,rgba(10,121,113,.42),rgba(10,67,63,.12))] text-[#f6ecd7] shadow-[inset_3px_0_var(--ks-teal-bright)]'
+                : 'border-transparent text-[var(--ks-text-muted)] hover:border-[var(--ks-border)] hover:bg-white/[0.025] hover:text-[var(--ks-text)]'
+            "
+          >
+            <NavIcon
+              :name="room.icon"
+              class="h-5 w-5 shrink-0"
               :class="
                 isActive(room)
-                  ? 'border-[rgba(32,178,163,.38)] bg-[linear-gradient(90deg,rgba(10,121,113,.42),rgba(10,67,63,.12))] text-[#f6ecd7] shadow-[inset_3px_0_var(--ks-teal-bright)]'
-                  : 'border-transparent text-[var(--ks-text-muted)] hover:border-[var(--ks-border)] hover:bg-white/[0.025] hover:text-[var(--ks-text)]'
+                  ? 'text-[var(--ks-gold-bright)]'
+                  : 'text-[var(--ks-gold)] opacity-80'
               "
-            >
-              <NavIcon
-                :name="room.icon"
-                class="h-5 w-5 shrink-0"
-                :class="
-                  isActive(room)
-                    ? 'text-[var(--ks-gold-bright)]'
-                    : 'text-[var(--ks-gold)] opacity-80'
-                "
-              />
-              <span class="min-w-0 flex-1 truncate">{{ t(`navigation.${room.key}`) }}</span>
-              <span v-if="isActive(room)" class="text-[var(--ks-teal-bright)]">›</span>
-            </Link>
-          </template>
+            />
+            <span class="min-w-0 flex-1 truncate">{{ t(`navigation.${room.key}`) }}</span>
+            <span v-if="isActive(room)" class="text-[var(--ks-teal-bright)]">›</span>
+          </Link>
         </div>
       </nav>
 
@@ -234,12 +129,11 @@ function logout(): void {
           class="mt-2 w-full rounded-[var(--ks-radius-sm)] px-3 py-2 text-start text-xs text-[var(--ks-muted)] transition hover:bg-white/[0.025] hover:text-[var(--ks-text)]"
           @click="logout"
         >
-          {{ t('common.signOut') }} · {{ user.name }}
+          {{ t('common.signOut') }} · {{ viewer?.name ?? '' }}
         </button>
       </div>
     </aside>
 
-    <!-- Mobile/tablet top bar -->
     <header
       class="sticky top-0 z-40 flex min-h-16 items-center gap-3 border-b border-[var(--ks-border)] bg-[rgba(5,10,11,.92)] px-3 py-2 backdrop-blur-xl xl:hidden"
     >
@@ -265,9 +159,9 @@ function logout(): void {
           {{ activeAllianceName ?? 'KINGSHOT' }}
         </div>
         <div class="truncate text-[.65rem] text-[var(--ks-muted)]">
-          {{ activePlayer?.name ?? user.name
-          }}<template v-if="activePlayer?.kingdomNumber">
-            · K{{ activePlayer.kingdomNumber }}</template
+          {{ activeGovernor?.name ?? viewer?.name ?? ''
+          }}<template v-if="activeGovernor?.kingdom.number">
+            · K{{ activeGovernor.kingdom.number }}</template
           >
         </div>
       </div>
@@ -316,30 +210,21 @@ function logout(): void {
           :aria-label="t('navigation.allianceOperations')"
         >
           <div class="space-y-1">
-            <template v-for="room in rooms" :key="room.href">
-              <span
-                v-if="isDisabled(room)"
-                class="flex min-h-12 items-center gap-3 rounded px-3 text-sm text-[var(--ks-muted)] opacity-30"
-                aria-disabled="true"
-              >
-                <NavIcon :name="room.icon" class="h-5 w-5" />
-                {{ t(`navigation.${room.key}`) }}
-              </span>
-              <Link
-                v-else
-                :href="room.href"
-                class="flex min-h-12 items-center gap-3 rounded-[var(--ks-radius-sm)] border px-3 text-sm"
-                :class="
-                  isActive(room)
-                    ? 'border-[rgba(32,178,163,.38)] bg-[var(--ks-teal-soft)] text-[var(--ks-ivory)]'
-                    : 'border-transparent text-[var(--ks-text-secondary)]'
-                "
-                @click="mobileOpen = false"
-              >
-                <NavIcon :name="room.icon" class="h-5 w-5 text-[var(--ks-gold)]" />
-                <span class="flex-1">{{ t(`navigation.${room.key}`) }}</span>
-              </Link>
-            </template>
+            <Link
+              v-for="room in rooms"
+              :key="room.href"
+              :href="room.href"
+              class="flex min-h-12 items-center gap-3 rounded-[var(--ks-radius-sm)] border px-3 text-sm"
+              :class="
+                isActive(room)
+                  ? 'border-[rgba(32,178,163,.38)] bg-[var(--ks-teal-soft)] text-[var(--ks-ivory)]'
+                  : 'border-transparent text-[var(--ks-text-secondary)]'
+              "
+              @click="mobileOpen = false"
+            >
+              <NavIcon :name="room.icon" class="h-5 w-5 text-[var(--ks-gold)]" />
+              <span class="flex-1">{{ t(`navigation.${room.key}`) }}</span>
+            </Link>
           </div>
         </nav>
 
@@ -367,19 +252,18 @@ function logout(): void {
     </div>
 
     <div class="xl:ps-[18.5rem]">
-      <!-- Desktop identity context bar -->
       <div
         class="sticky top-0 z-30 hidden min-h-[5.25rem] items-center gap-5 border-b border-[var(--ks-border)] bg-[rgba(5,10,11,.88)] px-6 backdrop-blur-xl xl:flex"
       >
         <div class="flex min-w-0 flex-1 items-center gap-4">
-          <AllianceCrest :name="activeAllianceName || activePlayer?.name || 'Kingshot'" size="md" />
+          <AllianceCrest :name="activeAllianceName || activeGovernor?.name || 'Kingshot'" size="md" />
           <div class="min-w-0">
             <p class="ks-kicker">{{ t('common.currentPlayer') }}</p>
             <div class="mt-1 flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-1">
               <strong
                 class="truncate text-xl font-[var(--ks-font-display)] font-semibold text-[var(--ks-ivory)]"
               >
-                {{ activePlayer?.name ?? user.name }}
+                {{ activeGovernor?.name ?? viewer?.name ?? '' }}
               </strong>
               <span
                 v-if="activeAllianceName"
@@ -387,14 +271,14 @@ function logout(): void {
                 >{{ activeAllianceName }}</span
               >
               <span
-                v-if="activePlayer?.alliance?.rank"
+                v-if="activeAlliance?.rank"
                 class="text-sm font-semibold text-[var(--ks-gold)]"
-                >{{ activePlayer.alliance.rank.toUpperCase() }}</span
+                >{{ activeAlliance.rank.toUpperCase() }}</span
               >
               <span
-                v-if="activePlayer?.kingdomNumber"
+                v-if="activeGovernor?.kingdom.number"
                 class="text-sm font-semibold text-[var(--ks-teal-bright)]"
-                >K{{ activePlayer.kingdomNumber }}</span
+                >K{{ activeGovernor.kingdom.number }}</span
               >
             </div>
           </div>
