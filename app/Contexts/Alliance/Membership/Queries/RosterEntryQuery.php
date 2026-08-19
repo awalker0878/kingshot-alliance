@@ -33,13 +33,13 @@ final class RosterEntryQuery
     public function all(string $allianceId): array
     {
         return array_values(
-            return AllianceRosterEntry::query()
-                ->where('alliance_id', $allianceId)
-                ->orderBy('observed_name')
-                ->get()
-                ->map(fn (AllianceRosterEntry $entry): RosterEntryReference => $this->snapshot($entry))
-                ->values()
-                ->all();,
+            AllianceRosterEntry::query()    
+            ->where('alliance_id', $allianceId)    
+            ->orderBy('observed_name')    
+            ->get()    
+            ->map(fn (AllianceRosterEntry $entry): RosterEntryReference => $this->snapshot($entry))    
+            ->values()    
+            ->all(),
         );
     }
 
@@ -47,14 +47,14 @@ final class RosterEntryQuery
     public function activeOrTracked(string $allianceId): array
     {
         return array_values(
-            return AllianceRosterEntry::query()
-                ->where('alliance_id', $allianceId)
-                ->whereIn('state', [RosterState::Active->value, RosterState::Tracked->value])
-                ->orderBy('observed_name')
-                ->get()
-                ->map(fn (AllianceRosterEntry $entry): RosterEntryReference => $this->snapshot($entry))
-                ->values()
-                ->all();,
+            AllianceRosterEntry::query()    
+            ->where('alliance_id', $allianceId)    
+            ->whereIn('state', [RosterState::Active->value, RosterState::Tracked->value])    
+            ->orderBy('observed_name')    
+            ->get()    
+            ->map(fn (AllianceRosterEntry $entry): RosterEntryReference => $this->snapshot($entry))    
+            ->values()    
+            ->all(),
         );
     }
 
@@ -104,15 +104,15 @@ final class RosterEntryQuery
     public function forPlayer(string $allianceId, string $playerId, int $limit = 2): array
     {
         return array_values(
-            return AllianceRosterEntry::query()
-                ->where('alliance_id', $allianceId)
-                ->where('player_id', $playerId)
-                ->orderBy('id')
-                ->limit(max(1, $limit))
-                ->get()
-                ->map(fn (AllianceRosterEntry $entry): RosterEntryReference => $this->snapshot($entry))
-                ->values()
-                ->all();,
+            AllianceRosterEntry::query()    
+            ->where('alliance_id', $allianceId)    
+            ->where('player_id', $playerId)    
+            ->orderBy('id')    
+            ->limit(max(1, $limit))    
+            ->get()    
+            ->map(fn (AllianceRosterEntry $entry): RosterEntryReference => $this->snapshot($entry))    
+            ->values()    
+            ->all(),
         );
     }
 
@@ -139,15 +139,15 @@ final class RosterEntryQuery
     public function activePlayerIds(string $allianceId): array
     {
         return array_values(
-            return AllianceRosterEntry::query()
-                ->where('alliance_id', $allianceId)
-                ->where('state', RosterState::Active->value)
-                ->orderBy('player_id')
-                ->pluck('player_id')
-                ->map(static fn ($id): string => (string) $id)
-                ->unique()
-                ->values()
-                ->all();,
+            AllianceRosterEntry::query()    
+            ->where('alliance_id', $allianceId)    
+            ->where('state', RosterState::Active->value)    
+            ->orderBy('player_id')    
+            ->pluck('player_id')    
+            ->map(static fn ($id): string => (string) $id)    
+            ->unique()    
+            ->values()    
+            ->all(),
         );
     }
 
@@ -155,17 +155,17 @@ final class RosterEntryQuery
     public function activeAllianceIdsForPlayerInKingdom(string $playerId, string $kingdomId): array
     {
         return array_values(
-            return AllianceRosterEntry::query()
-                ->join('alliances', 'alliances.id', '=', 'alliance_roster_entries.alliance_id')
-                ->where('alliance_roster_entries.player_id', $playerId)
-                ->where('alliance_roster_entries.state', RosterState::Active->value)
-                ->where('alliances.kingdom_id', $kingdomId)
-                ->orderBy('alliance_roster_entries.alliance_id')
-                ->pluck('alliance_roster_entries.alliance_id')
-                ->map(static fn ($id): string => (string) $id)
-                ->unique()
-                ->values()
-                ->all();,
+            AllianceRosterEntry::query()    
+            ->join('alliances', 'alliances.id', '=', 'alliance_roster_entries.alliance_id')    
+            ->where('alliance_roster_entries.player_id', $playerId)    
+            ->where('alliance_roster_entries.state', RosterState::Active->value)    
+            ->where('alliances.kingdom_id', $kingdomId)    
+            ->orderBy('alliance_roster_entries.alliance_id')    
+            ->pluck('alliance_roster_entries.alliance_id')    
+            ->map(static fn ($id): string => (string) $id)    
+            ->unique()    
+            ->values()    
+            ->all(),
         );
     }
 
@@ -173,17 +173,17 @@ final class RosterEntryQuery
     public function lockActiveAllianceIdsForPlayerInKingdom(string $playerId, string $kingdomId): array
     {
         return array_values(
-            return AllianceRosterEntry::query()
-                ->where('player_id', $playerId)
-                ->where('state', RosterState::Active->value)
-                ->whereHas('alliance', static fn ($query) => $query->where('kingdom_id', $kingdomId))
-                ->orderBy('alliance_id')
-                ->lockForUpdate()
-                ->pluck('alliance_id')
-                ->map(static fn ($id): string => (string) $id)
-                ->unique()
-                ->values()
-                ->all();,
+            AllianceRosterEntry::query()    
+            ->where('player_id', $playerId)    
+            ->where('state', RosterState::Active->value)    
+            ->whereHas('alliance', static fn ($query) => $query->where('kingdom_id', $kingdomId))    
+            ->orderBy('alliance_id')    
+            ->lockForUpdate()    
+            ->pluck('alliance_id')    
+            ->map(static fn ($id): string => (string) $id)    
+            ->unique()    
+            ->values()    
+            ->all(),
         );
     }
 
