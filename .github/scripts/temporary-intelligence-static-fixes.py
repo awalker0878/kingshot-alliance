@@ -1,15 +1,25 @@
 from pathlib import Path
+import re
 
 
 def replace(path: str, old: str, new: str, count: int | None = None) -> None:
     target = Path(path)
     text = target.read_text()
     found = text.count(old)
-    if found == 0:
+    if found > 0:
+        if count is not None and found != count:
+            raise SystemExit(f"Expected {count} occurrences in {path}, found {found}: {old[:100]!r}")
+        target.write_text(text.replace(old, new))
+        return
+
+    pattern = re.escape(old).replace(r'\ ', r'\s+').replace(r'\
+', r'\s*')
+    matches = list(re.finditer(pattern, text, flags=re.MULTILINE))
+    if not matches:
         raise SystemExit(f"Expected pattern not found in {path}: {old[:100]!r}")
-    if count is not None and found != count:
-        raise SystemExit(f"Expected {count} occurrences in {path}, found {found}: {old[:100]!r}")
-    target.write_text(text.replace(old, new))
+    if count is not None and len(matches) != count:
+        raise SystemExit(f"Expected {count} whitespace-tolerant occurrences in {path}, found {len(matches)}: {old[:100]!r}")
+    target.write_text(re.sub(pattern, lambda _: new, text, flags=re.MULTILINE))
 
 
 replace(
