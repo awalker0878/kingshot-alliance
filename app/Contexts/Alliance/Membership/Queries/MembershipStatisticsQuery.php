@@ -50,17 +50,17 @@ final class MembershipStatisticsQuery
     public function activeMemberFacts(string $allianceId): array
     {
         return array_values(
-            return AllianceMembership::query()
-                ->where('alliance_id', $allianceId)
-                ->where('status', MembershipStatus::Active->value)
-                ->orderBy('created_at')
-                ->get(['player_id', 'rank'])
-                ->map(static fn (AllianceMembership $membership): array => [
-                    'playerId' => (string) $membership->player_id,
-                    'rankObservedAtRead' => $membership->rank->value,
-                ])
-                ->values()
-                ->all();,
+            AllianceMembership::query()    
+            ->where('alliance_id', $allianceId)    
+            ->where('status', MembershipStatus::Active->value)    
+            ->orderBy('created_at')    
+            ->get(['player_id', 'rank'])    
+            ->map(static fn (AllianceMembership $membership): array => [    
+                'playerId' => (string) $membership->player_id,    
+                'rankObservedAtRead' => $membership->rank->value,    
+            ])    
+            ->values()    
+            ->all(),
         );
     }
 }
