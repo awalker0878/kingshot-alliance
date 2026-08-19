@@ -1,2 +1,0 @@
-Note: Using configuration file /home/runner/work/kingshot-alliance/kingshot-alliance/phpstan.neon.
-exit_code=0
