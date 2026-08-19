@@ -242,10 +242,7 @@ function visibilityTone(value: string): 'success' | 'warning' | 'info' {
             {{ item.summary }}
           </p>
 
-          <p
-            v-if="item.provenance"
-            class="mt-4 text-xs leading-5 text-[var(--ks-muted)]"
-          >
+          <p v-if="item.provenance" class="mt-4 text-xs leading-5 text-[var(--ks-muted)]">
             {{ t('contentExperience.source') }}:
             {{ item.provenance.sourceLabel ?? '—' }}
             <template v-if="item.provenance.reviewedAt">
