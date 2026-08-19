@@ -106,7 +106,7 @@ final readonly class EventRosterQuery
             return [
                 'id' => (string) $member->id,
                 'playerId' => (string) $member->player_id,
-                'playerName' => $player?->currentName ?? 'Unknown Player',
+                'playerName' => $player->currentName ?? 'Unknown Player',
                 'allianceId' => $member->alliance_id === null ? null : (string) $member->alliance_id,
                 'role' => $member->role,
                 'slotNumber' => $member->slot_number,
