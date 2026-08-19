@@ -21,6 +21,7 @@ export default defineConfig({
   use: {
     baseURL,
     browserName: 'chromium',
+    channel: process.env.PLAYWRIGHT_USE_SYSTEM_CHROME ? 'chrome' : undefined,
     colorScheme: 'dark',
     reducedMotion: 'reduce',
     locale: 'en-CA',
