@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\ReadModels\EventManagement\Http\Controllers;
 
 use App\Contexts\Accounts\Identity\Models\User;
-use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\GameWorld\Players\Services\PlayerContext;
 use App\Contexts\Operations\BattlePlans\Queries\EventObjectiveQuery;
 use App\Contexts\Operations\Events\Enums\EventCapability;
@@ -138,10 +138,10 @@ final class EventManagementPageController extends Controller
         return ['name' => (string) $user->name, 'email' => (string) $user->email];
     }
 
-    private function player(): Player
+    private function player(): PlayerReference
     {
         $player = $this->playerContext->playerOrNull();
-        abort_unless($player instanceof Player, 409, 'Select a Player before performing Event operations.');
+        abort_unless($player instanceof PlayerReference, 409, 'Select a Player before performing Event operations.');
 
         return $player;
     }
