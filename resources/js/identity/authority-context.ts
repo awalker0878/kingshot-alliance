@@ -1,5 +1,5 @@
 import { activeContextKey } from '@/identity/context-isolation';
-import { EMPTY_PLAYER_CONTEXT, type SharedPlayerContext } from '@/types/player-context';
+import { EMPTY_GAME_CONTEXT, type SharedGameContext } from '@/types/game-context';
 
 export const AUTHORITY_CONTEXT_HEADER = 'X-Game-Context-Version';
 export const AUTHORITY_CONTEXT_ERROR_HEADER = 'X-Game-Context-Error';
@@ -9,9 +9,9 @@ let currentVersion: string | null = null;
 let currentContextKey: string | null = null;
 
 export function updateAuthorityContextFromPageProps(props: Record<string, unknown>): void {
-  const context = (props.playerContext as SharedPlayerContext | undefined) ?? EMPTY_PLAYER_CONTEXT;
+  const context = (props.gameContext as SharedGameContext | undefined) ?? EMPTY_GAME_CONTEXT;
 
-  currentVersion = context.authorityContextVersion;
+  currentVersion = context.active?.authorityVersion ?? null;
   currentContextKey = activeContextKey(context);
 }
 
