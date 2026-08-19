@@ -223,7 +223,16 @@ function rowLabel(row: PreviewRow): string {
                   #{{ row.row }} · {{ row.data.game_player_id ?? '—' }}
                 </p>
               </div>
-              <span class="ks-status" :data-tone="row.outcome === 'rejected' ? 'danger' : row.outcome === 'ambiguous' ? 'warning' : 'success'">
+              <span
+                class="ks-status"
+                :data-tone="
+                  row.outcome === 'rejected'
+                    ? 'danger'
+                    : row.outcome === 'ambiguous'
+                      ? 'warning'
+                      : 'success'
+                "
+              >
                 {{ row.outcome }}
               </span>
             </div>
@@ -259,7 +268,11 @@ function rowLabel(row: PreviewRow): string {
           <button
             type="button"
             class="ks-command-button"
-            :disabled="commitForm.processing || unresolvedAmbiguous > 0 || importRecord.status === 'committed'"
+            :disabled="
+              commitForm.processing ||
+              unresolvedAmbiguous > 0 ||
+              importRecord.status === 'committed'
+            "
             @click="commitImport"
           >
             {{ t('rosterImport.commit') }}
