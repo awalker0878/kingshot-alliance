@@ -6,7 +6,18 @@ namespace App\Contexts\Platform\DataGovernance\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property string $id
+ * @property string $subject_type
+ * @property string $subject_id
+ * @property string $reason
+ * @property int $placed_by_user_id
+ * @property Carbon $placed_at
+ * @property int|null $released_by_user_id
+ * @property Carbon|null $released_at
+ */
 final class LegalHold extends Model
 {
     use HasUlids;
