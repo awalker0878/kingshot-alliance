@@ -7,8 +7,8 @@ namespace App\ReadModels\EventCalendar\Queries;
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Communications\Delivery\Enums\DeliveryStatus;
 use App\Contexts\Communications\Delivery\Models\NotificationDelivery;
-use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\GameWorld\Players\Services\PlayerContext;
+use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Operations\Events\Enums\EventScope;
 use App\Contexts\Operations\Events\Models\Event;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
@@ -30,7 +30,7 @@ final readonly class EventReminderInboxQuery
     public function for(User $user, int $limit = 20): array
     {
         $player = $this->playerContext->playerOrNull();
-        if (! $player instanceof PlayerReference || $player->userId !== (int) $user->id) {
+        if (! ($player instanceof PlayerReference) || $player->userId !== (int) $user->id) {
             return [];
         }
 
