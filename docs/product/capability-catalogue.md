@@ -8,6 +8,7 @@ This is the user/product view of implemented capability groups. Architectural ow
 | --- | --- | --- |
 | Account security | Register, authenticate, verify email, manage profile/password/MFA/recovery. | Accounts |
 | Player context | Own/claim Players and operate as one active game persona at a time. | GameWorld/Players; workflows coordinate cross-context effects |
+| Gift Codes | Share sourced codes, prepare official redemption for one or all Governors, and track per-Governor outcomes. | GameWorld/GiftCodes |
 | Alliance management | Manage Alliance core/settings and tenant lifecycle. | Alliance |
 | Membership and leadership | Membership, invitations, R1–R5 leadership and specialist roles. | Alliance |
 | Recruitment | Intake/review/convert recruitment candidates through controlled membership handoff. | Alliance |
