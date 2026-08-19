@@ -124,4 +124,4 @@ jobs:
         run: npx vue-tsc --noEmit
 
       - name: Frontend production assets
-        run: npm run build:assets
+        run: npm run build
