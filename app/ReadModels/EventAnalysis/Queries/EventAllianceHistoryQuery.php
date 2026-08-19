@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\ReadModels\EventAnalysis\Queries;
 
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\Alliance\Lifecycle\ValueObjects\AllianceReference;
+use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Operations\Access\Enums\OperationsPermission;
 use App\Contexts\Operations\Events\Enums\EventScope;
 use App\Contexts\Operations\Events\Services\EventAuthorization;
@@ -22,15 +22,15 @@ final readonly class EventAllianceHistoryQuery
      * @param  array{event_type_slug?:string|null,from?:DateTimeInterface|null,until?:DateTimeInterface|null,limit?:int|null}  $filters
      * @return list<array<string,mixed>>
      */
-    public function forAlliance(Player $actor, Alliance $alliance, array $filters = []): array
+    public function forAlliance(PlayerReference $actor, AllianceReference $alliance, array $filters = []): array
     {
         $this->authorization->authorize(
-            $actor,
+            $actor->playerId,
             EventScope::Alliance,
-            $alliance,
+            $alliance->allianceId,
             OperationsPermission::EventAllianceView,
         );
 
-        return $this->history->forTarget(EventScope::Alliance, (string) $alliance->id, $filters);
+        return $this->history->forTarget(EventScope::Alliance, $alliance->allianceId, $filters);
     }
 }
