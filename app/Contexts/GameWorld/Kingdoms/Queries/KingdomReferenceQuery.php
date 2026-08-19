@@ -33,7 +33,10 @@ final class KingdomReferenceQuery
         return $kingdom instanceof Kingdom ? $this->snapshot($kingdom) : null;
     }
 
-    /** @param list<string> $kingdomIds @return array<string,KingdomReference> */
+    /**
+     * @param  array<string>  $kingdomIds
+     * @return array<string, KingdomReference>
+     */
     public function byIds(array $kingdomIds): array
     {
         $ids = array_values(array_unique(array_filter(array_map('strval', $kingdomIds))));
