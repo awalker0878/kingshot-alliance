@@ -17,11 +17,11 @@ Complete the post-FRONTEND-V3 convergence onto one server-authoritative Governor
 
 | Phase | Scope | Status |
 |---|---|---|
-| CV4-P0 | Restore authoritative green baseline and phase ledger | IN PROGRESS |
-| CV4-P1 | Replace `playerContext` with canonical `gameContext` | NOT STARTED |
-| CV4-P2 | Remove per-page shell viewer/context duplication | NOT STARTED |
-| CV4-P3 | Thin frontend game-context API | NOT STARTED |
-| CV4-P4 | One route/navigation context registry | NOT STARTED |
+| CV4-P0 | Restore authoritative green baseline and phase ledger | VALIDATING |
+| CV4-P1 | Replace `playerContext` with canonical `gameContext` | VALIDATING |
+| CV4-P2 | Remove per-page shell viewer/context duplication | VALIDATING |
+| CV4-P3 | Thin frontend game-context API | VALIDATING |
+| CV4-P4 | One route/navigation context registry | VALIDATING |
 | CV4-P5 | Command Overview read model cutover | NOT STARTED |
 | CV4-P6 | Context-aware form runtime | NOT STARTED |
 | CV4-P7 | Event Command decomposition | NOT STARTED |
@@ -33,4 +33,25 @@ Complete the post-FRONTEND-V3 convergence onto one server-authoritative Governor
 
 ## Validation ledger
 
-This section is updated with concrete command/workflow evidence as phases complete.
+### CV4-P0
+
+- Repository-wide Pint baseline repaired under the repository's existing Pint configuration.
+- One-shot repair workflow removed itself after committing the formatted baseline.
+
+### CV4-P1 through CV4-P4
+
+Implemented as one hard cutover because the contracts are mutually dependent:
+
+- `playerContext` / `SharedPlayerContext` replaced by canonical `gameContext` / `SharedGameContext`.
+- Shared authenticated `viewer` added for shell identity; `AppLayout` no longer accepts User/Alliance context props.
+- `useGameContext()` and focused read helpers are the frontend context API; no parallel domain store was introduced.
+- Inactive Governors carry identity/display context only; effective Alliance/Kingdom capabilities live under the active context.
+- Context fingerprints now include Alliance and Kingdom authority inputs.
+- `player:` browser storage scope replaced by `governor:` scope.
+- `PlayerSwitchRouteResolver` removed.
+- One `GameRouteRegistry` now produces permitted navigation and post-switch safe-parent routing.
+- `AppLayout` renders only server-permitted rooms; client-side `allianceScoped` / `requiredCapability` policy tables were removed.
+- All page-level `AppLayout` compatibility props were removed.
+- Temporary migration scripts/workflows removed in the same cutover.
+
+Status remains VALIDATING until current PR workflows and architecture/source gates pass on the post-cutover tree.
