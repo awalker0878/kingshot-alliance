@@ -65,13 +65,11 @@ final class AllianceAuthorityFactsQuery
 
     private function snapshot(AllianceMembership $membership, string $kingdomId): AllianceAuthorityFacts
     {
-        $roleKeys = array_values(
-            $membership->roles()
-                ->orderBy('roles.key')
-                ->pluck('roles.key')
-                ->map(static fn ($key): string => (string) $key)
-                ->all(),
-        );
+        $roleKeys = array_values($membership->roles()
+            ->orderBy('roles.key')
+            ->pluck('roles.key')
+            ->map(static fn ($key): string => (string) $key)
+            ->all());
 
         return new AllianceAuthorityFacts(
             playerId: (string) $membership->player_id,
