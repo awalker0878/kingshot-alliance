@@ -220,7 +220,7 @@ final readonly class KingPerkScheduleQuery
     }
 
     /**
-     * @param array<string, PlayerReference> $players
+     * @param  array<string, PlayerReference>  $players
      *
      * @phpstan-return array<string, mixed>
      */
