@@ -23,6 +23,7 @@ final readonly class EventReminderInboxQuery
 {
     public function __construct(
         private PlayerContext $playerContext,
+        private ActivePlayerEventVisibilityResolver $visibility,
     ) {}
 
     /** @return list<array<string, mixed>> */
@@ -33,11 +34,7 @@ final readonly class EventReminderInboxQuery
             return [];
         }
 
-        $targets = [
-            'alliance' => [],
-            'player' => [$player->playerId],
-            'kingdom' => [$player->kingdomId],
-        ];
+        $targets = $this->visibility->targetIds($player);
         $limit = max(1, min(100, $limit));
         $items = array_merge(
             $this->eventReminders($user, $player, $targets, $limit),
