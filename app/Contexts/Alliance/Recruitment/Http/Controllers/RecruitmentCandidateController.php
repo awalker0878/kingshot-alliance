@@ -132,7 +132,7 @@ final class RecruitmentCandidateController extends Controller
             $noteData[] = [
                 'id' => (string) $note->id,
                 'body' => (string) $note->body,
-                'author' => $author?->currentName ?? '—',
+                'author' => $author->currentName ?? '—',
                 'createdAt' => $note->created_at?->toIso8601String(),
             ];
         }
