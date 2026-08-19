@@ -14,6 +14,11 @@ use Illuminate\Support\Carbon;
 /**
  * @property ContentType $type
  * @property ContentVisibility $visibility
+ * @property bool $notify_members
+ * @property string|null $source_label
+ * @property string|null $source_url
+ * @property string|null $game_version
+ * @property Carbon|null $reviewed_at
  * @property Carbon|null $created_at
  */
 final class ContentRevision extends Model
@@ -38,6 +43,11 @@ final class ContentRevision extends Model
         'body',
         'locale',
         'sort_order',
+        'notify_members',
+        'source_label',
+        'source_url',
+        'game_version',
+        'reviewed_at',
         'created_by_player_id',
         'created_at',
     ];
@@ -47,6 +57,8 @@ final class ContentRevision extends Model
         return [
             'type' => ContentType::class,
             'visibility' => ContentVisibility::class,
+            'notify_members' => 'boolean',
+            'reviewed_at' => 'date',
             'created_at' => 'datetime',
         ];
     }

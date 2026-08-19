@@ -13,6 +13,7 @@ use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 final readonly class PublishContentItem
 {
@@ -34,6 +35,12 @@ final readonly class PublishContentItem
                 ->where('alliance_id', $context->alliance->id)
                 ->lockForUpdate()
                 ->firstOrFail();
+
+            if (! $item->provenanceIsComplete()) {
+                throw ValidationException::withMessages([
+                    'provenance' => 'Knowledge content requires a source label and review date before publication.',
+                ]);
+            }
 
             $isScheduled = $scheduledFor instanceof Carbon && $scheduledFor->isFuture();
             $status = $isScheduled ? ContentStatus::Scheduled : ContentStatus::Published;

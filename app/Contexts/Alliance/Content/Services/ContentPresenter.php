@@ -27,6 +27,7 @@ final class ContentPresenter
             'sortOrder' => (int) $item->sort_order,
             'revisionNumber' => (int) $item->current_revision_number,
             'notifyMembers' => (bool) $item->notify_members,
+            'provenance' => $this->provenance($item),
             'scheduledFor' => $item->scheduled_for?->toIso8601String(),
             'publishedAt' => $item->published_at?->toIso8601String(),
             'broadcastedAt' => $item->broadcasted_at?->toIso8601String(),
@@ -44,5 +45,32 @@ final class ContentPresenter
         }
 
         return $result;
+    }
+
+    /**
+     * @return array{
+     *   sourceLabel: string|null,
+     *   sourceUrl: string|null,
+     *   gameVersion: string|null,
+     *   reviewedAt: string|null
+     * }|null
+     */
+    private function provenance(ContentItem $item): ?array
+    {
+        if (
+            $item->source_label === null
+            && $item->source_url === null
+            && $item->game_version === null
+            && $item->reviewed_at === null
+        ) {
+            return null;
+        }
+
+        return [
+            'sourceLabel' => $item->source_label,
+            'sourceUrl' => $item->source_url,
+            'gameVersion' => $item->game_version,
+            'reviewedAt' => $item->reviewed_at?->toDateString(),
+        ];
     }
 }

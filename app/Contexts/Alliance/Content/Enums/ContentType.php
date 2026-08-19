@@ -12,6 +12,14 @@ enum ContentType: string
     case EventInstruction = 'event_instruction';
     case ReferencePage = 'reference_page';
 
+    public function requiresProvenance(): bool
+    {
+        return match ($this) {
+            self::Guide, self::EventInstruction, self::ReferencePage => true,
+            self::Announcement, self::Rule => false,
+        };
+    }
+
     public function label(): string
     {
         return match ($this) {

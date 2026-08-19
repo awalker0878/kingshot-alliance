@@ -146,6 +146,7 @@ final class ContentManagementController extends Controller
             'contentTypes' => array_map(static fn (ContentType $type): array => [
                 'value' => $type->value,
                 'label' => $type->label(),
+                'requiresProvenance' => $type->requiresProvenance(),
             ], ContentType::cases()),
             'visibilityOptions' => array_map(static fn (ContentVisibility $visibility): array => [
                 'value' => $visibility->value,
@@ -382,7 +383,11 @@ final class ContentManagementController extends Controller
      *   body: string,
      *   locale: string,
      *   sort_order: int,
-     *   notify_members: bool
+     *   notify_members: bool,
+     *   source_label: string|null,
+     *   source_url: string|null,
+     *   game_version: string|null,
+     *   reviewed_at: string|null
      * }
      */
     private function validateContent(Request $request, string $allianceId, ?ContentItem $existing = null): array
@@ -403,6 +408,11 @@ final class ContentManagementController extends Controller
             'body' => ['required', 'string', 'max:50000'],
             'locale' => ['required', 'string', 'max:16', 'regex:/^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/'],
             'sort_order' => ['nullable', 'integer', 'min:0', 'max:100000'],
+            'notify_members' => ['nullable', 'boolean'],
+            'source_label' => ['nullable', 'string', 'max:180'],
+            'source_url' => ['nullable', 'string', 'max:2048', 'url:https'],
+            'game_version' => ['nullable', 'string', 'max:64'],
+            'reviewed_at' => ['nullable', 'date_format:Y-m-d', 'before_or_equal:today'],
         ]);
 
         return [
@@ -416,6 +426,10 @@ final class ContentManagementController extends Controller
             'locale' => (string) $validated['locale'],
             'sort_order' => (int) ($validated['sort_order'] ?? 0),
             'notify_members' => (bool) ($validated['notify_members'] ?? false),
+            'source_label' => isset($validated['source_label']) ? (string) $validated['source_label'] : null,
+            'source_url' => isset($validated['source_url']) ? (string) $validated['source_url'] : null,
+            'game_version' => isset($validated['game_version']) ? (string) $validated['game_version'] : null,
+            'reviewed_at' => isset($validated['reviewed_at']) ? (string) $validated['reviewed_at'] : null,
         ];
     }
 }

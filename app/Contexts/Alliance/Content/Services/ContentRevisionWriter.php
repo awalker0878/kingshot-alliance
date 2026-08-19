@@ -24,6 +24,11 @@ final class ContentRevisionWriter
             'body' => $item->body,
             'locale' => $item->locale,
             'sort_order' => $item->sort_order,
+            'notify_members' => $item->notify_members,
+            'source_label' => $item->source_label,
+            'source_url' => $item->source_url,
+            'game_version' => $item->game_version,
+            'reviewed_at' => $item->reviewed_at,
             'created_by_player_id' => $actor->playerId,
             'created_at' => now(),
         ]);

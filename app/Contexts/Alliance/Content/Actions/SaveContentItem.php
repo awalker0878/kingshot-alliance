@@ -16,8 +16,10 @@ use App\Contexts\Alliance\Content\Services\ContentRevisionWriter;
 use App\Contexts\Alliance\Content\Services\ContentSanitizer;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
+use Illuminate\Support\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 
 final readonly class SaveContentItem
 {
@@ -41,7 +43,11 @@ final readonly class SaveContentItem
      *   body: string,
      *   locale: string,
      *   sort_order?: int,
-     *   notify_members?: bool
+     *   notify_members?: bool,
+     *   source_label?: string|null,
+     *   source_url?: string|null,
+     *   game_version?: string|null,
+     *   reviewed_at?: string|null
      * } $attributes
      */
     public function handle(string $allianceId, string $actorPlayerId, array $attributes, ?string $contentItemId = null): string
@@ -51,6 +57,7 @@ final readonly class SaveContentItem
             $this->authority->authorizeContext($context, AlliancePermission::ContentManage);
             $categoryId = $attributes['category_id'] ?? null;
             $this->assertCategory((string) $context->alliance->id, $categoryId);
+            $provenance = $this->normalizeProvenance($attributes);
 
             $item = $contentItemId === null
                 ? new ContentItem([
@@ -76,6 +83,10 @@ final readonly class SaveContentItem
                 'title' => $this->sanitizer->line($attributes['title']) ?? 'Untitled',
                 'slug' => strtolower(trim($attributes['slug'])),
                 'summary' => $this->sanitizer->line($attributes['summary'] ?? null),
+                'source_label' => $provenance['source_label'],
+                'source_url' => $provenance['source_url'],
+                'game_version' => $provenance['game_version'],
+                'reviewed_at' => $provenance['reviewed_at'],
                 'body' => $this->sanitizer->body($attributes['body']),
                 'locale' => strtolower(trim($attributes['locale'])),
                 'sort_order' => max(0, (int) ($attributes['sort_order'] ?? 0)),
@@ -107,6 +118,78 @@ final readonly class SaveContentItem
 
             return (string) $item->id;
         });
+    }
+
+    /**
+     * @param array{
+     *   type: ContentType,
+     *   source_label?: string|null,
+     *   source_url?: string|null,
+     *   game_version?: string|null,
+     *   reviewed_at?: string|null
+     * } $attributes
+     * @return array{
+     *   source_label: string|null,
+     *   source_url: string|null,
+     *   game_version: string|null,
+     *   reviewed_at: CarbonImmutable|null
+     * }
+     */
+    private function normalizeProvenance(array $attributes): array
+    {
+        $sourceLabel = $this->sanitizer->line($attributes['source_label'] ?? null);
+        $sourceUrl = trim((string) ($attributes['source_url'] ?? '')) ?: null;
+        $gameVersion = $this->sanitizer->line($attributes['game_version'] ?? null);
+        $reviewedAtValue = trim((string) ($attributes['reviewed_at'] ?? ''));
+        $reviewedAt = null;
+        $errors = [];
+
+        if ($sourceUrl !== null && (
+            filter_var($sourceUrl, FILTER_VALIDATE_URL) === false
+            || strtolower((string) parse_url($sourceUrl, PHP_URL_SCHEME)) !== 'https'
+            || parse_url($sourceUrl, PHP_URL_HOST) === null
+            || parse_url($sourceUrl, PHP_URL_USER) !== null
+        )) {
+            $errors['source_url'] = 'The source URL must be a credential-free HTTPS URL.';
+        }
+
+        if ($reviewedAtValue !== '') {
+            try {
+                $reviewedAt = CarbonImmutable::createFromFormat('!Y-m-d', $reviewedAtValue, 'UTC');
+            } catch (Throwable) {
+                $reviewedAt = null;
+            }
+
+            if (
+                ! $reviewedAt instanceof CarbonImmutable
+                || $reviewedAt->format('Y-m-d') !== $reviewedAtValue
+                || $reviewedAt->isAfter(CarbonImmutable::today('UTC'))
+            ) {
+                $errors['reviewed_at'] = 'The review date must be a valid date that is not in the future.';
+                $reviewedAt = null;
+            }
+        }
+
+        if ($attributes['type']->requiresProvenance()) {
+            if ($sourceLabel === null) {
+                $errors['source_label'] = 'A source label is required for knowledge content.';
+            }
+
+            if ($reviewedAt === null) {
+                $errors['reviewed_at'] ??= 'A review date is required for knowledge content.';
+            }
+        }
+
+        if ($errors !== []) {
+            throw ValidationException::withMessages($errors);
+        }
+
+        return [
+            'source_label' => $sourceLabel,
+            'source_url' => $sourceUrl,
+            'game_version' => $gameVersion,
+            'reviewed_at' => $reviewedAt,
+        ];
     }
 
     private function assertCategory(string $allianceId, ?string $categoryId): void

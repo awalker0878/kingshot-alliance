@@ -19,6 +19,10 @@ use Illuminate\Support\Carbon;
  * @property ContentVisibility $visibility
  * @property ContentStatus $status
  * @property bool $notify_members
+ * @property string|null $source_label
+ * @property string|null $source_url
+ * @property string|null $game_version
+ * @property Carbon|null $reviewed_at
  * @property Carbon|null $scheduled_for
  * @property Carbon|null $published_at
  * @property Carbon|null $broadcasted_at
@@ -46,6 +50,10 @@ final class ContentItem extends Model
         'sort_order',
         'current_revision_number',
         'notify_members',
+        'source_label',
+        'source_url',
+        'game_version',
+        'reviewed_at',
         'scheduled_for',
         'published_at',
         'broadcasted_at',
@@ -61,11 +69,23 @@ final class ContentItem extends Model
             'visibility' => ContentVisibility::class,
             'status' => ContentStatus::class,
             'notify_members' => 'boolean',
+            'reviewed_at' => 'date',
             'scheduled_for' => 'datetime',
             'published_at' => 'datetime',
             'broadcasted_at' => 'datetime',
             'archived_at' => 'datetime',
         ];
+    }
+
+    public function provenanceIsComplete(): bool
+    {
+        if (! $this->type->requiresProvenance()) {
+            return true;
+        }
+
+        return is_string($this->source_label)
+            && trim($this->source_label) !== ''
+            && $this->reviewed_at instanceof Carbon;
     }
 
     /** @return BelongsTo<Alliance, $this> */
