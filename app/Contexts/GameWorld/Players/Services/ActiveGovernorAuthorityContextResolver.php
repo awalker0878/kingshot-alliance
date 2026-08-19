@@ -37,9 +37,11 @@ final readonly class ActiveGovernorAuthorityContextResolver
         $allianceCapabilities = array_values(array_unique($alliance['capabilities'] ?? []));
         sort($allianceCapabilities);
 
-        $kingdomCapabilities = $this->kingdomAuthority
-            ->findCurrent($governor->playerId, $governor->kingdomId)
-            ->permissionKeysObservedAtRead;
+        $kingdomAuthority = $this->kingdomAuthority->findCurrent(
+            $governor->playerId,
+            $governor->kingdomId,
+        );
+        $kingdomCapabilities = $kingdomAuthority?->permissionKeysObservedAtRead ?? [];
         $kingdomCapabilities = array_values(array_unique($kingdomCapabilities));
         sort($kingdomCapabilities);
 
