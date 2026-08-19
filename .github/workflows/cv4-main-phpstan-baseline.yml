@@ -1,0 +1,75 @@
+name: CV4 Main PHPStan Baseline
+
+on:
+  push:
+    branches:
+      - agent/context-v4-convergence
+    paths:
+      - .github/workflows/cv4-main-phpstan-baseline.yml
+
+permissions:
+  contents: write
+
+jobs:
+  baseline:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out convergence branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: agent/context-v4-convergence
+          fetch-depth: 0
+
+      - name: Configure PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.5'
+          extensions: dom, intl, mbstring, pcntl, pdo_pgsql, posix, redis, simplexml, xml, xmlwriter, zip
+          coverage: none
+          tools: composer:v2
+
+      - name: Install locked dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Generate baseline from main only
+        shell: bash
+        run: |
+          git worktree add /tmp/kingshot-main origin/main
+          ln -s "$GITHUB_WORKSPACE/vendor" /tmp/kingshot-main/vendor
+          cd /tmp/kingshot-main
+          "$GITHUB_WORKSPACE/vendor/bin/phpstan" analyse --no-progress --generate-baseline=/tmp/phpstan-main-baseline.neon
+          cd "$GITHUB_WORKSPACE"
+          cp /tmp/phpstan-main-baseline.neon phpstan-baseline.neon
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('phpstan.neon')
+          text = p.read_text()
+          marker = 'includes:\n'
+          entry = '    - phpstan-baseline.neon\n'
+          if entry not in text:
+              text = text.replace(marker, marker + entry, 1)
+          p.write_text(text)
+          PY
+
+      - name: Validate CV4 against main baseline
+        shell: bash
+        run: |
+          set +e
+          vendor/bin/phpstan analyse --no-progress --error-format=raw > docs/architecture/rewrite-status/PHPSTAN-CV4-REMAINING.txt 2>&1
+          code=$?
+          echo "exit_code=$code" >> docs/architecture/rewrite-status/PHPSTAN-CV4-REMAINING.txt
+          exit 0
+
+      - name: Remove obsolete diagnostics and one-shot workflow
+        run: |
+          rm -f docs/architecture/rewrite-status/PHPSTAN-CV4-DIAGNOSTIC.txt
+          rm -f .github/workflows/cv4-phpstan-diagnostic.yml
+          rm .github/workflows/cv4-main-phpstan-baseline.yml
+
+      - name: Commit main-derived baseline and remaining CV4 diagnostics
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Baseline main PHPStan debt for CV4 validation"
+          git push origin HEAD:agent/context-v4-convergence
