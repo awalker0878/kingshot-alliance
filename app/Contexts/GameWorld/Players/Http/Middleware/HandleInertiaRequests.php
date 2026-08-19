@@ -6,10 +6,9 @@ namespace App\Contexts\GameWorld\Players\Http\Middleware;
 
 use App\Contexts\Accounts\Identity\Contracts\AuthenticatedAccount;
 use App\Contexts\Alliance\Membership\Queries\PlayerIdentityContextQuery;
-use App\Contexts\GameWorld\Governance\Queries\KingdomAuthorityFactsQuery;
 use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
+use App\Contexts\GameWorld\Players\Services\ActiveGovernorAuthorityContextResolver;
 use App\Contexts\GameWorld\Players\Services\GameRouteRegistry;
-use App\Contexts\GameWorld\Players\Services\PlayerAuthorityContextVersion;
 use App\Contexts\GameWorld\Players\Services\PlayerContext;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use Illuminate\Http\Request;
@@ -33,8 +32,7 @@ final class HandleInertiaRequests extends Middleware
         private readonly PlayerContext $playerContext,
         private readonly PlayerReferenceQuery $players,
         private readonly PlayerIdentityContextQuery $identityContext,
-        private readonly KingdomAuthorityFactsQuery $kingdomAuthority,
-        private readonly PlayerAuthorityContextVersion $authorityVersions,
+        private readonly ActiveGovernorAuthorityContextResolver $authorityContext,
         private readonly GameRouteRegistry $routes,
     ) {}
 
@@ -87,16 +85,6 @@ final class HandleInertiaRequests extends Middleware
             static fn (PlayerReference $player): string => $player->playerId,
             $players,
         ));
-        $activePlayerId = $this->playerContext->playerOrNull()?->playerId;
-        $activePlayer = null;
-
-        foreach ($players as $player) {
-            if ($player->playerId === $activePlayerId) {
-                $activePlayer = $player;
-                break;
-            }
-        }
-
         $governors = array_map(
             fn (PlayerReference $player): array => $this->governorPayload(
                 $player,
@@ -104,8 +92,9 @@ final class HandleInertiaRequests extends Middleware
             ),
             $players,
         );
+        $activePlayerId = $this->playerContext->playerOrNull()?->playerId;
 
-        if (! $activePlayer instanceof PlayerReference) {
+        if ($activePlayerId === null) {
             return [
                 'version' => 1,
                 'governors' => $governors,
@@ -114,47 +103,24 @@ final class HandleInertiaRequests extends Middleware
             ];
         }
 
-        $activeAlliance = $allianceContexts[$activePlayer->playerId] ?? null;
-        $kingdomPermissions = $this->kingdomAuthority
-            ->findCurrent($activePlayer->playerId, $activePlayer->kingdomId)
-            ?->permissionKeysObservedAtRead ?? [];
-        sort($kingdomPermissions);
-
-        $authorityVersion = $this->authorityVersions->issue(
-            $activePlayer,
-            $activeAlliance,
-            $kingdomPermissions,
-        );
-        $routeAlliance = $activeAlliance === null ? null : [
-            'capabilities' => $activeAlliance['capabilities'],
-        ];
+        // Resolve the active authority snapshot through the same canonical service
+        // used by stale-write protection. This avoids two subtly different notions
+        // of the Governor context reaching the browser and mutation precondition.
+        $active = $this->authorityContext->resolveOwned((int) $user->id, $activePlayerId);
+        if ($active === null) {
+            return [
+                'version' => 1,
+                'governors' => $governors,
+                'active' => null,
+                'navigation' => $this->routes->navigation(false, null),
+            ];
+        }
 
         return [
             'version' => 1,
             'governors' => $governors,
-            'active' => [
-                'governor' => $this->governorPayload($activePlayer, $activeAlliance),
-                'kingdom' => [
-                    'id' => $activePlayer->kingdomId,
-                    'number' => $activePlayer->kingdomNumber,
-                    'capabilities' => $kingdomPermissions,
-                ],
-                'alliance' => $activeAlliance === null ? null : [
-                    'id' => $activeAlliance['allianceId'],
-                    'membershipId' => $activeAlliance['membershipId'],
-                    'name' => $activeAlliance['allianceName'],
-                    'rank' => $activeAlliance['rank'],
-                    'roles' => $activeAlliance['roles'],
-                    'capabilities' => $activeAlliance['capabilities'],
-                ],
-                'fingerprint' => $this->fingerprint(
-                    $activePlayer,
-                    $activeAlliance,
-                    $kingdomPermissions,
-                ),
-                'authorityVersion' => $authorityVersion,
-            ],
-            'navigation' => $this->routes->navigation(true, $routeAlliance),
+            'active' => $active->activePayload(),
+            'navigation' => $this->routes->navigation(true, $active->routeAllianceContext()),
         ];
     }
 
@@ -179,42 +145,6 @@ final class HandleInertiaRequests extends Middleware
                 'rank' => $membership['rank'],
                 'roles' => $membership['roles'],
             ],
-        ];
-    }
-
-    /**
-     * @param  AllianceIdentityContext|null  $membership
-     * @param  list<string>  $kingdomPermissions
-     * @return array{version:1,key:string,playerId:string,kingdomId:string,kingdomNumber:?int,allianceId:?string,membershipId:?string}
-     */
-    private function fingerprint(PlayerReference $player, ?array $membership, array $kingdomPermissions): array
-    {
-        $roleKeys = array_map(
-            static fn (array $role): string => $role['key'],
-            $membership['roles'] ?? [],
-        );
-        sort($roleKeys);
-
-        $scope = [
-            'playerId' => $player->playerId,
-            'kingdomId' => $player->kingdomId,
-            'kingdomNumber' => $player->kingdomNumber,
-            'allianceId' => $membership['allianceId'] ?? null,
-            'membershipId' => $membership['membershipId'] ?? null,
-            'rank' => $membership['rank'] ?? null,
-            'roleKeys' => $roleKeys,
-            'allianceCapabilities' => $membership['capabilities'] ?? [],
-            'kingdomCapabilities' => $kingdomPermissions,
-        ];
-
-        return [
-            'version' => 1,
-            'key' => 'ctx:v1:'.hash('sha256', json_encode($scope, JSON_THROW_ON_ERROR)),
-            'playerId' => $player->playerId,
-            'kingdomId' => $player->kingdomId,
-            'kingdomNumber' => $player->kingdomNumber,
-            'allianceId' => $membership['allianceId'] ?? null,
-            'membershipId' => $membership['membershipId'] ?? null,
         ];
     }
 }
