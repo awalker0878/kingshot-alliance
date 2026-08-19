@@ -4,18 +4,17 @@ on:
   pull_request:
     paths:
       - 'app/Contexts/Intelligence/**'
+      - 'app/ReadModels/ContributionHistory/**'
+      - 'app/ReadModels/EventAnalysis/**'
       - 'app/ReadModels/EventHistory/**'
       - 'app/ReadModels/KingdomIntelligence/**'
       - 'app/ReadModels/SharedKingdomIntelligence/**'
       - 'database/migrations/**event**'
-      - 'resources/js/pages/Events/**'
-      - 'resources/js/pages/Contributions/**'
+      - 'resources/js/pages/Operations/Events/Chronicle.vue'
+      - 'resources/js/pages/Intelligence/GloryLedger/History.vue'
       - 'routes/event-history.php'
       - 'routes/contributions.php'
-      - 'tests/v2/Contexts/Intelligence/**'
-      - 'tests/v2/ReadModels/EventHistory/**'
-      - 'tests/v2/ReadModels/KingdomIntelligence/**'
-      - 'tests/v2/ReadModels/SharedKingdomIntelligence/**'
+      - 'tests/v3/**'
       - '.github/workflows/intelligence-verification.yml'
   workflow_dispatch:
 
@@ -79,43 +78,41 @@ jobs:
         run: |
           set -euo pipefail
           test ! -d app/Domain/Contributions
-          matches=$(grep -R -n --include='*.php' 'App\\Domain\\Contributions' app routes bootstrap config database tests/v2/Contexts/Intelligence 2>/dev/null || true)
+          matches=$(grep -R -n --include='*.php' 'App\\Domain\\Contributions' app routes bootstrap config database 2>/dev/null || true)
           if [ -n "$matches" ]; then
             echo "$matches"
             exit 1
           fi
 
-      - name: Pint Intelligence V2
+      - name: Pint Intelligence V3
         run: >-
           vendor/bin/pint --test
           app/Contexts/Intelligence
+          app/ReadModels/ContributionHistory
+          app/ReadModels/EventAnalysis
           app/ReadModels/EventHistory
           app/ReadModels/KingdomIntelligence
           app/ReadModels/SharedKingdomIntelligence
           routes/event-history.php
           routes/contributions.php
-          tests/v2/Contexts/Intelligence
-          tests/v2/ReadModels/EventHistory
-          tests/v2/ReadModels/KingdomIntelligence
-          tests/v2/ReadModels/SharedKingdomIntelligence
 
-      - name: Larastan Intelligence V2
+      - name: Larastan Intelligence V3
         run: >-
           vendor/bin/phpstan analyse --memory-limit=1G
           app/Contexts/Intelligence
+          app/ReadModels/ContributionHistory
+          app/ReadModels/EventAnalysis
           app/ReadModels/EventHistory
           app/ReadModels/KingdomIntelligence
           app/ReadModels/SharedKingdomIntelligence
           routes/event-history.php
           routes/contributions.php
 
-      - name: Intelligence V2 behavior contracts
+      - name: Intelligence V3 behavior contracts
         run: >-
-          php artisan test
-          tests/v2/Contexts/Intelligence
-          tests/v2/ReadModels/EventHistory
-          tests/v2/ReadModels/KingdomIntelligence
-          tests/v2/ReadModels/SharedKingdomIntelligence
+          vendor/bin/phpunit --configuration phpunit.xml
+          --testsuite Laravel
+          --testsuffix V3Test.php
 
   frontend:
     name: Intelligence history frontend contracts
@@ -136,10 +133,10 @@ jobs:
         run: npm ci --no-audit --no-fund
 
       - name: Intelligence history frontend lint
-        run: npx eslint resources/js/pages/Events/OrganizationHistory.vue resources/js/pages/Contributions/History.vue
+        run: npx eslint resources/js/pages/Operations/Events/Chronicle.vue resources/js/pages/Intelligence/GloryLedger/History.vue
 
       - name: Intelligence history frontend format
-        run: npx prettier --check resources/js/pages/Events/OrganizationHistory.vue resources/js/pages/Contributions/History.vue
+        run: npx prettier --check resources/js/pages/Operations/Events/Chronicle.vue resources/js/pages/Intelligence/GloryLedger/History.vue
 
       - name: Intelligence history frontend types
         shell: bash
@@ -148,8 +145,9 @@ jobs:
           {
             "extends": "./tsconfig.json",
             "include": [
-              "resources/js/pages/Events/OrganizationHistory.vue",
-              "resources/js/pages/Contributions/History.vue"
+              "resources/js/pages/Operations/Events/Chronicle.vue",
+              "resources/js/pages/Intelligence/GloryLedger/History.vue",
+              "resources/js/**/*.d.ts"
             ]
           }
           EOF
