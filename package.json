@@ -11,7 +11,7 @@
     "build": "vite build",
     "dev": "vite",
     "format": "prettier --write resources/",
-    "format:check": "prettier --write resources/js/components/navigation/NavIcon.vue resources/js/pages/Kingdom/GiftCodes/Index.vue && tar -czf /tmp/giftcodes-frontend.tgz resources/js/components/navigation/NavIcon.vue resources/js/pages/Kingdom/GiftCodes/Index.vue && printf 'FRONTEND_ARCHIVE_BASE64=' && base64 -w0 /tmp/giftcodes-frontend.tgz && printf '\\n' && exit 1",
+    "format:check": "prettier --check resources/",
     "lint": "eslint . --fix",
     "lint:check": "eslint .",
     "types:check": "vue-tsc --noEmit",
