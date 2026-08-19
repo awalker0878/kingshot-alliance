@@ -163,12 +163,10 @@ final readonly class KingPerkScheduleQuery
     /** @return array<string, mixed> */
     private function plan(KingPerkPlan $plan): array
     {
-        $playerIds = array_values(
-            $plan->appointments->pluck('assigned_player_id')
-                ->merge($plan->requests->pluck('player_id'))
-                ->map(static fn ($id): string => (string) $id)
-                ->unique()->values()->all(),
-        );
+        $playerIds = $plan->appointments->pluck('assigned_player_id')
+            ->merge($plan->requests->pluck('player_id'))
+            ->map(static fn ($id): string => (string) $id)
+            ->unique()->values()->all();
         $players = $this->players->byIds($playerIds);
 
         return [
@@ -194,6 +192,7 @@ final readonly class KingPerkScheduleQuery
 
     /**
      * @param array<string, PlayerReference> $players
+     *
      * @return array<string, mixed>
      */
     private function appointment(KingPerkAppointment $appointment, KingPerkPlan $plan, array $players): array
@@ -222,6 +221,7 @@ final readonly class KingPerkScheduleQuery
 
     /**
      * @param array<string, PlayerReference> $players
+     *
      * @return array<string, mixed>
      */
     private function request(KingPerkRequest $request, array $players): array
@@ -265,12 +265,7 @@ final readonly class KingPerkScheduleQuery
     /** @return array<string, mixed> */
     private function live(KingPerkPlan $plan): array
     {
-        $playerIds = array_values(
-            $plan->appointments->pluck('assigned_player_id')
-                ->map(static fn ($id): string => (string) $id)
-                ->unique()->values()->all(),
-        );
-        $players = $this->players->byIds($playerIds);
+        $players = $this->players->byIds($plan->appointments->pluck('assigned_player_id')->map(static fn ($id): string => (string) $id)->unique()->values()->all());
         $now = CarbonImmutable::now('UTC');
         $activeStatuses = [
             KingPerkAppointmentStatus::Scheduled->value,
