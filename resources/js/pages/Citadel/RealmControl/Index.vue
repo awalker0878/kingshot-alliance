@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
+import { useContextForm } from '@/composables/useContextForm';
 import { computed } from 'vue';
 
 import RoomBanner from '@/components/game/RoomBanner.vue';
@@ -66,10 +67,10 @@ const props = defineProps<{
 
 const { t, formatDate, formatNumber } = useLocale();
 
-const adminForm = useForm({ email: '' });
-const holdForm = useForm({ subject_type: 'alliance', subject_id: '', reason: '' });
-const lifecycleForm = useForm({ reason: '' });
-const featureForm = useForm({ feature_key: '', enabled: true });
+const adminForm = useContextForm({ email: '' });
+const holdForm = useContextForm({ subject_type: 'alliance', subject_id: '', reason: '' });
+const lifecycleForm = useContextForm({ reason: '' });
+const featureForm = useContextForm({ feature_key: '', enabled: true });
 
 const selected = computed(() =>
   props.selectedAlliance
@@ -78,8 +79,8 @@ const selected = computed(() =>
     : null,
 );
 
-const planForm = useForm({ plan_code: selected.value?.plan ?? 'standard' });
-const settingsForm = useForm({
+const planForm = useContextForm({ plan_code: selected.value?.plan ?? 'standard' });
+const settingsForm = useContextForm({
   retention_days: selected.value?.retentionDays ?? 30,
   queue_partition: selected.value?.queuePartition ?? 'standard',
   api_access_enabled: selected.value?.apiAccessEnabled ?? true,

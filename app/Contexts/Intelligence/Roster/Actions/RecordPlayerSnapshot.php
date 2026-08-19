@@ -30,8 +30,8 @@ final readonly class RecordPlayerSnapshot
     ) {}
 
     /**
-     * @param array{observed_name:string,power:string,progression_level?:string|null,observed_alliance_tag?:string|null,captured_at:string} $attributes
-     * @param array{subscription_id:string,batch_id:string,adapter_key:string,adapter_version:string,source_record_id?:string|null,identity_hash:string,payload_hash:string}|null $machineProvenance
+     * @param  array{observed_name:string,power:string,progression_level?:string|null,observed_alliance_tag?:string|null,captured_at:string}  $attributes
+     * @param  array{subscription_id:string,batch_id:string,adapter_key:string,adapter_version:string,source_record_id?:string|null,identity_hash:string,payload_hash:string}|null  $machineProvenance
      */
     public function handle(
         string $allianceId,

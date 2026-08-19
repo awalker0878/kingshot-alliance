@@ -34,7 +34,7 @@ function published(value: string | null): string {
 <template>
   <Head :title="`${content.title} · ${alliance.name}`" />
 
-  <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
+  <AppLayout>
     <RoomBanner
       :eyebrow="content.typeLabel"
       :title="content.title"

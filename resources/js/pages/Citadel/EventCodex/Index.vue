@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
+import { useContextForm } from '@/composables/useContextForm';
 import { computed } from 'vue';
 
 import RoomBanner from '@/components/game/RoomBanner.vue';
@@ -60,7 +61,7 @@ const configuredScopeCount = computed(() =>
 );
 
 function formFor(scope: ScopeRow) {
-  return useForm({
+  return useContextForm({
     is_active: scope.active,
     default_duration_minutes: scope.defaultDurationMinutes,
     default_capacity: scope.defaultCapacity,

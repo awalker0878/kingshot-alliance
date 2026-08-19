@@ -8,29 +8,34 @@ use PHPUnit\Framework\TestCase;
 
 final class ActivePlayerUxContractV3Test extends TestCase
 {
-    public function test_shell_uses_one_shared_active_player_contract(): void
+    public function test_shell_uses_one_shared_game_context_contract(): void
     {
         $root = dirname(__DIR__, 3);
-        $types = $this->source($root.'/resources/js/types/player-context.ts');
+        $types = $this->source($root.'/resources/js/types/game-context.ts');
+        $context = $this->source($root.'/resources/js/composables/useGameContext.ts');
         $layout = $this->source($root.'/resources/js/layouts/AppLayout.vue');
-        $switcher = $this->source($root.'/resources/js/components/navigation/IdentitySwitcher.vue');
 
-        self::assertStringContainsString('export type SharedPlayerContext', $types);
-        self::assertStringContainsString('export type PlayerContextFingerprint', $types);
-        self::assertStringContainsString('contextFingerprint: PlayerContextFingerprint', $types);
-        self::assertStringContainsString('authorityContextVersion: string | null', $types);
-        self::assertStringContainsString('activePlayerFrom', $layout);
-        self::assertStringContainsString('activePlayerFrom', $switcher);
-        self::assertStringContainsString('playerHasCapability', $layout);
-        self::assertStringContainsString("requiredCapability: 'recruitment.manage'", $layout);
+        self::assertStringContainsString('export type SharedGameContext', $types);
+        self::assertStringContainsString('export type ActiveGameContext', $types);
+        self::assertStringContainsString('authorityVersion: string', $types);
+        self::assertStringContainsString('fingerprint: GameContextFingerprint', $types);
+        self::assertStringContainsString('useGameContext()', $context);
+        self::assertStringContainsString('gameContext', $context);
+        self::assertStringContainsString('viewer', $context);
+        self::assertStringContainsString('navigation: computed', $context);
+        self::assertStringContainsString('useGameContext', $layout);
+        self::assertStringNotContainsString('hasPlayerAlliance', $layout);
+        self::assertStringNotContainsString('playerAllianceName', $layout);
+        self::assertStringNotContainsString('requiredCapability', $layout);
+        self::assertStringNotContainsString('allianceScoped', $layout);
     }
 
-    public function test_switcher_requests_only_player_activation_and_a_non_authoritative_route_hint(): void
+    public function test_switcher_requests_only_governor_activation_and_a_non_authoritative_route_hint(): void
     {
         $root = dirname(__DIR__, 3);
         $switcher = $this->source($root.'/resources/js/components/navigation/IdentitySwitcher.vue');
 
-        self::assertStringContainsString('`/players/${playerId}/activate`', $switcher);
+        self::assertStringContainsString('`/players/${governorId}/activate`', $switcher);
         self::assertStringContainsString('{ returnTo: currentPath.value }', $switcher);
         self::assertStringContainsString('preserveState: false', $switcher);
         self::assertStringContainsString('preserveScroll: false', $switcher);
@@ -40,16 +45,16 @@ final class ActivePlayerUxContractV3Test extends TestCase
         self::assertStringNotContainsString('capabilities:', $switcher);
     }
 
-    public function test_switcher_exposes_identity_context_and_keyboard_accessibility(): void
+    public function test_switcher_exposes_governor_context_and_keyboard_accessibility(): void
     {
         $root = dirname(__DIR__, 3);
         $switcher = $this->source($root.'/resources/js/components/navigation/IdentitySwitcher.vue');
 
         foreach ([
-            'player.alliance?.name',
-            'player.alliance.rank',
-            'player.alliance.roles',
-            'player.kingdomNumber',
+            'governor.alliance?.name',
+            'governor.alliance.rank',
+            'governor.alliance.roles',
+            'governor.kingdom.number',
             'aria-live="polite"',
             "focusOption('next')",
             "focusOption('previous')",
@@ -77,11 +82,11 @@ final class ActivePlayerUxContractV3Test extends TestCase
         }
 
         foreach ([
-            'context.authorityContextVersion',
+            'context.active?.authorityVersion',
             'createContextAbortController',
             'registerContextDisposer',
             'platformScopedStorageKey',
-            'playerScopedStorageKey',
+            'governorScopedStorageKey',
             'contextScopedStorageKey',
             'kingshot:context-freeze',
             'kingshot:context-invalidated',
@@ -89,6 +94,8 @@ final class ActivePlayerUxContractV3Test extends TestCase
         ] as $expected) {
             self::assertStringContainsString($expected, $isolation);
         }
+
+        self::assertStringNotContainsString('playerScopedStorageKey', $isolation);
     }
 
     public function test_stale_authority_context_is_transported_and_recovered_centrally(): void
@@ -97,6 +104,7 @@ final class ActivePlayerUxContractV3Test extends TestCase
         $app = $this->source($root.'/resources/js/app.ts');
         $authority = $this->source($root.'/resources/js/identity/authority-context.ts');
         $guard = $this->source($root.'/app/Contexts/GameWorld/Players/Http/Middleware/RequireCurrentPlayerContextVersion.php');
+        $resolver = $this->source($root.'/app/Contexts/GameWorld/Players/Services/ActiveGovernorAuthorityContextResolver.php');
 
         foreach ([
             'defaults:',
@@ -112,10 +120,11 @@ final class ActivePlayerUxContractV3Test extends TestCase
         }
 
         foreach ([
-            "X-Game-Context-Version",
-            "X-Game-Context-Error",
+            'X-Game-Context-Version',
+            'X-Game-Context-Error',
             'kingshot:authority-context-stale',
             'isAuthorityContextStaleResponse',
+            'props.gameContext',
         ] as $expected) {
             self::assertStringContainsString($expected, $authority);
         }
@@ -123,34 +132,66 @@ final class ActivePlayerUxContractV3Test extends TestCase
         foreach ([
             'CONTEXT_STALE',
             'hash_equals',
-            'findOwnedByUser',
-            'KingdomAuthorityFactsQuery',
+            'ActiveGovernorAuthorityContextResolver',
+            'resolveOwned',
             "'players.activate'",
             "'profile.'",
         ] as $expected) {
             self::assertStringContainsString($expected, $guard);
         }
+
+        foreach ([
+            'findOwnedByUser',
+            'PlayerIdentityContextQuery',
+            'KingdomAuthorityFactsQuery',
+            'PlayerAuthorityContextVersion',
+            'new ActiveGovernorAuthorityContext',
+        ] as $expected) {
+            self::assertStringContainsString($expected, $resolver);
+        }
     }
 
-    public function test_server_projects_display_context_but_remains_authoritative_for_activation(): void
+    public function test_server_projects_one_canonical_active_authority_snapshot_and_navigation(): void
     {
         $root = dirname(__DIR__, 3);
         $middleware = $this->source($root.'/app/Contexts/GameWorld/Players/Http/Middleware/HandleInertiaRequests.php');
+        $snapshot = $this->source($root.'/app/Contexts/GameWorld/Players/ValueObjects/ActiveGovernorAuthorityContext.php');
         $activation = $this->source($root.'/app/Contexts/GameWorld/Players/Actions/ActivatePlayer.php');
         $controller = $this->source($root.'/app/Contexts/GameWorld/Players/Http/Controllers/ActivatePlayerController.php');
+        $registry = $this->source($root.'/app/Contexts/GameWorld/Players/Services/GameRouteRegistry.php');
 
-        self::assertStringContainsString('PlayerIdentityContextQuery', $middleware);
-        self::assertStringContainsString("'alliance' =>", $middleware);
-        self::assertStringContainsString("'roles' =>", $middleware);
-        self::assertStringContainsString("'capabilities' =>", $middleware);
-        self::assertStringContainsString("'contextFingerprint' =>", $middleware);
-        self::assertStringContainsString("'authorityContextVersion' =>", $middleware);
-        self::assertStringContainsString("'membershipId' =>", $middleware);
+        foreach ([
+            "'viewer' =>",
+            "'gameContext' =>",
+            "'governors' =>",
+            "'active' => \$active->activePayload()",
+            "'navigation' => \$this->routes->navigation(true, \$active->routeAllianceContext())",
+            'ActiveGovernorAuthorityContextResolver',
+        ] as $expected) {
+            self::assertStringContainsString($expected, $middleware);
+        }
 
+        foreach ([
+            "'governor' =>",
+            "'alliance' =>",
+            "'kingdom' =>",
+            "'capabilities' =>",
+            "'fingerprint' =>",
+            "'authorityVersion' =>",
+            'final readonly class ActiveGovernorAuthorityContext',
+        ] as $expected) {
+            self::assertStringContainsString($expected, $snapshot);
+        }
+
+        self::assertStringNotContainsString('KingdomAuthorityFactsQuery', $middleware);
+        self::assertStringNotContainsString('PlayerAuthorityContextVersion', $middleware);
+        self::assertStringNotContainsString("'playerContext' =>", $middleware);
         self::assertStringContainsString("->where('user_id', \$userId)", $activation);
-        self::assertStringContainsString('PlayerSwitchRouteResolver', $controller);
+        self::assertStringContainsString('GameRouteRegistry', $controller);
         self::assertStringContainsString("\$request->input('returnTo')", $controller);
         self::assertStringContainsString('return redirect()->to($destination);', $controller);
+        self::assertStringContainsString('function navigation(', $registry);
+        self::assertStringContainsString('function resolveSwitchDestination(', $registry);
     }
 
     private function source(string $path): string

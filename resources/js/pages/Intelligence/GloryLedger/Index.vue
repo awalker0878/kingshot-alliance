@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
+import { useContextForm } from '@/composables/useContextForm';
 import { computed } from 'vue';
 
 import RoomBanner from '@/components/game/RoomBanner.vue';
@@ -74,7 +75,7 @@ const selfReportCategories = computed(() =>
 const goalCategories = computed(
   () => props.reporting.progress.filter((item) => item.goal !== null).length,
 );
-const form = useForm({ category_id: '', value: null as number | null, evidence: '' });
+const form = useContextForm({ category_id: '', value: null as number | null, evidence: '' });
 
 function submit(): void {
   form.post('/alliance/contributions/self-report', {
@@ -139,7 +140,7 @@ function explanation(row: RecordRow): string {
 <template>
   <Head :title="`${t('contributions.title')} · ${alliance.name}`" />
 
-  <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
+  <AppLayout>
     <RoomBanner
       :eyebrow="t('contributions.eyebrow')"
       :title="t('contributions.title')"

@@ -25,7 +25,7 @@ final readonly class StartTrackingKingdomAlliance
     ) {}
 
     /**
-     * @param array{current_name:string,current_tag?:string|null,game_alliance_id?:string|null,manager_notes?:string|null} $attributes
+     * @param  array{current_name:string,current_tag?:string|null,game_alliance_id?:string|null,manager_notes?:string|null}  $attributes
      */
     public function handle(string $allianceId, string $actorPlayerId, array $attributes): string
     {
@@ -89,6 +89,7 @@ final readonly class StartTrackingKingdomAlliance
     private function nullableText(?string $value): ?string
     {
         $value = $value === null ? null : trim($value);
+
         return $value === '' ? null : $value;
     }
 }

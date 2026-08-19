@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
+import { useContextForm } from '@/composables/useContextForm';
 import { computed, ref } from 'vue';
 
 import EventSigil from '@/components/game/EventSigil.vue';
@@ -59,7 +60,7 @@ const { t, formatNumber } = useLocale();
 const selectedEventTypeId = ref(props.eventTypes[0]?.id ?? '');
 const mode = ref<'event' | 'template' | 'from-template'>('event');
 
-const eventForm = useForm({
+const eventForm = useContextForm({
   event_type_id: selectedEventTypeId.value,
   title: '',
   description: '',
@@ -80,7 +81,7 @@ const eventForm = useForm({
   }>,
 });
 
-const templateForm = useForm({
+const templateForm = useContextForm({
   name: '',
   event_type_id: selectedEventTypeId.value,
   title: '',
@@ -98,7 +99,7 @@ const templateForm = useForm({
   }>,
 });
 
-const fromTemplateForm = useForm({
+const fromTemplateForm = useContextForm({
   template_id: props.templates[0]?.id ?? '',
   starts_at: '',
   alliance_id: '',
@@ -180,7 +181,7 @@ function humanize(value: string): string {
 <template>
   <Head :title="t('events.management.createTitle')" />
 
-  <AppLayout :user="user">
+  <AppLayout>
     <RoomBanner
       :eyebrow="t('events.calendar.eyebrow')"
       :title="t('events.management.createTitle')"

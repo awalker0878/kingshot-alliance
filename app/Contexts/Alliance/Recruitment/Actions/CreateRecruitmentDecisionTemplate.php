@@ -7,7 +7,6 @@ namespace App\Contexts\Alliance\Recruitment\Actions;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Access\Services\AllianceWriteState;
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Recruitment\Enums\RecruitmentStage;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentDecisionTemplate;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;

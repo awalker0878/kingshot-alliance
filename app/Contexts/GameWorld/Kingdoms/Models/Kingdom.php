@@ -14,7 +14,9 @@ final class Kingdom extends Model
     use HasUlids;
 
     public $incrementing = false;
+
     protected $keyType = 'string';
+
     protected $fillable = ['number', 'status'];
 
     protected function casts(): array

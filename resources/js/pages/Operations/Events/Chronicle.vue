@@ -190,11 +190,7 @@ function evidenceDetail(evidence: StatusEvidence): string {
 <template>
   <Head :title="`Event history · ${organization.name}`" />
 
-  <AppLayout
-    :user="user"
-    :player-alliance-name="organization.scope === 'alliance' ? organization.name : null"
-    :has-player-alliance="organization.scope === 'alliance'"
-  >
+  <AppLayout>
     <div class="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
       <header class="space-y-2">
         <p class="text-xs font-semibold tracking-[0.2em] text-amber-300 uppercase">

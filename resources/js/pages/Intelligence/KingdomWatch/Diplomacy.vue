@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
+import { useContextForm } from '@/composables/useContextForm';
 
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
@@ -88,7 +89,7 @@ function stateTone(value: string): string {
   return 'border-[var(--ks-border)] bg-[rgba(210,163,75,.05)] text-[var(--ks-text-secondary)]';
 }
 
-const form = useForm({
+const form = useContextForm({
   state: props.current.state,
   effective_at: toLocalInput(props.current.effectiveAt, true),
   review_at: toLocalInput(props.current.reviewAt),
@@ -122,7 +123,7 @@ function submitTransition(): void {
     :title="`${t('kingdomP7B.diplomacyTitle', { alliance: tracking.name })} · ${alliance.name}`"
   />
 
-  <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
+  <AppLayout>
     <header class="flex flex-wrap items-start justify-between gap-5">
       <div class="max-w-3xl">
         <p class="text-xs font-bold tracking-[0.2em] text-[var(--ks-gold)] uppercase">

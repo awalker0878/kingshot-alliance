@@ -37,7 +37,9 @@ final class CommunicationsBoundaryV3Test extends TestCase
         ];
 
         foreach ($iterator as $file) {
-            if (! $file->isFile() || $file->getExtension() !== 'php') continue;
+            if (! $file->isFile() || $file->getExtension() !== 'php') {
+                continue;
+            }
             $contents = file_get_contents($file->getPathname());
             self::assertIsString($contents);
             foreach ($forbidden as $term) {

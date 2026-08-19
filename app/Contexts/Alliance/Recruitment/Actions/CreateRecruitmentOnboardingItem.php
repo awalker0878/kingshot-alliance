@@ -7,7 +7,6 @@ namespace App\Contexts\Alliance\Recruitment\Actions;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Access\Services\AllianceWriteState;
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentOnboardingItem;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;

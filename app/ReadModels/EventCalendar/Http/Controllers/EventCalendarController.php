@@ -5,9 +5,8 @@ declare(strict_types=1);
 namespace App\ReadModels\EventCalendar\Http\Controllers;
 
 use App\Contexts\Accounts\Identity\Models\User;
-use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\GameWorld\Players\Services\PlayerContext;
-use App\ReadModels\EventAnalysis\Queries\EventPlayerIntelligenceQuery;
+use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Operations\Access\Enums\OperationsPermission;
 use App\Contexts\Operations\BattlePlans\Queries\EventObjectiveQuery;
 use App\Contexts\Operations\Events\Enums\EventCapability;
@@ -27,6 +26,7 @@ use App\Contexts\Operations\Polls\Queries\EventPhasePollQuery;
 use App\Contexts\Operations\Rallies\Queries\EventRallyQuery;
 use App\Contexts\Operations\Results\Queries\EventResultQuery;
 use App\Contexts\Operations\Rosters\Queries\EventRosterQuery;
+use App\ReadModels\EventAnalysis\Queries\EventPlayerIntelligenceQuery;
 use App\ReadModels\EventCalendar\Queries\EventReminderInboxQuery;
 use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Http\Request;

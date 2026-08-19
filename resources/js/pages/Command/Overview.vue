@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
+import { useContextForm } from '@/composables/useContextForm';
 
 import RoomBanner from '@/components/game/RoomBanner.vue';
 import StatSeal from '@/components/game/StatSeal.vue';
@@ -29,7 +30,7 @@ defineProps<{
 }>();
 
 const { t } = useLocale();
-const allianceForm = useForm({
+const allianceForm = useContextForm({
   name: '',
   slug: '',
   language: 'en',
@@ -55,11 +56,7 @@ function rolesFor(membership: MembershipSummary): string {
 <template>
   <Head :title="t('application.dashboard.title')" />
 
-  <AppLayout
-    :user="user"
-    :has-player-alliance="membership !== null"
-    :player-alliance-name="membership?.alliance.name ?? null"
-  >
+  <AppLayout>
     <RoomBanner
       :eyebrow="t('application.dashboard.eyebrow')"
       :title="membership?.alliance.name ?? t('application.dashboard.title')"

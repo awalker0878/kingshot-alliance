@@ -2,19 +2,15 @@
 import { router, usePage } from '@inertiajs/vue3';
 import { computed, nextTick, ref, watch } from 'vue';
 
-import { useLocale } from '@/localization';
+import { useGameContext } from '@/composables/useGameContext';
 import {
   activeContextKey,
   beginContextTransition,
   cancelContextTransition,
   completeContextTransition,
 } from '@/identity/context-isolation';
-import {
-  EMPTY_PLAYER_CONTEXT,
-  activePlayerFrom,
-  type PlayerIdentity,
-  type SharedPlayerContext,
-} from '@/types/player-context';
+import { useLocale } from '@/localization';
+import type { GovernorIdentity } from '@/types/game-context';
 
 withDefaults(
   defineProps<{
@@ -25,31 +21,26 @@ withDefaults(
 
 const { t } = useLocale();
 const page = usePage();
+const { context: gameContext, governor: activeGovernor, governors } = useGameContext();
 const open = ref(false);
 const switching = ref<string | null>(null);
 
-const playerContext = computed<SharedPlayerContext>(
-  () =>
-    ((page.props as Record<string, unknown>).playerContext as SharedPlayerContext | undefined) ??
-    EMPTY_PLAYER_CONTEXT,
-);
-const activePlayer = computed(() => activePlayerFrom(playerContext.value));
-const activeFingerprint = computed(() => activeContextKey(playerContext.value));
+const activeFingerprint = computed(() => activeContextKey(gameContext.value));
 const currentPath = computed(() => {
   const [path] = page.url.split(/[?#]/);
   return path?.startsWith('/') ? path : '/dashboard';
 });
-const canSwitch = computed(() => playerContext.value.players.length > 1);
-const switchingPlayer = computed(
-  () => playerContext.value.players.find((player) => player.id === switching.value) ?? null,
+const canSwitch = computed(() => governors.value.length > 1);
+const switchingGovernor = computed(
+  () => governors.value.find((governor) => governor.id === switching.value) ?? null,
 );
 const identityLabel = computed(() => {
-  if (activePlayer.value) return activePlayer.value.name;
-  if (playerContext.value.players.length > 0) return t('application.dashboard.selectPlayer');
+  if (activeGovernor.value) return activeGovernor.value.name;
+  if (governors.value.length > 0) return t('application.dashboard.selectPlayer');
   return t('common.noPlayers');
 });
 const switchStatus = computed(() =>
-  switchingPlayer.value ? `${t('common.loading')}: ${switchingPlayer.value.name}` : '',
+  switchingGovernor.value ? `${t('common.loading')}: ${switchingGovernor.value.name}` : '',
 );
 
 watch(activeFingerprint, (nextContextKey, previousContextKey) => {
@@ -58,42 +49,42 @@ watch(activeFingerprint, (nextContextKey, previousContextKey) => {
   }
 });
 
-function roleLabel(player: PlayerIdentity): string {
-  if (!player.alliance) return '';
+function roleLabel(governor: GovernorIdentity): string {
+  if (!governor.alliance) return '';
 
-  return [player.alliance.rank.toUpperCase(), ...player.alliance.roles.map((role) => role.name)]
+  return [governor.alliance.rank.toUpperCase(), ...governor.alliance.roles.map((role) => role.name)]
     .filter(Boolean)
     .join(' · ');
 }
 
-function compactContextLabel(player: PlayerIdentity): string {
+function compactContextLabel(governor: GovernorIdentity): string {
   const pieces: string[] = [];
-  if (player.alliance?.name) pieces.push(player.alliance.name);
-  if (player.kingdomNumber) pieces.push(`K${player.kingdomNumber}`);
-  if (player.alliance?.rank) pieces.push(player.alliance.rank.toUpperCase());
+  if (governor.alliance?.name) pieces.push(governor.alliance.name);
+  if (governor.kingdom.number) pieces.push(`K${governor.kingdom.number}`);
+  if (governor.alliance?.rank) pieces.push(governor.alliance.rank.toUpperCase());
   return pieces.join(' · ');
 }
 
-function contextLabel(player: PlayerIdentity): string {
+function contextLabel(governor: GovernorIdentity): string {
   const pieces: string[] = [];
-  if (player.kingdomNumber) pieces.push(`K${player.kingdomNumber}`);
-  if (player.alliance?.name) pieces.push(player.alliance.name);
+  if (governor.kingdom.number) pieces.push(`K${governor.kingdom.number}`);
+  if (governor.alliance?.name) pieces.push(governor.alliance.name);
 
-  const roles = roleLabel(player);
+  const roles = roleLabel(governor);
   if (roles) pieces.push(roles);
-  if (!player.alliance) pieces.push(t('common.noPlayerAlliance'));
+  if (!governor.alliance) pieces.push(t('common.noPlayerAlliance'));
 
   return pieces.join(' · ');
 }
 
 function focusOption(position: 'active' | 'first' | 'last' | 'next' | 'previous'): void {
   const options = Array.from(
-    document.querySelectorAll<HTMLButtonElement>('[data-player-switch-option="true"]'),
+    document.querySelectorAll<HTMLButtonElement>('[data-governor-switch-option="true"]'),
   );
   if (options.length === 0) return;
 
   if (position === 'active') {
-    const active = options.find((option) => option.dataset.playerId === activePlayer.value?.id);
+    const active = options.find((option) => option.dataset.governorId === activeGovernor.value?.id);
     (active ?? options[0])?.focus();
     return;
   }
@@ -126,25 +117,23 @@ function close(): void {
   open.value = false;
 }
 
-function activate(playerId: string): void {
-  if (playerId === activePlayer.value?.id || switching.value) {
+function activate(governorId: string): void {
+  if (governorId === activeGovernor.value?.id || switching.value) {
     if (!switching.value) open.value = false;
     return;
   }
 
   const previousContextKey = activeFingerprint.value;
-  switching.value = playerId;
+  switching.value = governorId;
   beginContextTransition(previousContextKey);
 
   router.post(
-    `/players/${playerId}/activate`,
+    `/players/${governorId}/activate`,
     { returnTo: currentPath.value },
     {
       preserveState: false,
       preserveScroll: false,
-      onSuccess: () => {
-        completeContextTransition(previousContextKey);
-      },
+      onSuccess: () => completeContextTransition(previousContextKey),
       onError: () => {
         cancelContextTransition(previousContextKey);
         switching.value = null;
@@ -177,7 +166,7 @@ function activate(playerId: string): void {
         class="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-[var(--ks-gold-dark)] bg-[radial-gradient(circle_at_38%_28%,#5a4c38,#17211f_68%)] font-[var(--ks-font-display)] font-bold text-[var(--ks-gold-bright)] shadow-inner"
         aria-hidden="true"
       >
-        {{ activePlayer?.name?.slice(0, 1).toUpperCase() ?? '—' }}
+        {{ activeGovernor?.name?.slice(0, 1).toUpperCase() ?? '—' }}
       </span>
       <span class="min-w-0 flex-1">
         <span
@@ -191,10 +180,10 @@ function activate(playerId: string): void {
           {{ identityLabel }}
         </strong>
         <span
-          v-if="activePlayer && (!compact || compactContextLabel(activePlayer))"
+          v-if="activeGovernor && (!compact || compactContextLabel(activeGovernor))"
           class="mt-0.5 block truncate text-[0.68rem] text-[var(--ks-muted)]"
         >
-          {{ compact ? compactContextLabel(activePlayer) : contextLabel(activePlayer) }}
+          {{ compact ? compactContextLabel(activeGovernor) : contextLabel(activeGovernor) }}
         </span>
       </span>
       <svg
@@ -236,57 +225,57 @@ function activate(playerId: string): void {
 
       <div class="max-h-[24rem] overflow-y-auto p-2">
         <button
-          v-for="player in playerContext.players"
-          :key="player.id"
+          v-for="governor in governors"
+          :key="governor.id"
           type="button"
           role="option"
-          data-player-switch-option="true"
-          :data-player-id="player.id"
-          :aria-selected="player.id === activePlayer?.id"
+          data-governor-switch-option="true"
+          :data-governor-id="governor.id"
+          :aria-selected="governor.id === activeGovernor?.id"
           :disabled="switching !== null"
           class="flex min-h-16 w-full items-center gap-3 rounded-[var(--ks-radius-md)] border px-3 py-3 text-start transition focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--ks-teal-bright)] disabled:cursor-wait disabled:opacity-65"
           :class="
-            player.id === activePlayer?.id
+            governor.id === activeGovernor?.id
               ? 'border-[rgba(32,178,163,.38)] bg-[rgba(20,153,141,.12)]'
               : 'border-transparent hover:border-[var(--ks-border)] hover:bg-white/[0.025]'
           "
-          @click="activate(player.id)"
+          @click="activate(governor.id)"
         >
           <span
             class="grid h-10 w-10 shrink-0 place-items-center rounded-full border font-[var(--ks-font-display)] font-bold"
             :class="
-              player.id === activePlayer?.id
+              governor.id === activeGovernor?.id
                 ? 'border-[var(--ks-teal-bright)] bg-[var(--ks-teal-soft)] text-[#aef6ea]'
                 : 'border-[var(--ks-border)] bg-black/20 text-[var(--ks-gold-bright)]'
             "
             aria-hidden="true"
           >
-            {{ player.name.slice(0, 1).toUpperCase() }}
+            {{ governor.name.slice(0, 1).toUpperCase() }}
           </span>
           <span class="min-w-0 flex-1">
             <strong
               class="block truncate text-sm font-[var(--ks-font-display)] text-[var(--ks-ivory)]"
             >
-              {{ player.name }}
+              {{ governor.name }}
             </strong>
             <span class="mt-1 block truncate text-xs text-[var(--ks-muted)]">
-              {{ contextLabel(player) }}
+              {{ contextLabel(governor) }}
             </span>
             <span
-              v-if="player.gamePlayerId"
+              v-if="governor.gamePlayerId"
               class="mt-1 block truncate text-[0.65rem] text-[var(--ks-muted)] opacity-75"
             >
-              {{ player.gamePlayerId }}
+              {{ governor.gamePlayerId }}
             </span>
           </span>
           <span
-            v-if="player.id === activePlayer?.id"
+            v-if="governor.id === activeGovernor?.id"
             class="ks-status shrink-0"
             data-tone="success"
           >
             {{ t('common.active') }}
           </span>
-          <span v-else-if="switching === player.id" class="text-xs text-[var(--ks-gold)]">
+          <span v-else-if="switching === governor.id" class="text-xs text-[var(--ks-gold)]">
             {{ t('common.loading') }}
           </span>
         </button>

@@ -14,6 +14,7 @@ use App\Contexts\Operations\Rosters\Actions\RespondToEventRosterAssignment;
 use App\Contexts\Operations\Rosters\Actions\SaveEventRoster;
 use App\Contexts\Operations\Rosters\Enums\EventRosterMemberStatus;
 use App\Contexts\Operations\Rosters\Enums\EventRosterType;
+use App\Contexts\Operations\Rosters\Models\EventRosterMember;
 use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -90,7 +91,7 @@ final class EventRosterController extends Controller
     {
         $this->user($request);
         $actor = $this->player();
-        $memberId = \App\Contexts\Operations\Rosters\Models\EventRosterMember::query()
+        $memberId = EventRosterMember::query()
             ->where('roster_id', $roster)
             ->where('player_id', $player)
             ->value('id');

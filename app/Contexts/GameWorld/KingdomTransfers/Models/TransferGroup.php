@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\KingdomTransfers\Models;
 
+use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferDirection;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferGroupState;
-use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
 use App\Contexts\GameWorld\Players\Models\Player;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;

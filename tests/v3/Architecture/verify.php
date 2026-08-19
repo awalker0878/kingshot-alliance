@@ -23,6 +23,7 @@ $phpFiles = static function (string $dir): array {
         }
     }
     sort($files);
+
     return $files;
 };
 
@@ -30,11 +31,13 @@ $contextFromPath = static function (string $path): ?string {
     if (preg_match('#/app/Contexts/([^/]+)/#', str_replace('\\', '/', $path), $m) === 1) {
         return $m[1];
     }
+
     return null;
 };
 
 $imports = static function (string $source): array {
     preg_match_all('/^use\s+([^;]+);/m', $source, $matches);
+
     return array_values(array_map('trim', $matches[1] ?? []));
 };
 
@@ -47,6 +50,7 @@ $modelImportParts = static function (string $import): ?array {
     if ($modelsIndex === false || $modelsIndex < 3 || ! isset($parts[$modelsIndex + 1])) {
         return null;
     }
+
     return ['context' => $parts[2], 'short' => $parts[$modelsIndex + 1]];
 };
 
@@ -354,7 +358,7 @@ if ($failures !== []) {
         $counts[$rule] = ($counts[$rule] ?? 0) + 1;
     }
     ksort($counts);
-    fwrite(STDERR, "V3 architecture verification failed (".count($failures)." violations):\n");
+    fwrite(STDERR, 'V3 architecture verification failed ('.count($failures)." violations):\n");
     foreach ($counts as $rule => $count) {
         fwrite(STDERR, sprintf("  %-44s %d\n", $rule, $count));
     }

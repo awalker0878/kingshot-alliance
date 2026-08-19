@@ -7,8 +7,8 @@ namespace App\ReadModels\EventCalendar\Queries;
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Communications\Delivery\Enums\DeliveryStatus;
 use App\Contexts\Communications\Delivery\Models\NotificationDelivery;
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\GameWorld\Players\Services\PlayerContext;
+use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Operations\Events\Enums\EventScope;
 use App\Contexts\Operations\Events\Models\Event;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
@@ -30,7 +30,7 @@ final readonly class EventReminderInboxQuery
     public function for(User $user, int $limit = 20): array
     {
         $player = $this->playerContext->playerOrNull();
-        if (! $player instanceof Player || (int) $player->user_id !== (int) $user->id) {
+        if (! $player instanceof PlayerReference || $player->userId !== (int) $user->id) {
             return [];
         }
 
@@ -53,14 +53,14 @@ final readonly class EventReminderInboxQuery
      * @param  array{alliance:list<string>,player:list<string>,kingdom:list<string>}  $targets
      * @return list<array<string, mixed>>
      */
-    private function eventReminders(User $user, Player $player, array $targets, int $limit): array
+    private function eventReminders(User $user, PlayerReference $player, array $targets, int $limit): array
     {
         $items = [];
         $deliveries = NotificationDelivery::query()
             ->where('notification_type', 'event.reminder')
             ->where('subject_type', 'event_occurrence')
             ->where('recipient_user_id', $user->id)
-            ->where('player_id', $player->id)
+            ->where('player_id', $player->playerId)
             ->where('status', DeliveryStatus::Sent->value)
             ->where('sent_at', '>=', now()->subDays(7))
             ->orderByDesc('sent_at')
@@ -86,6 +86,7 @@ final readonly class EventReminderInboxQuery
                 continue;
             }
 
+            $fallback = '/events/'.(string) $occurrence->id;
             $items[] = [
                 'id' => (string) $delivery->id,
                 'occurrenceId' => (string) $occurrence->id,
@@ -95,6 +96,7 @@ final readonly class EventReminderInboxQuery
                 'startsAt' => $occurrence->starts_at->toIso8601String(),
                 'sentAt' => $delivery->sent_at?->toIso8601String(),
                 'playerId' => (string) $delivery->player_id,
+                'href' => $this->routeIntent($delivery, $fallback),
             ];
         }
 
@@ -105,14 +107,14 @@ final readonly class EventReminderInboxQuery
      * @param  array{alliance:list<string>,player:list<string>,kingdom:list<string>}  $targets
      * @return list<array<string, mixed>>
      */
-    private function kingPerkReminders(User $user, Player $player, array $targets, int $limit): array
+    private function kingPerkReminders(User $user, PlayerReference $player, array $targets, int $limit): array
     {
         $items = [];
         $deliveries = NotificationDelivery::query()
             ->where('notification_type', 'king_perks.reminder')
             ->whereIn('subject_type', ['king_perk_appointment', 'king_skill_plan'])
             ->where('recipient_user_id', $user->id)
-            ->where('player_id', $player->id)
+            ->where('player_id', $player->playerId)
             ->where('status', DeliveryStatus::Sent->value)
             ->where('sent_at', '>=', now()->subDays(7))
             ->orderByDesc('sent_at')
@@ -160,6 +162,7 @@ final readonly class EventReminderInboxQuery
                 KingPerkReminderKind::Skill1Hour => ($skill instanceof KingSkillPlan ? $skill->skill_key->label() : 'King Skill').' · activation reminder',
             };
 
+            $fallback = '/events/'.(string) $occurrence->id;
             $items[] = [
                 'id' => 'king-perk:'.$delivery->id,
                 'occurrenceId' => (string) $occurrence->id,
@@ -169,6 +172,7 @@ final readonly class EventReminderInboxQuery
                 'startsAt' => $startsAt->toIso8601String(),
                 'sentAt' => $delivery->sent_at?->toIso8601String(),
                 'playerId' => (string) $delivery->player_id,
+                'href' => $this->routeIntent($delivery, $fallback),
             ];
         }
 
@@ -211,6 +215,22 @@ final readonly class EventReminderInboxQuery
         }
 
         return [null, null, null];
+    }
+
+    private function routeIntent(NotificationDelivery $delivery, string $fallback): string
+    {
+        $metadata = is_array($delivery->metadata) ? $delivery->metadata : [];
+        $candidate = $metadata['route_path'] ?? null;
+        if (! is_string($candidate) || ! str_starts_with($candidate, '/') || str_starts_with($candidate, '//')) {
+            return $fallback;
+        }
+
+        $path = parse_url($candidate, PHP_URL_PATH);
+        if (! is_string($path) || $path === '') {
+            return $fallback;
+        }
+
+        return $candidate;
     }
 
     /**

@@ -1,22 +1,20 @@
-import { activePlayerFrom, type SharedPlayerContext } from '@/types/player-context';
+import type { SharedGameContext } from '@/types/game-context';
 
 type ContextDisposer = () => void;
 
 const disposers = new Map<string, Set<ContextDisposer>>();
 const frozenContexts = new Set<string>();
 
-export function activeContextKey(context: SharedPlayerContext): string | null {
-  return (
-    context.authorityContextVersion ?? activePlayerFrom(context)?.contextFingerprint.key ?? null
-  );
+export function activeContextKey(context: SharedGameContext): string | null {
+  return context.active?.authorityVersion ?? context.active?.fingerprint.key ?? null;
 }
 
 export function platformScopedStorageKey(key: string): string {
   return `platform:${key}`;
 }
 
-export function playerScopedStorageKey(playerId: string, key: string): string {
-  return `player:${playerId}:${key}`;
+export function governorScopedStorageKey(governorId: string, key: string): string {
+  return `governor:${governorId}:${key}`;
 }
 
 export function contextScopedStorageKey(contextKey: string, key: string): string {

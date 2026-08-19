@@ -13,17 +13,22 @@ final class StorageCapacityPolicy
 {
     public function assertCapacity(Alliance $alliance, int $additionalBytes): void
     {
-        $current=(int)MediaAsset::query()->where('alliance_id',$alliance->id)->sum('size_bytes');
-        $limit=$this->limit($alliance,'storage.bytes.max');
-        if($additionalBytes<0||$current+$additionalBytes>$limit)throw ValidationException::withMessages(['media'=>'The alliance storage quota would be exceeded by this upload.']);
+        $current = (int) MediaAsset::query()->where('alliance_id', $alliance->id)->sum('size_bytes');
+        $limit = $this->limit($alliance, 'storage.bytes.max');
+        if ($additionalBytes < 0 || $current + $additionalBytes > $limit) {
+            throw ValidationException::withMessages(['media' => 'The alliance storage quota would be exceeded by this upload.']);
+        }
     }
 
-    private function limit(Alliance $alliance,string $key):int
+    private function limit(Alliance $alliance, string $key): int
     {
-        $planCode=DB::table('alliance_plan_assignments')->where('alliance_id',$alliance->id)->value('plan_code');
-        $planCode=is_string($planCode)&&$planCode!==''?$planCode:'standard';
-        $value=DB::table('platform_plan_entitlements')->where('plan_code',$planCode)->where('entitlement_key',$key)->value('limit_value');
-        if(!is_numeric($value))throw ValidationException::withMessages(['plan'=>sprintf('The current plan does not define the %s entitlement.',$key)]);
-        return max(0,(int)$value);
+        $planCode = DB::table('alliance_plan_assignments')->where('alliance_id', $alliance->id)->value('plan_code');
+        $planCode = is_string($planCode) && $planCode !== '' ? $planCode : 'standard';
+        $value = DB::table('platform_plan_entitlements')->where('plan_code', $planCode)->where('entitlement_key', $key)->value('limit_value');
+        if (! is_numeric($value)) {
+            throw ValidationException::withMessages(['plan' => sprintf('The current plan does not define the %s entitlement.', $key)]);
+        }
+
+        return max(0, (int) $value);
     }
 }

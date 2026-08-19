@@ -4,18 +4,16 @@ on:
   pull_request:
     paths:
       - 'app/Contexts/Intelligence/**'
+      - 'app/Contexts/Operations/Results/**'
       - 'app/ReadModels/EventHistory/**'
       - 'app/ReadModels/KingdomIntelligence/**'
       - 'app/ReadModels/SharedKingdomIntelligence/**'
-      - 'database/migrations/**event**'
-      - 'resources/js/pages/Events/**'
-      - 'resources/js/pages/Contributions/**'
+      - 'app/ReadModels/ContributionHistory/**'
+      - 'resources/js/pages/Intelligence/**'
+      - 'resources/js/pages/Operations/Events/**'
       - 'routes/event-history.php'
       - 'routes/contributions.php'
-      - 'tests/v2/Contexts/Intelligence/**'
-      - 'tests/v2/ReadModels/EventHistory/**'
-      - 'tests/v2/ReadModels/KingdomIntelligence/**'
-      - 'tests/v2/ReadModels/SharedKingdomIntelligence/**'
+      - 'tests/v3/**'
       - '.github/workflows/intelligence-verification.yml'
   workflow_dispatch:
 
@@ -74,48 +72,29 @@ jobs:
       - name: Fresh PostgreSQL schema
         run: php artisan migrate:fresh --force
 
-      - name: Verify Contributions V1 hard cut
+      - name: Verify Contributions hard cut
         shell: bash
         run: |
           set -euo pipefail
           test ! -d app/Domain/Contributions
-          matches=$(grep -R -n --include='*.php' 'App\\Domain\\Contributions' app routes bootstrap config database tests/v2/Contexts/Intelligence 2>/dev/null || true)
+          matches=$(grep -R -n --include='*.php' 'App\\Domain\\Contributions' app routes bootstrap config database tests 2>/dev/null || true)
           if [ -n "$matches" ]; then
             echo "$matches"
             exit 1
           fi
 
-      - name: Pint Intelligence V2
-        run: >-
-          vendor/bin/pint --test
-          app/Contexts/Intelligence
-          app/ReadModels/EventHistory
-          app/ReadModels/KingdomIntelligence
-          app/ReadModels/SharedKingdomIntelligence
-          routes/event-history.php
-          routes/contributions.php
-          tests/v2/Contexts/Intelligence
-          tests/v2/ReadModels/EventHistory
-          tests/v2/ReadModels/KingdomIntelligence
-          tests/v2/ReadModels/SharedKingdomIntelligence
+      - name: Pint current backend tree
+        run: vendor/bin/pint --test
 
-      - name: Larastan Intelligence V2
-        run: >-
-          vendor/bin/phpstan analyse --memory-limit=1G
-          app/Contexts/Intelligence
-          app/ReadModels/EventHistory
-          app/ReadModels/KingdomIntelligence
-          app/ReadModels/SharedKingdomIntelligence
-          routes/event-history.php
-          routes/contributions.php
+      - name: PHP syntax current application and V3 contracts
+        shell: bash
+        run: find app routes tests/v3 -type f -name '*.php' -print0 | xargs -0 -n1 php -l
 
-      - name: Intelligence V2 behavior contracts
-        run: >-
-          php artisan test
-          tests/v2/Contexts/Intelligence
-          tests/v2/ReadModels/EventHistory
-          tests/v2/ReadModels/KingdomIntelligence
-          tests/v2/ReadModels/SharedKingdomIntelligence
+      - name: Larastan current application
+        run: vendor/bin/phpstan analyse --memory-limit=1G --no-progress
+
+      - name: Intelligence and architecture behavior contracts
+        run: php artisan test --testsuite='Architecture V3'
 
   frontend:
     name: Intelligence history frontend contracts
@@ -135,23 +114,14 @@ jobs:
       - name: Install locked frontend dependencies
         run: npm ci --no-audit --no-fund
 
-      - name: Intelligence history frontend lint
-        run: npx eslint resources/js/pages/Events/OrganizationHistory.vue resources/js/pages/Contributions/History.vue
+      - name: Frontend lint
+        run: npm run lint
 
-      - name: Intelligence history frontend format
-        run: npx prettier --check resources/js/pages/Events/OrganizationHistory.vue resources/js/pages/Contributions/History.vue
+      - name: Frontend format
+        run: npx prettier --check resources/js
 
-      - name: Intelligence history frontend types
-        shell: bash
-        run: |
-          cat > tsconfig.intelligence-history.json <<'EOF'
-          {
-            "extends": "./tsconfig.json",
-            "include": [
-              "resources/js/pages/Events/OrganizationHistory.vue",
-              "resources/js/pages/Contributions/History.vue"
-            ]
-          }
-          EOF
-          npx vue-tsc --noEmit -p tsconfig.intelligence-history.json
-          rm tsconfig.intelligence-history.json
+      - name: Frontend types
+        run: npx vue-tsc --noEmit
+
+      - name: Frontend production assets
+        run: npm run build

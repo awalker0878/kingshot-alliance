@@ -26,5 +26,4 @@ final class RallyGuidanceRule extends Model
     {
         return ['infantry_percent' => 'integer', 'cavalry_percent' => 'integer', 'archer_percent' => 'integer', 'hero_recommendations' => 'array', 'effective_from' => 'date', 'effective_until' => 'date', 'is_active' => 'boolean'];
     }
-
 }

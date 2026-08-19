@@ -6,7 +6,7 @@ namespace App\Contexts\GameWorld\Players\Http\Controllers;
 
 use App\Contexts\Alliance\Membership\Queries\PlayerIdentityContextQuery;
 use App\Contexts\GameWorld\Players\Actions\ActivatePlayer;
-use App\Contexts\GameWorld\Players\Services\PlayerSwitchRouteResolver;
+use App\Contexts\GameWorld\Players\Services\GameRouteRegistry;
 use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -19,7 +19,7 @@ final class ActivatePlayerController extends Controller
         string $player,
         ActivatePlayer $activatePlayer,
         PlayerIdentityContextQuery $identityContext,
-        PlayerSwitchRouteResolver $routeResolver,
+        GameRouteRegistry $routes,
     ): RedirectResponse {
         $authId = Auth::id();
         abort_unless(is_numeric($authId), 401);
@@ -27,8 +27,6 @@ final class ActivatePlayerController extends Controller
         $sessionKey = (string) config('game_world.active_player_session_key');
         $previousPlayerId = $request->session()->get($sessionKey);
 
-        // Ownership and activation are server-authoritative. The browser only requests
-        // a Player id; it never supplies Alliance, Kingdom, rank, role, or capability authority.
         $target = $activatePlayer->handle(
             (int) $authId,
             $player,
@@ -37,17 +35,14 @@ final class ActivatePlayerController extends Controller
 
         $request->session()->put($sessionKey, $target->playerId);
 
-        // The browser may offer the current path as a UX hint, but the server owns
-        // reconciliation. Only stable routes valid for the target Player context are
-        // retained; resource-specific or invalid paths collapse to a safe parent.
         $targetAlliance = $identityContext->forPlayers([$target->playerId])[$target->playerId] ?? null;
-        $routeContext = $targetAlliance === null ? null : [
+        $routeAlliance = $targetAlliance === null ? null : [
             'capabilities' => $targetAlliance['capabilities'],
         ];
-        $requestedPath = $request->input('returnTo');
-        $destination = $routeResolver->resolve(
-            is_string($requestedPath) ? $requestedPath : null,
-            $routeContext,
+        $returnTo = $request->input('returnTo');
+        $destination = $routes->resolveSwitchDestination(
+            is_string($returnTo) ? $returnTo : null,
+            $routeAlliance,
         );
 
         return redirect()->to($destination);

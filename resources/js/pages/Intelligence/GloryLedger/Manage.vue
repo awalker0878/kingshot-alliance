@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
+import { useContextForm } from '@/composables/useContextForm';
 import { computed } from 'vue';
 
 import RoomBanner from '@/components/game/RoomBanner.vue';
@@ -86,7 +87,7 @@ const props = defineProps<{
 }>();
 const { t, formatDate, formatNumber } = useLocale();
 const recordable = computed(() => props.reporting.categories.filter((c) => c.active));
-const categoryForm = useForm({
+const categoryForm = useContextForm({
   name: '',
   description: '',
   unit: 'points',
@@ -102,13 +103,13 @@ const categoryForm = useForm({
   calculation_version: '',
   calculation_description: '',
 });
-const recordForm = useForm({
+const recordForm = useContextForm({
   player_id: '',
   category_id: '',
   value: null as number | null,
   evidence: '',
 });
-const scheduleForm = useForm({
+const scheduleForm = useContextForm({
   recipient_player_id: '',
   name: 'Alliance contribution summary',
   cadence: 'weekly',
@@ -190,7 +191,7 @@ function member(id: string) {
 
 <template>
   <Head :title="`${t('contributions.managerTitle')} · ${alliance.name}`" />
-  <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
+  <AppLayout>
     <RoomBanner
       :eyebrow="t('contributions.eyebrow')"
       :title="t('contributions.managerTitle')"

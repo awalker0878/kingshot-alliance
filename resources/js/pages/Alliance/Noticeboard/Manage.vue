@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
+import { useContextForm } from '@/composables/useContextForm';
 import { reactive, ref } from 'vue';
 
 import RoomBanner from '@/components/game/RoomBanner.vue';
@@ -47,8 +48,8 @@ const props = defineProps<{
 }>();
 
 const { t, formatDate } = useLocale();
-const categoryForm = useForm({ name: '', slug: '' });
-const createForm = useForm<ContentDraft>({
+const categoryForm = useContextForm({ name: '', slug: '' });
+const createForm = useContextForm<ContentDraft>({
   content_type: 'notice',
   category_id: '',
   title: '',
@@ -77,8 +78,8 @@ const edits = reactive<Record<string, ContentDraft>>(
     ]),
   ),
 );
-const logoForm = useForm<{ image: File | null }>({ image: null });
-const bannerForm = useForm<{ image: File | null }>({ image: null });
+const logoForm = useContextForm<{ image: File | null }>({ image: null });
+const bannerForm = useContextForm<{ image: File | null }>({ image: null });
 const logoInput = ref<HTMLInputElement | null>(null);
 const bannerInput = ref<HTMLInputElement | null>(null);
 
@@ -149,7 +150,7 @@ function timestamp(value: string | null): string {
 <template>
   <Head :title="`${t('contentExperience.manageTitle')} · ${alliance.name}`" />
 
-  <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
+  <AppLayout>
     <RoomBanner
       :eyebrow="t('contentExperience.manageEyebrow')"
       :title="t('contentExperience.manageTitle')"

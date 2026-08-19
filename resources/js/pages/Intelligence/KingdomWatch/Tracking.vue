@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
+import { useContextForm } from '@/composables/useContextForm';
 
 type TrackingRow = {
   id: string;
@@ -27,14 +28,14 @@ defineProps<{
   tracking: TrackingRow[];
 }>();
 
-const createForm = useForm({
+const createForm = useContextForm({
   current_name: '',
   current_tag: '',
   game_alliance_id: '',
   manager_notes: '',
 });
 
-const editForm = useForm({
+const editForm = useContextForm({
   id: '',
   current_name: '',
   current_tag: '',

@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
+import { useContextForm } from '@/composables/useContextForm';
 
 import RoomBanner from '@/components/game/RoomBanner.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
@@ -77,7 +78,7 @@ function freshnessTone(value: 'current' | 'stale' | 'missing'): string {
   return 'border-red-400/25 bg-red-500/10 text-red-200';
 }
 
-const snapshotForm = useForm({
+const snapshotForm = useContextForm({
   observed_name: props.entry.name,
   power: '',
   progression_level: '',
@@ -106,7 +107,7 @@ function recordSnapshot(): void {
 <template>
   <Head :title="`${t('rosterHistory.title')} · ${entry.name}`" />
 
-  <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
+  <AppLayout>
     <RoomBanner
       :eyebrow="t('roster.eyebrow', { kingdom: alliance.kingdom ?? t('roster.kingdomNotSet') })"
       :title="entry.name"

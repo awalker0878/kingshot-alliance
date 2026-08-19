@@ -129,7 +129,7 @@ function snapshotPercent(value: number): string {
 <template>
   <Head :title="`${t('roster.title')} · ${alliance.name}`" />
 
-  <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
+  <AppLayout>
     <RoomBanner
       :eyebrow="t('roster.eyebrow', { kingdom: alliance.kingdom ?? t('roster.kingdomNotSet') })"
       :title="t('roster.title')"

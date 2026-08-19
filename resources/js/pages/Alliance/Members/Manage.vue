@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
+import { useContextForm } from '@/composables/useContextForm';
 import { reactive } from 'vue';
 
 import RoomBanner from '@/components/game/RoomBanner.vue';
@@ -52,7 +53,7 @@ const props = defineProps<{
 
 const { locale, t, formatDate, formatNumber } = useLocale();
 
-const createForm = useForm({
+const createForm = useContextForm({
   name: '',
   game_player_id: '',
   game_role: '',
@@ -135,7 +136,7 @@ function stateTone(value: string): 'success' | 'warning' | 'info' {
 <template>
   <Head :title="`${t('roster.manage')} · ${alliance.name}`" />
 
-  <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
+  <AppLayout>
     <RoomBanner
       :eyebrow="t('roster.eyebrow', { kingdom: alliance.kingdom ?? t('roster.kingdomNotSet') })"
       :title="t('roster.manage')"

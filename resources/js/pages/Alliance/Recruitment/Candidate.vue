@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
+import { useContextForm } from '@/composables/useContextForm';
 
 import RoomBanner from '@/components/game/RoomBanner.vue';
 import StatSeal from '@/components/game/StatSeal.vue';
@@ -72,17 +73,17 @@ const props = defineProps<{
 }>();
 
 const { t, formatDate, formatNumber } = useLocale();
-const stageForm = useForm({
+const stageForm = useContextForm({
   stage: props.stageOptions[0] ?? props.candidate.stage,
   reason: '',
   next_action_at: '',
 });
-const reviewerForm = useForm({ player_id: '' });
-const conversionForm = useForm({ player_id: props.candidate.playerId ?? '' });
-const noteForm = useForm({ body: '' });
-const tagForm = useForm({ name: '' });
-const mergeReason = useForm({ reason: '' });
-const communicationForm = useForm({ template_id: '' });
+const reviewerForm = useContextForm({ player_id: '' });
+const conversionForm = useContextForm({ player_id: props.candidate.playerId ?? '' });
+const noteForm = useContextForm({ body: '' });
+const tagForm = useContextForm({ name: '' });
+const mergeReason = useContextForm({ reason: '' });
+const communicationForm = useContextForm({ template_id: '' });
 
 function updateStage(): void {
   stageForm.patch(`/alliance/recruitment/${props.candidate.id}/stage`, { preserveScroll: true });
@@ -163,7 +164,7 @@ function humanize(value: string): string {
 <template>
   <Head :title="`${candidate.name} · ${t('recruitment.title')}`" />
 
-  <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
+  <AppLayout>
     <RoomBanner
       :eyebrow="t('recruitment.candidateRecord')"
       :title="candidate.name"

@@ -53,9 +53,13 @@ final class KingdomAllianceDiplomacyController extends Controller
         $relationship = $diplomacy->relationship($alliance->allianceId, $tracking);
         $history = $diplomacy->history($alliance->allianceId, $tracking);
         $playerIds = [];
-        if ($relationship?->last_transition_player_id !== null) $playerIds[] = (string) $relationship->last_transition_player_id;
+        if ($relationship?->last_transition_player_id !== null) {
+            $playerIds[] = (string) $relationship->last_transition_player_id;
+        }
         foreach ($history as $transition) {
-            if ($transition->actor_player_id !== null) $playerIds[] = (string) $transition->actor_player_id;
+            if ($transition->actor_player_id !== null) {
+                $playerIds[] = (string) $transition->actor_player_id;
+            }
         }
         $playerRefs = $players->byIds(array_values(array_unique($playerIds)));
 

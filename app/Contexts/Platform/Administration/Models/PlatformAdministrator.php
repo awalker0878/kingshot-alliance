@@ -21,7 +21,9 @@ final class PlatformAdministrator extends Model
     use HasUlids;
 
     public $incrementing = false;
+
     protected $keyType = 'string';
+
     protected $fillable = ['user_id', 'granted_by_user_id', 'granted_at', 'revoked_at'];
 
     protected function casts(): array

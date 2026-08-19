@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
+import { useContextForm } from '@/composables/useContextForm';
 import { reactive } from 'vue';
 
 import RoomBanner from '@/components/game/RoomBanner.vue';
@@ -9,7 +10,6 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
 const props = defineProps<{
-  user: { name: string; email: string };
   alliance: {
     id: string;
     name: string;
@@ -77,7 +77,7 @@ const props = defineProps<{
 }>();
 
 const { t, formatDate } = useLocale();
-const inviteForm = useForm({
+const inviteForm = useContextForm({
   player_id: props.invitationManagement.candidates[0]?.id ?? '',
   email: '',
 });
@@ -197,7 +197,7 @@ function formatInZone(value: string, timeZone: string): string {
 <template>
   <Head :title="alliance.name" />
 
-  <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
+  <AppLayout>
     <RoomBanner
       :eyebrow="t('allianceOperations.overview.eyebrow')"
       :title="t('navigation.alliance')"

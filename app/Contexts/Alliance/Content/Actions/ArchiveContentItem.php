@@ -9,7 +9,6 @@ use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Access\Services\AllianceWriteState;
 use App\Contexts\Alliance\Content\Enums\ContentStatus;
 use App\Contexts\Alliance\Content\Models\ContentItem;
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;

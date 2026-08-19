@@ -36,7 +36,7 @@ final readonly class SaveTransferParticipant
     ) {}
 
     /**
-     * @param array{direction:TransferDirection,roster_entry_id?:string|null,name?:string|null,game_player_id?:string|null,source_kingdom?:int|string|null,destination_kingdom?:int|string|null,manager_notes?:string|null} $attributes
+     * @param  array{direction:TransferDirection,roster_entry_id?:string|null,name?:string|null,game_player_id?:string|null,source_kingdom?:int|string|null,destination_kingdom?:int|string|null,manager_notes?:string|null}  $attributes
      */
     public function handle(
         string $allianceId,
@@ -234,12 +234,14 @@ final readonly class SaveTransferParticipant
     private function nullableLine(mixed $value): ?string
     {
         $value = is_string($value) ? trim($value) : '';
+
         return $value === '' ? null : $value;
     }
 
     private function nullableText(mixed $value): ?string
     {
         $value = is_string($value) ? trim($value) : '';
+
         return $value === '' ? null : $value;
     }
 }

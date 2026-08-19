@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
+import { useContextForm } from '@/composables/useContextForm';
 
 import RoomBanner from '@/components/game/RoomBanner.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
@@ -24,7 +25,7 @@ const props = defineProps<{
 }>();
 
 const { t, formatDate } = useLocale();
-const form = useForm({
+const form = useContextForm({
   player_id: props.players[0]?.id ?? '',
   role: props.roles[0]?.key ?? '',
 });
@@ -47,7 +48,7 @@ function removeRole(assignment: Assignment): void {
 
 <template>
   <Head :title="`${t('kingdomP7A.rolesTitle')} · #${kingdom.number}`" />
-  <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
+  <AppLayout>
     <RoomBanner
       :eyebrow="t('kingdomP7A.rolesEyebrow')"
       :title="t('kingdomP7A.rolesTitle')"

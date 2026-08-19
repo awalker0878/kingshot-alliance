@@ -132,7 +132,7 @@ function directionTone(
 <template>
   <Head :title="`${t('kingdomP7D.title')} · ${alliance.name}`" />
 
-  <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
+  <AppLayout>
     <RoomBanner
       :eyebrow="t('kingdomP7D.eyebrow')"
       :title="t('kingdomP7D.title')"

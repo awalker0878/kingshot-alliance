@@ -88,19 +88,26 @@ final class EventResultController extends Controller
             'metrics.*.dimension_key' => ['nullable', 'string', 'max:96'],
             'metrics.*.value' => ['required_with:metrics', 'numeric'],
         ];
-        if ($opponentScore) $rules['opponent_score'] = ['nullable', 'integer', 'min:0'];
+        if ($opponentScore) {
+            $rules['opponent_score'] = ['nullable', 'integer', 'min:0'];
+        }
+
         return $request->validate($rules);
     }
 
     /** @return list<array{key:string,value:int|float|string,dimension_key?:string|null}> */
     private function metrics(mixed $value): array
     {
-        if (! is_array($value)) return [];
+        if (! is_array($value)) {
+            return [];
+        }
+
         return array_values(array_map(static function (array $metric): array {
             $normalized = ['key' => (string) $metric['key'], 'value' => $metric['value']];
             if (array_key_exists('dimension_key', $metric)) {
                 $normalized['dimension_key'] = $metric['dimension_key'] === null ? null : (string) $metric['dimension_key'];
             }
+
             return $normalized;
         }, $value));
     }
@@ -109,6 +116,7 @@ final class EventResultController extends Controller
     {
         $player = $this->playerContext->playerOrNull();
         abort_unless($player instanceof PlayerReference, 409, 'Select a Player before performing Event operations.');
+
         return $player;
     }
 
@@ -116,6 +124,7 @@ final class EventResultController extends Controller
     {
         $user = $request->user();
         abort_unless($user instanceof AuthenticatedAccount, 401);
+
         return $user;
     }
 }
