@@ -9,6 +9,7 @@ type NavIconName =
   | 'contributions'
   | 'kingdom'
   | 'transfers'
+  | 'giftCodes'
   | 'integrations'
   | 'profile'
   | 'logout'
@@ -64,6 +65,11 @@ defineProps<{
     </template>
     <template v-else-if="name === 'transfers'">
       <path d="M7 7h12l-3-3M19 7l-3 3M17 17H5l3 3M5 17l3-3" />
+    </template>
+    <template v-else-if="name === 'giftCodes'">
+      <path
+        d="M4 10h16v10H4zM3 7h18v3H3zM12 7v13M12 7H8.5A2.5 2.5 0 1 1 11 4.5L12 7ZM12 7h3.5A2.5 2.5 0 1 0 13 4.5L12 7Z"
+      />
     </template>
     <template v-else-if="name === 'integrations'">
       <path d="M8.5 15.5 15.5 8.5M7 12l-2 2a4 4 0 0 0 6 6l2-2M17 12l2-2a4 4 0 0 0-6-6l-2 2" />

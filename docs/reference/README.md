@@ -7,6 +7,7 @@ Reference documentation is for **facts you look up**, not explanations that rede
 - [Permissions](permissions.md)
 - [Events and webhook selectors](events.md)
 - [Configuration](configuration.md)
+- [Gift Codes](gift-codes.md)
 - [Route files](routes.md)
 - [API](api/README.md)
 

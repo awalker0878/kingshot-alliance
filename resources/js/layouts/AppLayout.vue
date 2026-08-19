@@ -24,6 +24,7 @@ type NavIconName =
   | 'contributions'
   | 'kingdom'
   | 'transfers'
+  | 'giftCodes'
   | 'integrations'
   | 'profile';
 
@@ -38,10 +39,12 @@ type NavigationItem = {
     | 'contributions'
     | 'kingdom'
     | 'transfers'
+    | 'giftCodes'
     | 'integrations';
   href: string;
   icon: NavIconName;
   allianceScoped?: boolean;
+  playerScoped?: boolean;
   requiredCapability?: string;
   exact?: boolean;
 };
@@ -77,6 +80,7 @@ const currentPath = computed(() => page.url.split('?')[0]?.replace(/\/+$/, '') |
 
 const rooms: NavigationItem[] = [
   { key: 'dashboard', href: '/dashboard', icon: 'dashboard', exact: true },
+  { key: 'giftCodes', href: '/gift-codes', icon: 'giftCodes', playerScoped: true },
   { key: 'alliance', href: '/alliance', icon: 'alliance', allianceScoped: true, exact: true },
   {
     key: 'recruitment',
@@ -105,6 +109,7 @@ const rooms: NavigationItem[] = [
 ];
 
 function isDisabled(item: NavigationItem): boolean {
+  if (item.playerScoped === true && !activePlayer.value) return true;
   if (item.allianceScoped === true && !hasActiveAlliance.value) return true;
   if (
     item.requiredCapability &&
