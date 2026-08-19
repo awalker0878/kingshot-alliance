@@ -9,24 +9,19 @@ const props = defineProps<{
 const { visit } = useGovernorNavigation();
 
 function navigate(event: MouseEvent): void {
-  if (
-    event.defaultPrevented ||
-    event.button !== 0 ||
-    event.metaKey ||
-    event.ctrlKey ||
-    event.shiftKey ||
-    event.altKey
-  ) {
-    return;
-  }
+  if (event.defaultPrevented) return;
 
+  // A context-bound destination cannot safely be opened directly in a second tab:
+  // the target Governor must first be activated through the server-owned switch path.
   event.preventDefault();
+  if (event.button !== 0) return;
+
   visit({ governorId: props.governorId, path: props.href });
 }
 </script>
 
 <template>
-  <a :href="href" @click="navigate">
+  <a :href="href" @click="navigate" @auxclick.prevent>
     <slot />
   </a>
 </template>
