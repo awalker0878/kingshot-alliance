@@ -19,6 +19,9 @@ use Inertia\Inertia;
 use Inertia\Response;
 use LogicException;
 
+/**
+ * Adapts the daily briefing read model without taking ownership of source-context writes.
+ */
 final class DashboardController extends Controller
 {
     public function __invoke(
