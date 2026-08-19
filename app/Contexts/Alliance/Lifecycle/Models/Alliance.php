@@ -10,7 +10,23 @@ use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property string $id
+ * @property string $name
+ * @property string $slug
+ * @property string $kingdom_id
+ * @property string $language
+ * @property string $timezone
+ * @property AllianceStatus $status
+ * @property Carbon|null $suspended_at
+ * @property Carbon|null $closed_at
+ * @property Carbon|null $deleted_at
+ * @property Carbon|null $restored_at
+ * @property Carbon|null $retention_until
+ * @property string|null $lifecycle_reason
+ */
 final class Alliance extends Model
 {
     use HasUlids;
