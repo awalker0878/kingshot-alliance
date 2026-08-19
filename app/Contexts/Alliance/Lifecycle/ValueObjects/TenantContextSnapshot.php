@@ -55,7 +55,7 @@ final readonly class TenantContextSnapshot
             throw new InvalidArgumentException('Export filename must not contain a path.');
         }
 
-return $this->storagePath('exports/'.$filename);
+        return $this->storagePath('exports/'.$filename);
     }
 
     public function logContext(): array
@@ -80,7 +80,7 @@ return $this->storagePath('exports/'.$filename);
             throw new InvalidArgumentException(sprintf('Invalid tenant %s.', $label));
         }
 
-return $value;
+        return $value;
     }
 
     private static function nullableString(mixed $value): ?string
