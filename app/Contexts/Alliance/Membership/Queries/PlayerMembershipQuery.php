@@ -41,16 +41,14 @@ final class PlayerMembershipQuery
             throw new LogicException('Alliance membership must be locked inside a database transaction.');
         }
 
-        return array_values(
-            AllianceMembership::query()    
-            ->where('alliance_id', $allianceId)    
-            ->where('status', MembershipStatus::Active->value)    
-            ->orderBy('player_id')    
-            ->lockForUpdate()    
-            ->pluck('player_id')    
-            ->map(static fn ($id): string => (string) $id)    
-            ->all(),
-        );
+        return array_values(AllianceMembership::query()
+            ->where('alliance_id', $allianceId)
+            ->where('status', MembershipStatus::Active->value)
+            ->orderBy('player_id')
+            ->lockForUpdate()
+            ->pluck('player_id')
+            ->map(static fn ($id): string => (string) $id)
+            ->all());
     }
 
     public function isActiveMember(string $allianceId, string $playerId): bool
@@ -65,15 +63,13 @@ final class PlayerMembershipQuery
     /** @return list<string> */
     public function activePlayerIds(string $allianceId): array
     {
-        return array_values(
-            AllianceMembership::query()    
-            ->where('alliance_id', $allianceId)    
-            ->where('status', MembershipStatus::Active->value)    
-            ->orderBy('player_id')    
-            ->pluck('player_id')    
-            ->map(static fn ($id): string => (string) $id)    
-            ->all(),
-        );
+        return array_values(AllianceMembership::query()
+            ->where('alliance_id', $allianceId)
+            ->where('status', MembershipStatus::Active->value)
+            ->orderBy('player_id')
+            ->pluck('player_id')
+            ->map(static fn ($id): string => (string) $id)
+            ->all());
     }
 
     /** @param list<string> $playerIds */
@@ -97,36 +93,32 @@ final class PlayerMembershipQuery
     public function activeAllianceIds(array $playerIds): array
     {
         if ($playerIds === []) {
-            return array_values(
-            [];    
-        }    
-    
-        return AllianceMembership::query()    
-            ->whereIn('player_id', $playerIds)    
-            ->where('status', MembershipStatus::Active->value)    
-            ->orderBy('alliance_id')    
-            ->pluck('alliance_id')    
-            ->map(static fn ($id): string => (string) $id)    
-            ->unique()    
-            ->values()    
-            ->all(),
-        );
+            return [];
+        }
+
+        return array_values(AllianceMembership::query()
+            ->whereIn('player_id', $playerIds)
+            ->where('status', MembershipStatus::Active->value)
+            ->orderBy('alliance_id')
+            ->pluck('alliance_id')
+            ->map(static fn ($id): string => (string) $id)
+            ->unique()
+            ->values()
+            ->all());
     }
 
     /** @return list<string> */
     public function activeAllianceIdsForPlayerInKingdom(string $playerId, string $kingdomId): array
     {
-        return array_values(
-            AllianceMembership::query()    
-            ->where('player_id', $playerId)    
-            ->where('status', MembershipStatus::Active->value)    
-            ->whereHas('alliance', static fn ($query) => $query->where('kingdom_id', $kingdomId))    
-            ->orderBy('alliance_id')    
-            ->pluck('alliance_id')    
-            ->map(static fn ($id): string => (string) $id)    
-            ->unique()    
-            ->values()    
-            ->all(),
-        );
+        return array_values(AllianceMembership::query()
+            ->where('player_id', $playerId)
+            ->where('status', MembershipStatus::Active->value)
+            ->whereHas('alliance', static fn ($query) => $query->where('kingdom_id', $kingdomId))
+            ->orderBy('alliance_id')
+            ->pluck('alliance_id')
+            ->map(static fn ($id): string => (string) $id)
+            ->unique()
+            ->values()
+            ->all());
     }
 }
