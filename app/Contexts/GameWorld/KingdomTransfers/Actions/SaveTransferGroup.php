@@ -87,15 +87,15 @@ final readonly class SaveTransferGroup
             $destination = $direction === TransferDirection::Incoming
                 ? Kingdom::query()->findOrFail($plan->home_kingdom_id)
                 : $this->kingdom($attributes['destination_kingdom'] ?? null);
-            if ($direction === TransferDirection::Outgoing && $destination?->kingdomId === $plan->home_kingdom_id) {
+            $destinationId = $destination instanceof Kingdom
+                ? (string) $destination->id
+                : $destination?->kingdomId;
+            if ($direction === TransferDirection::Outgoing && $destinationId === (string) $plan->home_kingdom_id) {
                 throw ValidationException::withMessages(['destination_kingdom' => 'An outgoing group destination must differ from the plan home Kingdom.']);
             }
 
             $coordinatorId = $this->coordinatorId($allianceId, $attributes['coordinator_player_id'] ?? null);
             $managerNotes = $this->nullableText($attributes['manager_notes'] ?? null);
-            $destinationId = $destination === null
-                ? null
-                : ($destination instanceof Kingdom ? (string) $destination->id : $destination->kingdomId);
             $this->assertAssignedParticipantsCompatible($allianceId, $plan, $group, $direction, $destinationId);
 
             $isNew = ! $group->exists;
