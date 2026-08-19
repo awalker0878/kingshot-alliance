@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Contexts\Alliance\Lifecycle\Http\Controllers;
+namespace App\ReadModels\CommandOverview\Http\Controllers;
 
 use App\Contexts\Accounts\Identity\Contracts\AuthenticatedAccount;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
