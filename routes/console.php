@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Alliance\Content\Actions\PublishScheduledContent;
+use App\Contexts\Alliance\Content\Actions\QueuePublishedAnnouncementBroadcasts;
 use App\Contexts\Alliance\Recruitment\Actions\PurgeExpiredRecruitmentCandidates;
+use App\Contexts\Communications\Delivery\Actions\ProcessNotificationDeliveries;
 use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
 use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Intelligence\Contributions\Actions\QueueDueContributionReports;
@@ -209,6 +211,22 @@ Artisan::command('content:publish-scheduled {--limit=100}', function (PublishSch
     return 0;
 })->purpose('Publish due scheduled alliance content');
 
+Artisan::command('content:queue-announcement-broadcasts {--limit=25}', function (QueuePublishedAnnouncementBroadcasts $queue): int {
+    $limit = max(1, min(100, (int) $this->option('limit')));
+    $broadcasts = $queue->handle($limit);
+    $this->info(sprintf('Queued %d Alliance announcement broadcast(s).', $broadcasts));
+
+    return 0;
+})->purpose('Fan out published Alliance announcements to active members');
+
+Artisan::command('notifications:deliver {--limit=100}', function (ProcessNotificationDeliveries $deliveries): int {
+    $limit = max(1, min(1000, (int) $this->option('limit')));
+    $processed = $deliveries->handle($limit);
+    $this->info(sprintf('Processed %d external notification delivery attempt(s).', $processed));
+
+    return 0;
+})->purpose('Deliver due Discord and Telegram notifications with bounded retries');
+
 Artisan::command('events:queue-reminders {--limit=100}', function (QueueDueEventReminders $queue): int {
     $limit = max(1, min(1000, (int) $this->option('limit')));
     $queued = $queue->handle($limit);
@@ -242,7 +260,9 @@ Artisan::command('outbox:publish {--limit=100}', function (PublishOutboxBatch $p
 })->purpose('Publish eligible transactional outbox messages');
 
 Schedule::command('content:publish-scheduled --limit=100')->everyMinute()->onOneServer()->withoutOverlapping(10);
+Schedule::command('content:queue-announcement-broadcasts --limit=25')->everyMinute()->onOneServer()->withoutOverlapping(10);
 Schedule::command('events:queue-reminders --limit=100')->everyMinute()->onOneServer()->withoutOverlapping(10);
+Schedule::command('notifications:deliver --limit=100')->everyMinute()->onOneServer()->withoutOverlapping(10);
 Schedule::command('contributions:queue-reports --limit=50')->everyMinute()->onOneServer()->withoutOverlapping(10);
 Schedule::command('outbox:publish --limit=100')->everyMinute()->onOneServer()->withoutOverlapping(10);
 Schedule::command('integrations:queue-webhooks --limit=100')->everyMinute()->onOneServer()->withoutOverlapping(10);

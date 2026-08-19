@@ -18,11 +18,13 @@ Delivery owns generic notification coordination and the user-facing notification
 
 ## Flow
 
-1. A source context decides that a reminder is due and supplies render-ready `title`, `body`, and optional relative `action_url` metadata.
+1. A source context decides that a reminder or announcement is due and supplies render-ready `title`, `body`, and optional relative `action_url` metadata.
 2. `NotificationDeliveryService` creates one idempotent row for every enabled channel. External channels are only included when the recipient has a configured endpoint.
-3. In-app rows retain the existing outbox publication path. Source-context outbox listeners acknowledge only these in-app rows.
+3. In-app rows are acknowledged as sent when they enter the inbox; they do not wait for an external provider.
 4. `ProcessNotificationDeliveries` independently claims due Discord and Telegram rows, sends them, and records provider acknowledgement or a bounded retry time.
 5. The notification center exposes delivery state, read/dismiss actions, endpoint health, and per-channel preferences for the active Governor.
+
+The scheduler runs `notifications:deliver` every minute with overlap protection. Source schedulers materialize only due intent; Communications remains responsible for provider retry timing.
 
 ## Security rules
 
@@ -35,7 +37,7 @@ Delivery owns generic notification coordination and the user-facing notification
 
 ## Does not own
 
-Delivery does not decide what an Event, King Perk, recruitment or transfer reminder means or when source-domain behavior is due. Those rules remain with the source capability.
+Delivery does not decide what an Alliance announcement, Event, King Perk, recruitment or transfer reminder means or when source-domain behavior is due. Those rules remain with the source capability.
 
 Source contexts submit generic delivery intent through supported services and metadata. Communications does not import source-domain models to inspect the originating aggregate.
 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import { reactive, ref } from 'vue';
+import { computed, reactive, ref } from 'vue';
 
 import RoomBanner from '@/components/game/RoomBanner.vue';
 import StatSeal from '@/components/game/StatSeal.vue';
@@ -8,6 +8,9 @@ import AppButton from '@/components/ui/AppButton.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
+type Option = { value: string; label: string };
+type Category = { id: string; name: string; slug: string; sortOrder: number };
+type Revision = { id: string; revisionNumber: number; title: string; createdAt: string | null };
 type ContentRow = {
   id: string;
   type: string;
@@ -19,68 +22,112 @@ type ContentRow = {
   summary: string | null;
   body: string;
   locale: string;
-  categoryId: string | null;
-  categoryName: string | null;
+  sortOrder: number;
+  revisionNumber: number;
+  notifyMembers: boolean;
+  scheduledFor: string | null;
   publishedAt: string | null;
+  broadcastedAt: string | null;
+  archivedAt: string | null;
   updatedAt: string | null;
+  category: { id: string; name: string; slug: string } | null;
+  revisions: Revision[];
 };
-
+type Media = {
+  id: string;
+  name: string;
+  mimeType: string;
+  sizeBytes: number;
+  scanStatus: string;
+  lifecycleStatus: string;
+  createdAt: string | null;
+};
 type ContentDraft = {
-  content_type: string;
+  type: string;
   category_id: string;
+  visibility: string;
   title: string;
   slug: string;
   summary: string;
   body: string;
-  visibility: string;
   locale: string;
-  status: string;
+  sort_order: number;
+  notify_members: boolean;
 };
 
 const props = defineProps<{
   user: { name: string; email: string };
-  alliance: { name: string; slug: string };
-  permissions: { publish: boolean };
-  branding: { logoPresent: boolean; bannerPresent: boolean };
-  categories: Array<{ id: string; name: string; slug: string }>;
+  alliance: {
+    id: string;
+    name: string;
+    slug: string;
+    kingdom: number | null;
+    language: string;
+    timezone: string;
+    description: string | null;
+    primaryColor: string | null;
+    logoMediaId: string | null;
+    bannerMediaId: string | null;
+    publicUrl: string;
+  };
+  contentTypes: Option[];
+  visibilityOptions: Option[];
+  categories: Category[];
   content: ContentRow[];
+  media: Media[];
 }>();
 
 const { t, formatDate } = useLocale();
-const categoryForm = useForm({ name: '', slug: '' });
-const createForm = useForm<ContentDraft>({
-  content_type: 'notice',
+const editingId = ref<string | null>(null);
+const scheduleInputs = reactive<Record<string, string>>({});
+const categoryEdits = reactive<Record<string, { name: string; slug: string; sort_order: number }>>(
+  Object.fromEntries(
+    props.categories.map((category) => [
+      category.id,
+      { name: category.name, slug: category.slug, sort_order: category.sortOrder },
+    ]),
+  ),
+);
+const publishedCount = computed(
+  () => props.content.filter((item) => item.status === 'published').length,
+);
+const scheduledCount = computed(
+  () => props.content.filter((item) => item.status === 'scheduled').length,
+);
+const pendingBroadcastCount = computed(
+  () =>
+    props.content.filter(
+      (item) =>
+        item.type === 'announcement' &&
+        item.notifyMembers &&
+        item.status === 'published' &&
+        item.broadcastedAt === null,
+    ).length,
+);
+
+const profileForm = useForm({
+  name: props.alliance.name,
+  language: props.alliance.language,
+  timezone: props.alliance.timezone,
+  description: props.alliance.description ?? '',
+  primary_color: props.alliance.primaryColor ?? '',
+  logo_media_id: props.alliance.logoMediaId ?? '',
+  banner_media_id: props.alliance.bannerMediaId ?? '',
+});
+const categoryForm = useForm({ name: '', slug: '', sort_order: 0 });
+const mediaForm = useForm<{ media: File | null }>({ media: null });
+const contentForm = useForm<ContentDraft>({
+  type: 'announcement',
   category_id: '',
+  visibility: 'members',
   title: '',
   slug: '',
   summary: '',
   body: '',
-  visibility: 'members',
-  locale: 'en',
-  status: 'draft',
+  locale: props.alliance.language || 'en',
+  sort_order: 0,
+  notify_members: false,
 });
-const edits = reactive<Record<string, ContentDraft>>(
-  Object.fromEntries(
-    props.content.map((item) => [
-      item.id,
-      {
-        content_type: item.type,
-        category_id: item.categoryId ?? '',
-        title: item.title,
-        slug: item.slug,
-        summary: item.summary ?? '',
-        body: item.body,
-        visibility: item.visibility,
-        locale: item.locale,
-        status: item.status,
-      },
-    ]),
-  ),
-);
-const logoForm = useForm<{ image: File | null }>({ image: null });
-const bannerForm = useForm<{ image: File | null }>({ image: null });
-const logoInput = ref<HTMLInputElement | null>(null);
-const bannerInput = ref<HTMLInputElement | null>(null);
 
 function slugify(value: string): string {
   return value
@@ -89,11 +136,67 @@ function slugify(value: string): string {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
 }
+function fillContentSlug(): void {
+  if (!contentForm.slug) contentForm.slug = slugify(contentForm.title);
+}
 function fillCategorySlug(): void {
   if (!categoryForm.slug) categoryForm.slug = slugify(categoryForm.name);
 }
-function fillContentSlug(form: ContentDraft): void {
-  if (!form.slug) form.slug = slugify(form.title);
+function resetContentForm(): void {
+  editingId.value = null;
+  contentForm.reset();
+  contentForm.clearErrors();
+}
+function editContent(item: ContentRow): void {
+  editingId.value = item.id;
+  contentForm.type = item.type;
+  contentForm.category_id = item.category?.id ?? '';
+  contentForm.visibility = item.visibility;
+  contentForm.title = item.title;
+  contentForm.slug = item.slug;
+  contentForm.summary = item.summary ?? '';
+  contentForm.body = item.body;
+  contentForm.locale = item.locale;
+  contentForm.sort_order = item.sortOrder;
+  contentForm.notify_members = item.notifyMembers;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function saveContent(): void {
+  const options = { preserveScroll: true, onSuccess: resetContentForm };
+  if (editingId.value) {
+    contentForm.patch('/alliance/content/' + editingId.value, options);
+    return;
+  }
+  contentForm.post('/alliance/content', options);
+}
+function publishNow(id: string): void {
+  router.post(
+    '/alliance/content/' + id + '/publish',
+    { scheduled_for: null },
+    { preserveScroll: true },
+  );
+}
+function schedule(id: string): void {
+  const value = scheduleInputs[id];
+  if (!value) return;
+  router.post(
+    '/alliance/content/' + id + '/publish',
+    { scheduled_for: new Date(value).toISOString() },
+    { preserveScroll: true },
+  );
+}
+function archiveContent(id: string): void {
+  router.delete('/alliance/content/' + id, { preserveScroll: true });
+}
+function restoreRevision(itemId: string, revisionId: string): void {
+  router.post(
+    '/alliance/content/' + itemId + '/revisions/' + revisionId + '/restore',
+    {},
+    { preserveScroll: true },
+  );
+}
+function saveProfile(): void {
+  profileForm.patch('/alliance/public-profile', { preserveScroll: true });
 }
 function createCategory(): void {
   categoryForm.post('/alliance/content/categories', {
@@ -101,59 +204,51 @@ function createCategory(): void {
     onSuccess: () => categoryForm.reset(),
   });
 }
-function createContent(): void {
-  createForm.post('/alliance/content', {
+function updateCategory(id: string): void {
+  router.patch('/alliance/content/categories/' + id, categoryEdits[id], {
     preserveScroll: true,
-    onSuccess: () => createForm.reset(),
   });
 }
-function updateContent(id: string): void {
-  router.patch(`/alliance/content/${id}`, edits[id], { preserveScroll: true });
+function deleteCategory(id: string): void {
+  router.delete('/alliance/content/categories/' + id, { preserveScroll: true });
 }
-function publish(id: string): void {
-  router.post(`/alliance/content/${id}/publish`, {}, { preserveScroll: true });
-}
-function onFile(event: Event, target: 'logo' | 'banner'): void {
-  const input = event.target as HTMLInputElement;
-  const file = input.files?.[0] ?? null;
-  if (target === 'logo') logoForm.image = file;
-  else bannerForm.image = file;
-}
-function uploadBranding(target: 'logo' | 'banner'): void {
-  const form = target === 'logo' ? logoForm : bannerForm;
-  form.post(`/alliance/content/branding/${target}`, {
+function uploadMedia(): void {
+  mediaForm.post('/alliance/media', {
     preserveScroll: true,
     forceFormData: true,
-    onSuccess: () => {
-      form.reset();
-      const input = target === 'logo' ? logoInput.value : bannerInput.value;
-      if (input) input.value = '';
-    },
+    onSuccess: () => mediaForm.reset(),
   });
+}
+function archiveMedia(id: string): void {
+  router.delete('/alliance/media/' + id, { preserveScroll: true });
 }
 function statusTone(value: string): 'success' | 'warning' | 'info' {
   if (value === 'published') return 'success';
   if (value === 'draft') return 'warning';
   return 'info';
 }
-function visibilityTone(value: string): 'success' | 'warning' | 'info' {
-  if (value === 'public') return 'success';
-  if (value === 'members') return 'warning';
-  return 'info';
-}
 function timestamp(value: string | null): string {
   return value ? formatDate(value, { dateStyle: 'medium', timeStyle: 'short' }) : '—';
+}
+function bytes(value: number): string {
+  if (value < 1024) return value + ' B';
+  if (value < 1024 * 1024) return Math.round(value / 1024) + ' KB';
+  return (value / 1024 / 1024).toFixed(1) + ' MB';
 }
 </script>
 
 <template>
-  <Head :title="`${t('contentExperience.manageTitle')} · ${alliance.name}`" />
+  <Head :title="t('contentExperience.managementTitle') + ' · ' + props.alliance.name" />
 
-  <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
+  <AppLayout
+    :user="props.user"
+    :player-alliance-name="props.alliance.name"
+    :has-player-alliance="true"
+  >
     <RoomBanner
-      :eyebrow="t('contentExperience.manageEyebrow')"
-      :title="t('contentExperience.manageTitle')"
-      :subtitle="t('contentExperience.manageSubtitle')"
+      :eyebrow="t('contentExperience.managementEyebrow')"
+      :title="t('contentExperience.broadcastDesk')"
+      :subtitle="t('contentExperience.broadcastSubtitle')"
       image="/images/kingshot/v4/noticeboard.svg"
       compact
     >
@@ -161,8 +256,11 @@ function timestamp(value: string | null): string {
         <Link href="/alliance/content" class="ks-command-link">
           ← {{ t('contentExperience.hubTitle') }}
         </Link>
+        <Link href="/notifications" class="ks-command-link" data-variant="secondary">
+          {{ t('contentExperience.deliverySettings') }}
+        </Link>
         <a
-          :href="`/alliances/${alliance.slug}`"
+          :href="props.alliance.publicUrl"
           class="ks-command-link"
           data-variant="secondary"
           target="_blank"
@@ -174,146 +272,129 @@ function timestamp(value: string | null): string {
     </RoomBanner>
 
     <section class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-      <StatSeal :label="t('contentExperience.categories')" :value="categories.length" icon="◇" />
       <StatSeal
-        :label="t('contentExperience.items')"
-        :value="content.length"
+        :label="t('contentExperience.contentItems')"
+        :value="props.content.length"
         icon="▤"
+      />
+      <StatSeal
+        :label="t('contentExperience.publishedItems')"
+        :value="publishedCount"
+        icon="✦"
         tone="teal"
       />
+      <StatSeal :label="t('contentExperience.scheduled')" :value="scheduledCount" icon="◷" />
       <StatSeal
-        :label="t('contentExperience.brandLogo')"
-        :value="
-          branding.logoPresent ? t('contentExperience.present') : t('contentExperience.notPresent')
-        "
-        icon="♜"
+        :label="t('contentExperience.queuedBroadcasts')"
+        :value="pendingBroadcastCount"
+        icon="↗"
         tone="stone"
-      />
-      <StatSeal
-        :label="t('contentExperience.brandBanner')"
-        :value="
-          branding.bannerPresent
-            ? t('contentExperience.present')
-            : t('contentExperience.notPresent')
-        "
-        icon="⚑"
       />
     </section>
 
-    <div class="mt-5 grid gap-5 2xl:grid-cols-[minmax(20rem,.58fr)_minmax(0,1.42fr)]">
+    <div class="mt-5 grid gap-5 2xl:grid-cols-[minmax(19rem,.58fr)_minmax(0,1.42fr)]">
       <aside class="space-y-5">
-        <section class="ks-surface p-5" aria-labelledby="branding-heading">
-          <p class="ks-kicker">{{ t('contentExperience.branding') }}</p>
-          <h2 id="branding-heading" class="ks-display mt-1 text-xl font-semibold">
-            {{ t('contentExperience.brandingTitle') }}
+        <section class="ks-surface p-5" aria-labelledby="profile-heading">
+          <p class="ks-kicker">{{ t('contentExperience.publicProfile') }}</p>
+          <h2 id="profile-heading" class="ks-display mt-1 text-xl font-semibold">
+            {{ props.alliance.name }}
           </h2>
-          <p class="mt-2 text-sm leading-6 text-[var(--ks-muted)]">
-            {{ t('contentExperience.brandingHelp') }}
-          </p>
-
-          <div class="mt-5 space-y-4">
-            <form
-              class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-4"
-              @submit.prevent="uploadBranding('logo')"
-            >
-              <div class="flex items-center justify-between gap-3">
-                <label class="font-semibold" for="branding-logo">{{
-                  t('contentExperience.logo')
-                }}</label>
-                <span class="ks-status" :data-tone="branding.logoPresent ? 'success' : 'warning'">
-                  {{
-                    branding.logoPresent
-                      ? t('contentExperience.present')
-                      : t('contentExperience.notPresent')
-                  }}
-                </span>
-              </div>
-              <input
-                id="branding-logo"
-                ref="logoInput"
-                class="mt-3 block w-full text-xs text-[var(--ks-muted)]"
-                type="file"
-                accept="image/png,image/jpeg,image/webp"
-                @change="onFile($event, 'logo')"
+          <form class="mt-4 space-y-3" @submit.prevent="saveProfile">
+            <label class="block text-sm">
+              <span>{{ t('contentExperience.allianceName') }}</span>
+              <input v-model="profileForm.name" class="ks-input mt-1.5" required maxlength="120" />
+            </label>
+            <div class="grid gap-3 sm:grid-cols-2 2xl:grid-cols-1">
+              <label class="block text-sm">
+                <span>{{ t('contentExperience.language') }}</span>
+                <input
+                  v-model="profileForm.language"
+                  class="ks-input mt-1.5"
+                  required
+                  maxlength="16"
+                />
+              </label>
+              <label class="block text-sm">
+                <span>{{ t('contentExperience.timezone') }}</span>
+                <input v-model="profileForm.timezone" class="ks-input mt-1.5" required />
+              </label>
+            </div>
+            <label class="block text-sm">
+              <span>{{ t('contentExperience.description') }}</span>
+              <textarea
+                v-model="profileForm.description"
+                class="ks-input mt-1.5 min-h-24"
+                maxlength="5000"
               />
-              <AppButton
-                class="mt-3 w-full"
-                variant="ghost"
-                type="submit"
-                :disabled="logoForm.processing || !logoForm.image"
-              >
-                {{ t('contentExperience.uploadLogo') }}
-              </AppButton>
-            </form>
-
-            <form
-              class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-4"
-              @submit.prevent="uploadBranding('banner')"
-            >
-              <div class="flex items-center justify-between gap-3">
-                <label class="font-semibold" for="branding-banner">{{
-                  t('contentExperience.banner')
-                }}</label>
-                <span class="ks-status" :data-tone="branding.bannerPresent ? 'success' : 'warning'">
-                  {{
-                    branding.bannerPresent
-                      ? t('contentExperience.present')
-                      : t('contentExperience.notPresent')
-                  }}
-                </span>
-              </div>
+            </label>
+            <label class="block text-sm">
+              <span>{{ t('contentExperience.brandAccent') }}</span>
               <input
-                id="branding-banner"
-                ref="bannerInput"
-                class="mt-3 block w-full text-xs text-[var(--ks-muted)]"
-                type="file"
-                accept="image/png,image/jpeg,image/webp"
-                @change="onFile($event, 'banner')"
+                v-model="profileForm.primary_color"
+                class="ks-input mt-1.5"
+                placeholder="#0f766e"
               />
-              <AppButton
-                class="mt-3 w-full"
-                variant="ghost"
-                type="submit"
-                :disabled="bannerForm.processing || !bannerForm.image"
-              >
-                {{ t('contentExperience.uploadBanner') }}
-              </AppButton>
-            </form>
-          </div>
+            </label>
+            <div class="grid gap-3 sm:grid-cols-2 2xl:grid-cols-1">
+              <label class="block text-sm">
+                <span>{{ t('contentExperience.logoImage') }}</span>
+                <select v-model="profileForm.logo_media_id" class="ks-input mt-1.5">
+                  <option value="">{{ t('contentExperience.noLogo') }}</option>
+                  <option v-for="asset in props.media" :key="'logo-' + asset.id" :value="asset.id">
+                    {{ asset.name }}
+                  </option>
+                </select>
+              </label>
+              <label class="block text-sm">
+                <span>{{ t('contentExperience.bannerImage') }}</span>
+                <select v-model="profileForm.banner_media_id" class="ks-input mt-1.5">
+                  <option value="">{{ t('contentExperience.noBanner') }}</option>
+                  <option
+                    v-for="asset in props.media"
+                    :key="'banner-' + asset.id"
+                    :value="asset.id"
+                  >
+                    {{ asset.name }}
+                  </option>
+                </select>
+              </label>
+            </div>
+            <AppButton
+              class="w-full"
+              type="submit"
+              variant="ghost"
+              :disabled="profileForm.processing"
+            >
+              {{ t('contentExperience.saveProfile') }}
+            </AppButton>
+            <p v-if="Object.keys(profileForm.errors).length" class="text-xs text-rose-300">
+              {{ Object.values(profileForm.errors)[0] }}
+            </p>
+          </form>
         </section>
 
-        <section class="ks-surface p-5" aria-labelledby="categories-heading">
-          <p class="ks-kicker">{{ t('contentExperience.categories') }}</p>
-          <h2 id="categories-heading" class="ks-display mt-1 text-xl font-semibold">
-            {{ t('contentExperience.addCategory') }}
+        <section class="ks-surface p-5" aria-labelledby="category-heading">
+          <p class="ks-kicker">{{ t('contentExperience.categoryManagement') }}</p>
+          <h2 id="category-heading" class="ks-display mt-1 text-xl font-semibold">
+            {{ t('contentExperience.categories') }}
           </h2>
           <form class="mt-4 space-y-3" @submit.prevent="createCategory">
-            <div>
-              <label class="text-xs font-semibold" for="category-name">{{
-                t('contentExperience.name')
-              }}</label>
-              <input
-                id="category-name"
-                v-model="categoryForm.name"
-                class="ks-input mt-1.5"
-                required
-                maxlength="120"
-                @blur="fillCategorySlug"
-              />
-            </div>
-            <div>
-              <label class="text-xs font-semibold" for="category-slug">{{
-                t('contentExperience.slug')
-              }}</label>
-              <input
-                id="category-slug"
-                v-model="categoryForm.slug"
-                class="ks-input mt-1.5"
-                required
-                maxlength="120"
-                pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
-              />
-            </div>
+            <input
+              v-model="categoryForm.name"
+              class="ks-input"
+              :placeholder="t('contentExperience.name')"
+              required
+              maxlength="120"
+              @blur="fillCategorySlug"
+            />
+            <input
+              v-model="categoryForm.slug"
+              class="ks-input"
+              :placeholder="t('contentExperience.slug')"
+              required
+              maxlength="120"
+              pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
+            />
             <AppButton
               class="w-full"
               type="submit"
@@ -323,301 +404,328 @@ function timestamp(value: string | null): string {
               {{ t('contentExperience.createCategory') }}
             </AppButton>
           </form>
-          <div v-if="categories.length" class="mt-4 flex flex-wrap gap-2">
-            <span v-for="category in categories" :key="category.id" class="ks-chip">{{
-              category.name
-            }}</span>
+          <div v-if="props.categories.length" class="mt-4 space-y-3">
+            <form
+              v-for="category in props.categories"
+              :key="category.id"
+              class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] p-3"
+              @submit.prevent="updateCategory(category.id)"
+            >
+              <input v-model="categoryEdits[category.id]!.name" class="ks-input" required />
+              <input v-model="categoryEdits[category.id]!.slug" class="ks-input mt-2" required />
+              <div class="mt-2 flex gap-2">
+                <AppButton type="submit" variant="ghost">{{
+                  t('contentExperience.saveCategory')
+                }}</AppButton>
+                <button type="button" class="ks-chip" @click="deleteCategory(category.id)">
+                  {{ t('contentExperience.deleteCategory') }}
+                </button>
+              </div>
+            </form>
           </div>
+        </section>
+
+        <section class="ks-surface p-5" aria-labelledby="media-heading">
+          <p class="ks-kicker">{{ t('contentExperience.mediaLibrary') }}</p>
+          <h2 id="media-heading" class="ks-display mt-1 text-xl font-semibold">
+            {{ t('contentExperience.activeMedia') }}
+          </h2>
+          <p class="mt-2 text-sm text-[var(--ks-muted)]">{{ t('contentExperience.mediaHelp') }}</p>
+          <form class="mt-4" @submit.prevent="uploadMedia">
+            <input
+              class="block w-full text-xs text-[var(--ks-muted)]"
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              @change="mediaForm.media = ($event.target as HTMLInputElement).files?.[0] ?? null"
+            />
+            <AppButton
+              class="mt-3 w-full"
+              type="submit"
+              variant="ghost"
+              :disabled="!mediaForm.media || mediaForm.processing"
+            >
+              {{ t('contentExperience.uploadMedia') }}
+            </AppButton>
+          </form>
+          <div v-if="props.media.length" class="mt-4 space-y-2">
+            <div
+              v-for="asset in props.media"
+              :key="asset.id"
+              class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] p-3"
+            >
+              <div class="flex items-start justify-between gap-3">
+                <div class="min-w-0">
+                  <strong class="block truncate text-sm">{{ asset.name }}</strong>
+                  <p class="mt-1 text-xs text-[var(--ks-muted)]">
+                    {{ bytes(asset.sizeBytes) }} · {{ asset.scanStatus }} ·
+                    {{ asset.lifecycleStatus }}
+                  </p>
+                </div>
+                <button type="button" class="ks-chip" @click="archiveMedia(asset.id)">
+                  {{ t('contentExperience.archiveMedia') }}
+                </button>
+              </div>
+            </div>
+          </div>
+          <div v-else class="ks-fantasy-empty mt-4">{{ t('contentExperience.noMedia') }}</div>
         </section>
       </aside>
 
       <div class="min-w-0 space-y-5">
-        <section class="ks-surface p-5 sm:p-6" aria-labelledby="create-content-heading">
-          <p class="ks-kicker">{{ t('contentExperience.createContent') }}</p>
-          <h2 id="create-content-heading" class="ks-display mt-1 text-2xl font-semibold">
-            {{ t('contentExperience.newContent') }}
-          </h2>
+        <section class="ks-surface p-5 sm:p-6" aria-labelledby="editor-heading">
+          <div class="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p class="ks-kicker">{{ t('contentExperience.broadcastDesk') }}</p>
+              <h2 id="editor-heading" class="ks-display mt-1 text-2xl font-semibold">
+                {{
+                  editingId
+                    ? t('contentExperience.editContent')
+                    : t('contentExperience.createContent')
+                }}
+              </h2>
+            </div>
+            <button v-if="editingId" type="button" class="ks-chip" @click="resetContentForm">
+              {{ t('contentExperience.cancelEdit') }}
+            </button>
+          </div>
           <p class="mt-2 text-sm leading-6 text-[var(--ks-muted)]">
-            {{ t('contentExperience.createHelp') }}
+            {{
+              editingId
+                ? t('contentExperience.revisedDraftHelp')
+                : t('contentExperience.broadcastHelp')
+            }}
           </p>
 
-          <form class="mt-5 grid gap-4 md:grid-cols-2" @submit.prevent="createContent">
-            <div>
-              <label class="text-xs font-semibold" for="new-type">{{
-                t('contentExperience.type')
-              }}</label>
-              <select id="new-type" v-model="createForm.content_type" class="ks-input mt-1.5">
-                <option value="notice">{{ t('contentExperience.notice') }}</option>
-                <option value="guide">{{ t('contentExperience.guide') }}</option>
+          <form class="mt-5 grid gap-4 md:grid-cols-2" @submit.prevent="saveContent">
+            <label class="block text-sm">
+              <span>{{ t('contentExperience.type') }}</span>
+              <select v-model="contentForm.type" class="ks-input mt-1.5">
+                <option
+                  v-for="option in props.contentTypes"
+                  :key="option.value"
+                  :value="option.value"
+                >
+                  {{ option.label }}
+                </option>
               </select>
-            </div>
-            <div>
-              <label class="text-xs font-semibold" for="new-category">{{
-                t('contentExperience.category')
-              }}</label>
-              <select id="new-category" v-model="createForm.category_id" class="ks-input mt-1.5">
+            </label>
+            <label class="block text-sm">
+              <span>{{ t('contentExperience.category') }}</span>
+              <select v-model="contentForm.category_id" class="ks-input mt-1.5">
                 <option value="">{{ t('contentExperience.noCategory') }}</option>
-                <option v-for="category in categories" :key="category.id" :value="category.id">
+                <option
+                  v-for="category in props.categories"
+                  :key="category.id"
+                  :value="category.id"
+                >
                   {{ category.name }}
                 </option>
               </select>
-            </div>
-            <div class="md:col-span-2">
-              <label class="text-xs font-semibold" for="new-title">{{
-                t('contentExperience.title')
-              }}</label>
+            </label>
+            <label class="block text-sm md:col-span-2">
+              <span>{{ t('contentExperience.title') }}</span>
               <input
-                id="new-title"
-                v-model="createForm.title"
+                v-model="contentForm.title"
                 class="ks-input mt-1.5"
                 required
-                maxlength="200"
-                @blur="fillContentSlug(createForm)"
+                maxlength="180"
+                @blur="fillContentSlug"
               />
-            </div>
-            <div>
-              <label class="text-xs font-semibold" for="new-slug">{{
-                t('contentExperience.slug')
-              }}</label>
+            </label>
+            <label class="block text-sm">
+              <span>{{ t('contentExperience.slug') }}</span>
               <input
-                id="new-slug"
-                v-model="createForm.slug"
+                v-model="contentForm.slug"
                 class="ks-input mt-1.5"
                 required
-                maxlength="160"
+                maxlength="180"
                 pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
               />
-            </div>
-            <div>
-              <label class="text-xs font-semibold" for="new-locale">{{
-                t('contentExperience.locale')
-              }}</label>
+            </label>
+            <label class="block text-sm">
+              <span>{{ t('contentExperience.locale') }}</span>
+              <input v-model="contentForm.locale" class="ks-input mt-1.5" required maxlength="16" />
+            </label>
+            <label class="block text-sm">
+              <span>{{ t('contentExperience.visibility') }}</span>
+              <select v-model="contentForm.visibility" class="ks-input mt-1.5">
+                <option
+                  v-for="option in props.visibilityOptions"
+                  :key="option.value"
+                  :value="option.value"
+                >
+                  {{ option.label }}
+                </option>
+              </select>
+            </label>
+            <label class="block text-sm">
+              <span>{{ t('contentExperience.sortOrder') }}</span>
               <input
-                id="new-locale"
-                v-model="createForm.locale"
+                v-model.number="contentForm.sort_order"
                 class="ks-input mt-1.5"
-                required
-                maxlength="16"
+                type="number"
+                min="0"
+                max="100000"
               />
-            </div>
-            <div>
-              <label class="text-xs font-semibold" for="new-visibility">{{
-                t('contentExperience.visibility')
-              }}</label>
-              <select id="new-visibility" v-model="createForm.visibility" class="ks-input mt-1.5">
-                <option value="members">{{ t('contentExperience.members') }}</option>
-                <option value="public">{{ t('contentExperience.public') }}</option>
-              </select>
-            </div>
-            <div>
-              <label class="text-xs font-semibold" for="new-status">{{
-                t('contentExperience.status')
-              }}</label>
-              <select id="new-status" v-model="createForm.status" class="ks-input mt-1.5">
-                <option value="draft">{{ t('contentExperience.draft') }}</option>
-                <option value="published">{{ t('contentExperience.published') }}</option>
-              </select>
-            </div>
-            <div class="md:col-span-2">
-              <label class="text-xs font-semibold" for="new-summary">{{
-                t('contentExperience.summary')
-              }}</label>
+            </label>
+            <label class="block text-sm md:col-span-2">
+              <span>{{ t('contentExperience.summary') }}</span>
               <textarea
-                id="new-summary"
-                v-model="createForm.summary"
+                v-model="contentForm.summary"
                 class="ks-input mt-1.5 min-h-20"
-                maxlength="1000"
+                maxlength="500"
               />
-            </div>
-            <div class="md:col-span-2">
-              <label class="text-xs font-semibold" for="new-body">{{
-                t('contentExperience.body')
-              }}</label>
+            </label>
+            <label class="block text-sm md:col-span-2">
+              <span>{{ t('contentExperience.body') }}</span>
               <textarea
-                id="new-body"
-                v-model="createForm.body"
+                v-model="contentForm.body"
                 class="ks-input mt-1.5 min-h-48"
                 required
                 maxlength="50000"
               />
-            </div>
-            <AppButton class="md:col-span-2" type="submit" :disabled="createForm.processing">
-              {{ t('contentExperience.createContent') }}
+            </label>
+            <label
+              v-if="contentForm.type === 'announcement'"
+              class="flex items-start gap-3 rounded-[var(--ks-radius-md)] border border-cyan-300/20 bg-cyan-400/5 p-4 md:col-span-2"
+            >
+              <input v-model="contentForm.notify_members" class="mt-1" type="checkbox" />
+              <span>
+                <strong class="block text-sm">{{ t('contentExperience.notifyMembers') }}</strong>
+                <span class="mt-1 block text-xs leading-5 text-[var(--ks-muted)]">
+                  {{ t('contentExperience.notifyMembersHelp') }}
+                </span>
+              </span>
+            </label>
+            <AppButton
+              class="md:col-span-2 md:w-fit"
+              type="submit"
+              :disabled="contentForm.processing"
+            >
+              {{
+                editingId ? t('contentExperience.saveChanges') : t('contentExperience.saveDraft')
+              }}
             </AppButton>
+            <p
+              v-if="Object.keys(contentForm.errors).length"
+              class="text-xs text-rose-300 md:col-span-2"
+            >
+              {{ Object.values(contentForm.errors)[0] }}
+            </p>
           </form>
         </section>
 
-        <section aria-labelledby="existing-content-heading">
+        <section aria-labelledby="inventory-heading">
           <div class="flex items-end justify-between gap-3 px-1">
             <div>
-              <p class="ks-kicker">{{ t('contentExperience.existingContent') }}</p>
-              <h2 id="existing-content-heading" class="ks-display mt-1 text-2xl font-semibold">
-                {{ content.length }}
+              <p class="ks-kicker">{{ t('contentExperience.contentInventory') }}</p>
+              <h2 id="inventory-heading" class="ks-display mt-1 text-2xl font-semibold">
+                {{ props.content.length }}
               </h2>
             </div>
           </div>
 
-          <div v-if="content.length" class="mt-4 space-y-4">
-            <article v-for="item in content" :key="item.id" class="ks-surface overflow-hidden">
-              <div
-                class="flex flex-wrap items-start justify-between gap-4 border-b border-[var(--ks-border)] p-4 sm:p-5"
-              >
-                <div class="min-w-0">
-                  <div class="flex flex-wrap items-center gap-2">
-                    <span class="ks-chip">{{ item.typeLabel }}</span>
-                    <span class="ks-status" :data-tone="statusTone(item.status)">{{
-                      item.status
-                    }}</span>
-                    <span class="ks-status" :data-tone="visibilityTone(item.visibility)">{{
-                      item.visibility
-                    }}</span>
+          <div v-if="props.content.length" class="mt-4 space-y-4">
+            <article
+              v-for="item in props.content"
+              :key="item.id"
+              class="ks-surface overflow-hidden"
+            >
+              <div class="border-b border-[var(--ks-border)] p-4 sm:p-5">
+                <div class="flex flex-wrap items-start justify-between gap-4">
+                  <div class="min-w-0">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <span class="ks-chip">{{ item.typeLabel }}</span>
+                      <span class="ks-status" :data-tone="statusTone(item.status)">{{
+                        item.status
+                      }}</span>
+                      <span v-if="item.notifyMembers" class="ks-status" data-tone="info">
+                        {{
+                          item.broadcastedAt
+                            ? t('contentExperience.broadcastComplete')
+                            : t('contentExperience.notifyMembers')
+                        }}
+                      </span>
+                    </div>
+                    <h3 class="ks-display mt-3 text-xl font-semibold">{{ item.title }}</h3>
+                    <p class="mt-1 text-xs text-[var(--ks-muted)]">
+                      {{ item.category?.name ?? t('contentExperience.noCategory') }} ·
+                      {{ t('contentExperience.revision') }} {{ item.revisionNumber }} ·
+                      {{ timestamp(item.updatedAt) }}
+                    </p>
+                    <p v-if="item.scheduledFor" class="mt-2 text-xs text-amber-200">
+                      {{ t('contentExperience.scheduledFor') }} {{ timestamp(item.scheduledFor) }}
+                    </p>
                   </div>
-                  <h3 class="ks-display mt-3 text-xl font-semibold">{{ item.title }}</h3>
-                  <p class="mt-1 text-xs text-[var(--ks-muted)]">
-                    {{ item.updatedAt ? timestamp(item.updatedAt) : '—' }}
-                  </p>
+                  <div class="flex flex-wrap gap-2">
+                    <Link
+                      :href="'/alliance/content/' + item.slug"
+                      class="ks-command-link"
+                      data-variant="secondary"
+                    >
+                      {{ t('contentExperience.view') }}
+                    </Link>
+                    <button type="button" class="ks-chip" @click="editContent(item)">
+                      {{ t('contentExperience.editContent') }}
+                    </button>
+                    <button type="button" class="ks-chip" @click="archiveContent(item.id)">
+                      {{ t('contentExperience.archive') }}
+                    </button>
+                  </div>
                 </div>
-                <div class="flex flex-wrap gap-2">
-                  <Link
-                    :href="`/alliance/content/${item.slug}`"
-                    class="ks-command-link"
-                    data-variant="secondary"
-                  >
-                    {{ t('contentExperience.view') }}
-                  </Link>
+
+                <div
+                  v-if="item.status !== 'published'"
+                  class="mt-4 grid gap-3 rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-3 sm:grid-cols-[1fr_auto_auto]"
+                >
+                  <label class="block text-xs">
+                    <span>{{ t('contentExperience.scheduleLocal') }}</span>
+                    <input
+                      v-model="scheduleInputs[item.id]"
+                      class="ks-input mt-1.5"
+                      type="datetime-local"
+                    />
+                  </label>
                   <AppButton
-                    v-if="permissions.publish && item.status !== 'published'"
+                    class="self-end"
                     type="button"
                     variant="secondary"
-                    @click="publish(item.id)"
+                    @click="schedule(item.id)"
                   >
-                    {{ t('contentExperience.publish') }}
+                    {{ t('contentExperience.schedule') }}
+                  </AppButton>
+                  <AppButton class="self-end" type="button" @click="publishNow(item.id)">
+                    {{ t('contentExperience.publishNow') }}
                   </AppButton>
                 </div>
               </div>
 
-              <form
-                class="grid gap-4 p-4 sm:p-5 md:grid-cols-2"
-                @submit.prevent="updateContent(item.id)"
-              >
-                <div>
-                  <label class="text-xs font-semibold" :for="`type-${item.id}`">{{
-                    t('contentExperience.type')
-                  }}</label>
-                  <select
-                    :id="`type-${item.id}`"
-                    v-model="edits[item.id]!.content_type"
-                    class="ks-input mt-1.5"
+              <details v-if="item.revisions.length" class="p-4 sm:p-5">
+                <summary class="cursor-pointer text-sm font-semibold">
+                  {{ t('contentExperience.revisions') }} · {{ item.revisions.length }}
+                </summary>
+                <div class="mt-3 space-y-2">
+                  <div
+                    v-for="revision in item.revisions"
+                    :key="revision.id"
+                    class="flex flex-wrap items-center justify-between gap-3 rounded border border-[var(--ks-border)] p-3"
                   >
-                    <option value="notice">{{ t('contentExperience.notice') }}</option>
-                    <option value="guide">{{ t('contentExperience.guide') }}</option>
-                  </select>
+                    <span class="text-sm">
+                      #{{ revision.revisionNumber }} · {{ revision.title }} ·
+                      {{ timestamp(revision.createdAt) }}
+                    </span>
+                    <button
+                      type="button"
+                      class="ks-chip"
+                      @click="restoreRevision(item.id, revision.id)"
+                    >
+                      {{
+                        t('contentExperience.restoreRevision', { number: revision.revisionNumber })
+                      }}
+                    </button>
+                  </div>
                 </div>
-                <div>
-                  <label class="text-xs font-semibold" :for="`category-${item.id}`">{{
-                    t('contentExperience.category')
-                  }}</label>
-                  <select
-                    :id="`category-${item.id}`"
-                    v-model="edits[item.id]!.category_id"
-                    class="ks-input mt-1.5"
-                  >
-                    <option value="">{{ t('contentExperience.noCategory') }}</option>
-                    <option v-for="category in categories" :key="category.id" :value="category.id">
-                      {{ category.name }}
-                    </option>
-                  </select>
-                </div>
-                <div class="md:col-span-2">
-                  <label class="text-xs font-semibold" :for="`title-${item.id}`">{{
-                    t('contentExperience.title')
-                  }}</label>
-                  <input
-                    :id="`title-${item.id}`"
-                    v-model="edits[item.id]!.title"
-                    class="ks-input mt-1.5"
-                    maxlength="200"
-                    required
-                  />
-                </div>
-                <div>
-                  <label class="text-xs font-semibold" :for="`slug-${item.id}`">{{
-                    t('contentExperience.slug')
-                  }}</label>
-                  <input
-                    :id="`slug-${item.id}`"
-                    v-model="edits[item.id]!.slug"
-                    class="ks-input mt-1.5"
-                    maxlength="160"
-                    required
-                    pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
-                  />
-                </div>
-                <div>
-                  <label class="text-xs font-semibold" :for="`locale-${item.id}`">{{
-                    t('contentExperience.locale')
-                  }}</label>
-                  <input
-                    :id="`locale-${item.id}`"
-                    v-model="edits[item.id]!.locale"
-                    class="ks-input mt-1.5"
-                    maxlength="16"
-                    required
-                  />
-                </div>
-                <div>
-                  <label class="text-xs font-semibold" :for="`visibility-${item.id}`">{{
-                    t('contentExperience.visibility')
-                  }}</label>
-                  <select
-                    :id="`visibility-${item.id}`"
-                    v-model="edits[item.id]!.visibility"
-                    class="ks-input mt-1.5"
-                  >
-                    <option value="members">{{ t('contentExperience.members') }}</option>
-                    <option value="public">{{ t('contentExperience.public') }}</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="text-xs font-semibold" :for="`status-${item.id}`">{{
-                    t('contentExperience.status')
-                  }}</label>
-                  <select
-                    :id="`status-${item.id}`"
-                    v-model="edits[item.id]!.status"
-                    class="ks-input mt-1.5"
-                  >
-                    <option value="draft">{{ t('contentExperience.draft') }}</option>
-                    <option value="published">{{ t('contentExperience.published') }}</option>
-                  </select>
-                </div>
-                <div class="md:col-span-2">
-                  <label class="text-xs font-semibold" :for="`summary-${item.id}`">{{
-                    t('contentExperience.summary')
-                  }}</label>
-                  <textarea
-                    :id="`summary-${item.id}`"
-                    v-model="edits[item.id]!.summary"
-                    class="ks-input mt-1.5 min-h-20"
-                    maxlength="1000"
-                  />
-                </div>
-                <div class="md:col-span-2">
-                  <label class="text-xs font-semibold" :for="`body-${item.id}`">{{
-                    t('contentExperience.body')
-                  }}</label>
-                  <textarea
-                    :id="`body-${item.id}`"
-                    v-model="edits[item.id]!.body"
-                    class="ks-input mt-1.5 min-h-44"
-                    required
-                    maxlength="50000"
-                  />
-                </div>
-                <AppButton class="md:col-span-2 md:w-fit" type="submit" variant="secondary">
-                  {{ t('contentExperience.saveChanges') }}
-                </AppButton>
-              </form>
+              </details>
             </article>
           </div>
           <div v-else class="ks-fantasy-empty mt-4">{{ t('contentExperience.noContent') }}</div>

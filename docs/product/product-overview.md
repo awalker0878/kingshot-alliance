@@ -21,7 +21,7 @@ Kingshot Alliance is a coordination platform for KingShot communities. It suppor
 4. Kingdom identity/governance and transfer-related coordination;
 5. Events, participation, rosters, battle planning, rallies, results and King Perks;
 6. roster/contribution/event/diplomacy intelligence and sharing;
-7. a Governor command overview plus reminders/notifications with retryable in-app, Discord and Telegram delivery;
+7. a Governor command overview, scheduled Alliance announcement broadcasts, and reminders/notifications with retryable in-app, Discord and Telegram delivery;
 8. platform lifecycle, event-type administration, API credentials and webhooks;
 9. composed dashboards/history/settings views across business contexts.
 

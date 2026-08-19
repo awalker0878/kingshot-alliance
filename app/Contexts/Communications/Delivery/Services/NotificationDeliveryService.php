@@ -27,6 +27,9 @@ final class NotificationDeliveryService
         array $metadata = [],
         int $maxAttempts = 5,
     ): NotificationDelivery {
+        $queuedAt = now();
+        $isInApp = $channel === DeliveryChannel::InApp->value;
+
         return NotificationDelivery::query()->firstOrCreate(
             ['idempotency_key' => $idempotencyKey],
             [
@@ -37,10 +40,11 @@ final class NotificationDeliveryService
                 'subject_type' => $subjectType,
                 'subject_id' => $subjectId,
                 'due_at' => $dueAt,
-                'status' => DeliveryStatus::Queued,
+                'status' => $isInApp ? DeliveryStatus::Sent : DeliveryStatus::Queued,
                 'attempt_count' => 0,
                 'max_attempts' => max(1, $maxAttempts),
-                'queued_at' => now(),
+                'queued_at' => $queuedAt,
+                'sent_at' => $isInApp ? $queuedAt : null,
                 'metadata' => $metadata === [] ? null : $metadata,
             ],
         );

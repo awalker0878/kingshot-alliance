@@ -82,6 +82,7 @@ function dismiss(delivery: Delivery): void {
   router.delete(`/notifications/${delivery.id}`, { preserveScroll: true });
 }
 function typeLabel(type: string): string {
+  if (type === 'alliance.announcement') return 'Alliance announcements';
   if (type === 'event.reminder') return 'Event reminders';
   if (type === 'king_perks.reminder') return 'King Perk reminders';
   return type;

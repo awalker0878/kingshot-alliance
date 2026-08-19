@@ -26,8 +26,10 @@ final class ContentPresenter
             'locale' => (string) $item->locale,
             'sortOrder' => (int) $item->sort_order,
             'revisionNumber' => (int) $item->current_revision_number,
+            'notifyMembers' => (bool) $item->notify_members,
             'scheduledFor' => $item->scheduled_for?->toIso8601String(),
             'publishedAt' => $item->published_at?->toIso8601String(),
+            'broadcastedAt' => $item->broadcasted_at?->toIso8601String(),
             'archivedAt' => $item->archived_at?->toIso8601String(),
             'updatedAt' => $item->updated_at?->toIso8601String(),
             'category' => $category instanceof ContentCategory ? [

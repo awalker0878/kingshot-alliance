@@ -20,6 +20,7 @@ const messages = {
     anyLocale: 'Any language',
     applyFilters: 'Apply filters',
     clear: 'Clear',
+    view: 'Open',
     publishedContent: 'Published content',
     displayedIn: 'Displayed in {timezone}',
     membersOnly: 'Members only',
@@ -30,6 +31,18 @@ const messages = {
     managementTitle: 'Manage public presence',
     managementSubtitle:
       'Profile, content revisions, publication, categories, and scanned branding media.',
+    broadcastDesk: 'Alliance broadcast desk',
+    broadcastSubtitle:
+      'Publish or schedule announcements, then deliver them once through each Governor’s enabled channels.',
+    broadcastHelp:
+      'Draft Alliance content here. Announcements can fan out through the in-app inbox, Discord, and Telegram when published.',
+    notifyMembers: 'Notify active members when published',
+    notifyMembersHelp:
+      'Each claimed active Governor receives one idempotent in-app delivery plus any enabled external channels.',
+    broadcastComplete: 'Broadcast queued',
+    queuedBroadcasts: 'Awaiting broadcast',
+    deliverySettings: 'Delivery settings',
+    scheduleLocal: 'Publish date and time (your device time zone)',
     viewPublicPage: 'View public page',
     contentItems: 'Content items',
     publishedItems: 'Published',
