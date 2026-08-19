@@ -25,3 +25,4 @@ Create a bot with BotFather, add it to the target chat, and provide the bot toke
 - A configured external channel receives Event and King Perk reminders when that channel is enabled.
 - HTTP 429 and server failures receive bounded retries. Permanent provider failures remain visible in the Notification Center so the endpoint can be corrected.
 - Removing an endpoint stops new fan-out to that provider; existing history remains visible until dismissed.
+- Endpoint health shows the latest provider error and clears after a successful acknowledgement.
