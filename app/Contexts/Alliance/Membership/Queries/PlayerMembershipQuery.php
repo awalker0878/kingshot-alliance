@@ -42,14 +42,14 @@ final class PlayerMembershipQuery
         }
 
         return array_values(
-            return AllianceMembership::query()
-                ->where('alliance_id', $allianceId)
-                ->where('status', MembershipStatus::Active->value)
-                ->orderBy('player_id')
-                ->lockForUpdate()
-                ->pluck('player_id')
-                ->map(static fn ($id): string => (string) $id)
-                ->all();,
+            AllianceMembership::query()    
+            ->where('alliance_id', $allianceId)    
+            ->where('status', MembershipStatus::Active->value)    
+            ->orderBy('player_id')    
+            ->lockForUpdate()    
+            ->pluck('player_id')    
+            ->map(static fn ($id): string => (string) $id)    
+            ->all(),
         );
     }
 
@@ -66,13 +66,13 @@ final class PlayerMembershipQuery
     public function activePlayerIds(string $allianceId): array
     {
         return array_values(
-            return AllianceMembership::query()
-                ->where('alliance_id', $allianceId)
-                ->where('status', MembershipStatus::Active->value)
-                ->orderBy('player_id')
-                ->pluck('player_id')
-                ->map(static fn ($id): string => (string) $id)
-                ->all();,
+            AllianceMembership::query()    
+            ->where('alliance_id', $allianceId)    
+            ->where('status', MembershipStatus::Active->value)    
+            ->orderBy('player_id')    
+            ->pluck('player_id')    
+            ->map(static fn ($id): string => (string) $id)    
+            ->all(),
         );
     }
 
@@ -98,18 +98,18 @@ final class PlayerMembershipQuery
     {
         if ($playerIds === []) {
             return array_values(
-            return [];
-            }
+            [];    
+        }    
     
-            return AllianceMembership::query()
-                ->whereIn('player_id', $playerIds)
-                ->where('status', MembershipStatus::Active->value)
-                ->orderBy('alliance_id')
-                ->pluck('alliance_id')
-                ->map(static fn ($id): string => (string) $id)
-                ->unique()
-                ->values()
-                ->all();,
+        return AllianceMembership::query()    
+            ->whereIn('player_id', $playerIds)    
+            ->where('status', MembershipStatus::Active->value)    
+            ->orderBy('alliance_id')    
+            ->pluck('alliance_id')    
+            ->map(static fn ($id): string => (string) $id)    
+            ->unique()    
+            ->values()    
+            ->all(),
         );
     }
 
@@ -117,16 +117,16 @@ final class PlayerMembershipQuery
     public function activeAllianceIdsForPlayerInKingdom(string $playerId, string $kingdomId): array
     {
         return array_values(
-            return AllianceMembership::query()
-                ->where('player_id', $playerId)
-                ->where('status', MembershipStatus::Active->value)
-                ->whereHas('alliance', static fn ($query) => $query->where('kingdom_id', $kingdomId))
-                ->orderBy('alliance_id')
-                ->pluck('alliance_id')
-                ->map(static fn ($id): string => (string) $id)
-                ->unique()
-                ->values()
-                ->all();,
+            AllianceMembership::query()    
+            ->where('player_id', $playerId)    
+            ->where('status', MembershipStatus::Active->value)    
+            ->whereHas('alliance', static fn ($query) => $query->where('kingdom_id', $kingdomId))    
+            ->orderBy('alliance_id')    
+            ->pluck('alliance_id')    
+            ->map(static fn ($id): string => (string) $id)    
+            ->unique()    
+            ->values()    
+            ->all(),
         );
     }
 }
