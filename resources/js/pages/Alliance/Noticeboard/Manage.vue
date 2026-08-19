@@ -633,11 +633,7 @@ function bytes(value: number): string {
               </label>
               <label class="block text-sm">
                 <span>{{ t('contentExperience.gameVersion') }}</span>
-                <input
-                  v-model="contentForm.game_version"
-                  class="ks-input mt-1.5"
-                  maxlength="64"
-                />
+                <input v-model="contentForm.game_version" class="ks-input mt-1.5" maxlength="64" />
               </label>
               <label class="block text-sm">
                 <span>{{ t('contentExperience.reviewedAt') }}</span>
@@ -730,10 +726,7 @@ function bytes(value: number): string {
                     <p v-if="item.scheduledFor" class="mt-2 text-xs text-amber-200">
                       {{ t('contentExperience.scheduledFor') }} {{ timestamp(item.scheduledFor) }}
                     </p>
-                    <p
-                      v-if="item.provenance"
-                      class="mt-2 text-xs leading-5 text-[var(--ks-muted)]"
-                    >
+                    <p v-if="item.provenance" class="mt-2 text-xs leading-5 text-[var(--ks-muted)]">
                       {{ t('contentExperience.source') }}:
                       {{ item.provenance.sourceLabel ?? '—' }}
                       <template v-if="item.provenance.gameVersion">
