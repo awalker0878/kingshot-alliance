@@ -190,11 +190,7 @@ final readonly class KingPerkScheduleQuery
         ];
     }
 
-    /**
-     * @param array<string, PlayerReference> $players
-     *
-     * @return array<string, mixed>
-     */
+    /** @param array<string, PlayerReference> $players */
     private function appointment(KingPerkAppointment $appointment, KingPerkPlan $plan, array $players): array
     {
         $player = $players[(string) $appointment->assigned_player_id] ?? null;
@@ -219,11 +215,7 @@ final readonly class KingPerkScheduleQuery
         ];
     }
 
-    /**
-     * @param array<string, PlayerReference> $players
-     *
-     * @return array<string, mixed>
-     */
+    /** @param array<string, PlayerReference> $players */
     private function request(KingPerkRequest $request, array $players): array
     {
         $player = $players[(string) $request->player_id] ?? null;
@@ -245,7 +237,6 @@ final readonly class KingPerkScheduleQuery
         ];
     }
 
-    /** @return array<string, mixed> */
     private function skill(KingSkillPlan $skill): array
     {
         return [
@@ -300,7 +291,6 @@ final readonly class KingPerkScheduleQuery
         return ['generatedAt' => $now->toIso8601String(), 'lanes' => $lanes];
     }
 
-    /** @return list<array<string, mixed>> */
     private function appointmentTypes(): array
     {
         return array_map(static fn (KingAppointmentType $type): array => [
@@ -314,7 +304,6 @@ final readonly class KingPerkScheduleQuery
         ], KingAppointmentType::cases());
     }
 
-    /** @return list<array<string, mixed>> */
     private function pushCategories(): array
     {
         return array_map(static fn (KingPerkPushCategory $category): array => [
@@ -324,7 +313,6 @@ final readonly class KingPerkScheduleQuery
         ], KingPerkPushCategory::cases());
     }
 
-    /** @return list<array<string, mixed>> */
     private function skillTypes(): array
     {
         return array_map(static fn (KingSkill $skill): array => [
