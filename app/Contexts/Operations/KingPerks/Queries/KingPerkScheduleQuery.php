@@ -35,7 +35,8 @@ final readonly class KingPerkScheduleQuery
         private EventCalendarQuery $events,
         private EventCapabilityGuard $capabilities,
         private KingPerkPreparationPresetCatalog $presets,
-    ) {}
+    ) {
+    }
 
     /** @return array<string, mixed> */
     public function management(PlayerReference $actor, string $eventId, ?string $occurrenceId = null): array
