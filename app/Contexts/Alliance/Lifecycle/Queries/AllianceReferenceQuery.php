@@ -28,19 +28,21 @@ final class AllianceReferenceQuery
 
     public function exists(string $allianceId): bool
     {
-        return Alliance::query()->whereKey($allianceId)->exists();
-    }
-
-    /** @return list<AllianceReference> */
-    public function all(int $limit = 500): array
-    {
-        return Alliance::query()
-            ->orderBy('id')
-            ->limit(max(1, min(5000, $limit)))
-            ->get()
-            ->map(fn (Alliance $alliance): AllianceReference => $this->snapshot($alliance))
-            ->values()
-            ->all();
+        return array_values(
+            return Alliance::query()->whereKey($allianceId)->exists();
+        }
+    
+        /** @return list<AllianceReference> */
+        public function all(int $limit = 500): array
+        {
+            return Alliance::query()
+                ->orderBy('id')
+                ->limit(max(1, min(5000, $limit)))
+                ->get()
+                ->map(fn (Alliance $alliance): AllianceReference => $this->snapshot($alliance))
+                ->values()
+                ->all();,
+        );
     }
 
     /** @return list<AllianceReference> */
@@ -54,10 +56,12 @@ final class AllianceReferenceQuery
             $query->where('status', 'active');
         }
 
-        return $query->get()
-            ->map(fn (Alliance $alliance): AllianceReference => $this->snapshot($alliance))
-            ->values()
-            ->all();
+        return array_values(
+            return $query->get()
+                ->map(fn (Alliance $alliance): AllianceReference => $this->snapshot($alliance))
+                ->values()
+                ->all();,
+        );
     }
 
     /**
