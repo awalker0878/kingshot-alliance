@@ -51,9 +51,11 @@ const endpointForm = useForm({
   bot_token: '',
   chat_id: '',
 });
-const unread = computed(() => props.deliveries.filter((delivery) => delivery.readAt === null).length);
-const failures = computed(() =>
-  props.deliveries.filter((delivery) => delivery.status === 'failed').length,
+const unread = computed(
+  () => props.deliveries.filter((delivery) => delivery.readAt === null).length,
+);
+const failures = computed(
+  () => props.deliveries.filter((delivery) => delivery.status === 'failed').length,
 );
 
 function saveEndpoint(): void {
@@ -131,7 +133,10 @@ function typeLabel(type: string): string {
           >
             <div class="min-w-0">
               <div class="flex flex-wrap items-center gap-2">
-                <span class="ks-status" :data-tone="delivery.status === 'failed' ? 'danger' : 'info'">
+                <span
+                  class="ks-status"
+                  :data-tone="delivery.status === 'failed' ? 'danger' : 'info'"
+                >
                   {{ delivery.channel }} · {{ delivery.status }}
                 </span>
                 <span v-if="delivery.readAt === null" class="h-2 w-2 rounded-full bg-cyan-300" />
@@ -246,7 +251,10 @@ function typeLabel(type: string): string {
                   <input v-model="endpointForm.chat_id" class="ks-input mt-1 w-full" required />
                 </label>
               </template>
-              <button class="ks-command-link w-full justify-center" :disabled="endpointForm.processing">
+              <button
+                class="ks-command-link w-full justify-center"
+                :disabled="endpointForm.processing"
+              >
                 Save {{ selectedChannel === 'discord' ? 'Discord' : 'Telegram' }} channel
               </button>
               <p v-if="Object.keys(endpointForm.errors).length" class="text-xs text-rose-300">
