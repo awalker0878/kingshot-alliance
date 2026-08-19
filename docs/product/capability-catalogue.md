@@ -7,13 +7,13 @@ This is the user/product view of implemented capability groups. Architectural ow
 | Product capability | Outcome | Architectural owner |
 | --- | --- | --- |
 | Account security | Register, authenticate, verify email, manage profile/password/MFA/recovery. | Accounts |
-| Player context | Own/claim Players and operate as one active game persona at a time. | GameWorld + PlayerContext workflow |
+| Player context | Own/claim Players and operate as one active game persona at a time. | GameWorld/Players; workflows coordinate cross-context effects |
 | Alliance management | Manage Alliance core/settings and tenant lifecycle. | Alliance |
 | Membership and leadership | Membership, invitations, R1–R5 leadership and specialist roles. | Alliance |
 | Recruitment | Intake/review/convert recruitment candidates through controlled membership handoff. | Alliance |
 | Alliance content | Publish/manage Alliance-facing content and media. | Alliance |
-| Kingdom governance | Manage Kingdom role/governance facts for Players. | GameWorld + workflows where cross-context |
-| Events | Define/schedule recurring Events and occurrences. | Operations/EventCore |
+| Kingdom governance | Manage Kingdom role/governance facts for Players. | GameWorld/Governance; workflows coordinate cross-context effects |
+| Events | Define/schedule recurring Events and occurrences. | Operations/Events |
 | Participation | Registration, responses and attendance. | Operations/Participation |
 | Event planning | Rosters, polls, battle objectives and assignments. | Operations |
 | Rallies | Plan and coordinate rallies against Event occurrences. | Operations/Rallies |
