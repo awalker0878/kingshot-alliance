@@ -58,7 +58,7 @@ final class KingdomRoleController extends Controller
                 'id' => (string) $assignment->id,
                 'player' => [
                     'id' => (string) $assignment->player_id,
-                    'name' => $player?->currentName ?? 'Unknown player',
+                    'name' => $player->currentName ?? 'Unknown player',
                     'gamePlayerId' => $player?->gamePlayerId,
                 ],
                 'role' => [
