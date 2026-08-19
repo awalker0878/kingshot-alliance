@@ -80,7 +80,7 @@ function diplomacyTone(value: string): 'success' | 'warning' | 'danger' | 'info'
 
 <template>
   <Head :title="`${t('kingdomP7A.overviewTitle')} · ${alliance.name}`" />
-  <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
+  <AppLayout>
     <RoomBanner
       :eyebrow="t('navigation.kingdom')"
       :title="t('kingdomP7A.overviewTitle')"

@@ -166,7 +166,7 @@ function withdraw(id: string): void {
 <template>
   <Head :title="`My King Perks · ${event.kingdomName}`" />
 
-  <AppLayout :user="user" :player-alliance-name="null" :has-player-alliance="false">
+  <AppLayout>
     <main class="mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
       <header class="space-y-2">
         <p class="text-xs font-semibold tracking-[0.2em] text-amber-300 uppercase">

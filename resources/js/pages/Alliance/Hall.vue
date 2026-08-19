@@ -197,7 +197,7 @@ function formatInZone(value: string, timeZone: string): string {
 <template>
   <Head :title="alliance.name" />
 
-  <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
+  <AppLayout>
     <RoomBanner
       :eyebrow="t('allianceOperations.overview.eyebrow')"
       :title="t('navigation.alliance')"

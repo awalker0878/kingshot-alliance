@@ -148,7 +148,7 @@ function tone(value: string): string {
 
 <template>
   <Head :title="`${t('kingdomP7A.ingestionTitle')} · ${alliance.name}`" />
-  <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
+  <AppLayout>
     <RoomBanner
       :eyebrow="t('kingdomP7A.eyebrow')"
       :title="t('kingdomP7A.ingestionTitle')"

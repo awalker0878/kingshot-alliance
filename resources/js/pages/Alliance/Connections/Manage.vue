@@ -104,7 +104,7 @@ function stateTone(state: string): 'success' | 'warning' | 'danger' | 'info' {
 <template>
   <Head :title="`${t('integrationExperience.title')} · ${alliance.name}`" />
 
-  <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
+  <AppLayout>
     <RoomBanner
       :eyebrow="t('integrationExperience.eyebrow')"
       :title="t('integrationExperience.title')"

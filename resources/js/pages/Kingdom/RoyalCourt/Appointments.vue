@@ -313,7 +313,7 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
 <template>
   <Head :title="`King Perks · ${event.kingdomName}`" />
 
-  <AppLayout :user="user" :player-alliance-name="null" :has-player-alliance="false">
+  <AppLayout>
     <main class="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
       <RoomBanner
         eyebrow="King’s Court · Kingdom of Power"

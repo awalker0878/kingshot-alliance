@@ -106,7 +106,7 @@ function recordSnapshot(): void {
 <template>
   <Head :title="`${t('rosterHistory.title')} · ${entry.name}`" />
 
-  <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
+  <AppLayout>
     <RoomBanner
       :eyebrow="t('roster.eyebrow', { kingdom: alliance.kingdom ?? t('roster.kingdomNotSet') })"
       :title="entry.name"

@@ -180,7 +180,7 @@ function humanize(value: string): string {
 <template>
   <Head :title="t('events.management.createTitle')" />
 
-  <AppLayout :user="user">
+  <AppLayout>
     <RoomBanner
       :eyebrow="t('events.calendar.eyebrow')"
       :title="t('events.management.createTitle')"

@@ -119,7 +119,7 @@ function rosterStateTone(value: string): string {
 <template>
   <Head :title="`${t('roster.intelligenceTitle')} · ${alliance.name}`" />
 
-  <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
+  <AppLayout>
     <RoomBanner
       eyebrow="Intel Room"
       title="Alliance Roster"

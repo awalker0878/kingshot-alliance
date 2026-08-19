@@ -102,9 +102,7 @@ function logout(): void {
               :name="room.icon"
               class="h-5 w-5 shrink-0"
               :class="
-                isActive(room)
-                  ? 'text-[var(--ks-gold-bright)]'
-                  : 'text-[var(--ks-gold)] opacity-80'
+                isActive(room) ? 'text-[var(--ks-gold-bright)]' : 'text-[var(--ks-gold)] opacity-80'
               "
             />
             <span class="min-w-0 flex-1 truncate">{{ t(`navigation.${room.key}`) }}</span>
@@ -256,7 +254,10 @@ function logout(): void {
         class="sticky top-0 z-30 hidden min-h-[5.25rem] items-center gap-5 border-b border-[var(--ks-border)] bg-[rgba(5,10,11,.88)] px-6 backdrop-blur-xl xl:flex"
       >
         <div class="flex min-w-0 flex-1 items-center gap-4">
-          <AllianceCrest :name="activeAllianceName || activeGovernor?.name || 'Kingshot'" size="md" />
+          <AllianceCrest
+            :name="activeAllianceName || activeGovernor?.name || 'Kingshot'"
+            size="md"
+          />
           <div class="min-w-0">
             <p class="ks-kicker">{{ t('common.currentPlayer') }}</p>
             <div class="mt-1 flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-1">

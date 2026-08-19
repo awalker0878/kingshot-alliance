@@ -55,11 +55,7 @@ function rolesFor(membership: MembershipSummary): string {
 <template>
   <Head :title="t('application.dashboard.title')" />
 
-  <AppLayout
-    :user="user"
-    :has-player-alliance="membership !== null"
-    :player-alliance-name="membership?.alliance.name ?? null"
-  >
+  <AppLayout>
     <RoomBanner
       :eyebrow="t('application.dashboard.eyebrow')"
       :title="membership?.alliance.name ?? t('application.dashboard.title')"

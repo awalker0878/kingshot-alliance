@@ -163,7 +163,7 @@ function humanize(value: string): string {
 <template>
   <Head :title="`${candidate.name} · ${t('recruitment.title')}`" />
 
-  <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
+  <AppLayout>
     <RoomBanner
       :eyebrow="t('recruitment.candidateRecord')"
       :title="candidate.name"

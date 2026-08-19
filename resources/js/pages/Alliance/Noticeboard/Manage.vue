@@ -149,7 +149,7 @@ function timestamp(value: string | null): string {
 <template>
   <Head :title="`${t('contentExperience.manageTitle')} · ${alliance.name}`" />
 
-  <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
+  <AppLayout>
     <RoomBanner
       :eyebrow="t('contentExperience.manageEyebrow')"
       :title="t('contentExperience.manageTitle')"

@@ -47,7 +47,7 @@ function removeRole(assignment: Assignment): void {
 
 <template>
   <Head :title="`${t('kingdomP7A.rolesTitle')} · #${kingdom.number}`" />
-  <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
+  <AppLayout>
     <RoomBanner
       :eyebrow="t('kingdomP7A.rolesEyebrow')"
       :title="t('kingdomP7A.rolesTitle')"

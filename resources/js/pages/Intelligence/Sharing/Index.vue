@@ -77,7 +77,7 @@ function historyUrl(target: string, cursor?: string | null): string {
 <template>
   <Head :title="`${t('kingdomP7C.title')} · ${alliance.name}`" />
 
-  <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
+  <AppLayout>
     <RoomBanner
       :eyebrow="t('kingdomP7C.eyebrow')"
       :title="t('kingdomP7C.title')"

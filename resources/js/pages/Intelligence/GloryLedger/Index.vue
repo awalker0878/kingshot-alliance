@@ -139,7 +139,7 @@ function explanation(row: RecordRow): string {
 <template>
   <Head :title="`${t('contributions.title')} · ${alliance.name}`" />
 
-  <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
+  <AppLayout>
     <RoomBanner
       :eyebrow="t('contributions.eyebrow')"
       :title="t('contributions.title')"

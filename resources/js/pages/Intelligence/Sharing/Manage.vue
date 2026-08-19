@@ -182,7 +182,7 @@ function formatDate(value: string | null): string {
 <template>
   <Head :title="`${t('kingdomP7C.manageTitle')} · ${alliance.name}`" />
 
-  <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
+  <AppLayout>
     <RoomBanner
       :eyebrow="t('kingdomP7C.manageEyebrow')"
       :title="t('kingdomP7C.manageTitle')"

@@ -16,7 +16,7 @@ const { t } = useLocale();
 
 <template>
   <Head :title="`${t('kingdomP7A.settingsTitle')} · ${alliance.name}`" />
-  <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
+  <AppLayout>
     <RoomBanner
       :eyebrow="t('kingdomP7A.settingsEyebrow')"
       :title="t('kingdomP7A.settingsTitle')"

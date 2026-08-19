@@ -135,7 +135,7 @@ function stateTone(value: string): 'success' | 'warning' | 'info' {
 <template>
   <Head :title="`${t('roster.manage')} · ${alliance.name}`" />
 
-  <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
+  <AppLayout>
     <RoomBanner
       :eyebrow="t('roster.eyebrow', { kingdom: alliance.kingdom ?? t('roster.kingdomNotSet') })"
       :title="t('roster.manage')"

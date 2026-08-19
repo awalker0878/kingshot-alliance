@@ -190,7 +190,7 @@ function member(id: string) {
 
 <template>
   <Head :title="`${t('contributions.managerTitle')} · ${alliance.name}`" />
-  <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
+  <AppLayout>
     <RoomBanner
       :eyebrow="t('contributions.eyebrow')"
       :title="t('contributions.managerTitle')"

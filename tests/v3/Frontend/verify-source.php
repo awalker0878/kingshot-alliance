@@ -87,6 +87,6 @@ if (count($refs) < 6) {
     $v[] = 'Fewer than six standalone Kingshot runtime art assets referenced.';
 }
 if ($v) {
-    fwrite(STDERR, "FRONTEND-V3 source violations:\n - ".implode("\n - ",array_values(array_unique($v)))."\n");
+    fwrite(STDERR, "FRONTEND-V3 source violations:\n - ".implode("\n - ", array_values(array_unique($v)))."\n");
     exit(1);
-}fwrite(STDOUT,'FRONTEND-V3 source gate: PASS ('.count($refs)." runtime art assets referenced)\n");
+}fwrite(STDOUT, 'FRONTEND-V3 source gate: PASS ('.count($refs)." runtime art assets referenced)\n");

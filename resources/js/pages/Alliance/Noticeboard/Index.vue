@@ -76,7 +76,7 @@ function visibilityTone(value: string): 'success' | 'warning' | 'info' {
 <template>
   <Head :title="`${t('contentExperience.hubTitle')} · ${alliance.name}`" />
 
-  <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
+  <AppLayout>
     <RoomBanner
       :eyebrow="t('contentExperience.eyebrow')"
       :title="t('contentExperience.hubTitle')"

@@ -212,7 +212,7 @@ function statusTone(value: string): 'success' | 'warning' | 'danger' | 'info' {
 <template>
   <Head :title="`${displayName} · ${t('events.calendar.title')}`" />
 
-  <AppLayout :user="user">
+  <AppLayout>
     <RoomBanner
       :eyebrow="t(`events.scope.${occurrence.scope}`)"
       :title="displayName"

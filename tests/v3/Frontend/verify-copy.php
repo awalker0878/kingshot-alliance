@@ -34,4 +34,4 @@ foreach ($targets as $target) {
 if ($v) {
     fwrite(STDERR, "FRONTEND-V3 copy violations:\n - ".implode("\n - ", array_values(array_unique($v)))."\n");
     exit(1);
-}fwrite(STDOUT,"FRONTEND-V3 copy gate: PASS\n");
+}fwrite(STDOUT, "FRONTEND-V3 copy gate: PASS\n");
