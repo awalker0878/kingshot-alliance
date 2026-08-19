@@ -56,7 +56,9 @@ const redeemedCodes = computed(
   () => props.codes.filter((giftCode) => giftCode.redemption?.status === 'redeemed').length,
 );
 const pendingCodes = computed(
-  () => props.codes.filter((giftCode) => giftCode.redemption?.status === 'awaiting_confirmation').length,
+  () =>
+    props.codes.filter((giftCode) => giftCode.redemption?.status === 'awaiting_confirmation')
+      .length,
 );
 
 function expired(giftCode: GiftCode): boolean {
@@ -101,7 +103,8 @@ function statusLabel(status: string): string {
 function statusTone(status: string): 'success' | 'warning' | 'danger' | 'info' {
   if (status === 'redeemed' || status === 'already_redeemed') return 'success';
   if (status === 'awaiting_confirmation' || status === 'rate_limited') return 'warning';
-  if (status === 'expired' || status === 'invalid_code' || status === 'permanent_failure') return 'danger';
+  if (status === 'expired' || status === 'invalid_code' || status === 'permanent_failure')
+    return 'danger';
   return 'info';
 }
 </script>
@@ -117,12 +120,7 @@ function statusTone(status: string): 'success' | 'warning' | 'danger' | 'info' {
       image="/images/kingshot/v4/account-vault.svg"
     >
       <template #actions>
-        <a
-          :href="officialRedemptionUrl"
-          target="_blank"
-          rel="noreferrer"
-          class="ks-command-link"
-        >
+        <a :href="officialRedemptionUrl" target="_blank" rel="noreferrer" class="ks-command-link">
           {{ t('giftCodes.openOfficialCenter') }}
         </a>
       </template>
@@ -130,9 +128,23 @@ function statusTone(status: string): 'success' | 'warning' | 'danger' | 'info' {
 
     <section class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
       <StatSeal :label="t('giftCodes.activeCodes')" :value="formatNumber(activeCodes)" icon="◆" />
-      <StatSeal :label="t('giftCodes.redeemed')" :value="formatNumber(redeemedCodes)" icon="✓" tone="teal" />
-      <StatSeal :label="t('giftCodes.awaitingConfirmation')" :value="formatNumber(pendingCodes)" icon="◇" tone="stone" />
-      <StatSeal :label="t('giftCodes.governors')" :value="formatNumber(allGovernorCount)" icon="♛" />
+      <StatSeal
+        :label="t('giftCodes.redeemed')"
+        :value="formatNumber(redeemedCodes)"
+        icon="✓"
+        tone="teal"
+      />
+      <StatSeal
+        :label="t('giftCodes.awaitingConfirmation')"
+        :value="formatNumber(pendingCodes)"
+        icon="◇"
+        tone="stone"
+      />
+      <StatSeal
+        :label="t('giftCodes.governors')"
+        :value="formatNumber(allGovernorCount)"
+        icon="♛"
+      />
     </section>
 
     <div class="mt-5 grid gap-5 2xl:grid-cols-[minmax(0,1.45fr)_minmax(22rem,.55fr)]">
@@ -152,32 +164,58 @@ function statusTone(status: string): 'success' | 'warning' | 'danger' | 'info' {
             <div class="flex flex-wrap items-start justify-between gap-4">
               <div class="min-w-0">
                 <div class="flex flex-wrap items-center gap-3">
-                  <code class="text-lg font-bold tracking-[.08em] text-[var(--ks-gold-bright)]">{{ giftCode.code }}</code>
+                  <code class="text-lg font-bold tracking-[.08em] text-[var(--ks-gold-bright)]">{{
+                    giftCode.code
+                  }}</code>
                   <span
                     class="ks-status"
-                    :data-tone="giftCode.redemption ? statusTone(giftCode.redemption.status) : expired(giftCode) ? 'danger' : 'info'"
+                    :data-tone="
+                      giftCode.redemption
+                        ? statusTone(giftCode.redemption.status)
+                        : expired(giftCode)
+                          ? 'danger'
+                          : 'info'
+                    "
                   >
-                    {{ giftCode.redemption ? statusLabel(giftCode.redemption.status) : expired(giftCode) ? t('giftCodes.expired') : t('giftCodes.notStarted') }}
+                    {{
+                      giftCode.redemption
+                        ? statusLabel(giftCode.redemption.status)
+                        : expired(giftCode)
+                          ? t('giftCodes.expired')
+                          : t('giftCodes.notStarted')
+                    }}
                   </span>
                 </div>
                 <p class="mt-2 text-xs text-[var(--ks-muted)]">
                   {{ giftCode.sourceLabel ?? t(`giftCodes.source_${giftCode.sourceType}`) }}
                   · {{ formatDate(giftCode.discoveredAt, { dateStyle: 'medium' }) }}
                   <template v-if="giftCode.expiresAt">
-                    · {{ t('giftCodes.expires') }} {{ formatDate(giftCode.expiresAt, { dateStyle: 'medium' }) }}
+                    · {{ t('giftCodes.expires') }}
+                    {{ formatDate(giftCode.expiresAt, { dateStyle: 'medium' }) }}
                   </template>
                 </p>
-                <p v-if="giftCode.redemption?.message" class="mt-3 text-sm leading-6 text-[var(--ks-text-secondary)]">
+                <p
+                  v-if="giftCode.redemption?.message"
+                  class="mt-3 text-sm leading-6 text-[var(--ks-text-secondary)]"
+                >
                   {{ giftCode.redemption.message }}
                 </p>
               </div>
 
-              <button type="button" class="ks-command-link" data-variant="secondary" @click="copy(giftCode)">
+              <button
+                type="button"
+                class="ks-command-link"
+                data-variant="secondary"
+                @click="copy(giftCode)"
+              >
                 {{ copied === giftCode.id ? t('giftCodes.copied') : t('giftCodes.copyCode') }}
               </button>
             </div>
 
-            <div v-if="giftCode.status === 'active' && !expired(giftCode)" class="mt-4 flex flex-wrap gap-2">
+            <div
+              v-if="giftCode.status === 'active' && !expired(giftCode)"
+              class="mt-4 flex flex-wrap gap-2"
+            >
               <button
                 type="button"
                 class="ks-command-link"
@@ -230,13 +268,23 @@ function statusTone(status: string): 'success' | 'warning' | 'danger' | 'info' {
           <h2 id="submit-gift-code-heading" class="ks-display mt-1 text-2xl font-semibold">
             {{ t('giftCodes.addCode') }}
           </h2>
-          <p class="mt-2 text-sm leading-6 text-[var(--ks-muted)]">{{ t('giftCodes.addCodeHelp') }}</p>
+          <p class="mt-2 text-sm leading-6 text-[var(--ks-muted)]">
+            {{ t('giftCodes.addCodeHelp') }}
+          </p>
 
           <form class="mt-5 space-y-4" @submit.prevent="submit">
             <label class="block">
               <span class="ks-kicker">{{ t('giftCodes.code') }}</span>
-              <input v-model="submission.code" required maxlength="64" class="ks-input mt-2 w-full" autocomplete="off" />
-              <span v-if="submission.errors.code" class="mt-1 block text-xs text-red-300">{{ submission.errors.code }}</span>
+              <input
+                v-model="submission.code"
+                required
+                maxlength="64"
+                class="ks-input mt-2 w-full"
+                autocomplete="off"
+              />
+              <span v-if="submission.errors.code" class="mt-1 block text-xs text-red-300">{{
+                submission.errors.code
+              }}</span>
             </label>
             <label class="block">
               <span class="ks-kicker">{{ t('giftCodes.source') }}</span>
@@ -248,17 +296,30 @@ function statusTone(status: string): 'success' | 'warning' | 'danger' | 'info' {
             </label>
             <label class="block">
               <span class="ks-kicker">{{ t('giftCodes.sourceLabel') }}</span>
-              <input v-model="submission.source_label" maxlength="160" class="ks-input mt-2 w-full" />
+              <input
+                v-model="submission.source_label"
+                maxlength="160"
+                class="ks-input mt-2 w-full"
+              />
             </label>
             <label class="block">
               <span class="ks-kicker">{{ t('giftCodes.sourceUrl') }}</span>
-              <input v-model="submission.source_url" type="url" maxlength="2048" class="ks-input mt-2 w-full" />
+              <input
+                v-model="submission.source_url"
+                type="url"
+                maxlength="2048"
+                class="ks-input mt-2 w-full"
+              />
             </label>
             <label class="block">
               <span class="ks-kicker">{{ t('giftCodes.expiresAt') }}</span>
               <input v-model="submission.expires_at" type="date" class="ks-input mt-2 w-full" />
             </label>
-            <button type="submit" class="ks-command-link w-full justify-center" :disabled="submission.processing">
+            <button
+              type="submit"
+              class="ks-command-link w-full justify-center"
+              :disabled="submission.processing"
+            >
               {{ submission.processing ? t('common.loading') : t('giftCodes.addToLedger') }}
             </button>
           </form>
@@ -267,7 +328,9 @@ function statusTone(status: string): 'success' | 'warning' | 'danger' | 'info' {
         <section v-if="!player.gamePlayerId" class="ks-surface p-5 sm:p-6">
           <p class="ks-kicker">{{ t('giftCodes.playerIdRequired') }}</p>
           <h2 class="ks-display mt-1 text-xl font-semibold">{{ t('giftCodes.addPlayerId') }}</h2>
-          <p class="mt-2 text-sm leading-6 text-[var(--ks-muted)]">{{ t('giftCodes.addPlayerIdHelp') }}</p>
+          <p class="mt-2 text-sm leading-6 text-[var(--ks-muted)]">
+            {{ t('giftCodes.addPlayerIdHelp') }}
+          </p>
           <Link href="/profile" class="ks-command-link mt-4">{{ t('navigation.profile') }}</Link>
         </section>
       </aside>

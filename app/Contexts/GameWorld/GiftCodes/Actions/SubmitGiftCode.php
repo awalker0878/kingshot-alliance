@@ -24,7 +24,7 @@ final readonly class SubmitGiftCode
     ) {}
 
     /**
-     * @param array{code: string, source_type?: string, source_label?: string|null, source_url?: string|null, expires_at?: string|null} $attributes
+     * @param  array{code: string, source_type?: string, source_label?: string|null, source_url?: string|null, expires_at?: string|null}  $attributes
      */
     public function handle(PlayerReference $actor, array $attributes): GiftCodeReference
     {
