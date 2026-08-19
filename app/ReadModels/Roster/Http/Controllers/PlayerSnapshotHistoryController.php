@@ -79,7 +79,10 @@ final class PlayerSnapshotHistoryController extends Controller
         ]);
     }
 
-    /** @param array<string,PlayerReference> $actors @return array<string,mixed> */
+    /**
+     * @param  array<string, PlayerReference>  $actors
+     * @return array<string, mixed>
+     */
     private function snapshot(PlayerSnapshot $snapshot, bool $includeActor, array $actors): array
     {
         $row = [
