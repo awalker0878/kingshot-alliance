@@ -112,7 +112,7 @@ jobs:
         run: >-
           vendor/bin/phpunit --configuration phpunit.xml
           --testsuite Laravel
-          --testsuffix V3Test.php
+          --test-suffix V3Test.php
 
   frontend:
     name: Intelligence history frontend contracts
