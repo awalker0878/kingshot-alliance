@@ -170,7 +170,11 @@ function saveContent(): void {
   contentForm.post('/alliance/content', options);
 }
 function publishNow(id: string): void {
-  router.post('/alliance/content/' + id + '/publish', { scheduled_for: null }, { preserveScroll: true });
+  router.post(
+    '/alliance/content/' + id + '/publish',
+    { scheduled_for: null },
+    { preserveScroll: true },
+  );
 }
 function schedule(id: string): void {
   const value = scheduleInputs[id];
@@ -268,7 +272,11 @@ function bytes(value: number): string {
     </RoomBanner>
 
     <section class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-      <StatSeal :label="t('contentExperience.contentItems')" :value="props.content.length" icon="▤" />
+      <StatSeal
+        :label="t('contentExperience.contentItems')"
+        :value="props.content.length"
+        icon="▤"
+      />
       <StatSeal
         :label="t('contentExperience.publishedItems')"
         :value="publishedCount"
@@ -299,7 +307,12 @@ function bytes(value: number): string {
             <div class="grid gap-3 sm:grid-cols-2 2xl:grid-cols-1">
               <label class="block text-sm">
                 <span>{{ t('contentExperience.language') }}</span>
-                <input v-model="profileForm.language" class="ks-input mt-1.5" required maxlength="16" />
+                <input
+                  v-model="profileForm.language"
+                  class="ks-input mt-1.5"
+                  required
+                  maxlength="16"
+                />
               </label>
               <label class="block text-sm">
                 <span>{{ t('contentExperience.timezone') }}</span>
@@ -308,11 +321,19 @@ function bytes(value: number): string {
             </div>
             <label class="block text-sm">
               <span>{{ t('contentExperience.description') }}</span>
-              <textarea v-model="profileForm.description" class="ks-input mt-1.5 min-h-24" maxlength="5000" />
+              <textarea
+                v-model="profileForm.description"
+                class="ks-input mt-1.5 min-h-24"
+                maxlength="5000"
+              />
             </label>
             <label class="block text-sm">
               <span>{{ t('contentExperience.brandAccent') }}</span>
-              <input v-model="profileForm.primary_color" class="ks-input mt-1.5" placeholder="#0f766e" />
+              <input
+                v-model="profileForm.primary_color"
+                class="ks-input mt-1.5"
+                placeholder="#0f766e"
+              />
             </label>
             <div class="grid gap-3 sm:grid-cols-2 2xl:grid-cols-1">
               <label class="block text-sm">
@@ -328,13 +349,22 @@ function bytes(value: number): string {
                 <span>{{ t('contentExperience.bannerImage') }}</span>
                 <select v-model="profileForm.banner_media_id" class="ks-input mt-1.5">
                   <option value="">{{ t('contentExperience.noBanner') }}</option>
-                  <option v-for="asset in props.media" :key="'banner-' + asset.id" :value="asset.id">
+                  <option
+                    v-for="asset in props.media"
+                    :key="'banner-' + asset.id"
+                    :value="asset.id"
+                  >
                     {{ asset.name }}
                   </option>
                 </select>
               </label>
             </div>
-            <AppButton class="w-full" type="submit" variant="ghost" :disabled="profileForm.processing">
+            <AppButton
+              class="w-full"
+              type="submit"
+              variant="ghost"
+              :disabled="profileForm.processing"
+            >
               {{ t('contentExperience.saveProfile') }}
             </AppButton>
             <p v-if="Object.keys(profileForm.errors).length" class="text-xs text-rose-300">
@@ -365,7 +395,12 @@ function bytes(value: number): string {
               maxlength="120"
               pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
             />
-            <AppButton class="w-full" type="submit" variant="ghost" :disabled="categoryForm.processing">
+            <AppButton
+              class="w-full"
+              type="submit"
+              variant="ghost"
+              :disabled="categoryForm.processing"
+            >
               {{ t('contentExperience.createCategory') }}
             </AppButton>
           </form>
@@ -379,7 +414,9 @@ function bytes(value: number): string {
               <input v-model="categoryEdits[category.id]!.name" class="ks-input" required />
               <input v-model="categoryEdits[category.id]!.slug" class="ks-input mt-2" required />
               <div class="mt-2 flex gap-2">
-                <AppButton type="submit" variant="ghost">{{ t('contentExperience.saveCategory') }}</AppButton>
+                <AppButton type="submit" variant="ghost">{{
+                  t('contentExperience.saveCategory')
+                }}</AppButton>
                 <button type="button" class="ks-chip" @click="deleteCategory(category.id)">
                   {{ t('contentExperience.deleteCategory') }}
                 </button>
@@ -401,7 +438,12 @@ function bytes(value: number): string {
               accept="image/png,image/jpeg,image/webp"
               @change="mediaForm.media = ($event.target as HTMLInputElement).files?.[0] ?? null"
             />
-            <AppButton class="mt-3 w-full" type="submit" variant="ghost" :disabled="!mediaForm.media || mediaForm.processing">
+            <AppButton
+              class="mt-3 w-full"
+              type="submit"
+              variant="ghost"
+              :disabled="!mediaForm.media || mediaForm.processing"
+            >
               {{ t('contentExperience.uploadMedia') }}
             </AppButton>
           </form>
@@ -415,7 +457,8 @@ function bytes(value: number): string {
                 <div class="min-w-0">
                   <strong class="block truncate text-sm">{{ asset.name }}</strong>
                   <p class="mt-1 text-xs text-[var(--ks-muted)]">
-                    {{ bytes(asset.sizeBytes) }} · {{ asset.scanStatus }} · {{ asset.lifecycleStatus }}
+                    {{ bytes(asset.sizeBytes) }} · {{ asset.scanStatus }} ·
+                    {{ asset.lifecycleStatus }}
                   </p>
                 </div>
                 <button type="button" class="ks-chip" @click="archiveMedia(asset.id)">
@@ -434,7 +477,11 @@ function bytes(value: number): string {
             <div>
               <p class="ks-kicker">{{ t('contentExperience.broadcastDesk') }}</p>
               <h2 id="editor-heading" class="ks-display mt-1 text-2xl font-semibold">
-                {{ editingId ? t('contentExperience.editContent') : t('contentExperience.createContent') }}
+                {{
+                  editingId
+                    ? t('contentExperience.editContent')
+                    : t('contentExperience.createContent')
+                }}
               </h2>
             </div>
             <button v-if="editingId" type="button" class="ks-chip" @click="resetContentForm">
@@ -442,14 +489,22 @@ function bytes(value: number): string {
             </button>
           </div>
           <p class="mt-2 text-sm leading-6 text-[var(--ks-muted)]">
-            {{ editingId ? t('contentExperience.revisedDraftHelp') : t('contentExperience.broadcastHelp') }}
+            {{
+              editingId
+                ? t('contentExperience.revisedDraftHelp')
+                : t('contentExperience.broadcastHelp')
+            }}
           </p>
 
           <form class="mt-5 grid gap-4 md:grid-cols-2" @submit.prevent="saveContent">
             <label class="block text-sm">
               <span>{{ t('contentExperience.type') }}</span>
               <select v-model="contentForm.type" class="ks-input mt-1.5">
-                <option v-for="option in props.contentTypes" :key="option.value" :value="option.value">
+                <option
+                  v-for="option in props.contentTypes"
+                  :key="option.value"
+                  :value="option.value"
+                >
                   {{ option.label }}
                 </option>
               </select>
@@ -458,7 +513,11 @@ function bytes(value: number): string {
               <span>{{ t('contentExperience.category') }}</span>
               <select v-model="contentForm.category_id" class="ks-input mt-1.5">
                 <option value="">{{ t('contentExperience.noCategory') }}</option>
-                <option v-for="category in props.categories" :key="category.id" :value="category.id">
+                <option
+                  v-for="category in props.categories"
+                  :key="category.id"
+                  :value="category.id"
+                >
                   {{ category.name }}
                 </option>
               </select>
@@ -490,26 +549,45 @@ function bytes(value: number): string {
             <label class="block text-sm">
               <span>{{ t('contentExperience.visibility') }}</span>
               <select v-model="contentForm.visibility" class="ks-input mt-1.5">
-                <option v-for="option in props.visibilityOptions" :key="option.value" :value="option.value">
+                <option
+                  v-for="option in props.visibilityOptions"
+                  :key="option.value"
+                  :value="option.value"
+                >
                   {{ option.label }}
                 </option>
               </select>
             </label>
             <label class="block text-sm">
               <span>{{ t('contentExperience.sortOrder') }}</span>
-              <input v-model.number="contentForm.sort_order" class="ks-input mt-1.5" type="number" min="0" max="100000" />
+              <input
+                v-model.number="contentForm.sort_order"
+                class="ks-input mt-1.5"
+                type="number"
+                min="0"
+                max="100000"
+              />
             </label>
             <label class="block text-sm md:col-span-2">
               <span>{{ t('contentExperience.summary') }}</span>
-              <textarea v-model="contentForm.summary" class="ks-input mt-1.5 min-h-20" maxlength="500" />
+              <textarea
+                v-model="contentForm.summary"
+                class="ks-input mt-1.5 min-h-20"
+                maxlength="500"
+              />
             </label>
             <label class="block text-sm md:col-span-2">
               <span>{{ t('contentExperience.body') }}</span>
-              <textarea v-model="contentForm.body" class="ks-input mt-1.5 min-h-48" required maxlength="50000" />
+              <textarea
+                v-model="contentForm.body"
+                class="ks-input mt-1.5 min-h-48"
+                required
+                maxlength="50000"
+              />
             </label>
             <label
               v-if="contentForm.type === 'announcement'"
-              class="md:col-span-2 flex items-start gap-3 rounded-[var(--ks-radius-md)] border border-cyan-300/20 bg-cyan-400/5 p-4"
+              class="flex items-start gap-3 rounded-[var(--ks-radius-md)] border border-cyan-300/20 bg-cyan-400/5 p-4 md:col-span-2"
             >
               <input v-model="contentForm.notify_members" class="mt-1" type="checkbox" />
               <span>
@@ -519,10 +597,19 @@ function bytes(value: number): string {
                 </span>
               </span>
             </label>
-            <AppButton class="md:col-span-2 md:w-fit" type="submit" :disabled="contentForm.processing">
-              {{ editingId ? t('contentExperience.saveChanges') : t('contentExperience.saveDraft') }}
+            <AppButton
+              class="md:col-span-2 md:w-fit"
+              type="submit"
+              :disabled="contentForm.processing"
+            >
+              {{
+                editingId ? t('contentExperience.saveChanges') : t('contentExperience.saveDraft')
+              }}
             </AppButton>
-            <p v-if="Object.keys(contentForm.errors).length" class="text-xs text-rose-300 md:col-span-2">
+            <p
+              v-if="Object.keys(contentForm.errors).length"
+              class="text-xs text-rose-300 md:col-span-2"
+            >
               {{ Object.values(contentForm.errors)[0] }}
             </p>
           </form>
@@ -539,15 +626,25 @@ function bytes(value: number): string {
           </div>
 
           <div v-if="props.content.length" class="mt-4 space-y-4">
-            <article v-for="item in props.content" :key="item.id" class="ks-surface overflow-hidden">
+            <article
+              v-for="item in props.content"
+              :key="item.id"
+              class="ks-surface overflow-hidden"
+            >
               <div class="border-b border-[var(--ks-border)] p-4 sm:p-5">
                 <div class="flex flex-wrap items-start justify-between gap-4">
                   <div class="min-w-0">
                     <div class="flex flex-wrap items-center gap-2">
                       <span class="ks-chip">{{ item.typeLabel }}</span>
-                      <span class="ks-status" :data-tone="statusTone(item.status)">{{ item.status }}</span>
+                      <span class="ks-status" :data-tone="statusTone(item.status)">{{
+                        item.status
+                      }}</span>
                       <span v-if="item.notifyMembers" class="ks-status" data-tone="info">
-                        {{ item.broadcastedAt ? t('contentExperience.broadcastComplete') : t('contentExperience.notifyMembers') }}
+                        {{
+                          item.broadcastedAt
+                            ? t('contentExperience.broadcastComplete')
+                            : t('contentExperience.notifyMembers')
+                        }}
                       </span>
                     </div>
                     <h3 class="ks-display mt-3 text-xl font-semibold">{{ item.title }}</h3>
@@ -561,7 +658,11 @@ function bytes(value: number): string {
                     </p>
                   </div>
                   <div class="flex flex-wrap gap-2">
-                    <Link :href="'/alliance/content/' + item.slug" class="ks-command-link" data-variant="secondary">
+                    <Link
+                      :href="'/alliance/content/' + item.slug"
+                      class="ks-command-link"
+                      data-variant="secondary"
+                    >
                       {{ t('contentExperience.view') }}
                     </Link>
                     <button type="button" class="ks-chip" @click="editContent(item)">
@@ -573,12 +674,24 @@ function bytes(value: number): string {
                   </div>
                 </div>
 
-                <div v-if="item.status !== 'published'" class="mt-4 grid gap-3 rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-3 sm:grid-cols-[1fr_auto_auto]">
+                <div
+                  v-if="item.status !== 'published'"
+                  class="mt-4 grid gap-3 rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-3 sm:grid-cols-[1fr_auto_auto]"
+                >
                   <label class="block text-xs">
                     <span>{{ t('contentExperience.scheduleLocal') }}</span>
-                    <input v-model="scheduleInputs[item.id]" class="ks-input mt-1.5" type="datetime-local" />
+                    <input
+                      v-model="scheduleInputs[item.id]"
+                      class="ks-input mt-1.5"
+                      type="datetime-local"
+                    />
                   </label>
-                  <AppButton class="self-end" type="button" variant="secondary" @click="schedule(item.id)">
+                  <AppButton
+                    class="self-end"
+                    type="button"
+                    variant="secondary"
+                    @click="schedule(item.id)"
+                  >
                     {{ t('contentExperience.schedule') }}
                   </AppButton>
                   <AppButton class="self-end" type="button" @click="publishNow(item.id)">
@@ -598,10 +711,17 @@ function bytes(value: number): string {
                     class="flex flex-wrap items-center justify-between gap-3 rounded border border-[var(--ks-border)] p-3"
                   >
                     <span class="text-sm">
-                      #{{ revision.revisionNumber }} · {{ revision.title }} · {{ timestamp(revision.createdAt) }}
+                      #{{ revision.revisionNumber }} · {{ revision.title }} ·
+                      {{ timestamp(revision.createdAt) }}
                     </span>
-                    <button type="button" class="ks-chip" @click="restoreRevision(item.id, revision.id)">
-                      {{ t('contentExperience.restoreRevision', { number: revision.revisionNumber }) }}
+                    <button
+                      type="button"
+                      class="ks-chip"
+                      @click="restoreRevision(item.id, revision.id)"
+                    >
+                      {{
+                        t('contentExperience.restoreRevision', { number: revision.revisionNumber })
+                      }}
                     </button>
                   </div>
                 </div>

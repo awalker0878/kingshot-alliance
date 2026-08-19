@@ -20,6 +20,7 @@ const messages = {
     anyLocale: 'Any language',
     applyFilters: 'Apply filters',
     clear: 'Clear',
+    view: 'Open',
     publishedContent: 'Published content',
     displayedIn: 'Displayed in {timezone}',
     membersOnly: 'Members only',
