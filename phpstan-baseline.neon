@@ -4,898 +4,898 @@ parameters:
 			message: '#^Parameter \$roleKeysObservedAtRead of class App\\Contexts\\Alliance\\Access\\ValueObjects\\AllianceAuthorityFacts constructor expects list\<string\>, array\<string\> given\.$#'
 			identifier: argument.type
 			count: 1
-			path: kingshot-main/app/Contexts/Alliance/Access/Queries/AllianceAuthorityFactsQuery.php
+			path: app/Contexts/Alliance/Access/Queries/AllianceAuthorityFactsQuery.php
 
 		-
 			message: '#^Cannot access property \$value on string\.$#'
 			identifier: property.nonObject
 			count: 1
-			path: kingshot-main/app/Contexts/Alliance/Access/Services/AllianceWriteAuthorization.php
+			path: app/Contexts/Alliance/Access/Services/AllianceWriteAuthorization.php
 
 		-
 			message: '#^Access to an undefined property App\\Contexts\\Accounts\\Identity\\Contracts\\AuthenticatedAccount\:\:\$email\.$#'
 			identifier: property.notFound
 			count: 1
-			path: kingshot-main/app/Contexts/Alliance/Content/Http/Controllers/ContentManagementController.php
+			path: app/Contexts/Alliance/Content/Http/Controllers/ContentManagementController.php
 
 		-
 			message: '#^Access to an undefined property App\\Contexts\\Accounts\\Identity\\Contracts\\AuthenticatedAccount\:\:\$name\.$#'
 			identifier: property.notFound
 			count: 1
-			path: kingshot-main/app/Contexts/Alliance/Content/Http/Controllers/ContentManagementController.php
+			path: app/Contexts/Alliance/Content/Http/Controllers/ContentManagementController.php
 
 		-
 			message: '#^Cannot access property \$value on string\.$#'
 			identifier: property.nonObject
 			count: 2
-			path: kingshot-main/app/Contexts/Alliance/Lifecycle/Actions/TransitionAllianceLifecycle.php
+			path: app/Contexts/Alliance/Lifecycle/Actions/TransitionAllianceLifecycle.php
 
 		-
 			message: '#^Cannot call method toIso8601String\(\) on string\.$#'
 			identifier: method.nonObject
 			count: 1
-			path: kingshot-main/app/Contexts/Alliance/Lifecycle/Actions/TransitionAllianceLifecycle.php
+			path: app/Contexts/Alliance/Lifecycle/Actions/TransitionAllianceLifecycle.php
 
 		-
 			message: '#^Cannot access property \$value on string\.$#'
 			identifier: property.nonObject
 			count: 1
-			path: kingshot-main/app/Contexts/Alliance/Lifecycle/Queries/AllianceReferenceQuery.php
+			path: app/Contexts/Alliance/Lifecycle/Queries/AllianceReferenceQuery.php
 
 		-
 			message: '#^Method App\\Contexts\\Alliance\\Lifecycle\\Queries\\AllianceReferenceQuery\:\:all\(\) should return list\<App\\Contexts\\Alliance\\Lifecycle\\ValueObjects\\AllianceReference\> but returns array\<int, App\\Contexts\\Alliance\\Lifecycle\\ValueObjects\\AllianceReference\>\.$#'
 			identifier: return.type
 			count: 1
-			path: kingshot-main/app/Contexts/Alliance/Lifecycle/Queries/AllianceReferenceQuery.php
+			path: app/Contexts/Alliance/Lifecycle/Queries/AllianceReferenceQuery.php
 
 		-
 			message: '#^Method App\\Contexts\\Alliance\\Lifecycle\\Queries\\AllianceReferenceQuery\:\:inKingdom\(\) should return list\<App\\Contexts\\Alliance\\Lifecycle\\ValueObjects\\AllianceReference\> but returns array\<int, App\\Contexts\\Alliance\\Lifecycle\\ValueObjects\\AllianceReference\>\.$#'
 			identifier: return.type
 			count: 1
-			path: kingshot-main/app/Contexts/Alliance/Lifecycle/Queries/AllianceReferenceQuery.php
+			path: app/Contexts/Alliance/Lifecycle/Queries/AllianceReferenceQuery.php
 
 		-
 			message: '#^Cannot call method isPast\(\) on string\.$#'
 			identifier: method.nonObject
 			count: 1
-			path: kingshot-main/app/Contexts/Alliance/Lifecycle/Services/AllianceLifecycleMutation.php
+			path: app/Contexts/Alliance/Lifecycle/Services/AllianceLifecycleMutation.php
 
 		-
 			message: '#^Parameter \#1 \$from of method App\\Contexts\\Alliance\\Lifecycle\\Services\\AllianceLifecycleMutation\:\:assertTransitionAllowed\(\) expects App\\Contexts\\Alliance\\Lifecycle\\Enums\\AllianceStatus, string given\.$#'
 			identifier: argument.type
 			count: 1
-			path: kingshot-main/app/Contexts/Alliance/Lifecycle/Services/AllianceLifecycleMutation.php
+			path: app/Contexts/Alliance/Lifecycle/Services/AllianceLifecycleMutation.php
 
 		-
 			message: '#^Method App\\Contexts\\Alliance\\Lifecycle\\ValueObjects\\TenantContextSnapshot\:\:fromArray\(\) has parameter \$payload with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
-			path: kingshot-main/app/Contexts/Alliance/Lifecycle/ValueObjects/TenantContextSnapshot.php
+			path: app/Contexts/Alliance/Lifecycle/ValueObjects/TenantContextSnapshot.php
 
 		-
 			message: '#^Method App\\Contexts\\Alliance\\Lifecycle\\ValueObjects\\TenantContextSnapshot\:\:logContext\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
-			path: kingshot-main/app/Contexts/Alliance/Lifecycle/ValueObjects/TenantContextSnapshot.php
+			path: app/Contexts/Alliance/Lifecycle/ValueObjects/TenantContextSnapshot.php
 
 		-
 			message: '#^Method App\\Contexts\\Alliance\\Lifecycle\\ValueObjects\\TenantContextSnapshot\:\:toArray\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
-			path: kingshot-main/app/Contexts/Alliance/Lifecycle/ValueObjects/TenantContextSnapshot.php
+			path: app/Contexts/Alliance/Lifecycle/ValueObjects/TenantContextSnapshot.php
 
 		-
 			message: '#^Method App\\Contexts\\Alliance\\Membership\\Queries\\MembershipStatisticsQuery\:\:activeMemberFacts\(\) should return list\<array\{playerId\: string, rankObservedAtRead\: string\}\> but returns array\<int, array\{playerId\: string, rankObservedAtRead\: ''r1''\|''r2''\|''r3''\|''r4''\|''r5''\}\>\.$#'
 			identifier: return.type
 			count: 1
-			path: kingshot-main/app/Contexts/Alliance/Membership/Queries/MembershipStatisticsQuery.php
+			path: app/Contexts/Alliance/Membership/Queries/MembershipStatisticsQuery.php
 
 		-
 			message: '#^Method App\\Contexts\\Alliance\\Membership\\Queries\\PlayerIdentityContextQuery\:\:forPlayers\(\) should return array\<string, array\{membershipId\: string, allianceId\: string, allianceName\: string, rank\: string, roles\: list\<array\{key\: string, name\: string\}\>, capabilities\: list\<string\>\}\> but returns array\<string, array\{membershipId\: string, allianceId\: string, allianceName\: string, rank\: ''r1''\|''r2''\|''r3''\|''r4''\|''r5'', roles\: array\<int, array\{key\: string, name\: string\}\>, capabilities\: list\<''alliance\.manage''\|''alliance\.view''\|''content\.manage''\|''invitations\.manage''\|''membership\.manage''\|''recruitment\.manage''\|''roles\.manage''\>\}\>\.$#'
 			identifier: return.type
 			count: 1
-			path: kingshot-main/app/Contexts/Alliance/Membership/Queries/PlayerIdentityContextQuery.php
+			path: app/Contexts/Alliance/Membership/Queries/PlayerIdentityContextQuery.php
 
 		-
 			message: '#^Method App\\Contexts\\Alliance\\Membership\\Queries\\PlayerMembershipQuery\:\:activeAllianceIds\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
-			path: kingshot-main/app/Contexts/Alliance/Membership/Queries/PlayerMembershipQuery.php
+			path: app/Contexts/Alliance/Membership/Queries/PlayerMembershipQuery.php
 
 		-
 			message: '#^Method App\\Contexts\\Alliance\\Membership\\Queries\\PlayerMembershipQuery\:\:activeAllianceIdsForPlayerInKingdom\(\) should return list\<string\> but returns array\<int, string\>\.$#'
 			identifier: return.type
 			count: 1
-			path: kingshot-main/app/Contexts/Alliance/Membership/Queries/PlayerMembershipQuery.php
+			path: app/Contexts/Alliance/Membership/Queries/PlayerMembershipQuery.php
 
 		-
 			message: '#^Method App\\Contexts\\Alliance\\Membership\\Queries\\PlayerMembershipQuery\:\:activePlayerIds\(\) should return list\<string\> but returns array\<string\>\.$#'
 			identifier: return.type
 			count: 1
-			path: kingshot-main/app/Contexts/Alliance/Membership/Queries/PlayerMembershipQuery.php
+			path: app/Contexts/Alliance/Membership/Queries/PlayerMembershipQuery.php
 
 		-
 			message: '#^Method App\\Contexts\\Alliance\\Membership\\Queries\\PlayerMembershipQuery\:\:lockActivePlayerIds\(\) should return list\<string\> but returns array\<string\>\.$#'
 			identifier: return.type
 			count: 1
-			path: kingshot-main/app/Contexts/Alliance/Membership/Queries/PlayerMembershipQuery.php
+			path: app/Contexts/Alliance/Membership/Queries/PlayerMembershipQuery.php
 
 		-
 			message: '#^Method App\\Contexts\\Alliance\\Membership\\Queries\\RosterEntryQuery\:\:activeAllianceIdsForPlayerInKingdom\(\) should return list\<string\> but returns array\<int, string\>\.$#'
 			identifier: return.type
 			count: 1
-			path: kingshot-main/app/Contexts/Alliance/Membership/Queries/RosterEntryQuery.php
+			path: app/Contexts/Alliance/Membership/Queries/RosterEntryQuery.php
 
 		-
 			message: '#^Method App\\Contexts\\Alliance\\Membership\\Queries\\RosterEntryQuery\:\:activeOrTracked\(\) should return list\<App\\Contexts\\Alliance\\Membership\\ValueObjects\\RosterEntryReference\> but returns array\<int, App\\Contexts\\Alliance\\Membership\\ValueObjects\\RosterEntryReference\>\.$#'
 			identifier: return.type
 			count: 1
-			path: kingshot-main/app/Contexts/Alliance/Membership/Queries/RosterEntryQuery.php
+			path: app/Contexts/Alliance/Membership/Queries/RosterEntryQuery.php
 
 		-
 			message: '#^Method App\\Contexts\\Alliance\\Membership\\Queries\\RosterEntryQuery\:\:activePlayerIds\(\) should return list\<string\> but returns array\<int, string\>\.$#'
 			identifier: return.type
 			count: 1
-			path: kingshot-main/app/Contexts/Alliance/Membership/Queries/RosterEntryQuery.php
+			path: app/Contexts/Alliance/Membership/Queries/RosterEntryQuery.php
 
 		-
 			message: '#^Method App\\Contexts\\Alliance\\Membership\\Queries\\RosterEntryQuery\:\:all\(\) should return list\<App\\Contexts\\Alliance\\Membership\\ValueObjects\\RosterEntryReference\> but returns array\<int, App\\Contexts\\Alliance\\Membership\\ValueObjects\\RosterEntryReference\>\.$#'
 			identifier: return.type
 			count: 1
-			path: kingshot-main/app/Contexts/Alliance/Membership/Queries/RosterEntryQuery.php
+			path: app/Contexts/Alliance/Membership/Queries/RosterEntryQuery.php
 
 		-
 			message: '#^Method App\\Contexts\\Alliance\\Membership\\Queries\\RosterEntryQuery\:\:forPlayer\(\) should return list\<App\\Contexts\\Alliance\\Membership\\ValueObjects\\RosterEntryReference\> but returns array\<int, App\\Contexts\\Alliance\\Membership\\ValueObjects\\RosterEntryReference\>\.$#'
 			identifier: return.type
 			count: 1
-			path: kingshot-main/app/Contexts/Alliance/Membership/Queries/RosterEntryQuery.php
+			path: app/Contexts/Alliance/Membership/Queries/RosterEntryQuery.php
 
 		-
 			message: '#^Method App\\Contexts\\Alliance\\Membership\\Queries\\RosterEntryQuery\:\:lockActiveAllianceIdsForPlayerInKingdom\(\) should return list\<string\> but returns array\<int, string\>\.$#'
 			identifier: return.type
 			count: 1
-			path: kingshot-main/app/Contexts/Alliance/Membership/Queries/RosterEntryQuery.php
+			path: app/Contexts/Alliance/Membership/Queries/RosterEntryQuery.php
 
 		-
 			message: '#^Access to an undefined property App\\Contexts\\Accounts\\Identity\\Contracts\\AuthenticatedAccount\:\:\$email\.$#'
 			identifier: property.notFound
 			count: 1
-			path: kingshot-main/app/Contexts/Alliance/Recruitment/Http/Controllers/RecruitmentCandidateController.php
+			path: app/Contexts/Alliance/Recruitment/Http/Controllers/RecruitmentCandidateController.php
 
 		-
 			message: '#^Access to an undefined property App\\Contexts\\Accounts\\Identity\\Contracts\\AuthenticatedAccount\:\:\$name\.$#'
 			identifier: property.notFound
 			count: 1
-			path: kingshot-main/app/Contexts/Alliance/Recruitment/Http/Controllers/RecruitmentCandidateController.php
+			path: app/Contexts/Alliance/Recruitment/Http/Controllers/RecruitmentCandidateController.php
 
 		-
 			message: '#^Using nullsafe property access "\?\-\>currentName" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
 			identifier: nullsafe.neverNull
 			count: 1
-			path: kingshot-main/app/Contexts/Alliance/Recruitment/Http/Controllers/RecruitmentCandidateController.php
+			path: app/Contexts/Alliance/Recruitment/Http/Controllers/RecruitmentCandidateController.php
 
 		-
 			message: '#^Access to an undefined property App\\Contexts\\Accounts\\Identity\\Contracts\\AuthenticatedAccount\:\:\$email\.$#'
 			identifier: property.notFound
 			count: 1
-			path: kingshot-main/app/Contexts/Alliance/Recruitment/Http/Controllers/RecruitmentManagementController.php
+			path: app/Contexts/Alliance/Recruitment/Http/Controllers/RecruitmentManagementController.php
 
 		-
 			message: '#^Access to an undefined property App\\Contexts\\Accounts\\Identity\\Contracts\\AuthenticatedAccount\:\:\$name\.$#'
 			identifier: property.notFound
 			count: 1
-			path: kingshot-main/app/Contexts/Alliance/Recruitment/Http/Controllers/RecruitmentManagementController.php
+			path: app/Contexts/Alliance/Recruitment/Http/Controllers/RecruitmentManagementController.php
 
 		-
 			message: '#^Parameter \#1 \$playerIds of method App\\Contexts\\GameWorld\\Players\\Queries\\PlayerReferenceQuery\:\:byIds\(\) expects list\<string\>, array\<string\> given\.$#'
 			identifier: argument.type
 			count: 1
-			path: kingshot-main/app/Contexts/Alliance/Recruitment/Http/Controllers/RecruitmentManagementController.php
+			path: app/Contexts/Alliance/Recruitment/Http/Controllers/RecruitmentManagementController.php
 
 		-
 			message: '#^Access to an undefined property App\\Contexts\\Accounts\\Identity\\Contracts\\AuthenticatedAccount\:\:\$email\.$#'
 			identifier: property.notFound
 			count: 1
-			path: kingshot-main/app/Contexts/GameWorld/Governance/Http/Controllers/KingdomRoleController.php
+			path: app/Contexts/GameWorld/Governance/Http/Controllers/KingdomRoleController.php
 
 		-
 			message: '#^Access to an undefined property App\\Contexts\\Accounts\\Identity\\Contracts\\AuthenticatedAccount\:\:\$name\.$#'
 			identifier: property.notFound
 			count: 1
-			path: kingshot-main/app/Contexts/GameWorld/Governance/Http/Controllers/KingdomRoleController.php
+			path: app/Contexts/GameWorld/Governance/Http/Controllers/KingdomRoleController.php
 
 		-
 			message: '#^Parameter \#1 \$playerIds of method App\\Contexts\\GameWorld\\Players\\Queries\\PlayerReferenceQuery\:\:byIds\(\) expects list\<string\>, array\<string\> given\.$#'
 			identifier: argument.type
 			count: 1
-			path: kingshot-main/app/Contexts/GameWorld/Governance/Http/Controllers/KingdomRoleController.php
+			path: app/Contexts/GameWorld/Governance/Http/Controllers/KingdomRoleController.php
 
 		-
 			message: '#^Using nullsafe property access "\?\-\>currentName" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
 			identifier: nullsafe.neverNull
 			count: 1
-			path: kingshot-main/app/Contexts/GameWorld/Governance/Http/Controllers/KingdomRoleController.php
+			path: app/Contexts/GameWorld/Governance/Http/Controllers/KingdomRoleController.php
 
 		-
 			message: '#^Method App\\Contexts\\GameWorld\\Governance\\Queries\\KingdomAuthorityFactsQuery\:\:playerIdsWithPermission\(\) should return list\<string\> but returns array\<int, string\>\.$#'
 			identifier: return.type
 			count: 1
-			path: kingshot-main/app/Contexts/GameWorld/Governance/Queries/KingdomAuthorityFactsQuery.php
+			path: app/Contexts/GameWorld/Governance/Queries/KingdomAuthorityFactsQuery.php
 
 		-
 			message: '#^Parameter \#3 \$permissionKeysObservedAtRead of class App\\Contexts\\GameWorld\\Governance\\ValueObjects\\KingdomAuthorityFacts constructor expects list\<string\>, array\<int, string\> given\.$#'
 			identifier: argument.type
 			count: 1
-			path: kingshot-main/app/Contexts/GameWorld/Governance/Queries/KingdomAuthorityFactsQuery.php
+			path: app/Contexts/GameWorld/Governance/Queries/KingdomAuthorityFactsQuery.php
 
 		-
 			message: '#^Match arm comparison between App\\Contexts\\GameWorld\\KingdomTransfers\\Enums\\TransferDirection\:\:Incoming and App\\Contexts\\GameWorld\\KingdomTransfers\\Enums\\TransferDirection\:\:Incoming is always true\.$#'
 			identifier: match.alwaysTrue
 			count: 1
-			path: kingshot-main/app/Contexts/GameWorld/KingdomTransfers/Actions/CompleteTransferParticipant.php
+			path: app/Contexts/GameWorld/KingdomTransfers/Actions/CompleteTransferParticipant.php
 
 		-
 			message: '#^Property App\\Contexts\\GameWorld\\KingdomTransfers\\Actions\\ResolveTransferPlayer\:\:\$playerReferences is never read, only written\.$#'
 			identifier: property.onlyWritten
 			count: 1
-			path: kingshot-main/app/Contexts/GameWorld/KingdomTransfers/Actions/ResolveTransferPlayer.php
+			path: app/Contexts/GameWorld/KingdomTransfers/Actions/ResolveTransferPlayer.php
 
 		-
 			message: '#^Access to an undefined property App\\Contexts\\GameWorld\\Kingdoms\\Models\\Kingdom\|App\\Contexts\\GameWorld\\Kingdoms\\ValueObjects\\KingdomReference\:\:\$kingdomId\.$#'
 			identifier: property.notFound
 			count: 1
-			path: kingshot-main/app/Contexts/GameWorld/KingdomTransfers/Actions/SaveTransferGroup.php
+			path: app/Contexts/GameWorld/KingdomTransfers/Actions/SaveTransferGroup.php
 
 		-
 			message: '#^Method App\\Contexts\\GameWorld\\KingdomTransfers\\Actions\\SaveTransferParticipant\:\:incomingValues\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
-			path: kingshot-main/app/Contexts/GameWorld/KingdomTransfers/Actions/SaveTransferParticipant.php
+			path: app/Contexts/GameWorld/KingdomTransfers/Actions/SaveTransferParticipant.php
 
 		-
 			message: '#^Method App\\Contexts\\GameWorld\\KingdomTransfers\\Actions\\SaveTransferParticipant\:\:rosterBoundValues\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
-			path: kingshot-main/app/Contexts/GameWorld/KingdomTransfers/Actions/SaveTransferParticipant.php
+			path: app/Contexts/GameWorld/KingdomTransfers/Actions/SaveTransferParticipant.php
 
 		-
 			message: '#^Parameter \#2 \$rosterEntryIds of method App\\Contexts\\Alliance\\Membership\\Queries\\RosterEntryQuery\:\:byIds\(\) expects list\<string\>, array\<int, non\-falsy\-string\> given\.$#'
 			identifier: argument.type
 			count: 1
-			path: kingshot-main/app/Contexts/GameWorld/KingdomTransfers/Http/Controllers/TransferCompletionController.php
+			path: app/Contexts/GameWorld/KingdomTransfers/Http/Controllers/TransferCompletionController.php
 
 		-
 			message: '#^Parameter \#2 \$rosterEntryIds of method App\\Contexts\\Alliance\\Membership\\Queries\\RosterEntryQuery\:\:byIds\(\) expects list\<string\>, array\<int, non\-falsy\-string\> given\.$#'
 			identifier: argument.type
 			count: 1
-			path: kingshot-main/app/Contexts/GameWorld/KingdomTransfers/Http/Controllers/TransferPlanController.php
+			path: app/Contexts/GameWorld/KingdomTransfers/Http/Controllers/TransferPlanController.php
 
 		-
 			message: '#^Method App\\Contexts\\GameWorld\\Kingdoms\\Queries\\KingdomAllianceReferenceQuery\:\:byIds\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
-			path: kingshot-main/app/Contexts/GameWorld/Kingdoms/Queries/KingdomAllianceReferenceQuery.php
+			path: app/Contexts/GameWorld/Kingdoms/Queries/KingdomAllianceReferenceQuery.php
 
 		-
 			message: '#^Method App\\Contexts\\GameWorld\\Kingdoms\\Queries\\KingdomAllianceReferenceQuery\:\:matchingGameAllianceIdInKingdom\(\) should return list\<App\\Contexts\\GameWorld\\Kingdoms\\ValueObjects\\KingdomAllianceReference\> but returns array\<int, App\\Contexts\\GameWorld\\Kingdoms\\ValueObjects\\KingdomAllianceReference\>\.$#'
 			identifier: return.type
 			count: 1
-			path: kingshot-main/app/Contexts/GameWorld/Kingdoms/Queries/KingdomAllianceReferenceQuery.php
+			path: app/Contexts/GameWorld/Kingdoms/Queries/KingdomAllianceReferenceQuery.php
 
 		-
 			message: '#^Method App\\Contexts\\GameWorld\\Kingdoms\\Queries\\KingdomReferenceQuery\:\:byIds\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
-			path: kingshot-main/app/Contexts/GameWorld/Kingdoms/Queries/KingdomReferenceQuery.php
+			path: app/Contexts/GameWorld/Kingdoms/Queries/KingdomReferenceQuery.php
 
 		-
 			message: '#^Using nullsafe property access "\?\-\>permissionKeysObservedAtRead" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
 			identifier: nullsafe.neverNull
 			count: 1
-			path: kingshot-main/app/Contexts/GameWorld/Players/Http/Middleware/HandleInertiaRequests.php
+			path: app/Contexts/GameWorld/Players/Http/Middleware/HandleInertiaRequests.php
 
 		-
 			message: '#^Using nullsafe property access "\?\-\>permissionKeysObservedAtRead" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
 			identifier: nullsafe.neverNull
 			count: 1
-			path: kingshot-main/app/Contexts/GameWorld/Players/Http/Middleware/RequireCurrentPlayerContextVersion.php
+			path: app/Contexts/GameWorld/Players/Http/Middleware/RequireCurrentPlayerContextVersion.php
 
 		-
 			message: '#^Method App\\Contexts\\GameWorld\\Players\\Queries\\PlayerReferenceQuery\:\:inKingdom\(\) should return list\<App\\Contexts\\GameWorld\\Players\\ValueObjects\\PlayerReference\> but returns array\<int, App\\Contexts\\GameWorld\\Players\\ValueObjects\\PlayerReference\>\.$#'
 			identifier: return.type
 			count: 1
-			path: kingshot-main/app/Contexts/GameWorld/Players/Queries/PlayerReferenceQuery.php
+			path: app/Contexts/GameWorld/Players/Queries/PlayerReferenceQuery.php
 
 		-
 			message: '#^Method App\\Contexts\\GameWorld\\Players\\Queries\\PlayerReferenceQuery\:\:matchingGamePlayerIdInKingdom\(\) should return list\<App\\Contexts\\GameWorld\\Players\\ValueObjects\\PlayerReference\> but returns array\<int, App\\Contexts\\GameWorld\\Players\\ValueObjects\\PlayerReference\>\.$#'
 			identifier: return.type
 			count: 1
-			path: kingshot-main/app/Contexts/GameWorld/Players/Queries/PlayerReferenceQuery.php
+			path: app/Contexts/GameWorld/Players/Queries/PlayerReferenceQuery.php
 
 		-
 			message: '#^Method App\\Contexts\\GameWorld\\Players\\Queries\\PlayerReferenceQuery\:\:ownedByUser\(\) should return list\<App\\Contexts\\GameWorld\\Players\\ValueObjects\\PlayerReference\> but returns array\<int, App\\Contexts\\GameWorld\\Players\\ValueObjects\\PlayerReference\>\.$#'
 			identifier: return.type
 			count: 1
-			path: kingshot-main/app/Contexts/GameWorld/Players/Queries/PlayerReferenceQuery.php
+			path: app/Contexts/GameWorld/Players/Queries/PlayerReferenceQuery.php
 
 		-
 			message: '#^Method App\\Contexts\\GameWorld\\Players\\Queries\\PlayerReferenceQuery\:\:ownedByUserUpTo\(\) should return list\<App\\Contexts\\GameWorld\\Players\\ValueObjects\\PlayerReference\> but returns array\<int, App\\Contexts\\GameWorld\\Players\\ValueObjects\\PlayerReference\>\.$#'
 			identifier: return.type
 			count: 1
-			path: kingshot-main/app/Contexts/GameWorld/Players/Queries/PlayerReferenceQuery.php
+			path: app/Contexts/GameWorld/Players/Queries/PlayerReferenceQuery.php
 
 		-
 			message: '#^Method App\\Contexts\\GameWorld\\Players\\Queries\\PlayerReferenceQuery\:\:ownedIds\(\) should return list\<string\> but returns array\<string\>\.$#'
 			identifier: return.type
 			count: 1
-			path: kingshot-main/app/Contexts/GameWorld/Players/Queries/PlayerReferenceQuery.php
+			path: app/Contexts/GameWorld/Players/Queries/PlayerReferenceQuery.php
 
 		-
 			message: '#^Access to an undefined property App\\Contexts\\Accounts\\Identity\\Contracts\\AuthenticatedAccount\:\:\$email\.$#'
 			identifier: property.notFound
 			count: 2
-			path: kingshot-main/app/Contexts/Intelligence/Contributions/Http/Controllers/ContributionController.php
+			path: app/Contexts/Intelligence/Contributions/Http/Controllers/ContributionController.php
 
 		-
 			message: '#^Access to an undefined property App\\Contexts\\Accounts\\Identity\\Contracts\\AuthenticatedAccount\:\:\$name\.$#'
 			identifier: property.notFound
 			count: 2
-			path: kingshot-main/app/Contexts/Intelligence/Contributions/Http/Controllers/ContributionController.php
+			path: app/Contexts/Intelligence/Contributions/Http/Controllers/ContributionController.php
 
 		-
 			message: '#^Parameter \#1 \$array \(list\<array\{playerId\: string, name\: string, value\: float\}\>\) of array_values is already a list, call has no effect\.$#'
 			identifier: arrayValues.list
 			count: 1
-			path: kingshot-main/app/Contexts/Intelligence/Contributions/Queries/ContributionReportingQuery.php
+			path: app/Contexts/Intelligence/Contributions/Queries/ContributionReportingQuery.php
 
 		-
 			message: '#^Parameter \#1 \$playerIds of method App\\Contexts\\GameWorld\\Players\\Queries\\PlayerReferenceQuery\:\:byIds\(\) expects list\<string\>, array\<int, string\> given\.$#'
 			identifier: argument.type
 			count: 3
-			path: kingshot-main/app/Contexts/Intelligence/Contributions/Queries/ContributionReportingQuery.php
+			path: app/Contexts/Intelligence/Contributions/Queries/ContributionReportingQuery.php
 
 		-
 			message: '#^Undefined variable\: \$currentAlliance$#'
 			identifier: variable.undefined
 			count: 1
-			path: kingshot-main/app/Contexts/Intelligence/Diplomacy/Actions/SaveKingdomAllianceDiplomacyContact.php
+			path: app/Contexts/Intelligence/Diplomacy/Actions/SaveKingdomAllianceDiplomacyContact.php
 
 		-
 			message: '#^Undefined variable\: \$currentAlliance$#'
 			identifier: variable.undefined
 			count: 2
-			path: kingshot-main/app/Contexts/Intelligence/Diplomacy/Actions/TransitionKingdomAllianceDiplomacy.php
+			path: app/Contexts/Intelligence/Diplomacy/Actions/TransitionKingdomAllianceDiplomacy.php
 
 		-
 			message: '#^Method App\\Contexts\\Intelligence\\Diplomacy\\Http\\Controllers\\KingdomAllianceDiplomacyContactController\:\:contactRow\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
-			path: kingshot-main/app/Contexts/Intelligence/Diplomacy/Http/Controllers/KingdomAllianceDiplomacyContactController.php
+			path: app/Contexts/Intelligence/Diplomacy/Http/Controllers/KingdomAllianceDiplomacyContactController.php
 
 		-
 			message: '#^Method App\\Contexts\\Intelligence\\Diplomacy\\Http\\Controllers\\KingdomAllianceDiplomacyController\:\:relationshipSummary\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
-			path: kingshot-main/app/Contexts/Intelligence/Diplomacy/Http/Controllers/KingdomAllianceDiplomacyController.php
+			path: app/Contexts/Intelligence/Diplomacy/Http/Controllers/KingdomAllianceDiplomacyController.php
 
 		-
 			message: '#^Method App\\Contexts\\Intelligence\\Diplomacy\\Http\\Controllers\\KingdomAllianceDiplomacyController\:\:transitionRow\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
-			path: kingshot-main/app/Contexts/Intelligence/Diplomacy/Http/Controllers/KingdomAllianceDiplomacyController.php
+			path: app/Contexts/Intelligence/Diplomacy/Http/Controllers/KingdomAllianceDiplomacyController.php
 
 		-
 			message: '#^Strict comparison using \=\=\= between string and null will always evaluate to false\.$#'
 			identifier: identical.alwaysFalse
 			count: 1
-			path: kingshot-main/app/Contexts/Intelligence/Ingestion/Actions/ReplayKingdomIngestionCandidate.php
+			path: app/Contexts/Intelligence/Ingestion/Actions/ReplayKingdomIngestionCandidate.php
 
 		-
 			message: '#^Strict comparison using \=\=\= between string and null will always evaluate to false\.$#'
 			identifier: identical.alwaysFalse
 			count: 1
-			path: kingshot-main/app/Contexts/Intelligence/Ingestion/Actions/RunKingdomIngestionSubscription.php
+			path: app/Contexts/Intelligence/Ingestion/Actions/RunKingdomIngestionSubscription.php
 
 		-
 			message: '#^Strict comparison using \=\=\= between string and null will always evaluate to false\.$#'
 			identifier: identical.alwaysFalse
 			count: 1
-			path: kingshot-main/app/Contexts/Intelligence/Ingestion/Actions/StartKingdomIngestionBatch.php
+			path: app/Contexts/Intelligence/Ingestion/Actions/StartKingdomIngestionBatch.php
 
 		-
 			message: '#^Strict comparison using \=\=\= between string and null will always evaluate to false\.$#'
 			identifier: identical.alwaysFalse
 			count: 1
-			path: kingshot-main/app/Contexts/Intelligence/Ingestion/Actions/TransitionKingdomIngestionSubscription.php
+			path: app/Contexts/Intelligence/Ingestion/Actions/TransitionKingdomIngestionSubscription.php
 
 		-
 			message: '#^Parameter \#1 \$kingdomIds of method App\\Contexts\\GameWorld\\Kingdoms\\Queries\\KingdomReferenceQuery\:\:byIds\(\) expects list\<string\>, array\<string\> given\.$#'
 			identifier: argument.type
 			count: 1
-			path: kingshot-main/app/Contexts/Intelligence/Ingestion/Http/Controllers/KingdomIngestionController.php
+			path: app/Contexts/Intelligence/Ingestion/Http/Controllers/KingdomIngestionController.php
 
 		-
 			message: '#^Cannot access property \$alliance_id on App\\Contexts\\Intelligence\\Ingestion\\Models\\KingdomIngestionSubscription\|null\.$#'
 			identifier: property.nonObject
 			count: 1
-			path: kingshot-main/app/Contexts/Intelligence/Ingestion/Services/KingdomIngestionMutationState.php
+			path: app/Contexts/Intelligence/Ingestion/Services/KingdomIngestionMutationState.php
 
 		-
 			message: '#^Cannot access property \$id on App\\Contexts\\Intelligence\\Ingestion\\Models\\KingdomIngestionSubscription\|null\.$#'
 			identifier: property.nonObject
 			count: 1
-			path: kingshot-main/app/Contexts/Intelligence/Ingestion/Services/KingdomIngestionMutationState.php
+			path: app/Contexts/Intelligence/Ingestion/Services/KingdomIngestionMutationState.php
 
 		-
 			message: '#^Method App\\Contexts\\Intelligence\\Observations\\Http\\Controllers\\KingdomAllianceController\:\:trackingRows\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
-			path: kingshot-main/app/Contexts/Intelligence/Observations/Http/Controllers/KingdomAllianceController.php
+			path: app/Contexts/Intelligence/Observations/Http/Controllers/KingdomAllianceController.php
 
 		-
 			message: '#^Parameter \#1 \$kingdomAllianceIds of method App\\Contexts\\GameWorld\\Kingdoms\\Queries\\KingdomAllianceReferenceQuery\:\:byIds\(\) expects list\<string\>, array\<int, string\> given\.$#'
 			identifier: argument.type
 			count: 1
-			path: kingshot-main/app/Contexts/Intelligence/Observations/Http/Controllers/KingdomAllianceController.php
+			path: app/Contexts/Intelligence/Observations/Http/Controllers/KingdomAllianceController.php
 
 		-
 			message: '#^Parameter \#1 \$kingdomIds of method App\\Contexts\\GameWorld\\Kingdoms\\Queries\\KingdomReferenceQuery\:\:byIds\(\) expects list\<string\>, array\<int, string\> given\.$#'
 			identifier: argument.type
 			count: 1
-			path: kingshot-main/app/Contexts/Intelligence/Observations/Http/Controllers/KingdomAllianceController.php
+			path: app/Contexts/Intelligence/Observations/Http/Controllers/KingdomAllianceController.php
 
 		-
 			message: '#^Cannot access property \$currentName on null\.$#'
 			identifier: property.nonObject
 			count: 2
-			path: kingshot-main/app/Contexts/Intelligence/Observations/Http/Controllers/KingdomAllianceObservationController.php
+			path: app/Contexts/Intelligence/Observations/Http/Controllers/KingdomAllianceObservationController.php
 
 		-
 			message: '#^Method App\\Contexts\\Intelligence\\Observations\\Http\\Controllers\\KingdomAllianceObservationController\:\:observationRow\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
-			path: kingshot-main/app/Contexts/Intelligence/Observations/Http/Controllers/KingdomAllianceObservationController.php
+			path: app/Contexts/Intelligence/Observations/Http/Controllers/KingdomAllianceObservationController.php
 
 		-
 			message: '#^Method App\\Contexts\\Intelligence\\Roster\\Services\\RosterCsvExporter\:\:latestSnapshots\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
-			path: kingshot-main/app/Contexts/Intelligence/Roster/Services/RosterCsvExporter.php
+			path: app/Contexts/Intelligence/Roster/Services/RosterCsvExporter.php
 
 		-
 			message: '#^Using nullsafe property access "\?\-\>gamePlayerId" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
 			identifier: nullsafe.neverNull
 			count: 1
-			path: kingshot-main/app/Contexts/Intelligence/Roster/Services/RosterCsvExporter.php
+			path: app/Contexts/Intelligence/Roster/Services/RosterCsvExporter.php
 
 		-
 			message: '#^Using nullsafe property access "\?\-\>observed_alliance_tag" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
 			identifier: nullsafe.neverNull
 			count: 1
-			path: kingshot-main/app/Contexts/Intelligence/Roster/Services/RosterCsvExporter.php
+			path: app/Contexts/Intelligence/Roster/Services/RosterCsvExporter.php
 
 		-
 			message: '#^Using nullsafe property access "\?\-\>progression_level" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
 			identifier: nullsafe.neverNull
 			count: 1
-			path: kingshot-main/app/Contexts/Intelligence/Roster/Services/RosterCsvExporter.php
+			path: app/Contexts/Intelligence/Roster/Services/RosterCsvExporter.php
 
 		-
 			message: '#^Method App\\Contexts\\Operations\\Events\\Actions\\ConfigureEventTypeScope\:\:handle\(\) has parameter \$defaultSettings with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
-			path: kingshot-main/app/Contexts/Operations/Events/Actions/ConfigureEventTypeScope.php
+			path: app/Contexts/Operations/Events/Actions/ConfigureEventTypeScope.php
 
 		-
 			message: '#^Using nullsafe property access "\?\-\>capacity" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
 			identifier: nullsafe.neverNull
 			count: 1
-			path: kingshot-main/app/Contexts/Operations/Events/Actions/CreateEvent.php
+			path: app/Contexts/Operations/Events/Actions/CreateEvent.php
 
 		-
 			message: '#^Using nullsafe property access "\?\-\>duration_minutes" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
 			identifier: nullsafe.neverNull
 			count: 1
-			path: kingshot-main/app/Contexts/Operations/Events/Actions/CreateEvent.php
+			path: app/Contexts/Operations/Events/Actions/CreateEvent.php
 
 		-
 			message: '#^Using nullsafe property access "\?\-\>registration_closes_minutes_before" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
 			identifier: nullsafe.neverNull
 			count: 1
-			path: kingshot-main/app/Contexts/Operations/Events/Actions/CreateEvent.php
+			path: app/Contexts/Operations/Events/Actions/CreateEvent.php
 
 		-
 			message: '#^Using nullsafe property access "\?\-\>registration_opens_minutes_before" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
 			identifier: nullsafe.neverNull
 			count: 1
-			path: kingshot-main/app/Contexts/Operations/Events/Actions/CreateEvent.php
+			path: app/Contexts/Operations/Events/Actions/CreateEvent.php
 
 		-
 			message: '#^Using nullsafe property access "\?\-\>settings" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
 			identifier: nullsafe.neverNull
 			count: 1
-			path: kingshot-main/app/Contexts/Operations/Events/Actions/CreateEvent.php
+			path: app/Contexts/Operations/Events/Actions/CreateEvent.php
 
 		-
 			message: '#^Access to an undefined property App\\Contexts\\Accounts\\Identity\\Contracts\\AuthenticatedAccount\:\:\$email\.$#'
 			identifier: property.notFound
 			count: 1
-			path: kingshot-main/app/Contexts/Operations/Events/Http/Controllers/EventManagementController.php
+			path: app/Contexts/Operations/Events/Http/Controllers/EventManagementController.php
 
 		-
 			message: '#^Access to an undefined property App\\Contexts\\Accounts\\Identity\\Contracts\\AuthenticatedAccount\:\:\$name\.$#'
 			identifier: property.notFound
 			count: 1
-			path: kingshot-main/app/Contexts/Operations/Events/Http/Controllers/EventManagementController.php
+			path: app/Contexts/Operations/Events/Http/Controllers/EventManagementController.php
 
 		-
 			message: '#^Method App\\Contexts\\Operations\\Events\\Services\\EventCreationContextResolver\:\:forPlayer\(\) should return list\<array\{scope\: string, targetId\: string, label\: string, allianceId\?\: string, kingdomId\?\: string, kingdomNumber\?\: int\}\> but returns array\{\}\|array\{0\: array\{scope\: ''alliance'', targetId\: string, label\: string, allianceId\: string, kingdomId\: string\}, 1\?\: array\{scope\: ''kingdom'', targetId\: string, label\: non\-falsy\-string, kingdomId\: string, kingdomNumber\: int\}\}\|array\{array\{scope\: ''kingdom'', targetId\: string, label\: non\-falsy\-string, kingdomId\: string, kingdomNumber\: int\}\}\|list\{0\: array\{scope\: ''player'', targetId\: string, label\: string, kingdomId\: string, kingdomNumber\: int\|null\}, 1\?\: array\{scope\: ''alliance'', targetId\: string, label\: string, allianceId\: string, kingdomId\: string\}\|array\{scope\: ''kingdom'', targetId\: string, label\: non\-falsy\-string, kingdomId\: string, kingdomNumber\: int\}, 2\?\: array\{scope\: ''kingdom'', targetId\: string, label\: non\-falsy\-string, kingdomId\: string, kingdomNumber\: int\}\}\.$#'
 			identifier: return.type
 			count: 1
-			path: kingshot-main/app/Contexts/Operations/Events/Services/EventCreationContextResolver.php
+			path: app/Contexts/Operations/Events/Services/EventCreationContextResolver.php
 
 		-
 			message: '#^Access to an undefined property object\:\:\$email\.$#'
 			identifier: property.notFound
 			count: 2
-			path: kingshot-main/app/Contexts/Operations/KingPerks/Http/Controllers/KingPerkController.php
+			path: app/Contexts/Operations/KingPerks/Http/Controllers/KingPerkController.php
 
 		-
 			message: '#^Access to an undefined property object\:\:\$name\.$#'
 			identifier: property.notFound
 			count: 2
-			path: kingshot-main/app/Contexts/Operations/KingPerks/Http/Controllers/KingPerkController.php
+			path: app/Contexts/Operations/KingPerks/Http/Controllers/KingPerkController.php
 
 		-
 			message: '#^Method App\\Contexts\\Operations\\KingPerks\\Queries\\KingPerkScheduleQuery\:\:appointment\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
-			path: kingshot-main/app/Contexts/Operations/KingPerks/Queries/KingPerkScheduleQuery.php
+			path: app/Contexts/Operations/KingPerks/Queries/KingPerkScheduleQuery.php
 
 		-
 			message: '#^Method App\\Contexts\\Operations\\KingPerks\\Queries\\KingPerkScheduleQuery\:\:appointmentTypes\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
-			path: kingshot-main/app/Contexts/Operations/KingPerks/Queries/KingPerkScheduleQuery.php
+			path: app/Contexts/Operations/KingPerks/Queries/KingPerkScheduleQuery.php
 
 		-
 			message: '#^Method App\\Contexts\\Operations\\KingPerks\\Queries\\KingPerkScheduleQuery\:\:pushCategories\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
-			path: kingshot-main/app/Contexts/Operations/KingPerks/Queries/KingPerkScheduleQuery.php
+			path: app/Contexts/Operations/KingPerks/Queries/KingPerkScheduleQuery.php
 
 		-
 			message: '#^Method App\\Contexts\\Operations\\KingPerks\\Queries\\KingPerkScheduleQuery\:\:request\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
-			path: kingshot-main/app/Contexts/Operations/KingPerks/Queries/KingPerkScheduleQuery.php
+			path: app/Contexts/Operations/KingPerks/Queries/KingPerkScheduleQuery.php
 
 		-
 			message: '#^Method App\\Contexts\\Operations\\KingPerks\\Queries\\KingPerkScheduleQuery\:\:skill\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
-			path: kingshot-main/app/Contexts/Operations/KingPerks/Queries/KingPerkScheduleQuery.php
+			path: app/Contexts/Operations/KingPerks/Queries/KingPerkScheduleQuery.php
 
 		-
 			message: '#^Method App\\Contexts\\Operations\\KingPerks\\Queries\\KingPerkScheduleQuery\:\:skillTypes\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
-			path: kingshot-main/app/Contexts/Operations/KingPerks/Queries/KingPerkScheduleQuery.php
+			path: app/Contexts/Operations/KingPerks/Queries/KingPerkScheduleQuery.php
 
 		-
 			message: '#^Parameter \#1 \$playerIds of method App\\Contexts\\GameWorld\\Players\\Queries\\PlayerReferenceQuery\:\:byIds\(\) expects list\<string\>, array\<int, string\> given\.$#'
 			identifier: argument.type
 			count: 2
-			path: kingshot-main/app/Contexts/Operations/KingPerks/Queries/KingPerkScheduleQuery.php
+			path: app/Contexts/Operations/KingPerks/Queries/KingPerkScheduleQuery.php
 
 		-
 			message: '#^Parameter \#1 \$playerIds of method App\\Contexts\\GameWorld\\Players\\Queries\\PlayerReferenceQuery\:\:byIds\(\) expects list\<string\>, array\<string\> given\.$#'
 			identifier: argument.type
 			count: 1
-			path: kingshot-main/app/Contexts/Operations/KingPerks/Services/KingPerkAutoScheduler.php
+			path: app/Contexts/Operations/KingPerks/Services/KingPerkAutoScheduler.php
 
 		-
 			message: '#^Parameter \#1 \$playerIds of method App\\Contexts\\GameWorld\\Players\\Queries\\PlayerReferenceQuery\:\:byIds\(\) expects list\<string\>, array\<int, string\> given\.$#'
 			identifier: argument.type
 			count: 1
-			path: kingshot-main/app/Contexts/Operations/Participation/Queries/EventParticipationQuery.php
+			path: app/Contexts/Operations/Participation/Queries/EventParticipationQuery.php
 
 		-
 			message: '#^Method App\\Contexts\\Operations\\Rallies\\Actions\\SaveRallyGuidanceRule\:\:normalizeHeroes\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
-			path: kingshot-main/app/Contexts/Operations/Rallies/Actions/SaveRallyGuidanceRule.php
+			path: app/Contexts/Operations/Rallies/Actions/SaveRallyGuidanceRule.php
 
 		-
 			message: '#^Parameter \#1 \$allianceIds of method App\\Contexts\\Alliance\\Lifecycle\\Queries\\AllianceReferenceQuery\:\:byIds\(\) expects list\<string\>, array\<int, string\> given\.$#'
 			identifier: argument.type
 			count: 1
-			path: kingshot-main/app/Contexts/Operations/Rallies/Queries/EventRallyQuery.php
+			path: app/Contexts/Operations/Rallies/Queries/EventRallyQuery.php
 
 		-
 			message: '#^Parameter \#1 \$allianceIds of method App\\Contexts\\Alliance\\Lifecycle\\Queries\\AllianceReferenceQuery\:\:byIds\(\) expects list\<string\>, array\<string\> given\.$#'
 			identifier: argument.type
 			count: 3
-			path: kingshot-main/app/Contexts/Operations/Rallies/Queries/EventRallyQuery.php
+			path: app/Contexts/Operations/Rallies/Queries/EventRallyQuery.php
 
 		-
 			message: '#^Parameter \#1 \$playerIds of method App\\Contexts\\GameWorld\\Players\\Queries\\PlayerReferenceQuery\:\:byIds\(\) expects list\<string\>, array\<int, string\> given\.$#'
 			identifier: argument.type
 			count: 1
-			path: kingshot-main/app/Contexts/Operations/Rallies/Queries/EventRallyQuery.php
+			path: app/Contexts/Operations/Rallies/Queries/EventRallyQuery.php
 
 		-
 			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
 			identifier: nullsafe.neverNull
 			count: 1
-			path: kingshot-main/app/Contexts/Operations/Rallies/Queries/EventRallyQuery.php
+			path: app/Contexts/Operations/Rallies/Queries/EventRallyQuery.php
 
 		-
 			message: '#^Parameter \#1 \$playerIds of method App\\Contexts\\GameWorld\\Players\\Queries\\PlayerReferenceQuery\:\:byIds\(\) expects list\<string\>, array\<string\> given\.$#'
 			identifier: argument.type
 			count: 1
-			path: kingshot-main/app/Contexts/Operations/Results/Queries/EventResultQuery.php
+			path: app/Contexts/Operations/Results/Queries/EventResultQuery.php
 
 		-
 			message: '#^Method App\\Contexts\\Operations\\Rosters\\Queries\\EventRosterQuery\:\:rosterPayload\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
-			path: kingshot-main/app/Contexts/Operations/Rosters/Queries/EventRosterQuery.php
+			path: app/Contexts/Operations/Rosters/Queries/EventRosterQuery.php
 
 		-
 			message: '#^Parameter \#1 \$playerIds of method App\\Contexts\\GameWorld\\Players\\Queries\\PlayerReferenceQuery\:\:byIds\(\) expects list\<string\>, array\<string\> given\.$#'
 			identifier: argument.type
 			count: 1
-			path: kingshot-main/app/Contexts/Operations/Rosters/Queries/EventRosterQuery.php
+			path: app/Contexts/Operations/Rosters/Queries/EventRosterQuery.php
 
 		-
 			message: '#^Using nullsafe property access "\?\-\>currentName" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
 			identifier: nullsafe.neverNull
 			count: 1
-			path: kingshot-main/app/Contexts/Operations/Rosters/Queries/EventRosterQuery.php
+			path: app/Contexts/Operations/Rosters/Queries/EventRosterQuery.php
 
 		-
 			message: '#^Method App\\Contexts\\Platform\\AllianceAdministration\\Actions\\ConfigureAlliancePlatform\:\:setFeature\(\) has parameter \$configuration with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
-			path: kingshot-main/app/Contexts/Platform/AllianceAdministration/Actions/ConfigureAlliancePlatform.php
+			path: app/Contexts/Platform/AllianceAdministration/Actions/ConfigureAlliancePlatform.php
 
 		-
 			message: '#^Method App\\Contexts\\Platform\\AllianceAdministration\\Services\\AllianceFeatureService\:\:set\(\) has parameter \$configuration with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
-			path: kingshot-main/app/Contexts/Platform/AllianceAdministration/Services/AllianceFeatureService.php
+			path: app/Contexts/Platform/AllianceAdministration/Services/AllianceFeatureService.php
 
 		-
 			message: '#^Method App\\Contexts\\Platform\\DataGovernance\\Actions\\EnforcePlatformRetention\:\:handle\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
-			path: kingshot-main/app/Contexts/Platform/DataGovernance/Actions/EnforcePlatformRetention.php
+			path: app/Contexts/Platform/DataGovernance/Actions/EnforcePlatformRetention.php
 
 		-
 			message: '#^Cannot call method isFuture\(\) on string\.$#'
 			identifier: method.nonObject
 			count: 1
-			path: kingshot-main/app/Contexts/Platform/DataGovernance/Actions/ProcessAccountDeletionRequests.php
+			path: app/Contexts/Platform/DataGovernance/Actions/ProcessAccountDeletionRequests.php
 
 		-
 			message: '#^Method App\\Contexts\\Platform\\DataGovernance\\Services\\AllianceDataExportService\:\:sanitizeRow\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
-			path: kingshot-main/app/Contexts/Platform/DataGovernance/Services/AllianceDataExportService.php
+			path: app/Contexts/Platform/DataGovernance/Services/AllianceDataExportService.php
 
 		-
 			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,App\\Contexts\\Platform\\Integrations\\Models\\WebhookDelivery\>\:\:each\(\) expects callable\(App\\Contexts\\Platform\\Integrations\\Models\\WebhookDelivery, int\)\: mixed, Closure\(string\)\: void given\.$#'
 			identifier: argument.type
 			count: 1
-			path: kingshot-main/app/Contexts/Platform/Integrations/Actions/QueueDueWebhookDeliveries.php
+			path: app/Contexts/Platform/Integrations/Actions/QueueDueWebhookDeliveries.php
 
 		-
 			message: '#^Undefined variable\: \$delivery$#'
 			identifier: variable.undefined
 			count: 1
-			path: kingshot-main/app/Contexts/Platform/Integrations/Actions/QueueDueWebhookDeliveries.php
+			path: app/Contexts/Platform/Integrations/Actions/QueueDueWebhookDeliveries.php
 
 		-
 			message: '#^Undefined variable\: \$deliveryId$#'
 			identifier: variable.undefined
 			count: 1
-			path: kingshot-main/app/Contexts/Platform/Integrations/Actions/QueueDueWebhookDeliveries.php
+			path: app/Contexts/Platform/Integrations/Actions/QueueDueWebhookDeliveries.php
 
 		-
 			message: '#^Parameter \#1 \$deliveryId of method App\\Contexts\\Platform\\Integrations\\Actions\\DeliverWebhook\:\:handle\(\) expects string, App\\Contexts\\Platform\\Integrations\\Models\\WebhookDelivery given\.$#'
 			identifier: argument.type
 			count: 1
-			path: kingshot-main/app/Contexts/Platform/Integrations/Jobs/DeliverWebhookJob.php
+			path: app/Contexts/Platform/Integrations/Jobs/DeliverWebhookJob.php
 
 		-
 			message: '#^Method App\\Contexts\\Platform\\Integrations\\Models\\WebhookDelivery\:\:subscription\(\) has invalid return type App\\Contexts\\Platform\\Integrations\\Models\\BelongsTo\.$#'
 			identifier: class.notFound
 			count: 2
-			path: kingshot-main/app/Contexts/Platform/Integrations/Models/WebhookDelivery.php
+			path: app/Contexts/Platform/Integrations/Models/WebhookDelivery.php
 
 		-
 			message: '#^Method App\\Contexts\\Platform\\Integrations\\Models\\WebhookDelivery\:\:subscription\(\) should return App\\Contexts\\Platform\\Integrations\\Models\\BelongsTo\<App\\Contexts\\Platform\\Integrations\\Models\\WebhookSubscription, \$this\(App\\Contexts\\Platform\\Integrations\\Models\\WebhookDelivery\)\> but returns Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Contexts\\Platform\\Integrations\\Models\\WebhookSubscription, \$this\(App\\Contexts\\Platform\\Integrations\\Models\\WebhookDelivery\)\>\.$#'
 			identifier: return.type
 			count: 1
-			path: kingshot-main/app/Contexts/Platform/Integrations/Models/WebhookDelivery.php
+			path: app/Contexts/Platform/Integrations/Models/WebhookDelivery.php
 
 		-
 			message: '#^Parameter \#1 \$playerIds of method App\\Contexts\\GameWorld\\Players\\Queries\\PlayerReferenceQuery\:\:byIds\(\) expects list\<string\>, array\<string\> given\.$#'
 			identifier: argument.type
 			count: 2
-			path: kingshot-main/app/ReadModels/AllianceDashboard/Http/Controllers/AllianceOverviewController.php
+			path: app/ReadModels/AllianceDashboard/Http/Controllers/AllianceOverviewController.php
 
 		-
 			message: '#^Using nullsafe property access "\?\-\>currentName" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
 			identifier: nullsafe.neverNull
 			count: 3
-			path: kingshot-main/app/ReadModels/AllianceDashboard/Http/Controllers/AllianceOverviewController.php
+			path: app/ReadModels/AllianceDashboard/Http/Controllers/AllianceOverviewController.php
 
 		-
 			message: '#^Parameter \#1 \$actorPlayerId of method App\\Contexts\\Operations\\Events\\Services\\EventAuthorization\:\:authorize\(\) expects string, App\\Contexts\\GameWorld\\Players\\Models\\Player given\.$#'
 			identifier: argument.type
 			count: 1
-			path: kingshot-main/app/ReadModels/EventAnalysis/Queries/EventAllianceHistoryQuery.php
+			path: app/ReadModels/EventAnalysis/Queries/EventAllianceHistoryQuery.php
 
 		-
 			message: '#^Parameter \#3 \$targetId of method App\\Contexts\\Operations\\Events\\Services\\EventAuthorization\:\:authorize\(\) expects string, App\\Contexts\\Alliance\\Lifecycle\\Models\\Alliance given\.$#'
 			identifier: argument.type
 			count: 1
-			path: kingshot-main/app/ReadModels/EventAnalysis/Queries/EventAllianceHistoryQuery.php
+			path: app/ReadModels/EventAnalysis/Queries/EventAllianceHistoryQuery.php
 
 		-
 			message: '#^Parameter \#1 \$actorPlayerId of method App\\Contexts\\Operations\\Events\\Services\\EventAuthorization\:\:authorize\(\) expects string, App\\Contexts\\GameWorld\\Players\\Models\\Player given\.$#'
 			identifier: argument.type
 			count: 1
-			path: kingshot-main/app/ReadModels/EventAnalysis/Queries/EventKingdomHistoryQuery.php
+			path: app/ReadModels/EventAnalysis/Queries/EventKingdomHistoryQuery.php
 
 		-
 			message: '#^Parameter \#3 \$targetId of method App\\Contexts\\Operations\\Events\\Services\\EventAuthorization\:\:authorize\(\) expects string, App\\Contexts\\GameWorld\\Kingdoms\\Models\\Kingdom given\.$#'
 			identifier: argument.type
 			count: 1
-			path: kingshot-main/app/ReadModels/EventAnalysis/Queries/EventKingdomHistoryQuery.php
+			path: app/ReadModels/EventAnalysis/Queries/EventKingdomHistoryQuery.php
 
 		-
 			message: '#^Instanceof between App\\Contexts\\GameWorld\\Players\\ValueObjects\\PlayerReference\|null and App\\Contexts\\GameWorld\\Players\\Models\\Player will always evaluate to false\.$#'
 			identifier: instanceof.alwaysFalse
 			count: 1
-			path: kingshot-main/app/ReadModels/EventCalendar/Queries/EventReminderInboxQuery.php
+			path: app/ReadModels/EventCalendar/Queries/EventReminderInboxQuery.php
 
 		-
 			message: '#^Method App\\ReadModels\\EventCalendar\\Queries\\EventReminderInboxQuery\:\:eventReminders\(\) is unused\.$#'
 			identifier: method.unused
 			count: 1
-			path: kingshot-main/app/ReadModels/EventCalendar/Queries/EventReminderInboxQuery.php
+			path: app/ReadModels/EventCalendar/Queries/EventReminderInboxQuery.php
 
 		-
 			message: '#^Method App\\ReadModels\\EventCalendar\\Queries\\EventReminderInboxQuery\:\:kingPerkReminders\(\) is unused\.$#'
 			identifier: method.unused
 			count: 1
-			path: kingshot-main/app/ReadModels/EventCalendar/Queries/EventReminderInboxQuery.php
+			path: app/ReadModels/EventCalendar/Queries/EventReminderInboxQuery.php
 
 		-
 			message: '#^Property App\\ReadModels\\EventCalendar\\Queries\\EventReminderInboxQuery\:\:\$visibility is never read, only written\.$#'
 			identifier: property.onlyWritten
 			count: 1
-			path: kingshot-main/app/ReadModels/EventCalendar/Queries/EventReminderInboxQuery.php
+			path: app/ReadModels/EventCalendar/Queries/EventReminderInboxQuery.php
 
 		-
 			message: '#^Result of \|\| is always true\.$#'
 			identifier: booleanOr.alwaysTrue
 			count: 1
-			path: kingshot-main/app/ReadModels/EventCalendar/Queries/EventReminderInboxQuery.php
+			path: app/ReadModels/EventCalendar/Queries/EventReminderInboxQuery.php
 
 		-
 			message: '#^Unreachable statement \- code above always terminates\.$#'
 			identifier: deadCode.unreachable
 			count: 1
-			path: kingshot-main/app/ReadModels/EventCalendar/Queries/EventReminderInboxQuery.php
+			path: app/ReadModels/EventCalendar/Queries/EventReminderInboxQuery.php
 
 		-
 			message: '#^Parameter \#1 \$actor of method App\\ReadModels\\EventAnalysis\\Queries\\EventAllianceHistoryQuery\:\:forAlliance\(\) expects App\\Contexts\\GameWorld\\Players\\Models\\Player, App\\Contexts\\GameWorld\\Players\\ValueObjects\\PlayerReference given\.$#'
 			identifier: argument.type
 			count: 1
-			path: kingshot-main/app/ReadModels/EventHistory/Http/Controllers/EventHistoryController.php
+			path: app/ReadModels/EventHistory/Http/Controllers/EventHistoryController.php
 
 		-
 			message: '#^Parameter \#1 \$actor of method App\\ReadModels\\EventAnalysis\\Queries\\EventKingdomHistoryQuery\:\:forKingdom\(\) expects App\\Contexts\\GameWorld\\Players\\Models\\Player, App\\Contexts\\GameWorld\\Players\\ValueObjects\\PlayerReference given\.$#'
 			identifier: argument.type
 			count: 1
-			path: kingshot-main/app/ReadModels/EventHistory/Http/Controllers/EventHistoryController.php
+			path: app/ReadModels/EventHistory/Http/Controllers/EventHistoryController.php
 
 		-
 			message: '#^Parameter \#2 \$alliance of method App\\ReadModels\\EventAnalysis\\Queries\\EventContributionIntelligenceQuery\:\:forAlliance\(\) expects App\\Contexts\\Alliance\\Lifecycle\\ValueObjects\\AllianceReference, App\\Contexts\\Alliance\\Lifecycle\\Models\\Alliance given\.$#'
 			identifier: argument.type
 			count: 1
-			path: kingshot-main/app/ReadModels/EventHistory/Http/Controllers/EventHistoryController.php
+			path: app/ReadModels/EventHistory/Http/Controllers/EventHistoryController.php
 
 		-
 			message: '#^Parameter \#2 \$kingdom of method App\\ReadModels\\EventAnalysis\\Queries\\EventContributionIntelligenceQuery\:\:forKingdom\(\) expects App\\Contexts\\GameWorld\\Kingdoms\\ValueObjects\\KingdomReference, App\\Contexts\\GameWorld\\Kingdoms\\Models\\Kingdom given\.$#'
 			identifier: argument.type
 			count: 1
-			path: kingshot-main/app/ReadModels/EventHistory/Http/Controllers/EventHistoryController.php
+			path: app/ReadModels/EventHistory/Http/Controllers/EventHistoryController.php
 
 		-
 			message: '#^Call to function abort_unless\(\) with arguments false, 409 and ''Select a Player…'' will always evaluate to false\.$#'
 			identifier: function.impossibleType
 			count: 1
-			path: kingshot-main/app/ReadModels/EventManagement/Http/Controllers/EventManagementPageController.php
+			path: app/ReadModels/EventManagement/Http/Controllers/EventManagementPageController.php
 
 		-
 			message: '#^Instanceof between App\\Contexts\\GameWorld\\Players\\ValueObjects\\PlayerReference\|null and App\\Contexts\\GameWorld\\Players\\Models\\Player will always evaluate to false\.$#'
 			identifier: instanceof.alwaysFalse
 			count: 1
-			path: kingshot-main/app/ReadModels/EventManagement/Http/Controllers/EventManagementPageController.php
+			path: app/ReadModels/EventManagement/Http/Controllers/EventManagementPageController.php
 
 		-
 			message: '#^Parameter \#1 \$actor of method App\\Contexts\\Operations\\Events\\Queries\\EventCalendarQuery\:\:eventForManage\(\) expects App\\Contexts\\GameWorld\\Players\\ValueObjects\\PlayerReference, App\\Contexts\\GameWorld\\Players\\Models\\Player given\.$#'
 			identifier: argument.type
 			count: 1
-			path: kingshot-main/app/ReadModels/EventManagement/Http/Controllers/EventManagementPageController.php
+			path: app/ReadModels/EventManagement/Http/Controllers/EventManagementPageController.php
 
 		-
 			message: '#^Method App\\ReadModels\\KingdomIntelligence\\KingdomAllianceIntelligenceQuery\:\:trackingIds\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
-			path: kingshot-main/app/ReadModels/KingdomIntelligence/KingdomAllianceIntelligenceQuery.php
+			path: app/ReadModels/KingdomIntelligence/KingdomAllianceIntelligenceQuery.php
 
 		-
 			message: '#^Cannot access property \$value on string\.$#'
 			identifier: property.nonObject
 			count: 1
-			path: kingshot-main/app/ReadModels/PlatformAdministration/PlatformAdministrationQuery.php
+			path: app/ReadModels/PlatformAdministration/PlatformAdministrationQuery.php
 
 		-
 			message: '#^Cannot call method toIso8601String\(\) on string\.$#'
 			identifier: method.nonObject
 			count: 2
-			path: kingshot-main/app/ReadModels/PlatformAdministration/PlatformAdministrationQuery.php
+			path: app/ReadModels/PlatformAdministration/PlatformAdministrationQuery.php
 
 		-
 			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Contexts\\Alliance\\Lifecycle\\Models\\Alliance\>\:\:map\(\) contains unresolvable type\.$#'
 			identifier: argument.unresolvableType
 			count: 1
-			path: kingshot-main/app/ReadModels/PlatformAdministration/PlatformAdministrationQuery.php
+			path: app/ReadModels/PlatformAdministration/PlatformAdministrationQuery.php
 
 		-
 			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Contexts\\Platform\\DataGovernance\\Models\\LegalHold\>\:\:map\(\) contains unresolvable type\.$#'
 			identifier: argument.unresolvableType
 			count: 1
-			path: kingshot-main/app/ReadModels/PlatformAdministration/PlatformAdministrationQuery.php
+			path: app/ReadModels/PlatformAdministration/PlatformAdministrationQuery.php
 
 		-
 			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Contexts\\Alliance\\Lifecycle\\Models\\Alliance\>\:\:map\(\) contains unresolvable type\.$#'
 			identifier: method.unresolvableReturnType
 			count: 1
-			path: kingshot-main/app/ReadModels/PlatformAdministration/PlatformAdministrationQuery.php
+			path: app/ReadModels/PlatformAdministration/PlatformAdministrationQuery.php
 
 		-
 			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Contexts\\Platform\\DataGovernance\\Models\\LegalHold\>\:\:map\(\) contains unresolvable type\.$#'
 			identifier: method.unresolvableReturnType
 			count: 1
-			path: kingshot-main/app/ReadModels/PlatformAdministration/PlatformAdministrationQuery.php
+			path: app/ReadModels/PlatformAdministration/PlatformAdministrationQuery.php
 
 		-
 			message: '#^Return type of call to method Illuminate\\Support\\Collection\<int,array\<string, mixed\>\>\:\:all\(\) contains unresolvable type\.$#'
 			identifier: method.unresolvableReturnType
 			count: 2
-			path: kingshot-main/app/ReadModels/PlatformAdministration/PlatformAdministrationQuery.php
+			path: app/ReadModels/PlatformAdministration/PlatformAdministrationQuery.php
 
 		-
 			message: '#^Method App\\ReadModels\\Roster\\Http\\Controllers\\PlayerSnapshotHistoryController\:\:snapshot\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
-			path: kingshot-main/app/ReadModels/Roster/Http/Controllers/PlayerSnapshotHistoryController.php
+			path: app/ReadModels/Roster/Http/Controllers/PlayerSnapshotHistoryController.php
 
 		-
 			message: '#^Parameter \#1 \$playerIds of method App\\Contexts\\GameWorld\\Players\\Queries\\PlayerReferenceQuery\:\:byIds\(\) expects list\<string\>, array\<int, non\-falsy\-string\> given\.$#'
 			identifier: argument.type
 			count: 1
-			path: kingshot-main/app/ReadModels/Roster/Http/Controllers/PlayerSnapshotHistoryController.php
+			path: app/ReadModels/Roster/Http/Controllers/PlayerSnapshotHistoryController.php
 
 		-
 			message: '#^Using nullsafe property access "\?\-\>currentName" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
 			identifier: nullsafe.neverNull
 			count: 2
-			path: kingshot-main/app/ReadModels/Roster/Http/Controllers/RosterReadController.php
+			path: app/ReadModels/Roster/Http/Controllers/RosterReadController.php
