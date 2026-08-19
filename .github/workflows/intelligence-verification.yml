@@ -19,9 +19,46 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
+  autofix:
+    name: Apply temporary Intelligence static fixes
+    if: github.head_ref == 'agent/post-merge-ci-cleanup' && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Check out cleanup branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: agent/post-merge-ci-cleanup
+
+      - name: Apply deterministic fixes
+        run: python3 .github/scripts/temporary-intelligence-static-fixes.py
+
+      - name: Configure PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.5'
+          coverage: none
+          tools: composer:v2
+
+      - name: Install locked PHP dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Format patched PHP
+        run: vendor/bin/pint app/Contexts/Accounts/Identity/Contracts/AuthenticatedAccount.php app/Contexts/Accounts/Identity/Models/User.php app/Contexts/Intelligence/Contributions app/Contexts/Intelligence/Diplomacy app/Contexts/Intelligence/Ingestion app/Contexts/Intelligence/Observations app/Contexts/Intelligence/Roster app/ReadModels/EventAnalysis app/ReadModels/EventHistory app/ReadModels/KingdomIntelligence
+
+      - name: Commit fixes
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet && exit 0
+          git commit -m "Resolve Intelligence static-analysis contracts"
+          git push origin HEAD:agent/post-merge-ci-cleanup
+
   backend:
     name: Intelligence backend contracts
     runs-on: ubuntu-24.04
