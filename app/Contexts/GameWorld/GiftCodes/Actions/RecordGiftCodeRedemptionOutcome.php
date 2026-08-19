@@ -7,6 +7,7 @@ namespace App\Contexts\GameWorld\GiftCodes\Actions;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCode;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeRedemption;
 use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeRedemptionOutcome;
+use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeRedemptionReference;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
@@ -21,12 +22,13 @@ final readonly class RecordGiftCodeRedemptionOutcome
     ) {}
 
     public function handle(
-        GiftCode $giftCode,
+        string $giftCodeId,
         PlayerReference $player,
         string $provider,
         GiftCodeRedemptionOutcome $outcome,
-    ): GiftCodeRedemption {
-        return DB::transaction(function () use ($giftCode, $player, $provider, $outcome): GiftCodeRedemption {
+    ): GiftCodeRedemptionReference {
+        return DB::transaction(function () use ($giftCodeId, $player, $provider, $outcome): GiftCodeRedemptionReference {
+            $giftCode = GiftCode::query()->findOrFail($giftCodeId);
             $redemption = GiftCodeRedemption::query()
                 ->where('gift_code_id', $giftCode->id)
                 ->where('player_id', $player->playerId)
@@ -82,7 +84,19 @@ final readonly class RecordGiftCodeRedemptionOutcome
                 'player:'.$player->playerId,
             );
 
-            return $redemption;
+            return $this->reference($redemption);
         });
+    }
+
+    private function reference(GiftCodeRedemption $redemption): GiftCodeRedemptionReference
+    {
+        return new GiftCodeRedemptionReference(
+            (string) $redemption->id,
+            $redemption->status,
+            $redemption->attempts,
+            $redemption->redemption_url,
+            $redemption->next_attempt_at,
+            $redemption->redeemed_at,
+        );
     }
 }

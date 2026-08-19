@@ -7,6 +7,7 @@ namespace App\Contexts\GameWorld\GiftCodes\Actions;
 use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeSource;
 use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeStatus;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCode;
+use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeReference;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
@@ -25,9 +26,9 @@ final readonly class SubmitGiftCode
     /**
      * @param array{code: string, source_type?: string, source_label?: string|null, source_url?: string|null, expires_at?: string|null} $attributes
      */
-    public function handle(PlayerReference $actor, array $attributes): GiftCode
+    public function handle(PlayerReference $actor, array $attributes): GiftCodeReference
     {
-        return DB::transaction(function () use ($actor, $attributes): GiftCode {
+        return DB::transaction(function () use ($actor, $attributes): GiftCodeReference {
             $code = trim($attributes['code']);
             if (! preg_match('/^[A-Za-z0-9_-]{3,64}$/', $code)) {
                 throw ValidationException::withMessages([
@@ -77,7 +78,12 @@ final readonly class SubmitGiftCode
                 'player:'.$actor->playerId,
             );
 
-            return $giftCode;
+            return new GiftCodeReference(
+                (string) $giftCode->id,
+                $giftCode->code,
+                $giftCode->status,
+                $giftCode->expires_at,
+            );
         });
     }
 

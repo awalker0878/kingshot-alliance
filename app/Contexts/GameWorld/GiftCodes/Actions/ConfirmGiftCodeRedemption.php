@@ -7,6 +7,7 @@ namespace App\Contexts\GameWorld\GiftCodes\Actions;
 use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeRedemptionStatus;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCode;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeRedemption;
+use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeRedemptionReference;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
@@ -20,9 +21,9 @@ final readonly class ConfirmGiftCodeRedemption
         private OutboxRecorder $outbox,
     ) {}
 
-    public function handle(string $giftCodeId, PlayerReference $player): GiftCodeRedemption
+    public function handle(string $giftCodeId, PlayerReference $player): GiftCodeRedemptionReference
     {
-        return DB::transaction(function () use ($giftCodeId, $player): GiftCodeRedemption {
+        return DB::transaction(function () use ($giftCodeId, $player): GiftCodeRedemptionReference {
             $giftCode = GiftCode::query()->findOrFail($giftCodeId);
             $redemption = GiftCodeRedemption::query()
                 ->where('gift_code_id', $giftCodeId)
@@ -37,7 +38,7 @@ final readonly class ConfirmGiftCodeRedemption
             }
 
             if ($redemption->status === GiftCodeRedemptionStatus::Redeemed) {
-                return $redemption;
+                return $this->reference($redemption);
             }
 
             $redemption->forceFill([
@@ -64,7 +65,19 @@ final readonly class ConfirmGiftCodeRedemption
                 'player:'.$player->playerId,
             );
 
-            return $redemption;
+            return $this->reference($redemption);
         });
+    }
+
+    private function reference(GiftCodeRedemption $redemption): GiftCodeRedemptionReference
+    {
+        return new GiftCodeRedemptionReference(
+            (string) $redemption->id,
+            $redemption->status,
+            $redemption->attempts,
+            $redemption->redemption_url,
+            $redemption->next_attempt_at,
+            $redemption->redeemed_at,
+        );
     }
 }

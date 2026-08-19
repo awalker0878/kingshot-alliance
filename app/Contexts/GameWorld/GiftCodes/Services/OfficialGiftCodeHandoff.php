@@ -6,7 +6,7 @@ namespace App\Contexts\GameWorld\GiftCodes\Services;
 
 use App\Contexts\GameWorld\GiftCodes\Contracts\GiftCodeRedemptionProvider;
 use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeRedemptionStatus;
-use App\Contexts\GameWorld\GiftCodes\Models\GiftCode;
+use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeReference;
 use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeRedemptionOutcome;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 
@@ -19,7 +19,7 @@ final readonly class OfficialGiftCodeHandoff implements GiftCodeRedemptionProvid
         return 'century_games_handoff';
     }
 
-    public function begin(GiftCode $giftCode, PlayerReference $player): GiftCodeRedemptionOutcome
+    public function begin(GiftCodeReference $giftCode, PlayerReference $player): GiftCodeRedemptionOutcome
     {
         if ($player->gamePlayerId === null || trim($player->gamePlayerId) === '') {
             return new GiftCodeRedemptionOutcome(

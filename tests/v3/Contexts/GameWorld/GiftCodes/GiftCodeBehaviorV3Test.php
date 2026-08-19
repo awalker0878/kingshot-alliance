@@ -36,21 +36,21 @@ final class GiftCodeBehaviorV3Test extends TestCase
             'source_label' => 'Century Games',
         ]);
 
-        self::assertSame($first->id, $second->id);
+        self::assertSame($first->giftCodeId, $second->giftCodeId);
 
-        $redemption = app(BeginGiftCodeRedemption::class)->handle((string) $first->id, $player);
+        $redemption = app(BeginGiftCodeRedemption::class)->handle($first->giftCodeId, $player);
         self::assertSame(GiftCodeRedemptionStatus::AwaitingConfirmation, $redemption->status);
         self::assertSame('GOV-1123-A', $player->gamePlayerId);
-        self::assertNotNull($redemption->redemption_url);
+        self::assertNotNull($redemption->redemptionUrl);
 
-        $again = app(BeginGiftCodeRedemption::class)->handle((string) $first->id, $player);
-        self::assertSame($redemption->id, $again->id);
+        $again = app(BeginGiftCodeRedemption::class)->handle($first->giftCodeId, $player);
+        self::assertSame($redemption->redemptionId, $again->redemptionId);
         self::assertSame(2, $again->attempts);
         self::assertSame(1, GiftCodeRedemption::query()->count());
 
-        $confirmed = app(ConfirmGiftCodeRedemption::class)->handle((string) $first->id, $player);
+        $confirmed = app(ConfirmGiftCodeRedemption::class)->handle($first->giftCodeId, $player);
         self::assertSame(GiftCodeRedemptionStatus::Redeemed, $confirmed->status);
-        self::assertNotNull($confirmed->redeemed_at);
+        self::assertNotNull($confirmed->redeemedAt);
     }
 
     public function test_retryable_outcomes_receive_a_bounded_retry_time(): void
@@ -64,7 +64,7 @@ final class GiftCodeBehaviorV3Test extends TestCase
         ]);
 
         $redemption = app(RecordGiftCodeRedemptionOutcome::class)->handle(
-            $giftCode,
+            $giftCode->giftCodeId,
             $player,
             'test_provider',
             new GiftCodeRedemptionOutcome(
@@ -75,7 +75,7 @@ final class GiftCodeBehaviorV3Test extends TestCase
         );
 
         self::assertSame(GiftCodeRedemptionStatus::RateLimited, $redemption->status);
-        $nextAttemptAt = $redemption->next_attempt_at;
+        $nextAttemptAt = $redemption->nextAttemptAt;
         self::assertNotNull($nextAttemptAt);
         self::assertTrue($nextAttemptAt->isFuture());
     }
