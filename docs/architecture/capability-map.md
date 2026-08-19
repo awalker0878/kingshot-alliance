@@ -91,4 +91,6 @@ The following are implementation/composition mechanisms, not business capabiliti
 
 Cross-context analytical views such as Event analysis are composition surfaces under `app/ReadModels`, not Intelligence capabilities unless they acquire durable owner state of their own.
 
+The HTTP adapter that renders a cross-context composition surface lives with that read model; owner-context adapters must not import `app/ReadModels`.
+
 The capability map is documentation, not an executable hardcoded registry. Architecture tests enforce structural invariants instead of duplicating this list in production/test code.
