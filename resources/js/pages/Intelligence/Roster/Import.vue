@@ -60,11 +60,11 @@ const props = defineProps<{
 }>();
 
 const { locale, t, formatNumber } = useLocale();
-const uploadForm = useForm<{ file: File | null }>({ file: null });
+const uploadForm = useContextForm<{ file: File | null }>({ file: null });
 const resolutionDrafts = reactive<Record<string, string>>({
   ...(props.importRecord?.resolutions ?? {}),
 });
-const commitForm = useForm<{ resolutions: Record<string, string> }>({ resolutions: {} });
+const commitForm = useContextForm<{ resolutions: Record<string, string> }>({ resolutions: {} });
 
 const unresolvedAmbiguous = computed(() => {
   if (!props.importRecord) return 0;

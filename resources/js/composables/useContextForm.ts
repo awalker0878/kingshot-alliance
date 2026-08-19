@@ -5,13 +5,7 @@ import { useGameContext } from '@/composables/useGameContext';
 import { activeContextKey, registerContextDisposer } from '@/identity/context-isolation';
 
 type ContextFormConvertibleValue =
-  | Blob
-  | FormDataEntryValue
-  | Date
-  | boolean
-  | number
-  | null
-  | undefined;
+  Blob | FormDataEntryValue | Date | boolean | number | null | undefined;
 
 type ContextFormData<T extends object> = {
   [K in keyof T]: T[K] extends infer U

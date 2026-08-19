@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { Head, Link, router } from '@inertiajs/vue3';
-import { useContextForm } from '@/composables/useContextForm';
+import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
 import RoomBanner from '@/components/game/RoomBanner.vue';
@@ -25,18 +24,18 @@ const props = defineProps<{
 
 const { t } = useLocale();
 
-const profileForm = useContextForm({
+const profileForm = useForm({
   name: props.user.name,
   email: props.user.email,
   timezone: props.user.timezone,
 });
-const passwordForm = useContextForm({
+const passwordForm = useForm({
   current_password: '',
   password: '',
   password_confirmation: '',
 });
-const sessionsForm = useContextForm({ password: '' });
-const twoFactorForm = useContextForm({ code: '' });
+const sessionsForm = useForm({ password: '' });
+const twoFactorForm = useForm({ code: '' });
 
 const statusMessage = computed(() => {
   switch (props.status) {

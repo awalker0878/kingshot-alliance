@@ -75,7 +75,7 @@ const props = defineProps<{
 const { t, formatDate } = useLocale();
 
 const createForm = useContextForm({ label: '', starts_on: '', ends_on: '' });
-const transitionForm = useForm<Record<string, string>>({});
+const transitionForm = useContextForm<Record<string, string>>({});
 const groupForm = useContextForm({
   name: '',
   direction: 'incoming' as 'incoming' | 'outgoing',

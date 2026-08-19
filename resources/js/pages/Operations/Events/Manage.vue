@@ -335,7 +335,7 @@ const form = useContextForm({
   recurrence_until_local: props.event.recurrenceUntilLocal ?? '',
 });
 
-const templateForm = useForm<EventTemplateForm>({
+const templateForm = useContextForm<EventTemplateForm>({
   scope: props.event.scope,
   target_id: props.event.targetId,
   event_type_id: props.event.eventTypeId,

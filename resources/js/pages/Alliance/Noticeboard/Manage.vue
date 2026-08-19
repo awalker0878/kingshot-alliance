@@ -49,7 +49,7 @@ const props = defineProps<{
 
 const { t, formatDate } = useLocale();
 const categoryForm = useContextForm({ name: '', slug: '' });
-const createForm = useForm<ContentDraft>({
+const createForm = useContextForm<ContentDraft>({
   content_type: 'notice',
   category_id: '',
   title: '',
@@ -78,8 +78,8 @@ const edits = reactive<Record<string, ContentDraft>>(
     ]),
   ),
 );
-const logoForm = useForm<{ image: File | null }>({ image: null });
-const bannerForm = useForm<{ image: File | null }>({ image: null });
+const logoForm = useContextForm<{ image: File | null }>({ image: null });
+const bannerForm = useContextForm<{ image: File | null }>({ image: null });
 const logoInput = ref<HTMLInputElement | null>(null);
 const bannerInput = ref<HTMLInputElement | null>(null);
 
