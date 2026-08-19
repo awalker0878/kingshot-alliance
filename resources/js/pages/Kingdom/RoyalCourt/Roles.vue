@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
+import { useContextForm } from '@/composables/useContextForm';
 
 import RoomBanner from '@/components/game/RoomBanner.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
@@ -24,7 +25,7 @@ const props = defineProps<{
 }>();
 
 const { t, formatDate } = useLocale();
-const form = useForm({
+const form = useContextForm({
   player_id: props.players[0]?.id ?? '',
   role: props.roles[0]?.key ?? '',
 });

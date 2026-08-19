@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
+import { useContextForm } from '@/composables/useContextForm';
 import { computed } from 'vue';
 
 import RoomBanner from '@/components/game/RoomBanner.vue';
@@ -71,7 +72,7 @@ const props = defineProps<{
 }>();
 
 const { t, formatDate, formatNumber } = useLocale();
-const createForm = useForm({ adapter_key: props.adapters[0]?.key ?? '' });
+const createForm = useContextForm({ adapter_key: props.adapters[0]?.key ?? '' });
 const activeSubscriptions = computed(
   () => props.subscriptions.filter((item) => item.state === 'active').length,
 );

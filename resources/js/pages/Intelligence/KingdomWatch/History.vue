@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
+import { useContextForm } from '@/composables/useContextForm';
 import { computed, ref } from 'vue';
 
 import AppLayout from '@/layouts/AppLayout.vue';
@@ -49,7 +50,7 @@ function localDateTimeNow(): string {
 
 const { t, formatDate: localeDate, formatNumber } = useLocale();
 
-const recordForm = useForm({
+const recordForm = useContextForm({
   observed_name: props.tracking.name,
   observed_tag: props.tracking.tag ?? '',
   power: '',
@@ -60,7 +61,7 @@ const recordForm = useForm({
 });
 
 const invalidateTargetId = ref<string | null>(null);
-const invalidateForm = useForm({ reason: '' });
+const invalidateForm = useContextForm({ reason: '' });
 
 const recordDomainError = computed(
   () => (recordForm.errors as Record<string, string | undefined>).observation,

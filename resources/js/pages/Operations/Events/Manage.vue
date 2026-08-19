@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
+import { useContextForm } from '@/composables/useContextForm';
 import { ref } from 'vue';
 
 import RoomBanner from '@/components/game/RoomBanner.vue';
@@ -321,7 +322,7 @@ const props = defineProps<{
   }>;
 }>();
 const { t, formatDate } = useLocale();
-const form = useForm({
+const form = useContextForm({
   first_local_start: props.event.firstLocalStart,
   title: props.event.title ?? '',
   instructions: props.event.instructions ?? '',
@@ -357,13 +358,13 @@ function saveTemplate(): void {
     onSuccess: () => templateForm.reset('name'),
   });
 }
-const reminderForm = useForm({
+const reminderForm = useContextForm({
   minutes_before: 60,
   audience: props.reminderAudiences[0] ?? 'all_scope_players',
 });
 const firstOccurrenceId = props.event.occurrences[0]?.id ?? '';
 const editingPhaseId = ref<string | null>(null);
-const phaseForm = useForm({
+const phaseForm = useContextForm({
   occurrence_id: firstOccurrenceId,
   key: '',
   name: '',
@@ -375,7 +376,7 @@ const phaseForm = useForm({
 });
 const editingPollId = ref<string | null>(null);
 const editingPollOptionsLocked = ref(false);
-const pollForm = useForm({
+const pollForm = useContextForm({
   occurrence_id: firstOccurrenceId,
   key: '',
   poll_type: 'choice',
@@ -388,7 +389,7 @@ const pollForm = useForm({
   options_text: '',
 });
 const editingRosterId = ref<string | null>(null);
-const rosterForm = useForm({
+const rosterForm = useContextForm({
   occurrence_id: firstOccurrenceId,
   key: '',
   name: '',
@@ -398,7 +399,7 @@ const rosterForm = useForm({
   capacity: null as number | null,
   sort_order: 0,
 });
-const rosterAssignmentForm = useForm({
+const rosterAssignmentForm = useContextForm({
   occurrence_id: firstOccurrenceId,
   roster_id: '',
   player_id: '',
@@ -407,7 +408,7 @@ const rosterAssignmentForm = useForm({
   notes: '',
 });
 const editingObjectiveId = ref<string | null>(null);
-const objectiveForm = useForm({
+const objectiveForm = useContextForm({
   occurrence_id: firstOccurrenceId,
   parent_id: '',
   objective_type: 'custom',
@@ -419,7 +420,7 @@ const objectiveForm = useForm({
   status: 'planned' as 'planned' | 'active' | 'completed' | 'failed' | 'cancelled',
   sort_order: 0,
 });
-const objectiveAssignmentForm = useForm({
+const objectiveAssignmentForm = useContextForm({
   occurrence_id: firstOccurrenceId,
   objective_id: '',
   target_type: 'player' as 'player' | 'roster',
@@ -488,7 +489,7 @@ function objectiveTargetLabel(assignment: ObjectiveAssignment): string {
     t('events.objectives.assignment')
   );
 }
-const resultForm = useForm({
+const resultForm = useContextForm({
   occurrence_id: firstOccurrenceId,
   outcome: '',
   score: null as number | null,
@@ -496,7 +497,7 @@ const resultForm = useForm({
   rank: null as number | null,
   notes: '',
 });
-const playerResultForm = useForm({
+const playerResultForm = useContextForm({
   occurrence_id: firstOccurrenceId,
   player_id: '',
   outcome: '',
@@ -538,7 +539,7 @@ if (firstOccurrenceId) loadResultOccurrence(firstOccurrenceId);
 const firstRallyOccurrence = props.rallyOperations[0];
 const firstRallyAllianceId = firstRallyOccurrence?.alliances[0]?.id ?? '';
 const editingGuidanceId = ref<string | null>(null);
-const guidanceForm = useForm({
+const guidanceForm = useContextForm({
   alliance_id: firstRallyAllianceId,
   name: '',
   infantry_percent: 10,
@@ -554,7 +555,7 @@ const guidanceForm = useForm({
   is_active: true,
 });
 const editingRallyFormationId = ref<string | null>(null);
-const rallyFormationForm = useForm({
+const rallyFormationForm = useContextForm({
   occurrence_id: firstOccurrenceId,
   alliance_id: firstRallyAllianceId,
   guidance_rule_id: '',
@@ -569,7 +570,7 @@ const rallyFormationForm = useForm({
   sort_order: 0,
 });
 const editingRallyGroupId = ref<string | null>(null);
-const rallyGroupForm = useForm({
+const rallyGroupForm = useContextForm({
   occurrence_id: firstOccurrenceId,
   alliance_id: firstRallyAllianceId,
   recommended_formation_id: '',
@@ -578,7 +579,7 @@ const rallyGroupForm = useForm({
   notes: '',
   sort_order: 0,
 });
-const rallyAssignmentForm = useForm({
+const rallyAssignmentForm = useContextForm({
   occurrence_id: firstOccurrenceId,
   group_id: '',
   player_id: '',

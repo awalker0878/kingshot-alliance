@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
+import { useContextForm } from '@/composables/useContextForm';
 import { reactive, ref } from 'vue';
 
 import RoomBanner from '@/components/game/RoomBanner.vue';
@@ -87,14 +88,14 @@ const props = defineProps<{
 
 const { t, formatDate, formatNumber } = useLocale();
 
-const settingsForm = useForm({
+const settingsForm = useContextForm({
   mode: props.settings?.mode ?? 'public',
   title: props.settings?.title ?? t('recruitment.title'),
   introduction: props.settings?.introduction ?? '',
   retention_days: props.settings?.retentionDays ?? 90,
   open: props.settings?.open ?? true,
 });
-const questionForm = useForm({
+const questionForm = useContextForm({
   prompt: '',
   help_text: '',
   type: 'short_text',
@@ -119,15 +120,15 @@ for (const question of props.questions) {
 
 const candidatePlaceholder = '{{candidate_name}}';
 const alliancePlaceholder = '{{alliance_name}}';
-const inviteForm = useForm({ email: '', ttl_hours: 72 });
-const decisionForm = useForm({
+const inviteForm = useContextForm({ email: '', ttl_hours: 72 });
+const decisionForm = useContextForm({
   name: '',
   decision_stage: 'accepted',
   subject: '',
   body: '',
   active: true,
 });
-const onboardingForm = useForm({
+const onboardingForm = useContextForm({
   name: '',
   description: '',
   position: props.onboardingItems.length,

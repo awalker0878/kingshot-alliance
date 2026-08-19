@@ -2,10 +2,7 @@ import { useForm } from '@inertiajs/vue3';
 import { onScopeDispose, watch } from 'vue';
 
 import { useGameContext } from '@/composables/useGameContext';
-import {
-  activeContextKey,
-  registerContextDisposer,
-} from '@/identity/context-isolation';
+import { activeContextKey, registerContextDisposer } from '@/identity/context-isolation';
 
 /**
  * Creates an Inertia form whose pending work and transient state belong to the
@@ -29,9 +26,7 @@ export function useContextForm<TForm extends Record<string, any>>(data: TForm) {
   function bind(contextKey: string | null): void {
     unregister();
     registeredContextKey = contextKey;
-    unregister = contextKey
-      ? registerContextDisposer(contextKey, clearContextState)
-      : () => {};
+    unregister = contextKey ? registerContextDisposer(contextKey, clearContextState) : () => {};
   }
 
   bind(activeContextKey(context.value));

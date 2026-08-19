@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
+import { useContextForm } from '@/composables/useContextForm';
 import { computed, reactive } from 'vue';
 
 import AppLayout from '@/layouts/AppLayout.vue';
@@ -73,16 +74,16 @@ const props = defineProps<{
 
 const { t, formatDate } = useLocale();
 
-const createForm = useForm({ label: '', starts_on: '', ends_on: '' });
+const createForm = useContextForm({ label: '', starts_on: '', ends_on: '' });
 const transitionForm = useForm<Record<string, string>>({});
-const groupForm = useForm({
+const groupForm = useContextForm({
   name: '',
   direction: 'incoming' as 'incoming' | 'outgoing',
   destination_kingdom: '',
   coordinator_player_id: '',
   manager_notes: '',
 });
-const participantForm = useForm({
+const participantForm = useContextForm({
   direction: 'staying',
   roster_entry_id: '',
   name: '',

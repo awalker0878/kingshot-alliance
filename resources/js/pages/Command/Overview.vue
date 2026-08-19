@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
+import { useContextForm } from '@/composables/useContextForm';
 
 import RoomBanner from '@/components/game/RoomBanner.vue';
 import StatSeal from '@/components/game/StatSeal.vue';
@@ -29,7 +30,7 @@ defineProps<{
 }>();
 
 const { t } = useLocale();
-const allianceForm = useForm({
+const allianceForm = useContextForm({
   name: '',
   slug: '',
   language: 'en',

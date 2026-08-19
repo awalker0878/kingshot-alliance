@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Head, router, useForm } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
+import { useContextForm } from '@/composables/useContextForm';
 import { computed, ref } from 'vue';
 
 import RoomBanner from '@/components/game/RoomBanner.vue';
@@ -52,8 +53,8 @@ const props = defineProps<{
 }>();
 
 const { t, formatDate, formatNumber } = useLocale();
-const credentialForm = useForm({ name: '', scopes: [] as string[], expires_at: '' });
-const webhookForm = useForm({ name: '', url: '', events: ['alliance.created'] as string[] });
+const credentialForm = useContextForm({ name: '', scopes: [] as string[], expires_at: '' });
+const webhookForm = useContextForm({ name: '', url: '', events: ['alliance.created'] as string[] });
 const webhookEventsText = ref('alliance.created');
 
 const activeCredentialCount = computed(

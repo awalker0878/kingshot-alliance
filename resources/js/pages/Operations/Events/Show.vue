@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
+import { useContextForm } from '@/composables/useContextForm';
 import { computed, reactive } from 'vue';
 
 import EventSigil from '@/components/game/EventSigil.vue';
@@ -126,8 +127,8 @@ const props = defineProps<{
 }>();
 
 const { t, formatDate, formatNumber } = useLocale();
-const responseForm = useForm({ response: props.currentResponse ?? 'yes', attendance: '' });
-const registrationForm = useForm({});
+const responseForm = useContextForm({ response: props.currentResponse ?? 'yes', attendance: '' });
+const registrationForm = useContextForm({});
 const assignmentResponses = reactive<Record<string, { response: string; note: string }>>(
   Object.fromEntries(
     props.playerAssignments.map((assignment) => [

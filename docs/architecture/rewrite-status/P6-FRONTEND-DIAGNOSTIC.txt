@@ -1,0 +1,30 @@
+=== lint ===
+
+> lint
+> eslint . --fix
+
+
+/home/runner/work/kingshot-alliance/kingshot-alliance/resources/js/composables/useContextForm.ts
+  14:61  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/kingshot-alliance/kingshot-alliance/resources/js/pages/Alliance/Noticeboard/Manage.vue
+  52:20  error  'useForm' is not defined  no-undef
+  81:18  error  'useForm' is not defined  no-undef
+  82:20  error  'useForm' is not defined  no-undef
+
+/home/runner/work/kingshot-alliance/kingshot-alliance/resources/js/pages/Kingdom/Transfer/Manage.vue
+  78:24  error  'useForm' is not defined  no-undef
+
+/home/runner/work/kingshot-alliance/kingshot-alliance/resources/js/pages/Operations/Events/Manage.vue
+  338:22  error  'useForm' is not defined  no-undef
+
+✖ 6 problems (6 errors, 0 warnings)
+
+lint_exit=1
+=== typecheck ===
+resources/js/pages/Alliance/Noticeboard/Manage.vue(52,20): error TS2304: Cannot find name 'useForm'.
+resources/js/pages/Alliance/Noticeboard/Manage.vue(81,18): error TS2304: Cannot find name 'useForm'.
+resources/js/pages/Alliance/Noticeboard/Manage.vue(82,20): error TS2304: Cannot find name 'useForm'.
+resources/js/pages/Kingdom/Transfer/Manage.vue(78,24): error TS2304: Cannot find name 'useForm'.
+resources/js/pages/Operations/Events/Manage.vue(338,22): error TS2304: Cannot find name 'useForm'.
+typecheck_exit=2

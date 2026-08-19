@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
+import { useContextForm } from '@/composables/useContextForm';
 import { computed, ref } from 'vue';
 
 import AppLayout from '@/layouts/AppLayout.vue';
@@ -72,7 +73,7 @@ function channelLabel(value: string): string {
   return props.channels.find((channel) => channel.value === value)?.label ?? value;
 }
 
-const form = useForm({
+const form = useContextForm({
   display_name: '',
   game_role: '',
   channel_type: props.channels[0]?.value ?? 'in_game',

@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
+import { useContextForm } from '@/composables/useContextForm';
 import { reactive } from 'vue';
 
 import RoomBanner from '@/components/game/RoomBanner.vue';
@@ -52,7 +53,7 @@ const props = defineProps<{
 
 const { locale, t, formatDate, formatNumber } = useLocale();
 
-const createForm = useForm({
+const createForm = useContextForm({
   name: '',
   game_player_id: '',
   game_role: '',
