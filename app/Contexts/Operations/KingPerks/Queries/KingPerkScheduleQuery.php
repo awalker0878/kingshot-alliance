@@ -163,11 +163,10 @@ final readonly class KingPerkScheduleQuery
     /** @return array<string, mixed> */
     private function plan(KingPerkPlan $plan): array
     {
-        $playerIds = $plan->appointments->pluck('assigned_player_id')
+        $playerIds = array_values($plan->appointments->pluck('assigned_player_id')
             ->merge($plan->requests->pluck('player_id'))
             ->map(static fn ($id): string => (string) $id)
-            ->unique()->values()->all();
-        /** @var list<string> $playerIds */
+            ->unique()->values()->all());
         $players = $this->players->byIds($playerIds);
 
         return [
@@ -244,7 +243,7 @@ final readonly class KingPerkScheduleQuery
         ];
     }
 
-    /** @return array<string, mixed>|list<array<string, mixed>> */
+    /** @return array<string, mixed> */
     private function skill(KingSkillPlan $skill): array
     {
         return [
@@ -264,12 +263,11 @@ final readonly class KingPerkScheduleQuery
     /** @return array<string, mixed> */
     private function live(KingPerkPlan $plan): array
     {
-        /** @var list<string> $playerIds */
-        $playerIds = $plan->appointments->pluck('assigned_player_id')
+        $playerIds = array_values($plan->appointments->pluck('assigned_player_id')
             ->map(static fn ($id): string => (string) $id)
             ->unique()
             ->values()
-            ->all();
+            ->all());
         $players = $this->players->byIds($playerIds);
         $now = CarbonImmutable::now('UTC');
         $activeStatuses = [
@@ -305,7 +303,7 @@ final readonly class KingPerkScheduleQuery
         return ['generatedAt' => $now->toIso8601String(), 'lanes' => $lanes];
     }
 
-    /** @return array<string, mixed>|list<array<string, mixed>> */
+    /** @return list<array<string, mixed>> */
     private function appointmentTypes(): array
     {
         return array_map(static fn (KingAppointmentType $type): array => [
@@ -319,7 +317,7 @@ final readonly class KingPerkScheduleQuery
         ], KingAppointmentType::cases());
     }
 
-    /** @return array<string, mixed>|list<array<string, mixed>> */
+    /** @return list<array<string, mixed>> */
     private function pushCategories(): array
     {
         return array_map(static fn (KingPerkPushCategory $category): array => [
@@ -329,7 +327,7 @@ final readonly class KingPerkScheduleQuery
         ], KingPerkPushCategory::cases());
     }
 
-    /** @return array<string, mixed>|list<array<string, mixed>> */
+    /** @return list<array<string, mixed>> */
     private function skillTypes(): array
     {
         return array_map(static fn (KingSkill $skill): array => [
