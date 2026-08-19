@@ -18,8 +18,10 @@ use Illuminate\Support\Carbon;
  * @property ContentType $type
  * @property ContentVisibility $visibility
  * @property ContentStatus $status
+ * @property bool $notify_members
  * @property Carbon|null $scheduled_for
  * @property Carbon|null $published_at
+ * @property Carbon|null $broadcasted_at
  * @property Carbon|null $archived_at
  */
 final class ContentItem extends Model
@@ -43,8 +45,10 @@ final class ContentItem extends Model
         'locale',
         'sort_order',
         'current_revision_number',
+        'notify_members',
         'scheduled_for',
         'published_at',
+        'broadcasted_at',
         'archived_at',
         'created_by_player_id',
         'updated_by_player_id',
@@ -56,8 +60,10 @@ final class ContentItem extends Model
             'type' => ContentType::class,
             'visibility' => ContentVisibility::class,
             'status' => ContentStatus::class,
+            'notify_members' => 'boolean',
             'scheduled_for' => 'datetime',
             'published_at' => 'datetime',
+            'broadcasted_at' => 'datetime',
             'archived_at' => 'datetime',
         ];
     }

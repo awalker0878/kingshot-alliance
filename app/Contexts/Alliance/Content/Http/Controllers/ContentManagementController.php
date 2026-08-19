@@ -194,6 +194,7 @@ final class ContentManagementController extends Controller
                 Rule::unique('content_categories', 'slug')->where('alliance_id', $scope->allianceId),
             ],
             'sort_order' => ['nullable', 'integer', 'min:0', 'max:100000'],
+            'notify_members' => ['nullable', 'boolean'],
         ]);
 
         $saveCategory->handle(
@@ -380,7 +381,8 @@ final class ContentManagementController extends Controller
      *   summary: string|null,
      *   body: string,
      *   locale: string,
-     *   sort_order: int
+     *   sort_order: int,
+     *   notify_members: bool
      * }
      */
     private function validateContent(Request $request, string $allianceId, ?ContentItem $existing = null): array
@@ -413,6 +415,7 @@ final class ContentManagementController extends Controller
             'body' => (string) $validated['body'],
             'locale' => (string) $validated['locale'],
             'sort_order' => (int) ($validated['sort_order'] ?? 0),
+            'notify_members' => (bool) ($validated['notify_members'] ?? false),
         ];
     }
 }

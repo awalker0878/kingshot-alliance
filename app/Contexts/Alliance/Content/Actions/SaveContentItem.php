@@ -40,7 +40,8 @@ final readonly class SaveContentItem
      *   summary?: string|null,
      *   body: string,
      *   locale: string,
-     *   sort_order?: int
+     *   sort_order?: int,
+     *   notify_members?: bool
      * } $attributes
      */
     public function handle(string $allianceId, string $actorPlayerId, array $attributes, ?string $contentItemId = null): string
@@ -78,8 +79,11 @@ final readonly class SaveContentItem
                 'body' => $this->sanitizer->body($attributes['body']),
                 'locale' => strtolower(trim($attributes['locale'])),
                 'sort_order' => max(0, (int) ($attributes['sort_order'] ?? 0)),
+                'notify_members' => $attributes['type'] === ContentType::Announcement
+                    && (bool) ($attributes['notify_members'] ?? false),
                 'scheduled_for' => null,
                 'published_at' => null,
+                'broadcasted_at' => null,
                 'archived_at' => null,
                 'updated_by_player_id' => $context->actor->playerId,
             ])->save();
@@ -91,12 +95,14 @@ final readonly class SaveContentItem
                 'revision_number' => $revision->revision_number,
                 'visibility' => $item->visibility->value,
                 'type' => $item->type->value,
+                'notify_members' => (bool) $item->notify_members,
             ]);
             $this->outbox->record($event, (string) $context->alliance->id, $item, [
                 'content_item_id' => $item->id,
                 'revision_number' => $revision->revision_number,
                 'visibility' => $item->visibility->value,
                 'type' => $item->type->value,
+                'notify_members' => (bool) $item->notify_members,
             ]);
 
             return (string) $item->id;

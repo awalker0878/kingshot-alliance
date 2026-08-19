@@ -13,7 +13,11 @@ use Illuminate\Validation\ValidationException;
 final readonly class SetNotificationPreference
 {
     /** @var list<string> */
-    public const NOTIFICATION_TYPES = ['event.reminder', 'king_perks.reminder'];
+    public const NOTIFICATION_TYPES = [
+        'alliance.announcement',
+        'event.reminder',
+        'king_perks.reminder',
+    ];
 
     public function __construct(private PlayerReferenceQuery $players) {}
 
