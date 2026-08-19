@@ -1,0 +1,79 @@
+name: CV4 P6 Finish
+
+on:
+  push:
+    branches:
+      - agent/context-v4-convergence
+    paths:
+      - .github/workflows/cv4-p6-finish.yml
+
+permissions:
+  contents: write
+
+jobs:
+  finish:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: agent/context-v4-convergence
+          fetch-depth: 0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - name: Finish game form migration and restore account scope
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          game_roots = [
+              Path('resources/js/pages/Alliance'),
+              Path('resources/js/pages/Operations'),
+              Path('resources/js/pages/Kingdom'),
+              Path('resources/js/pages/Citadel'),
+              Path('resources/js/pages/Intelligence'),
+              Path('resources/js/pages/Command'),
+          ]
+          for root in game_roots:
+              if not root.exists():
+                  continue
+              for file in root.rglob('*.vue'):
+                  text = file.read_text().replace('useForm<', 'useContextForm<')
+                  file.write_text(text)
+
+          profile = Path('resources/js/pages/Accounts/Governor/Profile.vue')
+          if profile.exists():
+              text = profile.read_text().replace('useContextForm(', 'useForm(')
+              text = text.replace("import { Head, Link, router } from '@inertiajs/vue3';", "import { Head, Link, router, useForm } from '@inertiajs/vue3';")
+              text = text.replace("import { useContextForm } from '@/composables/useContextForm';\n", '')
+              profile.write_text(text)
+          PY
+      - name: Format
+        run: npx prettier --write "resources/js/**/*.{ts,vue}"
+      - name: Capture full frontend certification
+        shell: bash
+        run: |
+          set +e
+          npm run check > docs/architecture/rewrite-status/P6-FRONTEND-DIAGNOSTIC.txt 2>&1
+          code=$?
+          echo "exit_code=$code" >> docs/architecture/rewrite-status/P6-FRONTEND-DIAGNOSTIC.txt
+          exit 0
+      - name: Record direct game-form scan
+        shell: bash
+        run: |
+          {
+            echo '=== direct useForm in game pages ==='
+            grep -R --line-number -E 'useForm(\(|<)' resources/js/pages/Alliance resources/js/pages/Operations resources/js/pages/Kingdom resources/js/pages/Citadel resources/js/pages/Intelligence resources/js/pages/Command 2>/dev/null || true
+          } >> docs/architecture/rewrite-status/P6-FRONTEND-DIAGNOSTIC.txt
+      - name: Remove workflow
+        run: rm .github/workflows/cv4-p6-finish.yml
+      - name: Commit P6 result
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Finish Governor context form cutover"
+          git push origin HEAD:agent/context-v4-convergence
