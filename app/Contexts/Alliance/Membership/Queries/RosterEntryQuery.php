@@ -55,7 +55,7 @@ final class RosterEntryQuery
     }
 
     /**
-     * @param  list<string>  $rosterEntryIds
+     * @param  array<string>  $rosterEntryIds
      * @return array<string, RosterEntryReference>
      */
     public function byIds(string $allianceId, array $rosterEntryIds): array
