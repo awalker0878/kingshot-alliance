@@ -41,6 +41,10 @@ Important areas include:
 - generic Communications delivery idempotency/retry;
 - Platform authority isolation.
 
+## Visual regression baselines
+
+Playwright visual checks run against the Chrome runtime already supplied by the GitHub-hosted runner. A baseline may be refreshed only when the rendered change is intentional and has been visually reviewed; unrelated snapshots must remain byte-for-byte unchanged.
+
 ## Full architecture certification
 
 Final V3 certification must inspect more than tests named `Architecture*`:
