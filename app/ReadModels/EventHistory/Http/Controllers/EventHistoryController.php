@@ -6,7 +6,9 @@ namespace App\ReadModels\EventHistory\Http\Controllers;
 
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Alliance\Lifecycle\Models\Alliance;
+use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
 use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
+use App\Contexts\GameWorld\Kingdoms\Queries\KingdomReferenceQuery;
 use App\Contexts\GameWorld\Players\Services\PlayerContext;
 use App\ReadModels\EventAnalysis\Queries\EventAllianceHistoryQuery;
 use App\ReadModels\EventAnalysis\Queries\EventContributionIntelligenceQuery;
@@ -25,50 +27,54 @@ final class EventHistoryController extends Controller
     public function alliance(
         Request $request,
         Alliance $alliance,
+        AllianceReferenceQuery $alliances,
         EventAllianceHistoryQuery $history,
         EventContributionIntelligenceQuery $intelligence,
     ): Response {
         $user = $this->user($request);
         $actor = $this->playerContext->player();
+        $allianceReference = $alliances->require((string) $alliance->id);
         $validated = $this->validatedFilters($request);
         $filters = $this->filters($validated);
 
         return Inertia::render('Operations/Events/Chronicle', [
             'user' => $this->identity($user),
             'organization' => [
-                'id' => (string) $alliance->id,
+                'id' => $allianceReference->allianceId,
                 'scope' => 'alliance',
-                'name' => (string) $alliance->name,
+                'name' => $allianceReference->name,
                 'secondaryLabel' => null,
             ],
             'filters' => $this->filterPayload($validated),
-            'intelligence' => $intelligence->forAlliance($actor, $alliance, $filters),
-            'history' => $history->forAlliance($actor, $alliance, $filters),
+            'intelligence' => $intelligence->forAlliance($actor, $allianceReference, $filters),
+            'history' => $history->forAlliance($actor, $allianceReference, $filters),
         ]);
     }
 
     public function kingdom(
         Request $request,
         Kingdom $kingdom,
+        KingdomReferenceQuery $kingdoms,
         EventKingdomHistoryQuery $history,
         EventContributionIntelligenceQuery $intelligence,
     ): Response {
         $user = $this->user($request);
         $actor = $this->playerContext->player();
+        $kingdomReference = $kingdoms->require((string) $kingdom->id);
         $validated = $this->validatedFilters($request);
         $filters = $this->filters($validated);
 
         return Inertia::render('Operations/Events/Chronicle', [
             'user' => $this->identity($user),
             'organization' => [
-                'id' => (string) $kingdom->id,
+                'id' => $kingdomReference->kingdomId,
                 'scope' => 'kingdom',
-                'name' => 'Kingdom '.(string) $kingdom->number,
+                'name' => 'Kingdom '.(string) $kingdomReference->number,
                 'secondaryLabel' => null,
             ],
             'filters' => $this->filterPayload($validated),
-            'intelligence' => $intelligence->forKingdom($actor, $kingdom, $filters),
-            'history' => $history->forKingdom($actor, $kingdom, $filters),
+            'intelligence' => $intelligence->forKingdom($actor, $kingdomReference, $filters),
+            'history' => $history->forKingdom($actor, $kingdomReference, $filters),
         ]);
     }
 
