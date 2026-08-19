@@ -8,6 +8,7 @@ use App\Contexts\Accounts\Identity\Contracts\AuthenticatedAccount;
 use App\Contexts\Alliance\Membership\Queries\PlayerIdentityContextQuery;
 use App\Contexts\GameWorld\Governance\Queries\KingdomAuthorityFactsQuery;
 use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
+use App\Contexts\GameWorld\Players\Services\GameRouteRegistry;
 use App\Contexts\GameWorld\Players\Services\PlayerAuthorityContextVersion;
 use App\Contexts\GameWorld\Players\Services\PlayerContext;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
@@ -34,6 +35,7 @@ final class HandleInertiaRequests extends Middleware
         private readonly PlayerIdentityContextQuery $identityContext,
         private readonly KingdomAuthorityFactsQuery $kingdomAuthority,
         private readonly PlayerAuthorityContextVersion $authorityVersions,
+        private readonly GameRouteRegistry $routes,
     ) {}
 
     public function version(Request $request): ?string
@@ -47,52 +49,41 @@ final class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'applicationName' => config('app.name'),
-            'playerContext' => fn (): array => $this->playerContextPayload($request),
+            'viewer' => fn (): ?array => $this->viewerPayload($request),
+            'gameContext' => fn (): array => $this->gameContextPayload($request),
         ];
     }
 
-    /**
-     * @return array{
-     *     activePlayerId:?string,
-     *     authorityContextVersion:?string,
-     *     players:list<array{
-     *         id:string,
-     *         name:string,
-     *         gamePlayerId:?string,
-     *         kingdomNumber:?int,
-     *         alliance:?array{
-     *             id:string,
-     *             membershipId:string,
-     *             name:string,
-     *             rank:string,
-     *             roles:list<array{key:string,name:string}>,
-     *             capabilities:list<string>
-     *         },
-     *         contextFingerprint:array{
-     *             version:1,
-     *             key:string,
-     *             playerId:string,
-     *             kingdomId:string,
-     *             kingdomNumber:?int,
-     *             allianceId:?string,
-     *             membershipId:?string
-     *         }
-     *     }>
-     * }
-     */
-    private function playerContextPayload(Request $request): array
+    /** @return array{id:int,name:string,email:string}|null */
+    private function viewerPayload(Request $request): ?array
+    {
+        $user = $request->user();
+        if (! $user instanceof AuthenticatedAccount) {
+            return null;
+        }
+
+        return [
+            'id' => (int) $user->id,
+            'name' => (string) $user->name,
+            'email' => (string) $user->email,
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    private function gameContextPayload(Request $request): array
     {
         $user = $request->user();
         if (! $user instanceof AuthenticatedAccount) {
             return [
-                'activePlayerId' => null,
-                'authorityContextVersion' => null,
-                'players' => [],
+                'version' => 1,
+                'governors' => [],
+                'active' => null,
+                'navigation' => [],
             ];
         }
 
         $players = $this->players->ownedByUser((int) $user->id);
-        $allianceContext = $this->identityContext->forPlayers(array_map(
+        $allianceContexts = $this->identityContext->forPlayers(array_map(
             static fn (PlayerReference $player): string => $player->playerId,
             $players,
         ));
@@ -106,58 +97,97 @@ final class HandleInertiaRequests extends Middleware
             }
         }
 
-        $authorityContextVersion = null;
-        if ($activePlayer instanceof PlayerReference) {
-            $activeAlliance = $allianceContext[$activePlayer->playerId] ?? null;
-            $kingdomPermissions = $this->kingdomAuthority
-                ->findCurrent($activePlayer->playerId, $activePlayer->kingdomId)
-                ?->permissionKeysObservedAtRead ?? [];
+        $governors = array_map(
+            fn (PlayerReference $player): array => $this->governorPayload(
+                $player,
+                $allianceContexts[$player->playerId] ?? null,
+            ),
+            $players,
+        );
 
-            $authorityContextVersion = $this->authorityVersions->issue(
-                $activePlayer,
-                $activeAlliance,
-                $kingdomPermissions,
-            );
+        if (! $activePlayer instanceof PlayerReference) {
+            return [
+                'version' => 1,
+                'governors' => $governors,
+                'active' => null,
+                'navigation' => $this->routes->navigation(false, null),
+            ];
         }
 
-        return [
-            'activePlayerId' => $activePlayerId,
-            'authorityContextVersion' => $authorityContextVersion,
-            'players' => array_map(function (PlayerReference $player) use ($allianceContext): array {
-                $membership = $allianceContext[$player->playerId] ?? null;
+        $activeAlliance = $allianceContexts[$activePlayer->playerId] ?? null;
+        $kingdomPermissions = $this->kingdomAuthority
+            ->findCurrent($activePlayer->playerId, $activePlayer->kingdomId)
+            ?->permissionKeysObservedAtRead ?? [];
+        sort($kingdomPermissions);
 
-                return [
-                    'id' => $player->playerId,
-                    'name' => $player->currentName,
-                    'gamePlayerId' => $player->gamePlayerId,
-                    'kingdomNumber' => $player->kingdomNumber,
-                    'alliance' => $membership === null ? null : [
-                        'id' => $membership['allianceId'],
-                        'membershipId' => $membership['membershipId'],
-                        'name' => $membership['allianceName'],
-                        'rank' => $membership['rank'],
-                        'roles' => $membership['roles'],
-                        'capabilities' => $membership['capabilities'],
-                    ],
-                    'contextFingerprint' => $this->fingerprint($player, $membership),
-                ];
-            }, $players),
+        $authorityVersion = $this->authorityVersions->issue(
+            $activePlayer,
+            $activeAlliance,
+            $kingdomPermissions,
+        );
+        $routeAlliance = $activeAlliance === null ? null : [
+            'capabilities' => $activeAlliance['capabilities'],
+        ];
+
+        return [
+            'version' => 1,
+            'governors' => $governors,
+            'active' => [
+                'governor' => $this->governorPayload($activePlayer, $activeAlliance),
+                'kingdom' => [
+                    'id' => $activePlayer->kingdomId,
+                    'number' => $activePlayer->kingdomNumber,
+                    'capabilities' => $kingdomPermissions,
+                ],
+                'alliance' => $activeAlliance === null ? null : [
+                    'id' => $activeAlliance['allianceId'],
+                    'membershipId' => $activeAlliance['membershipId'],
+                    'name' => $activeAlliance['allianceName'],
+                    'rank' => $activeAlliance['rank'],
+                    'roles' => $activeAlliance['roles'],
+                    'capabilities' => $activeAlliance['capabilities'],
+                ],
+                'fingerprint' => $this->fingerprint(
+                    $activePlayer,
+                    $activeAlliance,
+                    $kingdomPermissions,
+                ),
+                'authorityVersion' => $authorityVersion,
+            ],
+            'navigation' => $this->routes->navigation(true, $routeAlliance),
         ];
     }
 
     /**
      * @param  AllianceIdentityContext|null  $membership
-     * @return array{
-     *     version:1,
-     *     key:string,
-     *     playerId:string,
-     *     kingdomId:string,
-     *     kingdomNumber:?int,
-     *     allianceId:?string,
-     *     membershipId:?string
-     * }
+     * @return array<string, mixed>
      */
-    private function fingerprint(PlayerReference $player, ?array $membership): array
+    private function governorPayload(PlayerReference $player, ?array $membership): array
+    {
+        return [
+            'id' => $player->playerId,
+            'name' => $player->currentName,
+            'gamePlayerId' => $player->gamePlayerId,
+            'kingdom' => [
+                'id' => $player->kingdomId,
+                'number' => $player->kingdomNumber,
+            ],
+            'alliance' => $membership === null ? null : [
+                'id' => $membership['allianceId'],
+                'membershipId' => $membership['membershipId'],
+                'name' => $membership['allianceName'],
+                'rank' => $membership['rank'],
+                'roles' => $membership['roles'],
+            ],
+        ];
+    }
+
+    /**
+     * @param  AllianceIdentityContext|null  $membership
+     * @param  list<string>  $kingdomPermissions
+     * @return array{version:1,key:string,playerId:string,kingdomId:string,kingdomNumber:?int,allianceId:?string,membershipId:?string}
+     */
+    private function fingerprint(PlayerReference $player, ?array $membership, array $kingdomPermissions): array
     {
         $roleKeys = array_map(
             static fn (array $role): string => $role['key'],
@@ -173,7 +203,8 @@ final class HandleInertiaRequests extends Middleware
             'membershipId' => $membership['membershipId'] ?? null,
             'rank' => $membership['rank'] ?? null,
             'roleKeys' => $roleKeys,
-            'capabilities' => $membership['capabilities'] ?? [],
+            'allianceCapabilities' => $membership['capabilities'] ?? [],
+            'kingdomCapabilities' => $kingdomPermissions,
         ];
 
         return [
