@@ -6,6 +6,7 @@ namespace App\Contexts\GameWorld\Players\Services;
 
 use App\Contexts\Alliance\Membership\Queries\PlayerIdentityContextQuery;
 use App\Contexts\GameWorld\Governance\Queries\KingdomAuthorityFactsQuery;
+use App\Contexts\GameWorld\Governance\ValueObjects\KingdomAuthorityFacts;
 use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Contexts\GameWorld\Players\ValueObjects\ActiveGovernorAuthorityContext;
 
@@ -37,13 +38,9 @@ final readonly class ActiveGovernorAuthorityContextResolver
         $allianceCapabilities = array_values(array_unique($alliance['capabilities'] ?? []));
         sort($allianceCapabilities);
 
-        $kingdomAuthority = $this->kingdomAuthority->findCurrent(
-            $governor->playerId,
-            $governor->kingdomId,
+        $kingdomCapabilities = $this->normalizedKingdomCapabilities(
+            $this->kingdomAuthority->findCurrent($governor->playerId, $governor->kingdomId),
         );
-        $kingdomCapabilities = $kingdomAuthority?->permissionKeysObservedAtRead ?? [];
-        $kingdomCapabilities = array_values(array_unique($kingdomCapabilities));
-        sort($kingdomCapabilities);
 
         $normalizedAlliance = $alliance === null ? null : [
             'membershipId' => $alliance['membershipId'],
@@ -69,5 +66,18 @@ final readonly class ActiveGovernorAuthorityContextResolver
                 $kingdomCapabilities,
             ),
         );
+    }
+
+    /** @return list<string> */
+    private function normalizedKingdomCapabilities(?KingdomAuthorityFacts $authority): array
+    {
+        if ($authority === null) {
+            return [];
+        }
+
+        $capabilities = array_values(array_unique($authority->permissionKeysObservedAtRead));
+        sort($capabilities);
+
+        return $capabilities;
     }
 }
