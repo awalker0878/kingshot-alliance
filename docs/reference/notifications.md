@@ -21,8 +21,10 @@ Create a bot with BotFather, add it to the target chat, and provide the bot toke
 
 ## Delivery behavior
 
-- In-app notifications are available without additional setup.
-- A configured external channel receives Event and King Perk reminders when that channel is enabled.
+Alliance announcements are authored and scheduled from the Noticeboard management page. See [Alliance announcements and broadcasts](announcements.md) for the author and recipient flow.
+
+- In-app notifications are acknowledged as sent when they enter the inbox and are available without additional setup.
+- A configured external channel receives Alliance announcements, Event reminders and King Perk reminders when that type/channel pair is enabled.
 - HTTP 429 and server failures receive bounded retries. Permanent provider failures remain visible in the Notification Center so the endpoint can be corrected.
 - Removing an endpoint stops new fan-out to that provider; existing history remains visible until dismissed.
 - Endpoint health shows the latest provider error and clears after a successful acknowledgement.

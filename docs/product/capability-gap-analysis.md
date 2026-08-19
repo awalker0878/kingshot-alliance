@@ -23,8 +23,8 @@ The remaining gap is less about adding disconnected screens and more about makin
 | --- | --- | --- | --- |
 | Complete | Gift Codes | Shared catalogue, official handoff, per-Governor ledger, retries and audit trail | No undocumented provider automation |
 | Complete | Notification delivery | In-app inbox plus encrypted Discord/Telegram endpoints, preferences and bounded retries | Provider hosts constrained; credentials never returned |
-| In progress | Command overview | One decision surface for unread alerts, Event actions, upcoming Events, Gift Codes and recruitment follow-up | Compose owner read models; do not duplicate business state |
-| Next | Alliance broadcasts | Scheduled announcements and rally/war calls delivered once to managed Alliance channels | Alliance-scoped endpoint authority and idempotent fan-out |
+| Complete | Command overview | One decision surface for unread alerts, Event actions, upcoming Events, Gift Codes and recruitment follow-up | Compose owner read models; do not duplicate business state |
+| Complete | Alliance broadcasts | Scheduled announcements delivered once to each active Governor's enabled in-app, Discord and Telegram channels | Active membership, recipient-owned endpoints and idempotent fan-out |
 | Next | Knowledge hub | Searchable, versioned Event guides linked to Event types and Alliance content | Provenance, locale, review date and no invented strategy claims |
 | Next | Player progression | Manual/CSV observations for furnace, power and identity changes with history and freshness | Intelligence observations, never authoritative game state |
 | Next | Recruitment discovery | Public recruitment board, filters, share links and conversion analytics | Privacy controls and explicit application consent |
