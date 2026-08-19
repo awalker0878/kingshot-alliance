@@ -27,12 +27,15 @@ return new class extends Migration
             $table->timestampTz('sent_at')->nullable();
             $table->timestampTz('failed_at')->nullable();
             $table->timestampTz('next_attempt_at')->nullable()->index();
+            $table->timestampTz('read_at')->nullable();
+            $table->timestampTz('dismissed_at')->nullable();
             $table->text('last_error')->nullable();
             $table->json('metadata')->nullable();
             $table->timestamps();
 
             $table->index(['status', 'due_at']);
             $table->index(['recipient_user_id', 'status']);
+            $table->index(['recipient_user_id', 'player_id', 'dismissed_at'], 'notification_inbox_scope_index');
             $table->index(['subject_type', 'subject_id']);
         });
 
@@ -51,10 +54,29 @@ return new class extends Migration
                 'notification_preferences_recipient_unique',
             );
         });
+
+        Schema::create('notification_endpoints', function (Blueprint $table): void {
+            $table->ulid('id')->primary();
+            $table->unsignedBigInteger('recipient_user_id')->index();
+            $table->string('player_id', 26)->nullable()->index();
+            $table->string('channel', 32);
+            $table->string('label', 100);
+            $table->text('configuration');
+            $table->boolean('enabled')->default(true);
+            $table->timestampTz('last_verified_at')->nullable();
+            $table->text('last_error')->nullable();
+            $table->timestamps();
+
+            $table->unique(
+                ['recipient_user_id', 'player_id', 'channel'],
+                'notification_endpoints_recipient_unique',
+            );
+        });
     }
 
     public function down(): void
     {
+        Schema::dropIfExists('notification_endpoints');
         Schema::dropIfExists('notification_preferences');
         Schema::dropIfExists('notification_deliveries');
     }

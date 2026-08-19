@@ -20,8 +20,8 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $recipient_user_id
  * @property string|null $player_id
  * @property string $channel
- * @property string $subject_type
- * @property string $subject_id
+ * @property string|null $subject_type
+ * @property string|null $subject_id
  * @property CarbonImmutable|null $due_at
  * @property DeliveryStatus $status
  * @property int $attempt_count
@@ -31,6 +31,8 @@ use Illuminate\Database\Eloquent\Model;
  * @property CarbonImmutable|null $sent_at
  * @property CarbonImmutable|null $failed_at
  * @property CarbonImmutable|null $next_attempt_at
+ * @property CarbonImmutable|null $read_at
+ * @property CarbonImmutable|null $dismissed_at
  * @property string|null $last_error
  * @property array<string, mixed>|null $metadata
  */
@@ -58,6 +60,8 @@ final class NotificationDelivery extends Model
         'sent_at',
         'failed_at',
         'next_attempt_at',
+        'read_at',
+        'dismissed_at',
         'last_error',
         'metadata',
     ];
@@ -73,6 +77,8 @@ final class NotificationDelivery extends Model
             'sent_at' => 'immutable_datetime',
             'failed_at' => 'immutable_datetime',
             'next_attempt_at' => 'immutable_datetime',
+            'read_at' => 'immutable_datetime',
+            'dismissed_at' => 'immutable_datetime',
             'metadata' => 'array',
         ];
     }
