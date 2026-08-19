@@ -7,7 +7,7 @@ namespace App\ReadModels\EventCalendar\Queries;
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Communications\Delivery\Enums\DeliveryStatus;
 use App\Contexts\Communications\Delivery\Models\NotificationDelivery;
-use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\GameWorld\Players\Services\PlayerContext;
 use App\Contexts\Operations\Events\Enums\EventScope;
 use App\Contexts\Operations\Events\Models\Event;
@@ -23,18 +23,21 @@ final readonly class EventReminderInboxQuery
 {
     public function __construct(
         private PlayerContext $playerContext,
-        private ActivePlayerEventVisibilityResolver $visibility,
     ) {}
 
     /** @return list<array<string, mixed>> */
     public function for(User $user, int $limit = 20): array
     {
         $player = $this->playerContext->playerOrNull();
-        if (! $player instanceof Player || (int) $player->user_id !== (int) $user->id) {
+        if (! $player instanceof PlayerReference || $player->userId !== (int) $user->id) {
             return [];
         }
 
-        $targets = $this->visibility->targetIds($player);
+        $targets = [
+            'alliance' => [],
+            'player' => [$player->playerId],
+            'kingdom' => [$player->kingdomId],
+        ];
         $limit = max(1, min(100, $limit));
         $items = array_merge(
             $this->eventReminders($user, $player, $targets, $limit),
@@ -53,14 +56,14 @@ final readonly class EventReminderInboxQuery
      * @param  array{alliance:list<string>,player:list<string>,kingdom:list<string>}  $targets
      * @return list<array<string, mixed>>
      */
-    private function eventReminders(User $user, Player $player, array $targets, int $limit): array
+    private function eventReminders(User $user, PlayerReference $player, array $targets, int $limit): array
     {
         $items = [];
         $deliveries = NotificationDelivery::query()
             ->where('notification_type', 'event.reminder')
             ->where('subject_type', 'event_occurrence')
             ->where('recipient_user_id', $user->id)
-            ->where('player_id', $player->id)
+            ->where('player_id', $player->playerId)
             ->where('status', DeliveryStatus::Sent->value)
             ->where('sent_at', '>=', now()->subDays(7))
             ->orderByDesc('sent_at')
@@ -105,14 +108,14 @@ final readonly class EventReminderInboxQuery
      * @param  array{alliance:list<string>,player:list<string>,kingdom:list<string>}  $targets
      * @return list<array<string, mixed>>
      */
-    private function kingPerkReminders(User $user, Player $player, array $targets, int $limit): array
+    private function kingPerkReminders(User $user, PlayerReference $player, array $targets, int $limit): array
     {
         $items = [];
         $deliveries = NotificationDelivery::query()
             ->where('notification_type', 'king_perks.reminder')
             ->whereIn('subject_type', ['king_perk_appointment', 'king_skill_plan'])
             ->where('recipient_user_id', $user->id)
-            ->where('player_id', $player->id)
+            ->where('player_id', $player->playerId)
             ->where('status', DeliveryStatus::Sent->value)
             ->where('sent_at', '>=', now()->subDays(7))
             ->orderByDesc('sent_at')
