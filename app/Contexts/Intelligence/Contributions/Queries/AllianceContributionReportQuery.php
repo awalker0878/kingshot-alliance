@@ -52,6 +52,7 @@ final readonly class AllianceContributionReportQuery
         array_push($rows, ...$this->eventResults->rows($alliance->allianceId, $alliance->name, $alliance->kingdomId));
         usort($rows, static function (array $left, array $right): int {
             $date = strcmp((string) $left['recorded_at'], (string) $right['recorded_at']);
+
             return $date !== 0 ? $date : strcmp((string) $left['record_id'], (string) $right['record_id']);
         });
 

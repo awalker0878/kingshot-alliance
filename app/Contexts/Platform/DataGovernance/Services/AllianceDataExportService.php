@@ -16,6 +16,7 @@ use RuntimeException;
 final readonly class AllianceDataExportService
 {
     private const SCHEMA_VERSION = 'v3.1';
+
     private const REDACTED_COLUMNS = [
         'secret_hash',
         'signing_secret',

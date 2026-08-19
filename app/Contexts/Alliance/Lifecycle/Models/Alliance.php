@@ -14,13 +14,16 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 final class Alliance extends Model
 {
     use HasUlids;
+
     public $incrementing = false;
+
     protected $keyType = 'string';
-    protected $fillable = ['name','slug','kingdom_id','language','timezone','status','suspended_at','closed_at','deleted_at','restored_at','retention_until','lifecycle_reason'];
+
+    protected $fillable = ['name', 'slug', 'kingdom_id', 'language', 'timezone', 'status', 'suspended_at', 'closed_at', 'deleted_at', 'restored_at', 'retention_until', 'lifecycle_reason'];
 
     protected function casts(): array
     {
-        return ['status'=>AllianceStatus::class,'suspended_at'=>'datetime','closed_at'=>'datetime','deleted_at'=>'datetime','restored_at'=>'datetime','retention_until'=>'datetime'];
+        return ['status' => AllianceStatus::class, 'suspended_at' => 'datetime', 'closed_at' => 'datetime', 'deleted_at' => 'datetime', 'restored_at' => 'datetime', 'retention_until' => 'datetime'];
     }
 
     /** @return HasMany<AllianceMembership, $this> */

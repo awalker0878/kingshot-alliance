@@ -44,8 +44,7 @@ final readonly class TransitionKingdomIngestionSubscription
 
             $nextRunAt = $subscription->next_run_at;
             if ($target === KingdomIngestionSubscriptionState::Active) {
-                if ($scope->kingdomId === null
-                    || (string) $scope->kingdomId !== (string) $subscription->kingdom_id) {
+                if ($scope->kingdomId !== (string) $subscription->kingdom_id) {
                     throw ValidationException::withMessages([
                         'state' => 'A subscription can only be activated for the alliance current Kingdom.',
                     ]);

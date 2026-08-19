@@ -76,7 +76,10 @@ final readonly class RosterCsvExporter
         ];
     }
 
-    /** @param list<string> $entryIds @return array<string,PlayerSnapshot> */
+    /**
+     * @param  list<string>  $entryIds
+     * @return array<string, PlayerSnapshot>
+     */
     private function latestSnapshots(string $allianceId, array $entryIds): array
     {
         if ($entryIds === []) {
@@ -103,11 +106,11 @@ final readonly class RosterCsvExporter
     private function row(RosterEntryReference $entry, ?PlayerReference $player, ?PlayerSnapshot $snapshot): array
     {
         return [
-            'game_player_id' => $player?->gamePlayerId ?? '',
+            'game_player_id' => $player instanceof PlayerReference ? ($player->gamePlayerId ?? '') : '',
             'name' => $snapshot?->observed_name === null ? $entry->observedName : (string) $snapshot->observed_name,
             'power' => $snapshot === null ? '' : (string) $snapshot->power,
-            'progression_level' => $snapshot?->progression_level ?? '',
-            'alliance_tag' => $snapshot?->observed_alliance_tag ?? '',
+            'progression_level' => $snapshot instanceof PlayerSnapshot ? ($snapshot->progression_level ?? '') : '',
+            'alliance_tag' => $snapshot instanceof PlayerSnapshot ? ($snapshot->observed_alliance_tag ?? '') : '',
             'game_role' => $entry->gameRole ?? '',
             'state' => $entry->stateObservedAtRead->value,
             'joined_at' => $entry->joinedAt ?? '',

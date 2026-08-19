@@ -110,26 +110,31 @@ final readonly class PromoteKingdomIngestionPlayerSnapshot
             );
             if ($players === []) {
                 $this->quarantine($candidate, $batch, 'unknown_player');
+
                 return null;
             }
             if (count($players) !== 1) {
                 $this->quarantine($candidate, $batch, 'ambiguous_player_identity');
+
                 return null;
             }
             $player = $players[0];
             if ($player->kingdomId !== (string) $subscription->kingdom_id
                 || $player->gamePlayerId !== $candidate->stable_game_id) {
                 $this->quarantine($candidate, $batch, 'player_identity_changed');
+
                 return null;
             }
 
             $entries = $this->roster->forPlayer($context->alliance->allianceId, $player->playerId, 2);
             if ($entries === []) {
                 $this->quarantine($candidate, $batch, 'roster_target_missing');
+
                 return null;
             }
             if (count($entries) !== 1) {
                 $this->quarantine($candidate, $batch, 'ambiguous_roster_target');
+
                 return null;
             }
             $entry = $entries[0];

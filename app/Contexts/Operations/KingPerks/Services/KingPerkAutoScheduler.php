@@ -76,6 +76,7 @@ final readonly class KingPerkAutoScheduler
                 }
                 if ($this->positionBlocked($plan['id'], $type, $cursor, $slotEnd)) {
                     $cursor = $slotEnd;
+
                     continue;
                 }
 
@@ -94,7 +95,12 @@ final readonly class KingPerkAutoScheduler
                     ->orderBy('created_at')
                     ->limit(100)
                     ->get();
-                $players = $this->players->byIds($candidates->pluck('player_id')->map(static fn ($id): string => (string) $id)->all());
+                /** @var list<string> $candidatePlayerIds */
+                $candidatePlayerIds = $candidates->pluck('player_id')
+                    ->map(static fn ($id): string => (string) $id)
+                    ->values()
+                    ->all();
+                $players = $this->players->byIds($candidatePlayerIds);
 
                 foreach ($candidates as $request) {
                     $target = $players[(string) $request->player_id] ?? null;

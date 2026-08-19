@@ -158,8 +158,8 @@ final class RosterReadController extends Controller
     }
 
     /**
-     * @param Collection<int, AllianceRosterEntry> $entries
-     * @param Collection<string, AllianceMembership> $memberships
+     * @param  Collection<int, AllianceRosterEntry>  $entries
+     * @param  Collection<string, AllianceMembership>  $memberships
      * @return array<string, PlayerReference>
      */
     private function playerReferences(PlayerReferenceQuery $players, Collection $entries, Collection $memberships): array
@@ -176,10 +176,10 @@ final class RosterReadController extends Controller
     }
 
     /**
-     * @param Collection<int, AllianceRosterEntry> $entries
-     * @param array<string, PlayerSnapshot> $latestSnapshots
-     * @param Collection<string, AllianceMembership> $memberships
-     * @param array<string, PlayerReference> $players
+     * @param  Collection<int, AllianceRosterEntry>  $entries
+     * @param  array<string, PlayerSnapshot>  $latestSnapshots
+     * @param  Collection<string, AllianceMembership>  $memberships
+     * @param  array<string, PlayerReference>  $players
      * @return list<array<string,mixed>>
      */
     private function entries(

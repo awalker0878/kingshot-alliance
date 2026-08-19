@@ -34,7 +34,7 @@ final class DeliverWebhookJob implements ShouldBeUnique, ShouldQueue
     {
         $delivery = WebhookDelivery::query()->find($this->deliveryId);
         if ($delivery instanceof WebhookDelivery) {
-            $deliver->handle($delivery);
+            $deliver->handle((string) $delivery->id);
         }
     }
 

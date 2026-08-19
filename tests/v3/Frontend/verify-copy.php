@@ -1,6 +1,43 @@
 <?php
+
 declare(strict_types=1);
-$root=dirname(__DIR__,3);$targets=[$root.'/resources/js/pages',$root.'/resources/js/layouts',$root.'/resources/js/components',$root.'/resources/js/localization/messages'];
-$forbidden=['read model','readmodel','security principal','mutation authority','persistence layer','platform administration','tenant context','domain context','capability layer','backend action','backend service','queue worker','outbox','api credential','webhook delivery','candidate pipeline','contribution report','manager','pipeline','snapshot','workflow','tenant','platform','administrator','configuration','configured','reporting','metadata','active player','player authority','game-domain','player','api','webhook','queue','runtime','adapter','ingestion','endpoint','credential','integration','capabilities','event system','translation key','idempotent','lifecycle','operational modules','event context','kingdom context','historical context','private context','url slug','export json'];$v=[];
-foreach($targets as $target){if(!is_dir($target))continue;foreach(new RecursiveIteratorIterator(new RecursiveDirectoryIterator($target)) as $f){if(!$f->isFile()||!in_array($f->getExtension(),['ts','vue'],true))continue;if($f->getExtension()==='ts'&&$f->getFilename()!=='en.ts')continue;$raw=(string)file_get_contents($f->getPathname());if($f->getExtension()==='vue'){$visible=(string)preg_replace('/<script\b[^>]*>.*?<\/script>/is','',$raw);$visible=(string)preg_replace('/\{\{.*?\}\}/s','',$visible);$visible=(string)preg_replace('/<[^>]+>/s',' ',$visible);}else{preg_match_all('/:\s*(["\'`])((?:\\.|(?!\1).)*)\1/s',$raw,$m);$visible=implode("\n",$m[2]??[]);$visible=(string)preg_replace('/\{[^}]+\}/','',$visible);} $low=strtolower($visible);foreach($forbidden as $p){$pattern='/(?<![a-z0-9])'.preg_quote($p,'/').'(?![a-z0-9])/i';if(preg_match($pattern,$low)===1)$v[]="Forbidden UI vocabulary '$p' in ".str_replace($root.'/','',$f->getPathname());}}}
-if($v){fwrite(STDERR,"FRONTEND-V3 copy violations:\n - ".implode("\n - ",array_values(array_unique($v)))."\n");exit(1);}fwrite(STDOUT,"FRONTEND-V3 copy gate: PASS\n");
+
+$root = dirname(__DIR__, 3);
+$targets = [$root.'/resources/js/pages', $root.'/resources/js/layouts', $root.'/resources/js/components', $root.'/resources/js/localization/messages'];
+$forbidden = ['read model', 'readmodel', 'security principal', 'mutation authority', 'persistence layer', 'platform administration', 'tenant context', 'domain context', 'capability layer', 'backend action', 'backend service', 'queue worker', 'outbox', 'api credential', 'webhook delivery', 'candidate pipeline', 'contribution report', 'manager', 'pipeline', 'snapshot', 'workflow', 'tenant', 'platform', 'administrator', 'configuration', 'configured', 'reporting', 'metadata', 'active player', 'player authority', 'game-domain', 'player', 'api', 'webhook', 'queue', 'runtime', 'adapter', 'ingestion', 'endpoint', 'credential', 'integration', 'capabilities', 'event system', 'translation key', 'idempotent', 'lifecycle', 'operational modules', 'event context', 'kingdom context', 'historical context', 'private context', 'url slug', 'export json'];
+$v = [];
+foreach ($targets as $target) {
+    if (! is_dir($target)) {
+        continue;
+    }
+    foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($target)) as $f) {
+        if (! $f->isFile() || ! in_array($f->getExtension(), ['ts', 'vue'], true)) {
+            continue;
+        }
+        if ($f->getExtension() === 'ts' && $f->getFilename() !== 'en.ts') {
+            continue;
+        }
+        $raw = (string) file_get_contents($f->getPathname());
+        if ($f->getExtension() === 'vue') {
+            $visible = (string) preg_replace('/<script\b[^>]*>.*?<\/script>/is', '', $raw);
+            $visible = (string) preg_replace('/\{\{.*?\}\}/s', '', $visible);
+            $visible = (string) preg_replace('/<[^>]+>/s', ' ', $visible);
+        } else {
+            preg_match_all('/:\s*(["\'`])((?:\\.|(?!\1).)*)\1/s', $raw, $m);
+            $visible = implode("\n", $m[2] ?? []);
+            $visible = (string) preg_replace('/\{[^}]+\}/', '', $visible);
+        }
+        $low = strtolower($visible);
+        foreach ($forbidden as $p) {
+            $pattern = '/(?<![a-z0-9])'.preg_quote($p, '/').'(?![a-z0-9])/i';
+            if (preg_match($pattern, $low) === 1) {
+                $v[] = "Forbidden UI vocabulary '$p' in ".str_replace($root.'/', '', $f->getPathname());
+            }
+        }
+    }
+}
+if ($v) {
+    fwrite(STDERR, "FRONTEND-V3 copy violations:\n - ".implode("\n - ", array_values(array_unique($v)))."\n");
+    exit(1);
+}
+fwrite(STDOUT, "FRONTEND-V3 copy gate: PASS\n");

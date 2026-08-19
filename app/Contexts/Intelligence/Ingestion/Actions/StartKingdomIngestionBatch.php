@@ -36,8 +36,7 @@ final readonly class StartKingdomIngestionBatch
                 ]);
             }
 
-            if ($context->alliance->kingdomId === null
-                || (string) $context->alliance->kingdomId !== (string) $subscription->kingdom_id) {
+            if ($context->alliance->kingdomId !== (string) $subscription->kingdom_id) {
                 throw ValidationException::withMessages([
                     'subscription' => 'Ingestion is blocked because the alliance Kingdom no longer matches the subscription context.',
                 ]);

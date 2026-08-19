@@ -49,7 +49,7 @@ final class KingdomIngestionController extends Controller
         $alliance = $alliances->require($scope->allianceId);
         $allianceKingdom = $kingdoms->require($alliance->kingdomId);
         $subscriptions = $ingestion->subscriptionsForAlliance($alliance->allianceId);
-        $kingdomRefs = $kingdoms->byIds($subscriptions->pluck('kingdom_id')->map(static fn ($id): string => (string) $id)->all());
+        $kingdomRefs = $kingdoms->byIds(array_values($subscriptions->pluck('kingdom_id')->map(static fn ($id): string => (string) $id)->all()));
         $definitions = $adapters->definitions();
         $adapterLabels = [];
         foreach ($definitions as $definition) {

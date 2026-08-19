@@ -61,7 +61,7 @@ final class AllianceReferenceQuery
     }
 
     /**
-     * @param list<string> $allianceIds
+     * @param  list<string>  $allianceIds
      * @return array<string, AllianceReference>
      */
     public function byIds(array $allianceIds): array

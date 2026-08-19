@@ -6,8 +6,8 @@ namespace App\ReadModels\PlatformAdministration;
 
 use App\Contexts\Alliance\Lifecycle\Enums\AllianceStatus;
 use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\Platform\Integrations\Models\WebhookDelivery;
 use App\Contexts\Platform\DataGovernance\Models\LegalHold;
+use App\Contexts\Platform\Integrations\Models\WebhookDelivery;
 use App\Shared\Infrastructure\Messaging\Outbox\Models\OutboxMessage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;

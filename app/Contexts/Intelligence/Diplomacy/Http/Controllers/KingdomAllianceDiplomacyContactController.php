@@ -54,7 +54,9 @@ final class KingdomAllianceDiplomacyContactController extends Controller
         $actorIds = [];
         foreach ($records as $contact) {
             foreach ([$contact->created_by_player_id, $contact->updated_by_player_id, $contact->deactivated_by_player_id] as $id) {
-                if ($id !== null) $actorIds[] = (string) $id;
+                if ($id !== null) {
+                    $actorIds[] = (string) $id;
+                }
             }
         }
         $actorRefs = $players->byIds(array_values(array_unique($actorIds)));
@@ -120,7 +122,10 @@ final class KingdomAllianceDiplomacyContactController extends Controller
         return $validated;
     }
 
-    /** @param array<string,PlayerReference> $players @return array<string,mixed> */
+    /**
+     * @param  array<string, PlayerReference>  $players
+     * @return array{id:string,displayName:string,gameRole:string|null,channelType:string,handle:string,state:string,lastVerifiedAt:string|null,managerNotes:string|null,createdByName:string|null,updatedByName:string|null,deactivatedByName:string|null,createdAt:string,updatedAt:string,deactivatedAt:string|null}
+     */
     private function contactRow(KingdomAllianceDiplomacyContact $contact, array $players): array
     {
         $created = $contact->created_by_player_id === null ? null : ($players[(string) $contact->created_by_player_id] ?? null);

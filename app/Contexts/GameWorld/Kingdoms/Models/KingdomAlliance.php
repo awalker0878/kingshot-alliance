@@ -22,7 +22,9 @@ final class KingdomAlliance extends Model
     use HasUlids;
 
     public $incrementing = false;
+
     protected $keyType = 'string';
+
     protected $fillable = ['kingdom_id', 'game_alliance_id', 'current_name', 'current_tag', 'status'];
 
     protected function casts(): array

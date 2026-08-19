@@ -49,5 +49,4 @@ final class EventPhase extends Model
     {
         return $this->belongsTo(EventOccurrence::class, 'occurrence_id');
     }
-
 }

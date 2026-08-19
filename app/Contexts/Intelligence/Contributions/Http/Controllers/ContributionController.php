@@ -53,7 +53,7 @@ final class ContributionController extends Controller
         $actor = $players->require($scope->playerId);
 
         return Inertia::render('Intelligence/GloryLedger/Index', [
-            'user' => ['name' => (string) $user->name, 'email' => (string) $user->email],
+            'user' => ['name' => $user->accountName(), 'email' => $user->accountEmail()],
             'alliance' => ['id' => $alliance->allianceId, 'name' => $alliance->name, 'timezone' => $alliance->timezone],
             'player' => ['id' => $actor->playerId, 'name' => $actor->currentName],
             'canManage' => $authorization->allows($scope->playerId, $scope->allianceId, IntelligencePermission::ContributionManage),
@@ -72,7 +72,7 @@ final class ContributionController extends Controller
         [$user, $scope, $alliance] = $this->requireManager($request, $context, $alliances, $players, $authorization);
 
         return Inertia::render('Intelligence/GloryLedger/Manage', [
-            'user' => ['name' => (string) $user->name, 'email' => (string) $user->email],
+            'user' => ['name' => $user->accountName(), 'email' => $user->accountEmail()],
             'alliance' => ['id' => $alliance->allianceId, 'name' => $alliance->name, 'timezone' => $alliance->timezone],
             'reporting' => $reports->managementDashboard($scope->allianceId),
             'periods' => array_column(ContributionPeriod::cases(), 'value'),
@@ -124,6 +124,7 @@ final class ContributionController extends Controller
             $validated['description'] ?? null, $validated['period_start'] ?? null, $validated['period_end'] ?? null,
             $validated['calculation_key'] ?? null, $validated['calculation_version'] ?? null, $validated['calculation_description'] ?? null,
         );
+
         return back()->with('status', 'Contribution category created.');
     }
 
@@ -136,55 +137,68 @@ final class ContributionController extends Controller
             'value' => ['required', 'numeric', 'min:0'], 'evidence' => ['nullable', 'string', 'max:4000'],
         ]);
         $record->handle($scope->playerId, $scope->allianceId, (string) $validated['player_id'], (string) $validated['category_id'], (float) $validated['value'], ContributionRecordSource::Manual, $validated['evidence'] ?? null);
+
         return back()->with('status', 'Contribution recorded and awaiting approval.');
     }
 
     public function approve(Request $request, AllianceContext $context, AllianceIntelligenceAuthorization $authorization, ContributionRecord $record, ApproveContributionRecord $approve): RedirectResponse
     {
-        $scope = $context->scope(); $this->authorizeManager($scope, $authorization);
+        $scope = $context->scope();
+        $this->authorizeManager($scope, $authorization);
         $approve->handle($scope->playerId, $scope->allianceId, (string) $record->id);
+
         return back()->with('status', 'Contribution approved.');
     }
 
     public function correct(Request $request, AllianceContext $context, AllianceIntelligenceAuthorization $authorization, ContributionRecord $record, CorrectContributionRecord $correct): RedirectResponse
     {
-        $scope = $context->scope(); $this->authorizeManager($scope, $authorization);
+        $scope = $context->scope();
+        $this->authorizeManager($scope, $authorization);
         $validated = $request->validate(['value' => ['required', 'numeric', 'min:0'], 'reason' => ['required', 'string', 'max:2000'], 'evidence' => ['nullable', 'string', 'max:4000']]);
         $correct->handle($scope->playerId, $scope->allianceId, (string) $record->id, (float) $validated['value'], $validated['reason'], $validated['evidence'] ?? null);
+
         return back()->with('status', 'Contribution correction recorded.');
     }
 
     public function reverse(Request $request, AllianceContext $context, AllianceIntelligenceAuthorization $authorization, ContributionRecord $record, ReverseContributionRecord $reverse): RedirectResponse
     {
-        $scope = $context->scope(); $this->authorizeManager($scope, $authorization);
+        $scope = $context->scope();
+        $this->authorizeManager($scope, $authorization);
         $validated = $request->validate(['reason' => ['required', 'string', 'max:2000']]);
         $reverse->handle($scope->playerId, $scope->allianceId, (string) $record->id, $validated['reason']);
+
         return back()->with('status', 'Contribution reversed.');
     }
 
     public function refreshQuality(Request $request, AllianceContext $context, AllianceIntelligenceAuthorization $authorization, RefreshContributionDataQuality $refresh): RedirectResponse
     {
-        $scope = $context->scope(); $this->authorizeManager($scope, $authorization);
+        $scope = $context->scope();
+        $this->authorizeManager($scope, $authorization);
         $result = $refresh->handle($scope->playerId, $scope->allianceId);
+
         return back()->with('status', sprintf('Data quality refreshed: %d missing evidence, %d missing records.', $result['missing_evidence'], $result['missing_records']));
     }
 
     public function resolveQualityFlag(Request $request, AllianceContext $context, AllianceIntelligenceAuthorization $authorization, ContributionDataQualityFlag $flag, ResolveContributionDataQualityFlag $resolve): RedirectResponse
     {
-        $scope = $context->scope(); $this->authorizeManager($scope, $authorization);
+        $scope = $context->scope();
+        $this->authorizeManager($scope, $authorization);
         $resolve->handle($scope->playerId, $scope->allianceId, (string) $flag->id);
+
         return back()->with('status', 'Data-quality flag resolved.');
     }
 
     public function storeReportSchedule(Request $request, AllianceContext $context, AllianceIntelligenceAuthorization $authorization, CreateContributionReportSchedule $create): RedirectResponse
     {
-        $scope = $context->scope(); $this->authorizeManager($scope, $authorization);
+        $scope = $context->scope();
+        $this->authorizeManager($scope, $authorization);
         $validated = $request->validate([
             'recipient_player_id' => ['required', 'string', 'ulid'], 'name' => ['required', 'string', 'max:120'],
             'cadence' => ['required', Rule::in(['daily', 'weekly', 'monthly'])], 'timezone' => ['required', 'timezone'],
             'next_due_at' => ['required', 'date'],
         ]);
         $create->handle($scope->playerId, $scope->allianceId, (string) $validated['recipient_player_id'], $validated['name'], $validated['cadence'], $validated['timezone'], CarbonImmutable::parse($validated['next_due_at'], $validated['timezone']));
+
         return back()->with('status', 'Contribution report schedule created.');
     }
 
@@ -200,8 +214,10 @@ final class ContributionController extends Controller
 
     private function export(Request $request, AllianceContext $context, AllianceIntelligenceAuthorization $authorization, ContributionReportExporter $exporter, string $format): HttpResponse
     {
-        $scope = $context->scope(); $this->authorizeManager($scope, $authorization);
+        $scope = $context->scope();
+        $this->authorizeManager($scope, $authorization);
         $result = $exporter->export($scope->allianceId, $scope->playerId, $format);
+
         return response($result['content'], 200, [
             'Content-Type' => $result['mime'], 'Content-Disposition' => 'attachment; filename="'.$result['filename'].'"',
             'X-Report-Version' => $result['reportVersion'], 'X-Report-Checksum' => $result['checksum'],
@@ -211,7 +227,10 @@ final class ContributionController extends Controller
     /** @return array{AuthenticatedAccount, AllianceScopeReference, AllianceReference, PlayerReference} */
     private function requireManager(Request $request, AllianceContext $context, AllianceReferenceQuery $alliances, PlayerReferenceQuery $players, AllianceIntelligenceAuthorization $authorization): array
     {
-        $user = $this->user($request); $scope = $context->scope(); $this->authorizeManager($scope, $authorization);
+        $user = $this->user($request);
+        $scope = $context->scope();
+        $this->authorizeManager($scope, $authorization);
+
         return [$user, $scope, $alliances->require($scope->allianceId), $players->require($scope->playerId)];
     }
 
@@ -222,6 +241,9 @@ final class ContributionController extends Controller
 
     private function user(Request $request): AuthenticatedAccount
     {
-        $user = $request->user(); abort_unless($user instanceof AuthenticatedAccount, 401); return $user;
+        $user = $request->user();
+        abort_unless($user instanceof AuthenticatedAccount, 401);
+
+        return $user;
     }
 }

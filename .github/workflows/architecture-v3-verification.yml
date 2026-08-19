@@ -90,4 +90,4 @@ jobs:
         run: composer types:check
 
       - name: Full V3 PHPUnit suite
-        run: php artisan test tests/v3 --parallel
+        run: vendor/bin/phpunit --configuration phpunit.xml --testsuite "Architecture V3"

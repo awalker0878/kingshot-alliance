@@ -14,7 +14,6 @@ use LogicException;
 
 final class AllianceAuthorityFactsQuery
 {
-
     public function lockCurrent(string $playerId, string $allianceId): ?AllianceAuthorityFacts
     {
         if (DB::transactionLevel() < 1) {

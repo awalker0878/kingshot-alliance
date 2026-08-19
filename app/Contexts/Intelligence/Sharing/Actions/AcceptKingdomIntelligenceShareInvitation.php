@@ -29,7 +29,9 @@ final readonly class AcceptKingdomIntelligenceShareInvitation
     public function handle(string $recipientAllianceId, string $actorPlayerId, string $token): string
     {
         $token = trim($token);
-        if ($token === '') { throw $this->invalidToken(); }
+        if ($token === '') {
+            throw $this->invalidToken();
+        }
 
         return DB::transaction(function () use ($recipientAllianceId, $actorPlayerId, $token): string {
             [$recipientScope, $actor] = $this->writeState->authorize($actorPlayerId, $recipientAllianceId, IntelligencePermission::KingdomManage);
@@ -69,6 +71,7 @@ final readonly class AcceptKingdomIntelligenceShareInvitation
             $metadata = $this->metadata($share);
             $this->recordForAlliance($sourceAllianceId, null, $share, $metadata);
             $this->recordForAlliance($recipientAllianceId, $actor, $share, $metadata);
+
             return (string) $share->id;
         });
     }
@@ -84,7 +87,7 @@ final readonly class AcceptKingdomIntelligenceShareInvitation
     /** @return array<string,mixed> */
     private function metadata(KingdomIntelligenceShare $share): array
     {
-        return ['share_id'=>(string)$share->id,'source_alliance_id'=>(string)$share->source_alliance_id,'recipient_alliance_id'=>(string)$share->recipient_alliance_id,'kingdom_id'=>(string)$share->kingdom_id,'state'=>$share->state->value];
+        return ['share_id' => (string) $share->id, 'source_alliance_id' => (string) $share->source_alliance_id, 'recipient_alliance_id' => (string) $share->recipient_alliance_id, 'kingdom_id' => (string) $share->kingdom_id, 'state' => $share->state->value];
     }
 
     private function invalidToken(): ValidationException

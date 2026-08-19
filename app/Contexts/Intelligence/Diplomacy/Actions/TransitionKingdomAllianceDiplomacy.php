@@ -114,7 +114,7 @@ final readonly class TransitionKingdomAllianceDiplomacy
 
             if (! $relationship instanceof KingdomAllianceDiplomacy) {
                 $relationship = KingdomAllianceDiplomacy::query()->create([
-                    'alliance_id' => $currentAlliance->id,
+                    'alliance_id' => $allianceId,
                     'tracked_kingdom_alliance_id' => $tracking->id,
                     'kingdom_alliance_id' => $reference->kingdomAllianceId,
                     'current_state' => $target,
@@ -144,7 +144,7 @@ final readonly class TransitionKingdomAllianceDiplomacy
             }
 
             $transition = KingdomAllianceDiplomacyTransition::query()->create([
-                'alliance_id' => $currentAlliance->id,
+                'alliance_id' => $allianceId,
                 'diplomacy_relationship_id' => $relationship->id,
                 'tracked_kingdom_alliance_id' => $tracking->id,
                 'kingdom_alliance_id' => $reference->kingdomAllianceId,

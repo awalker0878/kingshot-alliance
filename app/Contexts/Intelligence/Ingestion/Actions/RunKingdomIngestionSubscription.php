@@ -11,6 +11,7 @@ use App\Contexts\Intelligence\Ingestion\Enums\KingdomIngestionCandidateState;
 use App\Contexts\Intelligence\Ingestion\Enums\KingdomIngestionSubscriptionState;
 use App\Contexts\Intelligence\Ingestion\Enums\KingdomIngestionTargetKind;
 use App\Contexts\Intelligence\Ingestion\Models\KingdomIngestionBatch;
+use App\Contexts\Intelligence\Ingestion\Models\KingdomIngestionCandidate;
 use App\Contexts\Intelligence\Ingestion\Models\KingdomIngestionSubscription;
 use App\Contexts\Intelligence\Ingestion\Services\KingdomIngestionAdapterRegistry;
 use App\Contexts\Intelligence\Ingestion\Services\KingdomIngestionMutationState;
@@ -114,9 +115,9 @@ final readonly class RunKingdomIngestionSubscription
             ->firstOrFail();
     }
 
-    private function candidate(string $subscriptionId, string $batchId, string $candidateId): \App\Contexts\Intelligence\Ingestion\Models\KingdomIngestionCandidate
+    private function candidate(string $subscriptionId, string $batchId, string $candidateId): KingdomIngestionCandidate
     {
-        return \App\Contexts\Intelligence\Ingestion\Models\KingdomIngestionCandidate::query()
+        return KingdomIngestionCandidate::query()
             ->where('subscription_id', $subscriptionId)
             ->where('batch_id', $batchId)
             ->whereKey($candidateId)
@@ -134,8 +135,7 @@ final readonly class RunKingdomIngestionSubscription
             if ($subscription->circuit_open_until !== null && $subscription->circuit_open_until->isFuture()) {
                 return null;
             }
-            if ($context->alliance->kingdomId === null
-                || (string) $context->alliance->kingdomId !== (string) $subscription->kingdom_id) {
+            if ($context->alliance->kingdomId !== (string) $subscription->kingdom_id) {
                 $this->block($subscription, 'kingdom_context_changed');
 
                 return null;

@@ -9,6 +9,7 @@ use App\Contexts\Alliance\Membership\Enums\RosterState;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
 use App\Contexts\Intelligence\Roster\Models\PlayerSnapshot;
+use App\Contexts\Intelligence\Roster\Services\PowerMath;
 use App\ReadModels\Roster\Queries\PlayerSnapshotQuery;
 use App\ReadModels\Roster\Queries\RosterQuery;
 use Illuminate\Support\Carbon;
@@ -20,7 +21,7 @@ final readonly class RosterIntelligence
     public function __construct(
         private RosterQuery $roster,
         private PlayerSnapshotQuery $snapshots,
-        private \App\Contexts\Intelligence\Roster\Services\PowerMath $powerMath,
+        private PowerMath $powerMath,
     ) {}
 
     /** @return array<string, mixed> */

@@ -112,8 +112,8 @@ final class ActivePlayerUxContractV3Test extends TestCase
         }
 
         foreach ([
-            "X-Game-Context-Version",
-            "X-Game-Context-Error",
+            'X-Game-Context-Version',
+            'X-Game-Context-Error',
             'kingshot:authority-context-stale',
             'isAuthorityContextStaleResponse',
         ] as $expected) {

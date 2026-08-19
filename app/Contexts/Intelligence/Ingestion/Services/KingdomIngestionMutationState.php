@@ -35,19 +35,27 @@ final readonly class KingdomIngestionMutationState
 
         $route = KingdomIngestionSubscription::query()->select(['id', 'alliance_id'])->whereKey($subscriptionId)->first();
         if (! $route instanceof KingdomIngestionSubscription) {
-            if ($nullable) { return null; }
-            KingdomIngestionSubscription::query()->findOrFail($subscriptionId);
+            if ($nullable) {
+                return null;
+            }
+            $route = KingdomIngestionSubscription::query()
+                ->select(['id', 'alliance_id'])
+                ->findOrFail($subscriptionId);
         }
 
         $alliance = $this->alliances->lockCurrent((string) $route->alliance_id);
         if (! $alliance->active()) {
-            if ($nullable) { return null; }
+            if ($nullable) {
+                return null;
+            }
             throw ValidationException::withMessages(['subscription' => 'Automated Kingdom ingestion is unavailable while the Alliance is not active.']);
         }
 
         $query = KingdomIngestionSubscription::query()->whereKey($route->id)->where('alliance_id', $alliance->allianceId)->lockForUpdate();
         $subscription = $nullable ? $query->first() : $query->firstOrFail();
-        if (! $subscription instanceof KingdomIngestionSubscription) { return null; }
+        if (! $subscription instanceof KingdomIngestionSubscription) {
+            return null;
+        }
 
         return new KingdomIngestionMutationContext($alliance, $subscription);
     }

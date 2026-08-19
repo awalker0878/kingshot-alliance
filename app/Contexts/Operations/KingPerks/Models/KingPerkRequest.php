@@ -73,5 +73,4 @@ final class KingPerkRequest extends Model
     {
         return $this->belongsTo(KingPerkAppointment::class, 'scheduled_appointment_id');
     }
-
 }

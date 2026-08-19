@@ -4,16 +4,12 @@ on:
   pull_request:
     paths:
       - 'app/Contexts/Operations/KingPerks/**'
-      - 'app/Contexts/Operations/EventCore/**'
-      - 'app/Contexts/Operations/Reminders/**'
       - 'bootstrap/app.php'
       - 'config/operations.php'
       - 'database/migrations/*king_perk*'
-      - 'resources/js/pages/KingPerks/**'
+      - 'resources/js/pages/Kingdom/RoyalCourt/**'
       - 'routes/king-perks.php'
-      - 'tests/v2/Contexts/Operations/KingPerks/**'
-      - 'tests/v2/Contexts/Operations/EventCore/**'
-      - 'tests/v2/Contexts/Operations/Reminders/**'
+      - 'tests/v3/Contexts/Operations/KingPerks/**'
       - 'tsconfig.king-perks.json'
       - 'vite.king-perks.config.ts'
       - '.github/workflows/king-perks-verification.yml'
@@ -68,7 +64,7 @@ jobs:
           set -euo pipefail
           test ! -d app/Domain/KingPerks
           test ! -d tests/Feature/KingPerks
-          matches=$(grep -R -n -E --include='*.php' 'App\\Domain\\KingPerks\\' app routes bootstrap config database tests/v2/Contexts/Operations/KingPerks 2>/dev/null || true)
+          matches=$(grep -R -n -E --include='*.php' 'App\\Domain\\KingPerks\\' app routes bootstrap config database tests/v3/Contexts/Operations/KingPerks 2>/dev/null || true)
           if [ -n "$matches" ]; then
             echo "$matches"
             exit 1
@@ -88,36 +84,28 @@ jobs:
       - name: PostgreSQL schema and migration
         run: php artisan migrate --force
 
-      - name: Pint King Perks V2 contracts
+      - name: Pint King Perks V3 contracts
         run: >-
           vendor/bin/pint --test
           app/Contexts/Operations/KingPerks
-          app/Contexts/Operations/EventCore
-          app/Contexts/Operations/Reminders
           bootstrap/app.php
           config/operations.php
           database/migrations/2026_08_15_083000_create_king_perk_tables.php
           routes/king-perks.php
-          tests/v2/Contexts/Operations/KingPerks
-          tests/v2/Contexts/Operations/EventCore
-          tests/v2/Contexts/Operations/Reminders
+          tests/v3/Contexts/Operations/KingPerks
 
-      - name: Larastan King Perks V2
+      - name: Larastan King Perks V3
         run: >-
           vendor/bin/phpstan analyse --memory-limit=1G
           app/Contexts/Operations/KingPerks
-          app/Contexts/Operations/EventCore
-          app/Contexts/Operations/Reminders
           bootstrap/app.php
           config/operations.php
           routes/king-perks.php
 
-      - name: King Perks V2 backend tests
+      - name: King Perks V3 backend tests
         run: >-
-          php artisan test
-          tests/v2/Contexts/Operations/KingPerks
-          tests/v2/Contexts/Operations/EventCore
-          tests/v2/Contexts/Operations/Reminders
+          vendor/bin/phpunit --configuration phpunit.xml
+          tests/v3/Contexts/Operations/KingPerks
 
   frontend:
     name: King Perks frontend contracts
@@ -138,10 +126,10 @@ jobs:
         run: npm ci --no-audit --no-fund
 
       - name: ESLint King Perks pages
-        run: npx eslint resources/js/pages/KingPerks
+        run: npx eslint resources/js/pages/Kingdom/RoyalCourt
 
       - name: Prettier King Perks pages
-        run: npx prettier --check resources/js/pages/KingPerks
+        run: npx prettier --check resources/js/pages/Kingdom/RoyalCourt
 
       - name: King Perks Vue TypeScript contract
         run: npx vue-tsc --noEmit -p tsconfig.king-perks.json

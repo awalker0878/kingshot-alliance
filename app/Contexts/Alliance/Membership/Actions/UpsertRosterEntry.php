@@ -32,7 +32,7 @@ final readonly class UpsertRosterEntry
     ) {}
 
     /**
-     * @param array{name:string,game_player_id?:string|null,game_role?:string|null,state?:RosterState,joined_at?:string|null,manager_notes?:string|null} $attributes
+     * @param  array{name:string,game_player_id?:string|null,game_role?:string|null,state?:RosterState,joined_at?:string|null,manager_notes?:string|null}  $attributes
      */
     public function handle(
         string $actorPlayerId,
@@ -110,6 +110,7 @@ final readonly class UpsertRosterEntry
     private function nullable(?string $value): ?string
     {
         $value = $value === null ? null : trim($value);
+
         return $value === '' ? null : $value;
     }
 }

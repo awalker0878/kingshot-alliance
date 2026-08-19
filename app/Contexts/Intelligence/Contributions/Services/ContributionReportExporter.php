@@ -45,6 +45,7 @@ final class ContributionReportExporter
             $this->setRepeatableReadBeforeFirstQuery($connection);
             $export = $this->exportWithinTransaction($allianceId, $actorPlayerId, $format);
             $connection->commit();
+
             return $export;
         } catch (Throwable $exception) {
             $connection->rollBack();
@@ -121,6 +122,7 @@ final class ContributionReportExporter
         if ($content === false) {
             throw new RuntimeException('Unable to read CSV export buffer.');
         }
+
         return $content;
     }
 
@@ -137,6 +139,7 @@ final class ContributionReportExporter
             $normalized = ['report_version' => self::REPORT_VERSION, 'alliance_id' => $allianceId] + $row;
             $xml .= $this->spreadsheetRow(array_map(static fn (string $key): string => (string) ($normalized[$key] ?? ''), $headers));
         }
+
         return $xml.'</Table></Worksheet></Workbook>';
     }
 
@@ -147,6 +150,7 @@ final class ContributionReportExporter
         foreach ($values as $value) {
             $cells .= '<Cell><Data ss:Type="String">'.htmlspecialchars($value, ENT_XML1 | ENT_QUOTES, 'UTF-8').'</Data></Cell>';
         }
+
         return '<Row>'.$cells.'</Row>';
     }
 
