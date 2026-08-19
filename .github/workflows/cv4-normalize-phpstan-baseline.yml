@@ -1,0 +1,45 @@
+name: CV4 Normalize PHPStan Baseline
+
+on:
+  push:
+    branches:
+      - agent/context-v4-convergence
+    paths:
+      - .github/workflows/cv4-normalize-phpstan-baseline.yml
+
+permissions:
+  contents: write
+
+jobs:
+  normalize:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: agent/context-v4-convergence
+          fetch-depth: 0
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.5'
+          extensions: dom, intl, mbstring, pcntl, pdo_pgsql, posix, redis, simplexml, xml, xmlwriter, zip
+          coverage: none
+          tools: composer:v2
+      - run: composer install --no-interaction --no-progress --prefer-dist
+      - name: Normalize baseline and capture branch-only PHPStan result
+        shell: bash
+        run: |
+          sed -i 's#path: kingshot-main/#path: #' phpstan-baseline.neon
+          set +e
+          vendor/bin/phpstan analyse --no-progress --error-format=raw > docs/architecture/rewrite-status/PHPSTAN-CV4-REMAINING.txt 2>&1
+          code=$?
+          echo "exit_code=$code" >> docs/architecture/rewrite-status/PHPSTAN-CV4-REMAINING.txt
+          exit 0
+      - name: Remove one-shot workflow
+        run: rm .github/workflows/cv4-normalize-phpstan-baseline.yml
+      - name: Commit normalized baseline
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Normalize main PHPStan baseline paths"
+          git push origin HEAD:agent/context-v4-convergence
