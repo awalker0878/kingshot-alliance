@@ -14,6 +14,8 @@ use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\Communications\Delivery\Enums\DeliveryChannel;
 use App\Contexts\Communications\Delivery\Enums\DeliveryStatus;
 use App\Contexts\Communications\Delivery\Models\NotificationDelivery;
+use App\Contexts\GameWorld\Players\Actions\ClaimPlayerAccount;
+use App\Contexts\GameWorld\Players\Actions\PersistPlayerIdentity;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\v3\Support\ScenarioFactory;
 use Tests\v3\TestCase;
@@ -29,7 +31,15 @@ final class AllianceAnnouncementBroadcastBehaviorV3Test extends TestCase
         $owner = $scenarios->player($ownerAccount->userId);
         $alliance = $scenarios->alliance($owner);
         $memberAccount = $scenarios->account();
-        $member = $scenarios->player($memberAccount->userId, $owner->kingdomNumber);
+        $unclaimedMember = app(PersistPlayerIdentity::class)->handle(
+            $owner->kingdomId,
+            'V3 Broadcast Member',
+            'v3-broadcast-member',
+        );
+        $member = app(ClaimPlayerAccount::class)->handle(
+            $unclaimedMember->playerId,
+            $memberAccount->userId,
+        );
         AllianceMembership::query()->create([
             'alliance_id' => $alliance->allianceId,
             'player_id' => $member->playerId,
