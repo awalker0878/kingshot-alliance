@@ -104,6 +104,7 @@ final class ActivePlayerUxContractV3Test extends TestCase
         $app = $this->source($root.'/resources/js/app.ts');
         $authority = $this->source($root.'/resources/js/identity/authority-context.ts');
         $guard = $this->source($root.'/app/Contexts/GameWorld/Players/Http/Middleware/RequireCurrentPlayerContextVersion.php');
+        $resolver = $this->source($root.'/app/Contexts/GameWorld/Players/Services/ActiveGovernorAuthorityContextResolver.php');
 
         foreach ([
             'defaults:',
@@ -131,19 +132,30 @@ final class ActivePlayerUxContractV3Test extends TestCase
         foreach ([
             'CONTEXT_STALE',
             'hash_equals',
-            'findOwnedByUser',
-            'KingdomAuthorityFactsQuery',
+            'ActiveGovernorAuthorityContextResolver',
+            'resolveOwned',
             "'players.activate'",
             "'profile.'",
         ] as $expected) {
             self::assertStringContainsString($expected, $guard);
         }
+
+        foreach ([
+            'findOwnedByUser',
+            'PlayerIdentityContextQuery',
+            'KingdomAuthorityFactsQuery',
+            'PlayerAuthorityContextVersion',
+            'new ActiveGovernorAuthorityContext',
+        ] as $expected) {
+            self::assertStringContainsString($expected, $resolver);
+        }
     }
 
-    public function test_server_projects_active_authority_and_server_owned_navigation(): void
+    public function test_server_projects_one_canonical_active_authority_snapshot_and_navigation(): void
     {
         $root = dirname(__DIR__, 3);
         $middleware = $this->source($root.'/app/Contexts/GameWorld/Players/Http/Middleware/HandleInertiaRequests.php');
+        $snapshot = $this->source($root.'/app/Contexts/GameWorld/Players/ValueObjects/ActiveGovernorAuthorityContext.php');
         $activation = $this->source($root.'/app/Contexts/GameWorld/Players/Actions/ActivatePlayer.php');
         $controller = $this->source($root.'/app/Contexts/GameWorld/Players/Http/Controllers/ActivatePlayerController.php');
         $registry = $this->source($root.'/app/Contexts/GameWorld/Players/Services/GameRouteRegistry.php');
@@ -152,18 +164,27 @@ final class ActivePlayerUxContractV3Test extends TestCase
             "'viewer' =>",
             "'gameContext' =>",
             "'governors' =>",
-            "'active' =>",
+            "'active' => \$active->activePayload()",
+            "'navigation' => \$this->routes->navigation(true, \$active->routeAllianceContext())",
+            'ActiveGovernorAuthorityContextResolver',
+        ] as $expected) {
+            self::assertStringContainsString($expected, $middleware);
+        }
+
+        foreach ([
+            "'governor' =>",
             "'alliance' =>",
             "'kingdom' =>",
             "'capabilities' =>",
             "'fingerprint' =>",
             "'authorityVersion' =>",
-            "'navigation' =>",
-            'GameRouteRegistry',
+            'final readonly class ActiveGovernorAuthorityContext',
         ] as $expected) {
-            self::assertStringContainsString($expected, $middleware);
+            self::assertStringContainsString($expected, $snapshot);
         }
 
+        self::assertStringNotContainsString('KingdomAuthorityFactsQuery', $middleware);
+        self::assertStringNotContainsString('PlayerAuthorityContextVersion', $middleware);
         self::assertStringNotContainsString("'playerContext' =>", $middleware);
         self::assertStringContainsString("->where('user_id', \$userId)", $activation);
         self::assertStringContainsString('GameRouteRegistry', $controller);
