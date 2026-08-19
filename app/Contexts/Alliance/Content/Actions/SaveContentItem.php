@@ -16,7 +16,7 @@ use App\Contexts\Alliance\Content\Services\ContentRevisionWriter;
 use App\Contexts\Alliance\Content\Services\ContentSanitizer;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
-use Illuminate\Support\CarbonImmutable;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Throwable;
