@@ -13,8 +13,6 @@ final class QueueDueWebhookDeliveries
 {
     public function handle(int $limit = 100): int
     {
-        $delivery = WebhookDelivery::query()->whereKey($deliveryId)->firstOrFail();
-
         $limit = max(1, min(500, $limit));
         $now = now();
 
@@ -24,7 +22,7 @@ final class QueueDueWebhookDeliveries
                 ->where('last_attempt_at', '<=', $now->copy()->subMinutes(5))
                 ->lockForUpdate()
                 ->get()
-                ->each(static function (string $deliveryId) use ($now): void {
+                ->each(static function (WebhookDelivery $delivery) use ($now): void {
                     $delivery->forceFill([
                         'status' => WebhookDeliveryStatus::Pending,
                         'available_at' => $now,
