@@ -5,10 +5,7 @@ declare(strict_types=1);
 namespace App\Contexts\GameWorld\Players\Http\Middleware;
 
 use App\Contexts\Accounts\Identity\Contracts\AuthenticatedAccount;
-use App\Contexts\Alliance\Membership\Queries\PlayerIdentityContextQuery;
-use App\Contexts\GameWorld\Governance\Queries\KingdomAuthorityFactsQuery;
-use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
-use App\Contexts\GameWorld\Players\Services\PlayerAuthorityContextVersion;
+use App\Contexts\GameWorld\Players\Services\ActiveGovernorAuthorityContextResolver;
 use App\Contexts\GameWorld\Players\Services\PlayerContext;
 use Closure;
 use Illuminate\Http\JsonResponse;
@@ -43,10 +40,7 @@ final readonly class RequireCurrentPlayerContextVersion
 
     public function __construct(
         private PlayerContext $context,
-        private PlayerReferenceQuery $players,
-        private PlayerIdentityContextQuery $allianceContext,
-        private KingdomAuthorityFactsQuery $kingdomAuthority,
-        private PlayerAuthorityContextVersion $versions,
+        private ActiveGovernorAuthorityContextResolver $authorityContext,
     ) {}
 
     public function handle(Request $request, Closure $next): Response
@@ -65,28 +59,21 @@ final readonly class RequireCurrentPlayerContextVersion
             return $this->stale('active_player_missing');
         }
 
-        // Re-read the Player rather than trusting the request-scoped snapshot so a
-        // different tab changing the selected/owned Player cannot reuse old authority.
-        $player = $this->players->findOwnedByUser((int) $user->id, $selected->playerId);
-        if ($player === null) {
+        // Re-resolve ownership, membership, roles and Kingdom permissions from
+        // persistence. The immutable snapshot is a staleness precondition only;
+        // owning domains still authorize again inside their write transactions.
+        $current = $this->authorityContext->resolveOwned((int) $user->id, $selected->playerId);
+        if ($current === null) {
             return $this->stale('active_player_unavailable');
         }
 
-        $alliance = $this->allianceContext->forPlayers([$player->playerId])[$player->playerId] ?? null;
-        $kingdomPermissions = $this->kingdomAuthority
-            ->findCurrent($player->playerId, $player->kingdomId)
-            ?->permissionKeysObservedAtRead ?? [];
-
-        $currentVersion = $this->versions->issue($player, $alliance, $kingdomPermissions);
         $providedVersion = $request->header(self::HEADER_NAME);
-
-        if (! is_string($providedVersion) || ! hash_equals($currentVersion, $providedVersion)) {
+        if (! is_string($providedVersion) || ! hash_equals($current->authorityVersion, $providedVersion)) {
             return $this->stale('authority_context_changed');
         }
 
-        // Observability/debugging only. This attribute is not authority and domain
-        // writes must continue to perform their own transaction-time authorization.
-        $request->attributes->set('authority_context_version', $currentVersion);
+        // Observability/debugging only. This attribute is not authority.
+        $request->attributes->set('authority_context_version', $current->authorityVersion);
 
         return $next($request);
     }
