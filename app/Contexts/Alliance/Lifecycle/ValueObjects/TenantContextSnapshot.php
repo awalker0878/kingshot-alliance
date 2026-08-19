@@ -58,16 +58,19 @@ final readonly class TenantContextSnapshot
         return $this->storagePath('exports/'.$filename);
     }
 
+    /** @return array{alliance_id:string, actor_player_id:?string, request_id:?string, trace_id:?string} */
     public function logContext(): array
     {
         return ['alliance_id' => $this->allianceId, 'actor_player_id' => $this->actorPlayerId, 'request_id' => $this->requestId, 'trace_id' => $this->traceId];
     }
 
+    /** @return array{alliance_id:string, actor_player_id:?string, request_id:?string, trace_id:?string} */
     public function toArray(): array
     {
         return $this->logContext();
     }
 
+    /** @param  array{alliance_id:string, actor_player_id?:?string, request_id?:?string, trace_id?:?string}  $payload */
     public static function fromArray(array $payload): self
     {
         return new self($payload['alliance_id'], $payload['actor_player_id'] ?? null, $payload['request_id'] ?? null, $payload['trace_id'] ?? null);

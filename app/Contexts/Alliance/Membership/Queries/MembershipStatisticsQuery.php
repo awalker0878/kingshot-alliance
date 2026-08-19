@@ -49,7 +49,7 @@ final class MembershipStatisticsQuery
     /** @return list<array{playerId:string, rankObservedAtRead:string}> */
     public function activeMemberFacts(string $allianceId): array
     {
-        return AllianceMembership::query()
+        return array_values(AllianceMembership::query()
             ->where('alliance_id', $allianceId)
             ->where('status', MembershipStatus::Active->value)
             ->orderBy('created_at')
@@ -59,6 +59,6 @@ final class MembershipStatisticsQuery
                 'rankObservedAtRead' => $membership->rank->value,
             ])
             ->values()
-            ->all();
+            ->all());
     }
 }

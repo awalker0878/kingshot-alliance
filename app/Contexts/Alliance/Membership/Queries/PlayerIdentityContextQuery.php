@@ -58,14 +58,14 @@ final readonly class PlayerIdentityContextQuery
                 continue;
             }
 
-            $roles = $membership->roles
+            $roles = array_values($membership->roles
                 ->map(static fn (Role $role): array => [
                     'key' => (string) $role->key,
                     'name' => (string) $role->name,
                 ])
                 ->sortBy('name')
                 ->values()
-                ->all();
+                ->all());
 
             $capabilities = [];
             foreach (AlliancePermission::cases() as $permission) {

@@ -32,26 +32,26 @@ final class RosterEntryQuery
     /** @return list<RosterEntryReference> */
     public function all(string $allianceId): array
     {
-        return AllianceRosterEntry::query()
+        return array_values(AllianceRosterEntry::query()
             ->where('alliance_id', $allianceId)
             ->orderBy('observed_name')
             ->get()
             ->map(fn (AllianceRosterEntry $entry): RosterEntryReference => $this->snapshot($entry))
             ->values()
-            ->all();
+            ->all());
     }
 
     /** @return list<RosterEntryReference> */
     public function activeOrTracked(string $allianceId): array
     {
-        return AllianceRosterEntry::query()
+        return array_values(AllianceRosterEntry::query()
             ->where('alliance_id', $allianceId)
             ->whereIn('state', [RosterState::Active->value, RosterState::Tracked->value])
             ->orderBy('observed_name')
             ->get()
             ->map(fn (AllianceRosterEntry $entry): RosterEntryReference => $this->snapshot($entry))
             ->values()
-            ->all();
+            ->all());
     }
 
     /**
@@ -99,7 +99,7 @@ final class RosterEntryQuery
     /** @return list<RosterEntryReference> */
     public function forPlayer(string $allianceId, string $playerId, int $limit = 2): array
     {
-        return AllianceRosterEntry::query()
+        return array_values(AllianceRosterEntry::query()
             ->where('alliance_id', $allianceId)
             ->where('player_id', $playerId)
             ->orderBy('id')
@@ -107,7 +107,7 @@ final class RosterEntryQuery
             ->get()
             ->map(fn (AllianceRosterEntry $entry): RosterEntryReference => $this->snapshot($entry))
             ->values()
-            ->all();
+            ->all());
     }
 
     public function hasActiveRosterPresence(string $allianceId, string $playerId): bool
@@ -132,7 +132,7 @@ final class RosterEntryQuery
     /** @return list<string> */
     public function activePlayerIds(string $allianceId): array
     {
-        return AllianceRosterEntry::query()
+        return array_values(AllianceRosterEntry::query()
             ->where('alliance_id', $allianceId)
             ->where('state', RosterState::Active->value)
             ->orderBy('player_id')
@@ -140,13 +140,13 @@ final class RosterEntryQuery
             ->map(static fn ($id): string => (string) $id)
             ->unique()
             ->values()
-            ->all();
+            ->all());
     }
 
     /** @return list<string> */
     public function activeAllianceIdsForPlayerInKingdom(string $playerId, string $kingdomId): array
     {
-        return AllianceRosterEntry::query()
+        return array_values(AllianceRosterEntry::query()
             ->join('alliances', 'alliances.id', '=', 'alliance_roster_entries.alliance_id')
             ->where('alliance_roster_entries.player_id', $playerId)
             ->where('alliance_roster_entries.state', RosterState::Active->value)
@@ -156,13 +156,13 @@ final class RosterEntryQuery
             ->map(static fn ($id): string => (string) $id)
             ->unique()
             ->values()
-            ->all();
+            ->all());
     }
 
     /** @return list<string> */
     public function lockActiveAllianceIdsForPlayerInKingdom(string $playerId, string $kingdomId): array
     {
-        return AllianceRosterEntry::query()
+        return array_values(AllianceRosterEntry::query()
             ->where('player_id', $playerId)
             ->where('state', RosterState::Active->value)
             ->whereHas('alliance', static fn ($query) => $query->where('kingdom_id', $kingdomId))
@@ -172,7 +172,7 @@ final class RosterEntryQuery
             ->map(static fn ($id): string => (string) $id)
             ->unique()
             ->values()
-            ->all();
+            ->all());
     }
 
     public function hasActiveOrTrackedOutsideAlliance(string $playerId, string $allianceId): bool

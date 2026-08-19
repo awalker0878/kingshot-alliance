@@ -34,13 +34,13 @@ final class AllianceReferenceQuery
     /** @return list<AllianceReference> */
     public function all(int $limit = 500): array
     {
-        return Alliance::query()
+        return array_values(Alliance::query()
             ->orderBy('id')
             ->limit(max(1, min(5000, $limit)))
             ->get()
             ->map(fn (Alliance $alliance): AllianceReference => $this->snapshot($alliance))
             ->values()
-            ->all();
+            ->all());
     }
 
     /** @return list<AllianceReference> */
@@ -54,10 +54,10 @@ final class AllianceReferenceQuery
             $query->where('status', 'active');
         }
 
-        return $query->get()
+        return array_values($query->get()
             ->map(fn (Alliance $alliance): AllianceReference => $this->snapshot($alliance))
             ->values()
-            ->all();
+            ->all());
     }
 
     /**
