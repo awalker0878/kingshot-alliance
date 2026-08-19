@@ -1,0 +1,47 @@
+name: Temporary Pint Format
+
+on:
+  push:
+    branches:
+      - agent/post-merge-ci-cleanup
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: agent/post-merge-ci-cleanup
+
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.5'
+          extensions: dom, intl, mbstring, pcntl, pdo_pgsql, posix, redis, simplexml, xml, xmlwriter, zip
+          coverage: none
+          tools: composer:v2
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Apply Pint formatting
+        run: vendor/bin/pint
+
+      - name: Commit deterministic formatting
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            echo "No Pint changes required."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Apply repository Pint formatting"
+          git push origin HEAD:agent/post-merge-ci-cleanup
