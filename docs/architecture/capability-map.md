@@ -66,7 +66,7 @@ Alliance policies belong to the capability that owns the rule; `Alliance/Policie
 
 ## Communications
 
-- **Delivery** — notification delivery coordination, recipient/preferences, channels, attempts, retry/failure handling and idempotency.
+- **Delivery** — notification delivery coordination, encrypted recipient endpoints, inbox state/preferences, channels, provider acknowledgement, retry/failure handling and idempotency.
 
 Communications does not own Event, King Perk or other source-domain reminder semantics.
 
@@ -90,5 +90,7 @@ The following are implementation/composition mechanisms, not business capabiliti
 - `app/Shared`.
 
 Cross-context analytical views such as Event analysis are composition surfaces under `app/ReadModels`, not Intelligence capabilities unless they acquire durable owner state of their own.
+
+The HTTP adapter that renders a cross-context composition surface lives with that read model; owner-context adapters must not import `app/ReadModels`.
 
 The capability map is documentation, not an executable hardcoded registry. Architecture tests enforce structural invariants instead of duplicating this list in production/test code.

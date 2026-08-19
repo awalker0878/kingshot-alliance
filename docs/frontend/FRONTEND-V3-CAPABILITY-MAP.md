@@ -40,6 +40,10 @@ Active Governor
       │   ├── Shared Kingdom Intelligence
       │   └── Glory Ledger
       │
+      ├── Governor Utilities
+      │   ├── Gift Codes
+      │   └── Notification Center
+      │
       └── Kingdom
           ├── Kingdom Roles
           └── Kingdom Transfer
@@ -327,3 +331,28 @@ The following were present in earlier concept art but are not current applicatio
 - generic Alliance power ranking
 - arbitrary game resource balances
 - invented events such as Foundry Battle or Canyon Clash
+
+
+## 15. Gift Codes
+
+Backed by GameWorld Gift Codes:
+
+- shared normalized code catalogue with source and expiry;
+- per-Governor and per-Kingdom redemption state;
+- official Century Games handoff;
+- multi-Governor preparation and delivery confirmation;
+- retryable and permanent outcome states.
+
+The application must not automate undocumented endpoints or send Player IDs to unofficial services.
+
+## 16. Notification Center
+
+Backed by Communications Delivery:
+
+- in-app inbox with read and dismiss state;
+- Governor-scoped Discord and Telegram endpoints;
+- per-reminder/channel preferences;
+- provider acknowledgement, endpoint health and bounded retries;
+- Event and King Perk reminder fan-out.
+
+Provider credentials are encrypted and never displayed after save.
