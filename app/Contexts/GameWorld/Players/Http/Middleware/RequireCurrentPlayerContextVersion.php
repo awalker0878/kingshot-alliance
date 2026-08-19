@@ -75,7 +75,7 @@ final readonly class RequireCurrentPlayerContextVersion
         $alliance = $this->allianceContext->forPlayers([$player->playerId])[$player->playerId] ?? null;
         $kingdomPermissions = $this->kingdomAuthority
             ->findCurrent($player->playerId, $player->kingdomId)
-            ?->permissionKeysObservedAtRead ?? [];
+            ->permissionKeysObservedAtRead ?? [];
 
         $currentVersion = $this->versions->issue($player, $alliance, $kingdomPermissions);
         $providedVersion = $request->header(self::HEADER_NAME);

@@ -12,6 +12,7 @@ Start with:
 - [Request lifecycle](request-lifecycle.md)
 - [Routing and HTTP](routing-and-http.md)
 - [Persistence](persistence.md)
+- [Type contracts](type-contracts.md)
 - [Transactions and locking](transactions-and-locking.md)
 - [Workflows](workflows.md)
 - [ReadModels](read-models.md)

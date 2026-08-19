@@ -9,7 +9,6 @@ use App\Contexts\Alliance\Membership\Queries\RosterEntryQuery;
 use App\Contexts\GameWorld\Governance\Models\KingdomRoleAssignment;
 use App\Contexts\GameWorld\Players\Actions\PersistPlayerIdentity;
 use App\Contexts\GameWorld\Players\Models\Player;
-use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use Illuminate\Validation\ValidationException;
 
@@ -17,7 +16,6 @@ final readonly class ResolveTransferPlayer
 {
     public function __construct(
         private PersistPlayerIdentity $playerIdentity,
-        private PlayerReferenceQuery $playerReferences,
         private PlayerMembershipQuery $memberships,
         private RosterEntryQuery $roster,
     ) {}

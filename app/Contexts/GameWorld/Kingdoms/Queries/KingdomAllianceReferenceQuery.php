@@ -24,7 +24,7 @@ final class KingdomAllianceReferenceQuery
     /** @return list<KingdomAllianceReference> */
     public function matchingGameAllianceIdInKingdom(string $kingdomId, string $gameAllianceId, int $limit = 2): array
     {
-        return KingdomAlliance::query()
+        return array_values(KingdomAlliance::query()
             ->where('kingdom_id', $kingdomId)
             ->where('game_alliance_id', $gameAllianceId)
             ->orderBy('id')
@@ -32,10 +32,13 @@ final class KingdomAllianceReferenceQuery
             ->get()
             ->map(fn (KingdomAlliance $alliance): KingdomAllianceReference => $this->snapshot($alliance))
             ->values()
-            ->all();
+            ->all());
     }
 
-    /** @param list<string> $kingdomAllianceIds @return array<string,KingdomAllianceReference> */
+    /**
+     * @param  array<string>  $kingdomAllianceIds
+     * @return array<string, KingdomAllianceReference>
+     */
     public function byIds(array $kingdomAllianceIds): array
     {
         $ids = array_values(array_unique(array_filter(array_map('strval', $kingdomAllianceIds))));

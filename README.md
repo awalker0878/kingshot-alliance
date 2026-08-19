@@ -10,7 +10,7 @@ Enterprise-ready coordination platform for the KingShot community, organized aro
 - Redis 8 with Laravel Horizon
 - Laravel Pulse, Pennant and Sanctum foundations
 - Docker Compose for local development
-- GitHub Actions for quality and security; Architecture V3 workflow wiring is tracked separately
+- GitHub Actions for quality, security, visual regression and enforced Architecture V3 verification
 
 ## Local setup
 

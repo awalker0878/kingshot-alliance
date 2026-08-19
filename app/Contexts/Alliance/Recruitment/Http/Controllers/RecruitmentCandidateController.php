@@ -132,7 +132,7 @@ final class RecruitmentCandidateController extends Controller
             $noteData[] = [
                 'id' => (string) $note->id,
                 'body' => (string) $note->body,
-                'author' => $author?->currentName ?? '—',
+                'author' => $author->currentName ?? '—',
                 'createdAt' => $note->created_at?->toIso8601String(),
             ];
         }
@@ -250,8 +250,8 @@ final class RecruitmentCandidateController extends Controller
 
         return Inertia::render('Alliance/Recruitment/Candidate', [
             'user' => [
-                'name' => (string) $user->name,
-                'email' => (string) $user->email,
+                'name' => $user->accountName(),
+                'email' => $user->accountEmail(),
             ],
             'alliance' => [
                 'id' => $alliance->allianceId,

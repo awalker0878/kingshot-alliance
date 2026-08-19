@@ -121,6 +121,7 @@ final readonly class ConfigureAlliancePlatform
         });
     }
 
+    /** @param array<string, mixed>|null $configuration */
     public function setFeature(
         AccountIdentity $actor,
         string $allianceId,

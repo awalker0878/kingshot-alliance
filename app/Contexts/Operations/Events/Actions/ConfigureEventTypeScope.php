@@ -14,7 +14,10 @@ use Illuminate\Support\Facades\DB;
 
 final class ConfigureEventTypeScope
 {
-    /** @param list<EventCapability> $capabilities */
+    /**
+     * @param  array<string, mixed>  $defaultSettings
+     * @param  list<EventCapability>  $capabilities
+     */
     public function handle(
         string $configurationId,
         bool $isActive,

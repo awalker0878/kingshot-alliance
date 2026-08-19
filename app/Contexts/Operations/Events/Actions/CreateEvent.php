@@ -97,18 +97,18 @@ final readonly class CreateEvent
                 'minimum_repeat_interval_minutes' => $template->minimum_repeat_interval_minutes,
             ];
 
-            $duration = $durationMinutes ?? ($template?->duration_minutes ?? $storedDefaults['default_duration_minutes']);
+            $duration = $durationMinutes ?? ($template->duration_minutes ?? $storedDefaults['default_duration_minutes']);
             if (! is_int($duration) || $duration < 1 || $duration > 10080) {
                 throw new InvalidArgumentException('Event duration is required and must be between 1 and 10080 minutes.');
             }
 
-            $resolvedCapacity = $capacity ?? ($template?->capacity ?? $storedDefaults['default_capacity']);
+            $resolvedCapacity = $capacity ?? ($template->capacity ?? $storedDefaults['default_capacity']);
             if ($resolvedCapacity !== null && ((int) $resolvedCapacity < 1 || (int) $resolvedCapacity > 100000)) {
                 throw new InvalidArgumentException('Event capacity must be between 1 and 100000 when provided.');
             }
 
-            $opens = $registrationOpensMinutesBefore ?? ($template?->registration_opens_minutes_before ?? $storedDefaults['default_registration_opens_minutes_before']);
-            $closes = $registrationClosesMinutesBefore ?? ($template?->registration_closes_minutes_before ?? $storedDefaults['default_registration_closes_minutes_before']);
+            $opens = $registrationOpensMinutesBefore ?? ($template->registration_opens_minutes_before ?? $storedDefaults['default_registration_opens_minutes_before']);
+            $closes = $registrationClosesMinutesBefore ?? ($template->registration_closes_minutes_before ?? $storedDefaults['default_registration_closes_minutes_before']);
             if ($opens !== null && $closes !== null && (int) $opens < (int) $closes) {
                 throw new InvalidArgumentException('Registration must open before it closes.');
             }
@@ -143,7 +143,7 @@ final readonly class CreateEvent
                 }
             }
 
-            $baseSettings = $template?->settings ?? $storedDefaults['default_settings'];
+            $baseSettings = $template->settings ?? $storedDefaults['default_settings'];
             $resolvedSettings = array_replace_recursive($baseSettings, $settings);
             $resolvedInstructions = $instructions ?? $template?->instructions;
 

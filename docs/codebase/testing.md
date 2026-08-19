@@ -4,7 +4,7 @@ Status: Current — Architecture V3
 
 Architecture V3 verification must test both **source structure** and **business behavior**. A passing directory check alone is not architecture certification.
 
-This document defines the intended V3 verification contract only. Implementing or rewriting `/tests` and CI enforcement is a separate step.
+`/tests` and GitHub Actions enforce this contract on every pull request. The `Architecture V3 Verification` workflow validates source structure, boots routes, migrates the V3 schema, runs PHPStan and executes the full PHPUnit suite; CI also runs formatting, frontend quality/build, dependency review, CodeQL and visual-regression checks.
 
 ## Structural architecture verification
 
@@ -41,6 +41,10 @@ Important areas include:
 - generic Communications delivery idempotency/retry;
 - Platform authority isolation.
 
+## Visual regression baselines
+
+Playwright visual checks run against the Chrome runtime already supplied by the GitHub-hosted runner. A baseline may be refreshed only when the rendered change is intentional and has been visually reviewed; unrelated snapshots must remain byte-for-byte unchanged.
+
 ## Full architecture certification
 
 Final V3 certification must inspect more than tests named `Architecture*`:
@@ -63,4 +67,4 @@ documentation
 CI
 ```
 
-The actual `/tests` implementation and CI gate design are intentionally deferred to the dedicated testing phase.
+Any change to a context boundary, cross-context contract, route ownership or persistence rule must update the relevant architecture tests and this documentation in the same pull request.

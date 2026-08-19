@@ -32,14 +32,14 @@ final class PlayerReferenceQuery
     /** @return list<PlayerReference> */
     public function ownedByUser(int $userId): array
     {
-        return Player::query()
+        return array_values(Player::query()
             ->where('user_id', $userId)
             ->with('currentKingdom:id,number')
             ->orderBy('id')
             ->get()
             ->map(fn (Player $player): PlayerReference => $this->snapshot($player))
             ->values()
-            ->all();
+            ->all());
     }
 
     public function findOwnedByUser(int $userId, string $playerId): ?PlayerReference
@@ -56,7 +56,7 @@ final class PlayerReferenceQuery
     /** @return list<PlayerReference> */
     public function ownedByUserUpTo(int $userId, int $limit): array
     {
-        return Player::query()
+        return array_values(Player::query()
             ->where('user_id', $userId)
             ->with('currentKingdom:id,number')
             ->orderBy('id')
@@ -64,11 +64,11 @@ final class PlayerReferenceQuery
             ->get()
             ->map(fn (Player $player): PlayerReference => $this->snapshot($player))
             ->values()
-            ->all();
+            ->all());
     }
 
     /**
-     * @param  list<string>  $playerIds
+     * @param  array<string>  $playerIds
      * @return array<string, PlayerReference>
      */
     public function byIds(array $playerIds): array
@@ -97,7 +97,7 @@ final class PlayerReferenceQuery
     /** @return list<PlayerReference> */
     public function matchingGamePlayerIdInKingdom(string $kingdomId, string $gamePlayerId, int $limit = 2): array
     {
-        return Player::query()
+        return array_values(Player::query()
             ->where('current_kingdom_id', $kingdomId)
             ->where('game_player_id', $gamePlayerId)
             ->with('currentKingdom:id,number')
@@ -106,31 +106,32 @@ final class PlayerReferenceQuery
             ->get()
             ->map(fn (Player $player): PlayerReference => $this->snapshot($player))
             ->values()
-            ->all();
+            ->all());
     }
 
     /** @return list<PlayerReference> */
     public function inKingdom(string $kingdomId): array
     {
-        return Player::query()
+        return array_values(Player::query()
             ->where('current_kingdom_id', $kingdomId)
             ->with('currentKingdom:id,number')
             ->orderBy('current_name')
             ->get()
             ->map(fn (Player $player): PlayerReference => $this->snapshot($player))
             ->values()
-            ->all();
+            ->all());
     }
 
     /** @return list<string> */
     public function ownedIds(int $userId): array
     {
-        return Player::query()
+        return array_values(Player::query()
             ->where('user_id', $userId)
             ->orderBy('id')
             ->pluck('id')
             ->map(static fn ($id): string => (string) $id)
-            ->all();
+            ->values()
+            ->all());
     }
 
     private function snapshot(Player $player): PlayerReference

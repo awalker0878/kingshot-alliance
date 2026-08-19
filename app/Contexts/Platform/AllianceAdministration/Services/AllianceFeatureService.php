@@ -11,6 +11,7 @@ use LogicException;
 
 final readonly class AllianceFeatureService
 {
+    /** @param array<string, mixed>|null $configuration */
     public function set(
         string $allianceId,
         AccountIdentity $actor,

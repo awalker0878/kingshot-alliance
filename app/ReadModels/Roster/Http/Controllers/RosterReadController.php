@@ -113,7 +113,7 @@ final class RosterReadController extends Controller
 
             return [
                 'playerId' => (string) $membership->player_id,
-                'name' => $player?->currentName ?? '',
+                'name' => $player->currentName ?? '',
                 'rank' => $membership->rank->value,
                 'claimed' => $player?->userId !== null,
                 'linkedRosterEntryId' => $entry instanceof AllianceRosterEntry ? (string) $entry->id : null,
@@ -207,7 +207,7 @@ final class RosterReadController extends Controller
                 'source' => (string) $entry->source,
                 'membership' => $membership instanceof AllianceMembership ? [
                     'playerId' => (string) $membership->player_id,
-                    'name' => $player?->currentName ?? '',
+                    'name' => $player->currentName ?? '',
                     'rank' => $membership->rank->value,
                     'claimed' => $player?->userId !== null,
                 ] : null,

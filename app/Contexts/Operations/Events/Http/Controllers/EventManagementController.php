@@ -295,7 +295,7 @@ final class EventManagementController extends Controller
     /** @return array{name:string,email:string} */
     private function identity(AuthenticatedAccount $user): array
     {
-        return ['name' => (string) $user->name, 'email' => (string) $user->email];
+        return ['name' => $user->accountName(), 'email' => $user->accountEmail()];
     }
 
     private function player(): PlayerReference

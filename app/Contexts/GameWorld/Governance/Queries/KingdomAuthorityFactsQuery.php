@@ -49,7 +49,7 @@ final class KingdomAuthorityFactsQuery
     /** @return list<string> */
     public function playerIdsWithPermission(string $kingdomId, string $permissionKey): array
     {
-        return KingdomRoleAssignment::query()
+        return array_values(KingdomRoleAssignment::query()
             ->where('kingdom_id', $kingdomId)
             ->whereHas('role.permissions', static function ($query) use ($permissionKey): void {
                 $query->where('permissions.key', $permissionKey);
@@ -59,7 +59,7 @@ final class KingdomAuthorityFactsQuery
             ->map(static fn ($id): string => (string) $id)
             ->unique()
             ->values()
-            ->all();
+            ->all());
     }
 
     private function snapshot(string $playerId, string $kingdomId, bool $lock): KingdomAuthorityFacts
@@ -83,13 +83,13 @@ final class KingdomAuthorityFactsQuery
         if ($lock) {
             $roles->sharedLock();
         }
-        $permissionKeys = $roles->get()
+        $permissionKeys = array_values($roles->get()
             ->flatMap(static fn (KingdomRole $role) => $role->permissions->pluck('key'))
             ->map(static fn ($key): string => (string) $key)
             ->unique()
             ->sort()
             ->values()
-            ->all();
+            ->all());
 
         return new KingdomAuthorityFacts($playerId, $kingdomId, $permissionKeys);
     }

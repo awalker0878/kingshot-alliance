@@ -108,7 +108,7 @@ final class AllianceOverviewController extends Controller
                     'id' => (string) $invitation->id,
                     'player' => [
                         'id' => (string) $invitation->player_id,
-                        'name' => $player?->currentName ?? 'Unknown player',
+                        'name' => $player->currentName ?? 'Unknown player',
                         'gamePlayerId' => $player?->gamePlayerId,
                     ],
                     'email' => (string) $invitation->email,
@@ -123,7 +123,7 @@ final class AllianceOverviewController extends Controller
 
                 return [
                     'id' => (string) $entry->player_id,
-                    'name' => $player?->currentName ?? (string) $entry->observed_name,
+                    'name' => $player->currentName ?? (string) $entry->observed_name,
                     'gamePlayerId' => $player?->gamePlayerId,
                     'claimed' => $player?->claimed() ?? false,
                 ];
@@ -156,7 +156,7 @@ final class AllianceOverviewController extends Controller
                     'id' => (string) $member->id,
                     'player' => [
                         'id' => (string) $member->player_id,
-                        'name' => $player?->currentName ?? 'Unknown player',
+                        'name' => $player->currentName ?? 'Unknown player',
                         'gamePlayerId' => $player?->gamePlayerId,
                         'claimed' => $player?->claimed() ?? false,
                     ],

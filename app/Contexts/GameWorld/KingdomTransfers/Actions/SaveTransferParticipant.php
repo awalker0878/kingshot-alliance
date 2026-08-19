@@ -151,7 +151,10 @@ final readonly class SaveTransferParticipant
         }
     }
 
-    /** @param array<string,mixed> $attributes @return array{roster_entry_id:string,player_id:string,observed_name:string,game_player_id:?string,source_kingdom_id:string,destination_kingdom_id:?string} */
+    /**
+     * @param  array<string, mixed>  $attributes
+     * @return array{roster_entry_id:string,player_id:string,observed_name:string,game_player_id:?string,source_kingdom_id:string,destination_kingdom_id:?string}
+     */
     private function rosterBoundValues(string $allianceId, string $allianceKingdomId, TransferPlan $plan, TransferDirection $direction, array $attributes, TransferParticipant $participant): array
     {
         $rosterId = trim((string) ($attributes['roster_entry_id'] ?? ''));
@@ -186,7 +189,10 @@ final readonly class SaveTransferParticipant
         ];
     }
 
-    /** @param array<string,mixed> $attributes @return array{roster_entry_id:null,player_id:string,observed_name:string,game_player_id:?string,source_kingdom_id:string,destination_kingdom_id:string} */
+    /**
+     * @param  array<string, mixed>  $attributes
+     * @return array{roster_entry_id:null,player_id:string,observed_name:string,game_player_id:?string,source_kingdom_id:string,destination_kingdom_id:string}
+     */
     private function incomingValues(TransferPlan $plan, array $attributes, TransferParticipant $participant): array
     {
         $name = trim((string) ($attributes['name'] ?? ''));

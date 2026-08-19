@@ -27,11 +27,12 @@ final readonly class EventCreationContextResolver
      *   label: string,
      *   allianceId?: string,
      *   kingdomId?: string,
-     *   kingdomNumber?: int
+     *   kingdomNumber?: int|null
      * }>
      */
     public function forPlayer(PlayerReference $actor): array
     {
+        /** @var list<array{scope:string,targetId:string,label:string,allianceId?:string,kingdomId?:string,kingdomNumber?:int|null}> $contexts */
         $contexts = [];
 
         if ($this->eventAuthorization->allows(

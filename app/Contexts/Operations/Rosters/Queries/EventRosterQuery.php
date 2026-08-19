@@ -97,7 +97,10 @@ final readonly class EventRosterQuery
             })->all());
     }
 
-    /** @param array<string,PlayerReference> $players @return array<string,mixed> */
+    /**
+     * @param  array<string, PlayerReference>  $players
+     * @return array<string, mixed>
+     */
     private function rosterPayload(EventOccurrence $occurrence, EventRoster $roster, array $players): array
     {
         $members = $roster->members->map(function (EventRosterMember $member) use ($occurrence, $players): array {
@@ -106,7 +109,7 @@ final readonly class EventRosterQuery
             return [
                 'id' => (string) $member->id,
                 'playerId' => (string) $member->player_id,
-                'playerName' => $player?->currentName ?? 'Unknown Player',
+                'playerName' => $player->currentName ?? 'Unknown Player',
                 'allianceId' => $member->alliance_id === null ? null : (string) $member->alliance_id,
                 'role' => $member->role,
                 'slotNumber' => $member->slot_number,

@@ -133,7 +133,7 @@ final readonly class EventRallyQuery
                 return [
                     'id' => (string) $rule->id,
                     'allianceId' => (string) $rule->alliance_id,
-                    'allianceName' => $alliance?->name ?? 'Unknown Alliance',
+                    'allianceName' => $alliance->name ?? 'Unknown Alliance',
                     'name' => (string) $rule->name,
                     'infantryPercent' => (int) $rule->infantry_percent,
                     'cavalryPercent' => (int) $rule->cavalry_percent,

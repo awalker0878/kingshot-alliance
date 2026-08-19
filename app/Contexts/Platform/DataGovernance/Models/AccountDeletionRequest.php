@@ -6,7 +6,17 @@ namespace App\Contexts\Platform\DataGovernance\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property string $id
+ * @property int $user_id
+ * @property string $status
+ * @property Carbon $requested_at
+ * @property Carbon $eligible_at
+ * @property Carbon|null $processed_at
+ * @property string|null $blocked_reason
+ */
 final class AccountDeletionRequest extends Model
 {
     use HasUlids;
