@@ -110,11 +110,7 @@ function rolesFor(membership: MembershipSummary): string {
 
     <section v-if="command" class="mt-4 grid gap-3 sm:grid-cols-2 2xl:grid-cols-4">
       <StatSeal label="Needs attention" :value="command.actionCount" icon="!" tone="teal" />
-      <StatSeal
-        :label="t('navigation.events')"
-        :value="command.upcomingEvents.length"
-        icon="⚔"
-      />
+      <StatSeal :label="t('navigation.events')" :value="command.upcomingEvents.length" icon="⚔" />
       <StatSeal
         :label="t('navigation.giftCodes')"
         :value="command.pendingGiftCodes"
@@ -153,7 +149,9 @@ function rolesFor(membership: MembershipSummary): string {
         >
           <p class="ks-kicker">{{ t('navigation.notifications') }}</p>
           <strong class="mt-2 block text-lg">{{ command.unreadNotifications }} unread</strong>
-          <span class="mt-2 block text-xs text-[var(--ks-muted)]">Review alerts and delivery failures</span>
+          <span class="mt-2 block text-xs text-[var(--ks-muted)]"
+            >Review alerts and delivery failures</span
+          >
         </Link>
         <Link
           v-if="command.pendingGiftCodes"
@@ -162,7 +160,10 @@ function rolesFor(membership: MembershipSummary): string {
         >
           <p class="ks-kicker">{{ t('navigation.giftCodes') }}</p>
           <strong class="mt-2 block text-lg">{{ command.pendingGiftCodes }} to redeem</strong>
-          <span v-if="command.giftCodes[0]" class="mt-2 block truncate font-mono text-xs text-[var(--ks-muted)]">
+          <span
+            v-if="command.giftCodes[0]"
+            class="mt-2 block truncate font-mono text-xs text-[var(--ks-muted)]"
+          >
             {{ command.giftCodes[0].code }}
           </span>
         </Link>
@@ -174,7 +175,9 @@ function rolesFor(membership: MembershipSummary): string {
         >
           <p class="ks-kicker">{{ t('navigation.events') }}</p>
           <strong class="mt-2 block truncate">{{ action.title || t(action.nameKey) }}</strong>
-          <span class="mt-2 block text-xs text-[var(--ks-muted)]">{{ action.action.replaceAll('_', ' ') }}</span>
+          <span class="mt-2 block text-xs text-[var(--ks-muted)]">{{
+            action.action.replaceAll('_', ' ')
+          }}</span>
         </Link>
         <Link
           v-if="command.recruitment?.overdue"

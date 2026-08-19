@@ -62,7 +62,7 @@
             "pint --parallel"
         ],
         "lint:check": [
-            "pint app/ReadModels/CommandOverview/Queries/CommandOverviewQuery.php && base64 -w0 app/ReadModels/CommandOverview/Queries/CommandOverviewQuery.php && exit 1"
+            "pint --parallel --test"
         ],
         "types:check": [
             "phpstan analyse --memory-limit=1G"
