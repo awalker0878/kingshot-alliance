@@ -1,0 +1,102 @@
+name: CV4 P6 Context Forms
+
+on:
+  push:
+    branches:
+      - agent/context-v4-convergence
+    paths:
+      - .github/workflows/cv4-p6-context-forms.yml
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: agent/context-v4-convergence
+          fetch-depth: 0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - name: Migrate game-domain forms
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          root = Path('resources/js/pages')
+          excluded = (
+              'Accounts/Access/',
+              'Platform/',
+              'Public/',
+          )
+
+          for file in root.rglob('*.vue'):
+              rel = file.relative_to(root).as_posix()
+              if rel.startswith(excluded):
+                  continue
+              text = file.read_text()
+              if 'useForm(' not in text:
+                  if rel == 'Alliance/Hall.vue':
+                      text = text.replace('  user: { name: string; email: string };\n', '')
+                      file.write_text(text)
+                  continue
+
+              text = text.replace('useForm(', 'useContextForm(')
+
+              def clean_import(match):
+                  body = match.group(1)
+                  names = [part.strip() for part in body.split(',') if part.strip()]
+                  names = [name for name in names if name != 'useForm']
+                  if not names:
+                      return ''
+                  return "import { " + ', '.join(names) + " } from '@inertiajs/vue3';"
+
+              text = re.sub(
+                  r"import\s*\{([\s\S]*?)\}\s*from\s*'@inertiajs/vue3';",
+                  clean_import,
+                  text,
+                  count=1,
+              )
+
+              if "@/composables/useContextForm" not in text:
+                  marker = "import "
+                  first_import_end = text.find('\n', text.find(marker))
+                  text = (
+                      text[:first_import_end + 1]
+                      + "import { useContextForm } from '@/composables/useContextForm';\n"
+                      + text[first_import_end + 1:]
+                  )
+
+              if rel == 'Alliance/Hall.vue':
+                  text = text.replace('  user: { name: string; email: string };\n', '')
+
+              file.write_text(text)
+          PY
+      - name: Format and verify frontend
+        run: |
+          npx prettier --write "resources/js/**/*.{ts,vue}"
+          npm run lint
+          npx vue-tsc --noEmit
+      - name: Assert context-bound game forms
+        shell: bash
+        run: |
+          if grep -R --line-number 'useForm(' resources/js/pages/Alliance resources/js/pages/Operations resources/js/pages/Kingdom resources/js/pages/Citadel resources/js/pages/Intelligence resources/js/pages/Command 2>/dev/null; then
+            echo 'Direct useForm remains in game-domain pages.' >&2
+            exit 1
+          fi
+      - name: Remove one-shot workflow
+        run: rm .github/workflows/cv4-p6-context-forms.yml
+      - name: Commit P6 migration
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Bind game forms to Governor context"
+          git push origin HEAD:agent/context-v4-convergence
