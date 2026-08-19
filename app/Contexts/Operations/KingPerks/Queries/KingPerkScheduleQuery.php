@@ -35,8 +35,7 @@ final readonly class KingPerkScheduleQuery
         private EventCalendarQuery $events,
         private EventCapabilityGuard $capabilities,
         private KingPerkPreparationPresetCatalog $presets,
-    ) {
-    }
+    ) {}
 
     /** @phpstan-return array<string, mixed> */
     public function management(PlayerReference $actor, string $eventId, ?string $occurrenceId = null): array
@@ -114,7 +113,7 @@ final readonly class KingPerkScheduleQuery
             ? $event->occurrences->sortBy('starts_at')->first()
             : $event->occurrences->firstWhere('id', $occurrenceId);
 
-        if (!$occurrence instanceof EventOccurrence) {
+        if (! $occurrence instanceof EventOccurrence) {
             throw ValidationException::withMessages(['occurrence' => 'No matching Kingdom of Power occurrence was found.']);
         }
 
@@ -127,7 +126,7 @@ final readonly class KingPerkScheduleQuery
             ->where('occurrence_id', $occurrence->id)
             ->with(['appointments', 'positionBlocks', 'skills', 'requests']);
 
-        if (!$management) {
+        if (! $management) {
             $query->whereIn('status', [KingPerkPlanStatus::Published->value, KingPerkPlanStatus::Active->value]);
         }
 
@@ -139,7 +138,7 @@ final readonly class KingPerkScheduleQuery
     {
         $eventType = $event->eventType;
         $kingdom = $event->kingdom_id === null ? null : $this->kingdoms->find((string) $event->kingdom_id);
-        if (!$eventType instanceof EventType || $kingdom === null) {
+        if (! $eventType instanceof EventType || $kingdom === null) {
             throw ValidationException::withMessages([
                 'event' => 'King Perks require a Kingdom-scoped Event with a valid Event type.',
             ]);
@@ -192,7 +191,8 @@ final readonly class KingPerkScheduleQuery
     }
 
     /**
-     * @param array<string, PlayerReference> $players
+     * @param  array<string, PlayerReference>  $players
+     *
      * @phpstan-return array<string, mixed>
      */
     private function appointment(KingPerkAppointment $appointment, KingPerkPlan $plan, array $players): array
@@ -281,7 +281,7 @@ final readonly class KingPerkScheduleQuery
                     && in_array($appointment->status->value, $activeStatuses, true))
                 ->sortBy('starts_at')->values();
             $nowAppointment = $appointments->first(static fn (KingPerkAppointment $appointment): bool => $appointment->status === KingPerkAppointmentStatus::Active
-                || (!$appointment->starts_at->isAfter($now) && $appointment->ends_at->isAfter($now)));
+                || (! $appointment->starts_at->isAfter($now) && $appointment->ends_at->isAfter($now)));
             $upcoming = $appointments->filter(static fn (KingPerkAppointment $appointment): bool => $appointment->starts_at->greaterThanOrEqualTo($now));
             if ($nowAppointment instanceof KingPerkAppointment) {
                 $nowId = (string) $nowAppointment->id;
