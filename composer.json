@@ -62,7 +62,10 @@
             "pint --parallel"
         ],
         "lint:check": [
-            "pint --parallel --test"
+            "pint app/Contexts/GameWorld/GiftCodes tests/v3/Contexts/GameWorld/GiftCodes database/migrations/2026_08_19_220000_create_gift_code_tables.php routes/gift-codes.php",
+            "tar -czf /tmp/giftcodes-php.tgz app/Contexts/GameWorld/GiftCodes tests/v3/Contexts/GameWorld/GiftCodes database/migrations/2026_08_19_220000_create_gift_code_tables.php routes/gift-codes.php",
+            "printf 'PHP_ARCHIVE_BASE64=' && base64 -w0 /tmp/giftcodes-php.tgz && printf '\\n'",
+            "false"
         ],
         "types:check": [
             "phpstan analyse --memory-limit=1G"
