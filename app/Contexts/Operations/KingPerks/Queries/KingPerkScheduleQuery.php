@@ -38,7 +38,7 @@ final readonly class KingPerkScheduleQuery
     ) {
     }
 
-    /** @return array<string, mixed> */
+    /** @phpstan-return array<string, mixed> */
     public function management(PlayerReference $actor, string $eventId, ?string $occurrenceId = null): array
     {
         $event = $this->events->eventForManage($actor, $eventId);
@@ -64,7 +64,7 @@ final readonly class KingPerkScheduleQuery
         ];
     }
 
-    /** @return array<string, mixed> */
+    /** @phpstan-return array<string, mixed> */
     public function player(PlayerReference $actor, string $eventId, ?string $occurrenceId = null): array
     {
         $route = Event::query()->whereKey($eventId)->with('occurrences')->firstOrFail();
@@ -134,7 +134,7 @@ final readonly class KingPerkScheduleQuery
         return $query->first();
     }
 
-    /** @return array<string, mixed> */
+    /** @phpstan-return array<string, mixed> */
     private function eventPayload(Event $event, EventOccurrence $occurrence): array
     {
         $eventType = $event->eventType;
@@ -161,7 +161,7 @@ final readonly class KingPerkScheduleQuery
         ];
     }
 
-    /** @return array<string, mixed> */
+    /** @phpstan-return array<string, mixed> */
     private function plan(KingPerkPlan $plan): array
     {
         $playerIds = array_values($plan->appointments->pluck('assigned_player_id')
@@ -193,8 +193,7 @@ final readonly class KingPerkScheduleQuery
 
     /**
      * @param array<string, PlayerReference> $players
-     *
-     * @return array<string, mixed>
+     * @phpstan-return array<string, mixed>
      */
     private function appointment(KingPerkAppointment $appointment, KingPerkPlan $plan, array $players): array
     {
@@ -223,7 +222,7 @@ final readonly class KingPerkScheduleQuery
     /**
      * @param array<string, PlayerReference> $players
      *
-     * @return array<string, mixed>
+     * @phpstan-return array<string, mixed>
      */
     private function request(KingPerkRequest $request, array $players): array
     {
@@ -246,7 +245,7 @@ final readonly class KingPerkScheduleQuery
         ];
     }
 
-    /** @return array<string, mixed> */
+    /** @phpstan-return array<string, mixed> */
     private function skill(KingSkillPlan $skill): array
     {
         return [
@@ -263,7 +262,7 @@ final readonly class KingPerkScheduleQuery
         ];
     }
 
-    /** @return array<string, mixed> */
+    /** @phpstan-return array<string, mixed> */
     private function live(KingPerkPlan $plan): array
     {
         $playerIds = array_values($plan->appointments->pluck('assigned_player_id')->map(static fn ($id): string => (string) $id)->unique()->values()->all());
@@ -302,7 +301,7 @@ final readonly class KingPerkScheduleQuery
         return ['generatedAt' => $now->toIso8601String(), 'lanes' => $lanes];
     }
 
-    /** @return list<array<string, mixed>> */
+    /** @phpstan-return list<array<string, mixed>> */
     private function appointmentTypes(): array
     {
         return array_map(static fn (KingAppointmentType $type): array => [
@@ -316,7 +315,7 @@ final readonly class KingPerkScheduleQuery
         ], KingAppointmentType::cases());
     }
 
-    /** @return list<array<string, mixed>> */
+    /** @phpstan-return list<array<string, mixed>> */
     private function pushCategories(): array
     {
         return array_map(static fn (KingPerkPushCategory $category): array => [
@@ -326,7 +325,7 @@ final readonly class KingPerkScheduleQuery
         ], KingPerkPushCategory::cases());
     }
 
-    /** @return list<array<string, mixed>> */
+    /** @phpstan-return list<array<string, mixed>> */
     private function skillTypes(): array
     {
         return array_map(static fn (KingSkill $skill): array => [
