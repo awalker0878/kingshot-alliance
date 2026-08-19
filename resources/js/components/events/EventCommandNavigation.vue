@@ -30,11 +30,7 @@ function has(capability: string): boolean {
     <a v-if="has('results')" href="#results" class="ks-tab">
       {{ t('events.results.manageTitle') }}
     </a>
-    <a
-      v-if="has('responses') || has('attendance')"
-      href="#participants"
-      class="ks-tab"
-    >
+    <a v-if="has('responses') || has('attendance')" href="#participants" class="ks-tab">
       {{ t('events.manage.participants') }}
     </a>
     <a href="#reminders" class="ks-tab">{{ t('events.manage.reminders') }}</a>

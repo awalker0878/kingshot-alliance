@@ -148,12 +148,7 @@ function rowLabel(row: PreviewRow): string {
       <form class="mt-4 flex flex-wrap items-end gap-3" @submit.prevent="preview">
         <label class="min-w-[18rem] flex-1 text-sm font-semibold">
           {{ t('rosterImport.file') }}
-          <input
-            type="file"
-            accept=".csv,text/csv"
-            class="ks-input mt-2"
-            @change="selectFile"
-          />
+          <input type="file" accept=".csv,text/csv" class="ks-input mt-2" @change="selectFile" />
         </label>
         <button
           type="submit"

@@ -10,9 +10,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <div
-    class="space-y-3 rounded-2xl border border-[var(--ks-border)] bg-[rgba(7,12,13,.70)] p-5"
-  >
+  <div class="space-y-3 rounded-2xl border border-[var(--ks-border)] bg-[rgba(7,12,13,.70)] p-5">
     <div>
       <h2 class="text-lg font-semibold text-[var(--ks-ivory)]">King Skills</h2>
       <p class="text-sm text-[var(--ks-muted)]">

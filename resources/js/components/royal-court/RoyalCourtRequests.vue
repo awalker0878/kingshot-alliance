@@ -16,17 +16,13 @@ const submittedCount = computed(
 </script>
 
 <template>
-  <div
-    class="space-y-3 rounded-2xl border border-[var(--ks-border)] bg-[rgba(7,12,13,.70)] p-5"
-  >
+  <div class="space-y-3 rounded-2xl border border-[var(--ks-border)] bg-[rgba(7,12,13,.70)] p-5">
     <div class="flex flex-wrap items-end justify-between gap-3">
       <div>
         <h2 class="text-lg font-semibold text-[var(--ks-ivory)]">Governor Requests</h2>
         <p class="text-sm text-[var(--ks-muted)]">Ranked only within each activity category.</p>
       </div>
-      <span class="text-xs text-[var(--ks-muted)]">
-        {{ submittedCount }} awaiting scheduling
-      </span>
+      <span class="text-xs text-[var(--ks-muted)]"> {{ submittedCount }} awaiting scheduling </span>
     </div>
 
     <p
