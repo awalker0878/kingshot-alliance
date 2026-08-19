@@ -90,7 +90,10 @@ final readonly class SaveRallyGuidanceRule
         });
     }
 
-    /** @param list<string> $heroes @return list<string> */
+    /**
+     * @param  list<string>  $heroes
+     * @return list<string>
+     */
     private function normalizeHeroes(array $heroes): array
     {
         return array_values(array_slice(array_filter(array_map(static fn ($hero): string => trim((string) $hero), $heroes), static fn (string $hero): bool => $hero !== ''), 0, 5));
