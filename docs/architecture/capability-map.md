@@ -7,7 +7,7 @@ Capabilities are first-class modules inside the seven bounded contexts. This map
 | Context | Capabilities |
 | --- | --- |
 | Accounts | Identity, Registration, Authentication, Credentials, EmailVerification, Profile, MultiFactorAuthentication |
-| GameWorld | Players, Kingdoms, Governance, KingdomTransfers |
+| GameWorld | Players, Kingdoms, Governance, KingdomTransfers, GiftCodes |
 | Alliance | Lifecycle, Membership, Access, Recruitment, Content |
 | Operations | Access, Events, Participation, Polls, Rosters, BattlePlans, Rallies, KingPerks, Results |
 | Intelligence | Access, Observations, Ingestion, Roster, Contributions, Diplomacy, Sharing |
@@ -30,6 +30,7 @@ Capabilities are first-class modules inside the seven bounded contexts. This map
 - **Kingdoms** — Kingdom identity and neutral Kingdom/Alliance placement/reference state.
 - **Governance** — Kingdom roles, assignments and GameWorld-owned governance authorization.
 - **KingdomTransfers** — Player/Kingdom transfer planning and transfer-domain state owned by GameWorld.
+- **GiftCodes** — normalized Gift Code catalogue, provider policy, and per-Player/per-Kingdom redemption state.
 
 ## Alliance
 
