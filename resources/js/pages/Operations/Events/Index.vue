@@ -5,6 +5,7 @@ import { computed, ref } from 'vue';
 import EventSigil from '@/components/game/EventSigil.vue';
 import RoomBanner from '@/components/game/RoomBanner.vue';
 import StatSeal from '@/components/game/StatSeal.vue';
+import GovernorContextLink from '@/components/navigation/GovernorContextLink.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
@@ -51,6 +52,7 @@ const props = defineProps<{
     startsAt: string;
     sentAt: string | null;
     playerId: string;
+    href: string;
   }>;
   canCreate: boolean;
   status: string | null;
@@ -69,6 +71,7 @@ function dateKey(date: Date): string {
   const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 }
+
 const visibleEvents = computed(() =>
   props.events.filter((event) => scope.value === 'all' || event.scope === scope.value),
 );
@@ -107,6 +110,7 @@ const monthDays = computed(() => {
   }
   return days;
 });
+
 function moveMonth(delta: number): void {
   monthCursor.value = new Date(
     monthCursor.value.getFullYear(),
@@ -114,12 +118,15 @@ function moveMonth(delta: number): void {
     1,
   );
 }
+
 function displayName(event: EventRow): string {
   return event.title || t(event.nameKey);
 }
+
 function scopeLabel(value: ScopeFilter): string {
   return value === 'all' ? t('events.calendar.all') : t(`events.scope.${value}`);
 }
+
 function statusTone(status: string): 'success' | 'warning' | 'danger' | 'info' {
   if (status === 'completed') return 'success';
   if (status === 'cancelled') return 'danger';
@@ -191,9 +198,10 @@ function statusTone(status: string): 'success' | 'warning' | 'danger' | 'info' {
         <span class="ks-status" data-tone="warning">{{ props.attention.length }}</span>
       </div>
       <div class="mt-4 grid gap-3 md:grid-cols-2 2xl:grid-cols-4">
-        <Link
+        <GovernorContextLink
           v-for="item in props.attention"
           :key="`${item.occurrenceId}:${item.action}:${item.pollId ?? ''}:${item.rosterMemberId ?? ''}`"
+          :governor-id="item.playerId"
           :href="`/events/${item.occurrenceId}`"
           class="group rounded-[var(--ks-radius-md)] border border-[rgba(226,170,73,.22)] bg-[linear-gradient(145deg,rgba(87,45,24,.18),rgba(8,13,13,.72))] p-4 transition hover:border-[rgba(226,170,73,.45)]"
         >
@@ -218,7 +226,7 @@ function statusTone(status: string): 'success' | 'warning' | 'danger' | 'info' {
               </p>
             </div>
           </div>
-        </Link>
+        </GovernorContextLink>
       </div>
     </section>
 
@@ -392,12 +400,14 @@ function statusTone(status: string): 'success' | 'warning' | 'danger' | 'info' {
             <span class="ks-status" data-tone="info">{{ props.reminders.length }}</span>
           </div>
           <div v-if="props.reminders.length" class="mt-4 space-y-2">
-            <Link
+            <GovernorContextLink
               v-for="reminder in props.reminders"
               :key="reminder.id"
-              :href="`/events/${reminder.occurrenceId}`"
+              :governor-id="reminder.playerId"
+              :href="reminder.href"
               class="block rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-3 transition hover:border-[var(--ks-border-strong)]"
-              ><strong class="block truncate text-sm">{{
+            >
+              <strong class="block truncate text-sm">{{
                 reminder.title || t(reminder.nameKey)
               }}</strong>
               <p class="mt-1 text-xs text-[var(--ks-muted)]">
@@ -410,8 +420,8 @@ function statusTone(status: string): 'success' | 'warning' | 'danger' | 'info' {
                     minute: '2-digit',
                   })
                 }}
-              </p></Link
-            >
+              </p>
+            </GovernorContextLink>
           </div>
           <p v-else class="mt-4 text-sm text-[var(--ks-muted)]">{{ t('events.calendar.empty') }}</p>
         </section>
