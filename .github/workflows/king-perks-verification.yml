@@ -85,11 +85,14 @@ jobs:
         run: php artisan migrate --force
 
       - name: Pint King Perks V3 contracts
-        shell: bash
-        run: |
-          vendor/bin/pint             app/Contexts/Operations/KingPerks             bootstrap/app.php             config/operations.php             database/migrations/2026_08_15_083000_create_king_perk_tables.php             routes/king-perks.php             tests/v3/Contexts/Operations/KingPerks
-          git --no-pager diff -- app/Contexts/Operations/KingPerks/Queries/KingPerkScheduleQuery.php
-          git diff --quiet --exit-code
+        run: >-
+          vendor/bin/pint --test
+          app/Contexts/Operations/KingPerks
+          bootstrap/app.php
+          config/operations.php
+          database/migrations/2026_08_15_083000_create_king_perk_tables.php
+          routes/king-perks.php
+          tests/v3/Contexts/Operations/KingPerks
 
       - name: Larastan King Perks V3
         run: >-
