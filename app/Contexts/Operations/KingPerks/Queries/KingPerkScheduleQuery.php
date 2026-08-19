@@ -113,7 +113,7 @@ final readonly class KingPerkScheduleQuery
             ? $event->occurrences->sortBy('starts_at')->first()
             : $event->occurrences->firstWhere('id', $occurrenceId);
 
-        if (! $occurrence instanceof EventOccurrence) {
+        if (!$occurrence instanceof EventOccurrence) {
             throw ValidationException::withMessages(['occurrence' => 'No matching Kingdom of Power occurrence was found.']);
         }
 
@@ -126,7 +126,7 @@ final readonly class KingPerkScheduleQuery
             ->where('occurrence_id', $occurrence->id)
             ->with(['appointments', 'positionBlocks', 'skills', 'requests']);
 
-        if (! $management) {
+        if (!$management) {
             $query->whereIn('status', [KingPerkPlanStatus::Published->value, KingPerkPlanStatus::Active->value]);
         }
 
@@ -138,7 +138,7 @@ final readonly class KingPerkScheduleQuery
     {
         $eventType = $event->eventType;
         $kingdom = $event->kingdom_id === null ? null : $this->kingdoms->find((string) $event->kingdom_id);
-        if (! $eventType instanceof EventType || $kingdom === null) {
+        if (!$eventType instanceof EventType || $kingdom === null) {
             throw ValidationException::withMessages([
                 'event' => 'King Perks require a Kingdom-scoped Event with a valid Event type.',
             ]);
@@ -163,10 +163,10 @@ final readonly class KingPerkScheduleQuery
     /** @return array<string, mixed> */
     private function plan(KingPerkPlan $plan): array
     {
-        $playerIds = $plan->appointments->pluck('assigned_player_id')
+        $playerIds = array_values($plan->appointments->pluck('assigned_player_id')
             ->merge($plan->requests->pluck('player_id'))
             ->map(static fn ($id): string => (string) $id)
-            ->unique()->values()->all();
+            ->unique()->values()->all());
         $players = $this->players->byIds($playerIds);
 
         return [
@@ -190,7 +190,11 @@ final readonly class KingPerkScheduleQuery
         ];
     }
 
-    /** @param array<string, PlayerReference> $players */
+    /**
+     * @param array<string, PlayerReference> $players
+     *
+     * @return array<string, mixed>
+     */
     private function appointment(KingPerkAppointment $appointment, KingPerkPlan $plan, array $players): array
     {
         $player = $players[(string) $appointment->assigned_player_id] ?? null;
@@ -215,7 +219,11 @@ final readonly class KingPerkScheduleQuery
         ];
     }
 
-    /** @param array<string, PlayerReference> $players */
+    /**
+     * @param array<string, PlayerReference> $players
+     *
+     * @return array<string, mixed>
+     */
     private function request(KingPerkRequest $request, array $players): array
     {
         $player = $players[(string) $request->player_id] ?? null;
@@ -237,6 +245,7 @@ final readonly class KingPerkScheduleQuery
         ];
     }
 
+    /** @return array<string, mixed> */
     private function skill(KingSkillPlan $skill): array
     {
         return [
@@ -256,7 +265,8 @@ final readonly class KingPerkScheduleQuery
     /** @return array<string, mixed> */
     private function live(KingPerkPlan $plan): array
     {
-        $players = $this->players->byIds($plan->appointments->pluck('assigned_player_id')->map(static fn ($id): string => (string) $id)->unique()->values()->all());
+        $playerIds = array_values($plan->appointments->pluck('assigned_player_id')->map(static fn ($id): string => (string) $id)->unique()->values()->all());
+        $players = $this->players->byIds($playerIds);
         $now = CarbonImmutable::now('UTC');
         $activeStatuses = [
             KingPerkAppointmentStatus::Scheduled->value,
@@ -271,7 +281,7 @@ final readonly class KingPerkScheduleQuery
                     && in_array($appointment->status->value, $activeStatuses, true))
                 ->sortBy('starts_at')->values();
             $nowAppointment = $appointments->first(static fn (KingPerkAppointment $appointment): bool => $appointment->status === KingPerkAppointmentStatus::Active
-                || (! $appointment->starts_at->isAfter($now) && $appointment->ends_at->isAfter($now)));
+                || (!$appointment->starts_at->isAfter($now) && $appointment->ends_at->isAfter($now)));
             $upcoming = $appointments->filter(static fn (KingPerkAppointment $appointment): bool => $appointment->starts_at->greaterThanOrEqualTo($now));
             if ($nowAppointment instanceof KingPerkAppointment) {
                 $nowId = (string) $nowAppointment->id;
@@ -291,6 +301,7 @@ final readonly class KingPerkScheduleQuery
         return ['generatedAt' => $now->toIso8601String(), 'lanes' => $lanes];
     }
 
+    /** @return list<array<string, mixed>> */
     private function appointmentTypes(): array
     {
         return array_map(static fn (KingAppointmentType $type): array => [
@@ -304,6 +315,7 @@ final readonly class KingPerkScheduleQuery
         ], KingAppointmentType::cases());
     }
 
+    /** @return list<array<string, mixed>> */
     private function pushCategories(): array
     {
         return array_map(static fn (KingPerkPushCategory $category): array => [
@@ -313,6 +325,7 @@ final readonly class KingPerkScheduleQuery
         ], KingPerkPushCategory::cases());
     }
 
+    /** @return list<array<string, mixed>> */
     private function skillTypes(): array
     {
         return array_map(static fn (KingSkill $skill): array => [
