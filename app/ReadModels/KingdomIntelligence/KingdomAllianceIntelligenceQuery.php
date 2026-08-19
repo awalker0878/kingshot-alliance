@@ -197,7 +197,10 @@ final class KingdomAllianceIntelligenceQuery
         return $diagnostics;
     }
 
-    /** @param iterable<int, KingdomAllianceTrackingRow> $tracking @return list<string> */
+    /**
+     * @param  iterable<int, KingdomAllianceTrackingRow>  $tracking
+     * @return list<string>
+     */
     private function trackingIds(iterable $tracking): array
     {
         $ids = [];

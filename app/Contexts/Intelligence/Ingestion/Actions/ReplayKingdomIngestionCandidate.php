@@ -71,8 +71,7 @@ final readonly class ReplayKingdomIngestionCandidate
                     'subscription' => 'The ingestion subscription must be active before replay.',
                 ]);
             }
-            if ($scope->kingdomId === null
-                || (string) $scope->kingdomId !== (string) $subscription->kingdom_id) {
+            if ($scope->kingdomId !== (string) $subscription->kingdom_id) {
                 throw ValidationException::withMessages([
                     'subscription' => 'Replay is blocked because the alliance Kingdom no longer matches the subscription context.',
                 ]);

@@ -108,7 +108,10 @@ final class KingdomAllianceDiplomacyController extends Controller
         return $validated;
     }
 
-    /** @param array<string,PlayerReference> $players @return array<string,mixed> */
+    /**
+     * @param  array<string, PlayerReference>  $players
+     * @return array{exists:bool,state:string,effectiveAt:string|null,reviewAt:string|null,expiresAt:string|null,needsReview:bool,terms:string|null,rationale:string|null,lastActorName:string|null}
+     */
     private function relationshipSummary(?KingdomAllianceDiplomacy $relationship, KingdomAllianceDiplomacyQuery $diplomacy, array $players): array
     {
         if (! $relationship instanceof KingdomAllianceDiplomacy) {
@@ -129,7 +132,10 @@ final class KingdomAllianceDiplomacyController extends Controller
         ];
     }
 
-    /** @param array<string,PlayerReference> $players @return array<string,mixed> */
+    /**
+     * @param  array<string, PlayerReference>  $players
+     * @return array{id:string,fromState:string,toState:string,effectiveAt:string,reviewAt:string|null,expiresAt:string|null,terms:string|null,rationale:string|null,actorName:string|null,recordedAt:string}
+     */
     private function transitionRow(KingdomAllianceDiplomacyTransition $transition, array $players): array
     {
         $actor = $transition->actor_player_id === null ? null : ($players[(string) $transition->actor_player_id] ?? null);

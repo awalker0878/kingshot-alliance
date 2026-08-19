@@ -108,7 +108,7 @@ final readonly class SaveKingdomAllianceDiplomacyContact
                 $created = false;
             } else {
                 $contact = KingdomAllianceDiplomacyContact::query()->create([
-                    'alliance_id' => $currentAlliance->id,
+                    'alliance_id' => $allianceId,
                     'tracked_kingdom_alliance_id' => $tracking->id,
                     'kingdom_alliance_id' => $reference->kingdomAllianceId,
                     'display_name' => $displayName,

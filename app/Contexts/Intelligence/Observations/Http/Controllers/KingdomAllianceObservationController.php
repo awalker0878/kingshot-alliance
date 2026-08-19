@@ -116,7 +116,10 @@ final class KingdomAllianceObservationController extends Controller
         return $validated;
     }
 
-    /** @param array<string,PlayerReference> $actors @return array<string,mixed> */
+    /**
+     * @param  array<string, PlayerReference>  $actors
+     * @return array<string, mixed>
+     */
     private function observationRow(KingdomAllianceObservation $observation, bool $includePrivate, array $actors): array
     {
         $row = [
@@ -132,10 +135,10 @@ final class KingdomAllianceObservationController extends Controller
             $invalidator = $observation->invalidated_by_player_id === null ? null : ($actors[(string) $observation->invalidated_by_player_id] ?? null);
             $row += [
                 'id' => (string) $observation->id,
-                'actorName' => $actor?->currentName,
+                'actorName' => $actor instanceof PlayerReference ? $actor->currentName : null,
                 'correctsObservationId' => $observation->corrects_observation_id,
                 'invalidatedAt' => $observation->invalidated_at?->toIso8601String(),
-                'invalidatedByName' => $invalidator?->currentName,
+                'invalidatedByName' => $invalidator instanceof PlayerReference ? $invalidator->currentName : null,
                 'invalidationReason' => $observation->invalidation_reason,
                 'sourceSubscriptionId' => $observation->source_subscription_id,
                 'sourceBatchId' => $observation->source_batch_id,

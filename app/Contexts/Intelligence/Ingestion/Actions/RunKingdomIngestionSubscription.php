@@ -135,8 +135,7 @@ final readonly class RunKingdomIngestionSubscription
             if ($subscription->circuit_open_until !== null && $subscription->circuit_open_until->isFuture()) {
                 return null;
             }
-            if ($context->alliance->kingdomId === null
-                || (string) $context->alliance->kingdomId !== (string) $subscription->kingdom_id) {
+            if ($context->alliance->kingdomId !== (string) $subscription->kingdom_id) {
                 $this->block($subscription, 'kingdom_context_changed');
 
                 return null;

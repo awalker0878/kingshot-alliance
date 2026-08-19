@@ -38,7 +38,9 @@ final readonly class KingdomIngestionMutationState
             if ($nullable) {
                 return null;
             }
-            KingdomIngestionSubscription::query()->findOrFail($subscriptionId);
+            $route = KingdomIngestionSubscription::query()
+                ->select(['id', 'alliance_id'])
+                ->findOrFail($subscriptionId);
         }
 
         $alliance = $this->alliances->lockCurrent((string) $route->alliance_id);

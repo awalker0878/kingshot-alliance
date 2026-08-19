@@ -129,12 +129,15 @@ final class KingdomAllianceController extends Controller
         return ['id' => $alliance->allianceId, 'name' => $alliance->name, 'kingdom' => (string) $kingdom->number];
     }
 
-    /** @param iterable<int,TrackedKingdomAlliance> $tracking @return list<array<string,mixed>> */
+    /**
+     * @param  iterable<int, TrackedKingdomAlliance>  $tracking
+     * @return list<array<string, mixed>>
+     */
     private function trackingRows(iterable $tracking, AllianceReference $alliance, KingdomReferenceQuery $kingdoms, KingdomAllianceReferenceQuery $kingdomAlliances, bool $includePrivate): array
     {
         $items = is_array($tracking) ? $tracking : iterator_to_array($tracking);
-        $kingdomRefs = $kingdoms->byIds(array_map(static fn (TrackedKingdomAlliance $row): string => (string) $row->kingdom_id, $items));
-        $allianceRefs = $kingdomAlliances->byIds(array_map(static fn (TrackedKingdomAlliance $row): string => (string) $row->kingdom_alliance_id, $items));
+        $kingdomRefs = $kingdoms->byIds(array_values(array_map(static fn (TrackedKingdomAlliance $row): string => (string) $row->kingdom_id, $items)));
+        $allianceRefs = $kingdomAlliances->byIds(array_values(array_map(static fn (TrackedKingdomAlliance $row): string => (string) $row->kingdom_alliance_id, $items)));
         $rows = [];
         foreach ($items as $entry) {
             $reference = $allianceRefs[(string) $entry->kingdom_alliance_id] ?? null;

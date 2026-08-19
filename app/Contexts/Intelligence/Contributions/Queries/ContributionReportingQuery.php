@@ -135,7 +135,7 @@ final readonly class ContributionReportingQuery
 
         $pending = ContributionRecord::query()->where('alliance_id', $allianceId)->where('status', ContributionRecordStatus::Pending->value)->with('category')->oldest('recorded_at')->limit(100)->get();
         $recent = ContributionRecord::query()->where('alliance_id', $allianceId)->with('category')->latest('recorded_at')->limit(100)->get();
-        $recordPlayerIds = $pending->concat($recent)->pluck('player_id')->map(static fn ($id): string => (string) $id)->unique()->values()->all();
+        $recordPlayerIds = array_values($pending->concat($recent)->pluck('player_id')->map(static fn ($id): string => (string) $id)->unique()->values()->all());
         $recordPlayers = $this->players->byIds($recordPlayerIds);
 
         return [
@@ -210,7 +210,7 @@ final readonly class ContributionReportingQuery
             ->with('category')
             ->orderBy('period_start')->orderBy('category_id')->orderBy('player_id')->orderBy('recorded_at')
             ->get();
-        $players = $this->players->byIds($records->pluck('player_id')->map(static fn ($id): string => (string) $id)->unique()->values()->all());
+        $players = $this->players->byIds(array_values($records->pluck('player_id')->map(static fn ($id): string => (string) $id)->unique()->values()->all()));
 
         return array_values($records->map(function (ContributionRecord $record) use ($players): array {
             $category = $record->category;
@@ -259,7 +259,7 @@ final readonly class ContributionReportingQuery
                 ->whereDate('period_start', $period['start']->toDateString())
                 ->whereDate('period_end', $period['end']->toDateString())
                 ->get();
-            $players = $this->players->byIds($records->pluck('player_id')->map(static fn ($id): string => (string) $id)->unique()->values()->all());
+            $players = $this->players->byIds(array_values($records->pluck('player_id')->map(static fn ($id): string => (string) $id)->unique()->values()->all()));
 
             $totals = [];
             foreach ($records as $record) {
@@ -282,7 +282,7 @@ final readonly class ContributionReportingQuery
                 'calculationKey' => $category->calculation_key,
                 'calculationVersion' => $category->calculation_version,
                 'calculationDescription' => $category->calculation_description ?? 'Approved records are summed for the selected category and period.',
-                'entries' => array_values($totals),
+                'entries' => $totals,
             ];
         }
 
