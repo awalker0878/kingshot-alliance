@@ -250,8 +250,8 @@ final class RecruitmentCandidateController extends Controller
 
         return Inertia::render('Alliance/Recruitment/Candidate', [
             'user' => [
-                'name' => (string) $user->name,
-                'email' => (string) $user->email,
+                'name' => $user->accountName(),
+                'email' => $user->accountEmail(),
             ],
             'alliance' => [
                 'id' => $alliance->allianceId,
