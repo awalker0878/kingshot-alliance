@@ -8,6 +8,7 @@ use App\Contexts\Accounts\Registration\Providers\RegistrationServiceProvider;
 use App\Contexts\Alliance\Content\Providers\ContentServiceProvider;
 use App\Contexts\Alliance\Lifecycle\Providers\LifecycleServiceProvider;
 use App\Contexts\Alliance\Recruitment\Providers\RecruitmentServiceProvider;
+use App\Contexts\GameWorld\GiftCodes\Providers\GiftCodesServiceProvider;
 use App\Contexts\GameWorld\Players\Providers\PlayersServiceProvider;
 use App\Contexts\Operations\KingPerks\Providers\KingPerksServiceProvider;
 use App\Contexts\Operations\Participation\Providers\ParticipationServiceProvider;
@@ -21,6 +22,7 @@ return [
     RegistrationServiceProvider::class,
     MultiFactorAuthenticationServiceProvider::class,
     PlayersServiceProvider::class,
+    GiftCodesServiceProvider::class,
     LifecycleServiceProvider::class,
     ContentServiceProvider::class,
     RecruitmentServiceProvider::class,
