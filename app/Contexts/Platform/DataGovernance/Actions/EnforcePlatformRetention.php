@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 
 final class EnforcePlatformRetention
 {
+    /** @return array{webhookPayloadsRedacted:int,credentialsPurged:int,usageSnapshotsPurged:int,exportMetadataPurged:int} */
     public function handle(): array
     {
         $webhookPayloadsRedacted = WebhookDelivery::query()->whereNotNull('payload')->whereIn('status', ['delivered', 'failed'])->where('updated_at', '<', now()->subDays(30))->update(['payload' => null, 'response_excerpt' => null, 'last_error' => null, 'updated_at' => now()]);
