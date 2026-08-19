@@ -33,6 +33,7 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::middleware('web')->group(base_path('routes/account.php'));
             Route::middleware('web')->group(base_path('routes/contributions.php'));
             Route::middleware('web')->group(base_path('routes/event-history.php'));
+            Route::middleware('web')->group(base_path('routes/gift-codes.php'));
             Route::middleware('web')->group(base_path('routes/integrations.php'));
             Route::middleware('web')->group(base_path('routes/king-perks.php'));
             Route::middleware('web')->group(base_path('routes/kingdoms.php'));
