@@ -20,6 +20,12 @@ defineProps<{
     body: string;
     locale: string;
     publishedAt: string | null;
+    provenance: {
+      sourceLabel: string | null;
+      sourceUrl: string | null;
+      gameVersion: string | null;
+      reviewedAt: string | null;
+    } | null;
     category: { name: string; slug: string } | null;
   };
 }>();
@@ -28,6 +34,10 @@ const { t, formatDate } = useLocale();
 
 function published(value: string | null): string {
   return value ? formatDate(value, { dateStyle: 'long', timeStyle: 'short' }) : '—';
+}
+
+function reviewed(value: string | null): string {
+  return value ? formatDate(value, { dateStyle: 'long' }) : '—';
 }
 </script>
 
@@ -111,6 +121,39 @@ function published(value: string | null): string {
               <dt class="text-xs text-[var(--ks-muted)]">{{ t('contentExperience.published') }}</dt>
               <dd class="mt-1 font-semibold">{{ published(content.publishedAt) }}</dd>
             </div>
+            <template v-if="content.provenance">
+              <div>
+                <dt class="text-xs text-[var(--ks-muted)]">
+                  {{ t('contentExperience.sourceLabel') }}
+                </dt>
+                <dd class="mt-1 font-semibold">
+                  <a
+                    v-if="content.provenance.sourceUrl"
+                    :href="content.provenance.sourceUrl"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="text-[var(--ks-gold)] hover:underline"
+                  >
+                    {{ content.provenance.sourceLabel }}
+                  </a>
+                  <span v-else>{{ content.provenance.sourceLabel }}</span>
+                </dd>
+              </div>
+              <div v-if="content.provenance.gameVersion">
+                <dt class="text-xs text-[var(--ks-muted)]">
+                  {{ t('contentExperience.gameVersion') }}
+                </dt>
+                <dd class="mt-1 font-semibold">{{ content.provenance.gameVersion }}</dd>
+              </div>
+              <div>
+                <dt class="text-xs text-[var(--ks-muted)]">
+                  {{ t('contentExperience.reviewedAt') }}
+                </dt>
+                <dd class="mt-1 font-semibold">
+                  {{ reviewed(content.provenance.reviewedAt) }}
+                </dd>
+              </div>
+            </template>
           </dl>
         </section>
 

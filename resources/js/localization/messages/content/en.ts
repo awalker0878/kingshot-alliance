@@ -65,6 +65,15 @@ const messages = {
     cancelEdit: 'Cancel edit',
     revisedDraftHelp:
       'Saving an existing published or archived item returns the revised copy to draft. Publish it explicitly when the revision is ready.',
+    knowledgeProvenance: 'Knowledge provenance',
+    provenanceHelp:
+      'Guides, Event instructions, and reference pages need a source and review date before publication.',
+    source: 'Source',
+    sourceLabel: 'Source label',
+    sourceUrl: 'Source URL (optional)',
+    gameVersion: 'Game version (optional)',
+    reviewedAt: 'Last reviewed',
+    reviewed: 'Reviewed',
     title: 'Title',
     slug: 'Notice address',
     visibility: 'Visibility',

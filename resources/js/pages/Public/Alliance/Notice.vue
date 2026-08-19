@@ -15,6 +15,12 @@ const props = defineProps<{
     body: string;
     locale: string;
     publishedAt: string | null;
+    provenance: {
+      sourceLabel: string | null;
+      sourceUrl: string | null;
+      gameVersion: string | null;
+      reviewedAt: string | null;
+    } | null;
     category: { name: string; slug: string } | null;
   };
   viewerTimezone?: string | null;
@@ -32,6 +38,10 @@ const typeKeys: Record<string, string> = {
 
 function formatPublished(value: string | null): string {
   return value ? formatDate(value, { dateStyle: 'long', timeStyle: 'short' }) : '';
+}
+
+function formatReviewed(value: string | null): string {
+  return value ? formatDate(value, { dateStyle: 'long' }) : '—';
 }
 
 function contentTypeLabel(): string {
@@ -100,6 +110,42 @@ function localeName(code: string): string {
             >
             <span>· {{ t('publicContent.allianceTimezone') }}: {{ alliance.timezone }}</span>
           </div>
+          <dl
+            v-if="content.provenance"
+            class="mt-6 grid gap-3 rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-4 text-sm sm:grid-cols-3"
+          >
+            <div>
+              <dt class="text-xs text-[var(--ks-text-muted)]">
+                {{ t('contentExperience.sourceLabel') }}
+              </dt>
+              <dd class="mt-1 font-semibold">
+                <a
+                  v-if="content.provenance.sourceUrl"
+                  :href="content.provenance.sourceUrl"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-[var(--ks-gold)] hover:underline"
+                >
+                  {{ content.provenance.sourceLabel }}
+                </a>
+                <span v-else>{{ content.provenance.sourceLabel }}</span>
+              </dd>
+            </div>
+            <div v-if="content.provenance.gameVersion">
+              <dt class="text-xs text-[var(--ks-text-muted)]">
+                {{ t('contentExperience.gameVersion') }}
+              </dt>
+              <dd class="mt-1 font-semibold">{{ content.provenance.gameVersion }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs text-[var(--ks-text-muted)]">
+                {{ t('contentExperience.reviewedAt') }}
+              </dt>
+              <dd class="mt-1 font-semibold">
+                {{ formatReviewed(content.provenance.reviewedAt) }}
+              </dd>
+            </div>
+          </dl>
         </header>
 
         <div class="px-6 py-8 sm:px-10 sm:py-10 lg:px-12 lg:py-12">

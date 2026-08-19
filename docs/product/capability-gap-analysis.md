@@ -25,7 +25,7 @@ The remaining gap is less about adding disconnected screens and more about makin
 | Complete | Notification delivery | In-app inbox plus encrypted Discord/Telegram endpoints, preferences and bounded retries | Provider hosts constrained; credentials never returned |
 | Complete | Command overview | One decision surface for unread alerts, Event actions, upcoming Events, Gift Codes and recruitment follow-up | Compose owner read models; do not duplicate business state |
 | Complete | Alliance broadcasts | Scheduled announcements delivered once to each active Governor's enabled in-app, Discord and Telegram channels | Active membership, recipient-owned endpoints and idempotent fan-out |
-| Next | Knowledge hub | Searchable, versioned Event guides linked to Event types and Alliance content | Provenance, locale, review date and no invented strategy claims |
+| Complete | Knowledge hub | Searchable, versioned Alliance guides with visible source, game-version and review metadata | Provenance, locale, review date and no invented strategy claims |
 | Next | Player progression | Manual/CSV observations for furnace, power and identity changes with history and freshness | Intelligence observations, never authoritative game state |
 | Next | Recruitment discovery | Public recruitment board, filters, share links and conversion analytics | Privacy controls and explicit application consent |
 | Later | Calculators | Troop, Chief Gear, Charm and Hero Gear planning with saved scenarios | Ship only after cost datasets are verified and versioned; the inspected community calculator contains placeholder sections |

@@ -10,8 +10,9 @@ Content owns Alliance-authored content and media lifecycle.
 
 - content categories/items;
 - publish/archive behavior;
-- revisions/restore;
+- revisions/restore, including broadcast intent and provenance;
 - scheduled publishing;
+- provenance and review-date requirements for knowledge content;
 - opt-in announcement broadcast intent and the completed-fanout marker;
 - Alliance public-profile content;
 - media upload/archive lifecycle.
@@ -19,6 +20,12 @@ Content owns Alliance-authored content and media lifecycle.
 ## Authority
 
 Management uses Alliance content permissions interpreted by `Alliance/Access` from the active Player's current Alliance authority. Public/member visibility remains a Content policy and does not change aggregate ownership.
+
+## Provenance boundary
+
+Guides, Event instructions and reference pages require a human-readable source label and review date before save or publication. An optional credential-free HTTPS source URL and game-version label make version-sensitive claims inspectable without treating external community projects as authoritative data.
+
+Provenance is part of the immutable content revision. Restoring a revision restores the associated provenance and broadcast intent, clears publication/broadcast markers and returns the item to draft.
 
 ## Delivery boundary
 
