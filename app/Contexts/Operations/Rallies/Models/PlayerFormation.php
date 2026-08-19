@@ -21,5 +21,4 @@ final class PlayerFormation extends Model
     {
         return ['infantry_percent' => 'integer', 'cavalry_percent' => 'integer', 'archer_percent' => 'integer', 'heroes' => 'array', 'is_default' => 'boolean'];
     }
-
 }

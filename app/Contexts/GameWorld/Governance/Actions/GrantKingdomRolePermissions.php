@@ -12,7 +12,7 @@ use RuntimeException;
 final readonly class GrantKingdomRolePermissions
 {
     /**
-     * @param array<string, list<string>> $permissionKeysByRoleId
+     * @param  array<string, list<string>>  $permissionKeysByRoleId
      */
     public function handle(string $kingdomId, array $permissionKeysByRoleId): void
     {

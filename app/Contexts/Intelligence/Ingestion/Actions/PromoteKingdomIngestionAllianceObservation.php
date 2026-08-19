@@ -109,15 +109,18 @@ final readonly class PromoteKingdomIngestionAllianceObservation
             );
             if ($references === []) {
                 $this->quarantine($candidate, $batch, 'unknown_game_alliance');
+
                 return null;
             }
             if (count($references) !== 1) {
                 $this->quarantine($candidate, $batch, 'ambiguous_game_alliance_identity');
+
                 return null;
             }
             $reference = $references[0];
             if ($reference->statusObservedAtRead !== KingdomAllianceStatus::Active) {
                 $this->quarantine($candidate, $batch, 'game_alliance_inactive');
+
                 return null;
             }
 

@@ -51,6 +51,7 @@ final readonly class PersistPlayerIdentity
                     $attributes['game_player_id'] = $stableId;
                 }
                 $player->forceFill($attributes)->save();
+
                 return (string) $player->id;
             }
 
@@ -59,11 +60,13 @@ final readonly class PersistPlayerIdentity
                 if ($player instanceof Player) {
                     $this->assertKingdomMoveAllowed($player, $kingdomId);
                     $player->forceFill(['current_kingdom_id' => $kingdomId, 'current_name' => $name])->save();
+
                     return (string) $player->id;
                 }
             }
 
             $player = Player::query()->create(['current_kingdom_id' => $kingdomId, 'game_player_id' => $stableId, 'current_name' => $name]);
+
             return (string) $player->id;
         });
 

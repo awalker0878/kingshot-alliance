@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use App\Contexts\Platform\EventAdministration\Http\Controllers\EventTypeAdministrationController;
 use App\Contexts\Platform\Administration\Http\Controllers\PlatformAdministrationController;
+use App\Contexts\Platform\EventAdministration\Http\Controllers\EventTypeAdministrationController;
 use App\ReadModels\EventTypeAdministration\Http\Controllers\EventTypeAdministrationReadController;
 use App\ReadModels\PlatformAdministration\Http\Controllers\PlatformAdministrationReadController;
 use Illuminate\Support\Facades\Route;

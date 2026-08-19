@@ -169,6 +169,7 @@ final readonly class CommitRosterCsvImport
                 $ids[] = $candidate['entry_id'];
             }
         }
+
         return $ids;
     }
 
@@ -178,6 +179,7 @@ final readonly class CommitRosterCsvImport
             return null;
         }
         $value = trim($value);
+
         return $value === '' ? null : $value;
     }
 }

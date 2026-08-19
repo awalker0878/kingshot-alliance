@@ -36,7 +36,7 @@ final readonly class SaveTransferGroup
     ) {}
 
     /**
-     * @param array{name:string,direction:TransferDirection,destination_kingdom?:int|string|null,coordinator_player_id?:string|null,manager_notes?:string|null} $attributes
+     * @param  array{name:string,direction:TransferDirection,destination_kingdom?:int|string|null,coordinator_player_id?:string|null,manager_notes?:string|null}  $attributes
      */
     public function handle(
         string $allianceId,
@@ -181,6 +181,7 @@ final readonly class SaveTransferGroup
     private function nullableText(mixed $value): ?string
     {
         $value = is_string($value) ? trim($value) : '';
+
         return $value === '' ? null : $value;
     }
 

@@ -10,6 +10,7 @@ use LogicException;
 final class PlatformAdministratorBootstrapCoordinator
 {
     private const LOCK_NAMESPACE = 1263556436;
+
     private const LOCK_KEY = 1;
 
     public function acquire(): void
@@ -20,6 +21,7 @@ final class PlatformAdministratorBootstrapCoordinator
         $driver = DB::connection()->getDriverName();
         if ($driver === 'pgsql') {
             DB::select('select pg_advisory_xact_lock(?, ?)', [self::LOCK_NAMESPACE, self::LOCK_KEY]);
+
             return;
         }
         if ($driver === 'sqlite') {

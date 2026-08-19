@@ -23,8 +23,8 @@ final class UpdateEventTypeScope
     ) {}
 
     /**
-     * @param list<EventCapability> $capabilities
-     * @param array<string, mixed> $defaultSettings
+     * @param  list<EventCapability>  $capabilities
+     * @param  array<string, mixed>  $defaultSettings
      */
     public function handle(
         AccountIdentity $actor,

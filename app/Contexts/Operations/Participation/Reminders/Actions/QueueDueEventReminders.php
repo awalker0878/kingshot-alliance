@@ -6,7 +6,6 @@ namespace App\Contexts\Operations\Participation\Reminders\Actions;
 
 use App\Contexts\Communications\Delivery\Services\NotificationDeliveryService;
 use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
-use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Operations\Events\Enums\EventOccurrenceStatus;
 use App\Contexts\Operations\Events\Models\Event;
 use App\Contexts\Operations\Events\Models\EventOccurrence;

@@ -64,5 +64,4 @@ final class EventPoll extends Model
     {
         return $this->hasMany(EventPollVote::class, 'poll_id');
     }
-
 }

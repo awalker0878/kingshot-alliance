@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Events\Actions;
 
+use App\Contexts\Operations\Events\Enums\EventScope;
 use App\Contexts\Operations\Events\Models\EventTemplate;
 use App\Contexts\Operations\Events\ValueObjects\CreatedEvent;
 use Carbon\CarbonImmutable;
@@ -37,9 +38,9 @@ final readonly class CreateEventFromTemplate
                 ->firstOrFail();
             $scope = $template->scopeEnum();
             $targetId = match ($scope) {
-                \App\Contexts\Operations\Events\Enums\EventScope::Alliance => $template->alliance_id,
-                \App\Contexts\Operations\Events\Enums\EventScope::Kingdom => $template->kingdom_id,
-                \App\Contexts\Operations\Events\Enums\EventScope::Player => $template->player_id,
+                EventScope::Alliance => $template->alliance_id,
+                EventScope::Kingdom => $template->kingdom_id,
+                EventScope::Player => $template->player_id,
             };
             if (! is_string($targetId) || $targetId === '') {
                 throw new LogicException('Event template must contain a valid target identity.');

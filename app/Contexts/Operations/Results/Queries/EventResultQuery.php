@@ -143,7 +143,7 @@ final readonly class EventResultQuery
     }
 
     /**
-     * @param iterable<EventResultMetric|EventAllianceResultMetric|EventPlayerResultMetric> $metrics
+     * @param  iterable<EventResultMetric|EventAllianceResultMetric|EventPlayerResultMetric>  $metrics
      * @return list<array<string,mixed>>
      */
     private function metrics(iterable $metrics): array
@@ -174,6 +174,7 @@ final readonly class EventResultQuery
                 'recordedAt' => $this->nullableDateTime($metric->getAttribute('recorded_at')),
             ];
         }
+
         return $rows;
     }
 

@@ -46,7 +46,9 @@ final readonly class SaveRallyGuidanceRule
         ?string $ruleId = null,
     ): void {
         $name = trim($name);
-        if ($name === '' || mb_strlen($name) > 120) throw ValidationException::withMessages(['name' => 'Guidance name is required and must be 120 characters or fewer.']);
+        if ($name === '' || mb_strlen($name) > 120) {
+            throw ValidationException::withMessages(['name' => 'Guidance name is required and must be 120 characters or fewer.']);
+        }
         if ($effectiveFrom instanceof CarbonImmutable && $effectiveUntil instanceof CarbonImmutable && $effectiveUntil->lessThan($effectiveFrom)) {
             throw ValidationException::withMessages(['effective_until' => 'Effective until must be on or after effective from.']);
         }
@@ -64,7 +66,9 @@ final readonly class SaveRallyGuidanceRule
                 ? RallyGuidanceRule::query()->whereKey($ruleId)->where('alliance_id', $allianceId)->lockForUpdate()->firstOrFail()
                 : new RallyGuidanceRule(['alliance_id' => $allianceId]);
             $created = ! $record->exists;
-            if ($created) $record->created_by_player_id = $actorPlayerId;
+            if ($created) {
+                $record->created_by_player_id = $actorPlayerId;
+            }
             $record->forceFill([
                 'name' => $name,
                 ...$composition->toArray(),

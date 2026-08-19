@@ -33,12 +33,18 @@ final class ArchitectureEnforcementV3Test extends TestCase
         foreach (glob($contextsRoot.'/*', GLOB_ONLYDIR) ?: [] as $contextPath) {
             $context = basename($contextPath);
             foreach ($this->phpFiles($contextPath) as $file) {
-                if (! str_contains(str_replace('\\', '/', $file), '/Models/')) continue;
+                if (! str_contains(str_replace('\\', '/', $file), '/Models/')) {
+                    continue;
+                }
                 $contents = file_get_contents($file);
                 self::assertIsString($contents);
-                if (preg_match_all('/^use App\\\\Contexts\\\\([A-Za-z0-9_]+)\\\\[^;]*\\\\Models\\\\([A-Za-z0-9_]+)(?:\s+as\s+([A-Za-z0-9_]+))?;/m', $contents, $matches, PREG_SET_ORDER) === false) continue;
+                if (preg_match_all('/^use App\\\\Contexts\\\\([A-Za-z0-9_]+)\\\\[^;]*\\\\Models\\\\([A-Za-z0-9_]+)(?:\s+as\s+([A-Za-z0-9_]+))?;/m', $contents, $matches, PREG_SET_ORDER) === false) {
+                    continue;
+                }
                 foreach ($matches as $match) {
-                    if ($match[1] === $context) continue;
+                    if ($match[1] === $context) {
+                        continue;
+                    }
                     $alias = ($match[3] ?? '') !== '' ? $match[3] : $match[2];
                     if (preg_match('/(?:belongsTo|hasOne|hasMany|belongsToMany|morphOne|morphMany)\s*\(\s*'.preg_quote($alias, '/').'::class/', $contents) === 1) {
                         $violations[] = $this->relative($file).' -> '.$match[1].'\\'.$match[2];
@@ -65,7 +71,9 @@ final class ArchitectureEnforcementV3Test extends TestCase
     {
         $root = dirname(__DIR__, 3).'/app/ReadModels';
         $violations = [];
-        if (! is_dir($root)) return;
+        if (! is_dir($root)) {
+            return;
+        }
         foreach ($this->phpFiles($root) as $file) {
             $contents = file_get_contents($file);
             self::assertIsString($contents);
@@ -89,7 +97,9 @@ final class ArchitectureEnforcementV3Test extends TestCase
         $violations = [];
         foreach ($this->phpFiles(dirname(__DIR__, 3).'/app/Contexts') as $file) {
             $normalized = str_replace('\\', '/', $file);
-            if (! str_contains($normalized, '/Services/') || ! str_ends_with($normalized, 'Authorization.php')) continue;
+            if (! str_contains($normalized, '/Services/') || ! str_ends_with($normalized, 'Authorization.php')) {
+                continue;
+            }
             $contents = file_get_contents($file);
             self::assertIsString($contents);
             if (preg_match('/\bDB::transaction\s*\(|->lockForUpdate\s*\(|->sharedLock\s*\(/', $contents) === 1) {
@@ -109,10 +119,14 @@ final class ArchitectureEnforcementV3Test extends TestCase
             $context = basename($contextPath);
             foreach ($this->phpFiles($contextPath) as $file) {
                 $normalized = str_replace('\\', '/', $file);
-                if (! str_contains($normalized, '/Actions/') && ! str_contains($normalized, '/Services/')) continue;
+                if (! str_contains($normalized, '/Actions/') && ! str_contains($normalized, '/Services/')) {
+                    continue;
+                }
                 $contents = file_get_contents($file);
                 self::assertIsString($contents);
-                if (preg_match_all('/^use App\\\\Contexts\\\\([A-Za-z0-9_]+)\\\\[^;]*(?:Access|Governance)\\\\(?:Enums|Permissions?)\\\\[^;]+;/m', $contents, $matches, PREG_SET_ORDER) === false) continue;
+                if (preg_match_all('/^use App\\\\Contexts\\\\([A-Za-z0-9_]+)\\\\[^;]*(?:Access|Governance)\\\\(?:Enums|Permissions?)\\\\[^;]+;/m', $contents, $matches, PREG_SET_ORDER) === false) {
+                    continue;
+                }
                 foreach ($matches as $match) {
                     if ($match[1] !== $context) {
                         $violations[] = $this->relative($file).' imports '.$match[0];
@@ -127,12 +141,17 @@ final class ArchitectureEnforcementV3Test extends TestCase
     /** @return list<string> */
     private function phpFiles(string $root): array
     {
-        if (! is_dir($root)) return [];
+        if (! is_dir($root)) {
+            return [];
+        }
         $files = [];
         $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root));
         foreach ($iterator as $file) {
-            if ($file->isFile() && $file->getExtension() === 'php') $files[] = $file->getPathname();
+            if ($file->isFile() && $file->getExtension() === 'php') {
+                $files[] = $file->getPathname();
+            }
         }
+
         return $files;
     }
 

@@ -7,7 +7,6 @@ namespace App\Contexts\Intelligence\Sharing\Models;
 use App\Contexts\Intelligence\Sharing\Enums\KingdomIntelligenceShareState;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**

@@ -12,8 +12,6 @@ use LogicException;
 
 final class PlayerMembershipQuery
 {
-
-
     public function hasAnyActiveForPlayer(string $playerId): bool
     {
         return AllianceMembership::query()
@@ -21,7 +19,6 @@ final class PlayerMembershipQuery
             ->where('status', MembershipStatus::Active->value)
             ->exists();
     }
-
 
     public function lockActiveMember(string $allianceId, string $playerId): bool
     {
@@ -106,6 +103,7 @@ final class PlayerMembershipQuery
             ->values()
             ->all();
     }
+
     /** @return list<string> */
     public function activeAllianceIdsForPlayerInKingdom(string $playerId, string $kingdomId): array
     {
@@ -120,5 +118,4 @@ final class PlayerMembershipQuery
             ->values()
             ->all();
     }
-
 }

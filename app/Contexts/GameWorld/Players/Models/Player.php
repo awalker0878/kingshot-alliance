@@ -27,7 +27,9 @@ final class Player extends Model implements AuditActor
     use HasUlids;
 
     public $incrementing = false;
+
     protected $keyType = 'string';
+
     protected $fillable = ['user_id', 'current_kingdom_id', 'game_player_id', 'current_name'];
 
     /** @return BelongsTo<Kingdom, $this> */

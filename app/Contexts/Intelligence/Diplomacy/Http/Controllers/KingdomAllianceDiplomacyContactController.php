@@ -54,7 +54,9 @@ final class KingdomAllianceDiplomacyContactController extends Controller
         $actorIds = [];
         foreach ($records as $contact) {
             foreach ([$contact->created_by_player_id, $contact->updated_by_player_id, $contact->deactivated_by_player_id] as $id) {
-                if ($id !== null) $actorIds[] = (string) $id;
+                if ($id !== null) {
+                    $actorIds[] = (string) $id;
+                }
             }
         }
         $actorRefs = $players->byIds(array_values(array_unique($actorIds)));

@@ -21,7 +21,9 @@ final class EventAttendance extends Model
     use HasUlids;
 
     protected $table = 'event_attendance';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [

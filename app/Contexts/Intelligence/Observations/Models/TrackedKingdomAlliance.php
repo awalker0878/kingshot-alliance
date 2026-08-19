@@ -8,7 +8,6 @@ use App\Contexts\Intelligence\Diplomacy\Models\KingdomAllianceDiplomacy;
 use App\Contexts\Intelligence\Observations\Enums\TrackedKingdomAllianceState;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;

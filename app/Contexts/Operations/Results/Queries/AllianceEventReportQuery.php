@@ -24,6 +24,7 @@ final class AllianceEventReportQuery
             if ($date !== 0) {
                 return $date;
             }
+
             return strcmp((string) $left['record_id'], (string) $right['record_id']);
         });
 

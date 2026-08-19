@@ -16,7 +16,6 @@ use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
 use App\Contexts\Intelligence\Observations\Actions\InvalidateKingdomAllianceObservation;
 use App\Contexts\Intelligence\Observations\Actions\RecordKingdomAllianceObservation;
 use App\Contexts\Intelligence\Observations\Models\KingdomAllianceObservation;
-use App\Contexts\Intelligence\Observations\Models\TrackedKingdomAlliance;
 use App\Contexts\Intelligence\Observations\Queries\KingdomAllianceObservationQuery;
 use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -54,8 +53,12 @@ final class KingdomAllianceObservationController extends Controller
         $history = $observations->history($alliance->allianceId, $tracking, $canManage);
         $actorIds = [];
         foreach ($history as $observation) {
-            if ($observation->actor_player_id !== null) $actorIds[] = (string) $observation->actor_player_id;
-            if ($observation->invalidated_by_player_id !== null) $actorIds[] = (string) $observation->invalidated_by_player_id;
+            if ($observation->actor_player_id !== null) {
+                $actorIds[] = (string) $observation->actor_player_id;
+            }
+            if ($observation->invalidated_by_player_id !== null) {
+                $actorIds[] = (string) $observation->invalidated_by_player_id;
+            }
         }
         $actorRefs = $players->byIds(array_values(array_unique($actorIds)));
 

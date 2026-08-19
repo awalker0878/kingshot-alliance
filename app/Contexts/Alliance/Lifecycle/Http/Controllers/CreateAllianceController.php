@@ -21,12 +21,13 @@ final class CreateAllianceController extends Controller
         $player = $players->playerOrNull();
         abort_unless($player !== null, 409, 'Select a Player before creating an Alliance.');
         $validated = $request->validate([
-            'name'=>['required','string','max:120'],
-            'slug'=>['required','string','max:120','regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',Rule::unique('alliances','slug')],
-            'language'=>['required','string','max:16'],
-            'timezone'=>['required','string','timezone'],
+            'name' => ['required', 'string', 'max:120'],
+            'slug' => ['required', 'string', 'max:120', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/', Rule::unique('alliances', 'slug')],
+            'language' => ['required', 'string', 'max:16'],
+            'timezone' => ['required', 'string', 'timezone'],
         ]);
         $createAlliance->handle($player->playerId, $validated['name'], $validated['slug'], $validated['language'], $validated['timezone']);
+
         return redirect()->route('alliance.overview');
     }
 }

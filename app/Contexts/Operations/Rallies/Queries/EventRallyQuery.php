@@ -109,7 +109,7 @@ final readonly class EventRallyQuery
     }
 
     /**
-     * @param Collection<int, AllianceReference> $alliances
+     * @param  Collection<int, AllianceReference>  $alliances
      * @return list<array<string,mixed>>
      */
     private function guidance(EventOccurrence $occurrence, Collection $alliances): array

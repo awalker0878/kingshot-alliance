@@ -58,5 +58,4 @@ final class RallyAssignment extends Model
     {
         return $this->belongsTo(RallyGroup::class);
     }
-
 }

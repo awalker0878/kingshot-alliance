@@ -14,6 +14,8 @@ use App\Contexts\Alliance\Lifecycle\ValueObjects\AllianceReference;
 use App\Contexts\Alliance\Membership\Queries\PlayerMembershipQuery;
 use App\Contexts\Alliance\Membership\Queries\RosterEntryQuery;
 use App\Contexts\Alliance\Membership\ValueObjects\RosterEntryReference;
+use App\Contexts\GameWorld\Kingdoms\Queries\KingdomReferenceQuery;
+use App\Contexts\GameWorld\Kingdoms\ValueObjects\KingdomReference;
 use App\Contexts\GameWorld\KingdomTransfers\Access\Enums\TransferPermission;
 use App\Contexts\GameWorld\KingdomTransfers\Access\Services\TransferAuthorization;
 use App\Contexts\GameWorld\KingdomTransfers\Actions\CancelTransferPlan;
@@ -29,8 +31,6 @@ use App\Contexts\GameWorld\KingdomTransfers\Models\TransferReadinessTransition;
 use App\Contexts\GameWorld\KingdomTransfers\Queries\TransferGroupQuery;
 use App\Contexts\GameWorld\KingdomTransfers\Queries\TransferParticipantQuery;
 use App\Contexts\GameWorld\KingdomTransfers\Queries\TransferPlanQuery;
-use App\Contexts\GameWorld\Kingdoms\Queries\KingdomReferenceQuery;
-use App\Contexts\GameWorld\Kingdoms\ValueObjects\KingdomReference;
 use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Shared\Infrastructure\Http\Controller;
@@ -266,8 +266,8 @@ final class TransferPlanController extends Controller
     }
 
     /**
-     * @param array<string, RosterEntryReference> $rosterById
-     * @param array<string, PlayerReference> $playersById
+     * @param  array<string, RosterEntryReference>  $rosterById
+     * @param  array<string, PlayerReference>  $playersById
      * @return array<string, mixed>
      */
     private function participant(
