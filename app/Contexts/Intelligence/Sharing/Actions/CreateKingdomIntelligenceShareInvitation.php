@@ -46,6 +46,7 @@ final readonly class CreateKingdomIntelligenceShareInvitation
             $event = 'kingdoms.shared_intelligence_invitation_created';
             $this->audit->record($event, $actor, $share, $sourceAllianceId, $metadata);
             $this->outbox->record($event, $sourceAllianceId, $share, $metadata, $event.':'.$share->id);
+
             return new IssuedKingdomIntelligenceShareInvitation((string) $share->id, $token);
         });
     }

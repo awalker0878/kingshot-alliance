@@ -65,6 +65,7 @@ final readonly class UpdateKingdomAllianceIdentity
     private function nullable(?string $value): ?string
     {
         $value = $value === null ? null : trim($value);
+
         return $value === '' ? null : $value;
     }
 }

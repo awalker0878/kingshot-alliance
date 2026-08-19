@@ -151,6 +151,7 @@ final readonly class ContributionReportingQuery
             'categories' => $categorySummaries,
             'members' => array_map(static function (array $row) use ($playerRefs): array {
                 $player = $playerRefs[$row['playerId']] ?? null;
+
                 return [
                     'playerId' => $row['playerId'],
                     'name' => $player?->currentName,

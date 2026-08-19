@@ -9,9 +9,13 @@ use Illuminate\Database\Eloquent\Model;
 final class AlliancePlanAssignment extends Model
 {
     protected $table = 'alliance_plan_assignments';
+
     protected $primaryKey = 'alliance_id';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
+
     protected $fillable = ['alliance_id', 'plan_code', 'assigned_by_user_id', 'assigned_at'];
 
     protected function casts(): array

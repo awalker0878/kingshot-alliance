@@ -13,9 +13,13 @@ final readonly class MarkKingPerkReminderSent
 
     public function handle(OutboxPublished $event): void
     {
-        if ($event->eventType !== 'king_perks.reminder.requested') return;
+        if ($event->eventType !== 'king_perks.reminder.requested') {
+            return;
+        }
         $deliveryId = $event->payload['delivery_id'] ?? null;
-        if (! is_string($deliveryId) || $deliveryId === '') return;
+        if (! is_string($deliveryId) || $deliveryId === '') {
+            return;
+        }
         $this->deliveries->markSent($deliveryId);
     }
 }

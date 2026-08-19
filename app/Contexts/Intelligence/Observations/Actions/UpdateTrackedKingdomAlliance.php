@@ -94,6 +94,7 @@ final readonly class UpdateTrackedKingdomAlliance
     private function nullableLine(?string $value): ?string
     {
         $value = $value === null ? null : trim($value);
+
         return $value === '' ? null : $value;
     }
 

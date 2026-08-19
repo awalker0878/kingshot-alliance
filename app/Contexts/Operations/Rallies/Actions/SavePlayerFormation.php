@@ -52,7 +52,9 @@ final readonly class SavePlayerFormation
             }
 
             $created = ! $record->exists;
-            if ($created) $record->created_by_player_id = $actor->playerId;
+            if ($created) {
+                $record->created_by_player_id = $actor->playerId;
+            }
             $record->forceFill([
                 'name' => $name,
                 ...$composition->toArray(),

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\ReadModels\KingdomIntelligence\Http\Controllers;
 
 use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
+use App\Contexts\Accounts\Identity\ValueObjects\AccountIdentity;
 use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
 use App\Contexts\Alliance\Lifecycle\Services\AllianceContext;
 use App\Contexts\GameWorld\Kingdoms\Queries\KingdomReferenceQuery;
@@ -83,7 +84,7 @@ final class KingdomAllianceIntelligenceController extends Controller
         ];
     }
 
-    private function account(Request $request): \App\Contexts\Accounts\Identity\ValueObjects\AccountIdentity
+    private function account(Request $request): AccountIdentity
     {
         $identifier = $request->user()?->getAuthIdentifier();
         abort_unless(is_numeric($identifier), 401);

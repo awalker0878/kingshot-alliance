@@ -19,6 +19,4 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
  * @property-read string $email
  * @property-read string $timezone
  */
-interface AuthenticatedAccount extends Authenticatable, MustVerifyEmail
-{
-}
+interface AuthenticatedAccount extends Authenticatable, MustVerifyEmail {}

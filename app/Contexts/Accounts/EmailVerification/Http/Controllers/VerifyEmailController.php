@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Contexts\Accounts\EmailVerification\Http\Controllers;
 
 use App\Contexts\Accounts\Identity\Models\User;
-use App\Shared\Infrastructure\Http\Controller;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
+use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\RedirectResponse;
 

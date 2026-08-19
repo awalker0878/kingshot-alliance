@@ -60,7 +60,7 @@ final class KingdomAllianceIntelligenceQuery
     }
 
     /**
-     * @param iterable<int, KingdomAllianceTrackingRow> $tracking
+     * @param  iterable<int, KingdomAllianceTrackingRow>  $tracking
      * @return array<string, KingdomAllianceObservation>
      */
     public function latestAccepted(string $allianceId, iterable $tracking, Carbon $asOf): array
@@ -89,7 +89,7 @@ final class KingdomAllianceIntelligenceQuery
     }
 
     /**
-     * @param iterable<int, KingdomAllianceTrackingRow> $tracking
+     * @param  iterable<int, KingdomAllianceTrackingRow>  $tracking
      * @return array<string, KingdomAllianceObservation>
      */
     public function previousAccepted(string $allianceId, iterable $tracking, Carbon $asOf): array
@@ -118,7 +118,7 @@ final class KingdomAllianceIntelligenceQuery
     }
 
     /**
-     * @param iterable<int, KingdomAllianceTrackingRow> $tracking
+     * @param  iterable<int, KingdomAllianceTrackingRow>  $tracking
      * @return array<string, KingdomAllianceObservation>
      */
     public function baselines(
@@ -153,7 +153,7 @@ final class KingdomAllianceIntelligenceQuery
     }
 
     /**
-     * @param iterable<int, KingdomAllianceTrackingRow> $tracking
+     * @param  iterable<int, KingdomAllianceTrackingRow>  $tracking
      * @return array<string, array{active:int,verificationDue:int,latestVerifiedAt:string|null}>
      */
     public function contactDiagnostics(string $allianceId, iterable $tracking, Carbon $asOf): array
@@ -209,7 +209,7 @@ final class KingdomAllianceIntelligenceQuery
     }
 
     /**
-     * @param iterable<int, KingdomAllianceObservation> $observations
+     * @param  iterable<int, KingdomAllianceObservation>  $observations
      * @return array<string, KingdomAllianceObservation>
      */
     private function byTracking(iterable $observations): array

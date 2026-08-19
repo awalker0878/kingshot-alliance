@@ -103,6 +103,7 @@ final readonly class InvalidateKingdomAllianceObservation
     private function nullableText(?string $value): ?string
     {
         $value = $value === null ? null : trim($value);
+
         return $value === '' ? null : $value;
     }
 }

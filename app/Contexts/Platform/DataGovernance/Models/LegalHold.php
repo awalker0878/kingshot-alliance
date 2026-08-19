@@ -10,8 +10,11 @@ use Illuminate\Database\Eloquent\Model;
 final class LegalHold extends Model
 {
     use HasUlids;
+
     public $incrementing = false;
+
     protected $keyType = 'string';
+
     protected $fillable = ['subject_type', 'subject_id', 'reason', 'placed_by_user_id', 'placed_at', 'released_by_user_id', 'released_at'];
 
     protected function casts(): array

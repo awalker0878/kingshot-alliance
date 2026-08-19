@@ -12,7 +12,6 @@ use App\Contexts\Alliance\Content\Models\ContentCategory;
 use App\Contexts\Alliance\Content\Models\ContentItem;
 use App\Contexts\Alliance\Content\Models\ContentRevision;
 use App\Contexts\Alliance\Content\Services\ContentRevisionWriter;
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;

@@ -53,5 +53,4 @@ final class KingSkillPlan extends Model
     {
         return $this->belongsTo(KingPerkPlan::class, 'plan_id');
     }
-
 }

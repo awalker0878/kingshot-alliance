@@ -15,6 +15,7 @@ $read = static function (string $path) use ($root, &$failures): string {
     $full = $root.'/'.$path;
     if (! is_file($full)) {
         $failures[] = "Missing required persistence definition: {$path}";
+
         return '';
     }
 
@@ -50,7 +51,7 @@ foreach (glob($migrationDir.'/*.php') ?: [] as $migration) {
 }
 
 if ($failures !== []) {
-    fwrite(STDERR, "V3 persistence verification failed (".count($failures)." violations):\n");
+    fwrite(STDERR, 'V3 persistence verification failed ('.count($failures)." violations):\n");
     foreach ($failures as $failure) {
         fwrite(STDERR, "- {$failure}\n");
     }

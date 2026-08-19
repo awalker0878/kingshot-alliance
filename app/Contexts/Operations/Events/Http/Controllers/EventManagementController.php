@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Contexts\Operations\Events\Http\Controllers;
 
 use App\Contexts\Accounts\Identity\Contracts\AuthenticatedAccount;
-use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\GameWorld\Players\Services\PlayerContext;
+use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Operations\Events\Actions\CancelEvent;
 use App\Contexts\Operations\Events\Actions\CreateEvent;
 use App\Contexts\Operations\Events\Actions\CreateEventFromTemplate;

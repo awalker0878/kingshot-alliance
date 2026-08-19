@@ -7,7 +7,9 @@ namespace App\Contexts\Operations\Events\Services;
 use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
 use App\Contexts\Alliance\Lifecycle\ValueObjects\AllianceReference;
 use App\Contexts\GameWorld\Kingdoms\Queries\KingdomReferenceQuery;
+use App\Contexts\GameWorld\Kingdoms\ValueObjects\KingdomReference;
 use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
+use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Operations\Events\Enums\EventScope;
 use App\Contexts\Operations\Events\Models\Event;
 use App\Contexts\Operations\Events\Models\EventTemplate;
@@ -71,7 +73,7 @@ final readonly class EventTargetResolver
         );
     }
 
-    private function kingdomTarget(\App\Contexts\GameWorld\Kingdoms\ValueObjects\KingdomReference $kingdom): EventTargetReference
+    private function kingdomTarget(KingdomReference $kingdom): EventTargetReference
     {
         return new EventTargetReference(
             scope: EventScope::Kingdom,
@@ -85,7 +87,7 @@ final readonly class EventTargetResolver
         );
     }
 
-    private function playerTarget(\App\Contexts\GameWorld\Players\ValueObjects\PlayerReference $player): EventTargetReference
+    private function playerTarget(PlayerReference $player): EventTargetReference
     {
         return new EventTargetReference(
             scope: EventScope::Player,

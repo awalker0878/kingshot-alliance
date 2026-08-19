@@ -42,7 +42,6 @@ final class PlayerReferenceQuery
             ->all();
     }
 
-
     public function findOwnedByUser(int $userId, string $playerId): ?PlayerReference
     {
         $player = Player::query()
@@ -68,9 +67,8 @@ final class PlayerReferenceQuery
             ->all();
     }
 
-
     /**
-     * @param list<string> $playerIds
+     * @param  list<string>  $playerIds
      * @return array<string, PlayerReference>
      */
     public function byIds(array $playerIds): array

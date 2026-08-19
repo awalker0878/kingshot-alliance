@@ -16,7 +16,7 @@ final class PlayerFormationController extends Controller
 {
     public function store(Request $request, PlayerContext $context, SavePlayerFormation $save): RedirectResponse
     {
-         $playerId = $context->player()->playerId;
+        $playerId = $context->player()->playerId;
         $validated = $this->validateFormation($request);
         $save->handle(
             actorPlayerId: $playerId,
@@ -32,7 +32,7 @@ final class PlayerFormationController extends Controller
 
     public function update(Request $request, string $formation, PlayerContext $context, SavePlayerFormation $save): RedirectResponse
     {
-         $playerId = $context->player()->playerId;
+        $playerId = $context->player()->playerId;
         $validated = $this->validateFormation($request);
         $save->handle(
             actorPlayerId: $playerId,

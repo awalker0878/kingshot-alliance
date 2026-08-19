@@ -36,5 +36,4 @@ final class EventPollVote extends Model
     {
         return $this->belongsTo(EventPollOption::class, 'option_id');
     }
-
 }

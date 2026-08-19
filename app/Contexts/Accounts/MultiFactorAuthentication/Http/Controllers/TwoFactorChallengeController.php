@@ -6,8 +6,8 @@ namespace App\Contexts\Accounts\MultiFactorAuthentication\Http\Controllers;
 
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Accounts\MultiFactorAuthentication\Services\TwoFactorManager;
-use App\Shared\Infrastructure\Http\Controller;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
+use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

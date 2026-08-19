@@ -96,9 +96,17 @@ final readonly class SaveEventAllianceResult
 
     private function validate(?string $outcome, ?int $score, ?int $rank, ?string $notes): void
     {
-        if ($outcome !== null && mb_strlen(trim($outcome)) > 80) throw ValidationException::withMessages(['outcome' => 'Outcome must be 80 characters or fewer.']);
-        if ($score !== null && $score < 0) throw ValidationException::withMessages(['score' => 'Score cannot be negative.']);
-        if ($rank !== null && $rank < 1) throw ValidationException::withMessages(['rank' => 'Rank must be at least one.']);
-        if ($notes !== null && mb_strlen(trim($notes)) > 10000) throw ValidationException::withMessages(['notes' => 'Result notes must be 10000 characters or fewer.']);
+        if ($outcome !== null && mb_strlen(trim($outcome)) > 80) {
+            throw ValidationException::withMessages(['outcome' => 'Outcome must be 80 characters or fewer.']);
+        }
+        if ($score !== null && $score < 0) {
+            throw ValidationException::withMessages(['score' => 'Score cannot be negative.']);
+        }
+        if ($rank !== null && $rank < 1) {
+            throw ValidationException::withMessages(['rank' => 'Rank must be at least one.']);
+        }
+        if ($notes !== null && mb_strlen(trim($notes)) > 10000) {
+            throw ValidationException::withMessages(['notes' => 'Result notes must be 10000 characters or fewer.']);
+        }
     }
 }

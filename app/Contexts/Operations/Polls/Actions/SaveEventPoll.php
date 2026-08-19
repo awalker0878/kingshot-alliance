@@ -30,8 +30,8 @@ final readonly class SaveEventPoll
     ) {}
 
     /**
-     * @param list<array{label:string,value:string,metadata?:array<string,mixed>}>|null $options
-     * @param array<string, mixed>|null $settings
+     * @param  list<array{label:string,value:string,metadata?:array<string,mixed>}>|null  $options
+     * @param  array<string, mixed>|null  $settings
      */
     public function handle(
         string $actorPlayerId,
@@ -146,7 +146,7 @@ final readonly class SaveEventPoll
     }
 
     /**
-     * @param list<array{label:string,value:string,metadata?:array<string,mixed>}> $options
+     * @param  list<array{label:string,value:string,metadata?:array<string,mixed>}>  $options
      * @return list<array{label:string,value:string,metadata?:array<string,mixed>}>
      */
     private function normalizeOptions(EventPollType $type, array $options): array

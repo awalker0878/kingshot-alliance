@@ -10,20 +10,20 @@ use App\Contexts\GameWorld\KingdomTransfers\Http\Controllers\TransferPlanControl
 use App\Contexts\GameWorld\KingdomTransfers\Http\Controllers\TransferReadinessController;
 use App\Contexts\Intelligence\Diplomacy\Http\Controllers\KingdomAllianceDiplomacyContactController;
 use App\Contexts\Intelligence\Diplomacy\Http\Controllers\KingdomAllianceDiplomacyController;
-use App\ReadModels\KingdomIntelligence\Http\Controllers\KingdomAllianceIntelligenceController;
 use App\Contexts\Intelligence\Ingestion\Http\Controllers\KingdomIngestionController;
 use App\Contexts\Intelligence\Observations\Http\Controllers\KingdomAllianceController;
 use App\Contexts\Intelligence\Observations\Http\Controllers\KingdomAllianceObservationController;
 use App\Contexts\Intelligence\Roster\Http\Controllers\PlayerSnapshotController;
-use App\ReadModels\Roster\Http\Controllers\PlayerSnapshotHistoryController;
 use App\Contexts\Intelligence\Roster\Http\Controllers\RosterController;
-use App\ReadModels\Roster\Http\Controllers\RosterReadController;
 use App\Contexts\Intelligence\Roster\Http\Controllers\RosterCsvController;
+use App\Contexts\Intelligence\Sharing\Http\Controllers\KingdomIntelligenceSharingController;
+use App\ReadModels\KingdomIntelligence\Http\Controllers\KingdomAllianceIntelligenceController;
+use App\ReadModels\KingdomSettings\Http\Controllers\KingdomSettingsController;
+use App\ReadModels\Roster\Http\Controllers\PlayerSnapshotHistoryController;
 use App\ReadModels\Roster\Http\Controllers\RosterImportReadController;
 use App\ReadModels\Roster\Http\Controllers\RosterIntelligenceController;
-use App\Contexts\Intelligence\Sharing\Http\Controllers\KingdomIntelligenceSharingController;
+use App\ReadModels\Roster\Http\Controllers\RosterReadController;
 use App\ReadModels\SharedKingdomIntelligence\Http\Controllers\KingdomIntelligenceSharingReadController;
-use App\ReadModels\KingdomSettings\Http\Controllers\KingdomSettingsController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->group(function (): void {

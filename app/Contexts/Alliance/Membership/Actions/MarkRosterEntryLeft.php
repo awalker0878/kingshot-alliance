@@ -42,6 +42,7 @@ final readonly class MarkRosterEntryLeft
                 $this->audit->record('membership.roster_entry_left', $context->actor, $entry, $context->alliance, $metadata);
                 $this->outbox->record('membership.roster_entry_left', $allianceId, $entry, $metadata);
             }
+
             return $this->roster->find($allianceId, (string) $entry->id) ?? throw new \RuntimeException('Roster entry disappeared after leave.');
         });
     }

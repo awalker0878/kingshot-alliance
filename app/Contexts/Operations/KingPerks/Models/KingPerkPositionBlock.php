@@ -50,5 +50,4 @@ final class KingPerkPositionBlock extends Model
     {
         return $this->belongsTo(KingPerkAppointment::class, 'source_appointment_id');
     }
-
 }
