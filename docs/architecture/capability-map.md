@@ -66,7 +66,7 @@ Alliance policies belong to the capability that owns the rule; `Alliance/Policie
 
 ## Communications
 
-- **Delivery** — notification delivery coordination, recipient/preferences, channels, attempts, retry/failure handling and idempotency.
+- **Delivery** — notification delivery coordination, encrypted recipient endpoints, inbox state/preferences, channels, provider acknowledgement, retry/failure handling and idempotency.
 
 Communications does not own Event, King Perk or other source-domain reminder semantics.
 

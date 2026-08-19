@@ -14,6 +14,33 @@ type MembershipSummary = {
   rank: string;
   roles: RoleSummary[];
   canManageAlliance: boolean;
+  canManageRecruitment: boolean;
+};
+type CommandOverview = {
+  unreadNotifications: number;
+  pendingGiftCodes: number;
+  upcomingEvents: Array<{
+    id: string;
+    title: string | null;
+    nameKey: string;
+    scope: string;
+    startsAt: string;
+  }>;
+  eventActions: Array<{
+    occurrenceId: string;
+    title: string | null;
+    nameKey: string;
+    action: string;
+    startsAt: string;
+  }>;
+  giftCodes: Array<{
+    id: string;
+    code: string;
+    status: string;
+    expiresAt: string | null;
+  }>;
+  recruitment: { pending: number; overdue: number } | null;
+  actionCount: number;
 };
 
 defineProps<{
@@ -25,10 +52,11 @@ defineProps<{
     kingdomNumber: number | null;
   } | null;
   membership: MembershipSummary | null;
+  command: CommandOverview | null;
   canCreateAlliance: boolean;
 }>();
 
-const { t } = useLocale();
+const { t, formatDate } = useLocale();
 const allianceForm = useForm({
   name: '',
   slug: '',
@@ -80,25 +108,87 @@ function rolesFor(membership: MembershipSummary): string {
       </template>
     </RoomBanner>
 
-    <section v-if="membership" class="mt-4 grid gap-3 sm:grid-cols-2 2xl:grid-cols-4">
-      <StatSeal :label="t('navigation.alliance')" :value="membership.alliance.name" icon="♜" />
+    <section v-if="command" class="mt-4 grid gap-3 sm:grid-cols-2 2xl:grid-cols-4">
+      <StatSeal label="Needs attention" :value="command.actionCount" icon="!" tone="teal" />
       <StatSeal
-        :label="t('application.dashboard.roles')"
-        :value="membership.rank.toUpperCase()"
-        icon="♛"
-        tone="teal"
+        :label="t('navigation.events')"
+        :value="command.upcomingEvents.length"
+        icon="⚔"
       />
       <StatSeal
-        :label="t('application.dashboard.roles')"
-        :value="membership.roles.length"
-        icon="⚑"
+        :label="t('navigation.giftCodes')"
+        :value="command.pendingGiftCodes"
+        icon="✦"
         tone="stone"
       />
       <StatSeal
-        :label="t('navigation.kingdom')"
-        :value="activePlayer?.kingdomNumber ? `K${activePlayer.kingdomNumber}` : '—'"
-        icon="♚"
+        :label="t('navigation.notifications')"
+        :value="command.unreadNotifications"
+        icon="⌁"
       />
+    </section>
+
+    <section
+      v-if="command"
+      class="ks-surface-gold mt-5 p-5 sm:p-6"
+      aria-labelledby="command-attention-heading"
+    >
+      <div class="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p class="ks-kicker">Governor briefing</p>
+          <h2 id="command-attention-heading" class="ks-display mt-1 text-2xl font-semibold">
+            Needs your attention
+          </h2>
+        </div>
+        <span class="ks-status" :data-tone="command.actionCount ? 'warning' : 'success'">
+          {{ command.actionCount ? `${command.actionCount} open` : 'Caught up' }}
+        </span>
+      </div>
+
+      <div v-if="command.actionCount" class="mt-4 grid gap-3 md:grid-cols-2 2xl:grid-cols-4">
+        <Link
+          v-if="command.unreadNotifications"
+          href="/notifications"
+          class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-4 transition hover:border-[var(--ks-border-strong)]"
+        >
+          <p class="ks-kicker">{{ t('navigation.notifications') }}</p>
+          <strong class="mt-2 block text-lg">{{ command.unreadNotifications }} unread</strong>
+          <span class="mt-2 block text-xs text-[var(--ks-muted)]">Review alerts and delivery failures</span>
+        </Link>
+        <Link
+          v-if="command.pendingGiftCodes"
+          href="/gift-codes"
+          class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-4 transition hover:border-[var(--ks-border-strong)]"
+        >
+          <p class="ks-kicker">{{ t('navigation.giftCodes') }}</p>
+          <strong class="mt-2 block text-lg">{{ command.pendingGiftCodes }} to redeem</strong>
+          <span v-if="command.giftCodes[0]" class="mt-2 block truncate font-mono text-xs text-[var(--ks-muted)]">
+            {{ command.giftCodes[0].code }}
+          </span>
+        </Link>
+        <Link
+          v-for="action in command.eventActions"
+          :key="`${action.occurrenceId}:${action.action}`"
+          :href="`/events/${action.occurrenceId}`"
+          class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-4 transition hover:border-[var(--ks-border-strong)]"
+        >
+          <p class="ks-kicker">{{ t('navigation.events') }}</p>
+          <strong class="mt-2 block truncate">{{ action.title || t(action.nameKey) }}</strong>
+          <span class="mt-2 block text-xs text-[var(--ks-muted)]">{{ action.action.replaceAll('_', ' ') }}</span>
+        </Link>
+        <Link
+          v-if="command.recruitment?.overdue"
+          href="/alliance/recruitment"
+          class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-4 transition hover:border-[var(--ks-border-strong)]"
+        >
+          <p class="ks-kicker">{{ t('navigation.recruitment') }}</p>
+          <strong class="mt-2 block text-lg">{{ command.recruitment.overdue }} overdue</strong>
+          <span class="mt-2 block text-xs text-[var(--ks-muted)]">Candidate follow-up is due</span>
+        </Link>
+      </div>
+      <div v-else class="ks-fantasy-empty mt-4">
+        No urgent Governor actions. Use the rooms below to keep planning ahead.
+      </div>
     </section>
 
     <div v-if="membership" class="mt-5 grid gap-5 2xl:grid-cols-[1.35fr_.65fr]">
@@ -216,6 +306,35 @@ function rolesFor(membership: MembershipSummary): string {
       </div>
 
       <aside class="space-y-5">
+        <section
+          v-if="command?.upcomingEvents.length"
+          class="ks-surface p-5"
+          aria-labelledby="upcoming-events-heading"
+        >
+          <div class="flex items-end justify-between gap-3">
+            <div>
+              <p class="ks-kicker">Next on the calendar</p>
+              <h2 id="upcoming-events-heading" class="ks-display mt-1 text-xl font-semibold">
+                Upcoming Events
+              </h2>
+            </div>
+            <Link href="/events" class="ks-chip">View all</Link>
+          </div>
+          <div class="mt-4 space-y-2">
+            <Link
+              v-for="event in command.upcomingEvents"
+              :key="event.id"
+              :href="`/events/${event.id}`"
+              class="block rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-3 transition hover:border-[var(--ks-border-strong)]"
+            >
+              <strong class="block truncate text-sm">{{ event.title || t(event.nameKey) }}</strong>
+              <span class="mt-1 block text-xs text-[var(--ks-muted)]">
+                {{ formatDate(event.startsAt) }} · {{ event.scope }}
+              </span>
+            </Link>
+          </div>
+        </section>
+
         <section class="ks-surface p-5" aria-labelledby="active-governor-heading">
           <p class="ks-kicker">{{ t('common.currentPlayer') }}</p>
           <div class="mt-4 flex items-center gap-4">

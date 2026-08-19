@@ -12,6 +12,17 @@ Register/sign in
  -> Alliance/Kingdom/game capabilities become available according to that Player
 ```
 
+## Daily Governor briefing
+
+```text
+Select active Player
+ -> compose unread notifications, actionable Gift Codes, Event actions and upcoming Events
+ -> include recruitment follow-up only when the Player has recruitment authority
+ -> link to owner-context rooms for every write
+```
+
+The command overview is a read-model composition surface. It does not own or copy the underlying business state.
+
 ## Alliance member
 
 ```text

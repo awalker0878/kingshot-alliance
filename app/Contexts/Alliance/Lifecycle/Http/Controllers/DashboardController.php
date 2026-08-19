@@ -12,6 +12,7 @@ use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\GameWorld\Players\Services\PlayerContext;
+use App\ReadModels\CommandOverview\Queries\CommandOverviewQuery;
 use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -20,13 +21,21 @@ use LogicException;
 
 final class DashboardController extends Controller
 {
-    public function __invoke(Request $request, PlayerContext $playerContext, AllianceAuthorization $authorization): Response
-    {
+    public function __invoke(
+        Request $request,
+        PlayerContext $playerContext,
+        AllianceAuthorization $authorization,
+        CommandOverviewQuery $overview,
+    ): Response {
         $user = $request->user();
         abort_unless($user instanceof AuthenticatedAccount, 401);
+        $userId = $user->getAuthIdentifier();
+        abort_unless(is_numeric($userId), 401);
 
         $player = $playerContext->playerOrNull();
         $membershipSummary = null;
+        $allianceId = null;
+        $canManageRecruitment = false;
 
         if ($player !== null) {
             $membership = AllianceMembership::query()
@@ -44,6 +53,12 @@ final class DashboardController extends Controller
                     throw new LogicException('An active membership must reference an Alliance.');
                 }
 
+                $allianceId = (string) $alliance->id;
+                $canManageRecruitment = $authorization->allows(
+                    $player->playerId,
+                    $allianceId,
+                    AlliancePermission::RecruitmentManage,
+                );
                 $roles = $membership->roles
                     ->map(static fn (Role $role): array => [
                         'key' => (string) $role->key,
@@ -55,7 +70,7 @@ final class DashboardController extends Controller
                 $membershipSummary = [
                     'id' => (string) $membership->id,
                     'alliance' => [
-                        'id' => (string) $alliance->id,
+                        'id' => $allianceId,
                         'name' => (string) $alliance->name,
                         'slug' => (string) $alliance->slug,
                         'timezone' => (string) $alliance->timezone,
@@ -64,9 +79,10 @@ final class DashboardController extends Controller
                     'roles' => $roles,
                     'canManageAlliance' => $authorization->allows(
                         $player->playerId,
-                        (string) $alliance->id,
+                        $allianceId,
                         AlliancePermission::Manage,
                     ),
+                    'canManageRecruitment' => $canManageRecruitment,
                 ];
             }
         }
@@ -86,6 +102,12 @@ final class DashboardController extends Controller
                 'kingdomNumber' => $player->kingdomNumber,
             ],
             'membership' => $membershipSummary,
+            'command' => $player === null ? null : $overview->for(
+                (int) $userId,
+                $player,
+                $allianceId,
+                $canManageRecruitment,
+            ),
             'canCreateAlliance' => $player !== null && $membershipSummary === null,
         ]);
     }
