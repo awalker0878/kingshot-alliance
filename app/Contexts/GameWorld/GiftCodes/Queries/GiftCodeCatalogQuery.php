@@ -7,7 +7,7 @@ namespace App\Contexts\GameWorld\GiftCodes\Queries;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCode;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeRedemption;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\Relation;
 
 final class GiftCodeCatalogQuery
 {
@@ -15,8 +15,8 @@ final class GiftCodeCatalogQuery
     public function forPlayer(string $playerId, int $limit = 100): Collection
     {
         return GiftCode::query()
-            ->with(['redemptions' => static function (HasMany $query) use ($playerId): void {
-                $query->where('player_id', $playerId)->limit(1);
+            ->with(['redemptions' => static function (Relation $relation) use ($playerId): void {
+                $relation->getQuery()->where('player_id', $playerId)->limit(1);
             }])
             ->orderByDesc('discovered_at')
             ->limit(max(1, min($limit, 250)))
