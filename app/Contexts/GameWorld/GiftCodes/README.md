@@ -11,3 +11,5 @@ GameWorld owns the Gift Code catalogue and the per-Player, per-Kingdom redemptio
 Communications may announce Gift Code events, but it does not own Gift Code state or redemption policy.
 
 The UI supports current-Governor and all-owned-Governor handoff while keeping each result independently auditable.
+
+Automated providers must preserve the same outcome vocabulary and may never bypass Player ownership checks.
