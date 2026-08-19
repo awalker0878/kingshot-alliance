@@ -33,6 +33,6 @@ final class MemberCapacityPolicy
             throw ValidationException::withMessages(['plan' => sprintf('The current plan does not define the %s entitlement.', $key)]);
         }
 
-        return max(0,(int) $value);
+        return max(0, (int) $value);
     }
 }
