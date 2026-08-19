@@ -1,8 +1,36 @@
-import { useForm } from '@inertiajs/vue3';
+import { type InertiaFormProps, useForm } from '@inertiajs/vue3';
 import { onScopeDispose, watch } from 'vue';
 
 import { useGameContext } from '@/composables/useGameContext';
 import { activeContextKey, registerContextDisposer } from '@/identity/context-isolation';
+
+type ContextFormConvertibleValue =
+  | Blob
+  | FormDataEntryValue
+  | Date
+  | boolean
+  | number
+  | null
+  | undefined;
+
+type ContextFormData<T extends object> = {
+  [K in keyof T]: T[K] extends infer U
+    ? U extends ContextFormConvertibleValue
+      ? U
+      : U extends (...args: unknown[]) => unknown
+        ? never
+        : U extends object | Array<unknown>
+          ? ContextFormData<U>
+          : never
+    : never;
+};
+
+type ReservedFormKey = keyof InertiaFormProps<object>;
+type ValidateContextFormData<T> = {
+  [K in keyof T]: K extends ReservedFormKey
+    ? ['Error: This field name is reserved by useContextForm:', K]
+    : T[K];
+};
 
 /**
  * Creates an Inertia form whose pending work and transient state belong to the
@@ -11,8 +39,10 @@ import { activeContextKey, registerContextDisposer } from '@/identity/context-is
  *
  * Platform/account forms intentionally continue using Inertia's plain useForm.
  */
-export function useContextForm<TForm extends Record<string, any>>(data: TForm) {
-  const form = useForm(data);
+export function useContextForm<
+  TForm extends ContextFormData<TForm> & ValidateContextFormData<TForm>,
+>(data: TForm) {
+  const form = useForm<TForm>(data);
   const { context } = useGameContext();
   let registeredContextKey: string | null = null;
   let unregister = () => {};
