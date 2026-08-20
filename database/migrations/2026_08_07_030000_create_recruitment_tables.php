@@ -22,6 +22,7 @@ return new class extends Migration
             $table->text('introduction')->nullable();
             $table->unsignedSmallInteger('retention_unsuccessful_days')->default(90);
             $table->boolean('is_open')->default(true)->index();
+            $table->boolean('is_listed')->default(false)->index();
             $table->foreignUlid('created_by_player_id')->constrained('players')->restrictOnDelete();
             $table->foreignUlid('updated_by_player_id')->constrained('players')->restrictOnDelete();
             $table->timestamps();
@@ -85,6 +86,7 @@ return new class extends Migration
             $table->timestamp('withdrawn_at')->nullable();
             $table->timestamp('joined_at')->nullable();
             $table->timestamp('retention_due_at')->nullable()->index();
+            $table->timestamp('anonymized_at')->nullable()->index();
             $table->foreignUlid('updated_by_player_id')->nullable()->constrained('players')->nullOnDelete();
             $table->timestamps();
 
@@ -100,6 +102,14 @@ return new class extends Migration
             $table->unique(['id', 'alliance_id']);
             $table->index(['alliance_id', 'email']);
             $table->index(['alliance_id', 'stage', 'submitted_at']);
+            $table->index(
+                ['alliance_id', 'submitted_at', 'id'],
+                'recruitment_candidates_alliance_submitted_cursor_idx',
+            );
+            $table->index(
+                ['alliance_id', 'source', 'submitted_at', 'id'],
+                'recruitment_candidates_source_cursor_idx',
+            );
             $table->index(['alliance_id', 'next_action_at']);
         });
 

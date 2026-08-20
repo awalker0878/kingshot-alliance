@@ -44,7 +44,7 @@ final class KingdomIntelligenceSharingController extends Controller
         $scope = $context->scope();
         $accept->handle($scope->allianceId, $scope->playerId, (string) $validated['token']);
 
-        return back()->with('status', 'kingdom-shared-intelligence-accepted');
+        return back()->with('actionReceipt', $this->receipt('kingdom-shared-intelligence-accepted'));
     }
 
     public function declineInvitation(
@@ -58,7 +58,7 @@ final class KingdomIntelligenceSharingController extends Controller
         $scope = $context->scope();
         $decline->handle($scope->allianceId, $scope->playerId, (string) $validated['token']);
 
-        return back()->with('status', 'kingdom-shared-intelligence-declined');
+        return back()->with('actionReceipt', $this->receipt('kingdom-shared-intelligence-declined'));
     }
 
     public function revoke(
@@ -70,7 +70,7 @@ final class KingdomIntelligenceSharingController extends Controller
         $scope = $context->scope();
         $revoke->handle($scope->allianceId, $scope->playerId, $share);
 
-        return back()->with('status', 'kingdom-shared-intelligence-revoked');
+        return back()->with('actionReceipt', $this->receipt('kingdom-shared-intelligence-revoked'));
     }
 
     public function leave(
@@ -82,7 +82,7 @@ final class KingdomIntelligenceSharingController extends Controller
         $scope = $context->scope();
         $leave->handle($scope->allianceId, $scope->playerId, $share);
 
-        return back()->with('status', 'kingdom-shared-intelligence-left');
+        return back()->with('actionReceipt', $this->receipt('kingdom-shared-intelligence-left'));
     }
 
     public function addTarget(
@@ -95,7 +95,7 @@ final class KingdomIntelligenceSharingController extends Controller
         $scope = $context->scope();
         $add->handle($scope->allianceId, $scope->playerId, $share, $tracking);
 
-        return back()->with('status', 'kingdom-shared-intelligence-target-shared');
+        return back()->with('actionReceipt', $this->receipt('kingdom-shared-intelligence-target-shared'));
     }
 
     public function removeTarget(
@@ -108,6 +108,6 @@ final class KingdomIntelligenceSharingController extends Controller
         $scope = $context->scope();
         $remove->handle($scope->allianceId, $scope->playerId, $share, $target);
 
-        return back()->with('status', 'kingdom-shared-intelligence-target-removed');
+        return back()->with('actionReceipt', $this->receipt('kingdom-shared-intelligence-target-removed'));
     }
 }

@@ -6,6 +6,7 @@ namespace App\Contexts\Operations\Events\Services;
 
 use App\Contexts\Alliance\Access\Queries\AllianceAuthorityFactsQuery;
 use App\Contexts\Alliance\Access\ValueObjects\AllianceAuthorityFacts;
+use App\Contexts\Alliance\Membership\Queries\PlayerMembershipQuery;
 use App\Contexts\Alliance\Membership\Queries\RosterEntryQuery;
 use App\Contexts\GameWorld\Governance\Queries\KingdomAuthorityFactsQuery;
 use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
@@ -36,6 +37,7 @@ final readonly class EventWriteState
         private PlayerReferenceQuery $players,
         private AllianceAuthorityFactsQuery $allianceAuthority,
         private KingdomAuthorityFactsQuery $kingdomAuthority,
+        private PlayerMembershipQuery $memberships,
         private RosterEntryQuery $roster,
     ) {}
 
@@ -91,7 +93,7 @@ final readonly class EventWriteState
 
         if ($context->event->scopeEnum() === EventScope::Alliance) {
             if ($context->target->allianceId === null
-                || ! $this->roster->lockActiveRosterPresence($context->target->allianceId, $participantPlayerId)) {
+                || ! $this->memberships->lockActiveMember($context->target->allianceId, $participantPlayerId)) {
                 throw new AuthorizationException;
             }
         }

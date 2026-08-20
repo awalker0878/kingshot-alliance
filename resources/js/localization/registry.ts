@@ -50,6 +50,7 @@ export function domainsForPage(name: string): LocalizationDomain[] {
 
   if (name.startsWith('Accounts/Access/')) domains.add('auth');
   if (name.startsWith('Accounts/Governor/')) domains.add('account');
+  if (name.startsWith('Accounts/Notifications/')) domains.add('account');
 
   if (name.startsWith('Public/')) {
     domains.add('public');

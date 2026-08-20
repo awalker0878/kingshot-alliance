@@ -6,21 +6,29 @@ namespace App\Contexts\Platform\Integrations\Contracts;
 
 final class WebhookEventCatalog
 {
-    /** @var list<string> */
+    /** @var array<string, array{scope: 'alliance'|'global', required: list<string>}> */
     private const PUBLIC_EVENTS = [
-        'content.published',
-        'event.created',
-        'event.updated',
-        'event.cancelled',
-        'membership.rank_changed',
-        'membership.roster_entry_left',
-        'recruitment.candidate.stage_changed',
-        'recruitment.candidate.joined',
+        'content.published' => ['scope' => 'alliance', 'required' => ['content_item_id', 'revision_number']],
+        'event.created' => ['scope' => 'alliance', 'required' => ['scope', 'target_id']],
+        'event.updated' => ['scope' => 'alliance', 'required' => ['scope', 'target_id']],
+        'event.cancelled' => ['scope' => 'alliance', 'required' => ['scope', 'target_id']],
+        'member.updated' => ['scope' => 'alliance', 'required' => ['member_id', 'player_id', 'change']],
+        'member.left' => ['scope' => 'alliance', 'required' => ['member_id', 'player_id', 'source']],
+        'recruitment.candidate.stage_changed' => ['scope' => 'alliance', 'required' => ['candidate_id', 'from_stage', 'to_stage']],
+        'recruitment.candidate.joined' => ['scope' => 'alliance', 'required' => ['candidate_id', 'membership_invitation_id']],
+        'gift_code.created' => ['scope' => 'global', 'required' => ['gift_code_id', 'code', 'status']],
+        'gift_code.provenance_added' => ['scope' => 'global', 'required' => ['gift_code_id', 'code', 'source_type']],
+        'gift_code.status_changed' => ['scope' => 'global', 'required' => ['gift_code_id', 'previous_status', 'status']],
+        'broadcast.schedule.updated' => ['scope' => 'alliance', 'required' => ['schedule_id', 'content_item_id', 'timezone', 'weekdays', 'local_time', 'next_run_at']],
+        'broadcast.schedule.cancelled' => ['scope' => 'alliance', 'required' => ['schedule_id', 'content_item_id', 'reason']],
+        'broadcast.run.queued' => ['scope' => 'alliance', 'required' => ['broadcast_run_id', 'content_item_id', 'recipient_count', 'delivery_count']],
+        'broadcast.delivery.succeeded' => ['scope' => 'alliance', 'required' => ['broadcast_run_id', 'content_item_id', 'channel', 'status', 'attempt_count']],
+        'broadcast.delivery.failed' => ['scope' => 'alliance', 'required' => ['broadcast_run_id', 'content_item_id', 'channel', 'status', 'attempt_count', 'retryable']],
     ];
 
     public static function isPublic(string $eventType): bool
     {
-        return in_array($eventType, self::PUBLIC_EVENTS, true);
+        return array_key_exists($eventType, self::PUBLIC_EVENTS);
     }
 
     public static function isValidSelector(string $eventType): bool
@@ -30,6 +38,34 @@ final class WebhookEventCatalog
 
     /** @return list<string> */
     public static function publicEvents(): array
+    {
+        return array_keys(self::PUBLIC_EVENTS);
+    }
+
+    public static function isGlobal(string $eventType): bool
+    {
+        return (self::PUBLIC_EVENTS[$eventType]['scope'] ?? null) === 'global';
+    }
+
+    /** @param array<string, mixed> $payload */
+    public static function payloadIsValid(string $eventType, array $payload): bool
+    {
+        $contract = self::PUBLIC_EVENTS[$eventType] ?? null;
+        if ($contract === null) {
+            return false;
+        }
+
+        foreach ($contract['required'] as $field) {
+            if (! array_key_exists($field, $payload)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /** @return array<string, array{scope: 'alliance'|'global', required: list<string>}> */
+    public static function contracts(): array
     {
         return self::PUBLIC_EVENTS;
     }

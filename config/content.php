@@ -14,4 +14,6 @@ return [
     ],
     'public_search_limit' => 50,
     'member_search_limit' => 100,
+    'knowledge_review_max_age_days' => 90,
+    'knowledge_review_warning_days' => 14,
 ];

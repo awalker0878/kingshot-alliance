@@ -93,7 +93,7 @@ final class TransferReadinessController extends Controller
             TransferReadinessState::from($validated['readiness']),
         );
 
-        return back()->with('status', 'transfer-readiness-updated');
+        return back()->with('actionReceipt', $this->receipt('transfer-readiness-updated'));
     }
 
     public function storeBlocker(
@@ -119,7 +119,7 @@ final class TransferReadinessController extends Controller
             $validated['details'] ?? null,
         );
 
-        return back()->with('status', 'transfer-blocker-created');
+        return back()->with('actionReceipt', $this->receipt('transfer-blocker-created'));
     }
 
     public function resolveBlocker(
@@ -133,7 +133,7 @@ final class TransferReadinessController extends Controller
         $scope = $context->scope();
         $resolve->handle($scope->allianceId, $scope->playerId, $plan, $participant, $blocker);
 
-        return back()->with('status', 'transfer-blocker-resolved');
+        return back()->with('actionReceipt', $this->receipt('transfer-blocker-resolved'));
     }
 
     /** @return array{id: string, name: string, kingdom: string} */

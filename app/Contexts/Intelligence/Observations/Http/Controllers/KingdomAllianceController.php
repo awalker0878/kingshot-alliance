@@ -90,7 +90,7 @@ final class KingdomAllianceController extends Controller
         $scope = $context->scope();
         $start->handle($scope->allianceId, $scope->playerId, $this->validated($request));
 
-        return back()->with('status', 'kingdom-alliance-tracking-started');
+        return back()->with('actionReceipt', $this->receipt('kingdom-alliance-tracking-started'));
     }
 
     public function update(Request $request, AllianceContext $context, UpdateTrackedKingdomAlliance $update, string $tracking): RedirectResponse
@@ -98,7 +98,7 @@ final class KingdomAllianceController extends Controller
         $scope = $context->scope();
         $update->handle($scope->allianceId, $scope->playerId, $tracking, $this->validated($request));
 
-        return back()->with('status', 'kingdom-alliance-tracking-updated');
+        return back()->with('actionReceipt', $this->receipt('kingdom-alliance-tracking-updated'));
     }
 
     public function archive(Request $request, AllianceContext $context, ArchiveTrackedKingdomAlliance $archive, string $tracking): RedirectResponse
@@ -106,7 +106,7 @@ final class KingdomAllianceController extends Controller
         $scope = $context->scope();
         $archive->handle($scope->allianceId, $scope->playerId, $tracking);
 
-        return back()->with('status', 'kingdom-alliance-tracking-archived');
+        return back()->with('actionReceipt', $this->receipt('kingdom-alliance-tracking-archived'));
     }
 
     /** @return array{current_name:string,current_tag?:string|null,game_alliance_id?:string|null,manager_notes?:string|null} */

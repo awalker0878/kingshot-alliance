@@ -9,6 +9,7 @@ use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Access\Services\AllianceWriteState;
 use App\Contexts\Alliance\Content\Enums\ContentStatus;
 use App\Contexts\Alliance\Content\Models\ContentItem;
+use App\Contexts\Alliance\Content\Services\DeactivateAnnouncementBroadcastSchedule;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
@@ -18,6 +19,7 @@ final readonly class ArchiveContentItem
     public function __construct(
         private AllianceWriteState $allianceWriteState,
         private AllianceAuthorization $authority,
+        private DeactivateAnnouncementBroadcastSchedule $deactivateBroadcastSchedule,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -40,6 +42,7 @@ final readonly class ArchiveContentItem
                 'archived_at' => now(),
                 'updated_by_player_id' => $context->actor->playerId,
             ])->save();
+            $this->deactivateBroadcastSchedule->handle($item, $context->actor, 'content-archived');
 
             $this->audit->record('content.archived', $context->actor, $item, $context->alliance, [
                 'revision_number' => $item->current_revision_number,

@@ -28,7 +28,17 @@ final readonly class PlatformAdministrationReadController
         abort_unless(is_numeric($identifier), 401);
         $account = $this->accounts->require((int) $identifier);
 
-        $dashboard = $query->dashboard();
+        $validated = $request->validate([
+            'correlation' => [
+                'nullable',
+                'string',
+                'max:36',
+                'regex:/^(?:[0-9a-fA-F]{32}|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12})$/',
+            ],
+        ]);
+        $dashboard = $query->dashboard(isset($validated['correlation'])
+            ? strtolower((string) $validated['correlation'])
+            : null);
         $selectedAllianceId = $request->query('alliance');
         $selectedAlliance = null;
 
@@ -51,7 +61,6 @@ final readonly class PlatformAdministrationReadController
             'platform' => $dashboard,
             'selectedAlliance' => $selectedAlliance,
             'currentUserId' => $account->userId,
-            'status' => $request->session()->get('status'),
         ]);
     }
 }

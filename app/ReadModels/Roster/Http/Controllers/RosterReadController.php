@@ -55,11 +55,19 @@ final class RosterReadController extends Controller
             'linkage' => ['nullable', Rule::in(['linked', 'unlinked'])],
             'role' => ['nullable', 'string', 'max:64'],
             'observation' => ['nullable', Rule::in(['current', 'stale', 'missing'])],
+            'cursor' => ['nullable', 'string', 'max:4096'],
         ]);
-        $entries = $roster->forAlliance($alliance->allianceId, $filters);
+        $page = $roster->pageForAlliance(
+            $alliance->allianceId,
+            $filters,
+            isset($filters['cursor']) ? (string) $filters['cursor'] : null,
+        );
+        /** @var Collection<int, AllianceRosterEntry> $entries */
+        $entries = new Collection($page->items);
         $latest = $snapshots->latestForEntries($alliance->allianceId, $entries);
         $memberships = $this->memberships($alliance->allianceId);
         $playerRefs = $this->playerReferences($players, $entries, $memberships);
+        $entryRows = $this->entries($entries, false, $latest, $memberships, $playerRefs);
 
         return Inertia::render('Alliance/Members/Index', [
             'user' => ['name' => $account->name, 'email' => $account->email],
@@ -69,7 +77,11 @@ final class RosterReadController extends Controller
                 'kingdom' => (string) $kingdom->number,
             ],
             'canManage' => $authorization->allows($scope->playerId, $scope->allianceId, IntelligencePermission::KingdomManage),
-            'entries' => $this->entries($entries, false, $latest, $memberships, $playerRefs),
+            'entryPage' => [
+                ...$page->toArray(),
+                'items' => $entryRows,
+            ],
+            'summary' => $roster->summaryForAlliance($alliance->allianceId, $filters),
             'filters' => [
                 'q' => (string) ($filters['q'] ?? ''),
                 'state' => (string) ($filters['state'] ?? ''),

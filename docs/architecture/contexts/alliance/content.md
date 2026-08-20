@@ -13,7 +13,8 @@ Content owns Alliance-authored content and media lifecycle.
 - revisions/restore, including broadcast intent and provenance;
 - scheduled publishing;
 - provenance and review-date requirements for knowledge content;
-- opt-in announcement broadcast intent and the completed-fanout marker;
+- revisioned contextual links and policy-derived freshness state for knowledge content;
+- opt-in one-off and recurring announcement intent, schedule lifecycle and immutable run receipts;
 - Alliance public-profile content;
 - media upload/archive lifecycle.
 
@@ -27,11 +28,17 @@ Guides, Event instructions and reference pages require a human-readable source l
 
 Provenance is part of the immutable content revision. Restoring a revision restores the associated provenance and broadcast intent, clears publication/broadcast markers and returns the item to draft.
 
+Knowledge content becomes due for review after 90 days and enters the due-soon queue 14 days before that deadline. These repository-controlled defaults are presentation-independent domain policy. A correction saves a new immutable revision and resets freshness only when its reviewed date changes.
+
+Content stores contextual references as allowlisted type/key values. Event references use the stable Event-type slug and are revisioned with the content; no Content table has a foreign key to Operations. The Event Calendar read model resolves only published, member-visible guidance for Alliance-scoped Events. See [ADR-0007](../../adr/0007-version-contextual-knowledge-links.md).
+
 ## Delivery boundary
 
-Content decides whether an Announcement should notify active members and owns the publication/broadcast marker. It resolves the active Alliance membership snapshot and submits render-ready delivery intent to Communications. Recipient preferences, endpoints, provider attempts and retries remain Communications-owned.
+Content decides whether an Announcement should notify active members. It owns one-off publication intent, timezone-aware recurring rules and one immutable run record for each materialized occurrence. A rule stores ISO weekdays, wall-clock time and an IANA time zone so daylight-saving changes do not silently move the intended local time. Revising or archiving content deactivates its active recurring rule.
 
-The fanout worker is idempotent per Announcement, Governor and channel. It never stores provider credentials or provider-specific state in Alliance tables.
+Content resolves the active Alliance membership snapshot and submits render-ready delivery intent through the Communications scalar/value-object contract. Recipient preferences, endpoints, provider attempts and retry state remain Communications-owned. The management screen is a cross-context projection in `ReadModels/AnnouncementBroadcastManagement`; the Alliance write controller never imports that projection.
+
+The fanout worker is idempotent per run, Governor and channel. Test delivery targets only the requesting manager. Failed external deliveries can be selected for a bounded retry after Content reauthorizes the run and Communications revalidates the concrete delivery state. Alliance tables never store provider credentials or provider-specific error state.
 
 ## Media boundary
 

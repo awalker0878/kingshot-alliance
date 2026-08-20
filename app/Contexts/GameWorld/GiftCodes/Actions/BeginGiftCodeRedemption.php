@@ -6,7 +6,6 @@ namespace App\Contexts\GameWorld\GiftCodes\Actions;
 
 use App\Contexts\GameWorld\GiftCodes\Contracts\GiftCodeRedemptionProvider;
 use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeRedemptionStatus;
-use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeStatus;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCode;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeRedemption;
 use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeRedemptionOutcome;
@@ -42,7 +41,7 @@ final readonly class BeginGiftCodeRedemption
         }
 
         $outcome = match (true) {
-            $giftCode->status !== GiftCodeStatus::Active => new GiftCodeRedemptionOutcome(
+            ! $giftCode->status->redeemable() => new GiftCodeRedemptionOutcome(
                 GiftCodeRedemptionStatus::Expired,
                 'code_unavailable',
                 'This Gift Code is no longer active.',

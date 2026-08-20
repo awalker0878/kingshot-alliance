@@ -21,10 +21,26 @@ return new class extends Migration
             $table->string('source_label', 160)->nullable();
             $table->text('source_url')->nullable();
             $table->foreignUlid('created_by_player_id')->nullable()->constrained('players')->nullOnDelete();
-            $table->string('status', 32)->default(GiftCodeStatus::Active->value)->index();
+            $table->string('status', 32)->default(GiftCodeStatus::Pending->value)->index();
+            $table->timestampTz('status_changed_at')->nullable();
             $table->timestampTz('discovered_at')->index();
             $table->timestampTz('expires_at')->nullable()->index();
             $table->timestampsTz();
+        });
+
+        Schema::create('gift_code_provenances', function (Blueprint $table): void {
+            $table->ulid('id')->primary();
+            $table->foreignUlid('gift_code_id')->constrained('gift_codes')->cascadeOnDelete();
+            $table->foreignUlid('submitted_by_player_id')->nullable()->constrained('players')->nullOnDelete();
+            $table->string('source_type', 32);
+            $table->string('source_label', 160)->nullable();
+            $table->text('source_url')->nullable();
+            $table->timestampTz('observed_at')->index();
+            $table->string('fingerprint', 64);
+            $table->timestampsTz();
+
+            $table->unique(['gift_code_id', 'fingerprint']);
+            $table->index(['gift_code_id', 'observed_at']);
         });
 
         Schema::create('gift_code_redemptions', function (Blueprint $table): void {
@@ -51,6 +67,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('gift_code_redemptions');
+        Schema::dropIfExists('gift_code_provenances');
         Schema::dropIfExists('gift_codes');
     }
 };

@@ -14,7 +14,7 @@ use App\Contexts\Alliance\Membership\Policies\MemberCapacityPolicy;
 use App\Contexts\Alliance\Membership\Services\MembershipAdministrationGuard;
 use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
-use App\Shared\Infrastructure\Messaging\Outbox\Models\OutboxMessage;
+use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -27,6 +27,7 @@ final readonly class UpdateMembershipStatus
         private MemberCapacityPolicy $entitlements,
         private AuditRecorder $audit,
         private PlayerReferenceQuery $players,
+        private OutboxRecorder $outbox,
     ) {}
 
     public function handle(string $allianceId, string $actorPlayerId, string $membershipId, MembershipStatus $status): string
@@ -87,18 +88,24 @@ final readonly class UpdateMembershipStatus
                     $membership->roles()->detach();
                 }
 
-                $metadata = ['previous_status' => $previousStatus->value, 'status' => $status->value, 'player_id' => (string) $membership->player_id];
+                $metadata = [
+                    'member_id' => (string) $membership->id,
+                    'membership_id' => (string) $membership->id,
+                    'player_id' => (string) $membership->player_id,
+                    'source' => 'membership',
+                    'change' => 'status',
+                    'previous_status' => $previousStatus->value,
+                    'status' => $status->value,
+                ];
                 $this->audit->record('membership.status_changed', $context->actor, $membership, $context->alliance, $metadata);
-                OutboxMessage::query()->create([
-                    'alliance_id' => $context->alliance->id,
-                    'partition_key' => 'alliance:'.$context->alliance->id,
-                    'event_type' => 'membership.status_changed',
-                    'aggregate_type' => AllianceMembership::class,
-                    'aggregate_id' => $membership->id,
-                    'idempotency_key' => 'membership.status_changed:'.$membership->id.':'.$status->value.':'.now()->format('Uu'),
-                    'payload' => ['alliance_id' => $context->alliance->id, 'membership_id' => $membership->id, 'player_id' => $membership->player_id, 'previous_status' => $previousStatus->value, 'status' => $status->value],
-                    'occurred_at' => now(), 'available_at' => now(), 'attempts' => 0,
-                ]);
+                $this->outbox->record(
+                    $status === MembershipStatus::Removed ? 'member.left' : 'member.updated',
+                    (string) $context->alliance->id,
+                    $membership,
+                    $metadata,
+                    null,
+                    'alliance:'.$context->alliance->id,
+                );
             }
 
             return (string) $membership->id;

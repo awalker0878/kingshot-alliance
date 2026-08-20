@@ -11,12 +11,16 @@ use App\Contexts\Communications\Delivery\Models\NotificationEndpoint;
 use App\Contexts\Communications\Delivery\Services\ExternalDeliveryChannelRegistry;
 use App\Contexts\Communications\Delivery\ValueObjects\DeliveryAttempt;
 use App\Contexts\Communications\Delivery\ValueObjects\DeliveryOutcome;
+use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
 final readonly class ProcessNotificationDeliveries
 {
-    public function __construct(private ExternalDeliveryChannelRegistry $channels) {}
+    public function __construct(
+        private ExternalDeliveryChannelRegistry $channels,
+        private OutboxRecorder $outbox,
+    ) {}
 
     public function handle(int $limit = 100): int
     {
@@ -134,22 +138,61 @@ final readonly class ProcessNotificationDeliveries
 
     private function complete(DeliveryAttempt $attempt, DeliveryOutcome $outcome): void
     {
-        NotificationDelivery::query()
-            ->whereKey($attempt->deliveryId)
-            ->where('status', DeliveryStatus::Pending->value)
-            ->update($outcome->delivered ? [
-                'status' => DeliveryStatus::Sent->value,
+        DB::transaction(function () use ($attempt, $outcome): void {
+            $delivery = NotificationDelivery::query()
+                ->whereKey($attempt->deliveryId)
+                ->where('status', DeliveryStatus::Pending->value)
+                ->lockForUpdate()
+                ->first();
+            if (! $delivery instanceof NotificationDelivery) {
+                return;
+            }
+
+            $retryable = ! $outcome->delivered
+                && $outcome->retryable
+                && $attempt->attemptCount < $attempt->maxAttempts;
+            $delivery->forceFill($outcome->delivered ? [
+                'status' => DeliveryStatus::Sent,
                 'sent_at' => now(),
                 'failed_at' => null,
                 'next_attempt_at' => null,
                 'last_error' => null,
             ] : [
-                'status' => DeliveryStatus::Failed->value,
+                'status' => DeliveryStatus::Failed,
                 'failed_at' => now(),
-                'next_attempt_at' => $outcome->retryable && $attempt->attemptCount < $attempt->maxAttempts
+                'next_attempt_at' => $retryable
                     ? ($outcome->retryAt ?? CarbonImmutable::now('UTC')->addSeconds(30 * (2 ** ($attempt->attemptCount - 1))))
                     : null,
                 'last_error' => mb_substr((string) $outcome->error, 0, 2000),
-            ]);
+            ])->save();
+
+            $allianceId = $attempt->metadata['alliance_id'] ?? null;
+            $runId = $attempt->metadata['broadcast_run_id'] ?? null;
+            $contentItemId = $attempt->metadata['content_item_id'] ?? null;
+            if (! is_string($allianceId) || $allianceId === ''
+                || ! is_string($runId) || $runId === ''
+                || ! is_string($contentItemId) || $contentItemId === '') {
+                return;
+            }
+
+            $metadata = [
+                'broadcast_run_id' => $runId,
+                'content_item_id' => $contentItemId,
+                'channel' => $attempt->channel->value,
+                'status' => $delivery->status->value,
+                'attempt_count' => $attempt->attemptCount,
+                'retryable' => $retryable,
+            ];
+            $this->outbox->record(
+                $outcome->delivered
+                    ? 'broadcast.delivery.succeeded'
+                    : 'broadcast.delivery.failed',
+                $allianceId,
+                $delivery,
+                $metadata,
+                'broadcast-delivery:'.$delivery->id.':attempt:'.$attempt->attemptCount,
+                'alliance:'.$allianceId,
+            );
+        });
     }
 }

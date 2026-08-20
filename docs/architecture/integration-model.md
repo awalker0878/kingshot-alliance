@@ -38,7 +38,7 @@ Workflow
 
 ## Multi-owner processes
 
-Use `app/Workflows` only when a command genuinely coordinates multiple owners. V3 intended workflow packages are `AccountOnboarding` and `KingdomGovernance`.
+Use `app/Workflows` only when a command genuinely coordinates multiple owners. V3 intended workflow packages are `AccountOnboarding`, `ExternalEventParticipation`, and `KingdomGovernance`.
 
 Player activation belongs to `GameWorld/Players`. Kingdom transfer belongs to `GameWorld/KingdomTransfers`.
 

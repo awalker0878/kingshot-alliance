@@ -9,7 +9,6 @@ use App\Contexts\Alliance\Recruitment\Models\RecruitmentCandidate;
 use App\Contexts\Communications\Delivery\Enums\DeliveryChannel;
 use App\Contexts\Communications\Delivery\Enums\DeliveryStatus;
 use App\Contexts\Communications\Delivery\Models\NotificationDelivery;
-use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeStatus;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeRedemption;
 use App\Contexts\GameWorld\GiftCodes\Queries\GiftCodeCatalogQuery;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
@@ -111,7 +110,7 @@ final readonly class CommandOverviewQuery
         $codes = $this->giftCodes->forPlayer($playerId, 100);
 
         foreach ($codes as $giftCode) {
-            if ($giftCode->status !== GiftCodeStatus::Active
+            if (! $giftCode->status->redeemable()
                 || ($giftCode->expires_at !== null && $giftCode->expires_at->isPast())) {
                 continue;
             }

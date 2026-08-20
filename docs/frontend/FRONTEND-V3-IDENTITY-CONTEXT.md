@@ -96,7 +96,7 @@ A single-Governor account still displays its active identity but does not need a
 
 ## Switch lifecycle
 
-The current Phase 1 switch behavior intentionally uses a conservative safe destination:
+The current switch behavior intentionally uses a conservative safe destination:
 
 ```text
 Governor switch requested
@@ -214,7 +214,7 @@ Approved:
 - Alliance/rank/role/capability data is projected for presentation.
 - Effective capabilities shape permission-gated navigation.
 - Inertia state is replaced on identity transition.
-- Command Overview is the safe Phase 1 post-switch destination.
+- Command Overview is the safe post-switch destination.
 - Accessibility and cross-identity isolation are regression requirements.
 
 Rejected:

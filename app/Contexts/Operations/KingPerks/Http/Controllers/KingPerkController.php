@@ -55,7 +55,7 @@ final class KingPerkController extends Controller
         $this->authenticated($request);
         $scheduler->createPlan($this->player()->playerId, $event, $occurrence);
 
-        return back()->with('status', 'king-perks-plan-created');
+        return back()->with('actionReceipt', $this->receipt('king-perks-plan-created'));
     }
 
     public function publish(Request $request, string $plan, KingPerkScheduler $scheduler): RedirectResponse
@@ -63,7 +63,7 @@ final class KingPerkController extends Controller
         $this->authenticated($request);
         $scheduler->publishPlan($this->player()->playerId, $plan);
 
-        return back()->with('status', 'king-perks-plan-published');
+        return back()->with('actionReceipt', $this->receipt('king-perks-plan-published'));
     }
 
     public function assign(Request $request, string $plan, KingPerkScheduler $scheduler): RedirectResponse
@@ -87,7 +87,10 @@ final class KingPerkController extends Controller
             appointmentId: $appointmentId,
         );
 
-        return back()->with('status', $appointmentId === null ? 'king-perk-appointed' : 'king-perk-reassigned');
+        return back()->with(
+            'actionReceipt',
+            $this->receipt($appointmentId === null ? 'king-perk-appointed' : 'king-perk-reassigned'),
+        );
     }
 
     public function confirm(Request $request, string $appointment, KingPerkScheduler $scheduler): RedirectResponse
@@ -95,7 +98,7 @@ final class KingPerkController extends Controller
         $this->authenticated($request);
         $scheduler->confirmAppointment($this->player()->playerId, $appointment);
 
-        return back()->with('status', 'king-perk-appointment-confirmed');
+        return back()->with('actionReceipt', $this->receipt('king-perk-appointment-confirmed'));
     }
 
     public function declineAppointment(Request $request, string $appointment, KingPerkScheduler $scheduler): RedirectResponse
@@ -103,7 +106,7 @@ final class KingPerkController extends Controller
         $this->authenticated($request);
         $scheduler->declineAppointment($this->player()->playerId, $appointment);
 
-        return back()->with('status', 'king-perk-appointment-declined');
+        return back()->with('actionReceipt', $this->receipt('king-perk-appointment-declined'));
     }
 
     public function activateAppointment(Request $request, string $appointment, KingPerkScheduler $scheduler): RedirectResponse
@@ -111,7 +114,7 @@ final class KingPerkController extends Controller
         $this->authenticated($request);
         $scheduler->markAppointmentActive($this->player()->playerId, $appointment);
 
-        return back()->with('status', 'king-perk-appointment-active');
+        return back()->with('actionReceipt', $this->receipt('king-perk-appointment-active'));
     }
 
     public function outcome(Request $request, string $appointment, KingPerkScheduler $scheduler): RedirectResponse
@@ -129,7 +132,7 @@ final class KingPerkController extends Controller
             KingPerkAppointmentStatus::from((string) $validated['status']),
         );
 
-        return back()->with('status', 'king-perk-appointment-updated');
+        return back()->with('actionReceipt', $this->receipt('king-perk-appointment-updated'));
     }
 
     public function replace(Request $request, string $appointment, ReplaceNoShowAppointment $replace): RedirectResponse
@@ -138,7 +141,7 @@ final class KingPerkController extends Controller
         $validated = $request->validate(['player_id' => ['required', 'string']]);
         $replace->handle($this->player()->playerId, $appointment, (string) $validated['player_id']);
 
-        return back()->with('status', 'king-perk-appointment-replaced');
+        return back()->with('actionReceipt', $this->receipt('king-perk-appointment-replaced'));
     }
 
     public function cancelledCooldown(Request $request, string $appointment, KingPerkScheduler $scheduler): RedirectResponse
@@ -150,7 +153,7 @@ final class KingPerkController extends Controller
             : CarbonImmutable::now('UTC');
         $scheduler->recordCancelledPositionCooldown($this->player()->playerId, $appointment, $at);
 
-        return back()->with('status', 'king-perk-position-cooldown-recorded');
+        return back()->with('actionReceipt', $this->receipt('king-perk-position-cooldown-recorded'));
     }
 
     public function submitRequest(Request $request, string $plan, KingPerkRequestService $requests): RedirectResponse
@@ -180,7 +183,7 @@ final class KingPerkController extends Controller
             notes: $validated['notes'] ?? null,
         );
 
-        return back()->with('status', 'king-perk-request-submitted');
+        return back()->with('actionReceipt', $this->receipt('king-perk-request-submitted'));
     }
 
     public function withdrawRequest(Request $request, string $perkRequest, KingPerkRequestService $requests): RedirectResponse
@@ -188,7 +191,7 @@ final class KingPerkController extends Controller
         $this->authenticated($request);
         $requests->withdraw($this->player()->playerId, $perkRequest);
 
-        return back()->with('status', 'king-perk-request-withdrawn');
+        return back()->with('actionReceipt', $this->receipt('king-perk-request-withdrawn'));
     }
 
     public function declineRequest(Request $request, string $perkRequest, KingPerkRequestService $requests): RedirectResponse
@@ -196,7 +199,7 @@ final class KingPerkController extends Controller
         $this->authenticated($request);
         $requests->decline($this->player()->playerId, $perkRequest);
 
-        return back()->with('status', 'king-perk-request-declined');
+        return back()->with('actionReceipt', $this->receipt('king-perk-request-declined'));
     }
 
     public function autoSchedule(Request $request, string $plan, KingPerkAutoScheduler $scheduler): RedirectResponse
@@ -217,7 +220,9 @@ final class KingPerkController extends Controller
             limit: isset($validated['limit']) ? (int) $validated['limit'] : 200,
         );
 
-        return back()->with('status', 'king-perks-auto-scheduled:'.$result['assigned']);
+        return back()->with('actionReceipt', $this->receipt('king-perks-auto-scheduled', [
+            'assigned' => $result['assigned'],
+        ]));
     }
 
     public function planSkill(Request $request, string $plan, KingPerkScheduler $scheduler): RedirectResponse
@@ -238,7 +243,7 @@ final class KingPerkController extends Controller
             notes: $validated['notes'] ?? null,
         );
 
-        return back()->with('status', 'king-perk-skill-planned');
+        return back()->with('actionReceipt', $this->receipt('king-perk-skill-planned'));
     }
 
     public function skillScheduled(Request $request, string $skill, KingPerkScheduler $scheduler): RedirectResponse
@@ -246,7 +251,7 @@ final class KingPerkController extends Controller
         $this->authenticated($request);
         $scheduler->markSkillScheduled($this->player()->playerId, $skill);
 
-        return back()->with('status', 'king-perk-skill-scheduled');
+        return back()->with('actionReceipt', $this->receipt('king-perk-skill-scheduled'));
     }
 
     public function skillActivated(Request $request, string $skill, KingPerkScheduler $scheduler): RedirectResponse
@@ -254,7 +259,7 @@ final class KingPerkController extends Controller
         $this->authenticated($request);
         $scheduler->markSkillActivated($this->player()->playerId, $skill);
 
-        return back()->with('status', 'king-perk-skill-activated');
+        return back()->with('actionReceipt', $this->receipt('king-perk-skill-activated'));
     }
 
     private function authenticated(Request $request): AuthenticatedAccount

@@ -23,6 +23,7 @@ use App\Contexts\Alliance\Membership\Models\Invitation;
 use App\Contexts\GameWorld\Kingdoms\Queries\KingdomReferenceQuery;
 use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\ReadModels\AllianceDashboard\AllianceDashboardCapabilitiesQuery;
+use App\ReadModels\AllianceDashboard\Queries\MembershipManagementQuery;
 use App\ReadModels\AllianceDashboard\UpcomingAllianceActivitiesQuery;
 use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Http\Request;
@@ -41,12 +42,16 @@ final class AllianceOverviewController extends Controller
         ContentQuery $contentQuery,
         ContentPresenter $contentPresenter,
         AllianceDashboardCapabilitiesQuery $capabilitiesQuery,
+        MembershipManagementQuery $membershipManagementQuery,
         UpcomingAllianceActivitiesQuery $upcomingActivitiesQuery,
     ): Response {
         $user = $request->user();
         abort_unless($user instanceof User, 401);
 
         $scope = $context->scope();
+        $validated = $request->validate([
+            'member_cursor' => ['nullable', 'string', 'max:4096'],
+        ]);
         $alliance = $alliances->require($scope->allianceId);
         $kingdom = $kingdoms->require($alliance->kingdomId);
         $membership = AllianceMembership::query()
@@ -130,41 +135,21 @@ final class AllianceOverviewController extends Controller
             })->values()->all();
         }
 
-        $members = [];
+        $memberPage = [
+            'items' => [],
+            'nextCursor' => null,
+            'hasMore' => false,
+            'pageSize' => MembershipManagementQuery::PAGE_SIZE,
+            'isFirstPage' => true,
+        ];
+        $memberTotal = 0;
         if ($canManageMembers || $canManageRoles) {
-            $memberRows = AllianceMembership::query()
-                ->where('alliance_id', $scope->allianceId)
-                ->with('roles:id,alliance_id,key,name')
-                ->orderBy('created_at')
-                ->get();
-            $playerReferences = $players->byIds(
-                $memberRows->pluck('player_id')->map(static fn ($id): string => (string) $id)->all(),
+            $memberManagement = $membershipManagementQuery->forAlliance(
+                $scope->allianceId,
+                isset($validated['member_cursor']) ? (string) $validated['member_cursor'] : null,
             );
-
-            $members = $memberRows->map(static function (AllianceMembership $member) use ($playerReferences): array {
-                $player = $playerReferences[(string) $member->player_id] ?? null;
-                $memberRoles = $member->roles
-                    ->map(static fn (Role $role): array => [
-                        'id' => (string) $role->id,
-                        'key' => (string) $role->key,
-                        'name' => (string) $role->name,
-                    ])
-                    ->values()
-                    ->all();
-
-                return [
-                    'id' => (string) $member->id,
-                    'player' => [
-                        'id' => (string) $member->player_id,
-                        'name' => $player->currentName ?? 'Unknown player',
-                        'gamePlayerId' => $player?->gamePlayerId,
-                        'claimed' => $player?->claimed() ?? false,
-                    ],
-                    'status' => $member->status->value,
-                    'rank' => $member->rank->value,
-                    'roles' => $memberRoles,
-                ];
-            })->values()->all();
+            $memberPage = $memberManagement['page'];
+            $memberTotal = $memberManagement['total'];
         }
 
         $roleCatalog = [];
@@ -228,10 +213,13 @@ final class AllianceOverviewController extends Controller
                     static fn (AllianceRank $rank): string => $rank->value,
                     [AllianceRank::R1, AllianceRank::R2, AllianceRank::R3, AllianceRank::R4],
                 ),
-                'members' => $members,
+                'memberPage' => $memberPage,
+                'total' => $memberTotal,
                 'roleCatalog' => $roleCatalog,
                 'currentPlayerId' => $scope->playerId,
             ],
+            'membershipBulkPreview' => $request->session()->get('membershipBulkPreview'),
+            'membershipBulkResult' => $request->session()->get('membershipBulkResult'),
         ]);
     }
 }

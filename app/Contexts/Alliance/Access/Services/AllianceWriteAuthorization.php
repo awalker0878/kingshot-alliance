@@ -34,15 +34,9 @@ final readonly class AllianceWriteAuthorization
     }
 
     /** @return array{0: AllianceReference, 1: PlayerReference} */
-    public function authorizeActive(string $actorPlayerId, string $allianceId, AlliancePermission $permission): array
+    public function authorizeMemberExclusive(string $actorPlayerId, string $allianceId): array
     {
-        return $this->authorize($actorPlayerId, $allianceId, $permission, false);
-    }
-
-    /** @return array{0: AllianceReference, 1: PlayerReference} */
-    public function authorizeExclusive(string $actorPlayerId, string $allianceId, AlliancePermission $permission): array
-    {
-        return $this->authorize($actorPlayerId, $allianceId, $permission, true);
+        return $this->authorize($actorPlayerId, $allianceId, AlliancePermission::View, true);
     }
 
     /** @return array{0: AllianceReference, 1: PlayerReference} */

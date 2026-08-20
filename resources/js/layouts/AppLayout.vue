@@ -7,6 +7,7 @@ import IdentitySwitcher from '@/components/navigation/IdentitySwitcher.vue';
 import LocaleSwitcher from '@/components/navigation/LocaleSwitcher.vue';
 import NavIcon from '@/components/navigation/NavIcon.vue';
 import PwaStatus from '@/components/system/PwaStatus.vue';
+import ActionNotice from '@/components/ui/ActionNotice.vue';
 import { useLocale } from '@/localization';
 import {
   EMPTY_PLAYER_CONTEXT,
@@ -52,6 +53,12 @@ type NavigationItem = {
   exact?: boolean;
 };
 
+type ActionReceipt = {
+  code: string;
+  parameters: Record<string, string | number>;
+  tone: 'success' | 'warning' | 'info';
+};
+
 const props = withDefaults(
   defineProps<{
     user: { name: string; email?: string };
@@ -64,6 +71,16 @@ const props = withDefaults(
 const { t } = useLocale();
 const page = usePage();
 const mobileOpen = ref(false);
+const actionReceipt = computed(
+  () => ((page.props as Record<string, unknown>).actionReceipt as ActionReceipt | null) ?? null,
+);
+const actionReceiptMessage = computed(() => {
+  if (!actionReceipt.value) return null;
+
+  const key = `receipts.${actionReceipt.value.code}`;
+  const message = t(key, actionReceipt.value.parameters);
+  return message === key ? t('receipts.completed') : message;
+});
 
 const playerContext = computed<SharedPlayerContext>(
   () =>
@@ -417,6 +434,11 @@ function logout(): void {
         <div
           class="mx-auto w-full max-w-[112rem] px-3 py-4 sm:px-5 sm:py-5 lg:px-6 xl:px-7 xl:py-6"
         >
+          <ActionNotice
+            class="mb-4"
+            :message="actionReceiptMessage"
+            :tone="actionReceipt?.tone ?? 'success'"
+          />
           <slot />
         </div>
       </main>

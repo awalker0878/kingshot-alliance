@@ -1,14 +1,43 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import { reactive } from 'vue';
+import { computed, reactive, ref, watch } from 'vue';
 
 import RoomBanner from '@/components/game/RoomBanner.vue';
 import StatSeal from '@/components/game/StatSeal.vue';
 import AppButton from '@/components/ui/AppButton.vue';
 import ConfirmActionDialog from '@/components/ui/ConfirmActionDialog.vue';
+import CursorPagination from '@/components/ui/CursorPagination.vue';
 import { useConfirmAction } from '@/components/ui/useConfirmAction';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
+
+type MembershipBulkPreview = {
+  targetStatus: string;
+  items: Array<{
+    itemId: string;
+    label: string;
+    fromStatus: string | null;
+    outcome: 'ready' | 'blocked' | 'skipped';
+    code: string;
+  }>;
+  ready: number;
+  blocked: number;
+  readyItemIds: string[];
+};
+
+type MembershipBulkResult = {
+  action: string;
+  items: Array<{
+    itemId: string;
+    label: string;
+    outcome: 'succeeded' | 'failed' | 'skipped';
+    code: string;
+  }>;
+  succeeded: number;
+  failed: number;
+  skipped: number;
+  failedItemIds: string[];
+};
 
 const props = defineProps<{
   user: { name: string; email: string };
@@ -65,34 +94,79 @@ const props = defineProps<{
     rolesAllowed: boolean;
     rankAllowed: boolean;
     rankOptions: string[];
-    members: Array<{
-      id: string;
-      player: { id: string; name: string; gamePlayerId: string | null; claimed: boolean };
-      status: string;
-      rank: string;
-      roles: Array<{ id: string; key: string; name: string }>;
-    }>;
+    memberPage: {
+      items: Array<{
+        id: string;
+        player: { id: string; name: string; gamePlayerId: string | null; claimed: boolean };
+        status: string;
+        rank: string;
+        roles: Array<{ id: string; key: string; name: string }>;
+      }>;
+      nextCursor: string | null;
+      hasMore: boolean;
+      pageSize: number;
+      isFirstPage: boolean;
+    };
+    total: number;
     roleCatalog: Array<{ id: string; key: string; name: string }>;
     currentPlayerId: string;
     leadershipTransferAllowed: boolean;
   };
+  membershipBulkPreview: MembershipBulkPreview | null;
+  membershipBulkResult: MembershipBulkResult | null;
 }>();
 
 const { t, formatDate } = useLocale();
 const { dialog, requestConfirmation, cancelConfirmation, confirmAction } = useConfirmAction();
+const members = computed(() => props.membershipManagement.memberPage.items);
 const inviteForm = useForm({
   player_id: props.invitationManagement.candidates[0]?.id ?? '',
   email: '',
 });
 const statusSelections = reactive<Record<string, string>>(
-  Object.fromEntries(
-    props.membershipManagement.members.map((member) => [member.id, member.status]),
-  ),
+  Object.fromEntries(members.value.map((member) => [member.id, member.status])),
 );
 const rankSelections = reactive<Record<string, string>>(
-  Object.fromEntries(props.membershipManagement.members.map((member) => [member.id, member.rank])),
+  Object.fromEntries(members.value.map((member) => [member.id, member.rank])),
 );
 const roleSelections = reactive<Record<string, string>>({});
+const selectedMemberIds = ref<string[]>(props.membershipBulkResult?.failedItemIds ?? []);
+const bulkTargetStatus = ref<'active' | 'suspended' | 'removed'>('suspended');
+const bulkBusy = ref(false);
+const bulkConfirmationOpen = ref(false);
+const allPageMembersSelected = computed(
+  () =>
+    members.value.length > 0 &&
+    members.value.every((member) => selectedMemberIds.value.includes(member.id)),
+);
+const bulkPreviewMatchesSelection = computed(() => {
+  const preview = props.membershipBulkPreview;
+  if (!preview || preview.targetStatus !== bulkTargetStatus.value) return false;
+
+  const selected = [...selectedMemberIds.value].sort();
+  const previewed = preview.items.map((item) => item.itemId).sort();
+  return (
+    selected.length === previewed.length && selected.every((id, index) => id === previewed[index])
+  );
+});
+
+watch(
+  members,
+  (rows) => {
+    for (const member of rows) {
+      statusSelections[member.id] ??= member.status;
+      rankSelections[member.id] ??= member.rank;
+    }
+  },
+  { immediate: true },
+);
+
+watch(
+  () => props.membershipBulkResult,
+  (result) => {
+    if (result) selectedMemberIds.value = [...result.failedItemIds];
+  },
+);
 
 function sendInvitation(): void {
   inviteForm.post('/alliance/invitations', {
@@ -123,6 +197,81 @@ function updateMembershipRank(id: string): void {
     { rank: rankSelections[id] },
     { preserveScroll: true },
   );
+}
+
+function memberSelected(membershipId: string): boolean {
+  return selectedMemberIds.value.includes(membershipId);
+}
+
+function setMemberSelected(membershipId: string, selected: boolean): void {
+  if (!selected) {
+    selectedMemberIds.value = selectedMemberIds.value.filter((id) => id !== membershipId);
+    return;
+  }
+
+  selectedMemberIds.value = [...new Set([...selectedMemberIds.value, membershipId])].slice(0, 50);
+}
+
+function toggleMemberPageSelection(): void {
+  if (allPageMembersSelected.value) {
+    const pageIds = new Set(members.value.map((member) => member.id));
+    selectedMemberIds.value = selectedMemberIds.value.filter((id) => !pageIds.has(id));
+    return;
+  }
+
+  selectedMemberIds.value = [
+    ...new Set([...selectedMemberIds.value, ...members.value.map((member) => member.id)]),
+  ].slice(0, 50);
+}
+
+function previewBulkStatusChange(): void {
+  if (selectedMemberIds.value.length === 0 || bulkBusy.value) return;
+
+  bulkBusy.value = true;
+  router.post(
+    '/alliance/memberships/bulk-status/preview',
+    {
+      membership_ids: selectedMemberIds.value,
+      status: bulkTargetStatus.value,
+    },
+    {
+      preserveScroll: true,
+      preserveState: true,
+      onFinish: () => (bulkBusy.value = false),
+    },
+  );
+}
+
+function commitBulkStatusChange(): void {
+  if (!props.membershipBulkPreview || !bulkPreviewMatchesSelection.value || bulkBusy.value) return;
+
+  bulkBusy.value = true;
+  router.post(
+    '/alliance/memberships/bulk-status',
+    {
+      membership_ids: props.membershipBulkPreview.items.map((item) => item.itemId),
+      status: props.membershipBulkPreview.targetStatus,
+    },
+    {
+      preserveScroll: true,
+      preserveState: true,
+      onFinish: () => {
+        bulkBusy.value = false;
+        bulkConfirmationOpen.value = false;
+      },
+    },
+  );
+}
+
+function membershipBulkOutcomeLabel(code: string): string {
+  return t(`allianceOperations.overview.bulkOutcome.${code}`);
+}
+
+function nextMemberPage(): void {
+  const cursor = props.membershipManagement.memberPage.nextCursor;
+  if (!cursor) return;
+
+  router.get('/alliance', { member_cursor: cursor }, { preserveScroll: true, preserveState: true });
 }
 
 function assignRole(membershipId: string): void {
@@ -233,11 +382,7 @@ function formatInZone(value: string, timeZone: string): string {
     </RoomBanner>
 
     <section class="mt-4 grid gap-3 sm:grid-cols-2 2xl:grid-cols-4">
-      <StatSeal
-        :label="t('navigation.roster')"
-        :value="membershipManagement.members.length"
-        icon="♟"
-      />
+      <StatSeal :label="t('navigation.roster')" :value="membershipManagement.total" icon="♟" />
       <StatSeal
         :label="t('application.dashboard.roles')"
         :value="membership.rank.toUpperCase()"
@@ -325,13 +470,153 @@ function formatInZone(value: string, timeZone: string): string {
           </Link>
         </div>
 
+        <section
+          v-if="membershipManagement.allowed && selectedMemberIds.length"
+          class="border-b border-[var(--ks-border)] bg-[var(--ks-teal-soft)] p-5"
+          :aria-label="t('allianceOperations.overview.bulkActions')"
+        >
+          <div class="flex flex-wrap items-end gap-3">
+            <div class="min-w-[12rem] flex-1">
+              <p class="text-sm font-semibold">
+                {{
+                  t('allianceOperations.overview.selectedMembers', {
+                    count: selectedMemberIds.length,
+                  })
+                }}
+              </p>
+              <p class="mt-1 text-xs text-[var(--ks-muted)]">
+                {{ t('allianceOperations.overview.bulkPreviewHelp') }}
+              </p>
+            </div>
+            <div>
+              <label class="text-xs font-semibold" for="membership-bulk-status">
+                {{ t('allianceOperations.overview.changeStatusTo') }}
+              </label>
+              <select
+                id="membership-bulk-status"
+                v-model="bulkTargetStatus"
+                class="ks-input mt-1.5"
+              >
+                <option value="active">{{ statusLabel('active') }}</option>
+                <option value="suspended">{{ statusLabel('suspended') }}</option>
+                <option value="removed">{{ statusLabel('removed') }}</option>
+              </select>
+            </div>
+            <AppButton
+              :busy="bulkBusy"
+              :busy-label="t('allianceOperations.overview.previewingBulkAction')"
+              @click="previewBulkStatusChange"
+            >
+              {{ t('allianceOperations.overview.previewBulkAction') }}
+            </AppButton>
+          </div>
+        </section>
+
+        <section
+          v-if="bulkPreviewMatchesSelection && membershipBulkPreview"
+          class="border-b border-[var(--ks-border)] p-5"
+          aria-labelledby="membership-bulk-preview-heading"
+        >
+          <div class="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p class="ks-kicker">{{ t('allianceOperations.overview.bulkPreview') }}</p>
+              <h3 id="membership-bulk-preview-heading" class="mt-1 text-lg font-semibold">
+                {{
+                  t('allianceOperations.overview.bulkPreviewSummary', {
+                    ready: membershipBulkPreview.ready,
+                    blocked: membershipBulkPreview.blocked,
+                  })
+                }}
+              </h3>
+            </div>
+            <AppButton
+              :disabled="membershipBulkPreview.ready === 0"
+              :variant="bulkTargetStatus === 'removed' ? 'danger' : 'primary'"
+              @click="bulkConfirmationOpen = true"
+            >
+              {{ t('allianceOperations.overview.confirmBulkAction') }}
+            </AppButton>
+          </div>
+          <ul class="mt-4 grid gap-2 md:grid-cols-2">
+            <li
+              v-for="item in membershipBulkPreview.items"
+              :key="item.itemId"
+              class="flex items-center justify-between gap-3 rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/15 px-3 py-2 text-sm"
+            >
+              <span class="truncate">{{ item.label }}</span>
+              <span
+                class="ks-status"
+                :data-tone="
+                  item.outcome === 'ready'
+                    ? 'success'
+                    : item.outcome === 'skipped'
+                      ? 'warning'
+                      : 'danger'
+                "
+              >
+                {{ membershipBulkOutcomeLabel(item.code) }}
+              </span>
+            </li>
+          </ul>
+        </section>
+
+        <section
+          v-if="membershipBulkResult"
+          class="border-b border-[var(--ks-border)] p-5"
+          aria-labelledby="membership-bulk-result-heading"
+        >
+          <p class="ks-kicker">{{ t('allianceOperations.overview.bulkResult') }}</p>
+          <h3 id="membership-bulk-result-heading" class="mt-1 text-lg font-semibold">
+            {{
+              t('allianceOperations.overview.bulkResultSummary', {
+                succeeded: membershipBulkResult.succeeded,
+                failed: membershipBulkResult.failed,
+                skipped: membershipBulkResult.skipped,
+              })
+            }}
+          </h3>
+          <ul class="mt-4 grid gap-2 md:grid-cols-2">
+            <li
+              v-for="item in membershipBulkResult.items"
+              :key="item.itemId"
+              class="flex items-center justify-between gap-3 rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/15 px-3 py-2 text-sm"
+            >
+              <span class="truncate">{{ item.label }}</span>
+              <span
+                class="ks-status"
+                :data-tone="
+                  item.outcome === 'succeeded'
+                    ? 'success'
+                    : item.outcome === 'skipped'
+                      ? 'warning'
+                      : 'danger'
+                "
+              >
+                {{ membershipBulkOutcomeLabel(item.code) }}
+              </span>
+            </li>
+          </ul>
+          <p v-if="membershipBulkResult.failed" class="mt-3 text-xs text-[var(--ks-muted)]">
+            {{ t('allianceOperations.overview.failedItemsSelected') }}
+          </p>
+        </section>
+
         <div class="lg:hidden">
           <article
-            v-for="member in membershipManagement.members"
+            v-for="member in members"
             :key="member.id"
             class="border-b border-[var(--ks-border)] p-4 last:border-b-0"
           >
             <div class="flex items-start gap-3">
+              <input
+                v-if="membershipManagement.allowed"
+                type="checkbox"
+                :checked="memberSelected(member.id)"
+                :aria-label="
+                  t('allianceOperations.overview.selectMember', { member: member.player.name })
+                "
+                @change="setMemberSelected(member.id, ($event.target as HTMLInputElement).checked)"
+              />
               <div
                 class="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-[var(--ks-gold-dark)] bg-black/25 font-[var(--ks-font-display)] text-[var(--ks-gold-bright)]"
                 aria-hidden="true"
@@ -415,6 +700,14 @@ function formatInZone(value: string, timeZone: string): string {
               class="bg-black/20 text-[.66rem] font-extrabold tracking-[.1em] text-[var(--ks-muted)] uppercase"
             >
               <tr>
+                <th v-if="membershipManagement.allowed" class="w-12 px-4 py-3 text-start">
+                  <input
+                    type="checkbox"
+                    :checked="allPageMembersSelected"
+                    :aria-label="t('allianceOperations.overview.selectPage')"
+                    @change="toggleMemberPageSelection"
+                  />
+                </th>
                 <th class="px-5 py-3 text-start">{{ t('navigation.roster') }}</th>
                 <th class="px-4 py-3 text-start">{{ t('allianceOperations.overview.status') }}</th>
                 <th class="px-4 py-3 text-start">{{ t('application.dashboard.roles') }}</th>
@@ -428,10 +721,22 @@ function formatInZone(value: string, timeZone: string): string {
             </thead>
             <tbody class="divide-y divide-[var(--ks-border)]">
               <tr
-                v-for="member in membershipManagement.members"
+                v-for="member in members"
                 :key="member.id"
                 class="transition hover:bg-white/[0.018]"
               >
+                <td v-if="membershipManagement.allowed" class="px-4 py-4">
+                  <input
+                    type="checkbox"
+                    :checked="memberSelected(member.id)"
+                    :aria-label="
+                      t('allianceOperations.overview.selectMember', { member: member.player.name })
+                    "
+                    @change="
+                      setMemberSelected(member.id, ($event.target as HTMLInputElement).checked)
+                    "
+                  />
+                </td>
                 <td class="px-5 py-4">
                   <div class="flex items-center gap-3">
                     <div
@@ -567,6 +872,19 @@ function formatInZone(value: string, timeZone: string): string {
             </tbody>
           </table>
         </div>
+        <CursorPagination
+          v-if="members.length"
+          :summary="
+            t('allianceOperations.overview.membersOnPage', {
+              count: members.length,
+              total: membershipManagement.total,
+            })
+          "
+          :is-first-page="membershipManagement.memberPage.isFirstPage"
+          first-page-href="/alliance"
+          :has-more="membershipManagement.memberPage.hasMore"
+          @next="nextMemberPage"
+        />
       </section>
 
       <aside class="space-y-5">
@@ -703,6 +1021,24 @@ function formatInZone(value: string, timeZone: string): string {
         </button>
       </aside>
     </div>
+    <ConfirmActionDialog
+      id="membership-bulk-status-confirmation"
+      :open="bulkConfirmationOpen"
+      :title="t('allianceOperations.overview.confirmBulkTitle')"
+      :description="
+        t('allianceOperations.overview.confirmBulkDescription', {
+          count: membershipBulkPreview?.ready ?? 0,
+          status: statusLabel(bulkTargetStatus),
+        })
+      "
+      :confirm-label="t('allianceOperations.overview.confirmBulkAction')"
+      :cancel-label="t('common.cancel')"
+      :busy="bulkBusy"
+      :busy-label="t('allianceOperations.overview.applyingBulkAction')"
+      :danger="bulkTargetStatus === 'removed'"
+      @confirm="commitBulkStatusChange"
+      @cancel="bulkConfirmationOpen = false"
+    />
     <ConfirmActionDialog v-bind="dialog" @confirm="confirmAction" @cancel="cancelConfirmation" />
   </AppLayout>
 </template>

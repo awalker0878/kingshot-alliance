@@ -84,6 +84,9 @@ return new class extends Migration
             $table->index(['scope', 'alliance_id', 'status', 'starts_at']);
             $table->index(['scope', 'kingdom_id', 'status', 'starts_at']);
             $table->index(['scope', 'player_id', 'status', 'starts_at']);
+            $table->index(['scope', 'event_type_id', 'player_id', 'id'], 'events_player_type_history_idx');
+            $table->index(['scope', 'event_type_id', 'alliance_id', 'id'], 'events_alliance_type_history_idx');
+            $table->index(['scope', 'event_type_id', 'kingdom_id', 'id'], 'events_kingdom_type_history_idx');
         });
 
         Schema::create('event_occurrences', function (Blueprint $table): void {

@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import { reactive, ref } from 'vue';
+import { computed, reactive, ref, watch } from 'vue';
 
 import RoomBanner from '@/components/game/RoomBanner.vue';
 import StatSeal from '@/components/game/StatSeal.vue';
 import AppButton from '@/components/ui/AppButton.vue';
+import ConfirmActionDialog from '@/components/ui/ConfirmActionDialog.vue';
+import CursorPagination from '@/components/ui/CursorPagination.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
@@ -50,6 +52,34 @@ type QuestionEdit = {
   active: boolean;
 };
 
+type BulkPreview = {
+  targetStage: string;
+  items: Array<{
+    itemId: string;
+    label: string;
+    fromStage: string | null;
+    outcome: 'ready' | 'blocked' | 'skipped';
+    code: string;
+  }>;
+  ready: number;
+  blocked: number;
+  readyItemIds: string[];
+};
+
+type BulkResult = {
+  action: string;
+  items: Array<{
+    itemId: string;
+    label: string;
+    outcome: 'succeeded' | 'failed' | 'skipped';
+    code: string;
+  }>;
+  succeeded: number;
+  failed: number;
+  skipped: number;
+  failedItemIds: string[];
+};
+
 const props = defineProps<{
   user: { name: string; email: string };
   alliance: { id: string; name: string; slug: string };
@@ -74,7 +104,14 @@ const props = defineProps<{
     position: number;
     active: boolean;
   }>;
-  candidates: Candidate[];
+  candidatePage: {
+    items: Candidate[];
+    nextCursor: string | null;
+    hasMore: boolean;
+    pageSize: number;
+    isFirstPage: boolean;
+  };
+  candidateFilters: { q: string; stage: string; source: string };
   members: Array<{ id: string; name: string; rank: string }>;
   decisionTemplates: Array<{
     id: string;
@@ -95,9 +132,50 @@ const props = defineProps<{
   metrics: Metrics;
   discovery: { boardUrl: string; applicationUrl: string | null };
   issuedApplicationLink: string | null;
+  bulkPreview: BulkPreview | null;
+  bulkResult: BulkResult | null;
 }>();
 
 const { t, formatDate, formatNumber } = useLocale();
+const candidates = computed(() => props.candidatePage.items);
+const candidateFilters = reactive({ ...props.candidateFilters });
+const firstCandidatePageUrl = computed(() => {
+  const query = new URLSearchParams(
+    Object.fromEntries(Object.entries(candidateFilters).filter(([, value]) => value !== '')),
+  ).toString();
+  return query === '' ? '/alliance/recruitment' : `/alliance/recruitment?${query}`;
+});
+const selectedCandidateIds = ref<string[]>(props.bulkResult?.failedItemIds ?? []);
+const bulkStageOptions = computed(() =>
+  props.candidateStages.filter((stage) => stage !== 'joined'),
+);
+const bulkTargetStage = ref(bulkStageOptions.value[0] ?? 'screening');
+const bulkReason = ref('');
+const bulkNextActionAt = ref('');
+const bulkBusy = ref(false);
+const bulkConfirmationOpen = ref(false);
+const allPageCandidatesSelected = computed(
+  () =>
+    candidates.value.length > 0 &&
+    candidates.value.every((candidate) => selectedCandidateIds.value.includes(candidate.id)),
+);
+const bulkPreviewMatchesSelection = computed(() => {
+  const preview = props.bulkPreview;
+  if (!preview || preview.targetStage !== bulkTargetStage.value) return false;
+
+  const selected = [...selectedCandidateIds.value].sort();
+  const previewed = preview.items.map((item) => item.itemId).sort();
+  return (
+    selected.length === previewed.length && selected.every((id, index) => id === previewed[index])
+  );
+});
+
+watch(
+  () => props.bulkResult,
+  (result) => {
+    if (result) selectedCandidateIds.value = [...result.failedItemIds];
+  },
+);
 
 const settingsForm = useForm({
   mode: props.settings?.mode ?? 'public',
@@ -235,6 +313,106 @@ function createOnboardingItem(): void {
       onboardingForm.active = true;
     },
   });
+}
+
+function applyCandidateFilters(): void {
+  router.get(
+    '/alliance/recruitment',
+    Object.fromEntries(Object.entries(candidateFilters).filter(([, value]) => value !== '')),
+    { preserveScroll: true, preserveState: true, replace: true },
+  );
+}
+
+function clearCandidateFilters(): void {
+  candidateFilters.q = '';
+  candidateFilters.stage = '';
+  candidateFilters.source = '';
+  applyCandidateFilters();
+}
+
+function candidateSelected(candidateId: string): boolean {
+  return selectedCandidateIds.value.includes(candidateId);
+}
+
+function setCandidateSelected(candidateId: string, selected: boolean): void {
+  selectedCandidateIds.value = selected
+    ? [...new Set([...selectedCandidateIds.value, candidateId])]
+    : selectedCandidateIds.value.filter((id) => id !== candidateId);
+}
+
+function togglePageSelection(): void {
+  if (allPageCandidatesSelected.value) {
+    const pageIds = new Set(candidates.value.map((candidate) => candidate.id));
+    selectedCandidateIds.value = selectedCandidateIds.value.filter((id) => !pageIds.has(id));
+    return;
+  }
+
+  selectedCandidateIds.value = [
+    ...new Set([
+      ...selectedCandidateIds.value,
+      ...candidates.value.map((candidate) => candidate.id),
+    ]),
+  ];
+}
+
+function previewBulkStageChange(): void {
+  if (selectedCandidateIds.value.length === 0 || bulkBusy.value) return;
+
+  bulkBusy.value = true;
+  router.post(
+    '/alliance/recruitment/bulk-stage/preview',
+    {
+      candidate_ids: selectedCandidateIds.value,
+      stage: bulkTargetStage.value,
+      reason: bulkReason.value,
+      next_action_at: bulkNextActionAt.value || null,
+    },
+    {
+      preserveScroll: true,
+      preserveState: true,
+      onFinish: () => (bulkBusy.value = false),
+    },
+  );
+}
+
+function commitBulkStageChange(): void {
+  if (!props.bulkPreview || !bulkPreviewMatchesSelection.value || bulkBusy.value) return;
+
+  bulkBusy.value = true;
+  router.post(
+    '/alliance/recruitment/bulk-stage',
+    {
+      candidate_ids: props.bulkPreview.items.map((item) => item.itemId),
+      stage: props.bulkPreview.targetStage,
+      reason: bulkReason.value,
+      next_action_at: bulkNextActionAt.value || null,
+    },
+    {
+      preserveScroll: true,
+      preserveState: true,
+      onFinish: () => {
+        bulkBusy.value = false;
+        bulkConfirmationOpen.value = false;
+      },
+    },
+  );
+}
+
+function bulkOutcomeLabel(code: string): string {
+  return t(`recruitment.bulkOutcome.${code}`);
+}
+
+function nextCandidatePage(): void {
+  if (!props.candidatePage.nextCursor) return;
+
+  router.get(
+    '/alliance/recruitment',
+    {
+      ...Object.fromEntries(Object.entries(candidateFilters).filter(([, value]) => value !== '')),
+      cursor: props.candidatePage.nextCursor,
+    },
+    { preserveScroll: true, preserveState: true },
+  );
 }
 
 function date(value: string | null): string {
@@ -390,6 +568,206 @@ function humanize(value: string): string {
         </div>
       </div>
 
+      <form
+        class="grid gap-3 border-b border-[var(--ks-border)] bg-black/10 p-5 md:grid-cols-3 xl:grid-cols-[minmax(16rem,2fr)_1fr_1fr_auto]"
+        :aria-label="t('recruitment.candidateFilters')"
+        @submit.prevent="applyCandidateFilters"
+      >
+        <div>
+          <label class="text-xs font-semibold" for="recruitment-candidate-search">
+            {{ t('recruitment.searchCandidates') }}
+          </label>
+          <input
+            id="recruitment-candidate-search"
+            v-model="candidateFilters.q"
+            class="ks-input mt-1.5"
+            maxlength="160"
+            :placeholder="t('recruitment.searchCandidatesPlaceholder')"
+          />
+        </div>
+        <div>
+          <label class="text-xs font-semibold" for="recruitment-stage-filter">
+            {{ t('recruitment.stage') }}
+          </label>
+          <select
+            id="recruitment-stage-filter"
+            v-model="candidateFilters.stage"
+            class="ks-input mt-1.5"
+          >
+            <option value="">{{ t('recruitment.allStages') }}</option>
+            <option v-for="stage in candidateStages" :key="stage" :value="stage">
+              {{ humanize(stage) }}
+            </option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs font-semibold" for="recruitment-source-filter">
+            {{ t('recruitment.source') }}
+          </label>
+          <select
+            id="recruitment-source-filter"
+            v-model="candidateFilters.source"
+            class="ks-input mt-1.5"
+          >
+            <option value="">{{ t('recruitment.allSources') }}</option>
+            <option v-for="(_, source) in metrics.bySource" :key="source" :value="source">
+              {{ humanize(source) }}
+            </option>
+          </select>
+        </div>
+        <div class="flex flex-wrap items-end gap-2">
+          <AppButton type="submit">{{ t('recruitment.applyFilters') }}</AppButton>
+          <AppButton type="button" variant="ghost" @click="clearCandidateFilters">
+            {{ t('recruitment.clearFilters') }}
+          </AppButton>
+        </div>
+      </form>
+
+      <section
+        v-if="selectedCandidateIds.length"
+        class="border-b border-[var(--ks-border)] bg-[var(--ks-teal-soft)] p-5"
+        :aria-label="t('recruitment.bulkActions')"
+      >
+        <div class="flex flex-wrap items-end gap-3">
+          <div class="min-w-[12rem] flex-1">
+            <p class="text-sm font-semibold">
+              {{ t('recruitment.selectedCandidates', { count: selectedCandidateIds.length }) }}
+            </p>
+            <p class="mt-1 text-xs text-[var(--ks-muted)]">
+              {{ t('recruitment.bulkPreviewHelp') }}
+            </p>
+          </div>
+          <div>
+            <label class="text-xs font-semibold" for="recruitment-bulk-stage">
+              {{ t('recruitment.moveTo') }}
+            </label>
+            <select id="recruitment-bulk-stage" v-model="bulkTargetStage" class="ks-input mt-1.5">
+              <option v-for="stage in bulkStageOptions" :key="stage" :value="stage">
+                {{ humanize(stage) }}
+              </option>
+            </select>
+          </div>
+          <div class="min-w-[14rem] flex-1">
+            <label class="text-xs font-semibold" for="recruitment-bulk-reason">
+              {{ t('recruitment.internalReason') }}
+            </label>
+            <input
+              id="recruitment-bulk-reason"
+              v-model="bulkReason"
+              class="ks-input mt-1.5"
+              maxlength="5000"
+            />
+          </div>
+          <div>
+            <label class="text-xs font-semibold" for="recruitment-bulk-next-action">
+              {{ t('recruitment.nextAction') }}
+            </label>
+            <input
+              id="recruitment-bulk-next-action"
+              v-model="bulkNextActionAt"
+              class="ks-input mt-1.5"
+              type="datetime-local"
+            />
+          </div>
+          <AppButton
+            :busy="bulkBusy"
+            :busy-label="t('recruitment.previewingBulkAction')"
+            @click="previewBulkStageChange"
+          >
+            {{ t('recruitment.previewBulkAction') }}
+          </AppButton>
+        </div>
+      </section>
+
+      <section
+        v-if="bulkPreviewMatchesSelection && bulkPreview"
+        class="border-b border-[var(--ks-border)] p-5"
+        aria-labelledby="recruitment-bulk-preview-heading"
+      >
+        <div class="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <p class="ks-kicker">{{ t('recruitment.bulkPreview') }}</p>
+            <h3 id="recruitment-bulk-preview-heading" class="mt-1 text-lg font-semibold">
+              {{
+                t('recruitment.bulkPreviewSummary', {
+                  ready: bulkPreview.ready,
+                  blocked: bulkPreview.blocked,
+                })
+              }}
+            </h3>
+          </div>
+          <AppButton
+            :disabled="bulkPreview.ready === 0"
+            :variant="bulkTargetStage === 'declined' ? 'danger' : 'primary'"
+            @click="bulkConfirmationOpen = true"
+          >
+            {{ t('recruitment.confirmBulkAction') }}
+          </AppButton>
+        </div>
+        <ul class="mt-4 grid gap-2 md:grid-cols-2">
+          <li
+            v-for="item in bulkPreview.items"
+            :key="item.itemId"
+            class="flex items-center justify-between gap-3 rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/15 px-3 py-2 text-sm"
+          >
+            <span class="truncate">{{ item.label }}</span>
+            <span
+              class="ks-status"
+              :data-tone="
+                item.outcome === 'ready'
+                  ? 'success'
+                  : item.outcome === 'skipped'
+                    ? 'warning'
+                    : 'danger'
+              "
+            >
+              {{ bulkOutcomeLabel(item.code) }}
+            </span>
+          </li>
+        </ul>
+      </section>
+
+      <section
+        v-if="bulkResult"
+        class="border-b border-[var(--ks-border)] p-5"
+        aria-labelledby="recruitment-bulk-result-heading"
+      >
+        <p class="ks-kicker">{{ t('recruitment.bulkResult') }}</p>
+        <h3 id="recruitment-bulk-result-heading" class="mt-1 text-lg font-semibold">
+          {{
+            t('recruitment.bulkResultSummary', {
+              succeeded: bulkResult.succeeded,
+              failed: bulkResult.failed,
+              skipped: bulkResult.skipped,
+            })
+          }}
+        </h3>
+        <ul class="mt-4 grid gap-2 md:grid-cols-2">
+          <li
+            v-for="item in bulkResult.items"
+            :key="item.itemId"
+            class="flex items-center justify-between gap-3 rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/15 px-3 py-2 text-sm"
+          >
+            <span class="truncate">{{ item.label }}</span>
+            <span
+              class="ks-status"
+              :data-tone="
+                item.outcome === 'succeeded'
+                  ? 'success'
+                  : item.outcome === 'skipped'
+                    ? 'warning'
+                    : 'danger'
+              "
+            >
+              {{ bulkOutcomeLabel(item.code) }}
+            </span>
+          </li>
+        </ul>
+        <p v-if="bulkResult.failed" class="mt-3 text-xs text-[var(--ks-muted)]">
+          {{ t('recruitment.failedItemsSelected') }}
+        </p>
+      </section>
+
       <div v-if="candidates.length" class="lg:hidden">
         <article
           v-for="candidate in candidates"
@@ -397,6 +775,14 @@ function humanize(value: string): string {
           class="border-b border-[var(--ks-border)] p-4 last:border-b-0"
         >
           <div class="flex items-start gap-3">
+            <input
+              type="checkbox"
+              :checked="candidateSelected(candidate.id)"
+              :aria-label="t('recruitment.selectCandidate', { candidate: candidate.name })"
+              @change="
+                setCandidateSelected(candidate.id, ($event.target as HTMLInputElement).checked)
+              "
+            />
             <div
               class="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-[var(--ks-gold-dark)] bg-black/20 font-[var(--ks-font-display)] text-[var(--ks-gold-bright)]"
               aria-hidden="true"
@@ -438,6 +824,14 @@ function humanize(value: string): string {
             class="bg-black/20 text-[.66rem] font-extrabold tracking-[.08em] text-[var(--ks-muted)] uppercase"
           >
             <tr>
+              <th class="px-4 py-3 text-start">
+                <input
+                  type="checkbox"
+                  :checked="allPageCandidatesSelected"
+                  :aria-label="t('recruitment.selectPage')"
+                  @change="togglePageSelection"
+                />
+              </th>
               <th class="px-5 py-3 text-start">{{ t('recruitment.candidate') }}</th>
               <th class="px-4 py-3 text-start">{{ t('recruitment.stage') }}</th>
               <th class="px-4 py-3 text-start">{{ t('recruitment.source') }}</th>
@@ -451,6 +845,16 @@ function humanize(value: string): string {
               :key="candidate.id"
               class="transition hover:bg-white/[0.018]"
             >
+              <td class="px-4 py-4">
+                <input
+                  type="checkbox"
+                  :checked="candidateSelected(candidate.id)"
+                  :aria-label="t('recruitment.selectCandidate', { candidate: candidate.name })"
+                  @change="
+                    setCandidateSelected(candidate.id, ($event.target as HTMLInputElement).checked)
+                  "
+                />
+              </td>
               <td class="px-5 py-4">
                 <div class="flex items-center gap-3">
                   <div
@@ -493,7 +897,39 @@ function humanize(value: string): string {
       <div v-if="!candidates.length" class="ks-fantasy-empty m-5">
         {{ t('recruitment.noCandidates') }}
       </div>
+      <CursorPagination
+        v-if="candidates.length"
+        :summary="
+          t('recruitment.candidatesOnPage', {
+            count: formatNumber(candidates.length),
+            pageSize: formatNumber(candidatePage.pageSize),
+          })
+        "
+        :is-first-page="candidatePage.isFirstPage"
+        :first-page-href="firstCandidatePageUrl"
+        :has-more="candidatePage.hasMore"
+        @next="nextCandidatePage"
+      />
     </section>
+
+    <ConfirmActionDialog
+      id="recruitment-bulk-stage-confirmation"
+      :open="bulkConfirmationOpen"
+      :title="t('recruitment.confirmBulkTitle')"
+      :description="
+        t('recruitment.confirmBulkDescription', {
+          count: bulkPreview?.ready ?? 0,
+          stage: humanize(bulkTargetStage),
+        })
+      "
+      :confirm-label="t('recruitment.confirmBulkAction')"
+      :cancel-label="t('common.cancel')"
+      :busy="bulkBusy"
+      :busy-label="t('recruitment.applyingBulkAction')"
+      :danger="bulkTargetStage === 'declined'"
+      @confirm="commitBulkStageChange"
+      @cancel="bulkConfirmationOpen = false"
+    />
 
     <div class="mt-5 grid gap-5 2xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
       <section class="ks-surface p-5 sm:p-6" aria-labelledby="settings-heading">

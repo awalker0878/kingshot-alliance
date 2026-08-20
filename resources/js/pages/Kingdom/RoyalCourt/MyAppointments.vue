@@ -3,6 +3,7 @@ import { Head, router } from '@inertiajs/vue3';
 import { computed, reactive } from 'vue';
 
 import AppLayout from '@/layouts/AppLayout.vue';
+import { useLocale } from '@/localization';
 
 type AppointmentType = {
   key: string;
@@ -73,6 +74,8 @@ const props = defineProps<{
   pushCategories: PushCategory[];
 }>();
 
+const { t, formatDate, formatNumber } = useLocale();
+
 const form = reactive({
   push_category: props.pushCategories[0]?.key ?? '',
   preferred_appointment_type: '',
@@ -93,7 +96,7 @@ const compatibleAppointments = computed(() => {
 });
 
 function displayUtc(value: string): string {
-  return `${new Intl.DateTimeFormat('en-CA', {
+  return `${formatDate(value, {
     timeZone: 'UTC',
     year: 'numeric',
     month: 'short',
@@ -101,24 +104,30 @@ function displayUtc(value: string): string {
     hour: '2-digit',
     minute: '2-digit',
     hour12: false,
-  }).format(new Date(value))} UTC`;
+  })} UTC`;
 }
 
 function displayLocal(value: string): string {
   const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  return `${new Intl.DateTimeFormat(undefined, {
+  return `${formatDate(value, {
     year: 'numeric',
     month: 'short',
     day: '2-digit',
     hour: '2-digit',
     minute: '2-digit',
-  }).format(new Date(value))} ${zone}`;
+  })} ${zone}`;
 }
 
 function durationLabel(minutes: number | null): string {
-  if (minutes === null) return 'Not provided';
+  if (minutes === null) return t('royalCourt.notProvided');
   const hours = minutes / 60;
-  return Number.isInteger(hours) ? `${hours}h` : `${hours.toFixed(1)}h`;
+  return t('royalCourt.hours', {
+    hours: formatNumber(hours, { maximumFractionDigits: 1 }),
+  });
+}
+
+function statusLabel(status: string): string {
+  return t(`royalCourt.statuses.${status}`);
 }
 
 function confirm(id: string): void {
@@ -164,18 +173,17 @@ function withdraw(id: string): void {
 </script>
 
 <template>
-  <Head :title="`My King Perks · ${event.kingdomName}`" />
+  <Head :title="t('royalCourt.myTitle', { kingdom: event.kingdomName })" />
 
   <AppLayout :user="user" :player-alliance-name="null" :has-player-alliance="false">
     <main class="mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
       <header class="space-y-2">
         <p class="text-xs font-semibold tracking-[0.2em] text-amber-300 uppercase">
-          Kingdom of Power · My King Perks
+          {{ t('royalCourt.myEyebrow') }}
         </p>
         <h1 class="text-3xl font-semibold text-[var(--ks-ivory)]">{{ player.name }}</h1>
         <p class="max-w-3xl text-sm text-[var(--ks-muted)]">
-          Confirm your assigned appointment or tell Kingdom leadership when you can use a
-          preparation bonus. Times are shown in server UTC and your browser's local timezone.
+          {{ t('royalCourt.myIntro') }}
         </p>
       </header>
 
@@ -183,13 +191,13 @@ function withdraw(id: string): void {
         v-if="!plan"
         class="rounded-2xl border border-[var(--ks-border)] bg-[rgba(7,12,13,.70)] p-6 text-sm text-[var(--ks-muted)]"
       >
-        Kingdom leadership has not published a King Perks plan for this preparation phase yet.
+        {{ t('royalCourt.noPublishedPlan') }}
       </section>
 
       <template v-else>
         <section class="rounded-2xl border border-[var(--ks-border)] bg-[rgba(7,12,13,.70)] p-5">
           <p class="text-xs font-semibold tracking-wider text-[var(--ks-muted)] uppercase">
-            Preparation window
+            {{ t('royalCourt.preparationWindow') }}
           </p>
           <p class="mt-2 text-lg font-semibold text-[var(--ks-ivory)]">
             {{ displayUtc(plan.windowStartsAt) }} → {{ displayUtc(plan.windowEndsAt) }}
@@ -203,9 +211,11 @@ function withdraw(id: string): void {
           class="space-y-3 rounded-2xl border border-[var(--ks-border)] bg-[rgba(7,12,13,.70)] p-5"
         >
           <div>
-            <h2 class="text-lg font-semibold text-[var(--ks-ivory)]">My appointments</h2>
+            <h2 class="text-lg font-semibold text-[var(--ks-ivory)]">
+              {{ t('royalCourt.myAppointments') }}
+            </h2>
             <p class="text-sm text-[var(--ks-muted)]">
-              Your appointment must cover the complete game bonus window.
+              {{ t('royalCourt.appointmentWindowHelp') }}
             </p>
           </div>
 
@@ -213,7 +223,7 @@ function withdraw(id: string): void {
             v-if="plan.appointments.length === 0"
             class="rounded-xl border border-dashed border-[var(--ks-border)] p-5 text-sm text-[var(--ks-muted)]"
           >
-            You do not have an appointment yet.
+            {{ t('royalCourt.noAppointment') }}
           </p>
 
           <article
@@ -227,7 +237,7 @@ function withdraw(id: string): void {
                   <h3 class="font-semibold text-[var(--ks-ivory)]">{{ item.typeLabel }}</h3>
                   <span
                     class="rounded-full bg-[rgba(210,163,75,.05)] px-2 py-0.5 text-xs text-[var(--ks-muted)]"
-                    >{{ item.status.replaceAll('_', ' ') }}</span
+                    >{{ statusLabel(item.status) }}</span
                   >
                 </div>
                 <p class="mt-2 text-sm text-[var(--ks-ivory)]">
@@ -237,7 +247,11 @@ function withdraw(id: string): void {
                   {{ displayLocal(item.startsAt) }} → {{ displayLocal(item.endsAt) }}
                 </p>
                 <p class="mt-2 text-xs text-[var(--ks-muted)]">
-                  Occupancy: {{ item.durationMinutes }} minutes
+                  {{
+                    t('royalCourt.occupancyMinutes', {
+                      minutes: formatNumber(item.durationMinutes),
+                    })
+                  }}
                 </p>
                 <p v-if="item.notes" class="mt-2 text-sm text-[var(--ks-muted)]">
                   {{ item.notes }}
@@ -253,14 +267,14 @@ function withdraw(id: string): void {
                   class="rounded-lg bg-emerald-400 px-3 py-2 text-xs font-semibold text-[var(--ks-ink)]"
                   @click="confirm(item.id)"
                 >
-                  Confirm
+                  {{ t('royalCourt.confirm') }}
                 </button>
                 <button
                   type="button"
                   class="rounded-lg border border-rose-400/30 px-3 py-2 text-xs font-semibold text-rose-200"
                   @click="decline(item.id)"
                 >
-                  Can't attend
+                  {{ t('royalCourt.cannotAttend') }}
                 </button>
               </div>
             </div>
@@ -272,17 +286,18 @@ function withdraw(id: string): void {
             class="space-y-3 rounded-2xl border border-[var(--ks-border)] bg-[rgba(7,12,13,.70)] p-5"
           >
             <div>
-              <h2 class="text-lg font-semibold text-[var(--ks-ivory)]">My requests</h2>
+              <h2 class="text-lg font-semibold text-[var(--ks-ivory)]">
+                {{ t('royalCourt.myRequests') }}
+              </h2>
               <p class="text-sm text-[var(--ks-muted)]">
-                Requests remain category-specific; training usage is not compared to construction or
-                research usage.
+                {{ t('royalCourt.requestsHelp') }}
               </p>
             </div>
             <p
               v-if="plan.requests.length === 0"
               class="rounded-xl border border-dashed border-[var(--ks-border)] p-5 text-sm text-[var(--ks-muted)]"
             >
-              No appointment requests submitted.
+              {{ t('royalCourt.noRequests') }}
             </p>
             <article
               v-for="item in plan.requests"
@@ -301,8 +316,12 @@ function withdraw(id: string): void {
                     {{ displayLocal(item.availabilityEndsAt) }}
                   </p>
                   <p class="mt-2 text-xs text-[var(--ks-muted)]">
-                    Planned speedups: {{ durationLabel(item.plannedSpeedupMinutes) }} · Status:
-                    {{ item.status }}
+                    {{
+                      t('royalCourt.requestSummary', {
+                        duration: durationLabel(item.plannedSpeedupMinutes),
+                        status: statusLabel(item.status),
+                      })
+                    }}
                   </p>
                 </div>
                 <button
@@ -311,7 +330,7 @@ function withdraw(id: string): void {
                   class="rounded-lg border border-[var(--ks-border)] px-3 py-1.5 text-xs text-[var(--ks-ivory)]"
                   @click="withdraw(item.id)"
                 >
-                  Withdraw
+                  {{ t('royalCourt.withdraw') }}
                 </button>
               </div>
             </article>
@@ -322,14 +341,16 @@ function withdraw(id: string): void {
             @submit.prevent="submitRequest"
           >
             <div>
-              <h2 class="text-lg font-semibold text-[var(--ks-ivory)]">Request an appointment</h2>
+              <h2 class="text-lg font-semibold text-[var(--ks-ivory)]">
+                {{ t('royalCourt.requestAppointment') }}
+              </h2>
               <p class="text-xs text-[var(--ks-muted)]">
-                Availability must contain the full appointment window.
+                {{ t('royalCourt.availabilityHelp') }}
               </p>
             </div>
 
             <label class="block space-y-1 text-xs text-[var(--ks-muted)]">
-              <span>Preparation focus</span>
+              <span>{{ t('royalCourt.preparationFocus') }}</span>
               <select
                 v-model="form.push_category"
                 class="w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-stone)] px-3 py-2 text-sm text-[var(--ks-ivory)]"
@@ -346,12 +367,12 @@ function withdraw(id: string): void {
             </label>
 
             <label class="block space-y-1 text-xs text-[var(--ks-muted)]">
-              <span>Preferred appointment (optional)</span>
+              <span>{{ t('royalCourt.preferredAppointment') }}</span>
               <select
                 v-model="form.preferred_appointment_type"
                 class="w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-stone)] px-3 py-2 text-sm text-[var(--ks-ivory)]"
               >
-                <option value="">Any applicable appointment</option>
+                <option value="">{{ t('royalCourt.anyAppointment') }}</option>
                 <option v-for="type in compatibleAppointments" :key="type.key" :value="type.key">
                   {{ type.label }}
                 </option>
@@ -359,7 +380,7 @@ function withdraw(id: string): void {
             </label>
 
             <label class="block space-y-1 text-xs text-[var(--ks-muted)]">
-              <span>Available from (UTC)</span>
+              <span>{{ t('royalCourt.availableFromUtc') }}</span>
               <input
                 v-model="form.availability_starts_at"
                 required
@@ -368,7 +389,7 @@ function withdraw(id: string): void {
               />
             </label>
             <label class="block space-y-1 text-xs text-[var(--ks-muted)]">
-              <span>Available until (UTC)</span>
+              <span>{{ t('royalCourt.availableUntilUtc') }}</span>
               <input
                 v-model="form.availability_ends_at"
                 required
@@ -377,7 +398,7 @@ function withdraw(id: string): void {
               />
             </label>
             <label class="block space-y-1 text-xs text-[var(--ks-muted)]">
-              <span>Planned speedups (hours, optional)</span>
+              <span>{{ t('royalCourt.plannedSpeedups') }}</span>
               <input
                 v-model.number="form.planned_speedup_hours"
                 min="0"
@@ -387,7 +408,7 @@ function withdraw(id: string): void {
               />
             </label>
             <label class="block space-y-1 text-xs text-[var(--ks-muted)]">
-              <span>Planned resource amount (optional)</span>
+              <span>{{ t('royalCourt.plannedResources') }}</span>
               <input
                 v-model.number="form.planned_resource_amount"
                 min="0"
@@ -396,7 +417,7 @@ function withdraw(id: string): void {
               />
             </label>
             <label class="block space-y-1 text-xs text-[var(--ks-muted)]">
-              <span>Notes</span>
+              <span>{{ t('royalCourt.notes') }}</span>
               <textarea
                 v-model="form.notes"
                 rows="3"
@@ -407,7 +428,7 @@ function withdraw(id: string): void {
               type="submit"
               class="w-full rounded-lg bg-amber-400 px-4 py-2 text-sm font-semibold text-[var(--ks-ink)]"
             >
-              Submit request
+              {{ t('royalCourt.submitRequest') }}
             </button>
           </form>
         </section>

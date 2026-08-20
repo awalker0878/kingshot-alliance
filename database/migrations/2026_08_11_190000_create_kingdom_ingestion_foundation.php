@@ -18,8 +18,13 @@ return new class extends Migration
             $table->string('adapter_version', 40);
             $table->string('state', 24)->default('active');
             $table->string('source_cursor', 255)->nullable();
+            $table->timestampTz('next_run_at')->nullable();
+            $table->timestampTz('last_claimed_at')->nullable();
             $table->timestampTz('last_succeeded_at')->nullable();
             $table->timestampTz('last_failed_at')->nullable();
+            $table->unsignedSmallInteger('consecutive_failures')->default(0);
+            $table->timestampTz('circuit_open_until')->nullable();
+            $table->string('last_failure_code', 80)->nullable();
             $table->timestampTz('blocked_at')->nullable();
             $table->string('blocked_reason', 160)->nullable();
             $table->timestamps();
@@ -27,6 +32,7 @@ return new class extends Migration
             $table->unique(['alliance_id', 'kingdom_id', 'adapter_key']);
             $table->index(['alliance_id', 'state', 'created_at']);
             $table->index(['alliance_id', 'kingdom_id', 'state']);
+            $table->index(['state', 'next_run_at'], 'kingdom_ingestion_subscriptions_due_idx');
         });
 
         Schema::create('kingdom_ingestion_batches', function (Blueprint $table): void {
@@ -37,6 +43,7 @@ return new class extends Migration
             $table->string('adapter_key', 80);
             $table->string('adapter_version', 40);
             $table->string('source_cursor', 255)->nullable();
+            $table->string('next_source_cursor', 255)->nullable();
             $table->string('source_window_id', 191)->nullable();
             $table->string('state', 24)->default('pending');
             $table->unsignedInteger('records_received')->default(0);
@@ -69,6 +76,9 @@ return new class extends Migration
             $table->string('state', 24)->default('pending');
             $table->string('quarantine_code', 80)->nullable();
             $table->string('rejection_code', 80)->nullable();
+            $table->string('promoted_record_type', 40)->nullable();
+            $table->string('promoted_record_id', 26)->nullable();
+            $table->timestampTz('promoted_at')->nullable();
             $table->timestamps();
 
             $table->unique(['subscription_id', 'identity_hash']);

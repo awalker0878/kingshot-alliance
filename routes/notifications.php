@@ -16,6 +16,10 @@ Route::middleware(['auth', 'auth.session', 'verified'])->group(function (): void
         ->name('notifications.endpoints.delete');
     Route::put('/notifications/preferences', [NotificationCenterController::class, 'setPreference'])
         ->name('notifications.preferences.update');
+    Route::post('/notifications/bulk-inbox/preview', [NotificationCenterController::class, 'previewBulkInboxUpdate'])
+        ->name('notifications.bulk-inbox.preview');
+    Route::post('/notifications/bulk-inbox', [NotificationCenterController::class, 'bulkInboxUpdate'])
+        ->name('notifications.bulk-inbox.update');
     Route::put('/notifications/{delivery}/read', [NotificationCenterController::class, 'markRead'])
         ->whereUlid('delivery')
         ->name('notifications.read');

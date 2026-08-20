@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kingshot-alliance.example/schemas/webhook-envelope-1.0.json",
+  "title": "Kingshot Alliance webhook envelope",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "id", "event", "occurred_at", "alliance_id", "data"],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "id": { "type": "string", "minLength": 1, "maxLength": 64 },
+    "event": {
+      "type": "string",
+      "enum": [
+        "content.published",
+        "event.created",
+        "event.updated",
+        "event.cancelled",
+        "member.updated",
+        "member.left",
+        "recruitment.candidate.stage_changed",
+        "recruitment.candidate.joined",
+        "gift_code.created",
+        "gift_code.provenance_added",
+        "gift_code.status_changed",
+        "broadcast.schedule.updated",
+        "broadcast.schedule.cancelled",
+        "broadcast.run.queued",
+        "broadcast.delivery.succeeded",
+        "broadcast.delivery.failed"
+      ]
+    },
+    "occurred_at": { "type": "string", "format": "date-time" },
+    "alliance_id": { "type": "string", "minLength": 1, "maxLength": 64 },
+    "data": { "type": "object" }
+  },
+  "allOf": [
+    { "if": { "properties": { "event": { "const": "content.published" } } }, "then": { "properties": { "data": { "required": ["content_item_id", "revision_number"] } } } },
+    { "if": { "properties": { "event": { "const": "event.created" } } }, "then": { "properties": { "data": { "required": ["scope", "target_id"] } } } },
+    { "if": { "properties": { "event": { "const": "event.updated" } } }, "then": { "properties": { "data": { "required": ["scope", "target_id"] } } } },
+    { "if": { "properties": { "event": { "const": "event.cancelled" } } }, "then": { "properties": { "data": { "required": ["scope", "target_id"] } } } },
+    { "if": { "properties": { "event": { "const": "member.updated" } } }, "then": { "properties": { "data": { "required": ["member_id", "player_id", "change"] } } } },
+    { "if": { "properties": { "event": { "const": "member.left" } } }, "then": { "properties": { "data": { "required": ["member_id", "player_id", "source"] } } } },
+    { "if": { "properties": { "event": { "const": "recruitment.candidate.stage_changed" } } }, "then": { "properties": { "data": { "required": ["candidate_id", "from_stage", "to_stage"] } } } },
+    { "if": { "properties": { "event": { "const": "recruitment.candidate.joined" } } }, "then": { "properties": { "data": { "required": ["candidate_id", "membership_invitation_id"] } } } },
+    { "if": { "properties": { "event": { "const": "gift_code.created" } } }, "then": { "properties": { "data": { "required": ["gift_code_id", "code", "status"] } } } },
+    { "if": { "properties": { "event": { "const": "gift_code.provenance_added" } } }, "then": { "properties": { "data": { "required": ["gift_code_id", "code", "source_type"] } } } },
+    { "if": { "properties": { "event": { "const": "gift_code.status_changed" } } }, "then": { "properties": { "data": { "required": ["gift_code_id", "previous_status", "status"] } } } },
+    { "if": { "properties": { "event": { "const": "broadcast.schedule.updated" } } }, "then": { "properties": { "data": { "required": ["schedule_id", "content_item_id", "timezone", "weekdays", "local_time", "next_run_at"] } } } },
+    { "if": { "properties": { "event": { "const": "broadcast.schedule.cancelled" } } }, "then": { "properties": { "data": { "required": ["schedule_id", "content_item_id", "reason"] } } } },
+    { "if": { "properties": { "event": { "const": "broadcast.run.queued" } } }, "then": { "properties": { "data": { "required": ["broadcast_run_id", "content_item_id", "recipient_count", "delivery_count"] } } } },
+    { "if": { "properties": { "event": { "const": "broadcast.delivery.succeeded" } } }, "then": { "properties": { "data": { "required": ["broadcast_run_id", "content_item_id", "channel", "status", "attempt_count"] } } } },
+    { "if": { "properties": { "event": { "const": "broadcast.delivery.failed" } } }, "then": { "properties": { "data": { "required": ["broadcast_run_id", "content_item_id", "channel", "status", "attempt_count", "retryable"] } } } }
+  ]
+}

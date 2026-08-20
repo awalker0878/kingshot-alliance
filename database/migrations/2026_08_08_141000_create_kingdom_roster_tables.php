@@ -26,7 +26,10 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['alliance_id', 'player_id']);
-            $table->index(['alliance_id', 'state', 'observed_name']);
+            $table->index(
+                ['alliance_id', 'state', 'observed_name', 'id'],
+                'alliance_roster_entries_cursor_idx',
+            );
             $table->index(['alliance_id', 'last_observed_at']);
         });
 

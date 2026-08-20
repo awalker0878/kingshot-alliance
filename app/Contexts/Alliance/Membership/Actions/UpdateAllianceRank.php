@@ -68,14 +68,16 @@ final readonly class UpdateAllianceRank
             $locked->forceFill(['rank' => $rank])->save();
 
             $metadata = [
+                'member_id' => (string) $locked->id,
                 'membership_id' => $locked->id,
                 'player_id' => $locked->player_id,
+                'change' => 'rank',
                 'previous_rank' => $previousRank->value,
                 'rank' => $rank->value,
             ];
 
             $this->audit->record('membership.rank_changed', $context->actor, $locked, $context->alliance, $metadata);
-            $this->outbox->record('membership.rank_changed', (string) $context->alliance->id, $locked, $metadata);
+            $this->outbox->record('member.updated', (string) $context->alliance->id, $locked, $metadata);
 
             return (string) $locked->id;
         });

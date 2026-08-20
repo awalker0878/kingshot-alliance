@@ -8,11 +8,11 @@ This is the user/product view of implemented capability groups. Architectural ow
 | --- | --- | --- |
 | Account security | Register, authenticate, verify email, manage profile/password/MFA/recovery. | Accounts |
 | Player context | Own/claim Players and operate as one active game persona at a time. | GameWorld/Players; workflows coordinate cross-context effects |
-| Gift Codes | Share sourced codes, prepare official redemption for one or all Governors, and track per-Governor outcomes. | GameWorld/GiftCodes |
+| Gift Codes | Preserve source history and explicit trust, prepare official redemption for current/all/failed Governors, track per-Governor outcomes, and warn before expiry. | GameWorld/GiftCodes |
 | Alliance management | Manage Alliance core/settings and tenant lifecycle. | Alliance |
 | Membership and leadership | Membership, invitations, R1–R5 leadership and specialist roles. | Alliance |
-| Recruitment | Intake/review/convert recruitment candidates through controlled membership handoff. | Alliance |
-| Alliance content | Publish/manage Alliance-facing content and media. | Alliance |
+| Recruitment | Intake, filter, preview/bulk-triage, review and convert recruitment candidates through controlled membership handoff. | Alliance |
+| Alliance content | Publish reviewed, revisioned and context-linked knowledge plus testable timezone-safe recurring announcements with delivery history and selective recovery. | Alliance intent + Communications delivery + ReadModels composition |
 | Kingdom governance | Manage Kingdom role/governance facts for Players. | GameWorld/Governance; workflows coordinate cross-context effects |
 | Events | Define/schedule recurring Events and occurrences. | Operations/Events |
 | Participation | Registration, responses and attendance. | Operations/Participation |
@@ -23,8 +23,8 @@ This is the user/product view of implemented capability groups. Architectural ow
 | Intelligence | Ingest observations and maintain roster/contribution/event/diplomacy intelligence. | Intelligence |
 | Shared intelligence | Control sharing/grants and compose Kingdom intelligence views. | Intelligence + ReadModels |
 | Communications | Deliver reminders/notifications with preferences/retry/idempotency. | Communications |
-| Platform administration | Cross-tenant admin, lifecycle/retention controls and Event-type administration. | Platform |
-| Integrations | Scoped API credentials and signed/retryable webhooks. | Platform/Integrations |
+| Platform administration | Cross-tenant admin, lifecycle/retention controls, Event-type administration, privacy-safe diagnostics and audited outbox recovery. | Platform + ReadModels composition |
+| Integrations | Scoped API credentials, revocable external-actor pairing, idempotent Event participation adapters, and signed/retryable webhooks. | Platform/Integrations |
 | Dashboards/history | Compose cross-context user-facing views without changing source ownership. | ReadModels |
 
 This catalogue should change when a real product outcome changes, not for internal class/file movement.

@@ -7,10 +7,12 @@ namespace App\Contexts\Operations\Events\Http\Controllers;
 use App\Contexts\Accounts\Identity\Contracts\AuthenticatedAccount;
 use App\Contexts\GameWorld\Players\Services\PlayerContext;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
+use App\Contexts\Operations\Events\Actions\BulkCancelEvents;
 use App\Contexts\Operations\Events\Actions\CancelEvent;
 use App\Contexts\Operations\Events\Actions\CreateEvent;
 use App\Contexts\Operations\Events\Actions\CreateEventFromTemplate;
 use App\Contexts\Operations\Events\Actions\CreateEventTemplate;
+use App\Contexts\Operations\Events\Actions\PreviewEventBulkCancellation;
 use App\Contexts\Operations\Events\Actions\UpdateEvent;
 use App\Contexts\Operations\Events\Enums\EventScope;
 use App\Contexts\Operations\Events\Enums\RecurrenceFrequency;
@@ -130,11 +132,11 @@ final class EventManagementController extends Controller
         );
 
         if ($created->firstOccurrenceId === null) {
-            return redirect()->route('events.index')->with('status', 'event-created');
+            return redirect()->route('events.index')->with('actionReceipt', $this->receipt('event-created'));
         }
 
         return redirect()->route('events.show', ['occurrence' => $created->firstOccurrenceId])
-            ->with('status', 'event-created');
+            ->with('actionReceipt', $this->receipt('event-created'));
     }
 
     public function update(
@@ -167,7 +169,7 @@ final class EventManagementController extends Controller
                 : null,
         );
 
-        return back()->with('status', 'event-updated');
+        return back()->with('actionReceipt', $this->receipt('event-updated'));
     }
 
     public function cancel(
@@ -181,7 +183,40 @@ final class EventManagementController extends Controller
         $record = $query->eventForManage($actor, $event);
         $cancel->handle($actor->playerId, (string) $record->id);
 
-        return redirect()->route('events.index')->with('status', 'event-cancelled');
+        return redirect()->route('events.index')->with('actionReceipt', $this->receipt('event-cancelled'));
+    }
+
+    public function previewBulkCancellation(
+        Request $request,
+        PreviewEventBulkCancellation $preview,
+    ): RedirectResponse {
+        $this->user($request);
+        $validated = $this->validateBulkCancellation($request);
+
+        /** @var non-empty-list<string> $eventIds */
+        $eventIds = array_values($validated['event_ids']);
+        $request->session()->flash('eventBulkPreview', $preview->handle($this->player(), $eventIds));
+
+        return back();
+    }
+
+    public function commitBulkCancellation(
+        Request $request,
+        BulkCancelEvents $cancel,
+    ): RedirectResponse {
+        $this->user($request);
+        $validated = $this->validateBulkCancellation($request);
+
+        /** @var non-empty-list<string> $eventIds */
+        $eventIds = array_values($validated['event_ids']);
+        $result = $cancel->handle($this->player(), $eventIds)->toArray();
+        $request->session()->flash('eventBulkResult', $result);
+
+        return back()->with('actionReceipt', $this->receipt('event-bulk-cancellation-completed', [
+            'succeeded' => $result['succeeded'],
+            'failed' => $result['failed'],
+            'skipped' => $result['skipped'],
+        ]));
     }
 
     public function storeTemplate(
@@ -226,7 +261,7 @@ final class EventManagementController extends Controller
             settings: isset($validated['settings']) && is_array($validated['settings']) ? $validated['settings'] : [],
         );
 
-        return back()->with('status', 'event-template-created');
+        return back()->with('actionReceipt', $this->receipt('event-template-created'));
     }
 
     public function storeFromTemplate(
@@ -254,11 +289,11 @@ final class EventManagementController extends Controller
         );
 
         if ($created->firstOccurrenceId === null) {
-            return redirect()->route('events.index')->with('status', 'event-created');
+            return redirect()->route('events.index')->with('actionReceipt', $this->receipt('event-created'));
         }
 
         return redirect()->route('events.show', ['occurrence' => $created->firstOccurrenceId])
-            ->with('status', 'event-created');
+            ->with('actionReceipt', $this->receipt('event-created'));
     }
 
     /** @return array<string, mixed> */
@@ -279,6 +314,15 @@ final class EventManagementController extends Controller
             'recurrence_interval' => ['nullable', 'integer', 'between:1,52'],
             'recurrence_until_local' => ['nullable', 'date_format:Y-m-d\\TH:i'],
             'publish' => ['nullable', 'boolean'],
+        ]);
+    }
+
+    /** @return array{event_ids: list<string>} */
+    private function validateBulkCancellation(Request $request): array
+    {
+        return $request->validate([
+            'event_ids' => ['required', 'array', 'min:1', 'max:50'],
+            'event_ids.*' => ['required', 'ulid', 'distinct'],
         ]);
     }
 

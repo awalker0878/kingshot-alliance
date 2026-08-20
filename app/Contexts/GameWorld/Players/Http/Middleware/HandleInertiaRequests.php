@@ -11,6 +11,7 @@ use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Contexts\GameWorld\Players\Services\PlayerAuthorityContextVersion;
 use App\Contexts\GameWorld\Players\Services\PlayerContext;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
+use App\Shared\Infrastructure\Http\ActionReceipt;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -47,6 +48,7 @@ final class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'applicationName' => config('app.name'),
+            'actionReceipt' => fn (): mixed => $request->session()->get(ActionReceipt::SESSION_KEY),
             'playerContext' => fn (): array => $this->playerContextPayload($request),
         ];
     }

@@ -26,4 +26,4 @@ Content may display Recruitment availability but does not own a duplicate writab
 
 ## Canonical documentation
 
-- [`docs/domains/recruitment/`](../../../docs/domains/recruitment/README.md)
+- [`docs/architecture/contexts/alliance/recruitment.md`](../../../../docs/architecture/contexts/alliance/recruitment.md)

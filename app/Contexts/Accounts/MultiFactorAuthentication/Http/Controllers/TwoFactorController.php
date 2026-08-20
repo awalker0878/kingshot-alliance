@@ -46,6 +46,6 @@ final class TwoFactorController extends Controller
         abort_unless($user instanceof User, 401);
         $twoFactor->disable($user);
 
-        return redirect()->route('profile.show')->with('status', 'two-factor-disabled');
+        return redirect()->route('profile.show')->with('actionReceipt', $this->receipt('two-factor-disabled'));
     }
 }

@@ -9,6 +9,7 @@ Status: Current — Architecture V3
 ```text
 app/Workflows/
 ├── AccountOnboarding/
+├── ExternalEventParticipation/
 └── KingdomGovernance/
 ```
 
@@ -19,6 +20,10 @@ Coordinates account registration/onboarding behavior that crosses Accounts and A
 ### KingdomGovernance
 
 Coordinates a Kingdom governance process when execution requires GameWorld governance plus another owning context. GameWorld remains owner of Kingdom governance state and Operations remains owner of Operations state.
+
+### ExternalEventParticipation
+
+Owns the multi-context bot/API write adapter and coordinates Platform external-actor identity and idempotency with Operations participation Actions. Platform remains owner of provider links and receipts; Operations remains owner of Event response, registration, capacity, and waitlist rules.
 
 ## What is not a Workflow
 

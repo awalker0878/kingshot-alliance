@@ -86,7 +86,7 @@ final class KingdomAllianceObservationController extends Controller
         $scope = $context->scope();
         $record->handle($scope->allianceId, $scope->playerId, $tracking, $this->validatedObservation($request));
 
-        return back()->with('status', 'kingdom-alliance-observation-recorded');
+        return back()->with('actionReceipt', $this->receipt('kingdom-alliance-observation-recorded'));
     }
 
     public function invalidate(Request $request, AllianceContext $context, InvalidateKingdomAllianceObservation $invalidate, string $tracking, string $observation): RedirectResponse
@@ -96,7 +96,7 @@ final class KingdomAllianceObservationController extends Controller
         $scope = $context->scope();
         $invalidate->handle($scope->allianceId, $scope->playerId, $tracking, $observation, $validated['reason']);
 
-        return back()->with('status', 'kingdom-alliance-observation-invalidated');
+        return back()->with('actionReceipt', $this->receipt('kingdom-alliance-observation-invalidated'));
     }
 
     /** @return array{observed_name:string,observed_tag?:string|null,power?:string|null,member_count?:int|null,captured_at:string,corrects_observation_id?:string|null,correction_reason?:string|null} */

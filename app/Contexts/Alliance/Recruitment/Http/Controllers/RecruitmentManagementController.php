@@ -4,202 +4,27 @@ declare(strict_types=1);
 
 namespace App\Contexts\Alliance\Recruitment\Http\Controllers;
 
-use App\Contexts\Accounts\Identity\Contracts\AuthenticatedAccount;
-use App\Contexts\Alliance\Access\Enums\AlliancePermission;
-use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
 use App\Contexts\Alliance\Lifecycle\Services\AllianceContext;
-use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
-use App\Contexts\Alliance\Membership\Models\AllianceMembership;
+use App\Contexts\Alliance\Recruitment\Actions\BulkChangeRecruitmentStage;
 use App\Contexts\Alliance\Recruitment\Actions\ConfigureRecruitmentSettings;
 use App\Contexts\Alliance\Recruitment\Actions\CreateRecruitmentDecisionTemplate;
 use App\Contexts\Alliance\Recruitment\Actions\CreateRecruitmentOnboardingItem;
 use App\Contexts\Alliance\Recruitment\Actions\CreateRecruitmentQuestion;
 use App\Contexts\Alliance\Recruitment\Actions\IssueRecruitmentApplicationInvite;
+use App\Contexts\Alliance\Recruitment\Actions\PreviewRecruitmentStageBulkChange;
 use App\Contexts\Alliance\Recruitment\Actions\UpdateRecruitmentQuestion;
 use App\Contexts\Alliance\Recruitment\Enums\RecruitmentApplicationMode;
 use App\Contexts\Alliance\Recruitment\Enums\RecruitmentQuestionType;
 use App\Contexts\Alliance\Recruitment\Enums\RecruitmentStage;
-use App\Contexts\Alliance\Recruitment\Models\RecruitmentCandidate;
-use App\Contexts\Alliance\Recruitment\Models\RecruitmentDecisionTemplate;
-use App\Contexts\Alliance\Recruitment\Models\RecruitmentOnboardingItem;
-use App\Contexts\Alliance\Recruitment\Models\RecruitmentQuestion;
-use App\Contexts\Alliance\Recruitment\Models\RecruitmentSetting;
-use App\Contexts\Alliance\Recruitment\Queries\RecruitmentMetricsQuery;
-use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Shared\Infrastructure\Http\Controller;
-use Illuminate\Auth\Access\AuthorizationException;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
-use Inertia\Inertia;
-use Inertia\Response;
 
 final class RecruitmentManagementController extends Controller
 {
-    public function index(
-        Request $request,
-        AllianceContext $context,
-        AllianceAuthorization $authorization,
-        RecruitmentMetricsQuery $metrics,
-        AllianceReferenceQuery $alliances,
-        PlayerReferenceQuery $players,
-    ): Response {
-        $user = $this->user($request);
-        $scope = $context->scope();
-        $alliance = $alliances->require($scope->allianceId);
-        $this->authorize($authorization, $scope->playerId, $scope->allianceId);
-
-        $settings = RecruitmentSetting::query()->where('alliance_id', $scope->allianceId)->first();
-        $questions = RecruitmentQuestion::query()
-            ->where('alliance_id', $scope->allianceId)
-            ->orderBy('position')
-            ->orderBy('id')
-            ->get();
-        $candidates = RecruitmentCandidate::query()
-            ->where('alliance_id', $scope->allianceId)
-            ->whereNull('merged_into_id')
-            ->whereNull('anonymized_at')
-            ->orderByDesc('submitted_at')
-            ->limit(250)
-            ->get();
-        $memberships = AllianceMembership::query()
-            ->where('alliance_id', $scope->allianceId)
-            ->where('status', MembershipStatus::Active->value)
-            ->orderBy('created_at')
-            ->get();
-        $templates = RecruitmentDecisionTemplate::query()
-            ->where('alliance_id', $scope->allianceId)
-            ->orderBy('name')
-            ->get();
-        $onboardingItems = RecruitmentOnboardingItem::query()
-            ->where('alliance_id', $scope->allianceId)
-            ->orderBy('position')
-            ->orderBy('name')
-            ->get();
-
-        $questionData = [];
-        foreach ($questions as $question) {
-            $questionData[] = [
-                'id' => (string) $question->id,
-                'prompt' => (string) $question->prompt,
-                'helpText' => $question->help_text,
-                'type' => $question->type()->value,
-                'options' => $question->optionValues(),
-                'required' => (bool) $question->is_required,
-                'position' => (int) $question->position,
-                'active' => (bool) $question->is_active,
-            ];
-        }
-
-        $candidateData = [];
-        foreach ($candidates as $candidate) {
-            $candidateData[] = [
-                'id' => (string) $candidate->id,
-                'name' => (string) $candidate->full_name,
-                'email' => (string) $candidate->email,
-                'contactHandle' => $candidate->contact_handle,
-                'source' => $candidate->source,
-                'stage' => $candidate->stage->value,
-                'submittedAt' => $candidate->submitted_at->toIso8601String(),
-                'firstRespondedAt' => $candidate->first_responded_at?->toIso8601String(),
-                'nextActionAt' => $candidate->next_action_at?->toIso8601String(),
-            ];
-        }
-
-        $playerReferences = $players->byIds(
-            $memberships->pluck('player_id')->map(static fn ($id): string => (string) $id)->all(),
-        );
-
-        $memberData = [];
-        foreach ($memberships as $membership) {
-            $player = $playerReferences[(string) $membership->player_id] ?? null;
-            if ($player === null) {
-                continue;
-            }
-
-            $memberData[] = [
-                'id' => $player->playerId,
-                'name' => $player->currentName,
-                'rank' => $membership->rank->value,
-            ];
-        }
-
-        $templateData = [];
-        foreach ($templates as $template) {
-            $templateData[] = [
-                'id' => (string) $template->id,
-                'name' => (string) $template->name,
-                'decisionStage' => $template->decisionStage()->value,
-                'subject' => (string) $template->subject,
-                'body' => (string) $template->body,
-                'active' => (bool) $template->is_active,
-            ];
-        }
-
-        $onboardingData = [];
-        foreach ($onboardingItems as $item) {
-            $onboardingData[] = [
-                'id' => (string) $item->id,
-                'name' => (string) $item->name,
-                'description' => $item->description,
-                'position' => (int) $item->position,
-                'required' => (bool) $item->is_required,
-                'active' => (bool) $item->is_active,
-            ];
-        }
-
-        return Inertia::render('Alliance/Recruitment/Hall', [
-            'user' => [
-                'name' => $user->accountName(),
-                'email' => $user->accountEmail(),
-            ],
-            'alliance' => [
-                'id' => (string) $alliance->allianceId,
-                'name' => $alliance->name,
-                'slug' => $alliance->slug,
-            ],
-            'settings' => $settings instanceof RecruitmentSetting ? [
-                'mode' => $settings->application_mode->value,
-                'title' => (string) $settings->title,
-                'introduction' => $settings->introduction,
-                'retentionDays' => (int) $settings->retention_unsuccessful_days,
-                'open' => (bool) $settings->is_open,
-                'listed' => (bool) $settings->is_listed,
-            ] : null,
-            'applicationModes' => array_map(
-                static fn (RecruitmentApplicationMode $mode): string => $mode->value,
-                RecruitmentApplicationMode::cases(),
-            ),
-            'questionTypes' => array_map(
-                static fn (RecruitmentQuestionType $type): string => $type->value,
-                RecruitmentQuestionType::cases(),
-            ),
-            'candidateStages' => array_map(
-                static fn (RecruitmentStage $stage): string => $stage->value,
-                RecruitmentStage::cases(),
-            ),
-            'questions' => $questionData,
-            'candidates' => $candidateData,
-            'members' => $memberData,
-            'decisionTemplates' => $templateData,
-            'onboardingItems' => $onboardingData,
-            'metrics' => $metrics->summary($scope->allianceId),
-            'discovery' => [
-                'boardUrl' => route('public.recruitment.index'),
-                'applicationUrl' => $settings instanceof RecruitmentSetting
-                    && $settings->is_open
-                    && $settings->application_mode === RecruitmentApplicationMode::Public
-                        ? route('public.alliances.recruitment.show', [
-                            'slug' => $alliance->slug,
-                            'source' => 'alliance-share',
-                        ])
-                        : null,
-            ],
-            'issuedApplicationLink' => $request->session()->pull('recruitmentApplicationLink'),
-        ]);
-    }
-
     public function updateSettings(
         Request $request,
         AllianceContext $context,
@@ -226,7 +51,7 @@ final class RecruitmentManagementController extends Controller
             (bool) $validated['listed'],
         );
 
-        return back();
+        return back()->with('actionReceipt', $this->receipt('recruitment-settings-updated'));
     }
 
     public function storeQuestion(
@@ -265,7 +90,7 @@ final class RecruitmentManagementController extends Controller
                 (bool) $validated['active'],
             );
 
-            return back();
+            return back()->with('actionReceipt', $this->receipt('recruitment-question-updated'));
         }
 
         $create->handle(
@@ -280,7 +105,7 @@ final class RecruitmentManagementController extends Controller
             (bool) $validated['active'],
         );
 
-        return back();
+        return back()->with('actionReceipt', $this->receipt('recruitment-question-created'));
     }
 
     public function issueApplicationInvite(
@@ -307,7 +132,7 @@ final class RecruitmentManagementController extends Controller
             'token' => $issued->token,
         ]));
 
-        return back();
+        return back()->with('actionReceipt', $this->receipt('recruitment-application-invite-issued'));
     }
 
     public function storeDecisionTemplate(
@@ -334,7 +159,7 @@ final class RecruitmentManagementController extends Controller
             (bool) $validated['active'],
         );
 
-        return back();
+        return back()->with('actionReceipt', $this->receipt('recruitment-decision-template-created'));
     }
 
     public function storeOnboardingItem(
@@ -361,24 +186,84 @@ final class RecruitmentManagementController extends Controller
             (bool) $validated['active'],
         );
 
+        return back()->with('actionReceipt', $this->receipt('recruitment-onboarding-item-created'));
+    }
+
+    public function previewBulkStageChange(
+        Request $request,
+        AllianceContext $context,
+        PreviewRecruitmentStageBulkChange $preview,
+    ): RedirectResponse {
+        $validated = $this->validateBulkStageChange($request);
+        $scope = $context->scope();
+
+        /** @var non-empty-list<string> $candidateIds */
+        $candidateIds = array_values($validated['candidate_ids']);
+        $request->session()->flash('recruitmentBulkPreview', $preview->handle(
+            $scope->playerId,
+            $scope->allianceId,
+            $candidateIds,
+            RecruitmentStage::from($validated['stage']),
+        ));
+
         return back();
     }
 
-    private function user(Request $request): AuthenticatedAccount
-    {
-        $user = $request->user();
-        abort_unless($user instanceof AuthenticatedAccount, 401);
+    public function commitBulkStageChange(
+        Request $request,
+        AllianceContext $context,
+        AllianceReferenceQuery $alliances,
+        BulkChangeRecruitmentStage $change,
+    ): RedirectResponse {
+        $validated = $this->validateBulkStageChange($request);
+        $scope = $context->scope();
+        $alliance = $alliances->require($scope->allianceId);
+        $nextActionAt = isset($validated['next_action_at']) && is_string($validated['next_action_at'])
+            ? CarbonImmutable::parse($validated['next_action_at'], $alliance->timezone)
+            : null;
 
-        return $user;
+        /** @var non-empty-list<string> $candidateIds */
+        $candidateIds = array_values($validated['candidate_ids']);
+        $result = $change->handle(
+            $scope->playerId,
+            $scope->allianceId,
+            $candidateIds,
+            RecruitmentStage::from($validated['stage']),
+            isset($validated['reason']) && is_string($validated['reason'])
+                ? $validated['reason']
+                : null,
+            $nextActionAt,
+        )->toArray();
+
+        $request->session()->flash('recruitmentBulkResult', $result);
+
+        return back()->with('actionReceipt', $this->receipt('recruitment-bulk-stage-completed', [
+            'succeeded' => $result['succeeded'],
+            'failed' => $result['failed'],
+            'skipped' => $result['skipped'],
+        ]));
     }
 
-    private function authorize(
-        AllianceAuthorization $authorization,
-        string $actorPlayerId,
-        string $allianceId,
-    ): void {
-        if (! $authorization->allows($actorPlayerId, $allianceId, AlliancePermission::RecruitmentManage)) {
-            throw new AuthorizationException;
-        }
+    /**
+     * @return array{
+     *   candidate_ids: list<string>,
+     *   stage: string,
+     *   reason?: string|null,
+     *   next_action_at?: string|null
+     * }
+     */
+    private function validateBulkStageChange(Request $request): array
+    {
+        return $request->validate([
+            'candidate_ids' => ['required', 'array', 'min:1', 'max:50'],
+            'candidate_ids.*' => ['required', 'ulid', 'distinct'],
+            'stage' => [
+                'required',
+                Rule::enum(RecruitmentStage::class),
+                Rule::notIn([RecruitmentStage::Joined->value]),
+            ],
+            'reason' => ['nullable', 'string', 'max:5000'],
+            'next_action_at' => ['nullable', 'date'],
+        ]);
     }
 }

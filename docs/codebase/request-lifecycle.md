@@ -41,7 +41,7 @@ The Controller does not own the transaction, locks or Eloquent persistence.
 
 ## Cross-context command
 
-If one owner can satisfy the command, call that owner's Action directly. If the business process genuinely requires multiple write owners, invoke a Workflow such as `AccountOnboarding` or `KingdomGovernance`.
+If one owner can satisfy the command, call that owner's Action directly. If the business process genuinely requires multiple write owners, invoke a Workflow such as `AccountOnboarding`, `ExternalEventParticipation`, or `KingdomGovernance`.
 
 ## Read request
 

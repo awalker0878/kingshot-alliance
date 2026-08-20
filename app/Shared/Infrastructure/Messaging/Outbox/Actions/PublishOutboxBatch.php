@@ -69,10 +69,13 @@ final class PublishOutboxBatch
 
     private function claimNext(): ?OutboxMessage
     {
-        return DB::transaction(function (): ?OutboxMessage {
+        $maximumAttempts = max(1, (int) config('operations.outbox.maximum_attempts', 10));
+
+        return DB::transaction(function () use ($maximumAttempts): ?OutboxMessage {
             /** @var Builder<OutboxMessage> $query */
             $query = OutboxMessage::query()
                 ->whereNull('published_at')
+                ->where('attempts', '<', $maximumAttempts)
                 ->where('available_at', '<=', now())
                 ->orderBy('occurred_at')
                 ->orderBy('id');

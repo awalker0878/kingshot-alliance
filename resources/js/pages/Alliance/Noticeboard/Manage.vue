@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import { computed, reactive, ref } from 'vue';
+import { computed, reactive, ref, watch } from 'vue';
 
 import RoomBanner from '@/components/game/RoomBanner.vue';
 import StatSeal from '@/components/game/StatSeal.vue';
 import AppButton from '@/components/ui/AppButton.vue';
+import ConfirmActionDialog from '@/components/ui/ConfirmActionDialog.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
@@ -15,8 +16,38 @@ type Provenance = {
   gameVersion: string | null;
   reviewedAt: string | null;
 };
+type Freshness = {
+  status: 'current' | 'due_soon' | 'stale' | 'not_applicable';
+  dueAt: string | null;
+  daysUntilDue: number | null;
+};
+type ContextLink = { type: 'event_type'; key: string };
+type EventTypeOption = { slug: string; nameKey: string };
 type Category = { id: string; name: string; slug: string; sortOrder: number };
 type Revision = { id: string; revisionNumber: number; title: string; createdAt: string | null };
+type BroadcastSchedule = {
+  id: string;
+  status: string;
+  weekdays: number[];
+  localTime: string;
+  timezone: string;
+  nextRunAt: string | null;
+  lastRunAt: string | null;
+  endsAt: string | null;
+  cancelledAt: string | null;
+};
+type BroadcastRun = {
+  id: string;
+  scheduleId: string | null;
+  scheduledFor: string;
+  status: string;
+  recipientCount: number;
+  deliveryCount: number;
+  deliveryCounts: Record<string, number>;
+  readCount: number;
+  failedDeliveryIds: string[];
+  queuedAt: string | null;
+};
 type ContentRow = {
   id: string;
   type: string;
@@ -32,6 +63,8 @@ type ContentRow = {
   revisionNumber: number;
   notifyMembers: boolean;
   provenance: Provenance | null;
+  freshness: Freshness;
+  contextLinks: ContextLink[];
   scheduledFor: string | null;
   publishedAt: string | null;
   broadcastedAt: string | null;
@@ -39,6 +72,8 @@ type ContentRow = {
   updatedAt: string | null;
   category: { id: string; name: string; slug: string } | null;
   revisions: Revision[];
+  broadcastSchedule: BroadcastSchedule | null;
+  broadcastRuns: BroadcastRun[];
 };
 type Media = {
   id: string;
@@ -64,6 +99,13 @@ type ContentDraft = {
   source_url: string;
   game_version: string;
   reviewed_at: string;
+  event_type_slugs: string[];
+};
+type RecurrenceDraft = {
+  weekdays: number[];
+  local_time: string;
+  timezone: string;
+  ends_at: string;
 };
 
 const props = defineProps<{
@@ -84,6 +126,7 @@ const props = defineProps<{
   contentTypes: Option[];
   visibilityOptions: Option[];
   categories: Category[];
+  eventTypes: EventTypeOption[];
   content: ContentRow[];
   media: Media[];
 }>();
@@ -91,6 +134,49 @@ const props = defineProps<{
 const { t, formatDate } = useLocale();
 const editingId = ref<string | null>(null);
 const scheduleInputs = reactive<Record<string, string>>({});
+const recurrenceBusyId = ref<string | null>(null);
+const testBusyId = ref<string | null>(null);
+const retryBusyId = ref<string | null>(null);
+const cancellingSchedule = ref<BroadcastSchedule | null>(null);
+const recurrenceForms = reactive<Record<string, RecurrenceDraft>>(
+  Object.fromEntries(
+    props.content
+      .filter((item) => item.type === 'announcement')
+      .map((item) => [
+        item.id,
+        {
+          weekdays: item.broadcastSchedule?.weekdays ?? [1, 2, 3, 4, 5],
+          local_time: item.broadcastSchedule?.localTime ?? '18:00',
+          timezone: item.broadcastSchedule?.timezone ?? props.alliance.timezone,
+          ends_at: localDateTimeInput(item.broadcastSchedule?.endsAt ?? null),
+        },
+      ]),
+  ),
+);
+const weekdayOptions = Array.from({ length: 7 }, (_, index) => {
+  const day = index + 1;
+  return {
+    value: day,
+    label: formatDate(new Date(Date.UTC(2024, 0, day)), {
+      weekday: 'short',
+      timeZone: 'UTC',
+    }),
+  };
+});
+watch(
+  () => props.content,
+  (items) => {
+    for (const item of items) {
+      if (item.type !== 'announcement' || recurrenceForms[item.id]) continue;
+      recurrenceForms[item.id] = {
+        weekdays: item.broadcastSchedule?.weekdays ?? [1, 2, 3, 4, 5],
+        local_time: item.broadcastSchedule?.localTime ?? '18:00',
+        timezone: item.broadcastSchedule?.timezone ?? props.alliance.timezone,
+        ends_at: localDateTimeInput(item.broadcastSchedule?.endsAt ?? null),
+      };
+    }
+  },
+);
 const categoryEdits = reactive<Record<string, { name: string; slug: string; sort_order: number }>>(
   Object.fromEntries(
     props.categories.map((category) => [
@@ -114,6 +200,11 @@ const pendingBroadcastCount = computed(
         item.status === 'published' &&
         item.broadcastedAt === null,
     ).length,
+);
+const knowledgeReviewQueue = computed(() =>
+  props.content.filter(
+    (item) => item.freshness.status === 'stale' || item.freshness.status === 'due_soon',
+  ),
 );
 const requiresProvenance = computed(
   () =>
@@ -148,6 +239,7 @@ const contentForm = useForm<ContentDraft>({
   source_url: '',
   game_version: '',
   reviewed_at: '',
+  event_type_slugs: [],
 });
 
 function slugify(value: string): string {
@@ -184,6 +276,9 @@ function editContent(item: ContentRow): void {
   contentForm.source_url = item.provenance?.sourceUrl ?? '';
   contentForm.game_version = item.provenance?.gameVersion ?? '';
   contentForm.reviewed_at = item.provenance?.reviewedAt ?? '';
+  contentForm.event_type_slugs = item.contextLinks
+    .filter((link) => link.type === 'event_type')
+    .map((link) => link.key);
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 function saveContent(): void {
@@ -208,6 +303,58 @@ function schedule(id: string): void {
     '/alliance/content/' + id + '/publish',
     { scheduled_for: new Date(value).toISOString() },
     { preserveScroll: true },
+  );
+}
+function localDateTimeInput(value: string | null): string {
+  if (!value) return '';
+  const date = new Date(value);
+  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
+  return local.toISOString().slice(0, 16);
+}
+function saveRecurrence(item: ContentRow): void {
+  const form = recurrenceForms[item.id];
+  if (!form || !form.weekdays.length) return;
+  recurrenceBusyId.value = item.id;
+  router.put(
+    '/alliance/content/' + item.id + '/broadcast-schedule',
+    {
+      ...form,
+      ends_at: form.ends_at ? new Date(form.ends_at).toISOString() : null,
+    },
+    {
+      preserveScroll: true,
+      onFinish: () => (recurrenceBusyId.value = null),
+    },
+  );
+}
+function requestCancelRecurrence(schedule: BroadcastSchedule): void {
+  cancellingSchedule.value = schedule;
+}
+function confirmCancelRecurrence(): void {
+  const schedule = cancellingSchedule.value;
+  if (!schedule) return;
+  recurrenceBusyId.value = schedule.id;
+  router.delete('/alliance/content/broadcast-schedules/' + schedule.id, {
+    preserveScroll: true,
+    onSuccess: () => (cancellingSchedule.value = null),
+    onFinish: () => (recurrenceBusyId.value = null),
+  });
+}
+function testBroadcast(id: string): void {
+  testBusyId.value = id;
+  router.post(
+    '/alliance/content/' + id + '/broadcast-test',
+    {},
+    { preserveScroll: true, onFinish: () => (testBusyId.value = null) },
+  );
+}
+function retryBroadcastFailures(run: BroadcastRun): void {
+  if (!run.failedDeliveryIds.length) return;
+  retryBusyId.value = run.id;
+  router.post(
+    '/alliance/content/broadcast-runs/' + run.id + '/retry-failures',
+    { delivery_ids: run.failedDeliveryIds },
+    { preserveScroll: true, onFinish: () => (retryBusyId.value = null) },
   );
 }
 function archiveContent(id: string): void {
@@ -252,8 +399,19 @@ function statusTone(value: string): 'success' | 'warning' | 'info' {
   if (value === 'draft') return 'warning';
   return 'info';
 }
+function freshnessTone(value: Freshness['status']): 'success' | 'warning' | 'danger' | 'info' {
+  if (value === 'current') return 'success';
+  if (value === 'due_soon') return 'warning';
+  if (value === 'stale') return 'danger';
+  return 'info';
+}
 function timestamp(value: string | null): string {
   return value ? formatDate(value, { dateStyle: 'medium', timeStyle: 'short' }) : '—';
+}
+function timezoneTimestamp(value: string | null, timezone: string): string {
+  return value
+    ? formatDate(value, { dateStyle: 'medium', timeStyle: 'short', timeZone: timezone })
+    : '—';
 }
 function bytes(value: number): string {
   if (value < 1024) return value + ' B';
@@ -497,6 +655,51 @@ function bytes(value: number): string {
       </aside>
 
       <div class="min-w-0 space-y-5">
+        <section
+          v-if="knowledgeReviewQueue.length"
+          class="ks-surface-gold p-5 sm:p-6"
+          aria-labelledby="knowledge-review-heading"
+        >
+          <div class="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p class="ks-kicker">{{ t('contentExperience.knowledgeReviewQueue') }}</p>
+              <h2 id="knowledge-review-heading" class="ks-display mt-1 text-2xl font-semibold">
+                {{
+                  t('contentExperience.knowledgeReviewNeeded', {
+                    count: knowledgeReviewQueue.length,
+                  })
+                }}
+              </h2>
+            </div>
+            <span class="ks-status" data-tone="warning">{{ knowledgeReviewQueue.length }}</span>
+          </div>
+          <p class="mt-2 text-sm leading-6 text-[var(--ks-muted)]">
+            {{ t('contentExperience.knowledgeReviewHelp') }}
+          </p>
+          <ul class="mt-4 grid gap-3 lg:grid-cols-2">
+            <li
+              v-for="item in knowledgeReviewQueue"
+              :key="'review-' + item.id"
+              class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-4"
+            >
+              <div class="flex items-start justify-between gap-3">
+                <div class="min-w-0">
+                  <strong class="block truncate">{{ item.title }}</strong>
+                  <p class="mt-1 text-xs text-[var(--ks-muted)]">
+                    {{ t('contentExperience.reviewDue') }} {{ item.freshness.dueAt ?? '—' }}
+                  </p>
+                </div>
+                <span class="ks-status" :data-tone="freshnessTone(item.freshness.status)">
+                  {{ t(`contentExperience.freshness.${item.freshness.status}`) }}
+                </span>
+              </div>
+              <button type="button" class="ks-chip mt-3" @click="editContent(item)">
+                {{ t('contentExperience.reviewNow') }}
+              </button>
+            </li>
+          </ul>
+        </section>
+
         <section class="ks-surface p-5 sm:p-6" aria-labelledby="editor-heading">
           <div class="flex flex-wrap items-end justify-between gap-3">
             <div>
@@ -646,6 +849,32 @@ function bytes(value: number): string {
                 />
               </label>
             </fieldset>
+            <fieldset
+              v-if="props.eventTypes.length"
+              class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/10 p-4 md:col-span-2"
+            >
+              <legend class="px-2 text-sm font-semibold">
+                {{ t('contentExperience.contextualEvents') }}
+              </legend>
+              <p class="text-xs leading-5 text-[var(--ks-muted)]">
+                {{ t('contentExperience.contextualEventsHelp') }}
+              </p>
+              <div class="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                <label
+                  v-for="eventType in props.eventTypes"
+                  :key="eventType.slug"
+                  class="flex items-start gap-2 rounded border border-[var(--ks-border)] p-2 text-sm"
+                >
+                  <input
+                    v-model="contentForm.event_type_slugs"
+                    class="mt-1"
+                    type="checkbox"
+                    :value="eventType.slug"
+                  />
+                  <span>{{ t(eventType.nameKey) }}</span>
+                </label>
+              </div>
+            </fieldset>
             <label class="block text-sm md:col-span-2">
               <span>{{ t('contentExperience.body') }}</span>
               <textarea
@@ -716,6 +945,13 @@ function bytes(value: number): string {
                             : t('contentExperience.notifyMembers')
                         }}
                       </span>
+                      <span
+                        v-if="item.freshness.status !== 'not_applicable'"
+                        class="ks-status"
+                        :data-tone="freshnessTone(item.freshness.status)"
+                      >
+                        {{ t(`contentExperience.freshness.${item.freshness.status}`) }}
+                      </span>
                     </div>
                     <h3 class="ks-display mt-3 text-xl font-semibold">{{ item.title }}</h3>
                     <p class="mt-1 text-xs text-[var(--ks-muted)]">
@@ -737,6 +973,10 @@ function bytes(value: number): string {
                         · {{ t('contentExperience.reviewed') }}
                         {{ item.provenance.reviewedAt }}
                       </template>
+                    </p>
+                    <p v-if="item.contextLinks.length" class="mt-2 text-xs text-[var(--ks-muted)]">
+                      {{ t('contentExperience.contextualEvents') }}:
+                      {{ item.contextLinks.map((link) => link.key).join(', ') }}
                     </p>
                   </div>
                   <div class="flex flex-wrap gap-2">
@@ -780,6 +1020,168 @@ function bytes(value: number): string {
                     {{ t('contentExperience.publishNow') }}
                   </AppButton>
                 </div>
+
+                <section
+                  v-if="item.type === 'announcement' && item.notifyMembers"
+                  class="mt-4 rounded-[var(--ks-radius-md)] border border-cyan-300/20 bg-cyan-400/5 p-4"
+                  :aria-labelledby="'broadcast-controls-' + item.id"
+                >
+                  <div class="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p class="ks-kicker">{{ t('contentExperience.deliveryAutomation') }}</p>
+                      <h4 :id="'broadcast-controls-' + item.id" class="mt-1 font-semibold">
+                        {{ t('contentExperience.recurringBroadcast') }}
+                      </h4>
+                    </div>
+                    <AppButton
+                      type="button"
+                      variant="secondary"
+                      :busy="testBusyId === item.id"
+                      :busy-label="t('contentExperience.sendingTest')"
+                      @click="testBroadcast(item.id)"
+                    >
+                      {{ t('contentExperience.sendTest') }}
+                    </AppButton>
+                  </div>
+
+                  <form
+                    v-if="item.status === 'published' && recurrenceForms[item.id]"
+                    class="mt-4 grid gap-3 md:grid-cols-2"
+                    @submit.prevent="saveRecurrence(item)"
+                  >
+                    <fieldset class="md:col-span-2">
+                      <legend class="text-sm font-medium">
+                        {{ t('contentExperience.recurringDays') }}
+                      </legend>
+                      <div class="mt-2 flex flex-wrap gap-2">
+                        <label
+                          v-for="day in weekdayOptions"
+                          :key="day.value"
+                          class="ks-chip cursor-pointer"
+                        >
+                          <input
+                            v-model="recurrenceForms[item.id]!.weekdays"
+                            class="mr-1.5"
+                            type="checkbox"
+                            :value="day.value"
+                          />
+                          {{ day.label }}
+                        </label>
+                      </div>
+                    </fieldset>
+                    <label class="block text-sm">
+                      <span>{{ t('contentExperience.deliveryTime') }}</span>
+                      <input
+                        v-model="recurrenceForms[item.id]!.local_time"
+                        class="ks-input mt-1.5"
+                        type="time"
+                        required
+                      />
+                    </label>
+                    <label class="block text-sm">
+                      <span>{{ t('contentExperience.deliveryTimezone') }}</span>
+                      <input
+                        v-model="recurrenceForms[item.id]!.timezone"
+                        class="ks-input mt-1.5"
+                        required
+                      />
+                    </label>
+                    <label class="block text-sm md:col-span-2 md:max-w-sm">
+                      <span>{{ t('contentExperience.recurrenceEnds') }}</span>
+                      <input
+                        v-model="recurrenceForms[item.id]!.ends_at"
+                        class="ks-input mt-1.5"
+                        type="datetime-local"
+                      />
+                    </label>
+                    <p class="text-xs leading-5 text-[var(--ks-muted)] md:col-span-2">
+                      {{ t('contentExperience.timezonePreview') }}:
+                      <strong class="text-[var(--ks-text)]">
+                        {{ recurrenceForms[item.id]!.local_time }}
+                        {{ recurrenceForms[item.id]!.timezone }}
+                      </strong>
+                      <template v-if="item.broadcastSchedule?.nextRunAt">
+                        · {{ t('contentExperience.nextDelivery') }}
+                        {{
+                          timezoneTimestamp(
+                            item.broadcastSchedule.nextRunAt,
+                            item.broadcastSchedule.timezone,
+                          )
+                        }}
+                      </template>
+                    </p>
+                    <div class="flex flex-wrap gap-2 md:col-span-2">
+                      <AppButton
+                        type="submit"
+                        :busy="recurrenceBusyId === item.id"
+                        :busy-label="t('contentExperience.savingRecurrence')"
+                        :disabled="!recurrenceForms[item.id]!.weekdays.length"
+                      >
+                        {{ t('contentExperience.saveRecurrence') }}
+                      </AppButton>
+                      <AppButton
+                        v-if="item.broadcastSchedule?.status === 'active'"
+                        type="button"
+                        variant="ghost"
+                        @click="requestCancelRecurrence(item.broadcastSchedule)"
+                      >
+                        {{ t('contentExperience.cancelRecurrence') }}
+                      </AppButton>
+                    </div>
+                  </form>
+                  <p v-else class="mt-3 text-xs leading-5 text-[var(--ks-muted)]">
+                    {{ t('contentExperience.publishBeforeRecurrence') }}
+                  </p>
+
+                  <details v-if="item.broadcastRuns.length" class="mt-4">
+                    <summary class="cursor-pointer text-sm font-semibold">
+                      {{ t('contentExperience.deliveryHistory') }} · {{ item.broadcastRuns.length }}
+                    </summary>
+                    <div class="mt-3 space-y-2">
+                      <article
+                        v-for="run in item.broadcastRuns"
+                        :key="run.id"
+                        class="rounded border border-[var(--ks-border)] bg-black/10 p-3"
+                      >
+                        <div class="flex flex-wrap items-start justify-between gap-3">
+                          <div>
+                            <strong class="text-sm">{{ timestamp(run.scheduledFor) }}</strong>
+                            <p class="mt-1 text-xs text-[var(--ks-muted)]">
+                              {{
+                                t('contentExperience.deliveryRunSummary', {
+                                  recipients: run.recipientCount,
+                                  sent: run.deliveryCounts.sent ?? 0,
+                                  queued:
+                                    (run.deliveryCounts.queued ?? 0) +
+                                    (run.deliveryCounts.pending ?? 0),
+                                  failed: run.deliveryCounts.failed ?? 0,
+                                  read: run.readCount,
+                                })
+                              }}
+                            </p>
+                          </div>
+                          <AppButton
+                            v-if="run.failedDeliveryIds.length"
+                            type="button"
+                            variant="ghost"
+                            :busy="retryBusyId === run.id"
+                            :busy-label="t('contentExperience.retryingFailures')"
+                            @click="retryBroadcastFailures(run)"
+                          >
+                            {{
+                              t('contentExperience.retryFailed', {
+                                count: run.failedDeliveryIds.length,
+                              })
+                            }}
+                          </AppButton>
+                        </div>
+                      </article>
+                    </div>
+                  </details>
+                  <p v-else class="mt-4 text-xs text-[var(--ks-muted)]">
+                    {{ t('contentExperience.noDeliveryHistory') }}
+                  </p>
+                </section>
               </div>
 
               <details v-if="item.revisions.length" class="p-4 sm:p-5">
@@ -814,5 +1216,18 @@ function bytes(value: number): string {
         </section>
       </div>
     </div>
+    <ConfirmActionDialog
+      id="broadcast-schedule-cancellation"
+      :open="cancellingSchedule !== null"
+      :title="t('contentExperience.cancelRecurrenceTitle')"
+      :description="t('contentExperience.cancelRecurrenceDescription')"
+      :confirm-label="t('contentExperience.cancelRecurrence')"
+      :cancel-label="t('common.cancel')"
+      :busy="cancellingSchedule !== null && recurrenceBusyId === cancellingSchedule.id"
+      :busy-label="t('contentExperience.cancellingRecurrence')"
+      danger
+      @confirm="confirmCancelRecurrence"
+      @cancel="cancellingSchedule = null"
+    />
   </AppLayout>
 </template>

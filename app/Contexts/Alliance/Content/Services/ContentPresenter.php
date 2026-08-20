@@ -7,8 +7,10 @@ namespace App\Contexts\Alliance\Content\Services;
 use App\Contexts\Alliance\Content\Models\ContentCategory;
 use App\Contexts\Alliance\Content\Models\ContentItem;
 
-final class ContentPresenter
+final readonly class ContentPresenter
 {
+    public function __construct(private ContentFreshness $freshness) {}
+
     /** @return array<string, mixed> */
     public function item(ContentItem $item, bool $includeBody = false): array
     {
@@ -28,6 +30,8 @@ final class ContentPresenter
             'revisionNumber' => (int) $item->current_revision_number,
             'notifyMembers' => (bool) $item->notify_members,
             'provenance' => $this->provenance($item),
+            'freshness' => $this->freshness->assess($item),
+            'contextLinks' => $item->context_links ?? [],
             'scheduledFor' => $item->scheduled_for?->toIso8601String(),
             'publishedAt' => $item->published_at?->toIso8601String(),
             'broadcastedAt' => $item->broadcasted_at?->toIso8601String(),

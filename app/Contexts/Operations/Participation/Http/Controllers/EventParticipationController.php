@@ -49,7 +49,7 @@ final class EventParticipationController extends Controller
             note: $validated['note'] ?? null,
         );
 
-        return back()->with('status', 'event-response-updated');
+        return back()->with('actionReceipt', $this->receipt('event-response-updated'));
     }
 
     public function register(
@@ -61,7 +61,7 @@ final class EventParticipationController extends Controller
         $this->user($request);
         $register->handle($this->activePlayer($context)->playerId, $occurrence);
 
-        return back()->with('status', 'event-registration-updated');
+        return back()->with('actionReceipt', $this->receipt('event-registration-updated'));
     }
 
     public function cancelRegistration(
@@ -73,7 +73,7 @@ final class EventParticipationController extends Controller
         $this->user($request);
         $cancel->handle($this->activePlayer($context)->playerId, $occurrence);
 
-        return back()->with('status', 'event-registration-cancelled');
+        return back()->with('actionReceipt', $this->receipt('event-registration-cancelled'));
     }
 
     public function attendance(
@@ -97,7 +97,7 @@ final class EventParticipationController extends Controller
             notes: $validated['notes'] ?? null,
         );
 
-        return back()->with('status', 'event-attendance-updated');
+        return back()->with('actionReceipt', $this->receipt('event-attendance-updated'));
     }
 
     private function activePlayer(PlayerContext $context): PlayerReference

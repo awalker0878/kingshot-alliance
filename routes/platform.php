@@ -50,4 +50,8 @@ Route::middleware(['auth', 'auth.session', 'verified', 'platform.admin', 'passwo
         Route::delete('/legal-holds/{hold}', [PlatformAdministrationController::class, 'releaseLegalHold'])
             ->whereUlid('hold')
             ->name('legal-holds.destroy');
+        Route::post('/operations/outbox/{message}/retry', [PlatformAdministrationController::class, 'retryOutbox'])
+            ->whereUlid('message')
+            ->middleware('throttle:10,1')
+            ->name('operations.outbox.retry');
     });

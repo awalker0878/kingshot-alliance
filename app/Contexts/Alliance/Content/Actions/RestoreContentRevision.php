@@ -73,6 +73,7 @@ final readonly class RestoreContentRevision
                 'source_url' => $revision->source_url,
                 'game_version' => $revision->game_version,
                 'reviewed_at' => $revision->reviewed_at,
+                'context_links' => $revision->context_links,
                 'locale' => $revision->locale,
                 'sort_order' => $revision->sort_order,
                 'current_revision_number' => (int) $item->current_revision_number + 1,

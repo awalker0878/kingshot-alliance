@@ -87,7 +87,7 @@ final class KingdomAllianceDiplomacyContactController extends Controller
         $scope = $context->scope();
         $save->handle($scope->allianceId, $scope->playerId, $tracking, $this->validated($request));
 
-        return back()->with('status', 'kingdom-alliance-diplomacy-contact-saved');
+        return back()->with('actionReceipt', $this->receipt('kingdom-alliance-diplomacy-contact-saved'));
     }
 
     public function update(Request $request, AllianceContext $context, SaveKingdomAllianceDiplomacyContact $save, string $tracking, string $contact): RedirectResponse
@@ -95,7 +95,7 @@ final class KingdomAllianceDiplomacyContactController extends Controller
         $scope = $context->scope();
         $save->handle($scope->allianceId, $scope->playerId, $tracking, $this->validated($request), $contact);
 
-        return back()->with('status', 'kingdom-alliance-diplomacy-contact-saved');
+        return back()->with('actionReceipt', $this->receipt('kingdom-alliance-diplomacy-contact-saved'));
     }
 
     public function deactivate(Request $request, AllianceContext $context, DeactivateKingdomAllianceDiplomacyContact $deactivate, string $tracking, string $contact): RedirectResponse
@@ -103,7 +103,7 @@ final class KingdomAllianceDiplomacyContactController extends Controller
         $scope = $context->scope();
         $deactivate->handle($scope->allianceId, $scope->playerId, $tracking, $contact);
 
-        return back()->with('status', 'kingdom-alliance-diplomacy-contact-deactivated');
+        return back()->with('actionReceipt', $this->receipt('kingdom-alliance-diplomacy-contact-deactivated'));
     }
 
     /** @return array{display_name:string,game_role?:string|null,channel_type:string,handle:string,last_verified_at?:string|null,manager_notes?:string|null} */

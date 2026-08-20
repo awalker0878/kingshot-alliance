@@ -15,6 +15,7 @@ Recruitment owns Alliance candidate/application behavior up to the controlled ha
 - retention/anonymization behavior for recruitment records containing applicant data;
 - explicit Alliance consent to appear in public recruitment discovery;
 - coarse, visible application-source attribution for conversion measurement.
+- bounded, previewed candidate-stage triage with per-candidate outcomes and selective failed-item retry.
 
 ## Authority
 
@@ -38,3 +39,5 @@ Application links may attach one of the bounded sources `recruitment-board`, `al
 ## Boundary
 
 Recruitment does not create a parallel membership model. Once membership is created, `Alliance/Membership` is the authoritative Alliance relationship. Cross-Alliance discovery remains read-only; applications still enter through the Recruitment-owned intake action.
+
+Bulk stage triage accepts at most 50 concrete candidate IDs. Preview authorization and transition checks are repeated by owner actions at commit time. Eligible candidates proceed independently, blocked or stale candidates receive stable result codes, and an aggregate audit receipt complements each successful candidate's stage-history, audit, and outbox evidence. The `joined` transition remains outside bulk triage because it requires the controlled Membership invitation handoff.

@@ -34,7 +34,7 @@ final class EventResultController extends Controller
             metrics: $this->metrics($validated['metrics'] ?? []),
         );
 
-        return back()->with('status', 'event-result-saved');
+        return back()->with('actionReceipt', $this->receipt('event-result-saved'));
     }
 
     public function saveAlliance(Request $request, string $occurrence, string $alliance, SaveEventAllianceResult $save): RedirectResponse
@@ -53,7 +53,7 @@ final class EventResultController extends Controller
             metrics: $this->metrics($validated['metrics'] ?? []),
         );
 
-        return back()->with('status', 'event-alliance-result-saved');
+        return back()->with('actionReceipt', $this->receipt('event-alliance-result-saved'));
     }
 
     public function savePlayer(Request $request, string $occurrence, string $player, SaveEventPlayerResult $save): RedirectResponse
@@ -72,7 +72,7 @@ final class EventResultController extends Controller
             metrics: $this->metrics($validated['metrics'] ?? []),
         );
 
-        return back()->with('status', 'event-player-result-saved');
+        return back()->with('actionReceipt', $this->receipt('event-player-result-saved'));
     }
 
     /** @return array<string,mixed> */

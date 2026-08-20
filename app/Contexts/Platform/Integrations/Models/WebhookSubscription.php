@@ -14,6 +14,7 @@ use Illuminate\Support\Carbon;
  * @property string $signing_secret
  * @property bool $is_active
  * @property Carbon|null $revoked_at
+ * @property Carbon|null $secret_rotated_at
  */
 final class WebhookSubscription extends Model
 {
@@ -29,6 +30,7 @@ final class WebhookSubscription extends Model
         'url',
         'events',
         'signing_secret',
+        'secret_rotated_at',
         'is_active',
         'revoked_at',
         'created_by_player_id',
@@ -41,6 +43,7 @@ final class WebhookSubscription extends Model
         return [
             'events' => 'array',
             'signing_secret' => 'encrypted',
+            'secret_rotated_at' => 'datetime',
             'is_active' => 'boolean',
             'revoked_at' => 'datetime',
         ];

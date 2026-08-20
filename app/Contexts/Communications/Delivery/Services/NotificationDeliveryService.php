@@ -9,12 +9,13 @@ use App\Contexts\Communications\Delivery\Enums\DeliveryStatus;
 use App\Contexts\Communications\Delivery\Models\NotificationDelivery;
 use App\Contexts\Communications\Delivery\Models\NotificationEndpoint;
 use App\Contexts\Communications\Delivery\Models\NotificationPreference;
+use App\Contexts\Communications\Delivery\ValueObjects\QueuedDeliveryBatch;
 use DateTimeInterface;
 use Illuminate\Support\Carbon;
 
 final class NotificationDeliveryService
 {
-    /** @param array<string, mixed> $metadata */
+    /** @param  array<string, mixed>  $metadata */
     public function queue(
         string $notificationType,
         int $recipientUserId,
@@ -84,6 +85,54 @@ final class NotificationDeliveryService
         }
 
         return $deliveries;
+    }
+
+    /**
+     * Cross-context delivery contract that exposes scalar results instead of
+     * Communications-owned persistence models.
+     *
+     * @param  array<string, mixed>  $metadata
+     */
+    public function queueEnabledChannelBatch(
+        string $notificationType,
+        int $recipientUserId,
+        ?string $playerId,
+        DateTimeInterface $dueAt,
+        string $idempotencyKey,
+        ?string $subjectType = null,
+        ?string $subjectId = null,
+        array $metadata = [],
+        int $maxAttempts = 5,
+    ): QueuedDeliveryBatch {
+        $deliveries = $this->queueEnabledChannels(
+            $notificationType,
+            $recipientUserId,
+            $playerId,
+            $dueAt,
+            $idempotencyKey,
+            $subjectType,
+            $subjectId,
+            $metadata,
+            $maxAttempts,
+        );
+
+        return new QueuedDeliveryBatch(
+            array_values(array_map(
+                static fn (NotificationDelivery $delivery): string => (string) $delivery->id,
+                $deliveries,
+            )),
+            array_values(array_unique(array_map(
+                static fn (NotificationDelivery $delivery): string => (string) $delivery->channel,
+                $deliveries,
+            ))),
+            array_values(array_map(
+                static fn (NotificationDelivery $delivery): string => (string) $delivery->id,
+                array_filter(
+                    $deliveries,
+                    static fn (NotificationDelivery $delivery): bool => $delivery->wasRecentlyCreated,
+                ),
+            )),
+        );
     }
 
     /** @return list<DeliveryChannel> */

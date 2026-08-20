@@ -4,11 +4,20 @@ declare(strict_types=1);
 
 namespace Tests\v3\Contexts\Alliance\Content;
 
+use App\Contexts\Alliance\Content\Actions\CancelAnnouncementBroadcastSchedule;
 use App\Contexts\Alliance\Content\Actions\QueuePublishedAnnouncementBroadcasts;
+use App\Contexts\Alliance\Content\Actions\RetryAnnouncementBroadcastFailures;
+use App\Contexts\Alliance\Content\Actions\SaveAnnouncementBroadcastSchedule;
+use App\Contexts\Alliance\Content\Actions\TestAnnouncementBroadcast;
+use App\Contexts\Alliance\Content\Enums\BroadcastRunStatus;
+use App\Contexts\Alliance\Content\Enums\BroadcastScheduleStatus;
 use App\Contexts\Alliance\Content\Enums\ContentStatus;
 use App\Contexts\Alliance\Content\Enums\ContentType;
 use App\Contexts\Alliance\Content\Enums\ContentVisibility;
+use App\Contexts\Alliance\Content\Models\AnnouncementBroadcastRun;
+use App\Contexts\Alliance\Content\Models\AnnouncementBroadcastSchedule;
 use App\Contexts\Alliance\Content\Models\ContentItem;
+use App\Contexts\Alliance\Content\Services\NextBroadcastOccurrence;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\Communications\Delivery\Enums\DeliveryChannel;
@@ -16,6 +25,7 @@ use App\Contexts\Communications\Delivery\Enums\DeliveryStatus;
 use App\Contexts\Communications\Delivery\Models\NotificationDelivery;
 use App\Contexts\GameWorld\Players\Actions\ClaimPlayerAccount;
 use App\Contexts\GameWorld\Players\Actions\PersistPlayerIdentity;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\v3\Support\ScenarioFactory;
 use Tests\v3\TestCase;
@@ -118,5 +128,140 @@ final class AllianceAnnouncementBroadcastBehaviorV3Test extends TestCase
 
         self::assertSame(0, app(QueuePublishedAnnouncementBroadcasts::class)->handle());
         self::assertSame(0, NotificationDelivery::query()->count());
+    }
+
+    public function test_next_occurrence_uses_the_rule_timezone_across_daylight_saving_time(): void
+    {
+        $next = app(NextBroadcastOccurrence::class)->calculate(
+            [7],
+            '09:00',
+            'America/Toronto',
+            CarbonImmutable::parse('2026-03-07 15:00:00 UTC'),
+        );
+
+        self::assertSame('2026-03-08T13:00:00+00:00', $next?->toIso8601String());
+    }
+
+    public function test_recurring_rule_materializes_each_due_run_once_and_advances(): void
+    {
+        [$owner, $alliance, $announcement] = $this->announcementScenario('recurring-rally');
+        $tomorrow = CarbonImmutable::now('UTC')->addDay();
+        $scheduleId = app(SaveAnnouncementBroadcastSchedule::class)->handle(
+            $alliance,
+            $owner,
+            (string) $announcement->id,
+            [$tomorrow->dayOfWeekIso],
+            $tomorrow->format('H:i'),
+            'UTC',
+        );
+        AnnouncementBroadcastSchedule::query()->whereKey($scheduleId)->update([
+            'next_run_at' => now()->subMinute(),
+        ]);
+        $announcement->forceFill(['broadcasted_at' => now()])->save();
+
+        $queue = app(QueuePublishedAnnouncementBroadcasts::class);
+        self::assertSame(1, $queue->handle());
+        self::assertSame(0, $queue->handle());
+
+        $schedule = AnnouncementBroadcastSchedule::query()->findOrFail($scheduleId);
+        self::assertSame(BroadcastScheduleStatus::Active, $schedule->status);
+        self::assertNotNull($schedule->last_run_at);
+        self::assertTrue($schedule->next_run_at?->isFuture() ?? false);
+        self::assertSame(1, AnnouncementBroadcastRun::query()->where('schedule_id', $scheduleId)->count());
+    }
+
+    public function test_cancelled_rule_does_not_create_future_runs(): void
+    {
+        [$owner, $alliance, $announcement] = $this->announcementScenario('cancelled-rally');
+        $tomorrow = CarbonImmutable::now('UTC')->addDay();
+        $scheduleId = app(SaveAnnouncementBroadcastSchedule::class)->handle(
+            $alliance,
+            $owner,
+            (string) $announcement->id,
+            [$tomorrow->dayOfWeekIso],
+            $tomorrow->format('H:i'),
+            'UTC',
+        );
+
+        app(CancelAnnouncementBroadcastSchedule::class)->handle($alliance, $owner, $scheduleId);
+        AnnouncementBroadcastSchedule::query()->whereKey($scheduleId)->update([
+            'next_run_at' => now()->subMinute(),
+        ]);
+        $announcement->forceFill(['broadcasted_at' => now()])->save();
+
+        self::assertSame(0, app(QueuePublishedAnnouncementBroadcasts::class)->handle());
+        self::assertSame(0, AnnouncementBroadcastRun::query()->count());
+    }
+
+    public function test_test_delivery_targets_only_the_requesting_manager(): void
+    {
+        [$owner, $alliance, $announcement, $ownerUserId] = $this->announcementScenario('test-rally');
+
+        $channels = app(TestAnnouncementBroadcast::class)->handle(
+            $alliance,
+            $owner,
+            (string) $announcement->id,
+        );
+
+        self::assertSame([DeliveryChannel::InApp->value], $channels);
+        $delivery = NotificationDelivery::query()->sole();
+        self::assertSame($ownerUserId, $delivery->recipient_user_id);
+        self::assertTrue((bool) ($delivery->metadata['test_delivery'] ?? false));
+        self::assertStringStartsWith('[Test] ', (string) ($delivery->metadata['title'] ?? ''));
+    }
+
+    public function test_failed_run_deliveries_can_be_selected_for_bounded_retry(): void
+    {
+        [$owner, $alliance, $announcement] = $this->announcementScenario('retry-rally');
+        self::assertSame(1, app(QueuePublishedAnnouncementBroadcasts::class)->handle());
+        $run = AnnouncementBroadcastRun::query()->sole();
+        self::assertSame(BroadcastRunStatus::Queued, $run->status);
+        $delivery = NotificationDelivery::query()->sole();
+        $delivery->forceFill([
+            'status' => DeliveryStatus::Failed,
+            'attempt_count' => 1,
+            'max_attempts' => 5,
+            'failed_at' => now(),
+            'last_error' => 'Temporary provider error.',
+        ])->save();
+
+        $retried = app(RetryAnnouncementBroadcastFailures::class)->handle(
+            $alliance,
+            $owner,
+            (string) $run->id,
+            [(string) $delivery->id],
+        );
+
+        self::assertSame(1, $retried);
+        self::assertSame(DeliveryStatus::Queued, $delivery->fresh()?->status);
+        self::assertNull($delivery->fresh()?->last_error);
+    }
+
+    /** @return array{0: string, 1: string, 2: ContentItem, 3: int} */
+    private function announcementScenario(string $slug): array
+    {
+        $scenarios = app(ScenarioFactory::class);
+        $account = $scenarios->account();
+        $owner = $scenarios->player($account->userId);
+        $alliance = $scenarios->alliance($owner);
+        $announcement = ContentItem::query()->create([
+            'alliance_id' => $alliance->allianceId,
+            'type' => ContentType::Announcement,
+            'visibility' => ContentVisibility::Members,
+            'status' => ContentStatus::Published,
+            'title' => 'Rally operations',
+            'slug' => $slug,
+            'summary' => 'Use the current rally plan.',
+            'body' => 'Open the noticeboard for the current plan.',
+            'locale' => 'en',
+            'sort_order' => 0,
+            'current_revision_number' => 1,
+            'notify_members' => true,
+            'published_at' => now(),
+            'created_by_player_id' => $owner->playerId,
+            'updated_by_player_id' => $owner->playerId,
+        ]);
+
+        return [$owner->playerId, $alliance->allianceId, $announcement, $account->userId];
     }
 }

@@ -14,9 +14,11 @@ use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
 use App\Contexts\Intelligence\Contributions\Actions\ApproveContributionRecord;
+use App\Contexts\Intelligence\Contributions\Actions\BulkApproveContributionRecords;
 use App\Contexts\Intelligence\Contributions\Actions\CorrectContributionRecord;
 use App\Contexts\Intelligence\Contributions\Actions\CreateContributionCategory;
 use App\Contexts\Intelligence\Contributions\Actions\CreateContributionReportSchedule;
+use App\Contexts\Intelligence\Contributions\Actions\PreviewContributionBulkApproval;
 use App\Contexts\Intelligence\Contributions\Actions\RecordContribution;
 use App\Contexts\Intelligence\Contributions\Actions\RefreshContributionDataQuality;
 use App\Contexts\Intelligence\Contributions\Actions\ResolveContributionDataQualityFlag;
@@ -77,6 +79,8 @@ final class ContributionController extends Controller
             'reporting' => $reports->managementDashboard($scope->allianceId),
             'periods' => array_column(ContributionPeriod::cases(), 'value'),
             'dataClasses' => array_column(ContributionDataClass::cases(), 'value'),
+            'contributionBulkPreview' => $request->session()->get('contributionBulkPreview'),
+            'contributionBulkResult' => $request->session()->get('contributionBulkResult'),
         ]);
     }
 
@@ -99,7 +103,7 @@ final class ContributionController extends Controller
             $validated['evidence'] ?? null,
         );
 
-        return back()->with('status', 'Contribution submitted for approval.');
+        return back()->with('actionReceipt', $this->receipt('contribution-self-report-submitted'));
     }
 
     public function storeCategory(Request $request, AllianceContext $context, AllianceIntelligenceAuthorization $authorization, CreateContributionCategory $create): RedirectResponse
@@ -125,7 +129,7 @@ final class ContributionController extends Controller
             $validated['calculation_key'] ?? null, $validated['calculation_version'] ?? null, $validated['calculation_description'] ?? null,
         );
 
-        return back()->with('status', 'Contribution category created.');
+        return back()->with('actionReceipt', $this->receipt('contribution-category-created'));
     }
 
     public function storeManualRecord(Request $request, AllianceContext $context, AllianceIntelligenceAuthorization $authorization, RecordContribution $record): RedirectResponse
@@ -138,7 +142,7 @@ final class ContributionController extends Controller
         ]);
         $record->handle($scope->playerId, $scope->allianceId, (string) $validated['player_id'], (string) $validated['category_id'], (float) $validated['value'], ContributionRecordSource::Manual, $validated['evidence'] ?? null);
 
-        return back()->with('status', 'Contribution recorded and awaiting approval.');
+        return back()->with('actionReceipt', $this->receipt('contribution-recorded'));
     }
 
     public function approve(Request $request, AllianceContext $context, AllianceIntelligenceAuthorization $authorization, ContributionRecord $record, ApproveContributionRecord $approve): RedirectResponse
@@ -147,7 +151,48 @@ final class ContributionController extends Controller
         $this->authorizeManager($scope, $authorization);
         $approve->handle($scope->playerId, $scope->allianceId, (string) $record->id);
 
-        return back()->with('status', 'Contribution approved.');
+        return back()->with('actionReceipt', $this->receipt('contribution-approved'));
+    }
+
+    public function previewBulkApproval(
+        Request $request,
+        AllianceContext $context,
+        PreviewContributionBulkApproval $preview,
+    ): RedirectResponse {
+        $this->user($request);
+        $validated = $this->validateBulkApproval($request);
+        $scope = $context->scope();
+
+        /** @var non-empty-list<string> $recordIds */
+        $recordIds = array_values($validated['record_ids']);
+        $request->session()->flash('contributionBulkPreview', $preview->handle(
+            $scope->playerId,
+            $scope->allianceId,
+            $recordIds,
+        ));
+
+        return back();
+    }
+
+    public function commitBulkApproval(
+        Request $request,
+        AllianceContext $context,
+        BulkApproveContributionRecords $approve,
+    ): RedirectResponse {
+        $this->user($request);
+        $validated = $this->validateBulkApproval($request);
+        $scope = $context->scope();
+
+        /** @var non-empty-list<string> $recordIds */
+        $recordIds = array_values($validated['record_ids']);
+        $result = $approve->handle($scope->playerId, $scope->allianceId, $recordIds)->toArray();
+        $request->session()->flash('contributionBulkResult', $result);
+
+        return back()->with('actionReceipt', $this->receipt('contribution-bulk-approval-completed', [
+            'succeeded' => $result['succeeded'],
+            'failed' => $result['failed'],
+            'skipped' => $result['skipped'],
+        ]));
     }
 
     public function correct(Request $request, AllianceContext $context, AllianceIntelligenceAuthorization $authorization, ContributionRecord $record, CorrectContributionRecord $correct): RedirectResponse
@@ -157,7 +202,7 @@ final class ContributionController extends Controller
         $validated = $request->validate(['value' => ['required', 'numeric', 'min:0'], 'reason' => ['required', 'string', 'max:2000'], 'evidence' => ['nullable', 'string', 'max:4000']]);
         $correct->handle($scope->playerId, $scope->allianceId, (string) $record->id, (float) $validated['value'], $validated['reason'], $validated['evidence'] ?? null);
 
-        return back()->with('status', 'Contribution correction recorded.');
+        return back()->with('actionReceipt', $this->receipt('contribution-corrected'));
     }
 
     public function reverse(Request $request, AllianceContext $context, AllianceIntelligenceAuthorization $authorization, ContributionRecord $record, ReverseContributionRecord $reverse): RedirectResponse
@@ -167,7 +212,7 @@ final class ContributionController extends Controller
         $validated = $request->validate(['reason' => ['required', 'string', 'max:2000']]);
         $reverse->handle($scope->playerId, $scope->allianceId, (string) $record->id, $validated['reason']);
 
-        return back()->with('status', 'Contribution reversed.');
+        return back()->with('actionReceipt', $this->receipt('contribution-reversed'));
     }
 
     public function refreshQuality(Request $request, AllianceContext $context, AllianceIntelligenceAuthorization $authorization, RefreshContributionDataQuality $refresh): RedirectResponse
@@ -176,7 +221,10 @@ final class ContributionController extends Controller
         $this->authorizeManager($scope, $authorization);
         $result = $refresh->handle($scope->playerId, $scope->allianceId);
 
-        return back()->with('status', sprintf('Data quality refreshed: %d missing evidence, %d missing records.', $result['missing_evidence'], $result['missing_records']));
+        return back()->with('actionReceipt', $this->receipt('contribution-quality-refreshed', [
+            'missingEvidence' => $result['missing_evidence'],
+            'missingRecords' => $result['missing_records'],
+        ]));
     }
 
     public function resolveQualityFlag(Request $request, AllianceContext $context, AllianceIntelligenceAuthorization $authorization, ContributionDataQualityFlag $flag, ResolveContributionDataQualityFlag $resolve): RedirectResponse
@@ -185,7 +233,7 @@ final class ContributionController extends Controller
         $this->authorizeManager($scope, $authorization);
         $resolve->handle($scope->playerId, $scope->allianceId, (string) $flag->id);
 
-        return back()->with('status', 'Data-quality flag resolved.');
+        return back()->with('actionReceipt', $this->receipt('contribution-quality-flag-resolved'));
     }
 
     public function storeReportSchedule(Request $request, AllianceContext $context, AllianceIntelligenceAuthorization $authorization, CreateContributionReportSchedule $create): RedirectResponse
@@ -199,7 +247,7 @@ final class ContributionController extends Controller
         ]);
         $create->handle($scope->playerId, $scope->allianceId, (string) $validated['recipient_player_id'], $validated['name'], $validated['cadence'], $validated['timezone'], CarbonImmutable::parse($validated['next_due_at'], $validated['timezone']));
 
-        return back()->with('status', 'Contribution report schedule created.');
+        return back()->with('actionReceipt', $this->receipt('contribution-report-schedule-created'));
     }
 
     public function exportCsv(Request $request, AllianceContext $context, AllianceIntelligenceAuthorization $authorization, ContributionReportExporter $exporter): HttpResponse
@@ -221,6 +269,15 @@ final class ContributionController extends Controller
         return response($result['content'], 200, [
             'Content-Type' => $result['mime'], 'Content-Disposition' => 'attachment; filename="'.$result['filename'].'"',
             'X-Report-Version' => $result['reportVersion'], 'X-Report-Checksum' => $result['checksum'],
+        ]);
+    }
+
+    /** @return array{record_ids: list<string>} */
+    private function validateBulkApproval(Request $request): array
+    {
+        return $request->validate([
+            'record_ids' => ['required', 'array', 'min:1', 'max:50'],
+            'record_ids.*' => ['required', 'ulid', 'distinct'],
         ]);
     }
 

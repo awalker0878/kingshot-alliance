@@ -14,6 +14,31 @@ const messages = {
       'These are recorded realm counts and dispatch backlogs. Deeper realm health remains in the protected Citadel watch.',
     fleetFacts: 'Fleet facts',
     deliveryQueues: 'Delivery watch',
+    diagnosticsTitle: 'Operational diagnostics',
+    diagnosticsHelp:
+      'Inspect privacy-safe failure fingerprints, trace one request across the audit trail, and release only exhausted unpublished outbox work for another bounded attempt cycle.',
+    correlationId: 'Request or trace ID',
+    correlationPlaceholder: 'UUID or 32-character trace ID',
+    trace: 'Trace request',
+    correlatedAudit: 'Correlated audit timeline',
+    noCorrelatedAudit: 'No audit records matched this correlation ID.',
+    outboxFailures: 'Outbox failures',
+    outboxFailureHelp:
+      'Automatic delivery stops after {attempts} attempts. Operator retry keeps the idempotency key and begins one fresh bounded cycle.',
+    releaseRetry: 'Release for retry',
+    releasingRetry: 'Releasing for retry…',
+    releaseRetryTitle: 'Release this outbox message?',
+    releaseRetryDescription:
+      'The {event} message will keep its idempotency key and receive one fresh bounded delivery cycle.',
+    noOutboxFailures: 'No failed unpublished outbox messages.',
+    webhookFailures: 'Webhook failures',
+    webhookFailureHelp:
+      'Alliance-scoped replay and delivery details remain in Alliance Connections.',
+    noWebhookFailures: 'No failed webhook deliveries.',
+    notificationFailures: 'Notification failures',
+    noNotificationFailures: 'No failed notifications.',
+    failedJobs: 'Failed queue jobs',
+    noFailedJobs: 'No failed queue jobs.',
     administrators: 'Citadel Wardens',
     administratorHelp:
       'Warden appointments grant Citadel access. The current Warden cannot remove their own active appointment here.',
@@ -128,6 +153,9 @@ const messages = {
     metricNotificationsQueue: 'Notice dispatch lane',
     metricIntegrationsQueue: 'Connection dispatch lane',
     metricMaintenanceQueue: 'Stewardship dispatch lane',
+    metricFailedNotifications: 'Failed notices',
+    metricOverdueOutbox: 'Overdue dispatches',
+    metricExhaustedOutbox: 'Exhausted dispatches',
     statusActive: 'Active',
     statusSuspended: 'Suspended',
     statusClosed: 'Closed',
@@ -144,6 +172,7 @@ const messages = {
     statusLegalHoldPlaced: 'Legal hold placed.',
     statusLegalHoldReleased: 'Legal hold released.',
     statusUsageCaptured: 'Alliance usage captured.',
+    statusOutboxRetryReleased: 'Outbox message released for retry.',
   },
 } satisfies MessageCatalogue;
 

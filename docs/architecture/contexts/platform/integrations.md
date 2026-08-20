@@ -8,17 +8,19 @@ Integrations owns external integration administration: scoped API credentials, w
 
 ## API credentials
 
-Credentials are scoped and revocable. API scope is not equivalent to Platform Administrator or Player game authority.
+Credentials are scoped and revocable. API scope is not equivalent to Platform Administrator, Alliance manager, or Player game authority.
 
 Bot-facing reads are composed in `app/ReadModels/BotCommands` and exposed through the existing credential middleware. Platform/Integrations owns credential verification and usage recording; the read model composes bounded projections from Alliance, Event, Gift Code, Content, Kingdom, and Recruitment owners.
 
-Discord/Telegram adapters are transport clients. They may verify provider requests and format responses, but they must not own a second copy of application business rules. The command API is deliberately read-only and never accepts provider bot tokens.
+Discord/Telegram adapters are transport clients. They may verify provider requests and format responses, but they must not own a second copy of application business rules. Read contracts never accept provider bot tokens. Self-service write parity requires a revocable, verified external-actor link and owner-context action; a client-provided Player ID is never an authority source.
+
+Platform/Integrations owns the provider link and machine request receipt. `Workflows/ExternalEventParticipation` owns the multi-context HTTP adapter, resolves the link, and coordinates the call into Operations/Participation. This keeps contexts from depending upward on a workflow. Operations remains the only owner of response, registration, capacity and waitlist semantics.
 
 ## Webhooks
 
-Webhook subscriptions use an explicit public event catalogue. Internal outbox/domain transition messages are not automatically public webhook contracts.
+Webhook subscriptions use an explicit public event catalogue with required payload fields and Alliance/global scope. Internal outbox/domain transition messages are not automatically public webhook contracts.
 
-Webhook delivery must be signed, retryable/idempotent and operationally observable. Network egress must enforce SSRF protections against metadata/private/management targets.
+Webhook delivery must be signed, retryable/idempotent and operationally observable. Its envelope and public API surface are published as versioned machine-readable contracts and checked against runtime routes/catalogue. Network egress must enforce SSRF protections against metadata/private/management targets.
 
 ## Ownership
 

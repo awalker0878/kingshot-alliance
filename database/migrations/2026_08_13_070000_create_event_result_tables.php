@@ -47,6 +47,7 @@ return new class extends Migration
             $table->index(['player_id', 'context_frozen_at']);
             $table->index(['represented_alliance_id', 'occurrence_id']);
             $table->index(['kingdom_id_at_event', 'occurrence_id']);
+            $table->index(['player_id', 'occurrence_id'], 'event_player_contexts_player_occurrence_idx');
         });
 
         Schema::create('event_results', function (Blueprint $table): void {
@@ -78,6 +79,7 @@ return new class extends Migration
 
             $table->unique(['occurrence_id', 'alliance_id']);
             $table->index(['alliance_id', 'recorded_at']);
+            $table->index(['alliance_id', 'occurrence_id'], 'event_alliance_results_alliance_occurrence_idx');
         });
 
         Schema::create('event_player_results', function (Blueprint $table): void {
@@ -94,6 +96,7 @@ return new class extends Migration
 
             $table->unique(['occurrence_id', 'player_id']);
             $table->index(['player_id', 'recorded_at']);
+            $table->index(['player_id', 'occurrence_id'], 'event_player_results_player_occurrence_idx');
         });
 
         Schema::create('event_result_metrics', function (Blueprint $table): void {
@@ -109,6 +112,7 @@ return new class extends Migration
 
             $table->unique(['event_result_id', 'metric_definition_id', 'dimension_key']);
             $table->index(['metric_definition_id', 'recorded_at']);
+            $table->index(['metric_definition_id', 'event_result_id'], 'event_metrics_definition_result_idx');
         });
 
         Schema::create('event_alliance_result_metrics', function (Blueprint $table): void {
@@ -124,6 +128,10 @@ return new class extends Migration
 
             $table->unique(['event_alliance_result_id', 'metric_definition_id', 'dimension_key']);
             $table->index(['metric_definition_id', 'recorded_at']);
+            $table->index(
+                ['metric_definition_id', 'event_alliance_result_id'],
+                'event_alliance_metrics_definition_result_idx',
+            );
         });
 
         Schema::create('event_player_result_metrics', function (Blueprint $table): void {
@@ -139,6 +147,10 @@ return new class extends Migration
 
             $table->unique(['event_player_result_id', 'metric_definition_id', 'dimension_key']);
             $table->index(['metric_definition_id', 'recorded_at']);
+            $table->index(
+                ['metric_definition_id', 'event_player_result_id'],
+                'event_player_metrics_definition_result_idx',
+            );
         });
 
         $this->createAllianceKingdomHistoryGuards();

@@ -116,7 +116,7 @@ return new class extends Migration
             $table->string('cadence', 16);
             $table->string('timezone', 64);
             $table->timestamp('next_due_at')->index();
-            $table->string('report_version', 40)->default('phase5.v1');
+            $table->string('report_version', 40)->default('contributions.v1');
             $table->boolean('is_enabled')->default(true)->index();
             $table->timestamp('last_queued_at')->nullable();
             $table->foreignUlid('created_by_player_id')->constrained('players')->restrictOnDelete();

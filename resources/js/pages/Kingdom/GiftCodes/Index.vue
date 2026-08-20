@@ -6,6 +6,7 @@ import RoomBanner from '@/components/game/RoomBanner.vue';
 import StatSeal from '@/components/game/StatSeal.vue';
 import ActionNotice from '@/components/ui/ActionNotice.vue';
 import AppButton from '@/components/ui/AppButton.vue';
+import ConfirmActionDialog from '@/components/ui/ConfirmActionDialog.vue';
 import FormError from '@/components/ui/FormError.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
@@ -20,6 +21,33 @@ type Redemption = {
   nextAttemptAt: string | null;
   redeemedAt: string | null;
 };
+type Governor = {
+  id: string;
+  name: string;
+  gamePlayerId: string | null;
+  kingdomNumber: number | null;
+};
+type GovernorRedemption = Redemption & { playerId: string; playerName: string };
+type Provenance = {
+  id: string;
+  sourceType: string;
+  sourceLabel: string | null;
+  sourceUrl: string | null;
+  observedAt: string;
+};
+type RedemptionResult = {
+  action: string;
+  items: Array<{
+    itemId: string;
+    label: string;
+    outcome: 'succeeded' | 'failed' | 'skipped';
+    code: string;
+  }>;
+  succeeded: number;
+  failed: number;
+  skipped: number;
+  failedItemIds: string[];
+};
 
 type GiftCode = {
   id: string;
@@ -31,15 +59,17 @@ type GiftCode = {
   discoveredAt: string;
   expiresAt: string | null;
   redemption: Redemption | null;
+  redemptions: GovernorRedemption[];
+  provenances: Provenance[];
 };
 
 const props = defineProps<{
   user: { name: string; email: string };
   player: { id: string; name: string; gamePlayerId: string | null; kingdomNumber: number | null };
-  allGovernorCount: number;
+  governors: Governor[];
   officialRedemptionUrl: string;
   codes: GiftCode[];
-  status: string | null;
+  giftCodeRedemptionResult: RedemptionResult | null;
 }>();
 
 const { t, formatDate, formatNumber } = useLocale();
@@ -51,14 +81,19 @@ const submission = useForm({
   source_url: '',
   expires_at: '',
 });
-const redemption = useForm({ scope: 'current' });
-const redemptionProcessing = ref<{ giftCodeId: string; scope: 'current' | 'all' } | null>(null);
+const redemption = useForm({ player_ids: [] as string[] });
+const redemptionProcessing = ref<{ giftCodeId: string; key: 'current' | 'all' | 'failed' } | null>(
+  null,
+);
 const confirmingCode = ref<string | null>(null);
 const operationError = ref<string | null>(null);
+const reportTarget = ref<{ giftCode: GiftCode; issue: 'invalid' | 'expired' } | null>(null);
+const reportBusy = ref(false);
 
 const activeCodes = computed(
-  () => props.codes.filter((giftCode) => giftCode.status === 'active' && !expired(giftCode)).length,
+  () => props.codes.filter((giftCode) => redeemable(giftCode) && !expired(giftCode)).length,
 );
+const allGovernorCount = computed(() => props.governors.length);
 const redeemedCodes = computed(
   () => props.codes.filter((giftCode) => giftCode.redemption?.status === 'redeemed').length,
 );
@@ -67,19 +102,6 @@ const pendingCodes = computed(
     props.codes.filter((giftCode) => giftCode.redemption?.status === 'awaiting_confirmation')
       .length,
 );
-const actionStatus = computed(() => {
-  switch (props.status) {
-    case 'gift-code-added':
-      return t('giftCodes.codeAdded');
-    case 'gift-code-handoff-prepared':
-      return t('giftCodes.handoffPrepared');
-    case 'gift-code-confirmed':
-      return t('giftCodes.redemptionConfirmed');
-    default:
-      return null;
-  }
-});
-
 function expired(giftCode: GiftCode): boolean {
   return giftCode.expiresAt !== null && new Date(giftCode.expiresAt).getTime() < Date.now();
 }
@@ -93,17 +115,17 @@ function submit(): void {
   });
 }
 
-function begin(giftCode: GiftCode, scope: 'current' | 'all'): void {
-  if (redemptionProcessing.value !== null || redemptionComplete(giftCode)) return;
+function begin(giftCode: GiftCode, playerIds: string[], key: 'current' | 'all' | 'failed'): void {
+  if (redemptionProcessing.value !== null || playerIds.length === 0) return;
 
   operationError.value = null;
-  redemptionProcessing.value = { giftCodeId: giftCode.id, scope };
+  redemptionProcessing.value = { giftCodeId: giftCode.id, key };
   window.open(
     giftCode.redemption?.redemptionUrl ?? props.officialRedemptionUrl,
     '_blank',
     'noopener',
   );
-  redemption.scope = scope;
+  redemption.player_ids = playerIds;
   redemption.post(`/gift-codes/${giftCode.id}/redeem`, {
     preserveScroll: true,
     onError: captureOperationError,
@@ -157,10 +179,63 @@ function retryBlocked(giftCode: GiftCode): boolean {
   );
 }
 
-function redemptionBusy(giftCode: GiftCode, scope: 'current' | 'all'): boolean {
+function redemptionBusy(giftCode: GiftCode, key: 'current' | 'all' | 'failed'): boolean {
   return (
-    redemptionProcessing.value?.giftCodeId === giftCode.id &&
-    redemptionProcessing.value.scope === scope
+    redemptionProcessing.value?.giftCodeId === giftCode.id && redemptionProcessing.value.key === key
+  );
+}
+
+function redeemable(giftCode: GiftCode): boolean {
+  return ['pending', 'valid', 'disputed'].includes(giftCode.status);
+}
+
+function failedGovernorIds(giftCode: GiftCode): string[] {
+  const now = Date.now();
+  return giftCode.redemptions
+    .filter((item) => {
+      if (!['rate_limited', 'transient_failure', 'permanent_failure'].includes(item.status)) {
+        return false;
+      }
+      return item.nextAttemptAt === null || new Date(item.nextAttemptAt).getTime() <= now;
+    })
+    .map((item) => item.playerId);
+}
+
+function codeStatusLabel(status: string): string {
+  return t(`giftCodes.trust.${status}`);
+}
+
+function codeStatusTone(status: string): 'success' | 'warning' | 'danger' | 'info' {
+  if (status === 'valid') return 'success';
+  if (status === 'pending' || status === 'disputed') return 'warning';
+  if (status === 'invalid' || status === 'expired') return 'danger';
+  return 'info';
+}
+
+function redemptionResultLabel(code: string): string {
+  return t(`giftCodes.results.${code}`);
+}
+
+function requestReport(giftCode: GiftCode, issue: 'invalid' | 'expired'): void {
+  reportTarget.value = { giftCode, issue };
+}
+
+function reportIssue(): void {
+  const target = reportTarget.value;
+  if (!target || reportBusy.value) return;
+
+  reportBusy.value = true;
+  router.post(
+    `/gift-codes/${target.giftCode.id}/report`,
+    { issue: target.issue },
+    {
+      preserveScroll: true,
+      onError: captureOperationError,
+      onFinish: () => {
+        reportBusy.value = false;
+        reportTarget.value = null;
+      },
+    },
   );
 }
 
@@ -242,8 +317,45 @@ function statusTone(status: string): 'success' | 'warning' | 'danger' | 'info' {
       />
     </section>
 
-    <ActionNotice class="mt-5" :message="actionStatus" tone="success" />
     <ActionNotice class="mt-5" :message="operationError" tone="danger" />
+
+    <section
+      v-if="giftCodeRedemptionResult"
+      class="ks-surface mt-5 p-5"
+      aria-labelledby="gift-code-redemption-result-title"
+    >
+      <p class="ks-kicker">{{ t('giftCodes.perGovernorResult') }}</p>
+      <h2 id="gift-code-redemption-result-title" class="mt-1 text-lg font-semibold">
+        {{
+          t('giftCodes.resultSummary', {
+            succeeded: giftCodeRedemptionResult.succeeded,
+            failed: giftCodeRedemptionResult.failed,
+            skipped: giftCodeRedemptionResult.skipped,
+          })
+        }}
+      </h2>
+      <ul class="mt-4 grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+        <li
+          v-for="item in giftCodeRedemptionResult.items"
+          :key="item.itemId"
+          class="flex items-center justify-between gap-3 rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/15 px-3 py-2 text-sm"
+        >
+          <span class="truncate">{{ item.label }}</span>
+          <span
+            class="ks-status"
+            :data-tone="
+              item.outcome === 'succeeded'
+                ? 'success'
+                : item.outcome === 'skipped'
+                  ? 'warning'
+                  : 'danger'
+            "
+          >
+            {{ redemptionResultLabel(item.code) }}
+          </span>
+        </li>
+      </ul>
+    </section>
 
     <div class="mt-5 grid gap-5 2xl:grid-cols-[minmax(0,1.45fr)_minmax(22rem,.55fr)]">
       <section class="ks-surface overflow-hidden" aria-labelledby="gift-code-ledger-heading">
@@ -267,20 +379,20 @@ function statusTone(status: string): 'success' | 'warning' | 'danger' | 'info' {
                   }}</code>
                   <span
                     class="ks-status"
+                    :data-tone="codeStatusTone(expired(giftCode) ? 'expired' : giftCode.status)"
+                  >
+                    {{ codeStatusLabel(expired(giftCode) ? 'expired' : giftCode.status) }}
+                  </span>
+                  <span
+                    class="ks-status"
                     :data-tone="
-                      giftCode.redemption
-                        ? statusTone(giftCode.redemption.status)
-                        : expired(giftCode)
-                          ? 'danger'
-                          : 'info'
+                      giftCode.redemption ? statusTone(giftCode.redemption.status) : 'info'
                     "
                   >
                     {{
                       giftCode.redemption
                         ? statusLabel(giftCode.redemption.status)
-                        : expired(giftCode)
-                          ? t('giftCodes.expired')
-                          : t('giftCodes.notStarted')
+                        : t('giftCodes.notStarted')
                     }}
                   </span>
                 </div>
@@ -336,7 +448,7 @@ function statusTone(status: string): 'success' | 'warning' | 'danger' | 'info' {
             </div>
 
             <div
-              v-if="giftCode.status === 'active' && !expired(giftCode)"
+              v-if="redeemable(giftCode) && !expired(giftCode)"
               class="mt-4 flex flex-wrap gap-2"
             >
               <AppButton
@@ -349,7 +461,7 @@ function statusTone(status: string): 'success' | 'warning' | 'danger' | 'info' {
                   retryBlocked(giftCode) ||
                   redemptionComplete(giftCode)
                 "
-                @click="begin(giftCode, 'current')"
+                @click="begin(giftCode, [player.id], 'current')"
               >
                 {{ t('giftCodes.redeemForGovernor', { governor: player.name }) }}
               </AppButton>
@@ -359,14 +471,31 @@ function statusTone(status: string): 'success' | 'warning' | 'danger' | 'info' {
                 variant="secondary"
                 :busy="redemptionBusy(giftCode, 'all')"
                 :busy-label="t('giftCodes.preparingHandoff')"
-                :disabled="
-                  redemptionProcessing !== null ||
-                  retryBlocked(giftCode) ||
-                  redemptionComplete(giftCode)
+                :disabled="redemptionProcessing !== null"
+                @click="
+                  begin(
+                    giftCode,
+                    governors.map((governor) => governor.id),
+                    'all',
+                  )
                 "
-                @click="begin(giftCode, 'all')"
               >
                 {{ t('giftCodes.prepareAllGovernors') }}
+              </AppButton>
+              <AppButton
+                v-if="failedGovernorIds(giftCode).length"
+                type="button"
+                variant="secondary"
+                :busy="redemptionBusy(giftCode, 'failed')"
+                :busy-label="t('giftCodes.retryingFailed')"
+                :disabled="redemptionProcessing !== null"
+                @click="begin(giftCode, failedGovernorIds(giftCode), 'failed')"
+              >
+                {{
+                  t('giftCodes.retryFailedGovernors', {
+                    count: failedGovernorIds(giftCode).length,
+                  })
+                }}
               </AppButton>
               <AppButton
                 v-if="giftCode.redemption?.status === 'awaiting_confirmation'"
@@ -398,6 +527,57 @@ function statusTone(status: string): 'success' | 'warning' | 'danger' | 'info' {
               >
                 {{ t('giftCodes.viewSource') }}
               </a>
+              <AppButton variant="ghost" @click="requestReport(giftCode, 'invalid')">
+                {{ t('giftCodes.reportInvalid') }}
+              </AppButton>
+              <AppButton variant="ghost" @click="requestReport(giftCode, 'expired')">
+                {{ t('giftCodes.reportExpired') }}
+              </AppButton>
+            </div>
+
+            <details v-if="giftCode.provenances.length" class="mt-4">
+              <summary class="cursor-pointer text-sm font-semibold text-[var(--ks-text-secondary)]">
+                {{ t('giftCodes.sourceHistory', { count: giftCode.provenances.length }) }}
+              </summary>
+              <ul class="mt-3 grid gap-2 md:grid-cols-2">
+                <li
+                  v-for="source in giftCode.provenances"
+                  :key="source.id"
+                  class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/15 p-3 text-xs"
+                >
+                  <a
+                    v-if="source.sourceUrl"
+                    :href="source.sourceUrl"
+                    target="_blank"
+                    rel="noreferrer"
+                    class="font-semibold text-[var(--ks-blue-strong)]"
+                  >
+                    {{ source.sourceLabel ?? t(`giftCodes.source_${source.sourceType}`) }}
+                  </a>
+                  <strong v-else>{{
+                    source.sourceLabel ?? t(`giftCodes.source_${source.sourceType}`)
+                  }}</strong>
+                  <p class="mt-1 text-[var(--ks-muted)]">
+                    {{ formatDate(source.observedAt, { dateStyle: 'medium' }) }}
+                  </p>
+                </li>
+              </ul>
+            </details>
+
+            <div v-if="giftCode.redemptions.length" class="mt-4">
+              <p class="ks-kicker">{{ t('giftCodes.governorReceipts') }}</p>
+              <ul class="mt-2 grid gap-2 md:grid-cols-2">
+                <li
+                  v-for="item in giftCode.redemptions"
+                  :key="item.playerId"
+                  class="flex items-center justify-between gap-3 rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/15 px-3 py-2 text-sm"
+                >
+                  <span class="truncate">{{ item.playerName }}</span>
+                  <span class="ks-status" :data-tone="statusTone(item.status)">
+                    {{ statusLabel(item.status) }}
+                  </span>
+                </li>
+              </ul>
             </div>
           </article>
         </div>
@@ -510,5 +690,27 @@ function statusTone(status: string): 'success' | 'warning' | 'danger' | 'info' {
         </section>
       </aside>
     </div>
+
+    <ConfirmActionDialog
+      id="gift-code-report-confirmation"
+      :open="reportTarget !== null"
+      :title="t('giftCodes.reportIssueTitle')"
+      :description="
+        t('giftCodes.reportIssueDescription', {
+          code: reportTarget?.giftCode.code ?? '',
+          issue:
+            reportTarget?.issue === 'expired'
+              ? t('giftCodes.expiredLower')
+              : t('giftCodes.invalidLower'),
+        })
+      "
+      :confirm-label="t('giftCodes.reportIssueConfirm')"
+      :cancel-label="t('common.cancel')"
+      :busy="reportBusy"
+      :busy-label="t('giftCodes.reportingIssue')"
+      danger
+      @confirm="reportIssue"
+      @cancel="reportTarget = null"
+    />
   </AppLayout>
 </template>

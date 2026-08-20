@@ -184,7 +184,7 @@ final class TransferPlanController extends Controller
 
         $create->handle($scope->allianceId, $scope->playerId, $validated);
 
-        return back()->with('status', 'transfer-plan-created');
+        return back()->with('actionReceipt', $this->receipt('transfer-plan-created'));
     }
 
     public function open(
@@ -196,7 +196,7 @@ final class TransferPlanController extends Controller
         $scope = $context->scope();
         $open->handle($scope->allianceId, $scope->playerId, $plan);
 
-        return back()->with('status', 'transfer-plan-opened');
+        return back()->with('actionReceipt', $this->receipt('transfer-plan-opened'));
     }
 
     public function lock(
@@ -208,7 +208,7 @@ final class TransferPlanController extends Controller
         $scope = $context->scope();
         $lock->handle($scope->allianceId, $scope->playerId, $plan);
 
-        return back()->with('status', 'transfer-plan-locked');
+        return back()->with('actionReceipt', $this->receipt('transfer-plan-locked'));
     }
 
     public function close(
@@ -220,7 +220,7 @@ final class TransferPlanController extends Controller
         $scope = $context->scope();
         $close->handle($scope->allianceId, $scope->playerId, $plan);
 
-        return back()->with('status', 'transfer-plan-closed');
+        return back()->with('actionReceipt', $this->receipt('transfer-plan-closed'));
     }
 
     public function cancel(
@@ -232,7 +232,7 @@ final class TransferPlanController extends Controller
         $scope = $context->scope();
         $cancel->handle($scope->allianceId, $scope->playerId, $plan);
 
-        return back()->with('status', 'transfer-plan-cancelled');
+        return back()->with('actionReceipt', $this->receipt('transfer-plan-cancelled'));
     }
 
     /** @return array{name: string, email: string} */

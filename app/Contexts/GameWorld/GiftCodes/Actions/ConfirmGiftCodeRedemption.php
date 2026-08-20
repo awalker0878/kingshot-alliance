@@ -19,12 +19,13 @@ final readonly class ConfirmGiftCodeRedemption
     public function __construct(
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
+        private ReconcileGiftCodeStatus $reconcile,
     ) {}
 
     public function handle(string $giftCodeId, PlayerReference $player): GiftCodeRedemptionReference
     {
         return DB::transaction(function () use ($giftCodeId, $player): GiftCodeRedemptionReference {
-            $giftCode = GiftCode::query()->findOrFail($giftCodeId);
+            $giftCode = GiftCode::query()->whereKey($giftCodeId)->lockForUpdate()->firstOrFail();
             $redemption = GiftCodeRedemption::query()
                 ->where('gift_code_id', $giftCodeId)
                 ->where('player_id', $player->playerId)
@@ -64,6 +65,7 @@ final readonly class ConfirmGiftCodeRedemption
                 'gift-code-redemption:'.$redemption->id.':confirmed',
                 'player:'.$player->playerId,
             );
+            $this->reconcile->handle((string) $giftCode->id, $player);
 
             return $this->reference($redemption);
         });

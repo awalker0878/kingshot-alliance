@@ -19,6 +19,12 @@ return new class extends Migration
             $table->string('language', 16)->default('en');
             $table->string('timezone', 64)->default('UTC');
             $table->string('status', 32)->default('active')->index();
+            $table->timestamp('suspended_at')->nullable();
+            $table->timestamp('closed_at')->nullable();
+            $table->timestamp('deleted_at')->nullable();
+            $table->timestamp('restored_at')->nullable();
+            $table->timestamp('retention_until')->nullable()->index();
+            $table->string('lifecycle_reason', 500)->nullable();
             $table->timestamps();
 
             $table->index(['kingdom_id', 'status']);

@@ -25,6 +25,7 @@ return new class extends Migration
             $table->unique(['id', 'alliance_id']);
             $table->index(['player_id', 'status']);
             $table->index(['alliance_id', 'status', 'rank']);
+            $table->index(['alliance_id', 'created_at', 'id']);
         });
 
         DB::statement("CREATE UNIQUE INDEX alliance_memberships_one_active_r5 ON alliance_memberships (alliance_id) WHERE status = 'active' AND rank = 'r5'");

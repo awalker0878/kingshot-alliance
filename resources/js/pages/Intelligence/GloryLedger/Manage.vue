@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 import RoomBanner from '@/components/game/RoomBanner.vue';
+import AppButton from '@/components/ui/AppButton.vue';
+import ConfirmActionDialog from '@/components/ui/ConfirmActionDialog.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
@@ -59,6 +61,32 @@ type Run = {
   rowCount: number | null;
   checksum: string | null;
 };
+type ContributionBulkPreview = {
+  operation: 'approve';
+  items: Array<{
+    itemId: string;
+    label: string;
+    fromStatus: string | null;
+    outcome: 'ready' | 'blocked' | 'skipped';
+    code: string;
+  }>;
+  ready: number;
+  blocked: number;
+  readyItemIds: string[];
+};
+type ContributionBulkResult = {
+  action: string;
+  items: Array<{
+    itemId: string;
+    label: string;
+    outcome: 'succeeded' | 'failed' | 'skipped';
+    code: string;
+  }>;
+  succeeded: number;
+  failed: number;
+  skipped: number;
+  failedItemIds: string[];
+};
 const props = defineProps<{
   user: { name: string; email: string };
   alliance: { id: string; name: string; timezone: string };
@@ -83,9 +111,36 @@ const props = defineProps<{
     reportSchedules: Schedule[];
     recentReportRuns: Run[];
   };
+  contributionBulkPreview: ContributionBulkPreview | null;
+  contributionBulkResult: ContributionBulkResult | null;
 }>();
 const { t, formatDate, formatNumber } = useLocale();
 const recordable = computed(() => props.reporting.categories.filter((c) => c.active));
+const selectedRecordIds = ref<string[]>(props.contributionBulkResult?.failedItemIds ?? []);
+const bulkBusy = ref(false);
+const bulkConfirmationOpen = ref(false);
+const allPendingSelected = computed(
+  () =>
+    props.reporting.pendingRecords.length > 0 &&
+    props.reporting.pendingRecords.every((record) => selectedRecordIds.value.includes(record.id)),
+);
+const bulkPreviewMatchesSelection = computed(() => {
+  const preview = props.contributionBulkPreview;
+  if (!preview) return false;
+
+  const selected = [...selectedRecordIds.value].sort();
+  const previewed = preview.items.map((item) => item.itemId).sort();
+  return (
+    selected.length === previewed.length && selected.every((id, index) => id === previewed[index])
+  );
+});
+
+watch(
+  () => props.contributionBulkResult,
+  (result) => {
+    if (result) selectedRecordIds.value = [...result.failedItemIds];
+  },
+);
 const categoryForm = useForm({
   name: '',
   description: '',
@@ -129,6 +184,66 @@ function recordContribution() {
 }
 function approve(id: string) {
   router.patch(`/alliance/contributions/records/${id}/approve`, {}, { preserveScroll: true });
+}
+function recordSelected(recordId: string): boolean {
+  return selectedRecordIds.value.includes(recordId);
+}
+function setRecordSelected(recordId: string, selected: boolean): void {
+  if (!selected) {
+    selectedRecordIds.value = selectedRecordIds.value.filter((id) => id !== recordId);
+    return;
+  }
+
+  selectedRecordIds.value = [...new Set([...selectedRecordIds.value, recordId])].slice(0, 50);
+}
+function togglePendingSelection(): void {
+  if (allPendingSelected.value) {
+    const pendingIds = new Set(props.reporting.pendingRecords.map((record) => record.id));
+    selectedRecordIds.value = selectedRecordIds.value.filter((id) => !pendingIds.has(id));
+    return;
+  }
+
+  selectedRecordIds.value = [
+    ...new Set([
+      ...selectedRecordIds.value,
+      ...props.reporting.pendingRecords.map((record) => record.id),
+    ]),
+  ].slice(0, 50);
+}
+function previewBulkApproval(): void {
+  if (selectedRecordIds.value.length === 0 || bulkBusy.value) return;
+
+  bulkBusy.value = true;
+  router.post(
+    '/alliance/contributions/records/bulk-approve/preview',
+    { record_ids: selectedRecordIds.value },
+    {
+      preserveScroll: true,
+      preserveState: true,
+      onFinish: () => (bulkBusy.value = false),
+    },
+  );
+}
+function commitBulkApproval(): void {
+  if (!props.contributionBulkPreview || !bulkPreviewMatchesSelection.value || bulkBusy.value)
+    return;
+
+  bulkBusy.value = true;
+  router.post(
+    '/alliance/contributions/records/bulk-approve',
+    { record_ids: props.contributionBulkPreview.items.map((item) => item.itemId) },
+    {
+      preserveScroll: true,
+      preserveState: true,
+      onFinish: () => {
+        bulkBusy.value = false;
+        bulkConfirmationOpen.value = false;
+      },
+    },
+  );
+}
+function bulkOutcomeLabel(code: string): string {
+  return t(`contributions.bulk.outcomes.${code}`);
 }
 function correct(r: Row) {
   const v = window.prompt(
@@ -397,11 +512,137 @@ function member(id: string) {
     </section>
 
     <section class="ks-surface mt-5 overflow-hidden">
-      <h2 class="section-title">{{ t('contributions.approvalQueue') }}</h2>
+      <div class="section-title flex flex-wrap items-center justify-between gap-3">
+        <h2>{{ t('contributions.approvalQueue') }}</h2>
+        <button
+          v-if="reporting.pendingRecords.length"
+          type="button"
+          class="ks-chip text-xs"
+          :aria-pressed="allPendingSelected"
+          :data-active="allPendingSelected"
+          @click="togglePendingSelection"
+        >
+          {{
+            allPendingSelected
+              ? t('contributions.bulk.clearPending')
+              : t('contributions.bulk.selectPending')
+          }}
+        </button>
+      </div>
+      <div
+        v-if="selectedRecordIds.length"
+        class="border-b border-[var(--ks-border)] bg-[var(--ks-teal-soft)] p-5"
+      >
+        <div class="flex flex-wrap items-end gap-3">
+          <div class="min-w-[14rem] flex-1">
+            <p class="font-semibold">
+              {{ t('contributions.bulk.selected', { count: selectedRecordIds.length }) }}
+            </p>
+            <p class="mt-1 text-xs text-[var(--ks-muted)]">
+              {{ t('contributions.bulk.help') }}
+            </p>
+          </div>
+          <AppButton
+            :busy="bulkBusy"
+            :busy-label="t('contributions.bulk.previewing')"
+            @click="previewBulkApproval"
+          >
+            {{ t('contributions.bulk.preview') }}
+          </AppButton>
+        </div>
+      </div>
+      <div
+        v-if="bulkPreviewMatchesSelection && contributionBulkPreview"
+        class="border-b border-[var(--ks-border)] p-5"
+      >
+        <div class="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <p class="ks-kicker">{{ t('contributions.bulk.previewTitle') }}</p>
+            <p class="mt-1 font-semibold">
+              {{
+                t('contributions.bulk.previewSummary', {
+                  ready: contributionBulkPreview.ready,
+                  blocked: contributionBulkPreview.blocked,
+                })
+              }}
+            </p>
+          </div>
+          <AppButton
+            :disabled="contributionBulkPreview.ready === 0"
+            @click="bulkConfirmationOpen = true"
+          >
+            {{ t('contributions.bulk.confirm') }}
+          </AppButton>
+        </div>
+        <ul class="mt-4 grid gap-2 md:grid-cols-2">
+          <li
+            v-for="item in contributionBulkPreview.items"
+            :key="item.itemId"
+            class="flex items-center justify-between gap-3 rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/15 px-3 py-2 text-sm"
+          >
+            <span class="truncate">{{ item.label }}</span>
+            <span
+              class="ks-status"
+              :data-tone="
+                item.outcome === 'ready'
+                  ? 'success'
+                  : item.outcome === 'skipped'
+                    ? 'warning'
+                    : 'danger'
+              "
+            >
+              {{ bulkOutcomeLabel(item.code) }}
+            </span>
+          </li>
+        </ul>
+      </div>
+      <div
+        v-if="contributionBulkResult"
+        class="border-b border-[var(--ks-border)] p-5"
+        aria-labelledby="contribution-bulk-result-heading"
+      >
+        <p class="ks-kicker">{{ t('contributions.bulk.resultTitle') }}</p>
+        <h3 id="contribution-bulk-result-heading" class="mt-1 text-lg font-semibold">
+          {{
+            t('contributions.bulk.resultSummary', {
+              succeeded: contributionBulkResult.succeeded,
+              failed: contributionBulkResult.failed,
+              skipped: contributionBulkResult.skipped,
+            })
+          }}
+        </h3>
+        <ul class="mt-4 grid gap-2 md:grid-cols-2">
+          <li
+            v-for="item in contributionBulkResult.items"
+            :key="item.itemId"
+            class="flex items-center justify-between gap-3 rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/15 px-3 py-2 text-sm"
+          >
+            <span class="truncate">{{ item.label }}</span>
+            <span
+              class="ks-status"
+              :data-tone="
+                item.outcome === 'succeeded'
+                  ? 'success'
+                  : item.outcome === 'skipped'
+                    ? 'warning'
+                    : 'danger'
+              "
+            >
+              {{ bulkOutcomeLabel(item.code) }}
+            </span>
+          </li>
+        </ul>
+        <p v-if="contributionBulkResult.failed" class="mt-3 text-xs text-[var(--ks-muted)]">
+          {{ t('contributions.bulk.failedSelected') }}
+        </p>
+      </div>
       <div class="overflow-x-auto">
         <table class="table">
           <thead>
             <tr>
+              <th class="w-12">
+                <span class="sr-only">{{ t('contributions.bulk.selection') }}</span>
+              </th>
               <th>{{ t('contributions.member') }}</th>
               <th>{{ t('contributions.category') }}</th>
               <th>{{ t('contributions.value') }}</th>
@@ -411,6 +652,19 @@ function member(id: string) {
           </thead>
           <tbody>
             <tr v-for="r in reporting.pendingRecords" :key="r.id">
+              <td>
+                <input
+                  type="checkbox"
+                  :checked="recordSelected(r.id)"
+                  :aria-label="
+                    t('contributions.bulk.selectRecord', {
+                      member: r.playerName ?? t('contributions.member'),
+                      category: r.categoryName ?? t('contributions.category'),
+                    })
+                  "
+                  @change="setRecordSelected(r.id, ($event.target as HTMLInputElement).checked)"
+                />
+              </td>
               <td>{{ r.playerName }}</td>
               <td>{{ r.categoryName }}</td>
               <td>{{ amount(r.value, r.unit) }}</td>
@@ -587,6 +841,22 @@ function member(id: string) {
         </table>
       </div>
     </section>
+    <ConfirmActionDialog
+      id="contribution-bulk-approval-confirmation"
+      :open="bulkConfirmationOpen"
+      :title="t('contributions.bulk.confirmTitle')"
+      :description="
+        t('contributions.bulk.confirmDescription', {
+          count: contributionBulkPreview?.ready ?? 0,
+        })
+      "
+      :confirm-label="t('contributions.bulk.confirm')"
+      :cancel-label="t('common.cancel')"
+      :busy="bulkBusy"
+      :busy-label="t('contributions.bulk.applying')"
+      @confirm="commitBulkApproval"
+      @cancel="bulkConfirmationOpen = false"
+    />
   </AppLayout>
 </template>
 <style scoped>

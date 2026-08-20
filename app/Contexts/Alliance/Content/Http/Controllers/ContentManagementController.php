@@ -4,160 +4,33 @@ declare(strict_types=1);
 
 namespace App\Contexts\Alliance\Content\Http\Controllers;
 
-use App\Contexts\Accounts\Identity\Contracts\AuthenticatedAccount;
-use App\Contexts\Alliance\Access\Enums\AlliancePermission;
-use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Content\Actions\ArchiveContentItem;
 use App\Contexts\Alliance\Content\Actions\ArchiveMediaAsset;
+use App\Contexts\Alliance\Content\Actions\CancelAnnouncementBroadcastSchedule;
 use App\Contexts\Alliance\Content\Actions\DeleteContentCategory;
 use App\Contexts\Alliance\Content\Actions\PublishContentItem;
 use App\Contexts\Alliance\Content\Actions\RestoreContentRevision;
+use App\Contexts\Alliance\Content\Actions\RetryAnnouncementBroadcastFailures;
+use App\Contexts\Alliance\Content\Actions\SaveAnnouncementBroadcastSchedule;
 use App\Contexts\Alliance\Content\Actions\SaveContentCategory;
 use App\Contexts\Alliance\Content\Actions\SaveContentItem;
+use App\Contexts\Alliance\Content\Actions\TestAnnouncementBroadcast;
 use App\Contexts\Alliance\Content\Actions\UpdateAlliancePublicProfile;
 use App\Contexts\Alliance\Content\Actions\UploadMediaAsset;
 use App\Contexts\Alliance\Content\Enums\ContentType;
 use App\Contexts\Alliance\Content\Enums\ContentVisibility;
-use App\Contexts\Alliance\Content\Models\AllianceBrandingMedia;
-use App\Contexts\Alliance\Content\Models\AllianceProfile;
 use App\Contexts\Alliance\Content\Models\ContentCategory;
 use App\Contexts\Alliance\Content\Models\ContentItem;
-use App\Contexts\Alliance\Content\Models\ContentRevision;
-use App\Contexts\Alliance\Content\Models\MediaAsset;
-use App\Contexts\Alliance\Content\Queries\ContentQuery;
-use App\Contexts\Alliance\Content\Services\ContentPresenter;
-use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
 use App\Contexts\Alliance\Lifecycle\Services\AllianceContext;
-use App\Contexts\GameWorld\Kingdoms\Queries\KingdomReferenceQuery;
 use App\Shared\Infrastructure\Http\Controller;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
-use Inertia\Inertia;
-use Inertia\Response;
-use LogicException;
 
 final class ContentManagementController extends Controller
 {
-    public function index(
-        Request $request,
-        AllianceContext $context,
-        AllianceAuthorization $authorization,
-        ContentQuery $content,
-        ContentPresenter $presenter,
-        AllianceReferenceQuery $alliances,
-        KingdomReferenceQuery $kingdoms,
-    ): Response {
-        $user = $this->user($request);
-        $scope = $context->scope();
-        $alliance = $alliances->require($scope->allianceId);
-        $kingdom = $kingdoms->find($alliance->kingdomId);
-
-        if (! $authorization->allows($scope->playerId, $scope->allianceId, AlliancePermission::ContentManage)) {
-            throw new AuthorizationException;
-        }
-
-        $profile = AllianceProfile::query()->where('alliance_id', $scope->allianceId)->first();
-        $branding = AllianceBrandingMedia::query()
-            ->where('alliance_id', $scope->allianceId)
-            ->pluck('media_id', 'slot');
-        $categories = ContentCategory::query()
-            ->where('alliance_id', $scope->allianceId)
-            ->orderBy('sort_order')
-            ->orderBy('name')
-            ->get();
-        $items = $content->managerList($scope->allianceId);
-        $items->load('revisions');
-        $media = MediaAsset::query()
-            ->where('alliance_id', $scope->allianceId)
-            ->orderByDesc('created_at')
-            ->get();
-
-        /** @var list<array{id: string, name: string, slug: string, sortOrder: int}> $categoryData */
-        $categoryData = [];
-        foreach ($categories as $category) {
-            $categoryData[] = [
-                'id' => (string) $category->id,
-                'name' => (string) $category->name,
-                'slug' => (string) $category->slug,
-                'sortOrder' => (int) $category->sort_order,
-            ];
-        }
-
-        /** @var list<array<string, mixed>> $contentData */
-        $contentData = [];
-        foreach ($items as $item) {
-            $data = $presenter->item($item, true);
-            /** @var list<array{id: string, revisionNumber: int, title: string, createdAt: string|null}> $revisionData */
-            $revisionData = [];
-
-            foreach ($item->revisions as $revision) {
-                if (! $revision instanceof ContentRevision) {
-                    throw new LogicException('A content revision relation returned an unexpected model.');
-                }
-
-                $revisionData[] = [
-                    'id' => (string) $revision->id,
-                    'revisionNumber' => (int) $revision->revision_number,
-                    'title' => (string) $revision->title,
-                    'createdAt' => $revision->created_at?->toIso8601String(),
-                ];
-            }
-
-            $data['revisions'] = $revisionData;
-            $contentData[] = $data;
-        }
-
-        /** @var list<array{id: string, name: string, mimeType: string, sizeBytes: int, scanStatus: string, lifecycleStatus: string, createdAt: string|null}> $mediaData */
-        $mediaData = [];
-        foreach ($media as $asset) {
-            $mediaData[] = [
-                'id' => (string) $asset->id,
-                'name' => (string) $asset->original_name,
-                'mimeType' => (string) $asset->mime_type,
-                'sizeBytes' => (int) $asset->size_bytes,
-                'scanStatus' => $asset->scan_status->value,
-                'lifecycleStatus' => $asset->lifecycle_status->value,
-                'createdAt' => $asset->created_at?->toIso8601String(),
-            ];
-        }
-
-        return Inertia::render('Alliance/Noticeboard/Manage', [
-            'user' => [
-                'name' => $user->accountName(),
-                'email' => $user->accountEmail(),
-            ],
-            'alliance' => [
-                'id' => $alliance->allianceId,
-                'name' => $alliance->name,
-                'slug' => $alliance->slug,
-                'kingdom' => $kingdom?->number,
-                'language' => $alliance->language,
-                'timezone' => $alliance->timezone,
-                'description' => $profile?->description,
-                'primaryColor' => $profile?->primary_color,
-                'logoMediaId' => $branding->get('logo'),
-                'bannerMediaId' => $branding->get('banner'),
-                'publicUrl' => route('public.alliances.show', $alliance->slug),
-            ],
-            'contentTypes' => array_map(static fn (ContentType $type): array => [
-                'value' => $type->value,
-                'label' => $type->label(),
-                'requiresProvenance' => $type->requiresProvenance(),
-            ], ContentType::cases()),
-            'visibilityOptions' => array_map(static fn (ContentVisibility $visibility): array => [
-                'value' => $visibility->value,
-                'label' => ucfirst($visibility->value),
-            ], ContentVisibility::cases()),
-            'categories' => $categoryData,
-            'content' => $contentData,
-            'media' => $mediaData,
-        ]);
-    }
-
     public function updateProfile(
         Request $request,
         AllianceContext $context,
@@ -176,7 +49,7 @@ final class ContentManagementController extends Controller
 
         $updateProfile->handle($scope->allianceId, $scope->playerId, $validated);
 
-        return back()->with('status', 'public-profile-updated');
+        return back()->with('actionReceipt', $this->receipt('public-profile-updated'));
     }
 
     public function storeCategory(
@@ -206,7 +79,7 @@ final class ContentManagementController extends Controller
             (int) ($validated['sort_order'] ?? 0),
         );
 
-        return back()->with('status', 'content-category-saved');
+        return back()->with('actionReceipt', $this->receipt('content-category-saved'));
     }
 
     public function updateCategory(
@@ -243,7 +116,7 @@ final class ContentManagementController extends Controller
             (string) $existing->id,
         );
 
-        return back()->with('status', 'content-category-saved');
+        return back()->with('actionReceipt', $this->receipt('content-category-saved'));
     }
 
     public function destroyCategory(
@@ -255,7 +128,7 @@ final class ContentManagementController extends Controller
         $scope = $context->scope();
         $deleteCategory->handle($scope->allianceId, $scope->playerId, $category);
 
-        return back()->with('status', 'content-category-deleted');
+        return back()->with('actionReceipt', $this->receipt('content-category-deleted'));
     }
 
     public function storeContent(
@@ -268,7 +141,7 @@ final class ContentManagementController extends Controller
 
         $saveContent->handle($scope->allianceId, $scope->playerId, $validated);
 
-        return back()->with('status', 'content-saved');
+        return back()->with('actionReceipt', $this->receipt('content-saved'));
     }
 
     public function updateContent(
@@ -286,7 +159,7 @@ final class ContentManagementController extends Controller
 
         $saveContent->handle($scope->allianceId, $scope->playerId, $validated, (string) $existing->id);
 
-        return back()->with('status', 'content-saved');
+        return back()->with('actionReceipt', $this->receipt('content-saved'));
     }
 
     public function publishContent(
@@ -305,7 +178,10 @@ final class ContentManagementController extends Controller
         $scope = $context->scope();
         $publish->handle($scope->allianceId, $scope->playerId, $content, $scheduledFor);
 
-        return back()->with('status', $scheduledFor?->isFuture() ? 'content-scheduled' : 'content-published');
+        return back()->with(
+            'actionReceipt',
+            $this->receipt($scheduledFor?->isFuture() ? 'content-scheduled' : 'content-published'),
+        );
     }
 
     public function archiveContent(
@@ -317,7 +193,7 @@ final class ContentManagementController extends Controller
         $scope = $context->scope();
         $archive->handle($scope->allianceId, $scope->playerId, $content);
 
-        return back()->with('status', 'content-archived');
+        return back()->with('actionReceipt', $this->receipt('content-archived'));
     }
 
     public function restoreRevision(
@@ -330,7 +206,88 @@ final class ContentManagementController extends Controller
         $scope = $context->scope();
         $restore->handle($scope->allianceId, $scope->playerId, $content, $revision);
 
-        return back()->with('status', 'content-revision-restored');
+        return back()->with('actionReceipt', $this->receipt('content-revision-restored'));
+    }
+
+    public function saveBroadcastSchedule(
+        Request $request,
+        AllianceContext $context,
+        SaveAnnouncementBroadcastSchedule $saveSchedule,
+        string $content,
+    ): RedirectResponse {
+        $validated = $request->validate([
+            'weekdays' => ['required', 'array', 'min:1', 'max:7'],
+            'weekdays.*' => ['required', 'integer', 'between:1,7', 'distinct'],
+            'local_time' => ['required', 'date_format:H:i'],
+            'timezone' => ['required', 'timezone'],
+            'ends_at' => ['nullable', 'date', 'after:now'],
+        ]);
+        $scope = $context->scope();
+        /** @var non-empty-list<int> $weekdays */
+        $weekdays = array_values(array_map('intval', $validated['weekdays']));
+        $saveSchedule->handle(
+            $scope->allianceId,
+            $scope->playerId,
+            $content,
+            $weekdays,
+            (string) $validated['local_time'],
+            (string) $validated['timezone'],
+            isset($validated['ends_at']) ? (string) $validated['ends_at'] : null,
+        );
+
+        return back()->with('actionReceipt', $this->receipt('content-broadcast-schedule-saved'));
+    }
+
+    public function cancelBroadcastSchedule(
+        Request $request,
+        AllianceContext $context,
+        CancelAnnouncementBroadcastSchedule $cancelSchedule,
+        string $schedule,
+    ): RedirectResponse {
+        $scope = $context->scope();
+        $cancelSchedule->handle($scope->allianceId, $scope->playerId, $schedule);
+
+        return back()->with('actionReceipt', $this->receipt('content-broadcast-schedule-cancelled'));
+    }
+
+    public function testBroadcast(
+        Request $request,
+        AllianceContext $context,
+        TestAnnouncementBroadcast $testBroadcast,
+        string $content,
+    ): RedirectResponse {
+        $scope = $context->scope();
+        $channels = $testBroadcast->handle($scope->allianceId, $scope->playerId, $content);
+
+        return back()->with('actionReceipt', $this->receipt('content-broadcast-test-queued', [
+            'count' => count($channels),
+            'channels' => implode(', ', $channels),
+        ]));
+    }
+
+    public function retryBroadcastFailures(
+        Request $request,
+        AllianceContext $context,
+        RetryAnnouncementBroadcastFailures $retryFailures,
+        string $run,
+    ): RedirectResponse {
+        $validated = $request->validate([
+            'delivery_ids' => ['required', 'array', 'min:1', 'max:50'],
+            'delivery_ids.*' => ['required', 'string', 'ulid', 'distinct'],
+        ]);
+        /** @var non-empty-list<string> $deliveryIds */
+        $deliveryIds = array_values(array_map('strval', $validated['delivery_ids']));
+        $scope = $context->scope();
+        $retried = $retryFailures->handle(
+            $scope->allianceId,
+            $scope->playerId,
+            $run,
+            $deliveryIds,
+        );
+
+        return back()->with('actionReceipt', $this->receipt('content-broadcast-failures-retried', [
+            'count' => $retried,
+        ]));
     }
 
     public function storeMedia(
@@ -349,7 +306,7 @@ final class ContentManagementController extends Controller
         $scope = $context->scope();
         $upload->handle($scope->allianceId, $scope->playerId, $file);
 
-        return back()->with('status', 'media-uploaded');
+        return back()->with('actionReceipt', $this->receipt('media-uploaded'));
     }
 
     public function archiveMedia(
@@ -361,15 +318,7 @@ final class ContentManagementController extends Controller
         $scope = $context->scope();
         $archive->handle($scope->allianceId, $scope->playerId, $media);
 
-        return back()->with('status', 'media-archived');
-    }
-
-    private function user(Request $request): AuthenticatedAccount
-    {
-        $user = $request->user();
-        abort_unless($user instanceof AuthenticatedAccount, 401);
-
-        return $user;
+        return back()->with('actionReceipt', $this->receipt('media-archived'));
     }
 
     /**
@@ -387,7 +336,8 @@ final class ContentManagementController extends Controller
      *   source_label: string|null,
      *   source_url: string|null,
      *   game_version: string|null,
-     *   reviewed_at: string|null
+     *   reviewed_at: string|null,
+     *   context_links: list<array{type:string,key:string}>
      * }
      */
     private function validateContent(Request $request, string $allianceId, ?ContentItem $existing = null): array
@@ -413,6 +363,14 @@ final class ContentManagementController extends Controller
             'source_url' => ['nullable', 'string', 'max:2048', 'url:https'],
             'game_version' => ['nullable', 'string', 'max:64'],
             'reviewed_at' => ['nullable', 'date_format:Y-m-d', 'before_or_equal:today'],
+            'event_type_slugs' => ['nullable', 'array', 'max:20'],
+            'event_type_slugs.*' => [
+                'required',
+                'string',
+                'max:120',
+                'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
+                'distinct',
+            ],
         ]);
 
         return [
@@ -430,6 +388,10 @@ final class ContentManagementController extends Controller
             'source_url' => isset($validated['source_url']) ? (string) $validated['source_url'] : null,
             'game_version' => isset($validated['game_version']) ? (string) $validated['game_version'] : null,
             'reviewed_at' => isset($validated['reviewed_at']) ? (string) $validated['reviewed_at'] : null,
+            'context_links' => array_values(array_map(
+                static fn (mixed $slug): array => ['type' => 'event_type', 'key' => (string) $slug],
+                (array) ($validated['event_type_slugs'] ?? []),
+            )),
         ];
     }
 }
