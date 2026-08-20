@@ -94,7 +94,10 @@ final class PlatformAdministrationBehaviorV3Test extends TestCase
             'last_error' => 'Sensitive provider detail must never reach diagnostics.',
         ]);
 
-        self::assertSame(0, app(PublishOutboxBatch::class)->handle());
+        app(PublishOutboxBatch::class)->handle();
+        $exhausted = $message->fresh();
+        self::assertNull($exhausted?->published_at);
+        self::assertSame($maximumAttempts, $exhausted?->attempts);
 
         app(RetryOutboxMessage::class)->handle($identity, (string) $message->id);
         $retried = $message->fresh();
