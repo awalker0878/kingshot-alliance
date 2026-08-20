@@ -17,6 +17,18 @@ const messages = {
     webhookOneTime:
       'Use this secret to verify the X-Kingshot-Signature header. It cannot be retrieved again.',
     apiCredentials: 'Access keys',
+    commandApi: 'Command API',
+    botReadyReads: 'Bot-ready read surfaces',
+    commandApiHelp:
+      'Use these bounded JSON endpoints from Discord, Telegram, or another bot adapter. Each access key receives only the scopes selected below.',
+    commandApiBoundary:
+      'These endpoints are read-only. They do not accept chat-provider secrets, execute Alliance writes, or recreate business rules in a bot.',
+    scopeAlliance: 'Alliance identity and public configuration.',
+    scopeEvents: 'Alliance Event occurrences.',
+    scopeContributions: 'Approved Alliance contribution records.',
+    scopeCommands: 'Bounded command overview with Events, Gift Codes, knowledge, and recruitment status.',
+    scopeGiftCodes: 'Active Gift Codes and the official redemption handoff.',
+    scopeContent: 'Published Alliance knowledge excerpts and provenance.',
     apiEnabled: 'Access keys are enabled.',
     apiDisabled: 'Access keys are disabled for this realm.',
     apiLimitHelp: 'Up to {limit} active access keys are allowed by the Alliance charter.',
@@ -37,7 +49,7 @@ const messages = {
     webhooksEnabled: 'Event dispatches are enabled.',
     webhooksDisabled: 'Event dispatches are disabled for this realm.',
     webhookLimitHelp:
-      'Up to {limit} active subscriptions are allowed. Delivery addresss are required.',
+      'Up to {limit} active subscriptions are allowed. Delivery addresses are required.',
     createWebhook: 'Add Event dispatch',
     httpsEndpoint: 'Delivery address',
     events: 'Events',

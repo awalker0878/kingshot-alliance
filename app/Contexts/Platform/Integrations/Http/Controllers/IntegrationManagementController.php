@@ -114,7 +114,7 @@ final class IntegrationManagementController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:100'],
-            'scopes' => ['required', 'array', 'min:1', 'max:3'],
+            'scopes' => ['required', 'array', 'min:1', 'max:6'],
             'scopes.*' => ['required', 'string'],
             'expires_at' => ['nullable', 'date'],
         ]);

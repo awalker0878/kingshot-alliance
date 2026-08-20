@@ -10,7 +10,7 @@ use App\Contexts\Alliance\Recruitment\Models\RecruitmentSetting;
 final class PublicRecruitmentQuery
 {
     /** @return array{status: 'closed'|'open'|'invitation_only', application_url: string|null} */
-    public function forAlliance(string $allianceId, string $allianceSlug): array
+    public function forAlliance(string $allianceId, string $allianceSlug, string $applicationSource): array
     {
         $settings = RecruitmentSetting::query()
             ->where('alliance_id', $allianceId)
@@ -34,7 +34,7 @@ final class PublicRecruitmentQuery
             'status' => 'open',
             'application_url' => route('public.alliances.recruitment.show', [
                 'slug' => $allianceSlug,
-                'source' => 'alliance-public-page',
+                'source' => $applicationSource,
             ]),
         ];
     }

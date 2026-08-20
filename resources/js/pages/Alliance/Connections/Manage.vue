@@ -55,6 +55,24 @@ const { t, formatDate, formatNumber } = useLocale();
 const credentialForm = useForm({ name: '', scopes: [] as string[], expires_at: '' });
 const webhookForm = useForm({ name: '', url: '', events: ['alliance.created'] as string[] });
 const webhookEventsText = ref('alliance.created');
+const commandEndpoints = [
+  { path: '/api/v1/commands/overview', scope: 'commands:read' },
+  { path: '/api/v1/commands/gift-codes', scope: 'gift-codes:read' },
+  { path: '/api/v1/commands/knowledge', scope: 'content:read' },
+];
+
+const scopeDescriptions: Record<string, string> = {
+  'alliance:read': t('integrationExperience.scopeAlliance'),
+  'events:read': t('integrationExperience.scopeEvents'),
+  'contributions:read': t('integrationExperience.scopeContributions'),
+  'commands:read': t('integrationExperience.scopeCommands'),
+  'gift-codes:read': t('integrationExperience.scopeGiftCodes'),
+  'content:read': t('integrationExperience.scopeContent'),
+};
+
+function scopeDescription(scope: string): string {
+  return scopeDescriptions[scope] ?? scope;
+}
 
 const activeCredentialCount = computed(
   () => props.credentials.filter((credential) => credential.revokedAt === null).length,
@@ -141,6 +159,32 @@ function stateTone(state: string): 'success' | 'warning' | 'danger' | 'info' {
         icon="▤"
         tone="teal"
       />
+    </section>
+
+    <section class="ks-surface mt-5 p-5 sm:p-6" aria-labelledby="command-api-heading">
+      <p class="ks-kicker">{{ t('integrationExperience.commandApi') }}</p>
+      <h2 id="command-api-heading" class="ks-display mt-1 text-2xl font-semibold">
+        {{ t('integrationExperience.botReadyReads') }}
+      </h2>
+      <p class="mt-2 max-w-4xl text-sm leading-6 text-[var(--ks-text-secondary)]">
+        {{ t('integrationExperience.commandApiHelp') }}
+      </p>
+      <div class="mt-5 grid gap-3 md:grid-cols-3">
+        <article
+          v-for="endpoint in commandEndpoints"
+          :key="endpoint.path"
+          class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-4"
+        >
+          <p class="text-xs font-bold tracking-[.12em] text-[var(--ks-gold)] uppercase">GET</p>
+          <code class="mt-2 block overflow-x-auto text-sm text-[var(--ks-ivory)]">
+            {{ endpoint.path }}
+          </code>
+          <p class="mt-3 font-mono text-xs text-[var(--ks-muted)]">{{ endpoint.scope }}</p>
+        </article>
+      </div>
+      <p class="mt-4 text-xs leading-5 text-[var(--ks-muted)]">
+        {{ t('integrationExperience.commandApiBoundary') }}
+      </p>
     </section>
 
     <p
@@ -255,10 +299,19 @@ function stateTone(state: string): 'success' | 'warning' | 'danger' | 'info' {
           </div>
           <fieldset class="sm:col-span-2">
             <legend class="text-xs font-semibold">{{ t('integrationExperience.scopes') }}</legend>
-            <div class="mt-2 flex flex-wrap gap-2">
-              <label v-for="scope in allowedScopes" :key="scope" class="ks-chip cursor-pointer">
-                <input v-model="credentialForm.scopes" type="checkbox" :value="scope" />
-                <span class="font-mono text-xs">{{ scope }}</span>
+            <div class="mt-2 grid gap-2 sm:grid-cols-2">
+              <label
+                v-for="scope in allowedScopes"
+                :key="scope"
+                class="cursor-pointer rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/15 p-3"
+              >
+                <span class="flex items-center gap-2">
+                  <input v-model="credentialForm.scopes" type="checkbox" :value="scope" />
+                  <span class="font-mono text-xs font-semibold">{{ scope }}</span>
+                </span>
+                <span class="mt-1.5 block text-xs leading-5 text-[var(--ks-muted)]">
+                  {{ scopeDescription(scope) }}
+                </span>
               </label>
             </div>
           </fieldset>

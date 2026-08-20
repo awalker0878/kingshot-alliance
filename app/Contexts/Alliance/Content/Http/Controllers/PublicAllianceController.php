@@ -37,7 +37,11 @@ final class PublicAllianceController extends Controller
             ->firstOrFail();
 
         $profile = AllianceProfile::query()->where('alliance_id', $alliance->id)->first();
-        $publicRecruitment = $recruitment->forAlliance((string) $alliance->id, (string) $alliance->slug);
+        $publicRecruitment = $recruitment->forAlliance(
+            (string) $alliance->id,
+            (string) $alliance->slug,
+            'alliance-public-page',
+        );
         $kingdom = $kingdoms->find((string) $alliance->kingdom_id);
         $items = $content->publicList(
             (string) $alliance->id,

@@ -29,7 +29,7 @@ The remaining gap is less about adding disconnected screens and more about makin
 | Complete | Player progression | Manual/CSV/ingestion observations with freshness and consecutive power, progression, name and Alliance-tag changes | Intelligence observations, never authoritative game state |
 | Complete | Recruitment discovery | Opt-in public recruitment board, shareable filters, attributed links and source conversion analytics | Active/public/open listing gate; candidate data remains private |
 | Later | Calculators | Troop, Chief Gear, Charm and Hero Gear planning with saved scenarios | Ship only after cost datasets are verified and versioned; the inspected community calculator contains placeholder sections |
-| Later | Bot/API surfaces | Read-only Discord/Telegram commands backed by the same application services | Scoped credentials, rate limits and no parallel business logic |
+| Complete | Bot/API surfaces | Scoped command overview, Gift Code and knowledge reads for Discord/Telegram adapters | Revocable Alliance keys, bounded responses, rate limits and no parallel business logic |
 | Later | Mobile/offline polish | PWA install, cached guides/calendar and push delivery | No offline writes without conflict semantics |
 
 ## Engineering standards for every slice
