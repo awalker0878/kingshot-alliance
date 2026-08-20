@@ -90,6 +90,15 @@ Runtime artwork under `public/images/kingshot/` is independently authored for th
 
 Game-specific presentation primitives live under `resources/js/components/game/` and remain presentation-only. Generic reusable controls remain under `components/ui/`.
 
+Mutation surfaces use the shared feedback primitives:
+
+- `AppButton` owns disabled and visible/announced busy behavior;
+- `FormError` gives server validation an alert region that inputs reference with `aria-describedby` and `aria-invalid`;
+- `ActionNotice` presents translated success, warning and failure outcomes without exposing internal status codes;
+- `ConfirmActionDialog` provides a keyboard-contained, initially focused confirmation for irreversible or access-revoking actions.
+
+New mutation forms must expose server validation beside the affected control, prevent duplicate submission while busy and translate completion status. Native `window.confirm` and raw server status values are not the standard for new work.
+
 ## Validation
 
 Dependency-free gates:
