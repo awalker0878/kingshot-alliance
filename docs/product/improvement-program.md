@@ -9,7 +9,7 @@ This program begins after the capability-completeness delivery recorded in the [
 | Phase | Status | Outcome |
 | --- | --- | --- |
 | 0. Baseline and cleanup | Complete | Current inventory, enforceable documentation integrity and removal of obsolete migration evidence from the live documentation tree. |
-| 1. Architecture enforcement | Planned | Simpler owner-context APIs, immutable request authority and stronger automated boundary checks. |
+| 1. Architecture enforcement | Complete | Removed the remaining V2 visual-test structure and strengthened verification against compatibility-era test trees. |
 | 2. UX system | Planned | Predictable navigation, actions, forms, validation, empty states, recovery and mobile behavior. |
 | 3. Workflow completion | Planned | Consistent create/validate/authorize/commit/notify/audit/recover behavior across core capabilities. |
 | 4. Integration platform | Planned | Broader documented webhook contracts, delivery testing/replay and API contract coverage. |
@@ -42,6 +42,13 @@ The documentation-link gate runs as part of `npm run check` so moved or removed 
 - Misleading V4/legacy surface commentary was removed from the current stylesheet.
 - Internal documentation links are now validated in the frontend CI gate.
 - Frontend lint, formatting, type checking, localization coverage, production build and localization chunk checks passed on the phase head.
+
+## Phase 1 evidence
+
+- The active Playwright contract and its baselines now live under `tests/v3/Visual`; no `tests/v2` tree remains.
+- The architecture verifier no longer preserves a deferred compatibility-era visual suite. It requires the current application-shell contract instead.
+- Behavior-contract verification rejects every file type under a reintroduced `tests/v2` tree, not only PHP files.
+- Frontend architecture documentation now describes the visual suite as a current quality gate.
 
 ## Gate before merge
 
