@@ -89,7 +89,7 @@ final class KingdomAllianceDiplomacyController extends Controller
         $scope = $context->scope();
         $transition->handle($scope->allianceId, $scope->playerId, $tracking, $state, $validated);
 
-        return back()->with('status', 'kingdom-alliance-diplomacy-transitioned');
+        return back()->with('actionReceipt', $this->receipt('kingdom-alliance-diplomacy-transitioned'));
     }
 
     /** @return array{state:string,effective_at:string,review_at?:string|null,expires_at?:string|null,terms?:string|null,rationale?:string|null} */

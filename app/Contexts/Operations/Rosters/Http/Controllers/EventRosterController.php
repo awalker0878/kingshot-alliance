@@ -41,7 +41,7 @@ final class EventRosterController extends Controller
             parentId: isset($validated['parent_id']) ? (string) $validated['parent_id'] : null,
         );
 
-        return back()->with('status', 'event-roster-saved');
+        return back()->with('actionReceipt', $this->receipt('event-roster-saved'));
     }
 
     public function update(Request $request, string $occurrence, string $roster, SaveEventRoster $save): RedirectResponse
@@ -62,7 +62,7 @@ final class EventRosterController extends Controller
             rosterId: $roster,
         );
 
-        return back()->with('status', 'event-roster-saved');
+        return back()->with('actionReceipt', $this->receipt('event-roster-saved'));
     }
 
     public function assign(Request $request, string $occurrence, string $roster, string $player, AssignEventRosterPlayer $assign): RedirectResponse
@@ -84,7 +84,7 @@ final class EventRosterController extends Controller
             notes: isset($validated['notes']) ? (string) $validated['notes'] : null,
         );
 
-        return back()->with('status', 'event-roster-player-assigned');
+        return back()->with('actionReceipt', $this->receipt('event-roster-player-assigned'));
     }
 
     public function remove(Request $request, string $occurrence, string $roster, string $player, RemoveEventRosterPlayer $remove): RedirectResponse
@@ -98,7 +98,7 @@ final class EventRosterController extends Controller
         abort_unless(is_string($memberId) && $memberId !== '', 404);
         $remove->handle($actor->playerId, $occurrence, $memberId);
 
-        return back()->with('status', 'event-roster-player-removed');
+        return back()->with('actionReceipt', $this->receipt('event-roster-player-removed'));
     }
 
     public function respond(Request $request, string $occurrence, string $member, RespondToEventRosterAssignment $respond): RedirectResponse
@@ -110,7 +110,7 @@ final class EventRosterController extends Controller
         ]);
         $respond->handle($actor->playerId, $occurrence, $member, EventRosterMemberStatus::from((string) $validated['status']));
 
-        return back()->with('status', 'event-roster-assignment-responded');
+        return back()->with('actionReceipt', $this->receipt('event-roster-assignment-responded'));
     }
 
     public function participation(
@@ -131,7 +131,7 @@ final class EventRosterController extends Controller
             EventRosterMemberStatus::from((string) $validated['status']),
         );
 
-        return back()->with('status', 'event-roster-participation-recorded');
+        return back()->with('actionReceipt', $this->receipt('event-roster-participation-recorded'));
     }
 
     /** @return array<string,mixed> */

@@ -4,6 +4,8 @@ import { computed } from 'vue';
 
 import RoomBanner from '@/components/game/RoomBanner.vue';
 import StatSeal from '@/components/game/StatSeal.vue';
+import ConfirmActionDialog from '@/components/ui/ConfirmActionDialog.vue';
+import { useConfirmAction } from '@/components/ui/useConfirmAction';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { hasLocaleCatalogue, useLocale } from '@/localization';
 import { defaultLocale, locales } from '@/localization/locales';
@@ -26,6 +28,34 @@ type AllianceRow = {
   webhooksEnabled: boolean;
   retentionUntil: string | null;
   lifecycleReason: string | null;
+};
+type DiagnosticFailure = {
+  id: string;
+  allianceId?: string | null;
+  eventType?: string;
+  notificationType?: string;
+  aggregateType?: string;
+  aggregateId?: string;
+  channel?: string;
+  queue?: string;
+  attempts?: number;
+  maxAttempts?: number;
+  exhausted?: boolean;
+  availableAt?: string;
+  occurredAt?: string;
+  failedAt?: string | null;
+  responseCode?: number | null;
+  errorFingerprint: string | null;
+};
+type CorrelatedAudit = {
+  id: string;
+  event: string;
+  allianceId: string | null;
+  subjectType: string | null;
+  subjectId: string | null;
+  requestId: string | null;
+  traceId: string | null;
+  createdAt: string | null;
 };
 
 const props = defineProps<{
@@ -50,6 +80,16 @@ const props = defineProps<{
       reason: string;
       placedAt: string;
     }>;
+    diagnostics: {
+      outboxGraceMinutes: number;
+      maximumOutboxAttempts: number;
+      outboxFailures: DiagnosticFailure[];
+      webhookFailures: DiagnosticFailure[];
+      notificationFailures: DiagnosticFailure[];
+      failedJobs: DiagnosticFailure[];
+      correlation: string | null;
+      correlatedAudit: CorrelatedAudit[];
+    };
   };
   selectedAlliance: null | {
     id: string;
@@ -61,15 +101,16 @@ const props = defineProps<{
     }>;
   };
   currentUserId: number;
-  status: string | null;
 }>();
 
 const { t, formatDate, formatNumber } = useLocale();
+const { dialog, requestConfirmation, cancelConfirmation, confirmAction } = useConfirmAction();
 
 const adminForm = useForm({ email: '' });
 const holdForm = useForm({ subject_type: 'alliance', subject_id: '', reason: '' });
 const lifecycleForm = useForm({ reason: '' });
 const featureForm = useForm({ feature_key: '', enabled: true });
+const correlationForm = useForm({ correlation: props.platform.diagnostics.correlation ?? '' });
 
 const selected = computed(() =>
   props.selectedAlliance
@@ -99,6 +140,9 @@ const queueMetricKeys = [
   'pendingWebhooks',
   'failedWebhooks',
   'failedJobs',
+  'failedNotifications',
+  'overdueOutbox',
+  'exhaustedOutbox',
   'defaultQueue',
   'notificationsQueue',
   'integrationsQueue',
@@ -119,6 +163,9 @@ const metricLabels: Record<string, string> = {
   notificationsQueue: 'platformAdmin.metricNotificationsQueue',
   integrationsQueue: 'platformAdmin.metricIntegrationsQueue',
   maintenanceQueue: 'platformAdmin.metricMaintenanceQueue',
+  failedNotifications: 'platformAdmin.metricFailedNotifications',
+  overdueOutbox: 'platformAdmin.metricOverdueOutbox',
+  exhaustedOutbox: 'platformAdmin.metricExhaustedOutbox',
 };
 
 const localeRows = computed(() =>
@@ -131,22 +178,6 @@ const localeRows = computed(() =>
 const rtlLocaleCount = computed(
   () => locales.filter((locale) => locale.direction === 'rtl').length,
 );
-
-const statusMessage = computed(() => {
-  const messages: Record<string, string> = {
-    'platform-administrator-granted': 'platformAdmin.statusAdministratorGranted',
-    'platform-administrator-revoked': 'platformAdmin.statusAdministratorRevoked',
-    'alliance-lifecycle-updated': 'platformAdmin.statusLifecycleUpdated',
-    'alliance-plan-updated': 'platformAdmin.statusPlanUpdated',
-    'alliance-platform-settings-updated': 'platformAdmin.statusSettingsUpdated',
-    'alliance-feature-updated': 'platformAdmin.statusFeatureUpdated',
-    'legal-hold-placed': 'platformAdmin.statusLegalHoldPlaced',
-    'legal-hold-released': 'platformAdmin.statusLegalHoldReleased',
-    'alliance-usage-captured': 'platformAdmin.statusUsageCaptured',
-  };
-
-  return props.status ? t(messages[props.status] ?? props.status) : null;
-});
 
 function metricLabel(key: string): string {
   return t(metricLabels[key] ?? key);
@@ -189,6 +220,34 @@ function lifecycle(operation: 'suspend' | 'close' | 'delete' | 'restore'): void 
   lifecycleForm.post(`/platform/alliances/${props.selectedAlliance.id}/lifecycle/${operation}`, {
     preserveScroll: true,
   });
+}
+
+function searchCorrelation(): void {
+  correlationForm.get('/platform', { preserveScroll: true, preserveState: true, replace: true });
+}
+
+function retryOutbox(failure: DiagnosticFailure): void {
+  requestConfirmation({
+    id: 'platform-outbox-retry-confirmation',
+    title: t('platformAdmin.releaseRetryTitle'),
+    description: t('platformAdmin.releaseRetryDescription', {
+      event: diagnosticTitle(failure),
+    }),
+    confirmLabel: t('platformAdmin.releaseRetry'),
+    cancelLabel: t('common.cancel'),
+    busyLabel: t('platformAdmin.releasingRetry'),
+    danger: false,
+    perform: (finish) =>
+      router.post(
+        `/platform/operations/outbox/${failure.id}/retry`,
+        {},
+        { preserveScroll: true, onFinish: finish },
+      ),
+  });
+}
+
+function diagnosticTitle(item: DiagnosticFailure): string {
+  return item.eventType || item.notificationType || item.queue || item.id;
 }
 </script>
 
@@ -245,14 +304,6 @@ function lifecycle(operation: 'suspend' | 'close' | 'delete' | 'restore'): void 
       {{ t('platformAdmin.accessBoundary') }}
     </div>
 
-    <p
-      v-if="statusMessage"
-      role="status"
-      class="ks-surface mt-4 border-emerald-400/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100"
-    >
-      {{ statusMessage }}
-    </p>
-
     <section aria-labelledby="capacity-heading" class="mt-6 space-y-4">
       <div>
         <h2 id="capacity-heading" class="ks-display text-2xl font-semibold">
@@ -300,7 +351,198 @@ function lifecycle(operation: 'suspend' | 'close' | 'delete' | 'restore'): void 
       </div>
     </section>
 
-    <div class="grid gap-6 2xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+    <section class="mt-8 space-y-4" aria-labelledby="diagnostics-heading">
+      <div>
+        <h2 id="diagnostics-heading" class="ks-display text-2xl font-semibold">
+          {{ t('platformAdmin.diagnosticsTitle') }}
+        </h2>
+        <p class="mt-1 max-w-4xl text-sm leading-6 text-[var(--ks-text-muted)]">
+          {{ t('platformAdmin.diagnosticsHelp') }}
+        </p>
+      </div>
+
+      <div class="ks-surface p-5 sm:p-6">
+        <form
+          class="flex flex-col gap-3 md:flex-row md:items-end"
+          @submit.prevent="searchCorrelation"
+        >
+          <label class="grid flex-1 gap-1.5 text-sm" for="correlation-id">
+            {{ t('platformAdmin.correlationId') }}
+            <input
+              id="correlation-id"
+              v-model="correlationForm.correlation"
+              class="ks-input font-mono"
+              maxlength="36"
+              :placeholder="t('platformAdmin.correlationPlaceholder')"
+            />
+          </label>
+          <button type="submit" class="ks-command-button" :disabled="correlationForm.processing">
+            {{ t('platformAdmin.trace') }}
+          </button>
+        </form>
+        <p v-if="correlationForm.errors.correlation" class="mt-2 text-xs text-rose-300">
+          {{ correlationForm.errors.correlation }}
+        </p>
+
+        <div
+          v-if="platform.diagnostics.correlation"
+          class="mt-5 border-t border-[var(--ks-border)] pt-5"
+        >
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <h3 class="font-semibold">{{ t('platformAdmin.correlatedAudit') }}</h3>
+            <span class="ks-chip">{{ platform.diagnostics.correlatedAudit.length }}</span>
+          </div>
+          <ol v-if="platform.diagnostics.correlatedAudit.length" class="mt-3 space-y-2">
+            <li
+              v-for="entry in platform.diagnostics.correlatedAudit"
+              :key="entry.id"
+              class="rounded border border-[var(--ks-border)] bg-black/15 p-3 text-sm"
+            >
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <strong>{{ entry.event }}</strong>
+                <time class="text-xs text-[var(--ks-text-muted)]">{{
+                  entry.createdAt ? formatDate(entry.createdAt) : '—'
+                }}</time>
+              </div>
+              <p class="mt-1 font-mono text-xs break-all text-[var(--ks-text-muted)]">
+                {{ entry.subjectType ?? '—' }} · {{ entry.subjectId ?? '—' }}
+              </p>
+            </li>
+          </ol>
+          <div v-else class="ks-fantasy-empty mt-3">{{ t('platformAdmin.noCorrelatedAudit') }}</div>
+        </div>
+      </div>
+
+      <div class="grid gap-5 xl:grid-cols-2">
+        <article class="ks-surface p-5">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <h3 class="font-semibold">{{ t('platformAdmin.outboxFailures') }}</h3>
+              <p class="mt-1 text-xs leading-5 text-[var(--ks-text-muted)]">
+                {{
+                  t('platformAdmin.outboxFailureHelp', {
+                    attempts: platform.diagnostics.maximumOutboxAttempts,
+                  })
+                }}
+              </p>
+            </div>
+            <span class="ks-chip">{{ platform.diagnostics.outboxFailures.length }}</span>
+          </div>
+          <div v-if="platform.diagnostics.outboxFailures.length" class="mt-4 space-y-3">
+            <div
+              v-for="failure in platform.diagnostics.outboxFailures"
+              :key="failure.id"
+              class="rounded border border-[var(--ks-border)] bg-black/15 p-3"
+            >
+              <div class="flex flex-wrap items-start justify-between gap-3">
+                <div class="min-w-0">
+                  <strong class="block truncate text-sm">{{ diagnosticTitle(failure) }}</strong>
+                  <p class="mt-1 font-mono text-[0.7rem] break-all text-[var(--ks-text-muted)]">
+                    {{ failure.errorFingerprint ?? '—' }} · {{ failure.aggregateType }}:{{
+                      failure.aggregateId
+                    }}
+                  </p>
+                </div>
+                <span class="ks-status" :data-tone="failure.exhausted ? 'danger' : 'warning'">
+                  {{ failure.attempts }}/{{ platform.diagnostics.maximumOutboxAttempts }}
+                </span>
+              </div>
+              <button
+                v-if="failure.exhausted"
+                type="button"
+                class="ks-chip mt-3"
+                @click="retryOutbox(failure)"
+              >
+                {{ t('platformAdmin.releaseRetry') }}
+              </button>
+            </div>
+          </div>
+          <div v-else class="ks-fantasy-empty mt-4">{{ t('platformAdmin.noOutboxFailures') }}</div>
+        </article>
+
+        <article class="ks-surface p-5">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <h3 class="font-semibold">{{ t('platformAdmin.webhookFailures') }}</h3>
+              <p class="mt-1 text-xs leading-5 text-[var(--ks-text-muted)]">
+                {{ t('platformAdmin.webhookFailureHelp') }}
+              </p>
+            </div>
+            <span class="ks-chip">{{ platform.diagnostics.webhookFailures.length }}</span>
+          </div>
+          <div v-if="platform.diagnostics.webhookFailures.length" class="mt-4 space-y-3">
+            <div
+              v-for="failure in platform.diagnostics.webhookFailures"
+              :key="failure.id"
+              class="rounded border border-[var(--ks-border)] bg-black/15 p-3 text-sm"
+            >
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <strong>{{ diagnosticTitle(failure) }}</strong>
+                <span class="ks-status" data-tone="danger">{{ failure.responseCode ?? '—' }}</span>
+              </div>
+              <p class="mt-1 font-mono text-[0.7rem] break-all text-[var(--ks-text-muted)]">
+                {{ failure.errorFingerprint ?? '—' }}
+              </p>
+            </div>
+          </div>
+          <div v-else class="ks-fantasy-empty mt-4">{{ t('platformAdmin.noWebhookFailures') }}</div>
+        </article>
+
+        <article class="ks-surface p-5">
+          <div class="flex items-start justify-between gap-3">
+            <h3 class="font-semibold">{{ t('platformAdmin.notificationFailures') }}</h3>
+            <span class="ks-chip">{{ platform.diagnostics.notificationFailures.length }}</span>
+          </div>
+          <div v-if="platform.diagnostics.notificationFailures.length" class="mt-4 space-y-3">
+            <div
+              v-for="failure in platform.diagnostics.notificationFailures"
+              :key="failure.id"
+              class="rounded border border-[var(--ks-border)] bg-black/15 p-3 text-sm"
+            >
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <strong>{{ diagnosticTitle(failure) }}</strong>
+                <span class="ks-status" data-tone="danger"
+                  >{{ failure.attempts }}/{{ failure.maxAttempts }}</span
+                >
+              </div>
+              <p class="mt-1 text-xs text-[var(--ks-text-muted)]">
+                {{ failure.channel }} · {{ failure.errorFingerprint ?? '—' }}
+              </p>
+            </div>
+          </div>
+          <div v-else class="ks-fantasy-empty mt-4">
+            {{ t('platformAdmin.noNotificationFailures') }}
+          </div>
+        </article>
+
+        <article class="ks-surface p-5">
+          <div class="flex items-start justify-between gap-3">
+            <h3 class="font-semibold">{{ t('platformAdmin.failedJobs') }}</h3>
+            <span class="ks-chip">{{ platform.diagnostics.failedJobs.length }}</span>
+          </div>
+          <div v-if="platform.diagnostics.failedJobs.length" class="mt-4 space-y-3">
+            <div
+              v-for="failure in platform.diagnostics.failedJobs"
+              :key="failure.id"
+              class="rounded border border-[var(--ks-border)] bg-black/15 p-3 text-sm"
+            >
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <strong>{{ failure.queue }}</strong>
+                <time class="text-xs text-[var(--ks-text-muted)]">{{
+                  failure.failedAt ? formatDate(failure.failedAt) : '—'
+                }}</time>
+              </div>
+              <p class="mt-1 font-mono text-[0.7rem] break-all text-[var(--ks-text-muted)]">
+                {{ failure.errorFingerprint ?? '—' }}
+              </p>
+            </div>
+          </div>
+          <div v-else class="ks-fantasy-empty mt-4">{{ t('platformAdmin.noFailedJobs') }}</div>
+        </article>
+      </div>
+    </section>
+
+    <div class="mt-8 grid gap-6 2xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
       <section aria-labelledby="admins-heading" class="ks-surface p-5 sm:p-6">
         <div>
           <h2 id="admins-heading" class="ks-display text-2xl font-semibold">
@@ -976,5 +1218,6 @@ function lifecycle(operation: 'suspend' | 'close' | 'delete' | 'restore'): void 
         </p>
       </section>
     </div>
+    <ConfirmActionDialog v-bind="dialog" @confirm="confirmAction" @cancel="cancelConfirmation" />
   </AppLayout>
 </template>

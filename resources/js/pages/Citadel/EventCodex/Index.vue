@@ -44,7 +44,6 @@ const props = defineProps<{
   scheduleSourceOptions: string[];
   recurrencePolicyOptions: string[];
   recurrenceFrequencyOptions: string[];
-  status: string | null;
 }>();
 
 const { t } = useLocale();
@@ -141,14 +140,6 @@ function scopeLabel(scope: string): string {
         icon="⌛"
       />
     </section>
-
-    <p
-      v-if="props.status"
-      role="status"
-      class="ks-surface mt-5 border-emerald-400/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100"
-    >
-      {{ t('events.catalogue.saved') }}
-    </p>
 
     <div class="mt-5 space-y-5">
       <article v-for="type in props.eventTypes" :key="type.id" class="ks-surface-gold p-5 sm:p-6">

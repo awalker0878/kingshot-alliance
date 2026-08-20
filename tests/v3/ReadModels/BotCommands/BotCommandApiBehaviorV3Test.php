@@ -48,7 +48,7 @@ final class BotCommandApiBehaviorV3Test extends TestCase
             'source_label' => 'Official notice',
             'source_url' => 'https://www.centurygames.com/',
             'created_by_player_id' => $player->playerId,
-            'status' => GiftCodeStatus::Active,
+            'status' => GiftCodeStatus::Valid,
             'discovered_at' => now()->subHour(),
             'expires_at' => now()->addDay(),
         ]);

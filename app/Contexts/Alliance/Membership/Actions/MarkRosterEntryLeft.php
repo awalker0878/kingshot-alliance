@@ -38,9 +38,14 @@ final readonly class MarkRosterEntryLeft
             $entry = AllianceRosterEntry::query()->where('alliance_id', $allianceId)->whereKey($rosterEntryId)->lockForUpdate()->firstOrFail();
             if ($entry->state !== RosterState::Left) {
                 $entry->forceFill(['state' => RosterState::Left, 'left_at' => now(), 'last_observed_at' => now(), 'source' => 'manual'])->save();
-                $metadata = ['roster_entry_id' => (string) $entry->id, 'player_id' => (string) $entry->player_id];
+                $metadata = [
+                    'member_id' => (string) $entry->id,
+                    'roster_entry_id' => (string) $entry->id,
+                    'player_id' => (string) $entry->player_id,
+                    'source' => 'roster',
+                ];
                 $this->audit->record('membership.roster_entry_left', $context->actor, $entry, $context->alliance, $metadata);
-                $this->outbox->record('membership.roster_entry_left', $allianceId, $entry, $metadata);
+                $this->outbox->record('member.left', $allianceId, $entry, $metadata);
             }
 
             return $this->roster->find($allianceId, (string) $entry->id) ?? throw new \RuntimeException('Roster entry disappeared after leave.');

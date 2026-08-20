@@ -66,6 +66,20 @@ final class ContentQuery
     }
 
     /** @return Collection<int, ContentItem> */
+    public function contextualForEventType(string $allianceId, string $eventTypeSlug): Collection
+    {
+        return $this->memberPublishedBase($allianceId)
+            ->whereJsonContains('context_links', [[
+                'type' => 'event_type',
+                'key' => strtolower(trim($eventTypeSlug)),
+            ]])
+            ->orderBy('sort_order')
+            ->orderByDesc('published_at')
+            ->limit(12)
+            ->get();
+    }
+
+    /** @return Collection<int, ContentItem> */
     public function managerList(string $allianceId): Collection
     {
         return ContentItem::query()

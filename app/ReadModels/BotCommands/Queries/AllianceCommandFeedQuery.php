@@ -86,7 +86,7 @@ final readonly class AllianceCommandFeedQuery
         $redemptionUrl = is_string($redemptionUrl) ? $redemptionUrl : null;
 
         return array_values(DB::table('gift_codes')
-            ->where('status', GiftCodeStatus::Active->value)
+            ->where('status', GiftCodeStatus::Valid->value)
             ->where(static function (Builder $query): void {
                 $query->whereNull('expires_at')->orWhere('expires_at', '>', now());
             })

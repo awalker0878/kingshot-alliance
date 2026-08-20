@@ -27,7 +27,7 @@ final class PlayerFormationController extends Controller
             isDefault: (bool) ($validated['is_default'] ?? false),
         );
 
-        return back()->with('status', 'player-formation-saved');
+        return back()->with('actionReceipt', $this->receipt('player-formation-saved'));
     }
 
     public function update(Request $request, string $formation, PlayerContext $context, SavePlayerFormation $save): RedirectResponse
@@ -44,14 +44,14 @@ final class PlayerFormationController extends Controller
             formationId: $formation,
         );
 
-        return back()->with('status', 'player-formation-saved');
+        return back()->with('actionReceipt', $this->receipt('player-formation-saved'));
     }
 
     public function destroy(Request $request, string $formation, PlayerContext $context, DeletePlayerFormation $delete): RedirectResponse
     {
         $delete->handle($context->player()->playerId, $formation);
 
-        return back()->with('status', 'player-formation-deleted');
+        return back()->with('actionReceipt', $this->receipt('player-formation-deleted'));
     }
 
     /** @return array<string,mixed> */

@@ -26,3 +26,5 @@ The UI exposes the last attempt, next eligible retry and one-click continuation 
 - Communications may deliver new-code announcements from outbox events.
 - Provider adapters implement `GiftCodeRedemptionProvider`.
 - The default adapter is an official-site handoff, not browser automation or a reverse-engineered API client.
+
+`gift_code.created`, `gift_code.provenance_added`, and `gift_code.status_changed` are global public webhook facts. Each active matching Alliance subscription receives its own signed envelope; no arbitrary source Alliance is attached to the catalogue record.

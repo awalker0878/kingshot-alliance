@@ -4,15 +4,13 @@ declare(strict_types=1);
 
 namespace App\ReadModels\SharedKingdomIntelligence;
 
-use Illuminate\Contracts\Encryption\DecryptException;
+use App\Shared\Infrastructure\Pagination\ScopedCursorCodec;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Crypt;
 use Illuminate\Validation\ValidationException;
-use JsonException;
 
-final class SharedKingdomIntelligenceHistoryCursor
+final readonly class SharedKingdomIntelligenceHistoryCursor
 {
-    private const VERSION = 1;
+    public function __construct(private ScopedCursorCodec $cursors) {}
 
     /**
      * @return array{
@@ -24,18 +22,9 @@ final class SharedKingdomIntelligenceHistoryCursor
      */
     public function decode(string $cursor, string $shareTargetId): array
     {
-        try {
-            /** @var mixed $decoded */
-            $decoded = json_decode(Crypt::decryptString($cursor), true, flags: JSON_THROW_ON_ERROR);
-        } catch (DecryptException|JsonException) {
-            throw $this->invalid();
-        }
+        $decoded = $this->cursors->decode($cursor, $this->scope($shareTargetId));
 
-        if (! is_array($decoded)
-            || ($decoded['v'] ?? null) !== self::VERSION
-            || ! is_string($decoded['target'] ?? null)
-            || ! hash_equals($shareTargetId, $decoded['target'])
-            || ! is_string($decoded['as_of'] ?? null)
+        if (! is_string($decoded['as_of'] ?? null)
             || ! is_string($decoded['captured_at'] ?? null)
             || ! is_string($decoded['observation_id'] ?? null)
             || ! is_int($decoded['seen'] ?? null)
@@ -70,14 +59,17 @@ final class SharedKingdomIntelligenceHistoryCursor
         string $observationId,
         int $seen,
     ): string {
-        return Crypt::encryptString(json_encode([
-            'v' => self::VERSION,
-            'target' => $shareTargetId,
+        return $this->cursors->encode($this->scope($shareTargetId), [
             'as_of' => $asOf->copy()->utc()->format('Y-m-d\TH:i:s.u\Z'),
             'captured_at' => $capturedAt->copy()->utc()->format('Y-m-d\TH:i:s.u\Z'),
             'observation_id' => $observationId,
             'seen' => $seen,
-        ], JSON_THROW_ON_ERROR));
+        ]);
+    }
+
+    private function scope(string $shareTargetId): string
+    {
+        return 'shared-kingdom-intelligence-history:'.$shareTargetId;
     }
 
     private function invalid(): ValidationException

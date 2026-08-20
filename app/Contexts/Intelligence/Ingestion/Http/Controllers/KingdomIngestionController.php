@@ -78,7 +78,7 @@ final class KingdomIngestionController extends Controller
         $scope = $context->scope();
         $create->handle($scope->allianceId, $scope->playerId, $validated['adapter_key']);
 
-        return back()->with('status', 'kingdom-ingestion-subscription-created');
+        return back()->with('actionReceipt', $this->receipt('kingdom-ingestion-subscription-created'));
     }
 
     public function transition(Request $request, AllianceContext $context, TransitionKingdomIngestionSubscription $transition, string $subscription): RedirectResponse
@@ -88,7 +88,7 @@ final class KingdomIngestionController extends Controller
         $scope = $context->scope();
         $transition->handle($scope->allianceId, $scope->playerId, $subscription, KingdomIngestionSubscriptionState::from($validated['state']));
 
-        return back()->with('status', 'kingdom-ingestion-subscription-updated');
+        return back()->with('actionReceipt', $this->receipt('kingdom-ingestion-subscription-updated'));
     }
 
     public function rejectCandidate(Request $request, AllianceContext $context, RejectKingdomIngestionCandidate $reject, string $subscription, string $candidate): RedirectResponse
@@ -96,7 +96,7 @@ final class KingdomIngestionController extends Controller
         $scope = $context->scope();
         $reject->handle($scope->allianceId, $scope->playerId, $subscription, $candidate);
 
-        return back()->with('status', 'kingdom-ingestion-candidate-rejected');
+        return back()->with('actionReceipt', $this->receipt('kingdom-ingestion-candidate-rejected'));
     }
 
     public function replayCandidate(Request $request, AllianceContext $context, ReplayKingdomIngestionCandidate $replay, string $subscription, string $candidate): RedirectResponse
@@ -104,7 +104,7 @@ final class KingdomIngestionController extends Controller
         $scope = $context->scope();
         $replay->handle($scope->allianceId, $scope->playerId, $subscription, $candidate);
 
-        return back()->with('status', 'kingdom-ingestion-candidate-replayed');
+        return back()->with('actionReceipt', $this->receipt('kingdom-ingestion-candidate-replayed'));
     }
 
     /** @return array<string,mixed> */

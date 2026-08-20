@@ -7,9 +7,11 @@ namespace Tests\v3\Contexts\Platform\Integrations;
 use App\Contexts\Platform\Integrations\Actions\CreateWebhookSubscription;
 use App\Contexts\Platform\Integrations\Actions\QueueWebhookTestDelivery;
 use App\Contexts\Platform\Integrations\Actions\RetryWebhookDelivery;
+use App\Contexts\Platform\Integrations\Actions\RotateWebhookSigningSecret;
 use App\Contexts\Platform\Integrations\Enums\WebhookDeliveryStatus;
 use App\Contexts\Platform\Integrations\Jobs\DeliverWebhookJob;
 use App\Contexts\Platform\Integrations\Models\WebhookDelivery;
+use App\Contexts\Platform\Integrations\Models\WebhookSubscription;
 use App\Shared\Infrastructure\AuditTrail\Models\AuditEvent;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
@@ -20,6 +22,29 @@ use Tests\v3\TestCase;
 final class WebhookDeliveryRecoveryBehaviorV3Test extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_active_subscription_secret_rotation_is_immediate_audited_and_one_time(): void
+    {
+        [$allianceId, $playerId, $subscriptionId] = $this->subscription();
+        $subscription = WebhookSubscription::query()->findOrFail($subscriptionId);
+        $previousSecret = $subscription->signing_secret;
+
+        $issued = app(RotateWebhookSigningSecret::class)->handle($allianceId, $playerId, $subscriptionId);
+        $rotated = $subscription->fresh();
+        self::assertInstanceOf(WebhookSubscription::class, $rotated);
+
+        self::assertNotSame($previousSecret, $issued->signingSecret);
+        self::assertSame($issued->signingSecret, $rotated->signing_secret);
+        self::assertNotNull($rotated->secret_rotated_at);
+        self::assertStringNotContainsString(
+            $issued->signingSecret,
+            (string) $rotated->getRawOriginal('signing_secret'),
+        );
+        self::assertTrue(AuditEvent::query()
+            ->where('event', 'integration.webhook.secret_rotated')
+            ->where('subject_id', $subscriptionId)
+            ->exists());
+    }
 
     public function test_manager_can_queue_a_targeted_signed_test_delivery(): void
     {

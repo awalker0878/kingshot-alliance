@@ -42,6 +42,8 @@ const messages = {
     linkedMember: 'Linked member',
     noResults: 'No roster entries match these filters.',
     noResultsBody: 'Adjust or clear the filters to see other recorded roster entries.',
+    pageResults: 'Showing {count} of {total} matching Governors.',
+    pageSizeHelp: 'Up to {pageSize} Governors per page.',
     intelligenceTitle: 'Roster intelligence',
     intelligenceSubtitle: 'Alliance summaries use only recorded roster and scout history.',
     asOf: 'As of {date}',

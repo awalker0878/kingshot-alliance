@@ -30,7 +30,11 @@ final class RosterCsvController extends Controller
         $import = $preview->handle($scope->allianceId, $scope->playerId, $file);
 
         return to_route('alliance.roster.import.show', ['import' => $import['importId']])
-            ->with('status', $import['status'] === RosterImport::STATUS_COMMITTED ? 'roster-import-already-committed' : 'roster-import-previewed');
+            ->with('actionReceipt', $this->receipt(
+                $import['status'] === RosterImport::STATUS_COMMITTED
+                    ? 'roster-import-already-committed'
+                    : 'roster-import-previewed',
+            ));
     }
 
     public function commit(Request $request, AllianceContext $context, CommitRosterCsvImport $commit, string $import): RedirectResponse
@@ -43,7 +47,7 @@ final class RosterCsvController extends Controller
         $scope = $context->scope();
         $importId = $commit->handle($scope->allianceId, $scope->playerId, $import, $validated['resolutions'] ?? []);
 
-        return to_route('alliance.roster.import.show', ['import' => $importId])->with('status', 'roster-import-committed');
+        return to_route('alliance.roster.import.show', ['import' => $importId])->with('actionReceipt', $this->receipt('roster-import-committed'));
     }
 
     public function export(Request $request, AllianceContext $context, AllianceIntelligenceAuthorization $authorization, RosterCsvExporter $exporter): HttpResponse

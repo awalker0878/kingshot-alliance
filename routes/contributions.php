@@ -25,6 +25,10 @@ Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->gro
             ->name('alliance.contributions.categories.store');
         Route::post('/alliance/contributions/records', [ContributionController::class, 'storeManualRecord'])
             ->name('alliance.contributions.records.store');
+        Route::post('/alliance/contributions/records/bulk-approve/preview', [ContributionController::class, 'previewBulkApproval'])
+            ->name('alliance.contributions.records.bulk-approve.preview');
+        Route::post('/alliance/contributions/records/bulk-approve', [ContributionController::class, 'commitBulkApproval'])
+            ->name('alliance.contributions.records.bulk-approve.commit');
         Route::patch('/alliance/contributions/records/{record}/approve', [ContributionController::class, 'approve'])
             ->whereUlid('record')
             ->name('alliance.contributions.records.approve');

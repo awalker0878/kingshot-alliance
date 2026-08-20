@@ -6,12 +6,17 @@ namespace Tests\v3\Contexts\Platform\Administration;
 
 use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
 use App\Contexts\Platform\Administration\Actions\ManagePlatformAdministrator;
+use App\Contexts\Platform\Administration\Actions\RetryOutboxMessage;
 use App\Contexts\Platform\Administration\Models\PlatformAdministrator;
 use App\Contexts\Platform\Administration\Services\PlatformAuthorization;
 use App\Contexts\Platform\Administration\Services\PlatformWriteState;
+use App\Shared\Infrastructure\AuditTrail\Models\AuditEvent;
+use App\Shared\Infrastructure\Messaging\Outbox\Actions\PublishOutboxBatch;
+use App\Shared\Infrastructure\Messaging\Outbox\Models\OutboxMessage;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 use Tests\v3\Support\ScenarioFactory;
 use Tests\v3\TestCase;
@@ -67,5 +72,64 @@ final class PlatformAdministrationBehaviorV3Test extends TestCase
 
         self::assertSame($account->userId, $context->actor->userId);
         self::assertSame($grantId, $context->grantId);
+    }
+
+    public function test_exhausted_outbox_work_requires_an_audited_operator_retry(): void
+    {
+        $account = (new ScenarioFactory)->account();
+        $identity = app(AccountIdentityQuery::class)->require($account->userId);
+        app(ManagePlatformAdministrator::class)->grant($account->userId);
+        $maximumAttempts = max(1, (int) config('operations.outbox.maximum_attempts', 10));
+        $message = OutboxMessage::query()->create([
+            'alliance_id' => null,
+            'partition_key' => 'platform',
+            'event_type' => 'test.exhausted',
+            'aggregate_type' => 'TestAggregate',
+            'aggregate_id' => 'aggregate-1',
+            'idempotency_key' => 'outbox-exhausted-test',
+            'payload' => ['safe' => true],
+            'occurred_at' => now()->subHour(),
+            'available_at' => now()->subHour(),
+            'attempts' => $maximumAttempts,
+            'last_error' => 'Sensitive provider detail must never reach diagnostics.',
+        ]);
+
+        self::assertSame(0, app(PublishOutboxBatch::class)->handle());
+
+        app(RetryOutboxMessage::class)->handle($identity, (string) $message->id);
+        $retried = $message->fresh();
+        self::assertSame(0, $retried?->attempts);
+        self::assertNull($retried?->last_error);
+
+        $audit = AuditEvent::query()
+            ->where('event', 'platform.outbox.retry_released')
+            ->where('subject_id', $message->id)
+            ->firstOrFail();
+        self::assertSame($maximumAttempts, $audit->metadata['previous_attempts'] ?? null);
+        self::assertSame(16, strlen((string) ($audit->metadata['error_fingerprint'] ?? '')));
+        self::assertStringNotContainsString('Sensitive provider detail', json_encode($audit->metadata, JSON_THROW_ON_ERROR));
+    }
+
+    public function test_operator_cannot_release_work_inside_the_automatic_retry_budget(): void
+    {
+        $account = (new ScenarioFactory)->account();
+        $identity = app(AccountIdentityQuery::class)->require($account->userId);
+        app(ManagePlatformAdministrator::class)->grant($account->userId);
+        $message = OutboxMessage::query()->create([
+            'alliance_id' => null,
+            'partition_key' => 'platform',
+            'event_type' => 'test.retry-pending',
+            'aggregate_type' => 'TestAggregate',
+            'aggregate_id' => 'aggregate-2',
+            'idempotency_key' => 'outbox-retry-pending-test',
+            'payload' => ['safe' => true],
+            'occurred_at' => now()->subHour(),
+            'available_at' => now()->addMinute(),
+            'attempts' => 1,
+            'last_error' => 'Transient error',
+        ]);
+
+        $this->expectException(ValidationException::class);
+        app(RetryOutboxMessage::class)->handle($identity, (string) $message->id);
     }
 }

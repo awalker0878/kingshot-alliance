@@ -106,7 +106,7 @@ final class KingdomRoleController extends Controller
             roleTemplate: DefaultKingdomRole::from((string) $validated['role']),
         );
 
-        return back()->with('status', 'kingdom-role-assigned');
+        return back()->with('actionReceipt', $this->receipt('kingdom-role-assigned'));
     }
 
     public function destroy(AllianceContext $context, KingdomRoleAssignment $assignment, RemoveKingdomRole $remove): RedirectResponse
@@ -114,7 +114,7 @@ final class KingdomRoleController extends Controller
         $scope = $context->scope();
         $remove->handle($scope->playerId, $scope->kingdomId, (string) $assignment->id);
 
-        return back()->with('status', 'kingdom-role-removed');
+        return back()->with('actionReceipt', $this->receipt('kingdom-role-removed'));
     }
 
     private function user(Request $request): AuthenticatedAccount

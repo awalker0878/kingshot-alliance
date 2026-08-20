@@ -16,12 +16,25 @@ final class MemberCapacityPolicy
 {
     public function assertCapacity(Alliance $alliance): void
     {
-        $active = AllianceMembership::query()->where('alliance_id', $alliance->id)->where('status', MembershipStatus::Active->value)->count();
-        $pending = Invitation::query()->where('alliance_id', $alliance->id)->where('status', InvitationStatus::Pending->value)->where('expires_at', '>', now())->count();
         $limit = $this->limit($alliance, 'members.max');
-        if ($active + $pending >= $limit) {
+        if ($this->remainingCapacity($alliance) < 1) {
             throw ValidationException::withMessages(['quota' => sprintf('The alliance has reached its plan limit for members (%d).', $limit)]);
         }
+    }
+
+    public function remainingCapacity(Alliance $alliance): int
+    {
+        $active = AllianceMembership::query()
+            ->where('alliance_id', $alliance->id)
+            ->where('status', MembershipStatus::Active->value)
+            ->count();
+        $pending = Invitation::query()
+            ->where('alliance_id', $alliance->id)
+            ->where('status', InvitationStatus::Pending->value)
+            ->where('expires_at', '>', now())
+            ->count();
+
+        return max(0, $this->limit($alliance, 'members.max') - $active - $pending);
     }
 
     private function limit(Alliance $alliance, string $key): int

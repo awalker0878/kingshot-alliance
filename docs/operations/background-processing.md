@@ -8,6 +8,8 @@ Hosted asynchronous processing uses Redis queues and Laravel Horizon. Durable bu
 
 Background work includes notification/reminder delivery, webhook delivery/retry, outbox publication, scheduled content/maintenance, retention work and other retryable side effects.
 
+`content:queue-announcement-broadcasts` handles both one-off and recurring intent. It creates at most the requested number of runs per invocation, uses row locks plus deterministic run keys, and advances recurring rules in the same transaction as materialization. `notifications:deliver` independently reports external outcomes; operators must not infer provider success from a queued run.
+
 ## Rules
 
 - queue work only after the owning transaction commits, or persist outbox intent in that transaction;
@@ -18,3 +20,5 @@ Background work includes notification/reminder delivery, webhook delivery/retry,
 - never treat successful enqueueing as proof that an external delivery succeeded.
 
 Redis loss affects more than cache: it affects sessions, queues, Horizon and scheduler coordination. Treat Redis as a production dependency.
+
+Outbox publication claims a message only while its attempt count is below `operations.outbox.maximum_attempts`. Exhausted messages remain durable and visible in the Citadel. A password-confirmed Platform Administrator may release a failed unpublished message for one fresh bounded cycle; the original idempotency key is retained and the release is audited. Published messages are never eligible for this control.

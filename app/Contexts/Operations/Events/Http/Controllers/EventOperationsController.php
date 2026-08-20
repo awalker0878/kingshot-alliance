@@ -45,7 +45,7 @@ final class EventOperationsController extends Controller
             sortOrder: (int) ($validated['sort_order'] ?? 0),
         );
 
-        return back()->with('status', 'event-phase-saved');
+        return back()->with('actionReceipt', $this->receipt('event-phase-saved'));
     }
 
     public function updatePhase(Request $request, string $occurrence, string $phase, EventCalendarQuery $events, SaveEventPhase $save): RedirectResponse
@@ -67,7 +67,7 @@ final class EventOperationsController extends Controller
             phaseId: $phase,
         );
 
-        return back()->with('status', 'event-phase-saved');
+        return back()->with('actionReceipt', $this->receipt('event-phase-saved'));
     }
 
     public function storePoll(Request $request, string $occurrence, EventCalendarQuery $events, SaveEventPoll $save, SyncEventPollDeadlineReminder $reminders): RedirectResponse
@@ -91,7 +91,7 @@ final class EventOperationsController extends Controller
         );
         $reminders->handle($actor->playerId, $pollId);
 
-        return back()->with('status', 'event-poll-saved');
+        return back()->with('actionReceipt', $this->receipt('event-poll-saved'));
     }
 
     public function updatePoll(Request $request, string $occurrence, string $poll, EventCalendarQuery $events, SaveEventPoll $save, SyncEventPollDeadlineReminder $reminders): RedirectResponse
@@ -118,7 +118,7 @@ final class EventOperationsController extends Controller
         );
         $reminders->handle($actor->playerId, $pollId);
 
-        return back()->with('status', 'event-poll-saved');
+        return back()->with('actionReceipt', $this->receipt('event-poll-saved'));
     }
 
     public function vote(Request $request, string $occurrence, string $poll, CastEventPollVote $vote): RedirectResponse
@@ -131,7 +131,7 @@ final class EventOperationsController extends Controller
         ]);
         $vote->handle($actor->playerId, $occurrence, $poll, $this->optionIds($validated['option_ids']));
 
-        return back()->with('status', 'event-poll-vote-saved');
+        return back()->with('actionReceipt', $this->receipt('event-poll-vote-saved'));
     }
 
     /** @return array<string,mixed> */

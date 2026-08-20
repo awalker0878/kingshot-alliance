@@ -27,6 +27,7 @@ use Illuminate\Support\Carbon;
  * @property CarbonImmutable|null $redeemed_at
  * @property Carbon $created_at
  * @property Carbon $updated_at
+ * @property-read GiftCode $giftCode
  */
 final class GiftCodeRedemption extends Model
 {

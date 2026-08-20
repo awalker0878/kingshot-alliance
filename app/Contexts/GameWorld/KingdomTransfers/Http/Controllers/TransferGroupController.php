@@ -30,7 +30,7 @@ final class TransferGroupController extends Controller
             $this->validatedGroup($request),
         );
 
-        return back()->with('status', 'transfer-group-created');
+        return back()->with('actionReceipt', $this->receipt('transfer-group-created'));
     }
 
     public function update(
@@ -49,7 +49,7 @@ final class TransferGroupController extends Controller
             $group,
         );
 
-        return back()->with('status', 'transfer-group-updated');
+        return back()->with('actionReceipt', $this->receipt('transfer-group-updated'));
     }
 
     public function archive(
@@ -62,7 +62,7 @@ final class TransferGroupController extends Controller
         $scope = $context->scope();
         $archive->handle($scope->allianceId, $scope->playerId, $plan, $group);
 
-        return back()->with('status', 'transfer-group-archived');
+        return back()->with('actionReceipt', $this->receipt('transfer-group-archived'));
     }
 
     public function assignParticipant(
@@ -90,7 +90,7 @@ final class TransferGroupController extends Controller
             $groupId === '' ? null : $groupId,
         );
 
-        return back()->with('status', 'transfer-participant-group-updated');
+        return back()->with('actionReceipt', $this->receipt('transfer-participant-group-updated'));
     }
 
     /**

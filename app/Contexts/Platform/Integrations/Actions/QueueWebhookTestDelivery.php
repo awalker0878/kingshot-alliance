@@ -42,6 +42,7 @@ final readonly class QueueWebhookTestDelivery
                 'source_message_id' => $messageId,
                 'event_type' => 'integration.test',
                 'payload' => [
+                    'schema_version' => '1.0',
                     'id' => $messageId,
                     'event' => 'integration.test',
                     'occurred_at' => $occurredAt,

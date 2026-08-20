@@ -29,7 +29,7 @@ final class TransferParticipantController extends Controller
             $this->validated($request),
         );
 
-        return back()->with('status', 'transfer-participant-created');
+        return back()->with('actionReceipt', $this->receipt('transfer-participant-created'));
     }
 
     public function update(
@@ -48,7 +48,7 @@ final class TransferParticipantController extends Controller
             $participant,
         );
 
-        return back()->with('status', 'transfer-participant-updated');
+        return back()->with('actionReceipt', $this->receipt('transfer-participant-updated'));
     }
 
     public function withdraw(
@@ -61,7 +61,7 @@ final class TransferParticipantController extends Controller
         $scope = $context->scope();
         $withdraw->handle($scope->allianceId, $scope->playerId, $plan, $participant);
 
-        return back()->with('status', 'transfer-participant-withdrawn');
+        return back()->with('actionReceipt', $this->receipt('transfer-participant-withdrawn'));
     }
 
     /**

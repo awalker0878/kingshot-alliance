@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Contexts\Communications\Delivery\Http\Controllers;
 
 use App\Contexts\Accounts\Identity\Contracts\AuthenticatedAccount;
+use App\Contexts\Communications\Delivery\Actions\BulkUpdateNotificationInbox;
 use App\Contexts\Communications\Delivery\Actions\DeleteNotificationEndpoint;
+use App\Contexts\Communications\Delivery\Actions\PreviewNotificationInboxBulkAction;
 use App\Contexts\Communications\Delivery\Actions\SaveNotificationEndpoint;
 use App\Contexts\Communications\Delivery\Actions\SetNotificationPreference;
 use App\Contexts\Communications\Delivery\Actions\UpdateNotificationInboxState;
@@ -15,12 +17,14 @@ use App\Contexts\Communications\Delivery\Models\NotificationEndpoint;
 use App\Contexts\Communications\Delivery\Models\NotificationPreference;
 use App\Contexts\GameWorld\Players\Services\PlayerContext;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
+use App\Shared\Infrastructure\AuditTrail\Contracts\AuditActor;
 use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
+use LogicException;
 
 final class NotificationCenterController extends Controller
 {
@@ -102,7 +106,8 @@ final class NotificationCenterController extends Controller
                 'label' => $channel->label(),
                 'external' => $channel->isExternal(),
             ], DeliveryChannel::cases()),
-            'status' => $request->session()->get('status'),
+            'notificationBulkPreview' => $request->session()->get('notificationBulkPreview'),
+            'notificationBulkResult' => $request->session()->get('notificationBulkResult'),
         ]);
     }
 
@@ -125,7 +130,7 @@ final class NotificationCenterController extends Controller
             'chat_id' => (string) ($validated['chat_id'] ?? ''),
         ]);
 
-        return back()->with('status', 'notification-endpoint-saved');
+        return back()->with('actionReceipt', $this->receipt('notification-endpoint-saved'));
     }
 
     public function deleteEndpoint(
@@ -137,7 +142,7 @@ final class NotificationCenterController extends Controller
         $userId = $this->userId($user);
         $delete->handle($userId, $this->ownedPlayer($userId)->playerId, $endpoint);
 
-        return back()->with('status', 'notification-endpoint-deleted');
+        return back()->with('actionReceipt', $this->receipt('notification-endpoint-deleted'));
     }
 
     public function setPreference(Request $request, SetNotificationPreference $set): RedirectResponse
@@ -158,7 +163,7 @@ final class NotificationCenterController extends Controller
             (bool) $validated['enabled'],
         );
 
-        return back()->with('status', 'notification-preference-updated');
+        return back()->with('actionReceipt', $this->receipt('notification-preference-updated'));
     }
 
     public function markRead(
@@ -170,7 +175,7 @@ final class NotificationCenterController extends Controller
         $userId = $this->userId($user);
         $state->markRead($delivery, $userId, $this->ownedPlayerOrNull($userId)?->playerId);
 
-        return back();
+        return back()->with('actionReceipt', $this->receipt('notification-marked-read'));
     }
 
     public function dismiss(
@@ -182,7 +187,55 @@ final class NotificationCenterController extends Controller
         $userId = $this->userId($user);
         $state->dismiss($delivery, $userId, $this->ownedPlayerOrNull($userId)?->playerId);
 
-        return back();
+        return back()->with('actionReceipt', $this->receipt('notification-dismissed'));
+    }
+
+    public function previewBulkInboxUpdate(
+        Request $request,
+        PreviewNotificationInboxBulkAction $preview,
+    ): RedirectResponse {
+        $user = $this->user($request);
+        $userId = $this->userId($user);
+        $validated = $this->validateBulkInboxUpdate($request);
+        /** @var non-empty-list<string> $deliveryIds */
+        $deliveryIds = $validated['delivery_ids'];
+
+        return back()->with('notificationBulkPreview', $preview->handle(
+            $userId,
+            $this->ownedPlayerOrNull($userId)?->playerId,
+            $deliveryIds,
+            (string) $validated['operation'],
+        ));
+    }
+
+    public function bulkInboxUpdate(
+        Request $request,
+        BulkUpdateNotificationInbox $bulkUpdate,
+    ): RedirectResponse {
+        $user = $this->user($request);
+        if (! $user instanceof AuditActor) {
+            throw new LogicException('Authenticated accounts must provide an audit identity.');
+        }
+
+        $userId = $this->userId($user);
+        $validated = $this->validateBulkInboxUpdate($request);
+        /** @var non-empty-list<string> $deliveryIds */
+        $deliveryIds = $validated['delivery_ids'];
+        $result = $bulkUpdate->handle(
+            $user,
+            $userId,
+            $this->ownedPlayerOrNull($userId)?->playerId,
+            $deliveryIds,
+            (string) $validated['operation'],
+        )->toArray();
+
+        return back()
+            ->with('notificationBulkResult', $result)
+            ->with('actionReceipt', $this->receipt('notification-bulk-inbox-completed', [
+                'succeeded' => $result['succeeded'],
+                'failed' => $result['failed'],
+                'skipped' => $result['skipped'],
+            ]));
     }
 
     private function user(Request $request): AuthenticatedAccount
@@ -214,5 +267,21 @@ final class NotificationCenterController extends Controller
         $player = $this->playerContext->playerOrNull();
 
         return $player instanceof PlayerReference && $player->userId === $userId ? $player : null;
+    }
+
+    /** @return array{delivery_ids: non-empty-list<string>, operation: string} */
+    private function validateBulkInboxUpdate(Request $request): array
+    {
+        /** @var array{delivery_ids: non-empty-list<string>, operation: string} $validated */
+        $validated = $request->validate([
+            'delivery_ids' => ['required', 'array', 'min:1', 'max:50'],
+            'delivery_ids.*' => ['required', 'string', 'ulid', 'distinct'],
+            'operation' => ['required', 'string', Rule::in([
+                PreviewNotificationInboxBulkAction::MARK_READ,
+                PreviewNotificationInboxBulkAction::DISMISS,
+            ])],
+        ]);
+
+        return $validated;
     }
 }

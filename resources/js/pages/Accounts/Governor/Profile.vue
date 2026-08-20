@@ -19,7 +19,6 @@ const props = defineProps<{
   };
   twoFactorSetup: { secret: string; provisioning_uri: string } | null;
   twoFactorRecoveryCodes: string[] | null;
-  status: string | null;
 }>();
 
 const { t } = useLocale();
@@ -36,19 +35,6 @@ const passwordForm = useForm({
 });
 const sessionsForm = useForm({ password: '' });
 const twoFactorForm = useForm({ code: '' });
-
-const statusMessage = computed(() => {
-  switch (props.status) {
-    case 'password-updated':
-      return t('accountExperience.account.passwordUpdated');
-    case 'other-sessions-revoked':
-      return t('accountExperience.account.sessionsRevoked');
-    case 'two-factor-disabled':
-      return t('accountExperience.account.twoFactorDisabled');
-    default:
-      return props.status;
-  }
-});
 
 const twoFactorState = computed(() => {
   if (props.user.twoFactorEnabled) return t('accountExperience.account.enabled');
@@ -97,6 +83,9 @@ function disableTwoFactor(): void {
         <Link href="/profile/delete-account" class="ks-command-link" data-variant="secondary">
           {{ t('accountExperience.account.deleteAccount') }}
         </Link>
+        <Link href="/profile/connections" class="ks-command-link" data-variant="secondary">
+          {{ t('accountExperience.connections.title') }}
+        </Link>
       </template>
     </RoomBanner>
 
@@ -123,14 +112,6 @@ function disableTwoFactor(): void {
         icon="◷"
       />
     </section>
-
-    <p
-      v-if="statusMessage"
-      role="status"
-      class="mt-5 rounded-[var(--ks-radius-md)] border border-emerald-400/25 bg-emerald-500/[.07] px-4 py-3 text-sm text-emerald-100"
-    >
-      {{ statusMessage }}
-    </p>
 
     <div class="mt-5 grid gap-5 2xl:grid-cols-[minmax(0,1.05fr)_minmax(22rem,.95fr)]">
       <section class="ks-surface p-5 sm:p-6" aria-labelledby="platform-profile-heading">

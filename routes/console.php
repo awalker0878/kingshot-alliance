@@ -8,6 +8,8 @@ use App\Contexts\Alliance\Content\Actions\QueuePublishedAnnouncementBroadcasts;
 use App\Contexts\Alliance\Recruitment\Actions\PurgeExpiredRecruitmentCandidates;
 use App\Contexts\Communications\Delivery\Actions\ProcessNotificationDeliveries;
 use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
+use App\Contexts\GameWorld\GiftCodes\Actions\ExpireGiftCodes;
+use App\Contexts\GameWorld\GiftCodes\Actions\QueueGiftCodeExpiryNotifications;
 use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Intelligence\Contributions\Actions\QueueDueContributionReports;
 use App\Contexts\Intelligence\Ingestion\Actions\EnforceKingdomIngestionRetention;
@@ -28,10 +30,6 @@ use App\Workflows\KingdomGovernance\Actions\BootstrapKingdomAdministrator;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
 use Illuminate\Support\Str;
-
-Artisan::command('about:phase', function (): void {
-    $this->info('Kingshot Alliance — Phase 6 platform scale and administration');
-})->purpose('Display the current implementation phase');
 
 Artisan::command('app:config-check', function (RuntimeConfigurationValidator $validator): int {
     $errors = $validator->errors(app()->environment());
@@ -107,7 +105,7 @@ Artisan::command('platform:enforce-retention', function (EnforcePlatformRetentio
     $this->info(json_encode($result, JSON_THROW_ON_ERROR));
 
     return 0;
-})->purpose('Enforce Phase 6 retention windows for operational records');
+})->purpose('Enforce configured retention windows for operational records');
 
 Artisan::command('integrations:queue-webhooks {--limit=100}', function (QueueDueWebhookDeliveries $queue): int {
     $queued = $queue->handle(max(1, min(500, (int) $this->option('limit'))));
@@ -227,6 +225,18 @@ Artisan::command('notifications:deliver {--limit=100}', function (ProcessNotific
     return 0;
 })->purpose('Deliver due Discord and Telegram notifications with bounded retries');
 
+Artisan::command('gift-codes:maintain {--limit=100}', function (
+    ExpireGiftCodes $expire,
+    QueueGiftCodeExpiryNotifications $notifications,
+): int {
+    $limit = max(1, min(500, (int) $this->option('limit')));
+    $expired = $expire->handle($limit);
+    $queued = $notifications->handle($limit);
+    $this->info(sprintf('Expired %d Gift Code(s) and queued %d expiry reminder(s).', $expired, $queued));
+
+    return 0;
+})->purpose('Reconcile Gift Code expiry and queue idempotent reminders');
+
 Artisan::command('events:queue-reminders {--limit=100}', function (QueueDueEventReminders $queue): int {
     $limit = max(1, min(1000, (int) $this->option('limit')));
     $queued = $queue->handle($limit);
@@ -263,6 +273,7 @@ Schedule::command('content:publish-scheduled --limit=100')->everyMinute()->onOne
 Schedule::command('content:queue-announcement-broadcasts --limit=25')->everyMinute()->onOneServer()->withoutOverlapping(10);
 Schedule::command('events:queue-reminders --limit=100')->everyMinute()->onOneServer()->withoutOverlapping(10);
 Schedule::command('notifications:deliver --limit=100')->everyMinute()->onOneServer()->withoutOverlapping(10);
+Schedule::command('gift-codes:maintain --limit=500')->hourly()->onOneServer()->withoutOverlapping(30);
 Schedule::command('contributions:queue-reports --limit=50')->everyMinute()->onOneServer()->withoutOverlapping(10);
 Schedule::command('outbox:publish --limit=100')->everyMinute()->onOneServer()->withoutOverlapping(10);
 Schedule::command('integrations:queue-webhooks --limit=100')->everyMinute()->onOneServer()->withoutOverlapping(10);

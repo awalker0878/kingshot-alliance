@@ -19,7 +19,7 @@ final class RallyGuidanceController extends Controller
         $validated = $this->validateRule($request);
         $this->applyRule($save, $context->player()->playerId, $alliance, $validated);
 
-        return back()->with('status', 'rally-guidance-saved');
+        return back()->with('actionReceipt', $this->receipt('rally-guidance-saved'));
     }
 
     public function update(Request $request, string $alliance, string $rule, PlayerContext $context, SaveRallyGuidanceRule $save): RedirectResponse
@@ -27,7 +27,7 @@ final class RallyGuidanceController extends Controller
         $validated = $this->validateRule($request);
         $this->applyRule($save, $context->player()->playerId, $alliance, $validated, $rule);
 
-        return back()->with('status', 'rally-guidance-saved');
+        return back()->with('actionReceipt', $this->receipt('rally-guidance-saved'));
     }
 
     /** @return array<string,mixed> */

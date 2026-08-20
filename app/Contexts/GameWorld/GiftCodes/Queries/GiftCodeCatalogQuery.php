@@ -14,10 +14,19 @@ final class GiftCodeCatalogQuery
     /** @return Collection<int, GiftCode> */
     public function forPlayer(string $playerId, int $limit = 100): Collection
     {
+        return $this->forPlayers([$playerId], $limit);
+    }
+
+    /**
+     * @param non-empty-list<string> $playerIds
+     * @return Collection<int, GiftCode>
+     */
+    public function forPlayers(array $playerIds, int $limit = 100): Collection
+    {
         return GiftCode::query()
-            ->with(['redemptions' => static function (Relation $relation) use ($playerId): void {
-                $relation->getQuery()->where('player_id', $playerId)->limit(1);
-            }])
+            ->with(['redemptions' => static function (Relation $relation) use ($playerIds): void {
+                $relation->getQuery()->whereIn('player_id', $playerIds);
+            }, 'provenances'])
             ->orderByDesc('discovered_at')
             ->limit(max(1, min($limit, 250)))
             ->get();

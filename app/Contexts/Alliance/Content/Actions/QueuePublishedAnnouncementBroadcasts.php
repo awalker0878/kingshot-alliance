@@ -4,30 +4,38 @@ declare(strict_types=1);
 
 namespace App\Contexts\Alliance\Content\Actions;
 
+use App\Contexts\Alliance\Content\Enums\BroadcastScheduleStatus;
 use App\Contexts\Alliance\Content\Enums\ContentStatus;
 use App\Contexts\Alliance\Content\Enums\ContentType;
+use App\Contexts\Alliance\Content\Models\AnnouncementBroadcastSchedule;
 use App\Contexts\Alliance\Content\Models\ContentItem;
+use App\Contexts\Alliance\Content\Services\NextBroadcastOccurrence;
 use App\Contexts\Alliance\Lifecycle\Enums\AllianceStatus;
 use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
-use App\Contexts\Alliance\Membership\Models\AllianceMembership;
-use App\Contexts\Communications\Delivery\Services\NotificationDeliveryService;
-use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
-use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
-use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
-use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
 final readonly class QueuePublishedAnnouncementBroadcasts
 {
     public function __construct(
-        private PlayerReferenceQuery $players,
-        private NotificationDeliveryService $deliveries,
-        private AuditRecorder $audit,
-        private OutboxRecorder $outbox,
+        private QueueAnnouncementBroadcastRun $queueRun,
+        private NextBroadcastOccurrence $nextOccurrence,
     ) {}
 
     public function handle(int $limit = 25): int
+    {
+        $limit = max(1, min(100, $limit));
+        $queued = $this->queueOneOffs($limit);
+
+        $remaining = $limit - $queued;
+        if ($remaining <= 0) {
+            return $queued;
+        }
+
+        return $queued + $this->queueRecurring($remaining);
+    }
+
+    private function queueOneOffs(int $limit): int
     {
         $ids = ContentItem::query()
             ->where('type', ContentType::Announcement->value)
@@ -37,18 +45,15 @@ final readonly class QueuePublishedAnnouncementBroadcasts
             ->whereNotNull('published_at')
             ->where('published_at', '<=', now())
             ->orderBy('published_at')
-            ->limit(max(1, min(100, $limit)))
+            ->limit($limit)
             ->pluck('id')
             ->map(static fn (mixed $id): string => (string) $id)
             ->all();
+        $queued = 0;
 
-        $broadcasts = 0;
         foreach ($ids as $id) {
-            $queued = DB::transaction(function () use ($id): bool {
-                $candidate = ContentItem::query()
-                    ->select(['id', 'alliance_id'])
-                    ->whereKey($id)
-                    ->first();
+            $created = DB::transaction(function () use ($id): bool {
+                $candidate = ContentItem::query()->select(['id', 'alliance_id'])->whereKey($id)->first();
                 if (! $candidate instanceof ContentItem) {
                     return false;
                 }
@@ -73,75 +78,133 @@ final readonly class QueuePublishedAnnouncementBroadcasts
                     ->where('published_at', '<=', now())
                     ->lockForUpdate()
                     ->first();
-                if (! $item instanceof ContentItem) {
+                if (! $item instanceof ContentItem || $item->published_at === null) {
                     return false;
                 }
 
-                $playerIds = AllianceMembership::query()
-                    ->where('alliance_id', $alliance->id)
-                    ->where('status', MembershipStatus::Active->value)
-                    ->orderBy('player_id')
-                    ->pluck('player_id')
-                    ->map(static fn (mixed $playerId): string => (string) $playerId)
-                    ->unique()
-                    ->values()
-                    ->all();
-                $recipients = $this->players->byIds($playerIds);
-                ksort($recipients);
-
-                $recipientCount = 0;
-                $deliveryCount = 0;
-                foreach ($recipients as $recipient) {
-                    if (! $recipient instanceof PlayerReference || $recipient->userId === null) {
-                        continue;
-                    }
-
-                    $recipientCount++;
-                    $created = $this->deliveries->queueEnabledChannels(
-                        notificationType: 'alliance.announcement',
-                        recipientUserId: $recipient->userId,
-                        playerId: $recipient->playerId,
-                        dueAt: now(),
-                        idempotencyKey: implode(':', ['alliance-announcement', $item->id, $recipient->playerId]),
-                        subjectType: 'content_item',
-                        subjectId: (string) $item->id,
-                        metadata: [
-                            'title' => (string) $item->title,
-                            'body' => mb_substr(trim((string) ($item->summary ?: $item->body)), 0, 1000),
-                            'action_url' => '/alliance/content/'.rawurlencode((string) $item->slug),
-                            'alliance_id' => (string) $alliance->id,
-                            'content_item_id' => (string) $item->id,
-                        ],
-                    );
-
-                    foreach ($created as $delivery) {
-                        if ($delivery->wasRecentlyCreated) {
-                            $deliveryCount++;
-                        }
-                    }
-                }
-
-                $item->forceFill(['broadcasted_at' => now()])->save();
-                $context = [
-                    'recipient_count' => $recipientCount,
-                    'delivery_count' => $deliveryCount,
-                ];
-                $this->audit->record('content.broadcast_queued', null, $item, $alliance, $context);
-                $this->outbox->record(
-                    'content.broadcast_queued',
-                    (string) $alliance->id,
+                $created = $this->queueRun->handle(
+                    $alliance,
                     $item,
-                    ['content_item_id' => (string) $item->id, ...$context],
+                    CarbonImmutable::instance($item->published_at),
+                    'announcement-one-off:'.$item->id,
                 );
+                $item->forceFill(['broadcasted_at' => now()])->save();
 
-                return true;
+                return $created;
             });
 
-            if ($queued) {
-                $broadcasts++;
+            if ($created) {
+                $queued++;
             }
         }
 
-        return $broadcasts;
+        return $queued;
+    }
+
+    private function queueRecurring(int $limit): int
+    {
+        $ids = AnnouncementBroadcastSchedule::query()
+            ->where('status', BroadcastScheduleStatus::Active->value)
+            ->whereNotNull('next_run_at')
+            ->where('next_run_at', '<=', now())
+            ->orderBy('next_run_at')
+            ->limit($limit)
+            ->pluck('id')
+            ->map(static fn (mixed $id): string => (string) $id)
+            ->all();
+        $queued = 0;
+
+        foreach ($ids as $id) {
+            $created = DB::transaction(function () use ($id): bool {
+                $candidate = AnnouncementBroadcastSchedule::query()
+                    ->select(['id', 'alliance_id'])
+                    ->whereKey($id)
+                    ->first();
+                if (! $candidate instanceof AnnouncementBroadcastSchedule) {
+                    return false;
+                }
+
+                $alliance = Alliance::query()
+                    ->whereKey($candidate->alliance_id)
+                    ->where('status', AllianceStatus::Active->value)
+                    ->sharedLock()
+                    ->first();
+                if (! $alliance instanceof Alliance) {
+                    return false;
+                }
+
+                $schedule = AnnouncementBroadcastSchedule::query()
+                    ->whereKey($id)
+                    ->where('alliance_id', $alliance->id)
+                    ->where('status', BroadcastScheduleStatus::Active->value)
+                    ->whereNotNull('next_run_at')
+                    ->where('next_run_at', '<=', now())
+                    ->lockForUpdate()
+                    ->first();
+                if (! $schedule instanceof AnnouncementBroadcastSchedule || $schedule->next_run_at === null) {
+                    return false;
+                }
+                if ($schedule->ends_at?->isPast() === true) {
+                    $schedule->forceFill([
+                        'status' => BroadcastScheduleStatus::Completed,
+                        'next_run_at' => null,
+                    ])->save();
+
+                    return false;
+                }
+
+                $item = ContentItem::query()
+                    ->whereKey($schedule->content_item_id)
+                    ->where('alliance_id', $alliance->id)
+                    ->lockForUpdate()
+                    ->first();
+                if (! $item instanceof ContentItem
+                    || $item->type !== ContentType::Announcement
+                    || $item->status !== ContentStatus::Published
+                    || ! $item->notify_members) {
+                    $schedule->forceFill([
+                        'status' => BroadcastScheduleStatus::Completed,
+                        'next_run_at' => null,
+                    ])->save();
+
+                    return false;
+                }
+
+                $scheduledFor = $schedule->next_run_at;
+                $created = $this->queueRun->handle(
+                    $alliance,
+                    $item,
+                    $scheduledFor,
+                    hash('sha256', implode('|', [
+                        'announcement-recurring',
+                        (string) $schedule->id,
+                        $scheduledFor->toIso8601String(),
+                    ])),
+                    (string) $schedule->id,
+                );
+                $next = $this->nextOccurrence->calculate(
+                    $schedule->weekdays,
+                    $schedule->local_time,
+                    $schedule->timezone,
+                    $scheduledFor,
+                    $schedule->ends_at,
+                );
+                $schedule->forceFill([
+                    'status' => $next === null
+                        ? BroadcastScheduleStatus::Completed
+                        : BroadcastScheduleStatus::Active,
+                    'last_run_at' => $scheduledFor,
+                    'next_run_at' => $next,
+                ])->save();
+
+                return $created;
+            });
+
+            if ($created) {
+                $queued++;
+            }
+        }
+
+        return $queued;
     }
 }

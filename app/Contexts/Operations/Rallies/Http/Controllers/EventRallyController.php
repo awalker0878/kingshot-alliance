@@ -43,7 +43,7 @@ final class EventRallyController extends Controller
             sortOrder: (int) ($validated['sort_order'] ?? 0),
         );
 
-        return back()->with('status', 'rally-formation-saved');
+        return back()->with('actionReceipt', $this->receipt('rally-formation-saved'));
     }
 
     public function updateFormation(Request $request, string $occurrence, string $formation, SaveEventRecommendedFormation $save): RedirectResponse
@@ -66,7 +66,7 @@ final class EventRallyController extends Controller
             formationId: $formation,
         );
 
-        return back()->with('status', 'rally-formation-saved');
+        return back()->with('actionReceipt', $this->receipt('rally-formation-saved'));
     }
 
     public function storeGroup(Request $request, string $occurrence, SaveRallyGroup $save): RedirectResponse
@@ -85,7 +85,7 @@ final class EventRallyController extends Controller
             sortOrder: (int) ($validated['sort_order'] ?? 0),
         );
 
-        return back()->with('status', 'rally-group-saved');
+        return back()->with('actionReceipt', $this->receipt('rally-group-saved'));
     }
 
     public function updateGroup(Request $request, string $occurrence, string $group, SaveRallyGroup $save): RedirectResponse
@@ -105,7 +105,7 @@ final class EventRallyController extends Controller
             groupId: $group,
         );
 
-        return back()->with('status', 'rally-group-saved');
+        return back()->with('actionReceipt', $this->receipt('rally-group-saved'));
     }
 
     public function assign(Request $request, string $occurrence, string $group, string $player, AssignRallyPlayer $assign): RedirectResponse
@@ -127,7 +127,7 @@ final class EventRallyController extends Controller
             notes: $validated['notes'] ?? null,
         );
 
-        return back()->with('status', 'rally-player-assigned');
+        return back()->with('actionReceipt', $this->receipt('rally-player-assigned'));
     }
 
     public function remove(Request $request, string $occurrence, string $group, string $player, RemoveRallyPlayer $remove): RedirectResponse
@@ -136,7 +136,7 @@ final class EventRallyController extends Controller
         $actor = $this->player();
         $remove->handle($actor->playerId, $occurrence, $group, $player);
 
-        return back()->with('status', 'rally-player-removed');
+        return back()->with('actionReceipt', $this->receipt('rally-player-removed'));
     }
 
     public function respond(Request $request, string $occurrence, string $assignment, RespondRallyAssignment $respond): RedirectResponse
@@ -153,7 +153,7 @@ final class EventRallyController extends Controller
             RallyAssignmentStatus::from((string) $validated['status']),
         );
 
-        return back()->with('status', 'rally-assignment-responded');
+        return back()->with('actionReceipt', $this->receipt('rally-assignment-responded'));
     }
 
     public function participation(Request $request, string $occurrence, string $assignment, RecordRallyParticipation $recordParticipation): RedirectResponse
@@ -170,7 +170,7 @@ final class EventRallyController extends Controller
             RallyAssignmentStatus::from((string) $validated['status']),
         );
 
-        return back()->with('status', 'rally-participation-recorded');
+        return back()->with('actionReceipt', $this->receipt('rally-participation-recorded'));
     }
 
     /** @return array<string,mixed> */

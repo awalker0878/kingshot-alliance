@@ -29,6 +29,7 @@ final class ContentRevisionWriter
             'source_url' => $item->source_url,
             'game_version' => $item->game_version,
             'reviewed_at' => $item->reviewed_at,
+            'context_links' => $item->context_links,
             'created_by_player_id' => $actor->playerId,
             'created_at' => now(),
         ]);

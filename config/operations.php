@@ -8,6 +8,9 @@ return [
     'trusted_proxies' => env('TRUSTED_PROXIES', ''),
     'allow_trust_all_proxies' => (bool) env('ALLOW_TRUST_ALL_PROXIES', false),
     'allow_insecure_loopback_staging' => (bool) env('ALLOW_INSECURE_LOOPBACK_STAGING', false),
+    'outbox' => [
+        'maximum_attempts' => (int) env('OUTBOX_MAXIMUM_ATTEMPTS', 10),
+    ],
     'required_configuration' => [
         'app.key',
         'app.url',

@@ -2,6 +2,8 @@
 
 Status: Current high-level contract
 
+Machine-readable contracts: [OpenAPI 3.1](openapi.json) and [webhook envelope JSON Schema](webhook-envelope.schema.json). Behavior tests compare their paths, required scopes, event catalogue and event-specific required fields with the runtime contracts.
+
 The versioned API is available under `/api/v1`. Every endpoint uses `throttle:api` and an Alliance-scoped, revocable access key. The shared API limiter permits 120 requests per minute per client IP; adapters should apply their own provider- and command-specific limits as well.
 
 ## Authentication
@@ -25,6 +27,9 @@ Access keys are created in Alliance Connections. The secret is shown once; only 
 | `GET /api/v1/commands/overview` | `commands:read` | Bot-ready Alliance identity, ten upcoming Events, active Gift Codes, recent knowledge, and recruitment status. |
 | `GET /api/v1/commands/gift-codes?limit=20` | `gift-codes:read` | Up to 50 active, unexpired Gift Codes with source metadata and the official redemption URL. |
 | `GET /api/v1/commands/knowledge?q=&type=&limit=20` | `content:read` | Up to 50 published Alliance knowledge excerpts with visibility and provenance. |
+| `POST /api/v1/actor-links/claims` | `actor-links:write` | Claim a ten-minute, one-time Discord/Telegram pairing code. |
+| `PUT /api/v1/me/events/{occurrence}/response` | `event-participation:write` | Record the linked Governor's Event response and preferences. |
+| `PUT /api/v1/me/events/{occurrence}/registration` | `event-participation:write` | Register or cancel the linked Governor through existing capacity/waitlist rules. |
 
 Knowledge `type` accepts the Content catalogue values: `announcement`, `guide`, `rule`, `event_instruction`, and `reference_page`.
 
@@ -42,14 +47,20 @@ Command endpoints return:
 }
 ```
 
-Payloads are bounded and read-only. The command overview does not expose Governor accounts, candidate records, application answers, recruiter notes, private notification endpoints, or credential secrets.
+Read payloads are bounded. The command overview does not expose Governor accounts, candidate records, application answers, recruiter notes, private notification endpoints, or credential secrets.
 
 A recruitment application URL returned to a bot carries the visible `bot-command` source. This is ordinary application metadata, not an identity tracking token.
 
 ## Adapter boundary
 
-Discord and Telegram adapters should translate chat commands into these HTTP reads. They must not duplicate Event, Gift Code, Content, or Recruitment business logic. Provider signing verification, command registration, response formatting, and chat rate limits stay in the adapter.
+Discord and Telegram adapters translate chat commands into these HTTP contracts. They must not duplicate Event, Gift Code, Content, Recruitment, registration, capacity, or waitlist rules. Provider signing verification, command registration, response formatting, and chat rate limits stay in the adapter.
 
-API access does not grant Platform Administrator authority or write access. A missing, expired, revoked, malformed, or under-scoped key receives an authentication error.
+## External actor pairing and writes
 
-For public webhook event selectors see [Events](../events.md).
+An authenticated Governor creates a provider-specific pairing code under **Account & security → Bot connections**. The code expires after ten minutes, works once, and is stored only as a keyed hash. A credential with `actor-links:write` claims it for a stable numeric Discord/Telegram user ID. The raw provider ID is also stored only as a keyed hash plus a four-digit display hint.
+
+Event writes require `event-participation:write`, an active provider link, and an `Idempotency-Key` header of 8–128 allowlisted characters. Replaying the same normalized request returns the stored result with `meta.replayed: true`; reusing the key for different input fails. Revocation takes effect before any later write. Clients never submit a Player ID as authority.
+
+API access does not grant Platform Administrator or Alliance-manager authority. Write scopes expose only the documented linked-Governor self-service actions. A missing, expired, revoked, malformed, or under-scoped key receives an authentication error.
+
+For public webhook event selectors, scope rules, signing and recovery behavior see [Events](../events.md).

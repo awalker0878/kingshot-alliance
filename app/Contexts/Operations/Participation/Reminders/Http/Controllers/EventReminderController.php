@@ -34,7 +34,7 @@ final class EventReminderController extends Controller
             audience: EventReminderAudience::from((string) $validated['audience']),
         );
 
-        return back()->with('status', 'event-reminder-created');
+        return back()->with('actionReceipt', $this->receipt('event-reminder-created'));
     }
 
     public function destroy(Request $request, string $event, string $rule, DisableEventReminderRule $disable): RedirectResponse
@@ -42,7 +42,7 @@ final class EventReminderController extends Controller
         $this->user($request);
         $disable->handle($this->player()->playerId, $event, $rule);
 
-        return back()->with('status', 'event-reminder-disabled');
+        return back()->with('actionReceipt', $this->receipt('event-reminder-disabled'));
     }
 
     private function player(): PlayerReference

@@ -6,8 +6,12 @@ namespace App\ReadModels\PlatformAdministration;
 
 use App\Contexts\Alliance\Lifecycle\Enums\AllianceStatus;
 use App\Contexts\Alliance\Lifecycle\Models\Alliance;
+use App\Contexts\Communications\Delivery\Enums\DeliveryStatus;
+use App\Contexts\Communications\Delivery\Models\NotificationDelivery;
 use App\Contexts\Platform\DataGovernance\Models\LegalHold;
+use App\Contexts\Platform\Integrations\Enums\WebhookDeliveryStatus;
 use App\Contexts\Platform\Integrations\Models\WebhookDelivery;
+use App\Shared\Infrastructure\AuditTrail\Models\AuditEvent;
 use App\Shared\Infrastructure\Messaging\Outbox\Models\OutboxMessage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
@@ -15,8 +19,10 @@ use Illuminate\Support\Facades\Queue;
 final class PlatformAdministrationQuery
 {
     /** @return array<string, mixed> */
-    public function dashboard(): array
+    public function dashboard(?string $correlation = null): array
     {
+        $outboxGraceMinutes = max(1, (int) config('operations.launch.outbox_grace_minutes', 15));
+        $maximumOutboxAttempts = max(1, (int) config('operations.outbox.maximum_attempts', 10));
         $alliances = Alliance::query()
             ->select('alliances.*')
             ->selectSub(
@@ -72,6 +78,14 @@ final class PlatformAdministrationQuery
                 'closedAlliances' => Alliance::query()->where('status', AllianceStatus::Closed->value)->count(),
                 'deletedAlliances' => Alliance::query()->where('status', AllianceStatus::Deleted->value)->count(),
                 'pendingOutbox' => OutboxMessage::query()->whereNull('published_at')->count(),
+                'overdueOutbox' => OutboxMessage::query()
+                    ->whereNull('published_at')
+                    ->where('available_at', '<=', now()->subMinutes($outboxGraceMinutes))
+                    ->count(),
+                'exhaustedOutbox' => OutboxMessage::query()
+                    ->whereNull('published_at')
+                    ->where('attempts', '>=', $maximumOutboxAttempts)
+                    ->count(),
                 'pendingWebhooks' => WebhookDelivery::query()->whereIn('status', ['pending', 'delivering'])->count(),
                 'failedWebhooks' => WebhookDelivery::query()->where('status', 'failed')->count(),
                 'failedJobs' => DB::table('failed_jobs')->count(),
@@ -79,6 +93,9 @@ final class PlatformAdministrationQuery
                 'notificationsQueue' => Queue::size('notifications'),
                 'integrationsQueue' => Queue::size('integrations'),
                 'maintenanceQueue' => Queue::size('maintenance'),
+                'failedNotifications' => NotificationDelivery::query()
+                    ->where('status', DeliveryStatus::Failed->value)
+                    ->count(),
             ],
             'alliances' => $alliances->map(static function (Alliance $alliance) use ($planAssignments, $settings): array {
                 $setting = $settings->get($alliance->id);
@@ -150,6 +167,103 @@ final class PlatformAdministrationQuery
                     'reason' => (string) $hold->reason,
                     'placedAt' => $hold->placed_at->toIso8601String(),
                 ])->all(),
+            'diagnostics' => [
+                'outboxGraceMinutes' => $outboxGraceMinutes,
+                'maximumOutboxAttempts' => $maximumOutboxAttempts,
+                'outboxFailures' => OutboxMessage::query()
+                    ->whereNull('published_at')
+                    ->whereNotNull('last_error')
+                    ->orderByDesc('updated_at')
+                    ->limit(25)
+                    ->get()
+                    ->map(fn (OutboxMessage $message): array => [
+                        'id' => (string) $message->id,
+                        'allianceId' => $message->alliance_id,
+                        'eventType' => (string) $message->event_type,
+                        'aggregateType' => class_basename((string) $message->aggregate_type),
+                        'aggregateId' => (string) $message->aggregate_id,
+                        'attempts' => (int) $message->attempts,
+                        'exhausted' => $message->attempts >= $maximumOutboxAttempts,
+                        'availableAt' => $message->available_at->toIso8601String(),
+                        'occurredAt' => $message->occurred_at->toIso8601String(),
+                        'errorFingerprint' => $this->fingerprint($message->last_error),
+                    ])->all(),
+                'webhookFailures' => WebhookDelivery::query()
+                    ->where('status', WebhookDeliveryStatus::Failed->value)
+                    ->orderByDesc('updated_at')
+                    ->limit(25)
+                    ->get()
+                    ->map(fn (WebhookDelivery $delivery): array => [
+                        'id' => (string) $delivery->id,
+                        'allianceId' => (string) $delivery->alliance_id,
+                        'eventType' => (string) $delivery->event_type,
+                        'attempts' => (int) $delivery->attempts,
+                        'responseCode' => $delivery->response_code,
+                        'failedAt' => $delivery->updated_at?->toIso8601String(),
+                        'errorFingerprint' => $this->fingerprint($delivery->last_error ?? $delivery->response_excerpt),
+                    ])->all(),
+                'notificationFailures' => NotificationDelivery::query()
+                    ->where('status', DeliveryStatus::Failed->value)
+                    ->orderByDesc('failed_at')
+                    ->limit(25)
+                    ->get()
+                    ->map(fn (NotificationDelivery $delivery): array => [
+                        'id' => (string) $delivery->id,
+                        'notificationType' => (string) $delivery->notification_type,
+                        'channel' => (string) $delivery->channel,
+                        'attempts' => (int) $delivery->attempt_count,
+                        'maxAttempts' => (int) $delivery->max_attempts,
+                        'failedAt' => $delivery->failed_at?->toIso8601String(),
+                        'errorFingerprint' => $this->fingerprint($delivery->last_error),
+                    ])->all(),
+                'failedJobs' => DB::table('failed_jobs')
+                    ->orderByDesc('failed_at')
+                    ->limit(25)
+                    ->get(['uuid', 'queue', 'exception', 'failed_at'])
+                    ->map(fn (object $job): array => [
+                        'id' => (string) $job->uuid,
+                        'queue' => (string) $job->queue,
+                        'failedAt' => (string) $job->failed_at,
+                        'errorFingerprint' => $this->fingerprint((string) $job->exception),
+                    ])->all(),
+                'correlation' => $correlation,
+                'correlatedAudit' => $this->correlatedAudit($correlation),
+            ],
         ];
+    }
+
+    /** @return list<array<string,mixed>> */
+    private function correlatedAudit(?string $correlation): array
+    {
+        if ($correlation === null || $correlation === '') {
+            return [];
+        }
+
+        $query = AuditEvent::query();
+        if (strlen($correlation) === 36) {
+            $query->where('request_id', strtolower($correlation));
+        } else {
+            $query->where('trace_id', strtolower($correlation));
+        }
+
+        return $query
+            ->orderBy('created_at')
+            ->limit(50)
+            ->get()
+            ->map(static fn (AuditEvent $event): array => [
+                'id' => (string) $event->id,
+                'event' => (string) $event->event,
+                'allianceId' => $event->alliance_id === null ? null : (string) $event->alliance_id,
+                'subjectType' => $event->subject_type === null ? null : class_basename((string) $event->subject_type),
+                'subjectId' => $event->subject_id === null ? null : (string) $event->subject_id,
+                'requestId' => $event->request_id === null ? null : (string) $event->request_id,
+                'traceId' => $event->trace_id === null ? null : (string) $event->trace_id,
+                'createdAt' => $event->created_at?->toIso8601String(),
+            ])->all();
+    }
+
+    private function fingerprint(?string $error): ?string
+    {
+        return $error === null || $error === '' ? null : substr(hash('sha256', $error), 0, 16);
     }
 }

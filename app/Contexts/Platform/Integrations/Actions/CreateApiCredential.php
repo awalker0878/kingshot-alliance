@@ -25,6 +25,8 @@ final readonly class CreateApiCredential
         'commands:read',
         'gift-codes:read',
         'content:read',
+        'actor-links:write',
+        'event-participation:write',
     ];
 
     public function __construct(

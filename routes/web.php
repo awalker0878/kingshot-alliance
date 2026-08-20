@@ -35,10 +35,12 @@ use App\Contexts\Operations\Rallies\Http\Controllers\RallyGuidanceController;
 use App\Contexts\Operations\Results\Http\Controllers\EventResultController;
 use App\Contexts\Operations\Rosters\Http\Controllers\EventRosterController;
 use App\ReadModels\AllianceDashboard\Http\Controllers\AllianceOverviewController;
+use App\ReadModels\AnnouncementBroadcastManagement\Http\Controllers\AnnouncementBroadcastManagementController;
 use App\ReadModels\CommandOverview\Http\Controllers\DashboardController;
 use App\ReadModels\EventCalendar\Http\Controllers\EventCalendarController;
 use App\ReadModels\EventManagement\Http\Controllers\EventManagementPageController;
 use App\ReadModels\RecruitmentDiscovery\Http\Controllers\PublicRecruitmentBoardController;
+use App\ReadModels\RecruitmentManagement\Http\Controllers\RecruitmentManagementReadController;
 use App\Workflows\AccountOnboarding\Http\Controllers\InvitationAcceptanceController;
 use App\Workflows\AccountOnboarding\Http\Controllers\RegistrationController;
 use Illuminate\Support\Facades\Route;
@@ -199,6 +201,10 @@ Route::middleware(['auth', 'auth.session'])->group(function (): void {
 
         Route::middleware('password.confirm')->group(function (): void {
             Route::post('/events', [EventManagementController::class, 'store'])->name('events.store');
+            Route::post('/events/bulk-cancel/preview', [EventManagementController::class, 'previewBulkCancellation'])
+                ->name('events.bulk-cancel.preview');
+            Route::post('/events/bulk-cancel', [EventManagementController::class, 'commitBulkCancellation'])
+                ->name('events.bulk-cancel.commit');
             Route::patch('/events/{event}', [EventManagementController::class, 'update'])
                 ->whereUlid('event')
                 ->name('events.update');
@@ -317,7 +323,7 @@ Route::middleware(['auth', 'auth.session'])->group(function (): void {
         Route::middleware('alliance.context')->group(function (): void {
             Route::get('/alliance', AllianceOverviewController::class)->name('alliance.overview');
 
-            Route::get('/alliance/recruitment', [RecruitmentManagementController::class, 'index'])
+            Route::get('/alliance/recruitment', RecruitmentManagementReadController::class)
                 ->name('alliance.recruitment.index');
             Route::get('/alliance/recruitment/{candidate}', [RecruitmentCandidateController::class, 'show'])
                 ->whereUlid('candidate')
@@ -325,7 +331,7 @@ Route::middleware(['auth', 'auth.session'])->group(function (): void {
 
             Route::get('/alliance/content', [MemberContentController::class, 'index'])
                 ->name('alliance.content.index');
-            Route::get('/alliance/content/manage', [ContentManagementController::class, 'index'])
+            Route::get('/alliance/content/manage', AnnouncementBroadcastManagementController::class)
                 ->name('alliance.content.manage');
             Route::get('/alliance/content/{contentSlug}', [MemberContentController::class, 'show'])
                 ->where('contentSlug', '[a-z0-9]+(?:-[a-z0-9]+)*')
@@ -342,6 +348,10 @@ Route::middleware(['auth', 'auth.session'])->group(function (): void {
                     ->name('alliance.recruitment.decision-templates.store');
                 Route::post('/alliance/recruitment/onboarding-items', [RecruitmentManagementController::class, 'storeOnboardingItem'])
                     ->name('alliance.recruitment.onboarding-items.store');
+                Route::post('/alliance/recruitment/bulk-stage/preview', [RecruitmentManagementController::class, 'previewBulkStageChange'])
+                    ->name('alliance.recruitment.bulk-stage.preview');
+                Route::post('/alliance/recruitment/bulk-stage', [RecruitmentManagementController::class, 'commitBulkStageChange'])
+                    ->name('alliance.recruitment.bulk-stage.store');
                 Route::patch('/alliance/recruitment/{candidate}/stage', [RecruitmentCandidateController::class, 'updateStage'])
                     ->whereUlid('candidate')
                     ->name('alliance.recruitment.candidates.stage.update');
@@ -400,6 +410,18 @@ Route::middleware(['auth', 'auth.session'])->group(function (): void {
                     ->whereUlid('content')
                     ->whereUlid('revision')
                     ->name('alliance.content.revisions.restore');
+                Route::put('/alliance/content/{content}/broadcast-schedule', [ContentManagementController::class, 'saveBroadcastSchedule'])
+                    ->whereUlid('content')
+                    ->name('alliance.content.broadcast-schedule.update');
+                Route::delete('/alliance/content/broadcast-schedules/{schedule}', [ContentManagementController::class, 'cancelBroadcastSchedule'])
+                    ->whereUlid('schedule')
+                    ->name('alliance.content.broadcast-schedule.cancel');
+                Route::post('/alliance/content/{content}/broadcast-test', [ContentManagementController::class, 'testBroadcast'])
+                    ->whereUlid('content')
+                    ->name('alliance.content.broadcast-test.store');
+                Route::post('/alliance/content/broadcast-runs/{run}/retry-failures', [ContentManagementController::class, 'retryBroadcastFailures'])
+                    ->whereUlid('run')
+                    ->name('alliance.content.broadcast-runs.retry-failures');
 
                 Route::post('/alliance/media', [ContentManagementController::class, 'storeMedia'])
                     ->name('alliance.media.store');
@@ -416,6 +438,10 @@ Route::middleware(['auth', 'auth.session'])->group(function (): void {
                     ->whereUlid('invitation')
                     ->name('alliance.invitations.destroy');
 
+                Route::post('/alliance/memberships/bulk-status/preview', [MembershipController::class, 'previewBulkStatusChange'])
+                    ->name('alliance.memberships.bulk-status.preview');
+                Route::post('/alliance/memberships/bulk-status', [MembershipController::class, 'commitBulkStatusChange'])
+                    ->name('alliance.memberships.bulk-status.commit');
                 Route::patch('/alliance/memberships/{membership}/status', [MembershipController::class, 'updateStatus'])
                     ->whereUlid('membership')
                     ->name('alliance.memberships.status');

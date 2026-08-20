@@ -39,6 +39,8 @@ For writes, call the owning capability Action. Do not import a foreign Model mer
 
 Database migrations remain under `database/migrations`, but schema ownership must still be identifiable from the capability that writes the data. Migrations do not create a separate architectural layer or imply shared business ownership.
 
+The application is pre-deployment. Create migrations therefore describe the final intended fresh-install schema. New columns, indexes and constraints are folded into the owning create migration; empty permission migrations and compatibility rename/alter migrations are not retained. Once production deployment begins, this rule must be replaced with an append-only migration policy before any release is approved.
+
 ## Constraints
 
 Database constraints should protect critical persistence invariants where practical. Application Actions remain responsible for business policy, current authorization and transactional sequencing.

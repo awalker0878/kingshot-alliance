@@ -18,4 +18,8 @@ Route::middleware(['auth', 'auth.session', 'verified'])->group(function (): void
     Route::post('/gift-codes/{giftCode}/confirm', [GiftCodeController::class, 'confirm'])
         ->whereUlid('giftCode')
         ->name('gift-codes.confirm');
+    Route::post('/gift-codes/{giftCode}/report', [GiftCodeController::class, 'report'])
+        ->whereUlid('giftCode')
+        ->middleware('throttle:20,1')
+        ->name('gift-codes.report');
 });

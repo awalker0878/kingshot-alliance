@@ -36,7 +36,6 @@ final class ProfileController extends Controller
             ],
             'twoFactorSetup' => $request->session()->get('twoFactorSetup'),
             'twoFactorRecoveryCodes' => $request->session()->get('twoFactorRecoveryCodes'),
-            'status' => $request->session()->get('status'),
         ]);
     }
 
@@ -94,7 +93,7 @@ final class ProfileController extends Controller
             $newPassword,
         );
 
-        return redirect()->route('profile.show')->with('status', 'password-updated');
+        return redirect()->route('profile.show')->with('actionReceipt', $this->receipt('password-updated'));
     }
 
     public function destroyOtherSessions(
@@ -110,6 +109,6 @@ final class ProfileController extends Controller
         $password = (string) $validated['password'];
         $authorizeRevocation->handle((int) $user->id, $password);
 
-        return redirect()->route('profile.show')->with('status', 'other-sessions-revoked');
+        return redirect()->route('profile.show')->with('actionReceipt', $this->receipt('other-sessions-revoked'));
     }
 }

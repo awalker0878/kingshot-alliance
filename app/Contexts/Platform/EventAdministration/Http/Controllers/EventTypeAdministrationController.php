@@ -93,7 +93,7 @@ final class EventTypeAdministrationController extends Controller
             )),
         );
 
-        return back()->with('status', 'event-type-scope-updated');
+        return back()->with('actionReceipt', $this->receipt('event-type-scope-updated'));
     }
 
     private function account(Request $request): AccountIdentity

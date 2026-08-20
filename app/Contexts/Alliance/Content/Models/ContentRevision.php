@@ -19,6 +19,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $source_url
  * @property string|null $game_version
  * @property Carbon|null $reviewed_at
+ * @property list<array{type:string,key:string}>|null $context_links
  * @property Carbon|null $created_at
  */
 final class ContentRevision extends Model
@@ -48,6 +49,7 @@ final class ContentRevision extends Model
         'source_url',
         'game_version',
         'reviewed_at',
+        'context_links',
         'created_by_player_id',
         'created_at',
     ];
@@ -59,6 +61,7 @@ final class ContentRevision extends Model
             'visibility' => ContentVisibility::class,
             'notify_members' => 'boolean',
             'reviewed_at' => 'date',
+            'context_links' => 'array',
             'created_at' => 'datetime',
         ];
     }

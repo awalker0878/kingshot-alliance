@@ -37,6 +37,7 @@ final readonly class RespondToEvent
         ?CarbonImmutable $availableFrom = null,
         ?CarbonImmutable $availableUntil = null,
         ?string $note = null,
+        EventResponseSource $source = EventResponseSource::Self,
     ): void {
         if ($availableFrom !== null && $availableUntil !== null && $availableUntil->lessThan($availableFrom)) {
             throw ValidationException::withMessages([
@@ -44,7 +45,7 @@ final readonly class RespondToEvent
             ]);
         }
 
-        DB::transaction(function () use ($actorPlayerId, $occurrenceId, $response, $preferredRole, $preferredTeam, $availableFrom, $availableUntil, $note): void {
+        DB::transaction(function () use ($actorPlayerId, $occurrenceId, $response, $preferredRole, $preferredTeam, $availableFrom, $availableUntil, $note, $source): void {
             $route = EventOccurrence::query()->select(['id', 'event_id'])->whereKey($occurrenceId)->firstOrFail();
             $context = $this->eventWriteState->lockSelfScope($actorPlayerId, (string) $route->event_id, $actorPlayerId);
             $this->authorization->authorizeSelf($context, $actorPlayerId);
@@ -65,7 +66,7 @@ final readonly class RespondToEvent
                     'available_from' => $availableFrom?->utc(),
                     'available_until' => $availableUntil?->utc(),
                     'note' => $note === null || trim($note) === '' ? null : trim($note),
-                    'source' => EventResponseSource::Self,
+                    'source' => $source,
                     'responded_by_player_id' => $actorPlayerId,
                     'responded_at' => now(),
                 ],
@@ -75,6 +76,7 @@ final readonly class RespondToEvent
                 'occurrence_id' => (string) $occurrence->id,
                 'player_id' => $actorPlayerId,
                 'response' => $response->value,
+                'source' => $source->value,
             ];
             $this->audit->record('event.response.changed', $context->actor, $record, $context->target->allianceId, $metadata);
             $this->outbox->record('event.response.changed', $context->target->allianceId, $record, $metadata, partitionKey: $context->target->partitionKey());

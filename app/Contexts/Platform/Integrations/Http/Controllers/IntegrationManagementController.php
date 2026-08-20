@@ -17,6 +17,7 @@ use App\Contexts\Platform\Integrations\Actions\QueueWebhookTestDelivery;
 use App\Contexts\Platform\Integrations\Actions\RetryWebhookDelivery;
 use App\Contexts\Platform\Integrations\Actions\RevokeApiCredential;
 use App\Contexts\Platform\Integrations\Actions\RevokeWebhookSubscription;
+use App\Contexts\Platform\Integrations\Actions\RotateWebhookSigningSecret;
 use App\Contexts\Platform\Integrations\Contracts\WebhookEventCatalog;
 use App\Contexts\Platform\Integrations\Models\ApiCredential;
 use App\Contexts\Platform\Integrations\Models\WebhookDelivery;
@@ -91,6 +92,7 @@ final class IntegrationManagementController extends Controller
                     'url' => (string) $subscription->url,
                     'events' => $subscription->events,
                     'active' => (bool) $subscription->is_active,
+                    'secretRotatedAt' => $subscription->secret_rotated_at?->toIso8601String(),
                     'revokedAt' => $subscription->revoked_at?->toIso8601String(),
                 ])->all(),
             'recentDeliveries' => WebhookDelivery::query()
@@ -111,7 +113,6 @@ final class IntegrationManagementController extends Controller
                 ])->all(),
             'issuedCredential' => $request->session()->get('issued_api_credential'),
             'issuedWebhookSecret' => $request->session()->get('issued_webhook_secret'),
-            'status' => $request->session()->get('status'),
         ]);
     }
 
@@ -119,7 +120,7 @@ final class IntegrationManagementController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:100'],
-            'scopes' => ['required', 'array', 'min:1', 'max:6'],
+            'scopes' => ['required', 'array', 'min:1', 'max:8'],
             'scopes.*' => ['required', 'string'],
             'expires_at' => ['nullable', 'date'],
         ]);
@@ -137,7 +138,7 @@ final class IntegrationManagementController extends Controller
                 'name' => $issued->name,
                 'token' => $issued->token,
             ])
-            ->with('status', 'api-credential-created');
+            ->with('actionReceipt', $this->receipt('api-credential-created'));
     }
 
     public function revokeCredential(
@@ -149,7 +150,7 @@ final class IntegrationManagementController extends Controller
         $scope = $context->scope();
         $revoke->handle($scope->allianceId, $scope->playerId, $credential);
 
-        return back()->with('status', 'api-credential-revoked');
+        return back()->with('actionReceipt', $this->receipt('api-credential-revoked'));
     }
 
     public function createWebhook(Request $request, AllianceContext $context, CreateWebhookSubscription $create): RedirectResponse
@@ -174,7 +175,7 @@ final class IntegrationManagementController extends Controller
                 'name' => $subscription->name,
                 'secret' => $subscription->signingSecret,
             ])
-            ->with('status', 'webhook-created');
+            ->with('actionReceipt', $this->receipt('webhook-created'));
     }
 
     public function revokeWebhook(
@@ -186,7 +187,7 @@ final class IntegrationManagementController extends Controller
         $scope = $context->scope();
         $revoke->handle($scope->allianceId, $scope->playerId, $subscription);
 
-        return back()->with('status', 'webhook-revoked');
+        return back()->with('actionReceipt', $this->receipt('webhook-revoked'));
     }
 
     public function testWebhook(
@@ -198,7 +199,25 @@ final class IntegrationManagementController extends Controller
         $scope = $context->scope();
         $queue->handle($scope->allianceId, $scope->playerId, $subscription);
 
-        return back()->with('status', 'webhook-test-queued');
+        return back()->with('actionReceipt', $this->receipt('webhook-test-queued'));
+    }
+
+    public function rotateWebhookSecret(
+        Request $request,
+        AllianceContext $context,
+        string $subscription,
+        RotateWebhookSigningSecret $rotate,
+    ): RedirectResponse {
+        $scope = $context->scope();
+        $issued = $rotate->handle($scope->allianceId, $scope->playerId, $subscription);
+
+        return back()
+            ->with('issued_webhook_secret', [
+                'id' => $issued->subscriptionId,
+                'name' => $issued->name,
+                'secret' => $issued->signingSecret,
+            ])
+            ->with('actionReceipt', $this->receipt('webhook-secret-rotated'));
     }
 
     public function retryDelivery(
@@ -210,6 +229,6 @@ final class IntegrationManagementController extends Controller
         $scope = $context->scope();
         $retry->handle($scope->allianceId, $scope->playerId, $delivery);
 
-        return back()->with('status', 'webhook-delivery-retried');
+        return back()->with('actionReceipt', $this->receipt('webhook-delivery-retried'));
     }
 }

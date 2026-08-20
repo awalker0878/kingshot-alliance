@@ -7,11 +7,13 @@ namespace App\Contexts\Platform\Administration\Http\Controllers;
 use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
 use App\Contexts\Accounts\Identity\ValueObjects\AccountIdentity;
 use App\Contexts\Platform\Administration\Actions\ManagePlatformAdministrator;
+use App\Contexts\Platform\Administration\Actions\RetryOutboxMessage;
 use App\Contexts\Platform\AllianceAdministration\Actions\ConfigureAlliancePlatform;
 use App\Contexts\Platform\AllianceAdministration\Actions\ManageAllianceLifecycle;
 use App\Contexts\Platform\AllianceAdministration\Services\PlatformUsageService;
 use App\Contexts\Platform\DataGovernance\Services\AllianceDataExportService;
 use App\Contexts\Platform\DataGovernance\Services\LegalHoldService;
+use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
@@ -19,7 +21,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 
-final class PlatformAdministrationController
+final class PlatformAdministrationController extends Controller
 {
     public function __construct(private readonly AccountIdentityQuery $accounts) {}
 
@@ -35,7 +37,7 @@ final class PlatformAdministrationController
 
         $manage->grant($targetUserId, $actor);
 
-        return back()->with('status', 'platform-administrator-granted');
+        return back()->with('actionReceipt', $this->receipt('platform-administrator-granted'));
     }
 
     public function revokeAdministrator(
@@ -50,7 +52,7 @@ final class PlatformAdministrationController
             throw ValidationException::withMessages(['administrator' => $exception->getMessage()]);
         }
 
-        return back()->with('status', 'platform-administrator-revoked');
+        return back()->with('actionReceipt', $this->receipt('platform-administrator-revoked'));
     }
 
     public function lifecycle(
@@ -74,7 +76,7 @@ final class PlatformAdministrationController
             throw ValidationException::withMessages(['lifecycle' => $exception->getMessage()]);
         }
 
-        return back()->with('status', 'alliance-lifecycle-updated');
+        return back()->with('actionReceipt', $this->receipt('alliance-lifecycle-updated'));
     }
 
     public function assignPlan(
@@ -91,7 +93,7 @@ final class PlatformAdministrationController
             throw ValidationException::withMessages(['plan' => $exception->getMessage()]);
         }
 
-        return back()->with('status', 'alliance-plan-updated');
+        return back()->with('actionReceipt', $this->receipt('alliance-plan-updated'));
     }
 
     public function updateSettings(
@@ -115,7 +117,7 @@ final class PlatformAdministrationController
             (bool) $validated['webhooks_enabled'],
         );
 
-        return back()->with('status', 'alliance-platform-settings-updated');
+        return back()->with('actionReceipt', $this->receipt('alliance-platform-settings-updated'));
     }
 
     public function setFeature(
@@ -142,7 +144,7 @@ final class PlatformAdministrationController
             throw ValidationException::withMessages(['feature' => $exception->getMessage()]);
         }
 
-        return back()->with('status', 'alliance-feature-updated');
+        return back()->with('actionReceipt', $this->receipt('alliance-feature-updated'));
     }
 
     public function placeLegalHold(Request $request, LegalHoldService $legalHolds): RedirectResponse
@@ -155,7 +157,7 @@ final class PlatformAdministrationController
         ]);
         $legalHolds->place($actor, (string) $validated['subject_type'], (string) $validated['subject_id'], (string) $validated['reason']);
 
-        return back()->with('status', 'legal-hold-placed');
+        return back()->with('actionReceipt', $this->receipt('legal-hold-placed'));
     }
 
     public function releaseLegalHold(Request $request, string $hold, LegalHoldService $legalHolds): RedirectResponse
@@ -163,7 +165,7 @@ final class PlatformAdministrationController
         $actor = $this->account($request);
         $legalHolds->release($actor, $hold);
 
-        return back()->with('status', 'legal-hold-released');
+        return back()->with('actionReceipt', $this->receipt('legal-hold-released'));
     }
 
     public function captureUsage(Request $request, string $alliance, PlatformUsageService $usage): RedirectResponse
@@ -171,7 +173,17 @@ final class PlatformAdministrationController
         $this->account($request);
         $usage->capture($alliance);
 
-        return back()->with('status', 'alliance-usage-captured');
+        return back()->with('actionReceipt', $this->receipt('alliance-usage-captured'));
+    }
+
+    public function retryOutbox(
+        Request $request,
+        string $message,
+        RetryOutboxMessage $retry,
+    ): RedirectResponse {
+        $retry->handle($this->account($request), $message);
+
+        return back()->with('actionReceipt', $this->receipt('platform-outbox-retry-released'));
     }
 
     public function export(Request $request, string $alliance, AllianceDataExportService $exports): HttpResponse

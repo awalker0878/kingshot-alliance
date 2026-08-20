@@ -23,6 +23,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $source_url
  * @property string|null $game_version
  * @property Carbon|null $reviewed_at
+ * @property list<array{type:string,key:string}>|null $context_links
  * @property Carbon|null $scheduled_for
  * @property Carbon|null $published_at
  * @property Carbon|null $broadcasted_at
@@ -54,6 +55,7 @@ final class ContentItem extends Model
         'source_url',
         'game_version',
         'reviewed_at',
+        'context_links',
         'scheduled_for',
         'published_at',
         'broadcasted_at',
@@ -70,6 +72,7 @@ final class ContentItem extends Model
             'status' => ContentStatus::class,
             'notify_members' => 'boolean',
             'reviewed_at' => 'date',
+            'context_links' => 'array',
             'scheduled_for' => 'datetime',
             'published_at' => 'datetime',
             'broadcasted_at' => 'datetime',

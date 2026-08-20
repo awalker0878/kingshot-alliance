@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
-import { computed, ref } from 'vue';
+import { Head, Link, router } from '@inertiajs/vue3';
+import { computed, ref, watch } from 'vue';
 
 import EventSigil from '@/components/game/EventSigil.vue';
 import RoomBanner from '@/components/game/RoomBanner.vue';
 import StatSeal from '@/components/game/StatSeal.vue';
+import AppButton from '@/components/ui/AppButton.vue';
+import ConfirmActionDialog from '@/components/ui/ConfirmActionDialog.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
@@ -24,6 +26,34 @@ type EventRow = {
   status: string;
   capabilities: string[];
   canManage: boolean;
+};
+
+type EventBulkPreview = {
+  operation: 'cancel';
+  items: Array<{
+    itemId: string;
+    label: string;
+    fromStatus: string | null;
+    outcome: 'ready' | 'blocked' | 'skipped';
+    code: string;
+  }>;
+  ready: number;
+  blocked: number;
+  readyItemIds: string[];
+};
+
+type EventBulkResult = {
+  action: string;
+  items: Array<{
+    itemId: string;
+    label: string;
+    outcome: 'succeeded' | 'failed' | 'skipped';
+    code: string;
+  }>;
+  succeeded: number;
+  failed: number;
+  skipped: number;
+  failedItemIds: string[];
 };
 
 const props = defineProps<{
@@ -53,13 +83,17 @@ const props = defineProps<{
     playerId: string;
   }>;
   canCreate: boolean;
-  status: string | null;
+  eventBulkPreview: EventBulkPreview | null;
+  eventBulkResult: EventBulkResult | null;
 }>();
 
 const { t, formatDate } = useLocale();
 const scope = ref<ScopeFilter>('all');
 const view = ref<'agenda' | 'calendar'>('agenda');
 const monthCursor = ref(new Date());
+const selectedEventIds = ref<string[]>(props.eventBulkResult?.failedItemIds ?? []);
+const bulkBusy = ref(false);
+const bulkConfirmationOpen = ref(false);
 const scopeOptions: ScopeFilter[] = ['all', 'player', 'alliance', 'kingdom'];
 const weekdayDates = Array.from({ length: 7 }, (_, index) => new Date(2024, 0, 7 + index, 12));
 
@@ -72,6 +106,24 @@ function dateKey(date: Date): string {
 const visibleEvents = computed(() =>
   props.events.filter((event) => scope.value === 'all' || event.scope === scope.value),
 );
+const manageableVisibleEventIds = computed(() => [
+  ...new Set(visibleEvents.value.filter((event) => event.canManage).map((event) => event.eventId)),
+]);
+const allVisibleEventsSelected = computed(
+  () =>
+    manageableVisibleEventIds.value.length > 0 &&
+    manageableVisibleEventIds.value.every((eventId) => selectedEventIds.value.includes(eventId)),
+);
+const bulkPreviewMatchesSelection = computed(() => {
+  const preview = props.eventBulkPreview;
+  if (!preview) return false;
+
+  const selected = [...selectedEventIds.value].sort();
+  const previewed = preview.items.map((item) => item.itemId).sort();
+  return (
+    selected.length === previewed.length && selected.every((id, index) => id === previewed[index])
+  );
+});
 const grouped = computed(() => {
   const groups = new Map<string, EventRow[]>();
   for (const event of visibleEvents.value) {
@@ -107,6 +159,75 @@ const monthDays = computed(() => {
   }
   return days;
 });
+
+watch(
+  () => props.eventBulkResult,
+  (result) => {
+    if (result) selectedEventIds.value = [...result.failedItemIds];
+  },
+);
+
+function eventSelected(eventId: string): boolean {
+  return selectedEventIds.value.includes(eventId);
+}
+
+function setEventSelected(eventId: string, selected: boolean): void {
+  if (!selected) {
+    selectedEventIds.value = selectedEventIds.value.filter((id) => id !== eventId);
+    return;
+  }
+
+  selectedEventIds.value = [...new Set([...selectedEventIds.value, eventId])].slice(0, 50);
+}
+
+function toggleVisibleEventSelection(): void {
+  if (allVisibleEventsSelected.value) {
+    const visibleIds = new Set(manageableVisibleEventIds.value);
+    selectedEventIds.value = selectedEventIds.value.filter((id) => !visibleIds.has(id));
+    return;
+  }
+
+  selectedEventIds.value = [
+    ...new Set([...selectedEventIds.value, ...manageableVisibleEventIds.value]),
+  ].slice(0, 50);
+}
+
+function previewBulkCancellation(): void {
+  if (selectedEventIds.value.length === 0 || bulkBusy.value) return;
+
+  bulkBusy.value = true;
+  router.post(
+    '/events/bulk-cancel/preview',
+    { event_ids: selectedEventIds.value },
+    {
+      preserveScroll: true,
+      preserveState: true,
+      onFinish: () => (bulkBusy.value = false),
+    },
+  );
+}
+
+function commitBulkCancellation(): void {
+  if (!props.eventBulkPreview || !bulkPreviewMatchesSelection.value || bulkBusy.value) return;
+
+  bulkBusy.value = true;
+  router.post(
+    '/events/bulk-cancel',
+    { event_ids: props.eventBulkPreview.items.map((item) => item.itemId) },
+    {
+      preserveScroll: true,
+      preserveState: true,
+      onFinish: () => {
+        bulkBusy.value = false;
+        bulkConfirmationOpen.value = false;
+      },
+    },
+  );
+}
+
+function bulkOutcomeLabel(code: string): string {
+  return t(`events.bulk.outcomes.${code}`);
+}
 function moveMonth(delta: number): void {
   monthCursor.value = new Date(
     monthCursor.value.getFullYear(),
@@ -167,14 +288,6 @@ function statusTone(status: string): 'success' | 'warning' | 'danger' | 'info' {
         icon="◉"
       />
     </section>
-
-    <p
-      v-if="props.status"
-      class="mt-5 rounded-[var(--ks-radius-md)] border border-emerald-400/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200"
-      role="status"
-    >
-      {{ props.status }}
-    </p>
 
     <section
       v-if="props.attention.length"
@@ -239,6 +352,20 @@ function statusTone(status: string): 'success' | 'warning' | 'danger' | 'info' {
         >
           {{ scopeLabel(value) }}
         </button>
+        <button
+          v-if="manageableVisibleEventIds.length"
+          type="button"
+          class="ks-chip"
+          :data-active="allVisibleEventsSelected"
+          :aria-pressed="allVisibleEventsSelected"
+          @click="toggleVisibleEventSelection"
+        >
+          {{
+            allVisibleEventsSelected
+              ? t('events.bulk.clearVisible')
+              : t('events.bulk.selectVisible')
+          }}
+        </button>
       </div>
       <div class="flex gap-2" role="group" :aria-label="t('events.calendar.viewOptions')">
         <button
@@ -262,6 +389,114 @@ function statusTone(status: string): 'success' | 'warning' | 'danger' | 'info' {
       </div>
     </div>
 
+    <section
+      v-if="selectedEventIds.length"
+      class="ks-surface mt-5 overflow-hidden"
+      aria-labelledby="event-bulk-heading"
+    >
+      <div class="flex flex-wrap items-end gap-3 bg-[var(--ks-teal-soft)] p-5">
+        <div class="min-w-[14rem] flex-1">
+          <p class="ks-kicker">{{ t('events.bulk.eyebrow') }}</p>
+          <h2 id="event-bulk-heading" class="mt-1 text-lg font-semibold">
+            {{ t('events.bulk.selected', { count: selectedEventIds.length }) }}
+          </h2>
+          <p class="mt-1 text-xs text-[var(--ks-muted)]">{{ t('events.bulk.help') }}</p>
+        </div>
+        <AppButton
+          :busy="bulkBusy"
+          :busy-label="t('events.bulk.previewing')"
+          @click="previewBulkCancellation"
+        >
+          {{ t('events.bulk.preview') }}
+        </AppButton>
+      </div>
+
+      <div v-if="bulkPreviewMatchesSelection && eventBulkPreview" class="p-5">
+        <div class="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <p class="ks-kicker">{{ t('events.bulk.previewTitle') }}</p>
+            <p class="mt-1 font-semibold">
+              {{
+                t('events.bulk.previewSummary', {
+                  ready: eventBulkPreview.ready,
+                  blocked: eventBulkPreview.blocked,
+                })
+              }}
+            </p>
+          </div>
+          <AppButton
+            variant="danger"
+            :disabled="eventBulkPreview.ready === 0"
+            @click="bulkConfirmationOpen = true"
+          >
+            {{ t('events.bulk.confirm') }}
+          </AppButton>
+        </div>
+        <ul class="mt-4 grid gap-2 md:grid-cols-2">
+          <li
+            v-for="item in eventBulkPreview.items"
+            :key="item.itemId"
+            class="flex items-center justify-between gap-3 rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/15 px-3 py-2 text-sm"
+          >
+            <span class="truncate">{{ item.label }}</span>
+            <span
+              class="ks-status"
+              :data-tone="
+                item.outcome === 'ready'
+                  ? 'success'
+                  : item.outcome === 'skipped'
+                    ? 'warning'
+                    : 'danger'
+              "
+            >
+              {{ bulkOutcomeLabel(item.code) }}
+            </span>
+          </li>
+        </ul>
+      </div>
+
+      <div
+        v-if="eventBulkResult"
+        class="border-t border-[var(--ks-border)] p-5"
+        aria-labelledby="event-bulk-result-heading"
+      >
+        <p class="ks-kicker">{{ t('events.bulk.resultTitle') }}</p>
+        <h3 id="event-bulk-result-heading" class="mt-1 text-lg font-semibold">
+          {{
+            t('events.bulk.resultSummary', {
+              succeeded: eventBulkResult.succeeded,
+              failed: eventBulkResult.failed,
+              skipped: eventBulkResult.skipped,
+            })
+          }}
+        </h3>
+        <ul class="mt-4 grid gap-2 md:grid-cols-2">
+          <li
+            v-for="item in eventBulkResult.items"
+            :key="item.itemId"
+            class="flex items-center justify-between gap-3 rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/15 px-3 py-2 text-sm"
+          >
+            <span class="truncate">{{ item.label }}</span>
+            <span
+              class="ks-status"
+              :data-tone="
+                item.outcome === 'succeeded'
+                  ? 'success'
+                  : item.outcome === 'skipped'
+                    ? 'warning'
+                    : 'danger'
+              "
+            >
+              {{ bulkOutcomeLabel(item.code) }}
+            </span>
+          </li>
+        </ul>
+        <p v-if="eventBulkResult.failed" class="mt-3 text-xs text-[var(--ks-muted)]">
+          {{ t('events.bulk.failedSelected') }}
+        </p>
+      </div>
+    </section>
+
     <div class="mt-5 grid gap-5 2xl:grid-cols-[minmax(0,1.4fr)_minmax(20rem,.6fr)]">
       <div class="min-w-0">
         <div v-if="view === 'agenda'" class="space-y-5">
@@ -278,12 +513,22 @@ function statusTone(status: string): 'success' | 'warning' | 'danger' | 'info' {
               </p>
             </div>
             <div class="divide-y divide-[var(--ks-border)]">
-              <Link
+              <div
                 v-for="event in rows"
                 :key="event.id"
-                :href="`/events/${event.id}`"
-                class="group grid gap-4 p-4 transition hover:bg-white/[0.018] sm:grid-cols-[7rem_minmax(0,1fr)_auto] sm:items-center"
+                class="group grid gap-4 p-4 transition hover:bg-white/[0.018] sm:grid-cols-[1.5rem_7rem_minmax(0,1fr)_auto] sm:items-center"
               >
+                <div class="min-h-5">
+                  <input
+                    v-if="event.canManage"
+                    type="checkbox"
+                    :checked="eventSelected(event.eventId)"
+                    :aria-label="t('events.bulk.selectEvent', { event: displayName(event) })"
+                    @change="
+                      setEventSelected(event.eventId, ($event.target as HTMLInputElement).checked)
+                    "
+                  />
+                </div>
                 <div>
                   <div class="text-xl font-[var(--ks-font-display)] text-[var(--ks-gold-bright)]">
                     {{
@@ -297,7 +542,12 @@ function statusTone(status: string): 'success' | 'warning' | 'danger' | 'info' {
                     <EventSigil :name="displayName(event)" />
                     <div class="min-w-0">
                       <h3 class="truncate text-lg font-[var(--ks-font-display)] font-semibold">
-                        {{ displayName(event) }}
+                        <Link
+                          :href="`/events/${event.id}`"
+                          class="hover:text-[var(--ks-gold-bright)]"
+                        >
+                          {{ displayName(event) }}
+                        </Link>
                       </h3>
                       <p class="mt-1 truncate text-xs text-[var(--ks-muted)]">
                         {{ event.targetLabel }}
@@ -311,13 +561,15 @@ function statusTone(status: string): 'success' | 'warning' | 'danger' | 'info' {
                     }}</span>
                   </div>
                 </div>
-                <span
-                  v-if="event.canManage"
+                <Link
+                  :href="`/events/${event.id}`"
                   class="ks-status justify-self-start sm:justify-self-end"
                   data-tone="info"
-                  >{{ t('events.calendar.manageable') }}</span
+                  >{{
+                    event.canManage ? t('events.calendar.manageable') : t('events.calendar.open')
+                  }}</Link
                 >
-              </Link>
+              </div>
             </div>
           </section>
           <div v-if="grouped.length === 0" class="ks-fantasy-empty">
@@ -452,5 +704,18 @@ function statusTone(status: string): 'success' | 'warning' | 'danger' | 'info' {
         </section>
       </aside>
     </div>
+    <ConfirmActionDialog
+      id="event-bulk-cancellation-confirmation"
+      :open="bulkConfirmationOpen"
+      :title="t('events.bulk.confirmTitle')"
+      :description="t('events.bulk.confirmDescription', { count: eventBulkPreview?.ready ?? 0 })"
+      :confirm-label="t('events.bulk.confirm')"
+      :cancel-label="t('common.cancel')"
+      :busy="bulkBusy"
+      :busy-label="t('events.bulk.applying')"
+      danger
+      @confirm="commitBulkCancellation"
+      @cancel="bulkConfirmationOpen = false"
+    />
   </AppLayout>
 </template>

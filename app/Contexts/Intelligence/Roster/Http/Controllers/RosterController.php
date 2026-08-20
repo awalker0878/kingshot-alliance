@@ -20,7 +20,7 @@ final class RosterController extends Controller
         $scope = $context->scope();
         $save->handle($scope->playerId, $scope->allianceId, $this->validated($request, creating: true));
 
-        return back()->with('status', 'roster-entry-created');
+        return back()->with('actionReceipt', $this->receipt('roster-entry-created'));
     }
 
     public function update(Request $request, AllianceContext $context, UpsertRosterEntry $save, string $entry): RedirectResponse
@@ -28,7 +28,7 @@ final class RosterController extends Controller
         $scope = $context->scope();
         $save->handle($scope->playerId, $scope->allianceId, $this->validated($request, creating: false), $entry);
 
-        return back()->with('status', 'roster-entry-updated');
+        return back()->with('actionReceipt', $this->receipt('roster-entry-updated'));
     }
 
     public function leave(Request $request, AllianceContext $context, MarkRosterEntryLeft $leave, string $entry): RedirectResponse
@@ -36,7 +36,7 @@ final class RosterController extends Controller
         $scope = $context->scope();
         $leave->handle($scope->playerId, $scope->allianceId, $entry);
 
-        return back()->with('status', 'roster-entry-left');
+        return back()->with('actionReceipt', $this->receipt('roster-entry-left'));
     }
 
     /** @return array{name:string,game_player_id?:string|null,game_role?:string|null,state:RosterState,joined_at?:string|null,manager_notes?:string|null} */

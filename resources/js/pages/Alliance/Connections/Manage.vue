@@ -38,6 +38,7 @@ const props = defineProps<{
     url: string;
     events: string[];
     active: boolean;
+    secretRotatedAt: string | null;
     revokedAt: string | null;
   }>;
   recentDeliveries: Array<{
@@ -53,7 +54,6 @@ const props = defineProps<{
   }>;
   issuedCredential: { id: string; name: string; token: string } | null;
   issuedWebhookSecret: { id: string; name: string; secret: string } | null;
-  status: string | null;
 }>();
 
 const { t, formatDate, formatNumber } = useLocale();
@@ -64,12 +64,25 @@ const pendingRevoke = ref<{ kind: 'credential' | 'webhook'; id: string; name: st
 );
 const revoking = ref(false);
 const testingWebhook = ref<string | null>(null);
+const pendingSecretRotation = ref<{ id: string; name: string } | null>(null);
+const rotatingSecret = ref(false);
 const retryingDelivery = ref<string | null>(null);
 const mutationError = ref<string | null>(null);
 const commandEndpoints = [
-  { path: '/api/v1/commands/overview', scope: 'commands:read' },
-  { path: '/api/v1/commands/gift-codes', scope: 'gift-codes:read' },
-  { path: '/api/v1/commands/knowledge', scope: 'content:read' },
+  { method: 'GET', path: '/api/v1/commands/overview', scope: 'commands:read' },
+  { method: 'GET', path: '/api/v1/commands/gift-codes', scope: 'gift-codes:read' },
+  { method: 'GET', path: '/api/v1/commands/knowledge', scope: 'content:read' },
+  { method: 'POST', path: '/api/v1/actor-links/claims', scope: 'actor-links:write' },
+  {
+    method: 'PUT',
+    path: '/api/v1/me/events/{occurrence}/response',
+    scope: 'event-participation:write',
+  },
+  {
+    method: 'PUT',
+    path: '/api/v1/me/events/{occurrence}/registration',
+    scope: 'event-participation:write',
+  },
 ];
 
 const scopeDescriptions: Record<string, string> = {
@@ -79,6 +92,8 @@ const scopeDescriptions: Record<string, string> = {
   'commands:read': t('integrationExperience.scopeCommands'),
   'gift-codes:read': t('integrationExperience.scopeGiftCodes'),
   'content:read': t('integrationExperience.scopeContent'),
+  'actor-links:write': t('integrationExperience.scopeActorLinks'),
+  'event-participation:write': t('integrationExperience.scopeEventParticipation'),
 };
 
 const webhookEventDescriptions: Record<string, string> = {
@@ -87,10 +102,18 @@ const webhookEventDescriptions: Record<string, string> = {
   'event.created': t('integrationExperience.eventCreated'),
   'event.updated': t('integrationExperience.eventUpdated'),
   'event.cancelled': t('integrationExperience.eventCancelled'),
-  'membership.rank_changed': t('integrationExperience.eventMembershipRankChanged'),
-  'membership.roster_entry_left': t('integrationExperience.eventRosterEntryLeft'),
+  'member.updated': t('integrationExperience.eventMemberUpdated'),
+  'member.left': t('integrationExperience.eventMemberLeft'),
   'recruitment.candidate.stage_changed': t('integrationExperience.eventCandidateStageChanged'),
   'recruitment.candidate.joined': t('integrationExperience.eventCandidateJoined'),
+  'gift_code.created': t('integrationExperience.eventGiftCodeCreated'),
+  'gift_code.provenance_added': t('integrationExperience.eventGiftCodeProvenanceAdded'),
+  'gift_code.status_changed': t('integrationExperience.eventGiftCodeStatusChanged'),
+  'broadcast.schedule.updated': t('integrationExperience.eventBroadcastScheduleUpdated'),
+  'broadcast.schedule.cancelled': t('integrationExperience.eventBroadcastScheduleCancelled'),
+  'broadcast.run.queued': t('integrationExperience.eventBroadcastRunQueued'),
+  'broadcast.delivery.succeeded': t('integrationExperience.eventBroadcastDeliverySucceeded'),
+  'broadcast.delivery.failed': t('integrationExperience.eventBroadcastDeliveryFailed'),
 };
 
 const webhookEventOptions = computed(() => ['*', ...props.publicWebhookEvents]);
@@ -105,24 +128,6 @@ const activeCredentialCount = computed(
 const activeWebhookCount = computed(
   () => props.webhooks.filter((webhook) => webhook.active && webhook.revokedAt === null).length,
 );
-const actionStatus = computed(() => {
-  switch (props.status) {
-    case 'api-credential-created':
-      return t('integrationExperience.credentialCreated');
-    case 'api-credential-revoked':
-      return t('integrationExperience.credentialRevoked');
-    case 'webhook-created':
-      return t('integrationExperience.webhookCreated');
-    case 'webhook-revoked':
-      return t('integrationExperience.webhookRevoked');
-    case 'webhook-test-queued':
-      return t('integrationExperience.webhookTestQueued');
-    case 'webhook-delivery-retried':
-      return t('integrationExperience.webhookDeliveryRetried');
-    default:
-      return null;
-  }
-});
 const revokeDescription = computed(() =>
   pendingRevoke.value
     ? t('integrationExperience.revokeDescription', { name: pendingRevoke.value.name })
@@ -178,6 +183,28 @@ function testWebhook(subscriptionId: string): void {
       preserveScroll: true,
       onError: captureMutationError,
       onFinish: () => (testingWebhook.value = null),
+    },
+  );
+}
+
+function requestSecretRotation(id: string, name: string): void {
+  pendingSecretRotation.value = { id, name };
+}
+
+function confirmSecretRotation(): void {
+  const target = pendingSecretRotation.value;
+  if (!target || rotatingSecret.value) return;
+
+  mutationError.value = null;
+  rotatingSecret.value = true;
+  router.post(
+    `/alliance/integrations/webhooks/${target.id}/rotate-secret`,
+    {},
+    {
+      preserveScroll: true,
+      onSuccess: () => (pendingSecretRotation.value = null),
+      onError: captureMutationError,
+      onFinish: () => (rotatingSecret.value = false),
     },
   );
 }
@@ -302,13 +329,15 @@ function webhookName(subscriptionId: string): string {
       <p class="mt-2 max-w-4xl text-sm leading-6 text-[var(--ks-text-secondary)]">
         {{ t('integrationExperience.commandApiHelp') }}
       </p>
-      <div class="mt-5 grid gap-3 md:grid-cols-3">
+      <div class="mt-5 grid gap-3 md:grid-cols-2 2xl:grid-cols-3">
         <article
           v-for="endpoint in commandEndpoints"
           :key="endpoint.path"
           class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-4"
         >
-          <p class="text-xs font-bold tracking-[.12em] text-[var(--ks-gold)] uppercase">GET</p>
+          <p class="text-xs font-bold tracking-[.12em] text-[var(--ks-gold)] uppercase">
+            {{ endpoint.method }}
+          </p>
           <code class="mt-2 block overflow-x-auto text-sm text-[var(--ks-ivory)]">
             {{ endpoint.path }}
           </code>
@@ -320,7 +349,6 @@ function webhookName(subscriptionId: string): string {
       </p>
     </section>
 
-    <ActionNotice class="mt-5" :message="actionStatus" tone="success" />
     <ActionNotice class="mt-5" :message="mutationError" tone="danger" />
 
     <div v-if="issuedCredential || issuedWebhookSecret" class="mt-5 grid gap-4 lg:grid-cols-2">
@@ -651,6 +679,10 @@ function webhookName(subscriptionId: string): string {
                   </span>
                 </div>
                 <p class="mt-1 text-xs break-all text-[var(--ks-muted)]">{{ webhook.url }}</p>
+                <p v-if="webhook.secretRotatedAt" class="mt-1 text-xs text-[var(--ks-muted)]">
+                  {{ t('integrationExperience.secretRotated') }}:
+                  {{ date(webhook.secretRotatedAt) }}
+                </p>
               </div>
               <div v-if="webhook.active && !webhook.revokedAt" class="flex flex-wrap gap-2">
                 <AppButton
@@ -661,6 +693,13 @@ function webhookName(subscriptionId: string): string {
                   @click="testWebhook(webhook.id)"
                 >
                   {{ t('integrationExperience.sendTest') }}
+                </AppButton>
+                <AppButton
+                  variant="ghost"
+                  :disabled="rotatingSecret"
+                  @click="requestSecretRotation(webhook.id, webhook.name)"
+                >
+                  {{ t('integrationExperience.rotateSecret') }}
                 </AppButton>
                 <AppButton
                   variant="danger"
@@ -814,6 +853,23 @@ function webhookName(subscriptionId: string): string {
       danger
       @confirm="confirmRevoke"
       @cancel="pendingRevoke = null"
+    />
+    <ConfirmActionDialog
+      id="webhook-secret-rotation"
+      :open="pendingSecretRotation !== null"
+      :title="t('integrationExperience.rotateSecretTitle')"
+      :description="
+        t('integrationExperience.rotateSecretDescription', {
+          name: pendingSecretRotation?.name ?? '',
+        })
+      "
+      :confirm-label="t('integrationExperience.rotateSecret')"
+      :cancel-label="t('common.cancel')"
+      :busy="rotatingSecret"
+      :busy-label="t('integrationExperience.rotatingSecret')"
+      danger
+      @confirm="confirmSecretRotation"
+      @cancel="pendingSecretRotation = null"
     />
   </AppLayout>
 </template>

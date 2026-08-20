@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Contexts\Platform\Integrations\Http\Controllers\AllianceApiController;
+use App\Contexts\Platform\Integrations\Http\Controllers\ExternalActorApiController;
 use App\ReadModels\BotCommands\Http\Controllers\BotCommandApiController;
 use Illuminate\Support\Facades\Route;
 
@@ -26,4 +27,16 @@ Route::prefix('v1')->middleware('throttle:api')->group(function (): void {
     Route::get('/commands/knowledge', [BotCommandApiController::class, 'knowledge'])
         ->middleware('api.credential:content:read')
         ->name('api.v1.commands.knowledge');
+
+    Route::post('/actor-links/claims', [ExternalActorApiController::class, 'claim'])
+        ->middleware(['api.credential:actor-links:write', 'throttle:10,1'])
+        ->name('api.v1.actor-links.claim');
+    Route::put('/me/events/{occurrence}/response', [ExternalActorApiController::class, 'respond'])
+        ->whereUlid('occurrence')
+        ->middleware('api.credential:event-participation:write')
+        ->name('api.v1.me.events.response');
+    Route::put('/me/events/{occurrence}/registration', [ExternalActorApiController::class, 'registration'])
+        ->whereUlid('occurrence')
+        ->middleware('api.credential:event-participation:write')
+        ->name('api.v1.me.events.registration');
 });

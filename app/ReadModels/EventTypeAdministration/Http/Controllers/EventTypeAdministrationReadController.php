@@ -74,7 +74,6 @@ final readonly class EventTypeAdministrationReadController
             'scheduleSourceOptions' => array_map(static fn (EventScheduleSource $source): string => $source->value, EventScheduleSource::cases()),
             'recurrencePolicyOptions' => array_map(static fn (EventRecurrencePolicy $policy): string => $policy->value, EventRecurrencePolicy::cases()),
             'recurrenceFrequencyOptions' => array_map(static fn (RecurrenceFrequency $frequency): string => $frequency->value, RecurrenceFrequency::cases()),
-            'status' => $request->session()->get('status'),
         ]);
     }
 }

@@ -1,0 +1,234 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Kingshot Alliance API",
+    "version": "1.0.0",
+    "description": "Bounded Alliance reads plus verified, idempotent external-actor participation adapters. Business writes remain owner-context actions."
+  },
+  "servers": [{ "url": "/" }],
+  "security": [{ "bearerToken": [] }],
+  "paths": {
+    "/api/v1/alliance": {
+      "get": {
+        "operationId": "getAlliance",
+        "x-required-scope": "alliance:read",
+        "responses": { "200": { "$ref": "#/components/responses/DataResponse" } }
+      }
+    },
+    "/api/v1/events": {
+      "get": {
+        "operationId": "listEvents",
+        "x-required-scope": "events:read",
+        "responses": { "200": { "$ref": "#/components/responses/DataResponse" } }
+      }
+    },
+    "/api/v1/contributions": {
+      "get": {
+        "operationId": "listContributions",
+        "x-required-scope": "contributions:read",
+        "responses": { "200": { "$ref": "#/components/responses/DataResponse" } }
+      }
+    },
+    "/api/v1/commands/overview": {
+      "get": {
+        "operationId": "getCommandOverview",
+        "x-required-scope": "commands:read",
+        "responses": { "200": { "$ref": "#/components/responses/DataResponse" } }
+      }
+    },
+    "/api/v1/commands/gift-codes": {
+      "get": {
+        "operationId": "listGiftCodes",
+        "x-required-scope": "gift-codes:read",
+        "parameters": [{ "$ref": "#/components/parameters/Limit" }],
+        "responses": { "200": { "$ref": "#/components/responses/DataResponse" } }
+      }
+    },
+    "/api/v1/commands/knowledge": {
+      "get": {
+        "operationId": "searchKnowledge",
+        "x-required-scope": "content:read",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "name": "q", "in": "query", "schema": { "type": "string", "maxLength": 120 } },
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["announcement", "guide", "rule", "event_instruction", "reference_page"]
+            }
+          }
+        ],
+        "responses": { "200": { "$ref": "#/components/responses/DataResponse" } }
+      }
+    },
+    "/api/v1/actor-links/claims": {
+      "post": {
+        "operationId": "claimExternalActorLink",
+        "x-required-scope": "actor-links:write",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["provider", "external_subject", "code"],
+                "properties": {
+                  "provider": { "$ref": "#/components/schemas/ExternalActorProvider" },
+                  "external_subject": { "type": "string", "pattern": "^[1-9][0-9]{4,24}$" },
+                  "code": { "type": "string", "maxLength": 20 }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "200": { "$ref": "#/components/responses/ActionResponse" } }
+      }
+    },
+    "/api/v1/me/events/{occurrence}/response": {
+      "put": {
+        "operationId": "respondToEventAsExternalActor",
+        "x-required-scope": "event-participation:write",
+        "parameters": [
+          { "$ref": "#/components/parameters/Occurrence" },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  { "$ref": "#/components/schemas/ExternalActorIdentity" },
+                  {
+                    "type": "object",
+                    "required": ["response"],
+                    "properties": {
+                      "response": { "type": "string", "enum": ["going", "maybe", "unavailable"] },
+                      "preferred_role": { "type": ["string", "null"], "maxLength": 64 },
+                      "preferred_team": { "type": ["string", "null"], "maxLength": 64 },
+                      "available_from": { "type": ["string", "null"], "format": "date-time" },
+                      "available_until": { "type": ["string", "null"], "format": "date-time" },
+                      "note": { "type": ["string", "null"], "maxLength": 2000 }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": { "200": { "$ref": "#/components/responses/ActionResponse" } }
+      }
+    },
+    "/api/v1/me/events/{occurrence}/registration": {
+      "put": {
+        "operationId": "updateEventRegistrationAsExternalActor",
+        "x-required-scope": "event-participation:write",
+        "parameters": [
+          { "$ref": "#/components/parameters/Occurrence" },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  { "$ref": "#/components/schemas/ExternalActorIdentity" },
+                  {
+                    "type": "object",
+                    "required": ["registered"],
+                    "properties": { "registered": { "type": "boolean" } }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": { "200": { "$ref": "#/components/responses/ActionResponse" } }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerToken": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "ks_live_<prefix>.<secret>"
+      }
+    },
+    "parameters": {
+      "Limit": {
+        "name": "limit",
+        "in": "query",
+        "schema": { "type": "integer", "minimum": 1, "maximum": 50, "default": 20 }
+      },
+      "Occurrence": {
+        "name": "occurrence",
+        "in": "path",
+        "required": true,
+        "schema": { "type": "string", "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$" }
+      },
+      "IdempotencyKey": {
+        "name": "Idempotency-Key",
+        "in": "header",
+        "required": true,
+        "schema": { "type": "string", "pattern": "^[A-Za-z0-9._:-]{8,128}$" }
+      }
+    },
+    "schemas": {
+      "ExternalActorProvider": { "type": "string", "enum": ["discord", "telegram"] },
+      "ExternalActorIdentity": {
+        "type": "object",
+        "required": ["provider", "external_subject"],
+        "properties": {
+          "provider": { "$ref": "#/components/schemas/ExternalActorProvider" },
+          "external_subject": { "type": "string", "pattern": "^[1-9][0-9]{4,24}$" }
+        }
+      }
+    },
+    "responses": {
+      "DataResponse": {
+        "description": "Successful bounded response.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": ["data"],
+              "properties": {
+                "data": {},
+                "meta": {
+                  "type": "object",
+                  "properties": {
+                    "generated_at": { "type": "string", "format": "date-time" },
+                    "read_only": { "type": "boolean", "const": true }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "ActionResponse": {
+        "description": "Successful actor-scoped action or safe replay.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": ["data"],
+              "properties": {
+                "data": { "type": "object" },
+                "meta": {
+                  "type": "object",
+                  "properties": { "replayed": { "type": "boolean" } }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

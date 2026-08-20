@@ -12,6 +12,9 @@ use App\Contexts\Alliance\Content\Enums\ContentType;
 use App\Contexts\Alliance\Content\Enums\ContentVisibility;
 use App\Contexts\Alliance\Content\Models\ContentItem;
 use App\Contexts\Alliance\Content\Models\ContentRevision;
+use App\Contexts\Alliance\Content\Queries\ContentQuery;
+use App\Contexts\Alliance\Content\Services\ContentFreshness;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
 use Tests\v3\Support\ScenarioFactory;
@@ -66,8 +69,72 @@ final class ContentProvenanceBehaviorV3Test extends TestCase
         self::assertSame('https://www.centurygames.com/kingshot-thursday-madness/', $restored->source_url);
         self::assertSame('2026.07', $restored->game_version);
         self::assertSame('2026-08-18', $restored->reviewed_at?->toDateString());
+        self::assertSame([
+            ['type' => 'event_type', 'key' => 'bear-hunt'],
+        ], $restored->context_links);
         self::assertSame(ContentStatus::Draft, $restored->status);
         self::assertCount(3, $restored->revisions()->get());
+    }
+
+    public function test_knowledge_freshness_has_a_review_window_and_warning_state(): void
+    {
+        $item = new ContentItem([
+            'type' => ContentType::Guide,
+            'reviewed_at' => '2026-05-22',
+        ]);
+        $freshness = app(ContentFreshness::class);
+
+        self::assertSame([
+            'status' => 'due_soon',
+            'dueAt' => '2026-08-20',
+            'daysUntilDue' => 10,
+        ], $freshness->assess($item, CarbonImmutable::parse('2026-08-10', 'UTC')));
+        self::assertSame(
+            'stale',
+            $freshness->assess($item, CarbonImmutable::parse('2026-08-21', 'UTC'))['status'],
+        );
+    }
+
+    public function test_content_context_links_are_normalized_and_reject_unknown_context_types(): void
+    {
+        [$owner, $alliance] = $this->allianceScenario();
+        $attributes = $this->guideAttributes([
+            'context_links' => [
+                ['type' => 'event_type', 'key' => ' Bear-Hunt '],
+                ['type' => 'event_type', 'key' => 'bear-hunt'],
+            ],
+        ]);
+        $contentId = app(SaveContentItem::class)->handle($alliance, $owner, $attributes);
+
+        self::assertSame([
+            ['type' => 'event_type', 'key' => 'bear-hunt'],
+        ], ContentItem::query()->findOrFail($contentId)->context_links);
+
+        $this->expectException(ValidationException::class);
+        app(SaveContentItem::class)->handle($alliance, $owner, $this->guideAttributes([
+            'slug' => 'unsupported-context',
+            'context_links' => [['type' => 'external_url', 'key' => 'example']],
+        ]));
+    }
+
+    public function test_contextual_query_returns_only_published_content_for_the_event_type(): void
+    {
+        [$owner, $alliance] = $this->allianceScenario();
+        $save = app(SaveContentItem::class);
+        $publish = app(PublishContentItem::class);
+        $matchingId = $save->handle($alliance, $owner, $this->guideAttributes());
+        $otherId = $save->handle($alliance, $owner, $this->guideAttributes([
+            'title' => 'Foundry guide',
+            'slug' => 'foundry-guide',
+            'context_links' => [['type' => 'event_type', 'key' => 'foundry']],
+        ]));
+
+        $publish->handle($alliance, $owner, $matchingId);
+        $publish->handle($alliance, $owner, $otherId);
+
+        $items = app(ContentQuery::class)->contextualForEventType($alliance, 'BEAR-HUNT');
+
+        self::assertSame([$matchingId], $items->modelKeys());
     }
 
     public function test_unreviewed_legacy_knowledge_cannot_be_published(): void
@@ -158,6 +225,7 @@ final class ContentProvenanceBehaviorV3Test extends TestCase
             'source_url' => 'https://www.centurygames.com/kingshot-thursday-madness/',
             'game_version' => '2026.07',
             'reviewed_at' => '2026-08-18',
+            'context_links' => [['type' => 'event_type', 'key' => 'bear-hunt']],
         ], $overrides);
     }
 }

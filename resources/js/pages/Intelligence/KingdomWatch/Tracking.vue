@@ -3,6 +3,7 @@ import { Head, Link, router, useForm } from '@inertiajs/vue3';
 
 import ConfirmActionDialog from '@/components/ui/ConfirmActionDialog.vue';
 import { useConfirmAction } from '@/components/ui/useConfirmAction';
+import { useLocale } from '@/localization';
 
 type TrackingRow = {
   id: string;
@@ -31,6 +32,7 @@ defineProps<{
 }>();
 
 const { dialog, requestConfirmation, cancelConfirmation, confirmAction } = useConfirmAction();
+const { t } = useLocale();
 
 const createForm = useForm({
   current_name: '',
@@ -52,8 +54,7 @@ function trackingError(errors: object): string | undefined {
 }
 
 function stateLabel(value: string): string {
-  if (value === 'nap') return 'NAP';
-  return value.charAt(0).toUpperCase() + value.slice(1).replaceAll('_', ' ');
+  return t(`kingdomTracking.states.${value}`);
 }
 
 function createTracking(): void {
@@ -89,10 +90,10 @@ function saveEdit(): void {
 function archiveTracking(entry: TrackingRow): void {
   requestConfirmation({
     id: 'alliance-tracking-archive-confirmation',
-    title: 'Archive tracking',
-    description: `Archive tracking for ${entry.name}? Historical tracking remains available.`,
-    confirmLabel: 'Archive tracking',
-    cancelLabel: 'Cancel',
+    title: t('kingdomTracking.archiveTitle'),
+    description: t('kingdomTracking.archiveConfirmation', { name: entry.name }),
+    confirmLabel: t('kingdomTracking.archiveTitle'),
+    cancelLabel: t('common.cancel'),
     perform: (finish) =>
       router.post(
         `/alliance/kingdom-alliances/${entry.id}/archive`,
@@ -104,19 +105,22 @@ function archiveTracking(entry: TrackingRow): void {
 </script>
 
 <template>
-  <Head title="Manage Kingdom alliances" />
+  <Head :title="t('kingdomTracking.title')" />
 
   <main class="mx-auto min-h-screen max-w-6xl px-6 py-12 lg:px-8">
     <header class="flex flex-wrap items-start justify-between gap-4">
       <div>
         <p class="text-sm font-semibold tracking-[0.2em] text-cyan-300 uppercase">
-          Kingdom intelligence
+          {{ t('kingdomTracking.eyebrow') }}
         </p>
-        <h1 class="mt-2 text-3xl font-bold">Manage tracked game-side alliances</h1>
+        <h1 class="mt-2 text-3xl font-bold">{{ t('kingdomTracking.title') }}</h1>
         <p class="mt-2 max-w-3xl text-sm text-[var(--ks-muted)]">
-          {{ alliance.name }} · current Kingdom {{ alliance.kingdom ?? 'not configured' }}. Stable
-          game alliance ID is the only automatic identity key. Names and tags never auto-merge
-          records.
+          {{
+            t('kingdomTracking.subtitle', {
+              alliance: alliance.name,
+              kingdom: alliance.kingdom ?? t('kingdomTracking.notConfigured'),
+            })
+          }}
         </p>
       </div>
       <div class="flex flex-wrap gap-3">
@@ -124,27 +128,28 @@ function archiveTracking(entry: TrackingRow): void {
           class="rounded-lg border border-cyan-800 px-4 py-2 text-sm font-semibold text-cyan-300"
           href="/alliance/kingdom-alliances/intelligence"
         >
-          Intelligence overview
+          {{ t('kingdomTracking.intelligenceOverview') }}
         </Link>
         <Link
           class="rounded-lg border border-[var(--ks-border)] px-4 py-2 text-sm font-semibold text-[var(--ks-ivory)]"
           href="/alliance/kingdom-alliances"
         >
-          Member view
+          {{ t('kingdomTracking.memberView') }}
         </Link>
       </div>
     </header>
 
     <section class="mt-10 rounded-2xl border border-[var(--ks-border)] bg-[rgba(24,25,21,.78)] p-6">
-      <h2 class="text-xl font-semibold">Start tracking</h2>
+      <h2 class="text-xl font-semibold">{{ t('kingdomTracking.startTitle') }}</h2>
       <p class="mt-1 text-sm text-[var(--ks-muted)]">
-        Without a stable game alliance ID, a new distinct neutral reference is created even if
-        another record has the same name or tag.
+        {{ t('kingdomTracking.startHelp') }}
       </p>
 
       <form class="mt-6 grid gap-5 md:grid-cols-2" @submit.prevent="createTracking">
         <div>
-          <label class="block text-sm font-medium" for="tracked-alliance-name">Alliance name</label>
+          <label class="block text-sm font-medium" for="tracked-alliance-name">{{
+            t('kingdomTracking.allianceName')
+          }}</label>
           <input
             id="tracked-alliance-name"
             v-model="createForm.current_name"
@@ -159,7 +164,9 @@ function archiveTracking(entry: TrackingRow): void {
         </div>
 
         <div>
-          <label class="block text-sm font-medium" for="tracked-alliance-tag">Alliance tag</label>
+          <label class="block text-sm font-medium" for="tracked-alliance-tag">{{
+            t('kingdomTracking.allianceTag')
+          }}</label>
           <input
             id="tracked-alliance-tag"
             v-model="createForm.current_tag"
@@ -174,7 +181,7 @@ function archiveTracking(entry: TrackingRow): void {
 
         <div>
           <label class="block text-sm font-medium" for="tracked-alliance-stable-id">
-            Stable game alliance ID
+            {{ t('kingdomTracking.stableId') }}
           </label>
           <input
             id="tracked-alliance-stable-id"
@@ -184,7 +191,7 @@ function archiveTracking(entry: TrackingRow): void {
             type="text"
           />
           <p class="mt-1 text-xs text-[var(--ks-muted)]">
-            Optional. Once assigned, it cannot be cleared or changed in place.
+            {{ t('kingdomTracking.stableIdHelp') }}
           </p>
           <p v-if="createForm.errors.game_alliance_id" class="mt-1 text-sm text-rose-300">
             {{ createForm.errors.game_alliance_id }}
@@ -192,9 +199,9 @@ function archiveTracking(entry: TrackingRow): void {
         </div>
 
         <div>
-          <label class="block text-sm font-medium" for="tracked-alliance-notes"
-            >Officer notes</label
-          >
+          <label class="block text-sm font-medium" for="tracked-alliance-notes">{{
+            t('kingdomTracking.officerNotes')
+          }}</label>
           <textarea
             id="tracked-alliance-notes"
             v-model="createForm.manager_notes"
@@ -202,7 +209,7 @@ function archiveTracking(entry: TrackingRow): void {
             maxlength="5000"
           />
           <p class="mt-1 text-xs text-[var(--ks-muted)]">
-            Private to authorized Alliance officers.
+            {{ t('kingdomTracking.officerNotesHelp') }}
           </p>
           <p v-if="createForm.errors.manager_notes" class="mt-1 text-sm text-rose-300">
             {{ createForm.errors.manager_notes }}
@@ -218,7 +225,7 @@ function archiveTracking(entry: TrackingRow): void {
             :disabled="createForm.processing || alliance.kingdom === null"
             type="submit"
           >
-            Start tracking
+            {{ t('kingdomTracking.startAction') }}
           </button>
         </div>
       </form>
@@ -226,10 +233,9 @@ function archiveTracking(entry: TrackingRow): void {
 
     <section class="mt-8 rounded-2xl border border-[var(--ks-border)] bg-[rgba(24,25,21,.78)] p-6">
       <div>
-        <h2 class="text-xl font-semibold">Tracking records</h2>
+        <h2 class="text-xl font-semibold">{{ t('kingdomTracking.recordsTitle') }}</h2>
         <p class="mt-1 text-sm text-[var(--ks-muted)]">
-          Earlier Kingdom records are retained. Drifted records may be archived but cannot be
-          edited. Diplomacy is a separate explicit officer-maintained diplomacy.
+          {{ t('kingdomTracking.recordsHelp') }}
         </p>
       </div>
 
@@ -237,12 +243,12 @@ function archiveTracking(entry: TrackingRow): void {
         <table class="min-w-full divide-y divide-[var(--ks-border)] text-left text-sm">
           <thead class="text-xs tracking-wide text-[var(--ks-muted)] uppercase">
             <tr>
-              <th class="px-3 py-3 font-semibold">Alliance</th>
-              <th class="px-3 py-3 font-semibold">Stable ID</th>
-              <th class="px-3 py-3 font-semibold">Kingdom</th>
-              <th class="px-3 py-3 font-semibold">Diplomacy</th>
-              <th class="px-3 py-3 font-semibold">State</th>
-              <th class="px-3 py-3 font-semibold">Actions</th>
+              <th class="px-3 py-3 font-semibold">{{ t('kingdomTracking.alliance') }}</th>
+              <th class="px-3 py-3 font-semibold">{{ t('kingdomTracking.stableIdShort') }}</th>
+              <th class="px-3 py-3 font-semibold">{{ t('kingdomTracking.kingdom') }}</th>
+              <th class="px-3 py-3 font-semibold">{{ t('kingdomTracking.diplomacy') }}</th>
+              <th class="px-3 py-3 font-semibold">{{ t('kingdomTracking.state') }}</th>
+              <th class="px-3 py-3 font-semibold">{{ t('kingdomTracking.actions') }}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-[var(--ks-border)]">
@@ -250,11 +256,11 @@ function archiveTracking(entry: TrackingRow): void {
               <td class="px-3 py-4">
                 <p class="font-medium text-[var(--ks-ivory)]">{{ entry.name }}</p>
                 <p class="mt-1 text-xs text-[var(--ks-muted)]">
-                  {{ entry.tag ?? 'No tag recorded' }}
+                  {{ entry.tag ?? t('kingdomTracking.noTag') }}
                 </p>
               </td>
               <td class="px-3 py-4 text-[var(--ks-muted)]">
-                {{ entry.gameAllianceId ?? 'Unresolved' }}
+                {{ entry.gameAllianceId ?? t('kingdomTracking.unresolved') }}
               </td>
               <td class="px-3 py-4 text-[var(--ks-muted)]">
                 {{ entry.kingdom }}
@@ -262,7 +268,7 @@ function archiveTracking(entry: TrackingRow): void {
                   v-if="!entry.contextCurrent"
                   class="ml-2 rounded-full bg-amber-950 px-2 py-1 text-xs font-semibold text-amber-300"
                 >
-                  Historical
+                  {{ t('kingdomTracking.historical') }}
                 </span>
               </td>
               <td class="px-3 py-4 text-[var(--ks-muted)]">
@@ -271,7 +277,7 @@ function archiveTracking(entry: TrackingRow): void {
                   v-if="entry.diplomacyNeedsReview"
                   class="ml-2 rounded-full bg-amber-950 px-2 py-1 text-xs font-semibold text-amber-300"
                 >
-                  Review due
+                  {{ t('kingdomTracking.reviewDue') }}
                 </span>
               </td>
               <td class="px-3 py-4 text-[var(--ks-muted)]">{{ entry.state }}</td>
@@ -281,7 +287,7 @@ function archiveTracking(entry: TrackingRow): void {
                     class="rounded-lg border border-cyan-800 px-3 py-2 text-xs font-semibold text-cyan-300"
                     :href="entry.diplomacyUrl"
                   >
-                    Diplomacy
+                    {{ t('kingdomTracking.diplomacy') }}
                   </Link>
                   <button
                     v-if="entry.state === 'active' && entry.contextCurrent"
@@ -289,7 +295,7 @@ function archiveTracking(entry: TrackingRow): void {
                     type="button"
                     @click="beginEdit(entry)"
                   >
-                    Edit
+                    {{ t('kingdomTracking.edit') }}
                   </button>
                   <button
                     v-if="entry.state === 'active'"
@@ -297,7 +303,7 @@ function archiveTracking(entry: TrackingRow): void {
                     type="button"
                     @click="archiveTracking(entry)"
                   >
-                    Archive
+                    {{ t('kingdomTracking.archive') }}
                   </button>
                 </div>
               </td>
@@ -309,7 +315,7 @@ function archiveTracking(entry: TrackingRow): void {
         v-else
         class="mt-6 rounded-xl border border-dashed border-[var(--ks-border)] p-5 text-sm text-[var(--ks-muted)]"
       >
-        No tracking records yet.
+        {{ t('kingdomTracking.noRecords') }}
       </p>
     </section>
 
@@ -317,17 +323,16 @@ function archiveTracking(entry: TrackingRow): void {
       v-if="editForm.id !== ''"
       class="mt-8 rounded-2xl border border-cyan-900 bg-[rgba(24,25,21,.78)] p-6"
     >
-      <h2 class="text-xl font-semibold">Edit tracked alliance</h2>
+      <h2 class="text-xl font-semibold">{{ t('kingdomTracking.editTitle') }}</h2>
       <p class="mt-1 text-sm text-[var(--ks-muted)]">
-        Assigning a stable ID is explicit. A conflicting stable ID fails closed rather than merging
-        references.
+        {{ t('kingdomTracking.editHelp') }}
       </p>
 
       <form class="mt-6 grid gap-5 md:grid-cols-2" @submit.prevent="saveEdit">
         <div>
-          <label class="block text-sm font-medium" for="edit-tracked-alliance-name"
-            >Alliance name</label
-          >
+          <label class="block text-sm font-medium" for="edit-tracked-alliance-name">{{
+            t('kingdomTracking.allianceName')
+          }}</label>
           <input
             id="edit-tracked-alliance-name"
             v-model="editForm.current_name"
@@ -342,9 +347,9 @@ function archiveTracking(entry: TrackingRow): void {
         </div>
 
         <div>
-          <label class="block text-sm font-medium" for="edit-tracked-alliance-tag"
-            >Alliance tag</label
-          >
+          <label class="block text-sm font-medium" for="edit-tracked-alliance-tag">{{
+            t('kingdomTracking.allianceTag')
+          }}</label>
           <input
             id="edit-tracked-alliance-tag"
             v-model="editForm.current_tag"
@@ -356,7 +361,7 @@ function archiveTracking(entry: TrackingRow): void {
 
         <div>
           <label class="block text-sm font-medium" for="edit-tracked-alliance-stable-id">
-            Stable game alliance ID
+            {{ t('kingdomTracking.stableId') }}
           </label>
           <input
             id="edit-tracked-alliance-stable-id"
@@ -371,9 +376,9 @@ function archiveTracking(entry: TrackingRow): void {
         </div>
 
         <div>
-          <label class="block text-sm font-medium" for="edit-tracked-alliance-notes"
-            >Officer notes</label
-          >
+          <label class="block text-sm font-medium" for="edit-tracked-alliance-notes">{{
+            t('kingdomTracking.officerNotes')
+          }}</label>
           <textarea
             id="edit-tracked-alliance-notes"
             v-model="editForm.manager_notes"
@@ -394,14 +399,14 @@ function archiveTracking(entry: TrackingRow): void {
             :disabled="editForm.processing"
             type="submit"
           >
-            Save changes
+            {{ t('kingdomTracking.saveChanges') }}
           </button>
           <button
             class="rounded-lg border border-[var(--ks-border)] px-4 py-2 font-semibold"
             type="button"
             @click="cancelEdit"
           >
-            Cancel
+            {{ t('common.cancel') }}
           </button>
         </div>
       </form>

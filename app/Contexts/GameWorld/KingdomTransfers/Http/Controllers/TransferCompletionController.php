@@ -96,7 +96,7 @@ final class TransferCompletionController extends Controller
         $scope = $context->scope();
         $complete->handle($scope->allianceId, $scope->playerId, $plan, $participant);
 
-        return back()->with('status', 'transfer-participant-completed');
+        return back()->with('actionReceipt', $this->receipt('transfer-participant-completed'));
     }
 
     /** @return array{id: string, name: string, kingdom: string} */

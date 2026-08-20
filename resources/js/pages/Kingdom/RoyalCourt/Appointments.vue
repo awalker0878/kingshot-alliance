@@ -4,6 +4,7 @@ import { computed, reactive } from 'vue';
 
 import AppLayout from '@/layouts/AppLayout.vue';
 import RoomBanner from '@/components/game/RoomBanner.vue';
+import { useLocale } from '@/localization';
 
 type AppointmentType = {
   key: string;
@@ -130,6 +131,8 @@ const props = defineProps<{
   skillTypes: SkillType[];
 }>();
 
+const { t, formatDate, formatNumber } = useLocale();
+
 const appointment = reactive({
   appointment_id: '',
   appointment_type: props.appointmentTypes[0]?.key ?? '',
@@ -163,24 +166,24 @@ const submittedRequests = computed(
 );
 
 function displayUtc(value: string): string {
-  return `${new Intl.DateTimeFormat('en-CA', {
+  return `${formatDate(value, {
     timeZone: 'UTC',
     month: 'short',
     day: '2-digit',
     hour: '2-digit',
     minute: '2-digit',
     hour12: false,
-  }).format(new Date(value))} UTC`;
+  })} UTC`;
 }
 
 function displayLocal(value: string): string {
   const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  return `${new Intl.DateTimeFormat(undefined, {
+  return `${formatDate(value, {
     month: 'short',
     day: '2-digit',
     hour: '2-digit',
     minute: '2-digit',
-  }).format(new Date(value))} ${zone}`;
+  })} ${zone}`;
 }
 
 function utcInput(value: string): string {
@@ -192,9 +195,19 @@ function humanize(value: string | null): string {
 }
 
 function speedups(minutes: number | null): string {
-  if (minutes === null) return 'not declared';
+  if (minutes === null) return t('royalCourt.notDeclared');
   const hours = minutes / 60;
-  return Number.isInteger(hours) ? `${hours}h` : `${hours.toFixed(1)}h`;
+  return t('royalCourt.hours', {
+    hours: formatNumber(hours, { maximumFractionDigits: 1 }),
+  });
+}
+
+function statusLabel(status: string): string {
+  return t(`royalCourt.statuses.${status}`);
+}
+
+function laneLabel(key: string): string {
+  return t(`royalCourt.lanes.${key.toLowerCase()}`);
 }
 
 function createPlan(): void {
@@ -311,20 +324,20 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
 </script>
 
 <template>
-  <Head :title="`King Perks · ${event.kingdomName}`" />
+  <Head :title="t('royalCourt.manageTitle', { kingdom: event.kingdomName })" />
 
   <AppLayout :user="user" :player-alliance-name="null" :has-player-alliance="false">
     <main class="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
       <RoomBanner
-        eyebrow="King’s Court · Kingdom of Power"
+        :eyebrow="t('royalCourt.manageEyebrow')"
         :title="event.kingdomName"
-        subtitle="Coordinate King Perk requests, appointments, cooldowns and Kingdom-wide skills inside this Event’s real preparation window."
+        :subtitle="t('royalCourt.manageIntro')"
         image="/images/kingshot/kings-court.svg"
         ><template #actions
           ><a
             :href="`/events/${event.id}/king-perks/my?occurrence=${occurrence.id}`"
             class="ks-command-link"
-            >My Appointments</a
+            >{{ t('royalCourt.myAppointments') }}</a
           ></template
         ></RoomBanner
       >
@@ -333,7 +346,7 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
         <div class="flex flex-wrap items-center justify-between gap-4">
           <div>
             <p class="text-xs font-semibold tracking-wider text-[var(--ks-muted)] uppercase">
-              Preparation window
+              {{ t('royalCourt.preparationWindow') }}
             </p>
             <p v-if="plan" class="mt-1 text-lg font-semibold text-[var(--ks-ivory)]">
               {{ displayUtc(plan.windowStartsAt) }} → {{ displayUtc(plan.windowEndsAt) }}
@@ -342,7 +355,7 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
               {{ displayLocal(plan.windowStartsAt) }} → {{ displayLocal(plan.windowEndsAt) }}
             </p>
             <p v-else class="mt-1 text-sm text-[var(--ks-muted)]">
-              Open the Court schedule for this Event’s preparation window.
+              {{ t('royalCourt.openScheduleHelp') }}
             </p>
           </div>
           <button
@@ -351,7 +364,7 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
             class="rounded-lg bg-amber-400 px-4 py-2 text-sm font-semibold text-[var(--ks-ink)]"
             @click="createPlan"
           >
-            Open Court Schedule
+            {{ t('royalCourt.openSchedule') }}
           </button>
           <button
             v-else-if="plan.status === 'draft'"
@@ -359,12 +372,12 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
             class="rounded-lg bg-amber-400 px-4 py-2 text-sm font-semibold text-[var(--ks-ink)]"
             @click="publishPlan"
           >
-            Proclaim Schedule
+            {{ t('royalCourt.publishSchedule') }}
           </button>
           <span
             v-else
             class="rounded-full bg-emerald-400/10 px-3 py-1 text-xs font-semibold text-emerald-300"
-            >{{ plan.status }}</span
+            >{{ statusLabel(plan.status) }}</span
           >
         </div>
       </section>
@@ -374,10 +387,11 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
           class="space-y-4 rounded-2xl border border-[var(--ks-border)] bg-[rgba(7,12,13,.70)] p-5"
         >
           <div>
-            <h2 class="text-lg font-semibold text-[var(--ks-ivory)]">Court Auto-Assign</h2>
+            <h2 class="text-lg font-semibold text-[var(--ks-ivory)]">
+              {{ t('royalCourt.autoAssignTitle') }}
+            </h2>
             <p class="text-sm text-[var(--ks-muted)]">
-              These arrangements help officers fill the Court. Alliance leadership remains in
-              control.
+              {{ t('royalCourt.autoAssignHelp') }}
             </p>
           </div>
           <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
@@ -388,14 +402,14 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
             >
               <div class="flex items-center justify-between gap-3">
                 <p class="text-xs font-semibold tracking-wider text-amber-300 uppercase">
-                  Preparation day {{ day.day }}
+                  {{ t('royalCourt.preparationDay', { day: formatNumber(day.day) }) }}
                 </p>
                 <button
                   type="button"
                   class="text-xs font-semibold text-[var(--ks-gold)] hover:text-[var(--ks-gold-bright)]"
                   @click="applyStrategy(day)"
                 >
-                  Use in planner
+                  {{ t('royalCourt.useInPlanner') }}
                 </button>
               </div>
               <p class="mt-2 font-semibold text-[var(--ks-ivory)]">{{ humanize(day.focus) }}</p>
@@ -403,10 +417,14 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
                 {{ displayUtc(day.startsAt) }} → {{ displayUtc(day.endsAt) }}
               </p>
               <p v-if="day.skill" class="mt-2 text-sm text-[var(--ks-muted)]">
-                King Skill: {{ humanize(day.skill) }}
+                {{ t('royalCourt.kingSkillValue', { skill: humanize(day.skill) }) }}
               </p>
               <p v-if="day.appointmentTypes.length" class="text-sm text-[var(--ks-muted)]">
-                Appointments: {{ day.appointmentTypes.map(humanize).join(' → ') }}
+                {{
+                  t('royalCourt.appointmentsValue', {
+                    appointments: day.appointmentTypes.map(humanize).join(' → '),
+                  })
+                }}
               </p>
               <p class="mt-2 text-xs leading-5 text-[var(--ks-muted)]">{{ day.strategyNote }}</p>
             </article>
@@ -419,13 +437,15 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
         >
           <div class="flex flex-wrap items-end justify-between gap-3">
             <div>
-              <h2 class="text-lg font-semibold text-[var(--ks-ivory)]">Live operations</h2>
+              <h2 class="text-lg font-semibold text-[var(--ks-ivory)]">
+                {{ t('royalCourt.liveOperations') }}
+              </h2>
               <p class="text-sm text-[var(--ks-muted)]">
-                Now / next / following for each appointment position.
+                {{ t('royalCourt.liveOperationsHelp') }}
               </p>
             </div>
             <p class="text-xs text-[var(--ks-muted)]">
-              Court watch {{ displayUtc(live.generatedAt) }}
+              {{ t('royalCourt.courtWatch', { date: displayUtc(live.generatedAt) }) }}
             </p>
           </div>
           <div class="grid gap-3 xl:grid-cols-2">
@@ -446,11 +466,11 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
                   class="rounded-lg bg-[rgba(7,12,13,.84)] p-3"
                 >
                   <p class="text-[11px] font-semibold tracking-wider text-[var(--ks-muted)]">
-                    {{ entry.key }}
+                    {{ laneLabel(entry.key) }}
                   </p>
                   <template v-if="entry.item">
                     <p class="mt-1 text-sm font-semibold text-[var(--ks-ivory)]">
-                      {{ entry.item.playerName ?? 'Unknown Governor' }}
+                      {{ entry.item.playerName ?? t('royalCourt.unknownGovernor') }}
                     </p>
                     <p class="text-xs text-[var(--ks-muted)]">
                       {{ displayUtc(entry.item.startsAt) }}
@@ -459,10 +479,16 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
                       class="text-xs"
                       :class="entry.item.playerEligible ? 'text-emerald-300' : 'text-rose-300'"
                     >
-                      {{ entry.item.playerEligible ? entry.item.status : 'Governor left Kingdom' }}
+                      {{
+                        entry.item.playerEligible
+                          ? statusLabel(entry.item.status)
+                          : t('royalCourt.governorLeftKingdom')
+                      }}
                     </p>
                   </template>
-                  <p v-else class="mt-1 text-xs text-[var(--ks-muted)]">Open</p>
+                  <p v-else class="mt-1 text-xs text-[var(--ks-muted)]">
+                    {{ t('royalCourt.open') }}
+                  </p>
                 </div>
               </div>
               <div
@@ -470,12 +496,12 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
                 class="mt-3 flex flex-wrap items-end gap-2"
               >
                 <label class="min-w-48 flex-1 space-y-1 text-xs text-[var(--ks-muted)]">
-                  <span>Rapid replacement</span>
+                  <span>{{ t('royalCourt.rapidReplacement') }}</span>
                   <select
                     v-model="replacementPlayer[lane.now.id]"
                     class="w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-night)] px-3 py-2 text-sm text-[var(--ks-ivory)]"
                   >
-                    <option value="">Select Governor</option>
+                    <option value="">{{ t('royalCourt.selectGovernor') }}</option>
                     <option v-for="player in players" :key="player.id" :value="player.id">
                       {{ player.name }}
                     </option>
@@ -486,7 +512,7 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
                   class="rounded-lg border border-rose-400/30 px-3 py-2 text-xs font-semibold text-rose-200"
                   @click="replaceLive(lane.now)"
                 >
-                  No-show + replace
+                  {{ t('royalCourt.noShowReplace') }}
                 </button>
               </div>
             </article>
@@ -499,20 +525,24 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
           >
             <div class="flex flex-wrap items-end justify-between gap-3">
               <div>
-                <h2 class="text-lg font-semibold text-[var(--ks-ivory)]">Governor Requests</h2>
+                <h2 class="text-lg font-semibold text-[var(--ks-ivory)]">
+                  {{ t('royalCourt.governorRequests') }}
+                </h2>
                 <p class="text-sm text-[var(--ks-muted)]">
-                  Ranked only within each activity category.
+                  {{ t('royalCourt.governorRequestsHelp') }}
                 </p>
               </div>
-              <span class="text-xs text-[var(--ks-muted)]"
-                >{{ submittedRequests.length }} awaiting scheduling</span
-              >
+              <span class="text-xs text-[var(--ks-muted)]">{{
+                t('royalCourt.awaitingScheduling', {
+                  count: formatNumber(submittedRequests.length),
+                })
+              }}</span>
             </div>
             <p
               v-if="plan.requests.length === 0"
               class="rounded-xl border border-dashed border-[var(--ks-border)] p-5 text-sm text-[var(--ks-muted)]"
             >
-              No requests submitted yet.
+              {{ t('royalCourt.noRequestsYet') }}
             </p>
             <article
               v-for="item in plan.requests"
@@ -529,7 +559,9 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
                       class="rounded-full bg-[rgba(210,163,75,.05)] px-2 py-0.5 text-xs text-[var(--ks-muted)]"
                       >{{ item.categoryLabel }}</span
                     >
-                    <span class="text-xs text-[var(--ks-muted)]">{{ item.status }}</span>
+                    <span class="text-xs text-[var(--ks-muted)]">{{
+                      statusLabel(item.status)
+                    }}</span>
                   </div>
                   <p class="mt-1 text-sm text-[var(--ks-muted)]">
                     {{ displayUtc(item.availabilityStartsAt) }} →
@@ -540,8 +572,12 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
                     {{ displayLocal(item.availabilityEndsAt) }}
                   </p>
                   <p class="mt-2 text-xs text-[var(--ks-muted)]">
-                    Speedups {{ speedups(item.plannedSpeedupMinutes) }} · preferred
-                    {{ humanize(item.preferredAppointmentType) }}
+                    {{
+                      t('royalCourt.requestOfficerSummary', {
+                        speedups: speedups(item.plannedSpeedupMinutes),
+                        preferred: humanize(item.preferredAppointmentType),
+                      })
+                    }}
                   </p>
                   <p v-if="item.notes" class="mt-1 text-xs text-[var(--ks-muted)]">
                     {{ item.notes }}
@@ -553,7 +589,7 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
                   class="rounded-lg border border-rose-400/30 px-3 py-1.5 text-xs text-rose-200"
                   @click="declineRequest(item.id)"
                 >
-                  Decline
+                  {{ t('royalCourt.decline') }}
                 </button>
               </div>
             </article>
@@ -564,14 +600,15 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
             @submit.prevent="autoSchedule"
           >
             <div>
-              <h2 class="text-lg font-semibold text-[var(--ks-ivory)]">Smart fill</h2>
+              <h2 class="text-lg font-semibold text-[var(--ks-ivory)]">
+                {{ t('royalCourt.smartFill') }}
+              </h2>
               <p class="text-xs text-[var(--ks-muted)]">
-                Fills legal duration-aware windows from submitted availability. Training uses Noble
-                Advisor first, then Chief Minister overflow.
+                {{ t('royalCourt.smartFillHelp') }}
               </p>
             </div>
             <label class="block space-y-1 text-xs text-[var(--ks-muted)]">
-              <span>Focus</span>
+              <span>{{ t('royalCourt.focus') }}</span>
               <select
                 v-model="auto.push_category"
                 class="w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-stone)] px-3 py-2 text-sm text-[var(--ks-ivory)]"
@@ -586,7 +623,7 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
               </select>
             </label>
             <label class="block space-y-1 text-xs text-[var(--ks-muted)]"
-              ><span>From (UTC)</span
+              ><span>{{ t('royalCourt.fromUtc') }}</span
               ><input
                 v-model="auto.from"
                 required
@@ -594,7 +631,7 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
                 class="w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-stone)] px-3 py-2 text-sm text-[var(--ks-ivory)]"
             /></label>
             <label class="block space-y-1 text-xs text-[var(--ks-muted)]"
-              ><span>Until (UTC)</span
+              ><span>{{ t('royalCourt.untilUtc') }}</span
               ><input
                 v-model="auto.until"
                 required
@@ -602,7 +639,7 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
                 class="w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-stone)] px-3 py-2 text-sm text-[var(--ks-ivory)]"
             /></label>
             <label class="block space-y-1 text-xs text-[var(--ks-muted)]"
-              ><span>Maximum assignments</span
+              ><span>{{ t('royalCourt.maximumAssignments') }}</span
               ><input
                 v-model.number="auto.limit"
                 min="1"
@@ -614,7 +651,7 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
               type="submit"
               class="w-full rounded-lg bg-[var(--ks-gold)] px-4 py-2 text-sm font-semibold text-[var(--ks-ink)]"
             >
-              Auto-fill window
+              {{ t('royalCourt.autoFillWindow') }}
             </button>
           </form>
         </section>
@@ -624,16 +661,18 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
             class="space-y-3 rounded-2xl border border-[var(--ks-border)] bg-[rgba(7,12,13,.70)] p-5"
           >
             <div>
-              <h2 class="text-lg font-semibold text-[var(--ks-ivory)]">Appointment rotation</h2>
+              <h2 class="text-lg font-semibold text-[var(--ks-ivory)]">
+                {{ t('royalCourt.appointmentRotation') }}
+              </h2>
               <p class="text-sm text-[var(--ks-muted)]">
-                The stored end time is derived from the selected appointment's occupancy duration.
+                {{ t('royalCourt.appointmentRotationHelp') }}
               </p>
             </div>
             <p
               v-if="plan.appointments.length === 0"
               class="rounded-xl border border-dashed border-[var(--ks-border)] p-6 text-sm text-[var(--ks-muted)]"
             >
-              No appointments scheduled yet.
+              {{ t('royalCourt.noScheduledAppointments') }}
             </p>
             <article
               v-for="item in plan.appointments"
@@ -648,12 +687,12 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
                     </p>
                     <span
                       class="rounded-full bg-[rgba(210,163,75,.05)] px-2 py-0.5 text-xs text-[var(--ks-muted)]"
-                      >{{ humanize(item.status) }}</span
+                      >{{ statusLabel(item.status) }}</span
                     >
                     <span
                       v-if="!item.playerEligible"
                       class="rounded-full bg-rose-400/10 px-2 py-0.5 text-xs text-rose-300"
-                      >reassignment required</span
+                      >{{ t('royalCourt.reassignmentRequired') }}</span
                     >
                   </div>
                   <p class="mt-1 text-sm text-[var(--ks-muted)]">
@@ -663,16 +702,27 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
                     {{ displayLocal(item.startsAt) }} → {{ displayLocal(item.endsAt) }}
                   </p>
                   <p class="mt-1 text-xs text-[var(--ks-muted)]">
-                    {{ item.durationMinutes }} min occupancy · {{ item.playerCooldownMinutes }} min
-                    Governor cooldown after appointment end
+                    {{
+                      t('royalCourt.cooldownSummary', {
+                        duration: formatNumber(item.durationMinutes),
+                        cooldown: formatNumber(item.playerCooldownMinutes),
+                      })
+                    }}
                   </p>
                   <p
                     v-if="item.actualStartedAt || item.actualEndedAt"
                     class="mt-1 text-xs text-emerald-300"
                   >
-                    Actual:
-                    {{ item.actualStartedAt ? displayUtc(item.actualStartedAt) : 'not started' }} →
-                    {{ item.actualEndedAt ? displayUtc(item.actualEndedAt) : 'in progress' }}
+                    {{
+                      t('royalCourt.actualSummary', {
+                        start: item.actualStartedAt
+                          ? displayUtc(item.actualStartedAt)
+                          : t('royalCourt.notStarted'),
+                        end: item.actualEndedAt
+                          ? displayUtc(item.actualEndedAt)
+                          : t('royalCourt.inProgress'),
+                      })
+                    }}
                   </p>
                   <p v-if="item.notes" class="mt-1 text-xs text-[var(--ks-muted)]">
                     {{ item.notes }}
@@ -685,7 +735,7 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
                     class="rounded-lg border border-[var(--ks-border)] px-3 py-1.5 text-xs text-[var(--ks-ivory)]"
                     @click="editAppointment(item)"
                   >
-                    Edit
+                    {{ t('royalCourt.edit') }}
                   </button>
                   <button
                     v-if="item.status === 'scheduled' || item.status === 'confirmed'"
@@ -693,7 +743,7 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
                     class="rounded-lg border border-emerald-400/30 px-3 py-1.5 text-xs text-emerald-200"
                     @click="activate(item.id)"
                   >
-                    Active
+                    {{ t('royalCourt.activate') }}
                   </button>
                   <button
                     v-if="item.status !== 'completed' && item.status !== 'cancelled'"
@@ -701,7 +751,7 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
                     class="rounded-lg border border-[var(--ks-border)] px-3 py-1.5 text-xs text-[var(--ks-ivory)]"
                     @click="markOutcome(item.id, 'completed')"
                   >
-                    Complete
+                    {{ t('royalCourt.complete') }}
                   </button>
                   <button
                     v-if="item.status !== 'completed' && item.status !== 'cancelled'"
@@ -709,7 +759,7 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
                     class="rounded-lg border border-[var(--ks-border)] px-3 py-1.5 text-xs text-[var(--ks-ivory)]"
                     @click="markOutcome(item.id, 'no_show')"
                   >
-                    No-show
+                    {{ t('royalCourt.noShow') }}
                   </button>
                   <button
                     v-if="item.status !== 'completed' && item.status !== 'cancelled'"
@@ -717,14 +767,16 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
                     class="rounded-lg border border-rose-400/30 px-3 py-1.5 text-xs text-rose-200"
                     @click="recordCancelledCooldown(item.id)"
                   >
-                    Cancel + position cooldown
+                    {{ t('royalCourt.cancelWithCooldown') }}
                   </button>
                 </div>
               </div>
             </article>
 
             <div v-if="plan.positionBlocks.length" class="space-y-2 pt-2">
-              <h3 class="text-sm font-semibold text-rose-200">Position cooldowns</h3>
+              <h3 class="text-sm font-semibold text-rose-200">
+                {{ t('royalCourt.positionCooldowns') }}
+              </h3>
               <div
                 v-for="block in plan.positionBlocks"
                 :key="block.id"
@@ -744,9 +796,15 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
             <div class="flex items-start justify-between gap-3">
               <div>
                 <h2 class="text-lg font-semibold text-[var(--ks-ivory)]">
-                  {{ appointment.appointment_id ? 'Reassign appointment' : 'Assign appointment' }}
+                  {{
+                    appointment.appointment_id
+                      ? t('royalCourt.reassignAppointment')
+                      : t('royalCourt.assignAppointment')
+                  }}
                 </h2>
-                <p class="text-xs text-[var(--ks-muted)]">End time is calculated automatically.</p>
+                <p class="text-xs text-[var(--ks-muted)]">
+                  {{ t('royalCourt.endTimeHelp') }}
+                </p>
               </div>
               <button
                 v-if="appointment.appointment_id"
@@ -754,11 +812,11 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
                 class="text-xs text-[var(--ks-muted)]"
                 @click="clearAppointmentForm"
               >
-                Clear
+                {{ t('royalCourt.clear') }}
               </button>
             </div>
             <label class="block space-y-1 text-xs text-[var(--ks-muted)]"
-              ><span>Position</span
+              ><span>{{ t('royalCourt.position') }}</span
               ><select
                 v-model="appointment.appointment_type"
                 class="w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-stone)] px-3 py-2 text-sm text-[var(--ks-ivory)]"
@@ -772,12 +830,16 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
               v-if="selectedAppointment"
               class="rounded-lg bg-[rgba(24,25,21,.86)] p-3 text-xs text-[var(--ks-muted)]"
             >
-              Occupies {{ selectedAppointment.durationMinutes }} min · Governor cooldown
-              {{ selectedAppointment.playerCooldownMinutes }} min · cancelled-position block
-              {{ selectedAppointment.cancelledPositionCooldownMinutes }} min
+              {{
+                t('royalCourt.positionRules', {
+                  duration: formatNumber(selectedAppointment.durationMinutes),
+                  cooldown: formatNumber(selectedAppointment.playerCooldownMinutes),
+                  block: formatNumber(selectedAppointment.cancelledPositionCooldownMinutes),
+                })
+              }}
             </div>
             <label class="block space-y-1 text-xs text-[var(--ks-muted)]"
-              ><span>Governor</span
+              ><span>{{ t('royalCourt.governor') }}</span
               ><select
                 v-model="appointment.player_id"
                 class="w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-stone)] px-3 py-2 text-sm text-[var(--ks-ivory)]"
@@ -788,7 +850,7 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
               </select></label
             >
             <label class="block space-y-1 text-xs text-[var(--ks-muted)]"
-              ><span>Starts at (UTC)</span
+              ><span>{{ t('royalCourt.startsAtUtc') }}</span
               ><input
                 v-model="appointment.starts_at"
                 required
@@ -796,7 +858,7 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
                 class="w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-stone)] px-3 py-2 text-sm text-[var(--ks-ivory)]"
             /></label>
             <label class="block space-y-1 text-xs text-[var(--ks-muted)]"
-              ><span>Notes</span
+              ><span>{{ t('royalCourt.notes') }}</span
               ><textarea
                 v-model="appointment.notes"
                 rows="2"
@@ -807,7 +869,11 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
               type="submit"
               class="w-full rounded-lg bg-amber-400 px-4 py-2 text-sm font-semibold text-[var(--ks-ink)]"
             >
-              {{ appointment.appointment_id ? 'Save reassignment' : 'Assign' }}
+              {{
+                appointment.appointment_id
+                  ? t('royalCourt.saveReassignment')
+                  : t('royalCourt.assign')
+              }}
             </button>
           </form>
         </section>
@@ -817,16 +883,18 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
             class="space-y-3 rounded-2xl border border-[var(--ks-border)] bg-[rgba(7,12,13,.70)] p-5"
           >
             <div>
-              <h2 class="text-lg font-semibold text-[var(--ks-ivory)]">King Skills</h2>
+              <h2 class="text-lg font-semibold text-[var(--ks-ivory)]">
+                {{ t('royalCourt.kingSkills') }}
+              </h2>
               <p class="text-sm text-[var(--ks-muted)]">
-                Skill effects are tracked separately from personal appointment occupancy.
+                {{ t('royalCourt.kingSkillsHelp') }}
               </p>
             </div>
             <p
               v-if="plan.skills.length === 0"
               class="rounded-xl border border-dashed border-[var(--ks-border)] p-5 text-sm text-[var(--ks-muted)]"
             >
-              No King Skills planned yet.
+              {{ t('royalCourt.noKingSkills') }}
             </p>
             <article
               v-for="item in plan.skills"
@@ -840,8 +908,12 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
                   {{ displayUtc(item.plannedEndsAt) }} · {{ item.effectDurationMinutes }} min
                 </p>
                 <p class="text-xs text-[var(--ks-muted)]">
-                  Scheduling window opens {{ displayUtc(item.scheduleAvailableAt) }} ·
-                  {{ humanize(item.status) }}
+                  {{
+                    t('royalCourt.skillScheduleSummary', {
+                      date: displayUtc(item.scheduleAvailableAt),
+                      status: statusLabel(item.status),
+                    })
+                  }}
                 </p>
               </div>
               <div class="flex gap-2">
@@ -851,7 +923,7 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
                   class="rounded-lg border border-[var(--ks-border)] px-3 py-1.5 text-xs text-[var(--ks-ivory)]"
                   @click="markSkill(item.id, 'scheduled')"
                 >
-                  Scheduled in game
+                  {{ t('royalCourt.scheduledInGame') }}
                 </button>
                 <button
                   v-if="item.status === 'planned' || item.status === 'scheduled_in_game'"
@@ -859,7 +931,7 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
                   class="rounded-lg border border-emerald-400/30 px-3 py-1.5 text-xs text-emerald-200"
                   @click="markSkill(item.id, 'activated')"
                 >
-                  Activated
+                  {{ t('royalCourt.activated') }}
                 </button>
               </div>
             </article>
@@ -870,13 +942,15 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
             @submit.prevent="planSkill"
           >
             <div>
-              <h2 class="text-lg font-semibold text-[var(--ks-ivory)]">Plan King Skill</h2>
+              <h2 class="text-lg font-semibold text-[var(--ks-ivory)]">
+                {{ t('royalCourt.planKingSkill') }}
+              </h2>
               <p class="text-xs text-[var(--ks-muted)]">
-                Enter the effect duration verified in the game; the application does not guess it.
+                {{ t('royalCourt.planKingSkillHelp') }}
               </p>
             </div>
             <label class="block space-y-1 text-xs text-[var(--ks-muted)]"
-              ><span>Skill</span
+              ><span>{{ t('royalCourt.skill') }}</span
               ><select
                 v-model="skill.skill_key"
                 class="w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-stone)] px-3 py-2 text-sm text-[var(--ks-ivory)]"
@@ -887,7 +961,7 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
               </select></label
             >
             <label class="block space-y-1 text-xs text-[var(--ks-muted)]"
-              ><span>Activation (UTC)</span
+              ><span>{{ t('royalCourt.activationUtc') }}</span
               ><input
                 v-model="skill.planned_activation_at"
                 required
@@ -895,7 +969,7 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
                 class="w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-stone)] px-3 py-2 text-sm text-[var(--ks-ivory)]"
             /></label>
             <label class="block space-y-1 text-xs text-[var(--ks-muted)]"
-              ><span>Verified effect duration (minutes)</span
+              ><span>{{ t('royalCourt.verifiedDuration') }}</span
               ><input
                 v-model.number="skill.effect_duration_minutes"
                 required
@@ -905,7 +979,7 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
                 class="w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-stone)] px-3 py-2 text-sm text-[var(--ks-ivory)]"
             /></label>
             <label class="block space-y-1 text-xs text-[var(--ks-muted)]"
-              ><span>Notes</span
+              ><span>{{ t('royalCourt.notes') }}</span
               ><textarea
                 v-model="skill.notes"
                 rows="2"
@@ -916,7 +990,7 @@ function markSkill(id: string, state: 'scheduled' | 'activated'): void {
               type="submit"
               class="w-full rounded-lg bg-amber-400 px-4 py-2 text-sm font-semibold text-[var(--ks-ink)]"
             >
-              Plan skill
+              {{ t('royalCourt.planSkill') }}
             </button>
           </form>
         </section>

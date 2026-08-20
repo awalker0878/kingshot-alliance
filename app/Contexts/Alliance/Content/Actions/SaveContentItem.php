@@ -14,6 +14,7 @@ use App\Contexts\Alliance\Content\Models\ContentCategory;
 use App\Contexts\Alliance\Content\Models\ContentItem;
 use App\Contexts\Alliance\Content\Services\ContentRevisionWriter;
 use App\Contexts\Alliance\Content\Services\ContentSanitizer;
+use App\Contexts\Alliance\Content\Services\DeactivateAnnouncementBroadcastSchedule;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Carbon\CarbonImmutable;
@@ -28,6 +29,7 @@ final readonly class SaveContentItem
         private AllianceAuthorization $authority,
         private ContentSanitizer $sanitizer,
         private ContentRevisionWriter $revisions,
+        private DeactivateAnnouncementBroadcastSchedule $deactivateBroadcastSchedule,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -47,7 +49,8 @@ final readonly class SaveContentItem
      *   source_label?: string|null,
      *   source_url?: string|null,
      *   game_version?: string|null,
-     *   reviewed_at?: string|null
+     *   reviewed_at?: string|null,
+     *   context_links?: list<array{type:string,key:string}>
      * } $attributes
      */
     public function handle(string $allianceId, string $actorPlayerId, array $attributes, ?string $contentItemId = null): string
@@ -58,6 +61,7 @@ final readonly class SaveContentItem
             $categoryId = $attributes['category_id'] ?? null;
             $this->assertCategory((string) $context->alliance->id, $categoryId);
             $provenance = $this->normalizeProvenance($attributes);
+            $contextLinks = $this->normalizeContextLinks($attributes['context_links'] ?? []);
 
             $item = $contentItemId === null
                 ? new ContentItem([
@@ -87,6 +91,7 @@ final readonly class SaveContentItem
                 'source_url' => $provenance['source_url'],
                 'game_version' => $provenance['game_version'],
                 'reviewed_at' => $provenance['reviewed_at'],
+                'context_links' => $contextLinks === [] ? null : $contextLinks,
                 'body' => $this->sanitizer->body($attributes['body']),
                 'locale' => strtolower(trim($attributes['locale'])),
                 'sort_order' => max(0, (int) ($attributes['sort_order'] ?? 0)),
@@ -99,6 +104,10 @@ final readonly class SaveContentItem
                 'updated_by_player_id' => $context->actor->playerId,
             ])->save();
 
+            if ($contentItemId !== null) {
+                $this->deactivateBroadcastSchedule->handle($item, $context->actor, 'content-revised');
+            }
+
             $revision = $this->revisions->write($item, $context->actor);
             $event = $contentItemId === null ? 'content.created' : 'content.updated';
 
@@ -107,6 +116,7 @@ final readonly class SaveContentItem
                 'visibility' => $item->visibility->value,
                 'type' => $item->type->value,
                 'notify_members' => (bool) $item->notify_members,
+                'context_links' => $contextLinks,
             ]);
             $this->outbox->record($event, (string) $context->alliance->id, $item, [
                 'content_item_id' => $item->id,
@@ -114,6 +124,7 @@ final readonly class SaveContentItem
                 'visibility' => $item->visibility->value,
                 'type' => $item->type->value,
                 'notify_members' => (bool) $item->notify_members,
+                'context_links' => $contextLinks,
             ]);
 
             return (string) $item->id;
@@ -209,5 +220,44 @@ final readonly class SaveContentItem
                 'category_id' => 'The selected category does not belong to this alliance.',
             ]);
         }
+    }
+
+    /**
+     * @param list<array{type:string,key:string}> $links
+     * @return list<array{type:string,key:string}>
+     */
+    private function normalizeContextLinks(array $links): array
+    {
+        $normalized = [];
+        $errors = [];
+
+        foreach ($links as $index => $link) {
+            $type = strtolower(trim($link['type'] ?? ''));
+            $key = strtolower(trim($link['key'] ?? ''));
+
+            if ($type !== 'event_type') {
+                $errors["context_links.$index.type"] = 'The selected content context is not supported.';
+                continue;
+            }
+
+            if (preg_match('/^[a-z0-9]+(?:-[a-z0-9]+)*$/', $key) !== 1 || strlen($key) > 120) {
+                $errors["context_links.$index.key"] = 'The selected Event type context is invalid.';
+                continue;
+            }
+
+            $normalized[$type.':'.$key] = ['type' => $type, 'key' => $key];
+        }
+
+        if (count($normalized) > 20) {
+            $errors['context_links'] = 'Content may link to at most 20 contexts.';
+        }
+
+        if ($errors !== []) {
+            throw ValidationException::withMessages($errors);
+        }
+
+        ksort($normalized);
+
+        return array_values($normalized);
     }
 }

@@ -6,7 +6,14 @@ namespace App\Contexts\GameWorld\GiftCodes\Enums;
 
 enum GiftCodeStatus: string
 {
-    case Active = 'active';
+    case Pending = 'pending';
+    case Valid = 'valid';
+    case Invalid = 'invalid';
     case Expired = 'expired';
-    case Revoked = 'revoked';
+    case Disputed = 'disputed';
+
+    public function redeemable(): bool
+    {
+        return $this === self::Pending || $this === self::Valid || $this === self::Disputed;
+    }
 }

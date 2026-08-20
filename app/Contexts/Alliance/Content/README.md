@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Owns Alliance-authored public/member content, revisions, publication/visibility, categories, media assets, and public-presentation content managed by the Content module.
+Owns Alliance-authored public/member content, revisions, publication/visibility, categories, media assets, and public-presentation content managed by the Content module. Knowledge sources, review dates and generic contextual links are revisioned together; freshness is derived from repository policy.
 
 ## Owned code
 
@@ -14,6 +14,7 @@ Runtime code in this module owns Content records/revisions/categories/media, pub
 - `content.manage` protected management actions;
 - private tenant-scoped media lifecycle; and
 - Content presentation of Recruitment-owned application availability without duplicating that state.
+- stable context-link values consumed by cross-context read models without importing their domain models.
 
 ## Dependencies
 

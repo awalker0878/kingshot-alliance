@@ -43,7 +43,7 @@ final class EventBattlePlanController extends Controller
             parentId: isset($validated['parent_id']) ? (string) $validated['parent_id'] : null,
         );
 
-        return back()->with('status', 'event-objective-saved');
+        return back()->with('actionReceipt', $this->receipt('event-objective-saved'));
     }
 
     public function updateObjective(Request $request, string $occurrence, string $objective, EventCalendarQuery $events, SaveEventObjective $save): RedirectResponse
@@ -68,7 +68,7 @@ final class EventBattlePlanController extends Controller
             objectiveId: $objective,
         );
 
-        return back()->with('status', 'event-objective-saved');
+        return back()->with('actionReceipt', $this->receipt('event-objective-saved'));
     }
 
     public function assignPlayer(Request $request, string $occurrence, string $objective, string $player, AssignEventObjectiveTarget $assign): RedirectResponse
@@ -84,7 +84,7 @@ final class EventBattlePlanController extends Controller
             notes: isset($validated['notes']) ? (string) $validated['notes'] : null,
         );
 
-        return back()->with('status', 'event-objective-assigned');
+        return back()->with('actionReceipt', $this->receipt('event-objective-assigned'));
     }
 
     public function assignRoster(Request $request, string $occurrence, string $objective, string $roster, AssignEventObjectiveTarget $assign): RedirectResponse
@@ -100,7 +100,7 @@ final class EventBattlePlanController extends Controller
             notes: isset($validated['notes']) ? (string) $validated['notes'] : null,
         );
 
-        return back()->with('status', 'event-objective-assigned');
+        return back()->with('actionReceipt', $this->receipt('event-objective-assigned'));
     }
 
     public function removeAssignment(Request $request, string $occurrence, string $assignment, RemoveEventObjectiveAssignment $remove): RedirectResponse
@@ -109,7 +109,7 @@ final class EventBattlePlanController extends Controller
         $actor = $this->player();
         $remove->handle($actor->playerId, $occurrence, $assignment);
 
-        return back()->with('status', 'event-objective-assignment-removed');
+        return back()->with('actionReceipt', $this->receipt('event-objective-assignment-removed'));
     }
 
     /** @return array<string,mixed> */

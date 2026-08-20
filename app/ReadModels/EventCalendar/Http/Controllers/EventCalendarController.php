@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\ReadModels\EventCalendar\Http\Controllers;
 
 use App\Contexts\Accounts\Identity\Models\User;
+use App\Contexts\Alliance\Content\Queries\ContentQuery;
+use App\Contexts\Alliance\Content\Services\ContentPresenter;
 use App\Contexts\GameWorld\Players\Services\PlayerContext;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Operations\Access\Enums\OperationsPermission;
@@ -65,7 +67,8 @@ final class EventCalendarController extends Controller
             'attention' => $attention->for($actor),
             'reminders' => $reminderInbox->for($user),
             'canCreate' => $creationContexts->forPlayer($actor) !== [],
-            'status' => $request->session()->get('status'),
+            'eventBulkPreview' => $request->session()->get('eventBulkPreview'),
+            'eventBulkResult' => $request->session()->get('eventBulkResult'),
         ]);
     }
 
@@ -84,6 +87,8 @@ final class EventCalendarController extends Controller
         EventRegistrationWindow $registrationWindow,
         EventAuthorization $authorization,
         EventTargetResolver $targets,
+        ContentQuery $content,
+        ContentPresenter $contentPresenter,
     ): Response {
         $user = $this->user($request);
         $actor = $this->player();
@@ -100,6 +105,12 @@ final class EventCalendarController extends Controller
             $target->targetId,
             OperationsPermission::from((string) $event->typeScope->manage_permission_key),
         );
+        $contextualKnowledge = $event->scope === EventScope::Alliance && is_string($event->alliance_id)
+            ? $content->contextualForEventType(
+                (string) $event->alliance_id,
+                (string) $event->eventType->slug,
+            )->map(fn ($item): array => $contentPresenter->item($item))->values()->all()
+            : [];
 
         $eligibleActivePlayer = $participantAuthorization->eligible($event, $actor)
             ? $actor
@@ -140,6 +151,7 @@ final class EventCalendarController extends Controller
                 'playerIntelligence' => $eligibleActivePlayer instanceof PlayerReference ? $intelligence->forPlayer($event, $eligibleActivePlayer) : null,
                 'rosters' => $eligibleActivePlayer instanceof PlayerReference ? $rosters->forPlayer($eventOccurrence, $eligibleActivePlayer) : [],
                 'rallies' => $rallies->forOccurrence($eventOccurrence, $eligibleActivePlayer),
+                'knowledge' => $contextualKnowledge,
             ],
         ]);
     }

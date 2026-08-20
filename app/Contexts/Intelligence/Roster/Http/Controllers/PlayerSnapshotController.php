@@ -25,6 +25,6 @@ final class PlayerSnapshotController extends Controller
         $scope = $context->scope();
         $record->handle($scope->allianceId, $scope->playerId, $entry, $validated);
 
-        return back()->with('status', 'player-snapshot-recorded');
+        return back()->with('actionReceipt', $this->receipt('player-snapshot-recorded'));
     }
 }

@@ -15,7 +15,7 @@ return new class extends Migration
             $table->foreignUlid('source_alliance_id')->constrained('alliances')->cascadeOnDelete();
             $table->foreignUlid('recipient_alliance_id')->nullable()->constrained('alliances')->nullOnDelete();
             $table->foreignUlid('kingdom_id')->constrained('kingdoms')->restrictOnDelete();
-            $table->char('invitation_token_hash', 64)->unique();
+            $table->char('invitation_token_hash', 64)->nullable()->unique();
             $table->string('state', 24)->default('pending');
             $table->foreignUlid('invited_by_player_id')->constrained('players')->restrictOnDelete();
             $table->foreignUlid('accepted_by_player_id')->nullable()->constrained('players')->nullOnDelete();

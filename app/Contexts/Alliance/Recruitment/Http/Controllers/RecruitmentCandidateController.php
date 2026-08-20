@@ -319,7 +319,7 @@ final class RecruitmentCandidateController extends Controller
             isset($validated['next_action_at']) && is_string($validated['next_action_at']) ? CarbonImmutable::parse($validated['next_action_at'], $alliance->timezone) : null,
         );
 
-        return back();
+        return back()->with('actionReceipt', $this->receipt('recruitment-candidate-stage-updated'));
     }
 
     public function assignReviewer(
@@ -332,7 +332,7 @@ final class RecruitmentCandidateController extends Controller
         $scope = $context->scope();
         $assign->handle($scope->playerId, $scope->allianceId, $candidate, $player);
 
-        return back();
+        return back()->with('actionReceipt', $this->receipt('recruitment-reviewer-assigned'));
     }
 
     public function addNote(
@@ -345,7 +345,7 @@ final class RecruitmentCandidateController extends Controller
         $scope = $context->scope();
         $add->handle($scope->playerId, $scope->allianceId, $candidate, $validated['body']);
 
-        return back();
+        return back()->with('actionReceipt', $this->receipt('recruitment-note-added'));
     }
 
     public function tag(
@@ -358,7 +358,7 @@ final class RecruitmentCandidateController extends Controller
         $scope = $context->scope();
         $tag->handle($scope->playerId, $scope->allianceId, $candidate, $validated['name']);
 
-        return back();
+        return back()->with('actionReceipt', $this->receipt('recruitment-tag-added'));
     }
 
     public function merge(
@@ -378,7 +378,9 @@ final class RecruitmentCandidateController extends Controller
             $validated['reason'] ?? null,
         );
 
-        return redirect()->route('alliance.recruitment.candidates.show', $mergedCandidateId);
+        return redirect()
+            ->route('alliance.recruitment.candidates.show', $mergedCandidateId)
+            ->with('actionReceipt', $this->receipt('recruitment-candidates-merged'));
     }
 
     public function prepareCommunication(
@@ -391,7 +393,7 @@ final class RecruitmentCandidateController extends Controller
         $scope = $context->scope();
         $prepare->handle($scope->playerId, $scope->allianceId, $candidate, $template);
 
-        return back();
+        return back()->with('actionReceipt', $this->receipt('recruitment-communication-prepared'));
     }
 
     public function markCommunicationSent(
@@ -403,7 +405,7 @@ final class RecruitmentCandidateController extends Controller
         $scope = $context->scope();
         $mark->handle($scope->playerId, $scope->allianceId, $communication);
 
-        return back();
+        return back()->with('actionReceipt', $this->receipt('recruitment-communication-marked-sent'));
     }
 
     public function convert(
@@ -430,7 +432,7 @@ final class RecruitmentCandidateController extends Controller
             );
         }
 
-        return back();
+        return back()->with('actionReceipt', $this->receipt('recruitment-membership-invite-prepared'));
     }
 
     public function updateOnboarding(
@@ -450,7 +452,7 @@ final class RecruitmentCandidateController extends Controller
             RecruitmentOnboardingStatus::from($validated['status']),
         );
 
-        return back();
+        return back()->with('actionReceipt', $this->receipt('recruitment-onboarding-updated'));
     }
 
     private function candidate(string $allianceId, string $candidate): RecruitmentCandidate

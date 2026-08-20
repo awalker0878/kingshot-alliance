@@ -16,6 +16,7 @@ final readonly class SetNotificationPreference
     public const NOTIFICATION_TYPES = [
         'alliance.announcement',
         'event.reminder',
+        'gift_code.expiring',
         'king_perks.reminder',
     ];
 

@@ -4,6 +4,7 @@ import { computed, reactive } from 'vue';
 
 import RoomBanner from '@/components/game/RoomBanner.vue';
 import StatSeal from '@/components/game/StatSeal.vue';
+import CursorPagination from '@/components/ui/CursorPagination.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
@@ -42,7 +43,14 @@ const props = defineProps<{
   user: { name: string; email: string };
   alliance: { id: string; name: string; kingdom: string | null };
   canManage: boolean;
-  entries: Entry[];
+  entryPage: {
+    items: Entry[];
+    nextCursor: string | null;
+    hasMore: boolean;
+    pageSize: number;
+    isFirstPage: boolean;
+  };
+  summary: { total: number; current: number; stale: number; missing: number; linked: number };
   filters: Filters;
   roleOptions: string[];
   staleAfterDays: number;
@@ -50,16 +58,21 @@ const props = defineProps<{
 
 const { locale, t, formatDate, formatNumber } = useLocale();
 const filters = reactive<Filters>({ ...props.filters });
-
-const snapshotCounts = computed(() => {
-  const counts = { current: 0, stale: 0, missing: 0 };
-  for (const entry of props.entries) counts[snapshotState(entry)] += 1;
-  return counts;
+const entries = computed(() => props.entryPage.items);
+const firstRosterPageUrl = computed(() => {
+  const query = new URLSearchParams(
+    Object.fromEntries(Object.entries(filters).filter(([, value]) => value !== '')),
+  ).toString();
+  return query === '' ? '/alliance/roster' : `/alliance/roster?${query}`;
 });
 
-const linkedResults = computed(
-  () => props.entries.filter((entry) => entry.membership !== null).length,
-);
+const snapshotCounts = computed(() => ({
+  current: props.summary.current,
+  stale: props.summary.stale,
+  missing: props.summary.missing,
+}));
+
+const linkedResults = computed(() => props.summary.linked);
 
 function applyFilters(): void {
   router.get(
@@ -76,6 +89,19 @@ function clearFilters(): void {
   filters.role = '';
   filters.observation = '';
   applyFilters();
+}
+
+function nextRosterPage(): void {
+  if (!props.entryPage.nextCursor) return;
+
+  router.get(
+    '/alliance/roster',
+    {
+      ...Object.fromEntries(Object.entries(filters).filter(([, value]) => value !== '')),
+      cursor: props.entryPage.nextCursor,
+    },
+    { preserveScroll: true, preserveState: true },
+  );
 }
 
 function snapshotState(entry: Entry): 'current' | 'stale' | 'missing' {
@@ -121,8 +147,8 @@ function rosterTone(value: string): 'success' | 'warning' | 'info' {
 }
 
 function snapshotPercent(value: number): string {
-  if (props.entries.length === 0) return '0%';
-  return `${Math.round((value / props.entries.length) * 100)}%`;
+  if (props.summary.total === 0) return '0%';
+  return `${Math.round((value / props.summary.total) * 100)}%`;
 }
 </script>
 
@@ -152,7 +178,7 @@ function snapshotPercent(value: number): string {
     </RoomBanner>
 
     <section class="mt-4 grid gap-3 sm:grid-cols-2 2xl:grid-cols-4">
-      <StatSeal :label="t('roster.results')" :value="formatNumber(entries.length)" icon="♟" />
+      <StatSeal :label="t('roster.results')" :value="formatNumber(summary.total)" icon="♟" />
       <StatSeal
         :label="t('roster.current')"
         :value="formatNumber(snapshotCounts.current)"
@@ -286,7 +312,12 @@ function snapshotPercent(value: number): string {
               <p class="ks-kicker">{{ t('roster.title') }}</p>
               <h2 id="roster-results-heading" class="sr-only">{{ t('roster.results') }}</h2>
               <p class="mt-1 text-xs text-[var(--ks-muted)]">
-                {{ t('roster.results') }}: {{ formatNumber(entries.length) }}
+                {{
+                  t('roster.pageResults', {
+                    count: formatNumber(entries.length),
+                    total: formatNumber(summary.total),
+                  })
+                }}
               </p>
             </div>
           </div>
@@ -445,6 +476,14 @@ function snapshotPercent(value: number): string {
             <p class="ks-display text-xl font-semibold">{{ t('roster.noResults') }}</p>
             <p class="mt-2 text-sm">{{ t('roster.noResultsBody') }}</p>
           </div>
+          <CursorPagination
+            v-if="entries.length"
+            :summary="t('roster.pageSizeHelp', { pageSize: formatNumber(entryPage.pageSize) })"
+            :is-first-page="entryPage.isFirstPage"
+            :first-page-href="firstRosterPageUrl"
+            :has-more="entryPage.hasMore"
+            @next="nextRosterPage"
+          />
         </section>
       </div>
 
@@ -488,7 +527,7 @@ function snapshotPercent(value: number): string {
           >
             <p class="ks-kicker">{{ t('roster.membershipLinkage') }}</p>
             <p class="ks-display mt-2 text-3xl font-semibold text-[var(--ks-gold-bright)]">
-              {{ formatNumber(linkedResults) }} / {{ formatNumber(entries.length) }}
+              {{ formatNumber(linkedResults) }} / {{ formatNumber(summary.total) }}
             </p>
             <p class="mt-1 text-xs text-[var(--ks-muted)]">{{ t('roster.linked') }}</p>
           </div>
