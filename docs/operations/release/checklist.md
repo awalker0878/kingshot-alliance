@@ -6,6 +6,7 @@ Status: Current
 
 - exact release commit selected;
 - tests/static analysis/frontend build/security checks green;
+- clean PostgreSQL installation succeeds through every migration;
 - production JavaScript and stylesheet budgets green;
 - migration and rollback/recovery impact reviewed;
 - documentation updated for changed contracts/runbooks.
@@ -32,3 +33,7 @@ Status: Current
 - queues/Horizon/outbox/integrations observed;
 - release evidence recorded;
 - production status changed only through the governance approval record.
+
+## Release evidence
+
+The pull-request head must retain green results for PHP tests, Pint, PHPStan, frontend lint/format/type/build, architecture verification, dependency review, CodeQL, visual regression, production image build and scanning, ephemeral staging, and backup/restore. A rerun replaces earlier evidence only when it executes the same commit.

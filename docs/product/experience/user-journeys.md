@@ -62,3 +62,17 @@ Authenticate User + required account assurance
 ```
 
 Platform administration never substitutes for selecting a Player when performing game-domain behavior.
+
+## High-risk mutation and recovery
+
+```text
+Open owner-context action
+ -> review scope and irreversible effects
+ -> confirm in the accessible modal
+ -> submit once while controls remain busy
+ -> receive a localized success receipt or field/action error
+ -> inspect audit/delivery state
+ -> retry, cancel, correct or escalate only through the capability's supported recovery path
+```
+
+Browser-native prompts are not part of a supported journey. A high-risk action must preserve keyboard focus, expose its title and description to assistive technology, prevent duplicate submission, and keep the active Alliance/Player scope visible.

@@ -28,3 +28,17 @@ This is the user/product view of implemented capability groups. Architectural ow
 | Dashboards/history | Compose cross-context user-facing views without changing source ownership. | ReadModels |
 
 This catalogue should change when a real product outcome changes, not for internal class/file movement.
+
+## Assurance contract
+
+Every capability in the catalogue carries the same five-part release obligation; a row is not considered delivered without it.
+
+| Obligation | Authoritative evidence |
+| --- | --- |
+| Owner | The architectural owner in this catalogue and the canonical [capability map](../architecture/capability-map.md). Owner contexts retain writes; cross-context pages use read models or workflows. |
+| Permission model | Active-Player and concrete-resource authorization through owner policies and services, indexed by the [permission reference](../reference/permissions.md). Public/read-only exceptions are explicit contracts, never implicit fallbacks. |
+| Tests | Owner behavior, authorization, idempotency, architecture, frontend and applicable visual coverage described by the [testing contract](../codebase/testing.md). |
+| Observability | Audit records for material mutations, correlation-aware request/job logging, outbox and delivery state, and the operational signals defined by [observability](../operations/observability.md). |
+| Recovery | User correction or cancellation where the domain permits it, bounded retry/replay for external effects, operator diagnostics, and the applicable [recovery runbooks](../operations/recovery/README.md). |
+
+Capability-specific reference pages refine these obligations. They may strengthen authorization, diagnostics, or recovery rules but may not omit them.

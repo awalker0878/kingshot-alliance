@@ -4,7 +4,7 @@ Status: Current — Architecture V3
 
 Architecture V3 verification must test both **source structure** and **business behavior**. A passing directory check alone is not architecture certification.
 
-`/tests` and GitHub Actions enforce this contract on every pull request. The `Architecture V3 Verification` workflow validates source structure, boots routes, migrates the V3 schema, runs PHPStan and executes the full PHPUnit suite; CI also runs formatting, frontend quality/build, dependency review, CodeQL and visual-regression checks.
+`/tests` and GitHub Actions enforce this contract on every pull request. The `Architecture V3 Verification` workflow validates source structure, boots routes, migrates the V3 schema, runs PHPStan and executes the full PHPUnit suite; CI also proves a clean PostgreSQL installation through every migration and runs formatting, frontend quality/build, dependency review, CodeQL and visual-regression checks.
 
 ## Structural architecture verification
 
@@ -44,6 +44,10 @@ Important areas include:
 ## Visual regression baselines
 
 Playwright visual checks run against the Chrome runtime already supplied by the GitHub-hosted runner. A baseline may be refreshed only when the rendered change is intentional and has been visually reviewed; unrelated snapshots must remain byte-for-byte unchanged.
+
+## Fresh-install verification
+
+The primary backend job starts from an empty PostgreSQL service and runs `php artisan migrate:fresh --force` followed by `php artisan migrate:status --no-interaction`. This is the installation contract for an undeployed application: migrations must create a usable schema without a compatibility path, manual repair, seed dependency, or pre-existing database state.
 
 ## Full architecture certification
 
