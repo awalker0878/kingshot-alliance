@@ -108,4 +108,4 @@ npm run check
 npm run build
 ```
 
-The legacy Playwright/visual suite is deliberately outside this rewrite and requires a separate visual-test reconstruction.
+The current Playwright suite lives under `tests/v3/Visual`. It verifies public entry surfaces and the multi-Governor identity switcher at desktop and mobile viewports with reduced motion enabled.

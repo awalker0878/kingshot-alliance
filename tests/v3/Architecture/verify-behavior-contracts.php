@@ -16,18 +16,18 @@ if (str_contains($phpunit, '<directory>tests/v2</directory>')) {
     $record('PHPUNIT_V2_ACTIVE', 'tests/v2 must not remain an active PHPUnit suite.');
 }
 
-$legacyPhp = [];
+$legacyFiles = [];
 $legacyRoot = $root.'/tests/v2';
 if (is_dir($legacyRoot)) {
     $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($legacyRoot));
     foreach ($iterator as $file) {
-        if ($file->isFile() && $file->getExtension() === 'php') {
-            $legacyPhp[] = str_replace($root.'/', '', $file->getPathname());
+        if ($file->isFile()) {
+            $legacyFiles[] = str_replace($root.'/', '', $file->getPathname());
         }
     }
 }
-if ($legacyPhp !== []) {
-    $record('LEGACY_V2_PHP_TESTS', implode(', ', $legacyPhp));
+if ($legacyFiles !== []) {
+    $record('LEGACY_V2_TESTS', implode(', ', $legacyFiles));
 }
 
 $requiredBehaviorTests = [
