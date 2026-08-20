@@ -559,10 +559,6 @@ function tone(value: string): string {
         {{ t('kingdomP7A.noCandidates') }}
       </p>
     </section>
-    <ConfirmActionDialog
-      v-bind="dialog"
-      @confirm="confirmAction"
-      @cancel="cancelConfirmation"
-    />
+    <ConfirmActionDialog v-bind="dialog" @confirm="confirmAction" @cancel="cancelConfirmation" />
   </AppLayout>
 </template>

@@ -703,10 +703,6 @@ function formatInZone(value: string, timeZone: string): string {
         </button>
       </aside>
     </div>
-    <ConfirmActionDialog
-      v-bind="dialog"
-      @confirm="confirmAction"
-      @cancel="cancelConfirmation"
-    />
+    <ConfirmActionDialog v-bind="dialog" @confirm="confirmAction" @cancel="cancelConfirmation" />
   </AppLayout>
 </template>

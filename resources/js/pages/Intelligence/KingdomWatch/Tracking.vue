@@ -407,10 +407,6 @@ function archiveTracking(entry: TrackingRow): void {
       </form>
     </section>
 
-    <ConfirmActionDialog
-      v-bind="dialog"
-      @confirm="confirmAction"
-      @cancel="cancelConfirmation"
-    />
+    <ConfirmActionDialog v-bind="dialog" @confirm="confirmAction" @cancel="cancelConfirmation" />
   </main>
 </template>

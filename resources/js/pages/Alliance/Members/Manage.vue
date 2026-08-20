@@ -441,10 +441,6 @@ function stateTone(value: string): 'success' | 'warning' | 'info' {
         <div v-else class="ks-fantasy-empty mt-4">{{ t('rosterManage.noEntries') }}</div>
       </section>
     </div>
-    <ConfirmActionDialog
-      v-bind="dialog"
-      @confirm="confirmAction"
-      @cancel="cancelConfirmation"
-    />
+    <ConfirmActionDialog v-bind="dialog" @confirm="confirmAction" @cancel="cancelConfirmation" />
   </AppLayout>
 </template>

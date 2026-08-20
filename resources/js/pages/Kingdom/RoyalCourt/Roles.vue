@@ -167,10 +167,6 @@ function removeRole(assignment: Assignment): void {
         </p>
       </section>
     </div>
-    <ConfirmActionDialog
-      v-bind="dialog"
-      @confirm="confirmAction"
-      @cancel="cancelConfirmation"
-    />
+    <ConfirmActionDialog v-bind="dialog" @confirm="confirmAction" @cancel="cancelConfirmation" />
   </AppLayout>
 </template>

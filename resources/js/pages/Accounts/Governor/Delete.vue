@@ -164,10 +164,6 @@ function requestTone(status: string): 'success' | 'warning' | 'danger' | 'info' 
       </div>
     </section>
 
-    <ConfirmActionDialog
-      v-bind="dialog"
-      @confirm="confirmAction"
-      @cancel="cancelConfirmation"
-    />
+    <ConfirmActionDialog v-bind="dialog" @confirm="confirmAction" @cancel="cancelConfirmation" />
   </AppLayout>
 </template>

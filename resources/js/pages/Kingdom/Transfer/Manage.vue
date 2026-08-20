@@ -1035,10 +1035,6 @@ const labelClass =
         {{ t('kingdomP7D.noMutableCycle') }}
       </p>
     </section>
-    <ConfirmActionDialog
-      v-bind="dialog"
-      @confirm="confirmAction"
-      @cancel="cancelConfirmation"
-    />
+    <ConfirmActionDialog v-bind="dialog" @confirm="confirmAction" @cancel="cancelConfirmation" />
   </AppLayout>
 </template>

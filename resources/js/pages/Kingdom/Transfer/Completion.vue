@@ -318,10 +318,6 @@ function timestamp(value: string): string {
         {{ t('kingdomP7D.noCompletionCycleHelp') }}
       </p>
     </section>
-    <ConfirmActionDialog
-      v-bind="dialog"
-      @confirm="confirmAction"
-      @cancel="cancelConfirmation"
-    />
+    <ConfirmActionDialog v-bind="dialog" @confirm="confirmAction" @cancel="cancelConfirmation" />
   </AppLayout>
 </template>
