@@ -51,11 +51,9 @@ function applyUpdate(): void {
   const worker = updateRegistration.value?.waiting;
   if (!worker) return;
 
-  navigator.serviceWorker.addEventListener(
-    'controllerchange',
-    () => window.location.reload(),
-    { once: true },
-  );
+  navigator.serviceWorker.addEventListener('controllerchange', () => window.location.reload(), {
+    once: true,
+  });
   worker.postMessage({ type: 'SKIP_WAITING' });
 }
 
