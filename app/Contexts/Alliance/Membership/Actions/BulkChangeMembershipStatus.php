@@ -35,10 +35,12 @@ final readonly class BulkChangeMembershipStatus
         foreach ($preview['items'] as $item) {
             if ($item['outcome'] === 'skipped') {
                 $items[] = BulkItemResult::skipped($item['itemId'], $item['label'], $item['code']);
+
                 continue;
             }
             if ($item['outcome'] !== 'ready') {
                 $items[] = BulkItemResult::failed($item['itemId'], $item['label'], $item['code']);
+
                 continue;
             }
 

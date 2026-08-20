@@ -17,7 +17,7 @@ final readonly class PreviewEventBulkCancellation
     public function __construct(private EventCalendarQuery $events) {}
 
     /**
-     * @param non-empty-list<string> $eventIds
+     * @param  non-empty-list<string>  $eventIds
      * @return array{
      *   operation: string,
      *   items: non-empty-list<array{itemId: string, label: string, fromStatus: string|null, outcome: string, code: string}>,
@@ -36,6 +36,7 @@ final readonly class PreviewEventBulkCancellation
                 $event = $this->events->eventForManage($actor, $eventId);
             } catch (AuthorizationException|ModelNotFoundException) {
                 $items[] = $this->item($eventId, $eventId, null, 'blocked', 'event-unavailable');
+
                 continue;
             }
 

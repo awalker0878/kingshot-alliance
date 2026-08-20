@@ -15,7 +15,7 @@ use Illuminate\Support\Carbon;
 
 final class NotificationDeliveryService
 {
-    /** @param array<string, mixed> $metadata */
+    /** @param  array<string, mixed>  $metadata */
     public function queue(
         string $notificationType,
         int $recipientUserId,
@@ -91,7 +91,7 @@ final class NotificationDeliveryService
      * Cross-context delivery contract that exposes scalar results instead of
      * Communications-owned persistence models.
      *
-     * @param array<string, mixed> $metadata
+     * @param  array<string, mixed>  $metadata
      */
     public function queueEnabledChannelBatch(
         string $notificationType,
@@ -125,6 +125,13 @@ final class NotificationDeliveryService
                 static fn (NotificationDelivery $delivery): string => (string) $delivery->channel,
                 $deliveries,
             ))),
+            array_values(array_map(
+                static fn (NotificationDelivery $delivery): string => (string) $delivery->id,
+                array_filter(
+                    $deliveries,
+                    static fn (NotificationDelivery $delivery): bool => $delivery->wasRecentlyCreated,
+                ),
+            )),
         );
     }
 

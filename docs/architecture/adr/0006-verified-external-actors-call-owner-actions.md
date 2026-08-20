@@ -16,7 +16,7 @@ Platform/Integrations owns external-actor pairing and action receipts:
 2. A scoped Alliance API credential claims the code with a stable Discord or Telegram user ID. Only keyed hashes and a short display hint are persisted.
 3. Every actor write resolves an active Alliance/provider link server-side. The API never accepts a Player ID as authority.
 4. Every normalized write requires an `Idempotency-Key`. Platform reserves a receipt inside the transaction, returns the stored result for an exact replay and rejects key reuse with different input.
-5. `Workflows/ExternalEventParticipation` coordinates Platform identity with Operations/Participation owner actions. Operations continues to decide Event capability, self authorization, registration windows, capacity and waitlist behavior.
+5. `Workflows/ExternalEventParticipation` owns the multi-context HTTP adapter and coordinates Platform identity with Operations/Participation owner actions. Context packages never depend upward on the workflow. Operations continues to decide Event capability, self authorization, registration windows, capacity and waitlist behavior.
 6. Link revocation, API credential state and scope are revalidated before each write.
 
 ## Consequences

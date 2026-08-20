@@ -85,6 +85,7 @@ A caller does not manipulate another context's Eloquent models. It calls an expl
 A command requiring more than one write owner is coordinated through a Workflow. V3 keeps Workflows intentionally small:
 
 - `AccountOnboarding`
+- `ExternalEventParticipation`
 - `KingdomGovernance`
 
 Player activation belongs to `GameWorld/Players`; Kingdom transfer belongs to `GameWorld/KingdomTransfers`.

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Platform\Integrations\Actions;
 
-use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceWriteAuthorization;
 use App\Contexts\Platform\Integrations\Enums\ExternalActorProvider;
 use App\Contexts\Platform\Integrations\Models\ExternalActorPairingCode;
@@ -30,11 +29,7 @@ final readonly class IssueExternalActorPairingCode
         ExternalActorProvider $provider,
     ): IssuedExternalActorPairingCode {
         return DB::transaction(function () use ($allianceId, $actorPlayerId, $provider): IssuedExternalActorPairingCode {
-            [$alliance, $actor] = $this->allianceAuthority->authorizeExclusive(
-                $actorPlayerId,
-                $allianceId,
-                AlliancePermission::View,
-            );
+            [$alliance, $actor] = $this->allianceAuthority->authorizeMemberExclusive($actorPlayerId, $allianceId);
             $now = now();
             ExternalActorPairingCode::query()
                 ->where('alliance_id', $alliance->allianceId)

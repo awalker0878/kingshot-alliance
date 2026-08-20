@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use App\Contexts\Platform\Integrations\Http\Controllers\IntegrationManagementController;
 use App\Contexts\Platform\Integrations\Http\Controllers\ExternalActorConnectionController;
+use App\Contexts\Platform\Integrations\Http\Controllers\IntegrationManagementController;
 use App\ReadModels\ExternalActorConnections\Http\Controllers\ExternalActorConnectionsController;
 use Illuminate\Support\Facades\Route;
 

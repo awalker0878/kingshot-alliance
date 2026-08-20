@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Contexts\Platform\Integrations\Http\Controllers;
+namespace App\Workflows\ExternalEventParticipation\Http\Controllers;
 
 use App\Contexts\Operations\Participation\Enums\EventResponseChoice;
 use App\Contexts\Platform\Integrations\Actions\ClaimExternalActorLink;

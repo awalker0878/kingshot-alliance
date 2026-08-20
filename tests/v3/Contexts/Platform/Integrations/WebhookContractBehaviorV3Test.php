@@ -14,9 +14,9 @@ use App\Shared\Infrastructure\Messaging\Outbox\Events\OutboxPublished;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Validation\ValidationException;
-use UnexpectedValueException;
 use Tests\v3\Support\ScenarioFactory;
 use Tests\v3\TestCase;
+use UnexpectedValueException;
 
 final class WebhookContractBehaviorV3Test extends TestCase
 {

@@ -165,6 +165,34 @@ final class NotificationDeliveryBehaviorV3Test extends TestCase
         );
     }
 
+    public function test_scalar_delivery_batch_distinguishes_new_deliveries_from_idempotent_replays(): void
+    {
+        $scenarios = app(ScenarioFactory::class);
+        $account = $scenarios->account();
+        $player = $scenarios->player($account->userId);
+        $service = app(NotificationDeliveryService::class);
+
+        $first = $service->queueEnabledChannelBatch(
+            notificationType: 'gift_code.expiring',
+            recipientUserId: $account->userId,
+            playerId: $player->playerId,
+            dueAt: now(),
+            idempotencyKey: hash('sha256', 'scalar-delivery-batch'),
+        );
+        $replay = $service->queueEnabledChannelBatch(
+            notificationType: 'gift_code.expiring',
+            recipientUserId: $account->userId,
+            playerId: $player->playerId,
+            dueAt: now(),
+            idempotencyKey: hash('sha256', 'scalar-delivery-batch'),
+        );
+
+        self::assertTrue($first->hasCreatedDeliveries());
+        self::assertFalse($replay->hasCreatedDeliveries());
+        self::assertSame($first->deliveryIds, $replay->deliveryIds);
+        self::assertSame(1, NotificationDelivery::query()->count());
+    }
+
     public function test_bulk_inbox_updates_preview_state_revalidate_ownership_and_report_each_item(): void
     {
         $scenarios = app(ScenarioFactory::class);

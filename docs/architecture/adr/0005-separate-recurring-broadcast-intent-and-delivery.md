@@ -14,7 +14,7 @@ The system separates the lifecycle into three records/contracts:
 
 1. Alliance Content owns one optional `AnnouncementBroadcastSchedule` per content item. ISO weekdays, local `HH:MM`, IANA time zone, optional end and next/last occurrence make schedule intent explicit.
 2. Alliance Content owns an immutable `AnnouncementBroadcastRun` for each materialized occurrence. A deterministic key makes worker replay safe and the run retains the recipient/delivery totals known at fanout time.
-3. Communications owns `NotificationDelivery` status, provider attempts, errors, acknowledgements and retry budget. Its source-facing queue contract returns a scalar `QueuedDeliveryBatch`, not delivery models.
+3. Communications owns `NotificationDelivery` status, provider attempts, errors, acknowledgements and retry budget. Its source-facing queue contract returns a scalar `QueuedDeliveryBatch` containing delivery IDs, newly created delivery IDs, and channel names—not delivery models.
 
 The cross-context management projection lives in `ReadModels/AnnouncementBroadcastManagement`. Content write controllers call only owner actions. Selective recovery first authorizes the Alliance run, then Communications locks and revalidates up to 50 concrete failed deliveries against notification type, subject and run metadata.
 

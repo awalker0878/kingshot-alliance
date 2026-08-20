@@ -117,9 +117,10 @@ Code belongs to the capability that owns its behavior.
 
 ## Workflows
 
-Only genuine multi-context command processes belong in `app/Workflows`. V3 has two intended workflow packages:
+Only genuine multi-context command processes belong in `app/Workflows`. V3 has three intended workflow packages:
 
 - `AccountOnboarding`
+- `ExternalEventParticipation`
 - `KingdomGovernance`
 
 Player activation/context belongs to `GameWorld/Players`. Kingdom transfers belong to `GameWorld/KingdomTransfers`.

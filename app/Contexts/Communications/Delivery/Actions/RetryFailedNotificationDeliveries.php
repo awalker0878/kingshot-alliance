@@ -15,8 +15,8 @@ final readonly class RetryFailedNotificationDeliveries
     public function __construct(private AuditRecorder $audit) {}
 
     /**
-     * @param non-empty-list<string> $deliveryIds
-     * @param array<string, bool|int|string> $requiredMetadata
+     * @param  non-empty-list<string>  $deliveryIds
+     * @param  array<string, bool|int|string>  $requiredMetadata
      * @return list<string>
      */
     public function handle(
@@ -84,8 +84,8 @@ final readonly class RetryFailedNotificationDeliveries
     }
 
     /**
-     * @param array<string, mixed>|null $metadata
-     * @param array<string, bool|int|string> $required
+     * @param  array<string, mixed>|null  $metadata
+     * @param  array<string, bool|int|string>  $required
      */
     private function metadataMatches(?array $metadata, array $required): bool
     {

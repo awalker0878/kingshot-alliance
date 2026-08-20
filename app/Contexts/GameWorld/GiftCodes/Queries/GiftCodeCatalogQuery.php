@@ -18,7 +18,7 @@ final class GiftCodeCatalogQuery
     }
 
     /**
-     * @param non-empty-list<string> $playerIds
+     * @param  non-empty-list<string>  $playerIds
      * @return Collection<int, GiftCode>
      */
     public function forPlayers(array $playerIds, int $limit = 100): Collection

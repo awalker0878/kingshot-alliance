@@ -22,7 +22,7 @@ final readonly class ExecuteExternalActorAction
     ) {}
 
     /**
-     * @param callable(): array<string, mixed> $execute
+     * @param  callable(): array<string, mixed>  $execute
      */
     public function handle(
         ExternalActorLinkReference $actor,

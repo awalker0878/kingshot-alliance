@@ -28,10 +28,12 @@ final readonly class BulkCancelEvents
         foreach ($preview['items'] as $item) {
             if ($item['outcome'] === 'skipped') {
                 $items[] = BulkItemResult::skipped($item['itemId'], $item['label'], $item['code']);
+
                 continue;
             }
             if ($item['outcome'] !== 'ready') {
                 $items[] = BulkItemResult::failed($item['itemId'], $item['label'], $item['code']);
+
                 continue;
             }
 

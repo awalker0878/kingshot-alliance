@@ -29,7 +29,7 @@ Inbox updates follow the shared previewed-bulk contract for selections of up to 
 
 The scheduler runs `notifications:deliver` every minute with overlap protection. Source schedulers materialize only due intent; Communications remains responsible for provider retry timing.
 
-Source contexts never inspect `NotificationDelivery` models. `queueEnabledChannelBatch` returns only delivery IDs and channel names. A source-specific recovery action first authorizes its aggregate, then asks Communications to requeue bounded concrete failed IDs with exact notification, subject and metadata constraints. Communications repeats status and attempt-budget checks while holding delivery locks.
+Source contexts never inspect `NotificationDelivery` models. `queueEnabledChannelBatch` returns only delivery IDs, newly created delivery IDs, and channel names. A source-specific recovery action first authorizes its aggregate, then asks Communications to requeue bounded concrete failed IDs with exact notification, subject and metadata constraints. Communications repeats status and attempt-budget checks while holding delivery locks.
 
 ## Security rules
 

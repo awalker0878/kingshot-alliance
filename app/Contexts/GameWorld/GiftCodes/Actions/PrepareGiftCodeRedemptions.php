@@ -34,6 +34,7 @@ final readonly class PrepareGiftCodeRedemptions
             $player = $this->players->findOwnedByUser($ownerUserId, $playerId);
             if ($player === null) {
                 $items[] = BulkItemResult::failed($playerId, $playerId, 'governor-unavailable');
+
                 continue;
             }
 
@@ -43,12 +44,14 @@ final readonly class PrepareGiftCodeRedemptions
                 ->first();
             if ($existing instanceof GiftCodeRedemption && $existing->status->successful()) {
                 $items[] = BulkItemResult::skipped($playerId, $player->currentName, 'already-redeemed');
+
                 continue;
             }
             if ($existing instanceof GiftCodeRedemption
                 && $existing->status->retryable()
                 && $existing->next_attempt_at?->isFuture()) {
                 $items[] = BulkItemResult::skipped($playerId, $player->currentName, 'retry-not-due');
+
                 continue;
             }
 

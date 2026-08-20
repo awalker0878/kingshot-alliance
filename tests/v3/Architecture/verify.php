@@ -340,11 +340,11 @@ foreach ($phpFiles($app.'/Contexts/Communications') as $file) {
     }
 }
 
-// Only the two intended cross-context workflows may exist.
+// Only the intended cross-context workflows may exist.
 if (is_dir($app.'/Workflows')) {
     $workflowDirs = array_values(array_filter(scandir($app.'/Workflows') ?: [], static fn (string $name): bool => $name !== '.' && $name !== '..' && is_dir($app.'/Workflows/'.$name)));
     sort($workflowDirs);
-    $allowed = ['AccountOnboarding', 'KingdomGovernance'];
+    $allowed = ['AccountOnboarding', 'ExternalEventParticipation', 'KingdomGovernance'];
     sort($allowed);
     if ($workflowDirs !== $allowed) {
         $record('WORKFLOW_SET', $app.'/Workflows', 'Expected '.implode(', ', $allowed).'; found '.implode(', ', $workflowDirs));

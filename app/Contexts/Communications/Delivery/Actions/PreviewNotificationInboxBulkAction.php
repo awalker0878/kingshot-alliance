@@ -14,7 +14,7 @@ final class PreviewNotificationInboxBulkAction
     public const DISMISS = 'dismiss';
 
     /**
-     * @param non-empty-list<string> $deliveryIds
+     * @param  non-empty-list<string>  $deliveryIds
      * @return array{
      *   operation: string,
      *   items: non-empty-list<array{itemId: string, label: string, fromStatus: string|null, outcome: string, code: string}>,
@@ -51,6 +51,7 @@ final class PreviewNotificationInboxBulkAction
             $delivery = $deliveries->get($deliveryId);
             if (! $delivery instanceof NotificationDelivery) {
                 $items[] = $this->item($deliveryId, $deliveryId, null, 'blocked', 'notification-unavailable');
+
                 continue;
             }
 

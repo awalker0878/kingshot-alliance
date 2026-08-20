@@ -83,8 +83,8 @@ final readonly class QueuePublishedAnnouncementBroadcasts
                 }
 
                 $created = $this->queueRun->handle(
-                    $alliance,
-                    $item,
+                    (string) $alliance->id,
+                    (string) $item->id,
                     CarbonImmutable::instance($item->published_at),
                     'announcement-one-off:'.$item->id,
                 );
@@ -172,8 +172,8 @@ final readonly class QueuePublishedAnnouncementBroadcasts
 
                 $scheduledFor = $schedule->next_run_at;
                 $created = $this->queueRun->handle(
-                    $alliance,
-                    $item,
+                    (string) $alliance->id,
+                    (string) $item->id,
                     $scheduledFor,
                     hash('sha256', implode('|', [
                         'announcement-recurring',

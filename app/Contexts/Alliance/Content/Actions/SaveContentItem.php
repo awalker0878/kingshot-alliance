@@ -35,7 +35,7 @@ final readonly class SaveContentItem
     ) {}
 
     /**
-     * @param array{
+     * @param  array{
      *   category_id?: string|null,
      *   type: ContentType,
      *   visibility: ContentVisibility,
@@ -51,7 +51,7 @@ final readonly class SaveContentItem
      *   game_version?: string|null,
      *   reviewed_at?: string|null,
      *   context_links?: list<array{type:string,key:string}>
-     * } $attributes
+     * }  $attributes
      */
     public function handle(string $allianceId, string $actorPlayerId, array $attributes, ?string $contentItemId = null): string
     {
@@ -132,13 +132,13 @@ final readonly class SaveContentItem
     }
 
     /**
-     * @param array{
+     * @param  array{
      *   type: ContentType,
      *   source_label?: string|null,
      *   source_url?: string|null,
      *   game_version?: string|null,
      *   reviewed_at?: string|null
-     * } $attributes
+     * }  $attributes
      * @return array{
      *   source_label: string|null,
      *   source_url: string|null,
@@ -223,7 +223,7 @@ final readonly class SaveContentItem
     }
 
     /**
-     * @param list<array{type:string,key:string}> $links
+     * @param  list<array{type:string,key:string}>  $links
      * @return list<array{type:string,key:string}>
      */
     private function normalizeContextLinks(array $links): array
@@ -237,11 +237,13 @@ final readonly class SaveContentItem
 
             if ($type !== 'event_type') {
                 $errors["context_links.$index.type"] = 'The selected content context is not supported.';
+
                 continue;
             }
 
             if (preg_match('/^[a-z0-9]+(?:-[a-z0-9]+)*$/', $key) !== 1 || strlen($key) > 120) {
                 $errors["context_links.$index.key"] = 'The selected Event type context is invalid.';
+
                 continue;
             }
 

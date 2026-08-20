@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use App\Contexts\Platform\Integrations\Http\Controllers\AllianceApiController;
-use App\Contexts\Platform\Integrations\Http\Controllers\ExternalActorApiController;
 use App\ReadModels\BotCommands\Http\Controllers\BotCommandApiController;
+use App\Workflows\ExternalEventParticipation\Http\Controllers\ExternalActorApiController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->middleware('throttle:api')->group(function (): void {

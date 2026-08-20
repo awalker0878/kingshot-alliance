@@ -14,7 +14,7 @@ final readonly class PreviewRecruitmentStageBulkChange
     public function __construct(private AllianceAuthorization $authority) {}
 
     /**
-     * @param non-empty-list<string> $candidateIds
+     * @param  non-empty-list<string>  $candidateIds
      * @return array{
      *   targetStage: string,
      *   items: non-empty-list<array{itemId: string, label: string, fromStage: string|null, outcome: string, code: string}>,
@@ -43,6 +43,7 @@ final readonly class PreviewRecruitmentStageBulkChange
             $candidate = $candidates->get($candidateId);
             if (! $candidate instanceof RecruitmentCandidate) {
                 $items[] = $this->item($candidateId, $candidateId, null, 'blocked', 'candidate-unavailable');
+
                 continue;
             }
 

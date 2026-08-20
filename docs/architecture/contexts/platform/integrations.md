@@ -14,7 +14,7 @@ Bot-facing reads are composed in `app/ReadModels/BotCommands` and exposed throug
 
 Discord/Telegram adapters are transport clients. They may verify provider requests and format responses, but they must not own a second copy of application business rules. Read contracts never accept provider bot tokens. Self-service write parity requires a revocable, verified external-actor link and owner-context action; a client-provided Player ID is never an authority source.
 
-Platform/Integrations owns the provider link and machine request receipt. `Workflows/ExternalEventParticipation` resolves the link and coordinates the call into Operations/Participation. Operations remains the only owner of response, registration, capacity and waitlist semantics.
+Platform/Integrations owns the provider link and machine request receipt. `Workflows/ExternalEventParticipation` owns the multi-context HTTP adapter, resolves the link, and coordinates the call into Operations/Participation. This keeps contexts from depending upward on a workflow. Operations remains the only owner of response, registration, capacity and waitlist semantics.
 
 ## Webhooks
 

@@ -21,13 +21,13 @@ final readonly class RosterQuery
     public function __construct(private ScopedCursorCodec $cursors) {}
 
     /**
-     * @param array{
+     * @param  array{
      *   q?: string|null,
      *   state?: string|null,
      *   linkage?: string|null,
      *   role?: string|null,
      *   observation?: string|null
-     * } $filters
+     * }  $filters
      * @return Collection<int, AllianceRosterEntry>
      */
     public function forAlliance(string $allianceId, array $filters = []): Collection
@@ -36,7 +36,7 @@ final readonly class RosterQuery
     }
 
     /**
-     * @param array{q?: string|null, state?: string|null, linkage?: string|null, role?: string|null, observation?: string|null} $filters
+     * @param  array{q?: string|null, state?: string|null, linkage?: string|null, role?: string|null, observation?: string|null}  $filters
      * @return PageSlice<AllianceRosterEntry>
      */
     public function pageForAlliance(
@@ -102,7 +102,7 @@ final readonly class RosterQuery
     }
 
     /**
-     * @param array{q?: string|null, state?: string|null, linkage?: string|null, role?: string|null, observation?: string|null} $filters
+     * @param  array{q?: string|null, state?: string|null, linkage?: string|null, role?: string|null, observation?: string|null}  $filters
      * @return array{total: int, current: int, stale: int, missing: int, linked: int}
      */
     public function summaryForAlliance(string $allianceId, array $filters = []): array
@@ -119,7 +119,7 @@ final readonly class RosterQuery
         ];
     }
 
-    /** @param array{q: string, state: string, linkage: string, role: string, observation: string} $filters */
+    /** @param  array{q: string, state: string, linkage: string, role: string, observation: string}  $filters */
     private function baseQuery(string $allianceId, array $filters): Builder
     {
         $query = AllianceRosterEntry::query()->where('alliance_id', $allianceId);
@@ -218,7 +218,7 @@ final readonly class RosterQuery
     }
 
     /**
-     * @param array{q?: string|null, state?: string|null, linkage?: string|null, role?: string|null, observation?: string|null} $filters
+     * @param  array{q?: string|null, state?: string|null, linkage?: string|null, role?: string|null, observation?: string|null}  $filters
      * @return array{q: string, state: string, linkage: string, role: string, observation: string}
      */
     private function normalizeFilters(array $filters): array
@@ -232,7 +232,7 @@ final readonly class RosterQuery
         ];
     }
 
-    /** @param array{q: string, state: string, linkage: string, role: string, observation: string} $filters */
+    /** @param  array{q: string, state: string, linkage: string, role: string, observation: string}  $filters */
     private function cursorScope(string $allianceId, array $filters): string
     {
         return 'alliance-roster:'.$allianceId.':'.hash('sha256', json_encode($filters, JSON_THROW_ON_ERROR));

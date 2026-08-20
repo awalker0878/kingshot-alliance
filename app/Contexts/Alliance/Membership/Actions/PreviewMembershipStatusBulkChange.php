@@ -27,7 +27,7 @@ final readonly class PreviewMembershipStatusBulkChange
     ) {}
 
     /**
-     * @param non-empty-list<string> $membershipIds
+     * @param  non-empty-list<string>  $membershipIds
      * @return array{
      *   targetStatus: string,
      *   items: non-empty-list<array{itemId: string, label: string, fromStatus: string|null, outcome: string, code: string}>,
@@ -70,6 +70,7 @@ final readonly class PreviewMembershipStatusBulkChange
                 $membership = $memberships->get($membershipId);
                 if (! $membership instanceof AllianceMembership) {
                     $items[] = $this->item($membershipId, $membershipId, null, 'blocked', 'member-unavailable');
+
                     continue;
                 }
 
@@ -79,6 +80,7 @@ final readonly class PreviewMembershipStatusBulkChange
 
                 if ($from === $target) {
                     $items[] = $this->item($membershipId, $label, $from, 'skipped', 'already-in-target-status');
+
                     continue;
                 }
 
@@ -89,12 +91,14 @@ final readonly class PreviewMembershipStatusBulkChange
                     }
                 } catch (AuthorizationException|ValidationException) {
                     $items[] = $this->item($membershipId, $label, $from, 'blocked', 'member-protected');
+
                     continue;
                 }
 
                 if ($target === MembershipStatus::Active) {
                     if ($player === null || $player->kingdomId !== (string) $context->alliance->kingdom_id) {
                         $items[] = $this->item($membershipId, $label, $from, 'blocked', 'wrong-kingdom');
+
                         continue;
                     }
 
@@ -105,11 +109,13 @@ final readonly class PreviewMembershipStatusBulkChange
                         ->exists();
                     if ($hasOtherActiveMembership) {
                         $items[] = $this->item($membershipId, $label, $from, 'blocked', 'already-active-elsewhere');
+
                         continue;
                     }
 
                     if ($activationSlots < 1) {
                         $items[] = $this->item($membershipId, $label, $from, 'blocked', 'capacity-reached');
+
                         continue;
                     }
                     $activationSlots--;

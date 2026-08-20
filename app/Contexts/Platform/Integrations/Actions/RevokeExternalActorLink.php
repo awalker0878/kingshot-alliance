@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Platform\Integrations\Actions;
 
-use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceWriteAuthorization;
 use App\Contexts\Platform\Integrations\Models\ExternalActorLink;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
@@ -22,11 +21,7 @@ final readonly class RevokeExternalActorLink
     public function handle(string $allianceId, string $actorPlayerId, string $linkId): void
     {
         DB::transaction(function () use ($allianceId, $actorPlayerId, $linkId): void {
-            [$alliance, $actor] = $this->allianceAuthority->authorizeExclusive(
-                $actorPlayerId,
-                $allianceId,
-                AlliancePermission::View,
-            );
+            [$alliance, $actor] = $this->allianceAuthority->authorizeMemberExclusive($actorPlayerId, $allianceId);
             $link = ExternalActorLink::query()
                 ->whereKey($linkId)
                 ->where('alliance_id', $alliance->allianceId)

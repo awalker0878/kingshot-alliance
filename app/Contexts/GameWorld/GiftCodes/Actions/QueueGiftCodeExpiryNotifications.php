@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Contexts\GameWorld\GiftCodes\Actions;
 
 use App\Contexts\Communications\Delivery\Services\NotificationDeliveryService;
-use App\Contexts\Communications\Delivery\Models\NotificationDelivery;
 use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeRedemptionStatus;
 use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeStatus;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeRedemption;
@@ -51,7 +50,7 @@ final readonly class QueueGiftCodeExpiryNotifications
                 continue;
             }
 
-            $created = collect($this->deliveries->queueEnabledChannels(
+            $batch = $this->deliveries->queueEnabledChannelBatch(
                 notificationType: 'gift_code.expiring',
                 recipientUserId: $player->userId,
                 playerId: $player->playerId,
@@ -73,8 +72,8 @@ final readonly class QueueGiftCodeExpiryNotifications
                     ),
                     'action_url' => '/gift-codes',
                 ],
-            ))->contains(static fn (NotificationDelivery $delivery): bool => $delivery->wasRecentlyCreated);
-            if ($created) {
+            );
+            if ($batch->hasCreatedDeliveries()) {
                 $queued++;
             }
         }

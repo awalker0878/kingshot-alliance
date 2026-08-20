@@ -30,7 +30,7 @@ final readonly class RecruitmentManagementQuery
     ) {}
 
     /**
-     * @param array{q?: string|null, stage?: string|null, source?: string|null} $filters
+     * @param  array{q?: string|null, stage?: string|null, source?: string|null}  $filters
      * @return array{
      *   settings: array{mode: string, title: string, introduction: string|null, retentionDays: int, open: bool, listed: bool}|null,
      *   questions: list<array{id: string, prompt: string, helpText: string|null, type: string, options: list<string>, required: bool, position: int, active: bool}>,
@@ -113,7 +113,7 @@ final readonly class RecruitmentManagementQuery
     }
 
     /**
-     * @param array{q: string, stage: string, source: string} $filters
+     * @param  array{q: string, stage: string, source: string}  $filters
      * @return PageSlice<array{id: string, name: string, email: string, contactHandle: string|null, source: string|null, stage: string, submittedAt: string, firstRespondedAt: string|null, nextActionAt: string|null}>
      */
     private function candidates(string $allianceId, array $filters, ?string $cursor): PageSlice
@@ -198,7 +198,7 @@ final readonly class RecruitmentManagementQuery
     }
 
     /**
-     * @param Collection<int, AllianceMembership> $memberships
+     * @param  Collection<int, AllianceMembership>  $memberships
      * @return list<array{id: string, name: string, rank: string}>
      */
     private function members(Collection $memberships): array
@@ -226,7 +226,7 @@ final readonly class RecruitmentManagementQuery
     }
 
     /**
-     * @param array{q?: string|null, stage?: string|null, source?: string|null} $filters
+     * @param  array{q?: string|null, stage?: string|null, source?: string|null}  $filters
      * @return array{q: string, stage: string, source: string}
      */
     private function normalizeFilters(array $filters): array
@@ -238,7 +238,7 @@ final readonly class RecruitmentManagementQuery
         ];
     }
 
-    /** @param array{q: string, stage: string, source: string} $filters */
+    /** @param  array{q: string, stage: string, source: string}  $filters */
     private function cursorScope(string $allianceId, array $filters): string
     {
         return 'recruitment-candidates:'.$allianceId.':'.hash('sha256', json_encode($filters, JSON_THROW_ON_ERROR));

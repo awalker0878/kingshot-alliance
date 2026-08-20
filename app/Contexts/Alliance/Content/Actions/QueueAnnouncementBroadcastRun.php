@@ -7,7 +7,6 @@ namespace App\Contexts\Alliance\Content\Actions;
 use App\Contexts\Alliance\Content\Enums\BroadcastRunStatus;
 use App\Contexts\Alliance\Content\Models\AnnouncementBroadcastRun;
 use App\Contexts\Alliance\Content\Models\ContentItem;
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\Communications\Delivery\Services\NotificationDeliveryService;
@@ -27,16 +26,20 @@ final readonly class QueueAnnouncementBroadcastRun
     ) {}
 
     public function handle(
-        Alliance $alliance,
-        ContentItem $item,
+        string $allianceId,
+        string $contentItemId,
         CarbonImmutable $scheduledFor,
         string $idempotencyKey,
         ?string $scheduleId = null,
     ): bool {
+        $item = ContentItem::query()
+            ->whereKey($contentItemId)
+            ->where('alliance_id', $allianceId)
+            ->firstOrFail();
         $run = AnnouncementBroadcastRun::query()->firstOrCreate(
             ['idempotency_key' => $idempotencyKey],
             [
-                'alliance_id' => (string) $alliance->id,
+                'alliance_id' => $allianceId,
                 'content_item_id' => (string) $item->id,
                 'schedule_id' => $scheduleId,
                 'scheduled_for' => $scheduledFor,
@@ -48,7 +51,7 @@ final readonly class QueueAnnouncementBroadcastRun
         }
 
         $playerIds = AllianceMembership::query()
-            ->where('alliance_id', $alliance->id)
+            ->where('alliance_id', $allianceId)
             ->where('status', MembershipStatus::Active->value)
             ->orderBy('player_id')
             ->pluck('player_id')
@@ -79,7 +82,7 @@ final readonly class QueueAnnouncementBroadcastRun
                     'title' => (string) $item->title,
                     'body' => mb_substr(trim((string) ($item->summary ?: $item->body)), 0, 1000),
                     'action_url' => '/alliance/content/'.rawurlencode((string) $item->slug),
-                    'alliance_id' => (string) $alliance->id,
+                    'alliance_id' => $allianceId,
                     'content_item_id' => (string) $item->id,
                     'broadcast_run_id' => (string) $run->id,
                 ],
@@ -101,14 +104,14 @@ final readonly class QueueAnnouncementBroadcastRun
             'recipient_count' => $recipientCount,
             'delivery_count' => $deliveryCount,
         ];
-        $this->audit->record('content.broadcast_queued', null, $run, $alliance, $context);
+        $this->audit->record('content.broadcast_queued', null, $run, $allianceId, $context);
         $this->outbox->record(
             'broadcast.run.queued',
-            (string) $alliance->id,
+            $allianceId,
             $run,
             $context,
             'broadcast-run:'.$run->id.':queued',
-            'alliance:'.$alliance->id,
+            'alliance:'.$allianceId,
         );
 
         return true;
