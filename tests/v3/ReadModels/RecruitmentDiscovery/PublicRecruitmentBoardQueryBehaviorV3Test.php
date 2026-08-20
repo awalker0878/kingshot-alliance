@@ -169,7 +169,7 @@ final class PublicRecruitmentBoardQueryBehaviorV3Test extends TestCase
     }
 
     /**
-     * @param list<array{name:string, slug:string, title:string, introduction:string|null, kingdom:int, language:string, timezone:string, profileUrl:string, applicationUrl:string}> $alliances
+     * @param  list<array{name:string, slug:string, title:string, introduction:string|null, kingdom:int, language:string, timezone:string, profileUrl:string, applicationUrl:string}>  $alliances
      * @return list<string>
      */
     private function allianceIds(array $alliances): array
