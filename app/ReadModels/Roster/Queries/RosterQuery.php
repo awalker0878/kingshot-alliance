@@ -94,7 +94,7 @@ final readonly class RosterQuery
         }
 
         return new PageSlice(
-            $page->all(),
+            array_values($page->all()),
             $nextCursor,
             self::PAGE_SIZE,
             $cursor === null || $cursor === '',
@@ -119,7 +119,10 @@ final readonly class RosterQuery
         ];
     }
 
-    /** @param  array{q: string, state: string, linkage: string, role: string, observation: string}  $filters */
+    /**
+     * @param  array{q: string, state: string, linkage: string, role: string, observation: string}  $filters
+     * @return Builder<AllianceRosterEntry>
+     */
     private function baseQuery(string $allianceId, array $filters): Builder
     {
         $query = AllianceRosterEntry::query()->where('alliance_id', $allianceId);
@@ -155,6 +158,10 @@ final readonly class RosterQuery
         return $query;
     }
 
+    /**
+     * @param  Builder<AllianceRosterEntry>  $query
+     * @return Builder<AllianceRosterEntry>
+     */
     private function applyLinkage(Builder $query, string $allianceId, string $linkage): Builder
     {
         if ($linkage !== 'linked' && $linkage !== 'unlinked') {
@@ -173,6 +180,10 @@ final readonly class RosterQuery
         return $query;
     }
 
+    /**
+     * @param  Builder<AllianceRosterEntry>  $query
+     * @return Builder<AllianceRosterEntry>
+     */
     private function applyObservation(Builder $query, string $observation): Builder
     {
         $freshCutoff = now()->subDays(PlayerSnapshotQuery::STALE_AFTER_DAYS);
@@ -200,6 +211,10 @@ final readonly class RosterQuery
         return $query;
     }
 
+    /**
+     * @param  Builder<AllianceRosterEntry>  $query
+     * @return Builder<AllianceRosterEntry>
+     */
     private function ordered(Builder $query): Builder
     {
         return $query

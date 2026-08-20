@@ -170,6 +170,16 @@ final readonly class QueuePublishedAnnouncementBroadcasts
                     return false;
                 }
 
+                $weekdays = array_values($schedule->weekdays);
+                if ($weekdays === []) {
+                    $schedule->forceFill([
+                        'status' => BroadcastScheduleStatus::Completed,
+                        'next_run_at' => null,
+                    ])->save();
+
+                    return false;
+                }
+
                 $scheduledFor = $schedule->next_run_at;
                 $created = $this->queueRun->handle(
                     (string) $alliance->id,
@@ -183,7 +193,7 @@ final readonly class QueuePublishedAnnouncementBroadcasts
                     (string) $schedule->id,
                 );
                 $next = $this->nextOccurrence->calculate(
-                    $schedule->weekdays,
+                    $weekdays,
                     $schedule->local_time,
                     $schedule->timezone,
                     $scheduledFor,

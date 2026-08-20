@@ -82,16 +82,18 @@ final readonly class MembershipManagementQuery
                 ],
                 'status' => $member->status->value,
                 'rank' => $member->rank->value,
-                'roles' => $member->roles
+                'roles' => array_values($member->roles
                     ->map(static fn (Role $role): array => [
                         'id' => (string) $role->id,
                         'key' => (string) $role->key,
                         'name' => (string) $role->name,
                     ])
                     ->values()
-                    ->all(),
+                    ->all()),
             ];
-        })->all();
+        })->values()->all();
+
+        $items = array_values($items);
 
         $nextCursor = null;
         $last = $page->last();

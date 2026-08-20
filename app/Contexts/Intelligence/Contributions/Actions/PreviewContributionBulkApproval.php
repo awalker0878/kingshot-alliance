@@ -57,7 +57,7 @@ final readonly class PreviewContributionBulkApproval
                 }
 
                 $player = $players[(string) $record->player_id];
-                $label = $player->currentName.' · '.$record->category->name;
+                $label = $player->currentName.' · '.($record->category->name ?? 'Unknown category');
                 if ($record->status === ContributionRecordStatus::Approved) {
                     $items[] = $this->item($recordId, $label, $record->status, 'skipped', 'already-approved');
                 } elseif ($record->status === ContributionRecordStatus::Reversed) {

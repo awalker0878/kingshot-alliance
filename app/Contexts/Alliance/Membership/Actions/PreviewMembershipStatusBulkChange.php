@@ -75,7 +75,7 @@ final readonly class PreviewMembershipStatusBulkChange
                 }
 
                 $player = $playerReferences[(string) $membership->player_id] ?? null;
-                $label = $player?->currentName ?? 'Unknown player';
+                $label = $player->currentName ?? 'Unknown player';
                 $from = $membership->status;
 
                 if ($from === $target) {

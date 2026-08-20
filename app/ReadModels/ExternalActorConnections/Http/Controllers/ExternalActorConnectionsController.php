@@ -36,7 +36,7 @@ final class ExternalActorConnectionsController extends Controller
 
         return Inertia::render('Accounts/Governor/Connections', [
             'user' => ['name' => $account->name, 'email' => $account->email],
-            'player' => ['id' => $player->playerId, 'name' => $player->name],
+            'player' => ['id' => $player->playerId, 'name' => $player->currentName],
             'alliance' => ['id' => $alliance->allianceId, 'name' => $alliance->name],
             'providers' => array_map(
                 static fn (ExternalActorProvider $provider): string => $provider->value,

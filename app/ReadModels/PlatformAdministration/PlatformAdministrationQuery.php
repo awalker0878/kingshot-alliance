@@ -13,6 +13,7 @@ use App\Contexts\Platform\Integrations\Enums\WebhookDeliveryStatus;
 use App\Contexts\Platform\Integrations\Models\WebhookDelivery;
 use App\Shared\Infrastructure\AuditTrail\Models\AuditEvent;
 use App\Shared\Infrastructure\Messaging\Outbox\Models\OutboxMessage;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
 
@@ -246,11 +247,14 @@ final class PlatformAdministrationQuery
             $query->where('trace_id', strtolower($correlation));
         }
 
-        return $query
+        $events = $query
             ->orderBy('created_at')
             ->limit(50)
-            ->get()
-            ->map(static fn (AuditEvent $event): array => [
+            ->get();
+        $items = [];
+
+        foreach ($events as $event) {
+            $items[] = [
                 'id' => (string) $event->id,
                 'event' => (string) $event->event,
                 'allianceId' => $event->alliance_id === null ? null : (string) $event->alliance_id,
@@ -258,8 +262,11 @@ final class PlatformAdministrationQuery
                 'subjectId' => $event->subject_id === null ? null : (string) $event->subject_id,
                 'requestId' => $event->request_id === null ? null : (string) $event->request_id,
                 'traceId' => $event->trace_id === null ? null : (string) $event->trace_id,
-                'createdAt' => $event->created_at?->toIso8601String(),
-            ])->all();
+                'createdAt' => CarbonImmutable::parse((string) $event->created_at)->toIso8601String(),
+            ];
+        }
+
+        return $items;
     }
 
     private function fingerprint(?string $error): ?string

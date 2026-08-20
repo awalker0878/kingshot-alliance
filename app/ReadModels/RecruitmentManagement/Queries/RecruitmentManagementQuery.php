@@ -79,7 +79,7 @@ final readonly class RecruitmentManagementQuery
                 'open' => (bool) $settings->is_open,
                 'listed' => (bool) $settings->is_listed,
             ] : null,
-            'questions' => $questions->map(static fn (RecruitmentQuestion $question): array => [
+            'questions' => array_values($questions->map(static fn (RecruitmentQuestion $question): array => [
                 'id' => (string) $question->id,
                 'prompt' => (string) $question->prompt,
                 'helpText' => $question->help_text,
@@ -88,26 +88,26 @@ final readonly class RecruitmentManagementQuery
                 'required' => (bool) $question->is_required,
                 'position' => (int) $question->position,
                 'active' => (bool) $question->is_active,
-            ])->values()->all(),
+            ])->values()->all()),
             'candidatePage' => $this->candidates($allianceId, $normalizedFilters, $cursor)->toArray(),
             'candidateFilters' => $normalizedFilters,
             'members' => $this->members($memberships),
-            'decisionTemplates' => $templates->map(static fn (RecruitmentDecisionTemplate $template): array => [
+            'decisionTemplates' => array_values($templates->map(static fn (RecruitmentDecisionTemplate $template): array => [
                 'id' => (string) $template->id,
                 'name' => (string) $template->name,
                 'decisionStage' => $template->decisionStage()->value,
                 'subject' => (string) $template->subject,
                 'body' => (string) $template->body,
                 'active' => (bool) $template->is_active,
-            ])->values()->all(),
-            'onboardingItems' => $onboardingItems->map(static fn (RecruitmentOnboardingItem $item): array => [
+            ])->values()->all()),
+            'onboardingItems' => array_values($onboardingItems->map(static fn (RecruitmentOnboardingItem $item): array => [
                 'id' => (string) $item->id,
                 'name' => (string) $item->name,
                 'description' => $item->description,
                 'position' => (int) $item->position,
                 'required' => (bool) $item->is_required,
                 'active' => (bool) $item->is_active,
-            ])->values()->all(),
+            ])->values()->all()),
             'metrics' => $this->metrics->summary($allianceId),
         ];
     }
@@ -168,7 +168,7 @@ final readonly class RecruitmentManagementQuery
         $hasMore = $rows->count() > self::CANDIDATE_PAGE_SIZE;
         $page = $rows->take(self::CANDIDATE_PAGE_SIZE)->values();
 
-        $items = $page->map(static fn (RecruitmentCandidate $candidate): array => [
+        $items = array_values($page->map(static fn (RecruitmentCandidate $candidate): array => [
             'id' => (string) $candidate->id,
             'name' => (string) $candidate->full_name,
             'email' => (string) $candidate->email,
@@ -178,7 +178,7 @@ final readonly class RecruitmentManagementQuery
             'submittedAt' => $candidate->submitted_at->toIso8601String(),
             'firstRespondedAt' => $candidate->first_responded_at?->toIso8601String(),
             'nextActionAt' => $candidate->next_action_at?->toIso8601String(),
-        ])->all();
+        ])->all());
 
         $nextCursor = null;
         $last = $page->last();
