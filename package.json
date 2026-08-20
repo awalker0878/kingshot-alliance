@@ -15,13 +15,14 @@
     "lint": "eslint . --fix",
     "lint:check": "eslint .",
     "types:check": "vue-tsc --noEmit",
-    "check": "npm run lint:check && npm run format:check && npm run types:check && npm run check:documentation && npm run check:event-localization-coverage && npm run build && npm run check:localization-chunks",
+    "check": "npm run lint:check && npm run format:check && npm run types:check && npm run check:documentation && npm run check:event-localization-coverage && npm run build && npm run check:localization-chunks && npm run check:performance-budgets",
     "audit": "npm audit --audit-level=high",
     "test:visual": "playwright test",
     "test:visual:update": "playwright test --update-snapshots",
     "check:documentation": "node scripts/check-documentation-links.mjs",
     "check:localization-chunks": "node scripts/check-localization-chunks.mjs",
-    "check:event-localization-coverage": "node scripts/check-event-localization-coverage.mjs"
+    "check:event-localization-coverage": "node scripts/check-event-localization-coverage.mjs",
+    "check:performance-budgets": "node scripts/check-performance-budgets.mjs"
   },
   "dependencies": {
     "@inertiajs/vite": "^3.0.0",
