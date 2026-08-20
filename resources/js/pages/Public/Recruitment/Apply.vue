@@ -49,6 +49,7 @@ const attributionLabels: Record<string, string> = {
   'recruitment-board': t('publicRecruitment.attributionBoard'),
   'alliance-public-page': t('publicRecruitment.attributionAlliancePage'),
   'alliance-share': t('publicRecruitment.attributionShareLink'),
+  'bot-command': t('publicRecruitment.attributionBotCommand'),
 };
 
 function attributionLabel(source: string): string {

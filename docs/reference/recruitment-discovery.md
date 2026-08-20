@@ -30,8 +30,9 @@ Known public entry points use bounded source labels:
 | Recruitment board | `recruitment-board` |
 | Alliance public page | `alliance-public-page` |
 | Recruiter share link | `alliance-share` |
+| Alliance bot command | `bot-command` |
 
-The application form visibly identifies a preset source. If no known source is present, the applicant can optionally answer “How did you hear about us?”
+Bot adapters use the same public application path and tag links with `bot-command`; they do not create or read candidate records. The application form visibly identifies a preset source. If no known source is present, the applicant can optionally answer “How did you hear about us?”
 
 This is coarse application metadata. It does not set an analytics identifier, follow a Governor between pages, or expose candidate information on the public board.
 

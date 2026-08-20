@@ -95,6 +95,7 @@ const messages = {
     attributionBoard: 'Public recruitment board',
     attributionAlliancePage: 'Alliance public page',
     attributionShareLink: 'Alliance share link',
+    attributionBotCommand: 'Alliance bot command',
     attributionHelp:
       'This visible source label helps the Alliance understand which recruitment links work. It does not identify or track you.',
     optional: 'Optional',
