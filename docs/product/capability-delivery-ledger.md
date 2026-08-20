@@ -2,7 +2,7 @@
 
 Status: Current as of 2026-08-20
 
-This ledger closes the capability-completeness scan. It records shipped outcomes, the remaining evidence gate, and the next implementation standard. GitHub remains the source of truth for exact diffs and CI results.
+This ledger closes the capability-completeness scan and its follow-on product and engineering improvement program. It records shipped outcomes, the remaining evidence gate, and the implementation standard. GitHub remains the source of truth for exact diffs and CI results.
 
 ## Merged delivery
 
@@ -20,6 +20,23 @@ This ledger closes the capability-completeness scan. It records shipped outcomes
 | [#88](https://github.com/awalker0878/kingshot-alliance/pull/88) | Mobile/PWA | Install, update, and offline UX while private application responses remain network-only. |
 
 Every merged slice passed PHP tests, Pint, PHPStan, frontend lint/format/type/build, architecture verification, CodeQL, dependency review, intelligence contracts, visual regression, production image build, ephemeral staging, backup/restore, and image scanning.
+
+## Improvement-program delivery
+
+| PR | Slice | Durable outcome |
+| --- | --- | --- |
+| [#90](https://github.com/awalker0878/kingshot-alliance/pull/90) | Baseline and cleanup | Established the authoritative inventory, documentation-link gate, and cleanup rule. |
+| [#91](https://github.com/awalker0878/kingshot-alliance/pull/91) | Architecture enforcement | Removed V2 visual compatibility structure and made the current visual contract enforceable. |
+| [#92](https://github.com/awalker0878/kingshot-alliance/pull/92) | UX system | Standardized accessible busy, validation, outcome, and confirmation behavior. |
+| [#93](https://github.com/awalker0878/kingshot-alliance/pull/93) | Public webhook contracts | Replaced dead selectors with emitted Alliance-scoped lifecycle contracts. |
+| [#94](https://github.com/awalker0878/kingshot-alliance/pull/94) | Webhook delivery recovery | Added signed test delivery, audited replay, bounded retry, and delivery inspection. |
+| [#95](https://github.com/awalker0878/kingshot-alliance/pull/95) | Gift Code recovery | Completed official-provider handoff, terminal outcomes, backoff, and safe retry behavior. |
+| [#96](https://github.com/awalker0878/kingshot-alliance/pull/96) | Operational budgets | Made reviewed production JavaScript and stylesheet ceilings release gates. |
+| [#97](https://github.com/awalker0878/kingshot-alliance/pull/97) | Accessibility and localization | Replaced browser prompts with the shared accessible modal contract and an AST-based enforcement gate. |
+
+The temporary phase report was retired at closeout; Git history remains its archive. Current product outcomes live in the [capability catalogue](capability-catalogue.md), user flow in [primary journeys](experience/user-journeys.md), and operational release evidence in the [release checklist](../operations/release/checklist.md).
+
+Closeout requires a clean PostgreSQL installation through every migration, the complete PHP and frontend checks, architecture verification, dependency review, CodeQL, unchanged or deliberately reviewed visual baselines, production-image construction and scanning, ephemeral staging, and a demonstrated backup/restore cycle. Calculators remain outside the release scope until the evidence gate below opens.
 
 ## Remaining evidence gate: calculators
 

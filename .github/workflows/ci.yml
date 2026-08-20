@@ -84,8 +84,10 @@ jobs:
       - name: Check dependency advisories
         run: composer audit
 
-      - name: Run migrations
-        run: php artisan migrate --force
+      - name: Verify fresh-database installation
+        run: |
+          php artisan migrate:fresh --force
+          php artisan migrate:status --no-interaction
 
       - name: Run full PHP checks
         run: composer check
