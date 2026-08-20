@@ -53,7 +53,7 @@ final readonly class AllianceCommandFeedQuery
     /** @return list<array<string, mixed>> */
     public function events(string $allianceId, int $limit): array
     {
-        return DB::table('event_occurrences')
+        return array_values(DB::table('event_occurrences')
             ->join('events', 'events.id', '=', 'event_occurrences.event_id')
             ->where('events.scope', EventScope::Alliance->value)
             ->where('events.alliance_id', $allianceId)
@@ -76,7 +76,7 @@ final readonly class AllianceCommandFeedQuery
                 'timezone' => (string) $row->timezone,
             ])
             ->values()
-            ->all();
+            ->all());
     }
 
     /** @return list<array<string, mixed>> */
@@ -85,7 +85,7 @@ final readonly class AllianceCommandFeedQuery
         $redemptionUrl = config('game_world.gift_code_redemption_url');
         $redemptionUrl = is_string($redemptionUrl) ? $redemptionUrl : null;
 
-        return DB::table('gift_codes')
+        return array_values(DB::table('gift_codes')
             ->where('status', GiftCodeStatus::Active->value)
             ->where(static function (Builder $query): void {
                 $query->whereNull('expires_at')->orWhere('expires_at', '>', now());
@@ -114,7 +114,7 @@ final readonly class AllianceCommandFeedQuery
                 'official_redemption_url' => $redemptionUrl,
             ])
             ->values()
-            ->all();
+            ->all());
     }
 
     /** @return list<array<string, mixed>> */
@@ -146,7 +146,7 @@ final readonly class AllianceCommandFeedQuery
             $query->where('type', $type->value);
         }
 
-        return $query
+        return array_values($query
             ->orderByDesc('published_at')
             ->orderBy('sort_order')
             ->limit($limit)
@@ -181,6 +181,6 @@ final readonly class AllianceCommandFeedQuery
                 'published_at' => (string) $row->published_at,
             ])
             ->values()
-            ->all();
+            ->all());
     }
 }

@@ -2,7 +2,7 @@
 
 Status: Current high-level contract
 
-The versioned API is available under `/api/v1`. Every endpoint uses `throttle:api` and an Alliance-scoped, revocable access key.
+The versioned API is available under `/api/v1`. Every endpoint uses `throttle:api` and an Alliance-scoped, revocable access key. The shared API limiter permits 120 requests per minute per client IP; adapters should apply their own provider- and command-specific limits as well.
 
 ## Authentication
 
