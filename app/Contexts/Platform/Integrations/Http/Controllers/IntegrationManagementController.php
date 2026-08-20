@@ -15,6 +15,7 @@ use App\Contexts\Platform\Integrations\Actions\CreateApiCredential;
 use App\Contexts\Platform\Integrations\Actions\CreateWebhookSubscription;
 use App\Contexts\Platform\Integrations\Actions\RevokeApiCredential;
 use App\Contexts\Platform\Integrations\Actions\RevokeWebhookSubscription;
+use App\Contexts\Platform\Integrations\Contracts\WebhookEventCatalog;
 use App\Contexts\Platform\Integrations\Models\ApiCredential;
 use App\Contexts\Platform\Integrations\Models\WebhookDelivery;
 use App\Contexts\Platform\Integrations\Models\WebhookSubscription;
@@ -64,6 +65,7 @@ final class IntegrationManagementController extends Controller
             ],
             'limits' => $entitlements->limits($allianceId),
             'allowedScopes' => CreateApiCredential::allowedScopes(),
+            'publicWebhookEvents' => WebhookEventCatalog::publicEvents(),
             'credentials' => ApiCredential::query()
                 ->where('alliance_id', $allianceId)
                 ->latest()

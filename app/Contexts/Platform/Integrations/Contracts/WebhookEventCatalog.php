@@ -8,8 +8,14 @@ final class WebhookEventCatalog
 {
     /** @var list<string> */
     private const PUBLIC_EVENTS = [
-        'alliance.created',
-        'member.joined',
+        'content.published',
+        'event.created',
+        'event.updated',
+        'event.cancelled',
+        'membership.rank_changed',
+        'membership.roster_entry_left',
+        'recruitment.candidate.stage_changed',
+        'recruitment.candidate.joined',
     ];
 
     public static function isPublic(string $eventType): bool

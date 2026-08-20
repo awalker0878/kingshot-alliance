@@ -22,6 +22,7 @@ const props = defineProps<{
     webhookSubscriptions: number;
   };
   allowedScopes: string[];
+  publicWebhookEvents: string[];
   credentials: Array<{
     id: string;
     name: string;
@@ -56,8 +57,7 @@ const props = defineProps<{
 
 const { t, formatDate, formatNumber } = useLocale();
 const credentialForm = useForm({ name: '', scopes: [] as string[], expires_at: '' });
-const webhookForm = useForm({ name: '', url: '', events: ['alliance.created'] as string[] });
-const webhookEventsText = ref('alliance.created');
+const webhookForm = useForm({ name: '', url: '', events: [] as string[] });
 const pendingRevoke = ref<{ kind: 'credential' | 'webhook'; id: string; name: string } | null>(
   null,
 );
@@ -76,6 +76,20 @@ const scopeDescriptions: Record<string, string> = {
   'gift-codes:read': t('integrationExperience.scopeGiftCodes'),
   'content:read': t('integrationExperience.scopeContent'),
 };
+
+const webhookEventDescriptions: Record<string, string> = {
+  '*': t('integrationExperience.eventAllDescription'),
+  'content.published': t('integrationExperience.eventContentPublished'),
+  'event.created': t('integrationExperience.eventCreated'),
+  'event.updated': t('integrationExperience.eventUpdated'),
+  'event.cancelled': t('integrationExperience.eventCancelled'),
+  'membership.rank_changed': t('integrationExperience.eventMembershipRankChanged'),
+  'membership.roster_entry_left': t('integrationExperience.eventRosterEntryLeft'),
+  'recruitment.candidate.stage_changed': t('integrationExperience.eventCandidateStageChanged'),
+  'recruitment.candidate.joined': t('integrationExperience.eventCandidateJoined'),
+};
+
+const webhookEventOptions = computed(() => ['*', ...props.publicWebhookEvents]);
 
 function scopeDescription(scope: string): string {
   return scopeDescriptions[scope] ?? scope;
@@ -115,17 +129,29 @@ function createCredential(): void {
 }
 
 function createWebhook(): void {
-  webhookForm.events = webhookEventsText.value
-    .split(/[,\n]/)
-    .map((event) => event.trim())
-    .filter(Boolean);
   webhookForm.post('/alliance/integrations/webhooks', {
     preserveScroll: true,
-    onSuccess: () => {
-      webhookForm.reset();
-      webhookEventsText.value = 'alliance.created';
-    },
+    onSuccess: () => webhookForm.reset(),
   });
+}
+
+function normalizeEventSelection(event: string): void {
+  if (event === '*' && webhookForm.events.includes('*')) {
+    webhookForm.events = ['*'];
+    return;
+  }
+
+  if (event !== '*' && webhookForm.events.includes(event)) {
+    webhookForm.events = webhookForm.events.filter((selected) => selected !== '*');
+  }
+}
+
+function eventDescription(event: string): string {
+  return webhookEventDescriptions[event] ?? event;
+}
+
+function eventInputId(event: string): string {
+  return `webhook-event-${event.replace(/[^a-z]+/gi, '-')}`;
 }
 
 function requestRevoke(kind: 'credential' | 'webhook', id: string, name: string): void {
@@ -494,23 +520,50 @@ function stateTone(state: string): 'success' | 'warning' | 'danger' | 'info' {
             />
             <FormError id="webhook-url-error" :message="webhookForm.errors.url" />
           </div>
-          <div class="sm:col-span-2">
-            <label class="text-xs font-semibold" for="webhook-events">
-              {{ t('integrationExperience.events') }} · {{ t('integrationExperience.eventsHelp') }}
-            </label>
-            <textarea
-              id="webhook-events"
-              v-model="webhookEventsText"
-              class="ks-input mt-1.5 min-h-24 font-mono"
-              :aria-invalid="webhookForm.errors.events ? 'true' : undefined"
-              :aria-describedby="webhookForm.errors.events ? 'webhook-events-error' : undefined"
-              required
-            />
+          <fieldset
+            class="sm:col-span-2"
+            :aria-invalid="webhookForm.errors.events ? 'true' : undefined"
+            :aria-describedby="
+              webhookForm.errors.events
+                ? 'webhook-events-help webhook-events-error'
+                : 'webhook-events-help'
+            "
+          >
+            <legend class="text-xs font-semibold">{{ t('integrationExperience.events') }}</legend>
+            <p id="webhook-events-help" class="mt-1 text-xs text-[var(--ks-muted)]">
+              {{ t('integrationExperience.eventsHelp') }}
+            </p>
+            <div class="mt-3 grid gap-2 sm:grid-cols-2">
+              <label
+                v-for="event in webhookEventOptions"
+                :key="event"
+                :for="eventInputId(event)"
+                class="flex min-h-16 cursor-pointer gap-3 rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/10 p-3 transition hover:border-[var(--ks-border-strong)]"
+              >
+                <input
+                  :id="eventInputId(event)"
+                  v-model="webhookForm.events"
+                  type="checkbox"
+                  :value="event"
+                  class="mt-1"
+                  @change="normalizeEventSelection(event)"
+                />
+                <span class="min-w-0">
+                  <span class="block font-mono text-xs text-[var(--ks-gold-bright)]">{{
+                    event
+                  }}</span>
+                  <span class="mt-1 block text-xs leading-5 text-[var(--ks-muted)]">{{
+                    eventDescription(event)
+                  }}</span>
+                </span>
+              </label>
+            </div>
             <FormError id="webhook-events-error" :message="webhookForm.errors.events" />
-          </div>
+          </fieldset>
           <AppButton
             class="sm:col-span-2"
             type="submit"
+            :disabled="webhookForm.events.length === 0"
             :busy="webhookForm.processing"
             :busy-label="t('integrationExperience.creatingWebhook')"
           >
