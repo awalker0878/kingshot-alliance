@@ -164,7 +164,7 @@ canvas {
   background: linear-gradient(90deg, transparent, var(--ks-border-strong), transparent);
 }
 
-/* New V4 surface language. The legacy class names are intentionally redefined so no old visual system survives. */
+/* Current Kingshot surface language. Shared semantic classes keep the visual system consistent. */
 .ks-panel,
 .ks-surface,
 .ks-surface-gold,

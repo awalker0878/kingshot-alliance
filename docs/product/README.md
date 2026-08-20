@@ -8,6 +8,7 @@ This area explains **what Kingshot Alliance provides to users**. It does not def
 - [Capability catalogue](capability-catalogue.md)
 - [Capability completeness plan](capability-gap-analysis.md)
 - [Capability delivery ledger](capability-delivery-ledger.md)
+- [Product and engineering improvement program](improvement-program.md)
 - [Terminology](terminology.md)
 - [Experience principles](experience/README.md)
 - [Primary user journeys](experience/user-journeys.md)
