@@ -92,8 +92,8 @@ final class PlayerSnapshotHistoryController extends Controller
     }
 
     /**
-     * @param array<string, PlayerReference> $actors
-     * @param array<string, mixed>|null $change
+     * @param  array<string, PlayerReference>  $actors
+     * @param  array<string, mixed>|null  $change
      * @return array<string, mixed>
      */
     private function snapshot(
@@ -101,8 +101,7 @@ final class PlayerSnapshotHistoryController extends Controller
         bool $includeActor,
         array $actors,
         ?array $change,
-    ): array
-    {
+    ): array {
         $row = [
             'id' => (string) $snapshot->id,
             'observedName' => (string) $snapshot->observed_name,

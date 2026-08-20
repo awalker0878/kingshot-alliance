@@ -14,7 +14,7 @@ final readonly class PlayerProgressionTimeline
     /**
      * Build consecutive changes for a newest-first snapshot sequence.
      *
-     * @param iterable<int, PlayerSnapshot> $snapshots
+     * @param  iterable<int, PlayerSnapshot>  $snapshots
      * @return array<string, array{
      *   fromCapturedAt: string,
      *   power: string,
