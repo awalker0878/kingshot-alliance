@@ -11,7 +11,7 @@ This program begins after the capability-completeness delivery recorded in the [
 | 0. Baseline and cleanup | Complete | Current inventory, enforceable documentation integrity and removal of obsolete migration evidence from the live documentation tree. |
 | 1. Architecture enforcement | Complete | Removed the remaining V2 visual-test structure and strengthened verification against compatibility-era test trees. |
 | 2. UX system | Complete | Shared accessible busy, validation, status and confirmation patterns established on the high-risk connections surface. |
-| 3. Workflow completion | In progress | Consistent create/validate/authorize/commit/notify/audit/recover behavior across core capabilities. |
+| 3. Workflow completion | Complete | Consistent create/validate/authorize/commit/notify/audit/recover behavior across core capabilities. |
 | 4. Integration platform | Complete | Broader documented webhook contracts, targeted delivery testing, audited recovery and API contract coverage. |
 | 5. Operations and security | Planned | Actionable diagnostics, bounded recovery, security controls and performance budgets. |
 | 6. Accessibility and localization | Planned | Keyboard, screen-reader, responsive and localization quality verification across primary journeys. |
@@ -66,6 +66,12 @@ The documentation-link gate runs as part of `npm run check` so moved or removed 
 - Behavior coverage proves wildcard delivery fan-out, idempotency and rejection of internal or removed event names.
 - Managers can now send one targeted signed test through the production delivery path and manually re-queue an exhausted delivery without cloning or mutating its payload identity.
 - Test and recovery actions are Alliance-scoped, password-confirmed, rate-limited, audited and covered by behavior tests.
+
+## Phase 3 evidence
+
+- The residual Gift Code workflow now opens the official provider handoff, exposes continuation and per-Governor timing, and uses shared accessible mutation feedback.
+- Successful redemption is terminal and retryable provider outcomes enforce their persisted backoff under row lock, so repeated clicks cannot corrupt state or bypass recovery policy.
+- Behavior tests cover terminal success and retry timing; the Gift Code reference documents the same lifecycle.
 
 ## Gate before merge
 

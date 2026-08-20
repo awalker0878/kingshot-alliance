@@ -42,6 +42,9 @@ final readonly class RecordGiftCodeRedemptionOutcome
                     'kingdom_id' => $player->kingdomId,
                     'attempts' => 0,
                 ]);
+            } elseif ($redemption->status->successful()
+                || ($redemption->status->retryable() && $redemption->next_attempt_at?->isFuture())) {
+                return $this->reference($redemption);
             }
 
             $attempts = $redemption->attempts + 1;

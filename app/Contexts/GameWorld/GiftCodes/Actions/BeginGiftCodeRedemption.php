@@ -8,6 +8,7 @@ use App\Contexts\GameWorld\GiftCodes\Contracts\GiftCodeRedemptionProvider;
 use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeRedemptionStatus;
 use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeStatus;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCode;
+use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeRedemption;
 use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeRedemptionOutcome;
 use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeRedemptionReference;
 use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeReference;
@@ -23,6 +24,22 @@ final readonly class BeginGiftCodeRedemption
     public function handle(string $giftCodeId, PlayerReference $player): GiftCodeRedemptionReference
     {
         $giftCode = GiftCode::query()->findOrFail($giftCodeId);
+        $existing = GiftCodeRedemption::query()
+            ->where('gift_code_id', $giftCode->id)
+            ->where('player_id', $player->playerId)
+            ->first();
+        if ($existing instanceof GiftCodeRedemption
+            && ($existing->status->successful()
+                || ($existing->status->retryable() && $existing->next_attempt_at?->isFuture()))) {
+            return new GiftCodeRedemptionReference(
+                (string) $existing->id,
+                $existing->status,
+                $existing->attempts,
+                $existing->redemption_url,
+                $existing->next_attempt_at,
+                $existing->redeemed_at,
+            );
+        }
 
         $outcome = match (true) {
             $giftCode->status !== GiftCodeStatus::Active => new GiftCodeRedemptionOutcome(

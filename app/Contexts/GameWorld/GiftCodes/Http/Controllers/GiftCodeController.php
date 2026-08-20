@@ -45,6 +45,7 @@ final class GiftCodeController extends Controller
             ],
             'allGovernorCount' => count($players->ownedByUser($this->accountId($account))),
             'officialRedemptionUrl' => (string) config('game_world.gift_code_redemption_url'),
+            'status' => $request->session()->get('status'),
             'codes' => $codes->map(function (GiftCode $giftCode) use ($catalog, $player): array {
                 $redemption = $catalog->redemptionFor($giftCode, $player->playerId);
 
@@ -76,7 +77,7 @@ final class GiftCodeController extends Controller
 
         $submit->handle($this->player($playerContext), $validated);
 
-        return back()->with('status', 'Gift Code added to the shared ledger.');
+        return back()->with('status', 'gift-code-added');
     }
 
     public function redeem(
@@ -97,7 +98,7 @@ final class GiftCodeController extends Controller
             $begin->handle($giftCode, $target);
         }
 
-        return back()->with('status', 'Official redemption handoff prepared.');
+        return back()->with('status', 'gift-code-handoff-prepared');
     }
 
     public function confirm(
@@ -107,7 +108,7 @@ final class GiftCodeController extends Controller
     ): RedirectResponse {
         $confirm->handle($giftCode, $this->player($playerContext));
 
-        return back()->with('status', 'Gift Code marked as redeemed for the active Governor.');
+        return back()->with('status', 'gift-code-confirmed');
     }
 
     /** @return array<string, mixed>|null */
