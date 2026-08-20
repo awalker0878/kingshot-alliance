@@ -165,6 +165,7 @@ final class RecruitmentManagementController extends Controller
                 'introduction' => $settings->introduction,
                 'retentionDays' => (int) $settings->retention_unsuccessful_days,
                 'open' => (bool) $settings->is_open,
+                'listed' => (bool) $settings->is_listed,
             ] : null,
             'applicationModes' => array_map(
                 static fn (RecruitmentApplicationMode $mode): string => $mode->value,
@@ -184,6 +185,17 @@ final class RecruitmentManagementController extends Controller
             'decisionTemplates' => $templateData,
             'onboardingItems' => $onboardingData,
             'metrics' => $metrics->summary($scope->allianceId),
+            'discovery' => [
+                'boardUrl' => route('public.recruitment.index'),
+                'applicationUrl' => $settings instanceof RecruitmentSetting
+                    && $settings->is_open
+                    && $settings->application_mode === RecruitmentApplicationMode::Public
+                        ? route('public.alliances.recruitment.show', [
+                            'slug' => $alliance->slug,
+                            'source' => 'alliance-share',
+                        ])
+                        : null,
+            ],
             'issuedApplicationLink' => $request->session()->pull('recruitmentApplicationLink'),
         ]);
     }
@@ -199,6 +211,7 @@ final class RecruitmentManagementController extends Controller
             'introduction' => ['nullable', 'string', 'max:5000'],
             'retention_days' => ['required', 'integer', 'min:1', 'max:3650'],
             'open' => ['required', 'boolean'],
+            'listed' => ['required', 'boolean'],
         ]);
 
         $scope = $context->scope();
@@ -210,6 +223,7 @@ final class RecruitmentManagementController extends Controller
             $validated['introduction'] ?? null,
             (int) $validated['retention_days'],
             (bool) $validated['open'],
+            (bool) $validated['listed'],
         );
 
         return back();

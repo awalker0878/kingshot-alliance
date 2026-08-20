@@ -32,6 +32,7 @@ final class RecruitmentMetricsQuery
      *   total: int,
      *   byStage: array<string, int>,
      *   bySource: array<string, int>,
+     *   sourceFunnel: array<string, array{submitted:int, accepted:int, joined:int, acceptedRate:float, joinedRate:float}>,
      *   averageResponseHours: float|null,
      *   acceptedRate: float,
      *   joinedRate: float,
@@ -48,6 +49,8 @@ final class RecruitmentMetricsQuery
         $total = $candidates->count();
         $byStage = [];
         $bySource = [];
+        /** @var array<string, array{submitted:int, accepted:int, joined:int, acceptedRate:float, joinedRate:float}> $sourceFunnel */
+        $sourceFunnel = [];
         $responseSeconds = [];
         $accepted = 0;
         $joined = 0;
@@ -61,6 +64,14 @@ final class RecruitmentMetricsQuery
             $source = trim((string) ($candidate->source ?? ''));
             $sourceKey = $source === '' ? 'unspecified' : $source;
             $bySource[$sourceKey] = ($bySource[$sourceKey] ?? 0) + 1;
+            $sourceFunnel[$sourceKey] ??= [
+                'submitted' => 0,
+                'accepted' => 0,
+                'joined' => 0,
+                'acceptedRate' => 0.0,
+                'joinedRate' => 0.0,
+            ];
+            $sourceFunnel[$sourceKey]['submitted']++;
 
             if ($candidate->first_responded_at instanceof Carbon) {
                 $responseSeconds[] = max(0, $candidate->submitted_at->diffInSeconds($candidate->first_responded_at));
@@ -68,14 +79,27 @@ final class RecruitmentMetricsQuery
 
             if ($candidate->accepted_at instanceof Carbon || $candidate->joined_at instanceof Carbon) {
                 $accepted++;
+                $sourceFunnel[$sourceKey]['accepted']++;
             }
 
             if ($candidate->joined_at instanceof Carbon) {
                 $joined++;
+                $sourceFunnel[$sourceKey]['joined']++;
             }
         }
 
         ksort($bySource);
+        foreach ($sourceFunnel as &$sourceMetrics) {
+            $submitted = $sourceMetrics['submitted'];
+            $sourceMetrics['acceptedRate'] = $submitted === 0
+                ? 0.0
+                : round($sourceMetrics['accepted'] / $submitted, 4);
+            $sourceMetrics['joinedRate'] = $submitted === 0
+                ? 0.0
+                : round($sourceMetrics['joined'] / $submitted, 4);
+        }
+        unset($sourceMetrics);
+        ksort($sourceFunnel);
 
         $latestChanges = RecruitmentStageHistory::query()
             ->where('alliance_id', $allianceId)
@@ -107,6 +131,7 @@ final class RecruitmentMetricsQuery
             'total' => $total,
             'byStage' => $byStage,
             'bySource' => $bySource,
+            'sourceFunnel' => $sourceFunnel,
             'averageResponseHours' => $responseSeconds === []
                 ? null
                 : round(array_sum($responseSeconds) / count($responseSeconds) / 3600, 2),

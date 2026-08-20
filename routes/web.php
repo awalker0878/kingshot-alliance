@@ -38,6 +38,7 @@ use App\ReadModels\AllianceDashboard\Http\Controllers\AllianceOverviewController
 use App\ReadModels\CommandOverview\Http\Controllers\DashboardController;
 use App\ReadModels\EventCalendar\Http\Controllers\EventCalendarController;
 use App\ReadModels\EventManagement\Http\Controllers\EventManagementPageController;
+use App\ReadModels\RecruitmentDiscovery\Http\Controllers\PublicRecruitmentBoardController;
 use App\Workflows\AccountOnboarding\Http\Controllers\InvitationAcceptanceController;
 use App\Workflows\AccountOnboarding\Http\Controllers\RegistrationController;
 use Illuminate\Support\Facades\Route;
@@ -48,6 +49,9 @@ Route::get('/', static fn () => Inertia::render('Public/Home', [
         'name' => config('app.name'),
     ],
 ]))->name('home');
+
+Route::get('/recruitment', PublicRecruitmentBoardController::class)
+    ->name('public.recruitment.index');
 
 Route::get('/alliances/{slug}', PublicAllianceController::class)
     ->where('slug', '[a-z0-9]+(?:-[a-z0-9]+)*')

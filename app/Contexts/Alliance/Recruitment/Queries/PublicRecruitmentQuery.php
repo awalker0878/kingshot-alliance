@@ -32,7 +32,10 @@ final class PublicRecruitmentQuery
 
         return [
             'status' => 'open',
-            'application_url' => route('public.alliances.recruitment.show', $allianceSlug),
+            'application_url' => route('public.alliances.recruitment.show', [
+                'slug' => $allianceSlug,
+                'source' => 'alliance-public-page',
+            ]),
         ];
     }
 }

@@ -14,6 +14,7 @@ use Illuminate\Support\Carbon;
 /**
  * @property RecruitmentApplicationMode $application_mode
  * @property bool $is_open
+ * @property bool $is_listed
  * @property int $retention_unsuccessful_days
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -33,6 +34,7 @@ final class RecruitmentSetting extends Model
         'introduction',
         'retention_unsuccessful_days',
         'is_open',
+        'is_listed',
         'created_by_player_id',
         'updated_by_player_id',
     ];
@@ -42,6 +44,7 @@ final class RecruitmentSetting extends Model
         return [
             'application_mode' => RecruitmentApplicationMode::class,
             'is_open' => 'boolean',
+            'is_listed' => 'boolean',
             'retention_unsuccessful_days' => 'integer',
         ];
     }

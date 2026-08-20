@@ -24,6 +24,16 @@ type Metrics = {
   total: number;
   byStage: Record<string, number>;
   bySource: Record<string, number>;
+  sourceFunnel: Record<
+    string,
+    {
+      submitted: number;
+      accepted: number;
+      joined: number;
+      acceptedRate: number;
+      joinedRate: number;
+    }
+  >;
   averageResponseHours: number | null;
   acceptedRate: number;
   joinedRate: number;
@@ -49,6 +59,7 @@ const props = defineProps<{
     introduction: string | null;
     retentionDays: number;
     open: boolean;
+    listed: boolean;
   } | null;
   applicationModes: string[];
   questionTypes: string[];
@@ -82,6 +93,7 @@ const props = defineProps<{
     active: boolean;
   }>;
   metrics: Metrics;
+  discovery: { boardUrl: string; applicationUrl: string | null };
   issuedApplicationLink: string | null;
 }>();
 
@@ -93,6 +105,7 @@ const settingsForm = useForm({
   introduction: props.settings?.introduction ?? '',
   retention_days: props.settings?.retentionDays ?? 90,
   open: props.settings?.open ?? true,
+  listed: props.settings?.listed ?? false,
 });
 const questionForm = useForm({
   prompt: '',
@@ -104,6 +117,7 @@ const questionForm = useForm({
   active: true,
 });
 const questionOptions = ref('');
+const applicationLinkCopied = ref(false);
 const questionEdits = reactive<Record<string, QuestionEdit>>({});
 for (const question of props.questions) {
   questionEdits[question.id] = {
@@ -139,6 +153,16 @@ function questionEdit(id: string): QuestionEdit {
   const edit = questionEdits[id];
   if (!edit) throw new Error(`Missing question edit state for ${id}`);
   return edit;
+}
+
+async function copyApplicationLink(): Promise<void> {
+  if (!props.discovery.applicationUrl || !navigator.clipboard) return;
+
+  await navigator.clipboard.writeText(props.discovery.applicationUrl);
+  applicationLinkCopied.value = true;
+  window.setTimeout(() => {
+    applicationLinkCopied.value = false;
+  }, 2400);
 }
 
 function saveSettings(): void {
@@ -245,7 +269,16 @@ function humanize(value: string): string {
     >
       <template #actions>
         <a
-          :href="`/alliances/${alliance.slug}/apply`"
+          :href="discovery.boardUrl"
+          class="ks-command-link"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {{ t('recruitment.discoveryBoard') }}
+        </a>
+        <a
+          v-if="discovery.applicationUrl"
+          :href="discovery.applicationUrl"
           class="ks-command-link"
           target="_blank"
           rel="noopener noreferrer"
@@ -284,6 +317,51 @@ function humanize(value: string): string {
         icon="◇"
         tone="teal"
       />
+    </section>
+
+    <section
+      v-if="Object.keys(metrics.sourceFunnel).length"
+      class="ks-surface mt-5 p-5 sm:p-6"
+      aria-labelledby="source-performance-heading"
+    >
+      <div>
+        <p class="ks-kicker">{{ t('recruitment.sources') }}</p>
+        <h2 id="source-performance-heading" class="ks-display mt-1 text-xl font-semibold">
+          {{ t('recruitment.sourcePerformance') }}
+        </h2>
+        <p class="mt-2 max-w-3xl text-sm leading-6 text-[var(--ks-muted)]">
+          {{ t('recruitment.sourcePerformanceHelp') }}
+        </p>
+      </div>
+      <div class="mt-5 grid gap-3 md:grid-cols-2 2xl:grid-cols-3">
+        <article
+          v-for="(sourceMetrics, source) in metrics.sourceFunnel"
+          :key="source"
+          class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-4"
+        >
+          <h3 class="font-[var(--ks-font-display)] text-lg font-semibold text-[var(--ks-gold-bright)]">
+            {{ humanize(source) }}
+          </h3>
+          <dl class="mt-4 grid grid-cols-3 gap-3 text-sm">
+            <div>
+              <dt class="text-xs text-[var(--ks-muted)]">{{ t('recruitment.submittedCount') }}</dt>
+              <dd class="mt-1 font-bold">{{ formatNumber(sourceMetrics.submitted) }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs text-[var(--ks-muted)]">{{ t('recruitment.acceptedCount') }}</dt>
+              <dd class="mt-1 font-bold">
+                {{ formatNumber(sourceMetrics.accepted) }} · {{ percentage(sourceMetrics.acceptedRate) }}
+              </dd>
+            </div>
+            <div>
+              <dt class="text-xs text-[var(--ks-muted)]">{{ t('recruitment.joinedCount') }}</dt>
+              <dd class="mt-1 font-bold">
+                {{ formatNumber(sourceMetrics.joined) }} · {{ percentage(sourceMetrics.joinedRate) }}
+              </dd>
+            </div>
+          </dl>
+        </article>
+      </div>
     </section>
 
     <section class="ks-surface mt-5 overflow-hidden" aria-labelledby="pipeline-heading">
@@ -495,9 +573,42 @@ function humanize(value: string): string {
               {{ t('recruitment.applicationsOpen') }}
             </label>
           </div>
-          <AppButton type="submit" :disabled="settingsForm.processing">
-            {{ t('recruitment.saveSettings') }}
-          </AppButton>
+          <label
+            class="block rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-4"
+          >
+            <span class="flex items-center gap-2 text-sm font-semibold text-[var(--ks-text-secondary)]">
+              <input v-model="settingsForm.listed" type="checkbox" />
+              {{ t('recruitment.publicListing') }}
+            </span>
+            <span class="mt-2 block text-xs leading-5 text-[var(--ks-muted)]">
+              {{ t('recruitment.publicListingHelp') }}
+            </span>
+          </label>
+          <div class="flex flex-wrap gap-3">
+            <AppButton type="submit" :disabled="settingsForm.processing">
+              {{ t('recruitment.saveSettings') }}
+            </AppButton>
+            <a
+              :href="discovery.boardUrl"
+              class="ks-command-link"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {{ t('recruitment.discoveryBoard') }}
+            </a>
+            <button
+              v-if="discovery.applicationUrl"
+              type="button"
+              class="ks-command-link"
+              @click="copyApplicationLink"
+            >
+              {{
+                applicationLinkCopied
+                  ? t('recruitment.applicationLinkCopied')
+                  : t('recruitment.copyApplicationLink')
+              }}
+            </button>
+          </div>
         </form>
 
         <div class="ks-divider my-6" />

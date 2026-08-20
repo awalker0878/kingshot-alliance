@@ -31,6 +31,7 @@ final class ConfigureRecruitmentSettings
         ?string $introduction,
         int $retentionUnsuccessfulDays,
         bool $isOpen,
+        bool $isListed,
     ): string {
         if ($retentionUnsuccessfulDays < 1 || $retentionUnsuccessfulDays > 3650) {
             throw new InvalidArgumentException('Recruitment retention must be between 1 and 3650 days.');
@@ -49,6 +50,7 @@ final class ConfigureRecruitmentSettings
             $introduction,
             $retentionUnsuccessfulDays,
             $isOpen,
+            $isListed,
         ): string {
             // Recruitment settings are one singleton row per Alliance. Exclusive
             // parent coordination prevents concurrent first-create races.
@@ -74,6 +76,7 @@ final class ConfigureRecruitmentSettings
                 'introduction' => $introduction === null ? null : trim($introduction),
                 'retention_unsuccessful_days' => $retentionUnsuccessfulDays,
                 'is_open' => $isOpen,
+                'is_listed' => $isListed,
                 'updated_by_player_id' => $context->actor->playerId,
             ]);
             $settings->save();
@@ -82,11 +85,13 @@ final class ConfigureRecruitmentSettings
             $this->audit->record($eventType, $context->actor, $settings, $context->alliance, [
                 'application_mode' => $mode->value,
                 'is_open' => $isOpen,
+                'is_listed' => $isListed,
                 'retention_unsuccessful_days' => $retentionUnsuccessfulDays,
             ]);
             $this->outbox->record($eventType, (string) $context->alliance->id, $settings, [
                 'application_mode' => $mode->value,
                 'is_open' => $isOpen,
+                'is_listed' => $isListed,
             ]);
 
             return (string) $settings->id;

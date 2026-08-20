@@ -27,7 +27,7 @@ The remaining gap is less about adding disconnected screens and more about makin
 | Complete | Alliance broadcasts | Scheduled announcements delivered once to each active Governor's enabled in-app, Discord and Telegram channels | Active membership, recipient-owned endpoints and idempotent fan-out |
 | Complete | Knowledge hub | Searchable, versioned Alliance guides with visible source, game-version and review metadata | Provenance, locale, review date and no invented strategy claims |
 | Complete | Player progression | Manual/CSV/ingestion observations with freshness and consecutive power, progression, name and Alliance-tag changes | Intelligence observations, never authoritative game state |
-| Next | Recruitment discovery | Public recruitment board, filters, share links and conversion analytics | Privacy controls and explicit application consent |
+| Complete | Recruitment discovery | Opt-in public recruitment board, shareable filters, attributed links and source conversion analytics | Active/public/open listing gate; candidate data remains private |
 | Later | Calculators | Troop, Chief Gear, Charm and Hero Gear planning with saved scenarios | Ship only after cost datasets are verified and versioned; the inspected community calculator contains placeholder sections |
 | Later | Bot/API surfaces | Read-only Discord/Telegram commands backed by the same application services | Scoped credentials, rate limits and no parallel business logic |
 | Later | Mobile/offline polish | PWA install, cached guides/calendar and push delivery | No offline writes without conflict semantics |
