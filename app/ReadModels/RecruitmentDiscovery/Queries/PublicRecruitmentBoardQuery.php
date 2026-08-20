@@ -27,20 +27,20 @@ final class PublicRecruitmentBoardQuery
         $language = strtolower(trim((string) $language));
         $base = $this->listedAlliances();
 
-        $kingdoms = (clone $base)
+        $kingdoms = array_values((clone $base)
             ->distinct()
             ->orderBy('kingdoms.number')
             ->pluck('kingdoms.number')
             ->map(static fn (mixed $number): int => (int) $number)
             ->values()
-            ->all();
-        $languages = (clone $base)
+            ->all());
+        $languages = array_values((clone $base)
             ->distinct()
             ->orderBy('alliances.language')
             ->pluck('alliances.language')
             ->map(static fn (mixed $value): string => (string) $value)
             ->values()
-            ->all();
+            ->all());
 
         if ($search !== '') {
             $like = '%'.mb_strtolower($search).'%';
