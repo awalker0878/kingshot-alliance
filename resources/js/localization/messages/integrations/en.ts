@@ -26,7 +26,8 @@ const messages = {
     scopeAlliance: 'Alliance identity and public configuration.',
     scopeEvents: 'Alliance Event occurrences.',
     scopeContributions: 'Approved Alliance contribution records.',
-    scopeCommands: 'Bounded command overview with Events, Gift Codes, knowledge, and recruitment status.',
+    scopeCommands:
+      'Bounded command overview with Events, Gift Codes, knowledge, and recruitment status.',
     scopeGiftCodes: 'Active Gift Codes and the official redemption handoff.',
     scopeContent: 'Published Alliance knowledge excerpts and provenance.',
     apiEnabled: 'Access keys are enabled.',
