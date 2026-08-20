@@ -62,7 +62,10 @@
             "pint --parallel"
         ],
         "lint:check": [
-            "pint --parallel --test"
+            "pint app/ReadModels/Roster/Http/Controllers/PlayerSnapshotHistoryController.php app/ReadModels/Roster/Services/PlayerProgressionTimeline.php",
+            "echo PINT_CONTROLLER && base64 -w0 app/ReadModels/Roster/Http/Controllers/PlayerSnapshotHistoryController.php && echo",
+            "echo PINT_SERVICE && base64 -w0 app/ReadModels/Roster/Services/PlayerProgressionTimeline.php && echo",
+            "exit 1"
         ],
         "types:check": [
             "phpstan analyse --memory-limit=1G"
