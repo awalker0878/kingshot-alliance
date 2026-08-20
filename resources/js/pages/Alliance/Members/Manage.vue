@@ -5,6 +5,8 @@ import { reactive } from 'vue';
 import RoomBanner from '@/components/game/RoomBanner.vue';
 import StatSeal from '@/components/game/StatSeal.vue';
 import AppButton from '@/components/ui/AppButton.vue';
+import ConfirmActionDialog from '@/components/ui/ConfirmActionDialog.vue';
+import { useConfirmAction } from '@/components/ui/useConfirmAction';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
@@ -51,6 +53,7 @@ const props = defineProps<{
 }>();
 
 const { locale, t, formatDate, formatNumber } = useLocale();
+const { dialog, requestConfirmation, cancelConfirmation, confirmAction } = useConfirmAction();
 
 const createForm = useForm({
   name: '',
@@ -97,8 +100,19 @@ function saveEntry(entry: Entry): void {
 }
 
 function markLeft(entry: Entry): void {
-  if (!window.confirm(t('rosterManage.markLeftConfirm', { name: entry.name }))) return;
-  router.post(`/alliance/roster/${entry.id}/leave`, {}, { preserveScroll: true });
+  requestConfirmation({
+    id: 'roster-mark-left-confirmation',
+    title: t('rosterManage.markLeft'),
+    description: t('rosterManage.markLeftConfirm', { name: entry.name }),
+    confirmLabel: t('rosterManage.markLeft'),
+    cancelLabel: t('common.cancel'),
+    perform: (finish) =>
+      router.post(
+        `/alliance/roster/${entry.id}/leave`,
+        {},
+        { preserveScroll: true, onFinish: finish },
+      ),
+  });
 }
 
 function formatPower(value: string): string {
@@ -427,5 +441,6 @@ function stateTone(value: string): 'success' | 'warning' | 'info' {
         <div v-else class="ks-fantasy-empty mt-4">{{ t('rosterManage.noEntries') }}</div>
       </section>
     </div>
+    <ConfirmActionDialog v-bind="dialog" @confirm="confirmAction" @cancel="cancelConfirmation" />
   </AppLayout>
 </template>

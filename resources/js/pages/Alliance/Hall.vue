@@ -5,6 +5,8 @@ import { reactive } from 'vue';
 import RoomBanner from '@/components/game/RoomBanner.vue';
 import StatSeal from '@/components/game/StatSeal.vue';
 import AppButton from '@/components/ui/AppButton.vue';
+import ConfirmActionDialog from '@/components/ui/ConfirmActionDialog.vue';
+import { useConfirmAction } from '@/components/ui/useConfirmAction';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
@@ -77,6 +79,7 @@ const props = defineProps<{
 }>();
 
 const { t, formatDate } = useLocale();
+const { dialog, requestConfirmation, cancelConfirmation, confirmAction } = useConfirmAction();
 const inviteForm = useForm({
   player_id: props.invitationManagement.candidates[0]?.id ?? '',
   email: '',
@@ -145,27 +148,32 @@ function removeRole(membershipId: string, roleId: string): void {
 }
 
 function transferLeadership(playerId: string, playerName: string): void {
-  if (
-    !window.confirm(
-      t('allianceOperations.overview.transferLeadershipConfirm', { player: playerName }),
-    )
-  ) {
-    return;
-  }
-
-  router.post('/alliance/leadership/transfer', { player_id: playerId }, { preserveScroll: true });
+  requestConfirmation({
+    id: 'alliance-leadership-transfer-confirmation',
+    title: t('allianceOperations.overview.transferLeadership'),
+    description: t('allianceOperations.overview.transferLeadershipConfirm', {
+      player: playerName,
+    }),
+    confirmLabel: t('allianceOperations.overview.transferLeadership'),
+    cancelLabel: t('common.cancel'),
+    perform: (finish) =>
+      router.post(
+        '/alliance/leadership/transfer',
+        { player_id: playerId },
+        { preserveScroll: true, onFinish: finish },
+      ),
+  });
 }
 
 function leaveAlliance(): void {
-  if (
-    !window.confirm(
-      t('allianceOperations.overview.leaveConfirm', { alliance: props.alliance.name }),
-    )
-  ) {
-    return;
-  }
-
-  router.delete('/alliance/membership');
+  requestConfirmation({
+    id: 'alliance-leave-confirmation',
+    title: t('allianceOperations.overview.leaveAlliance'),
+    description: t('allianceOperations.overview.leaveConfirm', { alliance: props.alliance.name }),
+    confirmLabel: t('allianceOperations.overview.leaveAlliance'),
+    cancelLabel: t('common.cancel'),
+    perform: (finish) => router.delete('/alliance/membership', { onFinish: finish }),
+  });
 }
 
 function statusLabel(value: string): string {
@@ -695,5 +703,6 @@ function formatInZone(value: string, timeZone: string): string {
         </button>
       </aside>
     </div>
+    <ConfirmActionDialog v-bind="dialog" @confirm="confirmAction" @cancel="cancelConfirmation" />
   </AppLayout>
 </template>

@@ -5,6 +5,8 @@ import { computed } from 'vue';
 import RoomBanner from '@/components/game/RoomBanner.vue';
 import StatSeal from '@/components/game/StatSeal.vue';
 import AppButton from '@/components/ui/AppButton.vue';
+import ConfirmActionDialog from '@/components/ui/ConfirmActionDialog.vue';
+import { useConfirmAction } from '@/components/ui/useConfirmAction';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
@@ -21,6 +23,7 @@ const props = defineProps<{
 }>();
 
 const { t, formatDate } = useLocale();
+const { dialog, requestConfirmation, cancelConfirmation, confirmAction } = useConfirmAction();
 
 const statusMessage = computed(() =>
   props.status === 'account-deletion-requested'
@@ -29,8 +32,14 @@ const statusMessage = computed(() =>
 );
 
 function requestDeletion(): void {
-  if (!window.confirm(t('accountExperience.deletion.confirm'))) return;
-  router.post('/profile/delete-account');
+  requestConfirmation({
+    id: 'account-deletion-confirmation',
+    title: t('accountExperience.deletion.requestTitle'),
+    description: t('accountExperience.deletion.confirm'),
+    confirmLabel: t('accountExperience.deletion.requestButton'),
+    cancelLabel: t('common.cancel'),
+    perform: (finish) => router.post('/profile/delete-account', {}, { onFinish: finish }),
+  });
 }
 
 function requestTone(status: string): 'success' | 'warning' | 'danger' | 'info' {
@@ -154,5 +163,7 @@ function requestTone(status: string): 'success' | 'warning' | 'danger' | 'info' 
         </AppButton>
       </div>
     </section>
+
+    <ConfirmActionDialog v-bind="dialog" @confirm="confirmAction" @cancel="cancelConfirmation" />
   </AppLayout>
 </template>

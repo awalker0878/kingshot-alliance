@@ -96,6 +96,7 @@ Mutation surfaces use the shared feedback primitives:
 - `FormError` gives server validation an alert region that inputs reference with `aria-describedby` and `aria-invalid`;
 - `ActionNotice` presents translated success, warning and failure outcomes without exposing internal status codes;
 - `ConfirmActionDialog` provides a keyboard-contained, initially focused confirmation for irreversible or access-revoking actions.
+- Browser-native confirmation prompts are prohibited. The frontend accessibility gate parses every Vue single-file component, requires the shared dialog contract, and keeps cancellation available until a confirmed request starts.
 
 New mutation forms must expose server validation beside the affected control, prevent duplicate submission while busy and translate completion status. Native `window.confirm` and raw server status values are not the standard for new work.
 

@@ -2,6 +2,8 @@
 import { Head, Link, router } from '@inertiajs/vue3';
 import { computed, reactive, ref } from 'vue';
 
+import ConfirmActionDialog from '@/components/ui/ConfirmActionDialog.vue';
+import { useConfirmAction } from '@/components/ui/useConfirmAction';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
@@ -56,6 +58,7 @@ const props = defineProps<{
 }>();
 
 const { t, formatDate, formatNumber } = useLocale();
+const { dialog, requestConfirmation, cancelConfirmation, confirmAction } = useConfirmAction();
 
 const readinessStates: Readiness[] = [
   'not_started',
@@ -181,12 +184,20 @@ function resolveBlocker(participant: Participant, blocker: Blocker): void {
 
 function withdrawParticipant(participant: Participant): void {
   if (props.plan === null || !props.plan.mutable || participant.withdrawnAt !== null) return;
-  if (!window.confirm(t('kingdomP7D.withdrawConfirm', { name: participant.name }))) return;
-  router.post(
-    `/alliance/transfers/${props.plan.id}/participants/${participant.id}/withdraw`,
-    {},
-    { preserveScroll: true },
-  );
+  const planId = props.plan.id;
+  requestConfirmation({
+    id: 'transfer-readiness-withdrawal-confirmation',
+    title: t('kingdomP7D.withdraw'),
+    description: t('kingdomP7D.withdrawConfirm', { name: participant.name }),
+    confirmLabel: t('kingdomP7D.withdraw'),
+    cancelLabel: t('common.cancel'),
+    perform: (finish) =>
+      router.post(
+        `/alliance/transfers/${planId}/participants/${participant.id}/withdraw`,
+        {},
+        { preserveScroll: true, onFinish: finish },
+      ),
+  });
 }
 
 function destinationLabel(participant: Participant): string {
@@ -539,5 +550,6 @@ const inputClass =
         {{ t('kingdomP7D.noCompletionCycleHelp') }}
       </p>
     </section>
+    <ConfirmActionDialog v-bind="dialog" @confirm="confirmAction" @cancel="cancelConfirmation" />
   </AppLayout>
 </template>
