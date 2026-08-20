@@ -2,6 +2,7 @@
 import { Link } from '@inertiajs/vue3';
 
 import LocaleSwitcher from '@/components/navigation/LocaleSwitcher.vue';
+import PwaStatus from '@/components/system/PwaStatus.vue';
 import { useLocale } from '@/localization';
 
 const { t } = useLocale();
@@ -52,4 +53,6 @@ const { t } = useLocale();
     </header>
     <main><slot /></main>
   </div>
+
+  <PwaStatus />
 </template>

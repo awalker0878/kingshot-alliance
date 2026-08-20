@@ -6,6 +6,7 @@ import AllianceCrest from '@/components/game/AllianceCrest.vue';
 import IdentitySwitcher from '@/components/navigation/IdentitySwitcher.vue';
 import LocaleSwitcher from '@/components/navigation/LocaleSwitcher.vue';
 import NavIcon from '@/components/navigation/NavIcon.vue';
+import PwaStatus from '@/components/system/PwaStatus.vue';
 import { useLocale } from '@/localization';
 import {
   EMPTY_PLAYER_CONTEXT,
@@ -421,4 +422,6 @@ function logout(): void {
       </main>
     </div>
   </div>
+
+  <PwaStatus />
 </template>

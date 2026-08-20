@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#0d3431">
+    <meta name="color-scheme" content="dark">
+    <title>Offline · Kingshot Alliance</title>
+    <style>
+      :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+      * { box-sizing: border-box; }
+      body { min-height: 100vh; margin: 0; display: grid; place-items: center; padding: 1.5rem; color: #f6ecd7; background: radial-gradient(circle at top, #17433f, #050a0b 55%); }
+      main { width: min(34rem, 100%); border: 1px solid rgba(226, 180, 77, .32); border-radius: 1rem; padding: clamp(1.5rem, 5vw, 3rem); background: rgba(4, 9, 9, .92); box-shadow: 0 2rem 5rem rgba(0, 0, 0, .4); }
+      .crest { width: 4rem; height: 4rem; display: grid; place-items: center; margin-bottom: 1.5rem; border: 1px solid #9b6421; color: #f6df8b; background: #08211f; clip-path: polygon(50% 0, 95% 16%, 86% 77%, 50% 100%, 14% 77%, 5% 16%); font-size: 1.75rem; }
+      h1 { margin: 0; font-family: Georgia, serif; font-size: clamp(2rem, 8vw, 3rem); color: #f6df8b; }
+      p { margin: 1rem 0 0; color: #c8c1b2; line-height: 1.7; }
+      button { min-height: 2.75rem; margin-top: 1.5rem; border: 0; border-radius: .5rem; padding: .65rem 1rem; font: inherit; font-weight: 750; color: #181108; background: #e2b44d; cursor: pointer; }
+      button:focus-visible { outline: 3px solid #f6df8b; outline-offset: 3px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="crest" aria-hidden="true">♛</div>
+      <h1>The realm is offline</h1>
+      <p>Kingshot Alliance could not reach the server. Reconnect before opening Alliance data or submitting changes; private command responses are never stored for offline use.</p>
+      <button type="button" onclick="window.location.reload()">Try again</button>
+    </main>
+  </body>
+</html>

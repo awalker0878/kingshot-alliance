@@ -23,6 +23,15 @@ const messages = {
     skipToNoticeboard: 'Skip to content',
     contextStale:
       'Your Governor or permissions changed. The latest authority context has been reloaded; review it and try again.',
+    pwaOffline: 'The realm is offline',
+    pwaOfflineHelp:
+      'Reconnect before opening Alliance data or submitting changes. Private command responses are never cached.',
+    pwaUpdateReady: 'A command update is ready',
+    pwaUpdateHelp: 'Reload into the latest verified application assets.',
+    pwaUpdate: 'Update now',
+    pwaInstallReady: 'Install Alliance Command',
+    pwaInstallHelp: 'Add the command surface to this device for a focused standalone experience.',
+    pwaInstall: 'Install app',
   },
   navigation: {
     home: 'Realm Gate',
