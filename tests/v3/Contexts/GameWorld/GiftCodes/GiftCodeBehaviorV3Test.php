@@ -51,6 +51,10 @@ final class GiftCodeBehaviorV3Test extends TestCase
         $confirmed = app(ConfirmGiftCodeRedemption::class)->handle($first->giftCodeId, $player);
         self::assertSame(GiftCodeRedemptionStatus::Redeemed, $confirmed->status);
         self::assertNotNull($confirmed->redeemedAt);
+
+        $afterSuccess = app(BeginGiftCodeRedemption::class)->handle($first->giftCodeId, $player);
+        self::assertSame(GiftCodeRedemptionStatus::Redeemed, $afterSuccess->status);
+        self::assertSame(2, $afterSuccess->attempts);
     }
 
     public function test_retryable_outcomes_receive_a_bounded_retry_time(): void
@@ -78,5 +82,18 @@ final class GiftCodeBehaviorV3Test extends TestCase
         $nextAttemptAt = $redemption->nextAttemptAt;
         self::assertNotNull($nextAttemptAt);
         self::assertTrue($nextAttemptAt->isFuture());
+
+        $blockedRetry = app(RecordGiftCodeRedemptionOutcome::class)->handle(
+            $giftCode->giftCodeId,
+            $player,
+            'test_provider',
+            new GiftCodeRedemptionOutcome(
+                GiftCodeRedemptionStatus::RateLimited,
+                '40019',
+                'Provider rate limit reached.',
+            ),
+        );
+        self::assertSame(1, $blockedRetry->attempts);
+        self::assertTrue($blockedRetry->nextAttemptAt?->equalTo($nextAttemptAt) ?? false);
     }
 }
