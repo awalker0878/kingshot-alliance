@@ -156,6 +156,15 @@ const messages = {
     source: 'Source',
     recordedBy: 'Recorded by',
     noSnapshots: 'No scout records have been recorded for this Governor.',
+    progressionHelp:
+      'Use the exact observed furnace or progression label. The application does not normalize or infer game levels.',
+    sincePriorObservation: 'since prior observation',
+    observedChanges: 'Observed changes',
+    nameChanged: 'Name',
+    progressionChanged: 'Progression',
+    allianceChanged: 'Alliance tag',
+    noObservedChange: 'No observed field changed',
+    earlierHistoryNotShown: 'Earlier observations exist beyond the 250-row display limit.',
   },
 } satisfies MessageCatalogue;
 

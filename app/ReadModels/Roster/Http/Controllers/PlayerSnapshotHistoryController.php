@@ -17,6 +17,7 @@ use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
 use App\Contexts\Intelligence\Roster\Models\PlayerSnapshot;
 use App\ReadModels\Roster\Queries\PlayerSnapshotQuery;
+use App\ReadModels\Roster\Services\PlayerProgressionTimeline;
 use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
@@ -34,6 +35,7 @@ final class PlayerSnapshotHistoryController extends Controller
         AccountIdentityQuery $accounts,
         PlayerReferenceQuery $players,
         PlayerSnapshotQuery $snapshots,
+        PlayerProgressionTimeline $timeline,
         string $entry,
     ): Response {
         $scope = $context->scope();
@@ -52,10 +54,12 @@ final class PlayerSnapshotHistoryController extends Controller
             ->where('status', MembershipStatus::Active->value)
             ->first();
         $canManage = $authorization->allows($scope->playerId, $scope->allianceId, IntelligencePermission::KingdomManage);
-        $history = $snapshots->historyForEntry($alliance->allianceId, $rosterEntry);
-        $actorIds = $history->pluck('actor_player_id')->filter()->map(static fn ($id): string => (string) $id)->values()->all();
+        $history = $snapshots->historyForEntry($alliance->allianceId, $rosterEntry, 251);
+        $visibleHistory = $history->take(250)->values();
+        $changes = $timeline->changes($history);
+        $actorIds = $visibleHistory->pluck('actor_player_id')->filter()->map(static fn ($id): string => (string) $id)->values()->all();
         $actorRefs = $players->byIds($actorIds);
-        $latest = $history->first();
+        $latest = $visibleHistory->first();
 
         return Inertia::render('Intelligence/Roster/History', [
             'user' => ['name' => $account->name, 'email' => $account->email],
@@ -73,18 +77,31 @@ final class PlayerSnapshotHistoryController extends Controller
                 'membership' => $membership instanceof AllianceMembership ? ['name' => $player->currentName] : null,
             ],
             'canManage' => $canManage,
-            'latest' => $latest instanceof PlayerSnapshot ? $this->snapshot($latest, $canManage, $actorRefs) : null,
-            'snapshots' => $history->map(fn (PlayerSnapshot $snapshot): array => $this->snapshot($snapshot, $canManage, $actorRefs))->values()->all(),
+            'latest' => $latest instanceof PlayerSnapshot
+                ? $this->snapshot($latest, $canManage, $actorRefs, $changes[(string) $latest->id] ?? null)
+                : null,
+            'snapshots' => $visibleHistory->map(fn (PlayerSnapshot $snapshot): array => $this->snapshot(
+                $snapshot,
+                $canManage,
+                $actorRefs,
+                $changes[(string) $snapshot->id] ?? null,
+            ))->values()->all(),
+            'hasMoreSnapshots' => $history->count() > $visibleHistory->count(),
             'staleAfterDays' => PlayerSnapshotQuery::STALE_AFTER_DAYS,
         ]);
     }
 
     /**
      * @param  array<string, PlayerReference>  $actors
+     * @param  array<string, mixed>|null  $change
      * @return array<string, mixed>
      */
-    private function snapshot(PlayerSnapshot $snapshot, bool $includeActor, array $actors): array
-    {
+    private function snapshot(
+        PlayerSnapshot $snapshot,
+        bool $includeActor,
+        array $actors,
+        ?array $change,
+    ): array {
         $row = [
             'id' => (string) $snapshot->id,
             'observedName' => (string) $snapshot->observed_name,
@@ -93,6 +110,7 @@ final class PlayerSnapshotHistoryController extends Controller
             'observedAllianceTag' => $snapshot->observed_alliance_tag,
             'capturedAt' => $snapshot->captured_at->toIso8601String(),
             'source' => (string) $snapshot->source,
+            'change' => $change,
         ];
         if ($includeActor) {
             $actor = $snapshot->actor_player_id === null ? null : ($actors[(string) $snapshot->actor_player_id] ?? null);

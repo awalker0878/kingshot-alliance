@@ -5,6 +5,15 @@ import RoomBanner from '@/components/game/RoomBanner.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
+type TextChange = { from: string | null; to: string | null };
+type SnapshotChange = {
+  fromCapturedAt: string;
+  power: string;
+  observedName: TextChange | null;
+  progressionLevel: TextChange | null;
+  observedAllianceTag: TextChange | null;
+};
+
 type Snapshot = {
   id: string;
   observedName: string;
@@ -13,6 +22,7 @@ type Snapshot = {
   observedAllianceTag: string | null;
   capturedAt: string;
   source: string;
+  change: SnapshotChange | null;
   actorName?: string;
 };
 
@@ -30,6 +40,7 @@ const props = defineProps<{
   canManage: boolean;
   latest: Snapshot | null;
   snapshots: Snapshot[];
+  hasMoreSnapshots: boolean;
   staleAfterDays: number;
 }>();
 
@@ -46,6 +57,21 @@ function formatPower(value: string): string {
   } catch {
     return value;
   }
+}
+
+function formatSignedPower(value: string): string {
+  const formatted = formatPower(value);
+  return value.startsWith('-') || value === '0' ? formatted : `+${formatted}`;
+}
+
+function powerChangeTone(value: string): string {
+  if (value.startsWith('-')) return 'text-red-300';
+  if (value === '0') return 'text-[var(--ks-text-muted)]';
+  return 'text-green-300';
+}
+
+function observedValue(value: string | null): string {
+  return value ?? '—';
 }
 
 function formatCaptured(value: string): string {
@@ -80,8 +106,8 @@ function freshnessTone(value: 'current' | 'stale' | 'missing'): string {
 const snapshotForm = useForm({
   observed_name: props.entry.name,
   power: '',
-  progression_level: '',
-  observed_alliance_tag: '',
+  progression_level: props.latest?.progressionLevel ?? '',
+  observed_alliance_tag: props.latest?.observedAllianceTag ?? '',
   captured_at: localDateTimeValue(),
 });
 
@@ -95,8 +121,8 @@ function recordSnapshot(): void {
       preserveScroll: true,
       onSuccess: () => {
         snapshotForm.power = '';
-        snapshotForm.progression_level = '';
-        snapshotForm.observed_alliance_tag = '';
+        snapshotForm.progression_level = props.latest?.progressionLevel ?? '';
+        snapshotForm.observed_alliance_tag = props.latest?.observedAllianceTag ?? '';
         snapshotForm.captured_at = localDateTimeValue();
       },
     });
@@ -150,6 +176,14 @@ function recordSnapshot(): void {
           <p class="ks-display mt-2 text-3xl font-semibold text-[var(--ks-gold-strong)]">
             {{ latest ? formatPower(latest.power) : '—' }}
           </p>
+          <p
+            v-if="latest?.change"
+            class="mt-1 text-xs font-semibold"
+            :class="powerChangeTone(latest.change.power)"
+          >
+            {{ formatSignedPower(latest.change.power) }}
+            {{ t('rosterHistory.sincePriorObservation') }}
+          </p>
         </article>
         <article class="p-4 sm:p-5">
           <p
@@ -159,6 +193,13 @@ function recordSnapshot(): void {
           </p>
           <p class="ks-display mt-2 text-2xl font-semibold">
             {{ latest?.progressionLevel ?? '—' }}
+          </p>
+          <p
+            v-if="latest?.change?.progressionLevel"
+            class="mt-1 text-xs text-[var(--ks-text-muted)]"
+          >
+            {{ observedValue(latest.change.progressionLevel.from) }} →
+            {{ observedValue(latest.change.progressionLevel.to) }}
           </p>
         </article>
         <article class="p-4 sm:p-5">
@@ -243,6 +284,9 @@ function recordSnapshot(): void {
               class="mt-1.5 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
               maxlength="64"
             />
+            <p class="mt-1 text-xs leading-5 text-[var(--ks-text-muted)]">
+              {{ t('rosterHistory.progressionHelp') }}
+            </p>
           </div>
           <div>
             <label class="text-xs font-semibold text-[var(--ks-text-secondary)]" for="snapshot-tag">
@@ -301,9 +345,12 @@ function recordSnapshot(): void {
                 {{ formatNumber(snapshots.length) }}
               </h2>
             </div>
-            <p class="max-w-xl text-xs leading-5 text-[var(--ks-text-muted)]">
-              {{ t('rosterHistory.historyHelp') }}
-            </p>
+            <div class="max-w-xl text-xs leading-5 text-[var(--ks-text-muted)]">
+              <p>{{ t('rosterHistory.historyHelp') }}</p>
+              <p v-if="hasMoreSnapshots" class="mt-1 text-amber-200">
+                {{ t('rosterHistory.earlierHistoryNotShown') }}
+              </p>
+            </div>
           </div>
         </div>
 
@@ -327,6 +374,13 @@ function recordSnapshot(): void {
                   {{ t('roster.power') }}
                 </span>
                 <strong class="mt-1 block text-base">{{ formatPower(snapshot.power) }}</strong>
+                <span
+                  v-if="snapshot.change"
+                  class="mt-1 block text-xs font-semibold"
+                  :class="powerChangeTone(snapshot.change.power)"
+                >
+                  {{ formatSignedPower(snapshot.change.power) }}
+                </span>
               </p>
             </div>
             <dl class="mt-4 grid grid-cols-2 gap-3 text-xs">
@@ -352,6 +406,28 @@ function recordSnapshot(): void {
                   {{ snapshot.actorName ?? '—' }}
                 </dd>
               </div>
+              <div v-if="snapshot.change" class="col-span-2">
+                <dt class="text-[var(--ks-text-muted)]">
+                  {{ t('rosterHistory.observedChanges') }}
+                </dt>
+                <dd class="mt-2 flex flex-wrap gap-2">
+                  <span v-if="snapshot.change.observedName" class="ks-chip">
+                    {{ t('rosterHistory.nameChanged') }}:
+                    {{ observedValue(snapshot.change.observedName.from) }} →
+                    {{ observedValue(snapshot.change.observedName.to) }}
+                  </span>
+                  <span v-if="snapshot.change.progressionLevel" class="ks-chip">
+                    {{ t('rosterHistory.progressionChanged') }}:
+                    {{ observedValue(snapshot.change.progressionLevel.from) }} →
+                    {{ observedValue(snapshot.change.progressionLevel.to) }}
+                  </span>
+                  <span v-if="snapshot.change.observedAllianceTag" class="ks-chip">
+                    {{ t('rosterHistory.allianceChanged') }}:
+                    {{ observedValue(snapshot.change.observedAllianceTag.from) }} →
+                    {{ observedValue(snapshot.change.observedAllianceTag.to) }}
+                  </span>
+                </dd>
+              </div>
             </dl>
           </article>
         </div>
@@ -365,6 +441,7 @@ function recordSnapshot(): void {
                 <th class="px-4 py-3 text-start">{{ t('rosterHistory.capturedAt') }}</th>
                 <th class="px-4 py-3 text-start">{{ t('roster.player') }}</th>
                 <th class="px-4 py-3 text-start">{{ t('roster.power') }}</th>
+                <th class="px-4 py-3 text-start">{{ t('rosterHistory.observedChanges') }}</th>
                 <th class="px-4 py-3 text-start">{{ t('roster.progression') }}</th>
                 <th class="px-4 py-3 text-start">{{ t('roster.allianceTag') }}</th>
                 <th class="px-4 py-3 text-start">{{ t('rosterHistory.source') }}</th>
@@ -383,7 +460,41 @@ function recordSnapshot(): void {
                   {{ formatCaptured(snapshot.capturedAt) }}
                 </td>
                 <td class="px-4 py-3.5 font-semibold">{{ snapshot.observedName }}</td>
-                <td class="px-4 py-3.5 font-semibold">{{ formatPower(snapshot.power) }}</td>
+                <td class="px-4 py-3.5 font-semibold">
+                  {{ formatPower(snapshot.power) }}
+                  <span
+                    v-if="snapshot.change"
+                    class="mt-1 block text-xs"
+                    :class="powerChangeTone(snapshot.change.power)"
+                  >
+                    {{ formatSignedPower(snapshot.change.power) }}
+                  </span>
+                </td>
+                <td class="max-w-72 px-4 py-3.5">
+                  <div v-if="snapshot.change" class="flex flex-wrap gap-1.5">
+                    <span v-if="snapshot.change.observedName" class="ks-chip">
+                      {{ t('rosterHistory.nameChanged') }}
+                    </span>
+                    <span v-if="snapshot.change.progressionLevel" class="ks-chip">
+                      {{ t('rosterHistory.progressionChanged') }}
+                    </span>
+                    <span v-if="snapshot.change.observedAllianceTag" class="ks-chip">
+                      {{ t('rosterHistory.allianceChanged') }}
+                    </span>
+                    <span
+                      v-if="
+                        snapshot.change.power === '0' &&
+                        !snapshot.change.observedName &&
+                        !snapshot.change.progressionLevel &&
+                        !snapshot.change.observedAllianceTag
+                      "
+                      class="text-xs text-[var(--ks-text-muted)]"
+                    >
+                      {{ t('rosterHistory.noObservedChange') }}
+                    </span>
+                  </div>
+                  <span v-else>—</span>
+                </td>
                 <td class="px-4 py-3.5 text-[var(--ks-text-secondary)]">
                   {{ snapshot.progressionLevel ?? '—' }}
                 </td>
