@@ -8,7 +8,13 @@ import AppButton from '@/components/ui/AppButton.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
-type Option = { value: string; label: string };
+type Option = { value: string; label: string; requiresProvenance: boolean };
+type Provenance = {
+  sourceLabel: string | null;
+  sourceUrl: string | null;
+  gameVersion: string | null;
+  reviewedAt: string | null;
+};
 type Category = { id: string; name: string; slug: string; sortOrder: number };
 type Revision = { id: string; revisionNumber: number; title: string; createdAt: string | null };
 type ContentRow = {
@@ -25,6 +31,7 @@ type ContentRow = {
   sortOrder: number;
   revisionNumber: number;
   notifyMembers: boolean;
+  provenance: Provenance | null;
   scheduledFor: string | null;
   publishedAt: string | null;
   broadcastedAt: string | null;
@@ -53,6 +60,10 @@ type ContentDraft = {
   locale: string;
   sort_order: number;
   notify_members: boolean;
+  source_label: string;
+  source_url: string;
+  game_version: string;
+  reviewed_at: string;
 };
 
 const props = defineProps<{
@@ -104,6 +115,12 @@ const pendingBroadcastCount = computed(
         item.broadcastedAt === null,
     ).length,
 );
+const requiresProvenance = computed(
+  () =>
+    props.contentTypes.find((option) => option.value === contentForm.type)?.requiresProvenance ??
+    false,
+);
+const today = new Date().toISOString().slice(0, 10);
 
 const profileForm = useForm({
   name: props.alliance.name,
@@ -127,6 +144,10 @@ const contentForm = useForm<ContentDraft>({
   locale: props.alliance.language || 'en',
   sort_order: 0,
   notify_members: false,
+  source_label: '',
+  source_url: '',
+  game_version: '',
+  reviewed_at: '',
 });
 
 function slugify(value: string): string {
@@ -159,6 +180,10 @@ function editContent(item: ContentRow): void {
   contentForm.locale = item.locale;
   contentForm.sort_order = item.sortOrder;
   contentForm.notify_members = item.notifyMembers;
+  contentForm.source_label = item.provenance?.sourceLabel ?? '';
+  contentForm.source_url = item.provenance?.sourceUrl ?? '';
+  contentForm.game_version = item.provenance?.gameVersion ?? '';
+  contentForm.reviewed_at = item.provenance?.reviewedAt ?? '';
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 function saveContent(): void {
@@ -576,6 +601,51 @@ function bytes(value: number): string {
                 maxlength="500"
               />
             </label>
+            <fieldset
+              v-if="requiresProvenance"
+              class="grid gap-4 rounded-[var(--ks-radius-md)] border border-amber-300/20 bg-amber-300/5 p-4 md:col-span-2 md:grid-cols-2"
+            >
+              <legend class="px-2 text-sm font-semibold">
+                {{ t('contentExperience.knowledgeProvenance') }}
+              </legend>
+              <p class="text-xs leading-5 text-[var(--ks-muted)] md:col-span-2">
+                {{ t('contentExperience.provenanceHelp') }}
+              </p>
+              <label class="block text-sm">
+                <span>{{ t('contentExperience.sourceLabel') }}</span>
+                <input
+                  v-model="contentForm.source_label"
+                  class="ks-input mt-1.5"
+                  required
+                  maxlength="180"
+                />
+              </label>
+              <label class="block text-sm">
+                <span>{{ t('contentExperience.sourceUrl') }}</span>
+                <input
+                  v-model="contentForm.source_url"
+                  class="ks-input mt-1.5"
+                  type="url"
+                  inputmode="url"
+                  maxlength="2048"
+                  placeholder="https://"
+                />
+              </label>
+              <label class="block text-sm">
+                <span>{{ t('contentExperience.gameVersion') }}</span>
+                <input v-model="contentForm.game_version" class="ks-input mt-1.5" maxlength="64" />
+              </label>
+              <label class="block text-sm">
+                <span>{{ t('contentExperience.reviewedAt') }}</span>
+                <input
+                  v-model="contentForm.reviewed_at"
+                  class="ks-input mt-1.5"
+                  type="date"
+                  :max="today"
+                  required
+                />
+              </label>
+            </fieldset>
             <label class="block text-sm md:col-span-2">
               <span>{{ t('contentExperience.body') }}</span>
               <textarea
@@ -655,6 +725,18 @@ function bytes(value: number): string {
                     </p>
                     <p v-if="item.scheduledFor" class="mt-2 text-xs text-amber-200">
                       {{ t('contentExperience.scheduledFor') }} {{ timestamp(item.scheduledFor) }}
+                    </p>
+                    <p v-if="item.provenance" class="mt-2 text-xs leading-5 text-[var(--ks-muted)]">
+                      {{ t('contentExperience.source') }}:
+                      {{ item.provenance.sourceLabel ?? '—' }}
+                      <template v-if="item.provenance.gameVersion">
+                        · {{ t('contentExperience.gameVersion') }}
+                        {{ item.provenance.gameVersion }}
+                      </template>
+                      <template v-if="item.provenance.reviewedAt">
+                        · {{ t('contentExperience.reviewed') }}
+                        {{ item.provenance.reviewedAt }}
+                      </template>
                     </p>
                   </div>
                   <div class="flex flex-wrap gap-2">

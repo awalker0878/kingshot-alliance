@@ -18,6 +18,11 @@ type ContentCard = {
   summary: string | null;
   locale: string;
   publishedAt: string | null;
+  provenance: {
+    sourceLabel: string | null;
+    gameVersion: string | null;
+    reviewedAt: string | null;
+  } | null;
   category: { id: string; name: string; slug: string } | null;
 };
 
@@ -235,6 +240,14 @@ function visibilityTone(value: string): 'success' | 'warning' | 'info' {
             class="mt-3 line-clamp-3 text-sm leading-6 text-[var(--ks-text-secondary)]"
           >
             {{ item.summary }}
+          </p>
+
+          <p v-if="item.provenance" class="mt-4 text-xs leading-5 text-[var(--ks-muted)]">
+            {{ t('contentExperience.source') }}:
+            {{ item.provenance.sourceLabel ?? '—' }}
+            <template v-if="item.provenance.reviewedAt">
+              · {{ t('contentExperience.reviewed') }} {{ item.provenance.reviewedAt }}
+            </template>
           </p>
 
           <div class="mt-auto flex flex-wrap items-end justify-between gap-3 pt-6">
