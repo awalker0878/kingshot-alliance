@@ -76,7 +76,8 @@ const messages = {
     resultCount: '{count} recruiting Alliances',
     capped: 'Showing the first 100 matches. Narrow the filters to see a more focused result.',
     noMatchesTitle: 'No recruiting Alliances match',
-    noMatchesBody: 'Try clearing a filter or check again when more Alliances opt in to public discovery.',
+    noMatchesBody:
+      'Try clearing a filter or check again when more Alliances opt in to public discovery.',
     viewAlliance: 'View Alliance',
     apply: 'Apply',
     publicOnly: 'Only opt-in public recruitment is shown',
@@ -94,7 +95,8 @@ const messages = {
     attributionBoard: 'Public recruitment board',
     attributionAlliancePage: 'Alliance public page',
     attributionShareLink: 'Alliance share link',
-    attributionHelp: 'This visible source label helps the Alliance understand which recruitment links work. It does not identify or track you.',
+    attributionHelp:
+      'This visible source label helps the Alliance understand which recruitment links work. It does not identify or track you.',
     optional: 'Optional',
     questions: 'Application questions',
     chooseOption: 'Choose an option',

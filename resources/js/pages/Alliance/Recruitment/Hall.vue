@@ -339,7 +339,9 @@ function humanize(value: string): string {
           :key="source"
           class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-4"
         >
-          <h3 class="font-[var(--ks-font-display)] text-lg font-semibold text-[var(--ks-gold-bright)]">
+          <h3
+            class="text-lg font-[var(--ks-font-display)] font-semibold text-[var(--ks-gold-bright)]"
+          >
             {{ humanize(source) }}
           </h3>
           <dl class="mt-4 grid grid-cols-3 gap-3 text-sm">
@@ -350,13 +352,15 @@ function humanize(value: string): string {
             <div>
               <dt class="text-xs text-[var(--ks-muted)]">{{ t('recruitment.acceptedCount') }}</dt>
               <dd class="mt-1 font-bold">
-                {{ formatNumber(sourceMetrics.accepted) }} · {{ percentage(sourceMetrics.acceptedRate) }}
+                {{ formatNumber(sourceMetrics.accepted) }} ·
+                {{ percentage(sourceMetrics.acceptedRate) }}
               </dd>
             </div>
             <div>
               <dt class="text-xs text-[var(--ks-muted)]">{{ t('recruitment.joinedCount') }}</dt>
               <dd class="mt-1 font-bold">
-                {{ formatNumber(sourceMetrics.joined) }} · {{ percentage(sourceMetrics.joinedRate) }}
+                {{ formatNumber(sourceMetrics.joined) }} ·
+                {{ percentage(sourceMetrics.joinedRate) }}
               </dd>
             </div>
           </dl>
@@ -576,7 +580,9 @@ function humanize(value: string): string {
           <label
             class="block rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-4"
           >
-            <span class="flex items-center gap-2 text-sm font-semibold text-[var(--ks-text-secondary)]">
+            <span
+              class="flex items-center gap-2 text-sm font-semibold text-[var(--ks-text-secondary)]"
+            >
               <input v-model="settingsForm.listed" type="checkbox" />
               {{ t('recruitment.publicListing') }}
             </span>

@@ -11,7 +11,7 @@
     "build": "vite build",
     "dev": "vite",
     "format": "prettier --write resources/",
-    "format:check": "prettier --write resources/js/layouts/PublicLayout.vue resources/js/localization/messages/public/en.ts resources/js/localization/messages/recruitment/en.ts resources/js/pages/Alliance/Recruitment/Hall.vue resources/js/pages/Public/Recruitment/Index.vue && for f in resources/js/layouts/PublicLayout.vue resources/js/localization/messages/public/en.ts resources/js/localization/messages/recruitment/en.ts resources/js/pages/Alliance/Recruitment/Hall.vue resources/js/pages/Public/Recruitment/Index.vue; do echo __FORMATTED_FILE__:$f; base64 -w0 \"$f\"; echo; echo __END_FORMATTED_FILE__; done && exit 1",
+    "format:check": "prettier --check resources/",
     "lint": "eslint . --fix",
     "lint:check": "eslint .",
     "types:check": "vue-tsc --noEmit",

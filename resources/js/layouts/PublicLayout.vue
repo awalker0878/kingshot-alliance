@@ -37,7 +37,10 @@ const { t } = useLocale();
           </div>
         </Link>
         <div class="flex min-w-0 items-center gap-2 sm:gap-3">
-          <Link href="/recruitment" class="ks-command-link hidden shrink-0 px-3 text-xs sm:inline-flex sm:px-4 sm:text-sm">
+          <Link
+            href="/recruitment"
+            class="ks-command-link hidden shrink-0 px-3 text-xs sm:inline-flex sm:px-4 sm:text-sm"
+          >
             {{ t('navigation.recruitment') }}
           </Link>
           <LocaleSwitcher />

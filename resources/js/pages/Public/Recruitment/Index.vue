@@ -131,7 +131,11 @@ function initials(name: string): string {
             <label class="text-sm font-semibold" for="recruitment-board-language">
               {{ t('recruitmentBoard.language') }}
             </label>
-            <select id="recruitment-board-language" v-model="filters.language" class="ks-input mt-2">
+            <select
+              id="recruitment-board-language"
+              v-model="filters.language"
+              class="ks-input mt-2"
+            >
               <option value="">{{ t('recruitmentBoard.allLanguages') }}</option>
               <option v-for="language in facets.languages" :key="language" :value="language">
                 {{ language.toUpperCase() }}
@@ -172,7 +176,7 @@ function initials(name: string): string {
         >
           <div class="flex items-start gap-4 border-b border-[var(--ks-border)] p-5">
             <div
-              class="grid h-14 w-14 shrink-0 place-items-center border border-[var(--ks-gold-dark)] bg-[linear-gradient(160deg,#17433f,#081c1a)] font-[var(--ks-font-display)] text-lg text-[var(--ks-gold-bright)] [clip-path:polygon(50%_0,95%_16%,86%_77%,50%_100%,14%_77%,5%_16%)]"
+              class="grid h-14 w-14 shrink-0 place-items-center border border-[var(--ks-gold-dark)] bg-[linear-gradient(160deg,#17433f,#081c1a)] text-lg font-[var(--ks-font-display)] text-[var(--ks-gold-bright)] [clip-path:polygon(50%_0,95%_16%,86%_77%,50%_100%,14%_77%,5%_16%)]"
               aria-hidden="true"
             >
               {{ initials(alliance.name) }}

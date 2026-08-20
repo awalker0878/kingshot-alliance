@@ -14,7 +14,8 @@ const messages = {
     joined: 'Joined',
     sources: 'Sources',
     sourcePerformance: 'Source performance',
-    sourcePerformanceHelp: 'Compare submitted, accepted, and joined applications by the source recorded on each application.',
+    sourcePerformanceHelp:
+      'Compare submitted, accepted, and joined applications by the source recorded on each application.',
     submittedCount: 'Submitted',
     acceptedCount: 'Accepted',
     joinedCount: 'Joined',
@@ -35,7 +36,8 @@ const messages = {
     retentionDays: 'Unsuccessful retention days',
     applicationsOpen: 'Applications open',
     publicListing: 'List on the public recruitment board',
-    publicListingHelp: 'Opt in only when applications are open and the mode is public. Candidate records and private recruitment data are never listed.',
+    publicListingHelp:
+      'Opt in only when applications are open and the mode is public. Candidate records and private recruitment data are never listed.',
     discoveryBoard: 'Public recruitment board',
     shareApplication: 'Share application link',
     copyApplicationLink: 'Copy application link',
