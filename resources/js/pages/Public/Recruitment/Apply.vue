@@ -23,6 +23,7 @@ const props = defineProps<{
     token: string | null;
   };
   questions: Question[];
+  attribution: { source: string | null };
   prefill: { name: string; email: string; emailLocked: boolean };
   submitted: boolean;
 }>();
@@ -39,10 +40,20 @@ const form = useForm({
   full_name: props.prefill.name,
   email: props.prefill.email,
   contact_handle: '',
-  source: '',
+  source: props.attribution.source ?? '',
   application_token: props.application.token,
   answers: initialAnswers,
 });
+
+const attributionLabels: Record<string, string> = {
+  'recruitment-board': t('publicRecruitment.attributionBoard'),
+  'alliance-public-page': t('publicRecruitment.attributionAlliancePage'),
+  'alliance-share': t('publicRecruitment.attributionShareLink'),
+};
+
+function attributionLabel(source: string): string {
+  return attributionLabels[source] ?? source.replaceAll('-', ' ');
+}
 
 function submit(): void {
   form.post(`/alliances/${props.alliance.slug}/apply`, {
@@ -210,7 +221,18 @@ function setStringAnswer(questionId: string, event: Event): void {
                     :placeholder="t('publicRecruitment.optional')"
                   />
                 </div>
-                <div>
+                <div v-if="attribution.source">
+                  <p class="text-sm font-semibold">{{ t('publicRecruitment.source') }}</p>
+                  <div
+                    class="mt-2 rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/20 px-3.5 py-2.5 text-sm text-[var(--ks-text-secondary)]"
+                  >
+                    {{ attributionLabel(attribution.source) }}
+                  </div>
+                  <p class="mt-2 text-xs leading-5 text-[var(--ks-text-muted)]">
+                    {{ t('publicRecruitment.attributionHelp') }}
+                  </p>
+                </div>
+                <div v-else>
                   <label class="text-sm font-semibold" for="recruitment-source">
                     {{ t('publicRecruitment.source') }}
                   </label>

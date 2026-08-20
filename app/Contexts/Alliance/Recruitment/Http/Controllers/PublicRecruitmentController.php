@@ -71,6 +71,7 @@ final class PublicRecruitmentController extends Controller
         }
 
         $user = $request->user();
+        $attributionSource = $this->attributionSource($request);
 
         return Inertia::render('Public/Recruitment/Apply', [
             'alliance' => [
@@ -86,6 +87,9 @@ final class PublicRecruitmentController extends Controller
                 'token' => $tokenValid ? $applicationToken : null,
             ],
             'questions' => $questionData,
+            'attribution' => [
+                'source' => $attributionSource,
+            ],
             'prefill' => [
                 'name' => $user instanceof AuthenticatedAccount ? (string) $user->name : '',
                 'email' => $tokenEmail ?? ($user instanceof AuthenticatedAccount ? (string) $user->email : ''),
@@ -110,6 +114,7 @@ final class PublicRecruitmentController extends Controller
             'answers' => ['array'],
         ]);
         $user = $request->user();
+        $attributionSource = $this->attributionSource($request);
 
         $submit->handle(
             allianceId: (string) $alliance->id,
@@ -127,7 +132,15 @@ final class PublicRecruitmentController extends Controller
         return redirect()->route('public.alliances.recruitment.show', [
             'slug' => $alliance->slug,
             'token' => $validated['application_token'] ?? null,
+            'source' => $attributionSource,
         ]);
+    }
+
+    private function attributionSource(Request $request): ?string
+    {
+        $source = strtolower(trim($request->string('source')->toString()));
+
+        return preg_match('/^[a-z0-9][a-z0-9_-]{0,39}$/', $source) === 1 ? $source : null;
     }
 
     private function alliance(string $slug): Alliance
