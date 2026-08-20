@@ -22,5 +22,13 @@ Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->gro
         Route::delete('/alliance/integrations/webhooks/{subscription}', [IntegrationManagementController::class, 'revokeWebhook'])
             ->whereUlid('subscription')
             ->name('alliance.integrations.webhooks.destroy');
+        Route::post('/alliance/integrations/webhooks/{subscription}/test', [IntegrationManagementController::class, 'testWebhook'])
+            ->whereUlid('subscription')
+            ->middleware('throttle:10,1')
+            ->name('alliance.integrations.webhooks.test');
+        Route::post('/alliance/integrations/webhook-deliveries/{delivery}/retry', [IntegrationManagementController::class, 'retryDelivery'])
+            ->whereUlid('delivery')
+            ->middleware('throttle:10,1')
+            ->name('alliance.integrations.webhook-deliveries.retry');
     });
 });

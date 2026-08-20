@@ -13,6 +13,8 @@ use App\Contexts\Platform\AllianceAdministration\Models\AlliancePlatformSetting;
 use App\Contexts\Platform\AllianceAdministration\Services\PlanEntitlementService;
 use App\Contexts\Platform\Integrations\Actions\CreateApiCredential;
 use App\Contexts\Platform\Integrations\Actions\CreateWebhookSubscription;
+use App\Contexts\Platform\Integrations\Actions\QueueWebhookTestDelivery;
+use App\Contexts\Platform\Integrations\Actions\RetryWebhookDelivery;
 use App\Contexts\Platform\Integrations\Actions\RevokeApiCredential;
 use App\Contexts\Platform\Integrations\Actions\RevokeWebhookSubscription;
 use App\Contexts\Platform\Integrations\Contracts\WebhookEventCatalog;
@@ -98,6 +100,7 @@ final class IntegrationManagementController extends Controller
                 ->get()
                 ->map(static fn (WebhookDelivery $delivery): array => [
                     'id' => (string) $delivery->id,
+                    'subscriptionId' => (string) $delivery->webhook_subscription_id,
                     'event' => (string) $delivery->event_type,
                     'status' => $delivery->status->value,
                     'attempts' => (int) $delivery->attempts,
@@ -184,5 +187,29 @@ final class IntegrationManagementController extends Controller
         $revoke->handle($scope->allianceId, $scope->playerId, $subscription);
 
         return back()->with('status', 'webhook-revoked');
+    }
+
+    public function testWebhook(
+        Request $request,
+        AllianceContext $context,
+        string $subscription,
+        QueueWebhookTestDelivery $queue,
+    ): RedirectResponse {
+        $scope = $context->scope();
+        $queue->handle($scope->allianceId, $scope->playerId, $subscription);
+
+        return back()->with('status', 'webhook-test-queued');
+    }
+
+    public function retryDelivery(
+        Request $request,
+        AllianceContext $context,
+        string $delivery,
+        RetryWebhookDelivery $retry,
+    ): RedirectResponse {
+        $scope = $context->scope();
+        $retry->handle($scope->allianceId, $scope->playerId, $delivery);
+
+        return back()->with('status', 'webhook-delivery-retried');
     }
 }

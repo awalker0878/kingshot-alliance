@@ -42,6 +42,7 @@ const props = defineProps<{
   }>;
   recentDeliveries: Array<{
     id: string;
+    subscriptionId: string;
     event: string;
     status: string;
     attempts: number;
@@ -62,6 +63,9 @@ const pendingRevoke = ref<{ kind: 'credential' | 'webhook'; id: string; name: st
   null,
 );
 const revoking = ref(false);
+const testingWebhook = ref<string | null>(null);
+const retryingDelivery = ref<string | null>(null);
+const mutationError = ref<string | null>(null);
 const commandEndpoints = [
   { path: '/api/v1/commands/overview', scope: 'commands:read' },
   { path: '/api/v1/commands/gift-codes', scope: 'gift-codes:read' },
@@ -111,6 +115,10 @@ const actionStatus = computed(() => {
       return t('integrationExperience.webhookCreated');
     case 'webhook-revoked':
       return t('integrationExperience.webhookRevoked');
+    case 'webhook-test-queued':
+      return t('integrationExperience.webhookTestQueued');
+    case 'webhook-delivery-retried':
+      return t('integrationExperience.webhookDeliveryRetried');
     default:
       return null;
   }
@@ -158,6 +166,42 @@ function requestRevoke(kind: 'credential' | 'webhook', id: string, name: string)
   pendingRevoke.value = { kind, id, name };
 }
 
+function testWebhook(subscriptionId: string): void {
+  if (testingWebhook.value !== null) return;
+
+  mutationError.value = null;
+  testingWebhook.value = subscriptionId;
+  router.post(
+    `/alliance/integrations/webhooks/${subscriptionId}/test`,
+    {},
+    {
+      preserveScroll: true,
+      onError: captureMutationError,
+      onFinish: () => (testingWebhook.value = null),
+    },
+  );
+}
+
+function retryDelivery(deliveryId: string): void {
+  if (retryingDelivery.value !== null) return;
+
+  mutationError.value = null;
+  retryingDelivery.value = deliveryId;
+  router.post(
+    `/alliance/integrations/webhook-deliveries/${deliveryId}/retry`,
+    {},
+    {
+      preserveScroll: true,
+      onError: captureMutationError,
+      onFinish: () => (retryingDelivery.value = null),
+    },
+  );
+}
+
+function captureMutationError(errors: Record<string, string>): void {
+  mutationError.value = Object.values(errors)[0] ?? t('integrationExperience.operationFailed');
+}
+
 function confirmRevoke(): void {
   const target = pendingRevoke.value;
   if (!target || revoking.value) return;
@@ -190,6 +234,21 @@ function stateTone(state: string): 'success' | 'warning' | 'danger' | 'info' {
   if (['failed', 'revoked', 'dead', 'exhausted'].includes(normalized)) return 'danger';
   if (['pending', 'queued', 'retrying'].includes(normalized)) return 'warning';
   return 'info';
+}
+
+function deliveryStatusLabel(status: string): string {
+  const keys: Record<string, string> = {
+    pending: 'deliveryPending',
+    delivering: 'deliveryDelivering',
+    delivered: 'deliveryDelivered',
+    failed: 'deliveryFailed',
+  };
+
+  return t(`integrationExperience.${keys[status] ?? 'deliveryUnknown'}`);
+}
+
+function webhookName(subscriptionId: string): string {
+  return props.webhooks.find((webhook) => webhook.id === subscriptionId)?.name ?? '—';
 }
 </script>
 
@@ -262,6 +321,7 @@ function stateTone(state: string): 'success' | 'warning' | 'danger' | 'info' {
     </section>
 
     <ActionNotice class="mt-5" :message="actionStatus" tone="success" />
+    <ActionNotice class="mt-5" :message="mutationError" tone="danger" />
 
     <div v-if="issuedCredential || issuedWebhookSecret" class="mt-5 grid gap-4 lg:grid-cols-2">
       <section
@@ -592,13 +652,23 @@ function stateTone(state: string): 'success' | 'warning' | 'danger' | 'info' {
                 </div>
                 <p class="mt-1 text-xs break-all text-[var(--ks-muted)]">{{ webhook.url }}</p>
               </div>
-              <AppButton
-                v-if="webhook.active && !webhook.revokedAt"
-                variant="danger"
-                @click="requestRevoke('webhook', webhook.id, webhook.name)"
-              >
-                {{ t('integrationExperience.revoke') }}
-              </AppButton>
+              <div v-if="webhook.active && !webhook.revokedAt" class="flex flex-wrap gap-2">
+                <AppButton
+                  variant="secondary"
+                  :busy="testingWebhook === webhook.id"
+                  :disabled="testingWebhook !== null && testingWebhook !== webhook.id"
+                  :busy-label="t('integrationExperience.sendingTest')"
+                  @click="testWebhook(webhook.id)"
+                >
+                  {{ t('integrationExperience.sendTest') }}
+                </AppButton>
+                <AppButton
+                  variant="danger"
+                  @click="requestRevoke('webhook', webhook.id, webhook.name)"
+                >
+                  {{ t('integrationExperience.revoke') }}
+                </AppButton>
+              </div>
             </div>
             <div class="mt-3 flex flex-wrap gap-1.5">
               <span v-for="event in webhook.events" :key="event" class="ks-chip font-mono">{{
@@ -635,13 +705,16 @@ function stateTone(state: string): 'success' | 'warning' | 'danger' | 'info' {
           <div class="flex items-start justify-between gap-3">
             <div class="min-w-0">
               <p class="truncate font-mono text-sm font-semibold">{{ delivery.event }}</p>
+              <p class="mt-1 truncate text-xs text-[var(--ks-muted)]">
+                {{ webhookName(delivery.subscriptionId) }}
+              </p>
               <p class="mt-1 text-xs text-[var(--ks-muted)]">
                 {{ t('integrationExperience.attempts') }}: {{ delivery.attempts }} · HTTP
                 {{ delivery.responseCode ?? '—' }}
               </p>
             </div>
             <span class="ks-status" :data-tone="stateTone(delivery.status)">{{
-              delivery.status
+              deliveryStatusLabel(delivery.status)
             }}</span>
           </div>
           <p class="mt-3 text-xs text-[var(--ks-text-secondary)]">
@@ -653,6 +726,17 @@ function stateTone(state: string): 'success' | 'warning' | 'danger' | 'info' {
           <p class="mt-2 text-xs text-[var(--ks-muted)]">
             {{ delivery.lastError || t('integrationExperience.noError') }}
           </p>
+          <AppButton
+            v-if="delivery.status === 'failed'"
+            class="mt-3"
+            variant="secondary"
+            :busy="retryingDelivery === delivery.id"
+            :disabled="retryingDelivery !== null && retryingDelivery !== delivery.id"
+            :busy-label="t('integrationExperience.retryingDelivery')"
+            @click="retryDelivery(delivery.id)"
+          >
+            {{ t('integrationExperience.retryDelivery') }}
+          </AppButton>
         </article>
       </div>
 
@@ -668,6 +752,7 @@ function stateTone(state: string): 'success' | 'warning' | 'danger' | 'info' {
               <th class="px-4 py-3 text-start">{{ t('integrationExperience.responseCode') }}</th>
               <th class="px-4 py-3 text-start">{{ t('integrationExperience.lastAttempt') }}</th>
               <th class="px-4 py-3 text-start">{{ t('integrationExperience.lastError') }}</th>
+              <th class="px-4 py-3 text-start">{{ t('integrationExperience.actions') }}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-[var(--ks-border)]">
@@ -676,10 +761,15 @@ function stateTone(state: string): 'success' | 'warning' | 'danger' | 'info' {
               :key="delivery.id"
               class="transition hover:bg-white/[0.018]"
             >
-              <td class="px-4 py-4 font-mono text-xs">{{ delivery.event }}</td>
+              <td class="px-4 py-4">
+                <span class="block font-mono text-xs">{{ delivery.event }}</span>
+                <span class="mt-1 block text-xs text-[var(--ks-muted)]">{{
+                  webhookName(delivery.subscriptionId)
+                }}</span>
+              </td>
               <td class="px-4 py-4">
                 <span class="ks-status" :data-tone="stateTone(delivery.status)">{{
-                  delivery.status
+                  deliveryStatusLabel(delivery.status)
                 }}</span>
               </td>
               <td class="px-4 py-4">{{ delivery.attempts }}</td>
@@ -689,6 +779,19 @@ function stateTone(state: string): 'success' | 'warning' | 'danger' | 'info' {
               </td>
               <td class="max-w-md px-4 py-4 text-xs text-[var(--ks-text-secondary)]">
                 {{ delivery.lastError || t('integrationExperience.noError') }}
+              </td>
+              <td class="px-4 py-4">
+                <AppButton
+                  v-if="delivery.status === 'failed'"
+                  variant="secondary"
+                  :busy="retryingDelivery === delivery.id"
+                  :disabled="retryingDelivery !== null && retryingDelivery !== delivery.id"
+                  :busy-label="t('integrationExperience.retryingDelivery')"
+                  @click="retryDelivery(delivery.id)"
+                >
+                  {{ t('integrationExperience.retryDelivery') }}
+                </AppButton>
+                <span v-else aria-hidden="true">—</span>
               </td>
             </tr>
           </tbody>

@@ -19,6 +19,8 @@ Internal outbox publication does not automatically create a public webhook contr
 
 The management surface receives the catalogue from the same contract used by validation and fan-out. Do not duplicate selector lists in a controller or frontend module. Public additions must already have an Alliance-scoped outbox producer, stable documented payload fields and behavior coverage before they enter the catalogue.
 
+Endpoint verification creates one targeted `integration.test` delivery through the normal signing job without publishing an outbox message. Manual recovery changes only an exhausted delivery back to pending, preserves its immutable payload and identity, requires an active owning subscription, and records the manager action in the audit trail.
+
 ## Dependencies
 
 - `Alliances`, `Events`, `Contributions` — business data represented read-only.

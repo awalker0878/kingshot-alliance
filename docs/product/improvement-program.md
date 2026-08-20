@@ -12,7 +12,7 @@ This program begins after the capability-completeness delivery recorded in the [
 | 1. Architecture enforcement | Complete | Removed the remaining V2 visual-test structure and strengthened verification against compatibility-era test trees. |
 | 2. UX system | Complete | Shared accessible busy, validation, status and confirmation patterns established on the high-risk connections surface. |
 | 3. Workflow completion | In progress | Consistent create/validate/authorize/commit/notify/audit/recover behavior across core capabilities. |
-| 4. Integration platform | In progress | Broader documented webhook contracts, delivery testing/replay and API contract coverage. |
+| 4. Integration platform | Complete | Broader documented webhook contracts, targeted delivery testing, audited recovery and API contract coverage. |
 | 5. Operations and security | Planned | Actionable diagnostics, bounded recovery, security controls and performance budgets. |
 | 6. Accessibility and localization | Planned | Keyboard, screen-reader, responsive and localization quality verification across primary journeys. |
 | 7. Calculators | Evidence-gated | Source-backed, versioned datasets and one calculator delivered end to end only after the existing evidence gate passes. |
@@ -64,6 +64,8 @@ The documentation-link gate runs as part of `npm run check` so moved or removed 
 - Subscription validation, wildcard canonicalization, fan-out eligibility, management choices and contract documentation now share one catalogue.
 - The guided event picker removes free-text selector errors and explains the user outcome of every supported transition.
 - Behavior coverage proves wildcard delivery fan-out, idempotency and rejection of internal or removed event names.
+- Managers can now send one targeted signed test through the production delivery path and manually re-queue an exhausted delivery without cloning or mutating its payload identity.
+- Test and recovery actions are Alliance-scoped, password-confirmed, rate-limited, audited and covered by behavior tests.
 
 ## Gate before merge
 
