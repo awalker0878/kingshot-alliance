@@ -10,7 +10,7 @@ This program begins after the capability-completeness delivery recorded in the [
 | --- | --- | --- |
 | 0. Baseline and cleanup | Complete | Current inventory, enforceable documentation integrity and removal of obsolete migration evidence from the live documentation tree. |
 | 1. Architecture enforcement | Complete | Removed the remaining V2 visual-test structure and strengthened verification against compatibility-era test trees. |
-| 2. UX system | Planned | Predictable navigation, actions, forms, validation, empty states, recovery and mobile behavior. |
+| 2. UX system | Complete | Shared accessible busy, validation, status and confirmation patterns established on the high-risk connections surface. |
 | 3. Workflow completion | Planned | Consistent create/validate/authorize/commit/notify/audit/recover behavior across core capabilities. |
 | 4. Integration platform | Planned | Broader documented webhook contracts, delivery testing/replay and API contract coverage. |
 | 5. Operations and security | Planned | Actionable diagnostics, bounded recovery, security controls and performance budgets. |
@@ -49,6 +49,14 @@ The documentation-link gate runs as part of `npm run check` so moved or removed 
 - The architecture verifier no longer preserves a deferred compatibility-era visual suite. It requires the current application-shell contract instead.
 - Behavior-contract verification rejects every file type under a reintroduced `tests/v2` tree, not only PHP files.
 - Frontend architecture documentation now describes the visual suite as a current quality gate.
+
+## Phase 2 evidence
+
+- Shared buttons now expose a visible busy state, disable duplicate submission and announce progress semantics.
+- Shared validation and action-notice components give server errors and outcomes consistent live-region behavior.
+- A reusable modal confirmation owns keyboard focus and blocks cancellation while a destructive request is running.
+- Alliance Connections now translates action outcomes, relates validation errors to controls and confirms credential/Event-dispatch revocation.
+- The frontend architecture document defines these primitives as the standard for new and touched mutation surfaces.
 
 ## Gate before merge
 

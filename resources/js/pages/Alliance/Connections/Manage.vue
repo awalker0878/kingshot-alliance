@@ -4,7 +4,10 @@ import { computed, ref } from 'vue';
 
 import RoomBanner from '@/components/game/RoomBanner.vue';
 import StatSeal from '@/components/game/StatSeal.vue';
+import ActionNotice from '@/components/ui/ActionNotice.vue';
 import AppButton from '@/components/ui/AppButton.vue';
+import ConfirmActionDialog from '@/components/ui/ConfirmActionDialog.vue';
+import FormError from '@/components/ui/FormError.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
@@ -55,6 +58,10 @@ const { t, formatDate, formatNumber } = useLocale();
 const credentialForm = useForm({ name: '', scopes: [] as string[], expires_at: '' });
 const webhookForm = useForm({ name: '', url: '', events: ['alliance.created'] as string[] });
 const webhookEventsText = ref('alliance.created');
+const pendingRevoke = ref<{ kind: 'credential' | 'webhook'; id: string; name: string } | null>(
+  null,
+);
+const revoking = ref(false);
 const commandEndpoints = [
   { path: '/api/v1/commands/overview', scope: 'commands:read' },
   { path: '/api/v1/commands/gift-codes', scope: 'gift-codes:read' },
@@ -80,6 +87,25 @@ const activeCredentialCount = computed(
 const activeWebhookCount = computed(
   () => props.webhooks.filter((webhook) => webhook.active && webhook.revokedAt === null).length,
 );
+const actionStatus = computed(() => {
+  switch (props.status) {
+    case 'api-credential-created':
+      return t('integrationExperience.credentialCreated');
+    case 'api-credential-revoked':
+      return t('integrationExperience.credentialRevoked');
+    case 'webhook-created':
+      return t('integrationExperience.webhookCreated');
+    case 'webhook-revoked':
+      return t('integrationExperience.webhookRevoked');
+    default:
+      return null;
+  }
+});
+const revokeDescription = computed(() =>
+  pendingRevoke.value
+    ? t('integrationExperience.revokeDescription', { name: pendingRevoke.value.name })
+    : '',
+);
 
 function createCredential(): void {
   credentialForm.post('/alliance/integrations/api-credentials', {
@@ -98,6 +124,28 @@ function createWebhook(): void {
     onSuccess: () => {
       webhookForm.reset();
       webhookEventsText.value = 'alliance.created';
+    },
+  });
+}
+
+function requestRevoke(kind: 'credential' | 'webhook', id: string, name: string): void {
+  pendingRevoke.value = { kind, id, name };
+}
+
+function confirmRevoke(): void {
+  const target = pendingRevoke.value;
+  if (!target || revoking.value) return;
+
+  revoking.value = true;
+  const path =
+    target.kind === 'credential'
+      ? `/alliance/integrations/api-credentials/${target.id}`
+      : `/alliance/integrations/webhooks/${target.id}`;
+  router.delete(path, {
+    preserveScroll: true,
+    onFinish: () => {
+      revoking.value = false;
+      pendingRevoke.value = null;
     },
   });
 }
@@ -187,13 +235,7 @@ function stateTone(state: string): 'success' | 'warning' | 'danger' | 'info' {
       </p>
     </section>
 
-    <p
-      v-if="status"
-      class="mt-5 rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[var(--ks-teal-soft)] px-4 py-3 text-sm text-[var(--ks-text-secondary)]"
-      role="status"
-    >
-      {{ status }}
-    </p>
+    <ActionNotice class="mt-5" :message="actionStatus" tone="success" />
 
     <div v-if="issuedCredential || issuedWebhookSecret" class="mt-5 grid gap-4 lg:grid-cols-2">
       <section
@@ -283,8 +325,11 @@ function stateTone(state: string): 'success' | 'warning' | 'danger' | 'info' {
               v-model="credentialForm.name"
               class="ks-input mt-1.5"
               maxlength="100"
+              :aria-invalid="credentialForm.errors.name ? 'true' : undefined"
+              :aria-describedby="credentialForm.errors.name ? 'credential-name-error' : undefined"
               required
             />
+            <FormError id="credential-name-error" :message="credentialForm.errors.name" />
           </div>
           <div>
             <label class="text-xs font-semibold" for="credential-expiry">
@@ -295,9 +340,17 @@ function stateTone(state: string): 'success' | 'warning' | 'danger' | 'info' {
               v-model="credentialForm.expires_at"
               class="ks-input mt-1.5"
               type="datetime-local"
+              :aria-invalid="credentialForm.errors.expires_at ? 'true' : undefined"
+              :aria-describedby="
+                credentialForm.errors.expires_at ? 'credential-expiry-error' : undefined
+              "
             />
+            <FormError id="credential-expiry-error" :message="credentialForm.errors.expires_at" />
           </div>
-          <fieldset class="sm:col-span-2">
+          <fieldset
+            class="sm:col-span-2"
+            :aria-describedby="credentialForm.errors.scopes ? 'credential-scopes-error' : undefined"
+          >
             <legend class="text-xs font-semibold">{{ t('integrationExperience.scopes') }}</legend>
             <div class="mt-2 grid gap-2 sm:grid-cols-2">
               <label
@@ -314,8 +367,14 @@ function stateTone(state: string): 'success' | 'warning' | 'danger' | 'info' {
                 </span>
               </label>
             </div>
+            <FormError id="credential-scopes-error" :message="credentialForm.errors.scopes" />
           </fieldset>
-          <AppButton class="sm:col-span-2" type="submit" :disabled="credentialForm.processing">
+          <AppButton
+            class="sm:col-span-2"
+            type="submit"
+            :busy="credentialForm.processing"
+            :busy-label="t('integrationExperience.creatingCredential')"
+          >
             {{ t('integrationExperience.createCredential') }}
           </AppButton>
         </form>
@@ -337,14 +396,13 @@ function stateTone(state: string): 'success' | 'warning' | 'danger' | 'info' {
                 </div>
                 <p class="mt-1 font-mono text-xs text-[var(--ks-muted)]">{{ credential.prefix }}</p>
               </div>
-              <button
+              <AppButton
                 v-if="!credential.revokedAt"
-                type="button"
-                class="rounded border border-red-400/20 px-3 py-2 text-xs font-semibold text-red-300 transition hover:border-red-400/40"
-                @click="router.delete(`/alliance/integrations/api-credentials/${credential.id}`)"
+                variant="danger"
+                @click="requestRevoke('credential', credential.id, credential.name)"
               >
                 {{ t('integrationExperience.revoke') }}
-              </button>
+              </AppButton>
             </div>
             <div class="mt-3 flex flex-wrap gap-1.5">
               <span v-for="scope in credential.scopes" :key="scope" class="ks-chip font-mono">{{
@@ -414,8 +472,11 @@ function stateTone(state: string): 'success' | 'warning' | 'danger' | 'info' {
               v-model="webhookForm.name"
               class="ks-input mt-1.5"
               maxlength="100"
+              :aria-invalid="webhookForm.errors.name ? 'true' : undefined"
+              :aria-describedby="webhookForm.errors.name ? 'webhook-name-error' : undefined"
               required
             />
+            <FormError id="webhook-name-error" :message="webhookForm.errors.name" />
           </div>
           <div>
             <label class="text-xs font-semibold" for="webhook-url">{{
@@ -427,8 +488,11 @@ function stateTone(state: string): 'success' | 'warning' | 'danger' | 'info' {
               class="ks-input mt-1.5"
               type="url"
               maxlength="2048"
+              :aria-invalid="webhookForm.errors.url ? 'true' : undefined"
+              :aria-describedby="webhookForm.errors.url ? 'webhook-url-error' : undefined"
               required
             />
+            <FormError id="webhook-url-error" :message="webhookForm.errors.url" />
           </div>
           <div class="sm:col-span-2">
             <label class="text-xs font-semibold" for="webhook-events">
@@ -438,10 +502,18 @@ function stateTone(state: string): 'success' | 'warning' | 'danger' | 'info' {
               id="webhook-events"
               v-model="webhookEventsText"
               class="ks-input mt-1.5 min-h-24 font-mono"
+              :aria-invalid="webhookForm.errors.events ? 'true' : undefined"
+              :aria-describedby="webhookForm.errors.events ? 'webhook-events-error' : undefined"
               required
             />
+            <FormError id="webhook-events-error" :message="webhookForm.errors.events" />
           </div>
-          <AppButton class="sm:col-span-2" type="submit" :disabled="webhookForm.processing">
+          <AppButton
+            class="sm:col-span-2"
+            type="submit"
+            :busy="webhookForm.processing"
+            :busy-label="t('integrationExperience.creatingWebhook')"
+          >
             {{ t('integrationExperience.createWebhook') }}
           </AppButton>
         </form>
@@ -467,14 +539,13 @@ function stateTone(state: string): 'success' | 'warning' | 'danger' | 'info' {
                 </div>
                 <p class="mt-1 text-xs break-all text-[var(--ks-muted)]">{{ webhook.url }}</p>
               </div>
-              <button
+              <AppButton
                 v-if="webhook.active && !webhook.revokedAt"
-                type="button"
-                class="rounded border border-red-400/20 px-3 py-2 text-xs font-semibold text-red-300 transition hover:border-red-400/40"
-                @click="router.delete(`/alliance/integrations/webhooks/${webhook.id}`)"
+                variant="danger"
+                @click="requestRevoke('webhook', webhook.id, webhook.name)"
               >
                 {{ t('integrationExperience.revoke') }}
-              </button>
+              </AppButton>
             </div>
             <div class="mt-3 flex flex-wrap gap-1.5">
               <span v-for="event in webhook.events" :key="event" class="ks-chip font-mono">{{
@@ -574,5 +645,19 @@ function stateTone(state: string): 'success' | 'warning' | 'danger' | 'info' {
         {{ t('integrationExperience.noDeliveries') }}
       </div>
     </section>
+
+    <ConfirmActionDialog
+      id="integration-revoke"
+      :open="pendingRevoke !== null"
+      :title="t('integrationExperience.revokeTitle')"
+      :description="revokeDescription"
+      :confirm-label="t('integrationExperience.revoke')"
+      :cancel-label="t('common.cancel')"
+      :busy="revoking"
+      :busy-label="t('integrationExperience.revoking')"
+      danger
+      @confirm="confirmRevoke"
+      @cancel="pendingRevoke = null"
+    />
   </AppLayout>
 </template>

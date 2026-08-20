@@ -4,8 +4,10 @@ withDefaults(
     type?: 'button' | 'submit' | 'reset';
     variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
     disabled?: boolean;
+    busy?: boolean;
+    busyLabel?: string;
   }>(),
-  { type: 'button', variant: 'primary', disabled: false },
+  { type: 'button', variant: 'primary', disabled: false, busy: false, busyLabel: '' },
 );
 
 const classes = {
@@ -23,10 +25,17 @@ const classes = {
 <template>
   <button
     :type="type"
-    :disabled="disabled"
+    :disabled="disabled || busy"
+    :aria-busy="busy ? 'true' : undefined"
     class="inline-flex min-h-11 items-center justify-center gap-2 rounded-[var(--ks-radius-sm)] border px-4 py-2.5 text-sm font-[var(--ks-font-display)] font-semibold transition disabled:cursor-not-allowed disabled:opacity-45"
     :class="classes[variant ?? 'primary']"
   >
-    <slot />
+    <span
+      v-if="busy"
+      class="h-4 w-4 animate-spin rounded-full border-2 border-current border-e-transparent motion-reduce:animate-none"
+      aria-hidden="true"
+    />
+    <span v-if="busy && busyLabel">{{ busyLabel }}</span>
+    <slot v-else />
   </button>
 </template>
