@@ -162,4 +162,41 @@ function showAuthorityContextStaleNotice(): void {
   }, 8000);
 }
 
+function registerServiceWorker(): void {
+  if (!('serviceWorker' in navigator) || import.meta.env.DEV) return;
+
+  const register = (): void => {
+    void navigator.serviceWorker
+      .register('/service-worker.js', { scope: '/', updateViaCache: 'none' })
+      .then((registration) => {
+        const announceUpdate = (): void => {
+          if (!registration.waiting) return;
+
+          window.dispatchEvent(
+            new CustomEvent('pwa:update-available', {
+              detail: { registration },
+            }),
+          );
+        };
+
+        announceUpdate();
+        registration.addEventListener('updatefound', () => {
+          const worker = registration.installing;
+          worker?.addEventListener('statechange', () => {
+            if (worker.state === 'installed' && navigator.serviceWorker.controller) {
+              announceUpdate();
+            }
+          });
+        });
+      })
+      .catch((error: unknown) => {
+        console.warn('PWA service worker registration failed.', error);
+      });
+  };
+
+  if (document.readyState === 'complete') register();
+  else window.addEventListener('load', register, { once: true });
+}
+
 void bootstrap();
+registerServiceWorker();

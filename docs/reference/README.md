@@ -10,5 +10,6 @@ Reference documentation is for **facts you look up**, not explanations that rede
 - [Gift Codes](gift-codes.md)
 - [Route files](routes.md)
 - [API](api/README.md)
+- [Mobile and PWA](mobile-pwa.md)
 
 Where practical, mechanical reference material should eventually be generated from code to reduce drift.
