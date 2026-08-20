@@ -19,7 +19,7 @@ final readonly class PreviewContributionBulkApproval
     ) {}
 
     /**
-     * @param non-empty-list<string> $recordIds
+     * @param  non-empty-list<string>  $recordIds
      * @return array{
      *   operation: string,
      *   items: non-empty-list<array{itemId: string, label: string, fromStatus: string|null, outcome: string, code: string}>,
@@ -52,6 +52,7 @@ final readonly class PreviewContributionBulkApproval
                 $record = $records->get($recordId);
                 if (! $record instanceof ContributionRecord) {
                     $items[] = $this->item($recordId, $recordId, null, 'blocked', 'record-unavailable');
+
                     continue;
                 }
 

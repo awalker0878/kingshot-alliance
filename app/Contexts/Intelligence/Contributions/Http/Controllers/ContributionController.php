@@ -18,8 +18,8 @@ use App\Contexts\Intelligence\Contributions\Actions\BulkApproveContributionRecor
 use App\Contexts\Intelligence\Contributions\Actions\CorrectContributionRecord;
 use App\Contexts\Intelligence\Contributions\Actions\CreateContributionCategory;
 use App\Contexts\Intelligence\Contributions\Actions\CreateContributionReportSchedule;
-use App\Contexts\Intelligence\Contributions\Actions\RecordContribution;
 use App\Contexts\Intelligence\Contributions\Actions\PreviewContributionBulkApproval;
+use App\Contexts\Intelligence\Contributions\Actions\RecordContribution;
 use App\Contexts\Intelligence\Contributions\Actions\RefreshContributionDataQuality;
 use App\Contexts\Intelligence\Contributions\Actions\ResolveContributionDataQualityFlag;
 use App\Contexts\Intelligence\Contributions\Actions\ReverseContributionRecord;
