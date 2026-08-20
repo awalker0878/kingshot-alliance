@@ -2,6 +2,8 @@
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { computed, reactive } from 'vue';
 
+import ConfirmActionDialog from '@/components/ui/ConfirmActionDialog.vue';
+import { useConfirmAction } from '@/components/ui/useConfirmAction';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
@@ -72,6 +74,7 @@ const props = defineProps<{
 }>();
 
 const { t, formatDate } = useLocale();
+const { dialog, requestConfirmation, cancelConfirmation, confirmAction } = useConfirmAction();
 
 const createForm = useForm({ label: '', starts_on: '', ends_on: '' });
 const transitionForm = useForm<Record<string, string>>({});
@@ -167,12 +170,23 @@ function createPlan(): void {
 }
 
 function transition(plan: Plan, action: 'open' | 'lock' | 'close' | 'cancel'): void {
-  if (
-    action === 'cancel' &&
-    !window.confirm(t('kingdomP7D.cancelCycleConfirm', { label: plan.label }))
-  )
+  if (action !== 'cancel') {
+    transitionForm.post(`/alliance/transfers/${plan.id}/${action}`, { preserveScroll: true });
     return;
-  transitionForm.post(`/alliance/transfers/${plan.id}/${action}`, { preserveScroll: true });
+  }
+
+  requestConfirmation({
+    id: 'transfer-cycle-cancellation-confirmation',
+    title: t('kingdomP7D.cancel'),
+    description: t('kingdomP7D.cancelCycleConfirm', { label: plan.label }),
+    confirmLabel: t('kingdomP7D.cancel'),
+    cancelLabel: t('common.cancel'),
+    perform: (finish) =>
+      transitionForm.post(`/alliance/transfers/${plan.id}/${action}`, {
+        preserveScroll: true,
+        onFinish: finish,
+      }),
+  });
 }
 
 function createGroup(): void {
@@ -194,12 +208,20 @@ function saveGroup(group: Group): void {
 
 function archiveGroup(group: Group): void {
   if (props.mutablePlan === null || group.state !== 'active') return;
-  if (!window.confirm(t('kingdomP7D.archiveGroupConfirm', { name: group.name }))) return;
-  router.post(
-    `/alliance/transfers/${props.mutablePlan.id}/groups/${group.id}/archive`,
-    {},
-    { preserveScroll: true },
-  );
+  const planId = props.mutablePlan.id;
+  requestConfirmation({
+    id: 'transfer-group-archive-confirmation',
+    title: t('kingdomP7D.archive'),
+    description: t('kingdomP7D.archiveGroupConfirm', { name: group.name }),
+    confirmLabel: t('kingdomP7D.archive'),
+    cancelLabel: t('common.cancel'),
+    perform: (finish) =>
+      router.post(
+        `/alliance/transfers/${planId}/groups/${group.id}/archive`,
+        {},
+        { preserveScroll: true, onFinish: finish },
+      ),
+  });
 }
 
 function createParticipant(): void {
@@ -230,12 +252,20 @@ function assignParticipantGroup(participant: Participant): void {
 
 function withdrawParticipant(participant: Participant): void {
   if (props.mutablePlan === null || participant.withdrawnAt !== null) return;
-  if (!window.confirm(t('kingdomP7D.withdrawConfirm', { name: participant.name }))) return;
-  router.post(
-    `/alliance/transfers/${props.mutablePlan.id}/participants/${participant.id}/withdraw`,
-    {},
-    { preserveScroll: true },
-  );
+  const planId = props.mutablePlan.id;
+  requestConfirmation({
+    id: 'transfer-participant-withdrawal-confirmation',
+    title: t('kingdomP7D.withdraw'),
+    description: t('kingdomP7D.withdrawConfirm', { name: participant.name }),
+    confirmLabel: t('kingdomP7D.withdraw'),
+    cancelLabel: t('common.cancel'),
+    perform: (finish) =>
+      router.post(
+        `/alliance/transfers/${planId}/participants/${participant.id}/withdraw`,
+        {},
+        { preserveScroll: true, onFinish: finish },
+      ),
+  });
 }
 
 function stateLabel(state: string): string {
@@ -1005,5 +1035,10 @@ const labelClass =
         {{ t('kingdomP7D.noMutableCycle') }}
       </p>
     </section>
+    <ConfirmActionDialog
+      v-bind="dialog"
+      @confirm="confirmAction"
+      @cancel="cancelConfirmation"
+    />
   </AppLayout>
 </template>

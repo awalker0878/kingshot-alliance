@@ -2,6 +2,8 @@
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 
+import ConfirmActionDialog from '@/components/ui/ConfirmActionDialog.vue';
+import { useConfirmAction } from '@/components/ui/useConfirmAction';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
@@ -43,6 +45,7 @@ const props = defineProps<{
 }>();
 
 const { t, formatDate: localeDate, formatNumber } = useLocale();
+const { dialog, requestConfirmation, cancelConfirmation, confirmAction } = useConfirmAction();
 const editingId = ref<string | null>(null);
 const activeCount = computed(
   () => props.contacts.filter((contact) => contact.state === 'active').length,
@@ -131,13 +134,19 @@ function submitContact(): void {
 
 function deactivateContact(contact: Contact): void {
   if (contact.state !== 'active') return;
-  if (!window.confirm(t('kingdomP7B.deactivateConfirm', { name: contact.displayName }))) return;
-
-  router.post(
-    `/alliance/kingdom-alliances/${props.tracking.id}/diplomacy/contacts/${contact.id}/deactivate`,
-    {},
-    { preserveScroll: true },
-  );
+  requestConfirmation({
+    id: 'diplomacy-contact-deactivation-confirmation',
+    title: t('kingdomP7B.deactivate'),
+    description: t('kingdomP7B.deactivateConfirm', { name: contact.displayName }),
+    confirmLabel: t('kingdomP7B.deactivate'),
+    cancelLabel: t('common.cancel'),
+    perform: (finish) =>
+      router.post(
+        `/alliance/kingdom-alliances/${props.tracking.id}/diplomacy/contacts/${contact.id}/deactivate`,
+        {},
+        { preserveScroll: true, onFinish: finish },
+      ),
+  });
 }
 </script>
 
@@ -495,5 +504,10 @@ function deactivateContact(contact: Contact): void {
         {{ t('kingdomP7B.noContacts') }}
       </p>
     </section>
+    <ConfirmActionDialog
+      v-bind="dialog"
+      @confirm="confirmAction"
+      @cancel="cancelConfirmation"
+    />
   </AppLayout>
 </template>

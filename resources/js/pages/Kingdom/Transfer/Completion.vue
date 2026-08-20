@@ -4,6 +4,8 @@ import { computed } from 'vue';
 
 import RoomBanner from '@/components/game/RoomBanner.vue';
 import StatSeal from '@/components/game/StatSeal.vue';
+import ConfirmActionDialog from '@/components/ui/ConfirmActionDialog.vue';
+import { useConfirmAction } from '@/components/ui/useConfirmAction';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
@@ -43,6 +45,7 @@ const props = defineProps<{
 }>();
 
 const { t, formatDate } = useLocale();
+const { dialog, requestConfirmation, cancelConfirmation, confirmAction } = useConfirmAction();
 
 const completionCounts = computed(() => ({
   completed: props.participants.filter((participant) => participant.completion !== null).length,
@@ -117,12 +120,20 @@ function confirmationText(participant: Participant): string {
 
 function completeParticipant(participant: Participant): void {
   if (props.plan === null || !canComplete(participant)) return;
-  if (!window.confirm(confirmationText(participant))) return;
-  router.post(
-    `/alliance/transfers/${props.plan.id}/participants/${participant.id}/complete`,
-    {},
-    { preserveScroll: true },
-  );
+  const planId = props.plan.id;
+  requestConfirmation({
+    id: 'transfer-completion-confirmation',
+    title: t('kingdomP7D.recordCompletion'),
+    description: confirmationText(participant),
+    confirmLabel: t('kingdomP7D.recordCompletion'),
+    cancelLabel: t('common.cancel'),
+    perform: (finish) =>
+      router.post(
+        `/alliance/transfers/${planId}/participants/${participant.id}/complete`,
+        {},
+        { preserveScroll: true, onFinish: finish },
+      ),
+  });
 }
 
 function timestamp(value: string): string {
@@ -307,5 +318,10 @@ function timestamp(value: string): string {
         {{ t('kingdomP7D.noCompletionCycleHelp') }}
       </p>
     </section>
+    <ConfirmActionDialog
+      v-bind="dialog"
+      @confirm="confirmAction"
+      @cancel="cancelConfirmation"
+    />
   </AppLayout>
 </template>

@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 
+import ConfirmActionDialog from '@/components/ui/ConfirmActionDialog.vue';
+import { useConfirmAction } from '@/components/ui/useConfirmAction';
+
 type TrackingRow = {
   id: string;
   kingdomAllianceId: string;
@@ -26,6 +29,8 @@ defineProps<{
   };
   tracking: TrackingRow[];
 }>();
+
+const { dialog, requestConfirmation, cancelConfirmation, confirmAction } = useConfirmAction();
 
 const createForm = useForm({
   current_name: '',
@@ -82,13 +87,19 @@ function saveEdit(): void {
 }
 
 function archiveTracking(entry: TrackingRow): void {
-  if (
-    !window.confirm(`Archive tracking for ${entry.name}? Historical tracking remains available.`)
-  ) {
-    return;
-  }
-
-  router.post(`/alliance/kingdom-alliances/${entry.id}/archive`, {}, { preserveScroll: true });
+  requestConfirmation({
+    id: 'alliance-tracking-archive-confirmation',
+    title: 'Archive tracking',
+    description: `Archive tracking for ${entry.name}? Historical tracking remains available.`,
+    confirmLabel: 'Archive tracking',
+    cancelLabel: 'Cancel',
+    perform: (finish) =>
+      router.post(
+        `/alliance/kingdom-alliances/${entry.id}/archive`,
+        {},
+        { preserveScroll: true, onFinish: finish },
+      ),
+  });
 }
 </script>
 
@@ -395,5 +406,11 @@ function archiveTracking(entry: TrackingRow): void {
         </div>
       </form>
     </section>
+
+    <ConfirmActionDialog
+      v-bind="dialog"
+      @confirm="confirmAction"
+      @cancel="cancelConfirmation"
+    />
   </main>
 </template>

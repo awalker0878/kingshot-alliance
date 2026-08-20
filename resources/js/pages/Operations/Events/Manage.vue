@@ -4,6 +4,8 @@ import { ref } from 'vue';
 
 import RoomBanner from '@/components/game/RoomBanner.vue';
 import StatSeal from '@/components/game/StatSeal.vue';
+import ConfirmActionDialog from '@/components/ui/ConfirmActionDialog.vue';
+import { useConfirmAction } from '@/components/ui/useConfirmAction';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
@@ -321,6 +323,7 @@ const props = defineProps<{
   }>;
 }>();
 const { t, formatDate } = useLocale();
+const { dialog, requestConfirmation, cancelConfirmation, confirmAction } = useConfirmAction();
 const form = useForm({
   first_local_start: props.event.firstLocalStart,
   title: props.event.title ?? '',
@@ -908,9 +911,17 @@ function setAttendance(
   );
 }
 function cancel(): void {
-  if (!window.confirm(t('events.manage.cancelConfirm'))) return;
-  router.visit(`/events/${props.event.id}`, {
-    method: 'delete',
+  requestConfirmation({
+    id: 'event-cancellation-confirmation',
+    title: t('events.manage.cancel'),
+    description: t('events.manage.cancelConfirm'),
+    confirmLabel: t('events.manage.cancel'),
+    cancelLabel: t('common.cancel'),
+    perform: (finish) =>
+      router.visit(`/events/${props.event.id}`, {
+        method: 'delete',
+        onFinish: finish,
+      }),
   });
 }
 </script>
@@ -2759,5 +2770,10 @@ function cancel(): void {
         </div>
       </section>
     </div>
+    <ConfirmActionDialog
+      v-bind="dialog"
+      @confirm="confirmAction"
+      @cancel="cancelConfirmation"
+    />
   </AppLayout>
 </template>

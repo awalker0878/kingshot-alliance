@@ -4,6 +4,8 @@ import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import RoomBanner from '@/components/game/RoomBanner.vue';
 import StatSeal from '@/components/game/StatSeal.vue';
 import AppButton from '@/components/ui/AppButton.vue';
+import ConfirmActionDialog from '@/components/ui/ConfirmActionDialog.vue';
+import { useConfirmAction } from '@/components/ui/useConfirmAction';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
@@ -72,6 +74,7 @@ const props = defineProps<{
 }>();
 
 const { t, formatDate, formatNumber } = useLocale();
+const { dialog, requestConfirmation, cancelConfirmation, confirmAction } = useConfirmAction();
 const stageForm = useForm({
   stage: props.stageOptions[0] ?? props.candidate.stage,
   reason: '',
@@ -107,8 +110,17 @@ function addTag(): void {
   });
 }
 function mergeInto(targetId: string): void {
-  if (!window.confirm(t('recruitment.mergeConfirm'))) return;
-  mergeReason.post(`/alliance/recruitment/${props.candidate.id}/merge/${targetId}`);
+  requestConfirmation({
+    id: 'candidate-merge-confirmation',
+    title: t('recruitment.duplicateCandidates'),
+    description: t('recruitment.mergeConfirm'),
+    confirmLabel: t('recruitment.mergeInto'),
+    cancelLabel: t('common.cancel'),
+    perform: (finish) =>
+      mergeReason.post(`/alliance/recruitment/${props.candidate.id}/merge/${targetId}`, {
+        onFinish: finish,
+      }),
+  });
 }
 function prepareCommunication(): void {
   if (!communicationForm.template_id) return;
@@ -579,5 +591,10 @@ function humanize(value: string): string {
         </div>
       </div>
     </div>
+    <ConfirmActionDialog
+      v-bind="dialog"
+      @confirm="confirmAction"
+      @cancel="cancelConfirmation"
+    />
   </AppLayout>
 </template>

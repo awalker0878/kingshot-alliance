@@ -2,6 +2,8 @@
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 
 import RoomBanner from '@/components/game/RoomBanner.vue';
+import ConfirmActionDialog from '@/components/ui/ConfirmActionDialog.vue';
+import { useConfirmAction } from '@/components/ui/useConfirmAction';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
@@ -24,6 +26,7 @@ const props = defineProps<{
 }>();
 
 const { t, formatDate } = useLocale();
+const { dialog, requestConfirmation, cancelConfirmation, confirmAction } = useConfirmAction();
 const form = useForm({
   player_id: props.players[0]?.id ?? '',
   role: props.roles[0]?.key ?? '',
@@ -37,10 +40,17 @@ function assignRole(): void {
 }
 
 function removeRole(assignment: Assignment): void {
-  if (!window.confirm(t('kingdomP7A.rolesRemoveConfirm', { name: assignment.player.name }))) return;
-
-  router.delete(`/alliance/settings/kingdom/roles/${assignment.id}`, {
-    preserveScroll: true,
+  requestConfirmation({
+    id: 'kingdom-role-removal-confirmation',
+    title: t('kingdomP7A.rolesRemove'),
+    description: t('kingdomP7A.rolesRemoveConfirm', { name: assignment.player.name }),
+    confirmLabel: t('kingdomP7A.rolesRemove'),
+    cancelLabel: t('common.cancel'),
+    perform: (finish) =>
+      router.delete(`/alliance/settings/kingdom/roles/${assignment.id}`, {
+        preserveScroll: true,
+        onFinish: finish,
+      }),
   });
 }
 </script>
@@ -157,5 +167,10 @@ function removeRole(assignment: Assignment): void {
         </p>
       </section>
     </div>
+    <ConfirmActionDialog
+      v-bind="dialog"
+      @confirm="confirmAction"
+      @cancel="cancelConfirmation"
+    />
   </AppLayout>
 </template>

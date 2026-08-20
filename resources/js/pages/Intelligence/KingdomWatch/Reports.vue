@@ -3,6 +3,8 @@ import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
 import RoomBanner from '@/components/game/RoomBanner.vue';
+import ConfirmActionDialog from '@/components/ui/ConfirmActionDialog.vue';
+import { useConfirmAction } from '@/components/ui/useConfirmAction';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
@@ -71,6 +73,7 @@ const props = defineProps<{
 }>();
 
 const { t, formatDate, formatNumber } = useLocale();
+const { dialog, requestConfirmation, cancelConfirmation, confirmAction } = useConfirmAction();
 const createForm = useForm({ adapter_key: props.adapters[0]?.key ?? '' });
 const activeSubscriptions = computed(
   () => props.subscriptions.filter((item) => item.state === 'active').length,
@@ -87,34 +90,61 @@ function createSubscription(): void {
 }
 
 function transition(subscription: SubscriptionRow, state: 'active' | 'paused' | 'disabled'): void {
-  if (
-    state === 'disabled' &&
-    !window.confirm(t('kingdomP7A.disableConfirm', { adapter: subscription.adapterLabel }))
-  )
+  if (state !== 'disabled') {
+    router.patch(
+      `/alliance/kingdom-ingestion/subscriptions/${subscription.id}/state`,
+      { state },
+      { preserveScroll: true },
+    );
     return;
-  router.patch(
-    `/alliance/kingdom-ingestion/subscriptions/${subscription.id}/state`,
-    { state },
-    { preserveScroll: true },
-  );
+  }
+
+  requestConfirmation({
+    id: 'ingestion-subscription-disable-confirmation',
+    title: t('kingdomP7A.disable'),
+    description: t('kingdomP7A.disableConfirm', { adapter: subscription.adapterLabel }),
+    confirmLabel: t('kingdomP7A.disable'),
+    cancelLabel: t('common.cancel'),
+    perform: (finish) =>
+      router.patch(
+        `/alliance/kingdom-ingestion/subscriptions/${subscription.id}/state`,
+        { state },
+        { preserveScroll: true, onFinish: finish },
+      ),
+  });
 }
 
 function replayCandidate(candidate: CandidateRow): void {
-  if (!window.confirm(t('kingdomP7A.replayConfirm'))) return;
-  router.post(
-    `/alliance/kingdom-ingestion/subscriptions/${candidate.subscriptionId}/candidates/${candidate.id}/replay`,
-    {},
-    { preserveScroll: true },
-  );
+  requestConfirmation({
+    id: 'ingestion-candidate-replay-confirmation',
+    title: t('kingdomP7A.replay'),
+    description: t('kingdomP7A.replayConfirm'),
+    confirmLabel: t('kingdomP7A.replay'),
+    cancelLabel: t('common.cancel'),
+    danger: false,
+    perform: (finish) =>
+      router.post(
+        `/alliance/kingdom-ingestion/subscriptions/${candidate.subscriptionId}/candidates/${candidate.id}/replay`,
+        {},
+        { preserveScroll: true, onFinish: finish },
+      ),
+  });
 }
 
 function rejectCandidate(candidate: CandidateRow): void {
-  if (!window.confirm(t('kingdomP7A.rejectConfirm'))) return;
-  router.post(
-    `/alliance/kingdom-ingestion/subscriptions/${candidate.subscriptionId}/candidates/${candidate.id}/reject`,
-    {},
-    { preserveScroll: true },
-  );
+  requestConfirmation({
+    id: 'ingestion-candidate-rejection-confirmation',
+    title: t('kingdomP7A.reject'),
+    description: t('kingdomP7A.rejectConfirm'),
+    confirmLabel: t('kingdomP7A.reject'),
+    cancelLabel: t('common.cancel'),
+    perform: (finish) =>
+      router.post(
+        `/alliance/kingdom-ingestion/subscriptions/${candidate.subscriptionId}/candidates/${candidate.id}/reject`,
+        {},
+        { preserveScroll: true, onFinish: finish },
+      ),
+  });
 }
 
 function date(value: string | null): string {
@@ -529,5 +559,10 @@ function tone(value: string): string {
         {{ t('kingdomP7A.noCandidates') }}
       </p>
     </section>
+    <ConfirmActionDialog
+      v-bind="dialog"
+      @confirm="confirmAction"
+      @cancel="cancelConfirmation"
+    />
   </AppLayout>
 </template>
