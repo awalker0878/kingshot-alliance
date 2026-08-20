@@ -1,5 +1,3 @@
-/* global self, caches, fetch, URL, Response */
-
 const CACHE_NAME = 'kingshot-public-assets-v1';
 const OFFLINE_FALLBACK = '/offline.html';
 const PRECACHE = [
