@@ -13,7 +13,7 @@ This program begins after the capability-completeness delivery recorded in the [
 | 2. UX system | Complete | Shared accessible busy, validation, status and confirmation patterns established on the high-risk connections surface. |
 | 3. Workflow completion | Complete | Consistent create/validate/authorize/commit/notify/audit/recover behavior across core capabilities. |
 | 4. Integration platform | Complete | Broader documented webhook contracts, targeted delivery testing, audited recovery and API contract coverage. |
-| 5. Operations and security | Planned | Actionable diagnostics, bounded recovery, security controls and performance budgets. |
+| 5. Operations and security | Complete | Actionable diagnostics, bounded recovery, security controls and enforceable performance budgets. |
 | 6. Accessibility and localization | Planned | Keyboard, screen-reader, responsive and localization quality verification across primary journeys. |
 | 7. Calculators | Evidence-gated | Source-backed, versioned datasets and one calculator delivered end to end only after the existing evidence gate passes. |
 | 8. Closeout | Planned | Full CI, staging, backup/restore, documentation and fresh-install reconciliation. |
@@ -72,6 +72,13 @@ The documentation-link gate runs as part of `npm run check` so moved or removed 
 - The residual Gift Code workflow now opens the official provider handoff, exposes continuation and per-Governor timing, and uses shared accessible mutation feedback.
 - Successful redemption is terminal and retryable provider outcomes enforce their persisted backoff under row lock, so repeated clicks cannot corrupt state or bypass recovery policy.
 - Behavior tests cover terminal success and retry timing; the Gift Code reference documents the same lifecycle.
+
+## Phase 5 evidence
+
+- CI now fails when the initial JavaScript graph, application entry, largest lazy page or largest stylesheet exceeds its reviewed raw-byte ceiling.
+- Operations documentation owns the thresholds and requires measurement plus review before a budget increase.
+- The existing launch-health command covers configuration, administrator redundancy/MFA, Alliance defaults, outbox lag, failed jobs and webhook exhaustion; integration recovery is bounded, audited and exercised through staging plus backup/restore CI.
+- Dependency review, CodeQL, locked dependency audits, security headers, production image scanning and endpoint policy remain mandatory gates rather than parallel application subsystems.
 
 ## Gate before merge
 

@@ -6,6 +6,7 @@ Status: Current
 
 - exact release commit selected;
 - tests/static analysis/frontend build/security checks green;
+- production JavaScript and stylesheet budgets green;
 - migration and rollback/recovery impact reviewed;
 - documentation updated for changed contracts/runbooks.
 
