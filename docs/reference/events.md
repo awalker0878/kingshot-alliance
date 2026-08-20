@@ -29,6 +29,8 @@ Webhook selectors also accept `*`, meaning every current and future event in thi
 
 The envelope also carries `id`, `event`, `occurred_at`, `alliance_id`, and `data`. Delivery bodies are capped at 256 KiB, signed with `X-Kingshot-Signature`, idempotent per subscription and source message, and retried with bounded backoff. Internal messages that are not listed above are never fanned out, including to wildcard subscriptions.
 
+Managers can send a targeted `integration.test` envelope to one active subscription. It uses the production signing and delivery path but is not a selectable catalogue event and is never fanned out to other subscriptions. An exhausted delivery may be manually re-queued only while its original payload remains available and its subscription is active; the original delivery identity and cumulative attempt count are preserved.
+
 `alliance.created` is not a public selector because no Alliance subscription can exist before that transition. The former `member.joined` selector was removed because the domain never emitted that event; recruitment and roster transitions above are the supported contracts.
 
 ## King Perks transition vocabulary
