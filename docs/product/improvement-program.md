@@ -11,8 +11,8 @@ This program begins after the capability-completeness delivery recorded in the [
 | 0. Baseline and cleanup | Complete | Current inventory, enforceable documentation integrity and removal of obsolete migration evidence from the live documentation tree. |
 | 1. Architecture enforcement | Complete | Removed the remaining V2 visual-test structure and strengthened verification against compatibility-era test trees. |
 | 2. UX system | Complete | Shared accessible busy, validation, status and confirmation patterns established on the high-risk connections surface. |
-| 3. Workflow completion | Planned | Consistent create/validate/authorize/commit/notify/audit/recover behavior across core capabilities. |
-| 4. Integration platform | Planned | Broader documented webhook contracts, delivery testing/replay and API contract coverage. |
+| 3. Workflow completion | In progress | Consistent create/validate/authorize/commit/notify/audit/recover behavior across core capabilities. |
+| 4. Integration platform | In progress | Broader documented webhook contracts, delivery testing/replay and API contract coverage. |
 | 5. Operations and security | Planned | Actionable diagnostics, bounded recovery, security controls and performance budgets. |
 | 6. Accessibility and localization | Planned | Keyboard, screen-reader, responsive and localization quality verification across primary journeys. |
 | 7. Calculators | Evidence-gated | Source-backed, versioned datasets and one calculator delivered end to end only after the existing evidence gate passes. |
@@ -57,6 +57,13 @@ The documentation-link gate runs as part of `npm run check` so moved or removed 
 - A reusable modal confirmation owns keyboard focus and blocks cancellation while a destructive request is running.
 - Alliance Connections now translates action outcomes, relates validation errors to controls and confirms credential/Event-dispatch revocation.
 - The frontend architecture document defines these primitives as the standard for new and touched mutation surfaces.
+
+## Phase 3 and 4 evidence
+
+- The first workflow/integration slice replaces two dead public webhook selectors with Alliance-scoped transitions that the application actually emits.
+- Subscription validation, wildcard canonicalization, fan-out eligibility, management choices and contract documentation now share one catalogue.
+- The guided event picker removes free-text selector errors and explains the user outcome of every supported transition.
+- Behavior coverage proves wildcard delivery fan-out, idempotency and rejection of internal or removed event names.
 
 ## Gate before merge
 

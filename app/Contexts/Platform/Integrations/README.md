@@ -17,6 +17,8 @@ Runtime code in this module owns API credential authentication/scopes, `/api/v1`
 
 Internal outbox publication does not automatically create a public webhook contract. Webhook fan-out is allowlisted by `WebhookEventCatalog`; wildcard subscriptions mean all catalogued public events, never all internal outbox messages.
 
+The management surface receives the catalogue from the same contract used by validation and fan-out. Do not duplicate selector lists in a controller or frontend module. Public additions must already have an Alliance-scoped outbox producer, stable documented payload fields and behavior coverage before they enter the catalogue.
+
 ## Dependencies
 
 - `Alliances`, `Events`, `Contributions` — business data represented read-only.

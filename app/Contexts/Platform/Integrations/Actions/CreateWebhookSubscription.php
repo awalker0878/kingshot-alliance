@@ -43,6 +43,9 @@ final readonly class CreateWebhookSubscription
                 throw ValidationException::withMessages(['events' => 'Choose only supported public webhook event types or wildcard (*).']);
             }
         }
+        if (in_array('*', $events, true)) {
+            $events = ['*'];
+        }
 
         $this->endpointPolicy->assertAllowed($url);
 

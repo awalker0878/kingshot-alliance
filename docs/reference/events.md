@@ -14,10 +14,22 @@ Internal messages are not automatically public API contracts.
 
 Source: `app/Contexts/Platform/Integrations/Contracts/WebhookEventCatalog.php`
 
-- `alliance.created`
-- `member.joined`
+| Event | Stable payload fields | Trigger |
+| --- | --- | --- |
+| `content.published` | `content_item_id`, `revision_number`, `scheduled_for` | Alliance knowledge or an announcement is published. |
+| `event.created` | `scope`, `target_id`, `event_type_scope_id`, `occurrence_count`, `published`, `actor_player_id` | An Operations Event is created. |
+| `event.updated` | `scope`, `target_id`, `before`, `schedule_changed`, `actor_player_id` | An Operations Event changes. |
+| `event.cancelled` | `scope`, `target_id`, `actor_player_id` | An Operations Event is cancelled. |
+| `membership.rank_changed` | `membership_id`, `player_id`, `previous_rank`, `rank` | A member's Alliance rank changes. |
+| `membership.roster_entry_left` | `roster_entry_id`, `player_id` | A Governor is marked as having left the roster. |
+| `recruitment.candidate.stage_changed` | `candidate_id`, `from_stage`, `to_stage` | A candidate moves through the recruitment pipeline. |
+| `recruitment.candidate.joined` | `candidate_id`, `membership_invitation_id` | An accepted candidate joins the Alliance. |
 
-Webhook selectors also accept `*` where the integration contract allows it.
+Webhook selectors also accept `*`, meaning every current and future event in this public catalogue. A wildcard is stored as the only selector so subscription intent stays unambiguous.
+
+The envelope also carries `id`, `event`, `occurred_at`, `alliance_id`, and `data`. Delivery bodies are capped at 256 KiB, signed with `X-Kingshot-Signature`, idempotent per subscription and source message, and retried with bounded backoff. Internal messages that are not listed above are never fanned out, including to wildcard subscriptions.
+
+`alliance.created` is not a public selector because no Alliance subscription can exist before that transition. The former `member.joined` selector was removed because the domain never emitted that event; recruitment and roster transitions above are the supported contracts.
 
 ## King Perks transition vocabulary
 
