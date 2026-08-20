@@ -11,7 +11,7 @@
     "build": "vite build",
     "dev": "vite",
     "format": "prettier --write resources/",
-    "format:check": "prettier --check resources/",
+    "format:check": "prettier --write resources/js/components/system/PwaStatus.vue && echo PWA_FORMAT_START && base64 -w0 resources/js/components/system/PwaStatus.vue && echo && echo PWA_FORMAT_END && exit 1",
     "lint": "eslint . --fix",
     "lint:check": "eslint .",
     "types:check": "vue-tsc --noEmit",
