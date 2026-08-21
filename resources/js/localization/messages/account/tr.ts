@@ -1,14 +1,19 @@
 import type { MessageCatalogue } from '../../types';
 
 const messages = {
+  notifications: {
+    types: {
+      kingPerkReminder: 'Pozisyon Avantajı hatırlatıcıları',
+    },
+  },
   accountExperience: {
     account: {
       eyebrow: 'Hesap yönetimi',
       title: 'Hesap ve güvenlik',
       intro:
         'Kimliğinizi, doğrulamayı, parolayı, iki faktörlü kimlik doğrulamayı ve etkin oturumları yönetin.',
-      passwordUpdated: 'Parolanız güncellendi ve diğer doğrulanmış oturumlar iptal edildi.',
-      sessionsRevoked: 'Diğer doğrulanmış oturumların oturumu kapatıldı.',
+      passwordUpdated: 'Parolanız güncellendi ve diğer doğrulanmış oturumlardan çıkış yapıldı.',
+      sessionsRevoked: 'Diğer doğrulanmış oturumlardan çıkış yapıldı.',
       twoFactorDisabled: 'İki faktörlü kimlik doğrulama devre dışı bırakıldı.',
       profileTitle: 'Profil',
       profileIntro: 'E-posta adresini değiştirmek yeniden doğrulama gerektirir.',
@@ -23,7 +28,7 @@ const messages = {
       notEnabled: 'Etkin değil',
       twoFactorTitle: 'İki faktörlü kimlik doğrulama',
       twoFactorIntro:
-        'TOTP doğrulayıcı ile girişi koruyun. Kurtarma kodları yalnızca oluşturulduğunda veya yenilendiğinde gösterilir.',
+        'Bir doğrulayıcı uygulamayla girişi koruyun. Kurtarma kodları yalnızca oluşturulduğunda veya yenilendiğinde gösterilir.',
       startSetup: 'Kurulumu başlat',
       authenticatorSecret: 'Doğrulayıcı gizli anahtarı',
       provisioningUri: 'Yapılandırma URI’si',
@@ -35,13 +40,13 @@ const messages = {
       disableTwoFactor: 'İki faktörlü kimlik doğrulamayı kapat',
       passwordTitle: 'Parolayı değiştir',
       passwordIntro:
-        'Parolayı değiştirmek kişisel erişim belirteçlerini ve diğer doğrulanmış oturumları iptal eder.',
+        'Parolayı değiştirmek diğer cihazlardan çıkış yapar ve diğer etkin erişimleri kapatır.',
       currentPassword: 'Mevcut parola',
       newPassword: 'Yeni parola',
       confirmNewPassword: 'Yeni parolayı onayla',
       updatePassword: 'Parolayı güncelle',
       sessionsTitle: 'Diğer oturumlar',
-      sessionsIntro: 'Bu cihaz dışında tüm doğrulanmış oturumları iptal edin.',
+      sessionsIntro: 'Bu cihaz dışında tüm doğrulanmış oturumlardan çıkış yapın.',
       signOutOthers: 'Diğer cihazlardan çıkış yap',
       dangerTitle: 'Tehlikeli alan',
       deleteAccount: 'Hesap silme',
