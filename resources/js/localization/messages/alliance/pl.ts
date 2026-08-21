@@ -29,7 +29,7 @@ const messages = {
       noInvitations: 'Brak zaproszeń.',
       membershipAdmin: 'Członkowie sojuszu',
       membershipIntro:
-        'Zmiany statusu podlegają randze sojuszu i uprawnieniom ról. Tylko właściciele mogą zmieniać przypisania ról.',
+        'Zmiany statusu i ról członków podlegają randze sojuszu oraz uprawnieniom aktywnego Gubernatora.',
       membersOnPage: 'Wyświetlono {count} z {total} członków.',
       bulkActions: 'Zmiany statusu członków',
       selectedMembers: 'Wybrano {count} członków',
