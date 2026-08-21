@@ -412,7 +412,9 @@ function reliabilityLabel(): string {
             </div>
             <div>
               <span class="text-[var(--ks-muted)]">{{ t('events.history.evidenceAria') }}</span>
-              <p class="text-[var(--ks-ivory)]">{{ outcomeLabel(row.event.participation.outcome) }}</p>
+              <p class="text-[var(--ks-ivory)]">
+                {{ outcomeLabel(row.event.participation.outcome) }}
+              </p>
             </div>
             <div>
               <span class="text-[var(--ks-muted)]">{{ t('events.capabilities.scoring') }}</span>
@@ -423,7 +425,9 @@ function reliabilityLabel(): string {
               <p class="text-[var(--ks-ivory)]">{{ row.event.playerContext.kingdomIdAtEvent }}</p>
             </div>
             <div v-if="row.event.playerContext.representedAllianceName" class="md:col-span-2">
-              <span class="text-[var(--ks-muted)]">{{ t('events.history.representedAlliance') }}</span>
+              <span class="text-[var(--ks-muted)]">{{
+                t('events.history.representedAlliance')
+              }}</span>
               <p class="text-[var(--ks-ivory)]">
                 {{ row.event.playerContext.representedAllianceName }}
               </p>
@@ -436,8 +440,9 @@ function reliabilityLabel(): string {
                   :key="`${metric.key}-${metric.dimensionKey ?? ''}`"
                   class="rounded-lg bg-[rgba(210,163,75,.05)] px-3 py-1.5 text-xs text-[var(--ks-ivory)]"
                 >
-                  {{ metricLabel(metric) }}<template v-if="metric.dimensionKey"> · {{ metric.dimensionKey }}</template>:
-                  {{ metric.value }}<template v-if="metric.unit"> {{ metric.unit }}</template>
+                  {{ metricLabel(metric)
+                  }}<template v-if="metric.dimensionKey"> · {{ metric.dimensionKey }}</template
+                  >: {{ metric.value }}<template v-if="metric.unit"> {{ metric.unit }}</template>
                 </span>
               </div>
             </div>

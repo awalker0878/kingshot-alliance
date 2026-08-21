@@ -128,8 +128,9 @@ function rosterStateTone(value: string): string {
     >
       <template #actions
         ><Link href="/alliance/roster" class="ks-command-link">{{ t('roster.title') }}</Link
-        ><Link href="/alliance/roster/history" class="ks-command-link">{{ t('rosterHistory.title') }}</Link
-        ></template
+        ><Link href="/alliance/roster/history" class="ks-command-link">{{
+          t('rosterHistory.title')
+        }}</Link></template
       >
     </RoomBanner>
 

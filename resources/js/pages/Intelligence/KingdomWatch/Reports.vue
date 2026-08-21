@@ -196,7 +196,10 @@ function tone(value: string): string {
       </template>
     </RoomBanner>
 
-    <section class="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4" :aria-label="t('kingdomP7A.ingestionTitle')">
+    <section
+      class="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4"
+      :aria-label="t('kingdomP7A.ingestionTitle')"
+    >
       <article class="ks-surface p-4">
         <p class="text-xs font-semibold text-[var(--ks-text-muted)] uppercase">
           {{ t('kingdomP7A.currentKingdom') }}

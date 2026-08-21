@@ -473,7 +473,9 @@ function freshnessLabel(row: IntelligenceRow): string {
       <div v-if="intelligence.rows.length" class="hidden overflow-x-auto lg:block">
         <table class="min-w-full text-left text-sm">
           <caption class="sr-only">
-            {{ t('kingdomP7B.allianceIntelligence') }}
+            {{
+              t('kingdomP7B.allianceIntelligence')
+            }}
           </caption>
           <thead class="bg-[rgba(7,12,13,.78)] text-[var(--ks-text-secondary)]">
             <tr>
@@ -500,7 +502,8 @@ function freshnessLabel(row: IntelligenceRow): string {
                   {{ row.tag ?? t('kingdomP7A.noTag') }}
                 </p>
                 <p class="mt-1 text-xs text-[var(--ks-text-muted)]">
-                  {{ stateLabel(row.trackingState) }} · {{ t('kingdomP7A.kingdom') }} {{ row.kingdom }}
+                  {{ stateLabel(row.trackingState) }} · {{ t('kingdomP7A.kingdom') }}
+                  {{ row.kingdom }}
                 </p>
                 <p v-if="!row.contextCurrent" class="mt-1 text-xs font-semibold text-amber-300">
                   {{ t('kingdomP7A.historicalContext') }}
@@ -508,8 +511,13 @@ function freshnessLabel(row: IntelligenceRow): string {
               </td>
               <td class="px-4 py-4 align-top text-[var(--ks-muted)]">
                 <template v-if="row.latestObservation">
-                  <p>{{ t('kingdomP7B.power') }} {{ formatDecimal(row.latestObservation.power) }}</p>
-                  <p>{{ t('kingdomP7B.members') }} {{ row.latestObservation.memberCount ?? t('kingdomP7B.missing') }}</p>
+                  <p>
+                    {{ t('kingdomP7B.power') }} {{ formatDecimal(row.latestObservation.power) }}
+                  </p>
+                  <p>
+                    {{ t('kingdomP7B.members') }}
+                    {{ row.latestObservation.memberCount ?? t('kingdomP7B.missing') }}
+                  </p>
                   <p class="mt-1 text-xs text-[var(--ks-text-muted)]">
                     {{ formatDate(row.latestObservation.capturedAt) }}
                   </p>
@@ -556,12 +564,26 @@ function freshnessLabel(row: IntelligenceRow): string {
               </td>
               <td v-if="canManage" class="px-4 py-4 align-top text-[var(--ks-muted)]">
                 <template v-if="row.contactDiagnostics">
-                  <p>{{ t('kingdomP7B.activeContacts', { count: row.contactDiagnostics.activeContacts }) }}</p>
-                  <p class="mt-1 text-xs text-[var(--ks-text-muted)]">
-                    {{ t('kingdomP7B.verificationDueShort', { count: row.contactDiagnostics.verificationDue }) }}
+                  <p>
+                    {{
+                      t('kingdomP7B.activeContacts', {
+                        count: row.contactDiagnostics.activeContacts,
+                      })
+                    }}
                   </p>
                   <p class="mt-1 text-xs text-[var(--ks-text-muted)]">
-                    {{ t('kingdomP7B.latestVerified', { date: formatDate(row.contactDiagnostics.latestVerifiedAt) }) }}
+                    {{
+                      t('kingdomP7B.verificationDueShort', {
+                        count: row.contactDiagnostics.verificationDue,
+                      })
+                    }}
+                  </p>
+                  <p class="mt-1 text-xs text-[var(--ks-text-muted)]">
+                    {{
+                      t('kingdomP7B.latestVerified', {
+                        date: formatDate(row.contactDiagnostics.latestVerifiedAt),
+                      })
+                    }}
                   </p>
                 </template>
                 <Link

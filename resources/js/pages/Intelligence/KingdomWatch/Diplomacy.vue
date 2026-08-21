@@ -135,7 +135,10 @@ function submitTransition(): void {
           {{ t('kingdomP7B.diplomacySubtitle', { kingdom: tracking.kingdom }) }}
         </p>
       </div>
-      <nav class="flex flex-wrap gap-2" :aria-label="t('kingdomP7B.diplomacyTitle', { alliance: tracking.name })">
+      <nav
+        class="flex flex-wrap gap-2"
+        :aria-label="t('kingdomP7B.diplomacyTitle', { alliance: tracking.name })"
+      >
         <Link
           class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] px-3 py-2 text-sm font-semibold"
           :href="`/alliance/kingdom-alliances/${tracking.id}/diplomacy/contacts`"
