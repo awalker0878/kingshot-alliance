@@ -288,7 +288,7 @@ function invalidateObservation(): void {
             v-model="recordForm.member_count"
             class="ks-input mt-2 w-full"
             min="0"
-            placeholder="Leave blank if unknown"
+            :placeholder="t('kingdomP7B.notSet')"
             type="number"
           />
           <p v-if="recordForm.errors.member_count" class="mt-1 text-sm text-rose-300">

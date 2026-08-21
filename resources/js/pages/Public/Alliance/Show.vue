@@ -95,7 +95,8 @@ function localeName(code: string): string {
         v-if="alliance.bannerUrl"
         class="absolute inset-0 -z-20 h-full w-full object-cover opacity-45"
         :src="alliance.bannerUrl"
-        :alt="`${alliance.name} banner`"
+        alt=""
+        aria-hidden="true"
       />
       <img
         v-else

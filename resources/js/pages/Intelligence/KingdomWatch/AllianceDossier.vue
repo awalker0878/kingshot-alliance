@@ -408,10 +408,6 @@ function freshnessLabel(row: IntelligenceRow): string {
         <h2 id="alliance-intelligence-table" class="text-xl font-semibold">
           {{ t('kingdomP7B.allianceIntelligence') }}
         </h2>
-        <p class="mt-1 text-sm text-[var(--ks-text-secondary)]">
-          {{ intelligence.rows.length }} record(s) match the current filters. Zero is a recorded
-          value; “missing” means scouts have not recorded a value.
-        </p>
       </div>
 
       <div v-if="intelligence.rows.length" class="grid gap-3 p-4 lg:hidden">
