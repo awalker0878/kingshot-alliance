@@ -58,7 +58,7 @@ final class KingdomRoleController extends Controller
                 'id' => (string) $assignment->id,
                 'player' => [
                     'id' => (string) $assignment->player_id,
-                    'name' => $player->currentName ?? 'Unknown player',
+                    'name' => $player->currentName ?? 'Unknown Governor',
                     'gamePlayerId' => $player?->gamePlayerId,
                 ],
                 'role' => [
@@ -78,7 +78,7 @@ final class KingdomRoleController extends Controller
             $players->inKingdom($scope->kingdomId),
         );
 
-        return Inertia::render('Kingdom/RoyalCourt/Roles', [
+        return Inertia::render('Kingdom/PositionPerks/Roles', [
             'user' => ['name' => $user->accountName(), 'email' => $user->accountEmail()],
             'alliance' => ['id' => $alliance->allianceId, 'name' => $alliance->name],
             'kingdom' => ['id' => $kingdom->kingdomId, 'number' => $kingdom->number],
