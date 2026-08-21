@@ -6,7 +6,7 @@ const messages = {
     title: 'Platform administration',
     subtitle:
       'Manage Platform Administrators, Alliance lifecycle and plans, operational capacity, diagnostics, and available languages.',
-    backDashboard: 'Back to Alliance Overview',
+    backDashboard: 'Back to Home',
     accessBoundary:
       'Platform administration is separate from Alliance roles. Access requires a verified account, MFA, an active Platform Administrator assignment, and recent password confirmation.',
     capacityTitle: 'Capacity and operations',
