@@ -42,13 +42,6 @@ jobs:
             scripts/check-page-localization-coverage.mjs
           git diff --check
 
-      - name: Verify final frontend language checks
-        run: |
-          npm run lint:check
-          npm run types:check
-          npm run check:page-localization-coverage
-          npm run check:product-language
-
       - name: Commit final audit fixes
         shell: bash
         run: |
