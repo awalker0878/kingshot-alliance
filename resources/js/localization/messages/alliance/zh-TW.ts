@@ -27,7 +27,7 @@ const messages = {
       revoke: '撤銷',
       noInvitations: '尚無邀請。',
       membershipAdmin: '聯盟成員',
-      membershipIntro: '成員狀態變更遵循聯盟階級與角色權限。只有擁有者可以變更角色指派。',
+      membershipIntro: '成員狀態與角色變更遵循聯盟階級以及目前總督擁有的權限。',
       membersOnPage: '顯示 {count} / {total} 位成員。',
       bulkActions: '成員狀態變更',
       selectedMembers: '已選取 {count} 位成員',
