@@ -4,6 +4,10 @@ on:
   push:
     branches:
       - product/kingshot-language-alignment
+  pull_request:
+    paths:
+      - 'resources/**'
+      - '.github/workflows/language-alignment-format-artifact.yml'
 
 permissions:
   contents: read
