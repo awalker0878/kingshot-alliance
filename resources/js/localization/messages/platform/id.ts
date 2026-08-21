@@ -3,7 +3,8 @@ import type { MessageCatalogue } from '../../types';
 const messages = {
   platformAdmin: {
     title: 'Administrasi platform',
-    localizationRuntime: 'Runtime lokalisasi',
+    backDashboard: 'Kembali ke Beranda',
+    localizationRuntime: 'Bahasa',
   },
 } satisfies MessageCatalogue;
 
