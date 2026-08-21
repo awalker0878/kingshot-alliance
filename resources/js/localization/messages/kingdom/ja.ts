@@ -39,6 +39,7 @@ const messages = {
     reject: '破棄',
   },
   kingdomP7B: {
+    invalidationHelp: '偵察記録を無効にしても履歴には残り、現在の鮮度計算からは除外されます。',
     eyebrow: '王国外交',
     diplomacyTitle: '{alliance} の外交',
     contacts: '外交連絡先',

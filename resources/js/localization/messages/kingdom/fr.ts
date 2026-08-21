@@ -52,6 +52,8 @@ const messages = {
     reject: 'Écarter',
   },
   kingdomP7B: {
+    invalidationHelp:
+      'L’invalidation d’un relevé d’éclaireur le conserve dans l’historique et l’exclut des calculs d’actualité en cours.',
     eyebrow: 'Diplomatie du royaume',
     diplomacyTitle: 'Diplomatie · {alliance}',
     contacts: 'Contacts diplomatiques',

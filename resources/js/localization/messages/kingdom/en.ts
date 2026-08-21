@@ -125,6 +125,8 @@ const messages = {
     approvedAdapters: 'Approved scout sources',
   },
   kingdomP7B: {
+    invalidationHelp:
+      'Invalidating a scout record keeps it in history and removes it from current freshness calculations.',
     eyebrow: 'Kingdom diplomacy',
     diplomacyTitle: '{alliance} diplomacy',
     diplomacySubtitle:

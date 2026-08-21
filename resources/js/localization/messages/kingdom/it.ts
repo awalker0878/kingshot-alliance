@@ -34,6 +34,8 @@ const messages = {
     reject: 'Scarta',
   },
   kingdomP7B: {
+    invalidationHelp:
+      'L’annullamento di un record di ricognizione lo conserva nella cronologia e lo esclude dai calcoli di attualità correnti.',
     eyebrow: 'Diplomazia del regno',
     diplomacyTitle: 'Diplomazia · {alliance}',
     contacts: 'Contatti diplomatici',

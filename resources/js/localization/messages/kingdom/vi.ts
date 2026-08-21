@@ -54,6 +54,8 @@ const messages = {
     reject: 'Bỏ qua',
   },
   kingdomP7B: {
+    invalidationHelp:
+      'Vô hiệu hóa một bản ghi trinh sát vẫn giữ bản ghi trong lịch sử nhưng loại nó khỏi các phép tính độ mới hiện tại.',
     eyebrow: 'Ngoại giao vương quốc',
     diplomacyTitle: 'Ngoại giao · {alliance}',
     contacts: 'Liên hệ ngoại giao',

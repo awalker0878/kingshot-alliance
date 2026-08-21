@@ -54,6 +54,8 @@ const messages = {
     reject: 'Descartar',
   },
   kingdomP7B: {
+    invalidationHelp:
+      'Invalidar un registro de exploración lo conserva en el historial y lo excluye de los cálculos de actualidad actuales.',
     eyebrow: 'Diplomacia del reino',
     diplomacyTitle: 'Diplomacia de {alliance}',
     contacts: 'Contactos diplomáticos',

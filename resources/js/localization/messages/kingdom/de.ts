@@ -54,6 +54,8 @@ const messages = {
     reject: 'Verwerfen',
   },
   kingdomP7B: {
+    invalidationHelp:
+      'Durch das Ungültigmachen eines Scout-Datensatzes bleibt er im Verlauf erhalten und wird aus den aktuellen Aktualitätsberechnungen entfernt.',
     eyebrow: 'Königreich-Diplomatie',
     diplomacyTitle: 'Diplomatie · {alliance}',
     contacts: 'Diplomatiekontakte',

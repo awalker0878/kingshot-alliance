@@ -34,6 +34,8 @@ const messages = {
     reject: 'Odrzuć',
   },
   kingdomP7B: {
+    invalidationHelp:
+      'Unieważnienie rekordu zwiadu zachowuje go w historii i wyklucza z bieżących obliczeń aktualności.',
     eyebrow: 'Dyplomacja królestwa',
     diplomacyTitle: 'Dyplomacja · {alliance}',
     contacts: 'Kontakty dyplomatyczne',

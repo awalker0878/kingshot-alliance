@@ -54,6 +54,8 @@ const messages = {
     reject: 'Yoksay',
   },
   kingdomP7B: {
+    invalidationHelp:
+      'Bir keşif kaydını geçersiz kılmak kaydı geçmişte tutar ve mevcut güncellik hesaplamalarından çıkarır.',
     eyebrow: 'Krallık diplomasisi',
     diplomacyTitle: '{alliance} diplomasisi',
     contacts: 'Diplomasi kişileri',

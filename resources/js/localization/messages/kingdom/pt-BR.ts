@@ -39,6 +39,8 @@ const messages = {
     reject: 'Descartar',
   },
   kingdomP7B: {
+    invalidationHelp:
+      'Invalidar um registro de reconhecimento o mantém no histórico e o exclui dos cálculos de atualidade atuais.',
     eyebrow: 'Diplomacia do reino',
     diplomacyTitle: 'Diplomacia de {alliance}',
     contacts: 'Contatos diplomáticos',

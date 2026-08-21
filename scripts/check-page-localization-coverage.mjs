@@ -14,6 +14,7 @@ const invariantTokens = new Set([
   'csv',
   'http',
   'https',
+  'id',
   'min',
   'nap',
   'r1',
@@ -22,6 +23,7 @@ const invariantTokens = new Set([
   'r4',
   'r5',
   'sha',
+  'sha-256',
   'sha256',
   'utc',
 ]);
@@ -80,6 +82,8 @@ function normalized(value) {
 function isVisibleLanguage(value) {
   const text = normalized(value);
   if (text === '') return false;
+  if (/^#[0-9a-f]{3,8}$/i.test(text)) return false;
+  if (/^K\d+$/i.test(text)) return false;
   if (/^R[1-5](?:\s*[-–/]\s*R[1-5])*$/.test(text)) return false;
 
   const tokens = text.toLowerCase().match(/[a-z][a-z0-9-]*/g) ?? [];
@@ -112,15 +116,14 @@ function literalOutputStrings(node) {
   }
 
   if (ts.isTemplateExpression(value)) {
-    const text = [value.head.text, ...value.templateSpans.map((span) => span.literal.text)].join(' ');
+    const text = [value.head.text, ...value.templateSpans.map((span) => span.literal.text)].join(
+      ' ',
+    );
     return isVisibleLanguage(text) ? [text] : [];
   }
 
   if (ts.isConditionalExpression(value)) {
-    return [
-      ...literalOutputStrings(value.whenTrue),
-      ...literalOutputStrings(value.whenFalse),
-    ];
+    return [...literalOutputStrings(value.whenTrue), ...literalOutputStrings(value.whenFalse)];
   }
 
   if (ts.isBinaryExpression(value) && value.operatorToken.kind === ts.SyntaxKind.PlusToken) {
@@ -208,7 +211,13 @@ function rawTemplateStrings(template, relative) {
 }
 
 function rawScriptLabels(sourceText) {
-  const source = ts.createSourceFile('page.ts', sourceText, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
+  const source = ts.createSourceFile(
+    'page.ts',
+    sourceText,
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TS,
+  );
   const values = [];
 
   function visit(node) {
@@ -262,4 +271,6 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-console.log(`Page localization coverage: ${files.length} Vue pages checked with no raw visible copy.`);
+console.log(
+  `Page localization coverage: ${files.length} Vue pages checked with no raw visible copy.`,
+);

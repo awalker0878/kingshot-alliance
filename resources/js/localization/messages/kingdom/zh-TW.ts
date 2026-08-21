@@ -53,6 +53,7 @@ const messages = {
     reject: '忽略',
   },
   kingdomP7B: {
+    invalidationHelp: '作廢偵察記錄會將其保留在歷史中，但從目前時效性計算中排除。',
     eyebrow: '王國外交',
     diplomacyTitle: '{alliance} 外交',
     contacts: '外交聯絡人',

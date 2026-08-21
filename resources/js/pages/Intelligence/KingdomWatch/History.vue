@@ -170,7 +170,7 @@ function invalidateObservation(): void {
         <p class="text-xs font-semibold tracking-wide text-[var(--ks-text-secondary)] uppercase">
           {{ t('kingdomP7B.freshness') }}
         </p>
-        <p class="mt-2 text-xl font-semibold">{{ freshness }}</p>
+        <p class="mt-2 text-xl font-semibold">{{ t(`kingdomP7B.${freshness}`) }}</p>
         <p class="mt-1 text-xs text-[var(--ks-text-muted)]">
           {{ t('kingdomP7B.currentWithinDays', { days: freshDays }) }}
         </p>
@@ -515,7 +515,7 @@ function invalidateObservation(): void {
     >
       <h2 class="text-xl font-semibold">{{ t('kingdomP7B.invalidate') }}</h2>
       <p class="mt-1 text-sm text-[var(--ks-text-secondary)]">
-        The original row remains historical and is excluded from latest/freshness projections.
+        {{ t('kingdomP7B.invalidationHelp') }}
       </p>
       <form class="mt-5" @submit.prevent="invalidateObservation">
         <label class="block text-sm font-medium" for="invalidation-reason">{{

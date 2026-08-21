@@ -151,7 +151,12 @@ function stateLabel(value: string): string {
   if (value === 'nap') return t('kingdomP7B.nap');
   if (value === 'ally') return t('kingdomP7B.ally');
   if (value === 'rival') return t('kingdomP7B.rival');
-  return value.charAt(0).toUpperCase() + value.slice(1).replaceAll('_', ' ');
+  if (value === 'active') return t('kingdomP7B.active');
+  if (value === 'archived') return t('kingdomP7B.archived');
+  if (value === 'current') return t('kingdomP7B.current');
+  if (value === 'stale') return t('kingdomP7B.stale');
+  if (value === 'missing') return t('kingdomP7B.missing');
+  return value.replaceAll('_', ' ');
 }
 
 function changeText(change: Change | null): string {

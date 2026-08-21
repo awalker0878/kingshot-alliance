@@ -54,6 +54,8 @@ const messages = {
     reject: 'تجاهل',
   },
   kingdomP7B: {
+    invalidationHelp:
+      'يؤدي إبطال سجل الاستطلاع إلى إبقائه في السجل وإزالته من حسابات حداثة البيانات الحالية.',
     eyebrow: 'دبلوماسية المملكة',
     diplomacyTitle: 'دبلوماسية {alliance}',
     contacts: 'جهات الاتصال الدبلوماسية',

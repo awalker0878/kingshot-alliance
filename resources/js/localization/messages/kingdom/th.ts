@@ -54,6 +54,8 @@ const messages = {
     reject: 'ยกเลิก',
   },
   kingdomP7B: {
+    invalidationHelp:
+      'การทำให้บันทึกการสอดแนมเป็นโมฆะจะยังคงบันทึกไว้ในประวัติ แต่ไม่นำไปคำนวณความสดใหม่ปัจจุบัน',
     eyebrow: 'การทูตของอาณาจักร',
     diplomacyTitle: 'การทูต · {alliance}',
     contacts: 'ผู้ติดต่อทางการทูต',

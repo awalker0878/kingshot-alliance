@@ -34,6 +34,8 @@ const messages = {
     reject: 'Abaikan',
   },
   kingdomP7B: {
+    invalidationHelp:
+      'Membatalkan catatan pengintaian tetap menyimpannya dalam riwayat dan mengeluarkannya dari perhitungan kebaruan saat ini.',
     eyebrow: 'Diplomasi kerajaan',
     diplomacyTitle: 'Diplomasi {alliance}',
     contacts: 'Kontak diplomasi',

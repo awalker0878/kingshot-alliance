@@ -39,6 +39,7 @@ const messages = {
     reject: '폐기',
   },
   kingdomP7B: {
+    invalidationHelp: '정찰 기록을 무효화하면 기록에는 남지만 현재 최신성 계산에서는 제외됩니다.',
     eyebrow: '왕국 외교',
     diplomacyTitle: '{alliance} 외교',
     contacts: '외교 연락처',

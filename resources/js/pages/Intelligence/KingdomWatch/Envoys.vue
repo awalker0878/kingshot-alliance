@@ -173,7 +173,7 @@ function deactivateContact(contact: Contact): void {
           class="rounded-lg border border-cyan-800 px-4 py-2 text-sm font-semibold text-[var(--ks-gold)]"
           :href="`/alliance/kingdom-alliances/${tracking.id}/diplomacy`"
         >
-          Diplomacy
+          {{ t('kingdomP7B.diplomacy') }}
         </Link>
         <Link
           class="rounded-lg border border-[var(--ks-border)] px-4 py-2 text-sm font-semibold text-[var(--ks-ivory)]"
@@ -190,7 +190,7 @@ function deactivateContact(contact: Contact): void {
       </div>
     </header>
 
-    <section class="mt-6 grid gap-3 sm:grid-cols-3" aria-label="Contact summary">
+    <section class="mt-6 grid gap-3 sm:grid-cols-3" :aria-label="t('kingdomP7B.directory')">
       <article class="ks-surface p-4">
         <p class="text-xs font-semibold text-[var(--ks-text-muted)] uppercase">
           {{ t('kingdomP7B.directory') }}
@@ -458,17 +458,31 @@ function deactivateContact(contact: Contact): void {
                 {{ contact.managerNotes ?? t('kingdomP7B.noNotes') }}
               </td>
               <td class="px-3 py-4 text-[var(--ks-muted)]">
-                <p class="font-semibold">{{ contact.state }}</p>
+                <p class="font-semibold">
+                  {{
+                    contact.state === 'active' ? t('kingdomP7B.active') : t('kingdomP7B.inactive')
+                  }}
+                </p>
                 <p class="mt-1 text-xs text-[var(--ks-text-muted)]">
-                  Updated {{ formatDate(contact.updatedAt) }}
+                  {{ t('kingdomP7B.updated', { date: formatDate(contact.updatedAt) }) }}
                 </p>
                 <p v-if="contact.deactivatedAt" class="mt-1 text-xs text-[var(--ks-text-muted)]">
-                  Deactivated {{ formatDate(contact.deactivatedAt) }} by
-                  {{ contact.deactivatedByName ?? 'former/deleted user' }}
+                  {{
+                    t('kingdomP7B.deactivated', {
+                      date: formatDate(contact.deactivatedAt),
+                      actor: contact.deactivatedByName ?? t('kingdomP7B.unavailableActor'),
+                    })
+                  }}
                 </p>
                 <p v-else class="mt-1 text-xs text-[var(--ks-text-muted)]">
-                  Last officer
-                  {{ contact.updatedByName ?? contact.createdByName ?? 'former/deleted user' }}
+                  {{
+                    t('kingdomP7B.lastManager', {
+                      actor:
+                        contact.updatedByName ??
+                        contact.createdByName ??
+                        t('kingdomP7B.unavailableActor'),
+                    })
+                  }}
                 </p>
               </td>
               <td class="px-3 py-4">
@@ -490,7 +504,9 @@ function deactivateContact(contact: Contact): void {
                     {{ t('kingdomP7B.deactivate') }}
                   </button>
                 </div>
-                <span v-else class="text-xs text-[var(--ks-text-muted)]">Historical</span>
+                <span v-else class="text-xs text-[var(--ks-text-muted)]">{{
+                  t('kingdomP7A.historical')
+                }}</span>
               </td>
             </tr>
           </tbody>
