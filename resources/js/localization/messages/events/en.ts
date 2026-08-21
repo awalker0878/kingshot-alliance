@@ -562,7 +562,7 @@ const messages = {
       cesares_fury: {
         name: 'Cesares Fury',
         description:
-          'Alliance combat Event combining staged objectives, rally coordination, and scoring.',
+          'Alliance combat Event combining multiple objectives, Rally coordination, and scoring.',
         instructions:
           'Coordinate Alliance progress and the Rally plan. R4/R5 should only summon the Alliance Elite when the required conditions are satisfied.',
       },
@@ -601,7 +601,7 @@ const messages = {
       },
       armament_competition: {
         name: 'Armament Competition',
-        description: 'Personal progression competition with staged scoring.',
+        description: 'Personal progression competition with scoring across multiple phases.',
         instructions:
           'Track the current game stage and planned scoring actions during the active competition window.',
       },
