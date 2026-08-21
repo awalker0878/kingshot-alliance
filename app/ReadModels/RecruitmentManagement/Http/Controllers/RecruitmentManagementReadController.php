@@ -51,7 +51,7 @@ final class RecruitmentManagementReadController extends Controller
         );
         $settings = $projection['settings'];
 
-        return Inertia::render('Alliance/Recruitment/Hall', [
+        return Inertia::render('Alliance/Recruitment/Index', [
             'user' => [
                 'name' => $user->accountName(),
                 'email' => $user->accountEmail(),
