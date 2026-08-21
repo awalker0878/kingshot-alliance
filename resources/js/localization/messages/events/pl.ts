@@ -2,6 +2,36 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   events: {
+    history: {
+      title: 'Historia wydarzeń',
+      subtitle:
+        'Przejrzyj zapisane wyniki, udział i trendy właściwe dla wydarzeń {organization}. Każde wydarzenie zachowuje informacje o Gubernatorze, Sojuszu i Królestwie zapisane w tamtym czasie.',
+      from: 'Od',
+      until: 'Do',
+      rows: 'Wiersze',
+      applyFilters: 'Zastosuj filtry',
+      clearFilters: 'Wyczyść filtry',
+      metricTrends: 'Trendy metryk wydarzenia',
+      metricTrendsHelp:
+        'Metryki są porównywane tylko w ramach tego samego typu wydarzenia i wymiaru. Nie jest obliczany łączny wynik między wydarzeniami.',
+      average: 'Średnia',
+      best: 'Najlepszy',
+      samples: 'Próbki',
+      latest: 'Najnowszy',
+      leaderboards: 'Rankingi wydarzeń',
+      leaderboardsHelp:
+        'Każdy ranking używa jednej metryki wydarzenia i nie łączy niepowiązanych typów wydarzeń.',
+      noEvents: 'Brak zapisanych wydarzeń pasujących do tych filtrów.',
+      noEvidence: 'Brak zapisanych danych',
+      evidenceAria: 'Zapisany udział w wydarzeniu',
+      rallyAssignments: 'Przydziały Rally',
+      assignments: '{count} przydziałów',
+      allianceResults: 'Wyniki Sojuszu',
+      participants: 'Zapisani uczestnicy',
+      governorCount: '{count} Gubernatorów',
+      representedAlliance: 'Reprezentowany Sojusz',
+      noParticipants: 'Dla tego wydarzenia nie zapisano żadnych Gubernatorów.',
+    },
     scope: {
       player: 'Gubernator',
       alliance: 'Sojusz',

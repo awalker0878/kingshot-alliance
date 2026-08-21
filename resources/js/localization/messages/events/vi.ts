@@ -2,6 +2,36 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   events: {
+    history: {
+      title: 'Lịch sử sự kiện',
+      subtitle:
+        'Xem kết quả Sự kiện, mức tham gia và xu hướng riêng của từng Sự kiện đã ghi cho {organization}. Mỗi Sự kiện giữ thông tin Thống đốc, Liên minh và Vương quốc được ghi tại thời điểm đó.',
+      from: 'Từ',
+      until: 'Đến',
+      rows: 'Hàng',
+      applyFilters: 'Áp dụng bộ lọc',
+      clearFilters: 'Xóa bộ lọc',
+      metricTrends: 'Xu hướng chỉ số Sự kiện',
+      metricTrendsHelp:
+        'Chỉ so sánh chỉ số trong cùng loại Sự kiện và cùng chiều dữ liệu. Không tính điểm tổng hợp giữa các Sự kiện.',
+      average: 'Trung bình',
+      best: 'Tốt nhất',
+      samples: 'Mẫu',
+      latest: 'Mới nhất',
+      leaderboards: 'Bảng xếp hạng Sự kiện',
+      leaderboardsHelp:
+        'Mỗi bảng xếp hạng dùng một chỉ số Sự kiện và không kết hợp các loại Sự kiện không liên quan.',
+      noEvents: 'Không có Sự kiện đã ghi nào khớp các bộ lọc này.',
+      noEvidence: 'Chưa có dữ liệu được ghi',
+      evidenceAria: 'Mức tham gia Sự kiện đã ghi',
+      rallyAssignments: 'Phân công Rally',
+      assignments: '{count} phân công',
+      allianceResults: 'Kết quả Liên minh',
+      participants: 'Người tham gia đã ghi',
+      governorCount: '{count} Thống đốc',
+      representedAlliance: 'Liên minh đại diện',
+      noParticipants: 'Không có Thống đốc nào được ghi cho Sự kiện này.',
+    },
     scope: {
       player: 'Thống đốc',
       alliance: 'Liên minh',

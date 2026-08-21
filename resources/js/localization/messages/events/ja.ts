@@ -2,6 +2,36 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   events: {
+    history: {
+      title: 'イベント履歴',
+      subtitle:
+        '{organization} の記録済みイベント結果、参加状況、イベント別の傾向を確認します。各イベントには、その時点で記録された総督・同盟・王国の情報が保持されます。',
+      from: '開始',
+      until: '終了',
+      rows: '行数',
+      applyFilters: 'フィルターを適用',
+      clearFilters: 'フィルターをクリア',
+      metricTrends: 'イベント指標の傾向',
+      metricTrendsHelp:
+        '指標は同じイベント種類と同じ項目の中だけで比較します。イベントをまたぐ総合スコアは算出しません。',
+      average: '平均',
+      best: '最高',
+      samples: '件数',
+      latest: '最新',
+      leaderboards: 'イベントランキング',
+      leaderboardsHelp:
+        '各ランキングは1つのイベント指標のみを使用し、無関係なイベント種類を混在させません。',
+      noEvents: 'このフィルターに一致する記録済みイベントはありません。',
+      noEvidence: '記録データなし',
+      evidenceAria: '記録済みイベント参加状況',
+      rallyAssignments: 'ラリー割り当て',
+      assignments: '{count} 件の割り当て',
+      allianceResults: '同盟結果',
+      participants: '記録済み参加者',
+      governorCount: '総督 {count} 人',
+      representedAlliance: '代表同盟',
+      noParticipants: 'このイベントには総督が記録されていません。',
+    },
     scope: {
       player: '総督',
       alliance: '同盟',

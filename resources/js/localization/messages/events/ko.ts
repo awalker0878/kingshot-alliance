@@ -2,6 +2,36 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   events: {
+    history: {
+      title: '이벤트 기록',
+      subtitle:
+        '{organization}의 기록된 이벤트 결과, 참여, 이벤트별 추세를 확인합니다. 각 이벤트에는 당시 기록된 총독, 연맹, 왕국 정보가 유지됩니다.',
+      from: '시작',
+      until: '종료',
+      rows: '행',
+      applyFilters: '필터 적용',
+      clearFilters: '필터 지우기',
+      metricTrends: '이벤트 지표 추세',
+      metricTrendsHelp:
+        '지표는 같은 이벤트 유형과 같은 항목 안에서만 비교합니다. 이벤트 간 종합 점수는 계산하지 않습니다.',
+      average: '평균',
+      best: '최고',
+      samples: '표본',
+      latest: '최신',
+      leaderboards: '이벤트 순위표',
+      leaderboardsHelp:
+        '각 순위표는 하나의 이벤트 지표만 사용하며 관련 없는 이벤트 유형을 합치지 않습니다.',
+      noEvents: '이 필터와 일치하는 기록된 이벤트가 없습니다.',
+      noEvidence: '기록된 데이터 없음',
+      evidenceAria: '기록된 이벤트 참여',
+      rallyAssignments: '랠리 배정',
+      assignments: '{count}개 배정',
+      allianceResults: '연맹 결과',
+      participants: '기록된 참가자',
+      governorCount: '총독 {count}명',
+      representedAlliance: '대표 연맹',
+      noParticipants: '이 이벤트에 기록된 총독이 없습니다.',
+    },
     scope: {
       player: '총독',
       alliance: '연맹',

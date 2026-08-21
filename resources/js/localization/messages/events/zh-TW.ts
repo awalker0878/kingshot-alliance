@@ -2,6 +2,34 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   events: {
+    history: {
+      title: '活動歷史',
+      subtitle:
+        '查看 {organization} 已記錄的活動結果、參與情況與活動專項趨勢。每場活動都會保留當時記錄的執政官、聯盟與王國資訊。',
+      from: '從',
+      until: '到',
+      rows: '列數',
+      applyFilters: '套用篩選',
+      clearFilters: '清除篩選',
+      metricTrends: '活動指標趨勢',
+      metricTrendsHelp: '指標只會在相同活動類型與相同維度內比較，不計算跨活動綜合分數。',
+      average: '平均',
+      best: '最佳',
+      samples: '樣本',
+      latest: '最新',
+      leaderboards: '活動排行榜',
+      leaderboardsHelp: '每個排行榜只使用一項活動指標，不合併無關的活動類型。',
+      noEvents: '沒有已記錄的活動符合這些篩選條件。',
+      noEvidence: '尚無已記錄資料',
+      evidenceAria: '已記錄的活動參與情況',
+      rallyAssignments: '集結指派',
+      assignments: '{count} 項指派',
+      allianceResults: '聯盟結果',
+      participants: '已記錄參與者',
+      governorCount: '{count} 位執政官',
+      representedAlliance: '代表聯盟',
+      noParticipants: '這場活動沒有記錄執政官。',
+    },
     scope: {
       player: '總督',
       alliance: '聯盟',

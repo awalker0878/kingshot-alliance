@@ -2,6 +2,36 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   events: {
+    history: {
+      title: 'Riwayat event',
+      subtitle:
+        'Tinjau hasil Event, partisipasi, dan tren khusus Event yang tercatat untuk {organization}. Setiap Event mempertahankan informasi Gubernur, Aliansi, dan Kingdom yang dicatat pada saat itu.',
+      from: 'Dari',
+      until: 'Sampai',
+      rows: 'Baris',
+      applyFilters: 'Terapkan filter',
+      clearFilters: 'Hapus filter',
+      metricTrends: 'Tren metrik Event',
+      metricTrendsHelp:
+        'Metrik hanya dibandingkan dalam jenis Event dan dimensi yang sama. Tidak ada skor gabungan lintas Event.',
+      average: 'Rata-rata',
+      best: 'Terbaik',
+      samples: 'Sampel',
+      latest: 'Terbaru',
+      leaderboards: 'Papan peringkat Event',
+      leaderboardsHelp:
+        'Setiap papan peringkat menggunakan satu metrik Event dan tidak menggabungkan jenis Event yang tidak terkait.',
+      noEvents: 'Tidak ada Event tercatat yang cocok dengan filter ini.',
+      noEvidence: 'Belum ada data tercatat',
+      evidenceAria: 'Partisipasi Event tercatat',
+      rallyAssignments: 'Penugasan Rally',
+      assignments: '{count} penugasan',
+      allianceResults: 'Hasil Aliansi',
+      participants: 'Peserta tercatat',
+      governorCount: '{count} Gubernur',
+      representedAlliance: 'Aliansi yang diwakili',
+      noParticipants: 'Tidak ada Gubernur yang tercatat untuk Event ini.',
+    },
     scope: {
       player: 'Gubernur',
       alliance: 'Aliansi',

@@ -2,6 +2,36 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   events: {
+    history: {
+      title: 'Eventverlauf',
+      subtitle:
+        'Sieh aufgezeichnete Event-Ergebnisse, Teilnahme und Event-spezifische Trends für {organization}. Jedes Event behält die zu diesem Zeitpunkt erfassten Angaben zu Gouverneur, Allianz und Königreich.',
+      from: 'Von',
+      until: 'Bis',
+      rows: 'Zeilen',
+      applyFilters: 'Filter anwenden',
+      clearFilters: 'Filter löschen',
+      metricTrends: 'Event-Metriktrends',
+      metricTrendsHelp:
+        'Metriken werden nur innerhalb desselben Event-Typs und derselben Dimension verglichen. Es wird kein kombinierter Event-übergreifender Wert berechnet.',
+      average: 'Durchschnitt',
+      best: 'Bestwert',
+      samples: 'Werte',
+      latest: 'Zuletzt',
+      leaderboards: 'Event-Ranglisten',
+      leaderboardsHelp:
+        'Jede Rangliste verwendet eine Event-Metrik und kombiniert keine unabhängigen Event-Typen.',
+      noEvents: 'Keine aufgezeichneten Events entsprechen diesen Filtern.',
+      noEvidence: 'Keine aufgezeichneten Daten',
+      evidenceAria: 'Aufgezeichnete Event-Teilnahme',
+      rallyAssignments: 'Rally-Zuweisungen',
+      assignments: '{count} Zuweisungen',
+      allianceResults: 'Allianzergebnisse',
+      participants: 'Aufgezeichnete Teilnehmer',
+      governorCount: '{count} Gouverneure',
+      representedAlliance: 'Vertretene Allianz',
+      noParticipants: 'Für dieses Event wurden keine Gouverneure erfasst.',
+    },
     scope: {
       player: 'Gouverneur',
       alliance: 'Allianz',

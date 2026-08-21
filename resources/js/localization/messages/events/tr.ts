@@ -2,6 +2,36 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   events: {
+    history: {
+      title: 'Etkinlik geçmişi',
+      subtitle:
+        '{organization} için kaydedilen Etkinlik sonuçlarını, katılımı ve Etkinliğe özgü eğilimleri inceleyin. Her Etkinlik, o sırada kaydedilen Vali, İttifak ve Krallık bilgilerini korur.',
+      from: 'Başlangıç',
+      until: 'Bitiş',
+      rows: 'Satırlar',
+      applyFilters: 'Filtreleri uygula',
+      clearFilters: 'Filtreleri temizle',
+      metricTrends: 'Etkinlik metrik eğilimleri',
+      metricTrendsHelp:
+        'Metrikler yalnızca aynı Etkinlik türü ve boyutu içinde karşılaştırılır. Etkinlikler arası birleşik puan hesaplanmaz.',
+      average: 'Ortalama',
+      best: 'En iyi',
+      samples: 'Örnekler',
+      latest: 'En son',
+      leaderboards: 'Etkinlik sıralamaları',
+      leaderboardsHelp:
+        'Her sıralama tek bir Etkinlik metriği kullanır ve ilgisiz Etkinlik türlerini birleştirmez.',
+      noEvents: 'Bu filtrelerle eşleşen kayıtlı Etkinlik yok.',
+      noEvidence: 'Kayıtlı veri yok',
+      evidenceAria: 'Kaydedilen Etkinlik katılımı',
+      rallyAssignments: 'Rally atamaları',
+      assignments: '{count} atama',
+      allianceResults: 'İttifak sonuçları',
+      participants: 'Kaydedilen katılımcılar',
+      governorCount: '{count} Vali',
+      representedAlliance: 'Temsil edilen İttifak',
+      noParticipants: 'Bu Etkinlik için Vali kaydedilmedi.',
+    },
     scope: {
       player: 'Vali',
       alliance: 'İttifak',

@@ -1,13 +1,15 @@
 import { expect, test } from '@playwright/test';
 
 const publicSurfaces = [
-  { path: '/', name: 'realm-gate' },
+  { path: '/', name: 'home' },
   { path: '/login', name: 'sign-in' },
   { path: '/register', name: 'registration' },
 ] as const;
 
 for (const surface of publicSurfaces) {
-  test(`${surface.name} renders without overflow and matches its visual baseline`, async ({ page }) => {
+  test(`${surface.name} renders without overflow and matches its visual baseline`, async ({
+    page,
+  }) => {
     const response = await page.goto(surface.path);
     expect(response?.ok()).toBeTruthy();
 
@@ -39,7 +41,7 @@ test('multi-governor account selects and activates the first Governor', async ({
   await expect(identitySwitcher).toBeVisible();
   await expect(identitySwitcher).toContainText(/select governor/i);
 
-  await expect(page).toHaveScreenshot('command-overview-select-governor.png', {
+  await expect(page).toHaveScreenshot('home-select-governor.png', {
     fullPage: true,
   });
 
@@ -63,7 +65,7 @@ test('multi-governor account selects and activates the first Governor', async ({
   await expect(activeIdentitySwitcher).toContainText('Lady Seraphina');
   await expect(activeIdentitySwitcher).toContainText('K1123');
 
-  await expect(page).toHaveScreenshot('command-overview-active-governor.png', {
+  await expect(page).toHaveScreenshot('home-active-governor.png', {
     fullPage: true,
   });
 });

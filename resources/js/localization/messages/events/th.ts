@@ -2,6 +2,35 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   events: {
+    history: {
+      title: 'ประวัติอีเวนต์',
+      subtitle:
+        'ตรวจสอบผลอีเวนต์ การเข้าร่วม และแนวโน้มเฉพาะอีเวนต์ที่บันทึกไว้สำหรับ {organization} แต่ละอีเวนต์จะเก็บข้อมูลผู้ว่าการ พันธมิตร และอาณาจักรที่บันทึกไว้ในขณะนั้น',
+      from: 'จาก',
+      until: 'ถึง',
+      rows: 'แถว',
+      applyFilters: 'ใช้ตัวกรอง',
+      clearFilters: 'ล้างตัวกรอง',
+      metricTrends: 'แนวโน้มตัวชี้วัดอีเวนต์',
+      metricTrendsHelp:
+        'เปรียบเทียบตัวชี้วัดเฉพาะภายในประเภทอีเวนต์และมิติเดียวกัน ไม่มีการคำนวณคะแนนรวมข้ามอีเวนต์',
+      average: 'เฉลี่ย',
+      best: 'ดีที่สุด',
+      samples: 'ตัวอย่าง',
+      latest: 'ล่าสุด',
+      leaderboards: 'อันดับอีเวนต์',
+      leaderboardsHelp: 'แต่ละอันดับใช้ตัวชี้วัดอีเวนต์เดียวและไม่รวมประเภทอีเวนต์ที่ไม่เกี่ยวข้อง',
+      noEvents: 'ไม่มีอีเวนต์ที่บันทึกไว้ตรงกับตัวกรองเหล่านี้',
+      noEvidence: 'ไม่มีข้อมูลที่บันทึกไว้',
+      evidenceAria: 'การเข้าร่วมอีเวนต์ที่บันทึกไว้',
+      rallyAssignments: 'การมอบหมาย Rally',
+      assignments: '{count} การมอบหมาย',
+      allianceResults: 'ผลของพันธมิตร',
+      participants: 'ผู้เข้าร่วมที่บันทึกไว้',
+      governorCount: 'ผู้ว่าการ {count} คน',
+      representedAlliance: 'พันธมิตรที่เป็นตัวแทน',
+      noParticipants: 'ไม่มีผู้ว่าการที่บันทึกไว้สำหรับอีเวนต์นี้',
+    },
     scope: {
       player: 'ผู้ว่าการ',
       alliance: 'พันธมิตร',

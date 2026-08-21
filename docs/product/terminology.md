@@ -141,6 +141,7 @@ Presentation paths should express what the screen actually is. The following ret
 - `Citadel/RealmControl` → `Platform/Administration`
 - `Citadel/EventCodex` → `Platform/EventTypes`
 - `Kingdom/RoyalCourt/*` → `Kingdom/PositionPerks/*`
+- `Operations/Events/Chronicle` → `Operations/Events/History`
 
 Do not add aliases, duplicate pages, dual render paths, or compatibility shims for these names.
 

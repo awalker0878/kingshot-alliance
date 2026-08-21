@@ -2,6 +2,36 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   events: {
+    history: {
+      title: 'سجل الأحداث',
+      subtitle:
+        'راجع نتائج الأحداث المسجلة والمشاركة والاتجاهات الخاصة بكل حدث لـ {organization}. يحتفظ كل حدث بمعلومات الحاكم والتحالف والمملكة المسجلة في ذلك الوقت.',
+      from: 'من',
+      until: 'حتى',
+      rows: 'الصفوف',
+      applyFilters: 'تطبيق عوامل التصفية',
+      clearFilters: 'مسح عوامل التصفية',
+      metricTrends: 'اتجاهات مقاييس الحدث',
+      metricTrendsHelp:
+        'تُقارن المقاييس فقط ضمن نوع الحدث والبُعد نفسيهما. لا يتم حساب نتيجة موحدة عبر الأحداث.',
+      average: 'المتوسط',
+      best: 'الأفضل',
+      samples: 'العينات',
+      latest: 'الأحدث',
+      leaderboards: 'لوحات صدارة الأحداث',
+      leaderboardsHelp:
+        'تستخدم كل لوحة صدارة مقياساً واحداً للحدث ولا تجمع أنواع أحداث غير مرتبطة.',
+      noEvents: 'لا توجد أحداث مسجلة تطابق عوامل التصفية هذه.',
+      noEvidence: 'لا توجد بيانات مسجلة',
+      evidenceAria: 'مشاركة الحدث المسجلة',
+      rallyAssignments: 'تعيينات الحشد',
+      assignments: '{count} تعيينات',
+      allianceResults: 'نتائج التحالف',
+      participants: 'المشاركون المسجلون',
+      governorCount: '{count} حكام',
+      representedAlliance: 'التحالف المُمثّل',
+      noParticipants: 'لم يتم تسجيل أي حكام لهذا الحدث.',
+    },
     scope: {
       player: 'حاكم',
       alliance: 'تحالف',

@@ -75,6 +75,7 @@ const retiredPresentationReferences = [
   'Citadel/RealmControl',
   'Citadel/EventCodex',
   'Kingdom/RoyalCourt',
+  'Operations/Events/Chronicle',
 ];
 
 function walk(directory, predicate) {

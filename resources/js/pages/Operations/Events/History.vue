@@ -127,7 +127,7 @@ const props = defineProps<{
   history: HistoryRow[];
 }>();
 
-const { formatDate, formatNumber } = useLocale();
+const { t, formatDate, formatNumber } = useLocale();
 const filter = reactive({
   event_type_slug: props.filters.eventTypeSlug ?? '',
   from: props.filters.from ?? '',
@@ -175,7 +175,8 @@ function metricName(series: {
   dimensionKey: string | null;
 }): string {
   const dimension = series.dimensionKey ? ` · ${series.dimensionKey}` : '';
-  return `${series.eventTypeSlug} · ${series.metricKey}${dimension}`;
+  const eventType = t(`events.types.${series.eventTypeSlug}.name`);
+  return `${eventType} · ${series.metricKey}${dimension}`;
 }
 
 function evidenceDetail(evidence: StatusEvidence): string {
@@ -183,12 +184,12 @@ function evidenceDetail(evidence: StatusEvidence): string {
     .filter(([, count]) => count > 0)
     .map(([status, count]) => `${humanize(status)} ${formatNumber(count)}`);
 
-  return details.length > 0 ? details.join(' · ') : 'No recorded evidence';
+  return details.length > 0 ? details.join(' · ') : t('events.history.noEvidence');
 }
 </script>
 
 <template>
-  <Head :title="`Event history · ${organization.name}`" />
+  <Head :title="`${t('events.history.title')} · ${organization.name}`" />
 
   <AppLayout
     :user="user"
@@ -198,7 +199,7 @@ function evidenceDetail(evidence: StatusEvidence): string {
     <div class="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
       <header class="space-y-2">
         <p class="text-xs font-semibold tracking-[0.2em] text-amber-300 uppercase">
-          {{ organization.scope }} Event history
+          {{ t(`events.scope.${organization.scope}`) }} · {{ t('events.history.title') }}
         </p>
         <div class="flex flex-wrap items-baseline gap-2">
           <h1 class="text-3xl font-semibold text-[var(--ks-ivory)]">{{ organization.name }}</h1>
@@ -207,9 +208,7 @@ function evidenceDetail(evidence: StatusEvidence): string {
           }}</span>
         </div>
         <p class="max-w-3xl text-sm text-[var(--ks-muted)]">
-          History is owned by the original Event target. Current authority controls access, while
-          Governor names, represented Alliances, and Kingdom remain frozen at the occurrence where
-          they were recorded.
+          {{ t('events.history.subtitle', { organization: organization.name }) }}
         </p>
       </header>
 
@@ -218,16 +217,16 @@ function evidenceDetail(evidence: StatusEvidence): string {
         @submit.prevent="applyFilters"
       >
         <label class="space-y-1 text-xs text-[var(--ks-muted)]">
-          <span>Event type</span>
+          <span>{{ t('events.create.eventType') }}</span>
           <input
             v-model="filter.event_type_slug"
             type="text"
-            placeholder="All types"
+            :placeholder="t('events.calendar.all')"
             class="w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-stone)] px-3 py-2 text-sm text-[var(--ks-ivory)]"
           />
         </label>
         <label class="space-y-1 text-xs text-[var(--ks-muted)]">
-          <span>From</span>
+          <span>{{ t('events.history.from') }}</span>
           <input
             v-model="filter.from"
             type="date"
@@ -235,7 +234,7 @@ function evidenceDetail(evidence: StatusEvidence): string {
           />
         </label>
         <label class="space-y-1 text-xs text-[var(--ks-muted)]">
-          <span>Until</span>
+          <span>{{ t('events.history.until') }}</span>
           <input
             v-model="filter.until"
             type="date"
@@ -243,7 +242,7 @@ function evidenceDetail(evidence: StatusEvidence): string {
           />
         </label>
         <label class="space-y-1 text-xs text-[var(--ks-muted)]">
-          <span>Rows</span>
+          <span>{{ t('events.history.rows') }}</span>
           <select
             v-model="filter.limit"
             class="w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-stone)] px-3 py-2 text-sm text-[var(--ks-ivory)]"
@@ -259,24 +258,25 @@ function evidenceDetail(evidence: StatusEvidence): string {
             type="submit"
             class="rounded-lg bg-amber-400 px-4 py-2 text-sm font-semibold text-[var(--ks-ink)]"
           >
-            Apply filters
+            {{ t('events.history.applyFilters') }}
           </button>
           <button
             type="button"
             class="rounded-lg border border-[var(--ks-border)] px-4 py-2 text-sm font-semibold text-[var(--ks-ivory)]"
             @click="clearFilters"
           >
-            Clear
+            {{ t('events.history.clearFilters') }}
           </button>
         </div>
       </form>
 
       <section v-if="intelligence.series.length" class="space-y-3">
         <div>
-          <h2 class="text-lg font-semibold text-[var(--ks-ivory)]">Compatible metric trends</h2>
+          <h2 class="text-lg font-semibold text-[var(--ks-ivory)]">
+            {{ t('events.history.metricTrends') }}
+          </h2>
           <p class="mt-1 text-xs text-[var(--ks-muted)]">
-            Metrics are compared only within the same Event Type/scope and dimension. There is no
-            universal cross-Event score.
+            {{ t('events.history.metricTrendsHelp') }}
           </p>
         </div>
         <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
@@ -290,28 +290,29 @@ function evidenceDetail(evidence: StatusEvidence): string {
             </p>
             <div class="mt-3 grid grid-cols-3 gap-2 text-sm">
               <div>
-                <span class="text-[var(--ks-muted)]">Average</span>
+                <span class="text-[var(--ks-muted)]">{{ t('events.history.average') }}</span>
                 <p class="font-semibold text-[var(--ks-ivory)]">
                   {{ formatNumber(series.average)
                   }}<span v-if="series.unit"> {{ series.unit }}</span>
                 </p>
               </div>
               <div>
-                <span class="text-[var(--ks-muted)]">Best</span>
+                <span class="text-[var(--ks-muted)]">{{ t('events.history.best') }}</span>
                 <p class="font-semibold text-[var(--ks-ivory)]">
                   {{ number(series.best)
                   }}<span v-if="series.best !== null && series.unit"> {{ series.unit }}</span>
                 </p>
               </div>
               <div>
-                <span class="text-[var(--ks-muted)]">Samples</span>
+                <span class="text-[var(--ks-muted)]">{{ t('events.history.samples') }}</span>
                 <p class="font-semibold text-[var(--ks-ivory)]">
                   {{ formatNumber(series.samples) }}
                 </p>
               </div>
             </div>
             <p class="mt-3 text-xs text-[var(--ks-muted)]">
-              Latest {{ dateTime(series.latest.startsAt) }} · {{ formatNumber(series.latest.value)
+              {{ t('events.history.latest') }} {{ dateTime(series.latest.startsAt) }} ·
+              {{ formatNumber(series.latest.value)
               }}<span v-if="series.unit"> {{ series.unit }}</span>
             </p>
           </article>
@@ -320,10 +321,11 @@ function evidenceDetail(evidence: StatusEvidence): string {
 
       <section v-if="intelligence.leaderboards.length" class="space-y-3">
         <div>
-          <h2 class="text-lg font-semibold text-[var(--ks-ivory)]">Event-specific leaderboards</h2>
+          <h2 class="text-lg font-semibold text-[var(--ks-ivory)]">
+            {{ t('events.history.leaderboards') }}
+          </h2>
           <p class="mt-1 text-xs text-[var(--ks-muted)]">
-            Each board uses the metric's own aggregation and never mixes incompatible Event
-            families.
+            {{ t('events.history.leaderboardsHelp') }}
           </p>
         </div>
         <div class="grid gap-3 xl:grid-cols-2">
@@ -334,9 +336,6 @@ function evidenceDetail(evidence: StatusEvidence): string {
           >
             <div class="flex items-center justify-between gap-3">
               <h3 class="font-semibold text-[var(--ks-ivory)]">{{ metricName(board) }}</h3>
-              <span class="text-xs tracking-wide text-[var(--ks-muted)] uppercase">{{
-                board.aggregation
-              }}</span>
             </div>
             <ol class="mt-3 space-y-2">
               <li
@@ -359,7 +358,7 @@ function evidenceDetail(evidence: StatusEvidence): string {
         v-if="history.length === 0"
         class="rounded-2xl border border-dashed border-[rgba(210,163,75,.30)] p-10 text-center text-sm text-[var(--ks-muted)]"
       >
-        No historical Events match these filters.
+        {{ t('events.history.noEvents') }}
       </div>
 
       <template v-else>
@@ -373,9 +372,9 @@ function evidenceDetail(evidence: StatusEvidence): string {
               <div
                 class="flex flex-wrap gap-2 text-[11px] font-semibold tracking-wide text-[var(--ks-muted)] uppercase"
               >
-                <span>{{ event.eventType.slug }}</span>
+                <span>{{ t(event.eventType.nameKey) }}</span>
                 <span>·</span>
-                <span>{{ humanize(event.occurrenceStatus) }}</span>
+                <span>{{ t(`events.occurrenceStatuses.${event.occurrenceStatus}`) }}</span>
               </div>
               <h2 class="mt-2 text-xl font-semibold text-[var(--ks-ivory)]">
                 {{ event.title || event.targetDisplayName }}
@@ -388,7 +387,9 @@ function evidenceDetail(evidence: StatusEvidence): string {
               v-if="event.result"
               class="rounded-xl border border-[var(--ks-border)] bg-[rgba(210,163,75,.05)] px-4 py-3 text-right"
             >
-              <p class="text-xs tracking-wide text-[var(--ks-muted)] uppercase">Result</p>
+              <p class="text-xs tracking-wide text-[var(--ks-muted)] uppercase">
+                {{ t('events.results.title') }}
+              </p>
               <p class="mt-1 text-lg font-semibold text-[var(--ks-ivory)]">
                 {{ number(event.result.score) }}
               </p>
@@ -412,12 +413,14 @@ function evidenceDetail(evidence: StatusEvidence): string {
 
           <div
             class="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4"
-            aria-label="Historical operational evidence"
+            :aria-label="t('events.history.evidenceAria')"
           >
             <article
               class="rounded-xl border border-[var(--ks-border)] bg-[rgba(210,163,75,.05)] p-4"
             >
-              <p class="text-xs tracking-wide text-[var(--ks-muted)] uppercase">Attendance</p>
+              <p class="text-xs tracking-wide text-[var(--ks-muted)] uppercase">
+                {{ t('events.manage.attendance') }}
+              </p>
               <p class="mt-1 text-xl font-semibold text-[var(--ks-ivory)]">
                 {{ formatNumber(event.evidence.attendance.total) }}
               </p>
@@ -428,7 +431,9 @@ function evidenceDetail(evidence: StatusEvidence): string {
             <article
               class="rounded-xl border border-[var(--ks-border)] bg-[rgba(210,163,75,.05)] p-4"
             >
-              <p class="text-xs tracking-wide text-[var(--ks-muted)] uppercase">Roster</p>
+              <p class="text-xs tracking-wide text-[var(--ks-muted)] uppercase">
+                {{ t('events.rosters.roster') }}
+              </p>
               <p class="mt-1 text-xl font-semibold text-[var(--ks-ivory)]">
                 {{ formatNumber(event.evidence.roster.total) }}
               </p>
@@ -440,7 +445,7 @@ function evidenceDetail(evidence: StatusEvidence): string {
               class="rounded-xl border border-[var(--ks-border)] bg-[rgba(210,163,75,.05)] p-4"
             >
               <p class="text-xs tracking-wide text-[var(--ks-muted)] uppercase">
-                Rally assignments
+                {{ t('events.history.rallyAssignments') }}
               </p>
               <p class="mt-1 text-xl font-semibold text-[var(--ks-ivory)]">
                 {{ formatNumber(event.evidence.rallies.total) }}
@@ -452,12 +457,18 @@ function evidenceDetail(evidence: StatusEvidence): string {
             <article
               class="rounded-xl border border-[var(--ks-border)] bg-[rgba(210,163,75,.05)] p-4"
             >
-              <p class="text-xs tracking-wide text-[var(--ks-muted)] uppercase">Objectives</p>
+              <p class="text-xs tracking-wide text-[var(--ks-muted)] uppercase">
+                {{ t('events.objectives.title') }}
+              </p>
               <p class="mt-1 text-xl font-semibold text-[var(--ks-ivory)]">
                 {{ formatNumber(event.evidence.objectives.total) }}
               </p>
               <p class="mt-1 text-xs text-[var(--ks-muted)]">
-                {{ formatNumber(event.evidence.objectives.assignments) }} assignments
+                {{
+                  t('events.history.assignments', {
+                    count: formatNumber(event.evidence.objectives.assignments),
+                  })
+                }}
               </p>
               <p class="mt-1 text-xs text-[var(--ks-muted)] capitalize">
                 {{ evidenceDetail(event.evidence.objectives) }}
@@ -466,7 +477,9 @@ function evidenceDetail(evidence: StatusEvidence): string {
           </div>
 
           <div v-if="organization.scope === 'kingdom' && event.allianceResults.length" class="mt-6">
-            <h3 class="text-sm font-semibold text-[var(--ks-ivory)]">Alliance results</h3>
+            <h3 class="text-sm font-semibold text-[var(--ks-ivory)]">
+              {{ t('events.history.allianceResults') }}
+            </h3>
             <div class="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
               <article
                 v-for="result in event.allianceResults"
@@ -491,10 +504,14 @@ function evidenceDetail(evidence: StatusEvidence): string {
 
           <div class="mt-6">
             <div class="flex items-center justify-between gap-3">
-              <h3 class="text-sm font-semibold text-[var(--ks-ivory)]">Historical participants</h3>
-              <span class="text-xs text-[var(--ks-muted)]"
-                >{{ event.participants.length }} Governors</span
-              >
+              <h3 class="text-sm font-semibold text-[var(--ks-ivory)]">
+                {{ t('events.history.participants') }}
+              </h3>
+              <span class="text-xs text-[var(--ks-muted)]">{{
+                t('events.history.governorCount', {
+                  count: formatNumber(event.participants.length),
+                })
+              }}</span>
             </div>
             <div
               v-if="event.participants.length"
@@ -505,10 +522,10 @@ function evidenceDetail(evidence: StatusEvidence): string {
                   class="bg-[rgba(210,163,75,.05)] text-left text-xs tracking-wide text-[var(--ks-muted)] uppercase"
                 >
                   <tr>
-                    <th class="px-4 py-3">Governor</th>
-                    <th class="px-4 py-3">Represented Alliance</th>
-                    <th class="px-4 py-3">Score</th>
-                    <th class="px-4 py-3">Outcome</th>
+                    <th class="px-4 py-3">{{ t('events.manage.player') }}</th>
+                    <th class="px-4 py-3">{{ t('events.history.representedAlliance') }}</th>
+                    <th class="px-4 py-3">{{ t('events.results.score') }}</th>
+                    <th class="px-4 py-3">{{ t('events.results.outcome') }}</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-[var(--ks-border)]">
@@ -528,7 +545,7 @@ function evidenceDetail(evidence: StatusEvidence): string {
               </table>
             </div>
             <p v-else class="mt-3 text-sm text-[var(--ks-muted)]">
-              No Governor was recorded for this occurrence.
+              {{ t('events.history.noParticipants') }}
             </p>
           </div>
         </section>
