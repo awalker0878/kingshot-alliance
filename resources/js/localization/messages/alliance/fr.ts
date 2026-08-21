@@ -29,7 +29,7 @@ const messages = {
       noInvitations: 'Aucune invitation pour le moment.',
       membershipAdmin: 'Membres de l’Alliance',
       membershipIntro:
-        'Les changements de statut suivent le rang et les autorisations de rôle de l’Alliance. Seuls les propriétaires peuvent modifier les attributions de rôle.',
+        'Les changements de statut et de rôle des membres suivent le rang d’Alliance et les autorisations du Gouverneur actif.',
       membersOnPage: '{count} membres affichés sur {total}.',
       bulkActions: 'Changements de statut des membres',
       selectedMembers: '{count} membres sélectionnés',
