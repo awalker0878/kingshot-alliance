@@ -27,7 +27,7 @@ const messages = {
       revoke: '撤销',
       noInvitations: '暂无邀请。',
       membershipAdmin: '联盟成员',
-      membershipIntro: '成员状态变更遵循联盟等级和角色权限。只有所有者可以更改角色分配。',
+      membershipIntro: '成员状态和角色变更遵循联盟等级以及当前总督拥有的权限。',
       membersOnPage: '显示 {count} / {total} 名成员。',
       bulkActions: '成员状态变更',
       selectedMembers: '已选择 {count} 名成员',
