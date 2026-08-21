@@ -71,6 +71,7 @@ const architecturePhrases = [
 const retiredPresentationReferences = [
   'Command/Overview',
   'Alliance/Hall',
+  'Alliance/Recruitment/Hall',
   'Intelligence/GloryLedger',
   'Citadel/RealmControl',
   'Citadel/EventCodex',
