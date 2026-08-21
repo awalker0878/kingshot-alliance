@@ -137,6 +137,7 @@ Presentation paths should express what the screen actually is. The following ret
 
 - `Command/Overview` → `Dashboard/Home`
 - `Alliance/Hall` → `Alliance/Overview`
+- `Alliance/Recruitment/Hall` → `Alliance/Recruitment/Index`
 - `Intelligence/GloryLedger/*` → `Intelligence/Contributions/*`
 - `Citadel/RealmControl` → `Platform/Administration`
 - `Citadel/EventCodex` → `Platform/EventTypes`
