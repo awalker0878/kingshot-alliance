@@ -8,11 +8,11 @@ on:
       - '.github/workflows/language-alignment-format-artifact.yml'
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   finalize:
-    name: Export final language alignment
+    name: Publish final language alignment
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -39,38 +39,31 @@ jobs:
       - name: Apply final presentation language cleanup
         run: python scripts/_finalize_language_surfaces.py
 
-      - name: Format changed frontend sources
-        run: npx prettier --write resources/ tests/v3/Visual/ApplicationShell.spec.ts .github/workflows/intelligence-verification.yml
+      - name: Keep workflow files out of the generated product commit
+        run: git checkout -- .github/workflows/intelligence-verification.yml
 
-      - name: Prepare artifact
+      - name: Format changed product sources
+        run: npx prettier --write resources/ tests/v3/Visual/ApplicationShell.spec.ts
+
+      - name: Remove temporary helper scripts
         shell: bash
         run: |
-          set -euo pipefail
           rm scripts/_finalize_event_history_locales_a.py
           rm scripts/_finalize_event_history_locales_b.py
           rm scripts/_finalize_event_history_locales_c.py
           rm scripts/_finalize_language_surfaces.py
-          rm .github/workflows/language-alignment-format-artifact.yml
-          git diff --name-only > changed-files.txt
-          git ls-files --others --exclude-standard >> changed-files.txt
-          sort -u -o changed-files.txt changed-files.txt
-          git diff --name-only --diff-filter=D > deleted-files.txt
-          mkdir -p finalized
-          while IFS= read -r file; do
-            [ -n "$file" ] || continue
-            [ -e "$file" ] || continue
-            mkdir -p "finalized/$(dirname "$file")"
-            cp "$file" "finalized/$file"
-          done < changed-files.txt
-          cat changed-files.txt
 
-      - name: Upload finalized language tree
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
-        with:
-          name: final-language-alignment
-          path: |
-            finalized
-            changed-files.txt
-            deleted-files.txt
-          if-no-files-found: error
-          retention-days: 1
+      - name: Commit final product language alignment
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git reset .github/workflows/language-alignment-format-artifact.yml
+          if git diff --cached --quiet; then
+            echo 'No product-language changes to commit.'
+            exit 0
+          fi
+          git commit -m 'Complete final KingShot language alignment [skip ci]'
+          git push origin HEAD:product/kingshot-language-alignment
