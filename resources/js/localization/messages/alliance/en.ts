@@ -29,7 +29,7 @@ const messages = {
       noInvitations: 'No invitations yet.',
       membershipAdmin: 'Alliance members',
       membershipIntro:
-        'Member status changes follow Alliance rank and role permissions. Only owners can change role assignments.',
+        'Member status and role changes follow Alliance rank and the permissions granted to your active Governor.',
       membersOnPage: 'Showing {count} of {total} members.',
       bulkActions: 'Member status changes',
       selectedMembers: '{count} members selected',
