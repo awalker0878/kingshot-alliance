@@ -29,7 +29,7 @@ const messages = {
       noInvitations: 'Henüz davet yok.',
       membershipAdmin: 'İttifak üyeleri',
       membershipIntro:
-        'Durum değişiklikleri İttifak rütbesi ve rol izinlerini izler. Rol atamalarını yalnızca sahipler değiştirebilir.',
+        'Üye durumu ve rol değişiklikleri İttifak rütbesini ve etkin Valiye verilen izinleri izler.',
       membersOnPage: '{total} üyeden {count} tanesi gösteriliyor.',
       bulkActions: 'Üye durumu değişiklikleri',
       selectedMembers: '{count} üye seçildi',
