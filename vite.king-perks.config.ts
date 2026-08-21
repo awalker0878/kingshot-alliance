@@ -8,8 +8,8 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       input: {
-        appointments: 'resources/js/pages/Kingdom/RoyalCourt/Appointments.vue',
-        myAppointments: 'resources/js/pages/Kingdom/RoyalCourt/MyAppointments.vue',
+        appointments: 'resources/js/pages/Kingdom/PositionPerks/Appointments.vue',
+        myAppointments: 'resources/js/pages/Kingdom/PositionPerks/MyAppointments.vue',
       },
     },
   },
