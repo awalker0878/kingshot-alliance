@@ -1,0 +1,37 @@
+name: Close final language findings
+
+on:
+  push:
+    branches:
+      - product/kingshot-language-alignment
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: product/kingshot-language-alignment
+          fetch-depth: 0
+
+      - name: Apply final fixes
+        run: |
+          node scripts/close-three-language-findings.mjs
+          git diff --check
+
+      - name: Commit final fixes
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- \
+            resources/js/pages/Intelligence/KingdomWatch/AllianceDossier.vue \
+            resources/js/pages/Intelligence/KingdomWatch/History.vue \
+            resources/js/pages/Public/Alliance/Show.vue
+          git commit -m "Close final localization coverage findings"
+          git push origin HEAD:product/kingshot-language-alignment
