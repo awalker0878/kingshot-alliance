@@ -1,6 +1,11 @@
 import type { MessageCatalogue } from '../../types';
 
 const messages = {
+  notifications: {
+    types: {
+      kingPerkReminder: 'تذكيرات امتيازات المناصب',
+    },
+  },
   accountExperience: {
     account: {
       eyebrow: 'إدارة الحساب',
@@ -22,7 +27,7 @@ const messages = {
       notEnabled: 'غير مفعّلة',
       twoFactorTitle: 'المصادقة الثنائية',
       twoFactorIntro:
-        'احمِ تسجيل الدخول باستخدام تطبيق مصادقة TOTP. تظهر رموز الاسترداد فقط عند إنشائها أو إعادة توليدها.',
+        'احمِ تسجيل الدخول باستخدام تطبيق مصادقة. تظهر رموز الاسترداد فقط عند إنشائها أو إعادة توليدها.',
       startSetup: 'بدء الإعداد',
       authenticatorSecret: 'سر تطبيق المصادقة',
       provisioningUri: 'رابط التهيئة',
@@ -34,13 +39,13 @@ const messages = {
       disableTwoFactor: 'تعطيل المصادقة الثنائية',
       passwordTitle: 'تغيير كلمة المرور',
       passwordIntro:
-        'يؤدي تغيير كلمة المرور إلى إلغاء رموز الوصول الشخصية والجلسات الموثقة الأخرى.',
+        'يؤدي تغيير كلمة المرور إلى تسجيل خروج الأجهزة الأخرى وإغلاق الوصول النشط الآخر.',
       currentPassword: 'كلمة المرور الحالية',
       newPassword: 'كلمة المرور الجديدة',
       confirmNewPassword: 'تأكيد كلمة المرور الجديدة',
       updatePassword: 'تحديث كلمة المرور',
       sessionsTitle: 'الجلسات الأخرى',
-      sessionsIntro: 'ألغِ كل جلسة موثقة باستثناء هذا الجهاز.',
+      sessionsIntro: 'سجّل خروج كل جلسة موثقة باستثناء هذا الجهاز.',
       signOutOthers: 'تسجيل خروج الأجهزة الأخرى',
       dangerTitle: 'منطقة حساسة',
       deleteAccount: 'حذف الحساب',
