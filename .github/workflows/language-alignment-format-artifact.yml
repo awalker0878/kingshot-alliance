@@ -1,0 +1,53 @@
+name: Language Alignment Format Artifact
+
+on:
+  push:
+    branches:
+      - product/kingshot-language-alignment
+
+permissions:
+  contents: read
+
+jobs:
+  format:
+    name: Produce formatted frontend artifact
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+
+      - name: Configure Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install locked frontend dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Format resources
+        run: npm run format
+
+      - name: Collect changed formatted files
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --name-only -- resources > formatted-files.txt
+          mkdir -p formatted
+          while IFS= read -r file; do
+            [ -n "$file" ] || continue
+            mkdir -p "formatted/$(dirname "$file")"
+            cp "$file" "formatted/$file"
+          done < formatted-files.txt
+          cat formatted-files.txt
+
+      - name: Upload formatter output
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: language-alignment-formatted
+          path: |
+            formatted-files.txt
+            formatted
+          if-no-files-found: error
+          retention-days: 1
