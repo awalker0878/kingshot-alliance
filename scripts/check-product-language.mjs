@@ -10,6 +10,7 @@ const retiredPhrases = [
   'Leave the Realm',
   'Begin as a Governor',
   'Alliance Hall',
+  'Alliance Summons',
   'Event Command',
   'Recruitment Hall',
   'Glory Ledger',
@@ -17,7 +18,10 @@ const retiredPhrases = [
   'Alliance Command',
   'Kingdom Command',
   'Realm seal',
+  'Realm guard',
+  'realm key',
   'realm is offline',
+  'command hall',
   'command surface',
   'command rooms',
   'Alliance rooms',
@@ -31,6 +35,12 @@ const retiredPhrases = [
   'Raise an Alliance banner',
   'raise a new Alliance banner',
   'Realm time zone',
+  'Realm languages',
+  'realm safety check',
+  'Citadel Warden',
+  'Citadel decree',
+  'Alliance charter',
+  'Alliance fleet',
   'sworn to an Alliance',
 ];
 
@@ -69,9 +79,13 @@ const userInterfaceFiles = [
   ...walk(path.join(root, 'resources/js/components'), (file) => file.endsWith('.vue')),
 ];
 
+const staticProductFiles = [path.join(root, 'public/offline.html')].filter((file) =>
+  fs.existsSync(file),
+);
+
 const failures = [];
 
-for (const file of [...englishCatalogues, ...userInterfaceFiles]) {
+for (const file of [...englishCatalogues, ...userInterfaceFiles, ...staticProductFiles]) {
   const source = fs.readFileSync(file, 'utf8');
   const relative = path.relative(root, file).replaceAll('\\', '/');
 
@@ -102,5 +116,5 @@ if (failures.length > 0) {
 }
 
 console.log(
-  `KingShot product-language check passed (${englishCatalogues.length} English catalogues, ${userInterfaceFiles.length} UI files).`,
+  `KingShot product-language check passed (${englishCatalogues.length} English catalogues, ${userInterfaceFiles.length} UI files, ${staticProductFiles.length} static files).`,
 );
