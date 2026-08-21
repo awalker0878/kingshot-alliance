@@ -1,6 +1,11 @@
 import type { MessageCatalogue } from '../../types';
 
 const messages = {
+  notifications: {
+    types: {
+      kingPerkReminder: 'Przypomnienia o korzyściach stanowiska',
+    },
+  },
   accountExperience: {
     account: {
       eyebrow: 'Zarządzanie kontem',
@@ -8,7 +13,7 @@ const messages = {
       intro:
         'Zarządzaj tożsamością, weryfikacją, hasłem, uwierzytelnianiem dwuskładnikowym i aktywnymi sesjami.',
       passwordUpdated:
-        'Hasło zostało zaktualizowane, a pozostałe uwierzytelnione sesje unieważnione.',
+        'Hasło zostało zaktualizowane, a pozostałe uwierzytelnione sesje wylogowane.',
       sessionsRevoked: 'Pozostałe uwierzytelnione sesje zostały wylogowane.',
       twoFactorDisabled: 'Uwierzytelnianie dwuskładnikowe zostało wyłączone.',
       profileTitle: 'Profil',
@@ -24,7 +29,7 @@ const messages = {
       notEnabled: 'Wyłączone',
       twoFactorTitle: 'Uwierzytelnianie dwuskładnikowe',
       twoFactorIntro:
-        'Chroń logowanie za pomocą aplikacji TOTP. Kody odzyskiwania są wyświetlane tylko po utworzeniu lub ponownym wygenerowaniu.',
+        'Chroń logowanie za pomocą aplikacji uwierzytelniającej. Kody odzyskiwania są wyświetlane tylko po utworzeniu lub ponownym wygenerowaniu.',
       startSetup: 'Rozpocznij konfigurację',
       authenticatorSecret: 'Sekret aplikacji uwierzytelniającej',
       provisioningUri: 'URI konfiguracji',
@@ -36,13 +41,13 @@ const messages = {
       disableTwoFactor: 'Wyłącz uwierzytelnianie dwuskładnikowe',
       passwordTitle: 'Zmień hasło',
       passwordIntro:
-        'Zmiana hasła unieważnia osobiste tokeny dostępu i inne uwierzytelnione sesje.',
+        'Zmiana hasła wylogowuje inne urządzenia i zamyka pozostały aktywny dostęp.',
       currentPassword: 'Aktualne hasło',
       newPassword: 'Nowe hasło',
       confirmNewPassword: 'Potwierdź nowe hasło',
       updatePassword: 'Zaktualizuj hasło',
       sessionsTitle: 'Inne sesje',
-      sessionsIntro: 'Unieważnij wszystkie uwierzytelnione sesje poza tym urządzeniem.',
+      sessionsIntro: 'Wyloguj wszystkie uwierzytelnione sesje poza tym urządzeniem.',
       signOutOthers: 'Wyloguj inne urządzenia',
       dangerTitle: 'Strefa ryzyka',
       deleteAccount: 'Usuwanie konta',
