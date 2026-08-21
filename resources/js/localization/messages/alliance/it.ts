@@ -29,7 +29,7 @@ const messages = {
       noInvitations: 'Nessun invito.',
       membershipAdmin: 'Membri dell’Alleanza',
       membershipIntro:
-        'Le modifiche di stato seguono il grado dell’Alleanza e i permessi dei ruoli. Solo i proprietari possono cambiare le assegnazioni dei ruoli.',
+        'Le modifiche allo stato e ai ruoli dei membri seguono il grado dell’Alleanza e i permessi del Governatore attivo.',
       membersOnPage: 'Visualizzati {count} di {total} membri.',
       bulkActions: 'Modifiche dello stato membri',
       selectedMembers: '{count} membri selezionati',
