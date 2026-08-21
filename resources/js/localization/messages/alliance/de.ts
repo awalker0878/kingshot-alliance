@@ -29,7 +29,7 @@ const messages = {
       noInvitations: 'Noch keine Einladungen.',
       membershipAdmin: 'Allianzmitglieder',
       membershipIntro:
-        'Statusänderungen folgen Allianzerang und Rollenberechtigungen. Nur Eigentümer können Rollenzuweisungen ändern.',
+        'Mitgliedsstatus und Rollenänderungen folgen dem Allianzerang und den Berechtigungen des aktiven Gouverneurs.',
       membersOnPage: '{count} von {total} Mitgliedern werden angezeigt.',
       bulkActions: 'Mitgliedsstatus ändern',
       selectedMembers: '{count} Mitglieder ausgewählt',
