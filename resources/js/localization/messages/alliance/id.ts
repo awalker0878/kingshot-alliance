@@ -29,7 +29,7 @@ const messages = {
       noInvitations: 'Belum ada undangan.',
       membershipAdmin: 'Anggota Aliansi',
       membershipIntro:
-        'Perubahan status mengikuti peringkat Aliansi dan izin peran. Hanya pemilik yang dapat mengubah penetapan peran.',
+        'Perubahan status dan peran anggota mengikuti peringkat Aliansi serta izin Gubernur aktif.',
       membersOnPage: 'Menampilkan {count} dari {total} anggota.',
       bulkActions: 'Perubahan status anggota',
       selectedMembers: '{count} anggota dipilih',
