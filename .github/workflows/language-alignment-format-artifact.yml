@@ -52,6 +52,8 @@ jobs:
           rm scripts/_finalize_language_surfaces.py
           rm .github/workflows/language-alignment-format-artifact.yml
           git diff --name-only > changed-files.txt
+          git ls-files --others --exclude-standard >> changed-files.txt
+          sort -u -o changed-files.txt changed-files.txt
           git diff --name-only --diff-filter=D > deleted-files.txt
           mkdir -p finalized
           while IFS= read -r file; do
