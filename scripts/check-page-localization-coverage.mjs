@@ -6,6 +6,7 @@ import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const ts = require('typescript');
 const { NodeTypes, parse } = require('@vue/compiler-dom');
+const { parse: parseSfc } = require('@vue/compiler-sfc');
 const root = process.cwd();
 const pagesDirectory = path.join(root, 'resources/js/pages');
 const literalAllowList = new Set([
@@ -52,14 +53,17 @@ function vueFiles(directory) {
   });
 }
 
-function templateSource(source) {
-  const match = source.match(/<template\b[^>]*>([\s\S]*?)<\/template>/);
-  return match?.[1] ?? '';
-}
+function sfcBlocks(source, relative) {
+  const { descriptor, errors } = parseSfc(source, { filename: relative });
+  if (errors.length > 0) {
+    const message = errors.map((error) => (error instanceof Error ? error.message : String(error))).join('; ');
+    throw new Error(`${relative}: Vue SFC could not be parsed: ${message}`);
+  }
 
-function scriptSource(source) {
-  const match = source.match(/<script\b[^>]*>([\s\S]*?)<\/script>/);
-  return match?.[1] ?? '';
+  return {
+    template: descriptor.template?.content ?? '',
+    script: descriptor.scriptSetup?.content ?? descriptor.script?.content ?? '',
+  };
 }
 
 function normalized(value) {
@@ -202,9 +206,10 @@ for (const file of files) {
     failures.push(`${relative}: missing useLocale() call`);
   }
 
+  const blocks = sfcBlocks(source, relative);
   const rawStrings = [
-    ...rawTemplateStrings(templateSource(source), relative),
-    ...rawScriptLabels(scriptSource(source)),
+    ...rawTemplateStrings(blocks.template, relative),
+    ...rawScriptLabels(blocks.script),
   ];
   for (const value of [...new Set(rawStrings)]) {
     failures.push(`${relative}: visible copy must use localization: "${value}"`);
