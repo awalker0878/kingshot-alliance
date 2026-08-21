@@ -29,7 +29,7 @@ const messages = {
       noInvitations: 'Aún no hay invitaciones.',
       membershipAdmin: 'Miembros de la Alianza',
       membershipIntro:
-        'Los cambios de estado siguen el rango y los permisos de rol de la Alianza. Solo los propietarios pueden cambiar asignaciones de rol.',
+        'Los cambios de estado y rol de los miembros siguen el rango de la Alianza y los permisos del Gobernador activo.',
       membersOnPage: 'Mostrando {count} de {total} miembros.',
       bulkActions: 'Cambios de estado de miembros',
       selectedMembers: '{count} miembros seleccionados',
