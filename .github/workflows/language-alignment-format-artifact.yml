@@ -4,6 +4,11 @@ on:
   push:
     branches:
       - product/kingshot-language-alignment
+  pull_request:
+    paths:
+      - 'scripts/_finalize_event_history_locales_*.py'
+      - 'scripts/_finalize_language_surfaces.py'
+      - '.github/workflows/language-alignment-format-artifact.yml'
 
 permissions:
   contents: write
