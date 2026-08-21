@@ -1,7 +1,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
+import { createRequire } from 'node:module';
 
+const require = createRequire(import.meta.url);
+const ts = require('typescript');
 const root = process.cwd();
 
 const retiredPhrases = [
@@ -94,51 +97,103 @@ function walk(directory, predicate) {
   return files;
 }
 
-function quotedStrings(source) {
+function unwrap(node) {
+  let current = node;
+  while (
+    current &&
+    (ts.isSatisfiesExpression(current) ||
+      ts.isAsExpression(current) ||
+      ts.isParenthesizedExpression(current))
+  ) {
+    current = current.expression;
+  }
+  return current;
+}
+
+function catalogueStrings(file, sourceText) {
+  const source = ts.createSourceFile(file, sourceText, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
   const values = [];
+  let rootObject = null;
 
-  for (let index = 0; index < source.length; index += 1) {
-    const quote = source[index];
-    if (quote !== "'" && quote !== '"' && quote !== '`') continue;
-
-    let value = '';
-    let escaped = false;
-    index += 1;
-
-    for (; index < source.length; index += 1) {
-      const character = source[index];
-      if (escaped) {
-        value += character;
-        escaped = false;
-        continue;
-      }
-      if (character === '\\') {
-        escaped = true;
-        continue;
-      }
-      if (character === quote) break;
-      value += character;
+  source.forEachChild((node) => {
+    if (!ts.isVariableStatement(node)) return;
+    for (const declaration of node.declarationList.declarations) {
+      if (declaration.name.getText(source) === 'messages') rootObject = unwrap(declaration.initializer);
     }
+  });
 
-    values.push(value);
+  function visit(node) {
+    const value = unwrap(node);
+    if (!value) return;
+    if (ts.isStringLiteral(value) || ts.isNoSubstitutionTemplateLiteral(value)) {
+      values.push(value.text);
+      return;
+    }
+    if (ts.isTemplateExpression(value)) {
+      values.push(
+        [value.head.text, ...value.templateSpans.map((span) => span.literal.text)].join(' '),
+      );
+      return;
+    }
+    if (ts.isObjectLiteralExpression(value)) {
+      for (const property of value.properties) {
+        if (ts.isPropertyAssignment(property)) visit(property.initializer);
+      }
+      return;
+    }
+    if (ts.isArrayLiteralExpression(value)) {
+      for (const element of value.elements) visit(element);
+    }
   }
 
+  visit(rootObject);
   return values;
 }
 
-function vueText(source) {
+function templateSource(source) {
+  const start = source.indexOf('<template');
+  const open = start === -1 ? -1 : source.indexOf('>', start);
+  const end = source.lastIndexOf('</template>');
+  if (open === -1 || end === -1 || end <= open) return '';
+  return source.slice(open + 1, end);
+}
+
+function vueText(template) {
+  const withoutExpressions = template.replace(/{{[\s\S]*?}}/g, '');
   const values = [];
-  for (const match of source.matchAll(/>([^<{][^<]*)</g)) {
+  for (const match of withoutExpressions.matchAll(/>([^<]+)</g)) {
     const value = match[1].replace(/\s+/g, ' ').trim();
     if (value !== '') values.push(value);
   }
   return values;
 }
 
-function productStrings(file, source) {
-  const values = quotedStrings(source);
-  if (file.endsWith('.vue')) values.push(...vueText(source));
+function vueAttributeStrings(template) {
+  const values = [];
+  const names = 'title|subtitle|eyebrow|placeholder|aria-label|alt|label|description';
+
+  for (const match of template.matchAll(new RegExp(`(?<![:@\\w-])(?:${names})\\s*=\\s*["']([^"']+)["']`, 'g'))) {
+    values.push(match[1]);
+  }
+
+  for (const match of template.matchAll(new RegExp(`:(?:${names})\\s*=\\s*"([^"]+)"`, 'g'))) {
+    const expression = match[1];
+    if (/\bt\s*\(/.test(expression)) continue;
+    for (const literal of expression.matchAll(/['`]([^'`]*[A-Za-z][^'`]*)['`]/g)) {
+      values.push(literal[1]);
+    }
+  }
+
   return values;
+}
+
+function vueStrings(source) {
+  const template = templateSource(source);
+  return [...vueText(template), ...vueAttributeStrings(template)];
+}
+
+function normalizeProductString(value) {
+  return value.replace(/{[^{}]+}/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
 const englishCatalogues = walk(
@@ -170,26 +225,54 @@ const presentationReferenceFiles = [
 
 const failures = [];
 
-for (const file of [...englishCatalogues, ...userInterfaceFiles]) {
+for (const file of englishCatalogues) {
   const source = fs.readFileSync(file, 'utf8');
   const relative = path.relative(root, file).replaceAll('\\', '/');
-  const strings = productStrings(file, source);
+  const strings = catalogueStrings(file, source);
   const isTechnicalSurface =
     relative.endsWith('/platform/en.ts') || relative.endsWith('/integrations/en.ts');
 
-  for (const value of strings) {
+  for (const rawValue of strings) {
+    const value = normalizeProductString(rawValue);
     const lower = value.toLowerCase();
 
     for (const phrase of retiredPhrases) {
       if (lower.includes(phrase.toLowerCase())) {
-        failures.push(`${relative}: retired product phrase "${phrase}" in "${value}"`);
+        failures.push(`${relative}: retired product phrase "${phrase}" in "${rawValue}"`);
       }
     }
 
     if (!isTechnicalSurface) {
       for (const phrase of architecturePhrases) {
         if (lower.includes(phrase.toLowerCase())) {
-          failures.push(`${relative}: architecture phrase "${phrase}" is user-facing in "${value}"`);
+          failures.push(`${relative}: architecture phrase "${phrase}" is user-facing in "${rawValue}"`);
+        }
+      }
+    }
+  }
+}
+
+for (const file of userInterfaceFiles) {
+  const source = fs.readFileSync(file, 'utf8');
+  const relative = path.relative(root, file).replaceAll('\\', '/');
+  const strings = vueStrings(source);
+  const isTechnicalSurface =
+    relative.includes('/pages/Platform/') || relative.includes('/pages/Alliance/Connections/');
+
+  for (const rawValue of strings) {
+    const value = normalizeProductString(rawValue);
+    const lower = value.toLowerCase();
+
+    for (const phrase of retiredPhrases) {
+      if (lower.includes(phrase.toLowerCase())) {
+        failures.push(`${relative}: retired product phrase "${phrase}" in "${rawValue}"`);
+      }
+    }
+
+    if (!isTechnicalSurface) {
+      for (const phrase of architecturePhrases) {
+        if (lower.includes(phrase.toLowerCase())) {
+          failures.push(`${relative}: architecture phrase "${phrase}" is user-facing in "${rawValue}"`);
         }
       }
     }
