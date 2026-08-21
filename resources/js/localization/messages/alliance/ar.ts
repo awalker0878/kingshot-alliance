@@ -35,8 +35,7 @@ const messages = {
       selectedMembers: 'تم تحديد {count} أعضاء',
       selectMember: 'تحديد {member}',
       selectPage: 'تحديد جميع الأعضاء في هذه الصفحة',
-      bulkPreviewHelp:
-        'راجع رتبة التحالف والمملكة والحالة الحالية والسعة قبل تطبيق التغييرات.',
+      bulkPreviewHelp: 'راجع رتبة التحالف والمملكة والحالة الحالية والسعة قبل تطبيق التغييرات.',
       changeStatusTo: 'تغيير الحالة إلى',
       previewBulkAction: 'مراجعة التغييرات',
       previewingBulkAction: 'جارٍ فحص الأعضاء…',

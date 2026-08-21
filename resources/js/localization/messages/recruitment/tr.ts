@@ -15,10 +15,12 @@ const messages = {
     nextAction: 'Sonraki işlem',
     bulkActions: 'Aday aşaması değişiklikleri',
     selectedCandidates: '{count} aday seçildi',
-    bulkPreviewHelp: 'Değişikliği uygulamadan önce kimlerin taşınabileceğini kontrol et. Uygun olmayan adaylar değişmeden kalır.',
+    bulkPreviewHelp:
+      'Değişikliği uygulamadan önce kimlerin taşınabileceğini kontrol et. Uygun olmayan adaylar değişmeden kalır.',
     previewBulkAction: 'Aşama değişikliğini kontrol et',
     bulkPreview: 'Aşama değişikliği önizlemesi',
-    bulkPreviewSummary: '{ready} güncellenebilir; {blocked} incelenmeli veya zaten hedef aşamadadır.',
+    bulkPreviewSummary:
+      '{ready} güncellenebilir; {blocked} incelenmeli veya zaten hedef aşamadadır.',
     confirmBulkTitle: 'Aşama değişikliğini onayla',
     confirmBulkDescription: 'Uygun {count} adayı {stage} aşamasına taşı?',
     confirmBulkAction: 'Uygun adayları güncelle',

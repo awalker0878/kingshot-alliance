@@ -48,14 +48,17 @@ const messages = {
       welcome: 'Bem-vindo, Governador {name}',
       verificationPending: 'Verificação de e-mail pendente',
       playerContextTitle: 'Governador ativo',
-      playerContextIntro: 'Troque de Governador para mudar a identidade Kingshot usada nas ações de Aliança e Reino.',
+      playerContextIntro:
+        'Troque de Governador para mudar a identidade Kingshot usada nas ações de Aliança e Reino.',
       playerKingdom: 'Reino {kingdom}',
-      playerAuthorityIntro: 'A patente da Aliança, cargos, responsabilidades do Reino e acesso a Eventos seguem o Governador ativo.',
+      playerAuthorityIntro:
+        'A patente da Aliança, cargos, responsabilidades do Reino e acesso a Eventos seguem o Governador ativo.',
       selectPlayer: 'Selecionar Governador',
       playerAllianceTitle: 'Aliança do Governador ativo',
       playerAllianceIntro: 'O acesso à Aliança segue a patente e os cargos do Governador ativo.',
       noPlayerAllianceTitle: 'Este Governador não está em uma Aliança',
-      noPlayerAllianceIntro: 'Troque de Governador, entre em uma Aliança ou crie uma Aliança para usar os recursos da Aliança.',
+      noPlayerAllianceIntro:
+        'Troque de Governador, entre em uma Aliança ou crie uma Aliança para usar os recursos da Aliança.',
       openPlayerAlliance: 'Abrir Aliança',
       active: 'Ativo',
       roles: 'Cargos da Aliança',
@@ -73,7 +76,8 @@ const messages = {
       giftCodesToRedeem: '{count} códigos de presente para resgatar',
       overdueRecruitment: '{count} acompanhamentos de recrutamento atrasados',
       recruitmentFollowUpDue: 'Há um acompanhamento de candidato pendente',
-      noUrgentActions: 'Não há ações urgentes para o Governador. Revise as seções abaixo quando quiser.',
+      noUrgentActions:
+        'Não há ações urgentes para o Governador. Revise as seções abaixo quando quiser.',
       eventActionResponse: 'Informe sua disponibilidade',
       eventActionRegistration: 'Inscreva-se neste Evento',
       eventActionVote: 'Vote na enquete do Evento',
@@ -85,7 +89,8 @@ const messages = {
       upcomingEvents: 'Próximos Eventos',
       viewAll: 'Ver tudo',
       createTitle: 'Criar uma Aliança',
-      createIntro: 'Crie uma Aliança para o Governador ativo. A Aliança usa o Reino desse Governador, e o Governador fundador se torna R5.',
+      createIntro:
+        'Crie uma Aliança para o Governador ativo. A Aliança usa o Reino desse Governador, e o Governador fundador se torna R5.',
       allianceName: 'Nome da Aliança',
       slug: 'Nome da URL da Aliança',
       timezone: 'Fuso horário da Aliança',

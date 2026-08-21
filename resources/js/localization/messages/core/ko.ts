@@ -48,14 +48,17 @@ const messages = {
       welcome: '환영합니다, 총독 {name}',
       verificationPending: '이메일 확인 대기 중',
       playerContextTitle: '활성 총독',
-      playerContextIntro: '총독을 전환하면 연맹 및 왕국 작업에 사용하는 Kingshot 신원이 변경됩니다.',
+      playerContextIntro:
+        '총독을 전환하면 연맹 및 왕국 작업에 사용하는 Kingshot 신원이 변경됩니다.',
       playerKingdom: '왕국 {kingdom}',
-      playerAuthorityIntro: '연맹 등급, 역할, 왕국 임무 및 이벤트 접근 권한은 활성 총독을 따릅니다.',
+      playerAuthorityIntro:
+        '연맹 등급, 역할, 왕국 임무 및 이벤트 접근 권한은 활성 총독을 따릅니다.',
       selectPlayer: '총독 선택',
       playerAllianceTitle: '활성 총독의 연맹',
       playerAllianceIntro: '연맹 접근 권한은 활성 총독의 등급과 역할을 따릅니다.',
       noPlayerAllianceTitle: '이 총독은 연맹에 속해 있지 않습니다',
-      noPlayerAllianceIntro: '총독을 전환하거나 연맹에 가입하거나 연맹을 만들어 연맹 기능을 사용하세요.',
+      noPlayerAllianceIntro:
+        '총독을 전환하거나 연맹에 가입하거나 연맹을 만들어 연맹 기능을 사용하세요.',
       openPlayerAlliance: '연맹 열기',
       active: '활성',
       roles: '연맹 역할',
@@ -85,7 +88,8 @@ const messages = {
       upcomingEvents: '예정 이벤트',
       viewAll: '모두 보기',
       createTitle: '연맹 만들기',
-      createIntro: '활성 총독을 위한 연맹을 만듭니다. 연맹은 해당 총독의 왕국을 사용하며 창설 총독은 R5가 됩니다.',
+      createIntro:
+        '활성 총독을 위한 연맹을 만듭니다. 연맹은 해당 총독의 왕국을 사용하며 창설 총독은 R5가 됩니다.',
       allianceName: '연맹 이름',
       slug: '연맹 URL 이름',
       timezone: '연맹 시간대',

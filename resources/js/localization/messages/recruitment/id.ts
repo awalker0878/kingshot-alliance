@@ -15,10 +15,12 @@ const messages = {
     nextAction: 'Tindakan berikutnya',
     bulkActions: 'Perubahan tahap kandidat',
     selectedCandidates: '{count} kandidat dipilih',
-    bulkPreviewHelp: 'Tinjau kandidat yang dapat dipindahkan sebelum menerapkan perubahan. Kandidat yang tidak memenuhi syarat tetap tidak berubah.',
+    bulkPreviewHelp:
+      'Tinjau kandidat yang dapat dipindahkan sebelum menerapkan perubahan. Kandidat yang tidak memenuhi syarat tetap tidak berubah.',
     previewBulkAction: 'Tinjau perubahan tahap',
     bulkPreview: 'Pratinjau perubahan tahap',
-    bulkPreviewSummary: '{ready} dapat diperbarui dan {blocked} perlu ditinjau atau sudah berada di tahap tujuan.',
+    bulkPreviewSummary:
+      '{ready} dapat diperbarui dan {blocked} perlu ditinjau atau sudah berada di tahap tujuan.',
     confirmBulkTitle: 'Konfirmasi perubahan tahap',
     confirmBulkDescription: 'Pindahkan {count} kandidat yang memenuhi syarat ke {stage}?',
     confirmBulkAction: 'Perbarui kandidat yang memenuhi syarat',

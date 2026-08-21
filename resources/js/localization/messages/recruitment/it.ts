@@ -15,16 +15,20 @@ const messages = {
     nextAction: 'Prossima azione',
     bulkActions: 'Modifiche fase candidati',
     selectedCandidates: '{count} candidati selezionati',
-    bulkPreviewHelp: 'Verifica chi può cambiare fase prima di applicare la modifica. I candidati non idonei restano invariati.',
+    bulkPreviewHelp:
+      'Verifica chi può cambiare fase prima di applicare la modifica. I candidati non idonei restano invariati.',
     previewBulkAction: 'Verifica cambio fase',
     bulkPreview: 'Anteprima cambio fase',
-    bulkPreviewSummary: '{ready} possono essere aggiornati e {blocked} richiedono verifica o sono già nella fase di destinazione.',
+    bulkPreviewSummary:
+      '{ready} possono essere aggiornati e {blocked} richiedono verifica o sono già nella fase di destinazione.',
     confirmBulkTitle: 'Conferma cambio fase',
     confirmBulkDescription: 'Spostare {count} candidati idonei in {stage}?',
     confirmBulkAction: 'Aggiorna candidati idonei',
     bulkResult: 'Risultato cambio fase',
-    bulkResultSummary: '{succeeded} aggiornati. {failed} richiedono verifica. {skipped} erano già aggiornati.',
-    failedItemsSelected: 'I candidati che non è stato possibile aggiornare restano selezionati per la verifica.',
+    bulkResultSummary:
+      '{succeeded} aggiornati. {failed} richiedono verifica. {skipped} erano già aggiornati.',
+    failedItemsSelected:
+      'I candidati che non è stato possibile aggiornare restano selezionati per la verifica.',
     settings: 'Impostazioni candidatura',
     questions: 'Domande candidatura',
     onboarding: 'Checklist onboarding',

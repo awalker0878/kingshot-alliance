@@ -13,7 +13,8 @@ const messages = {
     stale: 'Veraltet',
     missing: 'Fehlt',
     filters: 'Kaderfilter',
-    freshnessHelp: 'Aktuell bedeutet ein Scout-Eintrag innerhalb von {days} Tagen; veraltet ist älter; fehlt bedeutet kein Scout-Eintrag.',
+    freshnessHelp:
+      'Aktuell bedeutet ein Scout-Eintrag innerhalb von {days} Tagen; veraltet ist älter; fehlt bedeutet kein Scout-Eintrag.',
     search: 'Gouverneur oder Spiel-ID suchen',
     searchPlaceholder: 'Name oder Spiel-ID suchen',
     state: 'Status',
@@ -39,9 +40,11 @@ const messages = {
     snapshotCaptured: 'Scout-Eintrag erfasst',
     linkedMember: 'Verknüpftes Mitglied',
     noResults: 'Keine Kadereinträge entsprechen diesen Filtern.',
-    noResultsBody: 'Passe die Filter an oder lösche sie, um weitere aufgezeichnete Einträge zu sehen.',
+    noResultsBody:
+      'Passe die Filter an oder lösche sie, um weitere aufgezeichnete Einträge zu sehen.',
     intelligenceTitle: 'Kaderanalyse',
-    intelligenceSubtitle: 'Allianzübersichten verwenden den aufgezeichneten Kader und Scout-Verlauf.',
+    intelligenceSubtitle:
+      'Allianzübersichten verwenden den aufgezeichneten Kader und Scout-Verlauf.',
     asOf: 'Stand {date}',
     trackedPlayers: 'Aktive / beobachtete Gouverneure',
     totalRecordedPower: 'Gesamte erfasste Macht',
@@ -57,15 +60,19 @@ const messages = {
     departed: 'Ausgetreten',
     windowDays: 'Zeitraum: letzte {days} Tage.',
     membershipLinkage: 'Verknüpfungen zur Allianzmitgliedschaft',
-    linkedOfTotal: '{linked} von {total} aktiven/beobachteten Gouverneuren sind mit der Allianzmitgliedschaft verknüpft.',
+    linkedOfTotal:
+      '{linked} von {total} aktiven/beobachteten Gouverneuren sind mit der Allianzmitgliedschaft verknüpft.',
     sevenDayChange: '7-Tage-Machtänderung',
     thirtyDayChange: '30-Tage-Machtänderung',
     comparablePlayers: '{count} vergleichbare Gouverneure',
     trendMethodTitle: 'So funktionieren Vergleichszeiträume',
-    trendMethodBody: 'Der Vergleich verwendet den nächstgelegenen Scout-Eintrag am oder vor dem Zieldatum, höchstens doppelt so alt wie der gewählte Zeitraum. Fehlende Beobachtungen werden nicht geschätzt.',
-    currentTotalsBody: 'Aktuelle Summen verwenden den neuesten Scout-Eintrag jedes beobachteten Gouverneurs. Gouverneure ohne Eintrag werden ausgeschlossen statt als null gezählt.',
+    trendMethodBody:
+      'Der Vergleich verwendet den nächstgelegenen Scout-Eintrag am oder vor dem Zieldatum, höchstens doppelt so alt wie der gewählte Zeitraum. Fehlende Beobachtungen werden nicht geschätzt.',
+    currentTotalsBody:
+      'Aktuelle Summen verwenden den neuesten Scout-Eintrag jedes beobachteten Gouverneurs. Gouverneure ohne Eintrag werden ausgeschlossen statt als null gezählt.',
     managerDetail: 'Vergleich für Offiziere',
-    managerDetailBody: 'Nur alphabetischer Vergleich. Gouverneure werden nicht nach Wachstum oder Rückgang bewertet oder sortiert.',
+    managerDetailBody:
+      'Nur alphabetischer Vergleich. Gouverneure werden nicht nach Wachstum oder Rückgang bewertet oder sortiert.',
     snapshotState: 'Status des Scout-Eintrags',
     currentPower: 'Aktuelle Macht',
     insufficientHistory: 'Unzureichende Historie',
@@ -74,7 +81,8 @@ const messages = {
     powerTrends: 'Machttrends',
   },
   rosterManage: {
-    manageSubtitle: 'Verwalte Kaderidentität, Rekrutierungsverknüpfungen, Allianzrollen und Offiziersnotizen. Der Scout-Verlauf wird getrennt von den Kaderdetails geführt.',
+    manageSubtitle:
+      'Verwalte Kaderidentität, Rekrutierungsverknüpfungen, Allianzrollen und Offiziersnotizen. Der Scout-Verlauf wird getrennt von den Kaderdetails geführt.',
     csvMigration: 'CSV-Kaderimport',
     profilesWithoutMembership: 'Gouverneure im Kader ohne Verknüpfung zur Allianzmitgliedschaft',
     membershipsWithoutProfile: 'Allianzmitgliedschaften ohne verknüpften Gouverneur im Kader',
@@ -92,29 +100,34 @@ const messages = {
     noneRecorded: 'Nichts erfasst',
     historyRecordSnapshot: 'Scout-Verlauf',
     markLeft: 'Als ausgetreten markieren',
-    markLeftConfirm: '{name} als ausgetreten markieren? Gouverneur-Identität und Historie bleiben erhalten.',
+    markLeftConfirm:
+      '{name} als ausgetreten markieren? Gouverneur-Identität und Historie bleiben erhalten.',
     observedName: 'Beobachteter Name',
     savePlayer: 'Gouverneur speichern',
     noEntries: 'Noch keine Kadereinträge.',
   },
   rosterImport: {
     title: 'CSV-Kaderimport',
-    subtitle: 'Prüfe jede Zeile vor dem Import. Spiel-IDs sind die einzige automatische Identitätszuordnung; Namensübereinstimmungen müssen bestätigt werden.',
+    subtitle:
+      'Prüfe jede Zeile vor dem Import. Spiel-IDs sind die einzige automatische Identitätszuordnung; Namensübereinstimmungen müssen bestätigt werden.',
     exportCurrent: 'Aktuellen Kader exportieren',
     exportManager: 'Mit Offiziersfeldern exportieren',
     uploadPreview: 'Hochladen und Vorschau anzeigen',
-    schemaHelp: 'CSV-Format {version} · maximal {rows} Zeilen · maximal {bytes}. UTF-8-CSV wird nur als Text gelesen.',
+    schemaHelp:
+      'CSV-Format {version} · maximal {rows} Zeilen · maximal {bytes}. UTF-8-CSV wird nur als Text gelesen.',
     csvFile: 'CSV-Datei',
     validatePreview: 'Prüfen und Vorschau',
     requiredColumns: 'Erforderliche Spalten',
-    requirementsHelp: 'name, power und state sind erforderlich. state ist active, tracked oder left. joined_at nutzt YYYY-MM-DD; captured_at ist optional ISO-8601 mit Zeitzone. Doppelte Spiel-IDs werden abgelehnt.',
+    requirementsHelp:
+      'name, power und state sind erforderlich. state ist active, tracked oder left. joined_at nutzt YYYY-MM-DD; captured_at ist optional ISO-8601 mit Zeitzone. Doppelte Spiel-IDs werden abgelehnt.',
     preview: 'Vorschau: {filename}',
     rows: 'Zeilen',
     creates: 'Neue Gouverneure',
     updates: 'Aktualisierte Gouverneure',
     ambiguous: 'Muss geprüft werden',
     rejected: 'Abgelehnt',
-    committedSummary: '{rows} Zeilen importiert: {creates} neue Gouverneure, {updates} aktualisierte Gouverneure und {snapshots} neue Scout-Einträge.',
+    committedSummary:
+      '{rows} Zeilen importiert: {creates} neue Gouverneure, {updates} aktualisierte Gouverneure und {snapshots} neue Scout-Einträge.',
     csvRow: 'CSV-Zeile',
     previewOutcome: 'Vorschauergebnis',
     resolutionErrors: 'Prüfung / Fehler',
@@ -124,16 +137,20 @@ const messages = {
     updateCandidate: '{name} aktualisieren · {gameId} · {state}',
     stableMatch: 'Spiel-ID stimmt mit Kadereintrag {entry} überein.',
     newIdentity: 'Neuer Gouverneur.',
-    rejectedBlock: 'Dieser Import kann nicht fortgesetzt werden, solange eine Zeile abgelehnt ist. Korrigiere die CSV und lade sie erneut hoch.',
+    rejectedBlock:
+      'Dieser Import kann nicht fortgesetzt werden, solange eine Zeile abgelehnt ist. Korrigiere die CSV und lade sie erneut hoch.',
     unresolvedRows: '{count} mehrdeutige Zeile(n) vor dem Import prüfen.',
     confirmAtomic: 'Import bestätigen',
-    commitError: 'Der Import konnte nicht abgeschlossen werden. Prüfe die Zeilenzuordnungen oder erstelle eine neue Vorschau.',
+    commitError:
+      'Der Import konnte nicht abgeschlossen werden. Prüfe die Zeilenzuordnungen oder erstelle eine neue Vorschau.',
   },
   rosterHistory: {
     title: 'Scout-Verlauf',
-    currentHelp: 'Aktuell bedeutet, dass der neueste Scout-Eintrag höchstens {days} Tage alt ist. Fehlend bedeutet, dass kein Scout-Eintrag erfasst wurde. Frühere Beobachtungen bleiben im Verlauf.',
+    currentHelp:
+      'Aktuell bedeutet, dass der neueste Scout-Eintrag höchstens {days} Tage alt ist. Fehlend bedeutet, dass kein Scout-Eintrag erfasst wurde. Frühere Beobachtungen bleiben im Verlauf.',
     recordSnapshot: 'Scout-Beobachtung erfassen',
-    recordHelp: 'Erfasse, was die Scouts zum Aufnahmezeitpunkt beobachtet haben. Eine spätere Aufnahme fügt dem Scout-Verlauf des Gouverneurs einen neuen Eintrag hinzu.',
+    recordHelp:
+      'Erfasse, was die Scouts zum Aufnahmezeitpunkt beobachtet haben. Eine spätere Aufnahme fügt dem Scout-Verlauf des Gouverneurs einen neuen Eintrag hinzu.',
     observedPlayerName: 'Beobachteter Gouverneurname',
     capturedAt: 'Erfasst um',
     recordAction: 'Scout-Beobachtung erfassen',

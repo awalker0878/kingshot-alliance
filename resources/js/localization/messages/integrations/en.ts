@@ -51,16 +51,14 @@ const messages = {
     revoke: 'Revoke',
     revoking: 'Revoking…',
     revokeTitle: 'Revoke API access?',
-    revokeDescription:
-      'Revoke {name} immediately. Requests using it will stop working.',
+    revokeDescription: 'Revoke {name} immediately. Requests using it will stop working.',
     credentialCreated: 'The API credential was created. Save the one-time token now.',
     credentialRevoked: 'The API credential was revoked.',
     noCredentials: 'No API credentials have been created.',
     webhookSubscriptions: 'Webhooks',
     webhooksEnabled: 'Webhooks are enabled.',
     webhooksDisabled: 'Webhooks are disabled for this Alliance.',
-    webhookLimitHelp:
-      'Up to {limit} active webhooks are allowed. A delivery URL is required.',
+    webhookLimitHelp: 'Up to {limit} active webhooks are allowed. A delivery URL is required.',
     createWebhook: 'Add webhook',
     creatingWebhook: 'Adding webhook…',
     webhookCreated: 'The webhook was created. Save its one-time signing key now.',

@@ -41,7 +41,8 @@ const messages = {
       previewBulkAction: 'Änderungen prüfen',
       previewingBulkAction: 'Mitglieder werden geprüft…',
       bulkPreview: 'Vorschau der Statusänderung',
-      bulkPreviewSummary: '{ready} können aktualisiert werden; {blocked} benötigen Prüfung oder sind bereits aktuell.',
+      bulkPreviewSummary:
+        '{ready} können aktualisiert werden; {blocked} benötigen Prüfung oder sind bereits aktuell.',
       confirmBulkTitle: 'Mitgliedsstatus ändern?',
       confirmBulkDescription: '{count} berechtigte Mitglieder auf {status} setzen?',
       confirmBulkAction: 'Berechtigte Mitglieder aktualisieren',
@@ -49,7 +50,8 @@ const messages = {
       bulkResult: 'Ergebnis der Statusänderung',
       bulkResultSummary:
         '{succeeded} Mitglieder aktualisiert. {failed} benötigen Prüfung. {skipped} waren bereits aktuell.',
-      failedItemsSelected: 'Nicht aktualisierte Mitglieder bleiben ausgewählt, damit du sie prüfen kannst.',
+      failedItemsSelected:
+        'Nicht aktualisierte Mitglieder bleiben ausgewählt, damit du sie prüfen kannst.',
       bulkOutcome: {
         ready: 'Bereit',
         'member-unavailable': 'Nicht verfügbar',

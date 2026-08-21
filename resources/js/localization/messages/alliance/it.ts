@@ -41,7 +41,8 @@ const messages = {
       previewBulkAction: 'Controlla modifiche',
       previewingBulkAction: 'Controllo membri…',
       bulkPreview: 'Anteprima cambio stato',
-      bulkPreviewSummary: '{ready} possono essere aggiornati e {blocked} richiedono verifica o sono già aggiornati.',
+      bulkPreviewSummary:
+        '{ready} possono essere aggiornati e {blocked} richiedono verifica o sono già aggiornati.',
       confirmBulkTitle: 'Conferma modifiche dello stato membri',
       confirmBulkDescription: 'Cambiare {count} membri idonei in {status}?',
       confirmBulkAction: 'Aggiorna membri idonei',
@@ -69,7 +70,8 @@ const messages = {
     },
     events: {
       eyebrow: 'Eventi dell’Alleanza',
-      intro: 'Gli orari sono mostrati nel tuo fuso locale e nel fuso orario dell’Alleanza {alliance}.',
+      intro:
+        'Gli orari sono mostrati nel tuo fuso locale e nel fuso orario dell’Alleanza {alliance}.',
       exportCsv: 'Esporta CSV',
       icalFeed: 'Feed iCalendar',
       coordinate: 'Coordina eventi',

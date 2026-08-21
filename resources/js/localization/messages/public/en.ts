@@ -21,8 +21,7 @@ const messages = {
     multilingualTitle: 'Multiple languages',
     multilingualDesc: 'Use Kingshot Alliance in the languages used by your Governors.',
     ctaTitle: 'Gather. Prepare. Lead together.',
-    ctaBody:
-      'Sign in to manage your Alliance, or create an account to accept an invitation.',
+    ctaBody: 'Sign in to manage your Alliance, or create an account to accept an invitation.',
   },
   publicAlliance: {
     publicAlliance: 'Public Alliance',

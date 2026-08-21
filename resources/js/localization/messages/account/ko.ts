@@ -38,8 +38,7 @@ const messages = {
       regenerateRecoveryCodes: '복구 코드 재생성',
       disableTwoFactor: '2단계 인증 비활성화',
       passwordTitle: '비밀번호 변경',
-      passwordIntro:
-        '비밀번호를 변경하면 다른 기기에서 로그아웃되고 다른 활성 접근도 종료됩니다.',
+      passwordIntro: '비밀번호를 변경하면 다른 기기에서 로그아웃되고 다른 활성 접근도 종료됩니다.',
       currentPassword: '현재 비밀번호',
       newPassword: '새 비밀번호',
       confirmNewPassword: '새 비밀번호 확인',

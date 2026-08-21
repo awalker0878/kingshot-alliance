@@ -140,7 +140,8 @@ const messages = {
       preview: 'Preview cancellations',
       previewing: 'Checking Events…',
       previewTitle: 'Cancellation preview',
-      previewSummary: '{ready} can be cancelled and {blocked} need review or are already cancelled.',
+      previewSummary:
+        '{ready} can be cancelled and {blocked} need review or are already cancelled.',
       confirmTitle: 'Confirm Event cancellations',
       confirmDescription: 'Cancel {count} eligible Events and their future occurrences?',
       confirm: 'Cancel eligible Events',

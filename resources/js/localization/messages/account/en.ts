@@ -67,7 +67,8 @@ const messages = {
       applying: 'Updating notifications…',
       resultTitle: 'Inbox update result',
       resultSummary: '{succeeded} updated. {failed} need review. {skipped} were already complete.',
-      failedSelected: 'Notifications that could not be updated remain selected so you can review them.',
+      failedSelected:
+        'Notifications that could not be updated remain selected so you can review them.',
       outcomes: {
         ready: 'Ready',
         'notification-unavailable': 'Unavailable',

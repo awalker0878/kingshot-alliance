@@ -44,7 +44,8 @@ const messages = {
       confirmBulkAction: '更新符合条件的成员',
       applyingBulkAction: '正在更新成员…',
       bulkResult: '状态变更结果',
-      bulkResultSummary: '已更新 {succeeded} 名成员。{failed} 名需要检查。{skipped} 名原本已是最新状态。',
+      bulkResultSummary:
+        '已更新 {succeeded} 名成员。{failed} 名需要检查。{skipped} 名原本已是最新状态。',
       failedItemsSelected: '未能更新的成员会保持选中，方便你继续检查。',
       bulkOutcome: {
         ready: '可更新',

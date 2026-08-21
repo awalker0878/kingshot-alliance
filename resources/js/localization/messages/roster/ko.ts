@@ -13,7 +13,8 @@ const messages = {
     stale: '오래됨',
     missing: '없음',
     filters: '명단 필터',
-    freshnessHelp: '최신은 {days}일 이내 정찰 기록, 오래됨은 그 이전, 없음은 정찰 기록이 없는 상태입니다.',
+    freshnessHelp:
+      '최신은 {days}일 이내 정찰 기록, 오래됨은 그 이전, 없음은 정찰 기록이 없는 상태입니다.',
     search: '총독 또는 게임 ID 검색',
     searchPlaceholder: '이름 또는 게임 ID 검색',
     state: '상태',
@@ -62,10 +63,13 @@ const messages = {
     thirtyDayChange: '30일 전투력 변화',
     comparablePlayers: '비교 가능 총독 {count}명',
     trendMethodTitle: '비교 기간 계산 방식',
-    trendMethodBody: '목표 날짜 또는 그 이전의 가장 가까운 정찰 기록을 선택 기간의 최대 두 배까지 사용합니다. 누락 관측은 추정하지 않습니다.',
-    currentTotalsBody: '현재 합계는 추적 중인 각 총독의 최신 정찰 기록을 사용합니다. 기록이 없는 총독은 0으로 처리하지 않고 제외합니다.',
+    trendMethodBody:
+      '목표 날짜 또는 그 이전의 가장 가까운 정찰 기록을 선택 기간의 최대 두 배까지 사용합니다. 누락 관측은 추정하지 않습니다.',
+    currentTotalsBody:
+      '현재 합계는 추적 중인 각 총독의 최신 정찰 기록을 사용합니다. 기록이 없는 총독은 0으로 처리하지 않고 제외합니다.',
     managerDetail: '장교용 비교',
-    managerDetailBody: '이름순 비교만 제공합니다. 성장이나 감소로 총독을 순위화하거나 점수화하지 않습니다.',
+    managerDetailBody:
+      '이름순 비교만 제공합니다. 성장이나 감소로 총독을 순위화하거나 점수화하지 않습니다.',
     snapshotState: '정찰 기록 상태',
     currentPower: '현재 전투력',
     insufficientHistory: '이력 부족',
@@ -74,7 +78,8 @@ const messages = {
     powerTrends: '전투력 추세',
   },
   rosterManage: {
-    manageSubtitle: '명단 식별 정보, 모집 연결, 연맹 역할 및 장교 메모를 관리합니다. 정찰 이력은 명단 세부정보와 별도로 유지됩니다.',
+    manageSubtitle:
+      '명단 식별 정보, 모집 연결, 연맹 역할 및 장교 메모를 관리합니다. 정찰 이력은 명단 세부정보와 별도로 유지됩니다.',
     csvMigration: 'CSV 명단 가져오기',
     profilesWithoutMembership: '연맹 멤버십과 연결되지 않은 명단 총독',
     membershipsWithoutProfile: '명단 총독과 연결되지 않은 연맹 멤버십',
@@ -99,22 +104,26 @@ const messages = {
   },
   rosterImport: {
     title: 'CSV 명단 가져오기',
-    subtitle: '가져오기 전에 모든 행을 확인합니다. 자동 매칭은 게임 ID만 사용하며 이름 일치는 확인이 필요합니다.',
+    subtitle:
+      '가져오기 전에 모든 행을 확인합니다. 자동 매칭은 게임 ID만 사용하며 이름 일치는 확인이 필요합니다.',
     exportCurrent: '현재 명단 내보내기',
     exportManager: '장교 필드 포함 내보내기',
     uploadPreview: '업로드 및 미리보기',
-    schemaHelp: 'CSV 형식 {version} · 최대 {rows}개 행 · 최대 {bytes}. UTF-8 CSV는 텍스트로만 읽습니다.',
+    schemaHelp:
+      'CSV 형식 {version} · 최대 {rows}개 행 · 최대 {bytes}. UTF-8 CSV는 텍스트로만 읽습니다.',
     csvFile: 'CSV 파일',
     validatePreview: '검증 및 미리보기',
     requiredColumns: '필수 열',
-    requirementsHelp: 'name, power, state가 필요합니다. state는 active, tracked 또는 left입니다. joined_at은 YYYY-MM-DD, captured_at은 선택적으로 시간대가 포함된 ISO-8601입니다. 중복 게임 ID는 거부됩니다.',
+    requirementsHelp:
+      'name, power, state가 필요합니다. state는 active, tracked 또는 left입니다. joined_at은 YYYY-MM-DD, captured_at은 선택적으로 시간대가 포함된 ISO-8601입니다. 중복 게임 ID는 거부됩니다.',
     preview: '미리보기: {filename}',
     rows: '행',
     creates: '새 총독',
     updates: '업데이트된 총독',
     ambiguous: '확인 필요',
     rejected: '거부됨',
-    committedSummary: '{rows}개 행 가져옴: 새 총독 {creates}명, 업데이트된 총독 {updates}명, 새 정찰 기록 {snapshots}개.',
+    committedSummary:
+      '{rows}개 행 가져옴: 새 총독 {creates}명, 업데이트된 총독 {updates}명, 새 정찰 기록 {snapshots}개.',
     csvRow: 'CSV 행',
     previewOutcome: '미리보기 결과',
     resolutionErrors: '확인 / 오류',
@@ -124,16 +133,19 @@ const messages = {
     updateCandidate: '{name} 업데이트 · {gameId} · {state}',
     stableMatch: '게임 ID가 명단 항목 {entry}와 일치합니다.',
     newIdentity: '새 총독입니다.',
-    rejectedBlock: '거부된 행이 있는 동안 가져오기를 계속할 수 없습니다. CSV를 수정하여 다시 업로드하세요.',
+    rejectedBlock:
+      '거부된 행이 있는 동안 가져오기를 계속할 수 없습니다. CSV를 수정하여 다시 업로드하세요.',
     unresolvedRows: '가져오기 전에 모호한 {count}개 행을 확인하세요.',
     confirmAtomic: '가져오기 확인',
     commitError: '가져오기를 완료할 수 없습니다. 행 일치를 검토하거나 새 미리보기를 만드세요.',
   },
   rosterHistory: {
     title: '정찰 이력',
-    currentHelp: '최신 정찰 기록이 {days}일 이내면 최신이며, 기록이 없으면 누락입니다. 이전 관측은 이력에 남습니다.',
+    currentHelp:
+      '최신 정찰 기록이 {days}일 이내면 최신이며, 기록이 없으면 누락입니다. 이전 관측은 이력에 남습니다.',
     recordSnapshot: '정찰 결과 기록',
-    recordHelp: '정찰병이 관측한 내용을 캡처 시점에 기록합니다. 이후 캡처는 총독의 정찰 이력에 새 기록을 추가합니다.',
+    recordHelp:
+      '정찰병이 관측한 내용을 캡처 시점에 기록합니다. 이후 캡처는 총독의 정찰 이력에 새 기록을 추가합니다.',
     observedPlayerName: '관측된 총독 이름',
     capturedAt: '캡처 시각',
     recordAction: '정찰 결과 기록',

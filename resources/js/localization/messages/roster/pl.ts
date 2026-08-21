@@ -13,7 +13,8 @@ const messages = {
     stale: 'Nieaktualny',
     missing: 'Brak',
     filters: 'Filtry składu',
-    freshnessHelp: 'Aktualny oznacza wpis zwiadowczy z ostatnich {days} dni; nieaktualny jest starszy; brak oznacza brak wpisu.',
+    freshnessHelp:
+      'Aktualny oznacza wpis zwiadowczy z ostatnich {days} dni; nieaktualny jest starszy; brak oznacza brak wpisu.',
     search: 'Szukaj Gubernatora lub ID gry',
     searchPlaceholder: 'Szukaj nazwy lub ID gry',
     state: 'Stan',
@@ -57,15 +58,19 @@ const messages = {
     departed: 'Odeszli',
     windowDays: 'Okres: ostatnie {days} dni.',
     membershipLinkage: 'Powiązania członkostwa w sojuszu',
-    linkedOfTotal: 'Powiązano {linked} z {total} aktywnych/śledzonych Gubernatorów z członkostwem w sojuszu.',
+    linkedOfTotal:
+      'Powiązano {linked} z {total} aktywnych/śledzonych Gubernatorów z członkostwem w sojuszu.',
     sevenDayChange: 'Zmiana mocy 7 dni',
     thirtyDayChange: 'Zmiana mocy 30 dni',
     comparablePlayers: 'Porównywalnych Gubernatorów: {count}',
     trendMethodTitle: 'Jak działają okresy porównania',
-    trendMethodBody: 'Porównanie używa najbliższego wpisu zwiadowczego w dniu docelowym lub wcześniej, maksymalnie do dwukrotności wybranego okresu. Brakujące obserwacje nie są szacowane.',
-    currentTotalsBody: 'Bieżące sumy używają najnowszego wpisu zwiadowczego każdego śledzonego Gubernatora. Gubernatorzy bez wpisu są wykluczani zamiast liczeni jako zero.',
+    trendMethodBody:
+      'Porównanie używa najbliższego wpisu zwiadowczego w dniu docelowym lub wcześniej, maksymalnie do dwukrotności wybranego okresu. Brakujące obserwacje nie są szacowane.',
+    currentTotalsBody:
+      'Bieżące sumy używają najnowszego wpisu zwiadowczego każdego śledzonego Gubernatora. Gubernatorzy bez wpisu są wykluczani zamiast liczeni jako zero.',
     managerDetail: 'Porównanie dla oficerów',
-    managerDetailBody: 'Tylko porównanie alfabetyczne. Gubernatorzy nie są klasyfikowani ani oceniani według wzrostu lub spadku.',
+    managerDetailBody:
+      'Tylko porównanie alfabetyczne. Gubernatorzy nie są klasyfikowani ani oceniani według wzrostu lub spadku.',
     snapshotState: 'Stan wpisu zwiadowczego',
     currentPower: 'Bieżąca moc',
     insufficientHistory: 'Za mało historii',
@@ -74,7 +79,8 @@ const messages = {
     powerTrends: 'Trendy mocy',
   },
   rosterManage: {
-    manageSubtitle: 'Zarządzaj tożsamością składu, powiązaniami rekrutacji, rolami sojuszu i notatkami oficerów. Historia zwiadu jest przechowywana osobno od szczegółów składu.',
+    manageSubtitle:
+      'Zarządzaj tożsamością składu, powiązaniami rekrutacji, rolami sojuszu i notatkami oficerów. Historia zwiadu jest przechowywana osobno od szczegółów składu.',
     csvMigration: 'Import składu CSV',
     profilesWithoutMembership: 'Gubernatorzy w składzie bez powiązania z członkostwem w sojuszu',
     membershipsWithoutProfile: 'Członkostwa w sojuszu bez powiązanego Gubernatora w składzie',
@@ -92,29 +98,34 @@ const messages = {
     noneRecorded: 'Brak zapisu',
     historyRecordSnapshot: 'Historia zwiadu',
     markLeft: 'Oznacz jako odszedł',
-    markLeftConfirm: 'Oznaczyć {name} jako osobę, która odeszła? Tożsamość i historia Gubernatora zostaną zachowane.',
+    markLeftConfirm:
+      'Oznaczyć {name} jako osobę, która odeszła? Tożsamość i historia Gubernatora zostaną zachowane.',
     observedName: 'Zaobserwowana nazwa',
     savePlayer: 'Zapisz Gubernatora',
     noEntries: 'Brak wpisów w składzie.',
   },
   rosterImport: {
     title: 'Import składu CSV',
-    subtitle: 'Sprawdź każdy wiersz przed importem. Tylko ID gry są dopasowywane automatycznie; dopasowanie po nazwie wymaga potwierdzenia.',
+    subtitle:
+      'Sprawdź każdy wiersz przed importem. Tylko ID gry są dopasowywane automatycznie; dopasowanie po nazwie wymaga potwierdzenia.',
     exportCurrent: 'Eksportuj bieżący skład',
     exportManager: 'Eksportuj z polami oficera',
     uploadPreview: 'Prześlij i pokaż podgląd',
-    schemaHelp: 'Format CSV {version} · maksymalnie {rows} wierszy · maksymalnie {bytes}. CSV UTF-8 jest odczytywany wyłącznie jako tekst.',
+    schemaHelp:
+      'Format CSV {version} · maksymalnie {rows} wierszy · maksymalnie {bytes}. CSV UTF-8 jest odczytywany wyłącznie jako tekst.',
     csvFile: 'Plik CSV',
     validatePreview: 'Sprawdź i pokaż podgląd',
     requiredColumns: 'Wymagane kolumny',
-    requirementsHelp: 'name, power i state są wymagane. state to active, tracked lub left. joined_at używa YYYY-MM-DD; opcjonalne captured_at używa ISO-8601 ze strefą czasową. Powtórzone ID gry są odrzucane.',
+    requirementsHelp:
+      'name, power i state są wymagane. state to active, tracked lub left. joined_at używa YYYY-MM-DD; opcjonalne captured_at używa ISO-8601 ze strefą czasową. Powtórzone ID gry są odrzucane.',
     preview: 'Podgląd: {filename}',
     rows: 'Wiersze',
     creates: 'Nowi Gubernatorzy',
     updates: 'Zaktualizowani Gubernatorzy',
     ambiguous: 'Wymaga sprawdzenia',
     rejected: 'Odrzucone',
-    committedSummary: 'Zaimportowano {rows} wierszy: {creates} nowych Gubernatorów, {updates} zaktualizowanych Gubernatorów i {snapshots} nowych wpisów zwiadowczych.',
+    committedSummary:
+      'Zaimportowano {rows} wierszy: {creates} nowych Gubernatorów, {updates} zaktualizowanych Gubernatorów i {snapshots} nowych wpisów zwiadowczych.',
     csvRow: 'Wiersz CSV',
     previewOutcome: 'Wynik podglądu',
     resolutionErrors: 'Sprawdzenie / błędy',
@@ -124,21 +135,26 @@ const messages = {
     updateCandidate: 'Aktualizuj {name} · {gameId} · {state}',
     stableMatch: 'ID gry pasuje do wpisu składu {entry}.',
     newIdentity: 'Nowy Gubernator.',
-    rejectedBlock: 'Import nie może być kontynuowany, dopóki jakikolwiek wiersz jest odrzucony. Popraw CSV i prześlij go ponownie.',
+    rejectedBlock:
+      'Import nie może być kontynuowany, dopóki jakikolwiek wiersz jest odrzucony. Popraw CSV i prześlij go ponownie.',
     unresolvedRows: 'Sprawdź {count} niejednoznacznych wierszy przed importem.',
     confirmAtomic: 'Potwierdź import',
-    commitError: 'Nie udało się zakończyć importu. Sprawdź dopasowania wierszy lub utwórz nowy podgląd.',
+    commitError:
+      'Nie udało się zakończyć importu. Sprawdź dopasowania wierszy lub utwórz nowy podgląd.',
   },
   rosterHistory: {
     title: 'Historia zwiadu',
-    currentHelp: 'Aktualny oznacza, że najnowszy wpis zwiadowczy ma nie więcej niż {days} dni. Brak oznacza, że nie zapisano wpisu. Wcześniejsze obserwacje pozostają w historii.',
+    currentHelp:
+      'Aktualny oznacza, że najnowszy wpis zwiadowczy ma nie więcej niż {days} dni. Brak oznacza, że nie zapisano wpisu. Wcześniejsze obserwacje pozostają w historii.',
     recordSnapshot: 'Zapisz wynik zwiadu',
-    recordHelp: 'Zapisz to, co zwiadowcy zaobserwowali w chwili przechwycenia. Późniejsze przechwycenie dodaje nowy wpis do historii zwiadu Gubernatora.',
+    recordHelp:
+      'Zapisz to, co zwiadowcy zaobserwowali w chwili przechwycenia. Późniejsze przechwycenie dodaje nowy wpis do historii zwiadu Gubernatora.',
     observedPlayerName: 'Zaobserwowana nazwa Gubernatora',
     capturedAt: 'Czas przechwycenia',
     recordAction: 'Zapisz wynik zwiadu',
     historyHeading: 'Historia zwiadu',
-    historyHelp: 'Najnowsze przechwycenie najpierw. Wyświetlanych jest do 250 ostatnich obserwacji.',
+    historyHelp:
+      'Najnowsze przechwycenie najpierw. Wyświetlanych jest do 250 ostatnich obserwacji.',
     source: 'Źródło',
     recordedBy: 'Zapisane przez',
     noSnapshots: 'Nie zapisano wpisów zwiadowczych dla tego Gubernatora.',

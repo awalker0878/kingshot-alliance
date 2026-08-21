@@ -13,7 +13,8 @@ const messages = {
     stale: '古い',
     missing: '未取得',
     filters: 'ロスターフィルター',
-    freshnessHelp: '最新は{days}日以内のスカウト記録、古いはそれ以前、未取得はスカウト記録なしを意味します。',
+    freshnessHelp:
+      '最新は{days}日以内のスカウト記録、古いはそれ以前、未取得はスカウト記録なしを意味します。',
     search: '総督名またはゲームIDを検索',
     searchPlaceholder: '名前またはゲームIDを検索',
     state: '状態',
@@ -57,13 +58,16 @@ const messages = {
     departed: '離脱',
     windowDays: '期間：直近{days}日。',
     membershipLinkage: '同盟メンバーシップ連携',
-    linkedOfTotal: 'アクティブ/追跡中の総督{total}人中{linked}人が同盟メンバーシップと連携済みです。',
+    linkedOfTotal:
+      'アクティブ/追跡中の総督{total}人中{linked}人が同盟メンバーシップと連携済みです。',
     sevenDayChange: '7日間の戦力変化',
     thirtyDayChange: '30日間の戦力変化',
     comparablePlayers: '比較可能な総督 {count}人',
     trendMethodTitle: '比較期間の計算方法',
-    trendMethodBody: '対象日以前で最も近いスカウト記録を、選択期間の最大2倍まで使います。欠損観測は推定しません。',
-    currentTotalsBody: '現在値は追跡中の各総督の最新スカウト記録を使用します。記録がない総督はゼロではなく除外します。',
+    trendMethodBody:
+      '対象日以前で最も近いスカウト記録を、選択期間の最大2倍まで使います。欠損観測は推定しません。',
+    currentTotalsBody:
+      '現在値は追跡中の各総督の最新スカウト記録を使用します。記録がない総督はゼロではなく除外します。',
     managerDetail: '役員向け比較',
     managerDetailBody: '名前順の比較のみです。成長や低下による順位付けやスコア化は行いません。',
     snapshotState: 'スカウト記録の状態',
@@ -74,7 +78,8 @@ const messages = {
     powerTrends: '戦力トレンド',
   },
   rosterManage: {
-    manageSubtitle: 'ロスターの識別情報、募集との連携、同盟役職、役員メモを管理します。スカウト履歴はロスター詳細とは別に保持されます。',
+    manageSubtitle:
+      'ロスターの識別情報、募集との連携、同盟役職、役員メモを管理します。スカウト履歴はロスター詳細とは別に保持されます。',
     csvMigration: 'CSVロスターインポート',
     profilesWithoutMembership: '同盟メンバーシップと未連携のロスター総督',
     membershipsWithoutProfile: 'ロスター総督と未連携の同盟メンバーシップ',
@@ -99,22 +104,26 @@ const messages = {
   },
   rosterImport: {
     title: 'CSVロスターインポート',
-    subtitle: 'インポート前にすべての行を確認します。自動照合はゲームIDのみで、名前一致は確認が必要です。',
+    subtitle:
+      'インポート前にすべての行を確認します。自動照合はゲームIDのみで、名前一致は確認が必要です。',
     exportCurrent: '現在のロスターを書き出す',
     exportManager: '役員項目を含めて書き出す',
     uploadPreview: 'アップロードしてプレビュー',
-    schemaHelp: 'CSV形式 {version} · 最大 {rows} 行 · 最大 {bytes}。UTF-8 CSV はテキストとしてのみ読み取ります。',
+    schemaHelp:
+      'CSV形式 {version} · 最大 {rows} 行 · 最大 {bytes}。UTF-8 CSV はテキストとしてのみ読み取ります。',
     csvFile: 'CSVファイル',
     validatePreview: '検証してプレビュー',
     requiredColumns: '必須列',
-    requirementsHelp: 'name、power、state は必須です。state は active / tracked / left。joined_at は YYYY-MM-DD、captured_at を指定する場合はタイムゾーン付き ISO-8601。重複するゲームIDは拒否されます。',
+    requirementsHelp:
+      'name、power、state は必須です。state は active / tracked / left。joined_at は YYYY-MM-DD、captured_at を指定する場合はタイムゾーン付き ISO-8601。重複するゲームIDは拒否されます。',
     preview: 'プレビュー: {filename}',
     rows: '行',
     creates: '新しい総督',
     updates: '更新された総督',
     ambiguous: '確認が必要',
     rejected: '拒否',
-    committedSummary: '{rows} 行をインポート: 新しい総督 {creates}、更新された総督 {updates}、新しいスカウト記録 {snapshots}。',
+    committedSummary:
+      '{rows} 行をインポート: 新しい総督 {creates}、更新された総督 {updates}、新しいスカウト記録 {snapshots}。',
     csvRow: 'CSV行',
     previewOutcome: 'プレビュー結果',
     resolutionErrors: '確認 / エラー',
@@ -124,16 +133,20 @@ const messages = {
     updateCandidate: '{name} を更新 · {gameId} · {state}',
     stableMatch: 'ゲームIDはロスター項目 {entry} と一致します。',
     newIdentity: '新しい総督。',
-    rejectedBlock: '拒否された行がある間はインポートを続行できません。CSVを修正して再アップロードしてください。',
+    rejectedBlock:
+      '拒否された行がある間はインポートを続行できません。CSVを修正して再アップロードしてください。',
     unresolvedRows: 'インポート前に曖昧な {count} 行を確認してください。',
     confirmAtomic: 'インポートを確定',
-    commitError: 'インポートを完了できませんでした。行の一致を確認するか新しいプレビューを作成してください。',
+    commitError:
+      'インポートを完了できませんでした。行の一致を確認するか新しいプレビューを作成してください。',
   },
   rosterHistory: {
     title: 'スカウト履歴',
-    currentHelp: '最新のスカウト記録が {days} 日以内なら最新、存在しなければ未記録です。過去の観測は履歴に残ります。',
+    currentHelp:
+      '最新のスカウト記録が {days} 日以内なら最新、存在しなければ未記録です。過去の観測は履歴に残ります。',
     recordSnapshot: 'スカウト結果を記録',
-    recordHelp: '取得時点でスカウトが観測した内容を記録します。後の取得は総督のスカウト履歴に新しい記録を追加します。',
+    recordHelp:
+      '取得時点でスカウトが観測した内容を記録します。後の取得は総督のスカウト履歴に新しい記録を追加します。',
     observedPlayerName: '観測した総督名',
     capturedAt: '取得日時',
     recordAction: 'スカウト結果を記録',

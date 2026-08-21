@@ -64,8 +64,10 @@ const messages = {
     thirtyDayChange: '30 天戰力變化',
     comparablePlayers: '{count} 名可比較總督',
     trendMethodTitle: '比較期間如何計算',
-    trendMethodBody: '使用目標日期當天或之前最接近的偵察記錄，最多回溯到所選期間的兩倍。不會估算缺少的觀測。',
-    currentTotalsBody: '目前總計使用每名追蹤中總督的最新偵察記錄。沒有記錄的總督會被排除，而不是按零計算。',
+    trendMethodBody:
+      '使用目標日期當天或之前最接近的偵察記錄，最多回溯到所選期間的兩倍。不會估算缺少的觀測。',
+    currentTotalsBody:
+      '目前總計使用每名追蹤中總督的最新偵察記錄。沒有記錄的總督會被排除，而不是按零計算。',
     managerDetail: '官員比較',
     managerDetailBody: '僅按名稱排序比較。不會根據成長或下降對總督排名或評分。',
     snapshotState: '偵察記錄狀態',
@@ -109,14 +111,16 @@ const messages = {
     csvFile: 'CSV 檔案',
     validatePreview: '驗證並預覽',
     requiredColumns: '必填欄位',
-    requirementsHelp: 'name、power 和 state 必填。state 可為 active、tracked 或 left。joined_at 使用 YYYY-MM-DD；captured_at 如提供則使用帶時區的 ISO-8601。重複遊戲 ID 會被拒絕。',
+    requirementsHelp:
+      'name、power 和 state 必填。state 可為 active、tracked 或 left。joined_at 使用 YYYY-MM-DD；captured_at 如提供則使用帶時區的 ISO-8601。重複遊戲 ID 會被拒絕。',
     preview: '預覽：{filename}',
     rows: '列',
     creates: '新總督',
     updates: '已更新總督',
     ambiguous: '需要檢查',
     rejected: '已拒絕',
-    committedSummary: '已匯入 {rows} 列：{creates} 名新總督、{updates} 名已更新總督和 {snapshots} 筆新偵察記錄。',
+    committedSummary:
+      '已匯入 {rows} 列：{creates} 名新總督、{updates} 名已更新總督和 {snapshots} 筆新偵察記錄。',
     csvRow: 'CSV 列',
     previewOutcome: '預覽結果',
     resolutionErrors: '檢查 / 錯誤',
@@ -133,7 +137,8 @@ const messages = {
   },
   rosterHistory: {
     title: '偵察歷史',
-    currentHelp: '目前表示最新偵察記錄不超過 {days} 天。缺少表示沒有偵察記錄。之前的觀測會保留在歷史中。',
+    currentHelp:
+      '目前表示最新偵察記錄不超過 {days} 天。缺少表示沒有偵察記錄。之前的觀測會保留在歷史中。',
     recordSnapshot: '記錄偵察結果',
     recordHelp: '記錄偵察員在採集時觀察到的內容。之後的採集會在該總督的偵察歷史中新增記錄。',
     observedPlayerName: '觀察到的總督名稱',

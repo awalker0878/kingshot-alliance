@@ -49,7 +49,8 @@ const messages = {
       bulkResult: 'Результат изменения статуса',
       bulkResultSummary:
         'Обновлено участников: {succeeded}. Требуют проверки: {failed}. Уже были актуальны: {skipped}.',
-      failedItemsSelected: 'Участники, которых не удалось обновить, остаются выбранными для проверки.',
+      failedItemsSelected:
+        'Участники, которых не удалось обновить, остаются выбранными для проверки.',
       bulkOutcome: {
         ready: 'Готово',
         'member-unavailable': 'Недоступен',

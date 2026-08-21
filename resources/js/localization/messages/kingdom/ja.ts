@@ -22,7 +22,8 @@ const messages = {
     rolesPlayer: '総督',
     rolesRole: '王国役職',
     rolesAssignAction: '役職を割り当て',
-    rolesBootstrapHelp: 'プラットフォーム管理者は王国役職の割り当てを復元できますが、それだけでイベント権限は付与されません。',
+    rolesBootstrapHelp:
+      'プラットフォーム管理者は王国役職の割り当てを復元できますが、それだけでイベント権限は付与されません。',
     approvedSource: '承認済みスカウトソース',
     sourceAdapter: 'スカウトソース',
     subscriptions: 'スカウトソース',

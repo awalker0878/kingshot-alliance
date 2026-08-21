@@ -13,7 +13,8 @@ const messages = {
     stale: 'Usang',
     missing: 'Tidak ada',
     filters: 'Filter roster',
-    freshnessHelp: 'Terkini berarti catatan scout dalam {days} hari; usang lebih lama; tidak ada berarti belum ada catatan scout.',
+    freshnessHelp:
+      'Terkini berarti catatan scout dalam {days} hari; usang lebih lama; tidak ada berarti belum ada catatan scout.',
     search: 'Cari Gubernur atau ID game',
     searchPlaceholder: 'Cari nama atau ID game',
     state: 'Status',
@@ -62,10 +63,13 @@ const messages = {
     thirtyDayChange: 'Perubahan power 30 hari',
     comparablePlayers: '{count} Gubernur dapat dibandingkan',
     trendMethodTitle: 'Cara kerja periode perbandingan',
-    trendMethodBody: 'Perbandingan memakai catatan scout terdekat pada atau sebelum tanggal target, hingga dua kali periode yang dipilih. Pengamatan yang hilang tidak diperkirakan.',
-    currentTotalsBody: 'Total saat ini memakai catatan scout terbaru tiap Gubernur yang dipantau. Gubernur tanpa catatan dikeluarkan, bukan dianggap nol.',
+    trendMethodBody:
+      'Perbandingan memakai catatan scout terdekat pada atau sebelum tanggal target, hingga dua kali periode yang dipilih. Pengamatan yang hilang tidak diperkirakan.',
+    currentTotalsBody:
+      'Total saat ini memakai catatan scout terbaru tiap Gubernur yang dipantau. Gubernur tanpa catatan dikeluarkan, bukan dianggap nol.',
     managerDetail: 'Perbandingan untuk perwira',
-    managerDetailBody: 'Hanya perbandingan alfabetis. Gubernur tidak diberi peringkat atau skor berdasarkan naik atau turun.',
+    managerDetailBody:
+      'Hanya perbandingan alfabetis. Gubernur tidak diberi peringkat atau skor berdasarkan naik atau turun.',
     snapshotState: 'Status catatan scout',
     currentPower: 'Power saat ini',
     insufficientHistory: 'Riwayat tidak cukup',
@@ -74,7 +78,8 @@ const messages = {
     powerTrends: 'Tren power',
   },
   rosterManage: {
-    manageSubtitle: 'Kelola identitas roster, tautan rekrutmen, peran aliansi, dan catatan perwira. Riwayat scout disimpan terpisah dari detail roster.',
+    manageSubtitle:
+      'Kelola identitas roster, tautan rekrutmen, peran aliansi, dan catatan perwira. Riwayat scout disimpan terpisah dari detail roster.',
     csvMigration: 'Impor roster CSV',
     profilesWithoutMembership: 'Gubernur roster tanpa tautan keanggotaan aliansi',
     membershipsWithoutProfile: 'Keanggotaan aliansi tanpa Gubernur roster tertaut',
@@ -92,29 +97,34 @@ const messages = {
     noneRecorded: 'Belum tercatat',
     historyRecordSnapshot: 'Riwayat scout',
     markLeft: 'Tandai keluar',
-    markLeftConfirm: 'Tandai {name} sebagai keluar? Identitas dan riwayat Gubernur tetap dipertahankan.',
+    markLeftConfirm:
+      'Tandai {name} sebagai keluar? Identitas dan riwayat Gubernur tetap dipertahankan.',
     observedName: 'Nama yang diamati',
     savePlayer: 'Simpan Gubernur',
     noEntries: 'Belum ada entri roster.',
   },
   rosterImport: {
     title: 'Impor roster CSV',
-    subtitle: 'Tinjau setiap baris sebelum mengimpor. ID game adalah satu-satunya pencocokan identitas otomatis; kecocokan nama memerlukan konfirmasi.',
+    subtitle:
+      'Tinjau setiap baris sebelum mengimpor. ID game adalah satu-satunya pencocokan identitas otomatis; kecocokan nama memerlukan konfirmasi.',
     exportCurrent: 'Ekspor roster saat ini',
     exportManager: 'Ekspor dengan kolom perwira',
     uploadPreview: 'Unggah dan pratinjau',
-    schemaHelp: 'Format CSV {version} · maksimum {rows} baris · maksimum {bytes}. CSV UTF-8 hanya dibaca sebagai teks.',
+    schemaHelp:
+      'Format CSV {version} · maksimum {rows} baris · maksimum {bytes}. CSV UTF-8 hanya dibaca sebagai teks.',
     csvFile: 'File CSV',
     validatePreview: 'Validasi dan pratinjau',
     requiredColumns: 'Kolom wajib',
-    requirementsHelp: 'name, power, dan state wajib. state adalah active, tracked, atau left. joined_at memakai YYYY-MM-DD; captured_at opsional memakai ISO-8601 dengan zona waktu. ID game berulang ditolak.',
+    requirementsHelp:
+      'name, power, dan state wajib. state adalah active, tracked, atau left. joined_at memakai YYYY-MM-DD; captured_at opsional memakai ISO-8601 dengan zona waktu. ID game berulang ditolak.',
     preview: 'Pratinjau: {filename}',
     rows: 'Baris',
     creates: 'Gubernur baru',
     updates: 'Gubernur diperbarui',
     ambiguous: 'Perlu ditinjau',
     rejected: 'Ditolak',
-    committedSummary: '{rows} baris diimpor: {creates} Gubernur baru, {updates} Gubernur diperbarui, dan {snapshots} catatan scout baru.',
+    committedSummary:
+      '{rows} baris diimpor: {creates} Gubernur baru, {updates} Gubernur diperbarui, dan {snapshots} catatan scout baru.',
     csvRow: 'Baris CSV',
     previewOutcome: 'Hasil pratinjau',
     resolutionErrors: 'Tinjauan / error',
@@ -124,21 +134,25 @@ const messages = {
     updateCandidate: 'Perbarui {name} · {gameId} · {state}',
     stableMatch: 'ID game cocok dengan entri roster {entry}.',
     newIdentity: 'Gubernur baru.',
-    rejectedBlock: 'Impor ini tidak dapat dilanjutkan selama ada baris yang ditolak. Perbaiki CSV dan unggah kembali.',
+    rejectedBlock:
+      'Impor ini tidak dapat dilanjutkan selama ada baris yang ditolak. Perbaiki CSV dan unggah kembali.',
     unresolvedRows: 'Tinjau {count} baris ambigu sebelum mengimpor.',
     confirmAtomic: 'Konfirmasi impor',
     commitError: 'Impor tidak dapat diselesaikan. Tinjau kecocokan baris atau buat pratinjau baru.',
   },
   rosterHistory: {
     title: 'Riwayat scout',
-    currentHelp: 'Terkini berarti catatan scout terbaru berusia maksimal {days} hari. Tidak ada berarti belum ada catatan scout. Pengamatan sebelumnya tetap ada dalam riwayat.',
+    currentHelp:
+      'Terkini berarti catatan scout terbaru berusia maksimal {days} hari. Tidak ada berarti belum ada catatan scout. Pengamatan sebelumnya tetap ada dalam riwayat.',
     recordSnapshot: 'Catat temuan scout',
-    recordHelp: 'Catat apa yang diamati scout pada waktu pengambilan. Pengambilan berikutnya menambahkan entri baru ke riwayat scout Gubernur.',
+    recordHelp:
+      'Catat apa yang diamati scout pada waktu pengambilan. Pengambilan berikutnya menambahkan entri baru ke riwayat scout Gubernur.',
     observedPlayerName: 'Nama Gubernur yang diamati',
     capturedAt: 'Diambil pada',
     recordAction: 'Catat temuan scout',
     historyHeading: 'Riwayat scout',
-    historyHelp: 'Pengambilan terbaru ditampilkan pertama. Hingga 250 pengamatan terbaru ditampilkan.',
+    historyHelp:
+      'Pengambilan terbaru ditampilkan pertama. Hingga 250 pengamatan terbaru ditampilkan.',
     source: 'Sumber',
     recordedBy: 'Dicatat oleh',
     noSnapshots: 'Belum ada catatan scout untuk Gubernur ini.',

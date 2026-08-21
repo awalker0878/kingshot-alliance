@@ -22,7 +22,8 @@ const messages = {
     rolesPlayer: '총독',
     rolesRole: '왕국 역할',
     rolesAssignAction: '역할 배정',
-    rolesBootstrapHelp: '플랫폼 관리자는 왕국 역할 배정을 복구할 수 있지만, 그 자체로 이벤트 권한이 부여되지는 않습니다.',
+    rolesBootstrapHelp:
+      '플랫폼 관리자는 왕국 역할 배정을 복구할 수 있지만, 그 자체로 이벤트 권한이 부여되지는 않습니다.',
     approvedSource: '승인된 정찰 소스',
     sourceAdapter: '정찰 소스',
     subscriptions: '정찰 소스',

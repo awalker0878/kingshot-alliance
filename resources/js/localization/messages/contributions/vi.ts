@@ -30,7 +30,8 @@ const messages = {
     noRecords: 'Chưa có bản ghi đóng góp.',
     selfReport: 'Tự báo cáo',
     selfReportTitle: 'Gửi đóng góp',
-    selfReportHelp: 'Đóng góp tự báo cáo vẫn chờ cho đến khi lãnh đạo Liên minh có quyền phê duyệt.',
+    selfReportHelp:
+      'Đóng góp tự báo cáo vẫn chờ cho đến khi lãnh đạo Liên minh có quyền phê duyệt.',
     selectCategory: 'Chọn danh mục',
     evidenceNote: 'Bằng chứng hoặc ghi chú',
     submitApproval: 'Gửi để phê duyệt',

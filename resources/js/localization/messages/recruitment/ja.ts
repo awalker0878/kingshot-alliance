@@ -23,7 +23,8 @@ const messages = {
     confirmBulkDescription: '対象となる{count}人の候補者を{stage}へ移動しますか？',
     confirmBulkAction: '対象候補者を更新',
     bulkResult: '段階変更結果',
-    bulkResultSummary: '{succeeded}人を更新しました。{failed}人は確認が必要です。{skipped}人はすでに最新でした。',
+    bulkResultSummary:
+      '{succeeded}人を更新しました。{failed}人は確認が必要です。{skipped}人はすでに最新でした。',
     failedItemsSelected: '更新できなかった候補者は確認できるよう選択されたままになります。',
     settings: '応募設定',
     questions: '応募質問',

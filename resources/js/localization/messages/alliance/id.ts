@@ -41,7 +41,8 @@ const messages = {
       previewBulkAction: 'Tinjau perubahan',
       previewingBulkAction: 'Memeriksa anggota…',
       bulkPreview: 'Pratinjau perubahan status',
-      bulkPreviewSummary: '{ready} dapat diperbarui dan {blocked} perlu ditinjau atau sudah terbaru.',
+      bulkPreviewSummary:
+        '{ready} dapat diperbarui dan {blocked} perlu ditinjau atau sudah terbaru.',
       confirmBulkTitle: 'Konfirmasi perubahan status anggota',
       confirmBulkDescription: 'Ubah {count} anggota yang memenuhi syarat menjadi {status}?',
       confirmBulkAction: 'Perbarui anggota yang memenuhi syarat',
@@ -49,7 +50,8 @@ const messages = {
       bulkResult: 'Hasil perubahan status',
       bulkResultSummary:
         '{succeeded} anggota diperbarui. {failed} perlu ditinjau. {skipped} sudah terbaru.',
-      failedItemsSelected: 'Anggota yang tidak dapat diperbarui tetap dipilih agar dapat Anda tinjau.',
+      failedItemsSelected:
+        'Anggota yang tidak dapat diperbarui tetap dipilih agar dapat Anda tinjau.',
       bulkOutcome: {
         ready: 'Siap',
         'member-unavailable': 'Tidak tersedia',

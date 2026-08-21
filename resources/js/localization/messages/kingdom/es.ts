@@ -31,7 +31,8 @@ const messages = {
     rolesPlayer: 'Gobernador',
     rolesRole: 'Rol del reino',
     rolesAssignAction: 'Asignar rol',
-    rolesBootstrapHelp: 'Un Administrador de Plataforma puede restaurar asignaciones de roles del reino, pero eso no concede permisos de Evento.',
+    rolesBootstrapHelp:
+      'Un Administrador de Plataforma puede restaurar asignaciones de roles del reino, pero eso no concede permisos de Evento.',
     ingestionTitle: 'Informes de exploración',
     approvedSource: 'Fuente de exploración aprobada',
     sourceAdapter: 'Fuente de exploración',

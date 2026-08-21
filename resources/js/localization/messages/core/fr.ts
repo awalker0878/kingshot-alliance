@@ -76,7 +76,8 @@ const messages = {
       giftCodesToRedeem: '{count} codes cadeaux à utiliser',
       overdueRecruitment: '{count} suivis de recrutement en retard',
       recruitmentFollowUpDue: 'Un suivi de candidat est à faire',
-      noUrgentActions: 'Aucune action urgente pour le Gouverneur. Consultez les sections ci-dessous lorsque vous êtes prêt.',
+      noUrgentActions:
+        'Aucune action urgente pour le Gouverneur. Consultez les sections ci-dessous lorsque vous êtes prêt.',
       eventActionResponse: 'Indiquez votre disponibilité',
       eventActionRegistration: 'Inscrivez-vous à cet Événement',
       eventActionVote: 'Votez dans le sondage de l’Événement',

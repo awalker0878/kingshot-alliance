@@ -13,7 +13,8 @@ const messages = {
     stale: 'Eski',
     missing: 'Eksik',
     filters: 'Kadro filtreleri',
-    freshnessHelp: 'Güncel, son {days} gün içinde bir keşif kaydı olduğu anlamına gelir; eski daha öncedir; eksik ise keşif kaydı yoktur.',
+    freshnessHelp:
+      'Güncel, son {days} gün içinde bir keşif kaydı olduğu anlamına gelir; eski daha öncedir; eksik ise keşif kaydı yoktur.',
     search: 'Vali veya oyun kimliği ara',
     searchPlaceholder: 'Ad veya oyun kimliği ara',
     state: 'Durum',
@@ -64,10 +65,13 @@ const messages = {
     thirtyDayChange: '30 günlük güç değişimi',
     comparablePlayers: '{count} karşılaştırılabilir Vali',
     trendMethodTitle: 'Karşılaştırma dönemleri nasıl çalışır',
-    trendMethodBody: 'Karşılaştırma, hedef tarihte veya öncesindeki en yakın keşif kaydını, seçilen dönemin en fazla iki katı geriye kadar kullanır. Eksik gözlemler tahmin edilmez.',
-    currentTotalsBody: 'Güncel toplamlar her takip edilen Valinin en son keşif kaydını kullanır. Kaydı olmayan Valiler sıfır sayılmak yerine hariç tutulur.',
+    trendMethodBody:
+      'Karşılaştırma, hedef tarihte veya öncesindeki en yakın keşif kaydını, seçilen dönemin en fazla iki katı geriye kadar kullanır. Eksik gözlemler tahmin edilmez.',
+    currentTotalsBody:
+      'Güncel toplamlar her takip edilen Valinin en son keşif kaydını kullanır. Kaydı olmayan Valiler sıfır sayılmak yerine hariç tutulur.',
     managerDetail: 'Subay karşılaştırması',
-    managerDetailBody: 'Yalnızca alfabetik karşılaştırmadır. Valiler büyüme veya düşüşe göre sıralanmaz ya da puanlanmaz.',
+    managerDetailBody:
+      'Yalnızca alfabetik karşılaştırmadır. Valiler büyüme veya düşüşe göre sıralanmaz ya da puanlanmaz.',
     snapshotState: 'Keşif kaydı durumu',
     currentPower: 'Güncel güç',
     insufficientHistory: 'Yetersiz geçmiş',
@@ -76,7 +80,8 @@ const messages = {
     powerTrends: 'Güç eğilimleri',
   },
   rosterManage: {
-    manageSubtitle: 'Kadro kimliğini, üye alımı bağlantılarını, İttifak rollerini ve subay notlarını yönet. Keşif geçmişi kadro ayrıntılarından ayrı tutulur.',
+    manageSubtitle:
+      'Kadro kimliğini, üye alımı bağlantılarını, İttifak rollerini ve subay notlarını yönet. Keşif geçmişi kadro ayrıntılarından ayrı tutulur.',
     csvMigration: 'CSV kadro içe aktarma',
     profilesWithoutMembership: 'İttifak üyeliğine bağlı olmayan kadro Valileri',
     membershipsWithoutProfile: 'Kadro Valisine bağlı olmayan İttifak üyelikleri',
@@ -101,22 +106,26 @@ const messages = {
   },
   rosterImport: {
     title: 'CSV kadro içe aktarma',
-    subtitle: 'İçe aktarmadan önce her satırı incele. Oyun kimlikleri tek otomatik kimlik eşleşmesidir; ad eşleşmeleri onay gerektirir.',
+    subtitle:
+      'İçe aktarmadan önce her satırı incele. Oyun kimlikleri tek otomatik kimlik eşleşmesidir; ad eşleşmeleri onay gerektirir.',
     exportCurrent: 'Güncel kadroyu dışa aktar',
     exportManager: 'Subay alanlarıyla dışa aktar',
     uploadPreview: 'Yükle ve önizle',
-    schemaHelp: 'CSV biçimi {version} · en fazla {rows} satır · en fazla {bytes}. UTF-8 CSV yalnızca metin olarak okunur.',
+    schemaHelp:
+      'CSV biçimi {version} · en fazla {rows} satır · en fazla {bytes}. UTF-8 CSV yalnızca metin olarak okunur.',
     csvFile: 'CSV dosyası',
     validatePreview: 'Doğrula ve önizle',
     requiredColumns: 'Gerekli sütunlar',
-    requirementsHelp: 'name, power ve state gereklidir. state active, tracked veya left olmalıdır. joined_at YYYY-MM-DD kullanır; captured_at verilirse saat dilimli ISO-8601 olmalıdır. Tekrarlanan oyun kimlikleri reddedilir.',
+    requirementsHelp:
+      'name, power ve state gereklidir. state active, tracked veya left olmalıdır. joined_at YYYY-MM-DD kullanır; captured_at verilirse saat dilimli ISO-8601 olmalıdır. Tekrarlanan oyun kimlikleri reddedilir.',
     preview: 'Önizleme: {filename}',
     rows: 'Satırlar',
     creates: 'Yeni Valiler',
     updates: 'Güncellenen Valiler',
     ambiguous: 'İncelenmeli',
     rejected: 'Reddedildi',
-    committedSummary: '{rows} satır içe aktarıldı: {creates} yeni Vali, {updates} güncellenen Vali ve {snapshots} yeni keşif kaydı.',
+    committedSummary:
+      '{rows} satır içe aktarıldı: {creates} yeni Vali, {updates} güncellenen Vali ve {snapshots} yeni keşif kaydı.',
     csvRow: 'CSV satırı',
     previewOutcome: 'Önizleme sonucu',
     resolutionErrors: 'İnceleme / hatalar',
@@ -126,16 +135,20 @@ const messages = {
     updateCandidate: '{name} güncelle · {gameId} · {state}',
     stableMatch: 'Oyun kimliği kadro kaydı {entry} ile eşleşiyor.',
     newIdentity: 'Yeni Vali.',
-    rejectedBlock: 'Reddedilen satır varken içe aktarma devam edemez. CSV dosyasını düzeltip yeniden yükle.',
+    rejectedBlock:
+      'Reddedilen satır varken içe aktarma devam edemez. CSV dosyasını düzeltip yeniden yükle.',
     unresolvedRows: 'İçe aktarmadan önce {count} belirsiz satırı incele.',
     confirmAtomic: 'İçe aktarmayı onayla',
-    commitError: 'İçe aktarma tamamlanamadı. Satır eşleşmelerini incele veya yeni önizleme oluştur.',
+    commitError:
+      'İçe aktarma tamamlanamadı. Satır eşleşmelerini incele veya yeni önizleme oluştur.',
   },
   rosterHistory: {
     title: 'Keşif geçmişi',
-    currentHelp: 'Güncel, en son keşif kaydının en fazla {days} günlük olduğu anlamına gelir. Eksik, keşif kaydı olmadığı anlamına gelir. Önceki gözlemler geçmişte kalır.',
+    currentHelp:
+      'Güncel, en son keşif kaydının en fazla {days} günlük olduğu anlamına gelir. Eksik, keşif kaydı olmadığı anlamına gelir. Önceki gözlemler geçmişte kalır.',
     recordSnapshot: 'Keşif bulgusu kaydet',
-    recordHelp: 'Keşifçilerin yakalama anında gözlemlediğini kaydet. Daha sonraki bir yakalama Valinin keşif geçmişine yeni bir kayıt ekler.',
+    recordHelp:
+      'Keşifçilerin yakalama anında gözlemlediğini kaydet. Daha sonraki bir yakalama Valinin keşif geçmişine yeni bir kayıt ekler.',
     observedPlayerName: 'Gözlemlenen Vali adı',
     capturedAt: 'Yakalama zamanı',
     recordAction: 'Keşif bulgusu kaydet',
@@ -144,7 +157,8 @@ const messages = {
     source: 'Kaynak',
     recordedBy: 'Kaydeden',
     noSnapshots: 'Bu Vali için keşif kaydı yok.',
-    progressionHelp: 'Gözlemlenen fırın veya ilerleme etiketini aynen kullan. Kingshot Alliance oyun seviyelerini tahmin etmez.',
+    progressionHelp:
+      'Gözlemlenen fırın veya ilerleme etiketini aynen kullan. Kingshot Alliance oyun seviyelerini tahmin etmez.',
     sincePriorObservation: 'önceki gözlemden beri',
     observedChanges: 'Gözlemlenen değişiklikler',
     nameChanged: 'Ad',

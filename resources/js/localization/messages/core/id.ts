@@ -76,7 +76,8 @@ const messages = {
       giftCodesToRedeem: '{count} Kode Hadiah untuk ditukarkan',
       overdueRecruitment: '{count} tindak lanjut rekrutmen terlambat',
       recruitmentFollowUpDue: 'Tindak lanjut kandidat sudah waktunya',
-      noUrgentActions: 'Tidak ada tindakan Gubernur yang mendesak. Tinjau bagian di bawah saat Anda siap.',
+      noUrgentActions:
+        'Tidak ada tindakan Gubernur yang mendesak. Tinjau bagian di bawah saat Anda siap.',
       eventActionResponse: 'Bagikan ketersediaan Anda',
       eventActionRegistration: 'Daftar untuk Event ini',
       eventActionVote: 'Pilih dalam jajak pendapat Event',

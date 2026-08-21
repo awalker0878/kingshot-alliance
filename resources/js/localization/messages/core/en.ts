@@ -48,10 +48,12 @@ const messages = {
     'api-credential-created': 'API credential created. Save the displayed token now.',
     'api-credential-revoked': 'API credential revoked.',
     'content-archived': 'Content archived.',
-    'content-broadcast-failures-retried': '{count} failed Alliance Notice deliveries queued for retry.',
+    'content-broadcast-failures-retried':
+      '{count} failed Alliance Notice deliveries queued for retry.',
     'content-broadcast-schedule-cancelled': 'Recurring Alliance Notice cancelled.',
     'content-broadcast-schedule-saved': 'Recurring Alliance Notice schedule saved.',
-    'content-broadcast-test-queued': 'Alliance Notice test queued for {count} channels: {channels}.',
+    'content-broadcast-test-queued':
+      'Alliance Notice test queued for {count} channels: {channels}.',
     'content-category-deleted': 'Content category deleted.',
     'content-category-saved': 'Content category saved.',
     'content-published': 'Content published.',
@@ -103,8 +105,7 @@ const messages = {
     'event-updated': 'Event updated.',
     'gift-code-added': 'Gift Code added to the shared list.',
     'gift-code-confirmed': 'Gift Code reward confirmed for the active Governor.',
-    'gift-code-duplicate-recorded':
-      'This Gift Code was already known; the new source was saved.',
+    'gift-code-duplicate-recorded': 'This Gift Code was already known; the new source was saved.',
     'gift-code-handoff-prepared':
       'Gift Code preparation finished: {succeeded} ready, {failed} need review, and {skipped} already handled.',
     'gift-code-issue-reported': 'Gift Code issue reported and status updated.',

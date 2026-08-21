@@ -32,8 +32,7 @@ const messages = {
       'The {event} message will keep its idempotency key and receive one additional delivery cycle.',
     noOutboxFailures: 'No failed unpublished outbox messages.',
     webhookFailures: 'Webhook failures',
-    webhookFailureHelp:
-      'Alliance-scoped replay and delivery details remain in Connections.',
+    webhookFailureHelp: 'Alliance-scoped replay and delivery details remain in Connections.',
     noWebhookFailures: 'No failed webhook deliveries.',
     notificationFailures: 'Notification failures',
     noNotificationFailures: 'No failed notifications.',
@@ -123,8 +122,7 @@ const messages = {
     release: 'Release',
     noLegalHolds: 'No active record holds.',
     localizationRuntime: 'Languages',
-    localizationRuntimeHelp:
-      'Languages currently available to Governors. This view is read-only.',
+    localizationRuntimeHelp: 'Languages currently available to Governors. This view is read-only.',
     registeredLocales: 'Available languages',
     defaultLocale: 'Default language',
     rtlLocales: 'Right-to-left languages',

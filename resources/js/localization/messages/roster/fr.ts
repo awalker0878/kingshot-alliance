@@ -5,7 +5,8 @@ const messages = {
     eyebrow: 'Royaume {kingdom}',
     kingdomNotSet: 'Non défini',
     title: 'Effectif de l’alliance',
-    subtitle: 'Effectif actuel de l’alliance et dernières informations de reconnaissance enregistrées.',
+    subtitle:
+      'Effectif actuel de l’alliance et dernières informations de reconnaissance enregistrées.',
     intelligence: 'Analyse de l’effectif',
     manage: 'Gérer l’effectif',
     results: 'Résultats filtrés',
@@ -13,7 +14,8 @@ const messages = {
     stale: 'Périmé',
     missing: 'Manquant',
     filters: 'Filtres de l’effectif',
-    freshnessHelp: 'Actuel signifie un relevé de reconnaissance dans les {days} derniers jours ; périmé est plus ancien ; manquant signifie aucun relevé.',
+    freshnessHelp:
+      'Actuel signifie un relevé de reconnaissance dans les {days} derniers jours ; périmé est plus ancien ; manquant signifie aucun relevé.',
     search: 'Rechercher un Gouverneur ou un ID de jeu',
     searchPlaceholder: 'Rechercher un nom ou un ID de jeu',
     state: 'Statut',
@@ -41,7 +43,8 @@ const messages = {
     noResults: 'Aucune entrée ne correspond à ces filtres.',
     noResultsBody: 'Modifiez ou effacez les filtres pour voir d’autres entrées enregistrées.',
     intelligenceTitle: 'Analyse de l’effectif',
-    intelligenceSubtitle: 'Les synthèses de l’alliance utilisent l’effectif et l’historique de reconnaissance enregistrés.',
+    intelligenceSubtitle:
+      'Les synthèses de l’alliance utilisent l’effectif et l’historique de reconnaissance enregistrés.',
     asOf: 'Au {date}',
     trackedPlayers: 'Gouverneurs actifs / suivis',
     totalRecordedPower: 'Puissance totale enregistrée',
@@ -49,7 +52,8 @@ const messages = {
     averagePower: 'Puissance moyenne enregistrée',
     roundedPower: 'Arrondie à l’unité de puissance la plus proche.',
     medianPower: 'Puissance médiane enregistrée',
-    latestSnapshotOnly: 'Calculée à partir des Gouverneurs ayant un relevé de reconnaissance récent.',
+    latestSnapshotOnly:
+      'Calculée à partir des Gouverneurs ayant un relevé de reconnaissance récent.',
     snapshotQuality: 'Qualité des relevés de reconnaissance',
     qualityWindow: 'Périmé signifie plus ancien que {days} jours.',
     recentMovement: 'Mouvements récents',
@@ -57,15 +61,19 @@ const messages = {
     departed: 'Départs',
     windowDays: 'Période : {days} derniers jours.',
     membershipLinkage: 'Liens d’adhésion à l’alliance',
-    linkedOfTotal: '{linked} sur {total} Gouverneurs actifs/suivis sont liés à l’adhésion à l’alliance.',
+    linkedOfTotal:
+      '{linked} sur {total} Gouverneurs actifs/suivis sont liés à l’adhésion à l’alliance.',
     sevenDayChange: 'Variation de puissance sur 7 jours',
     thirtyDayChange: 'Variation de puissance sur 30 jours',
     comparablePlayers: '{count} Gouverneurs comparables',
     trendMethodTitle: 'Fonctionnement des périodes de comparaison',
-    trendMethodBody: 'La comparaison utilise le relevé de reconnaissance le plus proche au plus tard à la date cible, jusqu’à deux fois la période choisie. Les observations manquantes ne sont jamais estimées.',
-    currentTotalsBody: 'Les totaux actuels utilisent le dernier relevé de reconnaissance de chaque Gouverneur suivi. Les Gouverneurs sans relevé sont exclus plutôt que comptés comme zéro.',
+    trendMethodBody:
+      'La comparaison utilise le relevé de reconnaissance le plus proche au plus tard à la date cible, jusqu’à deux fois la période choisie. Les observations manquantes ne sont jamais estimées.',
+    currentTotalsBody:
+      'Les totaux actuels utilisent le dernier relevé de reconnaissance de chaque Gouverneur suivi. Les Gouverneurs sans relevé sont exclus plutôt que comptés comme zéro.',
     managerDetail: 'Comparaison pour les officiers',
-    managerDetailBody: 'Comparaison alphabétique uniquement. Les Gouverneurs ne sont ni classés ni notés selon leur progression ou leur baisse.',
+    managerDetailBody:
+      'Comparaison alphabétique uniquement. Les Gouverneurs ne sont ni classés ni notés selon leur progression ou leur baisse.',
     snapshotState: 'Statut du relevé de reconnaissance',
     currentPower: 'Puissance actuelle',
     insufficientHistory: 'Historique insuffisant',
@@ -74,7 +82,8 @@ const messages = {
     powerTrends: 'Tendances de puissance',
   },
   rosterManage: {
-    manageSubtitle: 'Gérez l’identité de l’effectif, les liens de recrutement, les rôles de l’alliance et les notes des officiers. L’historique de reconnaissance est conservé séparément des détails de l’effectif.',
+    manageSubtitle:
+      'Gérez l’identité de l’effectif, les liens de recrutement, les rôles de l’alliance et les notes des officiers. L’historique de reconnaissance est conservé séparément des détails de l’effectif.',
     csvMigration: 'Import CSV de l’effectif',
     profilesWithoutMembership: 'Gouverneurs de l’effectif sans lien vers l’adhésion à l’alliance',
     membershipsWithoutProfile: 'Adhésions à l’alliance sans Gouverneur lié dans l’effectif',
@@ -92,29 +101,34 @@ const messages = {
     noneRecorded: 'Aucun enregistrement',
     historyRecordSnapshot: 'Historique de reconnaissance',
     markLeft: 'Marquer comme parti',
-    markLeftConfirm: 'Marquer {name} comme parti ? L’identité et l’historique du Gouverneur seront conservés.',
+    markLeftConfirm:
+      'Marquer {name} comme parti ? L’identité et l’historique du Gouverneur seront conservés.',
     observedName: 'Nom observé',
     savePlayer: 'Enregistrer le Gouverneur',
     noEntries: 'Aucune entrée d’effectif pour le moment.',
   },
   rosterImport: {
     title: 'Import CSV de l’effectif',
-    subtitle: 'Vérifiez chaque ligne avant l’import. Les ID de jeu sont la seule correspondance automatique d’identité ; les correspondances de nom exigent votre confirmation.',
+    subtitle:
+      'Vérifiez chaque ligne avant l’import. Les ID de jeu sont la seule correspondance automatique d’identité ; les correspondances de nom exigent votre confirmation.',
     exportCurrent: 'Exporter l’effectif actuel',
     exportManager: 'Exporter avec les champs d’officier',
     uploadPreview: 'Téléverser et prévisualiser',
-    schemaHelp: 'Format CSV {version} · maximum {rows} lignes · maximum {bytes}. Le CSV UTF-8 est lu uniquement comme texte.',
+    schemaHelp:
+      'Format CSV {version} · maximum {rows} lignes · maximum {bytes}. Le CSV UTF-8 est lu uniquement comme texte.',
     csvFile: 'Fichier CSV',
     validatePreview: 'Valider et prévisualiser',
     requiredColumns: 'Colonnes requises',
-    requirementsHelp: 'name, power et state sont requis. state vaut active, tracked ou left. joined_at utilise YYYY-MM-DD ; captured_at facultatif utilise ISO-8601 avec fuseau horaire. Les ID de jeu répétés sont rejetés.',
+    requirementsHelp:
+      'name, power et state sont requis. state vaut active, tracked ou left. joined_at utilise YYYY-MM-DD ; captured_at facultatif utilise ISO-8601 avec fuseau horaire. Les ID de jeu répétés sont rejetés.',
     preview: 'Prévisualisation : {filename}',
     rows: 'Lignes',
     creates: 'Nouveaux Gouverneurs',
     updates: 'Gouverneurs mis à jour',
     ambiguous: 'À vérifier',
     rejected: 'Rejetées',
-    committedSummary: '{rows} lignes importées : {creates} nouveaux Gouverneurs, {updates} Gouverneurs mis à jour et {snapshots} nouveaux relevés de reconnaissance.',
+    committedSummary:
+      '{rows} lignes importées : {creates} nouveaux Gouverneurs, {updates} Gouverneurs mis à jour et {snapshots} nouveaux relevés de reconnaissance.',
     csvRow: 'Ligne CSV',
     previewOutcome: 'Résultat de prévisualisation',
     resolutionErrors: 'Vérification / erreurs',
@@ -124,21 +138,26 @@ const messages = {
     updateCandidate: 'Mettre à jour {name} · {gameId} · {state}',
     stableMatch: 'L’ID de jeu correspond à l’entrée {entry}.',
     newIdentity: 'Nouveau Gouverneur.',
-    rejectedBlock: 'L’import ne peut pas continuer tant qu’une ligne est rejetée. Corrigez le CSV et téléversez-le à nouveau.',
+    rejectedBlock:
+      'L’import ne peut pas continuer tant qu’une ligne est rejetée. Corrigez le CSV et téléversez-le à nouveau.',
     unresolvedRows: 'Vérifiez {count} ligne(s) ambiguë(s) avant l’import.',
     confirmAtomic: 'Confirmer l’import',
-    commitError: 'L’import n’a pas pu être terminé. Vérifiez les correspondances de lignes ou créez une nouvelle prévisualisation.',
+    commitError:
+      'L’import n’a pas pu être terminé. Vérifiez les correspondances de lignes ou créez une nouvelle prévisualisation.',
   },
   rosterHistory: {
     title: 'Historique de reconnaissance',
-    currentHelp: 'Actuel signifie que le dernier relevé de reconnaissance date de moins de {days} jours. Manquant signifie qu’aucun relevé n’existe. Les observations précédentes restent dans l’historique.',
+    currentHelp:
+      'Actuel signifie que le dernier relevé de reconnaissance date de moins de {days} jours. Manquant signifie qu’aucun relevé n’existe. Les observations précédentes restent dans l’historique.',
     recordSnapshot: 'Enregistrer une observation de reconnaissance',
-    recordHelp: 'Enregistrez ce que les éclaireurs ont observé au moment de la capture. Une capture plus tardive ajoute une nouvelle entrée à l’historique de reconnaissance du Gouverneur.',
+    recordHelp:
+      'Enregistrez ce que les éclaireurs ont observé au moment de la capture. Une capture plus tardive ajoute une nouvelle entrée à l’historique de reconnaissance du Gouverneur.',
     observedPlayerName: 'Nom observé du Gouverneur',
     capturedAt: 'Capturé le',
     recordAction: 'Enregistrer une observation de reconnaissance',
     historyHeading: 'Historique de reconnaissance',
-    historyHelp: 'Capture la plus récente en premier. Jusqu’aux 250 dernières observations sont affichées.',
+    historyHelp:
+      'Capture la plus récente en premier. Jusqu’aux 250 dernières observations sont affichées.',
     source: 'Source',
     recordedBy: 'Enregistré par',
     noSnapshots: 'Aucun relevé de reconnaissance n’a été enregistré pour ce Gouverneur.',

@@ -13,7 +13,8 @@ const messages = {
     stale: 'Cũ',
     missing: 'Thiếu',
     filters: 'Bộ lọc danh sách',
-    freshnessHelp: 'Hiện tại nghĩa là có bản ghi trinh sát trong {days} ngày; cũ là lâu hơn; thiếu nghĩa là chưa có bản ghi trinh sát.',
+    freshnessHelp:
+      'Hiện tại nghĩa là có bản ghi trinh sát trong {days} ngày; cũ là lâu hơn; thiếu nghĩa là chưa có bản ghi trinh sát.',
     search: 'Tìm Thống đốc hoặc ID game',
     searchPlaceholder: 'Tìm tên hoặc ID game',
     state: 'Trạng thái',
@@ -59,15 +60,19 @@ const messages = {
     departed: 'Đã rời',
     windowDays: 'Khoảng thời gian: {days} ngày gần nhất.',
     membershipLinkage: 'Liên kết thành viên liên minh',
-    linkedOfTotal: '{linked} trong {total} Thống đốc hoạt động/đang theo dõi đã liên kết với thành viên liên minh.',
+    linkedOfTotal:
+      '{linked} trong {total} Thống đốc hoạt động/đang theo dõi đã liên kết với thành viên liên minh.',
     sevenDayChange: 'Thay đổi sức mạnh 7 ngày',
     thirtyDayChange: 'Thay đổi sức mạnh 30 ngày',
     comparablePlayers: '{count} Thống đốc có thể so sánh',
     trendMethodTitle: 'Cách hoạt động của khoảng so sánh',
-    trendMethodBody: 'So sánh dùng bản ghi trinh sát gần ngày mục tiêu nhất vào hoặc trước ngày đó, tối đa gấp đôi khoảng đã chọn. Dữ liệu thiếu không được ước tính.',
-    currentTotalsBody: 'Tổng hiện tại dùng bản ghi trinh sát mới nhất của mỗi Thống đốc đang theo dõi. Thống đốc không có bản ghi sẽ bị loại thay vì tính là 0.',
+    trendMethodBody:
+      'So sánh dùng bản ghi trinh sát gần ngày mục tiêu nhất vào hoặc trước ngày đó, tối đa gấp đôi khoảng đã chọn. Dữ liệu thiếu không được ước tính.',
+    currentTotalsBody:
+      'Tổng hiện tại dùng bản ghi trinh sát mới nhất của mỗi Thống đốc đang theo dõi. Thống đốc không có bản ghi sẽ bị loại thay vì tính là 0.',
     managerDetail: 'So sánh dành cho sĩ quan',
-    managerDetailBody: 'Chỉ so sánh theo thứ tự tên. Thống đốc không được xếp hạng hoặc chấm điểm theo tăng hay giảm.',
+    managerDetailBody:
+      'Chỉ so sánh theo thứ tự tên. Thống đốc không được xếp hạng hoặc chấm điểm theo tăng hay giảm.',
     snapshotState: 'Trạng thái bản ghi trinh sát',
     currentPower: 'Sức mạnh hiện tại',
     insufficientHistory: 'Không đủ lịch sử',
@@ -76,7 +81,8 @@ const messages = {
     powerTrends: 'Xu hướng sức mạnh',
   },
   rosterManage: {
-    manageSubtitle: 'Quản lý danh tính danh sách, liên kết tuyển thành viên, vai trò liên minh và ghi chú của sĩ quan. Lịch sử trinh sát được giữ riêng với chi tiết danh sách.',
+    manageSubtitle:
+      'Quản lý danh tính danh sách, liên kết tuyển thành viên, vai trò liên minh và ghi chú của sĩ quan. Lịch sử trinh sát được giữ riêng với chi tiết danh sách.',
     csvMigration: 'Nhập danh sách CSV',
     profilesWithoutMembership: 'Thống đốc trong danh sách chưa liên kết với thành viên liên minh',
     membershipsWithoutProfile: 'Thành viên liên minh chưa liên kết với Thống đốc trong danh sách',
@@ -101,22 +107,26 @@ const messages = {
   },
   rosterImport: {
     title: 'Nhập danh sách CSV',
-    subtitle: 'Kiểm tra từng hàng trước khi nhập. ID game là cách khớp danh tính tự động duy nhất; khớp theo tên cần xác nhận.',
+    subtitle:
+      'Kiểm tra từng hàng trước khi nhập. ID game là cách khớp danh tính tự động duy nhất; khớp theo tên cần xác nhận.',
     exportCurrent: 'Xuất danh sách hiện tại',
     exportManager: 'Xuất kèm trường sĩ quan',
     uploadPreview: 'Tải lên và xem trước',
-    schemaHelp: 'Định dạng CSV {version} · tối đa {rows} hàng · tối đa {bytes}. CSV UTF-8 chỉ được đọc dưới dạng văn bản.',
+    schemaHelp:
+      'Định dạng CSV {version} · tối đa {rows} hàng · tối đa {bytes}. CSV UTF-8 chỉ được đọc dưới dạng văn bản.',
     csvFile: 'Tệp CSV',
     validatePreview: 'Kiểm tra và xem trước',
     requiredColumns: 'Cột bắt buộc',
-    requirementsHelp: 'name, power và state là bắt buộc. state là active, tracked hoặc left. joined_at dùng YYYY-MM-DD; captured_at nếu có dùng ISO-8601 kèm múi giờ. ID game lặp lại sẽ bị từ chối.',
+    requirementsHelp:
+      'name, power và state là bắt buộc. state là active, tracked hoặc left. joined_at dùng YYYY-MM-DD; captured_at nếu có dùng ISO-8601 kèm múi giờ. ID game lặp lại sẽ bị từ chối.',
     preview: 'Xem trước: {filename}',
     rows: 'Hàng',
     creates: 'Thống đốc mới',
     updates: 'Thống đốc đã cập nhật',
     ambiguous: 'Cần xem lại',
     rejected: 'Bị từ chối',
-    committedSummary: 'Đã nhập {rows} hàng: {creates} Thống đốc mới, {updates} Thống đốc đã cập nhật và {snapshots} bản ghi trinh sát mới.',
+    committedSummary:
+      'Đã nhập {rows} hàng: {creates} Thống đốc mới, {updates} Thống đốc đã cập nhật và {snapshots} bản ghi trinh sát mới.',
     csvRow: 'Hàng CSV',
     previewOutcome: 'Kết quả xem trước',
     resolutionErrors: 'Xem lại / lỗi',
@@ -133,9 +143,11 @@ const messages = {
   },
   rosterHistory: {
     title: 'Lịch sử trinh sát',
-    currentHelp: 'Hiện tại nghĩa là bản ghi trinh sát mới nhất không quá {days} ngày. Thiếu nghĩa là chưa có bản ghi trinh sát. Các quan sát trước vẫn ở trong lịch sử.',
+    currentHelp:
+      'Hiện tại nghĩa là bản ghi trinh sát mới nhất không quá {days} ngày. Thiếu nghĩa là chưa có bản ghi trinh sát. Các quan sát trước vẫn ở trong lịch sử.',
     recordSnapshot: 'Ghi kết quả trinh sát',
-    recordHelp: 'Ghi lại điều trinh sát quan sát tại thời điểm thu thập. Lần thu thập sau sẽ thêm một mục mới vào lịch sử trinh sát của Thống đốc.',
+    recordHelp:
+      'Ghi lại điều trinh sát quan sát tại thời điểm thu thập. Lần thu thập sau sẽ thêm một mục mới vào lịch sử trinh sát của Thống đốc.',
     observedPlayerName: 'Tên Thống đốc quan sát được',
     capturedAt: 'Thu thập lúc',
     recordAction: 'Ghi kết quả trinh sát',
@@ -144,7 +156,8 @@ const messages = {
     source: 'Nguồn',
     recordedBy: 'Ghi bởi',
     noSnapshots: 'Chưa có bản ghi trinh sát cho Thống đốc này.',
-    progressionHelp: 'Dùng đúng nhãn lò hoặc tiến độ đã quan sát. Kingshot Alliance không suy đoán cấp độ trong game.',
+    progressionHelp:
+      'Dùng đúng nhãn lò hoặc tiến độ đã quan sát. Kingshot Alliance không suy đoán cấp độ trong game.',
     sincePriorObservation: 'từ quan sát trước',
     observedChanges: 'Thay đổi quan sát được',
     nameChanged: 'Tên',

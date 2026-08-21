@@ -29,7 +29,8 @@ const messages = {
     noRecords: 'Belum ada catatan kontribusi.',
     selfReport: 'Lapor mandiri',
     selfReportTitle: 'Kirim kontribusi',
-    selfReportHelp: 'Kontribusi mandiri tetap menunggu hingga disetujui pemimpin Aliansi yang berwenang.',
+    selfReportHelp:
+      'Kontribusi mandiri tetap menunggu hingga disetujui pemimpin Aliansi yang berwenang.',
     selectCategory: 'Pilih kategori',
     evidenceNote: 'Bukti atau catatan',
     submitApproval: 'Kirim untuk persetujuan',

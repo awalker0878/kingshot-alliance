@@ -41,7 +41,8 @@ const messages = {
       previewBulkAction: 'Sprawdź zmiany',
       previewingBulkAction: 'Sprawdzanie członków…',
       bulkPreview: 'Podgląd zmiany statusu',
-      bulkPreviewSummary: '{ready} można zaktualizować, a {blocked} wymaga sprawdzenia lub jest już aktualne.',
+      bulkPreviewSummary:
+        '{ready} można zaktualizować, a {blocked} wymaga sprawdzenia lub jest już aktualne.',
       confirmBulkTitle: 'Potwierdź zmiany statusu członków',
       confirmBulkDescription: 'Zmienić status {count} uprawnionych członków na {status}?',
       confirmBulkAction: 'Aktualizuj uprawnionych członków',
@@ -49,7 +50,8 @@ const messages = {
       bulkResult: 'Wynik zmiany statusu',
       bulkResultSummary:
         'Zaktualizowano {succeeded} członków. {failed} wymaga sprawdzenia. {skipped} było już aktualnych.',
-      failedItemsSelected: 'Członkowie, których nie udało się zaktualizować, pozostają zaznaczeni do sprawdzenia.',
+      failedItemsSelected:
+        'Członkowie, których nie udało się zaktualizować, pozostają zaznaczeni do sprawdzenia.',
       bulkOutcome: {
         ready: 'Gotowy',
         'member-unavailable': 'Niedostępny',

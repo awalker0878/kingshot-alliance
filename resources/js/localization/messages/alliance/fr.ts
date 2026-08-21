@@ -41,7 +41,8 @@ const messages = {
       previewBulkAction: 'Vérifier les changements',
       previewingBulkAction: 'Vérification des membres…',
       bulkPreview: 'Aperçu du changement de statut',
-      bulkPreviewSummary: '{ready} peuvent être mis à jour et {blocked} nécessitent une vérification ou sont déjà à jour.',
+      bulkPreviewSummary:
+        '{ready} peuvent être mis à jour et {blocked} nécessitent une vérification ou sont déjà à jour.',
       confirmBulkTitle: 'Confirmer les changements de statut',
       confirmBulkDescription: 'Passer {count} membres admissibles au statut {status} ?',
       confirmBulkAction: 'Mettre à jour les membres admissibles',
@@ -49,7 +50,8 @@ const messages = {
       bulkResult: 'Résultat du changement de statut',
       bulkResultSummary:
         '{succeeded} membres mis à jour. {failed} nécessitent une vérification. {skipped} étaient déjà à jour.',
-      failedItemsSelected: 'Les membres non mis à jour restent sélectionnés pour pouvoir être vérifiés.',
+      failedItemsSelected:
+        'Les membres non mis à jour restent sélectionnés pour pouvoir être vérifiés.',
       bulkOutcome: {
         ready: 'Prêt',
         'member-unavailable': 'Indisponible',

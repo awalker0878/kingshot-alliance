@@ -48,14 +48,17 @@ const messages = {
       welcome: 'ようこそ、総督 {name}',
       verificationPending: 'メール確認待ち',
       playerContextTitle: 'アクティブな総督',
-      playerContextIntro: '総督を切り替えると、同盟や王国の操作に使うKingshotの識別情報が変わります。',
+      playerContextIntro:
+        '総督を切り替えると、同盟や王国の操作に使うKingshotの識別情報が変わります。',
       playerKingdom: '王国 {kingdom}',
-      playerAuthorityIntro: '同盟ランク、役割、王国の担当、イベントアクセスはアクティブな総督に従います。',
+      playerAuthorityIntro:
+        '同盟ランク、役割、王国の担当、イベントアクセスはアクティブな総督に従います。',
       selectPlayer: '総督を選択',
       playerAllianceTitle: 'アクティブな総督の同盟',
       playerAllianceIntro: '同盟へのアクセスはアクティブな総督のランクと役割に従います。',
       noPlayerAllianceTitle: 'この総督は同盟に所属していません',
-      noPlayerAllianceIntro: '総督を切り替えるか、同盟に加入または同盟を作成して同盟機能を利用してください。',
+      noPlayerAllianceIntro:
+        '総督を切り替えるか、同盟に加入または同盟を作成して同盟機能を利用してください。',
       openPlayerAlliance: '同盟を開く',
       active: 'アクティブ',
       roles: '同盟の役割',
@@ -85,7 +88,8 @@ const messages = {
       upcomingEvents: '今後のイベント',
       viewAll: 'すべて表示',
       createTitle: '同盟を作成',
-      createIntro: 'アクティブな総督の同盟を作成します。同盟はその総督の王国を使用し、創設者の総督はR5になります。',
+      createIntro:
+        'アクティブな総督の同盟を作成します。同盟はその総督の王国を使用し、創設者の総督はR5になります。',
       allianceName: '同盟名',
       slug: '同盟URL名',
       timezone: '同盟タイムゾーン',

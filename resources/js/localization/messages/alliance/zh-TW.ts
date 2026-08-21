@@ -44,7 +44,8 @@ const messages = {
       confirmBulkAction: '更新符合資格的成員',
       applyingBulkAction: '正在更新成員…',
       bulkResult: '成員狀態結果',
-      bulkResultSummary: '{succeeded} 位成員已更新。{failed} 位需要檢查。{skipped} 位已是最新狀態。',
+      bulkResultSummary:
+        '{succeeded} 位成員已更新。{failed} 位需要檢查。{skipped} 位已是最新狀態。',
       failedItemsSelected: '無法更新的成員會保持選取，方便你檢查。',
       bulkOutcome: {
         ready: '可更新',

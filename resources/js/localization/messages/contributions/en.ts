@@ -123,8 +123,7 @@ const messages = {
       },
     },
     scheduledReport: 'Scheduled report',
-    scheduleHelp:
-      'Scheduled reports are prepared automatically and kept in report history.',
+    scheduleHelp: 'Scheduled reports are prepared automatically and kept in report history.',
     recipient: 'Recipient',
     cadence: 'Cadence',
     timezone: 'Time zone',

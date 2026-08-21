@@ -18,12 +18,14 @@ const messages = {
     bulkPreviewHelp: 'راجع من يمكن نقله قبل تطبيق التغيير. المرشحون غير المؤهلين لن يتغيروا.',
     previewBulkAction: 'معاينة تغيير المرحلة',
     bulkPreview: 'معاينة تغيير مراحل المرشحين',
-    bulkPreviewSummary: '{ready} يمكن تحديثهم و{blocked} يحتاجون إلى مراجعة أو هم بالفعل في المرحلة المطلوبة.',
+    bulkPreviewSummary:
+      '{ready} يمكن تحديثهم و{blocked} يحتاجون إلى مراجعة أو هم بالفعل في المرحلة المطلوبة.',
     confirmBulkTitle: 'تأكيد تغيير المرحلة',
     confirmBulkDescription: 'نقل {count} من المرشحين المؤهلين إلى {stage}؟',
     confirmBulkAction: 'تحديث المرشحين المؤهلين',
     bulkResult: 'نتيجة تغيير المرحلة',
-    bulkResultSummary: 'تم تحديث {succeeded}. يحتاج {failed} إلى مراجعة. كان {skipped} محدثًا بالفعل.',
+    bulkResultSummary:
+      'تم تحديث {succeeded}. يحتاج {failed} إلى مراجعة. كان {skipped} محدثًا بالفعل.',
     failedItemsSelected: 'يبقى المرشحون الذين تعذر تحديثهم محددين لتتمكن من مراجعتهم.',
     settings: 'إعدادات التقديم',
     questions: 'أسئلة التقديم',

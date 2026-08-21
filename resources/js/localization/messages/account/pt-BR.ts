@@ -12,7 +12,8 @@ const messages = {
       title: 'Conta e segurança',
       intro:
         'Gerencie sua identidade, verificação, senha, autenticação em dois fatores e sessões ativas.',
-      passwordUpdated: 'Sua senha foi atualizada e as outras sessões autenticadas foram encerradas.',
+      passwordUpdated:
+        'Sua senha foi atualizada e as outras sessões autenticadas foram encerradas.',
       sessionsRevoked: 'As outras sessões autenticadas foram encerradas.',
       twoFactorDisabled: 'A autenticação em dois fatores foi desativada.',
       profileTitle: 'Perfil',

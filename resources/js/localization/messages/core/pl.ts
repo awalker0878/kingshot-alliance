@@ -48,14 +48,17 @@ const messages = {
       welcome: 'Witaj, Gubernatorze {name}',
       verificationPending: 'Oczekiwanie na weryfikację e-mail',
       playerContextTitle: 'Aktywny Gubernator',
-      playerContextIntro: 'Zmień Gubernatora, aby zmienić tożsamość Kingshot używaną do działań Sojuszu i Królestwa.',
+      playerContextIntro:
+        'Zmień Gubernatora, aby zmienić tożsamość Kingshot używaną do działań Sojuszu i Królestwa.',
       playerKingdom: 'Królestwo {kingdom}',
-      playerAuthorityIntro: 'Ranga Sojuszu, role, obowiązki Królestwa i dostęp do Wydarzeń zależą od aktywnego Gubernatora.',
+      playerAuthorityIntro:
+        'Ranga Sojuszu, role, obowiązki Królestwa i dostęp do Wydarzeń zależą od aktywnego Gubernatora.',
       selectPlayer: 'Wybierz Gubernatora',
       playerAllianceTitle: 'Sojusz aktywnego Gubernatora',
       playerAllianceIntro: 'Dostęp do Sojuszu zależy od rangi i ról aktywnego Gubernatora.',
       noPlayerAllianceTitle: 'Ten Gubernator nie należy do Sojuszu',
-      noPlayerAllianceIntro: 'Zmień Gubernatora, dołącz do Sojuszu lub utwórz Sojusz, aby korzystać z funkcji Sojuszu.',
+      noPlayerAllianceIntro:
+        'Zmień Gubernatora, dołącz do Sojuszu lub utwórz Sojusz, aby korzystać z funkcji Sojuszu.',
       openPlayerAlliance: 'Otwórz Sojusz',
       active: 'Aktywny',
       roles: 'Role Sojuszu',
@@ -73,7 +76,8 @@ const messages = {
       giftCodesToRedeem: '{count} kodów podarunkowych do wykorzystania',
       overdueRecruitment: '{count} zaległych działań rekrutacyjnych',
       recruitmentFollowUpDue: 'Należy skontaktować się z kandydatem',
-      noUrgentActions: 'Brak pilnych działań dla Gubernatora. Gdy będziesz gotowy, sprawdź sekcje poniżej.',
+      noUrgentActions:
+        'Brak pilnych działań dla Gubernatora. Gdy będziesz gotowy, sprawdź sekcje poniżej.',
       eventActionResponse: 'Podaj swoją dostępność',
       eventActionRegistration: 'Zarejestruj się na to Wydarzenie',
       eventActionVote: 'Zagłosuj w ankiecie Wydarzenia',
@@ -85,7 +89,8 @@ const messages = {
       upcomingEvents: 'Nadchodzące Wydarzenia',
       viewAll: 'Zobacz wszystko',
       createTitle: 'Utwórz Sojusz',
-      createIntro: 'Utwórz Sojusz dla aktywnego Gubernatora. Sojusz korzysta z Królestwa tego Gubernatora, a Gubernator założyciel zostaje R5.',
+      createIntro:
+        'Utwórz Sojusz dla aktywnego Gubernatora. Sojusz korzysta z Królestwa tego Gubernatora, a Gubernator założyciel zostaje R5.',
       allianceName: 'Nazwa Sojuszu',
       slug: 'Nazwa URL Sojuszu',
       timezone: 'Strefa czasowa Sojuszu',

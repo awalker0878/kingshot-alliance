@@ -41,7 +41,8 @@ const messages = {
       previewBulkAction: 'Revisar cambios',
       previewingBulkAction: 'Comprobando miembros…',
       bulkPreview: 'Vista previa del cambio de estado',
-      bulkPreviewSummary: '{ready} se pueden actualizar y {blocked} necesitan revisión o ya están al día.',
+      bulkPreviewSummary:
+        '{ready} se pueden actualizar y {blocked} necesitan revisión o ya están al día.',
       confirmBulkTitle: 'Confirmar cambios de estado',
       confirmBulkDescription: '¿Cambiar {count} miembros elegibles a {status}?',
       confirmBulkAction: 'Actualizar miembros elegibles',
@@ -49,7 +50,8 @@ const messages = {
       bulkResult: 'Resultado del cambio de estado',
       bulkResultSummary:
         '{succeeded} miembros actualizados. {failed} necesitan revisión. {skipped} ya estaban al día.',
-      failedItemsSelected: 'Los miembros que no se pudieron actualizar siguen seleccionados para que puedas revisarlos.',
+      failedItemsSelected:
+        'Los miembros que no se pudieron actualizar siguen seleccionados para que puedas revisarlos.',
       bulkOutcome: {
         ready: 'Listo',
         'member-unavailable': 'No disponible',
@@ -69,7 +71,8 @@ const messages = {
     },
     events: {
       eyebrow: 'Eventos de la Alianza',
-      intro: 'Las horas se muestran en tu zona local y en la zona horaria de la Alianza {alliance}.',
+      intro:
+        'Las horas se muestran en tu zona local y en la zona horaria de la Alianza {alliance}.',
       exportCsv: 'Exportar CSV',
       icalFeed: 'Feed iCalendar',
       coordinate: 'Coordinar eventos',

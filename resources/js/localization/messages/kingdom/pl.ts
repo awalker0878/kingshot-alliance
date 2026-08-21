@@ -17,7 +17,8 @@ const messages = {
     rolesPlayer: 'Gubernator',
     rolesRole: 'Rola królestwa',
     rolesAssignAction: 'Przypisz rolę',
-    rolesBootstrapHelp: 'Administrator platformy może przywrócić przypisania ról królestwa, ale nie otrzymuje przez to uprawnień do Wydarzeń.',
+    rolesBootstrapHelp:
+      'Administrator platformy może przywrócić przypisania ról królestwa, ale nie otrzymuje przez to uprawnień do Wydarzeń.',
     approvedSource: 'Zatwierdzone źródło zwiadowcze',
     sourceAdapter: 'Źródło zwiadowcze',
     subscriptions: 'Źródła zwiadowcze',

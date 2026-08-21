@@ -41,7 +41,8 @@ const messages = {
       previewBulkAction: 'Değişiklikleri kontrol et',
       previewingBulkAction: 'Üyeler kontrol ediliyor…',
       bulkPreview: 'Durum değişikliği önizlemesi',
-      bulkPreviewSummary: '{ready} güncellenebilir; {blocked} inceleme gerektiriyor veya zaten güncel.',
+      bulkPreviewSummary:
+        '{ready} güncellenebilir; {blocked} inceleme gerektiriyor veya zaten güncel.',
       confirmBulkTitle: 'Üye durumu değişikliklerini onayla',
       confirmBulkDescription: 'Uygun {count} üyenin durumu {status} olarak değiştirilsin mi?',
       confirmBulkAction: 'Uygun üyeleri güncelle',

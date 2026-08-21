@@ -48,14 +48,17 @@ const messages = {
       welcome: 'مرحباً أيها الحاكم {name}',
       verificationPending: 'التحقق من البريد الإلكتروني معلّق',
       playerContextTitle: 'الحاكم النشط',
-      playerContextIntro: 'بدّل الحاكم لتغيير هوية Kingshot التي تستخدمها لإجراءات التحالف والمملكة.',
+      playerContextIntro:
+        'بدّل الحاكم لتغيير هوية Kingshot التي تستخدمها لإجراءات التحالف والمملكة.',
       playerKingdom: 'المملكة {kingdom}',
-      playerAuthorityIntro: 'تتبع رتبة التحالف والأدوار ومهام المملكة والوصول إلى الأحداث الحاكم النشط.',
+      playerAuthorityIntro:
+        'تتبع رتبة التحالف والأدوار ومهام المملكة والوصول إلى الأحداث الحاكم النشط.',
       selectPlayer: 'اختر الحاكم',
       playerAllianceTitle: 'تحالف الحاكم النشط',
       playerAllianceIntro: 'يتبع الوصول إلى التحالف رتبة الحاكم النشط وأدواره.',
       noPlayerAllianceTitle: 'هذا الحاكم ليس في تحالف',
-      noPlayerAllianceIntro: 'بدّل الحاكم أو انضم إلى تحالف أو أنشئ تحالفاً لاستخدام ميزات التحالف.',
+      noPlayerAllianceIntro:
+        'بدّل الحاكم أو انضم إلى تحالف أو أنشئ تحالفاً لاستخدام ميزات التحالف.',
       openPlayerAlliance: 'فتح التحالف',
       active: 'نشط',
       roles: 'أدوار التحالف',
@@ -85,7 +88,8 @@ const messages = {
       upcomingEvents: 'الأحداث القادمة',
       viewAll: 'عرض الكل',
       createTitle: 'إنشاء تحالف',
-      createIntro: 'أنشئ تحالفاً للحاكم النشط. يستخدم التحالف مملكة ذلك الحاكم، ويصبح الحاكم المؤسس R5.',
+      createIntro:
+        'أنشئ تحالفاً للحاكم النشط. يستخدم التحالف مملكة ذلك الحاكم، ويصبح الحاكم المؤسس R5.',
       allianceName: 'اسم التحالف',
       slug: 'اسم رابط التحالف',
       timezone: 'المنطقة الزمنية للتحالف',

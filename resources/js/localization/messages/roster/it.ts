@@ -13,7 +13,8 @@ const messages = {
     stale: 'Obsoleto',
     missing: 'Mancante',
     filters: 'Filtri roster',
-    freshnessHelp: 'Attuale indica un record scout entro {days} giorni; obsoleto è più vecchio; mancante significa nessun record scout.',
+    freshnessHelp:
+      'Attuale indica un record scout entro {days} giorni; obsoleto è più vecchio; mancante significa nessun record scout.',
     search: 'Cerca Governatore o ID di gioco',
     searchPlaceholder: 'Cerca nome o ID di gioco',
     state: 'Stato',
@@ -41,7 +42,8 @@ const messages = {
     noResults: 'Nessuna voce corrisponde ai filtri.',
     noResultsBody: 'Modifica o cancella i filtri per vedere altre voci registrate.',
     intelligenceTitle: 'Analisi roster',
-    intelligenceSubtitle: 'I riepiloghi dell’alleanza usano il roster e la cronologia scout registrati.',
+    intelligenceSubtitle:
+      'I riepiloghi dell’alleanza usano il roster e la cronologia scout registrati.',
     asOf: 'Al {date}',
     trackedPlayers: 'Governatori attivi / monitorati',
     totalRecordedPower: 'Potere totale registrato',
@@ -57,15 +59,19 @@ const messages = {
     departed: 'Usciti',
     windowDays: 'Periodo: ultimi {days} giorni.',
     membershipLinkage: 'Collegamenti all’appartenenza all’alleanza',
-    linkedOfTotal: '{linked} di {total} Governatori attivi/monitorati sono collegati all’appartenenza all’alleanza.',
+    linkedOfTotal:
+      '{linked} di {total} Governatori attivi/monitorati sono collegati all’appartenenza all’alleanza.',
     sevenDayChange: 'Variazione potere 7 giorni',
     thirtyDayChange: 'Variazione potere 30 giorni',
     comparablePlayers: '{count} Governatori confrontabili',
     trendMethodTitle: 'Come funzionano i periodi di confronto',
-    trendMethodBody: 'Il confronto usa il record scout più vicino alla data obiettivo o precedente, fino al doppio del periodo scelto. Le osservazioni mancanti non vengono stimate.',
-    currentTotalsBody: 'I totali attuali usano l’ultimo record scout di ogni Governatore monitorato. I Governatori senza record vengono esclusi invece di essere conteggiati come zero.',
+    trendMethodBody:
+      'Il confronto usa il record scout più vicino alla data obiettivo o precedente, fino al doppio del periodo scelto. Le osservazioni mancanti non vengono stimate.',
+    currentTotalsBody:
+      'I totali attuali usano l’ultimo record scout di ogni Governatore monitorato. I Governatori senza record vengono esclusi invece di essere conteggiati come zero.',
     managerDetail: 'Confronto per ufficiali',
-    managerDetailBody: 'Solo confronto alfabetico. I Governatori non vengono classificati o valutati in base a crescita o calo.',
+    managerDetailBody:
+      'Solo confronto alfabetico. I Governatori non vengono classificati o valutati in base a crescita o calo.',
     snapshotState: 'Stato record scout',
     currentPower: 'Potere attuale',
     insufficientHistory: 'Cronologia insufficiente',
@@ -74,9 +80,11 @@ const messages = {
     powerTrends: 'Tendenze di potere',
   },
   rosterManage: {
-    manageSubtitle: 'Gestisci identità del roster, collegamenti di reclutamento, ruoli dell’alleanza e note degli ufficiali. La cronologia scout è conservata separatamente dai dettagli del roster.',
+    manageSubtitle:
+      'Gestisci identità del roster, collegamenti di reclutamento, ruoli dell’alleanza e note degli ufficiali. La cronologia scout è conservata separatamente dai dettagli del roster.',
     csvMigration: 'Importazione roster CSV',
-    profilesWithoutMembership: 'Governatori nel roster senza collegamento all’appartenenza all’alleanza',
+    profilesWithoutMembership:
+      'Governatori nel roster senza collegamento all’appartenenza all’alleanza',
     membershipsWithoutProfile: 'Appartenenze all’alleanza senza Governatore collegato nel roster',
     addPlayer: 'Aggiungi Governatore',
     playerName: 'Nome Governatore',
@@ -92,29 +100,34 @@ const messages = {
     noneRecorded: 'Nessun dato registrato',
     historyRecordSnapshot: 'Cronologia scout',
     markLeft: 'Segna come uscito',
-    markLeftConfirm: 'Segnare {name} come uscito? L’identità e la cronologia del Governatore saranno mantenute.',
+    markLeftConfirm:
+      'Segnare {name} come uscito? L’identità e la cronologia del Governatore saranno mantenute.',
     observedName: 'Nome osservato',
     savePlayer: 'Salva Governatore',
     noEntries: 'Nessuna voce nel roster.',
   },
   rosterImport: {
     title: 'Importazione roster CSV',
-    subtitle: 'Controlla ogni riga prima dell’importazione. Gli ID di gioco sono l’unica corrispondenza automatica di identità; le corrispondenze per nome richiedono conferma.',
+    subtitle:
+      'Controlla ogni riga prima dell’importazione. Gli ID di gioco sono l’unica corrispondenza automatica di identità; le corrispondenze per nome richiedono conferma.',
     exportCurrent: 'Esporta roster attuale',
     exportManager: 'Esporta con campi ufficiale',
     uploadPreview: 'Carica e visualizza anteprima',
-    schemaHelp: 'Formato CSV {version} · massimo {rows} righe · massimo {bytes}. Il CSV UTF-8 viene letto solo come testo.',
+    schemaHelp:
+      'Formato CSV {version} · massimo {rows} righe · massimo {bytes}. Il CSV UTF-8 viene letto solo come testo.',
     csvFile: 'File CSV',
     validatePreview: 'Convalida e anteprima',
     requiredColumns: 'Colonne richieste',
-    requirementsHelp: 'name, power e state sono obbligatori. state è active, tracked o left. joined_at usa YYYY-MM-DD; captured_at facoltativo usa ISO-8601 con fuso orario. Gli ID di gioco ripetuti vengono rifiutati.',
+    requirementsHelp:
+      'name, power e state sono obbligatori. state è active, tracked o left. joined_at usa YYYY-MM-DD; captured_at facoltativo usa ISO-8601 con fuso orario. Gli ID di gioco ripetuti vengono rifiutati.',
     preview: 'Anteprima: {filename}',
     rows: 'Righe',
     creates: 'Nuovi Governatori',
     updates: 'Governatori aggiornati',
     ambiguous: 'Da verificare',
     rejected: 'Rifiutate',
-    committedSummary: 'Importate {rows} righe: {creates} nuovi Governatori, {updates} Governatori aggiornati e {snapshots} nuovi record scout.',
+    committedSummary:
+      'Importate {rows} righe: {creates} nuovi Governatori, {updates} Governatori aggiornati e {snapshots} nuovi record scout.',
     csvRow: 'Riga CSV',
     previewOutcome: 'Esito anteprima',
     resolutionErrors: 'Verifica / errori',
@@ -124,16 +137,20 @@ const messages = {
     updateCandidate: 'Aggiorna {name} · {gameId} · {state}',
     stableMatch: 'L’ID di gioco corrisponde alla voce {entry}.',
     newIdentity: 'Nuovo Governatore.',
-    rejectedBlock: 'L’importazione non può continuare finché esiste una riga rifiutata. Correggi il CSV e caricalo di nuovo.',
+    rejectedBlock:
+      'L’importazione non può continuare finché esiste una riga rifiutata. Correggi il CSV e caricalo di nuovo.',
     unresolvedRows: 'Controlla {count} riga/e ambigua/e prima dell’importazione.',
     confirmAtomic: 'Conferma importazione',
-    commitError: 'Impossibile completare l’importazione. Controlla le corrispondenze delle righe o crea una nuova anteprima.',
+    commitError:
+      'Impossibile completare l’importazione. Controlla le corrispondenze delle righe o crea una nuova anteprima.',
   },
   rosterHistory: {
     title: 'Cronologia scout',
-    currentHelp: 'Attuale significa che l’ultimo record scout ha al massimo {days} giorni. Mancante significa che non esiste un record scout. Le osservazioni precedenti restano nella cronologia.',
+    currentHelp:
+      'Attuale significa che l’ultimo record scout ha al massimo {days} giorni. Mancante significa che non esiste un record scout. Le osservazioni precedenti restano nella cronologia.',
     recordSnapshot: 'Registra osservazione scout',
-    recordHelp: 'Registra ciò che gli scout hanno osservato al momento della cattura. Una cattura successiva aggiunge una nuova voce alla cronologia scout del Governatore.',
+    recordHelp:
+      'Registra ciò che gli scout hanno osservato al momento della cattura. Una cattura successiva aggiunge una nuova voce alla cronologia scout del Governatore.',
     observedPlayerName: 'Nome Governatore osservato',
     capturedAt: 'Catturato il',
     recordAction: 'Registra osservazione scout',

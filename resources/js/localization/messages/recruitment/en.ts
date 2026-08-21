@@ -46,7 +46,8 @@ const messages = {
     previewBulkAction: 'Preview stage change',
     previewingBulkAction: 'Checking candidates…',
     bulkPreview: 'Stage change preview',
-    bulkPreviewSummary: '{ready} can be updated and {blocked} need review or are already up to date.',
+    bulkPreviewSummary:
+      '{ready} can be updated and {blocked} need review or are already up to date.',
     confirmBulkTitle: 'Apply this stage change?',
     confirmBulkDescription: 'Move {count} eligible candidates to {stage}?',
     confirmBulkAction: 'Update eligible candidates',
@@ -54,7 +55,8 @@ const messages = {
     bulkResult: 'Stage change result',
     bulkResultSummary:
       '{succeeded} candidates updated. {failed} need review. {skipped} were already up to date.',
-    failedItemsSelected: 'Candidates that could not be updated remain selected so you can review them.',
+    failedItemsSelected:
+      'Candidates that could not be updated remain selected so you can review them.',
     bulkOutcome: {
       ready: 'Ready',
       'candidate-unavailable': 'Unavailable',

@@ -13,7 +13,8 @@ const messages = {
     stale: 'Antiguo',
     missing: 'Faltante',
     filters: 'Filtros de plantilla',
-    freshnessHelp: 'Actual significa un registro de exploración de los últimos {days} días; antiguo es anterior; faltante significa que no hay registro.',
+    freshnessHelp:
+      'Actual significa un registro de exploración de los últimos {days} días; antiguo es anterior; faltante significa que no hay registro.',
     search: 'Buscar Gobernador o ID de juego',
     searchPlaceholder: 'Buscar nombre o ID de juego',
     state: 'Estado',
@@ -41,7 +42,8 @@ const messages = {
     noResults: 'Ninguna entrada coincide con estos filtros.',
     noResultsBody: 'Ajusta o limpia los filtros para ver otras entradas registradas.',
     intelligenceTitle: 'Análisis de plantilla',
-    intelligenceSubtitle: 'Los resúmenes de la alianza usan la plantilla y el historial de exploración registrados.',
+    intelligenceSubtitle:
+      'Los resúmenes de la alianza usan la plantilla y el historial de exploración registrados.',
     asOf: 'A fecha de {date}',
     trackedPlayers: 'Gobernadores activos / seguidos',
     totalRecordedPower: 'Poder total registrado',
@@ -49,7 +51,8 @@ const messages = {
     averagePower: 'Poder medio registrado',
     roundedPower: 'Redondeado al poder entero más cercano.',
     medianPower: 'Poder mediano registrado',
-    latestSnapshotOnly: 'Calculado con Gobernadores que tienen un registro de exploración reciente.',
+    latestSnapshotOnly:
+      'Calculado con Gobernadores que tienen un registro de exploración reciente.',
     snapshotQuality: 'Calidad de registros de exploración',
     qualityWindow: 'Antiguo significa más de {days} días.',
     recentMovement: 'Movimiento reciente',
@@ -57,15 +60,19 @@ const messages = {
     departed: 'Salieron',
     windowDays: 'Período: últimos {days} días.',
     membershipLinkage: 'Vínculos de membresía de la alianza',
-    linkedOfTotal: '{linked} de {total} Gobernadores activos/seguidos están vinculados a la membresía de la alianza.',
+    linkedOfTotal:
+      '{linked} de {total} Gobernadores activos/seguidos están vinculados a la membresía de la alianza.',
     sevenDayChange: 'Cambio de poder en 7 días',
     thirtyDayChange: 'Cambio de poder en 30 días',
     comparablePlayers: '{count} Gobernadores comparables',
     trendMethodTitle: 'Cómo funcionan los períodos de comparación',
-    trendMethodBody: 'La comparación usa el registro de exploración más cercano en o antes de la fecha objetivo, hasta el doble del período seleccionado. Las observaciones faltantes no se estiman.',
-    currentTotalsBody: 'Los totales actuales usan el último registro de exploración de cada Gobernador seguido. Los Gobernadores sin registro se excluyen en vez de contarse como cero.',
+    trendMethodBody:
+      'La comparación usa el registro de exploración más cercano en o antes de la fecha objetivo, hasta el doble del período seleccionado. Las observaciones faltantes no se estiman.',
+    currentTotalsBody:
+      'Los totales actuales usan el último registro de exploración de cada Gobernador seguido. Los Gobernadores sin registro se excluyen en vez de contarse como cero.',
     managerDetail: 'Comparación para oficiales',
-    managerDetailBody: 'Comparación alfabética solamente. Los Gobernadores no se clasifican ni puntúan por crecimiento o caída.',
+    managerDetailBody:
+      'Comparación alfabética solamente. Los Gobernadores no se clasifican ni puntúan por crecimiento o caída.',
     snapshotState: 'Estado del registro de exploración',
     currentPower: 'Poder actual',
     insufficientHistory: 'Historial insuficiente',
@@ -74,7 +81,8 @@ const messages = {
     powerTrends: 'Tendencias de poder',
   },
   rosterManage: {
-    manageSubtitle: 'Gestiona la identidad de la plantilla, los vínculos de reclutamiento, los roles de la alianza y las notas de oficiales. El historial de exploración se mantiene separado de los datos de la plantilla.',
+    manageSubtitle:
+      'Gestiona la identidad de la plantilla, los vínculos de reclutamiento, los roles de la alianza y las notas de oficiales. El historial de exploración se mantiene separado de los datos de la plantilla.',
     csvMigration: 'Importación CSV de plantilla',
     profilesWithoutMembership: 'Gobernadores de la plantilla sin vínculo a membresía de la alianza',
     membershipsWithoutProfile: 'Membresías de la alianza sin Gobernador vinculado en la plantilla',
@@ -92,29 +100,34 @@ const messages = {
     noneRecorded: 'Sin registro',
     historyRecordSnapshot: 'Historial de exploración',
     markLeft: 'Marcar como salido',
-    markLeftConfirm: '¿Marcar a {name} como salido? Se conservarán la identidad y el historial del Gobernador.',
+    markLeftConfirm:
+      '¿Marcar a {name} como salido? Se conservarán la identidad y el historial del Gobernador.',
     observedName: 'Nombre observado',
     savePlayer: 'Guardar Gobernador',
     noEntries: 'Todavía no hay entradas en la plantilla.',
   },
   rosterImport: {
     title: 'Importación CSV de plantilla',
-    subtitle: 'Revisa cada fila antes de importar. Los ID de juego son la única coincidencia automática de identidad; las coincidencias por nombre requieren confirmación.',
+    subtitle:
+      'Revisa cada fila antes de importar. Los ID de juego son la única coincidencia automática de identidad; las coincidencias por nombre requieren confirmación.',
     exportCurrent: 'Exportar plantilla actual',
     exportManager: 'Exportar con campos de oficiales',
     uploadPreview: 'Subir y previsualizar',
-    schemaHelp: 'Formato CSV {version} · máximo {rows} filas · máximo {bytes}. El CSV UTF-8 se lee solo como texto.',
+    schemaHelp:
+      'Formato CSV {version} · máximo {rows} filas · máximo {bytes}. El CSV UTF-8 se lee solo como texto.',
     csvFile: 'Archivo CSV',
     validatePreview: 'Validar y previsualizar',
     requiredColumns: 'Columnas obligatorias',
-    requirementsHelp: 'name, power y state son obligatorios. state es active, tracked o left. joined_at usa YYYY-MM-DD; captured_at opcional usa ISO-8601 con zona horaria. Se rechazan ID de juego repetidos.',
+    requirementsHelp:
+      'name, power y state son obligatorios. state es active, tracked o left. joined_at usa YYYY-MM-DD; captured_at opcional usa ISO-8601 con zona horaria. Se rechazan ID de juego repetidos.',
     preview: 'Vista previa: {filename}',
     rows: 'Filas',
     creates: 'Nuevos Gobernadores',
     updates: 'Gobernadores actualizados',
     ambiguous: 'Necesita revisión',
     rejected: 'Rechazadas',
-    committedSummary: 'Se importaron {rows} filas: {creates} Gobernadores nuevos, {updates} Gobernadores actualizados y {snapshots} registros de exploración nuevos.',
+    committedSummary:
+      'Se importaron {rows} filas: {creates} Gobernadores nuevos, {updates} Gobernadores actualizados y {snapshots} registros de exploración nuevos.',
     csvRow: 'Fila CSV',
     previewOutcome: 'Resultado de vista previa',
     resolutionErrors: 'Revisión / errores',
@@ -124,16 +137,20 @@ const messages = {
     updateCandidate: 'Actualizar {name} · {gameId} · {state}',
     stableMatch: 'El ID de juego coincide con la entrada {entry}.',
     newIdentity: 'Gobernador nuevo.',
-    rejectedBlock: 'La importación no puede continuar mientras haya filas rechazadas. Corrige el CSV y vuelve a subirlo.',
+    rejectedBlock:
+      'La importación no puede continuar mientras haya filas rechazadas. Corrige el CSV y vuelve a subirlo.',
     unresolvedRows: 'Revisa {count} fila(s) ambiguas antes de importar.',
     confirmAtomic: 'Confirmar importación',
-    commitError: 'No se pudo completar la importación. Revisa las coincidencias o crea una nueva vista previa.',
+    commitError:
+      'No se pudo completar la importación. Revisa las coincidencias o crea una nueva vista previa.',
   },
   rosterHistory: {
     title: 'Historial de exploración',
-    currentHelp: 'Actual significa que el último registro de exploración tiene como máximo {days} días. Faltante significa que no hay ningún registro. Las observaciones anteriores permanecen en el historial.',
+    currentHelp:
+      'Actual significa que el último registro de exploración tiene como máximo {days} días. Faltante significa que no hay ningún registro. Las observaciones anteriores permanecen en el historial.',
     recordSnapshot: 'Registrar hallazgo de exploración',
-    recordHelp: 'Registra lo que los exploradores observaron en el momento de captura. Una captura posterior añade una entrada nueva al historial de exploración del Gobernador.',
+    recordHelp:
+      'Registra lo que los exploradores observaron en el momento de captura. Una captura posterior añade una entrada nueva al historial de exploración del Gobernador.',
     observedPlayerName: 'Nombre observado del Gobernador',
     capturedAt: 'Capturado el',
     recordAction: 'Registrar hallazgo de exploración',

@@ -41,7 +41,8 @@ const messages = {
       previewBulkAction: 'Revisar mudanças',
       previewingBulkAction: 'Verificando membros…',
       bulkPreview: 'Prévia da mudança de status',
-      bulkPreviewSummary: '{ready} podem ser atualizados e {blocked} precisam de revisão ou já estão atualizados.',
+      bulkPreviewSummary:
+        '{ready} podem ser atualizados e {blocked} precisam de revisão ou já estão atualizados.',
       confirmBulkTitle: 'Confirmar mudanças de status',
       confirmBulkDescription: 'Alterar {count} membros elegíveis para {status}?',
       confirmBulkAction: 'Atualizar membros elegíveis',
@@ -49,7 +50,8 @@ const messages = {
       bulkResult: 'Resultado da mudança de status',
       bulkResultSummary:
         '{succeeded} membros atualizados. {failed} precisam de revisão. {skipped} já estavam atualizados.',
-      failedItemsSelected: 'Os membros que não puderam ser atualizados continuam selecionados para revisão.',
+      failedItemsSelected:
+        'Os membros que não puderam ser atualizados continuam selecionados para revisão.',
       bulkOutcome: {
         ready: 'Pronto',
         'member-unavailable': 'Indisponível',

@@ -17,7 +17,8 @@ const messages = {
     rolesPlayer: 'Governatore',
     rolesRole: 'Ruolo del regno',
     rolesAssignAction: 'Assegna ruolo',
-    rolesBootstrapHelp: 'Un Amministratore della piattaforma può ripristinare le assegnazioni dei ruoli del regno, ma non ottiene automaticamente i permessi Evento.',
+    rolesBootstrapHelp:
+      'Un Amministratore della piattaforma può ripristinare le assegnazioni dei ruoli del regno, ma non ottiene automaticamente i permessi Evento.',
     approvedSource: 'Fonte scout approvata',
     sourceAdapter: 'Fonte scout',
     subscriptions: 'Fonti scout',

@@ -152,9 +152,11 @@ const messages = {
     relationshipState: 'Relationship status',
     effectiveTime: 'Effective time',
     reviewTime: 'Review time',
-    reviewAdvisory: 'Reaching this time creates a review reminder but never changes relationship status.',
+    reviewAdvisory:
+      'Reaching this time creates a review reminder but never changes relationship status.',
     expiryTime: 'Expiry time',
-    expiryAdvisory: 'Expiry creates a review indicator; it does not change relationship status automatically.',
+    expiryAdvisory:
+      'Expiry creates a review indicator; it does not change relationship status automatically.',
     privateTerms: 'Officer-only terms',
     privateTermsHelp: 'Officer-only and excluded from shared Event reports.',
     privateRationale: 'Officer reason',
@@ -192,8 +194,7 @@ const messages = {
     saveContact: 'Save contact',
     cancelEdit: 'Cancel edit',
     directory: 'Private contact directory',
-    directoryHelp:
-      'Inactive contacts remain visible in contact history instead of being removed.',
+    directoryHelp: 'Inactive contacts remain visible in contact history instead of being removed.',
     contactLimit: 'Up to {count} contacts',
     contact: 'Contact',
     channel: 'Channel',
@@ -350,8 +351,7 @@ const messages = {
     power: 'Power',
     members: 'Members',
     noHistory: 'No accepted scout records are available for this Alliance.',
-    historySecurity:
-      'Access is checked again whenever you load older observations.',
+    historySecurity: 'Access is checked again whenever you load older observations.',
     olderObservations: 'Older observations',
     manageEyebrow: 'Kingdom sharing',
     manageTitle: 'Sharing agreements',
@@ -381,7 +381,8 @@ const messages = {
     outboundHelp:
       'An active agreement shares nothing until you explicitly choose a tracked Alliance.',
     inboundSharing: 'Shared with your Alliance',
-    inboundHelp: 'Active source Alliances may share only the tracked Alliances they explicitly choose.',
+    inboundHelp:
+      'Active source Alliances may share only the tracked Alliances they explicitly choose.',
     agreements: 'Agreements',
     pendingRecipient: 'Pending recipient',
     state: 'Status',
@@ -442,8 +443,7 @@ const messages = {
     archive: 'Archive',
     noRecords: 'No tracked Alliances yet.',
     editTitle: 'Edit tracked Alliance',
-    editHelp:
-      'A conflicting Game Alliance ID cannot be saved or merged automatically.',
+    editHelp: 'A conflicting Game Alliance ID cannot be saved or merged automatically.',
     saveChanges: 'Save changes',
     archiveTitle: 'Archive tracking',
     archiveConfirmation: 'Archive tracking for {name}? Historical tracking remains available.',

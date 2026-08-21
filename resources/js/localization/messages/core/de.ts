@@ -76,7 +76,8 @@ const messages = {
       giftCodesToRedeem: '{count} Geschenkcodes einzulösen',
       overdueRecruitment: '{count} überfällige Rekrutierungsnachfassungen',
       recruitmentFollowUpDue: 'Eine Bewerber-Nachverfolgung ist fällig',
-      noUrgentActions: 'Keine dringenden Aktionen für den Gouverneur. Prüfe die Bereiche unten, wenn du bereit bist.',
+      noUrgentActions:
+        'Keine dringenden Aktionen für den Gouverneur. Prüfe die Bereiche unten, wenn du bereit bist.',
       eventActionResponse: 'Verfügbarkeit angeben',
       eventActionRegistration: 'Für dieses Event anmelden',
       eventActionVote: 'In der Event-Umfrage abstimmen',

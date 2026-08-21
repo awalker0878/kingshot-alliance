@@ -40,8 +40,7 @@ const messages = {
       regenerateRecoveryCodes: 'Wygeneruj ponownie kody odzyskiwania',
       disableTwoFactor: 'Wyłącz uwierzytelnianie dwuskładnikowe',
       passwordTitle: 'Zmień hasło',
-      passwordIntro:
-        'Zmiana hasła wylogowuje inne urządzenia i zamyka pozostały aktywny dostęp.',
+      passwordIntro: 'Zmiana hasła wylogowuje inne urządzenia i zamyka pozostały aktywny dostęp.',
       currentPassword: 'Aktualne hasło',
       newPassword: 'Nowe hasło',
       confirmNewPassword: 'Potwierdź nowe hasło',

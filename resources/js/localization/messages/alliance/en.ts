@@ -41,7 +41,8 @@ const messages = {
       previewBulkAction: 'Preview changes',
       previewingBulkAction: 'Checking members…',
       bulkPreview: 'Member status preview',
-      bulkPreviewSummary: '{ready} can be updated and {blocked} need review or are already up to date.',
+      bulkPreviewSummary:
+        '{ready} can be updated and {blocked} need review or are already up to date.',
       confirmBulkTitle: 'Confirm member status changes',
       confirmBulkDescription: 'Change {count} eligible members to {status}?',
       confirmBulkAction: 'Update eligible members',
@@ -49,7 +50,8 @@ const messages = {
       bulkResult: 'Member status result',
       bulkResultSummary:
         '{succeeded} members updated. {failed} need review. {skipped} were already up to date.',
-      failedItemsSelected: 'Members that could not be updated remain selected so you can review them.',
+      failedItemsSelected:
+        'Members that could not be updated remain selected so you can review them.',
       bulkOutcome: {
         ready: 'Ready',
         'member-unavailable': 'Unavailable',

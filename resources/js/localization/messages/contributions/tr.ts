@@ -30,7 +30,8 @@ const messages = {
     noRecords: 'Henüz katkı kaydı yok.',
     selfReport: 'Kendi bildirimi',
     selfReportTitle: 'Katkı gönder',
-    selfReportHelp: 'Kendi bildiriminiz yetkili bir İttifak lideri onaylayana kadar beklemede kalır.',
+    selfReportHelp:
+      'Kendi bildiriminiz yetkili bir İttifak lideri onaylayana kadar beklemede kalır.',
     selectCategory: 'Kategori seç',
     evidenceNote: 'Kanıt veya not',
     submitApproval: 'Onaya gönder',

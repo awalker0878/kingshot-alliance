@@ -31,7 +31,8 @@ const messages = {
     rolesPlayer: 'Gouverneur',
     rolesRole: 'Königreich-Rolle',
     rolesAssignAction: 'Rolle zuweisen',
-    rolesBootstrapHelp: 'Ein Plattformadministrator kann Königreich-Rollenzuweisungen wiederherstellen, erhält dadurch aber keine Event-Berechtigungen.',
+    rolesBootstrapHelp:
+      'Ein Plattformadministrator kann Königreich-Rollenzuweisungen wiederherstellen, erhält dadurch aber keine Event-Berechtigungen.',
     ingestionTitle: 'Scout-Berichte',
     approvedSource: 'Genehmigte Scout-Quelle',
     sourceAdapter: 'Scout-Quelle',

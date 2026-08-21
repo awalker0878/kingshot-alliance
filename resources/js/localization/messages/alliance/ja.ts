@@ -35,8 +35,7 @@ const messages = {
       selectedMembers: '{count}人のメンバーを選択中',
       selectMember: '{member}を選択',
       selectPage: 'このページのメンバーをすべて選択',
-      bulkPreviewHelp:
-        '変更を適用する前に、同盟ランク、王国、現在の状態、定員を確認してください。',
+      bulkPreviewHelp: '変更を適用する前に、同盟ランク、王国、現在の状態、定員を確認してください。',
       changeStatusTo: '状態を変更',
       previewBulkAction: '変更を確認',
       previewingBulkAction: 'メンバーを確認中…',

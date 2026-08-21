@@ -48,14 +48,18 @@ const messages = {
       welcome: 'Chào mừng, Thống đốc {name}',
       verificationPending: 'Đang chờ xác minh email',
       playerContextTitle: 'Thống đốc đang hoạt động',
-      playerContextIntro: 'Đổi Thống đốc để thay đổi danh tính Kingshot dùng cho các hành động của Liên minh và Vương quốc.',
+      playerContextIntro:
+        'Đổi Thống đốc để thay đổi danh tính Kingshot dùng cho các hành động của Liên minh và Vương quốc.',
       playerKingdom: 'Vương quốc {kingdom}',
-      playerAuthorityIntro: 'Cấp bậc Liên minh, vai trò, nhiệm vụ Vương quốc và quyền truy cập Sự kiện đi theo Thống đốc đang hoạt động.',
+      playerAuthorityIntro:
+        'Cấp bậc Liên minh, vai trò, nhiệm vụ Vương quốc và quyền truy cập Sự kiện đi theo Thống đốc đang hoạt động.',
       selectPlayer: 'Chọn Thống đốc',
       playerAllianceTitle: 'Liên minh của Thống đốc đang hoạt động',
-      playerAllianceIntro: 'Quyền truy cập Liên minh đi theo cấp bậc và vai trò của Thống đốc đang hoạt động.',
+      playerAllianceIntro:
+        'Quyền truy cập Liên minh đi theo cấp bậc và vai trò của Thống đốc đang hoạt động.',
       noPlayerAllianceTitle: 'Thống đốc này không ở trong Liên minh',
-      noPlayerAllianceIntro: 'Đổi Thống đốc, tham gia Liên minh hoặc tạo Liên minh để sử dụng các tính năng Liên minh.',
+      noPlayerAllianceIntro:
+        'Đổi Thống đốc, tham gia Liên minh hoặc tạo Liên minh để sử dụng các tính năng Liên minh.',
       openPlayerAlliance: 'Mở Liên minh',
       active: 'Hoạt động',
       roles: 'Vai trò Liên minh',
@@ -73,7 +77,8 @@ const messages = {
       giftCodesToRedeem: '{count} Mã quà tặng cần đổi',
       overdueRecruitment: '{count} việc theo dõi tuyển thành viên quá hạn',
       recruitmentFollowUpDue: 'Cần theo dõi ứng viên',
-      noUrgentActions: 'Không có việc khẩn cấp cho Thống đốc. Xem các mục bên dưới khi bạn sẵn sàng.',
+      noUrgentActions:
+        'Không có việc khẩn cấp cho Thống đốc. Xem các mục bên dưới khi bạn sẵn sàng.',
       eventActionResponse: 'Chia sẻ thời gian có thể tham gia',
       eventActionRegistration: 'Đăng ký Sự kiện này',
       eventActionVote: 'Bình chọn trong khảo sát Sự kiện',
@@ -85,7 +90,8 @@ const messages = {
       upcomingEvents: 'Sự kiện sắp tới',
       viewAll: 'Xem tất cả',
       createTitle: 'Tạo Liên minh',
-      createIntro: 'Tạo Liên minh cho Thống đốc đang hoạt động. Liên minh sử dụng Vương quốc của Thống đốc đó và Thống đốc sáng lập trở thành R5.',
+      createIntro:
+        'Tạo Liên minh cho Thống đốc đang hoạt động. Liên minh sử dụng Vương quốc của Thống đốc đó và Thống đốc sáng lập trở thành R5.',
       allianceName: 'Tên Liên minh',
       slug: 'Tên URL Liên minh',
       timezone: 'Múi giờ của Liên minh',

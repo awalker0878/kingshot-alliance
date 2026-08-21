@@ -55,7 +55,8 @@ const messages = {
         'El rango de Alianza, los roles, las funciones del Reino y el acceso a Eventos siguen al Gobernador activo.',
       selectPlayer: 'Seleccionar Gobernador',
       playerAllianceTitle: 'Alianza del Gobernador activo',
-      playerAllianceIntro: 'El acceso a la Alianza sigue el rango y los roles del Gobernador activo.',
+      playerAllianceIntro:
+        'El acceso a la Alianza sigue el rango y los roles del Gobernador activo.',
       noPlayerAllianceTitle: 'Este Gobernador no está en una Alianza',
       noPlayerAllianceIntro:
         'Cambia de Gobernador, únete a una Alianza o crea una Alianza para usar las funciones de Alianza.',
@@ -76,7 +77,8 @@ const messages = {
       giftCodesToRedeem: '{count} códigos de regalo por canjear',
       overdueRecruitment: '{count} seguimientos de reclutamiento vencidos',
       recruitmentFollowUpDue: 'Hay un seguimiento de candidato pendiente',
-      noUrgentActions: 'No hay acciones urgentes para el Gobernador. Revisa las secciones de abajo cuando quieras.',
+      noUrgentActions:
+        'No hay acciones urgentes para el Gobernador. Revisa las secciones de abajo cuando quieras.',
       eventActionResponse: 'Indica tu disponibilidad',
       eventActionRegistration: 'Inscríbete en este Evento',
       eventActionVote: 'Vota en la encuesta del Evento',

@@ -17,7 +17,8 @@ const messages = {
     rolesPlayer: 'Gubernur',
     rolesRole: 'Peran kerajaan',
     rolesAssignAction: 'Tetapkan peran',
-    rolesBootstrapHelp: 'Administrator Platform dapat memulihkan penetapan peran kerajaan, tetapi tidak otomatis memperoleh izin Event.',
+    rolesBootstrapHelp:
+      'Administrator Platform dapat memulihkan penetapan peran kerajaan, tetapi tidak otomatis memperoleh izin Event.',
     approvedSource: 'Sumber scout yang disetujui',
     sourceAdapter: 'Sumber scout',
     subscriptions: 'Sumber scout',

@@ -60,7 +60,8 @@ const messages = {
     departed: 'Departed',
     windowDays: 'Window: last {days} days.',
     membershipLinkage: 'Alliance membership links',
-    linkedOfTotal: '{linked} of {total} active/tracked Governors are linked to Alliance membership.',
+    linkedOfTotal:
+      '{linked} of {total} active/tracked Governors are linked to Alliance membership.',
     sevenDayChange: '7-day power change',
     thirtyDayChange: '30-day power change',
     comparablePlayers: '{count} comparable Governors',

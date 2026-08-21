@@ -41,7 +41,8 @@ const messages = {
       previewBulkAction: 'Kiểm tra thay đổi',
       previewingBulkAction: 'Đang kiểm tra thành viên…',
       bulkPreview: 'Xem trước thay đổi trạng thái',
-      bulkPreviewSummary: '{ready} có thể cập nhật và {blocked} cần xem lại hoặc đã ở trạng thái mới nhất.',
+      bulkPreviewSummary:
+        '{ready} có thể cập nhật và {blocked} cần xem lại hoặc đã ở trạng thái mới nhất.',
       confirmBulkTitle: 'Xác nhận thay đổi trạng thái thành viên',
       confirmBulkDescription: 'Đổi {count} thành viên đủ điều kiện sang {status}?',
       confirmBulkAction: 'Cập nhật thành viên đủ điều kiện',

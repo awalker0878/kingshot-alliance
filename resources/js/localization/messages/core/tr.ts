@@ -48,14 +48,17 @@ const messages = {
       welcome: 'Hoş geldin, Vali {name}',
       verificationPending: 'E-posta doğrulaması bekleniyor',
       playerContextTitle: 'Etkin Vali',
-      playerContextIntro: 'İttifak ve Krallık işlemlerinde kullanılan Kingshot kimliğini değiştirmek için Vali değiştir.',
+      playerContextIntro:
+        'İttifak ve Krallık işlemlerinde kullanılan Kingshot kimliğini değiştirmek için Vali değiştir.',
       playerKingdom: 'Krallık {kingdom}',
-      playerAuthorityIntro: 'İttifak rütbesi, roller, Krallık görevleri ve Etkinlik erişimi etkin Valiyi takip eder.',
+      playerAuthorityIntro:
+        'İttifak rütbesi, roller, Krallık görevleri ve Etkinlik erişimi etkin Valiyi takip eder.',
       selectPlayer: 'Vali seç',
       playerAllianceTitle: 'Etkin Valinin İttifakı',
       playerAllianceIntro: 'İttifak erişimi etkin Valinin rütbe ve rollerini takip eder.',
       noPlayerAllianceTitle: 'Bu Vali bir İttifakta değil',
-      noPlayerAllianceIntro: 'İttifak özelliklerini kullanmak için Vali değiştir, bir İttifaka katıl veya bir İttifak oluştur.',
+      noPlayerAllianceIntro:
+        'İttifak özelliklerini kullanmak için Vali değiştir, bir İttifaka katıl veya bir İttifak oluştur.',
       openPlayerAlliance: 'İttifakı aç',
       active: 'Etkin',
       roles: 'İttifak rolleri',
@@ -85,7 +88,8 @@ const messages = {
       upcomingEvents: 'Yaklaşan Etkinlikler',
       viewAll: 'Tümünü gör',
       createTitle: 'İttifak oluştur',
-      createIntro: 'Etkin Vali için bir İttifak oluştur. İttifak bu Valinin Krallığını kullanır ve kurucu Vali R5 olur.',
+      createIntro:
+        'Etkin Vali için bir İttifak oluştur. İttifak bu Valinin Krallığını kullanır ve kurucu Vali R5 olur.',
       allianceName: 'İttifak adı',
       slug: 'İttifak URL adı',
       timezone: 'İttifak saat dilimi',

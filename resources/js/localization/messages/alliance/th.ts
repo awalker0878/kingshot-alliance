@@ -34,13 +34,13 @@ const messages = {
       selectedMembers: 'เลือกสมาชิก {count} คน',
       selectMember: 'เลือก {member}',
       selectPage: 'เลือกสมาชิกทั้งหมดในหน้านี้',
-      bulkPreviewHelp:
-        'ตรวจสอบยศพันธมิตร อาณาจักร สถานะปัจจุบัน และความจุก่อนใช้การเปลี่ยนแปลง',
+      bulkPreviewHelp: 'ตรวจสอบยศพันธมิตร อาณาจักร สถานะปัจจุบัน และความจุก่อนใช้การเปลี่ยนแปลง',
       changeStatusTo: 'เปลี่ยนสถานะเป็น',
       previewBulkAction: 'ตรวจสอบการเปลี่ยนแปลง',
       previewingBulkAction: 'กำลังตรวจสอบสมาชิก…',
       bulkPreview: 'ตัวอย่างการเปลี่ยนสถานะ',
-      bulkPreviewSummary: '{ready} คนอัปเดตได้ และ {blocked} คนต้องตรวจสอบหรือเป็นข้อมูลล่าสุดอยู่แล้ว',
+      bulkPreviewSummary:
+        '{ready} คนอัปเดตได้ และ {blocked} คนต้องตรวจสอบหรือเป็นข้อมูลล่าสุดอยู่แล้ว',
       confirmBulkTitle: 'ยืนยันการเปลี่ยนสถานะสมาชิก',
       confirmBulkDescription: 'เปลี่ยนสมาชิกที่มีสิทธิ์ {count} คนเป็น {status} หรือไม่?',
       confirmBulkAction: 'อัปเดตสมาชิกที่มีสิทธิ์',

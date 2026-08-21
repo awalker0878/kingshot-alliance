@@ -30,7 +30,8 @@ const messages = {
     rolesPlayer: 'Gouverneur',
     rolesRole: 'Rôle du royaume',
     rolesAssignAction: 'Attribuer le rôle',
-    rolesBootstrapHelp: 'Un Administrateur de la plateforme peut restaurer les attributions de rôles du royaume, sans obtenir pour autant les autorisations d’Événement.',
+    rolesBootstrapHelp:
+      'Un Administrateur de la plateforme peut restaurer les attributions de rôles du royaume, sans obtenir pour autant les autorisations d’Événement.',
     ingestionTitle: 'Rapports d’éclaireurs',
     approvedSource: 'Source d’éclaireurs approuvée',
     sourceAdapter: 'Source d’éclaireurs',

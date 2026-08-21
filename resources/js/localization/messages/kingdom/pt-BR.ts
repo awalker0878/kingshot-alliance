@@ -22,7 +22,8 @@ const messages = {
     rolesPlayer: 'Governador',
     rolesRole: 'Função do reino',
     rolesAssignAction: 'Atribuir função',
-    rolesBootstrapHelp: 'Um Administrador da Plataforma pode restaurar atribuições de funções do reino, mas isso não concede permissões de Evento.',
+    rolesBootstrapHelp:
+      'Um Administrador da Plataforma pode restaurar atribuições de funções do reino, mas isso não concede permissões de Evento.',
     approvedSource: 'Fonte de reconhecimento aprovada',
     sourceAdapter: 'Fonte de reconhecimento',
     subscriptions: 'Fontes de reconhecimento',

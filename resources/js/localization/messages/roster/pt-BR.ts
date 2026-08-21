@@ -13,7 +13,8 @@ const messages = {
     stale: 'Desatualizado',
     missing: 'Ausente',
     filters: 'Filtros da lista',
-    freshnessHelp: 'Atual significa um registro de reconhecimento dos últimos {days} dias; desatualizado é mais antigo; ausente significa que não há registro.',
+    freshnessHelp:
+      'Atual significa um registro de reconhecimento dos últimos {days} dias; desatualizado é mais antigo; ausente significa que não há registro.',
     search: 'Buscar Governador ou ID do jogo',
     searchPlaceholder: 'Buscar nome ou ID do jogo',
     state: 'Estado',
@@ -41,7 +42,8 @@ const messages = {
     noResults: 'Nenhuma entrada corresponde a estes filtros.',
     noResultsBody: 'Ajuste ou limpe os filtros para ver outras entradas registradas.',
     intelligenceTitle: 'Análise da lista',
-    intelligenceSubtitle: 'Os resumos da aliança usam a lista e o histórico de reconhecimento registrados.',
+    intelligenceSubtitle:
+      'Os resumos da aliança usam a lista e o histórico de reconhecimento registrados.',
     asOf: 'Em {date}',
     trackedPlayers: 'Governadores ativos / monitorados',
     totalRecordedPower: 'Poder total registrado',
@@ -49,7 +51,8 @@ const messages = {
     averagePower: 'Poder médio registrado',
     roundedPower: 'Arredondado para o poder inteiro mais próximo.',
     medianPower: 'Poder mediano registrado',
-    latestSnapshotOnly: 'Calculado com Governadores que possuem um registro de reconhecimento recente.',
+    latestSnapshotOnly:
+      'Calculado com Governadores que possuem um registro de reconhecimento recente.',
     snapshotQuality: 'Qualidade dos registros de reconhecimento',
     qualityWindow: 'Desatualizado significa mais de {days} dias.',
     recentMovement: 'Movimentação recente',
@@ -57,15 +60,19 @@ const messages = {
     departed: 'Saíram',
     windowDays: 'Período: últimos {days} dias.',
     membershipLinkage: 'Vínculos de membro da aliança',
-    linkedOfTotal: '{linked} de {total} Governadores ativos/monitorados estão vinculados como membros da aliança.',
+    linkedOfTotal:
+      '{linked} de {total} Governadores ativos/monitorados estão vinculados como membros da aliança.',
     sevenDayChange: 'Variação de poder em 7 dias',
     thirtyDayChange: 'Variação de poder em 30 dias',
     comparablePlayers: '{count} Governadores comparáveis',
     trendMethodTitle: 'Como funcionam os períodos de comparação',
-    trendMethodBody: 'A comparação usa o registro de reconhecimento mais próximo na data-alvo ou antes dela, até o dobro do período escolhido. Observações ausentes não são estimadas.',
-    currentTotalsBody: 'Os totais atuais usam o registro de reconhecimento mais recente de cada Governador monitorado. Governadores sem registro são excluídos em vez de tratados como zero.',
+    trendMethodBody:
+      'A comparação usa o registro de reconhecimento mais próximo na data-alvo ou antes dela, até o dobro do período escolhido. Observações ausentes não são estimadas.',
+    currentTotalsBody:
+      'Os totais atuais usam o registro de reconhecimento mais recente de cada Governador monitorado. Governadores sem registro são excluídos em vez de tratados como zero.',
     managerDetail: 'Comparação para oficiais',
-    managerDetailBody: 'Comparação apenas em ordem alfabética. Governadores não são classificados nem pontuados por crescimento ou queda.',
+    managerDetailBody:
+      'Comparação apenas em ordem alfabética. Governadores não são classificados nem pontuados por crescimento ou queda.',
     snapshotState: 'Estado do registro de reconhecimento',
     currentPower: 'Poder atual',
     insufficientHistory: 'Histórico insuficiente',
@@ -74,7 +81,8 @@ const messages = {
     powerTrends: 'Tendências de poder',
   },
   rosterManage: {
-    manageSubtitle: 'Gerencie a identidade da lista, vínculos de recrutamento, funções da aliança e notas de oficiais. O histórico de reconhecimento é mantido separado dos detalhes da lista.',
+    manageSubtitle:
+      'Gerencie a identidade da lista, vínculos de recrutamento, funções da aliança e notas de oficiais. O histórico de reconhecimento é mantido separado dos detalhes da lista.',
     csvMigration: 'Importação CSV da lista',
     profilesWithoutMembership: 'Governadores na lista sem vínculo como membro da aliança',
     membershipsWithoutProfile: 'Membros da aliança sem Governador vinculado na lista',
@@ -92,29 +100,34 @@ const messages = {
     noneRecorded: 'Nenhum registro',
     historyRecordSnapshot: 'Histórico de reconhecimento',
     markLeft: 'Marcar como saiu',
-    markLeftConfirm: 'Marcar {name} como alguém que saiu? A identidade e o histórico do Governador serão mantidos.',
+    markLeftConfirm:
+      'Marcar {name} como alguém que saiu? A identidade e o histórico do Governador serão mantidos.',
     observedName: 'Nome observado',
     savePlayer: 'Salvar Governador',
     noEntries: 'Ainda não há entradas na lista.',
   },
   rosterImport: {
     title: 'Importação CSV da lista',
-    subtitle: 'Revise cada linha antes de importar. IDs do jogo são a única correspondência automática de identidade; correspondências por nome exigem confirmação.',
+    subtitle:
+      'Revise cada linha antes de importar. IDs do jogo são a única correspondência automática de identidade; correspondências por nome exigem confirmação.',
     exportCurrent: 'Exportar lista atual',
     exportManager: 'Exportar com campos de oficiais',
     uploadPreview: 'Enviar e visualizar',
-    schemaHelp: 'Formato CSV {version} · máximo de {rows} linhas · máximo de {bytes}. O CSV UTF-8 é lido apenas como texto.',
+    schemaHelp:
+      'Formato CSV {version} · máximo de {rows} linhas · máximo de {bytes}. O CSV UTF-8 é lido apenas como texto.',
     csvFile: 'Arquivo CSV',
     validatePreview: 'Validar e visualizar',
     requiredColumns: 'Colunas obrigatórias',
-    requirementsHelp: 'name, power e state são obrigatórios. state é active, tracked ou left. joined_at usa YYYY-MM-DD; captured_at opcional usa ISO-8601 com fuso horário. IDs do jogo repetidos são rejeitados.',
+    requirementsHelp:
+      'name, power e state são obrigatórios. state é active, tracked ou left. joined_at usa YYYY-MM-DD; captured_at opcional usa ISO-8601 com fuso horário. IDs do jogo repetidos são rejeitados.',
     preview: 'Prévia: {filename}',
     rows: 'Linhas',
     creates: 'Novos Governadores',
     updates: 'Governadores atualizados',
     ambiguous: 'Precisa de revisão',
     rejected: 'Rejeitadas',
-    committedSummary: '{rows} linhas importadas: {creates} novos Governadores, {updates} Governadores atualizados e {snapshots} novos registros de reconhecimento.',
+    committedSummary:
+      '{rows} linhas importadas: {creates} novos Governadores, {updates} Governadores atualizados e {snapshots} novos registros de reconhecimento.',
     csvRow: 'Linha CSV',
     previewOutcome: 'Resultado da prévia',
     resolutionErrors: 'Revisão / erros',
@@ -124,21 +137,26 @@ const messages = {
     updateCandidate: 'Atualizar {name} · {gameId} · {state}',
     stableMatch: 'O ID do jogo corresponde à entrada {entry}.',
     newIdentity: 'Novo Governador.',
-    rejectedBlock: 'A importação não pode continuar enquanto houver uma linha rejeitada. Corrija o CSV e envie novamente.',
+    rejectedBlock:
+      'A importação não pode continuar enquanto houver uma linha rejeitada. Corrija o CSV e envie novamente.',
     unresolvedRows: 'Revise {count} linha(s) ambígua(s) antes da importação.',
     confirmAtomic: 'Confirmar importação',
-    commitError: 'Não foi possível concluir a importação. Revise as correspondências ou crie uma nova prévia.',
+    commitError:
+      'Não foi possível concluir a importação. Revise as correspondências ou crie uma nova prévia.',
   },
   rosterHistory: {
     title: 'Histórico de reconhecimento',
-    currentHelp: 'Atual significa que o registro de reconhecimento mais recente tem no máximo {days} dias. Ausente significa que não há registro. As observações anteriores permanecem no histórico.',
+    currentHelp:
+      'Atual significa que o registro de reconhecimento mais recente tem no máximo {days} dias. Ausente significa que não há registro. As observações anteriores permanecem no histórico.',
     recordSnapshot: 'Registrar observação de reconhecimento',
-    recordHelp: 'Registre o que os batedores observaram no momento da captura. Uma captura posterior adiciona uma nova entrada ao histórico de reconhecimento do Governador.',
+    recordHelp:
+      'Registre o que os batedores observaram no momento da captura. Uma captura posterior adiciona uma nova entrada ao histórico de reconhecimento do Governador.',
     observedPlayerName: 'Nome observado do Governador',
     capturedAt: 'Capturado em',
     recordAction: 'Registrar observação de reconhecimento',
     historyHeading: 'Histórico de reconhecimento',
-    historyHelp: 'Captura mais recente primeiro. Até as 250 observações mais recentes são exibidas.',
+    historyHelp:
+      'Captura mais recente primeiro. Até as 250 observações mais recentes são exibidas.',
     source: 'Origem',
     recordedBy: 'Registrado por',
     noSnapshots: 'Nenhum registro de reconhecimento foi registrado para este Governador.',
