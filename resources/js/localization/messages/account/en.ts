@@ -44,7 +44,7 @@ const messages = {
       allianceAnnouncement: 'Alliance Notices',
       eventReminder: 'Event reminders',
       giftCodeExpiring: 'Gift Code expiry reminders',
-      kingPerkReminder: 'King Perk reminders',
+      kingPerkReminder: 'Position Perk reminders',
     },
     bulk: {
       selectVisible: 'Select up to 50',
