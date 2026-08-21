@@ -29,7 +29,7 @@ const messages = {
       noInvitations: '招待はまだありません。',
       membershipAdmin: '同盟メンバー',
       membershipIntro:
-        'メンバー状態の変更は同盟ランクと役割権限に従います。役割の割り当てを変更できるのは所有者のみです。',
+        'メンバーの状態と役割の変更は、同盟ランクと現在の総督に付与された権限に従います。',
       membersOnPage: '{total}人中{count}人のメンバーを表示しています。',
       bulkActions: 'メンバー状態の変更',
       selectedMembers: '{count}人のメンバーを選択中',
