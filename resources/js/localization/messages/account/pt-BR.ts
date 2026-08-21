@@ -1,13 +1,18 @@
 import type { MessageCatalogue } from '../../types';
 
 const messages = {
+  notifications: {
+    types: {
+      kingPerkReminder: 'Lembretes de Vantagens de Posição',
+    },
+  },
   accountExperience: {
     account: {
-      eyebrow: 'Comando da conta',
+      eyebrow: 'Conta',
       title: 'Conta e segurança',
       intro:
         'Gerencie sua identidade, verificação, senha, autenticação em dois fatores e sessões ativas.',
-      passwordUpdated: 'Sua senha foi atualizada e as outras sessões autenticadas foram revogadas.',
+      passwordUpdated: 'Sua senha foi atualizada e as outras sessões autenticadas foram encerradas.',
       sessionsRevoked: 'As outras sessões autenticadas foram encerradas.',
       twoFactorDisabled: 'A autenticação em dois fatores foi desativada.',
       profileTitle: 'Perfil',
@@ -23,7 +28,7 @@ const messages = {
       notEnabled: 'Não ativada',
       twoFactorTitle: 'Autenticação em dois fatores',
       twoFactorIntro:
-        'Proteja o login com um autenticador TOTP. Os códigos de recuperação só aparecem quando são criados ou regenerados.',
+        'Proteja o login com um aplicativo autenticador. Os códigos de recuperação só aparecem quando são criados ou regenerados.',
       startSetup: 'Iniciar configuração',
       authenticatorSecret: 'Segredo do autenticador',
       provisioningUri: 'URI de provisionamento',
@@ -35,13 +40,13 @@ const messages = {
       disableTwoFactor: 'Desativar autenticação em dois fatores',
       passwordTitle: 'Alterar senha',
       passwordIntro:
-        'Alterar sua senha revoga tokens de acesso pessoais e invalida outras sessões autenticadas.',
+        'Alterar sua senha encerra a sessão em outros dispositivos e fecha outros acessos ativos.',
       currentPassword: 'Senha atual',
       newPassword: 'Nova senha',
       confirmNewPassword: 'Confirmar nova senha',
       updatePassword: 'Atualizar senha',
       sessionsTitle: 'Outras sessões',
-      sessionsIntro: 'Revogue todas as sessões autenticadas, exceto este dispositivo.',
+      sessionsIntro: 'Encerre todas as sessões autenticadas, exceto este dispositivo.',
       signOutOthers: 'Sair dos outros dispositivos',
       dangerTitle: 'Zona de risco',
       deleteAccount: 'Exclusão da conta',
