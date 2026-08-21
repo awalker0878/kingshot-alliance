@@ -9,20 +9,21 @@ const { NodeTypes, parse } = require('@vue/compiler-dom');
 const { parse: parseSfc } = require('@vue/compiler-sfc');
 const root = process.cwd();
 const pagesDirectory = path.join(root, 'resources/js/pages');
-const literalAllowList = new Set([
-  'API',
-  'CSV',
-  'HTTP',
-  'HTTPS',
-  'NAP',
-  'R1',
-  'R2',
-  'R3',
-  'R4',
-  'R5',
-  'SHA-256',
-  'UTC',
-  'https://',
+const invariantTokens = new Set([
+  'api',
+  'csv',
+  'http',
+  'https',
+  'min',
+  'nap',
+  'r1',
+  'r2',
+  'r3',
+  'r4',
+  'r5',
+  'sha',
+  'sha256',
+  'utc',
 ]);
 const visibleAttributeNames = new Set([
   'alt',
@@ -56,7 +57,9 @@ function vueFiles(directory) {
 function sfcBlocks(source, relative) {
   const { descriptor, errors } = parseSfc(source, { filename: relative });
   if (errors.length > 0) {
-    const message = errors.map((error) => (error instanceof Error ? error.message : String(error))).join('; ');
+    const message = errors
+      .map((error) => (error instanceof Error ? error.message : String(error)))
+      .join('; ');
     throw new Error(`${relative}: Vue SFC could not be parsed: ${message}`);
   }
 
@@ -76,9 +79,55 @@ function normalized(value) {
 
 function isVisibleLanguage(value) {
   const text = normalized(value);
-  if (text === '' || literalAllowList.has(text)) return false;
+  if (text === '') return false;
   if (/^R[1-5](?:\s*[-–/]\s*R[1-5])*$/.test(text)) return false;
-  return /[A-Za-z]{2,}/.test(text);
+
+  const tokens = text.toLowerCase().match(/[a-z][a-z0-9-]*/g) ?? [];
+  if (tokens.length === 0) return false;
+  if (tokens.every((token) => invariantTokens.has(token))) return false;
+
+  return tokens.some((token) => token.length >= 2);
+}
+
+function unwrapExpression(node) {
+  let current = node;
+  while (
+    current &&
+    (ts.isParenthesizedExpression(current) ||
+      ts.isAsExpression(current) ||
+      ts.isSatisfiesExpression(current) ||
+      ts.isNonNullExpression(current))
+  ) {
+    current = current.expression;
+  }
+  return current;
+}
+
+function literalOutputStrings(node) {
+  const value = unwrapExpression(node);
+  if (!value) return [];
+
+  if (ts.isStringLiteral(value) || ts.isNoSubstitutionTemplateLiteral(value)) {
+    return isVisibleLanguage(value.text) ? [value.text] : [];
+  }
+
+  if (ts.isTemplateExpression(value)) {
+    const text = [value.head.text, ...value.templateSpans.map((span) => span.literal.text)].join(' ');
+    return isVisibleLanguage(text) ? [text] : [];
+  }
+
+  if (ts.isConditionalExpression(value)) {
+    return [
+      ...literalOutputStrings(value.whenTrue),
+      ...literalOutputStrings(value.whenFalse),
+    ];
+  }
+
+  if (ts.isBinaryExpression(value) && value.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+    return [...literalOutputStrings(value.left), ...literalOutputStrings(value.right)];
+  }
+
+  return [];
 }
 
 function literalStringsFromExpression(expression) {
@@ -93,22 +142,13 @@ function literalStringsFromExpression(expression) {
   );
   if (source.parseDiagnostics.length > 0) return [];
 
-  const values = [];
-  function visit(node) {
-    if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
-      if (isVisibleLanguage(node.text)) values.push(node.text);
-      return;
-    }
-    if (ts.isTemplateExpression(node)) {
-      const text = [node.head.text, ...node.templateSpans.map((span) => span.literal.text)].join(' ');
-      if (isVisibleLanguage(text)) values.push(text);
-      for (const span of node.templateSpans) visit(span.expression);
-      return;
-    }
-    ts.forEachChild(node, visit);
-  }
-  visit(source);
-  return values;
+  let initializer = null;
+  source.forEachChild((node) => {
+    if (!ts.isVariableStatement(node)) return;
+    initializer = node.declarationList.declarations[0]?.initializer ?? null;
+  });
+
+  return literalOutputStrings(initializer);
 }
 
 function rawTemplateStrings(template, relative) {
