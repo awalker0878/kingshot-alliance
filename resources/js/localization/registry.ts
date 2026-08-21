@@ -58,7 +58,7 @@ export function domainsForPage(name: string): LocalizationDomain[] {
     if (name.startsWith('Public/Alliance/')) domains.add('content');
   }
 
-  if (name.startsWith('Command/')) {
+  if (name.startsWith('Dashboard/')) {
     domains.add('alliance');
   }
 
@@ -75,7 +75,7 @@ export function domainsForPage(name: string): LocalizationDomain[] {
   if (name.startsWith('Intelligence/')) {
     domains.add('kingdom');
     if (name.startsWith('Intelligence/Roster/')) domains.add('roster');
-    if (name.startsWith('Intelligence/GloryLedger/')) domains.add('contributions');
+    if (name.startsWith('Intelligence/Contributions/')) domains.add('contributions');
   }
 
   if (name.startsWith('Kingdom/')) {
@@ -83,9 +83,9 @@ export function domainsForPage(name: string): LocalizationDomain[] {
     if (name.startsWith('Kingdom/Transfer/')) domains.add('transfers');
   }
 
-  if (name.startsWith('Citadel/')) {
+  if (name.startsWith('Platform/')) {
     domains.add('platform');
-    if (name.startsWith('Citadel/EventCodex/')) domains.add('events');
+    if (name.startsWith('Platform/EventTypes/')) domains.add('events');
   }
 
   return [...domains];
