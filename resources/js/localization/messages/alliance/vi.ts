@@ -29,7 +29,7 @@ const messages = {
       noInvitations: 'Chưa có lời mời.',
       membershipAdmin: 'Thành viên Liên minh',
       membershipIntro:
-        'Thay đổi trạng thái tuân theo cấp bậc Liên minh và quyền của vai trò. Chỉ chủ sở hữu mới có thể thay đổi việc gán vai trò.',
+        'Thay đổi trạng thái và vai trò thành viên tuân theo cấp bậc Liên minh và quyền của Thống đốc đang hoạt động.',
       membersOnPage: 'Đang hiển thị {count} trong tổng số {total} thành viên.',
       bulkActions: 'Thay đổi trạng thái thành viên',
       selectedMembers: 'Đã chọn {count} thành viên',
