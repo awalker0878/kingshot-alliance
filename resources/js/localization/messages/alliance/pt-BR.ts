@@ -29,7 +29,7 @@ const messages = {
       noInvitations: 'Ainda não há convites.',
       membershipAdmin: 'Membros da Aliança',
       membershipIntro:
-        'Mudanças de status seguem o rank da Aliança e as permissões dos cargos. Somente proprietários podem alterar atribuições de cargos.',
+        'Mudanças de status e cargos dos membros seguem o rank da Aliança e as permissões do Governador ativo.',
       membersOnPage: 'Exibindo {count} de {total} membros.',
       bulkActions: 'Mudanças de status dos membros',
       selectedMembers: '{count} membros selecionados',
