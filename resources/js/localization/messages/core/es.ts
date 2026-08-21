@@ -2,6 +2,7 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   common: {
+    all: 'Todos',
     language: 'Idioma',
     signIn: 'Iniciar sesión',
     signOut: 'Cerrar sesión',

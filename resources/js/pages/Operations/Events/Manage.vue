@@ -953,7 +953,7 @@ function cancel(): void {
 
       <section
         class="mt-4 grid gap-3 sm:grid-cols-2 2xl:grid-cols-4"
-        aria-label="Event command summary"
+        :aria-label="t('events.manage.title')"
       >
         <StatSeal
           :label="t('events.manage.occurrences')"
@@ -979,7 +979,7 @@ function cancel(): void {
         />
       </section>
 
-      <nav class="ks-tab-strip mt-4" aria-label="Event organizer command sections">
+      <nav class="ks-tab-strip mt-4" :aria-label="t('events.manage.eyebrow')">
         <a href="#schedule" class="ks-tab">{{ t('events.manage.title') }}</a>
         <a v-if="event.capabilities.includes('phases')" href="#phases" class="ks-tab">{{
           t('events.phases.manageTitle')

@@ -2,6 +2,7 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   common: {
+    all: 'All',
     pagination: 'Pagination',
     firstPage: 'First page',
     nextPage: 'Next page',

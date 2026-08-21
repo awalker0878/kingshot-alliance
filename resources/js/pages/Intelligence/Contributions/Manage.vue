@@ -712,9 +712,9 @@ function member(id: string) {
           ><label
             >{{ t('contributions.cadence')
             }}<select v-model="scheduleForm.cadence" class="field">
-              <option value="daily">daily</option>
-              <option value="weekly">weekly</option>
-              <option value="monthly">monthly</option>
+              <option value="daily">{{ t('contributions.cadences.daily') }}</option>
+              <option value="weekly">{{ t('contributions.cadences.weekly') }}</option>
+              <option value="monthly">{{ t('contributions.cadences.monthly') }}</option>
             </select></label
           ><label
             >{{ t('contributions.timezone')
@@ -752,7 +752,7 @@ function member(id: string) {
             })
           }}</small>
           <p v-if="run.checksum" class="font-mono text-[10px] break-all">
-            sha256 {{ run.checksum }}
+            SHA-256 {{ run.checksum }}
           </p>
         </article>
         <p v-if="!reporting.recentReportRuns.length">{{ t('contributions.noReportRuns') }}</p>

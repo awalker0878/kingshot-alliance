@@ -2,6 +2,7 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   common: {
+    all: 'Tất cả',
     language: 'Ngôn ngữ',
     signIn: 'Đăng nhập',
     signOut: 'Đăng xuất',

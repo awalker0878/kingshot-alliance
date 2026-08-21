@@ -116,7 +116,7 @@ function localeName(code: string): string {
               v-if="alliance.logoUrl"
               class="h-full w-full object-cover"
               :src="alliance.logoUrl"
-              :alt="`${alliance.name} logo`"
+              :alt="alliance.name"
             />
             <span
               v-else

@@ -2,6 +2,7 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   common: {
+    all: 'ทั้งหมด',
     language: 'ภาษา',
     signIn: 'เข้าสู่ระบบ',
     signOut: 'ออกจากระบบ',

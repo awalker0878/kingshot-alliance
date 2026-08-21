@@ -2,6 +2,7 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   common: {
+    all: '全部',
     language: '語言',
     signIn: '登入',
     signOut: '登出',

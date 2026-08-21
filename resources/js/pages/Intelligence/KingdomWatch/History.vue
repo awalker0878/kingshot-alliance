@@ -161,7 +161,7 @@ function invalidateObservation(): void {
         class="rounded-lg border border-[var(--ks-border)] px-4 py-2 text-sm font-semibold text-[var(--ks-ivory)]"
         href="/alliance/kingdom-alliances"
       >
-        Back to tracked alliances
+        {{ t('kingdomP7A.overviewTitle') }}
       </Link>
     </header>
 
@@ -227,8 +227,7 @@ function invalidateObservation(): void {
         v-if="!tracking.contextCurrent"
         class="mt-4 rounded-xl border border-amber-900 bg-amber-950/40 p-4 text-sm text-amber-200"
       >
-        This tracked Alliance belongs to an earlier Kingdom. New scout findings are blocked; history
-        remains readable.
+        {{ t('kingdomP7B.readOnlyHistorical') }}
       </p>
 
       <form class="mt-6 grid gap-5 md:grid-cols-2" @submit.prevent="recordObservation">
@@ -272,7 +271,7 @@ function invalidateObservation(): void {
             class="ks-input mt-2 w-full"
             inputmode="numeric"
             pattern="[0-9]*"
-            placeholder="Leave blank if unknown"
+            :placeholder="t('kingdomP7B.notSet')"
             type="text"
           />
           <p v-if="recordForm.errors.power" class="mt-1 text-sm text-rose-300">
@@ -322,7 +321,7 @@ function invalidateObservation(): void {
             v-model="recordForm.correction_reason"
             class="ks-input mt-2 min-h-24 w-full"
             maxlength="5000"
-            placeholder="Manager-private context"
+            :placeholder="t('kingdomP7B.privateContext')"
           />
           <p class="mt-1 text-xs text-[var(--ks-text-muted)]">
             {{ t('kingdomP7B.correctionPrivate') }}
@@ -416,7 +415,7 @@ function invalidateObservation(): void {
           <thead class="text-xs tracking-wide text-[var(--ks-text-secondary)] uppercase">
             <tr>
               <th class="px-3 py-3 font-semibold">{{ t('kingdomP7B.capturedAt') }}</th>
-              <th class="px-3 py-3 font-semibold">Observed identity</th>
+              <th class="px-3 py-3 font-semibold">{{ t('kingdomP7B.observedName') }}</th>
               <th class="px-3 py-3 font-semibold">{{ t('kingdomP7B.power') }}</th>
               <th class="px-3 py-3 font-semibold">{{ t('kingdomP7B.members') }}</th>
               <th v-if="canManage" class="px-3 py-3 font-semibold">
@@ -441,7 +440,7 @@ function invalidateObservation(): void {
               <td class="px-3 py-4">
                 <p class="font-medium text-[var(--ks-ivory)]">{{ observation.observedName }}</p>
                 <p class="mt-1 text-xs text-[var(--ks-text-secondary)]">
-                  {{ observation.observedTag ?? 'No tag' }}
+                  {{ observation.observedTag ?? t('kingdomP7A.noTag') }}
                 </p>
               </td>
               <td class="px-3 py-4 text-[var(--ks-muted)]">
@@ -459,15 +458,18 @@ function invalidateObservation(): void {
                   v-if="observation.correctsObservationId"
                   class="mt-1 text-xs text-[var(--ks-text-muted)]"
                 >
-                  Correction of {{ observation.correctsObservationId }}
+                  {{ t('kingdomP7B.correctionOf', { id: observation.correctsObservationId }) }}
                 </p>
                 <p
                   v-if="observation.invalidatedAt"
                   class="mt-1 text-xs text-[var(--ks-text-muted)]"
                 >
-                  {{ t('kingdomP7B.invalidated') }} by
-                  {{ observation.invalidatedByName ?? 'unavailable actor' }} on
-                  {{ formatDate(observation.invalidatedAt) }}
+                  {{
+                    t('kingdomP7B.invalidatedBy', {
+                      actor: observation.invalidatedByName ?? t('kingdomP7B.unavailableActor'),
+                      date: formatDate(observation.invalidatedAt),
+                    })
+                  }}
                 </p>
                 <p
                   v-if="observation.invalidationReason"
@@ -542,7 +544,7 @@ function invalidateObservation(): void {
             type="button"
             @click="cancelInvalidation"
           >
-            Cancel
+            {{ t('common.cancel') }}
           </button>
         </div>
       </form>

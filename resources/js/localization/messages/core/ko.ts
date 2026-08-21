@@ -2,6 +2,7 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   common: {
+    all: '전체',
     language: '언어',
     signIn: '로그인',
     signOut: '로그아웃',

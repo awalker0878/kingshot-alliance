@@ -119,7 +119,7 @@ function scopeLabel(scope: string): string {
 
     <section
       class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4"
-      aria-label="Event catalogue summary"
+      :aria-label="t('events.catalogue.title')"
     >
       <StatSeal :label="t('events.catalogue.title')" :value="props.eventTypes.length" icon="✦" />
       <StatSeal

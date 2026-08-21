@@ -2,6 +2,7 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   common: {
+    all: 'Tümü',
     language: 'Dil',
     signIn: 'Giriş yap',
     signOut: 'Çıkış yap',

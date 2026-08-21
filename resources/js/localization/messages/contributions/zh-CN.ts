@@ -2,6 +2,11 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   contributions: {
+    cadences: {
+      daily: '每日',
+      weekly: '每周',
+      monthly: '每月',
+    },
     eyebrow: '联盟贡献',
     title: '联盟贡献',
     manageReporting: '管理贡献',

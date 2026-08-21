@@ -2,6 +2,11 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   contributions: {
+    cadences: {
+      daily: 'Hằng ngày',
+      weekly: 'Hằng tuần',
+      monthly: 'Hằng tháng',
+    },
     eyebrow: 'Đóng góp Liên minh',
     title: 'Đóng góp Liên minh',
     manageReporting: 'Quản lý đóng góp',
