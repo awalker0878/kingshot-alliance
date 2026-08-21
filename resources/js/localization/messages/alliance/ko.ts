@@ -29,7 +29,7 @@ const messages = {
       noInvitations: '아직 초대가 없습니다.',
       membershipAdmin: '연맹 멤버',
       membershipIntro:
-        '멤버 상태 변경은 연맹 등급과 역할 권한을 따릅니다. 소유자만 역할 배정을 변경할 수 있습니다.',
+        '멤버 상태와 역할 변경은 연맹 등급과 활성 총독에게 부여된 권한을 따릅니다.',
       membersOnPage: '전체 {total}명 중 {count}명을 표시합니다.',
       bulkActions: '멤버 상태 변경',
       selectedMembers: '{count}명 선택됨',
