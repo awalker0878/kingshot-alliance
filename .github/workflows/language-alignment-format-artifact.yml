@@ -1,9 +1,6 @@
 name: Finalize KingShot Language Alignment
 
 on:
-  push:
-    branches:
-      - product/kingshot-language-alignment
   pull_request:
     paths:
       - 'scripts/_finalize_event_history_locales_*.py'
@@ -11,11 +8,11 @@ on:
       - '.github/workflows/language-alignment-format-artifact.yml'
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   finalize:
-    name: Apply final language alignment
+    name: Export final language alignment
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -45,141 +42,33 @@ jobs:
       - name: Format changed frontend sources
         run: npx prettier --write resources/ tests/v3/Visual/ApplicationShell.spec.ts .github/workflows/intelligence-verification.yml
 
-      - name: Remove temporary finalizer files
+      - name: Prepare artifact
         shell: bash
         run: |
+          set -euo pipefail
           rm scripts/_finalize_event_history_locales_a.py
           rm scripts/_finalize_event_history_locales_b.py
           rm scripts/_finalize_event_history_locales_c.py
           rm scripts/_finalize_language_surfaces.py
           rm .github/workflows/language-alignment-format-artifact.yml
+          git diff --name-only > changed-files.txt
+          git diff --name-only --diff-filter=D > deleted-files.txt
+          mkdir -p finalized
+          while IFS= read -r file; do
+            [ -n "$file" ] || continue
+            [ -e "$file" ] || continue
+            mkdir -p "finalized/$(dirname "$file")"
+            cp "$file" "finalized/$file"
+          done < changed-files.txt
+          cat changed-files.txt
 
-      - name: Commit final language alignment
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A
-          if git diff --cached --quiet; then
-            echo 'No language changes to commit.'
-            exit 0
-          fi
-          git commit -m 'Complete final KingShot language alignment'
-          git push origin HEAD:product/kingshot-language-alignment
-
-  visual-baselines:
-    name: Refresh aligned visual baselines
-    needs: finalize
-    runs-on: ubuntu-latest
-    timeout-minutes: 25
-    services:
-      postgres:
-        image: postgres:18-alpine
-        env:
-          POSTGRES_DB: kingshot_visual
-          POSTGRES_USER: kingshot
-          POSTGRES_PASSWORD: kingshot
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U kingshot -d kingshot_visual"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-    env:
-      APP_ENV: testing
-      APP_KEY: base64:Wb1PHh03m1vXbmyRxlI+Y96TqgK7Vyt8H/lkQ8o1SP0=
-      APP_DEBUG: false
-      APP_URL: http://127.0.0.1:8000
-      DB_CONNECTION: pgsql
-      DB_HOST: 127.0.0.1
-      DB_PORT: 5432
-      DB_DATABASE: kingshot_visual
-      DB_USERNAME: kingshot
-      DB_PASSWORD: kingshot
-      CACHE_STORE: array
-      QUEUE_CONNECTION: sync
-      SESSION_DRIVER: file
-      MAIL_MAILER: array
-      PULSE_ENABLED: false
-      PLAYWRIGHT_BASE_URL: http://127.0.0.1:8000
-      PLAYWRIGHT_USE_SYSTEM_CHROME: true
-    steps:
-      - name: Check out finalized branch
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - name: Upload finalized language tree
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          ref: product/kingshot-language-alignment
-
-      - name: Configure PHP
-        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
-        with:
-          php-version: '8.5'
-          extensions: dom, intl, mbstring, pdo_pgsql, simplexml, xml, xmlwriter, zip
-          coverage: none
-          tools: composer:v2
-
-      - name: Install locked PHP dependencies
-        run: composer install --no-interaction --no-progress --prefer-dist
-
-      - name: Configure Node.js
-        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
-        with:
-          node-version: '24'
-          cache: npm
-
-      - name: Install locked frontend dependencies
-        run: npm ci --no-audit --no-fund
-
-      - name: Prepare visual database
-        shell: bash
-        run: |
-          php artisan migrate --force
-          php artisan tinker --execute='$user = \App\Contexts\Accounts\Identity\Models\User::factory()->create(["name" => "UX P9 Visual", "email" => "ux-p9-visual@example.test", "timezone" => "UTC"]); $k1123 = \App\Contexts\GameWorld\Kingdoms\Models\Kingdom::query()->create(["number" => 1123, "status" => "active"]); $k1198 = \App\Contexts\GameWorld\Kingdoms\Models\Kingdom::query()->create(["number" => 1198, "status" => "active"]); \App\Contexts\GameWorld\Players\Models\Player::query()->create(["user_id" => $user->id, "current_kingdom_id" => $k1123->id, "game_player_id" => "GOV-1123-A", "current_name" => "Lady Seraphina"]); \App\Contexts\GameWorld\Players\Models\Player::query()->create(["user_id" => $user->id, "current_kingdom_id" => $k1198->id, "game_player_id" => "GOV-1198-B", "current_name" => "Lord Caspian"]);'
-
-      - name: Build production frontend
-        run: npm run build
-
-      - name: Start application
-        shell: bash
-        run: |
-          php artisan serve --host=127.0.0.1 --port=8000 > "${RUNNER_TEMP}/language-alignment-server.log" 2>&1 &
-          echo $! > "${RUNNER_TEMP}/language-alignment-server.pid"
-          for attempt in $(seq 1 30); do
-            if curl --fail --silent http://127.0.0.1:8000/ >/dev/null; then
-              exit 0
-            fi
-            sleep 1
-          done
-          cat "${RUNNER_TEMP}/language-alignment-server.log"
-          exit 1
-
-      - name: Remove retired visual baseline names
-        shell: bash
-        run: |
-          find tests/v3/Visual -type f \( -name 'realm-gate*.png' -o -name 'command-overview*.png' \) -delete
-
-      - name: Refresh visual snapshots
-        run: npm run test:visual:update
-
-      - name: Commit refreshed visual baselines
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add tests/v3/Visual
-          if git diff --cached --quiet; then
-            echo 'Visual baselines already current.'
-            exit 0
-          fi
-          git commit -m 'Refresh product-language visual baselines'
-          git push origin HEAD:product/kingshot-language-alignment
-
-      - name: Stop application
-        if: always()
-        shell: bash
-        run: |
-          if [ -f "${RUNNER_TEMP}/language-alignment-server.pid" ]; then
-            kill "$(cat "${RUNNER_TEMP}/language-alignment-server.pid")" 2>/dev/null || true
-          fi
+          name: final-language-alignment
+          path: |
+            finalized
+            changed-files.txt
+            deleted-files.txt
+          if-no-files-found: error
+          retention-days: 1
