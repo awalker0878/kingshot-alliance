@@ -3,12 +3,13 @@ import type { MessageCatalogue } from '../../types';
 const messages = {
   platformAdmin: {
     title: 'Plattformverwaltung',
+    backDashboard: 'Zurück zur Startseite',
     capacityTitle: 'Kapazität und Betrieb',
     administrators: 'Plattformadministratoren',
-    provisionAlliance: 'Allianz bereitstellen',
-    allianceFleet: 'Allianzbestand',
-    legalHolds: 'Rechtliche Sperren',
-    localizationRuntime: 'Lokalisierungslaufzeit',
+    provisionAlliance: 'Allianz erstellen',
+    allianceFleet: 'Allianzen',
+    legalHolds: 'Datensatzsperren',
+    localizationRuntime: 'Sprachen',
   },
 } satisfies MessageCatalogue;
 
