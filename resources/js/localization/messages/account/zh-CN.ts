@@ -1,12 +1,17 @@
 import type { MessageCatalogue } from '../../types';
 
 const messages = {
+  notifications: {
+    types: {
+      kingPerkReminder: '职位特权提醒',
+    },
+  },
   accountExperience: {
     account: {
       eyebrow: '账户管理',
       title: '账户与安全',
       intro: '管理身份、邮箱验证、密码、双重验证和活动会话。',
-      passwordUpdated: '密码已更新，其他已验证会话已撤销。',
+      passwordUpdated: '密码已更新，其他已验证会话已退出。',
       sessionsRevoked: '其他已验证会话已退出。',
       twoFactorDisabled: '双重验证已关闭。',
       profileTitle: '个人资料',
@@ -21,7 +26,7 @@ const messages = {
       setupPending: '设置待完成',
       notEnabled: '未启用',
       twoFactorTitle: '双重验证',
-      twoFactorIntro: '使用 TOTP 验证器保护登录。恢复码只在创建或重新生成时显示。',
+      twoFactorIntro: '使用验证器应用保护登录。恢复码只在创建或重新生成时显示。',
       startSetup: '开始设置',
       authenticatorSecret: '验证器密钥',
       provisioningUri: '配置 URI',
@@ -32,13 +37,13 @@ const messages = {
       regenerateRecoveryCodes: '重新生成恢复码',
       disableTwoFactor: '关闭双重验证',
       passwordTitle: '更改密码',
-      passwordIntro: '更改密码会撤销个人访问令牌并使其他已验证会话失效。',
+      passwordIntro: '更改密码会退出其他设备并关闭其他活动访问。',
       currentPassword: '当前密码',
       newPassword: '新密码',
       confirmNewPassword: '确认新密码',
       updatePassword: '更新密码',
       sessionsTitle: '其他会话',
-      sessionsIntro: '撤销除本设备以外的所有已验证会话。',
+      sessionsIntro: '退出除本设备以外的所有已验证会话。',
       signOutOthers: '退出其他设备',
       dangerTitle: '危险操作',
       deleteAccount: '删除账户',
