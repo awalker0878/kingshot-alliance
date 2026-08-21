@@ -10,8 +10,8 @@ on:
       - 'app/ReadModels/KingdomIntelligence/**'
       - 'app/ReadModels/SharedKingdomIntelligence/**'
       - 'database/migrations/**event**'
-      - 'resources/js/pages/Operations/Events/Chronicle.vue'
-      - 'resources/js/pages/Intelligence/GloryLedger/History.vue'
+      - 'resources/js/pages/Operations/Events/History.vue'
+      - 'resources/js/pages/Intelligence/Contributions/History.vue'
       - 'routes/event-history.php'
       - 'routes/contributions.php'
       - 'tests/v3/**'
@@ -130,10 +130,10 @@ jobs:
         run: npm ci --no-audit --no-fund
 
       - name: Intelligence history frontend lint
-        run: npx eslint resources/js/pages/Operations/Events/Chronicle.vue resources/js/pages/Intelligence/GloryLedger/History.vue
+        run: npx eslint resources/js/pages/Operations/Events/History.vue resources/js/pages/Intelligence/Contributions/History.vue
 
       - name: Intelligence history frontend format
-        run: npx prettier --check resources/js/pages/Operations/Events/Chronicle.vue resources/js/pages/Intelligence/GloryLedger/History.vue
+        run: npx prettier --check resources/js/pages/Operations/Events/History.vue resources/js/pages/Intelligence/Contributions/History.vue
 
       - name: Intelligence history frontend types
         shell: bash
@@ -142,8 +142,8 @@ jobs:
           {
             "extends": "./tsconfig.json",
             "include": [
-              "resources/js/pages/Operations/Events/Chronicle.vue",
-              "resources/js/pages/Intelligence/GloryLedger/History.vue",
+              "resources/js/pages/Operations/Events/History.vue",
+              "resources/js/pages/Intelligence/Contributions/History.vue",
               "resources/js/**/*.d.ts"
             ]
           }
