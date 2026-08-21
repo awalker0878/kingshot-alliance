@@ -5,9 +5,44 @@ import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
 const ts = require('typescript');
+const { NodeTypes, parse } = require('@vue/compiler-dom');
 const root = process.cwd();
 const pagesDirectory = path.join(root, 'resources/js/pages');
-const literalAllowList = new Set(['API', 'CSV', 'UTC', 'R1', 'R2', 'R3', 'R4', 'R5']);
+const literalAllowList = new Set([
+  'API',
+  'CSV',
+  'HTTP',
+  'HTTPS',
+  'NAP',
+  'R1',
+  'R2',
+  'R3',
+  'R4',
+  'R5',
+  'SHA-256',
+  'UTC',
+  'https://',
+]);
+const visibleAttributeNames = new Set([
+  'alt',
+  'aria-label',
+  'description',
+  'eyebrow',
+  'help-text',
+  'label',
+  'placeholder',
+  'subtitle',
+  'title',
+]);
+const visiblePropertyNames = new Set([
+  'description',
+  'eyebrow',
+  'helpText',
+  'label',
+  'placeholder',
+  'subtitle',
+  'title',
+]);
 
 function vueFiles(directory) {
   return fs.readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
@@ -18,11 +53,8 @@ function vueFiles(directory) {
 }
 
 function templateSource(source) {
-  const start = source.indexOf('<template');
-  const open = start === -1 ? -1 : source.indexOf('>', start);
-  const end = source.lastIndexOf('</template>');
-  if (open === -1 || end === -1 || end <= open) return '';
-  return source.slice(open + 1, end);
+  const match = source.match(/<template\b[^>]*>([\s\S]*?)<\/template>/);
+  return match?.[1] ?? '';
 }
 
 function scriptSource(source) {
@@ -32,7 +64,8 @@ function scriptSource(source) {
 
 function normalized(value) {
   return value
-    .replace(/&(?:nbsp|middot|mdash|ndash);/g, ' ')
+    .replace(/&(?:amp|nbsp|middot|mdash|ndash);/g, ' ')
+    .replace(/\$\{[^}]+}/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
 }
@@ -44,45 +77,95 @@ function isVisibleLanguage(value) {
   return /[A-Za-z]{2,}/.test(text);
 }
 
-function rawTemplateStrings(template) {
+function literalStringsFromExpression(expression) {
+  if (!expression || /\bt\s*\(/.test(expression)) return [];
+
+  const source = ts.createSourceFile(
+    'attribute-expression.ts',
+    `const __value = (${expression});`,
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TS,
+  );
+  if (source.parseDiagnostics.length > 0) return [];
+
   const values = [];
-  const withoutExpressions = template.replace(/{{[\s\S]*?}}/g, '');
+  function visit(node) {
+    if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
+      if (isVisibleLanguage(node.text)) values.push(node.text);
+      return;
+    }
+    if (ts.isTemplateExpression(node)) {
+      const text = [node.head.text, ...node.templateSpans.map((span) => span.literal.text)].join(' ');
+      if (isVisibleLanguage(text)) values.push(text);
+      for (const span of node.templateSpans) visit(span.expression);
+      return;
+    }
+    ts.forEachChild(node, visit);
+  }
+  visit(source);
+  return values;
+}
 
-  for (const match of withoutExpressions.matchAll(/>([^<]+)</g)) {
-    const value = normalized(match[1]);
-    if (isVisibleLanguage(value)) values.push(value);
+function rawTemplateStrings(template, relative) {
+  if (template.trim() === '') return [];
+
+  let ast;
+  try {
+    ast = parse(template, { comments: false });
+  } catch (error) {
+    throw new Error(`${relative}: Vue template could not be parsed: ${error.message}`);
   }
 
-  const names = 'title|subtitle|eyebrow|placeholder|aria-label|alt|label|description';
-  for (const match of template.matchAll(new RegExp(`(?<![:@\\w-])(?:${names})\\s*=\\s*["']([^"']+)["']`, 'g'))) {
-    const value = normalized(match[1]);
-    if (isVisibleLanguage(value)) values.push(value);
-  }
+  const values = [];
+  function visit(node) {
+    if (node.type === NodeTypes.TEXT) {
+      if (isVisibleLanguage(node.content)) values.push(normalized(node.content));
+      return;
+    }
 
-  for (const match of template.matchAll(new RegExp(`:(?:${names})\\s*=\\s*"([^"]+)"`, 'g'))) {
-    const expression = match[1];
-    if (/\bt\s*\(/.test(expression)) continue;
-    for (const literal of expression.matchAll(/['`]([^'`]*[A-Za-z][^'`]*)['`]/g)) {
-      const value = normalized(literal[1].replace(/\$\{[^}]+}/g, ''));
-      if (isVisibleLanguage(value)) values.push(value);
+    if (node.type === NodeTypes.ELEMENT) {
+      for (const prop of node.props) {
+        if (prop.type === NodeTypes.ATTRIBUTE) {
+          if (!visibleAttributeNames.has(prop.name) || !prop.value) continue;
+          if (isVisibleLanguage(prop.value.content)) values.push(normalized(prop.value.content));
+          continue;
+        }
+
+        if (
+          prop.type === NodeTypes.DIRECTIVE &&
+          prop.name === 'bind' &&
+          prop.arg?.type === NodeTypes.SIMPLE_EXPRESSION &&
+          prop.arg.isStatic &&
+          visibleAttributeNames.has(prop.arg.content) &&
+          prop.exp?.type === NodeTypes.SIMPLE_EXPRESSION
+        ) {
+          values.push(...literalStringsFromExpression(prop.exp.content).map(normalized));
+        }
+      }
+    }
+
+    if (Array.isArray(node.children)) {
+      for (const child of node.children) visit(child);
+    }
+    if (node.type === NodeTypes.IF) {
+      for (const branch of node.branches) visit(branch);
+    }
+    if (node.type === NodeTypes.IF_BRANCH && Array.isArray(node.children)) {
+      for (const child of node.children) visit(child);
+    }
+    if (node.type === NodeTypes.FOR && Array.isArray(node.children)) {
+      for (const child of node.children) visit(child);
     }
   }
 
+  visit(ast);
   return values;
 }
 
 function rawScriptLabels(sourceText) {
   const source = ts.createSourceFile('page.ts', sourceText, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
   const values = [];
-  const visiblePropertyNames = new Set([
-    'label',
-    'title',
-    'subtitle',
-    'eyebrow',
-    'description',
-    'placeholder',
-    'helpText',
-  ]);
 
   function visit(node) {
     if (ts.isPropertyAssignment(node)) {
@@ -93,7 +176,7 @@ function rawScriptLabels(sourceText) {
         (ts.isStringLiteral(initializer) || ts.isNoSubstitutionTemplateLiteral(initializer)) &&
         isVisibleLanguage(initializer.text)
       ) {
-        values.push(initializer.text);
+        values.push(normalized(initializer.text));
       }
     }
     ts.forEachChild(node, visit);
@@ -120,7 +203,7 @@ for (const file of files) {
   }
 
   const rawStrings = [
-    ...rawTemplateStrings(templateSource(source)),
+    ...rawTemplateStrings(templateSource(source), relative),
     ...rawScriptLabels(scriptSource(source)),
   ];
   for (const value of [...new Set(rawStrings)]) {
