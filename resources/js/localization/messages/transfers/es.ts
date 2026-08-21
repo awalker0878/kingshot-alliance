@@ -2,9 +2,10 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   kingdomP7D: {
-    title: 'Planificación de transferencias',
+    eyebrow: 'Transferencia de reino',
+    title: 'Planificación de transferencia',
     readinessBoard: 'Preparación',
-    completion: 'Finalización',
+    completion: 'Resultado',
     manageTransfers: 'Gestionar transferencias',
     currentCycle: 'Ciclo actual',
     participants: 'Participantes',
@@ -12,8 +13,22 @@ const messages = {
     outgoing: 'Saliente',
     staying: 'Se queda',
     transferGroups: 'Grupos de transferencia',
-    readinessTitle: 'Preparación de transferencia',
-    completionTitle: 'Finalización explícita de transferencia',
+    player: 'Gobernador',
+    gamePlayerId: 'ID de juego del Gobernador',
+    readinessTitle: 'Preparación para la transferencia',
+    completionTitle: 'Resultado de la transferencia',
+    recordCompletion: 'Registrar resultado de la transferencia',
+    rosterHandoffRecorded: 'Plantilla de la alianza actualizada',
+    completedStatus: 'Completado',
+    notCompletedStatus: 'No completado',
+    stateDraft: 'Borrador',
+    stateOpen: 'Abierto',
+    stateLocked: 'Bloqueado',
+    stateClosed: 'Cerrado',
+    stateCancelled: 'Cancelado',
+    readinessReady: 'Listo',
+    readinessBlocked: 'Bloqueado',
+    readinessConfirmed: 'Confirmado',
   },
 } satisfies MessageCatalogue;
 
