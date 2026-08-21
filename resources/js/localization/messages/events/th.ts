@@ -3,7 +3,7 @@ import type { MessageCatalogue } from '../../types';
 const messages = {
   events: {
     scope: {
-      player: 'ผู้เล่น',
+      player: 'ผู้ว่าการ',
       alliance: 'พันธมิตร',
       kingdom: 'อาณาจักร',
     },
@@ -28,7 +28,7 @@ const messages = {
       title: 'สร้างกิจกรรม',
       back: 'กลับไปยังกิจกรรม',
       noContexts: 'ขณะนี้คุณไม่มีสิทธิ์สร้างกิจกรรม',
-      context: 'บริบทกิจกรรม',
+      context: 'กิจกรรมนี้เป็นของ',
       eventType: 'ประเภทกิจกรรม',
       start: 'เวลาเริ่ม',
       duration: 'ระยะเวลา (นาที)',
@@ -43,7 +43,7 @@ const messages = {
       status: 'สถานะ',
       capacity: 'ความจุ',
       recurrence: 'การเกิดซ้ำ',
-      modules: 'โมดูลปฏิบัติการ',
+      modules: 'เครื่องมือกิจกรรม',
     },
     manage: {
       title: 'จัดการกิจกรรม',
@@ -114,7 +114,7 @@ const messages = {
       substitutes: 'ตัวสำรอง',
       teams: 'ทีม',
       legions: 'กองทัพ',
-      rally_guidance: 'คำแนะนำแรลลี่',
+      rally_guidance: 'แผนรวมพล',
       formations: 'รูปขบวน',
       objectives: 'เป้าหมาย',
       scoring: 'คะแนน',
@@ -122,10 +122,10 @@ const messages = {
     },
     reminderAudiences: {
       target: 'เป้าหมายกิจกรรม',
-      responded: 'ผู้เล่นที่ตอบแล้ว',
-      registered: 'ผู้เล่นที่ลงทะเบียน',
-      rostered: 'ผู้เล่นในรายชื่อ',
-      all_scope_players: 'ผู้เล่นที่มีสิทธิ์ทั้งหมด',
+      responded: 'ผู้ว่าการที่ตอบแล้ว',
+      registered: 'ผู้ว่าการที่ลงทะเบียน',
+      rostered: 'ผู้ว่าการในรายชื่อ',
+      all_scope_players: 'ผู้ว่าการที่มีสิทธิ์ทั้งหมด',
     },
   },
 } satisfies MessageCatalogue;
