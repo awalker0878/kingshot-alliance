@@ -23,6 +23,113 @@ Select active Player
 
 The command overview is a read-model composition surface. It does not own or copy the underlying business state.
 
+## Alliance Territory & Hive Planner
+
+### Create and save an Alliance hive plan
+
+```text
+Select active Governor
+ -> open Territory Command
+ -> choose Alliance scope and a supported map dataset
+ -> create draft plan
+ -> place HQ / Banners / Governor cities / Bear Traps
+ -> receive immediate browser preview of validity
+ -> inspect exact server-equivalent violations, warnings and suggestions
+ -> save coherent layout against expected revision
+ -> continue editing or publish an immutable revision
+```
+
+The canvas is a visualization/editor surface, not the only accessible control. Every placed object is also available through synchronized semantic controls with object type, label, Alliance, X/Y coordinates, validation state and keyboard-editable actions.
+
+A save is a coherent plan mutation, not one request per pointer movement. The save action revalidates active-Player authority, expected revision, map dataset availability, geometry and game placement rules in the owner-controlled transaction. A stale revision produces an explicit conflict and never silently overwrites another officer's saved work.
+
+### Distinguish game rules from planning advice
+
+```text
+Move/place object
+ -> evaluate map facts and sourced game rules
+ -> invalid rule => blocking violation
+ -> legal but undesirable planning choice => warning
+ -> optional better position/metric => suggestion
+```
+
+A red/green visual alone is insufficient. The UI states why a placement is invalid and does not present an Alliance preference such as a target Bear radius as an official KingShot rule.
+
+### Build a Bear hive
+
+```text
+Open Alliance territory plan
+ -> select Bear Trap or placement centre
+ -> choose a typed hive generator/preset
+ -> preview generated HQ/Banner/city arrangement
+ -> validate complete proposed group
+ -> place as a group
+ -> assign/link Governors where known
+ -> customize by moving/rotating/grouping objects
+ -> inspect distance and estimated march metrics
+```
+
+March-time analysis identifies the assumption/calibration used. Unknown or community-observed speeds are not labelled official. A Governor may be application-linked or plan-local when planning external/unknown participants.
+
+### Analyze a layout
+
+```text
+Open saved plan/revision
+ -> calculate territory coverage and connectivity
+ -> identify covered/uncovered Governors
+ -> inspect invalid/warning counts
+ -> inspect banner usage/efficiency
+ -> inspect average / median / maximum distance to selected Bear Trap or objective
+ -> compare with another immutable revision/layout
+```
+
+Analysis is deterministic and does not mutate either compared layout. Missing/unknown map data remains unknown rather than becoming zero or a guessed success.
+
+### Coordinate multiple Alliances
+
+```text
+Open Kingdom-scoped territory plan
+ -> add application-linked or external Alliance participant
+ -> set display label/color/visibility
+ -> place or generate each Alliance layout
+ -> toggle/lock layers while coordinating
+ -> validate shared map conflicts
+ -> publish one Kingdom plan revision
+```
+
+External Alliances and Governors do not need fake application records. Plan-local references remain explicit. Cross-Alliance planning access is authorized through current Player/Kingdom/plan scope; owning another privileged Player does not automatically grant access while a different Player is active.
+
+### Publish, share and recover
+
+```text
+Finish draft
+ -> publish immutable revision pinned to map dataset/checksum
+ -> export PNG/SVG or schema-versioned JSON
+ -> optionally reference revision from supported Operations workflow
+```
+
+```text
+Need correction
+ -> clone/restore revision into editable head
+ -> make changes
+ -> publish a new revision
+```
+
+Published history is immutable. Restoring creates a new editable state; it does not rewrite the historical revision used by a Bear Hunt, Castle Battle or Kingdom planning workflow.
+
+### Import a layout
+
+```text
+Choose JSON import
+ -> parse schema
+ -> normalize external identifiers/coordinates
+ -> validate dataset and complete proposed layout
+ -> preview additions/conflicts/warnings
+ -> confirm commit
+```
+
+An importer never writes models while parsing. Invalid schema, unsupported map dataset, illegal geometry or authorization failure stops before persistence.
+
 ## Gift Code trust and redemption
 
 ```text
@@ -68,9 +175,12 @@ Active Player
 Select scoped Event
  -> plan occurrence/capabilities
  -> manage participation/roster/polls/battle plan/rallies
+ -> reference applicable published territory-plan revision when spatial coordination is needed
  -> record results
  -> analytical/history projections become available through Intelligence/ReadModels
 ```
+
+The territory-plan reference is immutable revision identity. `BattlePlans` continues to own objectives/assignments and does not become the owner of HQ/Banner/city/terrain state.
 
 The Event agenda exposes bulk cancellation only for manageable Event series. Selection is bounded to 50 concrete Event IDs, preview distinguishes eligible, completed, unavailable and already-cancelled Events, confirmation names the eligible count, and failed Event IDs remain selected for correction and retry.
 
@@ -143,7 +253,8 @@ Open owner-context action
 Browser-native prompts are not part of a supported journey. A high-risk action must preserve keyboard focus, expose its title and description to assistive technology, prevent duplicate submission, and keep the active Alliance/Player scope visible.
 
 The application layout announces successful mutation receipts consistently. A receipt confirms the action and may include structured counts; durable audit history, per-item results, delivery state, and recovery controls remain inside the owning workflow.
-# Bot connection and Event participation
+
+## Bot connection and Event participation
 
 1. A Governor with an active Alliance opens **Account & security → Bot connections** and chooses Discord or Telegram.
 2. After password confirmation, the application shows one pairing code for ten minutes. Creating another code cancels the older unused code for that provider.

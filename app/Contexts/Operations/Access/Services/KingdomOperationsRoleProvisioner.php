@@ -11,30 +11,26 @@ use Illuminate\Support\Str;
 
 final readonly class KingdomOperationsRoleProvisioner
 {
-    public function __construct(
-        private GrantKingdomRolePermissions $grantRolePermissions,
-    ) {}
+    public function __construct(private GrantKingdomRolePermissions $grantRolePermissions) {}
 
-    public function provision(
-        string $kingdomId,
-        string $administratorRoleId,
-        string $eventCoordinatorRoleId,
-        string $viewerRoleId,
-    ): void {
+    public function provision(string $kingdomId, string $administratorRoleId, string $eventCoordinatorRoleId, string $viewerRoleId): void
+    {
         $grants = [
             $administratorRoleId => [
                 OperationsPermission::EventKingdomView,
                 OperationsPermission::EventKingdomCreate,
                 OperationsPermission::EventKingdomManage,
+                OperationsPermission::TerritoryKingdomView,
+                OperationsPermission::TerritoryKingdomManage,
             ],
             $eventCoordinatorRoleId => [
                 OperationsPermission::EventKingdomView,
                 OperationsPermission::EventKingdomCreate,
                 OperationsPermission::EventKingdomManage,
+                OperationsPermission::TerritoryKingdomView,
+                OperationsPermission::TerritoryKingdomManage,
             ],
-            $viewerRoleId => [
-                OperationsPermission::EventKingdomView,
-            ],
+            $viewerRoleId => [OperationsPermission::EventKingdomView, OperationsPermission::TerritoryKingdomView],
         ];
 
         $requiredPermissions = [];
@@ -56,10 +52,7 @@ final readonly class KingdomOperationsRoleProvisioner
 
         $permissionKeysByRoleId = [];
         foreach ($grants as $roleId => $permissions) {
-            $permissionKeysByRoleId[$roleId] = array_map(
-                static fn (OperationsPermission $permission): string => $permission->key(),
-                $permissions,
-            );
+            $permissionKeysByRoleId[$roleId] = array_map(static fn (OperationsPermission $permission): string => $permission->key(), $permissions);
         }
 
         $this->grantRolePermissions->handle($kingdomId, $permissionKeysByRoleId);

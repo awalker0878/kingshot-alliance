@@ -7,6 +7,7 @@ namespace App\Contexts\Operations\Access\Services;
 use App\Contexts\GameWorld\Governance\Queries\KingdomAuthorityFactsQuery;
 use App\Contexts\GameWorld\Governance\ValueObjects\KingdomAuthorityFacts;
 use App\Contexts\Operations\Access\Enums\OperationsPermission;
+use Illuminate\Auth\Access\AuthorizationException;
 
 final readonly class KingdomOperationsAuthorization
 {
@@ -21,8 +22,14 @@ final readonly class KingdomOperationsAuthorization
 
     public function allowsFacts(KingdomAuthorityFacts $facts, OperationsPermission $permission): bool
     {
-        return $this->supports($permission)
-            && $facts->hasPermissionObservedAtRead($permission->key());
+        return $this->supports($permission) && $facts->hasPermissionObservedAtRead($permission->key());
+    }
+
+    public function authorizeFacts(KingdomAuthorityFacts $facts, OperationsPermission $permission): void
+    {
+        if (! $this->allowsFacts($facts, $permission)) {
+            throw new AuthorizationException;
+        }
     }
 
     private function supports(OperationsPermission $permission): bool
@@ -31,6 +38,8 @@ final readonly class KingdomOperationsAuthorization
             OperationsPermission::EventKingdomView,
             OperationsPermission::EventKingdomCreate,
             OperationsPermission::EventKingdomManage,
+            OperationsPermission::TerritoryKingdomView,
+            OperationsPermission::TerritoryKingdomManage,
         ], true);
     }
 }

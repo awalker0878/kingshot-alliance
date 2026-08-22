@@ -15,7 +15,7 @@
     "lint": "eslint . --fix",
     "lint:check": "eslint .",
     "types:check": "vue-tsc --noEmit",
-    "check": "npm run lint:check && npm run format:check && npm run types:check && npm run check:accessibility && npm run check:documentation && npm run check:page-localization-coverage && npm run check:event-localization-coverage && npm run check:action-receipt-coverage && npm run check:product-language && npm run build && npm run check:localization-chunks && npm run check:performance-budgets",
+    "check": "npm run lint:check && npm run format:check && npm run types:check && npm run check:accessibility && npm run check:documentation && npm run check:page-localization-coverage && npm run check:event-localization-coverage && npm run check:action-receipt-coverage && npm run check:product-language && npm run check:territory-localization && npm run check:territory-geometry && npm run check:territory-export && npm run build && npm run check:localization-chunks && npm run check:performance-budgets",
     "audit": "npm audit --audit-level=high",
     "test:visual": "playwright test",
     "test:visual:update": "playwright test --update-snapshots",
@@ -26,6 +26,9 @@
     "check:localization-chunks": "node scripts/check-localization-chunks.mjs",
     "check:event-localization-coverage": "node scripts/check-event-localization-coverage.mjs",
     "check:product-language": "node scripts/check-product-language.mjs",
+    "check:territory-localization": "node scripts/check-territory-localization.mjs",
+    "check:territory-geometry": "node scripts/check-territory-geometry-parity.mjs",
+    "check:territory-export": "node scripts/check-territory-export.mjs",
     "check:performance-budgets": "node scripts/check-performance-budgets.mjs"
   },
   "dependencies": {

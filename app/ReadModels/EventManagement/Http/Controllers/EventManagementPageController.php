@@ -20,6 +20,7 @@ use App\Contexts\Operations\Polls\Queries\EventPhasePollQuery;
 use App\Contexts\Operations\Rallies\Queries\EventRallyQuery;
 use App\Contexts\Operations\Results\Queries\EventResultQuery;
 use App\Contexts\Operations\Rosters\Queries\EventRosterQuery;
+use App\Contexts\Operations\TerritoryPlanning\Queries\EventTerritoryPlanningQuery;
 use App\ReadModels\EventAnalysis\Queries\EventPlayerIntelligenceQuery;
 use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Http\Request;
@@ -42,6 +43,7 @@ final class EventManagementPageController extends Controller
         EventRosterQuery $rosters,
         EventRallyQuery $rallies,
         EventCapabilityResolver $capabilities,
+        EventTerritoryPlanningQuery $territoryPlanning,
     ): Response {
         $user = $this->user($request);
         $actor = $this->player();
@@ -72,6 +74,7 @@ final class EventManagementPageController extends Controller
             'playerIntelligence' => $intelligence->forEvent($record),
             'rosterOperations' => $rosters->management($record),
             'rallyOperations' => $rallies->management($record),
+            'territoryPlanning' => $territoryPlanning->management($actor->playerId, $record),
             'reminderAudiences' => array_values(array_unique($reminderAudiences)),
             'reminderRules' => EventReminderRule::query()
                 ->where('event_id', $record->id)

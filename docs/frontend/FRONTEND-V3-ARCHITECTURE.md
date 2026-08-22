@@ -27,6 +27,8 @@ Routable Vue pages live only under these game-facing surfaces:
 
 Backend terms such as `ReadModels`, `GameWorld`, `Platform`, persistence layers, contexts, actions, and authority objects must not become frontend page taxonomy or visible copy.
 
+Territory planning is presented as **Territory Command** under the Kingdom/Alliance operational experience. The browser never exposes `KingdomMaps` or `TerritoryPlanning` as architecture vocabulary.
+
 ## Boundary rules
 
 1. Laravel owns authoritative state and authorization.
@@ -36,6 +38,18 @@ Backend terms such as `ReadModels`, `GameWorld`, `Platform`, persistence layers,
 5. Mutations send IDs, scalars, enums, and form values. The browser does not submit backend model-shaped authority objects.
 6. Server state is not duplicated into a global domain store. Inertia navigation/partial reloads remain the default state model.
 7. Cross-capability composite reads can be rendered on the game surface they serve without exposing the backend `ReadModels` concept.
+8. Territory editor pointer movement is local working state. Save/publish submits a coherent proposed layout with the expected server revision rather than one mutation per drag.
+9. Browser geometry is a preview contract. Laravel repeats authoritative placement/rule validation before persistence.
+
+## Territory Command rendering/accessibility contract
+
+The spatial editor may use Canvas 2D for efficient map rendering, but canvas is never the only interaction surface.
+
+- Every planned object has a synchronized semantic DOM row/control with type, Alliance, label, exact X/Y and validation state.
+- Placement failures are announced in text and cannot rely on red/green alone.
+- Keyboard users can select objects, edit exact coordinates, nudge, rotate, group/ungroup and delete through normal controls.
+- Map dataset/version/provenance and non-official march assumptions are visible where they affect interpretation.
+- Static map/reference layers are lazy-loaded with the planner; ordinary pages do not inherit the planner dataset/rendering cost.
 
 ## Game-language rules
 
@@ -54,6 +68,9 @@ Visible text should describe what a Kingshot Governor or Alliance officer is doi
 - Kingdom Alliances
 - Glory Ledger
 - Kingdom Transfer
+- Territory Command
+- Hive Builder
+- Layout Analysis
 - Noticeboard
 - Alliance Connections
 - Citadel
@@ -71,7 +88,8 @@ Notable examples:
 - Battle Plan appears only when the event exposes objectives.
 - War Report appears only when result capability/data is present.
 - Intel Room is Alliance-owned intelligence contributed by Governors.
-- No generic territory, donations, inventory, global leaderboard, gift level, or invented event system is introduced.
+- Territory Command appears only when a current Player has a permitted Alliance/Kingdom planning scope and uses real `GameWorld/KingdomMaps` + `Operations/TerritoryPlanning` contracts.
+- No donation totals, global leaderboard, gift level, inventory or invented event system is introduced.
 
 ## Visual system
 
@@ -96,7 +114,7 @@ Mutation surfaces use the shared feedback primitives:
 - `FormError` gives server validation an alert region that inputs reference with `aria-describedby` and `aria-invalid`;
 - `ActionNotice` presents translated success, warning and failure outcomes without exposing internal status codes;
 - `ConfirmActionDialog` provides a keyboard-contained, initially focused confirmation for irreversible or access-revoking actions.
-- Browser-native confirmation prompts are prohibited. The frontend accessibility gate parses every Vue single-file component, requires the shared dialog contract, and keeps cancellation available until a confirmed request starts.
+- Browser-native confirmation prompts are prohibited.
 
 New mutation forms must expose server validation beside the affected control, prevent duplicate submission while busy and translate completion status. Native `window.confirm` and raw server status values are not the standard for new work.
 
@@ -118,4 +136,4 @@ npm run check
 npm run build
 ```
 
-The current Playwright suite lives under `tests/v3/Visual`. It verifies public entry surfaces and the multi-Governor identity switcher at desktop and mobile viewports with reduced motion enabled.
+The Playwright suite under `tests/v3/Visual` must include Territory Command desktop/mobile/reduced-motion coverage once the capability routes are enabled.

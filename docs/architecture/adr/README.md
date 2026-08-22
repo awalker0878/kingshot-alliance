@@ -12,3 +12,4 @@ Architecture decision records explain material changes to ownership, boundaries,
 - [ADR-0006: Verified external actors call owner actions](0006-verified-external-actors-call-owner-actions.md)
 - [ADR-0007: Version contextual knowledge links with content](0007-version-contextual-knowledge-links.md)
 - [ADR-0008: Bound operator recovery and expose privacy-safe diagnostics](0008-bounded-operator-recovery.md)
+- [ADR-0009: Separate versioned map truth from territory planning intent](0009-versioned-map-truth-and-territory-planning.md)

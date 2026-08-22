@@ -1,75 +1,92 @@
 # Capability delivery ledger
 
-Status: Current as of 2026-08-20
+Status: Current as of 2026-08-22
 
-This ledger records shipped outcomes, the active capability-completeness program, the remaining evidence gate, and the implementation standard. GitHub remains the source of truth for exact diffs and CI results.
+This ledger records shipped outcomes, active capability delivery, remaining evidence gates, and the implementation standard. GitHub remains the source of truth for exact diffs and CI results.
+
+The delivery ledger is a work queue, not a roadmap. Every incomplete Territory & Hive Planner item created by this effort must be implemented before the effort is considered complete. A feature discovered during implementation that is required for capability correctness, usability, security, operability or architectural integrity is added to the appropriate slice rather than deferred as an unspecified future enhancement.
 
 ## Merged delivery
 
-| PR                                                              | Slice                   | User outcome                                                                                       |
-| --------------------------------------------------------------- | ----------------------- | -------------------------------------------------------------------------------------------------- |
-| [#79](https://github.com/awalker0878/kingshot-alliance/pull/79) | Post-Pint stabilization | Restored a green baseline without a PHPStan baseline or compatibility shims.                       |
-| [#80](https://github.com/awalker0878/kingshot-alliance/pull/80) | Gift Codes              | Shared, sourced code catalogue with official redemption handoff and per-Governor status.           |
-| [#81](https://github.com/awalker0878/kingshot-alliance/pull/81) | Notifications           | In-app, Discord, and Telegram delivery with encrypted endpoints and bounded retries.               |
-| [#82](https://github.com/awalker0878/kingshot-alliance/pull/82) | Command overview        | One responsive decision surface for alerts, Events, Gift Codes, and recruitment follow-up.         |
-| [#83](https://github.com/awalker0878/kingshot-alliance/pull/83) | Alliance broadcasts     | Scheduled, idempotent announcements to active members' enabled channels.                           |
-| [#84](https://github.com/awalker0878/kingshot-alliance/pull/84) | Knowledge provenance    | Searchable versioned guides with source, game-version, locale, and review metadata.                |
-| [#85](https://github.com/awalker0878/kingshot-alliance/pull/85) | Player progression      | Freshness-aware, source-labelled observation history and consecutive change detection.             |
-| [#86](https://github.com/awalker0878/kingshot-alliance/pull/86) | Recruitment discovery   | Opt-in public discovery, shareable filters, visible attribution, and private conversion analytics. |
-| [#87](https://github.com/awalker0878/kingshot-alliance/pull/87) | Bot/API reads           | Revocable least-privilege command, Gift Code, and knowledge reads with bounded responses.          |
-| [#88](https://github.com/awalker0878/kingshot-alliance/pull/88) | Mobile/PWA              | Install, update, and offline UX while private application responses remain network-only.           |
-
-Every merged slice passed PHP tests, Pint, PHPStan, frontend lint/format/type/build, architecture verification, CodeQL, dependency review, intelligence contracts, visual regression, production image build, ephemeral staging, backup/restore, and image scanning.
-
-## Improvement-program delivery
-
-| PR                                                              | Slice                          | Durable outcome                                                                                       |
-| --------------------------------------------------------------- | ------------------------------ | ----------------------------------------------------------------------------------------------------- |
-| [#90](https://github.com/awalker0878/kingshot-alliance/pull/90) | Baseline and cleanup           | Established the authoritative inventory, documentation-link gate, and cleanup rule.                   |
-| [#91](https://github.com/awalker0878/kingshot-alliance/pull/91) | Architecture enforcement       | Removed V2 visual compatibility structure and made the current visual contract enforceable.           |
-| [#92](https://github.com/awalker0878/kingshot-alliance/pull/92) | UX system                      | Standardized accessible busy, validation, outcome, and confirmation behavior.                         |
-| [#93](https://github.com/awalker0878/kingshot-alliance/pull/93) | Public webhook contracts       | Replaced dead selectors with emitted Alliance-scoped lifecycle contracts.                             |
-| [#94](https://github.com/awalker0878/kingshot-alliance/pull/94) | Webhook delivery recovery      | Added signed test delivery, audited replay, bounded retry, and delivery inspection.                   |
-| [#95](https://github.com/awalker0878/kingshot-alliance/pull/95) | Gift Code recovery             | Completed official-provider handoff, terminal outcomes, backoff, and safe retry behavior.             |
-| [#96](https://github.com/awalker0878/kingshot-alliance/pull/96) | Operational budgets            | Made reviewed production JavaScript and stylesheet ceilings release gates.                            |
+| PR | Slice | User outcome |
+| --- | --- | --- |
+| [#79](https://github.com/awalker0878/kingshot-alliance/pull/79) | Post-Pint stabilization | Restored a green baseline without a PHPStan baseline or compatibility shims. |
+| [#80](https://github.com/awalker0878/kingshot-alliance/pull/80) | Gift Codes | Shared, sourced code catalogue with official redemption handoff and per-Governor status. |
+| [#81](https://github.com/awalker0878/kingshot-alliance/pull/81) | Notifications | In-app, Discord, and Telegram delivery with encrypted endpoints and bounded retries. |
+| [#82](https://github.com/awalker0878/kingshot-alliance/pull/82) | Command overview | One responsive decision surface for alerts, Events, Gift Codes, and recruitment follow-up. |
+| [#83](https://github.com/awalker0878/kingshot-alliance/pull/83) | Alliance broadcasts | Scheduled, idempotent announcements to active members' enabled channels. |
+| [#84](https://github.com/awalker0878/kingshot-alliance/pull/84) | Knowledge provenance | Searchable versioned guides with source, game-version, locale, and review metadata. |
+| [#85](https://github.com/awalker0878/kingshot-alliance/pull/85) | Player progression | Freshness-aware, source-labelled observation history and consecutive change detection. |
+| [#86](https://github.com/awalker0878/kingshot-alliance/pull/86) | Recruitment discovery | Opt-in public discovery, shareable filters, visible attribution, and private conversion analytics. |
+| [#87](https://github.com/awalker0878/kingshot-alliance/pull/87) | Bot/API reads | Revocable least-privilege command, Gift Code, and knowledge reads with bounded responses. |
+| [#88](https://github.com/awalker0878/kingshot-alliance/pull/88) | Mobile/PWA | Install, update, and offline UX while private application responses remain network-only. |
+| [#90](https://github.com/awalker0878/kingshot-alliance/pull/90) | Baseline and cleanup | Established the authoritative inventory, documentation-link gate, and cleanup rule. |
+| [#91](https://github.com/awalker0878/kingshot-alliance/pull/91) | Architecture enforcement | Removed V2 visual compatibility structure and made the current visual contract enforceable. |
+| [#92](https://github.com/awalker0878/kingshot-alliance/pull/92) | UX system | Standardized accessible busy, validation, outcome, and confirmation behavior. |
+| [#93](https://github.com/awalker0878/kingshot-alliance/pull/93) | Public webhook contracts | Replaced dead selectors with emitted Alliance-scoped lifecycle contracts. |
+| [#94](https://github.com/awalker0878/kingshot-alliance/pull/94) | Webhook delivery recovery | Added signed test delivery, audited replay, bounded retry, and delivery inspection. |
+| [#95](https://github.com/awalker0878/kingshot-alliance/pull/95) | Gift Code recovery | Completed official-provider handoff, terminal outcomes, backoff, and safe retry behavior. |
+| [#96](https://github.com/awalker0878/kingshot-alliance/pull/96) | Operational budgets | Made reviewed production JavaScript and stylesheet ceilings release gates. |
 | [#97](https://github.com/awalker0878/kingshot-alliance/pull/97) | Accessibility and localization | Replaced browser prompts with the shared accessible modal contract and an AST-based enforcement gate. |
 
-The temporary phase report was retired at closeout; Git history remains its archive. Current product outcomes live in the [capability catalogue](capability-catalogue.md), user flow in [primary journeys](experience/user-journeys.md), and operational release evidence in the [release checklist](../operations/release/checklist.md).
+Every merged slice passed the repository's applicable PHP, Pint, PHPStan, frontend lint/format/type/build, architecture, CodeQL, dependency-review, visual, production-image, staging, backup/restore and image-scan checks.
 
-## Active completeness program
+## Territory & Hive Planner delivery program
 
-| Order | Slice                         | Exit condition                                                                                                                                   |
-| ----- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 1     | Authoritative baseline        | Fresh-install migrations contain the final pre-deployment schema, retired phase language is removed and every page participates in localization. |
-| 2     | Read contracts and pagination | Potentially large lists expose stable opaque cursor traversal with preserved filters and scope tests.                                            |
-| 3     | Shared UX and navigation      | Common list, state, receipt and permission-aware navigation patterns are adopted by touched workflows.                                           |
-| 4     | Safe bulk actions             | Recruitment, Membership, Event, Contribution and notification bulk actions use preview, per-item authorization/results and failed-item retry.    |
-| 5     | Gift Code trust lifecycle     | Review, dispute, expiry, provenance and selective Governor retry are explicit and audited.                                                       |
-| 6     | Recurring communications      | Schedule intent and provider delivery outcomes are distinct, inspectable, cancellable and selectively retryable.                                 |
-| 7     | Integration contracts         | Outbox writes are standardized, secrets rotate safely and published API/webhook schemas are contract-tested.                                     |
-| 8     | External actor parity         | Revocable provider identity links support idempotent authorized self-service writes without duplicated domain rules.                             |
-| 9     | Knowledge and operations      | Stale-content review, contextual guidance, safe diagnostics and query/queue budgets are operating.                                               |
-| 10    | Release closeout              | Daily workflows have keyboard/mobile/visual coverage and fresh-install, staging and restore checks pass.                                         |
+Target: a complete Alliance Territory & Hive Planner, not a drawing-only MVP.
 
-No slice advances on partial UX or documentation. Its owner, permission model, negative and recovery paths, tests, audit/correlation behavior, observability and current-truth documentation ship together.
+Architectural ownership is intentionally split:
 
-The safe-bulk program is complete. Recruitment candidate stage triage, Membership status administration, Event cancellation, Contribution approval, and Notification inbox updates now use server-authorized preview, bounded concrete selection, commit-time owner authorization, per-item results, aggregate audit evidence, and failed-item reselection. Owner actions continue to produce their capability-specific history or audit evidence.
+- `GameWorld/KingdomMaps` owns immutable/versioned map facts, map-dataset provenance and sourced game placement rules.
+- `Operations/TerritoryPlanning` owns mutable planning intent, saved layouts, planning preferences, deterministic analysis, revisions and Operations-facing references.
+- `app/ReadModels/TerritoryPlanning` composes map, Alliance, Player and plan reads for the editor without becoming a writer.
+- `BattlePlans` remains Event-objective/assignment state and does not absorb spatial persistence.
 
-The Gift Code trust lifecycle is complete. Normalized duplicates retain append-only source observations, shared `pending`/`valid`/`invalid`/`expired`/`disputed` status is derived from per-Governor evidence, official handoff returns per-Governor receipts, failed-only retry is bounded and ownership-scoped, and hourly maintenance queues idempotent expiry reminders.
+Territory implementation and release readiness are tracked together. `Complete` means the slice has its full product/code outcome, owner tests/contracts, documentation and required release evidence. The final PR candidate must pass the complete repository Definition of Done on one immutable head; the resulting `main` commit repeats the applicable CI, CodeQL, Architecture and Visual gates. A failing post-merge gate immediately reopens blocking closeout work rather than becoming deferred follow-up.
 
-The recurring-communications slice is complete. Content owns timezone-safe weekday rules and durable broadcast runs; Communications owns channel fanout and provider outcomes. Managers can send actor-only tests, inspect queued/sent/failed/read counts, cancel future recurrence with the accessible confirmation contract and retry up to 50 still-eligible failures. Editing or archiving content deactivates stale recurrence, while the cross-context management page is composed in an explicit ReadModel.
+### Slice queue
 
-The integration-contract slice is complete. The allowlisted catalogue now covers Membership, Event, Recruitment, Gift Code and broadcast lifecycles with explicit Alliance/global scope and fail-closed payload validation. Versioned OpenAPI and webhook JSON Schema artifacts are contract-tested against runtime routes/scopes and event requirements. Managers can rotate encrypted signing secrets with one-time display, while provider delivery outcomes remain privacy-safe and retry evidence stays immutable.
+| Order | Status | Slice | Exit condition |
+| --- | --- | --- | --- |
+| 0 | Complete | Product/architecture contract | Product catalogue, gap analysis, delivery ledger, journeys, capability/data-ownership maps, ADR, frontend capability truth and permissions describe the final ownership and complete delivery target with no contradictory “territory unsupported” current docs. |
+| 1 | Complete | Map dataset and geometry foundation | `GameWorld/KingdomMaps` has immutable schema-versioned/checksummed datasets, provenance/confidence metadata, canonical coordinate/rectangle geometry values, structured sourced placement rules and shared PHP/TypeScript golden geometry fixtures. No opaque community coordinate/rule set is treated as official truth. |
+| 2 | Complete | Plan persistence and authorization | `Operations/TerritoryPlanning` owns plan/alliance/object/group/preference state, active-Player scoped authorization, optimistic revision protection, normalized editable persistence and immutable published revision snapshots. External Alliance/Governor plan references do not create fake application entities. |
+| 3 | Complete | Accessible editor baseline | A localized Inertia/Vue Territory Command page supports list/create/open/save/publish/archive/clone, pan/zoom, exact coordinates, HQ/Banner/Governor city/Bear Trap placement, selection/move/delete/duplicate and synchronized keyboard/DOM editing. Laravel remains save authority. |
+| 4 | Complete | Validation, territory and advanced editing | Server-authoritative map bounds, footprint collision, fixed-structure/no-build zones, caps and territory connectivity return structured violations/warnings/suggestions; browser preview matches golden fixtures; coverage rendering, box select, grouping, ungrouping, 90-degree rotation, keyboard nudging and undo/redo are complete. |
+| 5 | Complete | Hive generators and march analysis | Bear-hive presets are typed generators with preview/validate/commit and customizable output; TC block placement works; distance/march analysis is deterministic, labels assumptions, supports Bear Trap selection and never presents guessed speed as official game truth. |
+| 6 | Complete | Layout analysis and comparison | The planner reports covered/uncovered Governors, disconnected territory, banner efficiency, invalid/warning counts, average/median/max distances and comparable deterministic metrics; immutable revisions can be compared without mutating either. |
+| 7 | Complete | Multi-Alliance Kingdom planning | One Kingdom plan supports multiple application-linked and external Alliances, independent visibility/labels/presentation colors, object counts, locks/access decisions and shared spatial validation without transferring Alliance or GameWorld ownership. Participant management revalidates authority/revision under lock and protects layers that still own planned objects. |
+| 8 | Complete | Revisions, interchange and export | Publish creates immutable revisions pinned to a map dataset/checksum; restore/clone is explicit; JSON import uses parse → normalize → validate → preview → commit with schema versioning; JSON export plus shareable PNG and SVG rendering are implemented and tested. |
+| 9 | Complete | Operations integration | Event positioning can reference an immutable published territory-plan revision through scalar IDs/read composition. Editing a plan head cannot rewrite an Event's referenced historical layout; BattlePlans retains objective/assignment ownership. |
+| 10 | Complete | Release closeout | No Territory/Hive TODOs, placeholders, compatibility shims, temporary workflows, dual schemas or incomplete ledger items remain. The immutable release candidate must keep accessibility/mobile/visual coverage, PHP tests, Pint, PHPStan, frontend checks/build, architecture checks, CodeQL, dependency review, production image build/scan, clean PostgreSQL install, staging and backup/restore green; the merged `main` commit repeats the applicable push-triggered gates. |
 
-The external-actor parity slice is complete. Governors issue ten-minute, one-time Discord/Telegram pairing codes and can inspect or revoke resulting links. Platform stores keyed provider-subject hashes, revalidates link/credential scope for every write, and binds each normalized request to an idempotent receipt. Bot adapters can submit Event responses and registration changes, while the cross-context workflow delegates authorization, response, capacity and waitlist behavior to Operations owner actions.
+The Territory & Hive Planner delivery queue is closed: every planned slice is Complete and no known Territory product feature is deferred. Any defect exposed by PR or post-merge `main` verification is a regression that reopens blocking closeout work; it is not recorded as a future enhancement.
 
-The knowledge-and-operations slice is complete. Knowledge review state is derived from versioned provenance, due and overdue work appears in the Content workspace, and explicit Event-type links are restored with each revision. Alliance Event pages consume matching published guidance through a read model instead of duplicating strategy text. The Citadel shows bounded privacy-safe failure projections and correlation timelines; outbox retries stop at a configured limit and a password-confirmed operator can release only exhausted failed unpublished work for one audited idempotency-preserving retry cycle.
+### Cross-slice invariants
 
-Closeout requires a clean PostgreSQL installation through every migration, the complete PHP and frontend checks, architecture verification, dependency review, CodeQL, unchanged or deliberately reviewed visual baselines, production-image construction and scanning, ephemeral staging, and a demonstrated backup/restore cycle. Calculators remain outside the release scope until the evidence gate below opens.
+These are not deferrable cleanup items:
+
+1. **Map fact vs rule vs preference:** a map fact describes the world; a sourced game rule determines legality; an Alliance planning preference creates a warning/suggestion. They are persisted and presented separately.
+2. **Structured validation:** placement validation returns machine-readable violations, warnings and optional suggestions. A boolean-only `canPlace` API is not sufficient.
+3. **Geometry parity:** browser geometry is preview only; Laravel is authoritative. PHP and TypeScript consume shared golden fixtures for coordinates, footprints, bounds, collisions, rotations, coverage and rule outcomes.
+4. **Save boundaries:** pointer movement does not create one HTTP mutation per pixel/drag. The browser maintains working state and saves a coherent proposed layout against an expected plan revision.
+5. **Historical truth:** current editable state is normalized; immutable published/history snapshots pin the map dataset and checksum. Downstream workflows reference a revision, not mutable head state.
+6. **External references:** external Alliances/Governors used for Kingdom planning remain explicit plan-local references when no application identity exists.
+7. **Canvas accessibility:** canvas is never the only control surface. Objects remain selectable/editable through semantic DOM controls with exact coordinates and non-color validation messages; the viewport also exposes keyboard-focusable zoom/fit controls.
+8. **No hidden formulas/data:** Vue components do not own placement rules, cost tables, march constants or map datasets.
+9. **No partial completion:** a slice is not Complete until its UX, backend behavior, authorization, persistence, validation/concurrency, accessibility, localization, observability, tests and current-truth documentation are all complete.
+
+### Required observability/recovery
+
+The capability records audit evidence for plan create/save/publish/archive/restore/import and Kingdom participant-layer changes; conflicts distinguish stale revision from validation/authorization failures; imports are structurally validated and previewed before write; invalid map datasets fail closed; and published revisions remain readable after newer map datasets appear.
+
+## Previous completeness program
+
+The pagination, shared UX/navigation, safe-bulk, Gift Code trust, recurring communications, integration-contract, external-actor parity, knowledge/operations and release-closeout improvement slices have been completed. Their detailed history remains in Git history and their current outcomes live in the capability catalogue, journeys, reference docs and owner-context tests.
 
 ## Remaining evidence gate: calculators
 
-The scan found community troop, Governor Gear, Charm, Hero Gear, shard, pet, research, Event, and formation calculators. These are useful discovery evidence, but no inspected source supplied an official or reproducibly versioned Kingshot dataset suitable for product logic.
+Calculators remain outside the Territory & Hive Planner effort. Community calculator pages demonstrate demand, but their visible results do not provide an authoritative, reviewable dataset contract.
 
 Calculator work may start only when all of these are true:
 
@@ -82,12 +99,4 @@ Calculator work may start only when all of these are true:
 7. The UI displays dataset version, source, observation date, assumptions, and a report-correction path.
 8. Saved scenarios reference their dataset version so later data corrections cannot silently rewrite historical plans.
 
-## Concise implementation plan after the gate opens
-
-1. Land the dataset schema, validator, provenance record, and one reviewed dataset without a user-facing calculator.
-2. Implement pure range aggregation and inventory-gap services with golden fixtures.
-3. Ship one calculator end-to-end, beginning with the best-supported dataset rather than the largest feature.
-4. Add saved scenarios, compare/export UX, keyboard/mobile verification, and visible source/version metadata.
-5. Run the complete repository gate set before merge; expand to another calculator only after the first dataset and correction workflow are operating cleanly.
-
-Until the evidence gate opens, calculator pages, guessed formulas, placeholder values, and copied opaque tables are intentionally out of scope.
+Until that evidence gate opens, calculator pages, guessed formulas, placeholder values and copied opaque tables remain intentionally out of scope.

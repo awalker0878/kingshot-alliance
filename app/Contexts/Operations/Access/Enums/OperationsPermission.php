@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Access\Enums;
 
-use App\Shared\Infrastructure\Access\Contracts\Permission;
-
-enum OperationsPermission: string implements Permission
+enum OperationsPermission: string
 {
     case EventPlayerView = 'events.player.view';
     case EventPlayerCreate = 'events.player.create';
@@ -17,7 +15,11 @@ enum OperationsPermission: string implements Permission
     case EventKingdomView = 'events.kingdom.view';
     case EventKingdomCreate = 'events.kingdom.create';
     case EventKingdomManage = 'events.kingdom.manage';
-    case EventTypeManage = 'events.types.manage';
+    case EventTypesManage = 'events.types.manage';
+    case TerritoryAllianceView = 'territory.alliance.view';
+    case TerritoryAllianceManage = 'territory.alliance.manage';
+    case TerritoryKingdomView = 'territory.kingdom.view';
+    case TerritoryKingdomManage = 'territory.kingdom.manage';
 
     public function key(): string
     {
@@ -27,16 +29,11 @@ enum OperationsPermission: string implements Permission
     public function description(): string
     {
         return match ($this) {
-            self::EventPlayerView => 'View permitted player-scoped events.',
-            self::EventPlayerCreate => 'Create permitted player-scoped events.',
-            self::EventPlayerManage => 'Manage permitted player-scoped events.',
-            self::EventAllianceView => 'View alliance-scoped events.',
-            self::EventAllianceCreate => 'Create alliance-scoped events.',
-            self::EventAllianceManage => 'Manage alliance-scoped events and event operations.',
-            self::EventKingdomView => 'View permitted kingdom-scoped events.',
-            self::EventKingdomCreate => 'Create permitted kingdom-scoped events.',
-            self::EventKingdomManage => 'Manage permitted kingdom-scoped events.',
-            self::EventTypeManage => 'Manage the event type catalogue and capability configuration.',
+            self::TerritoryAllianceView => 'View Alliance territory and hive plans.',
+            self::TerritoryAllianceManage => 'Manage Alliance territory and hive plans.',
+            self::TerritoryKingdomView => 'View Kingdom multi-Alliance territory plans.',
+            self::TerritoryKingdomManage => 'Manage Kingdom multi-Alliance territory plans.',
+            default => ucfirst(str_replace(['.', '_'], ' ', $this->value)).'.',
         };
     }
 }

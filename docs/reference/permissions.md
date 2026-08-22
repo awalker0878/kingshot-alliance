@@ -26,24 +26,30 @@ Source: `app/Contexts/GameWorld/Governance/Enums/KingdomPermission.php`
 | --- | --- |
 | `kingdom.roles.manage` | Manage roles/role assignments for a concrete Kingdom. |
 
+`GameWorld/KingdomMaps` currently exposes map truth through owner queries and does not grant a separate user-managed map permission merely to consume immutable dataset facts.
+
 ## Operations
 
 Source: `app/Contexts/Operations/Access/Enums/OperationsPermission.php`
 
-| Key |
-| --- |
-| `events.player.view` |
-| `events.player.create` |
-| `events.player.manage` |
-| `events.alliance.view` |
-| `events.alliance.create` |
-| `events.alliance.manage` |
-| `events.kingdom.view` |
-| `events.kingdom.create` |
-| `events.kingdom.manage` |
-| `events.types.manage` |
+| Key | Meaning |
+| --- | --- |
+| `events.player.view` | View permitted player-scoped Events. |
+| `events.player.create` | Create permitted player-scoped Events. |
+| `events.player.manage` | Manage permitted player-scoped Events. |
+| `events.alliance.view` | View Alliance-scoped Events. |
+| `events.alliance.create` | Create Alliance-scoped Events. |
+| `events.alliance.manage` | Manage Alliance-scoped Events and Event operations. |
+| `events.kingdom.view` | View permitted Kingdom-scoped Events. |
+| `events.kingdom.create` | Create permitted Kingdom-scoped Events. |
+| `events.kingdom.manage` | Manage permitted Kingdom-scoped Events. |
+| `events.types.manage` | Manage Event type catalogue/capability configuration. |
+| `territory.alliance.view` | View territory/hive plans available to the active Player in an Alliance scope. |
+| `territory.alliance.manage` | Create/edit/publish/import/archive permitted Alliance-scoped territory/hive plans. |
+| `territory.kingdom.view` | View permitted Kingdom-scoped multi-Alliance territory plans. |
+| `territory.kingdom.manage` | Create/edit/publish/import/archive permitted Kingdom-scoped multi-Alliance territory plans. |
 
-The permission family encodes both action and Event scope. Operations interprets these permissions using current Player/scope facts.
+The permission family encodes both action and scope. Operations interprets these permissions using current Player/scope facts. Frontend flags control affordances only; every write is reauthorized at commit time.
 
 ## Intelligence
 

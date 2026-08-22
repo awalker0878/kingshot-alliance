@@ -1,0 +1,265 @@
+{
+  "id": "kingshot-community-observed-2026-08-21-v1",
+  "schema_version": 1,
+  "game_version": null,
+  "observed_at": "2026-08-21",
+  "source_label": "Community-observed KingShot map profile",
+  "source_uri": "https://github.com/Bleezy-D/Alliance-Layout-Planner",
+  "confidence": "community_observed",
+  "license_note": "Map constants adapted from the MIT-licensed Bleezy-D/Alliance-Layout-Planner project, which itself describes the map as extracted from a community ksmapper dataset. This profile is not represented as official Century Games data.",
+  "coordinate_system": {
+    "name": "kingshot_xy",
+    "origin": "south_west_game_coordinates",
+    "tile_size": 1
+  },
+  "bounds": { "x": 0, "y": 0, "width": 1200, "height": 1200 },
+  "object_types": {
+    "headquarters": { "size": 3, "coverage": 6, "max_per_alliance": 1 },
+    "banner": { "size": 1, "coverage": 3, "max_per_alliance": 285 },
+    "governor_city": { "size": 2, "coverage": 0, "max_per_alliance": 100 },
+    "bear_trap": { "size": 3, "coverage": 0, "max_per_alliance": 2 }
+  },
+  "zones": {
+    "forbidden": {
+      "x": 586,
+      "y": 586,
+      "width": 28,
+      "height": 28,
+      "blocked_types": ["headquarters", "banner", "governor_city", "bear_trap"]
+    },
+    "ruins": {
+      "x": 552,
+      "y": 552,
+      "width": 96,
+      "height": 96,
+      "blocked_types": ["headquarters", "banner", "bear_trap"]
+    },
+    "fertile": {
+      "x": 450,
+      "y": 450,
+      "width": 300,
+      "height": 300,
+      "blocked_types": ["headquarters"]
+    },
+    "plains": { "x": 300, "y": 300, "width": 600, "height": 600, "blocked_types": [] },
+    "badlands": { "x": 0, "y": 0, "width": 1200, "height": 1200, "blocked_types": [] }
+  },
+  "structures": [
+    {
+      "key": "kings_castle",
+      "name": "King's Castle",
+      "category": "castle",
+      "x": 597,
+      "y": 597,
+      "size": 6,
+      "exclusion": 6,
+      "city_exempt": false
+    },
+    {
+      "key": "south_turret",
+      "name": "South Turret",
+      "category": "turret",
+      "x": 594,
+      "y": 594,
+      "size": 2,
+      "exclusion": 0,
+      "city_exempt": false
+    },
+    {
+      "key": "north_turret",
+      "name": "North Turret",
+      "category": "turret",
+      "x": 604,
+      "y": 604,
+      "size": 2,
+      "exclusion": 0,
+      "city_exempt": false
+    },
+    {
+      "key": "west_turret",
+      "name": "West Turret",
+      "category": "turret",
+      "x": 594,
+      "y": 604,
+      "size": 2,
+      "exclusion": 0,
+      "city_exempt": false
+    },
+    {
+      "key": "east_turret",
+      "name": "East Turret",
+      "category": "turret",
+      "x": 604,
+      "y": 594,
+      "size": 2,
+      "exclusion": 0,
+      "city_exempt": false
+    },
+    {
+      "key": "fortress_1",
+      "name": "Fortress 1",
+      "category": "fortress",
+      "x": 597,
+      "y": 800,
+      "size": 6,
+      "exclusion": 60,
+      "city_exempt": true
+    },
+    {
+      "key": "fortress_2",
+      "name": "Fortress 2",
+      "category": "fortress",
+      "x": 400,
+      "y": 597,
+      "size": 6,
+      "exclusion": 60,
+      "city_exempt": true
+    },
+    {
+      "key": "fortress_3",
+      "name": "Fortress 3",
+      "category": "fortress",
+      "x": 597,
+      "y": 400,
+      "size": 6,
+      "exclusion": 60,
+      "city_exempt": true
+    },
+    {
+      "key": "fortress_4",
+      "name": "Fortress 4",
+      "category": "fortress",
+      "x": 800,
+      "y": 597,
+      "size": 6,
+      "exclusion": 60,
+      "city_exempt": true
+    },
+    {
+      "key": "sanctuary_1",
+      "name": "Sanctuary 1",
+      "category": "sanctuary",
+      "x": 237,
+      "y": 828,
+      "size": 6,
+      "exclusion": 60,
+      "city_exempt": true
+    },
+    {
+      "key": "sanctuary_2",
+      "name": "Sanctuary 2",
+      "category": "sanctuary",
+      "x": 237,
+      "y": 606,
+      "size": 6,
+      "exclusion": 60,
+      "city_exempt": true
+    },
+    {
+      "key": "sanctuary_3",
+      "name": "Sanctuary 3",
+      "category": "sanctuary",
+      "x": 237,
+      "y": 348,
+      "size": 6,
+      "exclusion": 60,
+      "city_exempt": true
+    },
+    {
+      "key": "sanctuary_4",
+      "name": "Sanctuary 4",
+      "category": "sanctuary",
+      "x": 366,
+      "y": 237,
+      "size": 6,
+      "exclusion": 60,
+      "city_exempt": true
+    },
+    {
+      "key": "sanctuary_5",
+      "name": "Sanctuary 5",
+      "category": "sanctuary",
+      "x": 588,
+      "y": 237,
+      "size": 6,
+      "exclusion": 60,
+      "city_exempt": true
+    },
+    {
+      "key": "sanctuary_6",
+      "name": "Sanctuary 6",
+      "category": "sanctuary",
+      "x": 846,
+      "y": 237,
+      "size": 6,
+      "exclusion": 60,
+      "city_exempt": true
+    },
+    {
+      "key": "sanctuary_7",
+      "name": "Sanctuary 7",
+      "category": "sanctuary",
+      "x": 957,
+      "y": 348,
+      "size": 6,
+      "exclusion": 60,
+      "city_exempt": true
+    },
+    {
+      "key": "sanctuary_8",
+      "name": "Sanctuary 8",
+      "category": "sanctuary",
+      "x": 957,
+      "y": 606,
+      "size": 6,
+      "exclusion": 60,
+      "city_exempt": true
+    },
+    {
+      "key": "sanctuary_9",
+      "name": "Sanctuary 9",
+      "category": "sanctuary",
+      "x": 957,
+      "y": 828,
+      "size": 6,
+      "exclusion": 60,
+      "city_exempt": true
+    },
+    {
+      "key": "sanctuary_10",
+      "name": "Sanctuary 10",
+      "category": "sanctuary",
+      "x": 846,
+      "y": 957,
+      "size": 6,
+      "exclusion": 60,
+      "city_exempt": true
+    },
+    {
+      "key": "sanctuary_11",
+      "name": "Sanctuary 11",
+      "category": "sanctuary",
+      "x": 606,
+      "y": 957,
+      "size": 6,
+      "exclusion": 60,
+      "city_exempt": true
+    },
+    {
+      "key": "sanctuary_12",
+      "name": "Sanctuary 12",
+      "category": "sanctuary",
+      "x": 366,
+      "y": 957,
+      "size": 6,
+      "exclusion": 60,
+      "city_exempt": true
+    }
+  ],
+  "placement_rules": [
+    { "key": "map_bounds", "kind": "blocking", "source": "dataset" },
+    { "key": "fixed_structure_exclusion", "kind": "blocking", "source": "dataset" },
+    { "key": "zone_restrictions", "kind": "blocking", "source": "dataset" },
+    { "key": "object_collision", "kind": "blocking", "source": "planner_geometry" }
+  ]
+}
