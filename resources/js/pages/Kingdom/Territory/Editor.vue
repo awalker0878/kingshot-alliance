@@ -942,7 +942,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
         </div>
 
         <div class="mt-5 border-t border-[var(--ks-border)] pt-4">
-          <p class="ks-kicker">{{ t('territory.hiveBuilder') }}</p>
+          <h2 class="ks-display text-lg font-semibold">{{ t('territory.hiveBuilder') }}</h2>
           <select v-model="hiveStyle" class="ks-input mt-2 w-full">
             <option value="swirl">{{ t('territory.swirlHive') }}</option>
             <option value="banner_pad">{{ t('territory.bannerPadHive') }}</option>
@@ -1495,6 +1495,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
     </section>
 
     <ConfirmActionDialog
+      id="territory-plan-action-dialog"
       :open="dialogAction !== null"
       :title="dialogAction?.kind === 'restore' ? t('territory.restore') : t('territory.archive')"
       :description="
