@@ -39,22 +39,20 @@ jobs:
       - name: Install locked frontend dependencies
         run: npm ci --no-audit --no-fund
 
-      - name: Repair Territory editor source before formatting
+      - name: Repair Territory surfaces before formatting
         shell: bash
         run: |
           python - <<'PY'
           from pathlib import Path
           import re
 
-          path = Path('resources/js/pages/Kingdom/Territory/Editor.vue')
-          source = path.read_text()
-
+          editor = Path('resources/js/pages/Kingdom/Territory/Editor.vue')
+          source = editor.read_text()
           source = source.replace(
               "const importPreview = ref<Record<string, unknown> | null>(null);",
               "const importPreview = ref<Record<string, unknown> | null>(null);\nconst importDocument = ref('');",
               1,
           ) if "const importDocument = ref('');" not in source else source
-
           source = re.sub(
               r"async function importFile\(event: Event\): Promise<void> \{.*?\n\}\nfunction applyImport\(\): void \{.*?\n\}",
               """async function importFile(event: Event): Promise<void> {
@@ -115,7 +113,6 @@ jobs:
               count=1,
               flags=re.S,
           )
-
           source = re.sub(
               r"if \(\(event\.ctrlKey \|\| event\.metaKey\) && event\.key\.toLowerCase\(\) === 'z'\) \{\s*event\.preventDefault\(\);\s*event\.shiftKey \? redo\(\) : undo\(\);\s*return;\s*\}",
               """if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') {
@@ -130,8 +127,195 @@ jobs:
               source,
               count=1,
           )
+          editor.write_text(source)
 
-          path.write_text(source)
+          manage = Path('resources/js/pages/Operations/Events/Manage.vue')
+          source = manage.read_text()
+          if 'type TerritoryPlanningOperations' not in source:
+              source = source.replace(
+                  '\nconst props = defineProps<{',
+                  """
+type TerritoryRevisionOption = {
+  id: string;
+  planId: string;
+  planName: string;
+  revisionNumber: number;
+  mapDatasetId: string;
+  mapDatasetChecksum: string;
+  publishedAt: string | null;
+};
+type TerritoryAttachment = {
+  id: string;
+  occurrenceId: string;
+  purpose: string;
+  revisionId: string;
+  planId: string;
+  planName: string;
+  revisionNumber: number;
+  publishedAt: string | null;
+};
+type TerritoryPlanningOperations = {
+  supported: boolean;
+  availableRevisions: TerritoryRevisionOption[];
+  attachments: TerritoryAttachment[];
+};
+
+const props = defineProps<{""",
+                  1,
+              )
+          if 'territoryPlanning: TerritoryPlanningOperations;' not in source:
+              source = source.replace(
+                  '  playerIntelligence: PlayerIntelligence[];\n  reminderAudiences: string[];',
+                  '  playerIntelligence: PlayerIntelligence[];\n  territoryPlanning: TerritoryPlanningOperations;\n  reminderAudiences: string[];',
+                  1,
+              )
+          if 'const territorySelections = ref<Record<string, string>>' not in source:
+              source = source.replace(
+                  "const firstOccurrenceId = props.event.occurrences[0]?.id ?? '';",
+                  """const firstOccurrenceId = props.event.occurrences[0]?.id ?? '';
+const territorySelections = ref<Record<string, string>>(
+  Object.fromEntries(
+    props.event.occurrences.map((occurrence) => [
+      occurrence.id,
+      props.territoryPlanning.attachments.find(
+        (attachment) => attachment.occurrenceId === occurrence.id && attachment.purpose === 'positioning',
+      )?.revisionId ?? '',
+    ]),
+  ),
+);
+const territoryBusyOccurrence = ref<string | null>(null);
+const territoryError = ref('');
+function territoryAttachment(occurrenceId: string): TerritoryAttachment | undefined {
+  return props.territoryPlanning.attachments.find(
+    (attachment) => attachment.occurrenceId === occurrenceId && attachment.purpose === 'positioning',
+  );
+}
+function csrfToken(): string {
+  return document.querySelector<HTMLMetaElement>('meta[name=\"csrf-token\"]')?.content ?? '';
+}
+async function attachTerritoryRevision(occurrenceId: string): Promise<void> {
+  const revisionId = territorySelections.value[occurrenceId];
+  if (!revisionId) return;
+  territoryBusyOccurrence.value = occurrenceId;
+  territoryError.value = '';
+  try {
+    const response = await fetch('/territory/event-revisions', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        'X-CSRF-TOKEN': csrfToken(),
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+      body: JSON.stringify({
+        event_occurrence_id: occurrenceId,
+        territory_plan_revision_id: revisionId,
+        purpose: 'positioning',
+      }),
+    });
+    const payload = (await response.json().catch(() => ({}))) as { message?: string };
+    if (!response.ok) throw new Error(payload.message || t('territory.requestFailed'));
+    router.reload({ only: ['territoryPlanning'] });
+  } catch (error) {
+    territoryError.value = error instanceof Error ? error.message : t('territory.requestFailed');
+  } finally {
+    territoryBusyOccurrence.value = null;
+  }
+}""",
+                  1,
+              )
+          if 'href="#territory-planning"' not in source:
+              source = source.replace(
+                  '        <a href="#reminders" class="ks-tab">{{ t(\'events.manage.reminders\') }}</a>',
+                  """        <a v-if="territoryPlanning.supported" href="#territory-planning" class="ks-tab">{{
+          t('territory.eventPlanningTitle')
+        }}</a>
+        <a href="#reminders" class="ks-tab">{{ t('events.manage.reminders') }}</a>""",
+                  1,
+              )
+          if 'id="territory-planning"' not in source:
+              territory_section = """
+      <section
+        v-if="territoryPlanning.supported"
+        id="territory-planning"
+        class="ks-surface-gold mt-5 scroll-mt-28 p-5 sm:p-6"
+        aria-labelledby="territory-planning-heading"
+      >
+        <p class="ks-kicker">{{ t('territory.eventPlanningEyebrow') }}</p>
+        <h2 id="territory-planning-heading" class="ks-display mt-1 text-2xl font-semibold">
+          {{ t('territory.eventPlanningTitle') }}
+        </h2>
+        <p class="mt-2 max-w-4xl text-sm leading-6 text-[var(--ks-muted)]">
+          {{ t('territory.eventPlanningHelp') }}
+        </p>
+        <p
+          v-if="territoryError"
+          role="alert"
+          class="mt-4 rounded border border-red-400/30 bg-red-500/10 p-3 text-sm text-red-100"
+        >
+          {{ territoryError }}
+        </p>
+        <p
+          v-if="!territoryPlanning.availableRevisions.length"
+          class="mt-4 text-sm text-[var(--ks-muted)]"
+        >
+          {{ t('territory.noPublishedEventRevisions') }}
+        </p>
+        <div v-else class="mt-4 grid gap-3 lg:grid-cols-2">
+          <article
+            v-for="occurrence in event.occurrences"
+            :key="occurrence.id"
+            class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-4"
+          >
+            <p class="ks-kicker">{{ t('territory.eventOccurrence') }}</p>
+            <h3 class="mt-1 font-semibold">{{ formatDate(occurrence.startsAt) }}</h3>
+            <p v-if="territoryAttachment(occurrence.id)" class="mt-2 text-xs text-[var(--ks-muted)]">
+              {{
+                t('territory.currentEventRevision', {
+                  plan: territoryAttachment(occurrence.id)?.planName ?? '',
+                  revision: territoryAttachment(occurrence.id)?.revisionNumber ?? 0,
+                })
+              }}
+            </p>
+            <label class="mt-3 block text-sm font-semibold">
+              {{ t('territory.positioningRevision') }}
+              <select v-model="territorySelections[occurrence.id]" class="ks-input mt-2 w-full">
+                <option value="">{{ t('territory.choosePublishedRevision') }}</option>
+                <option
+                  v-for="revisionOption in territoryPlanning.availableRevisions"
+                  :key="revisionOption.id"
+                  :value="revisionOption.id"
+                >
+                  {{ revisionOption.planName }} · #{{ revisionOption.revisionNumber }}
+                </option>
+              </select>
+            </label>
+            <button
+              type="button"
+              class="ks-command-button mt-3"
+              :disabled="
+                !territorySelections[occurrence.id] || territoryBusyOccurrence === occurrence.id
+              "
+              @click="attachTerritoryRevision(occurrence.id)"
+            >
+              {{
+                territoryBusyOccurrence === occurrence.id
+                  ? t('territory.attachingEventRevision')
+                  : t('territory.attachEventRevision')
+              }}
+            </button>
+          </article>
+        </div>
+      </section>
+
+"""
+              source = source.replace(
+                  '      <div\n        id="schedule"',
+                  territory_section + '      <div\n        id="schedule"',
+                  1,
+              )
+          manage.write_text(source)
           PY
 
       - name: Apply repository formatters
