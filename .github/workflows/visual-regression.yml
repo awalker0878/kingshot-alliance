@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: visual-${{ github.ref }}
@@ -54,8 +54,6 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
-        with:
-          ref: ${{ github.head_ref || github.ref_name }}
 
       - name: Configure PHP
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
@@ -76,27 +74,6 @@ jobs:
 
       - name: Install locked frontend dependencies
         run: npm ci --no-audit --no-fund
-
-      - name: Finalize Territory domain, UI, and repository formatting
-        if: github.event_name == 'pull_request' && github.head_ref == 'feature/alliance-territory-hive-planner'
-        shell: bash
-        run: |
-          python scripts/finalize-territory-ui.py
-          python scripts/finalize-territory-domain.py
-          vendor/bin/pint
-          npm run lint
-          npm run format
-
-          if git diff --quiet; then
-            echo "Territory domain, UI, and formatting are already canonical."
-            exit 0
-          fi
-
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add app resources tests scripts package.json
-          git commit -m "Finalize Territory dataset validation and formatting"
-          git push origin HEAD:${{ github.head_ref }}
 
       - name: Prepare visual database
         shell: bash
