@@ -144,6 +144,7 @@ final class EvidenceReviewV3Test extends TestCase
         $account = $scenario->authUser();
         $actor = $scenario->player((int) $account->id, 59103);
         $alliance = $scenario->alliance($actor);
+        $scenario->roster($actor, $alliance);
         $configuration = EventTypeScope::query()
             ->where('scope', EventScope::Alliance->value)
             ->whereHas('eventType', static fn ($query) => $query->where('slug', 'bear-hunt'))
