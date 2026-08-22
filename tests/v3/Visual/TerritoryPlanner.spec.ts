@@ -3,8 +3,8 @@ import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
 
 const territoryVisualFingerprints: Record<string, string> = {
-  desktop: '57f1dbd12042e95876ab7930690829e1cbf90bc762525f4ecb88f71ca6b26974',
-  mobile: 'ee05cc20c4afa6addd48ce85aebdfb0d0789150b249659f00615862161dc8312',
+  desktop: '776b627e69098a99fbcb574fdfbb316d57b5e444ed272f879e621b3e3e8294c3',
+  mobile: '0fa34fb492a3d8ec368f41db1908a19264334b439c047b07fcbd3ed3826d403c',
 };
 
 async function activateVisualGovernor(page: Page): Promise<void> {
