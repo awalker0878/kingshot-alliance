@@ -93,6 +93,16 @@ const messages = {
     marchSecondsPerTile: 'March seconds per tile',
     marchAssumptionHelp:
       'March speed is a planning assumption unless the selected map profile explicitly identifies a sourced game value. It is never silently presented as official.',
+    marchAnalysisEyebrow: 'Bear Hunt readiness',
+    marchAnalysisTitle: 'Governor march analysis',
+    marchAnalysisHelp:
+      'Each Governor City is matched to its nearest Bear Trap. Estimated times use the visible seconds-per-tile planning assumption above.',
+    bearTrap: 'Bear Trap',
+    distanceTiles: 'Distance (tiles)',
+    estimatedMarch: 'Estimated march',
+    noMarchAssumption: 'Set an assumption',
+    secondsShort: '{seconds}s',
+    noMarchRows: 'Place a Governor City and Bear Trap in the same Alliance layer to calculate marches.',
     placedObjects: '{count} placed objects',
     filterObjects: 'Filter placed objects',
     object: 'Object',
