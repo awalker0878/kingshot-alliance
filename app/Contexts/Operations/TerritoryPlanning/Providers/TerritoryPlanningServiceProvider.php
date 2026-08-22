@@ -18,10 +18,10 @@ final class TerritoryPlanningServiceProvider extends ServiceProvider
             Route::get('/territory/{plan}', [TerritoryPlanningPageController::class, 'show'])->whereUlid('plan')->name('territory.show');
             Route::post('/territory/hive-preview', [TerritoryPlanController::class, 'generateHive'])->name('territory.hive-preview');
             Route::post('/territory/import-preview', [TerritoryPlanController::class, 'previewImport'])->name('territory.import-preview');
+            Route::put('/territory/{plan}', [TerritoryPlanController::class, 'save'])->whereUlid('plan')->name('territory.save');
 
             Route::middleware('password.confirm')->group(function (): void {
                 Route::post('/territory', [TerritoryPlanController::class, 'store'])->name('territory.store');
-                Route::put('/territory/{plan}', [TerritoryPlanController::class, 'save'])->whereUlid('plan')->name('territory.save');
                 Route::post('/territory/{plan}/publish', [TerritoryPlanController::class, 'publish'])->whereUlid('plan')->name('territory.publish');
                 Route::delete('/territory/{plan}', [TerritoryPlanController::class, 'archive'])->whereUlid('plan')->name('territory.archive');
                 Route::post('/territory/{plan}/revisions/{revision}/restore', [TerritoryPlanController::class, 'restore'])->whereUlid('plan')->whereUlid('revision')->name('territory.revisions.restore');
