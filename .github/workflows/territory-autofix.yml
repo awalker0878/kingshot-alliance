@@ -17,29 +17,24 @@ jobs:
     timeout-minutes: 15
 
     steps:
-      - name: Check out repository
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
           ref: feature/alliance-territory-hive-planner
 
-      - name: Configure PHP
-        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
         with:
           php-version: '8.5'
           coverage: none
           tools: composer:v2
 
-      - name: Install locked PHP dependencies
-        run: composer install --no-interaction --no-progress --prefer-dist
+      - run: composer install --no-interaction --no-progress --prefer-dist
 
-      - name: Configure Node.js
-        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
         with:
           node-version: '24'
           cache: npm
 
-      - name: Install locked frontend dependencies
-        run: npm ci --no-audit --no-fund
+      - run: npm ci --no-audit --no-fund
 
       - name: Complete Territory frontend integration
         shell: bash
@@ -66,22 +61,34 @@ jobs:
               source = source.replace(
                   "function editable(object: PlanObject): boolean {\n  return canEdit.value && !allianceFor(object)?.locked;\n}",
                   """function editable(object: PlanObject): boolean {
-  return canEdit.value && !allianceFor(object)?.locked;
-}
-function governorOptionsFor(object: PlanObject): Array<{ id: string; name: string }> {
-  return props.territory.governor_options[object.alliance_key] ?? [];
-}
-function assignGovernor(object: PlanObject, playerId: string): void {
-  if (!editable(object)) return;
-  remember();
-  object.player_id = playerId || null;
-  if (playerId) object.external_player_name = null;
-}
-function assignExternalGovernor(object: PlanObject, name: string): void {
-  if (!editable(object)) return;
-  object.player_id = null;
-  object.external_player_name = name || null;
-}""",
+            return canEdit.value && !allianceFor(object)?.locked;
+          }
+          function governorOptionsFor(object: PlanObject): Array<{ id: string; name: string }> {
+            return props.territory.governor_options[object.alliance_key] ?? [];
+          }
+          function assignGovernor(object: PlanObject, playerId: string): void {
+            if (!editable(object)) return;
+            remember();
+            object.player_id = playerId || null;
+            if (playerId) object.external_player_name = null;
+          }
+          function assignExternalGovernor(object: PlanObject, name: string): void {
+            if (!editable(object)) return;
+            remember();
+            object.player_id = null;
+            object.external_player_name = name || null;
+          }
+          function selectBearTrap(payload: { allianceKey: string; trapKey: string }): void {
+            if (!canEdit.value) return;
+            remember();
+            const selected = { ...(preferences.value.selected_bear_trap_by_alliance ?? {}) };
+            if (payload.trapKey) selected[payload.allianceKey] = payload.trapKey;
+            else delete selected[payload.allianceKey];
+            preferences.value = {
+              ...preferences.value,
+              selected_bear_trap_by_alliance: Object.keys(selected).length ? selected : undefined,
+            };
+          }""",
                   1,
               )
           if "t('territory.governor')" not in source:
@@ -119,7 +126,6 @@ function assignExternalGovernor(object: PlanObject, name: string): void {
                         :disabled="!editable(object)"
                         :placeholder="t('territory.externalGovernorName')"
                         :aria-label="t('territory.externalGovernorName')"
-                        @focus="beginExactEdit"
                         @input="assignExternalGovernor(object, ($event.target as HTMLInputElement).value)"
                       />
                     </template>
@@ -134,6 +140,9 @@ function assignExternalGovernor(object: PlanObject, name: string): void {
           :alliances="alliances"
           :objects="objects"
           :analysis="analysis"
+          :preferences="preferences"
+          :can-edit="canEdit"
+          @select-trap="selectBearTrap"
         />
         <section class="ks-surface p-4">
           <p class="ks-kicker">{{ t('territory.preferences') }}</p>""",
@@ -145,24 +154,15 @@ function assignExternalGovernor(object: PlanObject, name: string): void {
           source = manage.read_text()
           source = re.sub(
               r"\ntype TerritoryRevisionOption = \{.*?\n\};\ntype TerritoryAttachment = \{.*?\n\};\ntype TerritoryPlanningOperations = \{.*?\n\};\n",
-              '\n',
-              source,
-              count=1,
-              flags=re.S,
+              '\n', source, count=1, flags=re.S,
           )
           source = re.sub(
               r"\nconst territorySelections = ref<Record<string, string>>\(.*?\n\}\n(?=const editingPhaseId)",
-              '\n',
-              source,
-              count=1,
-              flags=re.S,
+              '\n', source, count=1, flags=re.S,
           )
           source = re.sub(
               r"\n      <section\n        v-if=\"territoryPlanning\.supported\"\n        id=\"territory-planning\".*?</section>\n",
-              '\n',
-              source,
-              count=1,
-              flags=re.S,
+              '\n', source, count=1, flags=re.S,
           )
           if "EventTerritoryPositioning.vue" not in source:
               source = source.replace(
@@ -183,7 +183,7 @@ type TerritoryPlanningOperations = {
     revisionNumber: number;
     mapDatasetId: string;
     mapDatasetChecksum: string;
-    publishedAt: string;
+    publishedAt: string | null;
   }>;
   attachments: Array<{
     id: string;
@@ -193,7 +193,7 @@ type TerritoryPlanningOperations = {
     planId: string;
     planName: string;
     revisionNumber: number;
-    publishedAt: string;
+    publishedAt: string | null;
   }>;
 };
 
@@ -242,12 +242,10 @@ const props = defineProps<{""",
         shell: bash
         run: |
           if git diff --quiet; then
-            echo "No formatter changes required."
             exit 0
           fi
-
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add app resources tests scripts package.json
-          git commit -m "[territory-format] Apply repository formatters"
+          git commit -m "[territory-format] Finalize Territory frontend integration"
           git push origin HEAD:feature/alliance-territory-hive-planner
