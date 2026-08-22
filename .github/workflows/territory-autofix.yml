@@ -39,6 +39,28 @@ jobs:
       - name: Install locked frontend dependencies
         run: npm ci --no-audit --no-fund
 
+      - name: Repair non-auto-fixable Territory lint issue
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('resources/js/pages/Kingdom/Territory/Editor.vue')
+          source = path.read_text()
+          old = "if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') { event.preventDefault(); event.shiftKey ? redo() : undo(); return; }"
+          new = """if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') {
+            event.preventDefault();
+            if (event.shiftKey) {
+              redo();
+            } else {
+              undo();
+            }
+            return;
+          }"""
+          if old in source:
+              path.write_text(source.replace(old, new, 1))
+          PY
+
       - name: Apply repository formatters
         run: |
           composer lint
@@ -55,6 +77,6 @@ jobs:
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add app resources
+          git add app resources tests scripts package.json
           git commit -m "[territory-format] Apply repository formatters"
           git push origin HEAD:feature/alliance-territory-hive-planner
