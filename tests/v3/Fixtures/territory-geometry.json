@@ -140,20 +140,24 @@
     }
   ],
   "analysis_case": {
-    "preferences": { "march_seconds_per_tile": 2.0 },
+    "preferences": {
+      "march_seconds_per_tile": 2.0,
+      "selected_bear_trap_by_alliance": { "alpha": "analysis-trap" }
+    },
     "objects": [
       { "key": "analysis-hq", "type": "headquarters", "x": 10, "y": 10, "alliance_key": "alpha" },
       { "key": "analysis-banner", "type": "banner", "x": 25, "y": 25, "alliance_key": "alpha" },
       { "key": "covered-city", "type": "governor_city", "x": 11, "y": 14, "alliance_key": "alpha" },
       { "key": "uncovered-city", "type": "governor_city", "x": 30, "y": 30, "alliance_key": "alpha" },
-      { "key": "analysis-trap", "type": "bear_trap", "x": 20, "y": 20, "alliance_key": "alpha" }
+      { "key": "analysis-trap", "type": "bear_trap", "x": 20, "y": 20, "alliance_key": "alpha" },
+      { "key": "closer-second-trap", "type": "bear_trap", "x": 35, "y": 35, "alliance_key": "alpha" }
     ],
     "expected": {
       "counts": {
         "headquarters": 1,
         "banner": 1,
         "governor_city": 2,
-        "bear_trap": 1
+        "bear_trap": 2
       },
       "governor_cities": 2,
       "covered_governor_cities": 1,
@@ -165,6 +169,7 @@
       "bear_distance_tiles": { "average": 12.48, "median": 12.48, "max": 14.14 },
       "estimated_march_seconds": { "average": 24.96, "median": 24.96, "max": 28.28 },
       "march_assumption_seconds_per_tile": 2.0,
+      "selected_bear_trap_key": "analysis-trap",
       "marches": [
         {
           "city_key": "covered-city",
