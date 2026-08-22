@@ -96,7 +96,9 @@ const messages = {
     marchAnalysisEyebrow: 'Bear Hunt readiness',
     marchAnalysisTitle: 'Governor march analysis',
     marchAnalysisHelp:
-      'Each Governor City is matched to its nearest Bear Trap. Estimated times use the visible seconds-per-tile planning assumption above.',
+      'Choose a Bear Trap for each Alliance to evaluate that rally point, or leave the selector on nearest Bear Trap. Estimated times use the visible seconds-per-tile planning assumption.',
+    selectedBearTrap: '{alliance} Bear Trap',
+    nearestBearTrap: 'Nearest Bear Trap per Governor',
     bearTrap: 'Bear Trap',
     distanceTiles: 'Distance (tiles)',
     estimatedMarch: 'Estimated march',
