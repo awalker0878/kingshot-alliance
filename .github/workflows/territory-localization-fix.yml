@@ -1,0 +1,84 @@
+name: Territory Localization Correction
+
+on:
+  pull_request:
+    paths:
+      - 'resources/js/pages/Kingdom/Territory/Editor.vue'
+      - 'resources/js/localization/messages/territory/**'
+      - '.github/workflows/territory-localization-fix.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Localize median Bear distance
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+
+          editor = Path('resources/js/pages/Kingdom/Territory/Editor.vue')
+          text = editor.read_text()
+          text = text.replace("P50 · {{ t('territory.distanceTiles') }}", "{{ t('territory.medianDistance') }}")
+          editor.write_text(text)
+
+          translations = {
+              'ar': 'وسيط مسافة الدب',
+              'de': 'Median der Bär-Distanz',
+              'en': 'Median Bear distance',
+              'es': 'Distancia mediana al Oso',
+              'fr': 'Distance médiane à l’ours',
+              'id': 'Median jarak Beruang',
+              'it': 'Distanza mediana dall’Orso',
+              'ja': 'クマまでの距離の中央値',
+              'ko': '곰 거리 중앙값',
+              'pl': 'Mediana odległości do Niedźwiedzia',
+              'pt-BR': 'Distância mediana até o Urso',
+              'ru': 'Медианная дистанция до Медведя',
+              'th': 'ค่ามัธยฐานระยะห่างถึงหมี',
+              'tr': 'Ayı mesafesi medyanı',
+              'vi': 'Trung vị khoảng cách tới Gấu',
+              'zh-CN': '熊距离中位数',
+              'zh-TW': '熊距離中位數',
+          }
+
+          root = Path('resources/js/localization/messages/territory')
+          for locale, label in translations.items():
+              path = root / f'{locale}.ts'
+              source = path.read_text()
+              if 'medianDistance:' in source:
+                  continue
+              lines = source.splitlines()
+              inserted = False
+              for index, line in enumerate(lines):
+                  if line.startswith('    avgDistance:'):
+                      value = json.dumps(label, ensure_ascii=False)
+                      lines.insert(index + 1, f'    medianDistance: {value},')
+                      inserted = True
+                      break
+              if not inserted:
+                  raise RuntimeError(f'avgDistance key not found in {path}')
+              path.write_text('\n'.join(lines) + '\n')
+          PY
+          npx prettier --write resources/js/pages/Kingdom/Territory/Editor.vue resources/js/localization/messages/territory
+          npm run check:page-localization-coverage
+          npm run check:territory-localization
+      - name: Commit localized editor and remove correction workflow
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm .github/workflows/territory-localization-fix.yml
+          git add resources/js/pages/Kingdom/Territory/Editor.vue resources/js/localization/messages/territory
+          git commit -m 'Localize Territory median distance labels'
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
