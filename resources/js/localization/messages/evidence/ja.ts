@@ -1,0 +1,3 @@
+import type { MessageCatalogue } from '../../types';
+const messages = { evidence: { openIntake: '戦闘レポートを取り込む', eyebrow: 'ベアハント · 証拠レビュー', title: 'スクリーンショット取込', subtitle: 'ベアハントの戦闘レポートをアップロードし、イベント結果を変更する前に抽出値をすべて確認します。', back: 'ベアハントに戻る', uploadTitle: '戦闘レポートをアップロード', uploadHelp: 'JPEG、PNG、WebP。原本は非公開で保管され、安全確認と改変不能なチェックサムが付与されます。', chooseFile: '戦闘レポートのスクリーンショット', upload: 'スクリーンショットをアップロード', uploading: 'アップロード中…', existingTitle: 'このベアハントの証拠', empty: 'このベアハントにはまだスクリーンショットがありません。', originalName: 'ソース', status: '状態', received: '受信', security: '来歴' } } satisfies MessageCatalogue;
+export default messages;

@@ -26,12 +26,16 @@ return new class extends Migration
             $table->unsignedInteger('height');
             $table->char('sha256', 64);
             $table->char('perceptual_hash', 16)->nullable();
+            $table->ulid('visual_duplicate_evidence_id')->nullable();
+            $table->unsignedTinyInteger('visual_duplicate_distance')->nullable();
             $table->foreignUlid('uploaded_by_player_id')->constrained('players')->restrictOnDelete();
             $table->timestamp('scanned_at');
             $table->timestamps();
 
-            $table->unique(['alliance_id', 'sha256']);
+            $table->unique(['alliance_id', 'occurrence_id', 'sha256'], 'game_evidence_exact_unique');
             $table->index(['occurrence_id', 'lifecycle_status', 'created_at'], 'game_evidence_occurrence_status_idx');
+            $table->index(['alliance_id', 'sha256'], 'game_evidence_alliance_hash_idx');
+            $table->index(['alliance_id', 'occurrence_id', 'perceptual_hash'], 'game_evidence_visual_hash_idx');
             $table->index(['alliance_id', 'lifecycle_status', 'created_at'], 'game_evidence_alliance_status_idx');
         });
     }
