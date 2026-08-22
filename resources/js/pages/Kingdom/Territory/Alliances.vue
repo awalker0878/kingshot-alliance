@@ -56,8 +56,11 @@ function layerKey(prefix: string): string {
 
 function addLinkedAlliance(): void {
   if (!props.plan.can_manage || !selectedLinkedAlliance.value) return;
-  const option = props.allianceOptions.find((alliance) => alliance.id === selectedLinkedAlliance.value);
+  const option = props.allianceOptions.find(
+    (alliance) => alliance.id === selectedLinkedAlliance.value,
+  );
   if (!option || form.alliances.some((layer) => layer.alliance_id === option.id)) return;
+
   form.alliances.push({
     key: layerKey('alliance'),
     alliance_id: option.id,
@@ -91,6 +94,7 @@ function addExternalAlliance(): void {
 function removeLayer(index: number): void {
   const layer = form.alliances[index];
   if (!layer || form.alliances.length <= 1 || (props.objectCounts[layer.key] ?? 0) > 0) return;
+
   form.alliances.splice(index, 1);
   form.alliances.forEach((item, sortOrder) => {
     item.sort_order = sortOrder;
@@ -171,10 +175,18 @@ function submit(): void {
         >
           <div class="flex items-start justify-between gap-3">
             <div>
-              <p class="ks-kicker">{{ layer.alliance_id ? t('territory.alliance') : t('territory.externalAlliance') }}</p>
+              <p class="ks-kicker">
+                {{
+                  layer.alliance_id ? t('territory.alliance') : t('territory.externalAlliance')
+                }}
+              </p>
               <h2 class="ks-display mt-1 text-xl font-semibold">{{ layer.display_name }}</h2>
               <p class="mt-1 text-xs text-[var(--ks-muted)]">
-                {{ t('territory.placedObjects', { count: formatNumber(objectCounts[layer.key] ?? 0) }) }}
+                {{
+                  t('territory.placedObjects', {
+                    count: formatNumber(objectCounts[layer.key] ?? 0),
+                  })
+                }}
               </p>
             </div>
             <button
