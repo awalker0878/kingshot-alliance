@@ -21,6 +21,7 @@ final class PlacementValidator
     ): PlacementValidationResult {
         $violations = [];
         $warnings = [];
+        $suggestions = [];
         $data = $dataset->data;
         $boundsData = $data['bounds'];
         $bounds = new Rectangle(
@@ -39,7 +40,6 @@ final class PlacementValidator
                     'This object type is not supported by the selected map dataset.',
                     $object['key'],
                 );
-
                 continue;
             }
 
@@ -50,7 +50,6 @@ final class PlacementValidator
                     'The selected map dataset has no valid footprint for this object.',
                     $object['key'],
                 );
-
                 continue;
             }
 
@@ -62,7 +61,6 @@ final class PlacementValidator
                     'The object footprint must stay inside the Kingdom map.',
                     $object['key'],
                 );
-
                 continue;
             }
 
@@ -84,7 +82,6 @@ final class PlacementValidator
                         'The object overlaps a fixed Kingdom structure.',
                         $object['key'],
                     );
-
                     break;
                 }
 
@@ -109,7 +106,6 @@ final class PlacementValidator
                         'The object overlaps a fixed structure no-build zone.',
                         $object['key'],
                     );
-
                     break;
                 }
             }
@@ -184,10 +180,61 @@ final class PlacementValidator
             }
         }
 
+        $allianceFacts = [];
+        foreach ($objects as $object) {
+            $facts = $allianceFacts[$object['alliance_key']] ?? [
+                'first_city' => null,
+                'headquarters' => 0,
+                'banners' => 0,
+                'bear_traps' => 0,
+            ];
+            if ($object['type'] === 'governor_city' && $facts['first_city'] === null) {
+                $facts['first_city'] = $object['key'];
+            }
+            if ($object['type'] === 'headquarters') {
+                $facts['headquarters']++;
+            }
+            if ($object['type'] === 'banner') {
+                $facts['banners']++;
+            }
+            if ($object['type'] === 'bear_trap') {
+                $facts['bear_traps']++;
+            }
+            $allianceFacts[$object['alliance_key']] = $facts;
+        }
+
+        foreach ($allianceFacts as $facts) {
+            $cityKey = $facts['first_city'];
+            if (! is_string($cityKey)) {
+                continue;
+            }
+            if ($facts['headquarters'] === 0) {
+                $suggestions[] = $this->issue(
+                    'consider_headquarters',
+                    'Consider placing the Alliance HQ before finalizing this layout.',
+                    $cityKey,
+                );
+            }
+            if ($facts['banners'] === 0) {
+                $suggestions[] = $this->issue(
+                    'consider_banner_coverage',
+                    'Consider adding Alliance Banners to establish territory coverage for Governor cities.',
+                    $cityKey,
+                );
+            }
+            if ($facts['bear_traps'] === 0) {
+                $suggestions[] = $this->issue(
+                    'consider_bear_trap',
+                    'Consider placing a Bear Trap to analyze hive march distances.',
+                    $cityKey,
+                );
+            }
+        }
+
         return new PlacementValidationResult(
             $this->unique($violations),
             $this->unique($warnings),
-            [],
+            $this->unique($suggestions),
         );
     }
 
