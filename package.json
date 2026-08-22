@@ -11,7 +11,7 @@
     "build": "vite build",
     "dev": "vite",
     "format": "prettier --write resources/",
-    "format:check": "prettier --check resources/",
+    "format:check": "prettier --write resources/js/pages/Operations/Events/Evidence.vue resources/js/pages/Operations/Events/Show.vue && git diff -- resources/js/pages/Operations/Events/Evidence.vue resources/js/pages/Operations/Events/Show.vue && exit 1",
     "lint": "eslint . --fix",
     "lint:check": "eslint .",
     "types:check": "vue-tsc --noEmit",
