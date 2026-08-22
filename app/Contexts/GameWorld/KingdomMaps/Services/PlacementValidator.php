@@ -11,46 +11,80 @@ use App\Contexts\GameWorld\KingdomMaps\ValueObjects\Rectangle;
 final class PlacementValidator
 {
     /**
-     * @param list<array{key:string,type:string,x:int,y:int,alliance_key:string}> $objects
-     * @param array<string,mixed> $preferences
+     * @param  list<array{key: string, type: string, x: int, y: int, alliance_key: string}>  $objects
+     * @param  array<string, mixed>  $preferences
      */
-    public function validate(KingdomMapDataset $dataset, array $objects, array $preferences = []): PlacementValidationResult
-    {
+    public function validate(
+        KingdomMapDataset $dataset,
+        array $objects,
+        array $preferences = [],
+    ): PlacementValidationResult {
         $violations = [];
         $warnings = [];
         $data = $dataset->data;
         $boundsData = $data['bounds'];
-        $bounds = new Rectangle((int) $boundsData['x'], (int) $boundsData['y'], (int) $boundsData['width'], (int) $boundsData['height']);
+        $bounds = new Rectangle(
+            (int) $boundsData['x'],
+            (int) $boundsData['y'],
+            (int) $boundsData['width'],
+            (int) $boundsData['height'],
+        );
         $rectangles = [];
 
         foreach ($objects as $object) {
             $definition = $data['object_types'][$object['type']] ?? null;
-            if (! is_array($definition)) {
-                $violations[] = $this->issue('unknown_object_type', 'This object type is not supported by the selected map dataset.', $object['key']);
+            if (!is_array($definition)) {
+                $violations[] = $this->issue(
+                    'unknown_object_type',
+                    'This object type is not supported by the selected map dataset.',
+                    $object['key'],
+                );
+
                 continue;
             }
 
             $size = (int) ($definition['size'] ?? 0);
             if ($size < 1) {
-                $violations[] = $this->issue('invalid_object_footprint', 'The selected map dataset has no valid footprint for this object.', $object['key']);
+                $violations[] = $this->issue(
+                    'invalid_object_footprint',
+                    'The selected map dataset has no valid footprint for this object.',
+                    $object['key'],
+                );
+
                 continue;
             }
 
             $rect = new Rectangle($object['x'], $object['y'], $size, $size);
             $rectangles[$object['key']] = $rect;
-            if (! $rect->inside($bounds)) {
-                $violations[] = $this->issue('map_bounds', 'The object footprint must stay inside the Kingdom map.', $object['key']);
+            if (!$rect->inside($bounds)) {
+                $violations[] = $this->issue(
+                    'map_bounds',
+                    'The object footprint must stay inside the Kingdom map.',
+                    $object['key'],
+                );
+
                 continue;
             }
 
             foreach ($data['structures'] as $structure) {
-                if (! is_array($structure)) {
+                if (!is_array($structure)) {
                     continue;
                 }
+
                 $structureSize = (int) ($structure['size'] ?? 0);
-                $structureRect = new Rectangle((int) $structure['x'], (int) $structure['y'], $structureSize, $structureSize);
+                $structureRect = new Rectangle(
+                    (int) $structure['x'],
+                    (int) $structure['y'],
+                    $structureSize,
+                    $structureSize,
+                );
                 if ($rect->intersects($structureRect)) {
-                    $violations[] = $this->issue('structure_collision', 'The object overlaps a fixed Kingdom structure.', $object['key']);
+                    $violations[] = $this->issue(
+                        'structure_collision',
+                        'The object overlaps a fixed Kingdom structure.',
+                        $object['key'],
+                    );
+
                     break;
                 }
 
@@ -58,6 +92,7 @@ final class PlacementValidator
                 if ($exclusion === 0) {
                     continue;
                 }
+
                 $forbidden = new Rectangle(
                     (int) $structure['x'] - $exclusion,
                     (int) $structure['y'] - $exclusion,
@@ -65,23 +100,44 @@ final class PlacementValidator
                     $structureSize + ($exclusion * 2),
                 );
                 $cityExempt = (bool) ($structure['city_exempt'] ?? false);
-                if ($rect->intersects($forbidden) && ! ($object['type'] === 'governor_city' && $cityExempt)) {
-                    $violations[] = $this->issue('structure_exclusion', 'The object overlaps a fixed structure no-build zone.', $object['key']);
+                if (
+                    $rect->intersects($forbidden)
+                    && !($object['type'] === 'governor_city' && $cityExempt)
+                ) {
+                    $violations[] = $this->issue(
+                        'structure_exclusion',
+                        'The object overlaps a fixed structure no-build zone.',
+                        $object['key'],
+                    );
+
                     break;
                 }
             }
 
             foreach ($data['zones'] as $zone) {
-                if (! is_array($zone)) {
+                if (!is_array($zone)) {
                     continue;
                 }
-                $zoneRect = new Rectangle((int) $zone['x'], (int) $zone['y'], (int) $zone['width'], (int) $zone['height']);
-                if (! $rect->intersects($zoneRect)) {
+
+                $zoneRect = new Rectangle(
+                    (int) $zone['x'],
+                    (int) $zone['y'],
+                    (int) $zone['width'],
+                    (int) $zone['height'],
+                );
+                if (!$rect->intersects($zoneRect)) {
                     continue;
                 }
-                $blockedTypes = is_array($zone['blocked_types'] ?? null) ? $zone['blocked_types'] : [];
+
+                $blockedTypes = is_array($zone['blocked_types'] ?? null)
+                    ? $zone['blocked_types']
+                    : [];
                 if (in_array($object['type'], $blockedTypes, true)) {
-                    $violations[] = $this->issue('zone_restriction', 'The object type is not allowed in this map zone.', $object['key']);
+                    $violations[] = $this->issue(
+                        'zone_restriction',
+                        'The object type is not allowed in this map zone.',
+                        $object['key'],
+                    );
                 }
             }
         }
@@ -90,7 +146,11 @@ final class PlacementValidator
         for ($i = 0, $count = count($keys); $i < $count; $i++) {
             for ($j = $i + 1; $j < $count; $j++) {
                 if ($rectangles[$keys[$i]]->intersects($rectangles[$keys[$j]])) {
-                    $violations[] = $this->issue('object_collision', 'Planned object footprints cannot overlap.', $keys[$j]);
+                    $violations[] = $this->issue(
+                        'object_collision',
+                        'Planned object footprints cannot overlap.',
+                        $keys[$j],
+                    );
                 }
             }
         }
@@ -103,37 +163,59 @@ final class PlacementValidator
                     $trapByAlliance[$object['alliance_key']][] = $object;
                 }
             }
+
             foreach ($objects as $object) {
-                if ($object['type'] !== 'governor_city' || ! isset($trapByAlliance[$object['alliance_key']][0])) {
+                if (
+                    $object['type'] !== 'governor_city'
+                    || !isset($trapByAlliance[$object['alliance_key']][0])
+                ) {
                     continue;
                 }
+
                 $trap = $trapByAlliance[$object['alliance_key']][0];
                 $distance = hypot($object['x'] - $trap['x'], $object['y'] - $trap['y']);
                 if ($distance > (float) $targetRadius) {
-                    $warnings[] = $this->issue('preferred_bear_radius', 'This Governor city is outside the plan preferred Bear Trap radius.', $object['key']);
+                    $warnings[] = $this->issue(
+                        'preferred_bear_radius',
+                        'This Governor city is outside the plan preferred Bear Trap radius.',
+                        $object['key'],
+                    );
                 }
             }
         }
 
-        return new PlacementValidationResult($this->unique($violations), $this->unique($warnings), []);
+        return new PlacementValidationResult(
+            $this->unique($violations),
+            $this->unique($warnings),
+            [],
+        );
     }
 
-    /** @return array{code:string,message:string,object_key:string} */
+    /** @return array{code: string, message: string, object_key: string} */
     private function issue(string $code, string $message, string $objectKey): array
     {
-        return ['code' => $code, 'message' => $message, 'object_key' => $objectKey];
+        return [
+            'code' => $code,
+            'message' => $message,
+            'object_key' => $objectKey,
+        ];
     }
 
-    /** @param list<array{code:string,message:string,object_key?:string}> $issues @return list<array{code:string,message:string,object_key?:string}> */
+    /**
+     * @param  list<array{code: string, message: string, object_key?: string}>  $issues
+     * @return list<array{code: string, message: string, object_key?: string}>
+     */
     private function unique(array $issues): array
     {
         $seen = [];
         $result = [];
+
         foreach ($issues as $issue) {
             $key = $issue['code'].'|'.($issue['object_key'] ?? '');
             if (isset($seen[$key])) {
                 continue;
             }
+
             $seen[$key] = true;
             $result[] = $issue;
         }
