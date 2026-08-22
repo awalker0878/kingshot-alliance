@@ -6,7 +6,6 @@ namespace App\Contexts\Operations\Access\Services;
 
 use App\Contexts\Alliance\Access\Queries\AllianceAuthorityFactsQuery;
 use App\Contexts\Alliance\Access\ValueObjects\AllianceAuthorityFacts;
-use App\Contexts\Alliance\Access\ValueObjects\AllianceMutationContext;
 use App\Contexts\Alliance\Membership\Enums\AllianceRank;
 use App\Contexts\Operations\Access\Enums\OperationsPermission;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -20,11 +19,6 @@ final readonly class AllianceOperationsAuthorization
         $facts = $this->authorityFacts->findCurrent($actorPlayerId, $allianceId);
 
         return $facts instanceof AllianceAuthorityFacts && $this->allowsFacts($facts, $permission);
-    }
-
-    public function allowsContext(AllianceMutationContext $context, OperationsPermission $permission): bool
-    {
-        return $this->allowsRoleState($context->rank(), $context->roleKeys(), $permission);
     }
 
     public function allowsFacts(AllianceAuthorityFacts $facts, OperationsPermission $permission): bool
