@@ -1,16 +1,16 @@
 name: Screenshot Intake Normalize Final
 
 on:
-  pull_request:
+  push:
     branches:
-      - main
+      - feat/screenshot-intake-complete
 
 permissions:
   contents: write
 
 jobs:
   normalize:
-    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'feat/screenshot-intake-complete'
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - name: Check out feature branch
