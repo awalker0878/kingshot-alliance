@@ -33,32 +33,30 @@ jobs:
 
           show = Path('resources/js/pages/Operations/Events/Show.vue')
           text = show.read_text()
-          needle = '''        <Link
-            v-if="event.canManage"
-            :href="`/events/${event.eventId}/manage`"
-            class="ks-command-link"
-            data-variant="secondary"
-          >
-            {{ t('events.show.manage') }}
-          </Link>
-          '''
-          addition = needle + '''<Link
-            v-if="
-              event.canManage &&
-              event.eventTypeSlug === 'bear-hunt' &&
-              event.capabilities.includes('results')
-            "
-            :href="`/events/${event.id}/screenshot-intake`"
-            class="ks-command-link"
-            data-variant="secondary"
-          >
-            {{ t('evidence.openIntake') }}
-          </Link>
-          '''
-          if "`/events/${event.id}/screenshot-intake`" not in text:
-              if needle not in text:
-                  raise SystemExit('Could not locate Event manage action insertion point')
-              text = text.replace(needle, addition, 1)
+          route = "`/events/${event.id}/screenshot-intake`"
+          if route not in text:
+              marker = "{{ t('events.show.manage') }}"
+              marker_at = text.find(marker)
+              if marker_at < 0:
+                  raise SystemExit('Could not locate Event manage action')
+              close_at = text.find('</Link>', marker_at)
+              if close_at < 0:
+                  raise SystemExit('Could not locate Event manage action closing tag')
+              insert_at = close_at + len('</Link>')
+              addition = '''
+        <Link
+          v-if="
+            event.canManage &&
+            event.eventTypeSlug === 'bear-hunt' &&
+            event.capabilities.includes('results')
+          "
+          :href="`/events/${event.id}/screenshot-intake`"
+          class="ks-command-link"
+          data-variant="secondary"
+        >
+          {{ t('evidence.openIntake') }}
+        </Link>'''
+              text = text[:insert_at] + addition + text[insert_at:]
           show.write_text(text)
 
           product = Path('docs/product/screenshot-intake.md')
