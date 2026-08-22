@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('lifecycle_status', 32);
             $table->string('original_name', 255);
             $table->string('disk', 64);
-            $table->string('path', 1024);
+            $table->string('path', 1024)->nullable();
             $table->string('mime_type', 96);
             $table->unsignedBigInteger('size_bytes');
             $table->unsignedInteger('width');
@@ -30,6 +30,9 @@ return new class extends Migration
             $table->unsignedTinyInteger('visual_duplicate_distance')->nullable();
             $table->foreignUlid('uploaded_by_player_id')->constrained('players')->restrictOnDelete();
             $table->timestamp('scanned_at');
+            $table->timestamp('binary_deleted_at')->nullable();
+            $table->timestamp('redacted_at')->nullable();
+            $table->string('deletion_reason', 64)->nullable();
             $table->timestamps();
 
             $table->unique(['alliance_id', 'occurrence_id', 'sha256'], 'game_evidence_exact_unique');
