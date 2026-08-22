@@ -73,17 +73,21 @@ type RevisionSnapshot = {
   plan: { planning_preferences?: PlanningPreferences };
 };
 
+function cloneJson<T>(value: T): T {
+  return JSON.parse(JSON.stringify(value)) as T;
+}
+
 const props = defineProps<{
   user: { name: string; email: string };
   activePlayer: { id: string; name: string; kingdomNumber: number | null };
   territory: TerritoryProp;
 }>();
 const { t, formatNumber, formatDate } = useLocale();
-const alliances = ref<PlanAlliance[]>(structuredClone(props.territory.alliances));
-const groups = ref<PlanGroup[]>(structuredClone(props.territory.groups));
-const objects = ref<PlanObject[]>(structuredClone(props.territory.objects));
+const alliances = ref<PlanAlliance[]>(cloneJson(props.territory.alliances));
+const groups = ref<PlanGroup[]>(cloneJson(props.territory.groups));
+const objects = ref<PlanObject[]>(cloneJson(props.territory.objects));
 const preferences = ref<PlanningPreferences>(
-  structuredClone(props.territory.plan.planning_preferences ?? {}),
+  cloneJson(props.territory.plan.planning_preferences ?? {}),
 );
 const revision = ref(props.territory.plan.revision);
 const status = ref(props.territory.plan.status);
@@ -232,7 +236,8 @@ function assignExternalGovernor(object: PlanObject, name: string): void {
   object.external_player_name = name.trim() || null;
 }
 function setSelectedBear(allianceKey: string, objectKey: string): void {
-  if (!canEdit.value) return;
+  const alliance = alliances.value.find((candidate) => candidate.key === allianceKey);
+  if (!canEdit.value || alliance?.locked) return;
   remember();
   const selected = { ...(preferences.value.selected_bear_trap_by_alliance ?? {}) };
   if (objectKey) selected[allianceKey] = objectKey;
@@ -285,7 +290,7 @@ function duplicateSelected(): void {
   if (!source.length) return;
   remember();
   const clones = source.map((object, index) => ({
-    ...structuredClone(object),
+    ...cloneJson(object),
     key: key(`copy${index}`),
     x: object.x + 3,
     y: object.y + 3,
