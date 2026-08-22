@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import { computed, reactive } from 'vue';
+import { reactive } from 'vue';
 
 import AppButton from '@/components/ui/AppButton.vue';
 import ConfirmActionDialog from '@/components/ui/ConfirmActionDialog.vue';
@@ -150,7 +150,6 @@ const { dialog, requestConfirmation, cancelConfirmation, confirmAction } = useCo
 const uploadForm = useForm<{ evidence: File | null }>({ evidence: null });
 const drafts = reactive<Record<string, ReviewDraft>>({});
 const duplicateJustifications = reactive<Record<string, string>>({});
-const activeEvidence = computed(() => props.workspace.evidence[0] ?? null);
 
 function statusLabel(value: string): string {
   return value.replaceAll('_', ' ');
