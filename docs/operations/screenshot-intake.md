@@ -46,7 +46,7 @@ Use Horizon/queue diagnostics to inspect worker health. Do not manually update a
 The commit sequence is intentionally not a distributed database transaction:
 
 1. Intelligence/Evidence creates or resumes a commit attempt for an approved review.
-2. `app/Workflows/ScreenshotIntake/CommitBearHuntEvidence` calls the scalar `Operations/Results` owner action.
+2. `Intelligence/Evidence/Actions/CommitReviewedBearHuntEvidence` calls the scalar `Operations/Results` owner Action.
 3. Operations records an idempotent Bear Hunt report and recomputes result projections.
 4. Evidence records the returned destination receipt.
 
@@ -84,15 +84,15 @@ Run:
 evidence:diagnostics
 ```
 
-The command reports aggregate lifecycle counts, failed classification/extraction/commit counts, the oldest processing timestamp, retained-binary count and redacted count. It intentionally emits no screenshot name, OCR text, Player name, Alliance name, hashes or review contents.
+The command reports lifecycle counts; classification/extraction attempt counts, failure rates and average latency; reviewed/corrected row counts and correction rate; exact/visual duplicate events plus semantic duplicate rate; commit attempts/failure rate; retention failures; oldest-processing age; retained-binary count; and redacted count. It intentionally emits no screenshot name, OCR text, Player name, Alliance name, hashes or review contents.
 
-For a single incident, correlate application audit/outbox events using request/trace IDs and the non-secret evidence/commit identifiers already available to authorized operators. Relevant business audit events include upload, retry, delete/redaction, review, duplicate resolution, commit success/failure and Bear Hunt report record/remove events.
+For a single incident, correlate application audit/outbox events using request/trace IDs and the non-secret evidence/commit identifiers already available to authorized operators. Relevant business audit events include upload, classification/extraction start and failure, retry, delete/redaction/purge, review, duplicate detection/resolution, commit start/success/failure, destination idempotent replay and Bear Hunt report record/remove events.
 
 ## Incident playbook
 
 For a growing processing backlog:
 
-1. Check worker/Horizon health and `evidence:diagnostics` oldest processing timestamp.
+1. Check worker/Horizon health and `evidence:diagnostics` oldest processing age.
 2. Confirm Tesseract is installed in the deployed image and callable by the application user.
 3. Confirm the evidence disk is writable/private and has capacity.
 4. Restore worker capacity or provider dependency first; do not mutate attempt statuses manually.
