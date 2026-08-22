@@ -33,13 +33,17 @@ final class TerritoryPlanSnapshotBuilder
     public function build(TerritoryPlan $plan): array
     {
         $plan->load(['planAlliances', 'groups', 'objects']);
+
+        $allianceKeyById = [];
         $alliances = [];
         foreach ($plan->planAlliances as $row) {
             if (! $row instanceof TerritoryPlanAlliance) {
                 continue;
             }
+
+            $allianceKeyById[$row->id] = $row->plan_key;
             $alliances[] = [
-                'key' => $row->id,
+                'key' => $row->plan_key,
                 'alliance_id' => $row->alliance_id,
                 'external_name' => $row->external_name,
                 'external_tag' => $row->external_tag,
@@ -51,12 +55,15 @@ final class TerritoryPlanSnapshotBuilder
             ];
         }
 
+        $groupKeyById = [];
         $groups = [];
         foreach ($plan->groups as $row) {
             if (! $row instanceof TerritoryPlanGroup) {
                 continue;
             }
-            $groups[] = ['key' => $row->id, 'label' => $row->label];
+
+            $groupKeyById[$row->id] = $row->plan_key;
+            $groups[] = ['key' => $row->plan_key, 'label' => $row->label];
         }
 
         $objects = [];
@@ -64,10 +71,21 @@ final class TerritoryPlanSnapshotBuilder
             if (! $row instanceof TerritoryPlanObject) {
                 continue;
             }
+
+            $allianceKey = $allianceKeyById[$row->territory_plan_alliance_id] ?? null;
+            if (! is_string($allianceKey)) {
+                continue;
+            }
+
+            $groupKey = $row->group_id === null ? null : ($groupKeyById[$row->group_id] ?? null);
+            if ($row->group_id !== null && ! is_string($groupKey)) {
+                continue;
+            }
+
             $objects[] = [
-                'key' => $row->id,
-                'alliance_key' => $row->territory_plan_alliance_id,
-                'group_key' => $row->group_id,
+                'key' => $row->plan_key,
+                'alliance_key' => $allianceKey,
+                'group_key' => $groupKey,
                 'type' => $row->object_type->value,
                 'player_id' => $row->player_id,
                 'external_player_name' => $row->external_player_name,
