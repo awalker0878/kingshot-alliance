@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\TerritoryPlanning\Services;
 
+use App\Contexts\GameWorld\KingdomMaps\Services\PlacementValidator;
 use App\Contexts\GameWorld\KingdomMaps\ValueObjects\KingdomMapDataset;
 
 final readonly class TerritoryLayoutAnalyzer
 {
-    public function __construct(private TerritoryPlanningTelemetry $telemetry) {}
+    public function __construct(
+        private PlacementValidator $placement,
+        private TerritoryPlanningTelemetry $telemetry,
+    ) {}
 
     /**
      * @param  list<array{key: string, type: string, x: int, y: int, alliance_key: string}>  $objects
@@ -22,9 +26,17 @@ final readonly class TerritoryLayoutAnalyzer
     ): array {
         $startedAt = hrtime(true);
         $byAlliance = [];
+        $allianceByObjectKey = [];
         foreach ($objects as $object) {
             $byAlliance[$object['alliance_key']][] = $object;
+            $allianceByObjectKey[$object['key']] = $object['alliance_key'];
         }
+
+        $validation = $this->placement->validate($dataset, $objects, $preferences);
+        $issueCounts = [];
+        $this->countIssues($validation->violations, 'violation_count', $allianceByObjectKey, $issueCounts);
+        $this->countIssues($validation->warnings, 'warning_count', $allianceByObjectKey, $issueCounts);
+        $this->countIssues($validation->suggestions, 'suggestion_count', $allianceByObjectKey, $issueCounts);
 
         $selectedBearTraps = is_array($preferences['selected_bear_trap_by_alliance'] ?? null)
             ? $preferences['selected_bear_trap_by_alliance']
@@ -50,11 +62,9 @@ final readonly class TerritoryLayoutAnalyzer
                         'coverage' => $coverage,
                     ];
                 }
-
                 if ($object['type'] === 'governor_city') {
                     $cities[] = $object;
                 }
-
                 if ($object['type'] === 'bear_trap') {
                     $traps[] = $object;
                 }
@@ -71,14 +81,12 @@ final readonly class TerritoryLayoutAnalyzer
                     [$city['x'] + $size, $city['y'] + $size],
                 ];
                 $inside = true;
-
                 foreach ($corners as [$x, $y]) {
                     if (! $this->pointCovered((float) $x, (float) $y, $coverageSources)) {
                         $inside = false;
                         break;
                     }
                 }
-
                 if ($inside) {
                     $covered++;
                 }
@@ -98,6 +106,7 @@ final readonly class TerritoryLayoutAnalyzer
                 static fn (?float $seconds): bool => $seconds !== null,
             ));
             $bannerCount = (int) ($counts['banner'] ?? 0);
+            $quality = $issueCounts[$allianceKey] ?? [];
 
             $result[$allianceKey] = [
                 'counts' => $counts,
@@ -112,6 +121,9 @@ final readonly class TerritoryLayoutAnalyzer
                 'banner_efficiency' => $bannerCount === 0
                     ? null
                     : round($covered / $bannerCount, 2),
+                'violation_count' => (int) ($quality['violation_count'] ?? 0),
+                'warning_count' => (int) ($quality['warning_count'] ?? 0),
+                'suggestion_count' => (int) ($quality['suggestion_count'] ?? 0),
                 'bear_distance_tiles' => $this->statistics($distances),
                 'estimated_march_seconds' => $marchSecondsPerTile === null
                     ? null
@@ -132,6 +144,26 @@ final readonly class TerritoryLayoutAnalyzer
         return ['alliances' => $result];
     }
 
+    /**
+     * @param  list<array{code: string, message: string, object_key?: string}>  $issues
+     * @param  array<string, string>  $allianceByObjectKey
+     * @param  array<string, array<string, int>>  $counts
+     */
+    private function countIssues(array $issues, string $metric, array $allianceByObjectKey, array &$counts): void
+    {
+        foreach ($issues as $issue) {
+            $objectKey = $issue['object_key'] ?? null;
+            if (! is_string($objectKey)) {
+                continue;
+            }
+            $allianceKey = $allianceByObjectKey[$objectKey] ?? null;
+            if (! is_string($allianceKey)) {
+                continue;
+            }
+            $counts[$allianceKey][$metric] = ($counts[$allianceKey][$metric] ?? 0) + 1;
+        }
+    }
+
     /** @param list<array{key: string, x: float, y: float, coverage: float}> $sources */
     private function pointCovered(float $x, float $y, array $sources): bool
     {
@@ -143,7 +175,6 @@ final readonly class TerritoryLayoutAnalyzer
                 return true;
             }
         }
-
         return false;
     }
 
@@ -153,14 +184,12 @@ final readonly class TerritoryLayoutAnalyzer
         if ($sources === []) {
             return 0;
         }
-
         $visited = [];
         $components = 0;
         foreach (array_keys($sources) as $start) {
             if (isset($visited[$start])) {
                 continue;
             }
-
             $components++;
             $queue = [$start];
             while ($queue !== []) {
@@ -168,25 +197,19 @@ final readonly class TerritoryLayoutAnalyzer
                 if ($index === null || isset($visited[$index])) {
                     continue;
                 }
-
                 $visited[$index] = true;
                 foreach ($sources as $candidateIndex => $candidate) {
                     if (isset($visited[$candidateIndex])) {
                         continue;
                     }
-
                     $source = $sources[$index];
-                    $distance = max(
-                        abs($source['x'] - $candidate['x']),
-                        abs($source['y'] - $candidate['y']),
-                    );
+                    $distance = max(abs($source['x'] - $candidate['x']), abs($source['y'] - $candidate['y']));
                     if ($distance <= $source['coverage'] + $candidate['coverage']) {
                         $queue[] = $candidateIndex;
                     }
                 }
             }
         }
-
         return $components;
     }
 
@@ -195,16 +218,11 @@ final readonly class TerritoryLayoutAnalyzer
      * @param  list<array{key: string, type: string, x: int, y: int, alliance_key: string}>  $traps
      * @return list<array{city_key: string, trap_key: string, distance_tiles: float, estimated_seconds: ?float}>
      */
-    private function marches(
-        array $cities,
-        array $traps,
-        ?float $secondsPerTile,
-        ?string $selectedTrapKey,
-    ): array {
+    private function marches(array $cities, array $traps, ?float $secondsPerTile, ?string $selectedTrapKey): array
+    {
         if ($traps === []) {
             return [];
         }
-
         $selectedTrap = null;
         if ($selectedTrapKey !== null) {
             foreach ($traps as $trap) {
@@ -214,15 +232,10 @@ final readonly class TerritoryLayoutAnalyzer
                 }
             }
         }
-
         $marches = [];
         foreach ($cities as $city) {
             $targetTrap = $selectedTrap ?? $traps[0];
-            $targetDistance = hypot(
-                $city['x'] - $targetTrap['x'],
-                $city['y'] - $targetTrap['y'],
-            );
-
+            $targetDistance = hypot($city['x'] - $targetTrap['x'], $city['y'] - $targetTrap['y']);
             if ($selectedTrap === null) {
                 foreach (array_slice($traps, 1) as $trap) {
                     $distance = hypot($city['x'] - $trap['x'], $city['y'] - $trap['y']);
@@ -232,7 +245,6 @@ final readonly class TerritoryLayoutAnalyzer
                     }
                 }
             }
-
             $marches[] = [
                 'city_key' => $city['key'],
                 'trap_key' => $targetTrap['key'],
@@ -242,7 +254,6 @@ final readonly class TerritoryLayoutAnalyzer
                     : round($targetDistance * $secondsPerTile, 2),
             ];
         }
-
         return $marches;
     }
 
@@ -255,14 +266,10 @@ final readonly class TerritoryLayoutAnalyzer
         if ($values === []) {
             return ['average' => null, 'median' => null, 'max' => null];
         }
-
         sort($values, SORT_NUMERIC);
         $count = count($values);
         $middle = intdiv($count, 2);
-        $median = $count % 2 === 0
-            ? ($values[$middle - 1] + $values[$middle]) / 2
-            : $values[$middle];
-
+        $median = $count % 2 === 0 ? ($values[$middle - 1] + $values[$middle]) / 2 : $values[$middle];
         return [
             'average' => round(array_sum($values) / $count, 2),
             'median' => round($median, 2),
