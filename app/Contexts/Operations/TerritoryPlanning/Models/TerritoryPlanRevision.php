@@ -12,12 +12,21 @@ final class TerritoryPlanRevision extends Model
     use HasUlids;
 
     public $incrementing = false;
+
     public $timestamps = false;
+
     protected $keyType = 'string';
+
     protected $guarded = [];
 
     protected function casts(): array
     {
-        return ['revision_number' => 'integer', 'schema_version' => 'integer', 'snapshot' => 'array', 'published_at' => 'datetime', 'created_at' => 'datetime'];
+        return [
+            'revision_number' => 'integer',
+            'schema_version' => 'integer',
+            'snapshot' => 'array',
+            'published_at' => 'datetime',
+            'created_at' => 'datetime',
+        ];
     }
 }
