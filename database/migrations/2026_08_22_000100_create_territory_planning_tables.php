@@ -34,6 +34,7 @@ return new class extends Migration
         Schema::create('territory_plan_alliances', function (Blueprint $table): void {
             $table->ulid('id')->primary();
             $table->foreignUlid('territory_plan_id')->constrained('territory_plans')->cascadeOnDelete();
+            $table->string('plan_key', 120);
             $table->foreignUlid('alliance_id')->nullable()->constrained('alliances')->restrictOnDelete();
             $table->string('external_name', 160)->nullable();
             $table->string('external_tag', 32)->nullable();
@@ -44,6 +45,7 @@ return new class extends Migration
             $table->boolean('locked')->default(false);
             $table->timestamps();
 
+            $table->unique(['territory_plan_id', 'plan_key']);
             $table->index(['territory_plan_id', 'sort_order']);
             $table->index(['alliance_id', 'territory_plan_id']);
         });
@@ -51,15 +53,18 @@ return new class extends Migration
         Schema::create('territory_plan_groups', function (Blueprint $table): void {
             $table->ulid('id')->primary();
             $table->foreignUlid('territory_plan_id')->constrained('territory_plans')->cascadeOnDelete();
+            $table->string('plan_key', 120);
             $table->string('label', 160)->nullable();
             $table->timestamps();
 
+            $table->unique(['territory_plan_id', 'plan_key']);
             $table->index('territory_plan_id');
         });
 
         Schema::create('territory_plan_objects', function (Blueprint $table): void {
             $table->ulid('id')->primary();
             $table->foreignUlid('territory_plan_id')->constrained('territory_plans')->cascadeOnDelete();
+            $table->string('plan_key', 120);
             $table->foreignUlid('territory_plan_alliance_id')->constrained('territory_plan_alliances')->cascadeOnDelete();
             $table->foreignUlid('group_id')->nullable()->constrained('territory_plan_groups')->nullOnDelete();
             $table->string('object_type', 40);
@@ -73,6 +78,7 @@ return new class extends Migration
             $table->json('metadata')->nullable();
             $table->timestamps();
 
+            $table->unique(['territory_plan_id', 'plan_key']);
             $table->index(['territory_plan_id', 'object_type']);
             $table->index(['territory_plan_alliance_id', 'object_type']);
             $table->index(['player_id', 'territory_plan_id']);
