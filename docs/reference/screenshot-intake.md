@@ -10,7 +10,7 @@ Screenshot Intake is an authenticated web capability. It does not expose a publi
 
 `Operations/Results` owns accepted Bear Hunt battle reports, report entries, result baselines, and the recomputed Event Player result projection.
 
-`app/Workflows/ScreenshotIntake` coordinates the scalar handoff and owns no business persistence.
+`Intelligence/Evidence` coordinates the scalar handoff through `CommitReviewedBearHuntEvidence`; the Action changes only Evidence commit-attempt state around the destination owner call and owns no Operations persistence.
 
 ## Web routes
 
@@ -24,7 +24,7 @@ All routes require authentication, authenticated-session validation, verified em
 | `PUT` | `/events/{occurrence}/screenshot-intake/{evidence}/review` | Persist a new immutable review revision over one completed extraction. |
 | `POST` | `/events/{occurrence}/screenshot-intake/{evidence}/retry` | Retry terminal failed processing by creating new attempt history. |
 | `POST` | `/events/{occurrence}/screenshot-intake/reviews/{review}/resolve-duplicate` | Record an audited justification that a semantic collision is a distinct report. |
-| `POST` | `/events/{occurrence}/screenshot-intake/reviews/{review}/commit` | Commit an approved review through the Screenshot Intake workflow into `Operations/Results`. |
+| `POST` | `/events/{occurrence}/screenshot-intake/reviews/{review}/commit` | Commit an approved review through the Evidence commit Action into `Operations/Results`. |
 | `DELETE` | `/events/{occurrence}/screenshot-intake/{evidence}` | Delete/redact retained evidence without deleting accepted Bear Hunt result state. |
 
 Resource IDs are ULIDs. Route bindings do not authorize access by themselves; every owner action revalidates current scope/authority and relevant state.
