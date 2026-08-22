@@ -72,6 +72,13 @@ export type PlanningPreferences = {
   march_seconds_per_tile?: number;
 };
 
+export type MarchAnalysis = {
+  city_key: string;
+  trap_key: string;
+  distance_tiles: number;
+  estimated_seconds: number | null;
+};
+
 export type AllianceAnalysis = {
   counts: Record<string, number>;
   governor_cities: number;
@@ -88,4 +95,5 @@ export type AllianceAnalysis = {
     max: number | null;
   } | null;
   march_assumption_seconds_per_tile: number | null;
+  marches: MarchAnalysis[];
 };
