@@ -26,6 +26,9 @@ final readonly class TerritoryLayoutAnalyzer
             $byAlliance[$object['alliance_key']][] = $object;
         }
 
+        $selectedBearTraps = is_array($preferences['selected_bear_trap_by_alliance'] ?? null)
+            ? $preferences['selected_bear_trap_by_alliance']
+            : [];
         $result = [];
         foreach ($byAlliance as $allianceKey => $allianceObjects) {
             $coverageSources = [];
@@ -85,7 +88,10 @@ final readonly class TerritoryLayoutAnalyzer
             $marchSecondsPerTile = isset($preferences['march_seconds_per_tile'])
                 ? (float) $preferences['march_seconds_per_tile']
                 : null;
-            $marches = $this->marches($cities, $traps, $marchSecondsPerTile);
+            $selectedTrapKey = is_string($selectedBearTraps[$allianceKey] ?? null)
+                ? $selectedBearTraps[$allianceKey]
+                : null;
+            $marches = $this->marches($cities, $traps, $marchSecondsPerTile, $selectedTrapKey);
             $distances = array_column($marches, 'distance_tiles');
             $estimatedSeconds = array_values(array_filter(
                 array_column($marches, 'estimated_seconds'),
@@ -111,6 +117,7 @@ final readonly class TerritoryLayoutAnalyzer
                     ? null
                     : $this->statistics($estimatedSeconds),
                 'march_assumption_seconds_per_tile' => $marchSecondsPerTile,
+                'selected_bear_trap_key' => $selectedTrapKey,
                 'marches' => $marches,
             ];
         }
@@ -188,35 +195,51 @@ final readonly class TerritoryLayoutAnalyzer
      * @param  list<array{key: string, type: string, x: int, y: int, alliance_key: string}>  $traps
      * @return list<array{city_key: string, trap_key: string, distance_tiles: float, estimated_seconds: ?float}>
      */
-    private function marches(array $cities, array $traps, ?float $secondsPerTile): array
-    {
+    private function marches(
+        array $cities,
+        array $traps,
+        ?float $secondsPerTile,
+        ?string $selectedTrapKey,
+    ): array {
         if ($traps === []) {
             return [];
         }
 
-        $marches = [];
-        foreach ($cities as $city) {
-            $nearestTrap = null;
-            $nearestDistance = null;
+        $selectedTrap = null;
+        if ($selectedTrapKey !== null) {
             foreach ($traps as $trap) {
-                $distance = hypot($city['x'] - $trap['x'], $city['y'] - $trap['y']);
-                if ($nearestDistance === null || $distance < $nearestDistance) {
-                    $nearestDistance = $distance;
-                    $nearestTrap = $trap;
+                if ($trap['key'] === $selectedTrapKey) {
+                    $selectedTrap = $trap;
+                    break;
                 }
             }
+        }
 
-            if ($nearestTrap === null || $nearestDistance === null) {
-                continue;
+        $marches = [];
+        foreach ($cities as $city) {
+            $targetTrap = $selectedTrap ?? $traps[0];
+            $targetDistance = hypot(
+                $city['x'] - $targetTrap['x'],
+                $city['y'] - $targetTrap['y'],
+            );
+
+            if ($selectedTrap === null) {
+                foreach (array_slice($traps, 1) as $trap) {
+                    $distance = hypot($city['x'] - $trap['x'], $city['y'] - $trap['y']);
+                    if ($distance < $targetDistance) {
+                        $targetDistance = $distance;
+                        $targetTrap = $trap;
+                    }
+                }
             }
 
             $marches[] = [
                 'city_key' => $city['key'],
-                'trap_key' => $nearestTrap['key'],
-                'distance_tiles' => round($nearestDistance, 2),
+                'trap_key' => $targetTrap['key'],
+                'distance_tiles' => round($targetDistance, 2),
                 'estimated_seconds' => $secondsPerTile === null
                     ? null
-                    : round($nearestDistance * $secondsPerTile, 2),
+                    : round($targetDistance * $secondsPerTile, 2),
             ];
         }
 
