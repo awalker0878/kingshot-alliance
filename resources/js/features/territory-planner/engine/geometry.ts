@@ -67,7 +67,6 @@ function targetTrapForCity(
   if (selected) {
     return { trap: selected, distance: Math.hypot(city.x - selected.x, city.y - selected.y) };
   }
-
   return traps.reduce<{ trap: PlanObject; distance: number } | null>((best, trap) => {
     const distance = Math.hypot(city.x - trap.x, city.y - trap.y);
     return best === null || distance < best.distance ? { trap, distance } : best;
@@ -123,9 +122,7 @@ export function validatePlacement(
         );
         break;
       }
-
       if (exclusion === 0) continue;
-
       const forbidden = {
         x: structure.x - exclusion,
         y: structure.y - exclusion,
@@ -265,6 +262,28 @@ function stats(values: number[]) {
   };
 }
 
+function qualityCounts(
+  validation: ValidationResult,
+  objects: PlanObject[],
+): Record<string, { violations: number; warnings: number; suggestions: number }> {
+  const allianceByObject = new Map(objects.map((object) => [object.key, object.alliance_key]));
+  const result: Record<string, { violations: number; warnings: number; suggestions: number }> = {};
+  const count = (issues: ValidationIssue[], field: 'violations' | 'warnings' | 'suggestions') => {
+    issues.forEach((item) => {
+      if (!item.object_key) return;
+      const allianceKey = allianceByObject.get(item.object_key);
+      if (!allianceKey) return;
+      const current = result[allianceKey] ?? { violations: 0, warnings: 0, suggestions: 0 };
+      current[field] += 1;
+      result[allianceKey] = current;
+    });
+  };
+  count(validation.violations, 'violations');
+  count(validation.warnings, 'warnings');
+  count(validation.suggestions, 'suggestions');
+  return result;
+}
+
 export function analyzeLayout(
   map: MapData,
   objects: PlanObject[],
@@ -274,6 +293,8 @@ export function analyzeLayout(
   objects.forEach((object) =>
     groups.set(object.alliance_key, [...(groups.get(object.alliance_key) ?? []), object]),
   );
+  const validation = validatePlacement(map, objects, preferences);
+  const quality = qualityCounts(validation, objects);
   const result: Record<string, AllianceAnalysis> = {};
 
   for (const [allianceKey, allianceGroup] of groups) {
@@ -352,6 +373,11 @@ export function analyzeLayout(
     const estimatedSeconds = marches.flatMap((march) =>
       march.estimated_seconds === null ? [] : [march.estimated_seconds],
     );
+    const qualityForAlliance = quality[allianceKey] ?? {
+      violations: 0,
+      warnings: 0,
+      suggestions: 0,
+    };
 
     result[allianceKey] = {
       counts,
@@ -364,6 +390,9 @@ export function analyzeLayout(
       banner_efficiency: counts.banner
         ? Math.round((covered / counts.banner) * 100) / 100
         : null,
+      violation_count: qualityForAlliance.violations,
+      warning_count: qualityForAlliance.warnings,
+      suggestion_count: qualityForAlliance.suggestions,
       bear_distance_tiles: stats(distances),
       estimated_march_seconds: seconds === undefined ? null : stats(estimatedSeconds),
       march_assumption_seconds_per_tile: seconds ?? null,
