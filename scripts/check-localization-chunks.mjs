@@ -1,5 +1,6 @@
 import { readFile, readdir, stat } from 'node:fs/promises';
 import path from 'node:path';
+import process from 'node:process';
 
 const manifestPath = path.resolve('public/build/manifest.json');
 const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
