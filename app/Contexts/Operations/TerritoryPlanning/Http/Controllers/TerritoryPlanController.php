@@ -9,6 +9,7 @@ use App\Contexts\Operations\TerritoryPlanning\Actions\ArchiveTerritoryPlan;
 use App\Contexts\Operations\TerritoryPlanning\Actions\AttachTerritoryPlanRevisionToEvent;
 use App\Contexts\Operations\TerritoryPlanning\Actions\CloneTerritoryPlan;
 use App\Contexts\Operations\TerritoryPlanning\Actions\CreateTerritoryPlan;
+use App\Contexts\Operations\TerritoryPlanning\Actions\ImportTerritoryPlan;
 use App\Contexts\Operations\TerritoryPlanning\Actions\PublishTerritoryPlan;
 use App\Contexts\Operations\TerritoryPlanning\Actions\RestoreTerritoryPlanRevision;
 use App\Contexts\Operations\TerritoryPlanning\Actions\SaveTerritoryPlan;
@@ -72,6 +73,29 @@ final class TerritoryPlanController extends Controller
             $data['groups'],
             $data['objects'],
             $data['planning_preferences'] ?? [],
+        );
+
+        return response()->json(['receipt' => $this->mutationReceipt($mutation)]);
+    }
+
+    public function import(
+        Request $request,
+        string $plan,
+        PlayerContext $players,
+        ImportTerritoryPlan $import,
+    ): JsonResponse {
+        $player = $players->playerOrNull();
+        abort_unless($player !== null, 403);
+
+        $data = $request->validate([
+            'expected_revision' => ['required', 'integer', 'min:1'],
+            'document' => ['required', 'string', 'max:5000000'],
+        ]);
+        $mutation = $import->handle(
+            $player->playerId,
+            $plan,
+            (int) $data['expected_revision'],
+            $data['document'],
         );
 
         return response()->json(['receipt' => $this->mutationReceipt($mutation)]);
