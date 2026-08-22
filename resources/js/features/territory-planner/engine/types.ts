@@ -40,7 +40,13 @@ export type MapStructure = {
   exclusion: number;
   city_exempt: boolean;
 };
-export type MapZone = { x: number; y: number; width: number; height: number; blocked_types: TerritoryObjectType[] };
+export type MapZone = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  blocked_types: TerritoryObjectType[];
+};
 export type MapData = {
   id: string;
   schema_version: number;
@@ -56,8 +62,15 @@ export type MapData = {
 };
 
 export type ValidationIssue = { code: string; message: string; object_key?: string };
-export type ValidationResult = { violations: ValidationIssue[]; warnings: ValidationIssue[]; suggestions: ValidationIssue[] };
-export type PlanningPreferences = { preferred_bear_radius_tiles?: number; march_seconds_per_tile?: number };
+export type ValidationResult = {
+  violations: ValidationIssue[];
+  warnings: ValidationIssue[];
+  suggestions: ValidationIssue[];
+};
+export type PlanningPreferences = {
+  preferred_bear_radius_tiles?: number;
+  march_seconds_per_tile?: number;
+};
 
 export type AllianceAnalysis = {
   counts: Record<string, number>;
@@ -69,6 +82,10 @@ export type AllianceAnalysis = {
   territory_connected: boolean;
   banner_efficiency: number | null;
   bear_distance_tiles: { average: number | null; median: number | null; max: number | null };
-  estimated_march_seconds: { average: number | null; median: number | null; max: number | null } | null;
+  estimated_march_seconds: {
+    average: number | null;
+    median: number | null;
+    max: number | null;
+  } | null;
   march_assumption_seconds_per_tile: number | null;
 };

@@ -16,12 +16,7 @@ function rectFor(object: PlanObject, map: MapData): Rect | null {
 }
 
 function intersects(a: Rect, b: Rect): boolean {
-  return (
-    a.x < b.x + b.width &&
-    a.x + a.width > b.x &&
-    a.y < b.y + b.height &&
-    a.y + a.height > b.y
-  );
+  return a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
 }
 
 function inside(rect: Rect, bounds: Rect): boolean {
@@ -122,11 +117,7 @@ export function validatePlacement(
     for (const zone of Object.values(map.zones)) {
       if (intersects(rect, zone) && zone.blocked_types.includes(object.type)) {
         violations.push(
-          issue(
-            'zone_restriction',
-            'The object type is not allowed in this map zone.',
-            object.key,
-          ),
+          issue('zone_restriction', 'The object type is not allowed in this map zone.', object.key),
         );
       }
     }
@@ -138,11 +129,7 @@ export function validatePlacement(
       const candidate = entries[other];
       if (candidate && intersects(rect, candidate[1])) {
         violations.push(
-          issue(
-            'object_collision',
-            'Planned object footprints cannot overlap.',
-            candidate[0],
-          ),
+          issue('object_collision', 'Planned object footprints cannot overlap.', candidate[0]),
         );
       }
     }
@@ -273,9 +260,7 @@ export function analyzeLayout(
       coverage_percent: cities.length ? Math.round((covered / cities.length) * 10000) / 100 : null,
       territory_components: components,
       territory_connected: components <= 1,
-      banner_efficiency: counts.banner
-        ? Math.round((covered / counts.banner) * 100) / 100
-        : null,
+      banner_efficiency: counts.banner ? Math.round((covered / counts.banner) * 100) / 100 : null,
       bear_distance_tiles: stats(distances),
       estimated_march_seconds: seconds
         ? stats(distances.map((distance) => distance * seconds))

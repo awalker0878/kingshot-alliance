@@ -8,8 +8,24 @@ import FormError from '@/components/ui/FormError.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
-type Plan = { id: string; scope: 'alliance' | 'kingdom'; name: string; status: string; revision: number; updated_at: string | null; can_manage: boolean; map_dataset_id: string };
-type Dataset = { id: string; observedAt: string; sourceLabel: string; sourceUri: string | null; confidence: string; checksum: string };
+type Plan = {
+  id: string;
+  scope: 'alliance' | 'kingdom';
+  name: string;
+  status: string;
+  revision: number;
+  updated_at: string | null;
+  can_manage: boolean;
+  map_dataset_id: string;
+};
+type Dataset = {
+  id: string;
+  observedAt: string;
+  sourceLabel: string;
+  sourceUri: string | null;
+  confidence: string;
+  checksum: string;
+};
 type AllianceOption = { id: string; name: string; canManage: boolean };
 
 const props = defineProps<{
@@ -22,7 +38,9 @@ const props = defineProps<{
 }>();
 
 const { t, formatDate } = useLocale();
-const defaultAlliance = computed(() => props.allianceOptions.find((alliance) => alliance.canManage)?.id ?? null);
+const defaultAlliance = computed(
+  () => props.allianceOptions.find((alliance) => alliance.canManage)?.id ?? null,
+);
 const form = useForm({
   scope: defaultAlliance.value ? 'alliance' : 'kingdom',
   kingdom_id: props.activePlayer.kingdomId,
@@ -51,18 +69,38 @@ function submit(): void {
       <section class="ks-surface overflow-hidden" aria-labelledby="plans-heading">
         <div class="border-b border-[var(--ks-border)] p-5">
           <p class="ks-kicker">{{ t('territory.savedPlans') }}</p>
-          <h2 id="plans-heading" class="ks-display mt-1 text-2xl font-semibold">{{ t('territory.plansHeading') }}</h2>
+          <h2 id="plans-heading" class="ks-display mt-1 text-2xl font-semibold">
+            {{ t('territory.plansHeading') }}
+          </h2>
         </div>
         <div v-if="plans.length" class="divide-y divide-[var(--ks-border)]">
-          <Link v-for="plan in plans" :key="plan.id" :href="`/territory/${plan.id}`" class="block p-5 transition hover:bg-white/[.025]">
+          <Link
+            v-for="plan in plans"
+            :key="plan.id"
+            :href="`/territory/${plan.id}`"
+            class="block p-5 transition hover:bg-white/[.025]"
+          >
             <div class="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <h3 class="ks-display text-xl font-semibold">{{ plan.name }}</h3>
-                <p class="mt-1 text-sm text-[var(--ks-muted)]">{{ plan.scope === 'alliance' ? t('territory.alliancePlan') : t('territory.kingdomPlan') }} · {{ t('territory.revision', { revision: plan.revision }) }}</p>
+                <p class="mt-1 text-sm text-[var(--ks-muted)]">
+                  {{
+                    plan.scope === 'alliance'
+                      ? t('territory.alliancePlan')
+                      : t('territory.kingdomPlan')
+                  }}
+                  · {{ t('territory.revision', { revision: plan.revision }) }}
+                </p>
               </div>
-              <span class="ks-status" :data-tone="plan.status === 'published' ? 'success' : 'info'">{{ t(`territory.status.${plan.status}`) }}</span>
+              <span
+                class="ks-status"
+                :data-tone="plan.status === 'published' ? 'success' : 'info'"
+                >{{ t(`territory.status.${plan.status}`) }}</span
+              >
             </div>
-            <p v-if="plan.updated_at" class="mt-3 text-xs text-[var(--ks-muted)]">{{ t('territory.updated', { date: formatDate(plan.updated_at) }) }}</p>
+            <p v-if="plan.updated_at" class="mt-3 text-xs text-[var(--ks-muted)]">
+              {{ t('territory.updated', { date: formatDate(plan.updated_at) }) }}
+            </p>
           </Link>
         </div>
         <p v-else class="p-6 text-sm text-[var(--ks-muted)]">{{ t('territory.noPlans') }}</p>
@@ -70,19 +108,31 @@ function submit(): void {
 
       <section class="ks-surface-gold p-5" aria-labelledby="create-plan-heading">
         <p class="ks-kicker">{{ t('territory.newPlan') }}</p>
-        <h2 id="create-plan-heading" class="ks-display mt-1 text-2xl font-semibold">{{ t('territory.createPlan') }}</h2>
+        <h2 id="create-plan-heading" class="ks-display mt-1 text-2xl font-semibold">
+          {{ t('territory.createPlan') }}
+        </h2>
         <form class="mt-5 space-y-4" @submit.prevent="submit">
           <label class="block text-sm font-semibold">
             {{ t('territory.scope') }}
             <select v-model="form.scope" class="ks-input mt-2 w-full">
-              <option v-if="defaultAlliance" value="alliance">{{ t('territory.alliancePlan') }}</option>
-              <option v-if="canManageKingdomPlans" value="kingdom">{{ t('territory.kingdomPlan') }}</option>
+              <option v-if="defaultAlliance" value="alliance">
+                {{ t('territory.alliancePlan') }}
+              </option>
+              <option v-if="canManageKingdomPlans" value="kingdom">
+                {{ t('territory.kingdomPlan') }}
+              </option>
             </select>
           </label>
           <label v-if="form.scope === 'alliance'" class="block text-sm font-semibold">
             {{ t('territory.alliance') }}
             <select v-model="form.owner_alliance_id" class="ks-input mt-2 w-full">
-              <option v-for="alliance in allianceOptions.filter((item) => item.canManage)" :key="alliance.id" :value="alliance.id">{{ alliance.name }}</option>
+              <option
+                v-for="alliance in allianceOptions.filter((item) => item.canManage)"
+                :key="alliance.id"
+                :value="alliance.id"
+              >
+                {{ alliance.name }}
+              </option>
             </select>
           </label>
           <label class="block text-sm font-semibold">
@@ -93,11 +143,20 @@ function submit(): void {
           <label class="block text-sm font-semibold">
             {{ t('territory.mapProfile') }}
             <select v-model="form.map_dataset_id" class="ks-input mt-2 w-full" required>
-              <option v-for="dataset in mapDatasets" :key="dataset.id" :value="dataset.id">{{ dataset.sourceLabel }} · {{ dataset.observedAt }}</option>
+              <option v-for="dataset in mapDatasets" :key="dataset.id" :value="dataset.id">
+                {{ dataset.sourceLabel }} · {{ dataset.observedAt }}
+              </option>
             </select>
           </label>
-          <p class="text-xs leading-5 text-[var(--ks-muted)]">{{ t('territory.mapEvidenceHelp') }}</p>
-          <AppButton type="submit" :busy="form.processing" :disabled="!form.name || !form.map_dataset_id">{{ t('territory.createPlan') }}</AppButton>
+          <p class="text-xs leading-5 text-[var(--ks-muted)]">
+            {{ t('territory.mapEvidenceHelp') }}
+          </p>
+          <AppButton
+            type="submit"
+            :busy="form.processing"
+            :disabled="!form.name || !form.map_dataset_id"
+            >{{ t('territory.createPlan') }}</AppButton
+          >
         </form>
       </section>
     </div>

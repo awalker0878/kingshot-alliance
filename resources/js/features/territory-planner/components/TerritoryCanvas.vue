@@ -5,20 +5,23 @@ import type { MapData, PlanAlliance, PlanObject, TerritoryObjectType } from '../
 
 type Tool = 'select' | 'pan' | 'place';
 
-const props = withDefaults(defineProps<{
-  map: MapData;
-  alliances: PlanAlliance[];
-  objects: PlanObject[];
-  selectedKeys: string[];
-  tool: Tool;
-  placementType: TerritoryObjectType;
-  activeAllianceKey: string | null;
-  label: string;
-  readOnly?: boolean;
-  showCoverage?: boolean;
-  showStructures?: boolean;
-  showZones?: boolean;
-}>(), { readOnly: false, showCoverage: true, showStructures: true, showZones: true });
+const props = withDefaults(
+  defineProps<{
+    map: MapData;
+    alliances: PlanAlliance[];
+    objects: PlanObject[];
+    selectedKeys: string[];
+    tool: Tool;
+    placementType: TerritoryObjectType;
+    activeAllianceKey: string | null;
+    label: string;
+    readOnly?: boolean;
+    showCoverage?: boolean;
+    showStructures?: boolean;
+    showZones?: boolean;
+  }>(),
+  { readOnly: false, showCoverage: true, showStructures: true, showZones: true },
+);
 
 const emit = defineEmits<{
   (event: 'update:selectedKeys', value: string[]): void;
@@ -33,12 +36,25 @@ const cameraY = ref(props.map.bounds.y + props.map.bounds.height / 2);
 const zoom = ref(0.6);
 const width = ref(900);
 const height = ref(650);
-const drag = ref<null | { kind: 'pan' | 'object' | 'box'; startX: number; startY: number; worldX: number; worldY: number; lastWorldX: number; lastWorldY: number }>(null);
+const drag = ref<null | {
+  kind: 'pan' | 'object' | 'box';
+  startX: number;
+  startY: number;
+  worldX: number;
+  worldY: number;
+  lastWorldX: number;
+  lastWorldY: number;
+}>(null);
 const boxEnd = ref<{ x: number; y: number } | null>(null);
 let resizeObserver: ResizeObserver | null = null;
 
-const allianceColor = computed(() => new Map(props.alliances.map((alliance) => [alliance.key, alliance.presentation_color])));
-const visibleAlliances = computed(() => new Set(props.alliances.filter((alliance) => alliance.visible).map((alliance) => alliance.key)));
+const allianceColor = computed(
+  () => new Map(props.alliances.map((alliance) => [alliance.key, alliance.presentation_color])),
+);
+const visibleAlliances = computed(
+  () =>
+    new Set(props.alliances.filter((alliance) => alliance.visible).map((alliance) => alliance.key)),
+);
 
 function fitMap(): void {
   const xScale = width.value / props.map.bounds.width;
@@ -50,10 +66,16 @@ function fitMap(): void {
 }
 
 function toScreen(x: number, y: number): [number, number] {
-  return [(x - cameraX.value) * zoom.value + width.value / 2, height.value / 2 - (y - cameraY.value) * zoom.value];
+  return [
+    (x - cameraX.value) * zoom.value + width.value / 2,
+    height.value / 2 - (y - cameraY.value) * zoom.value,
+  ];
 }
 function toWorld(screenX: number, screenY: number): [number, number] {
-  return [(screenX - width.value / 2) / zoom.value + cameraX.value, (height.value / 2 - screenY) / zoom.value + cameraY.value];
+  return [
+    (screenX - width.value / 2) / zoom.value + cameraX.value,
+    (height.value / 2 - screenY) / zoom.value + cameraY.value,
+  ];
 }
 function eventPoint(event: PointerEvent | WheelEvent): [number, number] {
   const rect = canvas.value?.getBoundingClientRect();
@@ -67,7 +89,8 @@ function objectAt(screenX: number, screenY: number): PlanObject | null {
     const definition = props.map.object_types[object.type];
     const [x, yBottom] = toScreen(object.x, object.y);
     const size = definition.size * zoom.value;
-    if (screenX >= x && screenX <= x + size && screenY <= yBottom && screenY >= yBottom - size) return object;
+    if (screenX >= x && screenX <= x + size && screenY <= yBottom && screenY >= yBottom - size)
+      return object;
   }
   return null;
 }
@@ -82,21 +105,50 @@ function onPointerDown(event: PointerEvent): void {
     return;
   }
   if (props.tool === 'pan' || event.button === 1 || event.button === 2) {
-    drag.value = { kind: 'pan', startX: screenX, startY: screenY, worldX, worldY, lastWorldX: worldX, lastWorldY: worldY };
+    drag.value = {
+      kind: 'pan',
+      startX: screenX,
+      startY: screenY,
+      worldX,
+      worldY,
+      lastWorldX: worldX,
+      lastWorldY: worldY,
+    };
     return;
   }
   const hit = objectAt(screenX, screenY);
   if (hit) {
     const selected = event.shiftKey
-      ? props.selectedKeys.includes(hit.key) ? props.selectedKeys.filter((key) => key !== hit.key) : [...props.selectedKeys, hit.key]
-      : props.selectedKeys.includes(hit.key) ? props.selectedKeys : [hit.key];
+      ? props.selectedKeys.includes(hit.key)
+        ? props.selectedKeys.filter((key) => key !== hit.key)
+        : [...props.selectedKeys, hit.key]
+      : props.selectedKeys.includes(hit.key)
+        ? props.selectedKeys
+        : [hit.key];
     emit('update:selectedKeys', selected);
     const layer = props.alliances.find((alliance) => alliance.key === hit.alliance_key);
-    if (!props.readOnly && !layer?.locked) drag.value = { kind: 'object', startX: screenX, startY: screenY, worldX, worldY, lastWorldX: worldX, lastWorldY: worldY };
+    if (!props.readOnly && !layer?.locked)
+      drag.value = {
+        kind: 'object',
+        startX: screenX,
+        startY: screenY,
+        worldX,
+        worldY,
+        lastWorldX: worldX,
+        lastWorldY: worldY,
+      };
     return;
   }
   if (!event.shiftKey) emit('update:selectedKeys', []);
-  drag.value = { kind: 'box', startX: screenX, startY: screenY, worldX, worldY, lastWorldX: worldX, lastWorldY: worldY };
+  drag.value = {
+    kind: 'box',
+    startX: screenX,
+    startY: screenY,
+    worldX,
+    worldY,
+    lastWorldX: worldX,
+    lastWorldY: worldY,
+  };
   boxEnd.value = { x: screenX, y: screenY };
 }
 function onPointerMove(event: PointerEvent): void {
@@ -127,14 +179,19 @@ function onPointerUp(event: PointerEvent): void {
     const right = Math.max(current.startX, screenX);
     const top = Math.min(current.startY, screenY);
     const bottom = Math.max(current.startY, screenY);
-    const selected = props.objects.filter((object) => {
-      if (!visibleAlliances.value.has(object.alliance_key)) return false;
-      const definition = props.map.object_types[object.type];
-      const [x, yBottom] = toScreen(object.x, object.y);
-      const size = definition.size * zoom.value;
-      return x >= left && x + size <= right && yBottom - size >= top && yBottom <= bottom;
-    }).map((object) => object.key);
-    emit('update:selectedKeys', event.shiftKey ? [...new Set([...props.selectedKeys, ...selected])] : selected);
+    const selected = props.objects
+      .filter((object) => {
+        if (!visibleAlliances.value.has(object.alliance_key)) return false;
+        const definition = props.map.object_types[object.type];
+        const [x, yBottom] = toScreen(object.x, object.y);
+        const size = definition.size * zoom.value;
+        return x >= left && x + size <= right && yBottom - size >= top && yBottom <= bottom;
+      })
+      .map((object) => object.key);
+    emit(
+      'update:selectedKeys',
+      event.shiftKey ? [...new Set([...props.selectedKeys, ...selected])] : selected,
+    );
   }
   drag.value = null;
   boxEnd.value = null;
@@ -190,12 +247,19 @@ function draw(): void {
       context.globalAlpha = 0.12;
       context.fillStyle = color;
       const coverage = definition.coverage * zoom.value;
-      context.fillRect(x - coverage, yBottom - size - coverage, size + coverage * 2, size + coverage * 2);
+      context.fillRect(
+        x - coverage,
+        yBottom - size - coverage,
+        size + coverage * 2,
+        size + coverage * 2,
+      );
       context.globalAlpha = 1;
     }
     context.fillStyle = color;
     context.fillRect(x, yBottom - size, Math.max(size, 2), Math.max(size, 2));
-    context.strokeStyle = props.selectedKeys.includes(object.key) ? '#fff4b8' : 'rgba(255,255,255,.55)';
+    context.strokeStyle = props.selectedKeys.includes(object.key)
+      ? '#fff4b8'
+      : 'rgba(255,255,255,.55)';
     context.lineWidth = props.selectedKeys.includes(object.key) ? 2 : 1;
     context.strokeRect(x, yBottom - size, Math.max(size, 2), Math.max(size, 2));
     if (zoom.value > 1.2 && object.label) {
@@ -209,7 +273,12 @@ function draw(): void {
     context.setLineDash([5, 4]);
     const left = Math.min(drag.value.startX, boxEnd.value.x);
     const top = Math.min(drag.value.startY, boxEnd.value.y);
-    context.strokeRect(left, top, Math.abs(boxEnd.value.x - drag.value.startX), Math.abs(boxEnd.value.y - drag.value.startY));
+    context.strokeRect(
+      left,
+      top,
+      Math.abs(boxEnd.value.x - drag.value.startX),
+      Math.abs(boxEnd.value.y - drag.value.startY),
+    );
     context.setLineDash([]);
   }
 }
@@ -226,11 +295,25 @@ onMounted(() => {
   nextTick(fitMap);
 });
 onBeforeUnmount(() => resizeObserver?.disconnect());
-watch(() => [props.objects, props.alliances, props.selectedKeys, props.showCoverage, props.showStructures, props.showZones], draw, { deep: true });
+watch(
+  () => [
+    props.objects,
+    props.alliances,
+    props.selectedKeys,
+    props.showCoverage,
+    props.showStructures,
+    props.showZones,
+  ],
+  draw,
+  { deep: true },
+);
 </script>
 
 <template>
-  <div ref="host" class="relative min-h-[26rem] w-full overflow-hidden rounded-[var(--ks-radius-lg)] border border-[var(--ks-border)] bg-[#101821]">
+  <div
+    ref="host"
+    class="relative min-h-[26rem] w-full overflow-hidden rounded-[var(--ks-radius-lg)] border border-[var(--ks-border)] bg-[#101821]"
+  >
     <canvas
       ref="canvas"
       class="block h-full w-full touch-none"
@@ -243,6 +326,10 @@ watch(() => [props.objects, props.alliances, props.selectedKeys, props.showCover
       @wheel="onWheel"
       @contextmenu.prevent
     />
-    <div class="pointer-events-none absolute right-3 bottom-3 rounded bg-black/60 px-2 py-1 text-xs text-white/70">{{ Math.round(zoom * 100) }}%</div>
+    <div
+      class="pointer-events-none absolute right-3 bottom-3 rounded bg-black/60 px-2 py-1 text-xs text-white/70"
+    >
+      {{ Math.round(zoom * 100) }}%
+    </div>
   </div>
 </template>
