@@ -14,6 +14,7 @@ use App\Contexts\Operations\TerritoryPlanning\Actions\ImportTerritoryPlan;
 use App\Contexts\Operations\TerritoryPlanning\Actions\PublishTerritoryPlan;
 use App\Contexts\Operations\TerritoryPlanning\Actions\RestoreTerritoryPlanRevision;
 use App\Contexts\Operations\TerritoryPlanning\Actions\SaveTerritoryPlan;
+use App\Contexts\Operations\TerritoryPlanning\Actions\UpdateTerritoryPlanAlliances;
 use App\Contexts\Operations\TerritoryPlanning\Enums\TerritoryPlanScope;
 use App\Contexts\Operations\TerritoryPlanning\Queries\TerritoryPlanRevisionQuery;
 use App\Contexts\Operations\TerritoryPlanning\Services\HiveLayoutGenerator;
@@ -77,6 +78,31 @@ final class TerritoryPlanController extends Controller
         );
 
         return response()->json(['receipt' => $this->mutationReceipt($mutation)]);
+    }
+
+    public function updateAlliances(
+        Request $request,
+        string $plan,
+        PlayerContext $players,
+        UpdateTerritoryPlanAlliances $update,
+    ): RedirectResponse {
+        $player = $players->playerOrNull();
+        abort_unless($player !== null, 403);
+
+        $data = $request->validate([
+            'expected_revision' => ['required', 'integer', 'min:1'],
+            'alliances' => ['required', 'array', 'min:1', 'max:50'],
+        ]);
+        $update->handle(
+            $player->playerId,
+            $plan,
+            (int) $data['expected_revision'],
+            $data['alliances'],
+        );
+
+        return redirect()
+            ->route('territory.alliances', ['plan' => $plan])
+            ->with('success', 'territory.saved');
     }
 
     public function import(
@@ -226,8 +252,8 @@ final class TerritoryPlanController extends Controller
         $data = $request->validate([
             'style' => ['required', 'in:swirl,banner_pad'],
             'alliance_key' => ['required', 'string', 'max:120'],
-            'center_x' => ['required', 'integer', 'between:0,1199'],
-            'center_y' => ['required', 'integer', 'between:0,1199'],
+            'center_x' => ['required', 'integer'],
+            'center_y' => ['required', 'integer'],
             'city_count' => ['sometimes', 'integer', 'between:1,100'],
         ]);
         $objects = $generator->generate(
