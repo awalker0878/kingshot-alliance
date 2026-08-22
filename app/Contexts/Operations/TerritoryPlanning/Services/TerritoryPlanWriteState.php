@@ -34,7 +34,7 @@ final readonly class TerritoryPlanWriteState
         if ($plan->scope === TerritoryPlanScope::Alliance) {
             $allianceId = (string) $plan->owner_alliance_id;
             $facts = $this->allianceAuthority->lockCurrent($actorPlayerId, $allianceId);
-            if ($facts === null || $facts->kingdomId !== (string) $plan->kingdom_id) {
+            if ($facts === null || $facts->kingdomId !== (string) $plan->kingdom_id || $facts->allianceId !== $allianceId) {
                 throw new AuthorizationException;
             }
 
@@ -42,7 +42,7 @@ final readonly class TerritoryPlanWriteState
         }
 
         $facts = $this->kingdomAuthority->lockCurrent($actorPlayerId, (string) $plan->kingdom_id);
-        if ($facts === null) {
+        if ($facts === null || $facts->kingdomId !== (string) $plan->kingdom_id) {
             throw new AuthorizationException;
         }
 

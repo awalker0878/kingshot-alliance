@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Contexts\Operations\TerritoryPlanning\Actions;
 
 use App\Contexts\Alliance\Access\Queries\AllianceAuthorityFactsQuery;
+use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
 use App\Contexts\GameWorld\Governance\Queries\KingdomAuthorityFactsQuery;
 use App\Contexts\GameWorld\KingdomMaps\Queries\KingdomMapDatasetQuery;
 use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
@@ -27,6 +28,7 @@ final readonly class CreateTerritoryPlan
         private PlayerReferenceQuery $players,
         private AllianceAuthorityFactsQuery $allianceAuthority,
         private KingdomAuthorityFactsQuery $kingdomAuthority,
+        private AllianceReferenceQuery $alliances,
         private AllianceOperationsAuthorization $allianceAuthorization,
         private KingdomOperationsAuthorization $kingdomAuthorization,
         private KingdomMapDatasetQuery $datasets,
@@ -51,12 +53,18 @@ final readonly class CreateTerritoryPlan
                 throw new AuthorizationException;
             }
 
+            $ownerAllianceName = null;
             if ($scope === TerritoryPlanScope::Alliance) {
                 $facts = $this->allianceAuthority->lockCurrent($actorPlayerId, (string) $ownerAllianceId);
                 if ($facts === null || $facts->kingdomId !== $kingdomId) {
                     throw new AuthorizationException;
                 }
                 $this->allianceAuthorization->authorizeFacts($facts, OperationsPermission::TerritoryAllianceManage);
+                $alliance = $this->alliances->require((string) $ownerAllianceId);
+                if ($alliance->kingdomId !== $kingdomId) {
+                    throw new AuthorizationException;
+                }
+                $ownerAllianceName = $alliance->name;
             } else {
                 $facts = $this->kingdomAuthority->lockCurrent($actorPlayerId, $kingdomId);
                 if ($facts === null) {
@@ -83,7 +91,7 @@ final readonly class CreateTerritoryPlan
                 TerritoryPlanAlliance::query()->create([
                     'territory_plan_id' => $plan->id,
                     'alliance_id' => $ownerAllianceId,
-                    'display_name' => 'Alliance',
+                    'display_name' => $ownerAllianceName,
                     'presentation_color' => '#4da3ff',
                     'sort_order' => 0,
                 ]);

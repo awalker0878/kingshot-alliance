@@ -18,7 +18,6 @@ final class PlacementValidator
     {
         $violations = [];
         $warnings = [];
-        $suggestions = [];
         $data = $dataset->data;
         $boundsData = $data['bounds'];
         $bounds = new Rectangle((int) $boundsData['x'], (int) $boundsData['y'], (int) $boundsData['width'], (int) $boundsData['height']);
@@ -48,21 +47,31 @@ final class PlacementValidator
                 if (! is_array($structure)) {
                     continue;
                 }
+                $structureSize = (int) ($structure['size'] ?? 0);
+                $structureRect = new Rectangle((int) $structure['x'], (int) $structure['y'], $structureSize, $structureSize);
+                if ($rect->intersects($structureRect)) {
+                    $violations[] = $this->issue('structure_collision', 'The object overlaps a fixed Kingdom structure.', $object['key']);
+                    break;
+                }
+
                 $exclusion = max((int) ($structure['exclusion'] ?? 0), 0);
-                $structureRect = new Rectangle(
+                if ($exclusion === 0) {
+                    continue;
+                }
+                $forbidden = new Rectangle(
                     (int) $structure['x'] - $exclusion,
                     (int) $structure['y'] - $exclusion,
-                    (int) $structure['size'] + ($exclusion * 2),
-                    (int) $structure['size'] + ($exclusion * 2),
+                    $structureSize + ($exclusion * 2),
+                    $structureSize + ($exclusion * 2),
                 );
                 $cityExempt = (bool) ($structure['city_exempt'] ?? false);
-                if ($rect->intersects($structureRect) && ! ($object['type'] === 'governor_city' && $cityExempt)) {
-                    $violations[] = $this->issue('structure_exclusion', 'The object overlaps a fixed structure or its no-build zone.', $object['key']);
+                if ($rect->intersects($forbidden) && ! ($object['type'] === 'governor_city' && $cityExempt)) {
+                    $violations[] = $this->issue('structure_exclusion', 'The object overlaps a fixed structure no-build zone.', $object['key']);
                     break;
                 }
             }
 
-            foreach ($data['zones'] as $zoneKey => $zone) {
+            foreach ($data['zones'] as $zone) {
                 if (! is_array($zone)) {
                     continue;
                 }
@@ -106,7 +115,7 @@ final class PlacementValidator
             }
         }
 
-        return new PlacementValidationResult($this->unique($violations), $this->unique($warnings), $suggestions);
+        return new PlacementValidationResult($this->unique($violations), $this->unique($warnings), []);
     }
 
     /** @return array{code:string,message:string,object_key:string} */
