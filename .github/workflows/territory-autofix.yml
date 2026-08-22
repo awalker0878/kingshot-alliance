@@ -44,30 +44,20 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
+          import re
 
           path = Path('resources/js/pages/Kingdom/Territory/Editor.vue')
           source = path.read_text()
 
-          lint_old = "if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') { event.preventDefault(); event.shiftKey ? redo() : undo(); return; }"
-          lint_new = """if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') {
-            event.preventDefault();
-            if (event.shiftKey) {
-              redo();
-            } else {
-              undo();
-            }
-            return;
-          }"""
-          source = source.replace(lint_old, lint_new, 1)
+          source = source.replace(
+              "const importPreview = ref<Record<string, unknown> | null>(null);",
+              "const importPreview = ref<Record<string, unknown> | null>(null);\nconst importDocument = ref('');",
+              1,
+          ) if "const importDocument = ref('');" not in source else source
 
-          declaration_old = "const importPreview = ref<Record<string, unknown> | null>(null);"
-          declaration_new = """const importPreview = ref<Record<string, unknown> | null>(null);
-          const importDocument = ref('');"""
-          if "const importDocument = ref('');" not in source:
-              source = source.replace(declaration_old, declaration_new, 1)
-
-          import_file_old = "async function importFile(event: Event): Promise<void> { const input = event.target as HTMLInputElement; const file = input.files?.[0]; if (!file) return; busy.value = true; try { const payload = await jsonRequest('/territory/import-preview', 'POST', { document: await file.text() }); importPreview.value = payload.preview as Record<string, unknown>; notice.value = { tone: 'info', message: t('territory.importReady') }; } catch (error) { notice.value = { tone: 'danger', message: error instanceof Error ? error.message : t('territory.requestFailed') }; } finally { busy.value = false; input.value = ''; } }"
-          import_file_new = """async function importFile(event: Event): Promise<void> {
+          source = re.sub(
+              r"async function importFile\(event: Event\): Promise<void> \{.*?\n\}\nfunction applyImport\(\): void \{.*?\n\}",
+              """async function importFile(event: Event): Promise<void> {
             const input = event.target as HTMLInputElement;
             const file = input.files?.[0];
             if (!file) return;
@@ -90,11 +80,8 @@ jobs:
               busy.value = false;
               input.value = '';
             }
-          }"""
-          source = source.replace(import_file_old, import_file_new, 1)
-
-          apply_old = "function applyImport(): void { if (!importPreview.value || importPreview.value.can_commit !== true) return; remember(); alliances.value = structuredClone(importPreview.value.alliances as PlanAlliance[]); groups.value = structuredClone(importPreview.value.groups as PlanGroup[]); objects.value = structuredClone(importPreview.value.objects as PlanObject[]); preferences.value = structuredClone(importPreview.value.planning_preferences as PlanningPreferences); activeAllianceKey.value = alliances.value[0]?.key ?? null; importPreview.value = null; notice.value = { tone: 'warning', message: t('territory.importAppliedUnsaved') }; }"
-          apply_new = """async function applyImport(): Promise<void> {
+          }
+          async function applyImport(): Promise<void> {
             if (!importPreview.value || importPreview.value.can_commit !== true || !importDocument.value) return;
             busy.value = true;
             try {
@@ -123,8 +110,26 @@ jobs:
             } finally {
               busy.value = false;
             }
-          }"""
-          source = source.replace(apply_old, apply_new, 1)
+          }""",
+              source,
+              count=1,
+              flags=re.S,
+          )
+
+          source = re.sub(
+              r"if \(\(event\.ctrlKey \|\| event\.metaKey\) && event\.key\.toLowerCase\(\) === 'z'\) \{\s*event\.preventDefault\(\);\s*event\.shiftKey \? redo\(\) : undo\(\);\s*return;\s*\}",
+              """if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') {
+            event.preventDefault();
+            if (event.shiftKey) {
+              redo();
+            } else {
+              undo();
+            }
+            return;
+          }""",
+              source,
+              count=1,
+          )
 
           path.write_text(source)
           PY
