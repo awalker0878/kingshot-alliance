@@ -8,6 +8,7 @@ use App\Contexts\Accounts\Identity\Contracts\AuthenticatedAccount;
 use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
 use App\Contexts\Alliance\Membership\Queries\PlayerMembershipQuery;
 use App\Contexts\GameWorld\KingdomMaps\Queries\KingdomMapDatasetQuery;
+use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Contexts\GameWorld\Players\Services\PlayerContext;
 use App\Contexts\Operations\Access\Enums\OperationsPermission;
 use App\Contexts\Operations\Access\Services\AllianceOperationsAuthorization;
@@ -35,7 +36,10 @@ final class TerritoryPlanningPageController extends Controller
         $player = $playerContext->playerOrNull();
         abort_unless($player !== null, 403);
 
-        $allianceIds = $memberships->activeAllianceIdsForPlayerInKingdom($player->playerId, $player->kingdomId);
+        $allianceIds = $memberships->activeAllianceIdsForPlayerInKingdom(
+            $player->playerId,
+            $player->kingdomId,
+        );
         $references = $alliances->byIds($allianceIds);
         $allianceOptions = [];
         foreach ($allianceIds as $allianceId) {
@@ -46,7 +50,11 @@ final class TerritoryPlanningPageController extends Controller
             $allianceOptions[] = [
                 'id' => $reference->allianceId,
                 'name' => $reference->name,
-                'canManage' => $allianceAuthorization->allows($player->playerId, $reference->allianceId, OperationsPermission::TerritoryAllianceManage),
+                'canManage' => $allianceAuthorization->allows(
+                    $player->playerId,
+                    $reference->allianceId,
+                    OperationsPermission::TerritoryAllianceManage,
+                ),
             ];
         }
 
@@ -68,21 +76,91 @@ final class TerritoryPlanningPageController extends Controller
                 'checksum' => $dataset->checksum,
             ], $datasets->all()),
             'allianceOptions' => $allianceOptions,
-            'canManageKingdomPlans' => $kingdomAuthorization->allows($player->playerId, $player->kingdomId, OperationsPermission::TerritoryKingdomManage),
+            'canManageKingdomPlans' => $kingdomAuthorization->allows(
+                $player->playerId,
+                $player->kingdomId,
+                OperationsPermission::TerritoryKingdomManage,
+            ),
         ]);
     }
 
-    public function show(Request $request, string $plan, PlayerContext $playerContext, TerritoryPlanQuery $plans): Response
-    {
+    public function show(
+        Request $request,
+        string $plan,
+        PlayerContext $playerContext,
+        TerritoryPlanQuery $plans,
+        PlayerMembershipQuery $memberships,
+        PlayerReferenceQuery $players,
+    ): Response {
         $user = $request->user();
         abort_unless($user instanceof AuthenticatedAccount, 401);
         $player = $playerContext->playerOrNull();
         abort_unless($player !== null, 403);
 
+        $territory = $plans->detail($player->playerId, $plan);
+        $territory['governor_options'] = $this->governorOptions($territory, $memberships, $players);
+
         return Inertia::render('Kingdom/Territory/Editor', [
             'user' => ['name' => $user->name, 'email' => $user->email],
-            'activePlayer' => ['id' => $player->playerId, 'name' => $player->currentName, 'kingdomNumber' => $player->kingdomNumber],
-            'territory' => $plans->detail($player->playerId, $plan),
+            'activePlayer' => [
+                'id' => $player->playerId,
+                'name' => $player->currentName,
+                'kingdomNumber' => $player->kingdomNumber,
+            ],
+            'territory' => $territory,
         ]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $territory
+     * @return array<string, list<array{id: string, name: string}>>
+     */
+    private function governorOptions(
+        array $territory,
+        PlayerMembershipQuery $memberships,
+        PlayerReferenceQuery $players,
+    ): array {
+        $layers = $territory['alliances'] ?? null;
+        if (! is_array($layers)) {
+            return [];
+        }
+
+        $playerIdsByLayer = [];
+        $allPlayerIds = [];
+        foreach ($layers as $layer) {
+            if (! is_array($layer)) {
+                continue;
+            }
+            $layerKey = $layer['key'] ?? null;
+            $allianceId = $layer['alliance_id'] ?? null;
+            if (! is_string($layerKey) || ! is_string($allianceId)) {
+                continue;
+            }
+
+            $memberIds = $memberships->activePlayerIds($allianceId);
+            $playerIdsByLayer[$layerKey] = $memberIds;
+            foreach ($memberIds as $playerId) {
+                $allPlayerIds[$playerId] = true;
+            }
+        }
+
+        $references = $players->byIds(array_keys($allPlayerIds));
+        $options = [];
+        foreach ($playerIdsByLayer as $layerKey => $playerIds) {
+            $layerOptions = [];
+            foreach ($playerIds as $playerId) {
+                $reference = $references[$playerId] ?? null;
+                if ($reference === null) {
+                    continue;
+                }
+                $layerOptions[] = [
+                    'id' => $reference->playerId,
+                    'name' => $reference->currentName,
+                ];
+            }
+            $options[$layerKey] = $layerOptions;
+        }
+
+        return $options;
     }
 }
