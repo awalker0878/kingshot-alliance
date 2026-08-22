@@ -98,6 +98,7 @@ const future = ref<string[]>([]);
 const canvas = ref<InstanceType<typeof TerritoryCanvas> | null>(null);
 const dialogAction = ref<DialogAction>(null);
 const importPreview = ref<Record<string, unknown> | null>(null);
+const importDocument = ref('');
 const hivePreview = ref<PlanObject[]>([]);
 const hiveStyle = ref<'swirl' | 'banner_pad'>('swirl');
 const hiveCenterX = ref(420);
@@ -647,12 +648,15 @@ async function importFile(event: Event): Promise<void> {
   if (!file) return;
   busy.value = true;
   try {
+    importDocument.value = await file.text();
     const payload = await jsonRequest('/territory/import-preview', 'POST', {
-      document: await file.text(),
+      document: importDocument.value,
     });
     importPreview.value = payload.preview as Record<string, unknown>;
     notice.value = { tone: 'info', message: t('territory.importReady') };
   } catch (error) {
+    importDocument.value = '';
+    importPreview.value = null;
     notice.value = {
       tone: 'danger',
       message: error instanceof Error ? error.message : t('territory.requestFailed'),
@@ -662,18 +666,36 @@ async function importFile(event: Event): Promise<void> {
     input.value = '';
   }
 }
-function applyImport(): void {
-  if (!importPreview.value || importPreview.value.can_commit !== true) return;
-  remember();
-  alliances.value = structuredClone(importPreview.value.alliances as PlanAlliance[]);
-  groups.value = structuredClone(importPreview.value.groups as PlanGroup[]);
-  objects.value = structuredClone(importPreview.value.objects as PlanObject[]);
-  preferences.value = structuredClone(
-    importPreview.value.planning_preferences as PlanningPreferences,
-  );
-  activeAllianceKey.value = alliances.value[0]?.key ?? null;
-  importPreview.value = null;
-  notice.value = { tone: 'warning', message: t('territory.importAppliedUnsaved') };
+async function applyImport(): Promise<void> {
+  if (!importPreview.value || importPreview.value.can_commit !== true || !importDocument.value)
+    return;
+  busy.value = true;
+  try {
+    const payload = await jsonRequest(`/territory/${props.territory.plan.id}/import`, 'POST', {
+      expected_revision: revision.value,
+      document: importDocument.value,
+    });
+    const receipt = payload.receipt as { revision: number; status: string };
+    revision.value = receipt.revision;
+    status.value = receipt.status;
+    importPreview.value = null;
+    importDocument.value = '';
+    history.value = [];
+    future.value = [];
+    localStorage.removeItem(draftStorageKey);
+    notice.value = {
+      tone: 'success',
+      message: t('territory.imported', { revision: revision.value }),
+    };
+    router.reload({ only: ['territory'] });
+  } catch (error) {
+    notice.value = {
+      tone: 'danger',
+      message: error instanceof Error ? error.message : t('territory.requestFailed'),
+    };
+  } finally {
+    busy.value = false;
+  }
 }
 
 function onKey(event: KeyboardEvent): void {

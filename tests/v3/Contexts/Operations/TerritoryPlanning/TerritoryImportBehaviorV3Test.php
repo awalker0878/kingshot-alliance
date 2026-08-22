@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\v3\Contexts\Operations\TerritoryPlanning;
 
+use App\Contexts\Alliance\Lifecycle\ValueObjects\AllianceReference;
+use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Operations\TerritoryPlanning\Actions\CreateTerritoryPlan;
 use App\Contexts\Operations\TerritoryPlanning\Actions\ImportTerritoryPlan;
 use App\Contexts\Operations\TerritoryPlanning\Enums\TerritoryPlanScope;
@@ -145,7 +147,7 @@ final class TerritoryImportBehaviorV3Test extends TestCase
     }
 
     /**
-     * @return array{0: \App\Contexts\GameWorld\Players\ValueObjects\PlayerReference, 1: \App\Contexts\Alliance\Lifecycle\ValueObjects\AllianceReference, 2: TerritoryPlan}
+     * @return array{0: PlayerReference, 1: AllianceReference, 2: TerritoryPlan}
      */
     private function scenario(int $kingdomNumber): array
     {
