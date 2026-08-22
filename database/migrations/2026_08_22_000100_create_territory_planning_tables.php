@@ -46,6 +46,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['territory_plan_id', 'plan_key']);
+            $table->unique(['territory_plan_id', 'alliance_id']);
             $table->index(['territory_plan_id', 'sort_order']);
             $table->index(['alliance_id', 'territory_plan_id']);
         });
@@ -113,6 +114,7 @@ return new class extends Migration
         });
 
         $this->createPlanScopeGuard();
+        $this->createAllianceIdentityGuard();
     }
 
     private function createPlanScopeGuard(): void
@@ -127,6 +129,21 @@ return new class extends Migration
         if ($driver === 'sqlite') {
             DB::statement("CREATE TRIGGER territory_plans_scope_target_insert BEFORE INSERT ON territory_plans WHEN NOT {$expression} BEGIN SELECT RAISE(ABORT, 'invalid territory plan scope target'); END");
             DB::statement("CREATE TRIGGER territory_plans_scope_target_update BEFORE UPDATE OF scope, owner_alliance_id ON territory_plans WHEN NOT {$expression} BEGIN SELECT RAISE(ABORT, 'invalid territory plan scope target'); END");
+        }
+    }
+
+    private function createAllianceIdentityGuard(): void
+    {
+        $expression = '((alliance_id IS NOT NULL AND external_name IS NULL) OR (alliance_id IS NULL AND external_name IS NOT NULL))';
+        $driver = DB::connection()->getDriverName();
+
+        if ($driver === 'pgsql') {
+            DB::statement("ALTER TABLE territory_plan_alliances ADD CONSTRAINT territory_plan_alliances_identity_check CHECK ({$expression})");
+        }
+
+        if ($driver === 'sqlite') {
+            DB::statement("CREATE TRIGGER territory_plan_alliances_identity_insert BEFORE INSERT ON territory_plan_alliances WHEN NOT {$expression} BEGIN SELECT RAISE(ABORT, 'invalid territory Alliance layer identity'); END");
+            DB::statement("CREATE TRIGGER territory_plan_alliances_identity_update BEFORE UPDATE OF alliance_id, external_name ON territory_plan_alliances WHEN NOT {$expression} BEGIN SELECT RAISE(ABORT, 'invalid territory Alliance layer identity'); END");
         }
     }
 
