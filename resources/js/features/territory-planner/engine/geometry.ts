@@ -77,6 +77,7 @@ export function validatePlacement(
   const warnings: ValidationIssue[] = [];
   const suggestions: ValidationIssue[] = [];
   const rectangles = new Map<string, Rect>();
+  const countsByAlliance = new Map<string, number>();
   const bounds = map.bounds;
 
   for (const object of objects) {
@@ -90,6 +91,19 @@ export function validatePlacement(
         ),
       );
       continue;
+    }
+    const definition = map.object_types[object.type];
+    const countKey = `${object.alliance_key}|${object.type}`;
+    const count = (countsByAlliance.get(countKey) ?? 0) + 1;
+    countsByAlliance.set(countKey, count);
+    if (definition.max_per_alliance && count > definition.max_per_alliance) {
+      violations.push(
+        issue(
+          'alliance_object_cap',
+          'This Alliance exceeds the selected map dataset object cap.',
+          object.key,
+        ),
+      );
     }
     rectangles.set(object.key, rect);
     if (!inside(rect, bounds)) {

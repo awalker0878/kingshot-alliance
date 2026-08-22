@@ -323,7 +323,6 @@ final readonly class SaveTerritoryPlan
         $allianceKeys = array_fill_keys(array_column($alliances, 'key'), true);
         $groupKeys = array_fill_keys(array_column($groups, 'key'), true);
         $keys = [];
-        $counts = [];
         $result = [];
 
         foreach ($items as $index => $item) {
@@ -350,18 +349,6 @@ final readonly class SaveTerritoryPlan
             } catch (ValueError) {
                 throw ValidationException::withMessages([
                     'objects' => 'A planned object uses an unsupported type.',
-                ]);
-            }
-
-            $counts[$allianceKey][$type] = ($counts[$allianceKey][$type] ?? 0) + 1;
-            if (
-                ($type === TerritoryObjectType::Banner->value && $counts[$allianceKey][$type] > 285)
-                || ($type === TerritoryObjectType::GovernorCity->value && $counts[$allianceKey][$type] > 100)
-                || ($type === TerritoryObjectType::Headquarters->value && $counts[$allianceKey][$type] > 1)
-                || ($type === TerritoryObjectType::BearTrap->value && $counts[$allianceKey][$type] > 2)
-            ) {
-                throw ValidationException::withMessages([
-                    'objects' => 'A planned Alliance exceeds the supported object cap.',
                 ]);
             }
 

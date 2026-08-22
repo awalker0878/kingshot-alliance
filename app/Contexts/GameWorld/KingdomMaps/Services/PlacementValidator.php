@@ -23,6 +23,7 @@ final class PlacementValidator
         $boundsData = $data['bounds'];
         $bounds = new Rectangle((int) $boundsData['x'], (int) $boundsData['y'], (int) $boundsData['width'], (int) $boundsData['height']);
         $rectangles = [];
+        $countsByAlliance = [];
 
         foreach ($objects as $object) {
             $definition = $data['object_types'][$object['type']] ?? null;
@@ -36,6 +37,16 @@ final class PlacementValidator
                 $violations[] = $this->issue('invalid_object_footprint', 'The selected map dataset has no valid footprint for this object.', $object['key']);
 
                 continue;
+            }
+            $countKey = $object['alliance_key'].'|'.$object['type'];
+            $countsByAlliance[$countKey] = ($countsByAlliance[$countKey] ?? 0) + 1;
+            $maximum = $definition['max_per_alliance'] ?? null;
+            if (is_int($maximum) && $maximum > 0 && $countsByAlliance[$countKey] > $maximum) {
+                $violations[] = $this->issue(
+                    'alliance_object_cap',
+                    'This Alliance exceeds the selected map dataset object cap.',
+                    $object['key'],
+                );
             }
             $rect = new Rectangle($object['x'], $object['y'], $size, $size);
             $rectangles[$object['key']] = $rect;
