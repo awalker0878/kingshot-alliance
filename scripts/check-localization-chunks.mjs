@@ -1,4 +1,4 @@
-import { readFile, stat } from 'node:fs/promises';
+import { readFile, readdir, stat } from 'node:fs/promises';
 import path from 'node:path';
 
 const manifestPath = path.resolve('public/build/manifest.json');
@@ -11,12 +11,33 @@ const localeSources = [...sources].filter((source) =>
   source.startsWith('resources/js/localization/messages/'),
 );
 
+async function collectTypeScriptSources(directory) {
+  const result = [];
+  for (const entry of await readdir(directory, { withFileTypes: true })) {
+    const absolute = path.join(directory, entry.name);
+    if (entry.isDirectory()) {
+      result.push(...(await collectTypeScriptSources(absolute)));
+    } else if (entry.isFile() && entry.name.endsWith('.ts')) {
+      result.push(path.relative(process.cwd(), absolute).split(path.sep).join('/'));
+    }
+  }
+  return result;
+}
+
 if (pageSources.length < 10) {
   throw new Error(`Expected lazy Inertia page chunks; found only ${pageSources.length}.`);
 }
 
-if (localeSources.length !== 14 * 17) {
-  throw new Error(`Expected 238 domain/locale chunks; found ${localeSources.length}.`);
+const expectedLocaleSources = new Set(
+  await collectTypeScriptSources(path.resolve('resources/js/localization/messages')),
+);
+const missingLocaleSources = [...expectedLocaleSources].filter((source) => !sources.has(source));
+const unexpectedLocaleSources = localeSources.filter((source) => !expectedLocaleSources.has(source));
+
+if (missingLocaleSources.length || unexpectedLocaleSources.length) {
+  throw new Error(
+    `Localization chunk mismatch. Missing: ${missingLocaleSources.join(', ') || 'none'}. Unexpected: ${unexpectedLocaleSources.join(', ') || 'none'}.`,
+  );
 }
 
 const appEntry = entries.find((entry) => entry.src === 'resources/js/app.ts');
