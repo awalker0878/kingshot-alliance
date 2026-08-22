@@ -15,7 +15,9 @@ final class TerritoryPlan extends Model
     use HasUlids;
 
     public $incrementing = false;
+
     protected $keyType = 'string';
+
     protected $guarded = [];
 
     protected function casts(): array
@@ -29,25 +31,25 @@ final class TerritoryPlan extends Model
         ];
     }
 
-    /** @return HasMany<TerritoryPlanAlliance,$this> */
+    /** @return HasMany<TerritoryPlanAlliance, $this> */
     public function planAlliances(): HasMany
     {
         return $this->hasMany(TerritoryPlanAlliance::class)->orderBy('sort_order');
     }
 
-    /** @return HasMany<TerritoryPlanGroup,$this> */
+    /** @return HasMany<TerritoryPlanGroup, $this> */
     public function groups(): HasMany
     {
         return $this->hasMany(TerritoryPlanGroup::class);
     }
 
-    /** @return HasMany<TerritoryPlanObject,$this> */
+    /** @return HasMany<TerritoryPlanObject, $this> */
     public function objects(): HasMany
     {
         return $this->hasMany(TerritoryPlanObject::class)->orderBy('sort_order');
     }
 
-    /** @return HasMany<TerritoryPlanRevision,$this> */
+    /** @return HasMany<TerritoryPlanRevision, $this> */
     public function revisions(): HasMany
     {
         return $this->hasMany(TerritoryPlanRevision::class)->orderByDesc('revision_number');
