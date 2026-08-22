@@ -168,17 +168,11 @@ function submit(): void {
       </section>
 
       <section class="grid gap-4 lg:grid-cols-2" :aria-label="t('territory.layers')">
-        <article
-          v-for="(layer, index) in form.alliances"
-          :key="layer.key"
-          class="ks-surface p-5"
-        >
+        <article v-for="(layer, index) in form.alliances" :key="layer.key" class="ks-surface p-5">
           <div class="flex items-start justify-between gap-3">
             <div>
               <p class="ks-kicker">
-                {{
-                  layer.alliance_id ? t('territory.alliance') : t('territory.externalAlliance')
-                }}
+                {{ layer.alliance_id ? t('territory.alliance') : t('territory.externalAlliance') }}
               </p>
               <h2 class="ks-display mt-1 text-xl font-semibold">{{ layer.display_name }}</h2>
               <p class="mt-1 text-xs text-[var(--ks-muted)]">
