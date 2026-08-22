@@ -48,6 +48,15 @@ final readonly class ClassifyGameEvidence
                 'confidence' => 0,
                 'started_at' => now(),
             ]);
+            $actor = $this->players->find((string) $evidence->uploaded_by_player_id);
+            $metadata = [
+                'evidence_id' => (string) $evidence->id,
+                'classification_attempt_id' => (string) $attempt->id,
+                'classifier_key' => $this->classifier->key(),
+                'classifier_version' => $this->classifier->version(),
+            ];
+            $this->audit->record('evidence.classification_started', $actor, $evidence, (string) $evidence->alliance_id, $metadata);
+            $this->outbox->record('evidence.classification_started', (string) $evidence->alliance_id, $evidence, $metadata);
 
             return (string) $attempt->id;
         });
@@ -117,11 +126,13 @@ final readonly class ClassifyGameEvidence
                 if ($evidence instanceof GameEvidence) {
                     $evidence->forceFill(['lifecycle_status' => EvidenceLifecycleStatus::Failed])->save();
                     $actor = $this->players->find((string) $evidence->uploaded_by_player_id);
-                    $this->audit->record('evidence.classification_failed', $actor, $evidence, (string) $evidence->alliance_id, [
+                    $metadata = [
                         'evidence_id' => (string) $evidence->id,
                         'classification_attempt_id' => $attemptId,
                         'failure_code' => $this->failureCode($exception),
-                    ]);
+                    ];
+                    $this->audit->record('evidence.classification_failed', $actor, $evidence, (string) $evidence->alliance_id, $metadata);
+                    $this->outbox->record('evidence.classification_failed', (string) $evidence->alliance_id, $evidence, $metadata);
                 }
             });
             throw $exception;

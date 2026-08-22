@@ -76,8 +76,23 @@ final readonly class RecordBearHuntBattleReport
                     throw ValidationException::withMessages(['idempotency_key' => 'The idempotency key was already used for a different Bear Hunt report.']);
                 }
                 $playerResults = $this->projector->recompute($occurrenceId, $actorPlayerId);
+                $metadata = [
+                    'event_id' => (string) $context->event->id,
+                    'occurrence_id' => $occurrenceId,
+                    'report_id' => (string) $existing->id,
+                    'source_evidence_id' => $sourceEvidenceId,
+                    'source_commit_attempt_id' => $sourceCommitAttemptId,
+                    'actor_player_id' => $actorPlayerId,
+                ];
+                $this->audit->record('bear_hunt.battle_report_replayed', $context->actor, $existing, $context->target->allianceId, $metadata);
+                $this->outbox->record('bear_hunt.battle_report_replayed', $context->target->allianceId, $existing, $metadata, partitionKey: $context->target->partitionKey());
 
-                return new BearHuntBattleReportReceipt((string) $existing->id, (int) BearHuntBattleReportEntry::query()->where('report_id', $existing->id)->count(), true, $playerResults);
+                return new BearHuntBattleReportReceipt(
+                    (string) $existing->id,
+                    (int) BearHuntBattleReportEntry::query()->where('report_id', $existing->id)->count(),
+                    true,
+                    $playerResults,
+                );
             }
             $fingerprintCollision = BearHuntBattleReport::query()->where('occurrence_id', $occurrenceId)->where('report_fingerprint', $reportFingerprint)->lockForUpdate()->first();
             if ($fingerprintCollision instanceof BearHuntBattleReport) {
@@ -137,8 +152,12 @@ final readonly class RecordBearHuntBattleReport
             }
             $playerResults = $this->projector->recompute($occurrenceId, $actorPlayerId);
             $metadata = [
-                'event_id' => (string) $context->event->id, 'occurrence_id' => $occurrenceId, 'report_id' => (string) $report->id,
-                'source_evidence_id' => $sourceEvidenceId, 'entry_count' => count($normalized), 'actor_player_id' => $actorPlayerId,
+                'event_id' => (string) $context->event->id,
+                'occurrence_id' => $occurrenceId,
+                'report_id' => (string) $report->id,
+                'source_evidence_id' => $sourceEvidenceId,
+                'entry_count' => count($normalized),
+                'actor_player_id' => $actorPlayerId,
             ];
             $this->audit->record('bear_hunt.battle_report_recorded', $context->actor, $report, $context->target->allianceId, $metadata);
             $this->outbox->record('bear_hunt.battle_report_recorded', $context->target->allianceId, $report, $metadata, partitionKey: $context->target->partitionKey());

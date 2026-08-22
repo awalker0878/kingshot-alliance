@@ -60,6 +60,17 @@ final readonly class ExtractGameEvidence
                 'field_count' => 0,
                 'started_at' => now(),
             ]);
+            $actor = $this->players->find((string) $evidence->uploaded_by_player_id);
+            $metadata = [
+                'evidence_id' => (string) $evidence->id,
+                'extraction_attempt_id' => (string) $attempt->id,
+                'classification_attempt_id' => (string) $classification->id,
+                'extractor_key' => $this->extractor->key(),
+                'extractor_version' => $this->extractor->version(),
+                'schema_version' => $this->extractor->schemaVersion(),
+            ];
+            $this->audit->record('evidence.extraction_started', $actor, $evidence, (string) $evidence->alliance_id, $metadata);
+            $this->outbox->record('evidence.extraction_started', (string) $evidence->alliance_id, $evidence, $metadata);
 
             return (string) $attempt->id;
         });
@@ -129,11 +140,13 @@ final readonly class ExtractGameEvidence
                 if ($evidence instanceof GameEvidence) {
                     $evidence->forceFill(['lifecycle_status' => EvidenceLifecycleStatus::Failed])->save();
                     $actor = $this->players->find((string) $evidence->uploaded_by_player_id);
-                    $this->audit->record('evidence.extraction_failed', $actor, $evidence, (string) $evidence->alliance_id, [
+                    $metadata = [
                         'evidence_id' => (string) $evidence->id,
                         'extraction_attempt_id' => $attemptId,
                         'failure_code' => $this->failureCode($exception),
-                    ]);
+                    ];
+                    $this->audit->record('evidence.extraction_failed', $actor, $evidence, (string) $evidence->alliance_id, $metadata);
+                    $this->outbox->record('evidence.extraction_failed', (string) $evidence->alliance_id, $evidence, $metadata);
                 }
             });
             throw $exception;

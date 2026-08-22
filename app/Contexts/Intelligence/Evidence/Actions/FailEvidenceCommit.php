@@ -10,6 +10,7 @@ use App\Contexts\Intelligence\Evidence\Enums\EvidenceLifecycleStatus;
 use App\Contexts\Intelligence\Evidence\Models\EvidenceCommitAttempt;
 use App\Contexts\Intelligence\Evidence\Models\GameEvidence;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
+use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
 use Throwable;
 
@@ -18,6 +19,7 @@ final readonly class FailEvidenceCommit
     public function __construct(
         private PlayerReferenceQuery $players,
         private AuditRecorder $audit,
+        private OutboxRecorder $outbox,
     ) {}
 
     public function handle(string $actorPlayerId, string $attemptId, Throwable $exception): void
@@ -36,12 +38,14 @@ final readonly class FailEvidenceCommit
                 'completed_at' => now(),
             ])->save();
             $evidence->forceFill(['lifecycle_status' => EvidenceLifecycleStatus::Approved])->save();
-            $this->audit->record('evidence.commit_failed', $actor, $evidence, (string) $evidence->alliance_id, [
+            $metadata = [
                 'evidence_id' => (string) $evidence->id,
                 'review_id' => (string) $attempt->review_id,
                 'commit_attempt_id' => (string) $attempt->id,
                 'failure_code' => $failureCode,
-            ]);
+            ];
+            $this->audit->record('evidence.commit_failed', $actor, $evidence, (string) $evidence->alliance_id, $metadata);
+            $this->outbox->record('evidence.commit_failed', (string) $evidence->alliance_id, $evidence, $metadata);
         });
     }
 }

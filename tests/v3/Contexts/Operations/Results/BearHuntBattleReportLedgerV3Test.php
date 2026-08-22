@@ -10,6 +10,8 @@ use App\Contexts\Operations\Events\Models\EventTypeScope;
 use App\Contexts\Operations\Results\Actions\RecordBearHuntBattleReport;
 use App\Contexts\Operations\Results\Actions\RemoveBearHuntBattleReport;
 use App\Contexts\Operations\Results\Models\EventPlayerResult;
+use App\Shared\Infrastructure\AuditTrail\Models\AuditEvent;
+use App\Shared\Infrastructure\Messaging\Outbox\Models\OutboxMessage;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
@@ -57,7 +59,7 @@ final class BearHuntBattleReportLedgerV3Test extends TestCase
                 'damage_points' => 100,
             ]],
         );
-        self::assertFalse($first->replayed);
+        self::assertFalse($first->idempotentReplay);
         self::assertSame(100, $this->score($occurrenceId, $actor->playerId));
 
         $replay = $record->handle(
@@ -74,9 +76,11 @@ final class BearHuntBattleReportLedgerV3Test extends TestCase
                 'damage_points' => 100,
             ]],
         );
-        self::assertTrue($replay->replayed);
+        self::assertTrue($replay->idempotentReplay);
         self::assertSame($first->reportId, $replay->reportId);
         self::assertSame(100, $this->score($occurrenceId, $actor->playerId));
+        self::assertTrue(AuditEvent::query()->where('event', 'bear_hunt.battle_report_replayed')->where('subject_id', $first->reportId)->exists());
+        self::assertTrue(OutboxMessage::query()->where('event_type', 'bear_hunt.battle_report_replayed')->where('aggregate_id', $first->reportId)->exists());
 
         $second = $record->handle(
             actorPlayerId: $actor->playerId,

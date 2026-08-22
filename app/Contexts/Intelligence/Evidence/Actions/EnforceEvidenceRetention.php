@@ -10,6 +10,7 @@ use App\Contexts\Intelligence\Evidence\Models\EvidenceCommitAttempt;
 use App\Contexts\Intelligence\Evidence\Models\GameEvidence;
 use App\Contexts\Intelligence\Evidence\Services\EvidenceRedactor;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
+use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Throwable;
@@ -19,6 +20,7 @@ final readonly class EnforceEvidenceRetention
     public function __construct(
         private EvidenceRedactor $redactor,
         private AuditRecorder $audit,
+        private OutboxRecorder $outbox,
     ) {}
 
     public function handle(int $limit = 100): int
@@ -52,10 +54,12 @@ final readonly class EnforceEvidenceRetention
                         $days = max(1, (int) config('evidence.retention.committed_binary_days', 180));
                         if ($evidence->path !== null && $age >= $days) {
                             $this->redactor->redact($evidence, 'retention_committed_binary');
-                            $this->audit->record('evidence.retention_redacted', null, $evidence, (string) $evidence->alliance_id, [
+                            $metadata = [
                                 'evidence_id' => (string) $evidence->id,
                                 'policy_days' => $days,
-                            ]);
+                            ];
+                            $this->audit->record('evidence.retention_redacted', null, $evidence, (string) $evidence->alliance_id, $metadata);
+                            $this->outbox->record('evidence.retention_redacted', (string) $evidence->alliance_id, $evidence, $metadata);
 
                             return 1;
                         }
@@ -82,6 +86,7 @@ final readonly class EnforceEvidenceRetention
                     ];
                     $this->redactor->redact($evidence, 'retention_uncommitted_purge');
                     $this->audit->record('evidence.retention_purged', null, $evidence, (string) $evidence->alliance_id, $metadata);
+                    $this->outbox->record('evidence.retention_purged', (string) $evidence->alliance_id, $evidence, $metadata);
                     $evidence->delete();
 
                     return 1;
@@ -89,10 +94,12 @@ final readonly class EnforceEvidenceRetention
             } catch (Throwable $exception) {
                 $evidence = GameEvidence::query()->find($evidenceId);
                 if ($evidence instanceof GameEvidence) {
-                    $this->audit->record('evidence.retention_failed', null, $evidence, (string) $evidence->alliance_id, [
+                    $metadata = [
                         'evidence_id' => $evidenceId,
                         'failure_type' => $exception::class,
-                    ]);
+                    ];
+                    $this->audit->record('evidence.retention_failed', null, $evidence, (string) $evidence->alliance_id, $metadata);
+                    $this->outbox->record('evidence.retention_failed', (string) $evidence->alliance_id, $evidence, $metadata);
                 }
             }
         }
