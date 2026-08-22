@@ -1,0 +1,27 @@
+name: Territory Formatter Inspection
+
+on:
+  pull_request:
+    paths:
+      - 'resources/js/features/territory-planner/**'
+      - 'resources/js/pages/Kingdom/Territory/**'
+      - '.github/workflows/territory-format-inspection.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  format:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Print exact formatter diff
+        run: |
+          npm run format
+          git diff -- resources/js/features/territory-planner/components/TerritoryCanvas.vue resources/js/features/territory-planner/engine/geometry.ts resources/js/pages/Kingdom/Territory/Alliances.vue
+          test -z "$(git status --short -- resources/js/features/territory-planner/components/TerritoryCanvas.vue resources/js/features/territory-planner/engine/geometry.ts resources/js/pages/Kingdom/Territory/Alliances.vue)"
