@@ -2,7 +2,7 @@
 
 Status: Current
 
-This is the user/product view of implemented capability groups. Architectural ownership is linked where useful.
+This is the user/product view of implemented and actively delivered capability groups. Architectural ownership is linked where useful.
 
 | Product capability | Outcome | Architectural owner |
 | --- | --- | --- |
@@ -14,6 +14,7 @@ This is the user/product view of implemented capability groups. Architectural ow
 | Recruitment | Intake, filter, preview/bulk-triage, review and convert recruitment candidates through controlled membership handoff. | Alliance |
 | Alliance content | Publish reviewed, revisioned and context-linked knowledge plus testable timezone-safe recurring announcements with delivery history and selective recovery. | Alliance intent + Communications delivery + ReadModels composition |
 | Kingdom governance | Manage Kingdom role/governance facts for Players. | GameWorld/Governance; workflows coordinate cross-context effects |
+| Territory & hive planning | Build, validate, analyze, version, compare and share Alliance/Kingdom layouts using versioned KingShot map facts; plan HQs, Banners, Governor cities, Bear Traps, territory coverage, hive presets, march times and multi-Alliance positioning. | GameWorld/KingdomMaps owns map facts/rules; Operations/TerritoryPlanning owns plans/analysis; ReadModels composes editor reads |
 | Events | Define/schedule recurring Events and occurrences. | Operations/Events |
 | Participation | Registration, responses and attendance. | Operations/Participation |
 | Event planning | Rosters, polls, battle objectives and assignments. | Operations |
@@ -28,6 +29,27 @@ This is the user/product view of implemented capability groups. Architectural ow
 | Dashboards/history | Compose cross-context user-facing views without changing source ownership. | ReadModels |
 
 This catalogue should change when a real product outcome changes, not for internal class/file movement.
+
+## Territory & Hive Planner product contract
+
+The capability is delivered as one complete product, not as disconnected map widgets. The final user outcome includes all of the following:
+
+- versioned KingShot map datasets with provenance, observation date, schema version and checksum;
+- one canonical coordinate/geometry vocabulary used by server validation and browser preview;
+- saved Alliance and Kingdom-scoped plans with optimistic revision protection;
+- planned HQs, Banners, Governor cities, Bear Traps and plan-local external Alliance/Governor references;
+- server-authoritative collision, exclusion-zone, map-boundary, footprint, cap and territory-connectivity validation;
+- explicit separation between invalid game-rule violations, planning warnings and optimization suggestions;
+- pan/zoom, select, move, delete, duplicate, box-select, grouping, ungrouping, rotation, keyboard movement and undo/redo;
+- territory coverage rendering and analysis;
+- Bear-hive presets/generators and editable generated layouts;
+- march-distance/time analysis with visible, versioned assumptions where no authoritative game value exists;
+- multi-Alliance Kingdom planning without requiring external Alliances or Governors to become application records;
+- immutable published revisions, comparison, clone/restore, schema-versioned JSON import/export, PNG/SVG image export and shareable artifacts;
+- keyboard/mobile/accessibility parity through synchronized DOM controls rather than a canvas-only workflow;
+- integration with applicable Bear Hunt, Castle Battle and Kingdom of Power/Kingdom planning workflows through immutable plan-revision references rather than moving spatial state into BattlePlans.
+
+Community projects are discovery evidence, not authoritative KingShot truth. A community-derived coordinate, footprint, placement rule or march constant cannot silently become product logic; it must carry the provenance/confidence contract defined by GameWorld/KingdomMaps.
 
 ## Assurance contract
 
