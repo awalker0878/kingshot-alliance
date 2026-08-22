@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: visual-${{ github.ref }}
@@ -54,6 +54,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
 
       - name: Configure PHP
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
@@ -75,11 +77,32 @@ jobs:
       - name: Install locked frontend dependencies
         run: npm ci --no-audit --no-fund
 
+      - name: Finalize Territory UI and repository formatting
+        if: github.event_name == 'pull_request' && github.head_ref == 'feature/alliance-territory-hive-planner'
+        shell: bash
+        run: |
+          python scripts/finalize-territory-ui.py
+          vendor/bin/pint
+          npm run lint
+          npm run format
+
+          if git diff --quiet; then
+            echo "Territory UI and formatting are already canonical."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app resources tests scripts package.json
+          git commit -m "Finalize Territory planner UI and formatting"
+          git push origin HEAD:${{ github.head_ref }}
+
       - name: Prepare visual database
         shell: bash
         run: |
           php artisan migrate --force
-          php artisan tinker --execute='$user = \App\Contexts\Accounts\Identity\Models\User::factory()->create(["name" => "UX P9 Visual", "email" => "ux-p9-visual@example.test", "timezone" => "UTC"]); $k1123 = \App\Contexts\GameWorld\Kingdoms\Models\Kingdom::query()->create(["number" => 1123, "status" => "active"]); $k1198 = \App\Contexts\GameWorld\Kingdoms\Models\Kingdom::query()->create(["number" => 1198, "status" => "active"]); $p1 = \App\Contexts\GameWorld\Players\Models\Player::query()->create(["user_id" => $user->id, "current_kingdom_id" => $k1123->id, "game_player_id" => "GOV-1123-A", "current_name" => "Lady Seraphina"]); \App\Contexts\GameWorld\Players\Models\Player::query()->create(["user_id" => $user->id, "current_kingdom_id" => $k1198->id, "game_player_id" => "GOV-1198-B", "current_name" => "Lord Caspian"]); $allianceId = app(\App\Contexts\Alliance\Lifecycle\Actions\CreateAlliance::class)->handle((string) $p1->id, "Dawn Guard", "dawn-guard", "en", "UTC"); $plan = app(\App\Contexts\Operations\TerritoryPlanning\Actions\CreateTerritoryPlan::class)->handle((string) $p1->id, \App\Contexts\Operations\TerritoryPlanning\Enums\TerritoryPlanScope::Alliance, (string) $k1123->id, $allianceId, "Bear Hive Alpha", "kingshot-community-observed-2026-08-21-v1"); app(\App\Contexts\Operations\TerritoryPlanning\Actions\SaveTerritoryPlan::class)->handle((string) $p1->id, $plan->planId, $plan->revision, [["key"=>"owner","alliance_id"=>$allianceId,"external_name"=>null,"display_name"=>"Dawn Guard","presentation_color"=>"#4da3ff","sort_order"=>0,"visible"=>true,"locked"=>false]], [["key"=>"hive","label"=>"Primary Hive"]], [["key"=>"hq","alliance_key"=>"owner","group_key"=>null,"type"=>"headquarters","x"=>100,"y"=>100,"rotation"=>0,"sort_order"=>0,"metadata"=>[]],["key"=>"banner","alliance_key"=>"owner","group_key"=>null,"type"=>"banner","x"=>110,"y"=>100,"rotation"=>0,"sort_order"=>1,"metadata"=>[]],["key"=>"city","alliance_key"=>"owner","group_key"=>"hive","type"=>"governor_city","external_player_name"=>"North Star","x"=>112,"y"=>112,"rotation"=>0,"sort_order"=>2,"metadata"=>[]],["key"=>"trap-one","alliance_key"=>"owner","group_key"=>"hive","type"=>"bear_trap","label"=>"Bear Trap 1","x"=>120,"y"=>120,"rotation"=>0,"sort_order"=>3,"metadata"=>[]]], ["preferred_bear_radius_tiles"=>40,"march_seconds_per_tile"=>2,"selected_bear_trap_by_alliance"=>["owner"=>"trap-one"]]);'
+          php artisan tinker --execute='$user = \App\Contexts\Accounts\Identity\Models\User::factory()->create(["name" => "UX P9 Visual", "email" => "ux-p9-visual@example.test", "timezone" => "UTC"]); $k1123 = \App\Contexts\GameWorld\Kingdoms\Models\Kingdom::query()->create(["number" => 1123, "status" => "active"]); $k1198 = \App\Contexts\GameWorld\Kingdoms\Models\Kingdom::query()->create(["number" => 1198, "status" => "active"]); \App\Contexts\GameWorld\Players\Models\Player::query()->create(["user_id" => $user->id, "current_kingdom_id" => $k1123->id, "game_player_id" => "GOV-1123-A", "current_name" => "Lady Seraphina"]); \App\Contexts\GameWorld\Players\Models\Player::query()->create(["user_id" => $user->id, "current_kingdom_id" => $k1198->id, "game_player_id" => "GOV-1198-B", "current_name" => "Lord Caspian"]);'
+          php artisan tinker --execute='$user = \App\Contexts\Accounts\Identity\Models\User::factory()->create(["name" => "Territory Visual", "email" => "territory-visual@example.test", "timezone" => "UTC"]); $kingdom = \App\Contexts\GameWorld\Kingdoms\Models\Kingdom::query()->create(["number" => 1223, "status" => "active"]); $player = \App\Contexts\GameWorld\Players\Models\Player::query()->create(["user_id" => $user->id, "current_kingdom_id" => $kingdom->id, "game_player_id" => "GOV-TERRITORY-A", "current_name" => "Map Warden"]); $allianceId = app(\App\Contexts\Alliance\Lifecycle\Actions\CreateAlliance::class)->handle((string) $player->id, "Dawn Guard", "dawn-guard", "en", "UTC"); $plan = app(\App\Contexts\Operations\TerritoryPlanning\Actions\CreateTerritoryPlan::class)->handle((string) $player->id, \App\Contexts\Operations\TerritoryPlanning\Enums\TerritoryPlanScope::Alliance, (string) $kingdom->id, $allianceId, "Bear Hive Alpha", "kingshot-community-observed-2026-08-21-v1"); app(\App\Contexts\Operations\TerritoryPlanning\Actions\SaveTerritoryPlan::class)->handle((string) $player->id, $plan->planId, $plan->revision, [["key"=>"owner","alliance_id"=>$allianceId,"external_name"=>null,"external_tag"=>null,"display_name"=>"Dawn Guard","presentation_color"=>"#4da3ff","sort_order"=>0,"visible"=>true,"locked"=>false]], [["key"=>"hive","label"=>"Primary Hive"]], [["key"=>"hq","alliance_key"=>"owner","group_key"=>null,"type"=>"headquarters","player_id"=>null,"external_player_name"=>null,"label"=>"HQ","x"=>100,"y"=>100,"rotation"=>0,"sort_order"=>0,"metadata"=>[]],["key"=>"banner","alliance_key"=>"owner","group_key"=>null,"type"=>"banner","player_id"=>null,"external_player_name"=>null,"label"=>"Banner","x"=>110,"y"=>100,"rotation"=>0,"sort_order"=>1,"metadata"=>[]],["key"=>"city","alliance_key"=>"owner","group_key"=>"hive","type"=>"governor_city","player_id"=>null,"external_player_name"=>"North Star","label"=>"North Star","x"=>112,"y"=>112,"rotation"=>0,"sort_order"=>2,"metadata"=>[]],["key"=>"trap-one","alliance_key"=>"owner","group_key"=>"hive","type"=>"bear_trap","player_id"=>null,"external_player_name"=>null,"label"=>"Bear Trap 1","x"=>120,"y"=>120,"rotation"=>0,"sort_order"=>3,"metadata"=>[]]], ["preferred_bear_radius_tiles"=>40,"march_seconds_per_tile"=>2,"selected_bear_trap_by_alliance"=>["owner"=>"trap-one"]]);'
 
       - name: Build production frontend
         run: npm run build
