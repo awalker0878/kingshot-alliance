@@ -65,6 +65,11 @@ function fitMap(): void {
   draw();
 }
 
+function zoomBy(factor: number): void {
+  zoom.value = Math.min(8, Math.max(0.06, zoom.value * factor));
+  draw();
+}
+
 function toScreen(x: number, y: number): [number, number] {
   return [
     (x - cameraX.value) * zoom.value + width.value / 2,
@@ -89,7 +94,12 @@ function objectAt(screenX: number, screenY: number): PlanObject | null {
     const definition = props.map.object_types[object.type];
     const [x, yBottom] = toScreen(object.x, object.y);
     const size = definition.size * zoom.value;
-    if (screenX >= x && screenX <= x + size && screenY <= yBottom && screenY >= yBottom - size)
+    if (
+      screenX >= x &&
+      screenX <= x + size &&
+      screenY <= yBottom &&
+      screenY >= yBottom - size
+    )
       return object;
   }
   return null;
@@ -319,6 +329,7 @@ watch(
       class="block h-full w-full touch-none"
       :style="{ width: `${width}px`, height: `${height}px` }"
       :aria-label="label"
+      tabindex="0"
       @pointerdown="onPointerDown"
       @pointermove="onPointerMove"
       @pointerup="onPointerUp"
@@ -326,8 +337,35 @@ watch(
       @wheel="onWheel"
       @contextmenu.prevent
     />
+    <div class="absolute top-3 right-3 flex gap-1 rounded bg-black/60 p-1">
+      <button
+        type="button"
+        class="rounded px-2 py-1 text-sm font-semibold text-white hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+        :aria-label="`${label} −`"
+        @click="zoomBy(0.8)"
+      >
+        −
+      </button>
+      <button
+        type="button"
+        class="rounded px-2 py-1 text-sm font-semibold text-white hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+        :aria-label="`${label} +`"
+        @click="zoomBy(1.25)"
+      >
+        +
+      </button>
+      <button
+        type="button"
+        class="rounded px-2 py-1 text-sm font-semibold text-white hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+        :aria-label="`${label} 100%`"
+        @click="fitMap"
+      >
+        ⤢
+      </button>
+    </div>
     <div
       class="pointer-events-none absolute right-3 bottom-3 rounded bg-black/60 px-2 py-1 text-xs text-white/70"
+      aria-live="polite"
     >
       {{ Math.round(zoom * 100) }}%
     </div>
