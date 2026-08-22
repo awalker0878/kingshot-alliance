@@ -160,6 +160,9 @@ export function validatePlacement(
       });
   }
 
+  const violatingObjectKeys = new Set(
+    violations.flatMap((violation) => (violation.object_key ? [violation.object_key] : [])),
+  );
   const allianceObjects = new Map<string, PlanObject[]>();
   objects.forEach((object) =>
     allianceObjects.set(object.alliance_key, [
@@ -168,6 +171,7 @@ export function validatePlacement(
     ]),
   );
   for (const scopedObjects of allianceObjects.values()) {
+    if (scopedObjects.some((object) => violatingObjectKeys.has(object.key))) continue;
     const firstCity = scopedObjects.find((object) => object.type === 'governor_city');
     if (!firstCity) continue;
     if (!scopedObjects.some((object) => object.type === 'headquarters')) {
