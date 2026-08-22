@@ -9,6 +9,7 @@ use App\Contexts\Operations\TerritoryPlanning\Actions\ArchiveTerritoryPlan;
 use App\Contexts\Operations\TerritoryPlanning\Actions\AttachTerritoryPlanRevisionToEvent;
 use App\Contexts\Operations\TerritoryPlanning\Actions\CloneTerritoryPlan;
 use App\Contexts\Operations\TerritoryPlanning\Actions\CreateTerritoryPlan;
+use App\Contexts\Operations\TerritoryPlanning\Actions\DetachTerritoryPlanRevisionFromEvent;
 use App\Contexts\Operations\TerritoryPlanning\Actions\ImportTerritoryPlan;
 use App\Contexts\Operations\TerritoryPlanning\Actions\PublishTerritoryPlan;
 use App\Contexts\Operations\TerritoryPlanning\Actions\RestoreTerritoryPlanRevision;
@@ -106,9 +107,7 @@ final class TerritoryPlanController extends Controller
         $player = $players->playerOrNull();
         abort_unless($player !== null, 403);
 
-        $data = $request->validate([
-            'expected_revision' => ['required', 'integer', 'min:1'],
-        ]);
+        $data = $request->validate(['expected_revision' => ['required', 'integer', 'min:1']]);
         $mutation = $publish->handle($player->playerId, $plan, (int) $data['expected_revision']);
 
         return response()->json(['receipt' => $this->mutationReceipt($mutation)]);
@@ -119,9 +118,7 @@ final class TerritoryPlanController extends Controller
         $player = $players->playerOrNull();
         abort_unless($player !== null, 403);
 
-        $data = $request->validate([
-            'expected_revision' => ['required', 'integer', 'min:1'],
-        ]);
+        $data = $request->validate(['expected_revision' => ['required', 'integer', 'min:1']]);
         $mutation = $archive->handle($player->playerId, $plan, (int) $data['expected_revision']);
 
         return response()->json(['receipt' => $this->mutationReceipt($mutation)]);
@@ -137,9 +134,7 @@ final class TerritoryPlanController extends Controller
         $player = $players->playerOrNull();
         abort_unless($player !== null, 403);
 
-        $data = $request->validate([
-            'expected_revision' => ['required', 'integer', 'min:1'],
-        ]);
+        $data = $request->validate(['expected_revision' => ['required', 'integer', 'min:1']]);
         $mutation = $restore->handle(
             $player->playerId,
             $plan,
@@ -155,9 +150,7 @@ final class TerritoryPlanController extends Controller
         $player = $players->playerOrNull();
         abort_unless($player !== null, 403);
 
-        $data = $request->validate([
-            'name' => ['required', 'string', 'max:160'],
-        ]);
+        $data = $request->validate(['name' => ['required', 'string', 'max:160']]);
         $mutation = $clone->handle($player->playerId, $plan, $data['name']);
 
         return response()->json(['receipt' => $this->mutationReceipt($mutation)]);
@@ -179,6 +172,7 @@ final class TerritoryPlanController extends Controller
 
     public function attachEvent(
         Request $request,
+        string $occurrence,
         PlayerContext $players,
         AttachTerritoryPlanRevisionToEvent $attach,
     ): JsonResponse {
@@ -186,13 +180,12 @@ final class TerritoryPlanController extends Controller
         abort_unless($player !== null, 403);
 
         $data = $request->validate([
-            'event_occurrence_id' => ['required', 'ulid'],
             'territory_plan_revision_id' => ['required', 'ulid'],
             'purpose' => ['sometimes', 'string', 'max:40'],
         ]);
         $linkId = $attach->handle(
             $player->playerId,
-            $data['event_occurrence_id'],
+            $occurrence,
             $data['territory_plan_revision_id'],
             $data['purpose'] ?? 'positioning',
         );
@@ -200,11 +193,30 @@ final class TerritoryPlanController extends Controller
         return response()->json(['link_id' => $linkId]);
     }
 
+    public function detachEvent(
+        Request $request,
+        string $occurrence,
+        PlayerContext $players,
+        DetachTerritoryPlanRevisionFromEvent $detach,
+    ): JsonResponse {
+        $player = $players->playerOrNull();
+        abort_unless($player !== null, 403);
+
+        $data = $request->validate([
+            'purpose' => ['sometimes', 'string', 'max:40'],
+        ]);
+        $detached = $detach->handle(
+            $player->playerId,
+            $occurrence,
+            $data['purpose'] ?? 'positioning',
+        );
+
+        return response()->json(['detached' => $detached]);
+    }
+
     public function previewImport(Request $request, TerritoryPlanImport $import): JsonResponse
     {
-        $data = $request->validate([
-            'document' => ['required', 'string', 'max:5000000'],
-        ]);
+        $data = $request->validate(['document' => ['required', 'string', 'max:5000000']]);
 
         return response()->json(['preview' => $import->preview($data['document'])]);
     }
