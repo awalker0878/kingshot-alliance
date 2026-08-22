@@ -16,7 +16,12 @@ function rectFor(object: PlanObject, map: MapData): Rect | null {
 }
 
 function intersects(a: Rect, b: Rect): boolean {
-  return a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
+  return (
+    a.x < b.x + b.width &&
+    a.x + a.width > b.x &&
+    a.y < b.y + b.height &&
+    a.y + a.height > b.y
+  );
 }
 
 function inside(rect: Rect, bounds: Rect): boolean {
@@ -40,6 +45,33 @@ function unique(issues: ValidationIssue[]): ValidationIssue[] {
     seen.add(key);
     return true;
   });
+}
+
+function selectedTrap(
+  allianceKey: string,
+  traps: PlanObject[],
+  preferences: PlanningPreferences,
+): PlanObject | null {
+  const selectedKey = preferences.selected_bear_trap_by_alliance?.[allianceKey];
+  if (!selectedKey) return null;
+  return traps.find((trap) => trap.key === selectedKey) ?? null;
+}
+
+function targetTrapForCity(
+  city: PlanObject,
+  traps: PlanObject[],
+  preferences: PlanningPreferences,
+): { trap: PlanObject; distance: number } | null {
+  if (!traps.length) return null;
+  const selected = selectedTrap(city.alliance_key, traps, preferences);
+  if (selected) {
+    return { trap: selected, distance: Math.hypot(city.x - selected.x, city.y - selected.y) };
+  }
+
+  return traps.reduce<{ trap: PlanObject; distance: number } | null>((best, trap) => {
+    const distance = Math.hypot(city.x - trap.x, city.y - trap.y);
+    return best === null || distance < best.distance ? { trap, distance } : best;
+  }, null);
 }
 
 export function validatePlacement(
@@ -138,17 +170,24 @@ export function validatePlacement(
 
   const radius = preferences.preferred_bear_radius_tiles;
   if (radius && radius > 0) {
-    const traps = new Map<string, PlanObject>();
+    const trapsByAlliance = new Map<string, PlanObject[]>();
     objects
       .filter((object) => object.type === 'bear_trap')
-      .forEach((trap) => {
-        if (!traps.has(trap.alliance_key)) traps.set(trap.alliance_key, trap);
-      });
+      .forEach((trap) =>
+        trapsByAlliance.set(trap.alliance_key, [
+          ...(trapsByAlliance.get(trap.alliance_key) ?? []),
+          trap,
+        ]),
+      );
     objects
       .filter((object) => object.type === 'governor_city')
       .forEach((city) => {
-        const trap = traps.get(city.alliance_key);
-        if (trap && Math.hypot(city.x - trap.x, city.y - trap.y) > radius) {
+        const target = targetTrapForCity(
+          city,
+          trapsByAlliance.get(city.alliance_key) ?? [],
+          preferences,
+        );
+        if (target && target.distance > radius) {
           warnings.push(
             issue(
               'preferred_bear_radius',
@@ -297,19 +336,15 @@ export function analyzeLayout(
 
     const seconds = preferences.march_seconds_per_tile;
     const marches = cities.flatMap((city) => {
-      if (!traps.length) return [];
-      const nearest = traps.reduce<{ trap: PlanObject; distance: number } | null>((best, trap) => {
-        const distance = Math.hypot(city.x - trap.x, city.y - trap.y);
-        return best === null || distance < best.distance ? { trap, distance } : best;
-      }, null);
-      if (!nearest) return [];
+      const target = targetTrapForCity(city, traps, preferences);
+      if (!target) return [];
       return [
         {
           city_key: city.key,
-          trap_key: nearest.trap.key,
-          distance_tiles: Math.round(nearest.distance * 100) / 100,
+          trap_key: target.trap.key,
+          distance_tiles: Math.round(target.distance * 100) / 100,
           estimated_seconds:
-            seconds === undefined ? null : Math.round(nearest.distance * seconds * 100) / 100,
+            seconds === undefined ? null : Math.round(target.distance * seconds * 100) / 100,
         },
       ];
     });
@@ -326,10 +361,13 @@ export function analyzeLayout(
       coverage_percent: cities.length ? Math.round((covered / cities.length) * 10000) / 100 : null,
       territory_components: components,
       territory_connected: components <= 1,
-      banner_efficiency: counts.banner ? Math.round((covered / counts.banner) * 100) / 100 : null,
+      banner_efficiency: counts.banner
+        ? Math.round((covered / counts.banner) * 100) / 100
+        : null,
       bear_distance_tiles: stats(distances),
       estimated_march_seconds: seconds === undefined ? null : stats(estimatedSeconds),
       march_assumption_seconds_per_tile: seconds ?? null,
+      selected_bear_trap_key: preferences.selected_bear_trap_by_alliance?.[allianceKey] ?? null,
       marches,
     };
   }
