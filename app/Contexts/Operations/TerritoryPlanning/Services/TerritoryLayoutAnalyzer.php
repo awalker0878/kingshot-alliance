@@ -175,6 +175,7 @@ final readonly class TerritoryLayoutAnalyzer
                 return true;
             }
         }
+
         return false;
     }
 
@@ -210,6 +211,7 @@ final readonly class TerritoryLayoutAnalyzer
                 }
             }
         }
+
         return $components;
     }
 
@@ -254,6 +256,7 @@ final readonly class TerritoryLayoutAnalyzer
                     : round($targetDistance * $secondsPerTile, 2),
             ];
         }
+
         return $marches;
     }
 
@@ -270,6 +273,7 @@ final readonly class TerritoryLayoutAnalyzer
         $count = count($values);
         $middle = intdiv($count, 2);
         $median = $count % 2 === 0 ? ($values[$middle - 1] + $values[$middle]) / 2 : $values[$middle];
+
         return [
             'average' => round(array_sum($values) / $count, 2),
             'median' => round($median, 2),

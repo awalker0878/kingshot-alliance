@@ -28,17 +28,20 @@ final class PlacementValidator
             $definition = $data['object_types'][$object['type']] ?? null;
             if (! is_array($definition)) {
                 $violations[] = $this->issue('unknown_object_type', 'This object type is not supported by the selected map dataset.', $object['key']);
+
                 continue;
             }
             $size = (int) ($definition['size'] ?? 0);
             if ($size < 1) {
                 $violations[] = $this->issue('invalid_object_footprint', 'The selected map dataset has no valid footprint for this object.', $object['key']);
+
                 continue;
             }
             $rect = new Rectangle($object['x'], $object['y'], $size, $size);
             $rectangles[$object['key']] = $rect;
             if (! $rect->inside($bounds)) {
                 $violations[] = $this->issue('map_bounds', 'The object footprint must stay inside the Kingdom map.', $object['key']);
+
                 continue;
             }
 
@@ -205,6 +208,7 @@ final class PlacementValidator
             $seen[$key] = true;
             $result[] = $issue;
         }
+
         return $result;
     }
 }

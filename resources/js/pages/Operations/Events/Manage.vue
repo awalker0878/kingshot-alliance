@@ -5,6 +5,7 @@ import { ref } from 'vue';
 import RoomBanner from '@/components/game/RoomBanner.vue';
 import StatSeal from '@/components/game/StatSeal.vue';
 import ConfirmActionDialog from '@/components/ui/ConfirmActionDialog.vue';
+import EventTerritoryPositioning from '@/features/territory-planner/components/EventTerritoryPositioning.vue';
 import { useConfirmAction } from '@/components/ui/useConfirmAction';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
@@ -269,6 +270,29 @@ type PlayerIntelligence = {
   latestScore: number | null;
 };
 
+type TerritoryPlanningOperations = {
+  supported: boolean;
+  availableRevisions: Array<{
+    id: string;
+    planId: string;
+    planName: string;
+    revisionNumber: number;
+    mapDatasetId: string;
+    mapDatasetChecksum: string;
+    publishedAt: string | null;
+  }>;
+  attachments: Array<{
+    id: string;
+    occurrenceId: string;
+    purpose: string;
+    revisionId: string;
+    planId: string;
+    planName: string;
+    revisionNumber: number;
+    publishedAt: string | null;
+  }>;
+};
+
 const props = defineProps<{
   user: { name: string; email: string };
   event: {
@@ -311,6 +335,7 @@ const props = defineProps<{
   battlePlan: BattlePlanOccurrence[];
   resultOperations: ResultOccurrence[];
   playerIntelligence: PlayerIntelligence[];
+  territoryPlanning: TerritoryPlanningOperations;
   reminderAudiences: string[];
   reminderRules: Array<{
     id: string;
@@ -1015,8 +1040,18 @@ function cancel(): void {
           class="ks-tab"
           >{{ t('events.manage.participants') }}</a
         >
+        <a v-if="territoryPlanning.supported" href="#territory-positioning" class="ks-tab">{{
+          t('territory.eventPositioningTitle')
+        }}</a>
         <a href="#reminders" class="ks-tab">{{ t('events.manage.reminders') }}</a>
       </nav>
+      <EventTerritoryPositioning
+        v-if="territoryPlanning.supported"
+        class="mt-5"
+        :occurrences="event.occurrences"
+        :planning="territoryPlanning"
+      />
+
       <div
         id="schedule"
         class="mt-5 grid scroll-mt-28 gap-5 2xl:grid-cols-[minmax(0,1.35fr)_minmax(20rem,.65fr)]"

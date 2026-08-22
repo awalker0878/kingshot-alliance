@@ -110,7 +110,7 @@ if 'id="planning-suggestions-heading"' not in source:
           aria-labelledby="planning-suggestions-heading"
         >
           <h2 id="planning-suggestions-heading" class="ks-display text-xl font-semibold">
-            {{ t('territory.planningSuggestions') }}
+            {{ t('territory.suggestions') }}
           </h2>
           <ul class="mt-3 space-y-2 text-sm text-sky-100">
             <li
@@ -209,22 +209,22 @@ if '<MarchAnalysisPanel' not in source:
           </div>"""
     source = replace_once(source, anchor, addition, "March analysis and selected Bear controls")
 
-if "t('territory.blockingIssues')" not in source:
+if "t('territory.violations')" not in source:
     anchor = """                <div>
                   <dt class="text-[var(--ks-muted)]">{{ t('territory.bannerEfficiency') }}</dt>
                   <dd>{{ analysis[alliance.key]?.banner_efficiency ?? '—' }}</dd>
                 </div>"""
     metrics = anchor + """
                 <div>
-                  <dt class="text-[var(--ks-muted)]">{{ t('territory.blockingIssues') }}</dt>
+                  <dt class="text-[var(--ks-muted)]">{{ t('territory.violations') }}</dt>
                   <dd>{{ formatNumber(analysis[alliance.key]?.violation_count ?? 0) }}</dd>
                 </div>
                 <div>
-                  <dt class="text-[var(--ks-muted)]">{{ t('territory.planningWarnings') }}</dt>
+                  <dt class="text-[var(--ks-muted)]">{{ t('territory.warnings') }}</dt>
                   <dd>{{ formatNumber(analysis[alliance.key]?.warning_count ?? 0) }}</dd>
                 </div>
                 <div>
-                  <dt class="text-[var(--ks-muted)]">{{ t('territory.planningSuggestions') }}</dt>
+                  <dt class="text-[var(--ks-muted)]">{{ t('territory.suggestions') }}</dt>
                   <dd>{{ formatNumber(analysis[alliance.key]?.suggestion_count ?? 0) }}</dd>
                 </div>"""
     source = replace_once(source, anchor, metrics, "Analysis quality metrics")
@@ -237,17 +237,17 @@ if "comparison.previous[alliance.key]?.violation_count" not in source:
               </p>"""
     comparison_metrics = anchor + """
               <p>
-                {{ t('territory.blockingIssues') }}:
+                {{ t('territory.violations') }}:
                 {{ comparison.previous[alliance.key]?.violation_count ?? 0 }} →
                 {{ comparison.current[alliance.key]?.violation_count ?? 0 }}
               </p>
               <p>
-                {{ t('territory.planningWarnings') }}:
+                {{ t('territory.warnings') }}:
                 {{ comparison.previous[alliance.key]?.warning_count ?? 0 }} →
                 {{ comparison.current[alliance.key]?.warning_count ?? 0 }}
               </p>
               <p>
-                {{ t('territory.planningSuggestions') }}:
+                {{ t('territory.suggestions') }}:
                 {{ comparison.previous[alliance.key]?.suggestion_count ?? 0 }} →
                 {{ comparison.current[alliance.key]?.suggestion_count ?? 0 }}
               </p>"""
@@ -346,41 +346,20 @@ if old_switch in source:
     source = source.replace(old_switch, new_switch, 1)
 visual_spec.write_text(source)
 
-translations = {
-    "en": ("Blocking issues", "Planning warnings", "Planning suggestions"),
-    "ar": ("المشكلات المانعة", "تحذيرات التخطيط", "اقتراحات التخطيط"),
-    "de": ("Blockierende Probleme", "Planungshinweise", "Planungsvorschläge"),
-    "es": ("Problemas bloqueantes", "Advertencias de planificación", "Sugerencias de planificación"),
-    "fr": ("Problèmes bloquants", "Avertissements de planification", "Suggestions de planification"),
-    "id": ("Masalah pemblokir", "Peringatan perencanaan", "Saran perencanaan"),
-    "it": ("Problemi bloccanti", "Avvisi di pianificazione", "Suggerimenti di pianificazione"),
-    "ja": ("ブロック中の問題", "計画上の警告", "計画上の提案"),
-    "ko": ("차단 문제", "계획 경고", "계획 제안"),
-    "pl": ("Problemy blokujące", "Ostrzeżenia planowania", "Sugestie planowania"),
-    "pt-BR": ("Problemas bloqueadores", "Avisos de planejamento", "Sugestões de planejamento"),
-    "ru": ("Блокирующие проблемы", "Предупреждения планирования", "Рекомендации по планированию"),
-    "th": ("ปัญหาที่บล็อก", "คำเตือนการวางแผน", "คำแนะนำการวางแผน"),
-    "tr": ("Engelleyen sorunlar", "Planlama uyarıları", "Planlama önerileri"),
-    "vi": ("Lỗi chặn", "Cảnh báo lập kế hoạch", "Đề xuất lập kế hoạch"),
-    "zh-CN": ("阻止性问题", "规划警告", "规划建议"),
-    "zh-TW": ("阻擋問題", "規劃警告", "規劃建議"),
-}
-for locale, (blocking, warnings, suggestions) in translations.items():
-    path = Path(f"resources/js/localization/messages/territory/{locale}.ts")
-    text = path.read_text()
-    if "blockingIssues:" in text:
-        continue
-    anchor_match = re.search(r"^(\s*)bannerEfficiency:\s*[^\n]+\n", text, flags=re.M)
-    if not anchor_match:
-        raise RuntimeError(f"Missing bannerEfficiency localization anchor for {locale}")
-    indent = anchor_match.group(1)
-    addition = (
-        anchor_match.group(0)
-        + f"{indent}blockingIssues: {blocking!r},\n"
-        + f"{indent}planningWarnings: {warnings!r},\n"
-        + f"{indent}planningSuggestions: {suggestions!r},\n"
+english = Path("resources/js/localization/messages/territory/en.ts")
+text = english.read_text()
+if "violations:" not in text:
+    anchor = "    bannerEfficiency: 'Covered cities / Banner',\n"
+    if anchor not in text:
+        raise RuntimeError("Missing English Territory analysis localization anchor")
+    text = text.replace(
+        anchor,
+        anchor
+        + "    violations: 'Blocking issues',\n"
+        + "    warnings: 'Planning warnings',\n"
+        + "    suggestions: 'Planning suggestions',\n",
+        1,
     )
-    text = text[: anchor_match.start()] + addition + text[anchor_match.end() :]
-    path.write_text(text)
+    english.write_text(text)
 
 print("Territory UI finalization applied.")

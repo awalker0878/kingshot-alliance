@@ -16,12 +16,7 @@ function rectFor(object: PlanObject, map: MapData): Rect | null {
 }
 
 function intersects(a: Rect, b: Rect): boolean {
-  return (
-    a.x < b.x + b.width &&
-    a.x + a.width > b.x &&
-    a.y < b.y + b.height &&
-    a.y + a.height > b.y
-  );
+  return a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
 }
 
 function inside(rect: Rect, bounds: Rect): boolean {
@@ -387,9 +382,7 @@ export function analyzeLayout(
       coverage_percent: cities.length ? Math.round((covered / cities.length) * 10000) / 100 : null,
       territory_components: components,
       territory_connected: components <= 1,
-      banner_efficiency: counts.banner
-        ? Math.round((covered / counts.banner) * 100) / 100
-        : null,
+      banner_efficiency: counts.banner ? Math.round((covered / counts.banner) * 100) / 100 : null,
       violation_count: qualityForAlliance.violations,
       warning_count: qualityForAlliance.warnings,
       suggestion_count: qualityForAlliance.suggestions,

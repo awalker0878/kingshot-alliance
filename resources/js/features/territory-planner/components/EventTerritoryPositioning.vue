@@ -96,7 +96,7 @@ async function request(
       throw new Error(
         typeof first === 'string'
           ? first
-          : payload.message ?? t('territory.eventPositioningRequestFailed'),
+          : (payload.message ?? t('territory.eventPositioningRequestFailed')),
       );
     }
 
@@ -112,7 +112,8 @@ async function request(
   } catch (error) {
     notice.value = {
       tone: 'danger',
-      message: error instanceof Error ? error.message : t('territory.eventPositioningRequestFailed'),
+      message:
+        error instanceof Error ? error.message : t('territory.eventPositioningRequestFailed'),
     };
     return false;
   } finally {
@@ -150,12 +151,7 @@ async function detach(occurrenceId: string): Promise<void> {
     <p class="mt-2 max-w-3xl text-sm text-[var(--ks-muted)]">
       {{ t('territory.eventPositioningHelp') }}
     </p>
-    <ActionNotice
-      v-if="notice"
-      class="mt-4"
-      :tone="notice.tone"
-      :message="notice.message"
-    />
+    <ActionNotice v-if="notice" class="mt-4" :tone="notice.tone" :message="notice.message" />
 
     <div v-if="planning.availableRevisions.length" class="mt-5 grid gap-4 xl:grid-cols-2">
       <article
@@ -165,7 +161,7 @@ async function detach(occurrenceId: string): Promise<void> {
       >
         <div class="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <p class="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--ks-muted)]">
+            <p class="text-xs font-semibold tracking-[0.14em] text-[var(--ks-muted)] uppercase">
               {{ t('territory.eventOccurrence') }}
             </p>
             <p class="mt-1 font-semibold">{{ formatDate(occurrence.startsAt) }}</p>

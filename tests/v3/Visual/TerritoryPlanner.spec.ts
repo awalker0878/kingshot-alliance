@@ -3,14 +3,19 @@ import type { Page } from '@playwright/test';
 
 async function activateVisualGovernor(page: Page): Promise<void> {
   await page.goto('/login');
-  await page.locator('#email').fill('ux-p9-visual@example.test');
+  await page.locator('#email').fill('territory-visual@example.test');
   await page.locator('#password').fill('password');
   await page.locator('button[type="submit"]').click();
   await page.waitForURL('**/dashboard');
   const identitySwitcher = page.locator('button[aria-haspopup="listbox"]:visible').first();
-  await identitySwitcher.click();
-  await page.getByRole('listbox', { name: 'Active Governor' }).getByRole('option').nth(0).click();
-  await page.waitForURL('**/dashboard');
+  if (await identitySwitcher.isVisible()) {
+    const label = (await identitySwitcher.textContent()) ?? '';
+    if (/select governor/i.test(label)) {
+      await identitySwitcher.click();
+      await page.getByRole('listbox', { name: 'Active Governor' }).getByRole('option').first().click();
+      await page.waitForURL('**/dashboard');
+    }
+  }
 }
 
 test('Territory Command renders the saved hive without horizontal page overflow', async ({ page }) => {

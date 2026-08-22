@@ -6,6 +6,7 @@ import RoomBanner from '@/components/game/RoomBanner.vue';
 import ActionNotice from '@/components/ui/ActionNotice.vue';
 import AppButton from '@/components/ui/AppButton.vue';
 import ConfirmActionDialog from '@/components/ui/ConfirmActionDialog.vue';
+import MarchAnalysisPanel from '@/features/territory-planner/components/MarchAnalysisPanel.vue';
 import TerritoryCanvas from '@/features/territory-planner/components/TerritoryCanvas.vue';
 import {
   buildSvg,
@@ -61,6 +62,7 @@ type TerritoryProp = {
     data: MapData;
   };
   revisions: Revision[];
+  governor_options: Record<string, Array<{ id: string; name: string }>>;
 };
 type Tool = 'select' | 'pan' | 'place';
 type DialogAction = { kind: 'archive' } | { kind: 'restore'; revision: Revision } | null;
@@ -128,6 +130,9 @@ const analysis = computed(() =>
 const selectedObjects = computed(() =>
   objects.value.filter((object) => selectedKeys.value.includes(object.key)),
 );
+const governorCities = computed(() =>
+  visibleObjects.value.filter((object) => object.type === 'governor_city'),
+);
 const activeAlliance = computed(
   () => alliances.value.find((alliance) => alliance.key === activeAllianceKey.value) ?? null,
 );
@@ -145,7 +150,11 @@ const visibleObjects = computed(() => {
 });
 const objectIssues = computed(() => {
   const map = new Map<string, string[]>();
-  [...validation.value.violations, ...validation.value.warnings].forEach((issue) => {
+  [
+    ...validation.value.violations,
+    ...validation.value.warnings,
+    ...validation.value.suggestions,
+  ].forEach((issue) => {
     if (!issue.object_key) return;
     map.set(issue.object_key, [...(map.get(issue.object_key) ?? []), issue.message]);
   });
@@ -207,6 +216,36 @@ function allianceFor(object: PlanObject): PlanAlliance | undefined {
 }
 function editable(object: PlanObject): boolean {
   return canEdit.value && !allianceFor(object)?.locked;
+}
+function governorOptionsFor(object: PlanObject): Array<{ id: string; name: string }> {
+  return props.territory.governor_options[object.alliance_key] ?? [];
+}
+function assignGovernor(object: PlanObject, playerId: string): void {
+  if (!editable(object)) return;
+  remember();
+  object.player_id = playerId || null;
+  if (playerId) object.external_player_name = null;
+}
+function assignExternalGovernor(object: PlanObject, name: string): void {
+  if (!editable(object)) return;
+  object.player_id = null;
+  object.external_player_name = name.trim() || null;
+}
+function bearTrapsFor(allianceKey: string): PlanObject[] {
+  return objects.value.filter(
+    (object) => object.alliance_key === allianceKey && object.type === 'bear_trap',
+  );
+}
+function selectedBearFor(allianceKey: string): string {
+  return preferences.value.selected_bear_trap_by_alliance?.[allianceKey] ?? '';
+}
+function setSelectedBear(allianceKey: string, objectKey: string): void {
+  if (!canEdit.value) return;
+  remember();
+  const selected = { ...(preferences.value.selected_bear_trap_by_alliance ?? {}) };
+  if (objectKey) selected[allianceKey] = objectKey;
+  else delete selected[allianceKey];
+  preferences.value = { ...preferences.value, selected_bear_trap_by_alliance: selected };
 }
 
 function place(point: { x: number; y: number }): void {
@@ -781,6 +820,13 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
       >
     </RoomBanner>
 
+    <header class="mt-4">
+      <p class="ks-kicker">{{ t('territory.eyebrow') }}</p>
+      <h1 id="territory-editor-heading" class="ks-display mt-1 text-3xl font-semibold">
+        {{ t('territory.editorTitle') }}
+      </h1>
+    </header>
+
     <ActionNotice v-if="notice" class="mt-4" :tone="notice.tone" :message="notice.message" />
 
     <section class="ks-surface mt-4 p-4" :aria-label="t('territory.planStatus')">
@@ -1091,9 +1137,79 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
               {{ item.message }}
             </li>
           </ul>
-          <p v-else class="mt-2 text-sm text-[var(--ks-muted)]">
+          <p
+            v-if="
+              !validation.violations.length &&
+              !validation.warnings.length &&
+              !validation.suggestions.length
+            "
+            class="mt-2 text-sm text-[var(--ks-muted)]"
+          >
             {{ t('territory.noValidationIssues') }}
           </p>
+        </section>
+
+        <section
+          v-if="validation.suggestions.length"
+          class="ks-surface mt-4 p-4"
+          aria-labelledby="planning-suggestions-heading"
+        >
+          <h2 id="planning-suggestions-heading" class="ks-display text-xl font-semibold">
+            {{ t('territory.suggestions') }}
+          </h2>
+          <ul class="mt-3 space-y-2 text-sm text-sky-100">
+            <li v-for="item in validation.suggestions" :key="`s-${item.code}-${item.object_key}`">
+              {{ item.message }}
+            </li>
+          </ul>
+        </section>
+
+        <section class="ks-surface mt-4 p-4" aria-labelledby="governor-assignment-heading">
+          <h2 id="governor-assignment-heading" class="ks-display text-xl font-semibold">
+            {{ t('territory.governorAssignment') }}
+          </h2>
+          <div v-if="governorCities.length" class="mt-3 grid gap-3 md:grid-cols-2">
+            <label
+              v-for="object in governorCities"
+              :key="object.key"
+              class="rounded border border-[var(--ks-border)] p-3 text-sm"
+            >
+              <span class="font-semibold">
+                {{
+                  object.label || object.external_player_name || t('territory.types.governor_city')
+                }}
+              </span>
+              <select
+                v-if="governorOptionsFor(object).length"
+                :value="object.player_id ?? ''"
+                class="ks-input mt-2 w-full"
+                :disabled="!editable(object)"
+                :aria-label="t('territory.governorAssignment')"
+                @change="assignGovernor(object, ($event.target as HTMLSelectElement).value)"
+              >
+                <option value="">{{ t('territory.unassignedGovernor') }}</option>
+                <option
+                  v-for="governor in governorOptionsFor(object)"
+                  :key="governor.id"
+                  :value="governor.id"
+                >
+                  {{ governor.name }}
+                </option>
+              </select>
+              <input
+                v-else
+                :value="object.external_player_name ?? ''"
+                type="text"
+                maxlength="160"
+                class="ks-input mt-2 w-full"
+                :disabled="!editable(object)"
+                :placeholder="t('territory.externalGovernorName')"
+                :aria-label="t('territory.externalGovernorName')"
+                @focus="beginExactEdit"
+                @change="assignExternalGovernor(object, ($event.target as HTMLInputElement).value)"
+              />
+            </label>
+          </div>
         </section>
 
         <details class="ks-surface mt-4 p-4" open>
@@ -1208,12 +1324,45 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
                   <dt class="text-[var(--ks-muted)]">{{ t('territory.bannerEfficiency') }}</dt>
                   <dd>{{ analysis[alliance.key]?.banner_efficiency ?? '—' }}</dd>
                 </div>
+                <div>
+                  <dt class="text-[var(--ks-muted)]">{{ t('territory.violations') }}</dt>
+                  <dd>{{ formatNumber(analysis[alliance.key]?.violation_count ?? 0) }}</dd>
+                </div>
+                <div>
+                  <dt class="text-[var(--ks-muted)]">{{ t('territory.warnings') }}</dt>
+                  <dd>{{ formatNumber(analysis[alliance.key]?.warning_count ?? 0) }}</dd>
+                </div>
+                <div>
+                  <dt class="text-[var(--ks-muted)]">{{ t('territory.suggestions') }}</dt>
+                  <dd>{{ formatNumber(analysis[alliance.key]?.suggestion_count ?? 0) }}</dd>
+                </div>
               </dl></template
             >
           </div>
         </section>
+        <MarchAnalysisPanel :alliances="alliances" :objects="objects" :analysis="analysis" />
         <section class="ks-surface p-4">
           <p class="ks-kicker">{{ t('territory.preferences') }}</p>
+          <div v-for="alliance in alliances" :key="`bear-${alliance.key}`" class="mt-3">
+            <label class="block text-sm">
+              {{ t('territory.selectedBearTrap', { alliance: alliance.display_name }) }}
+              <select
+                :value="selectedBearFor(alliance.key)"
+                class="ks-input mt-1 w-full"
+                :disabled="!canEdit || alliance.locked"
+                @change="setSelectedBear(alliance.key, ($event.target as HTMLSelectElement).value)"
+              >
+                <option value="">{{ t('territory.nearestBearTrap') }}</option>
+                <option
+                  v-for="trap in bearTrapsFor(alliance.key)"
+                  :key="trap.key"
+                  :value="trap.key"
+                >
+                  {{ trap.label || t('territory.bearTrap') }}
+                </option>
+              </select>
+            </label>
+          </div>
           <label class="mt-3 block text-sm"
             >{{ t('territory.preferredBearRadius')
             }}<input
@@ -1268,6 +1417,21 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
                 {{ t('territory.avgDistance') }}:
                 {{ comparison.previous[alliance.key]?.bear_distance_tiles.average ?? '—' }} →
                 {{ comparison.current[alliance.key]?.bear_distance_tiles.average ?? '—' }}
+              </p>
+              <p>
+                {{ t('territory.violations') }}:
+                {{ comparison.previous[alliance.key]?.violation_count ?? 0 }} →
+                {{ comparison.current[alliance.key]?.violation_count ?? 0 }}
+              </p>
+              <p>
+                {{ t('territory.warnings') }}:
+                {{ comparison.previous[alliance.key]?.warning_count ?? 0 }} →
+                {{ comparison.current[alliance.key]?.warning_count ?? 0 }}
+              </p>
+              <p>
+                {{ t('territory.suggestions') }}:
+                {{ comparison.previous[alliance.key]?.suggestion_count ?? 0 }} →
+                {{ comparison.current[alliance.key]?.suggestion_count ?? 0 }}
               </p>
             </div>
           </div>
