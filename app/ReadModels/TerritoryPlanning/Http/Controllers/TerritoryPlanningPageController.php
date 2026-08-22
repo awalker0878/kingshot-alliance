@@ -111,6 +111,57 @@ final class TerritoryPlanningPageController extends Controller
         ]);
     }
 
+    public function alliances(
+        Request $request,
+        string $plan,
+        PlayerContext $playerContext,
+        TerritoryPlanQuery $plans,
+        AllianceReferenceQuery $alliances,
+    ): Response {
+        $user = $request->user();
+        abort_unless($user instanceof AuthenticatedAccount, 401);
+        $player = $playerContext->playerOrNull();
+        abort_unless($player !== null, 403);
+
+        $territory = $plans->detail($player->playerId, $plan);
+        $planData = $territory['plan'] ?? null;
+        abort_unless(is_array($planData) && ($planData['scope'] ?? null) === 'kingdom', 404);
+        $kingdomId = $planData['kingdom_id'] ?? null;
+        abort_unless(is_string($kingdomId), 404);
+
+        $allianceOptions = array_map(
+            static fn ($reference): array => [
+                'id' => $reference->allianceId,
+                'name' => $reference->name,
+            ],
+            $alliances->inKingdom($kingdomId, true),
+        );
+        $objectCounts = [];
+        $objects = $territory['objects'] ?? null;
+        if (is_array($objects)) {
+            foreach ($objects as $object) {
+                if (! is_array($object) || ! is_string($object['alliance_key'] ?? null)) {
+                    continue;
+                }
+                $key = $object['alliance_key'];
+                $objectCounts[$key] = ($objectCounts[$key] ?? 0) + 1;
+            }
+        }
+
+        return Inertia::render('Kingdom/Territory/Alliances', [
+            'user' => ['name' => $user->name, 'email' => $user->email],
+            'activePlayer' => [
+                'id' => $player->playerId,
+                'name' => $player->currentName,
+                'kingdomNumber' => $player->kingdomNumber,
+            ],
+            'plan' => $planData,
+            'alliances' => $territory['alliances'] ?? [],
+            'allianceOptions' => $allianceOptions,
+            'objectCounts' => $objectCounts,
+        ]);
+    }
+
     /**
      * @param  array<string, mixed>  $territory
      * @return array<string, list<array{id: string, name: string}>>
