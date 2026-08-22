@@ -13,7 +13,9 @@ final class TerritoryPlanObject extends Model
     use HasUlids;
 
     public $incrementing = false;
+
     protected $keyType = 'string';
+
     protected $guarded = [];
 
     protected function casts(): array
