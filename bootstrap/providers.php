@@ -15,6 +15,7 @@ use App\Contexts\Operations\Participation\Providers\ParticipationServiceProvider
 use App\Contexts\Operations\TerritoryPlanning\Providers\TerritoryPlanningServiceProvider;
 use App\Contexts\Platform\Administration\Providers\AdministrationServiceProvider;
 use App\Contexts\Platform\Integrations\Providers\IntegrationsServiceProvider;
+use App\ReadModels\TerritoryPlanning\Providers\TerritoryPlanningReadModelServiceProvider;
 use App\Shared\Infrastructure\Providers\InfrastructureServiceProvider;
 
 return [
@@ -30,6 +31,7 @@ return [
     ParticipationServiceProvider::class,
     KingPerksServiceProvider::class,
     TerritoryPlanningServiceProvider::class,
+    TerritoryPlanningReadModelServiceProvider::class,
     AdministrationServiceProvider::class,
     IntegrationsServiceProvider::class,
 ];
