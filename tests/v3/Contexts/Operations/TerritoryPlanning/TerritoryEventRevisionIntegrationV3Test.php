@@ -9,6 +9,7 @@ use App\Contexts\Operations\Events\Enums\EventScope;
 use App\Contexts\Operations\Events\Models\EventTypeScope;
 use App\Contexts\Operations\TerritoryPlanning\Actions\AttachTerritoryPlanRevisionToEvent;
 use App\Contexts\Operations\TerritoryPlanning\Actions\CreateTerritoryPlan;
+use App\Contexts\Operations\TerritoryPlanning\Actions\DetachTerritoryPlanRevisionFromEvent;
 use App\Contexts\Operations\TerritoryPlanning\Actions\PublishTerritoryPlan;
 use App\Contexts\Operations\TerritoryPlanning\Actions\SaveTerritoryPlan;
 use App\Contexts\Operations\TerritoryPlanning\Enums\TerritoryPlanScope;
@@ -25,7 +26,7 @@ final class TerritoryEventRevisionIntegrationV3Test extends TestCase
 
     private const DATASET_ID = 'kingshot-community-observed-2026-08-21-v1';
 
-    public function test_event_link_pins_published_revision_when_live_plan_changes(): void
+    public function test_event_positioning_pins_replaces_and_detaches_immutable_published_revisions(): void
     {
         $scenario = new ScenarioFactory;
         $account = $scenario->authUser();
@@ -59,53 +60,80 @@ final class TerritoryEventRevisionIntegrationV3Test extends TestCase
             $actor->playerId,
             $created->planId,
             $created->revision,
-            [[
-                'key' => 'owner',
-                'alliance_id' => $alliance->allianceId,
-                'external_name' => null,
-                'display_name' => $alliance->name,
-                'presentation_color' => '#4da3ff',
-            ]],
+            $this->layers($alliance->allianceId, $alliance->name),
             [],
             [$this->city(100)],
         );
-        $published = app(PublishTerritoryPlan::class)->handle(
+        $firstPublished = app(PublishTerritoryPlan::class)->handle(
             $actor->playerId,
             $created->planId,
             $saved->revision,
         );
-        self::assertNotNull($published->publishedRevisionId);
+        self::assertNotNull($firstPublished->publishedRevisionId);
 
         $linkId = app(AttachTerritoryPlanRevisionToEvent::class)->handle(
             $actor->playerId,
             $event->firstOccurrenceId,
-            $published->publishedRevisionId,
+            $firstPublished->publishedRevisionId,
             'positioning',
         );
         $link = EventTerritoryPlanRevision::query()->findOrFail($linkId);
-        self::assertSame($published->publishedRevisionId, (string) $link->territory_plan_revision_id);
+        self::assertSame($firstPublished->publishedRevisionId, (string) $link->territory_plan_revision_id);
 
-        app(SaveTerritoryPlan::class)->handle(
+        $resaved = app(SaveTerritoryPlan::class)->handle(
             $actor->playerId,
             $created->planId,
             $saved->revision,
-            [[
-                'key' => 'owner',
-                'alliance_id' => $alliance->allianceId,
-                'external_name' => null,
-                'display_name' => $alliance->name,
-                'presentation_color' => '#4da3ff',
-            ]],
+            $this->layers($alliance->allianceId, $alliance->name),
             [],
             [$this->city(200)],
         );
 
         $link->refresh();
-        self::assertSame($published->publishedRevisionId, (string) $link->territory_plan_revision_id);
-        $revision = TerritoryPlanRevision::query()->findOrFail($published->publishedRevisionId);
-        $snapshot = $revision->snapshot;
+        self::assertSame($firstPublished->publishedRevisionId, (string) $link->territory_plan_revision_id);
+        $firstRevision = TerritoryPlanRevision::query()->findOrFail($firstPublished->publishedRevisionId);
+        $snapshot = $firstRevision->snapshot;
         self::assertIsArray($snapshot);
         self::assertSame(100, $snapshot['objects'][0]['x'] ?? null);
+
+        $secondPublished = app(PublishTerritoryPlan::class)->handle(
+            $actor->playerId,
+            $created->planId,
+            $resaved->revision,
+        );
+        self::assertNotNull($secondPublished->publishedRevisionId);
+        $replacedLinkId = app(AttachTerritoryPlanRevisionToEvent::class)->handle(
+            $actor->playerId,
+            $event->firstOccurrenceId,
+            $secondPublished->publishedRevisionId,
+            'positioning',
+        );
+
+        self::assertSame($linkId, $replacedLinkId);
+        self::assertSame(1, EventTerritoryPlanRevision::query()->count());
+        self::assertSame(
+            $secondPublished->publishedRevisionId,
+            (string) EventTerritoryPlanRevision::query()->findOrFail($linkId)->territory_plan_revision_id,
+        );
+
+        app(DetachTerritoryPlanRevisionFromEvent::class)->handle(
+            $actor->playerId,
+            $event->firstOccurrenceId,
+            'positioning',
+        );
+        self::assertSame(0, EventTerritoryPlanRevision::query()->count());
+    }
+
+    /** @return list<array<string, mixed>> */
+    private function layers(string $allianceId, string $name): array
+    {
+        return [[
+            'key' => 'owner',
+            'alliance_id' => $allianceId,
+            'external_name' => null,
+            'display_name' => $name,
+            'presentation_color' => '#4da3ff',
+        ]];
     }
 
     /** @return array<string, mixed> */
