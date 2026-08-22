@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Shared\Infrastructure\Providers;
 
+use App\Shared\Infrastructure\Uploads\Services\BasicUploadScanner;
+use App\Shared\Infrastructure\Uploads\Services\UploadScanner;
 use Illuminate\Http\Middleware\TrustProxies;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\URL;
@@ -14,6 +16,7 @@ final class InfrastructureServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        $this->app->bind(UploadScanner::class, BasicUploadScanner::class);
         $this->callAfterResolving(Pulse::class, static function (Pulse $pulse): void {
             $pulse->ignoreRoutes();
         });

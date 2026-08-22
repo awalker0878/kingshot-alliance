@@ -18,10 +18,31 @@ Every writable business aggregate has one owning context/capability. Other conte
 - **GameWorld/KingdomTransfers** — transfer-domain state.
 - **Alliance** capabilities — Alliance lifecycle, membership/leadership/access, recruitment and content.
 - **Operations/TerritoryPlanning** — mutable Alliance/Kingdom territory plans, plan participants/objects/groups/preferences, deterministic layout analysis and immutable published plan revisions.
-- **Other Operations capabilities** — live operational Event/participation/planning/rally/KingPerk/result state.
-- **Intelligence** capabilities — observations, ingestion, analytical/history state and sharing grants.
+- **Operations/Results** — accepted Event result facts/metrics, including accepted Bear Hunt battle-report ledgers and recomputed damage aggregates.
+- **Other Operations capabilities** — live operational Event/participation/planning/rally/KingPerk state.
+- **Intelligence/Evidence** — uploaded game evidence, immutable source/attempt provenance, extracted candidates/confidence, review/correction history, duplicate decisions, commit attempts and retention state; never the resulting domain fact.
+- **Other Intelligence capabilities** — observations, ingestion, analytical/history state and sharing grants.
 - **Communications/Delivery** — generic delivery/preference/attempt state.
 - **Platform** capabilities — platform administration, Alliance platform administration, data governance, Event administration and integrations.
+
+## Screenshot evidence ownership boundary
+
+Evidence and accepted domain meaning are deliberately separate.
+
+```text
+Uploaded screenshot + checksum + machine attempts + review
+    -> Intelligence/Evidence
+
+Accepted Bear Hunt battle report + report entries + damage aggregate
+    -> Operations/Results
+
+Player identity / current Player facts
+    -> GameWorld/Players
+```
+
+Evidence may retain scalar destination IDs/receipts for provenance. Operations may retain scalar `source_evidence_id`/commit identifiers for traceability. Neither reference permits cross-context Eloquent navigation or mutation.
+
+Deleting or purging evidence does not delete an accepted Operations result. Correcting an accepted report is an Operations owner action that deterministically recomputes its aggregates.
 
 ## Territory planning ownership boundary
 
@@ -55,6 +76,9 @@ player_id
 alliance_id
 kingdom_id
 event_id
+occurrence_id
+evidence_id
+commit_attempt_id
 kingdom_map_dataset_id
 territory_plan_revision_id
 ```
@@ -72,6 +96,8 @@ Cross-context navigation that makes a foreign aggregate appear locally owned is 
 ## Historical facts
 
 Historical Event/Intelligence/contribution facts retain the identifiers and attribution relevant when the fact occurred. Later current membership or placement changes must not silently rewrite historical ownership/actor attribution.
+
+Machine extraction attempts and review revisions are historical Evidence facts. A later retry, improved extractor, corrected Player name or deleted binary does not silently rewrite them.
 
 Published territory-plan revisions are historical facts. Newer map datasets, current Player placement or later edits to the plan head must not rewrite them.
 

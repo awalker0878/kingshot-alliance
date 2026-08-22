@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Contexts\Alliance\Content\ValueObjects;
+namespace App\Shared\Infrastructure\Uploads\ValueObjects;
 
-final readonly class MediaScanResult
+final readonly class UploadScanResult
 {
     public function __construct(
         public bool $clean,
