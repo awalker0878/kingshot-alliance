@@ -170,6 +170,33 @@ final class PlacementValidator
             if ($hasBlockingViolation) {
                 continue;
             }
+
+            $coverageSources = [];
+            foreach ($scopedObjects as $object) {
+                $definition = $data['object_types'][$object['type']] ?? null;
+                if (! is_array($definition)) {
+                    continue;
+                }
+                $coverage = (float) ($definition['coverage'] ?? 0);
+                $size = (float) ($definition['size'] ?? 0);
+                if ($coverage <= 0 || $size <= 0) {
+                    continue;
+                }
+                $coverageSources[] = [
+                    'key' => $object['key'],
+                    'x' => $object['x'] + ($size / 2),
+                    'y' => $object['y'] + ($size / 2),
+                    'coverage' => $coverage,
+                ];
+            }
+            if (count($coverageSources) > 1 && $this->coverageComponents($coverageSources) > 1) {
+                $warnings[] = $this->issue(
+                    'disconnected_territory',
+                    'Alliance territory coverage is split into disconnected regions.',
+                    $coverageSources[0]['key'],
+                );
+            }
+
             $firstCity = null;
             $hasHeadquarters = false;
             $hasBanner = false;
@@ -195,6 +222,45 @@ final class PlacementValidator
         }
 
         return new PlacementValidationResult($this->unique($violations), $this->unique($warnings), $this->unique($suggestions));
+    }
+
+    /**
+     * @param  list<array{key: string, x: float, y: float, coverage: float}>  $sources
+     */
+    private function coverageComponents(array $sources): int
+    {
+        if ($sources === []) {
+            return 0;
+        }
+
+        $visited = [];
+        $components = 0;
+        foreach (array_keys($sources) as $start) {
+            if (isset($visited[$start])) {
+                continue;
+            }
+            $components++;
+            $queue = [$start];
+            while ($queue !== []) {
+                $index = array_pop($queue);
+                if ($index === null || isset($visited[$index])) {
+                    continue;
+                }
+                $visited[$index] = true;
+                $source = $sources[$index];
+                foreach ($sources as $candidateIndex => $candidate) {
+                    if (isset($visited[$candidateIndex])) {
+                        continue;
+                    }
+                    $distance = max(abs($source['x'] - $candidate['x']), abs($source['y'] - $candidate['y']));
+                    if ($distance <= $source['coverage'] + $candidate['coverage']) {
+                        $queue[] = $candidateIndex;
+                    }
+                }
+            }
+        }
+
+        return $components;
     }
 
     /** @return array{code: string, message: string, object_key: string} */
