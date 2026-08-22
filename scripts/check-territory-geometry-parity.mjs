@@ -27,6 +27,11 @@ for (const testCase of fixture.validation_cases) {
     [...testCase.expected_warnings].sort(),
     `${testCase.name}: warning contract drifted`,
   );
+  assert.deepStrictEqual(
+    issueKeys(result.suggestions),
+    [...testCase.expected_suggestions].sort(),
+    `${testCase.name}: suggestion contract drifted`,
+  );
 }
 
 const analysis = analyzeLayout(
