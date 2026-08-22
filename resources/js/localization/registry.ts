@@ -56,7 +56,10 @@ export function domainsForPage(name: string): LocalizationDomain[] {
     if (name.startsWith('Alliance/Connections/')) domains.add('integrations');
     if (name.startsWith('Alliance/Members/')) domains.add('roster');
   }
-  if (name.startsWith('Operations/Events/')) domains.add('events');
+  if (name.startsWith('Operations/Events/')) {
+    domains.add('events');
+    if (name === 'Operations/Events/Manage') domains.add('territory');
+  }
   if (name.startsWith('Intelligence/')) {
     domains.add('kingdom');
     if (name.startsWith('Intelligence/Roster/')) domains.add('roster');
