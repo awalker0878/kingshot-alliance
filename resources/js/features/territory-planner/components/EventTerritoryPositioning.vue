@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link, router } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 
 import ActionNotice from '@/components/ui/ActionNotice.vue';
 import AppButton from '@/components/ui/AppButton.vue';
@@ -14,7 +14,7 @@ type RevisionOption = {
   revisionNumber: number;
   mapDatasetId: string;
   mapDatasetChecksum: string;
-  publishedAt: string;
+  publishedAt: string | null;
 };
 type Attachment = {
   id: string;
@@ -24,7 +24,7 @@ type Attachment = {
   planId: string;
   planName: string;
   revisionNumber: number;
-  publishedAt: string;
+  publishedAt: string | null;
 };
 
 const props = defineProps<{
@@ -39,17 +39,7 @@ const props = defineProps<{
 const { t, formatDate } = useLocale();
 const busyOccurrence = ref<string | null>(null);
 const notice = ref<{ tone: 'success' | 'danger' | 'info'; message: string } | null>(null);
-const selected = ref<Record<string, string>>(
-  Object.fromEntries(
-    props.occurrences.map((occurrence) => [
-      occurrence.id,
-      props.planning.attachments.find(
-        (attachment) =>
-          attachment.occurrenceId === occurrence.id && attachment.purpose === 'positioning',
-      )?.revisionId ?? '',
-    ]),
-  ),
-);
+const selected = ref<Record<string, string>>({});
 
 function attachmentFor(occurrenceId: string): Attachment | undefined {
   return props.planning.attachments.find(
@@ -58,11 +48,31 @@ function attachmentFor(occurrenceId: string): Attachment | undefined {
   );
 }
 
+function syncSelections(): void {
+  selected.value = Object.fromEntries(
+    props.occurrences.map((occurrence) => [
+      occurrence.id,
+      attachmentFor(occurrence.id)?.revisionId ?? '',
+    ]),
+  );
+}
+
+syncSelections();
+watch(
+  () => props.planning.attachments,
+  () => syncSelections(),
+  { deep: true },
+);
+
 function csrfToken(): string {
   return document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '';
 }
 
-async function request(occurrenceId: string, method: 'PUT' | 'DELETE', body: object): Promise<void> {
+async function request(
+  occurrenceId: string,
+  method: 'PUT' | 'DELETE',
+  body: object,
+): Promise<boolean> {
   busyOccurrence.value = occurrenceId;
   notice.value = null;
   try {
@@ -98,11 +108,13 @@ async function request(occurrenceId: string, method: 'PUT' | 'DELETE', body: obj
           : t('territory.eventPositioningAttached'),
     };
     router.reload({ only: ['territoryPlanning'] });
+    return true;
   } catch (error) {
     notice.value = {
       tone: 'danger',
       message: error instanceof Error ? error.message : t('territory.eventPositioningRequestFailed'),
     };
+    return false;
   } finally {
     busyOccurrence.value = null;
   }
@@ -118,8 +130,9 @@ async function attach(occurrenceId: string): Promise<void> {
 }
 
 async function detach(occurrenceId: string): Promise<void> {
-  selected.value[occurrenceId] = '';
-  await request(occurrenceId, 'DELETE', { purpose: 'positioning' });
+  if (await request(occurrenceId, 'DELETE', { purpose: 'positioning' })) {
+    selected.value[occurrenceId] = '';
+  }
 }
 </script>
 
@@ -189,7 +202,7 @@ async function detach(occurrenceId: string): Promise<void> {
               :value="revision.id"
             >
               {{ revision.planName }} · #{{ revision.revisionNumber }} ·
-              {{ formatDate(revision.publishedAt) }}
+              {{ revision.publishedAt ? formatDate(revision.publishedAt) : '—' }}
             </option>
           </select>
         </label>
