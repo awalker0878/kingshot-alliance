@@ -42,8 +42,12 @@ final class TerritoryPlanningServiceProvider extends ServiceProvider
                 ->whereUlid('plan')
                 ->whereUlid('revision')
                 ->name('territory.revisions.restore');
-            Route::post('/territory/event-revisions', [TerritoryPlanController::class, 'attachEvent'])
-                ->name('territory.event-revisions.store');
+            Route::put('/events/{occurrence}/territory-positioning', [TerritoryPlanController::class, 'attachEvent'])
+                ->whereUlid('occurrence')
+                ->name('events.territory-positioning.update');
+            Route::delete('/events/{occurrence}/territory-positioning', [TerritoryPlanController::class, 'detachEvent'])
+                ->whereUlid('occurrence')
+                ->name('events.territory-positioning.destroy');
         });
     }
 }
