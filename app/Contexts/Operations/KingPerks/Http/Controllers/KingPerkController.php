@@ -33,7 +33,7 @@ final class KingPerkController extends Controller
         $user = $this->authenticated($request);
         $payload = $query->management($this->player(), $event, $request->string('occurrence')->toString() ?: null);
 
-        return Inertia::render('Kingdom/RoyalCourt/Appointments', [
+        return Inertia::render('Kingdom/PositionPerks/Appointments', [
             'user' => ['name' => $user->accountName(), 'email' => $user->accountEmail()],
             ...$payload,
         ]);
@@ -44,7 +44,7 @@ final class KingPerkController extends Controller
         $user = $this->authenticated($request);
         $payload = $query->player($this->player(), $event, $request->string('occurrence')->toString() ?: null);
 
-        return Inertia::render('Kingdom/RoyalCourt/MyAppointments', [
+        return Inertia::render('Kingdom/PositionPerks/MyAppointments', [
             'user' => ['name' => $user->accountName(), 'email' => $user->accountEmail()],
             ...$payload,
         ]);
@@ -273,7 +273,7 @@ final class KingPerkController extends Controller
     private function player(): PlayerReference
     {
         $player = $this->playerContext->playerOrNull();
-        abort_unless($player instanceof PlayerReference, 409, 'Select a Player before managing King Perks.');
+        abort_unless($player instanceof PlayerReference, 409, 'Select a Governor before managing Position Perks.');
 
         return $player;
     }

@@ -2,8 +2,8 @@
 import { Head, router } from '@inertiajs/vue3';
 import { reactive } from 'vue';
 
-import AppLayout from '@/layouts/AppLayout.vue';
 import RoomBanner from '@/components/game/RoomBanner.vue';
+import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
 type EventMetric = {
@@ -88,12 +88,12 @@ const props = defineProps<{
   history: TimelineRow[];
 }>();
 
-const { formatDate, formatNumber } = useLocale();
+const { t, formatDate, formatNumber } = useLocale();
 const scopeTabs = [
-  { label: 'All', value: '' },
-  { label: 'Player Events', value: 'player' },
-  { label: 'Alliance Events', value: 'alliance' },
-  { label: 'Kingdom Events', value: 'kingdom' },
+  { labelKey: 'common.all', value: '' },
+  { labelKey: 'events.scope.player', value: 'player' },
+  { labelKey: 'events.scope.alliance', value: 'alliance' },
+  { labelKey: 'events.scope.kingdom', value: 'kingdom' },
 ] as const;
 
 const filter = reactive({
@@ -144,9 +144,31 @@ function dateTime(value: string): string {
   });
 }
 
-function humanize(value: string | null): string {
-  if (!value) return 'Unresolved';
-  return value.replaceAll('_', ' ');
+function outcomeLabel(value: string | null): string {
+  const keys: Record<string, string> = {
+    completed: 'events.eventStatuses.completed',
+    absent: 'events.attendanceStatuses.absent',
+    excused: 'events.attendanceStatuses.excused',
+    unresolved: 'events.attendanceStatuses.unknown',
+  };
+  if (!value) return t('events.attendanceStatuses.unknown');
+  const key = keys[value];
+  return key ? t(key) : value.replaceAll('_', ' ');
+}
+
+function scopeLabel(value: string): string {
+  const key = `events.scope.${value}`;
+  const translated = t(key);
+  return translated === key ? value.replaceAll('_', ' ') : translated;
+}
+
+function kindLabel(kind: TimelineRow['kind']): string {
+  return kind === 'event' ? t('events.calendar.title') : t('contributions.title');
+}
+
+function metricLabel(metric: EventMetric): string {
+  const translated = t(metric.labelKey);
+  return translated === metric.labelKey ? metric.key : translated;
 }
 
 function scoreLabel(event: EventHistory): string | null {
@@ -161,59 +183,71 @@ function reliabilityLabel(): string {
 </script>
 
 <template>
-  <Head :title="`Glory Ledger · ${player.name}`" />
+  <Head :title="`${t('contributions.yourHistory')} · ${player.name}`" />
 
   <AppLayout :user="user">
     <div class="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
       <RoomBanner
-        eyebrow="Glory Ledger"
+        :eyebrow="t('contributions.history')"
         :title="player.name"
-        subtitle="Follow this Governor’s recorded Event contributions and the deeds preserved in the Alliance chronicle."
+        :subtitle="t('contributions.yourHistory')"
         image="/images/kingshot/noticeboard.svg"
         compact
       />
 
       <section
         class="grid gap-3 sm:grid-cols-2 lg:grid-cols-6"
-        aria-label="Lifetime contribution summary"
+        :aria-label="t('contributions.history')"
       >
         <div class="rounded-2xl border border-[var(--ks-border)] bg-[rgba(7,12,13,.78)] p-4">
-          <p class="text-xs tracking-wide text-[var(--ks-muted)] uppercase">Events</p>
+          <p class="text-xs tracking-wide text-[var(--ks-muted)] uppercase">
+            {{ t('events.calendar.title') }}
+          </p>
           <p class="mt-2 text-2xl font-semibold text-[var(--ks-ivory)]">
             {{ formatNumber(summary.events) }}
           </p>
         </div>
         <div class="rounded-2xl border border-[var(--ks-border)] bg-[rgba(7,12,13,.78)] p-4">
-          <p class="text-xs tracking-wide text-[var(--ks-muted)] uppercase">Reliability</p>
+          <p class="text-xs tracking-wide text-[var(--ks-muted)] uppercase">
+            {{ t('events.history.evidenceAria') }}
+          </p>
           <p class="mt-2 text-2xl font-semibold text-[var(--ks-ivory)]">{{ reliabilityLabel() }}</p>
         </div>
         <div class="rounded-2xl border border-[var(--ks-border)] bg-[rgba(7,12,13,.78)] p-4">
-          <p class="text-xs tracking-wide text-[var(--ks-muted)] uppercase">Governor</p>
+          <p class="text-xs tracking-wide text-[var(--ks-muted)] uppercase">
+            {{ t('events.scope.player') }}
+          </p>
           <p class="mt-2 text-2xl font-semibold text-[var(--ks-ivory)]">
             {{ formatNumber(summary.player_events) }}
           </p>
         </div>
         <div class="rounded-2xl border border-[var(--ks-border)] bg-[rgba(7,12,13,.78)] p-4">
-          <p class="text-xs tracking-wide text-[var(--ks-muted)] uppercase">Alliance</p>
+          <p class="text-xs tracking-wide text-[var(--ks-muted)] uppercase">
+            {{ t('events.scope.alliance') }}
+          </p>
           <p class="mt-2 text-2xl font-semibold text-[var(--ks-ivory)]">
             {{ formatNumber(summary.alliance_events) }}
           </p>
         </div>
         <div class="rounded-2xl border border-[var(--ks-border)] bg-[rgba(7,12,13,.78)] p-4">
-          <p class="text-xs tracking-wide text-[var(--ks-muted)] uppercase">Kingdom</p>
+          <p class="text-xs tracking-wide text-[var(--ks-muted)] uppercase">
+            {{ t('events.scope.kingdom') }}
+          </p>
           <p class="mt-2 text-2xl font-semibold text-[var(--ks-ivory)]">
             {{ formatNumber(summary.kingdom_events) }}
           </p>
         </div>
         <div class="rounded-2xl border border-[var(--ks-border)] bg-[rgba(7,12,13,.78)] p-4">
-          <p class="text-xs tracking-wide text-[var(--ks-muted)] uppercase">Recorded deeds</p>
+          <p class="text-xs tracking-wide text-[var(--ks-muted)] uppercase">
+            {{ t('contributions.recentRecords') }}
+          </p>
           <p class="mt-2 text-2xl font-semibold text-[var(--ks-ivory)]">
             {{ formatNumber(summary.contribution_records) }}
           </p>
         </div>
       </section>
 
-      <div class="flex flex-wrap gap-2" role="tablist" aria-label="History scope">
+      <div class="flex flex-wrap gap-2" role="tablist" :aria-label="t('contributions.history')">
         <button
           v-for="tab in scopeTabs"
           :key="tab.value || 'all'"
@@ -228,7 +262,7 @@ function reliabilityLabel(): string {
           role="tab"
           @click="selectScope(tab.value)"
         >
-          {{ tab.label }}
+          {{ t(tab.labelKey) }}
         </button>
       </div>
 
@@ -237,7 +271,7 @@ function reliabilityLabel(): string {
         @submit.prevent="applyFilters"
       >
         <label class="space-y-1 text-xs text-[var(--ks-muted)]">
-          <span>From</span>
+          <span>{{ t('events.history.from') }}</span>
           <input
             v-model="filter.from"
             type="date"
@@ -245,7 +279,7 @@ function reliabilityLabel(): string {
           />
         </label>
         <label class="space-y-1 text-xs text-[var(--ks-muted)]">
-          <span>Until</span>
+          <span>{{ t('events.history.until') }}</span>
           <input
             v-model="filter.until"
             type="date"
@@ -253,20 +287,20 @@ function reliabilityLabel(): string {
           />
         </label>
         <label class="space-y-1 text-xs text-[var(--ks-muted)]">
-          <span>Participation</span>
+          <span>{{ t('events.history.evidenceAria') }}</span>
           <select
             v-model="filter.participation_outcome"
             class="w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-stone)] px-3 py-2 text-sm text-[var(--ks-ivory)]"
           >
-            <option value="">Any outcome</option>
-            <option value="completed">Completed</option>
-            <option value="absent">Absent</option>
-            <option value="excused">Excused</option>
-            <option value="unresolved">Unresolved</option>
+            <option value="">{{ t('common.all') }}</option>
+            <option value="completed">{{ t('events.eventStatuses.completed') }}</option>
+            <option value="absent">{{ t('events.attendanceStatuses.absent') }}</option>
+            <option value="excused">{{ t('events.attendanceStatuses.excused') }}</option>
+            <option value="unresolved">{{ t('events.attendanceStatuses.unknown') }}</option>
           </select>
         </label>
         <label class="space-y-1 text-xs text-[var(--ks-muted)]">
-          <span>Rows</span>
+          <span>{{ t('events.history.rows') }}</span>
           <select
             v-model="filter.limit"
             class="w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-stone)] px-3 py-2 text-sm text-[var(--ks-ivory)]"
@@ -278,47 +312,42 @@ function reliabilityLabel(): string {
           </select>
         </label>
         <label class="space-y-1 text-xs text-[var(--ks-muted)]">
-          <span>Historical Alliance ID</span>
+          <span>{{ t('events.scope.alliance') }} ID</span>
           <input
             v-model="filter.alliance_id"
             type="text"
-            placeholder="Optional ULID"
             class="w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-stone)] px-3 py-2 text-sm text-[var(--ks-ivory)]"
           />
         </label>
         <label class="space-y-1 text-xs text-[var(--ks-muted)]">
-          <span>Historical Kingdom ID</span>
+          <span>{{ t('events.scope.kingdom') }} ID</span>
           <input
             v-model="filter.kingdom_id_at_event"
             type="text"
-            placeholder="Optional ULID"
             class="w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-stone)] px-3 py-2 text-sm text-[var(--ks-ivory)]"
           />
         </label>
         <label class="space-y-1 text-xs text-[var(--ks-muted)]">
-          <span>Event type</span>
+          <span>{{ t('events.create.eventType') }}</span>
           <input
             v-model="filter.event_type_slug"
             type="text"
-            placeholder="e.g. bear-hunt"
             class="w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-stone)] px-3 py-2 text-sm text-[var(--ks-ivory)]"
           />
         </label>
         <label class="space-y-1 text-xs text-[var(--ks-muted)]">
-          <span>Event metric</span>
+          <span>{{ t('events.history.metricTrends') }}</span>
           <input
             v-model="filter.event_metric_key"
             type="text"
-            placeholder="Metric key"
             class="w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-stone)] px-3 py-2 text-sm text-[var(--ks-ivory)]"
           />
         </label>
         <label class="space-y-1 text-xs text-[var(--ks-muted)]">
-          <span>Contribution category</span>
+          <span>{{ t('contributions.category') }}</span>
           <input
             v-model="filter.contribution_category_slug"
             type="text"
-            placeholder="Category slug"
             class="w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-stone)] px-3 py-2 text-sm text-[var(--ks-ivory)]"
           />
         </label>
@@ -327,14 +356,14 @@ function reliabilityLabel(): string {
             type="submit"
             class="rounded-lg bg-amber-400 px-4 py-2 text-sm font-semibold text-[var(--ks-ink)]"
           >
-            Apply filters
+            {{ t('events.history.applyFilters') }}
           </button>
           <button
             type="button"
             class="rounded-lg border border-[var(--ks-border)] px-4 py-2 text-sm font-semibold text-[var(--ks-ivory)]"
             @click="clearFilters"
           >
-            Clear
+            {{ t('events.history.clearFilters') }}
           </button>
         </div>
       </form>
@@ -343,7 +372,7 @@ function reliabilityLabel(): string {
         v-if="history.length === 0"
         class="rounded-2xl border border-dashed border-[rgba(210,163,75,.30)] p-10 text-center text-sm text-[var(--ks-muted)]"
       >
-        No historical records match these filters.
+        {{ t('contributions.noRecords') }}
       </div>
 
       <ol v-else class="space-y-4">
@@ -357,7 +386,7 @@ function reliabilityLabel(): string {
               <span
                 class="inline-flex rounded-full border border-[var(--ks-border)] px-2.5 py-1 text-[11px] font-semibold tracking-wide text-[var(--ks-muted)] uppercase"
               >
-                {{ row.kind }}
+                {{ kindLabel(row.kind) }}
               </span>
               <h2 v-if="row.event" class="mt-3 text-lg font-semibold text-[var(--ks-ivory)]">
                 {{ row.event.title || row.event.eventType.slug }}
@@ -374,42 +403,44 @@ function reliabilityLabel(): string {
 
           <div v-if="row.event" class="mt-4 grid gap-3 text-sm md:grid-cols-4">
             <div>
-              <span class="text-[var(--ks-muted)]">Scope</span>
-              <p class="text-[var(--ks-ivory)] capitalize">{{ row.event.scope }}</p>
+              <span class="text-[var(--ks-muted)]">{{ t('events.create.context') }}</span>
+              <p class="text-[var(--ks-ivory)]">{{ scopeLabel(row.event.scope) }}</p>
             </div>
             <div>
-              <span class="text-[var(--ks-muted)]">Target</span>
+              <span class="text-[var(--ks-muted)]">{{ t('events.reminderAudiences.target') }}</span>
               <p class="text-[var(--ks-ivory)]">{{ row.event.target.displayName }}</p>
             </div>
             <div>
-              <span class="text-[var(--ks-muted)]">Participation</span>
-              <p class="text-[var(--ks-ivory)] capitalize">
-                {{ humanize(row.event.participation.outcome) }}
+              <span class="text-[var(--ks-muted)]">{{ t('events.history.evidenceAria') }}</span>
+              <p class="text-[var(--ks-ivory)]">
+                {{ outcomeLabel(row.event.participation.outcome) }}
               </p>
             </div>
             <div>
-              <span class="text-[var(--ks-muted)]">Score</span>
+              <span class="text-[var(--ks-muted)]">{{ t('events.capabilities.scoring') }}</span>
               <p class="text-[var(--ks-ivory)]">{{ scoreLabel(row.event) ?? '—' }}</p>
             </div>
             <div>
-              <span class="text-[var(--ks-muted)]">Kingdom at Event</span>
+              <span class="text-[var(--ks-muted)]">{{ t('events.scope.kingdom') }}</span>
               <p class="text-[var(--ks-ivory)]">{{ row.event.playerContext.kingdomIdAtEvent }}</p>
             </div>
             <div v-if="row.event.playerContext.representedAllianceName" class="md:col-span-2">
-              <span class="text-[var(--ks-muted)]">Represented Alliance</span>
+              <span class="text-[var(--ks-muted)]">{{
+                t('events.history.representedAlliance')
+              }}</span>
               <p class="text-[var(--ks-ivory)]">
                 {{ row.event.playerContext.representedAllianceName }}
               </p>
             </div>
             <div v-if="row.event.result?.metrics.length" class="md:col-span-4">
-              <span class="text-[var(--ks-muted)]">Metrics</span>
+              <span class="text-[var(--ks-muted)]">{{ t('events.history.metricTrends') }}</span>
               <div class="mt-2 flex flex-wrap gap-2">
                 <span
                   v-for="metric in row.event.result.metrics"
                   :key="`${metric.key}-${metric.dimensionKey ?? ''}`"
                   class="rounded-lg bg-[rgba(210,163,75,.05)] px-3 py-1.5 text-xs text-[var(--ks-ivory)]"
                 >
-                  {{ metric.key
+                  {{ metricLabel(metric)
                   }}<template v-if="metric.dimensionKey"> · {{ metric.dimensionKey }}</template
                   >: {{ metric.value }}<template v-if="metric.unit"> {{ metric.unit }}</template>
                 </span>
@@ -419,25 +450,25 @@ function reliabilityLabel(): string {
 
           <div v-else-if="row.contribution" class="mt-4 grid gap-3 text-sm md:grid-cols-4">
             <div>
-              <span class="text-[var(--ks-muted)]">Value</span>
+              <span class="text-[var(--ks-muted)]">{{ t('contributions.value') }}</span>
               <p class="text-[var(--ks-ivory)]">
                 {{ row.contribution.value }} {{ row.contribution.unit }}
               </p>
             </div>
             <div>
-              <span class="text-[var(--ks-muted)]">Status</span>
+              <span class="text-[var(--ks-muted)]">{{ t('contributions.status') }}</span>
               <p class="text-[var(--ks-ivory)] capitalize">
-                {{ humanize(row.contribution.status) }}
+                {{ outcomeLabel(row.contribution.status) }}
               </p>
             </div>
             <div>
-              <span class="text-[var(--ks-muted)]">Source</span>
+              <span class="text-[var(--ks-muted)]">{{ t('contributions.source') }}</span>
               <p class="text-[var(--ks-ivory)] capitalize">
-                {{ humanize(row.contribution.source) }}
+                {{ row.contribution.source.replaceAll('_', ' ') }}
               </p>
             </div>
             <div>
-              <span class="text-[var(--ks-muted)]">Period</span>
+              <span class="text-[var(--ks-muted)]">{{ t('contributions.period') }}</span>
               <p class="text-[var(--ks-ivory)]">
                 {{ row.contribution.periodStart }} – {{ row.contribution.periodEnd }}
               </p>

@@ -2,8 +2,8 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   notifications: {
-    eyebrow: 'Governor communications',
-    title: 'Notification Center',
+    eyebrow: 'Governor notifications',
+    title: 'Notifications',
     subtitle:
       'Keep reminders in one inbox and deliver them to Discord or Telegram for the active Governor.',
     unread: 'Unread',
@@ -18,7 +18,7 @@ const messages = {
     deliverySetup: 'Delivery setup',
     deliveryChannels: 'Discord & Telegram',
     deliverySecurity:
-      'Credentials are encrypted at rest and never shown again. External delivery is scoped to the active Governor.',
+      'Credentials are encrypted at rest and never shown again. External delivery is tied to the active Governor.',
     remove: 'Remove',
     label: 'Label',
     webhookUrl: 'Webhook URL',
@@ -27,7 +27,7 @@ const messages = {
     saveChannel: 'Save {channel} channel',
     selectGovernor: 'Select a Governor before configuring external delivery.',
     preferences: 'Preferences',
-    reminderRouting: 'Reminder routing',
+    reminderRouting: 'Reminder delivery',
     channels: {
       in_app: 'In app',
       discord: 'Discord',
@@ -41,17 +41,17 @@ const messages = {
       cancelled: 'Cancelled',
     },
     types: {
-      allianceAnnouncement: 'Alliance announcements',
+      allianceAnnouncement: 'Alliance Notices',
       eventReminder: 'Event reminders',
       giftCodeExpiring: 'Gift Code expiry reminders',
-      kingPerkReminder: 'King Perk reminders',
+      kingPerkReminder: 'Position Perk reminders',
     },
     bulk: {
       selectVisible: 'Select up to 50',
       clearSelection: 'Clear selection',
       selectNotification: 'Select notification: {title}',
       selected: '{count} notifications selected',
-      help: 'Preview current ownership and inbox state before applying a change.',
+      help: 'Review the current inbox state before applying a change.',
       operation: 'Inbox action',
       markRead: 'Mark as read',
       dismiss: 'Dismiss',
@@ -60,14 +60,15 @@ const messages = {
       preview: 'Preview update',
       previewing: 'Checking notifications…',
       previewTitle: 'Inbox update preview',
-      previewSummary: '{ready} ready and {blocked} unavailable or already complete.',
+      previewSummary: '{ready} can be updated and {blocked} are unavailable or already complete.',
       confirmTitle: 'Confirm inbox update',
       confirmDescription: '{operation} {count} eligible notifications?',
       confirm: 'Apply to eligible notifications',
       applying: 'Updating notifications…',
       resultTitle: 'Inbox update result',
-      resultSummary: '{succeeded} succeeded, {failed} failed, and {skipped} were already complete.',
-      failedSelected: 'Failed notifications remain selected so you can review and retry them.',
+      resultSummary: '{succeeded} updated. {failed} need review. {skipped} were already complete.',
+      failedSelected:
+        'Notifications that could not be updated remain selected so you can review them.',
       outcomes: {
         ready: 'Ready',
         'notification-unavailable': 'Unavailable',
@@ -104,17 +105,17 @@ const messages = {
       revoking: 'Revoking…',
       revokeTitle: 'Revoke this bot connection?',
       revokeDescription:
-        'Revoke the {provider} link immediately. Future bot writes for it will be rejected.',
-      empty: 'No provider identities have been linked for this Governor.',
+        'Revoke the {provider} link immediately. Future bot actions for it will be rejected.',
+      empty: 'No bot accounts have been linked for this Governor.',
       failed: 'The connection action could not be completed.',
     },
     account: {
-      eyebrow: 'Account command',
+      eyebrow: 'Account',
       title: 'Account & security',
       intro:
         'Manage your identity, verification, password, two-factor authentication, and active sessions.',
-      passwordUpdated: 'Your password was updated and other authenticated sessions were revoked.',
-      sessionsRevoked: 'Other authenticated sessions were signed out.',
+      passwordUpdated: 'Your password was updated and other signed-in sessions were revoked.',
+      sessionsRevoked: 'Other signed-in sessions were signed out.',
       twoFactorDisabled: 'Two-factor authentication was disabled.',
       profileTitle: 'Profile',
       profileIntro: 'Changing your email address requires verification again.',
@@ -129,7 +130,7 @@ const messages = {
       notEnabled: 'Not enabled',
       twoFactorTitle: 'Two-factor authentication',
       twoFactorIntro:
-        'Protect sign-in with a TOTP authenticator. Recovery codes are shown only when created or regenerated.',
+        'Protect sign-in with an authenticator app. Recovery codes are shown only when created or regenerated.',
       startSetup: 'Start setup',
       authenticatorSecret: 'Authenticator secret',
       provisioningUri: 'Provisioning URI',
@@ -147,16 +148,16 @@ const messages = {
       confirmNewPassword: 'Confirm new password',
       updatePassword: 'Update password',
       sessionsTitle: 'Other sessions',
-      sessionsIntro: 'Revoke every authenticated session except this device.',
+      sessionsIntro: 'Sign out every authenticated session except this device.',
       signOutOthers: 'Sign out other devices',
       dangerTitle: 'Danger zone',
       deleteAccount: 'Account deletion',
     },
     deletion: {
-      eyebrow: 'Governor record',
+      eyebrow: 'Account',
       title: 'Account deletion',
       intro:
-        'A seven-day cooling-off period protects the realm record. Active Alliance leadership, Citadel Warden duty, or a legal hold can prevent the request from completing. Completed requests preserve the realm chronicle while removing personal account details.',
+        'A seven-day cooling-off period protects against accidental deletion. Active Alliance leadership, Platform Administrator duties, or a legal hold can prevent the request from completing. Completed requests preserve required game and audit history while removing personal account details.',
       currentRequest: 'Current request',
       status: 'Status',
       eligibleAt: 'Eligible at',
@@ -165,7 +166,7 @@ const messages = {
       notYet: 'Not yet',
       requestTitle: 'Request deletion',
       requestIntro:
-        'Transfer ownership of any alliance you own first. Records subject to legal hold or required for security and audit integrity are retained in pseudonymized form.',
+        'Transfer ownership of any Alliance you own first. Records subject to legal hold or required for security and audit integrity are retained in pseudonymized form.',
       requestButton: 'Request account deletion',
       confirm:
         'Request account deletion? There is a seven-day cooling-off period and ownership/legal-hold checks apply.',

@@ -20,7 +20,7 @@ use Inertia\Response;
 use LogicException;
 
 /**
- * Adapts the daily briefing read model without taking ownership of source-context writes.
+ * Adapts the signed-in dashboard read model without taking ownership of source-context writes.
  */
 final class DashboardController extends Controller
 {
@@ -90,7 +90,7 @@ final class DashboardController extends Controller
             }
         }
 
-        return Inertia::render('Command/Overview', [
+        return Inertia::render('Dashboard/Home', [
             'user' => [
                 'id' => $user->id,
                 'name' => $user->name,
@@ -105,7 +105,7 @@ final class DashboardController extends Controller
                 'kingdomNumber' => $player->kingdomNumber,
             ],
             'membership' => $membershipSummary,
-            'command' => $player === null ? null : $overview->for(
+            'overview' => $player === null ? null : $overview->for(
                 (int) $userId,
                 $player,
                 $allianceId,

@@ -1,6 +1,11 @@
 import type { MessageCatalogue } from '../../types';
 
 const messages = {
+  notifications: {
+    types: {
+      kingPerkReminder: 'Pengingat Position Perk',
+    },
+  },
   accountExperience: {
     account: {
       eyebrow: 'Kontrol akun',
@@ -23,7 +28,7 @@ const messages = {
       notEnabled: 'Tidak aktif',
       twoFactorTitle: 'Autentikasi dua faktor',
       twoFactorIntro:
-        'Lindungi login dengan autentikator TOTP. Kode pemulihan hanya ditampilkan saat dibuat atau dibuat ulang.',
+        'Lindungi login dengan aplikasi autentikator. Kode pemulihan hanya ditampilkan saat dibuat atau dibuat ulang.',
       startSetup: 'Mulai penyiapan',
       authenticatorSecret: 'Rahasia autentikator',
       provisioningUri: 'URI penyediaan',
@@ -35,13 +40,13 @@ const messages = {
       disableTwoFactor: 'Nonaktifkan autentikasi dua faktor',
       passwordTitle: 'Ubah kata sandi',
       passwordIntro:
-        'Mengubah kata sandi mencabut token akses pribadi dan membatalkan sesi terautentikasi lainnya.',
+        'Mengubah kata sandi akan mengeluarkan perangkat lain dan menutup akses aktif lainnya.',
       currentPassword: 'Kata sandi saat ini',
       newPassword: 'Kata sandi baru',
       confirmNewPassword: 'Konfirmasi kata sandi baru',
       updatePassword: 'Perbarui kata sandi',
       sessionsTitle: 'Sesi lain',
-      sessionsIntro: 'Cabut semua sesi terautentikasi kecuali perangkat ini.',
+      sessionsIntro: 'Keluar dari semua sesi terautentikasi kecuali perangkat ini.',
       signOutOthers: 'Keluar dari perangkat lain',
       dangerTitle: 'Zona berbahaya',
       deleteAccount: 'Hapus akun',

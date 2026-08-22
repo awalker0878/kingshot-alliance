@@ -1,6 +1,11 @@
 import type { MessageCatalogue } from '../../types';
 
 const messages = {
+  notifications: {
+    types: {
+      kingPerkReminder: 'Erinnerungen an Positionsvorteile',
+    },
+  },
   accountExperience: {
     account: {
       eyebrow: 'Kontosteuerung',
@@ -25,7 +30,7 @@ const messages = {
       notEnabled: 'Nicht aktiviert',
       twoFactorTitle: 'Zwei-Faktor-Authentifizierung',
       twoFactorIntro:
-        'Schütze die Anmeldung mit einem TOTP-Authenticator. Wiederherstellungscodes werden nur bei Erstellung oder Neugenerierung angezeigt.',
+        'Schütze die Anmeldung mit einer Authenticator-App. Wiederherstellungscodes werden nur bei Erstellung oder Neugenerierung angezeigt.',
       startSetup: 'Einrichtung starten',
       authenticatorSecret: 'Authenticator-Geheimnis',
       provisioningUri: 'Bereitstellungs-URI',
@@ -37,7 +42,7 @@ const messages = {
       disableTwoFactor: 'Zwei-Faktor-Authentifizierung deaktivieren',
       passwordTitle: 'Passwort ändern',
       passwordIntro:
-        'Eine Passwortänderung widerruft persönliche Zugriffstoken und beendet andere authentifizierte Sitzungen.',
+        'Eine Passwortänderung meldet andere Geräte ab und beendet andere aktive Zugriffe.',
       currentPassword: 'Aktuelles Passwort',
       newPassword: 'Neues Passwort',
       confirmNewPassword: 'Neues Passwort bestätigen',

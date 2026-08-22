@@ -1,6 +1,11 @@
 import type { MessageCatalogue } from '../../types';
 
 const messages = {
+  notifications: {
+    types: {
+      kingPerkReminder: 'Recordatorios de Ventajas de Posición',
+    },
+  },
   accountExperience: {
     account: {
       eyebrow: 'Control de cuenta',
@@ -23,7 +28,7 @@ const messages = {
       notEnabled: 'No activada',
       twoFactorTitle: 'Autenticación de dos factores',
       twoFactorIntro:
-        'Protege el inicio de sesión con un autenticador TOTP. Los códigos de recuperación solo se muestran al crearlos o regenerarlos.',
+        'Protege el inicio de sesión con una aplicación de autenticación. Los códigos de recuperación solo se muestran al crearlos o regenerarlos.',
       startSetup: 'Iniciar configuración',
       authenticatorSecret: 'Secreto del autenticador',
       provisioningUri: 'URI de aprovisionamiento',
@@ -35,13 +40,13 @@ const messages = {
       disableTwoFactor: 'Desactivar autenticación de dos factores',
       passwordTitle: 'Cambiar contraseña',
       passwordIntro:
-        'Cambiar la contraseña revoca los tokens de acceso personales e invalida otras sesiones autenticadas.',
+        'Cambiar la contraseña cierra sesión en otros dispositivos y finaliza otros accesos activos.',
       currentPassword: 'Contraseña actual',
       newPassword: 'Nueva contraseña',
       confirmNewPassword: 'Confirmar nueva contraseña',
       updatePassword: 'Actualizar contraseña',
       sessionsTitle: 'Otras sesiones',
-      sessionsIntro: 'Revoca todas las sesiones autenticadas excepto este dispositivo.',
+      sessionsIntro: 'Cierra todas las sesiones autenticadas excepto este dispositivo.',
       signOutOthers: 'Cerrar sesión en otros dispositivos',
       dangerTitle: 'Zona de riesgo',
       deleteAccount: 'Eliminar cuenta',

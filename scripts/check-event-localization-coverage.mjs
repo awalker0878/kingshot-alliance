@@ -12,6 +12,33 @@ const supportedLocales = [
   'en', 'ar', 'de', 'es', 'fr', 'id', 'it', 'ja', 'ko', 'pl', 'pt-BR', 'ru', 'th', 'tr', 'vi', 'zh-CN', 'zh-TW',
 ];
 const minimumLocalizedKeys = 89;
+const requiredHistoryKeys = [
+  'events.history.title',
+  'events.history.subtitle',
+  'events.history.from',
+  'events.history.until',
+  'events.history.rows',
+  'events.history.applyFilters',
+  'events.history.clearFilters',
+  'events.history.metricTrends',
+  'events.history.metricTrendsHelp',
+  'events.history.average',
+  'events.history.best',
+  'events.history.samples',
+  'events.history.latest',
+  'events.history.leaderboards',
+  'events.history.leaderboardsHelp',
+  'events.history.noEvents',
+  'events.history.noEvidence',
+  'events.history.evidenceAria',
+  'events.history.rallyAssignments',
+  'events.history.assignments',
+  'events.history.allianceResults',
+  'events.history.participants',
+  'events.history.governorCount',
+  'events.history.representedAlliance',
+  'events.history.noParticipants',
+];
 
 function unwrap(node) {
   let current = node;
@@ -98,6 +125,12 @@ for (const locale of supportedLocales.filter((value) => value !== 'en')) {
   if (localized.size < minimumLocalizedKeys) {
     failed = true;
     console.error(`  Coverage regression: expected at least ${minimumLocalizedKeys} localized Event keys.`);
+  }
+
+  const missingHistory = requiredHistoryKeys.filter((key) => !localized.has(key));
+  if (missingHistory.length > 0) {
+    failed = true;
+    console.error(`  Missing Event History translations: ${missingHistory.join(', ')}`);
   }
 }
 

@@ -1,6 +1,11 @@
 import type { MessageCatalogue } from '../../types';
 
 const messages = {
+  notifications: {
+    types: {
+      kingPerkReminder: 'Promemoria dei vantaggi di posizione',
+    },
+  },
   accountExperience: {
     account: {
       eyebrow: 'Gestione account',
@@ -8,7 +13,7 @@ const messages = {
       intro:
         'Gestisci identità, verifica, password, autenticazione a due fattori e sessioni attive.',
       passwordUpdated:
-        'La password è stata aggiornata e le altre sessioni autenticate sono state revocate.',
+        'La password è stata aggiornata e le altre sessioni autenticate sono state disconnesse.',
       sessionsRevoked: 'Le altre sessioni autenticate sono state disconnesse.',
       twoFactorDisabled: 'L’autenticazione a due fattori è stata disattivata.',
       profileTitle: 'Profilo',
@@ -24,7 +29,7 @@ const messages = {
       notEnabled: 'Non attiva',
       twoFactorTitle: 'Autenticazione a due fattori',
       twoFactorIntro:
-        'Proteggi l’accesso con un autenticatore TOTP. I codici di recupero vengono mostrati solo quando creati o rigenerati.',
+        'Proteggi l’accesso con un’app di autenticazione. I codici di recupero vengono mostrati solo quando creati o rigenerati.',
       startSetup: 'Avvia configurazione',
       authenticatorSecret: 'Segreto autenticatore',
       provisioningUri: 'URI di provisioning',
@@ -37,13 +42,13 @@ const messages = {
       disableTwoFactor: 'Disattiva autenticazione a due fattori',
       passwordTitle: 'Cambia password',
       passwordIntro:
-        'La modifica della password revoca i token di accesso personali e invalida le altre sessioni autenticate.',
+        'La modifica della password disconnette gli altri dispositivi e chiude gli altri accessi attivi.',
       currentPassword: 'Password attuale',
       newPassword: 'Nuova password',
       confirmNewPassword: 'Conferma nuova password',
       updatePassword: 'Aggiorna password',
       sessionsTitle: 'Altre sessioni',
-      sessionsIntro: 'Revoca tutte le sessioni autenticate tranne questo dispositivo.',
+      sessionsIntro: 'Disconnetti tutte le sessioni autenticate tranne questo dispositivo.',
       signOutOthers: 'Disconnetti gli altri dispositivi',
       dangerTitle: 'Zona pericolosa',
       deleteAccount: 'Eliminazione account',

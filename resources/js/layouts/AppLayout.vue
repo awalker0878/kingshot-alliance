@@ -98,7 +98,7 @@ const hasActiveAlliance = computed(() => {
 });
 const currentPath = computed(() => page.url.split('?')[0]?.replace(/\/+$/, '') || '/');
 
-const rooms: NavigationItem[] = [
+const navigationItems: NavigationItem[] = [
   { key: 'dashboard', href: '/dashboard', icon: 'dashboard', exact: true },
   { key: 'giftCodes', href: '/gift-codes', icon: 'giftCodes', playerScoped: true },
   { key: 'notifications', href: '/notifications', icon: 'notifications', exact: true },
@@ -163,7 +163,7 @@ function logout(): void {
   </a>
 
   <div class="min-h-screen bg-transparent text-[var(--ks-text)]">
-    <!-- Desktop command rail -->
+    <!-- Desktop navigation -->
     <aside
       class="fixed inset-y-0 start-0 z-50 hidden w-[18.5rem] flex-col border-e border-[var(--ks-border)] bg-[rgba(4,9,9,.96)] shadow-[18px_0_55px_rgba(0,0,0,.28)] backdrop-blur-xl xl:flex"
     >
@@ -208,37 +208,37 @@ function logout(): void {
           {{ t('navigation.allianceOperations') }}
         </div>
         <div class="space-y-1">
-          <template v-for="room in rooms" :key="room.href">
+          <template v-for="item in navigationItems" :key="item.href">
             <span
-              v-if="isDisabled(room)"
+              v-if="isDisabled(item)"
               class="flex min-h-11 items-center gap-3 rounded-[var(--ks-radius-sm)] px-3 py-2 text-sm text-[var(--ks-muted)] opacity-30"
-              :aria-label="t(`navigation.${room.key}`)"
+              :aria-label="t(`navigation.${item.key}`)"
               aria-disabled="true"
             >
-              <NavIcon :name="room.icon" class="h-5 w-5" />
-              <span class="truncate">{{ t(`navigation.${room.key}`) }}</span>
+              <NavIcon :name="item.icon" class="h-5 w-5" />
+              <span class="truncate">{{ t(`navigation.${item.key}`) }}</span>
             </span>
             <Link
               v-else
-              :href="room.href"
+              :href="item.href"
               class="group relative flex min-h-11 items-center gap-3 overflow-hidden rounded-[var(--ks-radius-sm)] border px-3 py-2 text-[.9rem] font-[var(--ks-font-display)] transition"
               :class="
-                isActive(room)
+                isActive(item)
                   ? 'border-[rgba(32,178,163,.38)] bg-[linear-gradient(90deg,rgba(10,121,113,.42),rgba(10,67,63,.12))] text-[#f6ecd7] shadow-[inset_3px_0_var(--ks-teal-bright)]'
                   : 'border-transparent text-[var(--ks-text-muted)] hover:border-[var(--ks-border)] hover:bg-white/[0.025] hover:text-[var(--ks-text)]'
               "
             >
               <NavIcon
-                :name="room.icon"
+                :name="item.icon"
                 class="h-5 w-5 shrink-0"
                 :class="
-                  isActive(room)
+                  isActive(item)
                     ? 'text-[var(--ks-gold-bright)]'
                     : 'text-[var(--ks-gold)] opacity-80'
                 "
               />
-              <span class="min-w-0 flex-1 truncate">{{ t(`navigation.${room.key}`) }}</span>
-              <span v-if="isActive(room)" class="text-[var(--ks-teal-bright)]">›</span>
+              <span class="min-w-0 flex-1 truncate">{{ t(`navigation.${item.key}`) }}</span>
+              <span v-if="isActive(item)" class="text-[var(--ks-teal-bright)]">›</span>
             </Link>
           </template>
         </div>
@@ -342,28 +342,28 @@ function logout(): void {
           :aria-label="t('navigation.allianceOperations')"
         >
           <div class="space-y-1">
-            <template v-for="room in rooms" :key="room.href">
+            <template v-for="item in navigationItems" :key="item.href">
               <span
-                v-if="isDisabled(room)"
+                v-if="isDisabled(item)"
                 class="flex min-h-12 items-center gap-3 rounded px-3 text-sm text-[var(--ks-muted)] opacity-30"
                 aria-disabled="true"
               >
-                <NavIcon :name="room.icon" class="h-5 w-5" />
-                {{ t(`navigation.${room.key}`) }}
+                <NavIcon :name="item.icon" class="h-5 w-5" />
+                {{ t(`navigation.${item.key}`) }}
               </span>
               <Link
                 v-else
-                :href="room.href"
+                :href="item.href"
                 class="flex min-h-12 items-center gap-3 rounded-[var(--ks-radius-sm)] border px-3 text-sm"
                 :class="
-                  isActive(room)
+                  isActive(item)
                     ? 'border-[rgba(32,178,163,.38)] bg-[var(--ks-teal-soft)] text-[var(--ks-ivory)]'
                     : 'border-transparent text-[var(--ks-text-secondary)]'
                 "
                 @click="mobileOpen = false"
               >
-                <NavIcon :name="room.icon" class="h-5 w-5 text-[var(--ks-gold)]" />
-                <span class="flex-1">{{ t(`navigation.${room.key}`) }}</span>
+                <NavIcon :name="item.icon" class="h-5 w-5 text-[var(--ks-gold)]" />
+                <span class="flex-1">{{ t(`navigation.${item.key}`) }}</span>
               </Link>
             </template>
           </div>

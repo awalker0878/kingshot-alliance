@@ -16,7 +16,7 @@ type MembershipSummary = {
   canManageAlliance: boolean;
   canManageRecruitment: boolean;
 };
-type CommandOverview = {
+type DashboardOverview = {
   unreadNotifications: number;
   pendingGiftCodes: number;
   upcomingEvents: Array<{
@@ -52,7 +52,7 @@ defineProps<{
     kingdomNumber: number | null;
   } | null;
   membership: MembershipSummary | null;
-  command: CommandOverview | null;
+  overview: DashboardOverview | null;
   canCreateAlliance: boolean;
 }>();
 
@@ -77,6 +77,16 @@ function createAlliance(): void {
 }
 function rolesFor(membership: MembershipSummary): string {
   return [membership.rank.toUpperCase(), ...membership.roles.map((role) => role.name)].join(' · ');
+}
+function eventActionLabel(action: string): string {
+  const key = {
+    response: 'application.dashboard.eventActionResponse',
+    registration: 'application.dashboard.eventActionRegistration',
+    vote: 'application.dashboard.eventActionVote',
+    roster_confirmation: 'application.dashboard.eventActionRosterConfirmation',
+  }[action];
+
+  return key ? t(key) : t('application.dashboard.eventActionRequired');
 }
 </script>
 
@@ -108,67 +118,80 @@ function rolesFor(membership: MembershipSummary): string {
       </template>
     </RoomBanner>
 
-    <section v-if="command" class="mt-4 grid gap-3 sm:grid-cols-2 2xl:grid-cols-4">
-      <StatSeal label="Needs attention" :value="command.actionCount" icon="!" tone="teal" />
-      <StatSeal :label="t('navigation.events')" :value="command.upcomingEvents.length" icon="⚔" />
+    <section v-if="overview" class="mt-4 grid gap-3 sm:grid-cols-2 2xl:grid-cols-4">
+      <StatSeal
+        :label="t('application.dashboard.needsAttention')"
+        :value="overview.actionCount"
+        icon="!"
+        tone="teal"
+      />
+      <StatSeal :label="t('navigation.events')" :value="overview.upcomingEvents.length" icon="⚔" />
       <StatSeal
         :label="t('navigation.giftCodes')"
-        :value="command.pendingGiftCodes"
+        :value="overview.pendingGiftCodes"
         icon="✦"
         tone="stone"
       />
       <StatSeal
         :label="t('navigation.notifications')"
-        :value="command.unreadNotifications"
+        :value="overview.unreadNotifications"
         icon="⌁"
       />
     </section>
 
     <section
-      v-if="command"
+      v-if="overview"
       class="ks-surface-gold mt-5 p-5 sm:p-6"
-      aria-labelledby="command-attention-heading"
+      aria-labelledby="dashboard-attention-heading"
     >
       <div class="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p class="ks-kicker">Governor briefing</p>
-          <h2 id="command-attention-heading" class="ks-display mt-1 text-2xl font-semibold">
-            Needs your attention
+          <p class="ks-kicker">{{ t('application.dashboard.governorBriefing') }}</p>
+          <h2 id="dashboard-attention-heading" class="ks-display mt-1 text-2xl font-semibold">
+            {{ t('application.dashboard.needsYourAttention') }}
           </h2>
         </div>
-        <span class="ks-status" :data-tone="command.actionCount ? 'warning' : 'success'">
-          {{ command.actionCount ? `${command.actionCount} open` : 'Caught up' }}
+        <span class="ks-status" :data-tone="overview.actionCount ? 'warning' : 'success'">
+          {{
+            overview.actionCount
+              ? t('application.dashboard.openActions', { count: overview.actionCount })
+              : t('application.dashboard.caughtUp')
+          }}
         </span>
       </div>
 
-      <div v-if="command.actionCount" class="mt-4 grid gap-3 md:grid-cols-2 2xl:grid-cols-4">
+      <div v-if="overview.actionCount" class="mt-4 grid gap-3 md:grid-cols-2 2xl:grid-cols-4">
         <Link
-          v-if="command.unreadNotifications"
+          v-if="overview.unreadNotifications"
           href="/notifications"
           class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-4 transition hover:border-[var(--ks-border-strong)]"
         >
           <p class="ks-kicker">{{ t('navigation.notifications') }}</p>
-          <strong class="mt-2 block text-lg">{{ command.unreadNotifications }} unread</strong>
-          <span class="mt-2 block text-xs text-[var(--ks-muted)]"
-            >Review alerts and delivery failures</span
-          >
+          <strong class="mt-2 block text-lg">{{
+            t('application.dashboard.unreadNotifications', { count: overview.unreadNotifications })
+          }}</strong>
+          <span class="mt-2 block text-xs text-[var(--ks-muted)]">{{
+            t('application.dashboard.reviewNotifications')
+          }}</span>
         </Link>
         <Link
-          v-if="command.pendingGiftCodes"
+          v-if="overview.pendingGiftCodes"
           href="/gift-codes"
           class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-4 transition hover:border-[var(--ks-border-strong)]"
         >
           <p class="ks-kicker">{{ t('navigation.giftCodes') }}</p>
-          <strong class="mt-2 block text-lg">{{ command.pendingGiftCodes }} to redeem</strong>
+          <strong class="mt-2 block text-lg">{{
+            t('application.dashboard.giftCodesToRedeem', { count: overview.pendingGiftCodes })
+          }}</strong>
           <span
-            v-if="command.giftCodes[0]"
+            v-if="overview.giftCodes[0]"
             class="mt-2 block truncate font-mono text-xs text-[var(--ks-muted)]"
           >
-            {{ command.giftCodes[0].code }}
+            {{ overview.giftCodes[0].code }}
           </span>
         </Link>
         <Link
-          v-for="action in command.eventActions"
+          v-for="action in overview.eventActions"
           :key="`${action.occurrenceId}:${action.action}`"
           :href="`/events/${action.occurrenceId}`"
           class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-4 transition hover:border-[var(--ks-border-strong)]"
@@ -176,31 +199,35 @@ function rolesFor(membership: MembershipSummary): string {
           <p class="ks-kicker">{{ t('navigation.events') }}</p>
           <strong class="mt-2 block truncate">{{ action.title || t(action.nameKey) }}</strong>
           <span class="mt-2 block text-xs text-[var(--ks-muted)]">{{
-            action.action.replaceAll('_', ' ')
+            eventActionLabel(action.action)
           }}</span>
         </Link>
         <Link
-          v-if="command.recruitment?.overdue"
+          v-if="overview.recruitment?.overdue"
           href="/alliance/recruitment"
           class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-4 transition hover:border-[var(--ks-border-strong)]"
         >
           <p class="ks-kicker">{{ t('navigation.recruitment') }}</p>
-          <strong class="mt-2 block text-lg">{{ command.recruitment.overdue }} overdue</strong>
-          <span class="mt-2 block text-xs text-[var(--ks-muted)]">Candidate follow-up is due</span>
+          <strong class="mt-2 block text-lg">{{
+            t('application.dashboard.overdueRecruitment', { count: overview.recruitment.overdue })
+          }}</strong>
+          <span class="mt-2 block text-xs text-[var(--ks-muted)]">{{
+            t('application.dashboard.recruitmentFollowUpDue')
+          }}</span>
         </Link>
       </div>
       <div v-else class="ks-fantasy-empty mt-4">
-        No urgent Governor actions. Use the rooms below to keep planning ahead.
+        {{ t('application.dashboard.noUrgentActions') }}
       </div>
     </section>
 
     <div v-if="membership" class="mt-5 grid gap-5 2xl:grid-cols-[1.35fr_.65fr]">
       <div class="space-y-5">
-        <section class="ks-surface-gold p-5 sm:p-6" aria-labelledby="alliance-command-heading">
+        <section class="ks-surface-gold p-5 sm:p-6" aria-labelledby="alliance-overview-heading">
           <div class="flex flex-wrap items-start justify-between gap-4">
             <div class="max-w-3xl">
               <p class="ks-kicker">{{ t('common.playerAlliance') }}</p>
-              <h2 id="alliance-command-heading" class="ks-display mt-2 text-3xl font-semibold">
+              <h2 id="alliance-overview-heading" class="ks-display mt-2 text-3xl font-semibold">
                 {{ membership.alliance.name }}
               </h2>
               <p class="mt-2 text-sm leading-6 text-[var(--ks-text-secondary)]">
@@ -246,18 +273,18 @@ function rolesFor(membership: MembershipSummary): string {
           </dl>
         </section>
 
-        <section class="ks-surface p-5 sm:p-6" aria-labelledby="command-actions-heading">
+        <section class="ks-surface p-5 sm:p-6" aria-labelledby="dashboard-actions-heading">
           <div
             class="flex flex-wrap items-end justify-between gap-3 border-b border-[var(--ks-border)] pb-4"
           >
             <div>
               <p class="ks-kicker">{{ t('navigation.allianceOperations') }}</p>
-              <h2 id="command-actions-heading" class="ks-display mt-1 text-2xl font-semibold">
-                {{ t('application.dashboard.title') }}
+              <h2 id="dashboard-actions-heading" class="ks-display mt-1 text-2xl font-semibold">
+                {{ t('application.dashboard.allianceShortcuts') }}
               </h2>
             </div>
             <p class="max-w-xl text-sm text-[var(--ks-muted)]">
-              {{ t('application.dashboard.playerAllianceIntro') }}
+              {{ t('application.dashboard.allianceShortcutsHelp') }}
             </p>
           </div>
 
@@ -310,22 +337,22 @@ function rolesFor(membership: MembershipSummary): string {
 
       <aside class="space-y-5">
         <section
-          v-if="command?.upcomingEvents.length"
+          v-if="overview?.upcomingEvents.length"
           class="ks-surface p-5"
           aria-labelledby="upcoming-events-heading"
         >
           <div class="flex items-end justify-between gap-3">
             <div>
-              <p class="ks-kicker">Next on the calendar</p>
+              <p class="ks-kicker">{{ t('application.dashboard.nextOnCalendar') }}</p>
               <h2 id="upcoming-events-heading" class="ks-display mt-1 text-xl font-semibold">
-                Upcoming Events
+                {{ t('application.dashboard.upcomingEvents') }}
               </h2>
             </div>
-            <Link href="/events" class="ks-chip">View all</Link>
+            <Link href="/events" class="ks-chip">{{ t('application.dashboard.viewAll') }}</Link>
           </div>
           <div class="mt-4 space-y-2">
             <Link
-              v-for="event in command.upcomingEvents"
+              v-for="event in overview.upcomingEvents"
               :key="event.id"
               :href="`/events/${event.id}`"
               class="block rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-3 transition hover:border-[var(--ks-border-strong)]"

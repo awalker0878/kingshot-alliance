@@ -1,13 +1,18 @@
 import type { MessageCatalogue } from '../../types';
 
 const messages = {
+  notifications: {
+    types: {
+      kingPerkReminder: 'Nhắc nhở Đặc quyền Vị trí',
+    },
+  },
   accountExperience: {
     account: {
       eyebrow: 'Quản lý tài khoản',
       title: 'Tài khoản & bảo mật',
       intro:
         'Quản lý danh tính, xác minh, mật khẩu, xác thực hai yếu tố và các phiên đang hoạt động.',
-      passwordUpdated: 'Mật khẩu đã được cập nhật và các phiên đã xác thực khác bị thu hồi.',
+      passwordUpdated: 'Mật khẩu đã được cập nhật và các phiên đã xác thực khác đã đăng xuất.',
       sessionsRevoked: 'Các phiên đã xác thực khác đã đăng xuất.',
       twoFactorDisabled: 'Xác thực hai yếu tố đã bị tắt.',
       profileTitle: 'Hồ sơ',
@@ -23,7 +28,7 @@ const messages = {
       notEnabled: 'Chưa bật',
       twoFactorTitle: 'Xác thực hai yếu tố',
       twoFactorIntro:
-        'Bảo vệ đăng nhập bằng trình xác thực TOTP. Mã khôi phục chỉ hiển thị khi được tạo hoặc tạo lại.',
+        'Bảo vệ đăng nhập bằng ứng dụng xác thực. Mã khôi phục chỉ hiển thị khi được tạo hoặc tạo lại.',
       startSetup: 'Bắt đầu thiết lập',
       authenticatorSecret: 'Mã bí mật xác thực',
       provisioningUri: 'URI cấp cấu hình',
@@ -35,13 +40,13 @@ const messages = {
       disableTwoFactor: 'Tắt xác thực hai yếu tố',
       passwordTitle: 'Đổi mật khẩu',
       passwordIntro:
-        'Đổi mật khẩu sẽ thu hồi token truy cập cá nhân và vô hiệu các phiên xác thực khác.',
+        'Đổi mật khẩu sẽ đăng xuất các thiết bị khác và đóng các quyền truy cập đang hoạt động khác.',
       currentPassword: 'Mật khẩu hiện tại',
       newPassword: 'Mật khẩu mới',
       confirmNewPassword: 'Xác nhận mật khẩu mới',
       updatePassword: 'Cập nhật mật khẩu',
       sessionsTitle: 'Phiên khác',
-      sessionsIntro: 'Thu hồi mọi phiên đã xác thực ngoại trừ thiết bị này.',
+      sessionsIntro: 'Đăng xuất mọi phiên đã xác thực ngoại trừ thiết bị này.',
       signOutOthers: 'Đăng xuất thiết bị khác',
       dangerTitle: 'Khu vực nguy hiểm',
       deleteAccount: 'Xóa tài khoản',

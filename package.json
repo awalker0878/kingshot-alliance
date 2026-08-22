@@ -15,7 +15,7 @@
     "lint": "eslint . --fix",
     "lint:check": "eslint .",
     "types:check": "vue-tsc --noEmit",
-    "check": "npm run lint:check && npm run format:check && npm run types:check && npm run check:accessibility && npm run check:documentation && npm run check:page-localization-coverage && npm run check:event-localization-coverage && npm run check:action-receipt-coverage && npm run build && npm run check:localization-chunks && npm run check:performance-budgets",
+    "check": "npm run lint:check && npm run format:check && npm run types:check && npm run check:accessibility && npm run check:documentation && npm run check:page-localization-coverage && npm run check:event-localization-coverage && npm run check:action-receipt-coverage && npm run check:product-language && npm run build && npm run check:localization-chunks && npm run check:performance-budgets",
     "audit": "npm audit --audit-level=high",
     "test:visual": "playwright test",
     "test:visual:update": "playwright test --update-snapshots",
@@ -25,6 +25,7 @@
     "check:action-receipt-coverage": "node scripts/check-action-receipt-coverage.mjs",
     "check:localization-chunks": "node scripts/check-localization-chunks.mjs",
     "check:event-localization-coverage": "node scripts/check-event-localization-coverage.mjs",
+    "check:product-language": "node scripts/check-product-language.mjs",
     "check:performance-budgets": "node scripts/check-performance-budgets.mjs"
   },
   "dependencies": {
@@ -44,7 +45,6 @@
     "@eslint/js": "^9.19.0",
     "@playwright/test": "1.62.1",
     "@types/node": "^24.0.0",
-    "@vue/eslint-config-typescript": "^14.3.0",
     "eslint": "^9.17.0",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-vue": "^9.32.0",

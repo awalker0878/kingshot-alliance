@@ -135,6 +135,8 @@ const fleetMetricKeys = [
   'deletedAlliances',
 ] as const;
 
+const queuePartitions = ['standard', 'high-volume', 'maintenance-sensitive'] as const;
+
 const queueMetricKeys = [
   'pendingOutbox',
   'pendingWebhooks',
@@ -274,7 +276,7 @@ function diagnosticTitle(item: DiagnosticFailure): string {
 
     <section
       class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4"
-      aria-label="Platform command summary"
+      :aria-label="t('platformAdmin.title')"
     >
       <StatSeal
         :label="metricLabel('alliances')"
@@ -851,9 +853,9 @@ function diagnosticTitle(item: DiagnosticFailure): string {
                 v-model="settingsForm.queue_partition"
                 class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5"
               >
-                <option>standard</option>
-                <option>high-volume</option>
-                <option>maintenance-sensitive</option>
+                <option v-for="partition in queuePartitions" :key="partition" :value="partition">
+                  {{ partition }}
+                </option>
               </select></label
             >
           </div>

@@ -1,6 +1,11 @@
 import type { MessageCatalogue } from '../../types';
 
 const messages = {
+  notifications: {
+    types: {
+      kingPerkReminder: 'Rappels des avantages de position',
+    },
+  },
   accountExperience: {
     account: {
       eyebrow: 'Gestion du compte',
@@ -24,7 +29,7 @@ const messages = {
       notEnabled: 'Non activée',
       twoFactorTitle: 'Authentification à deux facteurs',
       twoFactorIntro:
-        'Protégez la connexion avec un authentificateur TOTP. Les codes de récupération ne sont affichés qu’à leur création ou régénération.',
+        'Protégez la connexion avec une application d’authentification. Les codes de récupération ne sont affichés qu’à leur création ou régénération.',
       startSetup: 'Commencer la configuration',
       authenticatorSecret: 'Secret de l’authentificateur',
       provisioningUri: 'URI de configuration',
@@ -37,13 +42,13 @@ const messages = {
       disableTwoFactor: 'Désactiver l’authentification à deux facteurs',
       passwordTitle: 'Changer le mot de passe',
       passwordIntro:
-        'Changer le mot de passe révoque les jetons d’accès personnels et invalide les autres sessions authentifiées.',
+        'Changer le mot de passe déconnecte les autres appareils et ferme les autres accès actifs.',
       currentPassword: 'Mot de passe actuel',
       newPassword: 'Nouveau mot de passe',
       confirmNewPassword: 'Confirmer le nouveau mot de passe',
       updatePassword: 'Mettre à jour le mot de passe',
       sessionsTitle: 'Autres sessions',
-      sessionsIntro: 'Révoquez toutes les sessions authentifiées sauf cet appareil.',
+      sessionsIntro: 'Déconnectez toutes les sessions authentifiées sauf cet appareil.',
       signOutOthers: 'Déconnecter les autres appareils',
       dangerTitle: 'Zone sensible',
       deleteAccount: 'Suppression du compte',

@@ -7,7 +7,7 @@ on:
       - 'bootstrap/app.php'
       - 'config/operations.php'
       - 'database/migrations/*king_perk*'
-      - 'resources/js/pages/Kingdom/RoyalCourt/**'
+      - 'resources/js/pages/Kingdom/PositionPerks/**'
       - 'routes/king-perks.php'
       - 'tests/v3/Contexts/Operations/KingPerks/**'
       - 'tsconfig.king-perks.json'
@@ -108,7 +108,7 @@ jobs:
           tests/v3/Contexts/Operations/KingPerks
 
   frontend:
-    name: King Perks frontend contracts
+    name: Position Perks frontend contracts
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -125,13 +125,13 @@ jobs:
       - name: Install locked frontend dependencies
         run: npm ci --no-audit --no-fund
 
-      - name: ESLint King Perks pages
-        run: npx eslint resources/js/pages/Kingdom/RoyalCourt
+      - name: ESLint Position Perks pages
+        run: npx eslint resources/js/pages/Kingdom/PositionPerks
 
-      - name: Prettier King Perks pages
-        run: npx prettier --check resources/js/pages/Kingdom/RoyalCourt
+      - name: Prettier Position Perks pages
+        run: npx prettier --check resources/js/pages/Kingdom/PositionPerks
 
-      - name: King Perks Vue TypeScript contract
+      - name: Position Perks Vue TypeScript contract
         run: npx vue-tsc --noEmit -p tsconfig.king-perks.json
 
       - name: Targeted production build

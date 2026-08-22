@@ -1,12 +1,17 @@
 import type { MessageCatalogue } from '../../types';
 
 const messages = {
+  notifications: {
+    types: {
+      kingPerkReminder: '직위 특전 알림',
+    },
+  },
   accountExperience: {
     account: {
       eyebrow: '계정 관리',
       title: '계정 및 보안',
       intro: '신원, 이메일 인증, 비밀번호, 2단계 인증 및 활성 세션을 관리합니다.',
-      passwordUpdated: '비밀번호가 업데이트되었고 다른 인증 세션이 해제되었습니다.',
+      passwordUpdated: '비밀번호가 업데이트되었고 다른 인증 세션에서 로그아웃했습니다.',
       sessionsRevoked: '다른 인증 세션에서 로그아웃했습니다.',
       twoFactorDisabled: '2단계 인증이 비활성화되었습니다.',
       profileTitle: '프로필',
@@ -22,7 +27,7 @@ const messages = {
       notEnabled: '비활성화',
       twoFactorTitle: '2단계 인증',
       twoFactorIntro:
-        'TOTP 인증 앱으로 로그인을 보호합니다. 복구 코드는 생성 또는 재생성할 때만 표시됩니다.',
+        '인증 앱으로 로그인을 보호합니다. 복구 코드는 생성 또는 재생성할 때만 표시됩니다.',
       startSetup: '설정 시작',
       authenticatorSecret: '인증 앱 비밀키',
       provisioningUri: '프로비저닝 URI',
@@ -33,14 +38,13 @@ const messages = {
       regenerateRecoveryCodes: '복구 코드 재생성',
       disableTwoFactor: '2단계 인증 비활성화',
       passwordTitle: '비밀번호 변경',
-      passwordIntro:
-        '비밀번호를 변경하면 개인 액세스 토큰이 취소되고 다른 인증 세션이 무효화됩니다.',
+      passwordIntro: '비밀번호를 변경하면 다른 기기에서 로그아웃되고 다른 활성 접근도 종료됩니다.',
       currentPassword: '현재 비밀번호',
       newPassword: '새 비밀번호',
       confirmNewPassword: '새 비밀번호 확인',
       updatePassword: '비밀번호 업데이트',
       sessionsTitle: '다른 세션',
-      sessionsIntro: '이 기기를 제외한 모든 인증 세션을 취소합니다.',
+      sessionsIntro: '이 기기를 제외한 모든 인증 세션에서 로그아웃합니다.',
       signOutOthers: '다른 기기에서 로그아웃',
       dangerTitle: '위험 구역',
       deleteAccount: '계정 삭제',

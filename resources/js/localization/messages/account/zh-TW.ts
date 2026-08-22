@@ -1,12 +1,17 @@
 import type { MessageCatalogue } from '../../types';
 
 const messages = {
+  notifications: {
+    types: {
+      kingPerkReminder: '職位特權提醒',
+    },
+  },
   accountExperience: {
     account: {
       eyebrow: '帳戶管理',
       title: '帳戶與安全',
       intro: '管理身分、電子郵件驗證、密碼、雙重驗證與目前工作階段。',
-      passwordUpdated: '密碼已更新，其他已驗證工作階段已撤銷。',
+      passwordUpdated: '密碼已更新，其他已驗證工作階段已登出。',
       sessionsRevoked: '其他已驗證工作階段已登出。',
       twoFactorDisabled: '雙重驗證已停用。',
       profileTitle: '個人資料',
@@ -21,7 +26,7 @@ const messages = {
       setupPending: '設定待完成',
       notEnabled: '未啟用',
       twoFactorTitle: '雙重驗證',
-      twoFactorIntro: '使用 TOTP 驗證器保護登入。復原碼只會在建立或重新產生時顯示。',
+      twoFactorIntro: '使用驗證器應用程式保護登入。復原碼只會在建立或重新產生時顯示。',
       startSetup: '開始設定',
       authenticatorSecret: '驗證器密鑰',
       provisioningUri: '設定 URI',
@@ -32,13 +37,13 @@ const messages = {
       regenerateRecoveryCodes: '重新產生復原碼',
       disableTwoFactor: '停用雙重驗證',
       passwordTitle: '變更密碼',
-      passwordIntro: '變更密碼會撤銷個人存取權杖並使其他已驗證工作階段失效。',
+      passwordIntro: '變更密碼會登出其他裝置並關閉其他有效存取。',
       currentPassword: '目前密碼',
       newPassword: '新密碼',
       confirmNewPassword: '確認新密碼',
       updatePassword: '更新密碼',
       sessionsTitle: '其他工作階段',
-      sessionsIntro: '撤銷此裝置以外的所有已驗證工作階段。',
+      sessionsIntro: '登出此裝置以外的所有已驗證工作階段。',
       signOutOthers: '登出其他裝置',
       dangerTitle: '危險操作',
       deleteAccount: '刪除帳戶',

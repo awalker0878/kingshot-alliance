@@ -59,7 +59,7 @@ final class ContributionHistoryController extends Controller
             'metric_key' => $validated['event_metric_key'] ?? null,
         ];
 
-        return Inertia::render('Intelligence/GloryLedger/History', [
+        return Inertia::render('Intelligence/Contributions/History', [
             'user' => [
                 'name' => $account->name,
                 'email' => $account->email,
