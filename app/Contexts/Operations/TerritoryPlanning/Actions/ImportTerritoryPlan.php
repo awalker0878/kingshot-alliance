@@ -40,44 +40,35 @@ final readonly class ImportTerritoryPlan
 
         $map = $preview['map'] ?? null;
         if (! is_array($map)) {
-            throw ValidationException::withMessages([
-                'import' => 'The imported Territory layout has no valid map profile.',
-            ]);
+            throw $this->invalidImport('The imported Territory layout has no valid map profile.');
         }
 
         DB::transaction(function () use ($actorPlayerId, $planId, $expectedRevision, $map): void {
             $context = $this->writeState->lock($actorPlayerId, $planId);
             $this->authorization->authorizeManage($context);
 
-            if ((int) $context->plan->revision !== $expectedRevision) {
+            if ($context->plan->revision !== $expectedRevision) {
                 throw ValidationException::withMessages([
                     'revision' => 'This plan changed before the imported layout could be committed.',
                 ]);
             }
 
             if (
-                (string) $context->plan->map_dataset_id !== (string) ($map['id'] ?? '')
-                || (string) $context->plan->map_dataset_checksum !== (string) ($map['checksum'] ?? '')
+                $context->plan->map_dataset_id !== (string) ($map['id'] ?? '')
+                || $context->plan->map_dataset_checksum !== (string) ($map['checksum'] ?? '')
             ) {
-                throw ValidationException::withMessages([
-                    'import' => 'The imported layout uses a different map dataset. Rebase the layout to the plan map before importing it.',
-                ]);
+                throw $this->invalidImport(
+                    'The imported layout uses a different map dataset. Rebase the layout to the plan map before importing it.',
+                );
             }
         });
 
-        $alliances = $preview['alliances'] ?? null;
-        $groups = $preview['groups'] ?? null;
-        $objects = $preview['objects'] ?? null;
+        $alliances = $this->rows($preview['alliances'] ?? null);
+        $groups = $this->rows($preview['groups'] ?? null);
+        $objects = $this->rows($preview['objects'] ?? null);
         $preferences = $preview['planning_preferences'] ?? null;
-        if (
-            ! is_array($alliances)
-            || ! is_array($groups)
-            || ! is_array($objects)
-            || ! is_array($preferences)
-        ) {
-            throw ValidationException::withMessages([
-                'import' => 'The normalized imported layout is incomplete.',
-            ]);
+        if (! is_array($preferences)) {
+            throw $this->invalidImport('The normalized imported layout is incomplete.');
         }
 
         $receipt = $this->save->handle(
@@ -96,7 +87,7 @@ final readonly class ImportTerritoryPlan
             'territory.plan.imported',
             $actor,
             $plan,
-            $plan->owner_alliance_id === null ? null : (string) $plan->owner_alliance_id,
+            $plan->owner_alliance_id,
             [
                 'schema_version' => (int) ($preview['schema_version'] ?? 0),
                 'map_dataset_id' => (string) ($map['id'] ?? ''),
@@ -109,5 +100,28 @@ final readonly class ImportTerritoryPlan
         );
 
         return $receipt;
+    }
+
+    /** @return list<array<string, mixed>> */
+    private function rows(mixed $value): array
+    {
+        if (! is_array($value)) {
+            throw $this->invalidImport('The normalized imported layout is incomplete.');
+        }
+
+        $rows = [];
+        foreach ($value as $row) {
+            if (! is_array($row)) {
+                throw $this->invalidImport('The normalized imported layout is incomplete.');
+            }
+            $rows[] = $row;
+        }
+
+        return $rows;
+    }
+
+    private function invalidImport(string $message): ValidationException
+    {
+        return ValidationException::withMessages(['import' => $message]);
     }
 }
