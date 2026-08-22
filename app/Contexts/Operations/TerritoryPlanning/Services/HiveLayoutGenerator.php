@@ -20,8 +20,13 @@ final class HiveLayoutGenerator
 
         $group = 'hive-'.substr(hash('sha256', $style.'|'.$allianceKey.'|'.$centerX.'|'.$centerY.'|'.$cityCount), 0, 12);
         $objects = [[
-            'key' => $group.'-trap', 'type' => 'bear_trap', 'x' => $centerX, 'y' => $centerY,
-            'alliance_key' => $allianceKey, 'group_key' => $group, 'label' => 'Bear Trap',
+            'key' => $group.'-trap',
+            'type' => 'bear_trap',
+            'x' => $centerX,
+            'y' => $centerY,
+            'alliance_key' => $allianceKey,
+            'group_key' => $group,
+            'label' => 'Bear Trap',
         ]];
 
         $cityCoordinates = $style === 'swirl'
@@ -30,20 +35,30 @@ final class HiveLayoutGenerator
 
         foreach ($cityCoordinates as $index => [$x, $y]) {
             $objects[] = [
-                'key' => $group.'-city-'.($index + 1), 'type' => 'governor_city', 'x' => $x, 'y' => $y,
-                'alliance_key' => $allianceKey, 'group_key' => $group, 'label' => 'Governor '.($index + 1),
+                'key' => $group.'-city-'.($index + 1),
+                'type' => 'governor_city',
+                'x' => $x,
+                'y' => $y,
+                'alliance_key' => $allianceKey,
+                'group_key' => $group,
+                'label' => 'Governor '.($index + 1),
             ];
         }
 
-        $bannerTarget = $style === 'swirl' ? min(14, max(4, (int) ceil($cityCount / 8))) : min(18, max(5, (int) ceil($cityCount / 6)));
+        $bannerTarget = $style === 'swirl'
+            ? min(14, max(4, (int) ceil($cityCount / 8)))
+            : min(18, max(5, (int) ceil($cityCount / 6)));
         $bannerRadius = $style === 'swirl' ? 9 : 8;
         for ($i = 0; $i < $bannerTarget; $i++) {
             $angle = (2 * M_PI * $i) / $bannerTarget;
             $objects[] = [
-                'key' => $group.'-banner-'.($i + 1), 'type' => 'banner',
+                'key' => $group.'-banner-'.($i + 1),
+                'type' => 'banner',
                 'x' => (int) round($centerX + cos($angle) * $bannerRadius),
                 'y' => (int) round($centerY + sin($angle) * $bannerRadius),
-                'alliance_key' => $allianceKey, 'group_key' => $group, 'label' => 'Banner '.($i + 1),
+                'alliance_key' => $allianceKey,
+                'group_key' => $group,
+                'label' => 'Banner '.($i + 1),
             ];
         }
 
@@ -56,27 +71,27 @@ final class HiveLayoutGenerator
         $result = [];
         $x = 0;
         $y = 0;
-        $dx = 1;
-        $dy = 0;
-        $segmentLength = 1;
-        $segmentPassed = 0;
-        $turns = 0;
+        $dx = 0;
+        $dy = -1;
+        $gridSide = ((int) ceil(sqrt($count + 1)) * 2) + 1;
+        $steps = $gridSide * $gridSide;
 
-        while (count($result) < $count) {
+        for ($step = 0; $step < $steps && count($result) < $count; $step++) {
+            if ($x !== 0 || $y !== 0) {
+                $result[] = [$centerX + ($x * 3), $centerY + ($y * 3)];
+            }
+
+            if ($x === $y || ($x < 0 && $x === -$y) || ($x > 0 && $x === 1 - $y)) {
+                [$dx, $dy] = [-$dy, $dx];
+            }
             $x += $dx;
             $y += $dy;
-            $segmentPassed++;
-            if (max(abs($x), abs($y)) >= 3 && ($x % 3 === 0 || $y % 3 === 0)) {
-                $result[] = [$centerX + ($x * 2), $centerY + ($y * 2)];
-            }
-            if ($segmentPassed >= $segmentLength) {
-                $segmentPassed = 0;
-                [$dx, $dy] = [-$dy, $dx];
-                $turns++;
-                if ($turns % 2 === 0) {
-                    $segmentLength++;
-                }
-            }
+        }
+
+        if (count($result) !== $count) {
+            throw ValidationException::withMessages([
+                'city_count' => 'The requested swirl hive could not be generated.',
+            ]);
         }
 
         return $result;
