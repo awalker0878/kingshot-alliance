@@ -16,17 +16,15 @@ This plan compares the current product with maintained Kingshot community tools.
 
 The application has governed workflows across Alliance membership/access, recruitment review, content revisions, Events and participation, rosters/battle plans/rallies, King Perks, results, intelligence provenance, Kingdom transfers, platform administration, webhooks, Gift Codes, retryable notifications, and Territory & Hive planning.
 
-The Alliance Territory & Hive Planner is now implemented end-to-end on the active delivery branch rather than remaining a product capability gap. It provides versioned/checksummed map datasets; PHP/TypeScript geometry parity; saved Alliance/Kingdom plans; HQ, Banner, Governor City and Bear Trap placement; coverage and structured validation; typed hive generators; advanced editing; deterministic march/layout analysis; multi-Alliance Kingdom planning; immutable revisions and comparison; previewed JSON import; JSON/PNG/SVG export; accessible synchronized DOM controls; scoped authorization; audit/telemetry; and immutable Event positioning references.
+The Alliance Territory & Hive Planner is implemented end-to-end and is no longer a product capability gap. It provides versioned/checksummed map datasets; PHP/TypeScript geometry parity; saved Alliance/Kingdom plans; HQ, Banner, Governor City and Bear Trap placement; coverage and structured validation; typed hive generators; advanced editing; deterministic march/layout analysis; multi-Alliance Kingdom planning; immutable revisions and comparison; previewed JSON import; JSON/PNG/SVG export; accessible synchronized DOM controls; scoped authorization; audit/telemetry; and immutable Event positioning references.
 
-The capability is **not yet classified as release-complete in this document** until the release-closeout row in the [delivery ledger](capability-delivery-ledger.md) is complete on one immutable head and the resulting `main` commit passes the repository Definition of Done. That is an assurance gate, not missing Territory product functionality.
-
-No known Territory & Hive Planner feature gap is being deferred as a future enhancement. If final assurance exposes a correctness, usability, authorization, accessibility, observability or architecture defect, it becomes blocking work in the current delivery program.
+All Territory & Hive Planner delivery-ledger slices are **Complete**. No known Territory feature gap is deferred as a future enhancement. The immutable PR release candidate and resulting `main` commit are verified through the repository release gates; any failure is treated as a blocking regression and reopens closeout rather than creating a roadmap item.
 
 ## Prioritized delivery plan
 
 | Priority | Capability/UX | Outcome | Guardrail |
 | --- | --- | --- | --- |
-| Final assurance | Alliance Territory & Hive Planner | Prove the implemented spatial-planning capability against the full repository Definition of Done and merge only after all evidence is green | GameWorld owns map facts/rules; Operations owns planning; community data remains provenance-gated |
+| Complete | Alliance Territory & Hive Planner | Complete spatial planning from sourced map datasets through accessible editing, analysis, revisions, interchange and Operations references | GameWorld owns map facts/rules; Operations owns planning; community data remains provenance-gated |
 | Complete | Pagination and list completeness | Opaque cursor pagination, stable sorting, URL filters and bounded query budgets for every potentially large list | Cursor scope is bound to actor, Alliance, filters and ordering |
 | Complete | Shared workflow UX | Common page headers, filters, empty/loading/failure states, result receipts and permission-aware navigation | Server remains the authorization authority |
 | Complete | Bulk workflows | Previewed, bounded bulk triage and correction with per-item outcomes, audit and failed-item retry | Each owner context keeps its business semantics |
