@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 /**
  * @property string $id
  * @property string $territory_plan_id
+ * @property string $plan_key
  * @property string|null $label
  */
 final class TerritoryPlanGroup extends Model
