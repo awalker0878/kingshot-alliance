@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 /**
  * @property string $id
  * @property string $territory_plan_id
+ * @property string $plan_key
  * @property string $territory_plan_alliance_id
  * @property string|null $group_id
  * @property TerritoryObjectType $object_type
