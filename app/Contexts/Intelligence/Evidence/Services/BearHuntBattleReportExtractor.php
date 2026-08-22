@@ -116,7 +116,7 @@ final class BearHuntBattleReportExtractor implements EvidenceExtractor
         return sprintf('%04d-%02d-%02d %02d:%02d:%02d', (int) $match[1], (int) $match[2], (int) $match[3], (int) $match[4], (int) $match[5], isset($match[6]) ? (int) $match[6] : 0);
     }
 
-    /** @param list<OcrToken> $line */
+    /** @param  list<OcrToken>  $line */
     private function damageTokenIndex(array $line): ?int
     {
         $text = mb_strtolower(implode(' ', array_map(static fn (OcrToken $token): string => $token->text, $line)));
@@ -133,7 +133,7 @@ final class BearHuntBattleReportExtractor implements EvidenceExtractor
     }
 
     /**
-     * @param list<OcrToken> $line
+     * @param  list<OcrToken>  $line
      * @return list<OcrToken>
      */
     private function inlineNameTokens(array $line, int $damageIndex): array
@@ -153,7 +153,7 @@ final class BearHuntBattleReportExtractor implements EvidenceExtractor
     }
 
     /**
-     * @param list<OcrToken> $tokens
+     * @param  list<OcrToken>  $tokens
      * @return array{0:?int,1:list<OcrToken>}
      */
     private function rankAndName(array $tokens): array
@@ -201,7 +201,7 @@ final class BearHuntBattleReportExtractor implements EvidenceExtractor
         return (int) round($damage);
     }
 
-    /** @param non-empty-list<OcrToken> $tokens */
+    /** @param  non-empty-list<OcrToken>  $tokens */
     private function candidate(string $key, int $ordinal, array $tokens, string $normalized, string $type): ExtractedFieldCandidate
     {
         $confidenceTotal = 0.0;
