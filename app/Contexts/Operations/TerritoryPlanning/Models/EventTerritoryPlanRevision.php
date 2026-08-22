@@ -12,8 +12,14 @@ final class EventTerritoryPlanRevision extends Model
     use HasUlids;
 
     public $incrementing = false;
+
     public $timestamps = false;
+
     protected $keyType = 'string';
+
     protected $guarded = [];
-    protected $casts = ['created_at' => 'datetime'];
+
+    protected $casts = [
+        'created_at' => 'datetime',
+    ];
 }
