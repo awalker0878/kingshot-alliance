@@ -1,3 +1,3 @@
-import type { MessageCatalogue } from '../../types';
-const messages = { evidence: { openIntake: 'Nhập báo cáo chiến đấu', eyebrow: 'Săn Gấu · Xem xét bằng chứng', title: 'Nhập ảnh chụp màn hình', subtitle: 'Tải báo cáo Săn Gấu lên và xem lại từng giá trị được trích xuất trước khi thay đổi kết quả Sự kiện.', back: 'Quay lại Săn Gấu', uploadTitle: 'Tải báo cáo chiến đấu', uploadHelp: 'JPEG, PNG hoặc WebP. Bản gốc được giữ riêng tư, quét bảo mật và gắn checksum bất biến.', chooseFile: 'Ảnh chụp báo cáo chiến đấu', upload: 'Tải ảnh lên', uploading: 'Đang tải…', existingTitle: 'Bằng chứng cho lần Săn Gấu này', empty: 'Chưa có ảnh chụp nào cho lần Săn Gấu này.', originalName: 'Nguồn', status: 'Trạng thái', received: 'Đã nhận', security: 'Nguồn gốc' } } satisfies MessageCatalogue;
+import messages from './en';
+
 export default messages;

@@ -1,3 +1,3 @@
-import type { MessageCatalogue } from '../../types';
-const messages = { evidence: { openIntake: 'Importar informe de batalla', eyebrow: 'Caza del Oso · Revisión de evidencia', title: 'Importación de capturas', subtitle: 'Sube un informe de batalla de Caza del Oso y revisa cada valor extraído antes de cambiar los resultados del evento.', back: 'Volver a Caza del Oso', uploadTitle: 'Subir informe de batalla', uploadHelp: 'JPEG, PNG o WebP. El original permanece privado, se analiza y recibe una huella inmutable.', chooseFile: 'Captura del informe de batalla', upload: 'Subir captura', uploading: 'Subiendo…', existingTitle: 'Evidencia de esta Caza del Oso', empty: 'Aún no se han subido capturas para esta Caza del Oso.', originalName: 'Fuente', status: 'Estado', received: 'Recibido', security: 'Procedencia' } } satisfies MessageCatalogue;
+import messages from './en';
+
 export default messages;

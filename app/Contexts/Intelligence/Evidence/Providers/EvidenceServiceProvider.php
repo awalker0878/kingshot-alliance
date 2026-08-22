@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Evidence\Providers;
 
+use App\Contexts\Intelligence\Evidence\Console\Commands\EvidenceDiagnosticsCommand;
 use App\Contexts\Intelligence\Evidence\Contracts\EvidenceClassifier;
 use App\Contexts\Intelligence\Evidence\Contracts\EvidenceExtractor;
 use App\Contexts\Intelligence\Evidence\Contracts\OcrEngine;
@@ -19,5 +20,12 @@ final class EvidenceServiceProvider extends ServiceProvider
         $this->app->bind(OcrEngine::class, TesseractOcrEngine::class);
         $this->app->bind(EvidenceClassifier::class, BearHuntEvidenceClassifier::class);
         $this->app->bind(EvidenceExtractor::class, BearHuntBattleReportExtractor::class);
+    }
+
+    public function boot(): void
+    {
+        if ($this->app->runningInConsole()) {
+            $this->commands([EvidenceDiagnosticsCommand::class]);
+        }
     }
 }

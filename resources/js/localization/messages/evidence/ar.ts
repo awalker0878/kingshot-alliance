@@ -1,3 +1,3 @@
-import type { MessageCatalogue } from '../../types';
-const messages = { evidence: { openIntake: 'استيراد تقرير المعركة', eyebrow: 'مطاردة الدب · مراجعة الأدلة', title: 'استيراد لقطة الشاشة', subtitle: 'ارفع تقرير معركة مطاردة الدب وراجع كل قيمة مستخرجة قبل تغيير نتائج الحدث.', back: 'العودة إلى مطاردة الدب', uploadTitle: 'رفع تقرير المعركة', uploadHelp: 'JPEG أو PNG أو WebP. يبقى الأصل خاصًا ويتم فحصه أمنيًا وحفظ بصمة ثابتة له.', chooseFile: 'لقطة شاشة تقرير المعركة', upload: 'رفع اللقطة', uploading: 'جارٍ الرفع…', existingTitle: 'أدلة مطاردة الدب هذه', empty: 'لم يتم رفع أي لقطات لهذه المطاردة بعد.', originalName: 'المصدر', status: 'الحالة', received: 'تم الاستلام', security: 'المصدر والتتبع' } } satisfies MessageCatalogue;
+import messages from './en';
+
 export default messages;

@@ -1,3 +1,3 @@
-import type { MessageCatalogue } from '../../types';
-const messages = { evidence: { openIntake: 'Импортировать боевой отчёт', eyebrow: 'Охота на медведя · Проверка доказательств', title: 'Импорт скриншота', subtitle: 'Загрузите отчёт Охоты на медведя и проверьте каждое распознанное значение до изменения результатов события.', back: 'Назад к Охоте на медведя', uploadTitle: 'Загрузить боевой отчёт', uploadHelp: 'JPEG, PNG или WebP. Оригинал остаётся приватным, проходит проверку и получает неизменяемую контрольную сумму.', chooseFile: 'Скриншот боевого отчёта', upload: 'Загрузить скриншот', uploading: 'Загрузка…', existingTitle: 'Доказательства этой Охоты', empty: 'Для этой Охоты ещё нет загруженных скриншотов.', originalName: 'Источник', status: 'Статус', received: 'Получено', security: 'Происхождение' } } satisfies MessageCatalogue;
+import messages from './en';
+
 export default messages;

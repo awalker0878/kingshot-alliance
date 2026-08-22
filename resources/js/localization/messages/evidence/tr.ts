@@ -1,3 +1,3 @@
-import type { MessageCatalogue } from '../../types';
-const messages = { evidence: { openIntake: 'Savaş raporu içe aktar', eyebrow: 'Ayı Avı · Kanıt inceleme', title: 'Ekran görüntüsü içe aktarma', subtitle: 'Ayı Avı savaş raporunu yükleyin ve Etkinlik sonuçları değişmeden önce çıkarılan her değeri inceleyin.', back: 'Ayı Avına dön', uploadTitle: 'Savaş raporu yükle', uploadHelp: 'JPEG, PNG veya WebP. Orijinal özel kalır, güvenlik taramasından geçer ve değişmez sağlama toplamı alır.', chooseFile: 'Savaş raporu ekran görüntüsü', upload: 'Ekran görüntüsünü yükle', uploading: 'Yükleniyor…', existingTitle: 'Bu Ayı Avının kanıtları', empty: 'Bu Ayı Avı için henüz ekran görüntüsü yüklenmedi.', originalName: 'Kaynak', status: 'Durum', received: 'Alındı', security: 'Kaynak bilgisi' } } satisfies MessageCatalogue;
+import messages from './en';
+
 export default messages;

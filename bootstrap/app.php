@@ -7,6 +7,7 @@ use App\Contexts\Communications\Delivery\Actions\ProcessNotificationDeliveries;
 use App\Contexts\GameWorld\Players\Http\Middleware\HandleInertiaRequests;
 use App\Contexts\GameWorld\Players\Http\Middleware\RequireCurrentPlayerContextVersion;
 use App\Contexts\GameWorld\Players\Http\Middleware\ResolvePlayerContext;
+use App\Contexts\Intelligence\Evidence\Actions\EnforceEvidenceRetention;
 use App\Contexts\Operations\KingPerks\Actions\QueueDueKingPerkReminders;
 use App\Contexts\Operations\Participation\Reminders\Actions\QueueDueEventReminders;
 use App\Contexts\Platform\Administration\Http\Middleware\RequirePlatformAdministrator;
@@ -59,6 +60,11 @@ return Application::configure(basePath: dirname(__DIR__))
             ->everyMinute()
             ->onOneServer()
             ->withoutOverlapping(10);
+        $schedule->call(static fn (): int => app(EnforceEvidenceRetention::class)->handle(250))
+            ->name('evidence:enforce-retention')
+            ->dailyAt('03:20')
+            ->onOneServer()
+            ->withoutOverlapping(60);
     })
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([

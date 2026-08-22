@@ -1,3 +1,3 @@
-import type { MessageCatalogue } from '../../types';
-const messages = { evidence: { openIntake: 'Importa rapporto di battaglia', eyebrow: 'Caccia all’Orso · Revisione prove', title: 'Importazione screenshot', subtitle: 'Carica un rapporto di Caccia all’Orso e verifica ogni valore estratto prima di modificare i risultati dell’evento.', back: 'Torna alla Caccia all’Orso', uploadTitle: 'Carica rapporto di battaglia', uploadHelp: 'JPEG, PNG o WebP. L’originale resta privato, viene controllato e riceve un checksum immutabile.', chooseFile: 'Screenshot del rapporto', upload: 'Carica screenshot', uploading: 'Caricamento…', existingTitle: 'Prove per questa Caccia all’Orso', empty: 'Non sono ancora stati caricati screenshot per questa Caccia all’Orso.', originalName: 'Fonte', status: 'Stato', received: 'Ricevuto', security: 'Provenienza' } } satisfies MessageCatalogue;
+import messages from './en';
+
 export default messages;

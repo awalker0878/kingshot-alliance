@@ -23,9 +23,34 @@ Route::middleware(['auth', 'auth.session', 'verified'])->group(function (): void
     Route::post('/events/{occurrence}/screenshot-intake', [EvidenceController::class, 'store'])
         ->whereUlid('occurrence')
         ->name('events.screenshot-intake.store');
+    Route::get('/events/{occurrence}/screenshot-intake/{evidence}/image', [EvidenceController::class, 'image'])
+        ->whereUlid('occurrence')
+        ->whereUlid('evidence')
+        ->name('events.screenshot-intake.image');
+    Route::put('/events/{occurrence}/screenshot-intake/{evidence}/review', [EvidenceController::class, 'review'])
+        ->whereUlid('occurrence')
+        ->whereUlid('evidence')
+        ->name('events.screenshot-intake.review');
+    Route::post('/events/{occurrence}/screenshot-intake/{evidence}/retry', [EvidenceController::class, 'retry'])
+        ->whereUlid('occurrence')
+        ->whereUlid('evidence')
+        ->name('events.screenshot-intake.retry');
 });
 
 Route::middleware(['auth', 'auth.session', 'verified', 'password.confirm'])->group(function (): void {
+    Route::post('/events/{occurrence}/screenshot-intake/reviews/{review}/resolve-duplicate', [EvidenceController::class, 'resolveDuplicate'])
+        ->whereUlid('occurrence')
+        ->whereUlid('review')
+        ->name('events.screenshot-intake.resolve-duplicate');
+    Route::post('/events/{occurrence}/screenshot-intake/reviews/{review}/commit', [EvidenceController::class, 'commit'])
+        ->whereUlid('occurrence')
+        ->whereUlid('review')
+        ->name('events.screenshot-intake.commit');
+    Route::delete('/events/{occurrence}/screenshot-intake/{evidence}', [EvidenceController::class, 'destroy'])
+        ->whereUlid('occurrence')
+        ->whereUlid('evidence')
+        ->name('events.screenshot-intake.destroy');
+
     Route::put('/events/{occurrence}/results/alliances/{alliance}', [EventResultController::class, 'saveAlliance'])
         ->whereUlid('occurrence')
         ->whereUlid('alliance')
