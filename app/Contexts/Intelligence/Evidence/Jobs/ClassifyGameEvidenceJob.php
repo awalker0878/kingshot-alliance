@@ -15,8 +15,11 @@ final class ClassifyGameEvidenceJob implements ShouldBeUnique, ShouldQueue
     use Queueable;
 
     public int $tries = 3;
+
     public int $timeout = 120;
+
     public int $uniqueFor = 600;
+
     /** @var list<int> */
     public array $backoff = [30, 120, 600];
 

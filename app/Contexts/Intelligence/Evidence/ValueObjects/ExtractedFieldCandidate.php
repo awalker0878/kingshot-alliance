@@ -7,8 +7,8 @@ namespace App\Contexts\Intelligence\Evidence\ValueObjects;
 final readonly class ExtractedFieldCandidate
 {
     /**
-     * @param array{left:int,top:int,width:int,height:int}|null $boundingBox
-     * @param list<string> $warnings
+     * @param  array{left:int,top:int,width:int,height:int}|null  $boundingBox
+     * @param  list<string>  $warnings
      */
     public function __construct(
         public string $fieldKey,

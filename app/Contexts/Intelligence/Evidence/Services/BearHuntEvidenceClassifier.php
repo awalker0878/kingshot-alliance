@@ -63,6 +63,7 @@ final class BearHuntEvidenceClassifier implements EvidenceClassifier
                 return true;
             }
         }
+
         return false;
     }
 }

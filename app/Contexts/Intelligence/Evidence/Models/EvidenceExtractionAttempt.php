@@ -13,6 +13,7 @@ final class EvidenceExtractionAttempt extends Model
     use HasUlids;
 
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [

@@ -22,6 +22,7 @@ final class ImagePerceptualHasher
         $sample = imagecreatetruecolor(9, 8);
         if ($sample === false) {
             imagedestroy($source);
+
             return null;
         }
         try {
@@ -41,6 +42,7 @@ final class ImagePerceptualHasher
             for ($offset = 0; $offset < 64; $offset += 4) {
                 $hex .= dechex(bindec(substr($bits, $offset, 4)));
             }
+
             return str_pad($hex, 16, '0', STR_PAD_LEFT);
         } finally {
             imagedestroy($sample);
@@ -60,6 +62,7 @@ final class ImagePerceptualHasher
         for ($index = 0; $index < 16; $index++) {
             $distance += $counts[hexdec($first[$index]) ^ hexdec($second[$index])];
         }
+
         return $distance;
     }
 
@@ -68,6 +71,7 @@ final class ImagePerceptualHasher
         $red = ($color >> 16) & 0xFF;
         $green = ($color >> 8) & 0xFF;
         $blue = $color & 0xFF;
+
         return intdiv(($red * 299) + ($green * 587) + ($blue * 114), 1000);
     }
 }

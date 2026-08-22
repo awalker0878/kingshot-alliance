@@ -11,7 +11,9 @@ use Illuminate\Database\Eloquent\Model;
 final class EvidenceReview extends Model
 {
     use HasUlids;
+
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [

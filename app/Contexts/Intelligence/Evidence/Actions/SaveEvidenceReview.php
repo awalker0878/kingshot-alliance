@@ -31,7 +31,7 @@ final readonly class SaveEvidenceReview
     ) {}
 
     /**
-     * @param list<array{row_ordinal:int,included:bool,player_id:?string,player_name:string,reported_rank:?int,damage_points:?int,correction_reason:?string}> $rows
+     * @param  list<array{row_ordinal:int,included:bool,player_id:?string,player_name:string,reported_rank:?int,damage_points:?int,correction_reason:?string}>  $rows
      */
     public function handle(
         string $actorPlayerId,

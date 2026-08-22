@@ -48,12 +48,14 @@ final class BearHuntBattleReportExtractor implements EvidenceExtractor
 
             if ($this->timestamp($lineText) !== null && ! $rankingSeen) {
                 $fields[] = $this->candidate('report_timestamp', 0, $line, $this->timestamp($lineText) ?? $lineText, 'datetime_text');
+
                 continue;
             }
 
             if (str_contains(mb_strtolower($lineText), 'ranking')) {
                 $rankingSeen = true;
                 $pendingName = null;
+
                 continue;
             }
             if (! $rankingSeen) {
@@ -85,6 +87,7 @@ final class BearHuntBattleReportExtractor implements EvidenceExtractor
                 $fields[] = $this->candidate('player_name', $ordinal, $nameTokens, $name, 'string');
                 $fields[] = $this->candidate('damage', $ordinal, [$line[$damageIndex]], (string) $damage, 'integer');
                 $pendingName = null;
+
                 continue;
             }
 
@@ -101,6 +104,7 @@ final class BearHuntBattleReportExtractor implements EvidenceExtractor
         if (preg_match('/\b(20\d{2})[-\/.](\d{1,2})[-\/.](\d{1,2})\s+(\d{1,2}):(\d{2})(?::(\d{2}))?\b/', $text, $match) !== 1) {
             return null;
         }
+
         return sprintf('%04d-%02d-%02d %02d:%02d:%02d', (int) $match[1], (int) $match[2], (int) $match[3], (int) $match[4], (int) $match[5], isset($match[6]) ? (int) $match[6] : 0);
     }
 
@@ -116,6 +120,7 @@ final class BearHuntBattleReportExtractor implements EvidenceExtractor
                 return $index;
             }
         }
+
         return null;
     }
 
@@ -132,6 +137,7 @@ final class BearHuntBattleReportExtractor implements EvidenceExtractor
         if ($damageWord === null || $damageWord === 0) {
             return [];
         }
+
         return array_values(array_slice($line, 0, $damageWord));
     }
 
@@ -145,6 +151,7 @@ final class BearHuntBattleReportExtractor implements EvidenceExtractor
         if (ctype_digit($candidate) && (int) $candidate >= 1 && (int) $candidate <= 999 && count($tokens) > 1) {
             return [(int) $candidate, array_values(array_slice($tokens, 1))];
         }
+
         return [null, $tokens];
     }
 
@@ -156,6 +163,7 @@ final class BearHuntBattleReportExtractor implements EvidenceExtractor
                 return false;
             }
         }
+
         return preg_match('/[\p{L}\p{S}]/u', $text) === 1 && mb_strlen($text) <= 96;
     }
 
@@ -175,6 +183,7 @@ final class BearHuntBattleReportExtractor implements EvidenceExtractor
         if (! is_finite($damage) || $damage < 0 || $damage > PHP_INT_MAX) {
             return null;
         }
+
         return (int) round($damage);
     }
 

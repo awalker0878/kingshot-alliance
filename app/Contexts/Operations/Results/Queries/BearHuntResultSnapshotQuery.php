@@ -21,6 +21,7 @@ final class BearHuntResultSnapshotQuery
         foreach (EventPlayerResult::query()->where('occurrence_id', $occurrenceId)->whereIn('player_id', $ids)->get() as $result) {
             $rows[(string) $result->player_id] = ['score' => (int) ($result->score ?? 0), 'rank' => $result->rank === null ? null : (int) $result->rank];
         }
+
         return $rows;
     }
 

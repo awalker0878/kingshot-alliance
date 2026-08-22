@@ -76,6 +76,7 @@ final readonly class RecordBearHuntBattleReport
                     throw ValidationException::withMessages(['idempotency_key' => 'The idempotency key was already used for a different Bear Hunt report.']);
                 }
                 $playerResults = $this->projector->recompute($occurrenceId, $actorPlayerId);
+
                 return new BearHuntBattleReportReceipt((string) $existing->id, (int) BearHuntBattleReportEntry::query()->where('report_id', $existing->id)->count(), true, $playerResults);
             }
             $fingerprintCollision = BearHuntBattleReport::query()->where('occurrence_id', $occurrenceId)->where('report_fingerprint', $reportFingerprint)->lockForUpdate()->first();

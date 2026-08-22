@@ -91,6 +91,7 @@ final class BearHuntResultProjector
                     'score' => (int) ($baseline->baseline_score ?? 0),
                     'rank' => $baseline->baseline_rank === null ? null : (int) $baseline->baseline_rank,
                 ];
+
                 continue;
             }
 

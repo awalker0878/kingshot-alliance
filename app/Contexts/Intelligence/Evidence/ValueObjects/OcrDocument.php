@@ -43,6 +43,7 @@ final readonly class OcrDocument
             }
             $aLeft = min(array_map(static fn (OcrToken $token): int => $token->left, $a));
             $bLeft = min(array_map(static fn (OcrToken $token): int => $token->left, $b));
+
             return $aLeft <=> $bLeft;
         });
 

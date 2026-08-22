@@ -10,7 +10,9 @@ use Illuminate\Database\Eloquent\Model;
 final class EvidenceReviewRow extends Model
 {
     use HasUlids;
+
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [

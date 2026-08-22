@@ -66,6 +66,7 @@ final readonly class UploadGameEvidence
         $existing = $this->exactDuplicate($target->allianceId, $target->occurrenceId, $sha256);
         if ($existing instanceof GameEvidence) {
             $this->audit->record('evidence.exact_duplicate_detected', $actor, $existing, $target->allianceId, ['occurrence_id' => $occurrenceId, 'sha256' => $sha256]);
+
             return new EvidenceUploadResult((string) $existing->id, true);
         }
 
@@ -107,6 +108,7 @@ final readonly class UploadGameEvidence
                 if ($visualDuplicateId !== null) {
                     $this->audit->record('evidence.visual_duplicate_detected', $actor, $evidence, $target->allianceId, $metadata);
                 }
+
                 return new EvidenceUploadResult((string) $evidence->id, false);
             });
             if ($result->duplicate) {
@@ -114,6 +116,7 @@ final readonly class UploadGameEvidence
             } else {
                 ClassifyGameEvidenceJob::dispatch($result->evidenceId);
             }
+
             return $result;
         } catch (Throwable $exception) {
             Storage::disk($disk)->delete($path);
@@ -128,6 +131,7 @@ final readonly class UploadGameEvidence
             $query->lockForUpdate();
         }
         $evidence = $query->first();
+
         return $evidence instanceof GameEvidence ? $evidence : null;
     }
 
@@ -153,6 +157,7 @@ final readonly class UploadGameEvidence
                 $bestDistance = $distance;
             }
         }
+
         return [$bestId, $bestDistance];
     }
 }

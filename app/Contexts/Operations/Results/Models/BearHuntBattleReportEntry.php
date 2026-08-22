@@ -12,6 +12,7 @@ final class BearHuntBattleReportEntry extends Model
     use HasUlids;
 
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = ['report_id', 'player_id', 'reported_rank', 'damage_points'];

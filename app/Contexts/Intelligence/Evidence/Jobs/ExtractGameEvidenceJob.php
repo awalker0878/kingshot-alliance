@@ -15,8 +15,11 @@ final class ExtractGameEvidenceJob implements ShouldBeUnique, ShouldQueue
     use Queueable;
 
     public int $tries = 3;
+
     public int $timeout = 60;
+
     public int $uniqueFor = 600;
+
     /** @var list<int> */
     public array $backoff = [15, 60, 300];
 

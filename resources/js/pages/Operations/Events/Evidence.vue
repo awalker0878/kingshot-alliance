@@ -161,7 +161,11 @@ function statusTone(value: string): 'success' | 'warning' | 'danger' | 'info' {
   if (['failed', 'rejected', 'unsupported', 'deleted', 'duplicate_blocked'].includes(value)) {
     return 'danger';
   }
-  if (['uploaded', 'classifying', 'classified', 'extracting', 'needs_review', 'committing'].includes(value)) {
+  if (
+    ['uploaded', 'classifying', 'classified', 'extracting', 'needs_review', 'committing'].includes(
+      value,
+    )
+  ) {
     return 'warning';
   }
   return 'info';
@@ -314,7 +318,9 @@ function refresh(): void {
       <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div class="max-w-3xl">
           <p class="ks-kicker">{{ t('evidence.eyebrow') }}</p>
-          <h1 class="ks-display mt-1 text-3xl font-semibold sm:text-4xl">{{ t('evidence.title') }}</h1>
+          <h1 class="ks-display mt-1 text-3xl font-semibold sm:text-4xl">
+            {{ t('evidence.title') }}
+          </h1>
           <p class="mt-3 max-w-2xl text-sm leading-6 text-[var(--ks-muted)]">
             {{ t('evidence.subtitle') }}
           </p>
@@ -331,7 +337,9 @@ function refresh(): void {
       <dl class="mt-5 grid gap-3 sm:grid-cols-2 lg:max-w-xl">
         <div class="rounded border border-[var(--ks-border)] bg-black/15 p-3">
           <dt class="text-xs text-[var(--ks-muted)]">{{ t('evidence.acceptedReports') }}</dt>
-          <dd class="mt-1 text-xl font-semibold">{{ formatNumber(workspace.acceptedReportCount) }}</dd>
+          <dd class="mt-1 text-xl font-semibold">
+            {{ formatNumber(workspace.acceptedReportCount) }}
+          </dd>
         </div>
         <div class="rounded border border-[var(--ks-border)] bg-black/15 p-3">
           <dt class="text-xs text-[var(--ks-muted)]">{{ t('evidence.existingTitle') }}</dt>
@@ -376,12 +384,19 @@ function refresh(): void {
         </div>
       </div>
 
-      <div v-if="!workspace.evidence.length" class="ks-surface mt-3 p-6 text-sm text-[var(--ks-muted)]">
+      <div
+        v-if="!workspace.evidence.length"
+        class="ks-surface mt-3 p-6 text-sm text-[var(--ks-muted)]"
+      >
         {{ t('evidence.empty') }}
       </div>
 
       <div v-else class="mt-3 space-y-5">
-        <article v-for="item in workspace.evidence" :key="item.id" class="ks-surface overflow-hidden">
+        <article
+          v-for="item in workspace.evidence"
+          :key="item.id"
+          class="ks-surface overflow-hidden"
+        >
           <header class="border-b border-[var(--ks-border)] p-4 sm:p-5">
             <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
               <div class="min-w-0">
@@ -392,16 +407,27 @@ function refresh(): void {
                   </span>
                 </div>
                 <p class="mt-1 text-xs text-[var(--ks-muted)]">
-                  {{ item.receivedAt ? formatDate(item.receivedAt) : '—' }} ·
-                  {{ item.width }}×{{ item.height }} · {{ formatNumber(item.sizeBytes) }} B ·
-                  {{ item.sha256Prefix }}…
+                  {{ item.receivedAt ? formatDate(item.receivedAt) : '—' }} · {{ item.width }}×{{
+                    item.height
+                  }}
+                  · {{ formatNumber(item.sizeBytes) }} B · {{ item.sha256Prefix }}…
                 </p>
               </div>
               <div class="flex flex-wrap gap-2">
-                <AppButton v-if="item.canRetry" type="button" variant="secondary" @click="retry(item)">
+                <AppButton
+                  v-if="item.canRetry"
+                  type="button"
+                  variant="secondary"
+                  @click="retry(item)"
+                >
                   {{ t('evidence.retry') }}
                 </AppButton>
-                <AppButton v-if="item.canDelete" type="button" variant="danger" @click="destroy(item)">
+                <AppButton
+                  v-if="item.canDelete"
+                  type="button"
+                  variant="danger"
+                  @click="destroy(item)"
+                >
                   {{ t('evidence.delete') }}
                 </AppButton>
               </div>
@@ -429,7 +455,10 @@ function refresh(): void {
                 :alt="`${t('evidence.imagePreview')}: ${item.originalName}`"
                 class="mt-3 max-h-[42rem] w-full rounded border border-[var(--ks-border)] bg-black/20 object-contain"
               />
-              <p v-else class="mt-3 rounded border border-[var(--ks-border)] p-4 text-sm text-[var(--ks-muted)]">
+              <p
+                v-else
+                class="mt-3 rounded border border-[var(--ks-border)] p-4 text-sm text-[var(--ks-muted)]"
+              >
                 {{ t('evidence.imageUnavailable') }}
               </p>
 
@@ -439,9 +468,17 @@ function refresh(): void {
                   <div>
                     <h5 class="font-semibold">{{ t('evidence.classificationHistory') }}</h5>
                     <ol class="mt-2 space-y-2">
-                      <li v-for="attempt in item.classifications" :key="attempt.id" class="rounded bg-black/10 p-2">
-                        <span class="ks-status" :data-tone="statusTone(attempt.status)">{{ attempt.status }}</span>
-                        <span class="ms-2">{{ attempt.kind }} · {{ confidenceLabel(attempt.confidence) }}</span>
+                      <li
+                        v-for="attempt in item.classifications"
+                        :key="attempt.id"
+                        class="rounded bg-black/10 p-2"
+                      >
+                        <span class="ks-status" :data-tone="statusTone(attempt.status)">{{
+                          attempt.status
+                        }}</span>
+                        <span class="ms-2"
+                          >{{ attempt.kind }} · {{ confidenceLabel(attempt.confidence) }}</span
+                        >
                         <p v-if="attempt.failureCode" class="mt-1 text-xs text-[var(--ks-muted)]">
                           {{ t('evidence.failureCode') }}: {{ attempt.failureCode }}
                         </p>
@@ -451,8 +488,14 @@ function refresh(): void {
                   <div>
                     <h5 class="font-semibold">{{ t('evidence.extractionHistory') }}</h5>
                     <ol class="mt-2 space-y-2">
-                      <li v-for="attempt in item.extractions" :key="attempt.id" class="rounded bg-black/10 p-2">
-                        <span class="ks-status" :data-tone="statusTone(attempt.status)">{{ attempt.status }}</span>
+                      <li
+                        v-for="attempt in item.extractions"
+                        :key="attempt.id"
+                        class="rounded bg-black/10 p-2"
+                      >
+                        <span class="ks-status" :data-tone="statusTone(attempt.status)">{{
+                          attempt.status
+                        }}</span>
                         <span class="ms-2">{{ confidenceLabel(attempt.overallConfidence) }}</span>
                         <p v-if="attempt.failureCode" class="mt-1 text-xs text-[var(--ks-muted)]">
                           {{ t('evidence.failureCode') }}: {{ attempt.failureCode }}
@@ -471,11 +514,19 @@ function refresh(): void {
                     <p class="ks-kicker">{{ t('evidence.reviewTitle') }}</p>
                     <h4 class="mt-1 text-xl font-semibold">{{ t('evidence.extractedFields') }}</h4>
                   </div>
-                  <span class="ks-status" :data-tone="item.latestExtraction.overallConfidence < 0.8 ? 'warning' : 'success'">
-                    {{ t('evidence.confidence') }} {{ confidenceLabel(item.latestExtraction.overallConfidence) }}
+                  <span
+                    class="ks-status"
+                    :data-tone="
+                      item.latestExtraction.overallConfidence < 0.8 ? 'warning' : 'success'
+                    "
+                  >
+                    {{ t('evidence.confidence') }}
+                    {{ confidenceLabel(item.latestExtraction.overallConfidence) }}
                   </span>
                 </div>
-                <p class="mt-2 text-sm leading-6 text-[var(--ks-muted)]">{{ t('evidence.reviewHelp') }}</p>
+                <p class="mt-2 text-sm leading-6 text-[var(--ks-muted)]">
+                  {{ t('evidence.reviewHelp') }}
+                </p>
 
                 <label class="mt-4 block text-sm">
                   <span>{{ t('evidence.reportTimestamp') }}</span>
@@ -487,7 +538,10 @@ function refresh(): void {
                   />
                 </label>
 
-                <div v-if="!reviewDraft(item).rows.length" class="mt-4 rounded border border-[var(--ks-border)] p-4 text-sm">
+                <div
+                  v-if="!reviewDraft(item).rows.length"
+                  class="mt-4 rounded border border-[var(--ks-border)] p-4 text-sm"
+                >
                   {{ t('evidence.noRows') }}
                 </div>
 
@@ -512,49 +566,89 @@ function refresh(): void {
                           {{ t('evidence.rawText') }}:
                           {{ extractedRow(item, row.row_ordinal)?.playerName?.rawText ?? '—' }} ·
                           {{ t('evidence.confidence') }}
-                          {{ confidenceLabel(extractedRow(item, row.row_ordinal)?.playerName?.confidence ?? 0) }}
+                          {{
+                            confidenceLabel(
+                              extractedRow(item, row.row_ordinal)?.playerName?.confidence ?? 0,
+                            )
+                          }}
                         </small>
                       </label>
                       <label class="block text-sm">
                         <span>{{ t('evidence.playerResolution') }}</span>
-                        <select v-model="row.player_id" class="ks-input mt-1.5" :required="row.included">
+                        <select
+                          v-model="row.player_id"
+                          class="ks-input mt-1.5"
+                          :required="row.included"
+                        >
                           <option value="">{{ t('evidence.unresolved') }}</option>
-                          <option v-for="player in workspace.players" :key="player.id" :value="player.id">
+                          <option
+                            v-for="player in workspace.players"
+                            :key="player.id"
+                            :value="player.id"
+                          >
                             {{ player.name }}
                           </option>
                         </select>
                       </label>
                       <label class="block text-sm">
                         <span>{{ t('evidence.rank') }}</span>
-                        <input v-model.number="row.reported_rank" class="ks-input mt-1.5" type="number" min="1" max="999" />
+                        <input
+                          v-model.number="row.reported_rank"
+                          class="ks-input mt-1.5"
+                          type="number"
+                          min="1"
+                          max="999"
+                        />
                         <small class="mt-1 block text-[var(--ks-muted)]">
                           {{ t('evidence.confidence') }}
-                          {{ confidenceLabel(extractedRow(item, row.row_ordinal)?.rank?.confidence ?? 0) }}
+                          {{
+                            confidenceLabel(
+                              extractedRow(item, row.row_ordinal)?.rank?.confidence ?? 0,
+                            )
+                          }}
                         </small>
                       </label>
                       <label class="block text-sm">
                         <span>{{ t('evidence.damage') }}</span>
-                        <input v-model.number="row.damage_points" class="ks-input mt-1.5" type="number" min="0" :required="row.included" />
+                        <input
+                          v-model.number="row.damage_points"
+                          class="ks-input mt-1.5"
+                          type="number"
+                          min="0"
+                          :required="row.included"
+                        />
                         <small class="mt-1 block text-[var(--ks-muted)]">
                           {{ t('evidence.rawText') }}:
                           {{ extractedRow(item, row.row_ordinal)?.damage?.rawText ?? '—' }} ·
                           {{ t('evidence.confidence') }}
-                          {{ confidenceLabel(extractedRow(item, row.row_ordinal)?.damage?.confidence ?? 0) }}
+                          {{
+                            confidenceLabel(
+                              extractedRow(item, row.row_ordinal)?.damage?.confidence ?? 0,
+                            )
+                          }}
                         </small>
                       </label>
                     </div>
                     <label class="mt-3 block text-sm">
                       <span>{{ t('evidence.correctionReason') }}</span>
-                      <input v-model="row.correction_reason" class="ks-input mt-1.5" maxlength="500" />
+                      <input
+                        v-model="row.correction_reason"
+                        class="ks-input mt-1.5"
+                        maxlength="500"
+                      />
                     </label>
                   </fieldset>
                 </div>
 
                 <div
-                  v-if="!['committed', 'deleted'].includes(item.status) && reviewDraft(item).rows.length"
+                  v-if="
+                    !['committed', 'deleted'].includes(item.status) && reviewDraft(item).rows.length
+                  "
                   class="mt-4"
                 >
-                  <AppButton type="button" @click="saveReview(item)">{{ t('evidence.saveReview') }}</AppButton>
+                  <AppButton type="button" @click="saveReview(item)">{{
+                    t('evidence.saveReview')
+                  }}</AppButton>
                 </div>
               </div>
 
@@ -569,7 +663,9 @@ function refresh(): void {
                 role="alert"
               >
                 <h4 class="font-semibold">{{ t('evidence.semanticDuplicate') }}</h4>
-                <p class="mt-2 text-sm text-[var(--ks-muted)]">{{ t('evidence.semanticDuplicateHelp') }}</p>
+                <p class="mt-2 text-sm text-[var(--ks-muted)]">
+                  {{ t('evidence.semanticDuplicateHelp') }}
+                </p>
                 <label class="mt-3 block text-sm">
                   <span>{{ t('evidence.distinctJustification') }}</span>
                   <textarea
@@ -579,12 +675,21 @@ function refresh(): void {
                     maxlength="1000"
                   />
                 </label>
-                <AppButton class="mt-3" type="button" variant="secondary" @click="resolveDuplicate(item.latestReview)">
+                <AppButton
+                  class="mt-3"
+                  type="button"
+                  variant="secondary"
+                  @click="resolveDuplicate(item.latestReview)"
+                >
                   {{ t('evidence.resolveDuplicate') }}
                 </AppButton>
               </div>
 
-              <section v-if="item.preview && item.latestReview?.status === 'approved'" class="mt-5" aria-label="Commit preview">
+              <section
+                v-if="item.preview && item.latestReview?.status === 'approved'"
+                class="mt-5"
+                aria-label="Commit preview"
+              >
                 <p class="ks-kicker">{{ t('evidence.previewTitle') }}</p>
                 <h4 class="mt-1 text-xl font-semibold">{{ t('evidence.previewTitle') }}</h4>
                 <p class="mt-2 text-sm text-[var(--ks-muted)]">{{ t('evidence.previewHelp') }}</p>
@@ -599,11 +704,21 @@ function refresh(): void {
                       </tr>
                     </thead>
                     <tbody>
-                      <tr v-for="row in item.preview.rows" :key="row.playerId" class="border-t border-[var(--ks-border)]">
+                      <tr
+                        v-for="row in item.preview.rows"
+                        :key="row.playerId"
+                        class="border-t border-[var(--ks-border)]"
+                      >
                         <td class="p-2 font-medium">{{ row.playerName }}</td>
-                        <td class="p-2 text-end tabular-nums">{{ formatNumber(row.beforeScore) }}</td>
-                        <td class="p-2 text-end tabular-nums">+{{ formatNumber(row.reportDamage) }}</td>
-                        <td class="p-2 text-end font-semibold tabular-nums">{{ formatNumber(row.afterScore) }}</td>
+                        <td class="p-2 text-end tabular-nums">
+                          {{ formatNumber(row.beforeScore) }}
+                        </td>
+                        <td class="p-2 text-end tabular-nums">
+                          +{{ formatNumber(row.reportDamage) }}
+                        </td>
+                        <td class="p-2 text-end font-semibold tabular-nums">
+                          {{ formatNumber(row.afterScore) }}
+                        </td>
                       </tr>
                     </tbody>
                   </table>
@@ -611,26 +726,47 @@ function refresh(): void {
                 <AppButton v-if="item.canCommit" class="mt-4" type="button" @click="commit(item)">
                   {{ t('evidence.commit') }}
                 </AppButton>
-                <span v-else-if="item.latestCommitStatus === 'succeeded'" class="ks-status mt-4" data-tone="success">
+                <span
+                  v-else-if="item.latestCommitStatus === 'succeeded'"
+                  class="ks-status mt-4"
+                  data-tone="success"
+                >
                   {{ t('evidence.committed') }}
                 </span>
               </section>
 
-              <details v-if="item.reviews.length || item.commits.length" class="mt-5 rounded border border-[var(--ks-border)] p-3">
-                <summary class="cursor-pointer font-semibold">{{ t('evidence.reviewHistory') }}</summary>
+              <details
+                v-if="item.reviews.length || item.commits.length"
+                class="mt-5 rounded border border-[var(--ks-border)] p-3"
+              >
+                <summary class="cursor-pointer font-semibold">
+                  {{ t('evidence.reviewHistory') }}
+                </summary>
                 <div class="mt-3 space-y-4 text-sm">
                   <ol class="space-y-2">
-                    <li v-for="review in item.reviews" :key="review.id" class="rounded bg-black/10 p-2">
+                    <li
+                      v-for="review in item.reviews"
+                      :key="review.id"
+                      class="rounded bg-black/10 p-2"
+                    >
                       {{ t('evidence.revision') }} {{ review.revision }} ·
-                      <span class="ks-status" :data-tone="statusTone(review.status)">{{ review.status }}</span>
+                      <span class="ks-status" :data-tone="statusTone(review.status)">{{
+                        review.status
+                      }}</span>
                       · {{ review.semanticFingerprintPrefix }}…
                     </li>
                   </ol>
                   <div v-if="item.commits.length">
                     <h5 class="font-semibold">{{ t('evidence.commitHistory') }}</h5>
                     <ol class="mt-2 space-y-2">
-                      <li v-for="attempt in item.commits" :key="attempt.id" class="rounded bg-black/10 p-2">
-                        <span class="ks-status" :data-tone="statusTone(attempt.status)">{{ attempt.status }}</span>
+                      <li
+                        v-for="attempt in item.commits"
+                        :key="attempt.id"
+                        class="rounded bg-black/10 p-2"
+                      >
+                        <span class="ks-status" :data-tone="statusTone(attempt.status)">{{
+                          attempt.status
+                        }}</span>
                         <span v-if="attempt.destinationReportId" class="ms-2">
                           {{ t('evidence.destinationReport') }}: {{ attempt.destinationReportId }}
                         </span>

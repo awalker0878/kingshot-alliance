@@ -26,7 +26,8 @@ const messages = {
     imagePreview: 'Original screenshot',
     imageUnavailable: 'The source image has been deleted under the evidence lifecycle policy.',
     processing: 'Processing',
-    processingHelp: 'Classification and extraction run in the background. Refresh to see the latest state.',
+    processingHelp:
+      'Classification and extraction run in the background. Refresh to see the latest state.',
     retry: 'Retry processing',
     retrying: 'Retrying…',
     visualDuplicate: 'Possible visual duplicate',
