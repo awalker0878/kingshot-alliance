@@ -48,6 +48,12 @@ jobs:
 
           editor = Path('resources/js/pages/Kingdom/Territory/Editor.vue')
           source = editor.read_text()
+          if "MarchAnalysisPanel.vue" not in source:
+              source = source.replace(
+                  "import TerritoryCanvas from '@/features/territory-planner/components/TerritoryCanvas.vue';",
+                  "import MarchAnalysisPanel from '@/features/territory-planner/components/MarchAnalysisPanel.vue';\nimport TerritoryCanvas from '@/features/territory-planner/components/TerritoryCanvas.vue';",
+                  1,
+              )
           if 'governor_options:' not in source:
               source = source.replace(
                   '  revisions: Revision[];\n};',
@@ -119,11 +125,22 @@ function assignExternalGovernor(object: PlanObject, name: string): void {
                   </td>
 """
               source = source.replace(state_cell, governor_cell + state_cell, 1)
+          if '<MarchAnalysisPanel' not in source:
+              source = source.replace(
+                  '        <section class="ks-surface p-4">\n          <p class="ks-kicker">{{ t(\'territory.preferences\') }}</p>',
+                  """        <MarchAnalysisPanel
+          :alliances="alliances"
+          :objects="objects"
+          :analysis="analysis"
+        />
+        <section class="ks-surface p-4">
+          <p class="ks-kicker">{{ t('territory.preferences') }}</p>""",
+                  1,
+              )
           editor.write_text(source)
 
           manage = Path('resources/js/pages/Operations/Events/Manage.vue')
           source = manage.read_text()
-          # Remove the earlier temporary inline integration if a competing formatter run added it.
           source = re.sub(
               r"\ntype TerritoryRevisionOption = \{.*?\n\};\ntype TerritoryAttachment = \{.*?\n\};\ntype TerritoryPlanningOperations = \{.*?\n\};\n",
               '\n',
@@ -207,7 +224,7 @@ const props = defineProps<{""",
       />
 
       <div
-        id="schedule""" ,
+        id="schedule""",
                   1,
               )
           manage.write_text(source)
