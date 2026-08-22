@@ -22,6 +22,7 @@ import type {
   PlanObject,
   PlanningPreferences,
   TerritoryObjectType,
+  ValidationIssue,
 } from '@/features/territory-planner/engine/types';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
@@ -72,6 +73,18 @@ type RevisionSnapshot = {
   objects: PlanObject[];
   plan: { planning_preferences?: PlanningPreferences };
 };
+type ImportPreview = {
+  can_commit: boolean;
+  map: { id: string; checksum: string; source_label: string; confidence: string };
+  alliances: PlanAlliance[];
+  groups: PlanGroup[];
+  objects: PlanObject[];
+  validation: {
+    violations: ValidationIssue[];
+    warnings: ValidationIssue[];
+    suggestions: ValidationIssue[];
+  };
+};
 
 function cloneJson<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
@@ -103,12 +116,16 @@ const history = ref<string[]>([]);
 const future = ref<string[]>([]);
 const canvas = ref<InstanceType<typeof TerritoryCanvas> | null>(null);
 const dialogAction = ref<DialogAction>(null);
-const importPreview = ref<Record<string, unknown> | null>(null);
+const importPreview = ref<ImportPreview | null>(null);
 const importDocument = ref('');
 const hivePreview = ref<PlanObject[]>([]);
 const hiveStyle = ref<'swirl' | 'banner_pad'>('swirl');
-const hiveCenterX = ref(420);
-const hiveCenterY = ref(420);
+const hiveCenterX = ref(
+  Math.round(props.territory.map.data.bounds.x + props.territory.map.data.bounds.width / 2),
+);
+const hiveCenterY = ref(
+  Math.round(props.territory.map.data.bounds.y + props.territory.map.data.bounds.height / 2),
+);
 const hiveCityCount = ref(50);
 const stampColumns = ref(5);
 const stampRows = ref(5);
@@ -125,6 +142,22 @@ const showZones = ref(true);
 const objectFilter = ref('');
 const draftStorageKey = `territory-draft:${props.territory.plan.id}:${props.territory.plan.revision}`;
 
+const mapMinX = computed(() => props.territory.map.data.bounds.x);
+const mapMinY = computed(() => props.territory.map.data.bounds.y);
+const mapMaxX = computed(
+  () => props.territory.map.data.bounds.x + props.territory.map.data.bounds.width - 1,
+);
+const mapMaxY = computed(
+  () => props.territory.map.data.bounds.y + props.territory.map.data.bounds.height - 1,
+);
+const mapDistanceLimit = computed(() =>
+  Math.ceil(
+    Math.hypot(
+      props.territory.map.data.bounds.width,
+      props.territory.map.data.bounds.height,
+    ),
+  ),
+);
 const validation = computed(() =>
   validatePlacement(props.territory.map.data, objects.value, preferences.value),
 );
@@ -335,23 +368,6 @@ function rotateSelected(direction = 1): void {
 }
 function nudge(dx: number, dy: number): void {
   move({ keys: selectedKeys.value, dx, dy });
-}
-function addExternalAlliance(): void {
-  if (!canEdit.value) return;
-  remember();
-  const allianceKey = key('alliance');
-  alliances.value.push({
-    key: allianceKey,
-    alliance_id: null,
-    external_name: t('territory.externalAlliance'),
-    external_tag: null,
-    display_name: t('territory.externalAlliance'),
-    presentation_color: '#c4874e',
-    sort_order: alliances.value.length,
-    visible: true,
-    locked: false,
-  });
-  activeAllianceKey.value = allianceKey;
 }
 function selectObject(object: PlanObject): void {
   selectedKeys.value = [object.key];
@@ -689,7 +705,7 @@ async function importFile(event: Event): Promise<void> {
     const payload = await jsonRequest('/territory/import-preview', 'POST', {
       document: importDocument.value,
     });
-    importPreview.value = payload.preview as Record<string, unknown>;
+    importPreview.value = payload.preview as ImportPreview;
     notice.value = { tone: 'info', message: t('territory.importReady') };
   } catch (error) {
     importDocument.value = '';
@@ -704,8 +720,7 @@ async function importFile(event: Event): Promise<void> {
   }
 }
 async function applyImport(): Promise<void> {
-  if (!importPreview.value || importPreview.value.can_commit !== true || !importDocument.value)
-    return;
+  if (!importPreview.value || !importPreview.value.can_commit || !importDocument.value) return;
   busy.value = true;
   try {
     const payload = await jsonRequest(`/territory/${props.territory.plan.id}/import`, 'POST', {
@@ -811,11 +826,19 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
       :subtitle="t('territory.editorSubtitle', { governor: activePlayer.name })"
       image="/images/kingshot/v4/kingdom-transfer.svg"
     >
-      <template #actions
-        ><Link href="/territory" class="ks-command-link" data-variant="secondary">{{
-          t('territory.backToPlans')
-        }}</Link></template
-      >
+      <template #actions>
+        <Link
+          v-if="territory.plan.scope === 'kingdom'"
+          :href="`/territory/${territory.plan.id}/alliances`"
+          class="ks-command-link"
+          data-variant="secondary"
+        >
+          {{ t('territory.layers') }}
+        </Link>
+        <Link href="/territory" class="ks-command-link" data-variant="secondary">
+          {{ t('territory.backToPlans') }}
+        </Link>
+      </template>
     </RoomBanner>
 
     <header class="mt-4">
@@ -920,13 +943,14 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
               >
             </div>
           </div>
-          <AppButton
+          <Link
             v-if="territory.plan.scope === 'kingdom'"
-            class="mt-3"
-            :disabled="!canEdit"
-            @click="addExternalAlliance"
-            >{{ t('territory.addAlliance') }}</AppButton
+            :href="`/territory/${territory.plan.id}/alliances`"
+            class="ks-command-link mt-3 inline-flex"
+            data-variant="secondary"
           >
+            {{ t('territory.layers') }}
+          </Link>
         </div>
 
         <div class="mt-5 border-t border-[var(--ks-border)] pt-4">
@@ -957,15 +981,15 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
               >X<input
                 v-model.number="hiveCenterX"
                 type="number"
-                min="0"
-                max="1199"
+                :min="mapMinX"
+                :max="mapMaxX"
                 class="ks-input mt-1 w-full" /></label
             ><label class="text-xs"
               >Y<input
                 v-model.number="hiveCenterY"
                 type="number"
-                min="0"
-                max="1199"
+                :min="mapMinY"
+                :max="mapMaxY"
                 class="ks-input mt-1 w-full"
             /></label>
           </div>
@@ -1253,6 +1277,8 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
                     <input
                       v-model.number="object.x"
                       type="number"
+                      :min="mapMinX"
+                      :max="mapMaxX"
                       class="ks-input w-24 px-2 py-1"
                       :disabled="!editable(object)"
                       :aria-label="`${object.label ?? object.type} X`"
@@ -1263,6 +1289,8 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
                     <input
                       v-model.number="object.y"
                       type="number"
+                      :min="mapMinY"
+                      :max="mapMaxY"
                       class="ks-input w-24 px-2 py-1"
                       :disabled="!editable(object)"
                       :aria-label="`${object.label ?? object.type} Y`"
@@ -1315,6 +1343,10 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
                   <dd>{{ analysis[alliance.key]?.bear_distance_tiles.average ?? '—' }}</dd>
                 </div>
                 <div>
+                  <dt class="text-[var(--ks-muted)]">P50 · {{ t('territory.distanceTiles') }}</dt>
+                  <dd>{{ analysis[alliance.key]?.bear_distance_tiles.median ?? '—' }}</dd>
+                </div>
+                <div>
                   <dt class="text-[var(--ks-muted)]">{{ t('territory.maxDistance') }}</dt>
                   <dd>{{ analysis[alliance.key]?.bear_distance_tiles.max ?? '—' }}</dd>
                 </div>
@@ -1354,7 +1386,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
               v-model.number="preferences.preferred_bear_radius_tiles"
               type="number"
               min="1"
-              max="1200"
+              :max="mapDistanceLimit"
               class="ks-input mt-1 w-full"
               @focus="beginExactEdit" /></label
           ><label class="mt-3 block text-sm"
@@ -1399,9 +1431,29 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
                 {{ comparison.current[alliance.key]?.coverage_percent ?? '—' }}
               </p>
               <p>
+                {{ t('territory.uncovered') }}:
+                {{ comparison.previous[alliance.key]?.covered_governor_cities ?? 0 }} →
+                {{ comparison.current[alliance.key]?.covered_governor_cities ?? 0 }}
+              </p>
+              <p>
+                {{ t('territory.types.banner') }}:
+                {{ comparison.previous[alliance.key]?.counts.banner ?? 0 }} →
+                {{ comparison.current[alliance.key]?.counts.banner ?? 0 }}
+              </p>
+              <p>
                 {{ t('territory.avgDistance') }}:
                 {{ comparison.previous[alliance.key]?.bear_distance_tiles.average ?? '—' }} →
                 {{ comparison.current[alliance.key]?.bear_distance_tiles.average ?? '—' }}
+              </p>
+              <p>
+                P50 · {{ t('territory.distanceTiles') }}:
+                {{ comparison.previous[alliance.key]?.bear_distance_tiles.median ?? '—' }} →
+                {{ comparison.current[alliance.key]?.bear_distance_tiles.median ?? '—' }}
+              </p>
+              <p>
+                {{ t('territory.maxDistance') }}:
+                {{ comparison.previous[alliance.key]?.bear_distance_tiles.max ?? '—' }} →
+                {{ comparison.current[alliance.key]?.bear_distance_tiles.max ?? '—' }}
               </p>
               <p>
                 {{ t('territory.violations') }}:
@@ -1466,13 +1518,47 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
         </button>
       </div>
       <div v-if="importPreview" class="mt-4 rounded border border-[var(--ks-border)] p-3">
-        <p class="text-sm">{{ t('territory.importPreview') }}</p>
-        <AppButton
-          class="mt-2"
-          :disabled="importPreview.can_commit !== true"
-          @click="applyImport"
-          >{{ t('territory.applyImport') }}</AppButton
-        >
+        <p class="text-sm font-semibold">{{ t('territory.importPreview') }}</p>
+        <dl class="mt-2 grid gap-2 text-xs sm:grid-cols-4">
+          <div>
+            <dt class="text-[var(--ks-muted)]">{{ t('territory.layers') }}</dt>
+            <dd>{{ formatNumber(importPreview.alliances.length) }}</dd>
+          </div>
+          <div>
+            <dt class="text-[var(--ks-muted)]">{{ t('territory.placedObjects', { count: '' }) }}</dt>
+            <dd>{{ formatNumber(importPreview.objects.length) }}</dd>
+          </div>
+          <div>
+            <dt class="text-[var(--ks-muted)]">{{ t('territory.violations') }}</dt>
+            <dd>{{ formatNumber(importPreview.validation.violations.length) }}</dd>
+          </div>
+          <div>
+            <dt class="text-[var(--ks-muted)]">{{ t('territory.warnings') }}</dt>
+            <dd>{{ formatNumber(importPreview.validation.warnings.length) }}</dd>
+          </div>
+        </dl>
+        <p class="mt-2 text-xs text-[var(--ks-muted)]">
+          {{ importPreview.map.source_label }} · {{ importPreview.map.id }}
+        </p>
+        <ul v-if="importPreview.validation.violations.length" class="mt-2 space-y-1 text-xs text-red-200">
+          <li
+            v-for="item in importPreview.validation.violations"
+            :key="`import-v-${item.code}-${item.object_key}`"
+          >
+            {{ item.message }}
+          </li>
+        </ul>
+        <ul v-if="importPreview.validation.warnings.length" class="mt-2 space-y-1 text-xs text-amber-200">
+          <li
+            v-for="item in importPreview.validation.warnings"
+            :key="`import-w-${item.code}-${item.object_key}`"
+          >
+            {{ item.message }}
+          </li>
+        </ul>
+        <AppButton class="mt-3" :disabled="!importPreview.can_commit" @click="applyImport">
+          {{ t('territory.applyImport') }}
+        </AppButton>
       </div>
     </section>
 
