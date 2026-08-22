@@ -125,7 +125,7 @@ old_request = """  const response = await fetch(url, {
     },
     body: body === undefined ? undefined : JSON.stringify(body),
   });"""
-new_request = """  const init: RequestInit = {
+new_request = """  const init: NonNullable<Parameters<typeof fetch>[1]> = {
     method,
     credentials: 'same-origin',
     headers: {
@@ -139,10 +139,22 @@ new_request = """  const init: RequestInit = {
   const response = await fetch(url, init);"""
 if old_request in source:
     source = source.replace(old_request, new_request, 1)
+else:
+    source = source.replace('const init: RequestInit = {', 'const init: NonNullable<Parameters<typeof fetch>[1]> = {', 1)
 source = source.replace(
     ':disabled="!canEdit || activeAlliance?.locked"',
     ':disabled="!canEdit || Boolean(activeAlliance?.locked)"',
 )
+old_helpers = """function bearTrapsFor(allianceKey: string): PlanObject[] {
+  return objects.value.filter(
+    (object) => object.alliance_key === allianceKey && object.type === 'bear_trap',
+  );
+}
+function selectedBearFor(allianceKey: string): string {
+  return preferences.value.selected_bear_trap_by_alliance?.[allianceKey] ?? '';
+}
+"""
+source = source.replace(old_helpers, '', 1)
 old_panel = '<MarchAnalysisPanel :alliances="alliances" :objects="objects" :analysis="analysis" />'
 new_panel = """<MarchAnalysisPanel
           :alliances="alliances"
@@ -175,8 +187,11 @@ old_duplicate_bear = """          <div v-for="alliance in alliances" :key="`bear
             </label>
           </div>
 """
-if old_duplicate_bear in source:
-    source = source.replace(old_duplicate_bear, '', 1)
+source = source.replace(old_duplicate_bear, '', 1)
 editor.write_text(source)
+
+panel = Path('resources/js/features/territory-planner/components/MarchAnalysisPanel.vue')
+source = panel.read_text().replace(':disabled="!canEdit"', ':disabled="!canEdit || alliance.locked"')
+panel.write_text(source)
 
 print('Territory dataset-owned caps and strict editor contracts finalized.')
