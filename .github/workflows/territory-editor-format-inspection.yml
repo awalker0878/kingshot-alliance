@@ -1,0 +1,38 @@
+name: Territory Editor Formatter Inspection
+
+on:
+  pull_request:
+    paths:
+      - 'resources/js/pages/Kingdom/Territory/Editor.vue'
+      - '.github/workflows/territory-editor-format-inspection.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  format:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Correct semantic labels and apply locked formatter
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('resources/js/pages/Kingdom/Territory/Editor.vue')
+          text = path.read_text()
+          text = text.replace('?.covered_governor_cities', '?.uncovered_governor_cities')
+          text = text.replace("t('territory.placedObjects', { count: '' })", "t('territory.object')")
+          path.write_text(text)
+          PY
+          npx prettier --write resources/js/pages/Kingdom/Territory/Editor.vue
+      - name: Upload exact formatted editor
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: territory-editor-formatted
+          path: resources/js/pages/Kingdom/Territory/Editor.vue
+          retention-days: 1
