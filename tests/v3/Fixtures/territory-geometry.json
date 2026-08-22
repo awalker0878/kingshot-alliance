@@ -114,6 +114,31 @@
       "expected_suggestions": []
     },
     {
+      "name": "disconnected-coverage-is-planning-warning",
+      "preferences": {},
+      "objects": [
+        {
+          "key": "disconnected-hq",
+          "type": "headquarters",
+          "x": 20,
+          "y": 20,
+          "alliance_key": "alpha"
+        },
+        {
+          "key": "disconnected-banner",
+          "type": "banner",
+          "x": 70,
+          "y": 70,
+          "alliance_key": "alpha"
+        }
+      ],
+      "expected_violations": [],
+      "expected_warnings": [
+        "disconnected_territory:disconnected-hq"
+      ],
+      "expected_suggestions": []
+    },
+    {
       "name": "map-bounds",
       "preferences": {},
       "objects": [
@@ -392,7 +417,7 @@
       "territory_connected": false,
       "banner_efficiency": 1.0,
       "violation_count": 0,
-      "warning_count": 0,
+      "warning_count": 1,
       "suggestion_count": 0,
       "bear_distance_tiles": {
         "average": 12.48,
