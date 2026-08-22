@@ -14,7 +14,10 @@ FROM php:8.5-fpm-alpine AS php-base
 
 RUN apk add --no-cache \
         curl \
+        freetype \
         icu-libs \
+        libjpeg-turbo \
+        libpng \
         libpq \
         libzip \
         nginx \
@@ -22,10 +25,15 @@ RUN apk add --no-cache \
         tesseract-ocr-data-eng \
     && apk add --no-cache --virtual .build-deps \
         $PHPIZE_DEPS \
+        freetype-dev \
         icu-dev \
+        libjpeg-turbo-dev \
+        libpng-dev \
         libzip-dev \
         postgresql-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j"$(nproc)" \
+        gd \
         intl \
         pcntl \
         pdo_pgsql \
@@ -33,7 +41,7 @@ RUN apk add --no-cache \
     && pecl install redis \
     && docker-php-ext-enable redis \
     && apk del .build-deps \
-    && php -r 'foreach (["dom", "intl", "mbstring", "pcntl", "pdo_pgsql", "redis", "SimpleXML", "xml", "xmlwriter", "zip"] as $extension) { if (! extension_loaded($extension)) { fwrite(STDERR, "Missing PHP extension: {$extension}\n"); exit(1); } } if (! function_exists("opcache_get_status")) { fwrite(STDERR, "Missing PHP OPcache API\n"); exit(1); }'
+    && php -r 'foreach (["dom", "gd", "intl", "mbstring", "pcntl", "pdo_pgsql", "redis", "SimpleXML", "xml", "xmlwriter", "zip"] as $extension) { if (! extension_loaded($extension)) { fwrite(STDERR, "Missing PHP extension: {$extension}\n"); exit(1); } } if (! function_exists("opcache_get_status")) { fwrite(STDERR, "Missing PHP OPcache API\n"); exit(1); }'
 
 FROM php-base AS vendor
 WORKDIR /app
