@@ -82,10 +82,15 @@ final readonly class TerritoryLayoutAnalyzer
             }
 
             $components = $this->coverageComponents($coverageSources);
-            $distances = $this->bearDistances($cities, $traps);
             $marchSecondsPerTile = isset($preferences['march_seconds_per_tile'])
                 ? (float) $preferences['march_seconds_per_tile']
                 : null;
+            $marches = $this->marches($cities, $traps, $marchSecondsPerTile);
+            $distances = array_column($marches, 'distance_tiles');
+            $estimatedSeconds = array_values(array_filter(
+                array_column($marches, 'estimated_seconds'),
+                static fn (?float $seconds): bool => $seconds !== null,
+            ));
             $bannerCount = (int) ($counts['banner'] ?? 0);
 
             $result[$allianceKey] = [
@@ -104,11 +109,9 @@ final readonly class TerritoryLayoutAnalyzer
                 'bear_distance_tiles' => $this->statistics($distances),
                 'estimated_march_seconds' => $marchSecondsPerTile === null
                     ? null
-                    : $this->statistics(array_map(
-                        static fn (float $distance): float => $distance * $marchSecondsPerTile,
-                        $distances,
-                    )),
+                    : $this->statistics($estimatedSeconds),
                 'march_assumption_seconds_per_tile' => $marchSecondsPerTile,
+                'marches' => $marches,
             ];
         }
 
@@ -183,28 +186,41 @@ final readonly class TerritoryLayoutAnalyzer
     /**
      * @param  list<array{key: string, type: string, x: int, y: int, alliance_key: string}>  $cities
      * @param  list<array{key: string, type: string, x: int, y: int, alliance_key: string}>  $traps
-     * @return list<float>
+     * @return list<array{city_key: string, trap_key: string, distance_tiles: float, estimated_seconds: ?float}>
      */
-    private function bearDistances(array $cities, array $traps): array
+    private function marches(array $cities, array $traps, ?float $secondsPerTile): array
     {
         if ($traps === []) {
             return [];
         }
 
-        $distances = [];
+        $marches = [];
         foreach ($cities as $city) {
-            $nearest = null;
+            $nearestTrap = null;
+            $nearestDistance = null;
             foreach ($traps as $trap) {
                 $distance = hypot($city['x'] - $trap['x'], $city['y'] - $trap['y']);
-                $nearest = $nearest === null ? $distance : min($nearest, $distance);
+                if ($nearestDistance === null || $distance < $nearestDistance) {
+                    $nearestDistance = $distance;
+                    $nearestTrap = $trap;
+                }
             }
 
-            if ($nearest !== null) {
-                $distances[] = $nearest;
+            if ($nearestTrap === null || $nearestDistance === null) {
+                continue;
             }
+
+            $marches[] = [
+                'city_key' => $city['key'],
+                'trap_key' => $nearestTrap['key'],
+                'distance_tiles' => round($nearestDistance, 2),
+                'estimated_seconds' => $secondsPerTile === null
+                    ? null
+                    : round($nearestDistance * $secondsPerTile, 2),
+            ];
         }
 
-        return $distances;
+        return $marches;
     }
 
     /**
