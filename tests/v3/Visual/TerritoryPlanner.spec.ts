@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
+import type { Page } from '@playwright/test';
 
-async function activateVisualGovernor(page: Parameters<typeof test>[0]['page']) {
+async function activateVisualGovernor(page: Page): Promise<void> {
   await page.goto('/login');
   await page.locator('#email').fill('ux-p9-visual@example.test');
   await page.locator('#password').fill('password');
