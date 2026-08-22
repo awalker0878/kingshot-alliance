@@ -9,7 +9,25 @@ use App\Contexts\Operations\TerritoryPlanning\Enums\TerritoryPlanStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property string $id
+ * @property string $kingdom_id
+ * @property string|null $owner_alliance_id
+ * @property TerritoryPlanScope $scope
+ * @property string $name
+ * @property TerritoryPlanStatus $status
+ * @property int $revision
+ * @property string $map_dataset_id
+ * @property string $map_dataset_checksum
+ * @property array<string, mixed>|null $planning_preferences
+ * @property string $created_by_player_id
+ * @property string $updated_by_player_id
+ * @property Carbon|null $published_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ */
 final class TerritoryPlan extends Model
 {
     use HasUlids;
