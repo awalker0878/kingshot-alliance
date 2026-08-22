@@ -76,6 +76,26 @@ function selectedTrapKey(allianceKey: string): string {
 
       <template v-if="analysis[alliance.key]?.marches.length">
         <h3 class="mt-3 font-semibold">{{ alliance.display_name }}</h3>
+        <dl class="mt-2 grid grid-cols-3 gap-2 text-xs">
+          <div class="rounded border border-[var(--ks-border)] p-2">
+            <dt class="text-[var(--ks-muted)]">{{ t('territory.avgDistance') }}</dt>
+            <dd class="mt-1 font-semibold">
+              {{ formatNumber(analysis[alliance.key]?.bear_distance_tiles.average ?? 0) }}
+            </dd>
+          </div>
+          <div class="rounded border border-[var(--ks-border)] p-2">
+            <dt class="text-[var(--ks-muted)]">P50 · {{ t('territory.distanceTiles') }}</dt>
+            <dd class="mt-1 font-semibold">
+              {{ formatNumber(analysis[alliance.key]?.bear_distance_tiles.median ?? 0) }}
+            </dd>
+          </div>
+          <div class="rounded border border-[var(--ks-border)] p-2">
+            <dt class="text-[var(--ks-muted)]">{{ t('territory.maxDistance') }}</dt>
+            <dd class="mt-1 font-semibold">
+              {{ formatNumber(analysis[alliance.key]?.bear_distance_tiles.max ?? 0) }}
+            </dd>
+          </div>
+        </dl>
         <div class="mt-2 overflow-x-auto">
           <table class="w-full min-w-[28rem] text-xs">
             <thead>
