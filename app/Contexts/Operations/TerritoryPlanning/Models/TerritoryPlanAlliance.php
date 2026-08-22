@@ -12,7 +12,14 @@ final class TerritoryPlanAlliance extends Model
     use HasUlids;
 
     public $incrementing = false;
+
     protected $keyType = 'string';
+
     protected $guarded = [];
-    protected $casts = ['visible' => 'boolean', 'locked' => 'boolean', 'sort_order' => 'integer'];
+
+    protected $casts = [
+        'visible' => 'boolean',
+        'locked' => 'boolean',
+        'sort_order' => 'integer',
+    ];
 }
