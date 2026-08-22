@@ -94,12 +94,7 @@ function objectAt(screenX: number, screenY: number): PlanObject | null {
     const definition = props.map.object_types[object.type];
     const [x, yBottom] = toScreen(object.x, object.y);
     const size = definition.size * zoom.value;
-    if (
-      screenX >= x &&
-      screenX <= x + size &&
-      screenY <= yBottom &&
-      screenY >= yBottom - size
-    )
+    if (screenX >= x && screenX <= x + size && screenY <= yBottom && screenY >= yBottom - size)
       return object;
   }
   return null;
