@@ -1,0 +1,182 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Contexts\Operations\TerritoryPlanning\Services;
+
+use App\Contexts\GameWorld\KingdomMaps\ValueObjects\KingdomMapDataset;
+
+final class TerritoryLayoutAnalyzer
+{
+    /**
+     * @param list<array{key:string,type:string,x:int,y:int,alliance_key:string}> $objects
+     * @param array<string,mixed> $preferences
+     * @return array<string,mixed>
+     */
+    public function analyze(KingdomMapDataset $dataset, array $objects, array $preferences = []): array
+    {
+        $byAlliance = [];
+        foreach ($objects as $object) {
+            $byAlliance[$object['alliance_key']][] = $object;
+        }
+
+        $result = [];
+        foreach ($byAlliance as $allianceKey => $allianceObjects) {
+            $coverageSources = [];
+            $cities = [];
+            $traps = [];
+            $counts = [];
+
+            foreach ($allianceObjects as $object) {
+                $counts[$object['type']] = ($counts[$object['type']] ?? 0) + 1;
+                $definition = $dataset->data['object_types'][$object['type']] ?? [];
+                $coverage = (float) ($definition['coverage'] ?? 0);
+                $size = (float) ($definition['size'] ?? 1);
+                if ($coverage > 0) {
+                    $coverageSources[] = [
+                        'key' => $object['key'],
+                        'x' => $object['x'] + ($size / 2),
+                        'y' => $object['y'] + ($size / 2),
+                        'coverage' => $coverage,
+                    ];
+                }
+                if ($object['type'] === 'governor_city') {
+                    $cities[] = $object;
+                }
+                if ($object['type'] === 'bear_trap') {
+                    $traps[] = $object;
+                }
+            }
+
+            $covered = 0;
+            foreach ($cities as $city) {
+                $cityDefinition = $dataset->data['object_types']['governor_city'] ?? ['size' => 2];
+                $size = (float) ($cityDefinition['size'] ?? 2);
+                $corners = [
+                    [$city['x'], $city['y']],
+                    [$city['x'] + $size, $city['y']],
+                    [$city['x'], $city['y'] + $size],
+                    [$city['x'] + $size, $city['y'] + $size],
+                ];
+                $inside = true;
+                foreach ($corners as [$x, $y]) {
+                    if (! $this->pointCovered((float) $x, (float) $y, $coverageSources)) {
+                        $inside = false;
+                        break;
+                    }
+                }
+                if ($inside) {
+                    $covered++;
+                }
+            }
+
+            $components = $this->coverageComponents($coverageSources);
+            $distances = $this->bearDistances($cities, $traps);
+            $marchSecondsPerTile = isset($preferences['march_seconds_per_tile']) ? (float) $preferences['march_seconds_per_tile'] : null;
+            $bannerCount = (int) ($counts['banner'] ?? 0);
+
+            $result[$allianceKey] = [
+                'counts' => $counts,
+                'governor_cities' => count($cities),
+                'covered_governor_cities' => $covered,
+                'uncovered_governor_cities' => count($cities) - $covered,
+                'coverage_percent' => count($cities) === 0 ? null : round(($covered / count($cities)) * 100, 2),
+                'territory_components' => $components,
+                'territory_connected' => $components <= 1,
+                'banner_efficiency' => $bannerCount === 0 ? null : round($covered / $bannerCount, 2),
+                'bear_distance_tiles' => $this->statistics($distances),
+                'estimated_march_seconds' => $marchSecondsPerTile === null ? null : $this->statistics(array_map(static fn (float $distance): float => $distance * $marchSecondsPerTile, $distances)),
+                'march_assumption_seconds_per_tile' => $marchSecondsPerTile,
+            ];
+        }
+
+        return ['alliances' => $result];
+    }
+
+    /** @param list<array{key:string,x:float,y:float,coverage:float}> $sources */
+    private function pointCovered(float $x, float $y, array $sources): bool
+    {
+        foreach ($sources as $source) {
+            if (abs($x - $source['x']) <= $source['coverage'] && abs($y - $source['y']) <= $source['coverage']) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /** @param list<array{key:string,x:float,y:float,coverage:float}> $sources */
+    private function coverageComponents(array $sources): int
+    {
+        if ($sources === []) {
+            return 0;
+        }
+        $visited = [];
+        $components = 0;
+        foreach (array_keys($sources) as $start) {
+            if (isset($visited[$start])) {
+                continue;
+            }
+            $components++;
+            $queue = [$start];
+            while ($queue !== []) {
+                $index = array_pop($queue);
+                if ($index === null || isset($visited[$index])) {
+                    continue;
+                }
+                $visited[$index] = true;
+                foreach ($sources as $candidateIndex => $candidate) {
+                    if (isset($visited[$candidateIndex])) {
+                        continue;
+                    }
+                    $source = $sources[$index];
+                    $distance = max(abs($source['x'] - $candidate['x']), abs($source['y'] - $candidate['y']));
+                    if ($distance <= $source['coverage'] + $candidate['coverage']) {
+                        $queue[] = $candidateIndex;
+                    }
+                }
+            }
+        }
+
+        return $components;
+    }
+
+    /** @param list<array{key:string,type:string,x:int,y:int,alliance_key:string}> $cities @param list<array{key:string,type:string,x:int,y:int,alliance_key:string}> $traps @return list<float> */
+    private function bearDistances(array $cities, array $traps): array
+    {
+        if ($traps === []) {
+            return [];
+        }
+        $distances = [];
+        foreach ($cities as $city) {
+            $nearest = null;
+            foreach ($traps as $trap) {
+                $distance = hypot($city['x'] - $trap['x'], $city['y'] - $trap['y']);
+                $nearest = $nearest === null ? $distance : min($nearest, $distance);
+            }
+            if ($nearest !== null) {
+                $distances[] = $nearest;
+            }
+        }
+
+        return $distances;
+    }
+
+    /** @param list<float> $values @return array{average:?float,median:?float,max:?float} */
+    private function statistics(array $values): array
+    {
+        if ($values === []) {
+            return ['average' => null, 'median' => null, 'max' => null];
+        }
+        sort($values, SORT_NUMERIC);
+        $count = count($values);
+        $middle = intdiv($count, 2);
+        $median = $count % 2 === 0 ? ($values[$middle - 1] + $values[$middle]) / 2 : $values[$middle];
+
+        return [
+            'average' => round(array_sum($values) / $count, 2),
+            'median' => round($median, 2),
+            'max' => round(max($values), 2),
+        ];
+    }
+}
