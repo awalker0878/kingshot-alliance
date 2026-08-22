@@ -64,7 +64,10 @@ final class TesseractOcrEngine implements OcrEngine
         }
     }
 
-    /** @return array{0:int,1:string,2:string} */
+    /**
+     * @param list<string> $command
+     * @return array{0:int,1:string,2:string}
+     */
     private function run(array $command): array
     {
         $pipes = [];

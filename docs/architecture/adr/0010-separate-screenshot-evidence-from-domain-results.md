@@ -12,11 +12,13 @@ The first concrete use case is Bear Hunt battle reports. `Operations/Results` al
 
 Create `Intelligence/Evidence` as a capability inside the existing Intelligence context. It owns uploaded game evidence, immutable provenance, classification/extraction attempts, field confidence, review/corrections, duplicate decisions, commit attempts and retention.
 
-Evidence does not own inferred domain data. A reviewed revision is committed through `app/Workflows` into a scalar owner Action. For Bear Hunt, `Operations/Results` owns an immutable accepted report ledger and recomputes its existing result aggregates from accepted reports.
+Evidence does not own inferred domain data. A reviewed revision is coordinated by an `Intelligence/Evidence` application Action that builds a scalar command and invokes the destination owner's public Action. For Bear Hunt, `Operations/Results` owns an immutable accepted report ledger and recomputes its existing result aggregates from accepted reports.
 
 The cross-context handshake is:
 
-`Evidence begin commit → Workflow build reviewed scalar command → destination owner Action → Evidence record destination receipt`.
+`Evidence begin commit → Evidence application Action builds reviewed scalar command → destination owner Action → Evidence records destination receipt`.
+
+This deliberately does not create a new top-level `app/Workflows` family: Architecture V3 keeps that set closed to the existing cross-cutting workflows, while this handoff is an Evidence capability operation that calls an owner Action through scalar data. Neither side writes the other context's persistence.
 
 The destination uses a stable idempotency key so a retry after interrupted acknowledgement cannot duplicate the accepted fact.
 
@@ -36,6 +38,10 @@ Upload scanning is moved to `Shared/Infrastructure/Uploads` so Evidence and Alli
 ### Evidence owns extracted domain facts
 
 Rejected because it duplicates Operations/GameWorld/Alliance truth and breaks bounded-context ownership.
+
+### Add a Screenshot Intake top-level Workflow family
+
+Rejected because the Architecture V3 Workflow set is intentionally closed. The commit handshake is capability-local orchestration: Evidence changes only its own commit-attempt state and sends scalar reviewed meaning to an Operations owner Action.
 
 ### Put screenshot handling directly in Operations/Results
 

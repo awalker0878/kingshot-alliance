@@ -27,7 +27,9 @@ Evidence does not own:
 
 ## Boundary
 
-A screenshot is evidence, not domain truth. Machine classification/extraction output remains candidate state until an authorized review approves a concrete revision. Cross-context commit is coordinated by `app/Workflows`; the destination owner receives scalar IDs/value objects and revalidates current authority and domain invariants in its own transaction.
+A screenshot is evidence, not domain truth. Machine classification/extraction output remains candidate state until an authorized review approves a concrete revision. Cross-context commit is coordinated by an `Intelligence/Evidence` application Action. It builds reviewed scalar meaning from Evidence-owned state, invokes the destination owner's public Action, then records only the returned destination receipt in Evidence. The destination revalidates current authority and domain invariants in its own transaction.
+
+This capability does not add a new top-level `app/Workflows` family. Architecture V3 keeps that workflow set closed; Screenshot Intake's commit handshake is capability-local orchestration over owner Actions and scalar/value-object contracts.
 
 For Bear Hunt, `Operations/Results` owns accepted battle-report ledgers, report entries, and the recomputed `EventPlayerResult` aggregates. `Intelligence/Evidence` records only the destination receipt and provenance link.
 

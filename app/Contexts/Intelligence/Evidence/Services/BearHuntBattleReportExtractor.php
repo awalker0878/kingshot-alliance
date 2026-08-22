@@ -35,19 +35,23 @@ final class BearHuntBattleReportExtractor implements EvidenceExtractor
     public function extract(OcrDocument $document): array
     {
         $fields = [];
-        $lines = $document->lines();
         $rankingSeen = false;
+        /** @var list<OcrToken>|null $pendingName */
         $pendingName = null;
         $ordinal = 0;
 
-        foreach ($lines as $line) {
+        foreach ($document->lines() as $line) {
+            if ($line === []) {
+                continue;
+            }
             $lineText = trim(implode(' ', array_map(static fn (OcrToken $token): string => $token->text, $line)));
             if ($lineText === '') {
                 continue;
             }
 
-            if ($this->timestamp($lineText) !== null && ! $rankingSeen) {
-                $fields[] = $this->candidate('report_timestamp', 0, $line, $this->timestamp($lineText) ?? $lineText, 'datetime_text');
+            $timestamp = $this->timestamp($lineText);
+            if ($timestamp !== null && ! $rankingSeen) {
+                $fields[] = $this->candidate('report_timestamp', 0, $line, $timestamp, 'datetime_text');
 
                 continue;
             }
@@ -71,10 +75,14 @@ final class BearHuntBattleReportExtractor implements EvidenceExtractor
 
                 $inlineNameTokens = $this->inlineNameTokens($line, $damageIndex);
                 $nameSource = $inlineNameTokens !== [] ? $inlineNameTokens : $pendingName;
-                if (! is_array($nameSource) || $nameSource === []) {
+                if ($nameSource === null || $nameSource === []) {
                     continue;
                 }
+                $nameSource = array_values($nameSource);
                 [$rank, $nameTokens] = $this->rankAndName($nameSource);
+                if ($nameTokens === []) {
+                    continue;
+                }
                 $name = trim(implode(' ', array_map(static fn (OcrToken $token): string => $token->text, $nameTokens)));
                 if ($name === '') {
                     continue;
@@ -92,7 +100,7 @@ final class BearHuntBattleReportExtractor implements EvidenceExtractor
             }
 
             if ($this->isCandidateNameLine($lineText)) {
-                $pendingName = $line;
+                $pendingName = array_values($line);
             }
         }
 
@@ -124,7 +132,10 @@ final class BearHuntBattleReportExtractor implements EvidenceExtractor
         return null;
     }
 
-    /** @param list<OcrToken> $line @return list<OcrToken> */
+    /**
+     * @param list<OcrToken> $line
+     * @return list<OcrToken>
+     */
     private function inlineNameTokens(array $line, int $damageIndex): array
     {
         $damageWord = null;
@@ -141,7 +152,10 @@ final class BearHuntBattleReportExtractor implements EvidenceExtractor
         return array_values(array_slice($line, 0, $damageWord));
     }
 
-    /** @param list<OcrToken> $tokens @return array{0:?int,1:list<OcrToken>} */
+    /**
+     * @param list<OcrToken> $tokens
+     * @return array{0:?int,1:list<OcrToken>}
+     */
     private function rankAndName(array $tokens): array
     {
         if ($tokens === []) {
@@ -152,7 +166,7 @@ final class BearHuntBattleReportExtractor implements EvidenceExtractor
             return [(int) $candidate, array_values(array_slice($tokens, 1))];
         }
 
-        return [null, $tokens];
+        return [null, array_values($tokens)];
     }
 
     private function isCandidateNameLine(string $text): bool
@@ -187,14 +201,21 @@ final class BearHuntBattleReportExtractor implements EvidenceExtractor
         return (int) round($damage);
     }
 
-    /** @param list<OcrToken> $tokens */
+    /** @param non-empty-list<OcrToken> $tokens */
     private function candidate(string $key, int $ordinal, array $tokens, string $normalized, string $type): ExtractedFieldCandidate
     {
-        $confidence = $tokens === [] ? 0.0 : array_sum(array_map(static fn (OcrToken $token): float => $token->confidence, $tokens)) / count($tokens);
-        $left = min(array_map(static fn (OcrToken $token): int => $token->left, $tokens));
-        $top = min(array_map(static fn (OcrToken $token): int => $token->top, $tokens));
-        $right = max(array_map(static fn (OcrToken $token): int => $token->left + $token->width, $tokens));
-        $bottom = max(array_map(static fn (OcrToken $token): int => $token->top + $token->height, $tokens));
+        $confidenceTotal = 0.0;
+        $left = $tokens[0]->left;
+        $top = $tokens[0]->top;
+        $right = $tokens[0]->left + $tokens[0]->width;
+        $bottom = $tokens[0]->top + $tokens[0]->height;
+        foreach ($tokens as $token) {
+            $confidenceTotal += $token->confidence;
+            $left = min($left, $token->left);
+            $top = min($top, $token->top);
+            $right = max($right, $token->left + $token->width);
+            $bottom = max($bottom, $token->top + $token->height);
+        }
 
         return new ExtractedFieldCandidate(
             fieldKey: $key,
@@ -202,7 +223,7 @@ final class BearHuntBattleReportExtractor implements EvidenceExtractor
             rawText: implode(' ', array_map(static fn (OcrToken $token): string => $token->text, $tokens)),
             normalizedValue: $normalized,
             dataType: $type,
-            confidence: max(0.0, min(1.0, $confidence)),
+            confidence: max(0.0, min(1.0, $confidenceTotal / count($tokens))),
             boundingBox: ['left' => $left, 'top' => $top, 'width' => $right - $left, 'height' => $bottom - $top],
         );
     }

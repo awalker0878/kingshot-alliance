@@ -30,6 +30,7 @@ final class ClassifyGameEvidenceJob implements ShouldBeUnique, ShouldQueue
         return $this->evidenceId;
     }
 
+    /** @return list<WithoutOverlapping> */
     public function middleware(): array
     {
         return [(new WithoutOverlapping('evidence-classify:'.$this->evidenceId))->releaseAfter(30)->expireAfter(180)];

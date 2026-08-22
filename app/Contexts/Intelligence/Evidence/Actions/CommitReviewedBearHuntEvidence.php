@@ -2,16 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Workflows\ScreenshotIntake;
+namespace App\Contexts\Intelligence\Evidence\Actions;
 
-use App\Contexts\Intelligence\Evidence\Actions\BeginEvidenceCommit;
-use App\Contexts\Intelligence\Evidence\Actions\CompleteEvidenceCommit;
-use App\Contexts\Intelligence\Evidence\Actions\FailEvidenceCommit;
+use App\Contexts\Intelligence\Evidence\ValueObjects\EvidenceCommitReceipt;
 use App\Contexts\Operations\Results\Actions\RecordBearHuntBattleReport;
-use App\Contexts\Operations\Results\ValueObjects\BearHuntBattleReportReceipt;
 use Throwable;
 
-final readonly class CommitBearHuntEvidence
+final readonly class CommitReviewedBearHuntEvidence
 {
     public function __construct(
         private BeginEvidenceCommit $begin,
@@ -20,7 +17,7 @@ final readonly class CommitBearHuntEvidence
         private FailEvidenceCommit $fail,
     ) {}
 
-    public function handle(string $actorPlayerId, string $reviewId): BearHuntBattleReportReceipt
+    public function handle(string $actorPlayerId, string $reviewId): EvidenceCommitReceipt
     {
         $command = $this->begin->handle($actorPlayerId, $reviewId);
 
@@ -35,9 +32,18 @@ final readonly class CommitBearHuntEvidence
                 reportTimestampText: $command->reportTimestampText,
                 entries: $command->entries,
             );
-            $this->complete->handle($actorPlayerId, $command->commitAttemptId, $receipt->reportId, $receipt->toArray());
+            $this->complete->handle(
+                $actorPlayerId,
+                $command->commitAttemptId,
+                $receipt->reportId,
+                $receipt->toArray(),
+            );
 
-            return $receipt;
+            return new EvidenceCommitReceipt(
+                reportId: $receipt->reportId,
+                entryCount: $receipt->entryCount,
+                idempotentReplay: $receipt->idempotentReplay,
+            );
         } catch (Throwable $exception) {
             $this->fail->handle($actorPlayerId, $command->commitAttemptId, $exception);
             throw $exception;

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\v3\Contexts\Intelligence\Evidence;
 
+use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Intelligence\Evidence\Actions\SaveEvidenceReview;
 use App\Contexts\Intelligence\Evidence\Enums\EvidenceAttemptStatus;
 use App\Contexts\Intelligence\Evidence\Enums\EvidenceKind;
@@ -136,7 +137,7 @@ final class EvidenceReviewV3Test extends TestCase
         self::assertSame(2, EvidenceReview::query()->where('evidence_id', $evidence->id)->count());
     }
 
-    /** @return array{0:\App\Contexts\GameWorld\Players\ValueObjects\PlayerReference,1:string,2:string} */
+    /** @return array{0:PlayerReference,1:string,2:string} */
     private function bearHunt(): array
     {
         $scenario = new ScenarioFactory;

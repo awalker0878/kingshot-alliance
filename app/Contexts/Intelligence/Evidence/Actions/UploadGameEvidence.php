@@ -49,16 +49,21 @@ final readonly class UploadGameEvidence
         if (! is_int($size) || $size < 1 || $size > $maxBytes || ! in_array($mimeType, $allowedMimes, true)) {
             throw ValidationException::withMessages(['evidence' => 'The screenshot type or size is not permitted.']);
         }
+
         $imageInfo = @getimagesize($file->getPathname());
-        if (! is_array($imageInfo) || ! isset($imageInfo[0], $imageInfo[1], $imageInfo['mime'])
-            || (string) $imageInfo['mime'] !== $mimeType || (int) $imageInfo[0] < 1 || (int) $imageInfo[1] < 1) {
+        if ($imageInfo === false
+            || (string) $imageInfo['mime'] !== $mimeType
+            || (int) $imageInfo[0] < 1
+            || (int) $imageInfo[1] < 1) {
             throw ValidationException::withMessages(['evidence' => 'The uploaded file is not a valid supported image.']);
         }
+
         $scan = $this->scanner->scan($file);
         if (! $scan->clean) {
             $this->audit->record('evidence.upload_rejected', $actor, null, $target->allianceId, ['mime_type' => $mimeType, 'reason' => $scan->reason]);
             throw ValidationException::withMessages(['evidence' => $scan->reason ?? 'The screenshot failed security screening.']);
         }
+
         $sha256 = hash_file('sha256', $file->getPathname());
         if (! is_string($sha256)) {
             throw ValidationException::withMessages(['evidence' => 'The screenshot could not be checksummed.']);
@@ -73,7 +78,9 @@ final readonly class UploadGameEvidence
         $perceptualHash = $this->hasher->hashFile($file->getPathname());
         [$visualDuplicateId, $visualDistance] = $this->visualDuplicate($target->allianceId, $target->occurrenceId, $perceptualHash);
         $extension = match ($mimeType) {
-            'image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp',
+            'image/jpeg' => 'jpg',
+            'image/png' => 'png',
+            'image/webp' => 'webp',
             default => throw ValidationException::withMessages(['evidence' => 'Unsupported screenshot type.']),
         };
         $path = 'evidence/'.$target->allianceId.'/'.Str::ulid().'.'.$extension;
@@ -89,19 +96,37 @@ final readonly class UploadGameEvidence
                 if ($duplicate instanceof GameEvidence) {
                     return new EvidenceUploadResult((string) $duplicate->id, true);
                 }
+
                 $evidence = GameEvidence::query()->create([
-                    'alliance_id' => $target->allianceId, 'occurrence_id' => $target->occurrenceId,
-                    'expected_kind' => EvidenceKind::BearHuntBattleReport, 'kind' => EvidenceKind::Unknown,
-                    'lifecycle_status' => EvidenceLifecycleStatus::Uploaded, 'original_name' => $file->getClientOriginalName(),
-                    'disk' => $disk, 'path' => $path, 'mime_type' => $mimeType, 'size_bytes' => $size,
-                    'width' => (int) $imageInfo[0], 'height' => (int) $imageInfo[1], 'sha256' => $sha256,
-                    'perceptual_hash' => $perceptualHash, 'visual_duplicate_evidence_id' => $visualDuplicateId,
-                    'visual_duplicate_distance' => $visualDistance, 'uploaded_by_player_id' => $actorPlayerId, 'scanned_at' => now(),
+                    'alliance_id' => $target->allianceId,
+                    'occurrence_id' => $target->occurrenceId,
+                    'expected_kind' => EvidenceKind::BearHuntBattleReport,
+                    'kind' => EvidenceKind::Unknown,
+                    'lifecycle_status' => EvidenceLifecycleStatus::Uploaded,
+                    'original_name' => $file->getClientOriginalName(),
+                    'disk' => $disk,
+                    'path' => $path,
+                    'mime_type' => $mimeType,
+                    'size_bytes' => $size,
+                    'width' => (int) $imageInfo[0],
+                    'height' => (int) $imageInfo[1],
+                    'sha256' => $sha256,
+                    'perceptual_hash' => $perceptualHash,
+                    'visual_duplicate_evidence_id' => $visualDuplicateId,
+                    'visual_duplicate_distance' => $visualDistance,
+                    'uploaded_by_player_id' => $actorPlayerId,
+                    'scanned_at' => now(),
                 ]);
                 $metadata = [
-                    'evidence_id' => (string) $evidence->id, 'occurrence_id' => $target->occurrenceId, 'mime_type' => $mimeType,
-                    'size_bytes' => $size, 'sha256' => $sha256, 'width' => (int) $imageInfo[0], 'height' => (int) $imageInfo[1],
-                    'visual_duplicate_evidence_id' => $visualDuplicateId, 'visual_duplicate_distance' => $visualDistance,
+                    'evidence_id' => (string) $evidence->id,
+                    'occurrence_id' => $target->occurrenceId,
+                    'mime_type' => $mimeType,
+                    'size_bytes' => $size,
+                    'sha256' => $sha256,
+                    'width' => (int) $imageInfo[0],
+                    'height' => (int) $imageInfo[1],
+                    'visual_duplicate_evidence_id' => $visualDuplicateId,
+                    'visual_duplicate_distance' => $visualDistance,
                 ];
                 $this->audit->record('evidence.uploaded', $actor, $evidence, $target->allianceId, $metadata);
                 $this->outbox->record('evidence.uploaded', $target->allianceId, $evidence, $metadata);

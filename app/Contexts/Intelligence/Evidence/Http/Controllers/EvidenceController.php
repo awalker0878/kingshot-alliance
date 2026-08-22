@@ -6,6 +6,7 @@ namespace App\Contexts\Intelligence\Evidence\Http\Controllers;
 
 use App\Contexts\GameWorld\Players\Services\PlayerContext;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
+use App\Contexts\Intelligence\Evidence\Actions\CommitReviewedBearHuntEvidence;
 use App\Contexts\Intelligence\Evidence\Actions\DeleteEvidence;
 use App\Contexts\Intelligence\Evidence\Actions\ResolveSemanticDuplicate;
 use App\Contexts\Intelligence\Evidence\Actions\RetryEvidenceProcessing;
@@ -14,7 +15,6 @@ use App\Contexts\Intelligence\Evidence\Actions\UploadGameEvidence;
 use App\Contexts\Intelligence\Evidence\Models\GameEvidence;
 use App\Contexts\Operations\Results\Queries\BearHuntEvidenceTargetQuery;
 use App\Shared\Infrastructure\Http\Controller;
-use App\Workflows\ScreenshotIntake\CommitBearHuntEvidence;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -52,7 +52,7 @@ final class EvidenceController extends Controller
         abort_if($item->path === null, 410, 'The retained evidence image has been deleted.');
         $disk = Storage::disk((string) $item->disk);
         $stream = $disk->readStream((string) $item->path);
-        abort_if($stream === false, 404);
+        abort_unless(is_resource($stream), 404);
 
         return response()->stream(static function () use ($stream): void {
             fpassthru($stream);
@@ -121,7 +121,7 @@ final class EvidenceController extends Controller
     public function commit(
         string $occurrence,
         string $review,
-        CommitBearHuntEvidence $commit,
+        CommitReviewedBearHuntEvidence $commit,
     ): RedirectResponse {
         $receipt = $commit->handle($this->actor()->playerId, $review);
 
@@ -129,7 +129,7 @@ final class EvidenceController extends Controller
             'reviewId' => $review,
             'reportId' => $receipt->reportId,
             'entryCount' => $receipt->entryCount,
-            'replayed' => $receipt->replayed ? 1 : 0,
+            'replayed' => $receipt->idempotentReplay ? 1 : 0,
         ]);
     }
 

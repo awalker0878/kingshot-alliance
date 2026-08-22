@@ -25,22 +25,29 @@ final class ImagePerceptualHasher
 
             return null;
         }
+
         try {
-            if (! imagecopyresampled($sample, $source, 0, 0, 0, 0, 9, 8, imagesx($source), imagesy($source))) {
-                return null;
-            }
+            imagecopyresampled($sample, $source, 0, 0, 0, 0, 9, 8, imagesx($source), imagesy($source));
             $bits = '';
             for ($y = 0; $y < 8; $y++) {
-                $previous = $this->luminance(imagecolorat($sample, 0, $y));
+                $previousColor = imagecolorat($sample, 0, $y);
+                if ($previousColor === false) {
+                    return null;
+                }
+                $previous = $this->luminance($previousColor);
                 for ($x = 1; $x < 9; $x++) {
-                    $current = $this->luminance(imagecolorat($sample, $x, $y));
+                    $color = imagecolorat($sample, $x, $y);
+                    if ($color === false) {
+                        return null;
+                    }
+                    $current = $this->luminance($color);
                     $bits .= $previous > $current ? '1' : '0';
                     $previous = $current;
                 }
             }
             $hex = '';
             for ($offset = 0; $offset < 64; $offset += 4) {
-                $hex .= dechex(bindec(substr($bits, $offset, 4)));
+                $hex .= dechex((int) bindec(substr($bits, $offset, 4)));
             }
 
             return str_pad($hex, 16, '0', STR_PAD_LEFT);
