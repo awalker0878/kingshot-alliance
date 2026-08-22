@@ -33,7 +33,7 @@ final class PlacementValidator
 
         foreach ($objects as $object) {
             $definition = $data['object_types'][$object['type']] ?? null;
-            if (!is_array($definition)) {
+            if (! is_array($definition)) {
                 $violations[] = $this->issue(
                     'unknown_object_type',
                     'This object type is not supported by the selected map dataset.',
@@ -56,7 +56,7 @@ final class PlacementValidator
 
             $rect = new Rectangle($object['x'], $object['y'], $size, $size);
             $rectangles[$object['key']] = $rect;
-            if (!$rect->inside($bounds)) {
+            if (! $rect->inside($bounds)) {
                 $violations[] = $this->issue(
                     'map_bounds',
                     'The object footprint must stay inside the Kingdom map.',
@@ -67,7 +67,7 @@ final class PlacementValidator
             }
 
             foreach ($data['structures'] as $structure) {
-                if (!is_array($structure)) {
+                if (! is_array($structure)) {
                     continue;
                 }
 
@@ -102,7 +102,7 @@ final class PlacementValidator
                 $cityExempt = (bool) ($structure['city_exempt'] ?? false);
                 if (
                     $rect->intersects($forbidden)
-                    && !($object['type'] === 'governor_city' && $cityExempt)
+                    && ! ($object['type'] === 'governor_city' && $cityExempt)
                 ) {
                     $violations[] = $this->issue(
                         'structure_exclusion',
@@ -115,7 +115,7 @@ final class PlacementValidator
             }
 
             foreach ($data['zones'] as $zone) {
-                if (!is_array($zone)) {
+                if (! is_array($zone)) {
                     continue;
                 }
 
@@ -125,7 +125,7 @@ final class PlacementValidator
                     (int) $zone['width'],
                     (int) $zone['height'],
                 );
-                if (!$rect->intersects($zoneRect)) {
+                if (! $rect->intersects($zoneRect)) {
                     continue;
                 }
 
@@ -167,7 +167,7 @@ final class PlacementValidator
             foreach ($objects as $object) {
                 if (
                     $object['type'] !== 'governor_city'
-                    || !isset($trapByAlliance[$object['alliance_key']][0])
+                    || ! isset($trapByAlliance[$object['alliance_key']][0])
                 ) {
                     continue;
                 }
