@@ -85,6 +85,19 @@ export function validatePlacement(
         width: structure.size,
         height: structure.size,
       };
+      if (intersects(rect, actual)) {
+        violations.push(
+          issue(
+            'structure_collision',
+            'The object overlaps a fixed Kingdom structure.',
+            object.key,
+          ),
+        );
+        break;
+      }
+
+      if (exclusion === 0) continue;
+
       const forbidden = {
         x: structure.x - exclusion,
         y: structure.y - exclusion,
@@ -92,14 +105,13 @@ export function validatePlacement(
         height: structure.size + exclusion * 2,
       };
       if (
-        intersects(rect, actual) ||
-        (intersects(rect, forbidden) &&
-          !(object.type === 'governor_city' && structure.city_exempt))
+        intersects(rect, forbidden) &&
+        !(object.type === 'governor_city' && structure.city_exempt)
       ) {
         violations.push(
           issue(
             'structure_exclusion',
-            'The object overlaps a fixed structure or its no-build zone.',
+            'The object overlaps a fixed structure no-build zone.',
             object.key,
           ),
         );
