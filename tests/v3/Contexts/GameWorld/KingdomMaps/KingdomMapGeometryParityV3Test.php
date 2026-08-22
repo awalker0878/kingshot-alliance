@@ -33,11 +33,13 @@ final class KingdomMapGeometryParityV3Test extends TestCase
             $preferences = $case['preferences'] ?? null;
             $expectedViolations = $case['expected_violations'] ?? null;
             $expectedWarnings = $case['expected_warnings'] ?? null;
+            $expectedSuggestions = $case['expected_suggestions'] ?? null;
             if (
                 ! is_array($objects)
                 || ! is_array($preferences)
                 || ! is_array($expectedViolations)
                 || ! is_array($expectedWarnings)
+                || ! is_array($expectedSuggestions)
             ) {
                 throw new RuntimeException('Territory geometry validation fixture shape is invalid.');
             }
@@ -53,6 +55,11 @@ final class KingdomMapGeometryParityV3Test extends TestCase
                 $this->stringList($expectedWarnings),
                 $this->issueKeys($result->warnings),
                 (string) ($case['name'] ?? 'unnamed').' warning contract drifted.',
+            );
+            self::assertSame(
+                $this->stringList($expectedSuggestions),
+                $this->issueKeys($result->suggestions),
+                (string) ($case['name'] ?? 'unnamed').' suggestion contract drifted.',
             );
         }
     }
