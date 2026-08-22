@@ -11,6 +11,9 @@ use App\Contexts\Operations\Access\Services\AllianceOperationsAuthorization;
 use App\Contexts\Operations\Access\Services\KingdomOperationsAuthorization;
 use App\Contexts\Operations\TerritoryPlanning\Enums\TerritoryPlanScope;
 use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryPlan;
+use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryPlanAlliance;
+use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryPlanGroup;
+use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryPlanObject;
 use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryPlanRevision;
 use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryLayoutAnalyzer;
 
@@ -24,56 +27,107 @@ final readonly class TerritoryPlanQuery
         private TerritoryLayoutAnalyzer $analysis,
     ) {}
 
-    /** @return list<array<string,mixed>> */
+    /** @return list<array<string, mixed>> */
     public function visiblePlans(string $actorPlayerId, string $kingdomId): array
     {
-        return TerritoryPlan::query()
-            ->where('kingdom_id', $kingdomId)
-            ->where('status', '!=', 'archived')
-            ->orderByDesc('updated_at')
-            ->limit(100)
-            ->get()
-            ->filter(fn (TerritoryPlan $plan): bool => $this->canView($actorPlayerId, $plan))
-            ->map(fn (TerritoryPlan $plan): array => $this->summary($actorPlayerId, $plan))
-            ->values()->all();
+        $plans = [];
+        foreach (
+            TerritoryPlan::query()
+                ->where('kingdom_id', $kingdomId)
+                ->where('status', '!=', 'archived')
+                ->orderByDesc('updated_at')
+                ->limit(100)
+                ->get() as $plan
+        ) {
+            if ($this->canView($actorPlayerId, $plan)) {
+                $plans[] = $this->summary($actorPlayerId, $plan);
+            }
+        }
+
+        return $plans;
     }
 
-    /** @return array<string,mixed> */
+    /** @return array<string, mixed> */
     public function detail(string $actorPlayerId, string $planId): array
     {
-        $plan = TerritoryPlan::query()->with(['planAlliances', 'groups', 'objects', 'revisions'])->findOrFail($planId);
+        $plan = TerritoryPlan::query()
+            ->with(['planAlliances', 'groups', 'objects', 'revisions'])
+            ->findOrFail($planId);
         abort_unless($this->canView($actorPlayerId, $plan), 403);
-        $dataset = $this->datasets->require((string) $plan->map_dataset_id, (string) $plan->map_dataset_checksum);
-        $alliances = $plan->planAlliances->map(static fn ($row): array => [
-            'key' => (string) $row->id,
-            'alliance_id' => $row->alliance_id === null ? null : (string) $row->alliance_id,
-            'external_name' => $row->external_name,
-            'external_tag' => $row->external_tag,
-            'display_name' => (string) $row->display_name,
-            'presentation_color' => (string) $row->presentation_color,
-            'sort_order' => (int) $row->sort_order,
-            'visible' => (bool) $row->visible,
-            'locked' => (bool) $row->locked,
-        ])->values()->all();
-        $groups = $plan->groups->map(static fn ($row): array => ['key' => (string) $row->id, 'label' => $row->label])->values()->all();
-        $objects = $plan->objects->map(static fn ($row): array => [
-            'key' => (string) $row->id,
-            'alliance_key' => (string) $row->territory_plan_alliance_id,
-            'group_key' => $row->group_id === null ? null : (string) $row->group_id,
-            'type' => $row->object_type->value,
-            'player_id' => $row->player_id === null ? null : (string) $row->player_id,
-            'external_player_name' => $row->external_player_name,
-            'label' => $row->label,
-            'x' => (int) $row->coordinate_x,
-            'y' => (int) $row->coordinate_y,
-            'rotation' => (int) $row->rotation,
-            'sort_order' => (int) $row->sort_order,
-            'metadata' => $row->metadata ?? [],
-        ])->values()->all();
-        $validationObjects = array_map(static fn (array $object): array => [
-            'key' => $object['key'], 'type' => $object['type'], 'x' => $object['x'], 'y' => $object['y'], 'alliance_key' => $object['alliance_key'],
-        ], $objects);
+
+        $dataset = $this->datasets->require($plan->map_dataset_id, $plan->map_dataset_checksum);
+
+        $alliances = [];
+        foreach ($plan->planAlliances as $row) {
+            if (! $row instanceof TerritoryPlanAlliance) {
+                continue;
+            }
+            $alliances[] = [
+                'key' => $row->id,
+                'alliance_id' => $row->alliance_id,
+                'external_name' => $row->external_name,
+                'external_tag' => $row->external_tag,
+                'display_name' => $row->display_name,
+                'presentation_color' => $row->presentation_color,
+                'sort_order' => $row->sort_order,
+                'visible' => $row->visible,
+                'locked' => $row->locked,
+            ];
+        }
+
+        $groups = [];
+        foreach ($plan->groups as $row) {
+            if (! $row instanceof TerritoryPlanGroup) {
+                continue;
+            }
+            $groups[] = ['key' => $row->id, 'label' => $row->label];
+        }
+
+        $objects = [];
+        $validationObjects = [];
+        foreach ($plan->objects as $row) {
+            if (! $row instanceof TerritoryPlanObject) {
+                continue;
+            }
+            $object = [
+                'key' => $row->id,
+                'alliance_key' => $row->territory_plan_alliance_id,
+                'group_key' => $row->group_id,
+                'type' => $row->object_type->value,
+                'player_id' => $row->player_id,
+                'external_player_name' => $row->external_player_name,
+                'label' => $row->label,
+                'x' => $row->coordinate_x,
+                'y' => $row->coordinate_y,
+                'rotation' => $row->rotation,
+                'sort_order' => $row->sort_order,
+                'metadata' => $row->metadata ?? [],
+            ];
+            $objects[] = $object;
+            $validationObjects[] = [
+                'key' => $object['key'],
+                'type' => $object['type'],
+                'x' => $object['x'],
+                'y' => $object['y'],
+                'alliance_key' => $object['alliance_key'],
+            ];
+        }
+
         $preferences = $plan->planning_preferences ?? [];
+        $revisions = [];
+        foreach ($plan->revisions as $revision) {
+            if (! $revision instanceof TerritoryPlanRevision) {
+                continue;
+            }
+            $revisions[] = [
+                'id' => $revision->id,
+                'revision_number' => $revision->revision_number,
+                'map_dataset_id' => $revision->map_dataset_id,
+                'map_dataset_checksum' => $revision->map_dataset_checksum,
+                'snapshot_checksum' => $revision->snapshot_checksum,
+                'published_at' => $revision->published_at->toIso8601String(),
+            ];
+        }
 
         return [
             'plan' => $this->summary($actorPlayerId, $plan),
@@ -92,41 +146,50 @@ final readonly class TerritoryPlanQuery
                 'checksum' => $dataset->checksum,
                 'data' => $dataset->data,
             ],
-            'revisions' => $plan->revisions->map(static fn (TerritoryPlanRevision $revision): array => [
-                'id' => (string) $revision->id,
-                'revision_number' => (int) $revision->revision_number,
-                'map_dataset_id' => (string) $revision->map_dataset_id,
-                'map_dataset_checksum' => (string) $revision->map_dataset_checksum,
-                'snapshot_checksum' => (string) $revision->snapshot_checksum,
-                'published_at' => $revision->published_at?->toIso8601String(),
-            ])->values()->all(),
+            'revisions' => $revisions,
         ];
     }
 
     private function canView(string $actorPlayerId, TerritoryPlan $plan): bool
     {
         return $plan->scope === TerritoryPlanScope::Alliance
-            ? $plan->owner_alliance_id !== null && $this->allianceAuthorization->allows($actorPlayerId, (string) $plan->owner_alliance_id, OperationsPermission::TerritoryAllianceView)
-            : $this->kingdomAuthorization->allows($actorPlayerId, (string) $plan->kingdom_id, OperationsPermission::TerritoryKingdomView);
+            ? $plan->owner_alliance_id !== null && $this->allianceAuthorization->allows(
+                $actorPlayerId,
+                $plan->owner_alliance_id,
+                OperationsPermission::TerritoryAllianceView,
+            )
+            : $this->kingdomAuthorization->allows(
+                $actorPlayerId,
+                $plan->kingdom_id,
+                OperationsPermission::TerritoryKingdomView,
+            );
     }
 
-    /** @return array<string,mixed> */
+    /** @return array<string, mixed> */
     private function summary(string $actorPlayerId, TerritoryPlan $plan): array
     {
         $canManage = $plan->scope === TerritoryPlanScope::Alliance
-            ? $plan->owner_alliance_id !== null && $this->allianceAuthorization->allows($actorPlayerId, (string) $plan->owner_alliance_id, OperationsPermission::TerritoryAllianceManage)
-            : $this->kingdomAuthorization->allows($actorPlayerId, (string) $plan->kingdom_id, OperationsPermission::TerritoryKingdomManage);
+            ? $plan->owner_alliance_id !== null && $this->allianceAuthorization->allows(
+                $actorPlayerId,
+                $plan->owner_alliance_id,
+                OperationsPermission::TerritoryAllianceManage,
+            )
+            : $this->kingdomAuthorization->allows(
+                $actorPlayerId,
+                $plan->kingdom_id,
+                OperationsPermission::TerritoryKingdomManage,
+            );
 
         return [
-            'id' => (string) $plan->id,
+            'id' => $plan->id,
             'scope' => $plan->scope->value,
-            'kingdom_id' => (string) $plan->kingdom_id,
-            'owner_alliance_id' => $plan->owner_alliance_id === null ? null : (string) $plan->owner_alliance_id,
-            'name' => (string) $plan->name,
+            'kingdom_id' => $plan->kingdom_id,
+            'owner_alliance_id' => $plan->owner_alliance_id,
+            'name' => $plan->name,
             'status' => $plan->status->value,
-            'revision' => (int) $plan->revision,
-            'map_dataset_id' => (string) $plan->map_dataset_id,
-            'map_dataset_checksum' => (string) $plan->map_dataset_checksum,
+            'revision' => $plan->revision,
+            'map_dataset_id' => $plan->map_dataset_id,
+            'map_dataset_checksum' => $plan->map_dataset_checksum,
             'planning_preferences' => $plan->planning_preferences ?? [],
             'published_at' => $plan->published_at?->toIso8601String(),
             'updated_at' => $plan->updated_at?->toIso8601String(),
