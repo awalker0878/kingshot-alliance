@@ -80,34 +80,10 @@
         "preferred_bear_radius_tiles": 20
       },
       "objects": [
-        {
-          "key": "hq",
-          "type": "headquarters",
-          "x": 20,
-          "y": 20,
-          "alliance_key": "alpha"
-        },
-        {
-          "key": "banner",
-          "type": "banner",
-          "x": 25,
-          "y": 20,
-          "alliance_key": "alpha"
-        },
-        {
-          "key": "city",
-          "type": "governor_city",
-          "x": 22,
-          "y": 25,
-          "alliance_key": "alpha"
-        },
-        {
-          "key": "trap",
-          "type": "bear_trap",
-          "x": 30,
-          "y": 30,
-          "alliance_key": "alpha"
-        }
+        { "key": "hq", "type": "headquarters", "x": 20, "y": 20, "alliance_key": "alpha" },
+        { "key": "banner", "type": "banner", "x": 25, "y": 20, "alliance_key": "alpha" },
+        { "key": "city", "type": "governor_city", "x": 22, "y": 25, "alliance_key": "alpha" },
+        { "key": "trap", "type": "bear_trap", "x": 30, "y": 30, "alliance_key": "alpha" }
       ],
       "expected_violations": [],
       "expected_warnings": []
@@ -116,47 +92,25 @@
       "name": "map-bounds",
       "preferences": {},
       "objects": [
-        {
-          "key": "outside",
-          "type": "governor_city",
-          "x": 99,
-          "y": 99,
-          "alliance_key": "alpha"
-        }
+        { "key": "outside", "type": "governor_city", "x": 99, "y": 99, "alliance_key": "alpha" }
       ],
-      "expected_violations": [
-        "map_bounds:outside"
-      ],
+      "expected_violations": ["map_bounds:outside"],
       "expected_warnings": []
     },
     {
       "name": "fixed-structure-collision",
       "preferences": {},
       "objects": [
-        {
-          "key": "on-castle",
-          "type": "governor_city",
-          "x": 40,
-          "y": 40,
-          "alliance_key": "alpha"
-        }
+        { "key": "on-castle", "type": "governor_city", "x": 40, "y": 40, "alliance_key": "alpha" }
       ],
-      "expected_violations": [
-        "structure_collision:on-castle"
-      ],
+      "expected_violations": ["structure_collision:on-castle"],
       "expected_warnings": []
     },
     {
       "name": "city-exempt-from-structure-exclusion-only",
       "preferences": {},
       "objects": [
-        {
-          "key": "city-near-castle",
-          "type": "governor_city",
-          "x": 37,
-          "y": 40,
-          "alliance_key": "alpha"
-        }
+        { "key": "city-near-castle", "type": "governor_city", "x": 37, "y": 40, "alliance_key": "alpha" }
       ],
       "expected_violations": [],
       "expected_warnings": []
@@ -165,58 +119,28 @@
       "name": "banner-blocked-by-structure-exclusion",
       "preferences": {},
       "objects": [
-        {
-          "key": "banner-near-castle",
-          "type": "banner",
-          "x": 37,
-          "y": 40,
-          "alliance_key": "alpha"
-        }
+        { "key": "banner-near-castle", "type": "banner", "x": 37, "y": 40, "alliance_key": "alpha" }
       ],
-      "expected_violations": [
-        "structure_exclusion:banner-near-castle"
-      ],
+      "expected_violations": ["structure_exclusion:banner-near-castle"],
       "expected_warnings": []
     },
     {
       "name": "zone-restriction",
       "preferences": {},
       "objects": [
-        {
-          "key": "banner-in-zone",
-          "type": "banner",
-          "x": 5,
-          "y": 5,
-          "alliance_key": "alpha"
-        }
+        { "key": "banner-in-zone", "type": "banner", "x": 5, "y": 5, "alliance_key": "alpha" }
       ],
-      "expected_violations": [
-        "zone_restriction:banner-in-zone"
-      ],
+      "expected_violations": ["zone_restriction:banner-in-zone"],
       "expected_warnings": []
     },
     {
       "name": "object-collision",
       "preferences": {},
       "objects": [
-        {
-          "key": "city-one",
-          "type": "governor_city",
-          "x": 20,
-          "y": 20,
-          "alliance_key": "alpha"
-        },
-        {
-          "key": "city-two",
-          "type": "governor_city",
-          "x": 21,
-          "y": 21,
-          "alliance_key": "alpha"
-        }
+        { "key": "city-one", "type": "governor_city", "x": 20, "y": 20, "alliance_key": "alpha" },
+        { "key": "city-two", "type": "governor_city", "x": 21, "y": 21, "alliance_key": "alpha" }
       ],
-      "expected_violations": [
-        "object_collision:city-two"
-      ],
+      "expected_violations": ["object_collision:city-two"],
       "expected_warnings": []
     },
     {
@@ -225,67 +149,23 @@
         "preferred_bear_radius_tiles": 5
       },
       "objects": [
-        {
-          "key": "trap",
-          "type": "bear_trap",
-          "x": 10,
-          "y": 10,
-          "alliance_key": "alpha"
-        },
-        {
-          "key": "far-city",
-          "type": "governor_city",
-          "x": 30,
-          "y": 30,
-          "alliance_key": "alpha"
-        }
+        { "key": "trap", "type": "bear_trap", "x": 10, "y": 10, "alliance_key": "alpha" },
+        { "key": "far-city", "type": "governor_city", "x": 30, "y": 30, "alliance_key": "alpha" }
       ],
       "expected_violations": [],
-      "expected_warnings": [
-        "preferred_bear_radius:far-city"
-      ]
+      "expected_warnings": ["preferred_bear_radius:far-city"]
     }
   ],
   "analysis_case": {
     "preferences": {
-      "march_seconds_per_tile": 2
+      "march_seconds_per_tile": 2.0
     },
     "objects": [
-      {
-        "key": "analysis-hq",
-        "type": "headquarters",
-        "x": 10,
-        "y": 10,
-        "alliance_key": "alpha"
-      },
-      {
-        "key": "analysis-banner",
-        "type": "banner",
-        "x": 25,
-        "y": 25,
-        "alliance_key": "alpha"
-      },
-      {
-        "key": "covered-city",
-        "type": "governor_city",
-        "x": 11,
-        "y": 14,
-        "alliance_key": "alpha"
-      },
-      {
-        "key": "uncovered-city",
-        "type": "governor_city",
-        "x": 30,
-        "y": 30,
-        "alliance_key": "alpha"
-      },
-      {
-        "key": "analysis-trap",
-        "type": "bear_trap",
-        "x": 20,
-        "y": 20,
-        "alliance_key": "alpha"
-      }
+      { "key": "analysis-hq", "type": "headquarters", "x": 10, "y": 10, "alliance_key": "alpha" },
+      { "key": "analysis-banner", "type": "banner", "x": 25, "y": 25, "alliance_key": "alpha" },
+      { "key": "covered-city", "type": "governor_city", "x": 11, "y": 14, "alliance_key": "alpha" },
+      { "key": "uncovered-city", "type": "governor_city", "x": 30, "y": 30, "alliance_key": "alpha" },
+      { "key": "analysis-trap", "type": "bear_trap", "x": 20, "y": 20, "alliance_key": "alpha" }
     ],
     "expected": {
       "counts": {
@@ -297,10 +177,10 @@
       "governor_cities": 2,
       "covered_governor_cities": 1,
       "uncovered_governor_cities": 1,
-      "coverage_percent": 50,
+      "coverage_percent": 50.0,
       "territory_components": 2,
       "territory_connected": false,
-      "banner_efficiency": 1,
+      "banner_efficiency": 1.0,
       "bear_distance_tiles": {
         "average": 12.48,
         "median": 12.48,
@@ -311,7 +191,7 @@
         "median": 24.96,
         "max": 28.28
       },
-      "march_assumption_seconds_per_tile": 2
+      "march_assumption_seconds_per_tile": 2.0
     }
   }
 }
