@@ -70,6 +70,7 @@ export type ValidationResult = {
 export type PlanningPreferences = {
   preferred_bear_radius_tiles?: number;
   march_seconds_per_tile?: number;
+  selected_bear_trap_by_alliance?: Record<string, string>;
 };
 
 export type MarchAnalysis = {
@@ -95,5 +96,6 @@ export type AllianceAnalysis = {
     max: number | null;
   } | null;
   march_assumption_seconds_per_tile: number | null;
+  selected_bear_trap_key: string | null;
   marches: MarchAnalysis[];
 };
