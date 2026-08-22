@@ -5,11 +5,11 @@ declare(strict_types=1);
 use App\Contexts\Accounts\Authentication\Providers\AuthenticationServiceProvider;
 use App\Contexts\Accounts\MultiFactorAuthentication\Providers\MultiFactorAuthenticationServiceProvider;
 use App\Contexts\Accounts\Registration\Providers\RegistrationServiceProvider;
-use App\Contexts\Alliance\Content\Providers\ContentServiceProvider;
 use App\Contexts\Alliance\Lifecycle\Providers\LifecycleServiceProvider;
 use App\Contexts\Alliance\Recruitment\Providers\RecruitmentServiceProvider;
 use App\Contexts\GameWorld\GiftCodes\Providers\GiftCodesServiceProvider;
 use App\Contexts\GameWorld\Players\Providers\PlayersServiceProvider;
+use App\Contexts\Intelligence\Evidence\Providers\EvidenceServiceProvider;
 use App\Contexts\Operations\KingPerks\Providers\KingPerksServiceProvider;
 use App\Contexts\Operations\Participation\Providers\ParticipationServiceProvider;
 use App\Contexts\Operations\TerritoryPlanning\Providers\TerritoryPlanningServiceProvider;
@@ -26,12 +26,12 @@ return [
     PlayersServiceProvider::class,
     GiftCodesServiceProvider::class,
     LifecycleServiceProvider::class,
-    ContentServiceProvider::class,
     RecruitmentServiceProvider::class,
     ParticipationServiceProvider::class,
     KingPerksServiceProvider::class,
     TerritoryPlanningServiceProvider::class,
     TerritoryPlanningReadModelServiceProvider::class,
+    EvidenceServiceProvider::class,
     AdministrationServiceProvider::class,
     IntegrationsServiceProvider::class,
 ];

@@ -2,9 +2,11 @@
 
 declare(strict_types=1);
 
+use App\Contexts\Intelligence\Evidence\Http\Controllers\EvidenceController;
 use App\Contexts\Operations\Results\Http\Controllers\EventResultController;
 use App\Contexts\Operations\Rosters\Http\Controllers\EventRosterController;
 use App\ReadModels\EventHistory\Http\Controllers\EventHistoryController;
+use App\ReadModels\ScreenshotIntake\Http\Controllers\ScreenshotIntakeController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'auth.session', 'verified'])->group(function (): void {
@@ -14,6 +16,13 @@ Route::middleware(['auth', 'auth.session', 'verified'])->group(function (): void
     Route::get('/kingdoms/{kingdom}/events/history', [EventHistoryController::class, 'kingdom'])
         ->whereUlid('kingdom')
         ->name('kingdoms.events.history');
+
+    Route::get('/events/{occurrence}/screenshot-intake', ScreenshotIntakeController::class)
+        ->whereUlid('occurrence')
+        ->name('events.screenshot-intake');
+    Route::post('/events/{occurrence}/screenshot-intake', [EvidenceController::class, 'store'])
+        ->whereUlid('occurrence')
+        ->name('events.screenshot-intake.store');
 });
 
 Route::middleware(['auth', 'auth.session', 'verified', 'password.confirm'])->group(function (): void {

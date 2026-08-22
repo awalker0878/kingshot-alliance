@@ -18,6 +18,8 @@ RUN apk add --no-cache \
         libpq \
         libzip \
         nginx \
+        tesseract-ocr \
+        tesseract-ocr-data-eng \
     && apk add --no-cache --virtual .build-deps \
         $PHPIZE_DEPS \
         icu-dev \
@@ -89,6 +91,7 @@ COPY docker/php/opcache.ini /usr/local/etc/php/conf.d/10-opcache.ini
 COPY docker/entrypoint.sh /usr/local/bin/kingshot-entrypoint
 
 RUN nginx -t -c /etc/nginx/azure.conf \
+    && tesseract --version >/dev/null \
     && php artisan package:discover --ansi \
     && chmod +x /usr/local/bin/kingshot-entrypoint \
     && chown -R www-data:www-data storage bootstrap/cache
