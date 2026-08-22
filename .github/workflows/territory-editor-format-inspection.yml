@@ -7,19 +7,21 @@ on:
       - '.github/workflows/territory-editor-format-inspection.yml'
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   format:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
         with:
           node-version: 24
           cache: npm
       - run: npm ci --no-audit --no-fund
-      - name: Correct semantic labels and apply locked formatter
+      - name: Apply exact editor fixes and locked formatter
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -30,9 +32,11 @@ jobs:
           path.write_text(text)
           PY
           npx prettier --write resources/js/pages/Kingdom/Territory/Editor.vue
-      - name: Upload exact formatted editor
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
-        with:
-          name: territory-editor-formatted
-          path: resources/js/pages/Kingdom/Territory/Editor.vue
-          retention-days: 1
+      - name: Commit formatted editor and remove inspection workflow
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm .github/workflows/territory-editor-format-inspection.yml
+          git add resources/js/pages/Kingdom/Territory/Editor.vue
+          git commit -m 'Finalize Territory editor formatting and labels'
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
