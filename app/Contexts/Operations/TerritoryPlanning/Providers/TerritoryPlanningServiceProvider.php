@@ -21,6 +21,7 @@ final class TerritoryPlanningServiceProvider extends ServiceProvider
             Route::post('/territory/import-preview', [TerritoryPlanController::class, 'previewImport'])->name('territory.import-preview');
             Route::post('/territory', [TerritoryPlanController::class, 'store'])->name('territory.store');
             Route::put('/territory/{plan}', [TerritoryPlanController::class, 'save'])->whereUlid('plan')->name('territory.save');
+            Route::post('/territory/{plan}/import', [TerritoryPlanController::class, 'import'])->whereUlid('plan')->name('territory.import');
             Route::post('/territory/{plan}/publish', [TerritoryPlanController::class, 'publish'])->whereUlid('plan')->name('territory.publish');
             Route::delete('/territory/{plan}', [TerritoryPlanController::class, 'archive'])->whereUlid('plan')->name('territory.archive');
             Route::post('/territory/{plan}/clone', [TerritoryPlanController::class, 'clone'])->whereUlid('plan')->name('territory.clone');
