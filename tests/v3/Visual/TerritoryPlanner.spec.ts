@@ -1,5 +1,11 @@
+import { createHash } from 'node:crypto';
 import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
+
+const territoryVisualFingerprints: Record<string, string> = {
+  desktop: '57f1dbd12042e95876ab7930690829e1cbf90bc762525f4ecb88f71ca6b26974',
+  mobile: 'ee05cc20c4afa6addd48ce85aebdfb0d0789150b249659f00615862161dc8312',
+};
 
 async function activateVisualGovernor(page: Page): Promise<void> {
   await page.goto('/login');
@@ -18,7 +24,10 @@ async function activateVisualGovernor(page: Page): Promise<void> {
   }
 }
 
-test('Territory Command renders the saved hive without horizontal page overflow', async ({ page }) => {
+test('Territory Command renders the saved hive without horizontal page overflow', async (
+  { page },
+  testInfo,
+) => {
   await activateVisualGovernor(page);
   await page.goto('/territory');
   await page.waitForLoadState('networkidle');
@@ -46,5 +55,17 @@ test('Territory Command renders the saved hive without horizontal page overflow'
   );
   expect(editorOverflow).toBeFalsy();
 
-  await expect(page).toHaveScreenshot('territory-planner.png', { fullPage: true });
+  const expectedFingerprint = territoryVisualFingerprints[testInfo.project.name];
+  expect(expectedFingerprint, `Missing Territory visual fingerprint for ${testInfo.project.name}`).toBeDefined();
+
+  const screenshot = await page.screenshot({
+    animations: 'disabled',
+    caret: 'hide',
+    fullPage: true,
+    path: testInfo.outputPath('territory-planner.png'),
+    scale: 'css',
+  });
+  const actualFingerprint = createHash('sha256').update(screenshot).digest('hex');
+
+  expect(actualFingerprint).toBe(expectedFingerprint);
 });
