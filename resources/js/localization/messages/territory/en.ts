@@ -86,6 +86,7 @@ const messages = {
     uncovered: 'Uncovered cities',
     components: 'Territory chains',
     avgDistance: 'Avg Bear distance',
+    medianDistance: 'Median Bear distance',
     maxDistance: 'Longest Bear distance',
     bannerEfficiency: 'Covered cities / Banner',
     violations: 'Blocking issues',

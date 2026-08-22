@@ -86,6 +86,7 @@ const messages = {
     uncovered: 'Nicht abgedeckte Städte',
     components: 'Gebietsketten',
     avgDistance: 'Ø Bärendistanz',
+    medianDistance: 'Median der Bär-Distanz',
     maxDistance: 'Größte Bärendistanz',
     bannerEfficiency: 'Abgedeckte Städte / Banner',
     violations: 'Blockierende Probleme',

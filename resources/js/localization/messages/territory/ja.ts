@@ -82,6 +82,7 @@ const messages = {
     uncovered: '範囲外の都市',
     components: '領地チェーン',
     avgDistance: '平均ベア距離',
+    medianDistance: 'クマまでの距離の中央値',
     maxDistance: '最大ベア距離',
     bannerEfficiency: '範囲内都市 / 同盟旗',
     violations: 'ブロック問題',

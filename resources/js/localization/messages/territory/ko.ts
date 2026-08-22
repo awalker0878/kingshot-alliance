@@ -83,6 +83,7 @@ const messages = {
     uncovered: '범위 밖 도시',
     components: '영토 연결망',
     avgDistance: '평균 곰 거리',
+    medianDistance: '곰 거리 중앙값',
     maxDistance: '최대 곰 거리',
     bannerEfficiency: '범위 내 도시 / 깃발',
     violations: '차단 문제',

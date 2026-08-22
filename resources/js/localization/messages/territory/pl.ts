@@ -84,6 +84,7 @@ const messages = {
     uncovered: 'Nieobjęte miasta',
     components: 'Łańcuchy terytorium',
     avgDistance: 'Średnia odległość od Niedźwiedzia',
+    medianDistance: 'Mediana odległości do Niedźwiedzia',
     maxDistance: 'Największa odległość od Niedźwiedzia',
     bannerEfficiency: 'Objęte miasta / Sztandar',
     violations: 'Problemy blokujące',

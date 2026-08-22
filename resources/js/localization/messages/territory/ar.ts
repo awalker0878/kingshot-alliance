@@ -83,6 +83,7 @@ const messages = {
     uncovered: 'المدن غير المغطاة',
     components: 'سلاسل الإقليم',
     avgDistance: 'متوسط المسافة إلى الدب',
+    medianDistance: 'وسيط مسافة الدب',
     maxDistance: 'أقصى مسافة إلى الدب',
     bannerEfficiency: 'المدن المغطاة / الراية',
     violations: 'مشكلات مانعة',

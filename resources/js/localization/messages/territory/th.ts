@@ -83,6 +83,7 @@ const messages = {
     uncovered: 'เมืองที่ไม่ครอบคลุม',
     components: 'สายอาณาเขต',
     avgDistance: 'ระยะหมีเฉลี่ย',
+    medianDistance: 'ค่ามัธยฐานระยะห่างถึงหมี',
     maxDistance: 'ระยะหมีไกลสุด',
     bannerEfficiency: 'เมืองที่ครอบคลุม / ธง',
     violations: 'ปัญหาที่บล็อก',

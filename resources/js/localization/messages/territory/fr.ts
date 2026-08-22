@@ -86,6 +86,7 @@ const messages = {
     uncovered: 'Villes non couvertes',
     components: 'Chaînes territoriales',
     avgDistance: 'Distance moyenne à l’ours',
+    medianDistance: 'Distance médiane à l’ours',
     maxDistance: 'Distance maximale à l’ours',
     bannerEfficiency: 'Villes couvertes / Bannière',
     violations: 'Problèmes bloquants',

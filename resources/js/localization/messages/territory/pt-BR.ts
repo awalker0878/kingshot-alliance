@@ -87,6 +87,7 @@ const messages = {
     uncovered: 'Cidades sem cobertura',
     components: 'Cadeias territoriais',
     avgDistance: 'Distância média ao Urso',
+    medianDistance: 'Distância mediana até o Urso',
     maxDistance: 'Maior distância ao Urso',
     bannerEfficiency: 'Cidades cobertas / Estandarte',
     violations: 'Problemas bloqueantes',

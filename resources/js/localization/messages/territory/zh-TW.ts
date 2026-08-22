@@ -81,6 +81,7 @@ const messages = {
     uncovered: '未覆蓋城市',
     components: '領地鏈路',
     avgDistance: '平均獵熊距離',
+    medianDistance: '熊距離中位數',
     maxDistance: '最遠獵熊距離',
     bannerEfficiency: '已覆蓋城市 / 旗幟',
     violations: '阻擋問題',

@@ -84,6 +84,7 @@ const messages = {
     uncovered: 'Kapsanmayan şehirler',
     components: 'Bölge zincirleri',
     avgDistance: 'Ort. Ayı mesafesi',
+    medianDistance: 'Ayı mesafesi medyanı',
     maxDistance: 'En uzun Ayı mesafesi',
     bannerEfficiency: 'Kapsanan şehirler / Sancak',
     violations: 'Engelleyici sorunlar',

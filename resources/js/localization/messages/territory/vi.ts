@@ -86,6 +86,7 @@ const messages = {
     uncovered: 'Thành phố chưa phủ',
     components: 'Chuỗi lãnh thổ',
     avgDistance: 'Khoảng cách Gấu trung bình',
+    medianDistance: 'Trung vị khoảng cách tới Gấu',
     maxDistance: 'Khoảng cách Gấu xa nhất',
     bannerEfficiency: 'Thành phố được phủ / Cờ',
     violations: 'Lỗi chặn thao tác',

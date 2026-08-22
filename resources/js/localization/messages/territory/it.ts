@@ -86,6 +86,7 @@ const messages = {
     uncovered: 'Città non coperte',
     components: 'Catene territoriali',
     avgDistance: 'Distanza media Orso',
+    medianDistance: 'Distanza mediana dall’Orso',
     maxDistance: 'Distanza massima Orso',
     bannerEfficiency: 'Città coperte / Stendardo',
     violations: 'Problemi bloccanti',

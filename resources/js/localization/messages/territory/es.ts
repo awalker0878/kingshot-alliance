@@ -86,6 +86,7 @@ const messages = {
     uncovered: 'Ciudades sin cobertura',
     components: 'Cadenas territoriales',
     avgDistance: 'Distancia media al Oso',
+    medianDistance: 'Distancia mediana al Oso',
     maxDistance: 'Mayor distancia al Oso',
     bannerEfficiency: 'Ciudades cubiertas / Estandarte',
     violations: 'Problemas bloqueantes',

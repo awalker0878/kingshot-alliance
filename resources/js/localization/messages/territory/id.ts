@@ -86,6 +86,7 @@ const messages = {
     uncovered: 'Kota tidak tercakup',
     components: 'Rantai wilayah',
     avgDistance: 'Rata-rata jarak Beruang',
+    medianDistance: 'Median jarak Beruang',
     maxDistance: 'Jarak Beruang terjauh',
     bannerEfficiency: 'Kota tercakup / Panji',
     violations: 'Masalah yang memblokir',

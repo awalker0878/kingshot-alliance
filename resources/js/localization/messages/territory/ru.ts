@@ -86,6 +86,7 @@ const messages = {
     uncovered: 'Непокрытые города',
     components: 'Цепочки территории',
     avgDistance: 'Средняя дистанция до Медведя',
+    medianDistance: 'Медианная дистанция до Медведя',
     maxDistance: 'Максимальная дистанция до Медведя',
     bannerEfficiency: 'Покрытые города / Знамя',
     violations: 'Блокирующие проблемы',

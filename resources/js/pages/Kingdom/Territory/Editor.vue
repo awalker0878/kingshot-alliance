@@ -1340,7 +1340,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
                   <dd>{{ analysis[alliance.key]?.bear_distance_tiles.average ?? '—' }}</dd>
                 </div>
                 <div>
-                  <dt class="text-[var(--ks-muted)]">P50 · {{ t('territory.distanceTiles') }}</dt>
+                  <dt class="text-[var(--ks-muted)]">{{ t('territory.medianDistance') }}</dt>
                   <dd>{{ analysis[alliance.key]?.bear_distance_tiles.median ?? '—' }}</dd>
                 </div>
                 <div>
@@ -1443,7 +1443,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
                 {{ comparison.current[alliance.key]?.bear_distance_tiles.average ?? '—' }}
               </p>
               <p>
-                P50 · {{ t('territory.distanceTiles') }}:
+                {{ t('territory.medianDistance') }}:
                 {{ comparison.previous[alliance.key]?.bear_distance_tiles.median ?? '—' }} →
                 {{ comparison.current[alliance.key]?.bear_distance_tiles.median ?? '—' }}
               </p>
