@@ -40,7 +40,7 @@ test('Territory Command renders the saved hive without horizontal page overflow'
   );
   expect(overflow).toBeFalsy();
 
-  await page.getByText('Bear Hive Alpha').click();
+  await page.getByRole('link', { name: 'Hive Builder' }).click();
   await page.waitForLoadState('networkidle');
   await expect(page.getByRole('heading', { name: 'Hive Builder' })).toBeVisible();
   await expect(page.getByLabel('Interactive Kingdom territory map editor')).toBeVisible();
