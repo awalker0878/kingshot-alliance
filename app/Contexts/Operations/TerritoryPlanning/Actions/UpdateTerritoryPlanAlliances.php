@@ -25,9 +25,7 @@ final readonly class UpdateTerritoryPlanAlliances
         private AuditRecorder $audit,
     ) {}
 
-    /**
-     * @param  list<array<string, mixed>>  $layers
-     */
+    /** @param list<array<string, mixed>> $layers */
     public function handle(
         string $actorPlayerId,
         string $planId,
@@ -36,14 +34,21 @@ final readonly class UpdateTerritoryPlanAlliances
     ): TerritoryPlanMutationReceipt {
         $normalized = $this->normalize($layers);
 
-        return DB::transaction(function () use ($actorPlayerId, $planId, $expectedRevision, $normalized): TerritoryPlanMutationReceipt {
+        return DB::transaction(function () use (
+            $actorPlayerId,
+            $planId,
+            $expectedRevision,
+            $normalized,
+        ): TerritoryPlanMutationReceipt {
             $context = $this->writeState->lock($actorPlayerId, $planId);
             $this->authorization->authorizeManage($context);
+
             if ($context->plan->scope !== TerritoryPlanScope::Kingdom) {
                 throw ValidationException::withMessages([
                     'alliances' => 'Alliance layers can only be managed independently on a Kingdom territory plan.',
                 ]);
             }
+
             if ((int) $context->plan->revision !== $expectedRevision) {
                 throw ValidationException::withMessages([
                     'revision' => 'This plan changed before its Alliance layers could be updated. Reload the current layout first.',
@@ -55,6 +60,7 @@ final readonly class UpdateTerritoryPlanAlliances
                 if (! is_string($allianceId)) {
                     continue;
                 }
+
                 $reference = $this->alliances->lockCurrent($allianceId);
                 if ($reference->kingdomId !== (string) $context->plan->kingdom_id) {
                     throw ValidationException::withMessages([
@@ -76,6 +82,7 @@ final readonly class UpdateTerritoryPlanAlliances
                 $key = $layer['key'];
                 $retainedKeys[$key] = true;
                 $row = $existing->get($key);
+
                 if (! $row instanceof TerritoryPlanAlliance) {
                     TerritoryPlanAlliance::query()->create([
                         'territory_plan_id' => $planId,
@@ -83,22 +90,29 @@ final readonly class UpdateTerritoryPlanAlliances
                         ...$this->persistenceAttributes($layer),
                     ]);
                     $added++;
+
                     continue;
                 }
 
                 $identityChanged = (string) ($row->alliance_id ?? '') !== (string) ($layer['alliance_id'] ?? '')
                     || (string) ($row->external_name ?? '') !== (string) ($layer['external_name'] ?? '');
-                if ($identityChanged && TerritoryPlanObject::query()->where('territory_plan_alliance_id', $row->id)->exists()) {
+                $ownsObjects = TerritoryPlanObject::query()
+                    ->where('territory_plan_alliance_id', $row->id)
+                    ->exists();
+
+                if ($identityChanged && $ownsObjects) {
                     throw ValidationException::withMessages([
                         'alliances' => 'Remove planned objects from an Alliance layer before changing that layer identity.',
                     ]);
                 }
 
                 $attributes = $this->persistenceAttributes($layer);
-                if ($row->only(array_keys($attributes)) !== $attributes) {
-                    $row->forceFill($attributes)->save();
-                    $updated++;
+                if ($row->only(array_keys($attributes)) === $attributes) {
+                    continue;
                 }
+
+                $row->forceFill($attributes)->save();
+                $updated++;
             }
 
             $removed = 0;
@@ -106,11 +120,17 @@ final readonly class UpdateTerritoryPlanAlliances
                 if (isset($retainedKeys[$key]) || ! $row instanceof TerritoryPlanAlliance) {
                     continue;
                 }
-                if (TerritoryPlanObject::query()->where('territory_plan_alliance_id', $row->id)->exists()) {
+
+                if (
+                    TerritoryPlanObject::query()
+                        ->where('territory_plan_alliance_id', $row->id)
+                        ->exists()
+                ) {
                     throw ValidationException::withMessages([
                         'alliances' => 'Remove planned objects from an Alliance layer before removing that layer.',
                     ]);
                 }
+
                 $row->delete();
                 $removed++;
             }
@@ -118,7 +138,11 @@ final readonly class UpdateTerritoryPlanAlliances
             $preferences = $context->plan->planning_preferences ?? [];
             $selectedTraps = $preferences['selected_bear_trap_by_alliance'] ?? null;
             if (is_array($selectedTraps)) {
-                $preferences['selected_bear_trap_by_alliance'] = array_intersect_key($selectedTraps, $retainedKeys);
+                $preferences['selected_bear_trap_by_alliance'] = array_intersect_key(
+                    $selectedTraps,
+                    $retainedKeys,
+                );
+
                 if ($preferences['selected_bear_trap_by_alliance'] === []) {
                     unset($preferences['selected_bear_trap_by_alliance']);
                 }
@@ -169,6 +193,7 @@ final readonly class UpdateTerritoryPlanAlliances
         $keys = [];
         $linked = [];
         $normalized = [];
+
         foreach ($layers as $index => $layer) {
             $key = $this->stringOrNull($layer['key'] ?? null);
             $allianceId = $this->stringOrNull($layer['alliance_id'] ?? null);
@@ -192,6 +217,7 @@ final readonly class UpdateTerritoryPlanAlliances
                     'alliances' => 'Every Alliance layer requires unique identity, one linked or external Alliance, a display name, and a valid map color.',
                 ]);
             }
+
             if ($allianceId !== null && isset($linked[$allianceId])) {
                 throw ValidationException::withMessages([
                     'alliances' => 'A linked Alliance can appear only once in a Kingdom plan.',
@@ -202,6 +228,7 @@ final readonly class UpdateTerritoryPlanAlliances
             if ($allianceId !== null) {
                 $linked[$allianceId] = true;
             }
+
             $normalized[] = [
                 'key' => $key,
                 'alliance_id' => $allianceId,
@@ -241,6 +268,7 @@ final readonly class UpdateTerritoryPlanAlliances
         if (! is_scalar($value)) {
             return null;
         }
+
         $value = trim((string) $value);
 
         return $value === '' ? null : $value;
