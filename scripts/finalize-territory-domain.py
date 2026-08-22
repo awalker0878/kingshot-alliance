@@ -111,4 +111,72 @@ if not any(case.get('name') == 'dataset-object-cap' for case in cases):
     })
 fixture.write_text(json.dumps(data, indent=2, ensure_ascii=False) + '\n')
 
-print('Territory dataset-owned object caps finalized.')
+
+editor = Path('resources/js/pages/Kingdom/Territory/Editor.vue')
+source = editor.read_text()
+old_request = """  const response = await fetch(url, {
+    method,
+    credentials: 'same-origin',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+      'X-CSRF-TOKEN': csrfToken(),
+      'X-Requested-With': 'XMLHttpRequest',
+    },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });"""
+new_request = """  const init: RequestInit = {
+    method,
+    credentials: 'same-origin',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+      'X-CSRF-TOKEN': csrfToken(),
+      'X-Requested-With': 'XMLHttpRequest',
+    },
+  };
+  if (body !== undefined) init.body = JSON.stringify(body);
+  const response = await fetch(url, init);"""
+if old_request in source:
+    source = source.replace(old_request, new_request, 1)
+source = source.replace(
+    ':disabled="!canEdit || activeAlliance?.locked"',
+    ':disabled="!canEdit || Boolean(activeAlliance?.locked)"',
+)
+old_panel = '<MarchAnalysisPanel :alliances="alliances" :objects="objects" :analysis="analysis" />'
+new_panel = """<MarchAnalysisPanel
+          :alliances="alliances"
+          :objects="objects"
+          :analysis="analysis"
+          :preferences="preferences"
+          :can-edit="canEdit"
+          @select-trap="setSelectedBear($event.allianceKey, $event.trapKey)"
+        />"""
+if old_panel in source:
+    source = source.replace(old_panel, new_panel, 1)
+old_duplicate_bear = """          <div v-for="alliance in alliances" :key="`bear-${alliance.key}`" class="mt-3">
+            <label class="block text-sm">
+              {{ t('territory.selectedBearTrap', { alliance: alliance.display_name }) }}
+              <select
+                :value="selectedBearFor(alliance.key)"
+                class="ks-input mt-1 w-full"
+                :disabled="!canEdit || alliance.locked"
+                @change="setSelectedBear(alliance.key, ($event.target as HTMLSelectElement).value)"
+              >
+                <option value="">{{ t('territory.nearestBearTrap') }}</option>
+                <option
+                  v-for="trap in bearTrapsFor(alliance.key)"
+                  :key="trap.key"
+                  :value="trap.key"
+                >
+                  {{ trap.label || t('territory.bearTrap') }}
+                </option>
+              </select>
+            </label>
+          </div>
+"""
+if old_duplicate_bear in source:
+    source = source.replace(old_duplicate_bear, '', 1)
+editor.write_text(source)
+
+print('Territory dataset-owned caps and strict editor contracts finalized.')
