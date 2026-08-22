@@ -49,6 +49,7 @@ export function validatePlacement(
 ): ValidationResult {
   const violations: ValidationIssue[] = [];
   const warnings: ValidationIssue[] = [];
+  const suggestions: ValidationIssue[] = [];
   const rectangles = new Map<string, Rect>();
   const bounds = map.bounds;
 
@@ -159,7 +160,50 @@ export function validatePlacement(
       });
   }
 
-  return { violations: unique(violations), warnings: unique(warnings), suggestions: [] };
+  const allianceObjects = new Map<string, PlanObject[]>();
+  objects.forEach((object) =>
+    allianceObjects.set(object.alliance_key, [
+      ...(allianceObjects.get(object.alliance_key) ?? []),
+      object,
+    ]),
+  );
+  for (const scopedObjects of allianceObjects.values()) {
+    const firstCity = scopedObjects.find((object) => object.type === 'governor_city');
+    if (!firstCity) continue;
+    if (!scopedObjects.some((object) => object.type === 'headquarters')) {
+      suggestions.push(
+        issue(
+          'consider_headquarters',
+          'Consider placing the Alliance HQ before finalizing this layout.',
+          firstCity.key,
+        ),
+      );
+    }
+    if (!scopedObjects.some((object) => object.type === 'banner')) {
+      suggestions.push(
+        issue(
+          'consider_banner_coverage',
+          'Consider adding Alliance Banners to establish territory coverage for Governor cities.',
+          firstCity.key,
+        ),
+      );
+    }
+    if (!scopedObjects.some((object) => object.type === 'bear_trap')) {
+      suggestions.push(
+        issue(
+          'consider_bear_trap',
+          'Consider placing a Bear Trap to analyze hive march distances.',
+          firstCity.key,
+        ),
+      );
+    }
+  }
+
+  return {
+    violations: unique(violations),
+    warnings: unique(warnings),
+    suggestions: unique(suggestions),
+  };
 }
 
 function stats(values: number[]) {
@@ -189,14 +233,14 @@ export function analyzeLayout(
   );
   const result: Record<string, AllianceAnalysis> = {};
 
-  for (const [allianceKey, allianceObjects] of groups) {
+  for (const [allianceKey, allianceGroup] of groups) {
     const counts: Record<string, number> = {};
-    allianceObjects.forEach((object) => {
+    allianceGroup.forEach((object) => {
       counts[object.type] = (counts[object.type] ?? 0) + 1;
     });
-    const cities = allianceObjects.filter((object) => object.type === 'governor_city');
-    const traps = allianceObjects.filter((object) => object.type === 'bear_trap');
-    const sources = allianceObjects.flatMap((object) => {
+    const cities = allianceGroup.filter((object) => object.type === 'governor_city');
+    const traps = allianceGroup.filter((object) => object.type === 'bear_trap');
+    const sources = allianceGroup.flatMap((object) => {
       const definition = map.object_types[object.type];
       if (!definition || definition.coverage <= 0) return [];
       return [
