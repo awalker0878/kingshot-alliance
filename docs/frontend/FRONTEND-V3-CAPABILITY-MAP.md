@@ -1,8 +1,6 @@
 # FRONTEND-V3 Capability Map
 
-This document defines the Governor-facing screen map from the application capabilities that actually exist in the codebase.
-
-It is intentionally narrower than a generic Kingshot companion app. A screen or label is not added because it exists somewhere in the game; it must be backed by this repository's current capabilities.
+This document defines the Governor-facing screen map from application capabilities. It includes the active Territory & Hive Planner delivery contract so implementation cannot ship UI without its backing owner capabilities.
 
 ## Presentation rule
 
@@ -30,6 +28,13 @@ Active Governor
       │   ├── King's Court (Kingdom of Power only)
       │   └── War Reports / Event History
       │
+      ├── Territory Command
+      │   ├── Alliance Hive Plans
+      │   ├── Hive Builder
+      │   ├── Layout Analysis / Compare
+      │   ├── Multi-Alliance Kingdom Plans
+      │   └── Revisions / Import / Export
+      │
       ├── Intel Room
       │   ├── Alliance Roster
       │   ├── Alliance Strength
@@ -49,310 +54,131 @@ Active Governor
           └── Kingdom Transfer
 ```
 
-## 1. Command Overview
-
-Backed by:
-
-- `AllianceOverviewController`
-- current Governor membership rank and specialist roles
-- Alliance notices/member content
-- upcoming Alliance event occurrences
-- Alliance invitation/member/recruitment/content/connection entry points when allowed
-
-Do not show unsupported generic Alliance statistics such as territory, donation totals, leaderboard rank, alliance gift level or alliance power unless a concrete query is added to the page contract.
-
-## 2. Alliance Hall
-
-Backed by Alliance Membership and Access:
-
-- active memberships
-- R1–R5 Alliance rank
-- specialist Alliance roles
-- Governor-specific invitations
-- invitation resend/revoke
-- membership status
-- rank changes
-- specialist-role assignment/removal
-- R5 leadership transfer
-- leaving the Alliance
-
-The Alliance roster used for intelligence is a different screen and must not be confused with application membership.
-
-## 3. Recruitment Hall
-
-Backed by Alliance Recruitment:
-
-- public/invitation/closed application modes
-- recruitment questions
-- Governor applications
-- stages: New, Screening, Contacted, Interview, Accepted, Declined, Withdrawn, Joined
-- assigned reviewers
-- officer notes
-- tags
-- duplicate-candidate merge
-- decision messages
-- acceptance conversion to an Alliance invitation
-- onboarding items with Pending / Completed / Waived state
-
-## 4. Noticeboard
-
-Backed by Alliance Content:
-
-- Alliance public profile
-- categories
-- member content
-- announcements
-- drafts/publishing
-- revisions and restore
-- media library
-- public content pages
-
-## 5. Alliance Connections
-
-Backed by Platform Integrations but presented as an Alliance officer utility:
-
-- Alliance access keys
-- revoking access keys
-- event dispatch subscriptions
-- revoking dispatch subscriptions
-
-This is not presented as a game feature. It remains visibly separate from the core Kingshot rooms.
-
-## 6. Event Command
-
-Backed by Operations / Events / Participation and the repository's `KingShotEventTypeCatalog`.
-
-The current event catalogue includes:
-
-- Bear Hunt
-- Viking Vengeance
-- Alliance Mobilization
-- Alliance Championship
-- Alliance Brawl
-- Swordland Showdown
-- Tri-Alliance Clash
-- Flamedragon Tyrant
-- Swordland Summit League
-- Cesares Fury
-- Outpost Battle
-- Sanctuary Battle
-- Castle Battle
-- Kingdom of Power
-- Hall of Governors
-- Armament Competition
-- Hero Roulette
-- Fishing Tournament
-- Treasure Raiders
-- Merchant Empire
-- Eternity's Reach
-- Custom events
-
-The UI must render only the rooms enabled for the selected event scope.
-
-Supported event rooms from the code are:
-
-- Responses
-- Registration / Waitlist
-- Attendance
-- Phases
-- Polls
-- Rosters
-- Substitutes
-- Teams
-- Legions
-- Rally Guidance
-- Formations
-- Objectives
-- King's Court
-- Scoring
-- Results
-
-## 7. Bear Hunt Rally Command
-
-The Bear Hunt Alliance scope currently enables:
-
-- Responses
-- Registration
-- Attendance
-- Rally Guidance
-- Formations
-- Results
+## Command Overview
 
-The code also stores Alliance rally-guidance rules, player formations, event recommended formations, rally groups, rally assignments and rally participation.
+Backed by current Governor membership/rank/specialist roles, Alliance notices/content, upcoming Events and permission-aware entry points. Territory Command may appear as an entry point only when the current Player has an eligible planning scope.
 
-Do not show generic battle objectives or event rosters on Bear Hunt unless the event capability definition changes.
+Do not show unsupported donation totals, leaderboard rank, Alliance Gift Level or arbitrary Alliance power merely because the game has those concepts.
 
-## 8. Swordland Showdown War Room
-
-The Swordland Showdown Alliance scope currently enables:
-
-- Responses
-- Polls
-- Phases
-- Combatant roster
-- Substitute roster
-- Objectives
-- Attendance
-- Scoring
-- Results
+## Alliance Hall
 
-Default phases in the catalogue are Voting, Registration, Matchmaking and Battle.
+Backed by Alliance Membership and Access: active memberships, R1–R5 rank, specialist roles, invitations, membership status, rank/role changes, leadership transfer and leaving the Alliance.
 
-Default roster capacities are 30 combatants and 10 substitutes.
-
-## 9. King's Court — Kingdom of Power
-
-This room appears only when the Kingdom of Power Kingdom event has the `KingPerks` capability.
-
-Implemented appointment types:
+## Recruitment Hall
 
-- Noble Advisor
-- Chief Minister
-- Field Commander
-- Marshal
-- Minister of Interior
+Backed by Alliance Recruitment: modes/questions, Governor applications, stages, assigned reviewers, notes, tags, duplicate merge, decisions, invitation conversion and onboarding items.
 
-Current catalogue rules:
+## Noticeboard
 
-- each appointment occupies 30 minutes
-- Governor appointment cooldown is 60 minutes
-- cancelled-position lockout is 30 minutes
+Backed by Alliance Content: public profile, categories, member content, announcements, drafts/publishing, revisions/restore, media and public pages.
 
-Implemented Governor request categories:
+## Alliance Connections
 
-- Construction
-- Research
-- Training
-- Healing
-- Combat
+Backed by Platform Integrations but presented as an officer utility: Alliance access keys and event-dispatch subscriptions with revoke behavior.
 
-Implemented King Skills:
+## Event Command
 
-- Groundworks
-- Fresh Ideas
-- Mobilize
-- Community Healing
+Backed by Operations Events/Participation and the repository's KingShot event catalogue. Supported rooms remain Responses, Registration/Waitlist, Attendance, Phases, Polls, Rosters/Substitutes/Teams/Legions, Rally Guidance/Formations, Objectives, King's Court, Scoring and Results according to selected event capabilities.
 
-The UI supports plan creation/publishing, Governor requests, assignment, confirmation/decline, activation, outcome/no-show handling, replacement, auto-scheduling, position blocks and skill planning/scheduling/activation.
+### Bear Hunt Rally Command
 
-## 10. Intel Room — Alliance Roster
+Bear Hunt uses Responses, Registration, Attendance, Rally Guidance, Formations and Results. When a published Territory Plan revision is associated with the relevant operation, Rally Command may link to that immutable hive layout. Bear Hunt does not gain generic Battle objectives merely because territory planning exists.
 
-Backed by Alliance roster and Intelligence roster snapshots:
+### Swordland Showdown War Room
 
-- observed Governor identity
-- roster state: Active / Tracked / Left
-- optional application-membership linkage
-- latest recorded power
-- scout-reading freshness
-- 7-day / 30-day recorded-power comparison
-- total / average / median recorded power
-- recent joins/departures
-- linkage coverage
-- manual scout readings
-- CSV preview/commit
-- CSV export
-- historical readings
+Swordland continues to expose its existing Polls, Phases, combatant/substitute rosters, Objectives, Attendance, Scoring and Results. Spatial planning is linked only when an explicit supported revision reference exists.
 
-The UI must make clear that missing observations are not estimated.
+### King's Court — Kingdom of Power
 
-## 11. Intel Room — Kingdom Alliances
+King's Court remains the KingPerks appointment/King Skill workflow. Kingdom-wide Territory Command is a separate planning surface and is not presented as a royal appointment feature.
 
-Backed by Intelligence Observations / Diplomacy / Sharing / Ingestion:
+## Territory Command
 
-- tracked Kingdom Alliances
-- active/archived tracking state
-- timestamped observations
-- observation invalidation
-- diplomacy state: Unknown, Neutral, Friendly, NAP, Ally, Rival
-- diplomacy contacts
-- contact channels: in-game, Discord, other handle
-- shared Kingdom intelligence invitations and targets
-- ingestion subscriptions/batches/candidates for officer tooling
+Backed by `GameWorld/KingdomMaps`, `Operations/TerritoryPlanning` and composed read contracts.
 
-Ingestion mechanics are an officer utility and should not dominate the normal Intel Room presentation.
+### Plans
 
-## 12. Glory Ledger
+- Alliance-scoped and Kingdom-scoped plan lists;
+- create/open/save/publish/archive/clone/restore;
+- optimistic revision/conflict feedback;
+- map dataset/version/provenance visible to the user;
+- application-linked and plan-local external Alliance/Governor references.
 
-Backed by Intelligence Contributions:
+### Hive Builder
 
-- contribution categories
-- Governor self-reports
-- officer-entered records
-- approval
-- correction
-- reversal
-- source and status
-- data-quality flags and resolution
-- report schedules
-- CSV / spreadsheet export
-- Governor contribution history
+- HQ, Banner, Governor city and Bear Trap placement;
+- exact coordinate editing;
+- pan/zoom, select/move/delete/duplicate;
+- box selection, grouping/ungrouping, 90-degree rotation and undo/redo;
+- generated Bear-hive layouts and TC block placement;
+- territory coverage and map/reference layers;
+- blocking violations, planning warnings and suggestions displayed separately.
 
-Do not present this as an official in-game leaderboard unless such a feature is explicitly implemented.
+### Analysis
 
-## 13. Kingdom Transfer
+- territory connectivity and covered/uncovered Governors;
+- invalid/warning counts and banner usage/efficiency;
+- deterministic distance metrics and estimated march time with visible assumption/calibration;
+- average/median/max metrics where supported;
+- immutable layout/revision comparison.
 
-Backed by GameWorld Kingdom Transfers:
+### Multi-Alliance Kingdom planning
 
-- transfer cycle
-- Draft / Open / Locked / Closed / Cancelled states
-- Incoming / Outgoing / Staying Governors
-- transfer groups
-- group coordinator
-- Not Started / Preparing / Ready / Blocked / Confirmed / Withdrawn readiness
-- blockers
-- actual transfer completion
-- roster handoff for incoming/outgoing completion
+- multiple application-linked or external Alliances on one plan;
+- independent labels, presentation colors and visibility;
+- shared map collision/placement validation;
+- per-Alliance TC/Banner/object counts;
+- access remains Player/scope authorized and does not derive from a different inactive Governor.
 
-The UI can use official Kingshot transfer terminology where it maps to the implemented planning model, but it must not invent missing game rules or automatically infer eligibility.
+### Revisions/import/export
 
-## 14. Kingdom Roles
+- immutable published revisions pinned to map dataset/checksum;
+- explicit clone/restore rather than mutation of history;
+- schema-versioned JSON import with preview before commit;
+- JSON export plus shareable PNG/SVG rendering.
 
-Backed by GameWorld Governance:
+### Accessibility
 
-- Kingdom Administrator
-- Kingdom Event Coordinator
-- Kingdom Viewer
-- Kingdom-role permission assignment/removal
+The canvas is not the only control surface. Every material object is represented in synchronized DOM controls with exact coordinates, keyboard-operable actions and non-color validation messages.
 
-These are application governance roles. They must not be visually misrepresented as official Kingshot royal appointments. King's Court appointments are a separate Operations capability.
+## Intel Room — Alliance Roster
 
-## Explicitly excluded from the current primary UI baseline
+Backed by Alliance roster and Intelligence snapshots: observed Governor identity, roster state, optional membership linkage, recorded power/freshness/trends, summary metrics, joins/departures, manual scout readings, CSV preview/commit/export and history. Missing observations are never estimated.
 
-The following were present in earlier concept art but are not current application capabilities and must not be presented as real screens/data without new backend work:
+## Intel Room — Kingdom Alliances
 
-- generic Alliance Territory management
-- Alliance donation totals
-- Alliance Gift Level
-- a global Hall-of-Glory / Alliance leaderboard
-- Governor inventory
-- Governor stamina/EXP
-- skins/titles/mail
-- generic kingdom map interaction
-- generic Alliance power ranking
-- arbitrary game resource balances
-- invented events such as Foundry Battle or Canyon Clash
+Backed by Intelligence Observations/Diplomacy/Sharing/Ingestion: tracked Alliances, timestamped/invalidation state, diplomacy, contacts/channels, shared Kingdom intelligence and officer ingestion tooling.
 
+## Glory Ledger
 
-## 15. Gift Codes
+Backed by Intelligence Contributions: categories, self/officer reports, approval/correction/reversal, source/status/data-quality flags, report schedules, export and Governor history. It is not presented as an official in-game leaderboard.
 
-Backed by GameWorld Gift Codes:
+## Kingdom Transfer
 
-- shared normalized code catalogue with source and expiry;
-- per-Governor and per-Kingdom redemption state;
-- official Century Games handoff;
-- multi-Governor preparation and delivery confirmation;
-- retryable and permanent outcome states.
+Backed by GameWorld KingdomTransfers: cycles/states, incoming/outgoing/staying Governors, groups/coordinators, readiness/blockers and actual completion. The UI must not invent transfer eligibility rules.
 
-The application must not automate undocumented endpoints or send Player IDs to unofficial services.
+## Kingdom Roles
 
-## 16. Notification Center
+Backed by GameWorld Governance application roles. They must not be misrepresented as official Kingshot royal appointments.
 
-Backed by Communications Delivery:
+## Gift Codes
 
-- in-app inbox with read and dismiss state;
-- Governor-scoped Discord and Telegram endpoints;
-- per-reminder/channel preferences;
-- provider acknowledgement, endpoint health and bounded retries;
-- Event and King Perk reminder fan-out.
+Backed by GameWorld GiftCodes: normalized sourced catalogue, per-Governor/Kingdom redemption state, official Century Games handoff, multi-Governor preparation and retryable/permanent outcomes. No undocumented redemption endpoint automation.
 
-Provider credentials are encrypted and never displayed after save.
+## Notification Center
+
+Backed by Communications Delivery: in-app inbox, Governor-scoped Discord/Telegram endpoints, preferences, provider acknowledgement/health/retries and Event/KingPerk fan-out. Provider credentials remain encrypted and undisclosed after save.
+
+## Explicitly excluded from the primary UI baseline
+
+Territory planning and Kingdom map interaction are no longer generically excluded; they are supported only through the concrete Territory Command contracts above. The following remain unsupported unless new backend capability work is delivered:
+
+- Alliance donation totals;
+- Alliance Gift Level;
+- a global Hall-of-Glory / Alliance leaderboard;
+- Governor inventory;
+- Governor stamina/EXP;
+- skins/titles/mail;
+- arbitrary game resource balances;
+- generic Alliance power ranking;
+- invented events such as Foundry Battle or Canyon Clash.
