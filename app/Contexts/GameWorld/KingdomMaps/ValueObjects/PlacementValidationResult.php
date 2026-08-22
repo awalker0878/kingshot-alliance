@@ -15,8 +15,7 @@ final readonly class PlacementValidationResult
         public array $violations = [],
         public array $warnings = [],
         public array $suggestions = [],
-    ) {
-    }
+    ) {}
 
     public function valid(): bool
     {
