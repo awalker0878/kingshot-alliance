@@ -35,9 +35,11 @@ test('Territory Command renders the saved hive without horizontal page overflow'
   await page.waitForLoadState('networkidle');
   await expect(page.getByRole('heading', { name: 'Hive Builder' })).toBeVisible();
   await expect(page.getByLabel('Interactive Kingdom territory map editor')).toBeVisible();
-  await expect(page.getByText('Governor march analysis')).toBeVisible();
-  await expect(page.getByText('North Star')).toBeVisible();
-  await expect(page.getByText('Bear Trap 1')).toBeVisible();
+
+  const marchAnalysis = page.getByRole('region', { name: 'Governor march analysis' });
+  await expect(marchAnalysis).toBeVisible();
+  await expect(marchAnalysis.getByRole('cell', { name: 'North Star' })).toBeVisible();
+  await expect(marchAnalysis.getByRole('cell', { name: 'Bear Trap 1' })).toBeVisible();
 
   const editorOverflow = await page.evaluate(
     () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
