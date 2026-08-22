@@ -247,11 +247,29 @@ export function analyzeLayout(
       }
     });
 
-    const distances = cities.flatMap((city) => {
-      if (!traps.length) return [];
-      return [Math.min(...traps.map((trap) => Math.hypot(city.x - trap.x, city.y - trap.y)))];
-    });
     const seconds = preferences.march_seconds_per_tile;
+    const marches = cities.flatMap((city) => {
+      if (!traps.length) return [];
+      const nearest = traps.reduce<{ trap: PlanObject; distance: number } | null>((best, trap) => {
+        const distance = Math.hypot(city.x - trap.x, city.y - trap.y);
+        return best === null || distance < best.distance ? { trap, distance } : best;
+      }, null);
+      if (!nearest) return [];
+      return [
+        {
+          city_key: city.key,
+          trap_key: nearest.trap.key,
+          distance_tiles: Math.round(nearest.distance * 100) / 100,
+          estimated_seconds:
+            seconds === undefined ? null : Math.round(nearest.distance * seconds * 100) / 100,
+        },
+      ];
+    });
+    const distances = marches.map((march) => march.distance_tiles);
+    const estimatedSeconds = marches.flatMap((march) =>
+      march.estimated_seconds === null ? [] : [march.estimated_seconds],
+    );
+
     result[allianceKey] = {
       counts,
       governor_cities: cities.length,
@@ -262,10 +280,9 @@ export function analyzeLayout(
       territory_connected: components <= 1,
       banner_efficiency: counts.banner ? Math.round((covered / counts.banner) * 100) / 100 : null,
       bear_distance_tiles: stats(distances),
-      estimated_march_seconds: seconds
-        ? stats(distances.map((distance) => distance * seconds))
-        : null,
+      estimated_march_seconds: seconds === undefined ? null : stats(estimatedSeconds),
       march_assumption_seconds_per_tile: seconds ?? null,
+      marches,
     };
   }
 
