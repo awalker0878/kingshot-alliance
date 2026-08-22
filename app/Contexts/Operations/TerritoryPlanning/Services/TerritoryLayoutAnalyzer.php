@@ -6,8 +6,10 @@ namespace App\Contexts\Operations\TerritoryPlanning\Services;
 
 use App\Contexts\GameWorld\KingdomMaps\ValueObjects\KingdomMapDataset;
 
-final class TerritoryLayoutAnalyzer
+final readonly class TerritoryLayoutAnalyzer
 {
+    public function __construct(private TerritoryPlanningTelemetry $telemetry) {}
+
     /**
      * @param  list<array{key: string, type: string, x: int, y: int, alliance_key: string}>  $objects
      * @param  array<string, mixed>  $preferences
@@ -18,6 +20,7 @@ final class TerritoryLayoutAnalyzer
         array $objects,
         array $preferences = [],
     ): array {
+        $startedAt = hrtime(true);
         $byAlliance = [];
         foreach ($objects as $object) {
             $byAlliance[$object['alliance_key']][] = $object;
@@ -69,7 +72,6 @@ final class TerritoryLayoutAnalyzer
                 foreach ($corners as [$x, $y]) {
                     if (! $this->pointCovered((float) $x, (float) $y, $coverageSources)) {
                         $inside = false;
-
                         break;
                     }
                 }
@@ -110,12 +112,17 @@ final class TerritoryLayoutAnalyzer
             ];
         }
 
+        $this->telemetry->analysisCompleted(
+            mapDatasetId: $dataset->id,
+            objectCount: count($objects),
+            allianceCount: count($result),
+            elapsedMilliseconds: (hrtime(true) - $startedAt) / 1_000_000,
+        );
+
         return ['alliances' => $result];
     }
 
-    /**
-     * @param  list<array{key: string, x: float, y: float, coverage: float}>  $sources
-     */
+    /** @param list<array{key: string, x: float, y: float, coverage: float}> $sources */
     private function pointCovered(float $x, float $y, array $sources): bool
     {
         foreach ($sources as $source) {
@@ -130,9 +137,7 @@ final class TerritoryLayoutAnalyzer
         return false;
     }
 
-    /**
-     * @param  list<array{key: string, x: float, y: float, coverage: float}>  $sources
-     */
+    /** @param list<array{key: string, x: float, y: float, coverage: float}> $sources */
     private function coverageComponents(array $sources): int
     {
         if ($sources === []) {
@@ -209,11 +214,7 @@ final class TerritoryLayoutAnalyzer
     private function statistics(array $values): array
     {
         if ($values === []) {
-            return [
-                'average' => null,
-                'median' => null,
-                'max' => null,
-            ];
+            return ['average' => null, 'median' => null, 'max' => null];
         }
 
         sort($values, SORT_NUMERIC);
