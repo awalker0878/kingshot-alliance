@@ -59,7 +59,11 @@ final readonly class SaveTerritoryPlan
             $normalizedAlliances,
             $normalizedGroups,
         );
-        $preferences = $this->normalizePreferences($preferences);
+        $preferences = $this->normalizePreferences(
+            $preferences,
+            $normalizedAlliances,
+            $normalizedObjects,
+        );
 
         return DB::transaction(function () use (
             $actorPlayerId,
@@ -73,7 +77,7 @@ final readonly class SaveTerritoryPlan
             $context = $this->writeState->lock($actorPlayerId, $planId);
             $this->authorization->authorizeManage($context);
 
-            if ((int) $context->plan->revision !== $expectedRevision) {
+            if ($context->plan->revision !== $expectedRevision) {
                 throw ValidationException::withMessages([
                     'revision' => 'This plan was changed by another editor. Reload it before saving.',
                 ]);
@@ -87,8 +91,8 @@ final readonly class SaveTerritoryPlan
             );
 
             $dataset = $this->datasets->require(
-                (string) $context->plan->map_dataset_id,
-                (string) $context->plan->map_dataset_checksum,
+                $context->plan->map_dataset_id,
+                $context->plan->map_dataset_checksum,
             );
             $validationObjects = array_map(
                 static fn (array $object): array => [
@@ -120,6 +124,7 @@ final readonly class SaveTerritoryPlan
             foreach ($normalizedAlliances as $alliance) {
                 $row = TerritoryPlanAlliance::query()->create([
                     'territory_plan_id' => $planId,
+                    'plan_key' => $alliance['key'],
                     'alliance_id' => $alliance['alliance_id'],
                     'external_name' => $alliance['external_name'],
                     'external_tag' => $alliance['external_tag'],
@@ -136,6 +141,7 @@ final readonly class SaveTerritoryPlan
             foreach ($normalizedGroups as $group) {
                 $row = TerritoryPlanGroup::query()->create([
                     'territory_plan_id' => $planId,
+                    'plan_key' => $group['key'],
                     'label' => $group['label'],
                 ]);
                 $groupIds[$group['key']] = (string) $row->id;
@@ -144,6 +150,7 @@ final readonly class SaveTerritoryPlan
             foreach ($normalizedObjects as $object) {
                 TerritoryPlanObject::query()->create([
                     'territory_plan_id' => $planId,
+                    'plan_key' => $object['key'],
                     'territory_plan_alliance_id' => $allianceIds[$object['alliance_key']],
                     'group_id' => $object['group_key'] === null
                         ? null
@@ -171,14 +178,13 @@ final readonly class SaveTerritoryPlan
                 'territory.plan.saved',
                 $context->actor,
                 $context->plan,
-                $context->plan->owner_alliance_id === null
-                    ? null
-                    : (string) $context->plan->owner_alliance_id,
+                $context->plan->owner_alliance_id,
                 [
                     'revision' => $expectedRevision + 1,
                     'alliance_count' => count($normalizedAlliances),
                     'object_count' => count($normalizedObjects),
                     'warning_count' => count($validation->warnings),
+                    'suggestion_count' => count($validation->suggestions),
                 ],
             );
 
@@ -210,18 +216,22 @@ final readonly class SaveTerritoryPlan
             $key = trim((string) ($item['key'] ?? ''));
             $allianceId = $this->nullableString($item['alliance_id'] ?? null);
             $externalName = $this->nullableString($item['external_name'] ?? null);
+            $externalTag = $this->nullableString($item['external_tag'] ?? null);
             $displayName = trim((string) ($item['display_name'] ?? $externalName ?? ''));
 
             if (
                 $key === ''
+                || mb_strlen($key) > 120
                 || isset($keys[$key])
                 || $displayName === ''
                 || mb_strlen($displayName) > 160
+                || ($externalName !== null && mb_strlen($externalName) > 160)
+                || ($externalTag !== null && mb_strlen($externalTag) > 32)
                 || ($allianceId === null && $externalName === null)
                 || ($allianceId !== null && $externalName !== null)
             ) {
                 throw ValidationException::withMessages([
-                    'alliances' => 'Every Alliance layer needs a unique key, display name, and exactly one linked or external identity.',
+                    'alliances' => 'Every Alliance layer needs a unique valid key, display name, and exactly one linked or external identity.',
                 ]);
             }
 
@@ -247,7 +257,7 @@ final readonly class SaveTerritoryPlan
                 'key' => $key,
                 'alliance_id' => $allianceId,
                 'external_name' => $externalName,
-                'external_tag' => $this->nullableString($item['external_tag'] ?? null),
+                'external_tag' => $externalTag,
                 'display_name' => $displayName,
                 'presentation_color' => $color,
                 'sort_order' => (int) ($item['sort_order'] ?? $index),
@@ -276,9 +286,9 @@ final readonly class SaveTerritoryPlan
 
         foreach ($items as $item) {
             $key = trim((string) ($item['key'] ?? ''));
-            if ($key === '' || isset($keys[$key])) {
+            if ($key === '' || mb_strlen($key) > 120 || isset($keys[$key])) {
                 throw ValidationException::withMessages([
-                    'groups' => 'Every group requires a unique key.',
+                    'groups' => 'Every group requires a unique valid key.',
                 ]);
             }
 
@@ -290,10 +300,7 @@ final readonly class SaveTerritoryPlan
                 ]);
             }
 
-            $result[] = [
-                'key' => $key,
-                'label' => $label,
-            ];
+            $result[] = ['key' => $key, 'label' => $label];
         }
 
         return $result;
@@ -327,12 +334,13 @@ final readonly class SaveTerritoryPlan
 
             if (
                 $key === ''
+                || mb_strlen($key) > 120
                 || isset($keys[$key])
                 || ! isset($allianceKeys[$allianceKey])
                 || ($groupKey !== null && ! isset($groupKeys[$groupKey]))
             ) {
                 throw ValidationException::withMessages([
-                    'objects' => 'Every object needs unique identity and valid Alliance/group references.',
+                    'objects' => 'Every object needs unique valid identity and valid Alliance/group references.',
                 ]);
             }
 
@@ -347,14 +355,10 @@ final readonly class SaveTerritoryPlan
 
             $counts[$allianceKey][$type] = ($counts[$allianceKey][$type] ?? 0) + 1;
             if (
-                ($type === TerritoryObjectType::Banner->value
-                    && $counts[$allianceKey][$type] > 285)
-                || ($type === TerritoryObjectType::GovernorCity->value
-                    && $counts[$allianceKey][$type] > 100)
-                || ($type === TerritoryObjectType::Headquarters->value
-                    && $counts[$allianceKey][$type] > 1)
-                || ($type === TerritoryObjectType::BearTrap->value
-                    && $counts[$allianceKey][$type] > 2)
+                ($type === TerritoryObjectType::Banner->value && $counts[$allianceKey][$type] > 285)
+                || ($type === TerritoryObjectType::GovernorCity->value && $counts[$allianceKey][$type] > 100)
+                || ($type === TerritoryObjectType::Headquarters->value && $counts[$allianceKey][$type] > 1)
+                || ($type === TerritoryObjectType::BearTrap->value && $counts[$allianceKey][$type] > 2)
             ) {
                 throw ValidationException::withMessages([
                     'objects' => 'A planned Alliance exceeds the supported object cap.',
@@ -370,6 +374,17 @@ final readonly class SaveTerritoryPlan
 
             $playerId = $this->nullableString($item['player_id'] ?? null);
             $externalPlayerName = $this->nullableString($item['external_player_name'] ?? null);
+            $label = $this->nullableString($item['label'] ?? null);
+            if ($externalPlayerName !== null && mb_strlen($externalPlayerName) > 160) {
+                throw ValidationException::withMessages([
+                    'objects' => 'External Governor names must be 160 characters or fewer.',
+                ]);
+            }
+            if ($label !== null && mb_strlen($label) > 160) {
+                throw ValidationException::withMessages([
+                    'objects' => 'Object labels must be 160 characters or fewer.',
+                ]);
+            }
             if (
                 $type !== TerritoryObjectType::GovernorCity->value
                 && ($playerId !== null || $externalPlayerName !== null)
@@ -391,7 +406,7 @@ final readonly class SaveTerritoryPlan
                 'type' => $type,
                 'player_id' => $playerId,
                 'external_player_name' => $externalPlayerName,
-                'label' => $this->nullableString($item['label'] ?? null),
+                'label' => $label,
                 'x' => (int) ($item['x'] ?? -1),
                 'y' => (int) ($item['y'] ?? -1),
                 'rotation' => $rotation,
@@ -405,9 +420,11 @@ final readonly class SaveTerritoryPlan
 
     /**
      * @param  array<string, mixed>  $preferences
+     * @param  list<array<string, mixed>>  $alliances
+     * @param  list<array<string, mixed>>  $objects
      * @return array<string, mixed>
      */
-    private function normalizePreferences(array $preferences): array
+    private function normalizePreferences(array $preferences, array $alliances, array $objects): array
     {
         $allowed = [];
 
@@ -437,6 +454,42 @@ final readonly class SaveTerritoryPlan
             $allowed['march_seconds_per_tile'] = $seconds;
         }
 
+        $selection = $preferences['selected_bear_trap_by_alliance'] ?? null;
+        if ($selection !== null) {
+            if (! is_array($selection)) {
+                throw ValidationException::withMessages([
+                    'planning_preferences' => 'Selected Bear Traps must be keyed by Alliance layer.',
+                ]);
+            }
+
+            $allianceKeys = array_fill_keys(array_column($alliances, 'key'), true);
+            $trapKeysByAlliance = [];
+            foreach ($objects as $object) {
+                if ($object['type'] === TerritoryObjectType::BearTrap->value) {
+                    $trapKeysByAlliance[$object['alliance_key']][$object['key']] = true;
+                }
+            }
+
+            $normalizedSelection = [];
+            foreach ($selection as $allianceKey => $trapKey) {
+                if (
+                    ! is_string($allianceKey)
+                    || ! is_string($trapKey)
+                    || ! isset($allianceKeys[$allianceKey])
+                    || ! isset($trapKeysByAlliance[$allianceKey][$trapKey])
+                ) {
+                    throw ValidationException::withMessages([
+                        'planning_preferences' => 'A selected Bear Trap must belong to the selected Alliance layer.',
+                    ]);
+                }
+                $normalizedSelection[$allianceKey] = $trapKey;
+            }
+            ksort($normalizedSelection);
+            if ($normalizedSelection !== []) {
+                $allowed['selected_bear_trap_by_alliance'] = $normalizedSelection;
+            }
+        }
+
         return $allowed;
     }
 
@@ -444,10 +497,8 @@ final readonly class SaveTerritoryPlan
     private function validateLinkedAlliances(TerritoryPlan $plan, array $planAlliances): void
     {
         $scope = $plan->scope;
-        $kingdomId = (string) $plan->kingdom_id;
-        $ownerAllianceId = $plan->owner_alliance_id === null
-            ? null
-            : (string) $plan->owner_alliance_id;
+        $kingdomId = $plan->kingdom_id;
+        $ownerAllianceId = $plan->owner_alliance_id;
 
         if ($scope === TerritoryPlanScope::Alliance) {
             $only = $planAlliances[0] ?? null;
@@ -487,7 +538,7 @@ final readonly class SaveTerritoryPlan
         array $planAlliances,
         array $objects,
     ): void {
-        $kingdomId = (string) $plan->kingdom_id;
+        $kingdomId = $plan->kingdom_id;
         $allianceByKey = [];
         foreach ($planAlliances as $planAlliance) {
             $allianceByKey[$planAlliance['key']] = $planAlliance['alliance_id'];
