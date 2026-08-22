@@ -180,53 +180,63 @@ final class PlacementValidator
             }
         }
 
-        $allianceFacts = [];
-        foreach ($objects as $object) {
-            $facts = $allianceFacts[$object['alliance_key']] ?? [
-                'first_city' => null,
-                'headquarters' => 0,
-                'banners' => 0,
-                'bear_traps' => 0,
-            ];
-            if ($object['type'] === 'governor_city' && $facts['first_city'] === null) {
-                $facts['first_city'] = $object['key'];
+        $violatingObjectKeys = [];
+        foreach ($violations as $violation) {
+            if (isset($violation['object_key'])) {
+                $violatingObjectKeys[$violation['object_key']] = true;
             }
-            if ($object['type'] === 'headquarters') {
-                $facts['headquarters']++;
-            }
-            if ($object['type'] === 'banner') {
-                $facts['banners']++;
-            }
-            if ($object['type'] === 'bear_trap') {
-                $facts['bear_traps']++;
-            }
-            $allianceFacts[$object['alliance_key']] = $facts;
         }
 
-        foreach ($allianceFacts as $facts) {
-            $cityKey = $facts['first_city'];
-            if (! is_string($cityKey)) {
+        $objectsByAlliance = [];
+        foreach ($objects as $object) {
+            $objectsByAlliance[$object['alliance_key']][] = $object;
+        }
+
+        foreach ($objectsByAlliance as $scopedObjects) {
+            $hasBlockingViolation = false;
+            foreach ($scopedObjects as $object) {
+                if (isset($violatingObjectKeys[$object['key']])) {
+                    $hasBlockingViolation = true;
+                    break;
+                }
+            }
+            if ($hasBlockingViolation) {
                 continue;
             }
-            if ($facts['headquarters'] === 0) {
+
+            $firstCity = null;
+            $hasHeadquarters = false;
+            $hasBanner = false;
+            $hasBearTrap = false;
+            foreach ($scopedObjects as $object) {
+                $firstCity ??= $object['type'] === 'governor_city' ? $object['key'] : null;
+                $hasHeadquarters = $hasHeadquarters || $object['type'] === 'headquarters';
+                $hasBanner = $hasBanner || $object['type'] === 'banner';
+                $hasBearTrap = $hasBearTrap || $object['type'] === 'bear_trap';
+            }
+            if (! is_string($firstCity)) {
+                continue;
+            }
+
+            if (! $hasHeadquarters) {
                 $suggestions[] = $this->issue(
                     'consider_headquarters',
                     'Consider placing the Alliance HQ before finalizing this layout.',
-                    $cityKey,
+                    $firstCity,
                 );
             }
-            if ($facts['banners'] === 0) {
+            if (! $hasBanner) {
                 $suggestions[] = $this->issue(
                     'consider_banner_coverage',
                     'Consider adding Alliance Banners to establish territory coverage for Governor cities.',
-                    $cityKey,
+                    $firstCity,
                 );
             }
-            if ($facts['bear_traps'] === 0) {
+            if (! $hasBearTrap) {
                 $suggestions[] = $this->issue(
                     'consider_bear_trap',
                     'Consider placing a Bear Trap to analyze hive march distances.',
-                    $cityKey,
+                    $firstCity,
                 );
             }
         }
