@@ -33,6 +33,28 @@ final class TerritoryImportBehaviorV3Test extends TestCase
     }
 
     /** @throws JsonException */
+    public function test_import_preview_rejects_malformed_rows_before_commit(): void
+    {
+        $document = json_encode([
+            'schema_version' => 1,
+            'plan' => ['map_dataset_id' => self::DATASET_ID],
+            'alliances' => [[
+                'key' => 'external',
+                'alliance_id' => null,
+                'external_name' => 'External Alliance',
+                'display_name' => 'External Alliance',
+                'presentation_color' => '#4da3ff',
+            ]],
+            'groups' => [],
+            'objects' => ['not-an-object'],
+        ], JSON_THROW_ON_ERROR);
+
+        $this->expectException(ValidationException::class);
+
+        app(TerritoryPlanImport::class)->preview($document);
+    }
+
+    /** @throws JsonException */
     public function test_import_preview_reports_blocking_geometry_and_commit_refuses_it(): void
     {
         [$actor, $alliance, $plan] = $this->scenario(64001);
