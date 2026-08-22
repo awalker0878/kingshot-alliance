@@ -1,8 +1,8 @@
 # GameWorld — KingdomMaps
 
-Status: Active delivery — Architecture V3
+Status: Implemented — Architecture V3; release assurance in progress
 
-Implementation target: `app/Contexts/GameWorld/KingdomMaps`
+Implementation: `app/Contexts/GameWorld/KingdomMaps`
 
 KingdomMaps owns neutral, versioned KingShot map truth used by planning and other consumers. It does not own Alliance planning intent.
 
@@ -17,7 +17,7 @@ KingdomMaps owns:
 - building footprints/coverage definitions only when they are sourced game/map facts;
 - sourced game placement rules;
 - provenance, observation time, confidence/status and checksum for every released dataset;
-- canonical geometry value objects/contracts required to interpret map facts.
+- the minimal canonical geometry values required to interpret and validate the current dataset schema.
 
 KingdomMaps does not own:
 
@@ -47,21 +47,38 @@ KingdomMapDataset
   bounds
   zones
   structures
-  terrain/reference layers
+  terrain/reference layers when evidence-gated
   resource-node references when evidence-gated
   sourced placement rules
 ```
 
-A newer dataset supersedes rather than mutates an older release. Published territory-plan revisions retain the exact dataset ID/checksum that was used when they were published.
+The runtime checksum is SHA-256 over the immutable dataset file. A newer dataset supersedes rather than mutates an older release. Published territory-plan revisions retain the exact dataset ID/checksum that was used when they were published.
 
-## Evidence boundary
+## Current community-observed profile
 
-Community planners are discovery evidence. Their coordinates, node sets, footprint sizes or rules do not become official product truth merely because they are useful. Community-observed values may be represented only with truthful provenance/confidence and a version/observation boundary. Unknown stays unknown.
+The first profile, `kingshot-community-observed-2026-08-21-v1`, is deliberately labelled `community_observed`. Its source boundary is `Bleezy-D/Alliance-Layout-Planner` at commit `c0162ed5f3b41bb997bac970f0c73d1545e622fb` (observed 2026-08-21). The upstream README declares the project MIT licensed and describes its map as community-derived; the upstream repository does not contain a separate `LICENSE` file. The application therefore records the source and license note without presenting these coordinates, footprints or placement observations as official Century Games data.
+
+Community planners remain discovery/evidence sources. Their coordinates, node sets, footprint sizes or rules do not become official product truth merely because they are useful. Community-observed values may be represented only with truthful provenance/confidence and a version/observation boundary. Unknown stays unknown.
 
 ## Geometry contract
 
-Canonical concepts are immutable values such as `Coordinate`, `BoundingBox`, `Rectangle`, `Circle`, `Polygon`, `Footprint`, `Rotation` and `Distance`. Server validation is authoritative. Browser geometry may mirror the same rules for immediate preview only and must be contract-tested against shared golden fixtures.
+The implemented schema currently needs two immutable geometry primitives:
+
+- `Coordinate` for exact integer KingShot positions;
+- `Rectangle` for bounds, footprints, zones, structure footprints and exclusion checks.
+
+Object rotation is represented as the validated integer set `0 | 90 | 180 | 270`; distance is a deterministic calculation result used by TerritoryPlanning analysis rather than a separately persisted geometry object. Circle, polygon or richer footprint abstractions are not part of the current contract and should be introduced only when a versioned dataset actually requires them.
+
+`PlacementValidator` is the authoritative server implementation. Browser geometry mirrors the same behavior for immediate preview and is contract-tested against the shared `tests/v3/Fixtures/territory-geometry.json` fixture. The parity contract covers map bounds, footprint/object collision, fixed-structure collision/exclusion, zone restrictions, object caps, Bear-radius planning warnings, disconnected-territory warnings, coverage and analysis calculations.
 
 ## Rule taxonomy
 
-A **map fact** describes what exists. A **game placement rule** determines whether a placement is legal and must be sourced/versioned. A planning preference is not a game rule and therefore cannot live in KingdomMaps.
+A **map fact** describes what exists. A **game placement rule** determines whether a placement is legal and must be sourced/versioned. A **planning preference** is an officer choice and cannot be promoted into KingdomMaps as a game rule.
+
+The current validator therefore distinguishes:
+
+- **violations** for dataset-backed legality failures such as map bounds, collisions, exclusion zones and object caps;
+- **warnings** for legal but undesirable planning state such as preferred Bear radius or disconnected planned territory;
+- **suggestions** for optional planning improvements such as adding an HQ, Banner coverage or Bear Trap.
+
+Laravel remains save authority even when the browser preview has already evaluated the same geometry.
