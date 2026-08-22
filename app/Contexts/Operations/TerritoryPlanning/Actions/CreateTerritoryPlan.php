@@ -35,19 +35,36 @@ final readonly class CreateTerritoryPlan
         private AuditRecorder $audit,
     ) {}
 
-    public function handle(string $actorPlayerId, TerritoryPlanScope $scope, string $kingdomId, ?string $ownerAllianceId, string $name, string $mapDatasetId): TerritoryPlanMutationReceipt
-    {
+    public function handle(
+        string $actorPlayerId,
+        TerritoryPlanScope $scope,
+        string $kingdomId,
+        ?string $ownerAllianceId,
+        string $name,
+        string $mapDatasetId,
+    ): TerritoryPlanMutationReceipt {
         $name = trim($name);
         if ($name === '' || mb_strlen($name) > 160) {
-            throw ValidationException::withMessages(['name' => 'Plan name is required and must be 160 characters or fewer.']);
+            throw ValidationException::withMessages([
+                'name' => 'Plan name is required and must be 160 characters or fewer.',
+            ]);
         }
         if (($scope === TerritoryPlanScope::Alliance) !== ($ownerAllianceId !== null && $ownerAllianceId !== '')) {
-            throw ValidationException::withMessages(['scope' => 'Alliance plans require one owner Alliance; Kingdom plans do not.']);
+            throw ValidationException::withMessages([
+                'scope' => 'Alliance plans require one owner Alliance; Kingdom plans do not.',
+            ]);
         }
 
         $dataset = $this->datasets->require($mapDatasetId);
 
-        return DB::transaction(function () use ($actorPlayerId, $scope, $kingdomId, $ownerAllianceId, $name, $dataset): TerritoryPlanMutationReceipt {
+        return DB::transaction(function () use (
+            $actorPlayerId,
+            $scope,
+            $kingdomId,
+            $ownerAllianceId,
+            $name,
+            $dataset,
+        ): TerritoryPlanMutationReceipt {
             $actor = $this->players->lockCurrent($actorPlayerId);
             if ($actor->kingdomId !== $kingdomId) {
                 throw new AuthorizationException;
@@ -59,7 +76,10 @@ final readonly class CreateTerritoryPlan
                 if ($facts === null || $facts->kingdomId !== $kingdomId) {
                     throw new AuthorizationException;
                 }
-                $this->allianceAuthorization->authorizeFacts($facts, OperationsPermission::TerritoryAllianceManage);
+                $this->allianceAuthorization->authorizeFacts(
+                    $facts,
+                    OperationsPermission::TerritoryAllianceManage,
+                );
                 $alliance = $this->alliances->require((string) $ownerAllianceId);
                 if ($alliance->kingdomId !== $kingdomId) {
                     throw new AuthorizationException;
@@ -70,7 +90,10 @@ final readonly class CreateTerritoryPlan
                 if ($facts === null) {
                     throw new AuthorizationException;
                 }
-                $this->kingdomAuthorization->authorizeFacts($facts, OperationsPermission::TerritoryKingdomManage);
+                $this->kingdomAuthorization->authorizeFacts(
+                    $facts,
+                    OperationsPermission::TerritoryKingdomManage,
+                );
             }
 
             $plan = TerritoryPlan::query()->create([
@@ -90,6 +113,7 @@ final readonly class CreateTerritoryPlan
             if ($scope === TerritoryPlanScope::Alliance) {
                 TerritoryPlanAlliance::query()->create([
                     'territory_plan_id' => $plan->id,
+                    'plan_key' => 'alliance-'.(string) $ownerAllianceId,
                     'alliance_id' => $ownerAllianceId,
                     'display_name' => $ownerAllianceName,
                     'presentation_color' => '#4da3ff',
@@ -104,7 +128,11 @@ final readonly class CreateTerritoryPlan
                 'map_dataset_checksum' => $dataset->checksum,
             ]);
 
-            return new TerritoryPlanMutationReceipt((string) $plan->id, 1, TerritoryPlanStatus::Draft->value);
+            return new TerritoryPlanMutationReceipt(
+                (string) $plan->id,
+                1,
+                TerritoryPlanStatus::Draft->value,
+            );
         });
     }
 }
