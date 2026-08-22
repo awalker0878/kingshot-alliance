@@ -17,6 +17,7 @@ use App\Contexts\Intelligence\Evidence\Models\EvidenceReviewRow;
 use App\Contexts\Intelligence\Evidence\Models\GameEvidence;
 use App\Contexts\Operations\Results\Queries\BearHuntEvidenceTargetQuery;
 use App\Contexts\Operations\Results\Queries\BearHuntResultSnapshotQuery;
+use DateTimeInterface;
 use Illuminate\Support\Collection;
 
 final readonly class ScreenshotIntakeWorkspaceQuery
@@ -33,24 +34,24 @@ final readonly class ScreenshotIntakeWorkspaceQuery
     {
         $target = $this->targets->authorizeManage($actorPlayerId, $occurrenceId);
         $playerReferences = $this->players->byIds($this->roster->activePlayerIds($target->allianceId));
-        $playerOptions = array_values(array_map(
-            static fn ($player): array => [
+        $playerOptions = [];
+        foreach ($playerReferences as $player) {
+            $playerOptions[] = [
                 'id' => $player->playerId,
                 'name' => $player->currentName,
-            ],
-            $playerReferences,
-        ));
+            ];
+        }
         usort($playerOptions, static fn (array $left, array $right): int => strcasecmp($left['name'], $right['name']));
 
-        $evidence = GameEvidence::query()
+        $evidence = [];
+        foreach (GameEvidence::query()
             ->where('alliance_id', $target->allianceId)
             ->where('occurrence_id', $target->occurrenceId)
             ->orderByDesc('created_at')
             ->limit(100)
-            ->get()
-            ->map(fn (GameEvidence $item): array => $this->evidence($item))
-            ->values()
-            ->all();
+            ->get() as $item) {
+            $evidence[] = $this->evidence($item);
+        }
 
         return [
             'occurrenceId' => $target->occurrenceId,
@@ -84,6 +85,45 @@ final readonly class ScreenshotIntakeWorkspaceQuery
         $latestReview = $reviews->last();
         $latestCommit = $commits->last();
 
+        $classificationRows = [];
+        foreach ($classifications as $attempt) {
+            $classificationRows[] = [
+                'id' => (string) $attempt->id,
+                'status' => (string) $attempt->getRawOriginal('status'),
+                'kind' => (string) $attempt->getRawOriginal('classified_kind'),
+                'confidence' => (float) $attempt->confidence,
+                'reason' => $attempt->reason,
+                'failureCode' => $attempt->failure_code,
+                'ocrEngine' => $attempt->ocr_engine,
+                'ocrVersion' => $attempt->ocr_version,
+                'startedAt' => $this->isoTimestamp($attempt->started_at),
+                'completedAt' => $this->isoTimestamp($attempt->completed_at),
+            ];
+        }
+
+        $extractionRows = [];
+        foreach ($extractions as $attempt) {
+            $extractionRows[] = $this->extraction($attempt);
+        }
+
+        $reviewRows = [];
+        foreach ($reviews as $review) {
+            $reviewRows[] = $this->review($review);
+        }
+
+        $commitRows = [];
+        foreach ($commits as $attempt) {
+            $commitRows[] = [
+                'id' => (string) $attempt->id,
+                'status' => (string) $attempt->getRawOriginal('status'),
+                'destinationReportId' => $attempt->destination_report_id === null ? null : (string) $attempt->destination_report_id,
+                'receipt' => $attempt->destination_receipt,
+                'failureCode' => $attempt->failure_code,
+                'startedAt' => $this->isoTimestamp($attempt->started_at),
+                'completedAt' => $this->isoTimestamp($attempt->completed_at),
+            ];
+        }
+
         return [
             'id' => (string) $evidence->id,
             'originalName' => (string) $evidence->original_name,
@@ -94,37 +134,18 @@ final readonly class ScreenshotIntakeWorkspaceQuery
             'sha256Prefix' => substr((string) $evidence->sha256, 0, 12),
             'status' => (string) $evidence->getRawOriginal('lifecycle_status'),
             'kind' => (string) $evidence->getRawOriginal('kind'),
-            'receivedAt' => $evidence->created_at?->toIso8601String(),
+            'receivedAt' => $this->isoTimestamp($evidence->created_at),
             'imageAvailable' => is_string($evidence->path) && $evidence->path !== '',
             'visualDuplicate' => $evidence->visual_duplicate_evidence_id === null ? null : [
                 'evidenceId' => (string) $evidence->visual_duplicate_evidence_id,
                 'distance' => (int) $evidence->visual_duplicate_distance,
             ],
-            'classifications' => $classifications->map(static fn (EvidenceClassificationAttempt $attempt): array => [
-                'id' => (string) $attempt->id,
-                'status' => (string) $attempt->getRawOriginal('status'),
-                'kind' => (string) $attempt->getRawOriginal('classified_kind'),
-                'confidence' => (float) $attempt->confidence,
-                'reason' => $attempt->reason,
-                'failureCode' => $attempt->failure_code,
-                'ocrEngine' => $attempt->ocr_engine,
-                'ocrVersion' => $attempt->ocr_version,
-                'startedAt' => $attempt->started_at?->toIso8601String(),
-                'completedAt' => $attempt->completed_at?->toIso8601String(),
-            ])->values()->all(),
-            'extractions' => $extractions->map(fn (EvidenceExtractionAttempt $attempt): array => $this->extraction($attempt))->values()->all(),
+            'classifications' => $classificationRows,
+            'extractions' => $extractionRows,
             'latestExtraction' => $latestExtraction instanceof EvidenceExtractionAttempt ? $this->extraction($latestExtraction) : null,
-            'reviews' => $reviews->map(fn (EvidenceReview $review): array => $this->review($review))->values()->all(),
+            'reviews' => $reviewRows,
             'latestReview' => $latestReview instanceof EvidenceReview ? $this->review($latestReview) : null,
-            'commits' => $commits->map(static fn (EvidenceCommitAttempt $attempt): array => [
-                'id' => (string) $attempt->id,
-                'status' => (string) $attempt->getRawOriginal('status'),
-                'destinationReportId' => $attempt->destination_report_id === null ? null : (string) $attempt->destination_report_id,
-                'receipt' => $attempt->destination_receipt,
-                'failureCode' => $attempt->failure_code,
-                'startedAt' => $attempt->started_at?->toIso8601String(),
-                'completedAt' => $attempt->completed_at?->toIso8601String(),
-            ])->values()->all(),
+            'commits' => $commitRows,
             'preview' => $latestReview instanceof EvidenceReview ? $this->preview($latestReview) : null,
             'canCommit' => $latestReview instanceof EvidenceReview
                 && $latestReview->getRawOriginal('status') === EvidenceReviewStatus::Approved->value
@@ -166,8 +187,8 @@ final readonly class ScreenshotIntakeWorkspaceQuery
             'overallConfidence' => (float) $attempt->overall_confidence,
             'fieldCount' => (int) $attempt->field_count,
             'failureCode' => $attempt->failure_code,
-            'startedAt' => $attempt->started_at?->toIso8601String(),
-            'completedAt' => $attempt->completed_at?->toIso8601String(),
+            'startedAt' => $this->isoTimestamp($attempt->started_at),
+            'completedAt' => $this->isoTimestamp($attempt->completed_at),
             'reportTimestamp' => $this->field($timestamp),
             'rows' => $rows,
         ];
@@ -193,11 +214,12 @@ final readonly class ScreenshotIntakeWorkspaceQuery
     /** @return array<string, mixed> */
     private function review(EvidenceReview $review): array
     {
-        $rows = EvidenceReviewRow::query()
+        $rows = [];
+        foreach (EvidenceReviewRow::query()
             ->where('review_id', $review->id)
             ->orderBy('row_ordinal')
-            ->get()
-            ->map(static fn (EvidenceReviewRow $row): array => [
+            ->get() as $row) {
+            $rows[] = [
                 'ordinal' => (int) $row->row_ordinal,
                 'included' => (bool) $row->included,
                 'playerId' => $row->player_id === null ? null : (string) $row->player_id,
@@ -206,9 +228,8 @@ final readonly class ScreenshotIntakeWorkspaceQuery
                 'damagePoints' => $row->damage_points === null ? null : (int) $row->damage_points,
                 'correctionReason' => $row->correction_reason,
                 'corrected' => (bool) $row->rank_corrected || (bool) $row->name_corrected || (bool) $row->damage_corrected,
-            ])
-            ->values()
-            ->all();
+            ];
+        }
 
         return [
             'id' => (string) $review->id,
@@ -219,7 +240,7 @@ final readonly class ScreenshotIntakeWorkspaceQuery
             'semanticFingerprintPrefix' => substr((string) $review->semantic_fingerprint, 0, 12),
             'semanticDuplicateReviewId' => $review->semantic_duplicate_review_id === null ? null : (string) $review->semantic_duplicate_review_id,
             'duplicateResolution' => $review->duplicate_resolution,
-            'reviewedAt' => $review->reviewed_at?->toIso8601String(),
+            'reviewedAt' => $this->isoTimestamp($review->reviewed_at),
             'rows' => $rows,
         ];
     }
@@ -232,29 +253,51 @@ final readonly class ScreenshotIntakeWorkspaceQuery
             ->where('included', true)
             ->orderBy('row_ordinal')
             ->get();
-        $playerIds = $rows->pluck('player_id')
-            ->filter(static fn ($id): bool => is_string($id) && $id !== '')
-            ->map(static fn ($id): string => (string) $id)
-            ->values()
-            ->all();
+
+        /** @var list<string> $playerIds */
+        $playerIds = [];
+        foreach ($rows as $row) {
+            if (is_string($row->player_id) && $row->player_id !== '') {
+                $playerIds[] = $row->player_id;
+            }
+        }
+        $playerIds = array_values(array_unique($playerIds));
+
         $current = $this->results->players((string) $review->occurrence_id, $playerIds);
         $names = $this->players->byIds($playerIds);
+        $previewRows = [];
+
+        foreach ($rows as $row) {
+            $playerId = (string) $row->player_id;
+            $before = $current[$playerId]['score'] ?? 0;
+            $damage = (int) ($row->damage_points ?? 0);
+            $playerReference = $names[$playerId] ?? null;
+
+            $previewRows[] = [
+                'playerId' => $playerId,
+                'playerName' => $playerReference === null ? (string) $row->player_name : $playerReference->currentName,
+                'beforeScore' => $before,
+                'reportDamage' => $damage,
+                'afterScore' => $before + $damage,
+            ];
+        }
 
         return [
             'reviewId' => (string) $review->id,
-            'rows' => $rows->map(static function (EvidenceReviewRow $row) use ($current, $names): array {
-                $playerId = (string) $row->player_id;
-                $before = $current[$playerId]['score'] ?? 0;
-                $damage = (int) ($row->damage_points ?? 0);
-
-                return [
-                    'playerId' => $playerId,
-                    'playerName' => $names[$playerId]?->currentName ?? (string) $row->player_name,
-                    'beforeScore' => $before,
-                    'reportDamage' => $damage,
-                    'afterScore' => $before + $damage,
-                ];
-            })->values()->all(),
+            'rows' => $previewRows,
         ];
+    }
+
+    private function isoTimestamp(mixed $value): ?string
+    {
+        if ($value instanceof DateTimeInterface) {
+            return $value->format(DATE_ATOM);
+        }
+
+        if (is_string($value) && $value !== '') {
+            return $value;
+        }
+
+        return null;
     }
 }
