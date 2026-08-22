@@ -1,13 +1,24 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
-import type { AllianceAnalysis, PlanAlliance, PlanObject } from '../engine/types';
 import { useLocale } from '@/localization';
+
+import type {
+  AllianceAnalysis,
+  PlanAlliance,
+  PlanObject,
+  PlanningPreferences,
+} from '../engine/types';
 
 const props = defineProps<{
   alliances: PlanAlliance[];
   objects: PlanObject[];
   analysis: Record<string, AllianceAnalysis>;
+  preferences: PlanningPreferences;
+  canEdit: boolean;
+}>();
+const emit = defineEmits<{
+  selectTrap: [payload: { allianceKey: string; trapKey: string }];
 }>();
 
 const { t, formatNumber } = useLocale();
@@ -17,6 +28,16 @@ function objectLabel(key: string): string {
   const object = objectByKey.value.get(key);
   if (!object) return key;
   return object.external_player_name || object.label || t(`territory.types.${object.type}`);
+}
+
+function trapsFor(allianceKey: string): PlanObject[] {
+  return props.objects.filter(
+    (object) => object.alliance_key === allianceKey && object.type === 'bear_trap',
+  );
+}
+
+function selectedTrapKey(allianceKey: string): string {
+  return props.preferences.selected_bear_trap_by_alliance?.[allianceKey] ?? '';
 }
 </script>
 
@@ -31,8 +52,30 @@ function objectLabel(key: string): string {
     </p>
 
     <div v-for="alliance in alliances" :key="alliance.key" class="mt-4">
+      <template v-if="trapsFor(alliance.key).length">
+        <label class="block text-xs font-semibold">
+          {{ t('territory.selectedBearTrap', { alliance: alliance.display_name }) }}
+          <select
+            :value="selectedTrapKey(alliance.key)"
+            class="ks-input mt-1 w-full"
+            :disabled="!canEdit"
+            @change="
+              emit('selectTrap', {
+                allianceKey: alliance.key,
+                trapKey: ($event.target as HTMLSelectElement).value,
+              })
+            "
+          >
+            <option value="">{{ t('territory.nearestBearTrap') }}</option>
+            <option v-for="trap in trapsFor(alliance.key)" :key="trap.key" :value="trap.key">
+              {{ objectLabel(trap.key) }}
+            </option>
+          </select>
+        </label>
+      </template>
+
       <template v-if="analysis[alliance.key]?.marches.length">
-        <h3 class="font-semibold">{{ alliance.display_name }}</h3>
+        <h3 class="mt-3 font-semibold">{{ alliance.display_name }}</h3>
         <div class="mt-2 overflow-x-auto">
           <table class="w-full min-w-[28rem] text-xs">
             <thead>
