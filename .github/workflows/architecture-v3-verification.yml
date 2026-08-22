@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - architecture-v3-capability-alignment
+      - main
   pull_request:
 
 permissions:
