@@ -58,7 +58,7 @@ function selectedTrapKey(allianceKey: string): string {
           <select
             :value="selectedTrapKey(alliance.key)"
             class="ks-input mt-1 w-full"
-            :disabled="!canEdit"
+            :disabled="!canEdit || alliance.locked"
             @change="
               emit('selectTrap', {
                 allianceKey: alliance.key,

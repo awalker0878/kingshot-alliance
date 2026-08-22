@@ -231,14 +231,6 @@ function assignExternalGovernor(object: PlanObject, name: string): void {
   object.player_id = null;
   object.external_player_name = name.trim() || null;
 }
-function bearTrapsFor(allianceKey: string): PlanObject[] {
-  return objects.value.filter(
-    (object) => object.alliance_key === allianceKey && object.type === 'bear_trap',
-  );
-}
-function selectedBearFor(allianceKey: string): string {
-  return preferences.value.selected_bear_trap_by_alliance?.[allianceKey] ?? '';
-}
 function setSelectedBear(allianceKey: string, objectKey: string): void {
   if (!canEdit.value) return;
   remember();
@@ -404,7 +396,7 @@ async function jsonRequest(
   method: string,
   body?: unknown,
 ): Promise<Record<string, unknown>> {
-  const response = await fetch(url, {
+  const init: NonNullable<Parameters<typeof fetch>[1]> = {
     method,
     credentials: 'same-origin',
     headers: {
@@ -413,8 +405,9 @@ async function jsonRequest(
       'X-CSRF-TOKEN': csrfToken(),
       'X-Requested-With': 'XMLHttpRequest',
     },
-    body: body === undefined ? undefined : JSON.stringify(body),
-  });
+  };
+  if (body !== undefined) init.body = JSON.stringify(body);
+  const response = await fetch(url, init);
   const payload = (await response.json().catch(() => ({}))) as Record<string, unknown>;
   if (!response.ok) {
     const errors = payload.errors as Record<string, string[] | string> | undefined;
@@ -874,7 +867,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
           <button
             class="ks-command-link"
             :aria-pressed="tool === 'place'"
-            :disabled="!canEdit || activeAlliance?.locked"
+            :disabled="!canEdit || Boolean(activeAlliance?.locked)"
             @click="tool = 'place'"
           >
             {{ t('territory.place') }}
@@ -983,7 +976,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
           <AppButton
             class="mt-2 w-full"
             :busy="busy"
-            :disabled="!canEdit || activeAlliance?.locked"
+            :disabled="!canEdit || Boolean(activeAlliance?.locked)"
             @click="generateHivePreview"
             >{{ t('territory.previewHive') }}</AppButton
           >
@@ -1029,7 +1022,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
           </div>
           <AppButton
             class="mt-2 w-full"
-            :disabled="!canEdit || activeAlliance?.locked"
+            :disabled="!canEdit || Boolean(activeAlliance?.locked)"
             @click="stampCities"
             >{{ t('territory.stampCities') }}</AppButton
           >
@@ -1340,29 +1333,16 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
             >
           </div>
         </section>
-        <MarchAnalysisPanel :alliances="alliances" :objects="objects" :analysis="analysis" />
+        <MarchAnalysisPanel
+          :alliances="alliances"
+          :objects="objects"
+          :analysis="analysis"
+          :preferences="preferences"
+          :can-edit="canEdit"
+          @select-trap="setSelectedBear($event.allianceKey, $event.trapKey)"
+        />
         <section class="ks-surface p-4">
           <p class="ks-kicker">{{ t('territory.preferences') }}</p>
-          <div v-for="alliance in alliances" :key="`bear-${alliance.key}`" class="mt-3">
-            <label class="block text-sm">
-              {{ t('territory.selectedBearTrap', { alliance: alliance.display_name }) }}
-              <select
-                :value="selectedBearFor(alliance.key)"
-                class="ks-input mt-1 w-full"
-                :disabled="!canEdit || alliance.locked"
-                @change="setSelectedBear(alliance.key, ($event.target as HTMLSelectElement).value)"
-              >
-                <option value="">{{ t('territory.nearestBearTrap') }}</option>
-                <option
-                  v-for="trap in bearTrapsFor(alliance.key)"
-                  :key="trap.key"
-                  :value="trap.key"
-                >
-                  {{ trap.label || t('territory.bearTrap') }}
-                </option>
-              </select>
-            </label>
-          </div>
           <label class="mt-3 block text-sm"
             >{{ t('territory.preferredBearRadius')
             }}<input
