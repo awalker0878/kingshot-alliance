@@ -23,6 +23,9 @@ final class TerritoryPlanningServiceProvider extends ServiceProvider
                 ->name('territory.import-preview');
             Route::post('/territory', [TerritoryPlanController::class, 'store'])
                 ->name('territory.store');
+            Route::put('/territory/{plan}/alliances', [TerritoryPlanController::class, 'updateAlliances'])
+                ->whereUlid('plan')
+                ->name('territory.alliances.update');
             Route::put('/territory/{plan}', [TerritoryPlanController::class, 'save'])
                 ->whereUlid('plan')
                 ->name('territory.save');
