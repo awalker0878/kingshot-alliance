@@ -1,0 +1,55 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Contexts\Operations\TerritoryPlanning\Actions;
+
+use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryPlan;
+use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryPlanningAuthorization;
+use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryPlanSnapshotBuilder;
+use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryPlanWriteState;
+use App\Contexts\Operations\TerritoryPlanning\ValueObjects\TerritoryPlanMutationReceipt;
+use Illuminate\Support\Facades\DB;
+
+final readonly class CloneTerritoryPlan
+{
+    public function __construct(
+        private TerritoryPlanWriteState $writeState,
+        private TerritoryPlanningAuthorization $authorization,
+        private TerritoryPlanSnapshotBuilder $snapshots,
+        private CreateTerritoryPlan $create,
+        private SaveTerritoryPlan $save,
+    ) {}
+
+    public function handle(string $actorPlayerId, string $sourcePlanId, string $name): TerritoryPlanMutationReceipt
+    {
+        $snapshot = DB::transaction(function () use ($actorPlayerId, $sourcePlanId): array {
+            $context = $this->writeState->lock($actorPlayerId, $sourcePlanId);
+            $this->authorization->authorizeView($context);
+
+            return $this->snapshots->build($context->plan);
+        });
+
+        /** @var array<string,mixed> $planData */
+        $planData = $snapshot['plan'];
+        $source = TerritoryPlan::query()->findOrFail($sourcePlanId);
+        $created = $this->create->handle(
+            $actorPlayerId,
+            $source->scope,
+            (string) $source->kingdom_id,
+            $source->owner_alliance_id === null ? null : (string) $source->owner_alliance_id,
+            $name,
+            (string) $planData['map_dataset_id'],
+        );
+
+        return $this->save->handle(
+            $actorPlayerId,
+            $created->planId,
+            $created->revision,
+            is_array($snapshot['alliances'] ?? null) ? $snapshot['alliances'] : [],
+            is_array($snapshot['groups'] ?? null) ? $snapshot['groups'] : [],
+            is_array($snapshot['objects'] ?? null) ? $snapshot['objects'] : [],
+            is_array($planData['planning_preferences'] ?? null) ? $planData['planning_preferences'] : [],
+        );
+    }
+}
