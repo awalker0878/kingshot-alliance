@@ -74,12 +74,7 @@ function submit(): void {
           </h2>
         </div>
         <div v-if="plans.length" class="divide-y divide-[var(--ks-border)]">
-          <Link
-            v-for="plan in plans"
-            :key="plan.id"
-            :href="`/territory/${plan.id}`"
-            class="block p-5 transition hover:bg-white/[.025]"
-          >
+          <article v-for="plan in plans" :key="plan.id" class="p-5">
             <div class="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <h3 class="ks-display text-xl font-semibold">{{ plan.name }}</h3>
@@ -101,7 +96,20 @@ function submit(): void {
             <p v-if="plan.updated_at" class="mt-3 text-xs text-[var(--ks-muted)]">
               {{ t('territory.updated', { date: formatDate(plan.updated_at) }) }}
             </p>
-          </Link>
+            <div class="mt-4 flex flex-wrap gap-2">
+              <Link :href="`/territory/${plan.id}`" class="ks-command-link">
+                {{ t('territory.editorTitle') }}
+              </Link>
+              <Link
+                v-if="plan.scope === 'kingdom'"
+                :href="`/territory/${plan.id}/alliances`"
+                class="ks-command-link"
+                data-variant="secondary"
+              >
+                {{ t('territory.layers') }}
+              </Link>
+            </div>
+          </article>
         </div>
         <p v-else class="p-6 text-sm text-[var(--ks-muted)]">{{ t('territory.noPlans') }}</p>
       </section>
