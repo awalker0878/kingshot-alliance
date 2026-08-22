@@ -89,6 +89,9 @@ export type AllianceAnalysis = {
   territory_components: number;
   territory_connected: boolean;
   banner_efficiency: number | null;
+  violation_count: number;
+  warning_count: number;
+  suggestion_count: number;
   bear_distance_tiles: { average: number | null; median: number | null; max: number | null };
   estimated_march_seconds: {
     average: number | null;
