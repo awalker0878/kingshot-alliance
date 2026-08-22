@@ -34,21 +34,22 @@ final readonly class RestoreTerritoryPlanRevision
             ->where('territory_plan_id', $planId)
             ->findOrFail($revisionId);
         $snapshot = $revision->snapshot;
-        if (
-            ! is_array($snapshot)
-            || ! is_array($snapshot['alliances'] ?? null)
-            || ! is_array($snapshot['groups'] ?? null)
-            || ! is_array($snapshot['objects'] ?? null)
-        ) {
-            throw ValidationException::withMessages([
-                'revision' => 'This published revision cannot be restored because its snapshot is invalid.',
-            ]);
+        $alliances = $this->rows($snapshot['alliances'] ?? null);
+        $groups = $this->rows($snapshot['groups'] ?? null);
+        $objects = $this->rows($snapshot['objects'] ?? null);
+        $planData = $snapshot['plan'] ?? null;
+        if (! is_array($planData)) {
+            throw $this->invalidSnapshot();
+        }
+        $preferences = $planData['planning_preferences'] ?? [];
+        if (! is_array($preferences)) {
+            throw $this->invalidSnapshot();
         }
 
         DB::transaction(function () use ($actorPlayerId, $planId, $expectedRevision): void {
             $context = $this->writeState->lock($actorPlayerId, $planId);
             $this->authorization->authorizeManage($context);
-            if ((int) $context->plan->revision !== $expectedRevision) {
+            if ($context->plan->revision !== $expectedRevision) {
                 throw ValidationException::withMessages([
                     'revision' => 'This plan changed before the revision could be restored.',
                 ]);
@@ -59,12 +60,10 @@ final readonly class RestoreTerritoryPlanRevision
             $actorPlayerId,
             $planId,
             $expectedRevision,
-            $snapshot['alliances'],
-            $snapshot['groups'],
-            $snapshot['objects'],
-            is_array($snapshot['plan']['planning_preferences'] ?? null)
-                ? $snapshot['plan']['planning_preferences']
-                : [],
+            $alliances,
+            $groups,
+            $objects,
+            $preferences,
         );
 
         $actor = $this->players->require($actorPlayerId);
@@ -73,14 +72,39 @@ final readonly class RestoreTerritoryPlanRevision
             'territory.plan.revision_restored',
             $actor,
             $plan,
-            $plan->owner_alliance_id === null ? null : (string) $plan->owner_alliance_id,
+            $plan->owner_alliance_id,
             [
                 'territory_plan_revision_id' => $revisionId,
-                'source_revision_number' => (int) $revision->revision_number,
+                'source_revision_number' => $revision->revision_number,
                 'result_revision' => $receipt->revision,
             ],
         );
 
         return $receipt;
+    }
+
+    /** @return list<array<string, mixed>> */
+    private function rows(mixed $value): array
+    {
+        if (! is_array($value)) {
+            throw $this->invalidSnapshot();
+        }
+
+        $rows = [];
+        foreach ($value as $row) {
+            if (! is_array($row)) {
+                throw $this->invalidSnapshot();
+            }
+            $rows[] = $row;
+        }
+
+        return $rows;
+    }
+
+    private function invalidSnapshot(): ValidationException
+    {
+        return ValidationException::withMessages([
+            'revision' => 'This published revision cannot be restored because its snapshot is invalid.',
+        ]);
     }
 }
