@@ -8,6 +8,7 @@ import type {
 } from './types';
 
 type Rect = { x: number; y: number; width: number; height: number };
+type CoverageSource = { key: string; x: number; y: number; coverage: number };
 
 function rectFor(object: PlanObject, map: MapData): Rect | null {
   const definition = map.object_types[object.type];
@@ -16,7 +17,12 @@ function rectFor(object: PlanObject, map: MapData): Rect | null {
 }
 
 function intersects(a: Rect, b: Rect): boolean {
-  return a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
+  return (
+    a.x < b.x + b.width &&
+    a.x + a.width > b.x &&
+    a.y < b.y + b.height &&
+    a.y + a.height > b.y
+  );
 }
 
 function inside(rect: Rect, bounds: Rect): boolean {
@@ -40,6 +46,48 @@ function unique(issues: ValidationIssue[]): ValidationIssue[] {
     seen.add(key);
     return true;
   });
+}
+
+function coverageSources(map: MapData, objects: PlanObject[]): CoverageSource[] {
+  return objects.flatMap((object) => {
+    const definition = map.object_types[object.type];
+    if (!definition || definition.coverage <= 0 || definition.size <= 0) return [];
+    return [
+      {
+        key: object.key,
+        x: object.x + definition.size / 2,
+        y: object.y + definition.size / 2,
+        coverage: definition.coverage,
+      },
+    ];
+  });
+}
+
+function coverageComponentCount(sources: CoverageSource[]): number {
+  if (!sources.length) return 0;
+  const visited = new Set<number>();
+  let components = 0;
+  sources.forEach((source, start) => {
+    if (visited.has(start)) return;
+    components += 1;
+    const queue = [start];
+    while (queue.length) {
+      const index = queue.pop();
+      if (index === undefined || visited.has(index)) continue;
+      visited.add(index);
+      const current = sources[index];
+      if (!current) continue;
+      sources.forEach((candidate, candidateIndex) => {
+        if (visited.has(candidateIndex)) return;
+        const distance = Math.max(
+          Math.abs(current.x - candidate.x),
+          Math.abs(current.y - candidate.y),
+        );
+        if (distance <= current.coverage + candidate.coverage) queue.push(candidateIndex);
+      });
+    }
+  });
+  return components;
 }
 
 function selectedTrap(
@@ -217,6 +265,18 @@ export function validatePlacement(
   );
   for (const scopedObjects of allianceObjects.values()) {
     if (scopedObjects.some((object) => violatingObjectKeys.has(object.key))) continue;
+
+    const sources = coverageSources(map, scopedObjects);
+    if (sources.length > 1 && coverageComponentCount(sources) > 1) {
+      warnings.push(
+        issue(
+          'disconnected_territory',
+          'Alliance territory coverage is split into disconnected regions.',
+          sources[0]?.key,
+        ),
+      );
+    }
+
     const firstCity = scopedObjects.find((object) => object.type === 'governor_city');
     if (!firstCity) continue;
     if (!scopedObjects.some((object) => object.type === 'headquarters')) {
@@ -313,17 +373,7 @@ export function analyzeLayout(
     });
     const cities = allianceGroup.filter((object) => object.type === 'governor_city');
     const traps = allianceGroup.filter((object) => object.type === 'bear_trap');
-    const sources = allianceGroup.flatMap((object) => {
-      const definition = map.object_types[object.type];
-      if (!definition || definition.coverage <= 0) return [];
-      return [
-        {
-          x: object.x + definition.size / 2,
-          y: object.y + definition.size / 2,
-          coverage: definition.coverage,
-        },
-      ];
-    });
+    const sources = coverageSources(map, allianceGroup);
     const covered = cities.filter((city) => {
       const size = map.object_types.governor_city.size;
       const corners = [
@@ -341,29 +391,7 @@ export function analyzeLayout(
       );
     }).length;
 
-    const visited = new Set<number>();
-    let components = 0;
-    sources.forEach((source, start) => {
-      if (visited.has(start)) return;
-      components += 1;
-      const queue = [start];
-      while (queue.length) {
-        const index = queue.pop();
-        if (index === undefined || visited.has(index)) continue;
-        visited.add(index);
-        const current = sources[index];
-        if (!current) continue;
-        sources.forEach((candidate, candidateIndex) => {
-          if (visited.has(candidateIndex)) return;
-          const distance = Math.max(
-            Math.abs(current.x - candidate.x),
-            Math.abs(current.y - candidate.y),
-          );
-          if (distance <= current.coverage + candidate.coverage) queue.push(candidateIndex);
-        });
-      }
-    });
-
+    const components = coverageComponentCount(sources);
     const seconds = preferences.march_seconds_per_tile;
     const marches = cities.flatMap((city) => {
       const target = targetTrapForCity(city, traps, preferences);
