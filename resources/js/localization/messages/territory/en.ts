@@ -110,11 +110,10 @@ const messages = {
     exportPng: 'Export PNG',
     exportSvg: 'Export SVG',
     importJson: 'Import JSON',
-    importReady: 'Import parsed and validated. Review the preview before applying it.',
-    importAppliedUnsaved:
-      'Imported layout applied to working state. Save it to make the change durable.',
+    importReady: 'Import parsed and validated. Review the preview before committing it.',
+    imported: 'Imported layout committed as working revision {revision}.',
     importPreview: 'Import preview is ready.',
-    applyImport: 'Apply to working layout',
+    applyImport: 'Commit imported layout',
     revisions: 'Published revisions',
     restore: 'Restore to working layout',
     restoreConfirm:
@@ -127,6 +126,18 @@ const messages = {
     clonePlan: 'Create clone',
     localDraftRestored: 'Recovered unsaved working changes from this browser.',
     requestFailed: 'Territory Command could not complete that request.',
+    eventPlanningEyebrow: 'Event positioning',
+    eventPlanningTitle: 'Territory positioning',
+    eventPlanningHelp:
+      'Pin a published Territory revision to each Event occurrence. The Event keeps that exact revision even if officers continue editing the working layout later.',
+    noPublishedEventRevisions:
+      'No compatible published Territory revisions are available for this Event target yet.',
+    eventOccurrence: 'Event occurrence',
+    currentEventRevision: 'Current positioning: {plan} · revision {revision}',
+    positioningRevision: 'Published positioning revision',
+    choosePublishedRevision: 'Choose a published revision',
+    attachEventRevision: 'Use this revision',
+    attachingEventRevision: 'Attaching…',
     status: { draft: 'Draft', published: 'Published', archived: 'Archived' },
     confidence: {
       official: 'Official source',
