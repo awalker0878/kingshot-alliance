@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - feature/alliance-territory-hive-planner
+    paths:
+      - .github/workflows/territory-autofix.yml
 
 permissions:
   contents: write
