@@ -5,7 +5,7 @@ import type { MapData, PlanAlliance, PlanObject, TerritoryObjectType } from '../
 
 type Tool = 'select' | 'pan' | 'place';
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   map: MapData;
   alliances: PlanAlliance[];
   objects: PlanObject[];
@@ -13,8 +13,12 @@ const props = defineProps<{
   tool: Tool;
   placementType: TerritoryObjectType;
   activeAllianceKey: string | null;
+  label: string;
   readOnly?: boolean;
-}>();
+  showCoverage?: boolean;
+  showStructures?: boolean;
+  showZones?: boolean;
+}>(), { readOnly: false, showCoverage: true, showStructures: true, showZones: true });
 
 const emit = defineEmits<{
   (event: 'update:selectedKeys', value: string[]): void;
@@ -48,16 +52,13 @@ function fitMap(): void {
 function toScreen(x: number, y: number): [number, number] {
   return [(x - cameraX.value) * zoom.value + width.value / 2, height.value / 2 - (y - cameraY.value) * zoom.value];
 }
-
 function toWorld(screenX: number, screenY: number): [number, number] {
   return [(screenX - width.value / 2) / zoom.value + cameraX.value, (height.value / 2 - screenY) / zoom.value + cameraY.value];
 }
-
 function eventPoint(event: PointerEvent | WheelEvent): [number, number] {
   const rect = canvas.value?.getBoundingClientRect();
   return [event.clientX - (rect?.left ?? 0), event.clientY - (rect?.top ?? 0)];
 }
-
 function objectAt(screenX: number, screenY: number): PlanObject | null {
   const visible = props.objects.filter((object) => visibleAlliances.value.has(object.alliance_key));
   for (let index = visible.length - 1; index >= 0; index -= 1) {
@@ -76,32 +77,28 @@ function onPointerDown(event: PointerEvent): void {
   canvas.value.setPointerCapture(event.pointerId);
   const [screenX, screenY] = eventPoint(event);
   const [worldX, worldY] = toWorld(screenX, screenY);
-
   if (!props.readOnly && props.tool === 'place' && props.activeAllianceKey) {
     emit('place', { x: Math.round(worldX), y: Math.round(worldY) });
     return;
   }
-
   if (props.tool === 'pan' || event.button === 1 || event.button === 2) {
     drag.value = { kind: 'pan', startX: screenX, startY: screenY, worldX, worldY, lastWorldX: worldX, lastWorldY: worldY };
     return;
   }
-
   const hit = objectAt(screenX, screenY);
   if (hit) {
     const selected = event.shiftKey
       ? props.selectedKeys.includes(hit.key) ? props.selectedKeys.filter((key) => key !== hit.key) : [...props.selectedKeys, hit.key]
       : props.selectedKeys.includes(hit.key) ? props.selectedKeys : [hit.key];
     emit('update:selectedKeys', selected);
-    if (!props.readOnly) drag.value = { kind: 'object', startX: screenX, startY: screenY, worldX, worldY, lastWorldX: worldX, lastWorldY: worldY };
+    const layer = props.alliances.find((alliance) => alliance.key === hit.alliance_key);
+    if (!props.readOnly && !layer?.locked) drag.value = { kind: 'object', startX: screenX, startY: screenY, worldX, worldY, lastWorldX: worldX, lastWorldY: worldY };
     return;
   }
-
   if (!event.shiftKey) emit('update:selectedKeys', []);
   drag.value = { kind: 'box', startX: screenX, startY: screenY, worldX, worldY, lastWorldX: worldX, lastWorldY: worldY };
   boxEnd.value = { x: screenX, y: screenY };
 }
-
 function onPointerMove(event: PointerEvent): void {
   if (!drag.value) return;
   const [screenX, screenY] = eventPoint(event);
@@ -116,7 +113,6 @@ function onPointerMove(event: PointerEvent): void {
   drag.value.lastWorldY = worldY;
   draw();
 }
-
 function onPointerUp(event: PointerEvent): void {
   if (!drag.value) return;
   const current = drag.value;
@@ -144,13 +140,11 @@ function onPointerUp(event: PointerEvent): void {
   boxEnd.value = null;
   draw();
 }
-
 function onWheel(event: WheelEvent): void {
   event.preventDefault();
   const [screenX, screenY] = eventPoint(event);
   const [beforeX, beforeY] = toWorld(screenX, screenY);
-  const factor = event.deltaY < 0 ? 1.12 : 0.89;
-  zoom.value = Math.min(8, Math.max(0.06, zoom.value * factor));
+  zoom.value = Math.min(8, Math.max(0.06, zoom.value * (event.deltaY < 0 ? 1.12 : 0.89)));
   const [afterX, afterY] = toWorld(screenX, screenY);
   cameraX.value += beforeX - afterX;
   cameraY.value += beforeY - afterY;
@@ -170,28 +164,29 @@ function draw(): void {
   context.fillStyle = '#101821';
   context.fillRect(0, 0, width.value, height.value);
 
-  for (const [zoneName, zone] of Object.entries(props.map.zones)) {
-    if (zoneName === 'badlands') continue;
-    const [x, yTopWorld] = toScreen(zone.x, zone.y + zone.height);
-    context.strokeStyle = 'rgba(225, 195, 120, .16)';
-    context.lineWidth = 1;
-    context.strokeRect(x, yTopWorld, zone.width * zoom.value, zone.height * zoom.value);
+  if (props.showZones) {
+    for (const [zoneName, zone] of Object.entries(props.map.zones)) {
+      if (zoneName === 'badlands') continue;
+      const [x, yTop] = toScreen(zone.x, zone.y + zone.height);
+      context.strokeStyle = 'rgba(225, 195, 120, .18)';
+      context.strokeRect(x, yTop, zone.width * zoom.value, zone.height * zoom.value);
+    }
   }
-
-  for (const structure of props.map.structures) {
-    const [x, yBottom] = toScreen(structure.x, structure.y);
-    const size = structure.size * zoom.value;
-    context.fillStyle = 'rgba(139, 125, 107, .78)';
-    context.fillRect(x, yBottom - size, size, size);
+  if (props.showStructures) {
+    for (const structure of props.map.structures) {
+      const [x, yBottom] = toScreen(structure.x, structure.y);
+      const size = structure.size * zoom.value;
+      context.fillStyle = 'rgba(139, 125, 107, .82)';
+      context.fillRect(x, yBottom - size, size, size);
+    }
   }
-
   for (const object of props.objects) {
     if (!visibleAlliances.value.has(object.alliance_key)) continue;
     const definition = props.map.object_types[object.type];
     const color = allianceColor.value.get(object.alliance_key) ?? '#4da3ff';
     const [x, yBottom] = toScreen(object.x, object.y);
     const size = definition.size * zoom.value;
-    if (definition.coverage > 0) {
+    if (props.showCoverage && definition.coverage > 0) {
       context.globalAlpha = 0.12;
       context.fillStyle = color;
       const coverage = definition.coverage * zoom.value;
@@ -209,7 +204,6 @@ function draw(): void {
       context.fillText(object.label, x + 3, yBottom - size - 4);
     }
   }
-
   if (drag.value?.kind === 'box' && boxEnd.value) {
     context.strokeStyle = '#e8c978';
     context.setLineDash([5, 4]);
@@ -220,13 +214,7 @@ function draw(): void {
   }
 }
 
-function exportPng(): string | null {
-  draw();
-  return canvas.value?.toDataURL('image/png') ?? null;
-}
-
-defineExpose({ fitMap, exportPng });
-
+defineExpose({ fitMap });
 onMounted(() => {
   resizeObserver = new ResizeObserver(([entry]) => {
     if (!entry) return;
@@ -238,7 +226,7 @@ onMounted(() => {
   nextTick(fitMap);
 });
 onBeforeUnmount(() => resizeObserver?.disconnect());
-watch(() => [props.objects, props.alliances, props.selectedKeys], draw, { deep: true });
+watch(() => [props.objects, props.alliances, props.selectedKeys, props.showCoverage, props.showStructures, props.showZones], draw, { deep: true });
 </script>
 
 <template>
@@ -247,7 +235,7 @@ watch(() => [props.objects, props.alliances, props.selectedKeys], draw, { deep: 
       ref="canvas"
       class="block h-full w-full touch-none"
       :style="{ width: `${width}px`, height: `${height}px` }"
-      :aria-label="'Territory map editor'"
+      :aria-label="label"
       @pointerdown="onPointerDown"
       @pointermove="onPointerMove"
       @pointerup="onPointerUp"
@@ -255,8 +243,6 @@ watch(() => [props.objects, props.alliances, props.selectedKeys], draw, { deep: 
       @wheel="onWheel"
       @contextmenu.prevent
     />
-    <div class="pointer-events-none absolute right-3 bottom-3 rounded bg-black/60 px-2 py-1 text-xs text-white/70">
-      {{ Math.round(zoom * 100) }}%
-    </div>
+    <div class="pointer-events-none absolute right-3 bottom-3 rounded bg-black/60 px-2 py-1 text-xs text-white/70">{{ Math.round(zoom * 100) }}%</div>
   </div>
 </template>

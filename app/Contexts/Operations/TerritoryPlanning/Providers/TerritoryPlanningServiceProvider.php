@@ -19,16 +19,13 @@ final class TerritoryPlanningServiceProvider extends ServiceProvider
             Route::get('/territory/{plan}/revisions/{revision}', [TerritoryPlanController::class, 'revision'])->whereUlid('plan')->whereUlid('revision')->name('territory.revisions.show');
             Route::post('/territory/hive-preview', [TerritoryPlanController::class, 'generateHive'])->name('territory.hive-preview');
             Route::post('/territory/import-preview', [TerritoryPlanController::class, 'previewImport'])->name('territory.import-preview');
+            Route::post('/territory', [TerritoryPlanController::class, 'store'])->name('territory.store');
             Route::put('/territory/{plan}', [TerritoryPlanController::class, 'save'])->whereUlid('plan')->name('territory.save');
-
-            Route::middleware('password.confirm')->group(function (): void {
-                Route::post('/territory', [TerritoryPlanController::class, 'store'])->name('territory.store');
-                Route::post('/territory/{plan}/publish', [TerritoryPlanController::class, 'publish'])->whereUlid('plan')->name('territory.publish');
-                Route::delete('/territory/{plan}', [TerritoryPlanController::class, 'archive'])->whereUlid('plan')->name('territory.archive');
-                Route::post('/territory/{plan}/clone', [TerritoryPlanController::class, 'clone'])->whereUlid('plan')->name('territory.clone');
-                Route::post('/territory/{plan}/revisions/{revision}/restore', [TerritoryPlanController::class, 'restore'])->whereUlid('plan')->whereUlid('revision')->name('territory.revisions.restore');
-                Route::post('/territory/event-revisions', [TerritoryPlanController::class, 'attachEvent'])->name('territory.event-revisions.store');
-            });
+            Route::post('/territory/{plan}/publish', [TerritoryPlanController::class, 'publish'])->whereUlid('plan')->name('territory.publish');
+            Route::delete('/territory/{plan}', [TerritoryPlanController::class, 'archive'])->whereUlid('plan')->name('territory.archive');
+            Route::post('/territory/{plan}/clone', [TerritoryPlanController::class, 'clone'])->whereUlid('plan')->name('territory.clone');
+            Route::post('/territory/{plan}/revisions/{revision}/restore', [TerritoryPlanController::class, 'restore'])->whereUlid('plan')->whereUlid('revision')->name('territory.revisions.restore');
+            Route::post('/territory/event-revisions', [TerritoryPlanController::class, 'attachEvent'])->name('territory.event-revisions.store');
         });
     }
 }
