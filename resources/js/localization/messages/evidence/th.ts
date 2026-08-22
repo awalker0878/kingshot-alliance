@@ -1,0 +1,3 @@
+import type { MessageCatalogue } from '../../types';
+const messages = { evidence: { openIntake: 'นำเข้ารายงานการต่อสู้', eyebrow: 'ล่าหมี · ตรวจสอบหลักฐาน', title: 'นำเข้าภาพหน้าจอ', subtitle: 'อัปโหลดรายงานล่าหมีและตรวจสอบค่าที่สกัดทุกค่าก่อนเปลี่ยนผลกิจกรรม', back: 'กลับไปล่าหมี', uploadTitle: 'อัปโหลดรายงานการต่อสู้', uploadHelp: 'JPEG, PNG หรือ WebP ต้นฉบับเป็นส่วนตัว ผ่านการตรวจความปลอดภัย และมี checksum ที่แก้ไขไม่ได้', chooseFile: 'ภาพหน้าจอรายงานการต่อสู้', upload: 'อัปโหลดภาพหน้าจอ', uploading: 'กำลังอัปโหลด…', existingTitle: 'หลักฐานสำหรับการล่าหมีครั้งนี้', empty: 'ยังไม่มีภาพหน้าจอสำหรับการล่าหมีครั้งนี้', originalName: 'แหล่งที่มา', status: 'สถานะ', received: 'ได้รับ', security: 'ที่มา' } } satisfies MessageCatalogue;
+export default messages;

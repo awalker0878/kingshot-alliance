@@ -14,28 +14,13 @@ final class GameEvidence extends Model
     use HasUlids;
 
     public $incrementing = false;
-
     protected $keyType = 'string';
-
     protected $table = 'game_evidence';
 
     protected $fillable = [
-        'alliance_id',
-        'occurrence_id',
-        'expected_kind',
-        'kind',
-        'lifecycle_status',
-        'original_name',
-        'disk',
-        'path',
-        'mime_type',
-        'size_bytes',
-        'width',
-        'height',
-        'sha256',
-        'perceptual_hash',
-        'uploaded_by_player_id',
-        'scanned_at',
+        'alliance_id', 'occurrence_id', 'expected_kind', 'kind', 'lifecycle_status', 'original_name',
+        'disk', 'path', 'mime_type', 'size_bytes', 'width', 'height', 'sha256', 'perceptual_hash',
+        'visual_duplicate_evidence_id', 'visual_duplicate_distance', 'uploaded_by_player_id', 'scanned_at',
     ];
 
     protected function casts(): array
@@ -47,6 +32,7 @@ final class GameEvidence extends Model
             'size_bytes' => 'integer',
             'width' => 'integer',
             'height' => 'integer',
+            'visual_duplicate_distance' => 'integer',
             'scanned_at' => 'datetime',
         ];
     }
