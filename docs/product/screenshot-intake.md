@@ -26,7 +26,7 @@ An authorized Player can start from a Bear Hunt Event occurrence, upload a battl
 
 It does **not** own Event, EventOccurrence, Player, Alliance membership, Bear Hunt result, damage totals or rally metrics.
 
-`Operations/Results` owns accepted Bear Hunt battle reports, report entries and all derived Event result state. Cross-context writes use scalar IDs/value objects through owner Actions. `app/Workflows` coordinates the commit handshake but owns no business persistence.
+`Operations/Results` owns accepted Bear Hunt battle reports, report entries and all derived Event result state. Cross-context writes use scalar IDs/value objects through owner Actions. An `Intelligence/Evidence` application Action coordinates the commit handshake while owning no destination persistence.
 
 The original evidence is never rewritten. Any crop, rotation, resize, contrast adjustment or other preprocessing is a derived representation with its own checksum and source relationship.
 
@@ -43,7 +43,7 @@ The original evidence is never rewritten. Any crop, rotation, resize, contrast a
 9. The application checks visual and semantic duplicate warnings.
 10. A commit preview shows the concrete Operations effect.
 11. The reviewer commits the approved revision.
-12. A workflow sends a scalar Bear Hunt report command to `Operations/Results`.
+12. The Evidence commit Action sends a scalar Bear Hunt report command to `Operations/Results`.
 13. Operations validates current authority/Event scope, persists the report idempotently, recomputes owned result aggregates and returns a scalar receipt.
 14. Evidence records the receipt. Retrying after an interrupted acknowledgement returns the same result rather than double-counting damage.
 
@@ -117,7 +117,7 @@ Evidence cannot directly write `EventPlayerResult` or any Operations model.
 
 Cross-context commit uses an explicit handshake:
 
-`Evidence BeginCommitAttempt → Workflow BuildReviewedCommand → Operations RecordBearHuntBattleReport → Evidence MarkCommitSucceeded`
+`Evidence BeginCommitAttempt → Evidence CommitReviewedBearHuntEvidence → Operations RecordBearHuntBattleReport → Evidence MarkCommitSucceeded`
 
 The destination idempotency key is stable for the immutable approved review revision/commit attempt. If Operations commits and the caller crashes before Evidence records success, retry returns the existing destination receipt and does not duplicate damage.
 
@@ -137,7 +137,7 @@ Initial retention defaults may differ by lifecycle state, but policy values must
 
 Uploads use private storage only. The pipeline validates allowlisted MIME types and size, verifies actual MIME, performs the repository media security scan, computes SHA-256, generates non-user-controlled storage names, and removes stored bytes if persistence fails. Raw provider responses and logs must not leak screenshot content, credentials, or cross-tenant duplicate information.
 
-Authorization is checked before expensive work where useful and reacquired at each protected write boundary. Jobs and workflows carry scalar IDs, never serialized Eloquent authority models.
+Authorization is checked before expensive work where useful and reacquired at each protected write boundary. Jobs and application Actions carry scalar IDs/value objects, never serialized Eloquent authority models.
 
 ## UX requirements
 
@@ -173,7 +173,7 @@ A phase is `Complete` only when its behavior, authorization, persistence, UX, ac
 | 6 | Planned | Review revisions, Player resolution, manual correction/exclusion and commit eligibility rules. |
 | 7 | Planned | Exact, visual and semantic duplicate detection with tenant-safe disclosure behavior. |
 | 8 | Planned | Commit preview and authoritative validation of the reviewed command. |
-| 9 | Planned | Workflow-based scalar cross-context commit into `Operations/Results` with no foreign persistence writes. |
+| 9 | Planned | Evidence application-Action orchestration sends a scalar cross-context command into `Operations/Results` with no foreign persistence writes. |
 | 10 | Planned | Operations-owned Bear Hunt report ledger, entries, deterministic recomputation and idempotent aggregation. |
 | 11 | Planned | Crash-safe retry/recovery, stable commit receipts and destination deduplication. |
 | 12 | Planned | Evidence deletion, redaction/purge and configurable retention without cascading domain deletion. |
