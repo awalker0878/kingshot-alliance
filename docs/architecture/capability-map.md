@@ -2,14 +2,14 @@
 
 Status: Current — Architecture V3
 
-Capabilities are first-class modules inside the seven bounded contexts. This map is the canonical business capability inventory for V3.
+Capabilities are first-class modules inside the seven bounded contexts. This map is the canonical business capability inventory for V3. Territory planning adds capabilities inside the existing GameWorld and Operations contexts; it does not create an eighth context.
 
 | Context | Capabilities |
 | --- | --- |
 | Accounts | Identity, Registration, Authentication, Credentials, EmailVerification, Profile, MultiFactorAuthentication |
-| GameWorld | Players, Kingdoms, Governance, KingdomTransfers, GiftCodes |
+| GameWorld | Players, Kingdoms, KingdomMaps, Governance, KingdomTransfers, GiftCodes |
 | Alliance | Lifecycle, Membership, Access, Recruitment, Content |
-| Operations | Access, Events, Participation, Polls, Rosters, BattlePlans, Rallies, KingPerks, Results |
+| Operations | Access, Events, Participation, Polls, Rosters, BattlePlans, Rallies, KingPerks, Results, TerritoryPlanning |
 | Intelligence | Access, Observations, Ingestion, Roster, Contributions, Diplomacy, Sharing |
 | Communications | Delivery |
 | Platform | Administration, AllianceAdministration, DataGovernance, EventAdministration, Integrations |
@@ -28,9 +28,12 @@ Capabilities are first-class modules inside the seven bounded contexts. This map
 
 - **Players** — Player identity/claim, Player ownership references and active Player selection.
 - **Kingdoms** — Kingdom identity and neutral Kingdom/Alliance placement/reference state.
+- **KingdomMaps** — immutable/versioned Kingdom-map datasets, coordinate/geometry facts, provenance and sourced game placement rules.
 - **Governance** — Kingdom roles, assignments and GameWorld-owned governance authorization.
 - **KingdomTransfers** — Player/Kingdom transfer planning and transfer-domain state owned by GameWorld.
 - **GiftCodes** — normalized Gift Code catalogue, provider policy, and per-Player/per-Kingdom redemption state.
+
+`KingdomMaps` owns represented world truth, not Alliance planning preferences or saved layouts.
 
 ## Alliance
 
@@ -53,6 +56,9 @@ Alliance policies belong to the capability that owns the rule; `Alliance/Policie
 - **Rallies** — rally coordination.
 - **KingPerks** — Kingdom of Power appointment/skill planning and scheduling.
 - **Results** — authoritative operational results and metrics.
+- **TerritoryPlanning** — mutable Alliance/Kingdom layouts, planned HQs/Banners/Governor cities/Bear Traps, planning preferences, deterministic coverage/march/layout analysis, generated hive arrangements and immutable published revisions.
+
+`TerritoryPlanning` consumes `GameWorld/KingdomMaps` through explicit IDs/contracts. It does not own map truth. `BattlePlans` remains objective/assignment state and may reference a published territory-plan revision without absorbing spatial persistence.
 
 ## Intelligence
 
@@ -89,7 +95,7 @@ The following are implementation/composition mechanisms, not business capabiliti
 - `app/ReadModels`;
 - `app/Shared`.
 
-Cross-context analytical views such as Event analysis are composition surfaces under `app/ReadModels`, not Intelligence capabilities unless they acquire durable owner state of their own.
+Cross-context analytical views such as Event analysis and the Territory Command editor are composition surfaces under `app/ReadModels` when they combine multiple owners; they do not become new persistence owners.
 
 The HTTP adapter that renders a cross-context composition surface lives with that read model; owner-context adapters must not import `app/ReadModels`.
 
