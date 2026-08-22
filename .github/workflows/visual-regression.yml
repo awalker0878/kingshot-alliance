@@ -81,6 +81,38 @@ jobs:
         if: github.event_name == 'pull_request' && github.head_ref == 'feature/alliance-territory-hive-planner'
         shell: bash
         run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          finalizer = Path('scripts/finalize-territory-ui.py')
+          source = finalizer.read_text()
+          source = source.replace("territory.blockingIssues", "territory.violations")
+          source = source.replace("territory.planningWarnings", "territory.warnings")
+          source = source.replace("territory.planningSuggestions", "territory.suggestions")
+          start = source.find("translations = {")
+          finish_marker = 'print("Territory UI finalization applied.")'
+          finish = source.find(finish_marker)
+          if start >= 0 and finish >= 0:
+              replacement = '''english = Path("resources/js/localization/messages/territory/en.ts")
+          text = english.read_text()
+          if "violations:" not in text:
+              anchor = "    bannerEfficiency: 'Covered cities / Banner',\\n"
+              if anchor not in text:
+                  raise RuntimeError("Missing English Territory analysis localization anchor")
+              text = text.replace(
+                  anchor,
+                  anchor
+                  + "    violations: 'Blocking issues',\\n"
+                  + "    warnings: 'Planning warnings',\\n"
+                  + "    suggestions: 'Planning suggestions',\\n",
+                  1,
+              )
+              english.write_text(text)
+
+          print("Territory UI finalization applied.")'''
+              source = source[:start] + replacement + source[finish + len(finish_marker):]
+          finalizer.write_text(source)
+          PY
           python scripts/finalize-territory-ui.py
           vendor/bin/pint
           npm run lint
