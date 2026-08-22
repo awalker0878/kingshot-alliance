@@ -17,31 +17,49 @@ final readonly class TerritoryPlanImport
         private TerritoryLayoutAnalyzer $analysis,
     ) {}
 
-    /** @return array<string,mixed> */
+    /** @return array<string, mixed> */
     public function preview(string $json): array
     {
         try {
             $document = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
         } catch (JsonException) {
-            throw ValidationException::withMessages(['import' => 'The selected layout is not valid JSON.']);
+            throw ValidationException::withMessages([
+                'import' => 'The selected layout is not valid JSON.',
+            ]);
         }
+
         if (! is_array($document) || (int) ($document['schema_version'] ?? 0) !== 1) {
-            throw ValidationException::withMessages(['import' => 'Only Territory Layout schema version 1 is supported.']);
+            throw ValidationException::withMessages([
+                'import' => 'Only Territory Layout schema version 1 is supported.',
+            ]);
         }
 
         $plan = $document['plan'] ?? null;
         if (! is_array($plan)) {
             throw $this->invalid('The layout document is missing required plan data.');
         }
+
         $alliances = $this->rows($document['alliances'] ?? null, 'Alliance');
         $groups = $this->rows($document['groups'] ?? null, 'group');
         $objects = $this->rows($document['objects'] ?? null, 'object');
 
         $datasetId = (string) ($plan['map_dataset_id'] ?? '');
         $datasetChecksum = (string) ($plan['map_dataset_checksum'] ?? '');
-        $dataset = $this->datasets->require($datasetId, $datasetChecksum === '' ? null : $datasetChecksum);
-        $preferences = is_array($plan['planning_preferences'] ?? null) ? $plan['planning_preferences'] : [];
-        $this->assertStructuralContract($dataset->data['object_types'] ?? [], $alliances, $groups, $objects, $preferences);
+        $dataset = $this->datasets->require(
+            $datasetId,
+            $datasetChecksum === '' ? null : $datasetChecksum,
+        );
+        $preferences = is_array($plan['planning_preferences'] ?? null)
+            ? $plan['planning_preferences']
+            : [];
+
+        $this->assertStructuralContract(
+            $dataset->data['object_types'] ?? [],
+            $alliances,
+            $groups,
+            $objects,
+            $preferences,
+        );
 
         $validationObjects = array_map(
             static fn (array $object): array => [
@@ -73,9 +91,7 @@ final readonly class TerritoryPlanImport
         ];
     }
 
-    /**
-     * @return list<array<string, mixed>>
-     */
+    /** @return list<array<string, mixed>> */
     private function rows(mixed $value, string $label): array
     {
         if (! is_array($value)) {
@@ -87,6 +103,7 @@ final readonly class TerritoryPlanImport
             if (! is_array($row)) {
                 throw $this->invalid("Every imported {$label} entry must be an object.");
             }
+
             $rows[] = $row;
         }
 
@@ -94,7 +111,6 @@ final readonly class TerritoryPlanImport
     }
 
     /**
-     * @param  mixed  $objectTypes
      * @param  list<array<string, mixed>>  $alliances
      * @param  list<array<string, mixed>>  $groups
      * @param  list<array<string, mixed>>  $objects
@@ -107,8 +123,16 @@ final readonly class TerritoryPlanImport
         array $objects,
         array $preferences,
     ): void {
-        if (! is_array($objectTypes) || $alliances === [] || count($alliances) > 50 || count($groups) > 500 || count($objects) > 5000) {
-            throw $this->invalid('The imported Territory layout exceeds the supported structural limits.');
+        if (
+            ! is_array($objectTypes)
+            || $alliances === []
+            || count($alliances) > 50
+            || count($groups) > 500
+            || count($objects) > 5000
+        ) {
+            throw $this->invalid(
+                'The imported Territory layout exceeds the supported structural limits.',
+            );
         }
 
         $allianceKeys = [];
@@ -118,6 +142,7 @@ final readonly class TerritoryPlanImport
             $linkedId = $this->stringOrNull($alliance['alliance_id'] ?? null);
             $externalName = $this->stringOrNull($alliance['external_name'] ?? null);
             $color = strtolower((string) ($alliance['presentation_color'] ?? ''));
+
             if (
                 $key === null
                 || isset($allianceKeys[$key])
@@ -125,8 +150,11 @@ final readonly class TerritoryPlanImport
                 || ($linkedId === null) === ($externalName === null)
                 || ! preg_match('/^#[0-9a-f]{6}$/', $color)
             ) {
-                throw $this->invalid('An imported Alliance layer has invalid identity, display, or presentation data.');
+                throw $this->invalid(
+                    'An imported Alliance layer has invalid identity, display, or presentation data.',
+                );
             }
+
             $allianceKeys[$key] = true;
         }
 
@@ -136,6 +164,7 @@ final readonly class TerritoryPlanImport
             if ($key === null || isset($groupKeys[$key])) {
                 throw $this->invalid('Every imported group requires a unique valid key.');
             }
+
             $groupKeys[$key] = true;
         }
 
@@ -147,6 +176,7 @@ final readonly class TerritoryPlanImport
             $allianceKey = $this->stringOrNull($object['alliance_key'] ?? null);
             $groupKey = $this->stringOrNull($object['group_key'] ?? null);
             $rotation = $object['rotation'] ?? 0;
+
             if (
                 $key === null
                 || isset($objectKeys[$key])
@@ -160,13 +190,20 @@ final readonly class TerritoryPlanImport
                 || ! is_int($rotation)
                 || ! in_array($rotation, [0, 90, 180, 270], true)
             ) {
-                throw $this->invalid('An imported planned object has invalid identity, coordinates, type, rotation, or layer references.');
+                throw $this->invalid(
+                    'An imported planned object has invalid identity, coordinates, type, rotation, or layer references.',
+                );
             }
 
             $playerId = $this->stringOrNull($object['player_id'] ?? null);
             $externalPlayer = $this->stringOrNull($object['external_player_name'] ?? null);
-            if (($playerId !== null && $externalPlayer !== null) || ($type !== 'governor_city' && ($playerId !== null || $externalPlayer !== null))) {
-                throw $this->invalid('Imported Governor identity may only be assigned to a Governor city and cannot be both linked and external.');
+            if (
+                ($playerId !== null && $externalPlayer !== null)
+                || ($type !== 'governor_city' && ($playerId !== null || $externalPlayer !== null))
+            ) {
+                throw $this->invalid(
+                    'Imported Governor identity may only be assigned to a Governor city and cannot be both linked and external.',
+                );
             }
 
             $objectKeys[$key] = true;
@@ -176,14 +213,23 @@ final readonly class TerritoryPlanImport
         }
 
         $selectedTraps = $preferences['selected_bear_trap_by_alliance'] ?? null;
-        if ($selectedTraps !== null) {
-            if (! is_array($selectedTraps)) {
-                throw $this->invalid('Imported selected Bear Traps must be keyed by Alliance layer.');
-            }
-            foreach ($selectedTraps as $allianceKey => $trapKey) {
-                if (! is_string($allianceKey) || ! is_string($trapKey) || ! isset($bearTrapsByAlliance[$allianceKey][$trapKey])) {
-                    throw $this->invalid('An imported selected Bear Trap must belong to its Alliance layer.');
-                }
+        if ($selectedTraps === null) {
+            return;
+        }
+
+        if (! is_array($selectedTraps)) {
+            throw $this->invalid('Imported selected Bear Traps must be keyed by Alliance layer.');
+        }
+
+        foreach ($selectedTraps as $allianceKey => $trapKey) {
+            if (
+                ! is_string($allianceKey)
+                || ! is_string($trapKey)
+                || ! isset($bearTrapsByAlliance[$allianceKey][$trapKey])
+            ) {
+                throw $this->invalid(
+                    'An imported selected Bear Trap must belong to its Alliance layer.',
+                );
             }
         }
     }
@@ -193,6 +239,7 @@ final readonly class TerritoryPlanImport
         if (! is_scalar($value)) {
             return null;
         }
+
         $value = trim((string) $value);
 
         return $value === '' ? null : $value;
