@@ -152,10 +152,7 @@ const mapMaxY = computed(
 );
 const mapDistanceLimit = computed(() =>
   Math.ceil(
-    Math.hypot(
-      props.territory.map.data.bounds.width,
-      props.territory.map.data.bounds.height,
-    ),
+    Math.hypot(props.territory.map.data.bounds.width, props.territory.map.data.bounds.height),
   ),
 );
 const validation = computed(() =>
@@ -1432,8 +1429,8 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
               </p>
               <p>
                 {{ t('territory.uncovered') }}:
-                {{ comparison.previous[alliance.key]?.covered_governor_cities ?? 0 }} →
-                {{ comparison.current[alliance.key]?.covered_governor_cities ?? 0 }}
+                {{ comparison.previous[alliance.key]?.uncovered_governor_cities ?? 0 }} →
+                {{ comparison.current[alliance.key]?.uncovered_governor_cities ?? 0 }}
               </p>
               <p>
                 {{ t('territory.types.banner') }}:
@@ -1525,7 +1522,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
             <dd>{{ formatNumber(importPreview.alliances.length) }}</dd>
           </div>
           <div>
-            <dt class="text-[var(--ks-muted)]">{{ t('territory.placedObjects', { count: '' }) }}</dt>
+            <dt class="text-[var(--ks-muted)]">{{ t('territory.object') }}</dt>
             <dd>{{ formatNumber(importPreview.objects.length) }}</dd>
           </div>
           <div>
@@ -1540,7 +1537,10 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
         <p class="mt-2 text-xs text-[var(--ks-muted)]">
           {{ importPreview.map.source_label }} · {{ importPreview.map.id }}
         </p>
-        <ul v-if="importPreview.validation.violations.length" class="mt-2 space-y-1 text-xs text-red-200">
+        <ul
+          v-if="importPreview.validation.violations.length"
+          class="mt-2 space-y-1 text-xs text-red-200"
+        >
           <li
             v-for="item in importPreview.validation.violations"
             :key="`import-v-${item.code}-${item.object_key}`"
@@ -1548,7 +1548,10 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
             {{ item.message }}
           </li>
         </ul>
-        <ul v-if="importPreview.validation.warnings.length" class="mt-2 space-y-1 text-xs text-amber-200">
+        <ul
+          v-if="importPreview.validation.warnings.length"
+          class="mt-2 space-y-1 text-xs text-amber-200"
+        >
           <li
             v-for="item in importPreview.validation.warnings"
             :key="`import-w-${item.code}-${item.object_key}`"
