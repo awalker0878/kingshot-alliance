@@ -8,14 +8,14 @@ return [
     'mime_types' => ['image/jpeg', 'image/png', 'image/webp'],
     'visual_duplicate_distance' => (int) env('EVIDENCE_VISUAL_DUPLICATE_DISTANCE', 8),
     'ocr' => [
-        'binary' => env('EVIDENCE_TESSERACT_BINARY', 'tesseract'),
-        'language' => env('EVIDENCE_TESSERACT_LANGUAGE', 'eng'),
-        'page_segmentation_mode' => (int) env('EVIDENCE_TESSERACT_PSM', 6),
+        'binary' => env('EVIDENCE_OCR_BINARY', 'tesseract'),
+        'language' => env('EVIDENCE_OCR_LANGUAGE', 'eng'),
+        'page_segmentation_mode' => (int) env('EVIDENCE_OCR_PSM', 6),
     ],
     'retention' => [
-        'rejected_days' => (int) env('EVIDENCE_REJECTED_DAYS', 14),
-        'failed_days' => (int) env('EVIDENCE_FAILED_DAYS', 30),
-        'uncommitted_days' => (int) env('EVIDENCE_UNCOMMITTED_DAYS', 90),
-        'committed_binary_days' => (int) env('EVIDENCE_COMMITTED_BINARY_DAYS', 180),
+        'rejected_days' => (int) env('EVIDENCE_REJECTED_RETENTION_DAYS', 14),
+        'failed_days' => (int) env('EVIDENCE_FAILED_RETENTION_DAYS', 30),
+        'uncommitted_days' => (int) env('EVIDENCE_UNCOMMITTED_RETENTION_DAYS', 90),
+        'committed_binary_days' => (int) env('EVIDENCE_COMMITTED_BINARY_RETENTION_DAYS', 180),
     ],
 ];
