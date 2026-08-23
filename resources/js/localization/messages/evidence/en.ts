@@ -20,7 +20,7 @@ const messages = {
     originalName: 'Source',
     status: 'Status',
     received: 'Received',
-    security: 'Provenance',
+    security: 'Source details',
     dimensions: 'Dimensions',
     checksum: 'Checksum',
     imagePreview: 'Original screenshot',
@@ -71,12 +71,12 @@ const messages = {
     commit: 'Commit to Bear Hunt results',
     commitTitle: 'Commit reviewed battle report?',
     commitDescription:
-      'Operations/Results will record this report and recompute Bear Hunt Governor totals. Retrying the same commit is idempotent.',
+      'This battle report will be recorded once and Bear Hunt Governor totals will be recalculated. Repeating the same save will not add the damage twice.',
     committing: 'Committing…',
     committed: 'Committed',
     commitHistory: 'Commit history',
     destinationReport: 'Operations report',
-    replayed: 'Idempotent replay',
+    replayed: 'Already recorded',
     delete: 'Delete evidence',
     deleteTitle: 'Delete retained evidence?',
     deleteDescription:
@@ -89,7 +89,7 @@ const messages = {
     lowConfidence: 'Low confidence',
     corrected: 'Corrected by reviewer',
     excluded: 'Excluded from commit',
-    history: 'History and provenance',
+    history: 'Source history',
   },
 } satisfies MessageCatalogue;
 
