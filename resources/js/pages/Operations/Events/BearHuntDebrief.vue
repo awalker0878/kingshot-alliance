@@ -155,7 +155,13 @@ const allianceMax = computed(() =>
 );
 
 function runDate(value: string): string {
-  return formatDate(value, { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+  return formatDate(value, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
 }
 function shortDate(value: string): string {
   return formatDate(value, { month: 'short', day: 'numeric' });
@@ -173,18 +179,26 @@ function attendance(value: string | null | undefined): string {
   return value ? t(`events.attendanceStatuses.${value}`) : t('debrief.notRecorded');
 }
 function rank(value: number | null | undefined): string {
-  return value === null || value === undefined ? t('debrief.notRecorded') : `#${formatNumber(value)}`;
+  return value === null || value === undefined
+    ? t('debrief.notRecorded')
+    : `#${formatNumber(value)}`;
 }
-function deltaText(value: Delta | null | undefined, unit: 'damage' | 'count' | 'rate' = 'count'): string {
-  if (!value || value.state === 'unavailable' || value.delta === null) return t('debrief.notComparable');
+function deltaText(
+  value: Delta | null | undefined,
+  unit: 'damage' | 'count' | 'rate' = 'count',
+): string {
+  if (!value || value.state === 'unavailable' || value.delta === null) {
+    return t('debrief.notComparable');
+  }
   if (value.delta === 0) return t('debrief.noChange');
   const direction = value.delta > 0 ? t('debrief.increased') : t('debrief.decreased');
   const absolute = Math.abs(value.delta);
-  const amount = unit === 'damage'
-    ? damage(absolute)
-    : unit === 'rate'
-      ? `${formatNumber(absolute, { maximumFractionDigits: 2 })}%`
-      : formatNumber(absolute);
+  const amount =
+    unit === 'damage'
+      ? damage(absolute)
+      : unit === 'rate'
+        ? `${formatNumber(absolute, { maximumFractionDigits: 2 })}%`
+        : formatNumber(absolute);
   if (value.percentChange !== null && unit !== 'rate') {
     return t('debrief.changeWithPercent', {
       direction,
@@ -241,7 +255,10 @@ function barWidth(value: number | null | undefined, max: number): string {
       {{ t('debrief.subtitle') }}
     </p>
 
-    <section class="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label="Bear Hunt run summary">
+    <section
+      class="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4"
+      :aria-label="t('debrief.title')"
+    >
       <StatSeal
         :label="t('debrief.totalDamage')"
         :value="damage(debrief.summary.totalDamage)"
@@ -249,13 +266,21 @@ function barWidth(value: number | null | undefined, max: number): string {
       />
       <StatSeal
         :label="t('debrief.governors')"
-        :value="debrief.summary.resultsAvailable ? formatNumber(debrief.summary.governorCount) : t('debrief.notRecorded')"
+        :value="
+          debrief.summary.resultsAvailable
+            ? formatNumber(debrief.summary.governorCount)
+            : t('debrief.notRecorded')
+        "
         icon="♟"
         tone="stone"
       />
       <StatSeal
         :label="t('debrief.attendance')"
-        :value="debrief.summary.attendance.available ? formatNumber(debrief.summary.attendance.byStatus.present ?? 0) : t('debrief.notRecorded')"
+        :value="
+          debrief.summary.attendance.available
+            ? formatNumber(debrief.summary.attendance.byStatus.present ?? 0)
+            : t('debrief.notRecorded')
+        "
         icon="✓"
         tone="teal"
       />
@@ -275,21 +300,37 @@ function barWidth(value: number | null | undefined, max: number): string {
           </h2>
           <div class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <div class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] p-4">
-              <p class="text-xs uppercase tracking-wide text-[var(--ks-muted)]">{{ t('debrief.damage') }}</p>
-              <p class="mt-1 text-xl font-semibold">{{ damage(debrief.personal.result?.damage) }}</p>
-              <p class="mt-1 text-xs text-[var(--ks-muted)]">{{ deltaText(debrief.comparison?.personalDamage, 'damage') }}</p>
+              <p class="text-xs tracking-wide text-[var(--ks-muted)] uppercase">
+                {{ t('debrief.damage') }}
+              </p>
+              <p class="mt-1 text-xl font-semibold">
+                {{ damage(debrief.personal.result?.damage) }}
+              </p>
+              <p class="mt-1 text-xs text-[var(--ks-muted)]">
+                {{ deltaText(debrief.comparison?.personalDamage, 'damage') }}
+              </p>
             </div>
             <div class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] p-4">
-              <p class="text-xs uppercase tracking-wide text-[var(--ks-muted)]">{{ t('debrief.rank') }}</p>
-              <p class="mt-1 text-xl font-semibold">{{ rank(debrief.personal.result?.rank) }}</p>
+              <p class="text-xs tracking-wide text-[var(--ks-muted)] uppercase">
+                {{ t('debrief.rank') }}
+              </p>
+              <p class="mt-1 text-xl font-semibold">
+                {{ rank(debrief.personal.result?.rank) }}
+              </p>
               <p class="mt-1 text-xs text-[var(--ks-muted)]">{{ rankMovement() }}</p>
             </div>
             <div class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] p-4">
-              <p class="text-xs uppercase tracking-wide text-[var(--ks-muted)]">{{ t('debrief.attendance') }}</p>
-              <p class="mt-1 text-xl font-semibold">{{ attendance(debrief.personal.attendanceStatus) }}</p>
+              <p class="text-xs tracking-wide text-[var(--ks-muted)] uppercase">
+                {{ t('debrief.attendance') }}
+              </p>
+              <p class="mt-1 text-xl font-semibold">
+                {{ attendance(debrief.personal.attendanceStatus) }}
+              </p>
             </div>
             <div class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] p-4">
-              <p class="text-xs uppercase tracking-wide text-[var(--ks-muted)]">{{ t('debrief.recordedRallies') }}</p>
+              <p class="text-xs tracking-wide text-[var(--ks-muted)] uppercase">
+                {{ t('debrief.recordedRallies') }}
+              </p>
               <p class="mt-1 text-xl font-semibold">
                 {{ count(debrief.personal.rallies.participated, debrief.personal.rallies.available) }}
               </p>
@@ -306,13 +347,49 @@ function barWidth(value: number | null | undefined, max: number): string {
               </h2>
             </div>
             <span class="text-sm text-[var(--ks-muted)]">
-              {{ t('debrief.reportCount', { count: formatNumber(debrief.summary.acceptedReportCount) }) }}
+              {{
+                t('debrief.reportCount', {
+                  count: formatNumber(debrief.summary.acceptedReportCount),
+                })
+              }}
             </span>
           </div>
 
-          <div v-if="debrief.governors.length" class="mt-4 overflow-x-auto">
+          <div v-if="debrief.governors.length" class="mt-4 space-y-3 sm:hidden">
+            <article
+              v-for="governor in debrief.governors"
+              :key="governor.playerId"
+              class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/10 p-4"
+            >
+              <div class="flex min-w-0 items-start justify-between gap-3">
+                <div class="min-w-0">
+                  <p class="text-xs text-[var(--ks-muted)]">{{ rank(governor.rank) }}</p>
+                  <h3 class="truncate font-semibold">
+                    {{ governor.playerName || t('debrief.unknownGovernor') }}
+                  </h3>
+                </div>
+                <strong class="shrink-0 text-right">{{ damage(governor.damage) }}</strong>
+              </div>
+              <dl class="mt-3 grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <dt class="text-xs text-[var(--ks-muted)]">{{ t('debrief.attendance') }}</dt>
+                  <dd class="mt-1">{{ attendance(governor.attendanceStatus) }}</dd>
+                </div>
+                <div class="text-right">
+                  <dt class="text-xs text-[var(--ks-muted)]">
+                    {{ t('debrief.recordedRallies') }}
+                  </dt>
+                  <dd class="mt-1">
+                    {{ count(governor.rallies.participated, governor.rallies.available) }}
+                  </dd>
+                </div>
+              </dl>
+            </article>
+          </div>
+
+          <div v-if="debrief.governors.length" class="mt-4 hidden overflow-x-auto sm:block">
             <table class="w-full min-w-[42rem] text-left text-sm">
-              <thead class="text-xs uppercase tracking-wide text-[var(--ks-muted)]">
+              <thead class="text-xs tracking-wide text-[var(--ks-muted)] uppercase">
                 <tr>
                   <th class="px-2 py-2">{{ t('debrief.rank') }}</th>
                   <th class="px-2 py-2">{{ t('debrief.governor') }}</th>
@@ -328,10 +405,16 @@ function barWidth(value: number | null | undefined, max: number): string {
                   class="border-t border-[var(--ks-border)]"
                 >
                   <td class="px-2 py-3 font-semibold">{{ rank(governor.rank) }}</td>
-                  <td class="max-w-60 truncate px-2 py-3">{{ governor.playerName || t('debrief.unknownGovernor') }}</td>
-                  <td class="px-2 py-3 text-right font-semibold">{{ damage(governor.damage) }}</td>
+                  <td class="max-w-60 truncate px-2 py-3">
+                    {{ governor.playerName || t('debrief.unknownGovernor') }}
+                  </td>
+                  <td class="px-2 py-3 text-right font-semibold">
+                    {{ damage(governor.damage) }}
+                  </td>
                   <td class="px-2 py-3">{{ attendance(governor.attendanceStatus) }}</td>
-                  <td class="px-2 py-3 text-right">{{ count(governor.rallies.participated, governor.rallies.available) }}</td>
+                  <td class="px-2 py-3 text-right">
+                    {{ count(governor.rallies.participated, governor.rallies.available) }}
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -346,9 +429,15 @@ function barWidth(value: number | null | undefined, max: number): string {
         >
           <p class="ks-kicker">{{ t('debrief.needsReview') }}</p>
           <h2 id="needs-review-heading" class="ks-display mt-1 text-2xl font-semibold">
-            {{ t('debrief.unmatchedGovernors', { count: formatNumber(debrief.summary.unmatchedGovernorCount) }) }}
+            {{
+              t('debrief.unmatchedGovernors', {
+                count: formatNumber(debrief.summary.unmatchedGovernorCount),
+              })
+            }}
           </h2>
-          <p class="mt-2 text-sm leading-6 text-[var(--ks-muted)]">{{ t('debrief.reviewHelp') }}</p>
+          <p class="mt-2 text-sm leading-6 text-[var(--ks-muted)]">
+            {{ t('debrief.reviewHelp') }}
+          </p>
           <div class="mt-4 space-y-3">
             <article
               v-for="item in debrief.unmatchedGovernors"
@@ -388,10 +477,17 @@ function barWidth(value: number | null | undefined, max: number): string {
             <div>
               <h3 class="font-semibold">{{ t('debrief.yourDamageTrend') }}</h3>
               <ol class="mt-3 space-y-2" :aria-label="t('debrief.yourDamageTrend')">
-                <li v-for="point in debrief.personalTrend" :key="point.occurrenceId" class="grid grid-cols-[5rem_1fr_auto] items-center gap-2 text-sm">
+                <li
+                  v-for="point in debrief.personalTrend"
+                  :key="point.occurrenceId"
+                  class="grid grid-cols-[5rem_1fr_auto] items-center gap-2 text-sm"
+                >
                   <span class="text-[var(--ks-muted)]">{{ shortDate(point.startsAt) }}</span>
                   <span class="h-2 rounded bg-white/10" aria-hidden="true">
-                    <span class="block h-full rounded bg-current opacity-70" :style="{ width: barWidth(point.damage, personalMax) }" />
+                    <span
+                      class="block h-full rounded bg-current opacity-70"
+                      :style="{ width: barWidth(point.damage, personalMax) }"
+                    />
                   </span>
                   <span class="min-w-16 text-right">{{ damage(point.damage) }}</span>
                 </li>
@@ -400,10 +496,17 @@ function barWidth(value: number | null | undefined, max: number): string {
             <div>
               <h3 class="font-semibold">{{ t('debrief.allianceDamageTrend') }}</h3>
               <ol class="mt-3 space-y-2" :aria-label="t('debrief.allianceDamageTrend')">
-                <li v-for="point in debrief.allianceTrend" :key="point.occurrenceId" class="grid grid-cols-[5rem_1fr_auto] items-center gap-2 text-sm">
+                <li
+                  v-for="point in debrief.allianceTrend"
+                  :key="point.occurrenceId"
+                  class="grid grid-cols-[5rem_1fr_auto] items-center gap-2 text-sm"
+                >
                   <span class="text-[var(--ks-muted)]">{{ shortDate(point.startsAt) }}</span>
                   <span class="h-2 rounded bg-white/10" aria-hidden="true">
-                    <span class="block h-full rounded bg-current opacity-70" :style="{ width: barWidth(point.totalDamage, allianceMax) }" />
+                    <span
+                      class="block h-full rounded bg-current opacity-70"
+                      :style="{ width: barWidth(point.totalDamage, allianceMax) }"
+                    />
                   </span>
                   <span class="min-w-16 text-right">{{ damage(point.totalDamage) }}</span>
                 </li>
@@ -417,28 +520,53 @@ function barWidth(value: number | null | undefined, max: number): string {
         <section class="ks-surface p-5" aria-labelledby="previous-heading">
           <p class="ks-kicker">{{ t('debrief.previousHunt') }}</p>
           <h2 id="previous-heading" class="ks-display mt-1 text-xl font-semibold">
-            {{ debrief.previousRun ? shortDate(debrief.previousRun.startsAt) : t('debrief.noPrevious') }}
+            {{
+              debrief.previousRun
+                ? shortDate(debrief.previousRun.startsAt)
+                : t('debrief.noPrevious')
+            }}
           </h2>
-          <div v-if="debrief.previousRun && debrief.comparison" class="mt-4 space-y-3 text-sm">
+          <div
+            v-if="debrief.previousRun && debrief.comparison"
+            class="mt-4 space-y-3 text-sm"
+          >
             <div class="rounded border border-[var(--ks-border)] p-3">
               <p class="text-[var(--ks-muted)]">{{ t('debrief.totalDamage') }}</p>
               <strong class="mt-1 block">{{ damage(debrief.summary.totalDamage) }}</strong>
-              <span class="mt-1 block text-xs">{{ deltaText(debrief.comparison.allianceDamage, 'damage') }}</span>
+              <span class="mt-1 block text-xs">
+                {{ deltaText(debrief.comparison.allianceDamage, 'damage') }}
+              </span>
             </div>
             <div class="rounded border border-[var(--ks-border)] p-3">
               <p class="text-[var(--ks-muted)]">{{ t('debrief.attendance') }}</p>
               <strong class="mt-1 block">
-                {{ debrief.summary.attendance.ratePercent === null ? t('debrief.notRecorded') : `${formatNumber(debrief.summary.attendance.ratePercent, { maximumFractionDigits: 1 })}%` }}
+                {{
+                  debrief.summary.attendance.ratePercent === null
+                    ? t('debrief.notRecorded')
+                    : `${formatNumber(debrief.summary.attendance.ratePercent, {
+                        maximumFractionDigits: 1,
+                      })}%`
+                }}
               </strong>
-              <span class="mt-1 block text-xs">{{ deltaText(debrief.comparison.attendanceRate, 'rate') }}</span>
+              <span class="mt-1 block text-xs">
+                {{ deltaText(debrief.comparison.attendanceRate, 'rate') }}
+              </span>
             </div>
             <div class="rounded border border-[var(--ks-border)] p-3">
               <p class="text-[var(--ks-muted)]">{{ t('debrief.recordedRallies') }}</p>
-              <strong class="mt-1 block">{{ count(debrief.summary.rallies.participated, debrief.summary.rallies.available) }}</strong>
-              <span class="mt-1 block text-xs">{{ deltaText(debrief.comparison.recordedRallies) }}</span>
+              <strong class="mt-1 block">
+                {{
+                  count(debrief.summary.rallies.participated, debrief.summary.rallies.available)
+                }}
+              </strong>
+              <span class="mt-1 block text-xs">
+                {{ deltaText(debrief.comparison.recordedRallies) }}
+              </span>
             </div>
           </div>
-          <p v-else class="mt-3 text-sm leading-6 text-[var(--ks-muted)]">{{ t('debrief.noPreviousHelp') }}</p>
+          <p v-else class="mt-3 text-sm leading-6 text-[var(--ks-muted)]">
+            {{ t('debrief.noPreviousHelp') }}
+          </p>
         </section>
 
         <section class="ks-surface p-5" aria-labelledby="history-heading">
