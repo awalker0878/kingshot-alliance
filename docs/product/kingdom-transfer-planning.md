@@ -1,8 +1,8 @@
 # Kingdom Transfer Planning
 
-Status: Current — Provenance reconciliation reopened 2026-08-23
+Status: Current — Complete 2026-08-23
 
-Kingdom Transfer Planning extends the existing Kingdom Transfer participant/readiness workflow into a sourced game-planning capability. This document is the implementation contract for the active delivery program. A delivery-ledger item is not complete until the behavior, authorization, persistence, idempotency where applicable, audit/observability, responsive UX, accessibility, localization, tests and visual proof required by that item are complete.
+Kingdom Transfer Planning extends the existing Kingdom Transfer participant/readiness workflow into a sourced game-planning capability. This document is the implementation contract for the delivered capability. A delivery-ledger item is complete only when the behavior, authorization, persistence, idempotency where applicable, audit/observability, responsive UX, accessibility, localization, tests and visual proof required by that item are complete.
 
 ## Product outcome
 
@@ -10,7 +10,7 @@ For an authorized Alliance manager, the primary question is:
 
 > Can this Governor transfer to Kingdom 123 during this Transfer Window, and what still needs to happen?
 
-The product must answer that question without manufacturing certainty. A Governor is never presented as eligible from stale, missing, conflicting or unsourced facts. When evidence is insufficient, the answer is **Needs verification** and the UI identifies the exact facts that must be refreshed or verified.
+The product answers that question without manufacturing certainty. A Governor is never presented as eligible from stale, missing, conflicting or unsourced facts. When evidence is insufficient, the answer is **Needs verification** and the UI identifies the exact facts that must be refreshed or verified.
 
 Readiness and game eligibility are separate concepts. Existing readiness state remains an Alliance planning workflow. Eligibility is a deterministic assessment of the current Transfer Window, target Kingdom, sourced game facts and current Governor observations. Eligibility never silently changes readiness.
 
@@ -50,18 +50,18 @@ Other contexts retain their own aggregates. Kingdom Transfer may reference Playe
 
 ## Terminology correction
 
-The current code uses `TransferGroup` for an Alliance-managed coordination bucket. That conflicts with KingShot's official **Transfer Group** concept.
+The former code used `TransferGroup` for an Alliance-managed coordination bucket. That conflicted with KingShot's official **Transfer Group** concept.
 
-Because the application is not deployed, implementation must rename the existing planning concept cleanly:
+Because the application is not deployed, implementation renamed the existing planning concept cleanly:
 
 - `TransferGroup` → `TransferCohort`
 - `transfer_groups` → `transfer_cohorts`
 - `transfer_group_id` → `transfer_cohort_id`
-- related Actions, Queries, Controllers, routes, event names, localization and frontend vocabulary must use **cohort** for the Alliance planning concept.
+- related Actions, Queries, Controllers, routes, event names, localization and frontend vocabulary use **cohort** for the Alliance planning concept.
 
 No compatibility aliases, duplicate models, dual reads/writes or transitional schema are retained.
 
-**Transfer Group** thereafter means only the official, Transfer-Window-scoped KingShot grouping of Kingdoms.
+**Transfer Group** now means only the official, Transfer-Window-scoped KingShot grouping of Kingdoms.
 
 ## Domain model
 
@@ -97,7 +97,8 @@ An official Transfer Group belongs to one Transfer Window and has:
 
 - official label/identifier;
 - sourced window-specific Kingdom membership;
-- source/reference and `observed_at`.
+- source/reference and `observed_at`;
+- optional Evidence identifier when an approved Evidence record is the source.
 
 Membership is never stored as a timeless Kingdom attribute. The same Kingdom may belong to a different Transfer Group in another window.
 
@@ -180,7 +181,7 @@ Assessment outcomes:
 - `blocked` — a known rule currently prevents transfer and cannot be satisfied merely by refreshing evidence;
 - `needs_verification` — at least one required fact is missing, stale, conflicting or non-authoritative;
 - `not_open_yet` — the Transfer Window has not reached a phase in which this Governor can transfer;
-- `window_closed` — the event has ended.
+- `window_closed` — the event has ended;
 - `not_applicable` — the Governor is staying in the current Kingdom, so transfer eligibility is not applicable.
 
 Requirement states:
@@ -334,7 +335,7 @@ Operational diagnostics expose failed validation/retry/idempotency outcomes by c
 
 ## Localization
 
-Every new visible string lives in the existing transfer localization domain. English is the complete canonical fallback for every supported locale; locale overlays override the keys they translate and otherwise use the shared English fallback, so no supported locale path exposes raw localization keys. Dates, times, Kingdom numbers, Power/Score/pass numbers and phase labels use the existing locale formatting utilities. Source type and freshness state are resolved through localization keys rather than hard-coded English in Vue.
+Every new visible string lives in the existing transfer localization domain. English is the complete canonical fallback for every supported locale; locale overlays override the keys they translate and otherwise use the shared English fallback, so no supported locale path exposes raw localization keys. Dates, times, Kingdom numbers, Power/Score/pass numbers and phase labels use the existing locale formatting utilities. Source type and freshness state are resolved through localization keys rather than hard-coded English in Vue. Visual regression explicitly rejects rendered raw transfer localization keys.
 
 ## Test contract
 
@@ -359,6 +360,7 @@ Completion requires behavior coverage for at least:
 - readiness independent from eligibility;
 - observation idempotency;
 - cross-Alliance/window/plan authorization;
+- Evidence-backed Window/Group/condition/Governor writes rejecting missing, foreign or unapproved Evidence references;
 - query budgets/no-N+1 behavior for a representative large participant list;
 - localized formatting and all supported locales;
 - keyboard/screen-reader operation;
@@ -389,18 +391,18 @@ The capability is complete only when all of the following are true:
 | --- | --- | --- | --- |
 | 1 | Complete | Product contract | This contract defines complete scope, source/evidence boundary, ownership, UX states, acceptance criteria and delivery ledger before application changes. |
 | 2 | Complete | Cohort terminology correction | Existing Alliance planning `TransferGroup` is renamed to `TransferCohort` across schema/code/routes/events/localization/tests with no compatibility layer; official Transfer Group vocabulary becomes unambiguous. |
-| 3 | In progress | Transfer Window + official groups | Window/phase persistence, official Transfer Group membership, target conditions and provenance are writable through authorized domain Actions and exposed by bounded queries. |
-| 4 | In progress | Governor observation history | Typed append-only sourced observations, explicit validity, conflict handling and idempotent ingestion are implemented with history UI. |
+| 3 | Complete | Transfer Window + official groups | Window/phase persistence, official Transfer Group membership, target conditions and provenance are writable through authorized domain Actions and exposed by bounded queries. |
+| 4 | Complete | Governor observation history | Typed append-only sourced observations, explicit validity, conflict handling and idempotent ingestion are implemented with history UI. |
 | 5 | Complete | Eligibility domain | Deterministic evaluator implements the sourced rule set, evidence gates, requirement states and structured next actions without a persisted eligibility boolean. |
 | 6 | Complete | HTTP/read composition | Authorized planning reads expose window, phase, target, observations, manual blockers and assessments with bounded query counts and no cross-tenant leakage. |
-| 7 | In progress | Management UX | Managers can maintain sourced window/group/condition/observation data and see validation, history and receipts without raw IDs or hidden provenance requirements. |
+| 7 | Complete | Management UX | Managers can maintain sourced window/group/condition/observation data and see validation, history and receipts without raw IDs or hidden provenance requirements. |
 | 8 | Complete | Decision-first participant UX | Readiness page leads with eligibility, requirement/source/freshness details and required triage filters while preserving readiness/cohort/blocker/completion controls. |
-| 9 | Complete | Accessibility/localization/mobile | All new states are translated, keyboard/screen-reader usable, mobile-first and free of horizontal overflow; visual status has text equivalents. |
+| 9 | Complete | Accessibility/localization/mobile | All new states are localized through the canonical English fallback/locale-overlay contract, keyboard/screen-reader usable, mobile-first and free of horizontal overflow; visual status has text equivalents and raw-key rendering is regression-tested. |
 | 10 | Complete | Audit/observability/recovery | Material writes are audited/outboxed, observation retries are idempotent, diagnostics are privacy-safe and recovery/correction behavior is documented. |
-| 11 | In progress | Behavioral/architecture/performance tests | Rule boundaries, authorization, idempotency, history, independence invariants, query budgets and architecture constraints are covered. |
-| 12 | In progress | Visual regression + closeout | Deterministic eligible/blocked/needs-verification desktop/mobile states are accepted; spec→code, code→spec, UX→backend and docs scans show no implementable gap and full release gates pass. |
+| 11 | Complete | Behavioral/architecture/performance tests | Rule boundaries, authorization, Evidence ownership, idempotency, history, independence invariants, query budgets and architecture constraints are covered. |
+| 12 | Complete | Visual regression + closeout | Deterministic eligible/blocked/needs-verification desktop/mobile states are accepted; spec→code, code→spec, UX→backend and docs scans show no implementable gap and full release gates pass. |
 
-The delivery queue is reopened after final code→spec provenance reconciliation found that Evidence identifiers were not owner-validated at every transfer write boundary. Phases 3, 4, 7, 11 and 12 remain in progress until the same-Alliance/latest-approved Evidence guard, manual-source UX, regression coverage and full repository release gates pass on one immutable candidate. The unpublished Transfer Pass formula remains explicitly evidence-gated because no authoritative version-bounded formula is available; it is not an implementation TODO.
+The delivery queue is closed. Immutable implementation candidate `ea4c426259ec9b1a571f72a2b453e81bd0d96e63` passed CI (including fresh PostgreSQL install, PHP/frontend checks, production image build, ephemeral staging, backup/restore and HIGH/CRITICAL image scan), Architecture V3 Verification, Intelligence Verification, CodeQL, Dependency Review and Visual Regression. Final spec→code, code→spec, UX→backend, authorization, provenance, architecture ownership, data-model, accessibility, localization, observability and test-coverage reconciliation found no remaining implementable Kingdom Transfer Planning gap. The unpublished Transfer Pass formula remains explicitly evidence-gated because no authoritative version-bounded formula is available; it is not an implementation TODO.
 
 ### Cross-phase invariants
 
