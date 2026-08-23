@@ -52,16 +52,16 @@ Architectural ownership is intentionally split:
 | --- | --- | --- | --- |
 | 1 | Complete | Product contract and architecture ownership | `/docs/product` defines the full capability, ownership is recorded in architecture/data-ownership/ADR docs, and Evidence vs Operations write ownership is unambiguous. |
 | 2 | Complete | Secure evidence upload and immutable provenance | Private storage, actual MIME/image validation, size limits, shared security scan, checksums/dimensions/source metadata, current authorization and same-scope exact duplicate reuse are implemented and behavior-tested. |
-| 3 | Complete | Screenshot classification | Versioned immutable classification attempts, OCR provenance, failure state, queues/retry and Bear Hunt classification are implemented and verified. |
-| 4 | Complete | Bear Hunt battle-report extraction | The first schema extracts only supported report timestamp/ranking-row facts through a versioned extractor contract with verified failure/retry behavior. |
+| 3 | In progress | Screenshot classification | Versioned immutable classification attempts, OCR provenance, failure state, queues/retry and Bear Hunt classification are implemented and verified. |
+| 4 | In progress | Bear Hunt battle-report extraction | The first schema extracts only supported report timestamp/ranking-row facts through a versioned extractor contract with verified failure/retry behavior. |
 | 5 | Complete | Field-level confidence and extraction history | Raw OCR, normalized candidates, data type, confidence, bounding boxes/warnings and immutable extraction-attempt history are retained and verified. |
 | 6 | Complete | Review, Player resolution and manual correction | Every first-release screenshot requires review; included rows resolve to existing eligible Player IDs; corrections never overwrite machine history and OCR text cannot create/mutate Players. |
-| 7 | Complete | Exact, visual and semantic duplicate detection | SHA duplicates are scoped/reused, perceptually similar binary-distinct images remain separate warnings, semantic duplicates block commit until explicitly resolved, and cross-Alliance evidence is never disclosed. |
+| 7 | In progress | Exact, visual and semantic duplicate detection | SHA duplicates are scoped/reused, perceptually similar binary-distinct images remain separate warnings, semantic duplicates block commit until explicitly resolved, and cross-Alliance evidence is never disclosed. |
 | 8 | Complete | Commit preview and validation | The workspace previews current + report = post-commit score changes and blocks unresolved/ineligible/duplicate-invalid reviewed meaning. |
 | 9 | Complete | Scalar cross-context commit | Evidence builds reviewed scalar/value-object meaning and invokes the `Operations/Results` owner Action without foreign Eloquent models or cross-context persistence writes. |
 | 10 | Complete | Bear Hunt report ledger and idempotent aggregation | Operations records source-linked immutable report/entry facts, preserves pre-import baselines and deterministically recomputes Governor totals without additive double counting. |
-| 11 | Complete | Retry/recovery and commit receipts | Stable destination idempotency survives interrupted acknowledgement; retries recover the same Operations report and Evidence retains immutable attempt/receipt history. |
-| 12 | Complete | Evidence deletion, redaction and retention | Deletion/retention physically removes binaries/sensitive OCR as required, keeps minimum committed provenance, prevents bounded-scan starvation and never cascades into accepted Operations results. |
+| 11 | In progress | Retry/recovery and commit receipts | Stable destination idempotency survives interrupted acknowledgement; retries recover the same Operations report and Evidence retains immutable attempt/receipt history. |
+| 12 | In progress | Evidence deletion, redaction and retention | Deletion/retention physically removes binaries/sensitive OCR as required, keeps minimum committed provenance, prevents bounded-scan starvation and never cascades into accepted Operations results. |
 | 13 | Complete | Operational diagnostics and observability | Privacy-safe diagnostics, queue/retry visibility, audit/outbox records, failure codes and retention/recovery procedures are implemented and documented. |
 | 14 | Complete | Accessibility, responsive UX, localization and visual regression | Bear Hunt entry, upload/processing/review/duplicate/preview/commit/history states are localized, keyboard/mobile-safe and protected by deterministic desktop/mobile visual baselines. |
 | 15 | Complete | Full capability audit and closeout | The repository-wide contract scan found no TODO/scaffolding/stale ownership/undocumented behavior; the ledger and Screenshot Intake contract describe implemented current state; one immutable implementation candidate passed all applicable gates. |
@@ -198,3 +198,43 @@ Calculator work may start only when all of these are true:
 8. Saved scenarios reference their dataset version so later data corrections cannot silently rewrite historical plans.
 
 Until that evidence gate opens, calculator pages, guessed formulas, placeholder values and copied opaque tables remain intentionally out of scope.
+
+## Kingdom Transfer Planning delivery program
+
+Target: sourced KingShot transfer planning that preserves Alliance readiness while answering whether a Governor can transfer to a specific target Kingdom in the selected Transfer Window and exactly what remains.
+
+Canonical contract: [Kingdom Transfer Planning](kingdom-transfer-planning.md).
+
+The Evidence-provenance reconciliation is complete. Evidence-backed transfer facts prove same-Alliance ownership and latest approved review through the Intelligence/Evidence owner contract; manual forms cannot claim an Evidence source without an owner-authorized selection; optional Evidence attachments on other source types are same-Alliance checked. Canonical closeout commit `72e4472ded5b1b6c08ae4c98c9848438f74f03ef` passed CI, Architecture V3 Verification, Intelligence Verification, CodeQL, Dependency Review and Visual Regression.
+
+### Phase queue
+
+| Phase | Status | Slice |
+| --- | --- | --- |
+| 1 | Complete | Product contract |
+| 2 | Complete | Cohort terminology correction |
+| 3 | Complete | Transfer Window + official groups |
+| 4 | Complete | Governor observation history |
+| 5 | Complete | Eligibility domain |
+| 6 | Complete | HTTP/read composition |
+| 7 | Complete | Management UX |
+| 8 | Complete | Decision-first participant UX |
+| 9 | Complete | Accessibility/localization/mobile |
+| 10 | Complete | Audit/observability/recovery |
+| 11 | Complete | Behavioral/architecture/performance tests |
+| 12 | Complete | Visual regression + closeout |
+
+The Kingdom Transfer Planning queue is closed: every phase is Complete and no known implementable capability requirement is deferred. The exact Transfer Pass formula remains evidence-gated because no authoritative version-bounded formula is available; observed required-pass facts are supported and missing formula evidence never produces false eligibility. Any later defect or material change that invalidates a phase exit condition reopens that phase and must restore the same release evidence before closeout.
+
+### Cross-phase invariants
+
+1. Readiness is not eligibility.
+2. Eligibility is derived, never stored as a boolean.
+3. Mutable eligibility facts retain source, observation time and validity.
+4. Missing, stale, conflicting or non-authoritative facts cannot produce `eligible_now`.
+5. Official Transfer Groups are window-scoped; Alliance planning uses Transfer Cohorts.
+6. Community data is discovery evidence only.
+7. View authority is distinct from R4/R5 management authority; every write reauthorizes current scope.
+8. Owner Actions keep writes; controllers/read models/Vue do not own game rules.
+9. No compatibility shim, dual read/write path or legacy planning-group name survives.
+10. Evidence-gated unpublished game truth is never invented.

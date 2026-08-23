@@ -8,17 +8,19 @@ use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferDirection;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferReadinessState;
 use App\Contexts\GameWorld\Players\Models\Player;
+use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Support\Carbon;
 
 /**
+ * @property string $id
  * @property string $alliance_id
  * @property string $transfer_plan_id
- * @property string|null $transfer_group_id
+ * @property string|null $transfer_cohort_id
  * @property TransferDirection $direction
  * @property TransferReadinessState $readiness_state
  * @property string|null $roster_entry_id
@@ -28,12 +30,17 @@ use Illuminate\Support\Carbon;
  * @property string|null $source_kingdom_id
  * @property string|null $destination_kingdom_id
  * @property string|null $manager_notes
- * @property Carbon|null $withdrawn_at
+ * @property CarbonImmutable|null $withdrawn_at
+ * @property CarbonImmutable|null $created_at
+ * @property CarbonImmutable|null $updated_at
  * @property-read TransferPlan $plan
- * @property-read TransferGroup|null $group
+ * @property-read TransferCohort|null $cohort
  * @property-read Player $player
  * @property-read Kingdom|null $sourceKingdom
  * @property-read Kingdom|null $destinationKingdom
+ * @property-read Collection<int, TransferBlocker> $blockers
+ * @property-read Collection<int, TransferReadinessTransition> $readinessTransitions
+ * @property-read Collection<int, TransferObservation> $observations
  * @property-read TransferCompletion|null $completion
  */
 final class TransferParticipant extends Model
@@ -44,28 +51,14 @@ final class TransferParticipant extends Model
 
     protected $keyType = 'string';
 
-    protected $fillable = [
-        'alliance_id',
-        'transfer_plan_id',
-        'transfer_group_id',
-        'direction',
-        'readiness_state',
-        'roster_entry_id',
-        'player_id',
-        'observed_name',
-        'game_player_id',
-        'source_kingdom_id',
-        'destination_kingdom_id',
-        'manager_notes',
-        'withdrawn_at',
-    ];
+    protected $guarded = [];
 
     protected function casts(): array
     {
         return [
             'direction' => TransferDirection::class,
             'readiness_state' => TransferReadinessState::class,
-            'withdrawn_at' => 'datetime',
+            'withdrawn_at' => 'immutable_datetime',
         ];
     }
 
@@ -75,10 +68,10 @@ final class TransferParticipant extends Model
         return $this->belongsTo(TransferPlan::class, 'transfer_plan_id');
     }
 
-    /** @return BelongsTo<TransferGroup, $this> */
-    public function group(): BelongsTo
+    /** @return BelongsTo<TransferCohort, $this> */
+    public function cohort(): BelongsTo
     {
-        return $this->belongsTo(TransferGroup::class, 'transfer_group_id');
+        return $this->belongsTo(TransferCohort::class, 'transfer_cohort_id');
     }
 
     /** @return BelongsTo<Player, $this> */
@@ -109,6 +102,12 @@ final class TransferParticipant extends Model
     public function readinessTransitions(): HasMany
     {
         return $this->hasMany(TransferReadinessTransition::class, 'transfer_participant_id');
+    }
+
+    /** @return HasMany<TransferObservation, $this> */
+    public function observations(): HasMany
+    {
+        return $this->hasMany(TransferObservation::class, 'transfer_participant_id');
     }
 
     /** @return HasOne<TransferCompletion, $this> */

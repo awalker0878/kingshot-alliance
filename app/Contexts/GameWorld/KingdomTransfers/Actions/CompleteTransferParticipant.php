@@ -55,9 +55,6 @@ final readonly class CompleteTransferParticipant
             $context = $this->writeState->lockAuthority($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, TransferPermission::Manage);
 
-            // Completion is child work after a plan is Locked. A shared plan lock
-            // prevents a concurrent lifecycle transition while independent participant
-            // completions continue to serialize on their participant rows.
             $plan = TransferPlan::query()
                 ->where('alliance_id', $allianceId)
                 ->whereKey($planId)
@@ -93,8 +90,8 @@ final readonly class CompleteTransferParticipant
 
             $this->assertCompletable($participant);
 
-            // Player is GameWorld-owned current state and is intentionally loaded
-            // locally under this protected operation. It never crosses the Action API.
+            // The mutable Player row is loaded only inside the owner operation. Cross-action
+            // state is represented by PlayerReference, never by an Eloquent union.
             $player = Player::query()
                 ->whereKey($participant->player_id)
                 ->lockForUpdate()
@@ -107,8 +104,10 @@ final readonly class CompleteTransferParticipant
                 direction: $participant->direction,
             );
 
+            $playerReference = $this->players->require((string) $player->id);
+
             if ($participant->direction === TransferDirection::Incoming) {
-                $player = $this->playerIdentity->handle(
+                $playerReference = $this->playerIdentity->handle(
                     (string) $plan->home_kingdom_id,
                     (string) $participant->observed_name,
                     $player->game_player_id,
@@ -142,17 +141,13 @@ final readonly class CompleteTransferParticipant
                     targetPlayerId: (string) $participant->player_id,
                 );
 
-                $player = $this->playerIdentity->handle(
+                $playerReference = $this->playerIdentity->handle(
                     (string) $participant->destination_kingdom_id,
                     $rosterEntry->observedName,
                     $player->game_player_id,
                     (string) $player->id,
                 );
             }
-
-            $playerReference = $player instanceof PlayerReference
-                ? $player
-                : $this->players->require((string) $player->id);
 
             $completion = TransferCompletion::query()->create([
                 'alliance_id' => $allianceId,

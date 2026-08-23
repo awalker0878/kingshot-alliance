@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
+ * @property string $id
  * @property string $alliance_id
  * @property string $transfer_plan_id
  * @property string $transfer_participant_id
