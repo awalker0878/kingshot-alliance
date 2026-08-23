@@ -26,31 +26,90 @@ final class TransferObservationSelector
             return TransferObservedValue::unknown();
         }
 
-        $authoritative = $matching->filter(static fn (TransferObservation $row): bool => $row->source_type->isAuthoritative())->values();
+        $authoritative = $matching
+            ->filter(static fn (TransferObservation $row): bool => $row->source_type->isAuthoritative())
+            ->values();
+
         if ($authoritative->isEmpty()) {
             /** @var TransferObservation $latest */
             $latest = $matching->first();
 
-            return new TransferObservedValue(TransferRequirementState::Unknown, $this->value($latest), $latest->source_type, $latest->source_reference, CarbonImmutable::instance($latest->observed_at), $latest->valid_until === null ? null : CarbonImmutable::instance($latest->valid_until), $latest->details);
+            return new TransferObservedValue(
+                TransferRequirementState::Unknown,
+                $this->value($latest),
+                $latest->source_type,
+                $latest->source_reference,
+                CarbonImmutable::instance($latest->observed_at),
+                $latest->valid_until === null ? null : CarbonImmutable::instance($latest->valid_until),
+                $latest->details,
+            );
         }
 
-        $current = $authoritative->filter(static fn (TransferObservation $row): bool => $row->valid_until !== null && $row->valid_until->gte($now))->values();
+        $current = $authoritative
+            ->filter(static fn (TransferObservation $row): bool => $row->valid_until !== null && $row->valid_until->gte($now))
+            ->values();
+
         if ($current->isNotEmpty()) {
-            $values = $current->map(fn (TransferObservation $row): string => json_encode($this->value($row), JSON_THROW_ON_ERROR))->unique();
+            $values = $current
+                ->map(fn (TransferObservation $row): string => json_encode($this->value($row), JSON_THROW_ON_ERROR))
+                ->unique();
             /** @var TransferObservation $latest */
             $latest = $current->first();
-            if ($values->count() > 1) {
-                return new TransferObservedValue(TransferRequirementState::Conflicting, null, $latest->source_type, $latest->source_reference, CarbonImmutable::instance($latest->observed_at), CarbonImmutable::instance($latest->valid_until), $latest->details);
+            $validUntil = $latest->valid_until;
+
+            // A row selected as current must have a validity boundary. If persistence or
+            // a future selector change violates that invariant, degrade to unknown rather
+            // than presenting the observation as trustworthy current truth.
+            if ($validUntil === null) {
+                return new TransferObservedValue(
+                    TransferRequirementState::Unknown,
+                    $this->value($latest),
+                    $latest->source_type,
+                    $latest->source_reference,
+                    CarbonImmutable::instance($latest->observed_at),
+                    null,
+                    $latest->details,
+                );
             }
 
-            return new TransferObservedValue(TransferRequirementState::Met, $this->value($latest), $latest->source_type, $latest->source_reference, CarbonImmutable::instance($latest->observed_at), CarbonImmutable::instance($latest->valid_until), $latest->details);
+            if ($values->count() > 1) {
+                return new TransferObservedValue(
+                    TransferRequirementState::Conflicting,
+                    null,
+                    $latest->source_type,
+                    $latest->source_reference,
+                    CarbonImmutable::instance($latest->observed_at),
+                    CarbonImmutable::instance($validUntil),
+                    $latest->details,
+                );
+            }
+
+            return new TransferObservedValue(
+                TransferRequirementState::Met,
+                $this->value($latest),
+                $latest->source_type,
+                $latest->source_reference,
+                CarbonImmutable::instance($latest->observed_at),
+                CarbonImmutable::instance($validUntil),
+                $latest->details,
+            );
         }
 
         /** @var TransferObservation $latest */
         $latest = $authoritative->first();
-        $state = $latest->valid_until === null ? TransferRequirementState::Unknown : TransferRequirementState::Stale;
+        $state = $latest->valid_until === null
+            ? TransferRequirementState::Unknown
+            : TransferRequirementState::Stale;
 
-        return new TransferObservedValue($state, $this->value($latest), $latest->source_type, $latest->source_reference, CarbonImmutable::instance($latest->observed_at), $latest->valid_until === null ? null : CarbonImmutable::instance($latest->valid_until), $latest->details);
+        return new TransferObservedValue(
+            $state,
+            $this->value($latest),
+            $latest->source_type,
+            $latest->source_reference,
+            CarbonImmutable::instance($latest->observed_at),
+            $latest->valid_until === null ? null : CarbonImmutable::instance($latest->valid_until),
+            $latest->details,
+        );
     }
 
     private function value(TransferObservation $row): int|string|bool|null
@@ -58,6 +117,7 @@ final class TransferObservationSelector
         if ($row->kind->usesNumericValue()) {
             return $row->numeric_value;
         }
+
         if ($row->kind === TransferObservationKind::InGameRulesVerified) {
             return $row->boolean_value;
         }
