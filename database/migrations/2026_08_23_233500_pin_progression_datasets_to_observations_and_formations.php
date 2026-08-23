@@ -11,14 +11,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('player_snapshots', function (Blueprint $table): void {
-            $table->string('progression_dataset_id', 120)->nullable()->after('progression_level');
-            $table->char('progression_dataset_checksum', 64)->nullable()->after('progression_dataset_id');
-            $table->json('hero_observations')->nullable()->after('progression_dataset_checksum');
+            $table->string('progression_dataset_id', 120)->nullable();
+            $table->char('progression_dataset_checksum', 64)->nullable();
+            $table->json('hero_observations')->nullable();
         });
 
         Schema::table('player_formations', function (Blueprint $table): void {
-            $table->string('progression_dataset_id', 120)->nullable()->after('heroes');
-            $table->char('progression_dataset_checksum', 64)->nullable()->after('progression_dataset_id');
+            $table->string('progression_dataset_id', 120)->nullable();
+            $table->char('progression_dataset_checksum', 64)->nullable();
         });
     }
 
