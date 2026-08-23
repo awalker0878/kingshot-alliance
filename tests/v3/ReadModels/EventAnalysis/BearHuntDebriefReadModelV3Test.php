@@ -26,6 +26,29 @@ final class BearHuntDebriefReadModelV3Test extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_empty_run_keeps_every_unrecorded_fact_unavailable(): void
+    {
+        $scenario = new ScenarioFactory;
+        $account = $scenario->authUser();
+        $actor = $scenario->player((int) $account->id, 61600);
+        $alliance = $scenario->alliance($actor);
+        $scenario->roster($actor, $alliance);
+        $occurrence = $this->occurrence($actor, $alliance, CarbonImmutable::now('UTC'));
+        $occurrence->load(['event.eventType', 'event.typeScope.capabilities']);
+
+        $debrief = app(BearHuntDebriefQuery::class)->forOccurrence($occurrence, $actor, false);
+
+        self::assertFalse($debrief['summary']['resultsAvailable']);
+        self::assertNull($debrief['summary']['totalDamage']);
+        self::assertFalse($debrief['summary']['attendance']['available']);
+        self::assertFalse($debrief['summary']['rallies']['available']);
+        self::assertSame([], $debrief['governors']);
+        self::assertNull($debrief['personal']['result']);
+        self::assertNull($debrief['personal']['attendanceStatus']);
+        self::assertNull($debrief['previousRun']);
+        self::assertNull($debrief['comparison']);
+    }
+
     public function test_active_governor_without_result_keeps_independent_attendance_truth(): void
     {
         $scenario = new ScenarioFactory;
@@ -52,6 +75,30 @@ final class BearHuntDebriefReadModelV3Test extends TestCase
         self::assertSame('present', $debrief['personal']['attendanceStatus']);
         self::assertTrue($debrief['summary']['attendance']['available']);
         self::assertSame(1, $debrief['summary']['attendance']['byStatus']['present']);
+    }
+
+    public function test_results_only_run_has_no_previous_hunt_or_inferred_participation(): void
+    {
+        $scenario = new ScenarioFactory;
+        $account = $scenario->authUser();
+        $actor = $scenario->player((int) $account->id, 61603);
+        $alliance = $scenario->alliance($actor);
+        $scenario->roster($actor, $alliance);
+        $occurrence = $this->occurrence($actor, $alliance, CarbonImmutable::now('UTC'));
+        $this->recordResult((string) $occurrence->id, $actor->playerId, $actor->playerId, 750, 1);
+        $occurrence->load(['event.eventType', 'event.typeScope.capabilities']);
+
+        $debrief = app(BearHuntDebriefQuery::class)->forOccurrence($occurrence, $actor, false);
+
+        self::assertTrue($debrief['summary']['resultsAvailable']);
+        self::assertSame(750, $debrief['summary']['totalDamage']);
+        self::assertSame(1, $debrief['summary']['governorCount']);
+        self::assertFalse($debrief['summary']['attendance']['available']);
+        self::assertFalse($debrief['summary']['rallies']['available']);
+        self::assertNull($debrief['governors'][0]['attendanceStatus']);
+        self::assertFalse($debrief['governors'][0]['rallies']['available']);
+        self::assertNull($debrief['previousRun']);
+        self::assertNull($debrief['comparison']);
     }
 
     public function test_large_governor_list_does_not_add_per_governor_queries(): void
