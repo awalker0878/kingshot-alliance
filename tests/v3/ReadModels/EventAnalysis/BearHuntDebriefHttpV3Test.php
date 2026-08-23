@@ -63,6 +63,39 @@ final class BearHuntDebriefHttpV3Test extends TestCase
             ->once();
     }
 
+    public function test_verified_user_without_active_governor_receives_conflict(): void
+    {
+        $scenario = new ScenarioFactory;
+        $user = $scenario->authUser();
+        $this->verify($user);
+        $owner = $scenario->player((int) $user->id, 61504);
+        $alliance = $scenario->alliance($owner);
+        $scenario->roster($owner, $alliance);
+        $occurrence = $this->occurrence($owner, $alliance);
+
+        $this->actingAs($user)
+            ->withHeader('X-Inertia', 'true')
+            ->get('/events/'.(string) $occurrence->id.'/debrief')
+            ->assertStatus(409);
+    }
+
+    public function test_visible_non_bear_hunt_occurrence_returns_not_found(): void
+    {
+        $scenario = new ScenarioFactory;
+        $user = $scenario->authUser();
+        $this->verify($user);
+        $actor = $scenario->player((int) $user->id, 61505);
+        $alliance = $scenario->alliance($actor);
+        $scenario->roster($actor, $alliance);
+        $occurrence = $this->occurrence($actor, $alliance, 'viking-vengeance');
+
+        $this->actingAs($user)
+            ->withSession([$this->sessionKey() => $actor->playerId])
+            ->withHeader('X-Inertia', 'true')
+            ->get('/events/'.(string) $occurrence->id.'/debrief')
+            ->assertNotFound();
+    }
+
     public function test_outsider_cannot_open_another_alliances_bear_hunt_debrief(): void
     {
         $scenario = new ScenarioFactory;
@@ -84,11 +117,14 @@ final class BearHuntDebriefHttpV3Test extends TestCase
             ->assertForbidden();
     }
 
-    private function occurrence(PlayerReference $actor, AllianceReference $alliance): EventOccurrence
-    {
+    private function occurrence(
+        PlayerReference $actor,
+        AllianceReference $alliance,
+        string $eventTypeSlug = 'bear-hunt',
+    ): EventOccurrence {
         $configuration = EventTypeScope::query()
             ->where('scope', EventScope::Alliance->value)
-            ->whereHas('eventType', static fn ($query) => $query->where('slug', 'bear-hunt'))
+            ->whereHas('eventType', static fn ($query) => $query->where('slug', $eventTypeSlug))
             ->firstOrFail();
         $created = app(CreateEvent::class)->handle(
             actorPlayerId: $actor->playerId,
