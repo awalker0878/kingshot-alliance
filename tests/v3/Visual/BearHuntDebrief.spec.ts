@@ -28,6 +28,12 @@ async function openBearHuntDebrief(page: Page): Promise<void> {
   await page.getByRole('link', { name: /Bear Hunt · Debrief Visual/ }).first().click();
   await page.getByRole('link', { name: 'Bear Hunt Debrief' }).click();
   await page.waitForLoadState('networkidle');
+
+  // Bear Hunt is recurring, so the Event page opens the next scheduled occurrence.
+  // Navigate through the Debrief's own run history to the deterministic completed
+  // fixture run that contains Results, Attendance, Rally and unresolved Evidence.
+  await page.getByRole('link', { name: /Aug 23/ }).click();
+  await page.waitForLoadState('networkidle');
 }
 
 test('Bear Hunt Debrief remains readable and complete on desktop and mobile', async (
