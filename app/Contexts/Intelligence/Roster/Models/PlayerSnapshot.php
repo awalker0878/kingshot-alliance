@@ -18,6 +18,9 @@ use Illuminate\Support\Carbon;
  * @property string $observed_name
  * @property int $power
  * @property string|null $progression_level
+ * @property string|null $progression_dataset_id
+ * @property string|null $progression_dataset_checksum
+ * @property array<int,array<string,mixed>>|null $hero_observations
  * @property string|null $observed_alliance_tag
  * @property Carbon $captured_at
  * @property string $source
@@ -48,6 +51,9 @@ final class PlayerSnapshot extends Model
         'observed_name',
         'power',
         'progression_level',
+        'progression_dataset_id',
+        'progression_dataset_checksum',
+        'hero_observations',
         'observed_alliance_tag',
         'captured_at',
         'source',
@@ -66,6 +72,7 @@ final class PlayerSnapshot extends Model
         return [
             'power' => 'integer',
             'captured_at' => 'datetime',
+            'hero_observations' => 'array',
         ];
     }
 
