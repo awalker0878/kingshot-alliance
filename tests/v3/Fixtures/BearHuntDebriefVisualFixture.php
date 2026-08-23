@@ -6,8 +6,10 @@ namespace Tests\v3\Fixtures;
 
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Alliance\Lifecycle\Actions\CreateAlliance;
+use App\Contexts\Alliance\Membership\Actions\UpsertRosterEntry;
 use App\Contexts\Alliance\Membership\Enums\AllianceRank;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
+use App\Contexts\Alliance\Membership\Enums\RosterState;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
 use App\Contexts\GameWorld\Players\Models\Player;
@@ -80,6 +82,18 @@ final class BearHuntDebriefVisualFixture
                 'rank' => AllianceRank::R3,
                 'joined_at' => now(),
             ]);
+        }
+        foreach ([$actor, $second, $third] as $member) {
+            app(UpsertRosterEntry::class)->handle(
+                actorPlayerId: (string) $actor->id,
+                allianceId: $allianceId,
+                attributes: [
+                    'name' => (string) $member->current_name,
+                    'game_player_id' => (string) $member->game_player_id,
+                    'state' => RosterState::Active,
+                ],
+                expectedPlayerId: (string) $member->id,
+            );
         }
 
         $configuration = EventTypeScope::query()
@@ -233,7 +247,7 @@ final class BearHuntDebriefVisualFixture
         }
         $path = 'evidence/visual/bear-hunt-debrief-unmatched.png';
         Storage::disk('local')->put($path, $binary);
-        $sha256 = hash('sha256', $binary.'debrief');
+        $sha256 = hash('sha256', $binary);
         $evidence = GameEvidence::query()->create([
             'alliance_id' => $allianceId,
             'occurrence_id' => $occurrenceId,
