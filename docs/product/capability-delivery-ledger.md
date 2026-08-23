@@ -52,16 +52,16 @@ Architectural ownership is intentionally split:
 | --- | --- | --- | --- |
 | 1 | Complete | Product contract and architecture ownership | `/docs/product` defines the full capability, ownership is recorded in architecture/data-ownership/ADR docs, and Evidence vs Operations write ownership is unambiguous. |
 | 2 | Complete | Secure evidence upload and immutable provenance | Private storage, actual MIME/image validation, size limits, shared security scan, checksums/dimensions/source metadata, current authorization and same-scope exact duplicate reuse are implemented and behavior-tested. |
-| 3 | Complete | Screenshot classification | Versioned immutable classification attempts, OCR provenance, failure state, queues/retry and Bear Hunt classification are implemented and verified. |
-| 4 | Complete | Bear Hunt battle-report extraction | The first schema extracts only supported report timestamp/ranking-row facts through a versioned extractor contract with verified failure/retry behavior. |
+| 3 | In progress | Screenshot classification | Versioned immutable classification attempts, OCR provenance, failure state, queues/retry and Bear Hunt classification are implemented and verified. |
+| 4 | In progress | Bear Hunt battle-report extraction | The first schema extracts only supported report timestamp/ranking-row facts through a versioned extractor contract with verified failure/retry behavior. |
 | 5 | Complete | Field-level confidence and extraction history | Raw OCR, normalized candidates, data type, confidence, bounding boxes/warnings and immutable extraction-attempt history are retained and verified. |
 | 6 | Complete | Review, Player resolution and manual correction | Every first-release screenshot requires review; included rows resolve to existing eligible Player IDs; corrections never overwrite machine history and OCR text cannot create/mutate Players. |
-| 7 | Complete | Exact, visual and semantic duplicate detection | SHA duplicates are scoped/reused, perceptually similar binary-distinct images remain separate warnings, semantic duplicates block commit until explicitly resolved, and cross-Alliance evidence is never disclosed. |
+| 7 | In progress | Exact, visual and semantic duplicate detection | SHA duplicates are scoped/reused, perceptually similar binary-distinct images remain separate warnings, semantic duplicates block commit until explicitly resolved, and cross-Alliance evidence is never disclosed. |
 | 8 | Complete | Commit preview and validation | The workspace previews current + report = post-commit score changes and blocks unresolved/ineligible/duplicate-invalid reviewed meaning. |
 | 9 | Complete | Scalar cross-context commit | Evidence builds reviewed scalar/value-object meaning and invokes the `Operations/Results` owner Action without foreign Eloquent models or cross-context persistence writes. |
 | 10 | Complete | Bear Hunt report ledger and idempotent aggregation | Operations records source-linked immutable report/entry facts, preserves pre-import baselines and deterministically recomputes Governor totals without additive double counting. |
-| 11 | Complete | Retry/recovery and commit receipts | Stable destination idempotency survives interrupted acknowledgement; retries recover the same Operations report and Evidence retains immutable attempt/receipt history. |
-| 12 | Complete | Evidence deletion, redaction and retention | Deletion/retention physically removes binaries/sensitive OCR as required, keeps minimum committed provenance, prevents bounded-scan starvation and never cascades into accepted Operations results. |
+| 11 | In progress | Retry/recovery and commit receipts | Stable destination idempotency survives interrupted acknowledgement; retries recover the same Operations report and Evidence retains immutable attempt/receipt history. |
+| 12 | In progress | Evidence deletion, redaction and retention | Deletion/retention physically removes binaries/sensitive OCR as required, keeps minimum committed provenance, prevents bounded-scan starvation and never cascades into accepted Operations results. |
 | 13 | Complete | Operational diagnostics and observability | Privacy-safe diagnostics, queue/retry visibility, audit/outbox records, failure codes and retention/recovery procedures are implemented and documented. |
 | 14 | Complete | Accessibility, responsive UX, localization and visual regression | Bear Hunt entry, upload/processing/review/duplicate/preview/commit/history states are localized, keyboard/mobile-safe and protected by deterministic desktop/mobile visual baselines. |
 | 15 | Complete | Full capability audit and closeout | The repository-wide contract scan found no TODO/scaffolding/stale ownership/undocumented behavior; the ledger and Screenshot Intake contract describe implemented current state; one immutable implementation candidate passed all applicable gates. |
@@ -205,7 +205,7 @@ Target: sourced KingShot transfer planning that preserves Alliance readiness whi
 
 Canonical contract: [Kingdom Transfer Planning](kingdom-transfer-planning.md).
 
-Implementation candidate `4ee688508f8ef741bb1c43d8909f747743cf9526` completed the product, domain, persistence, authorization, UX, accessibility/localization-path, provenance, observability, tests, query-budget and deterministic visual requirements. The repository's standard release gate set passed on that candidate; final status-only documentation repeats the normal gates before merge.
+A previous implementation candidate passed the standard release gates, but final code→spec reconciliation reopened the Evidence-provenance slice: Evidence-backed transfer facts must prove same-Alliance ownership and latest approved review through the Intelligence/Evidence owner contract, and manual forms must not claim an Evidence source without that authorized reference. The program remains active until the corrected candidate passes the complete gate set again.
 
 ### Phase queue
 
@@ -224,7 +224,7 @@ Implementation candidate `4ee688508f8ef741bb1c43d8909f747743cf9526` completed th
 | 11 | Complete | Behavioral/architecture/performance tests |
 | 12 | Complete | Visual regression + closeout |
 
-The queue is closed. The exact Transfer Pass formula remains evidence-gated because no authoritative version-bounded formula is available; observed required-pass facts are supported and missing formula evidence never produces false eligibility.
+The queue is reopened for the Evidence-provenance correction and final immutable-head verification. The exact Transfer Pass formula remains evidence-gated because no authoritative version-bounded formula is available; observed required-pass facts are supported and missing formula evidence never produces false eligibility.
 
 ### Cross-phase invariants
 
