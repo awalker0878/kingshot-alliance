@@ -1,0 +1,76 @@
+name: Kingdom Transfer Mechanical Fix
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: ${{ github.event.pull_request.head.ref == 'feature/kingdom-transfer-planning' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out feature branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: feature/kingdom-transfer-planning
+
+      - name: Configure PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
+        with:
+          php-version: '8.5'
+          coverage: none
+          tools: composer:v2
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Configure Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install frontend dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Fix confirmed component contract
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          for name in ('Manage.vue', 'Readiness.vue'):
+              path = Path('resources/js/pages/Kingdom/Transfer') / name
+              source = path.read_text()
+              source = source.replace(':dialog="dialog"', 'v-bind="dialog"')
+              path.write_text(source)
+          PY
+
+      - name: Normalize and verify PHP formatting
+        run: |
+          vendor/bin/pint --parallel
+          vendor/bin/pint --parallel --test
+
+      - name: Normalize and verify frontend
+        run: |
+          npm run format
+          npm run lint:check
+          npm run format:check
+          npm run types:check
+
+      - name: Commit mechanical corrections
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            echo "No mechanical corrections required."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add --all
+          git commit -m "fix: satisfy transfer formatting and component contracts"
+          git push origin HEAD:feature/kingdom-transfer-planning
