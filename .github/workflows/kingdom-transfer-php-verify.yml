@@ -1,0 +1,88 @@
+name: Kingdom Transfer PHP Verify
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    if: ${{ github.event.pull_request.head.ref == 'feature/kingdom-transfer-planning' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: kingshot_test
+          POSTGRES_USER: kingshot
+          POSTGRES_PASSWORD: kingshot
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U kingshot -d kingshot_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      APP_ENV: testing
+      APP_KEY: base64:Wb1PHh03m1vXbmyRxlI+Y96TqgK7Vyt8H/lkQ8o1SP0=
+      APP_DEBUG: false
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_DATABASE: kingshot_test
+      DB_USERNAME: kingshot
+      DB_PASSWORD: kingshot
+      CACHE_STORE: array
+      QUEUE_CONNECTION: sync
+      SESSION_DRIVER: array
+      PULSE_ENABLED: false
+
+    steps:
+      - name: Check out feature branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: feature/kingdom-transfer-planning
+
+      - name: Configure PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
+        with:
+          php-version: '8.5'
+          extensions: dom, gd, intl, mbstring, pdo_pgsql, simplexml, xml, xmlwriter, zip
+          coverage: none
+          tools: composer:v2
+
+      - name: Install locked dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Apply canonical Transfer formatting
+        run: |
+          vendor/bin/pint app/Contexts/GameWorld/KingdomTransfers tests/v3/Contexts/GameWorld/KingdomTransfers
+          vendor/bin/pint --test app/Contexts/GameWorld/KingdomTransfers tests/v3/Contexts/GameWorld/KingdomTransfers
+
+      - name: Commit formatting corrections
+        run: |
+          if git diff --quiet; then
+            echo "No formatting corrections required."
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add app/Contexts/GameWorld/KingdomTransfers tests/v3/Contexts/GameWorld/KingdomTransfers
+            git commit -m "style: normalize kingdom transfer implementation"
+            git push origin HEAD:feature/kingdom-transfer-planning
+          fi
+
+      - name: Recreate test database
+        run: php artisan migrate:fresh --force
+
+      - name: Verify strict static analysis
+        run: vendor/bin/phpstan analyse --no-progress
+
+      - name: Run Kingdom Transfer behavior tests
+        run: php artisan test tests/v3/Contexts/GameWorld/KingdomTransfers
