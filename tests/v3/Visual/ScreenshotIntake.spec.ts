@@ -3,8 +3,8 @@ import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
 
 const screenshotIntakeVisualFingerprints: Record<string, string> = {
-  desktop: 'CAPTURE_DESKTOP',
-  mobile: 'CAPTURE_MOBILE',
+  desktop: 'f3a8e287e5fb39fe7230cd176909877cf427d19d1da639b19749c615e8aeb875',
+  mobile: '4a8b7c237f5c2aab5956dde17b8105476631d666f8ce660abbac991e1a5b99f8',
 };
 
 async function openScreenshotIntake(page: Page): Promise<void> {
