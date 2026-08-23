@@ -4,31 +4,20 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\KingdomTransfers\Queries;
 
-use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferGroupState;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferGroup;
 use Illuminate\Database\Eloquent\Collection;
 
 final class TransferGroupQuery
 {
-    /** @return Collection<int, TransferGroup> */
-    public function forPlan(string $allianceId, string $planId, bool $includeArchived = false): Collection
+    /** @return Collection<int,TransferGroup> */
+    public function currentForWindow(string $allianceId,string $windowId): Collection
     {
-        $query = TransferGroup::query()
-            ->where('alliance_id', $allianceId)
-            ->where('transfer_plan_id', $planId)
-            ->with([
-                'coordinator:id,current_name',
-                'destinationKingdom:id,number',
-            ]);
+        return TransferGroup::query()->where('alliance_id',$allianceId)->where('transfer_window_id',$windowId)->whereNull('superseded_at')->with('kingdoms:id,number')->orderBy('official_label')->get();
+    }
 
-        if ($includeArchived === false) {
-            $query->where('state', TransferGroupState::Active->value);
-        }
-
-        return $query
-            ->orderByRaw("case state when 'active' then 0 else 1 end")
-            ->orderBy('name')
-            ->orderBy('id')
-            ->get();
+    /** @return Collection<int,TransferGroup> */
+    public function historyForWindow(string $allianceId,string $windowId): Collection
+    {
+        return TransferGroup::query()->where('alliance_id',$allianceId)->where('transfer_window_id',$windowId)->with('kingdoms:id,number')->orderBy('official_label')->orderByDesc('revision')->get();
     }
 }
