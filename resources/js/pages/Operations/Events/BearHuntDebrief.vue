@@ -14,6 +14,11 @@ type Delta = {
   percentChange: number | null;
   state: 'available' | 'previous_zero' | 'unavailable';
 };
+type AttendanceComparison = {
+  current: string | null;
+  previous: string | null;
+  state: 'available' | 'unavailable';
+};
 type RallySummary = {
   available: boolean;
   participated: number | null;
@@ -129,10 +134,13 @@ type Debrief = {
   comparison: {
     allianceDamage: Delta;
     governorCount: Delta;
+    attendancePresent: Delta;
     attendanceRate: Delta;
     recordedRallies: Delta;
     personalDamage: Delta;
     personalRank: { current: number | null; previous: number | null; movement: number | null };
+    personalAttendance: AttendanceComparison;
+    personalRallies: Delta;
   } | null;
   personalTrend: TrendPoint[];
   allianceTrend: TrendPoint[];
@@ -215,6 +223,11 @@ function rankMovement(): string {
   return movement > 0
     ? t('debrief.rankUp', { count: formatNumber(movement) })
     : t('debrief.rankDown', { count: formatNumber(Math.abs(movement)) });
+}
+function attendanceComparisonText(): string {
+  const comparison = props.debrief.comparison?.personalAttendance;
+  if (!comparison || comparison.state === 'unavailable') return t('debrief.notComparable');
+  return `${t('debrief.previousHunt')}: ${attendance(comparison.previous)}`;
 }
 function barWidth(value: number | null | undefined, max: number): string {
   if (value === null || value === undefined) return '0%';
@@ -323,6 +336,9 @@ function barWidth(value: number | null | undefined, max: number): string {
               <p class="mt-1 text-xl font-semibold">
                 {{ attendance(debrief.personal.attendanceStatus) }}
               </p>
+              <p class="mt-1 text-xs text-[var(--ks-muted)]">
+                {{ attendanceComparisonText() }}
+              </p>
             </div>
             <div class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] p-4">
               <p class="text-xs tracking-wide text-[var(--ks-muted)] uppercase">
@@ -332,6 +348,9 @@ function barWidth(value: number | null | undefined, max: number): string {
                 {{
                   count(debrief.personal.rallies.participated, debrief.personal.rallies.available)
                 }}
+              </p>
+              <p class="mt-1 text-xs text-[var(--ks-muted)]">
+                {{ deltaText(debrief.comparison?.personalRallies) }}
               </p>
             </div>
           </div>
@@ -534,17 +553,35 @@ function barWidth(value: number | null | undefined, max: number): string {
               </span>
             </div>
             <div class="rounded border border-[var(--ks-border)] p-3">
-              <p class="text-[var(--ks-muted)]">{{ t('debrief.attendance') }}</p>
+              <p class="text-[var(--ks-muted)]">{{ t('debrief.governors') }}</p>
               <strong class="mt-1 block">
                 {{
-                  debrief.summary.attendance.ratePercent === null
-                    ? t('debrief.notRecorded')
-                    : `${formatNumber(debrief.summary.attendance.ratePercent, {
-                        maximumFractionDigits: 1,
-                      })}%`
+                  debrief.summary.resultsAvailable
+                    ? formatNumber(debrief.summary.governorCount)
+                    : t('debrief.notRecorded')
                 }}
               </strong>
               <span class="mt-1 block text-xs">
+                {{ deltaText(debrief.comparison.governorCount) }}
+              </span>
+            </div>
+            <div class="rounded border border-[var(--ks-border)] p-3">
+              <p class="text-[var(--ks-muted)]">{{ t('debrief.attendance') }}</p>
+              <strong class="mt-1 block">
+                <template v-if="debrief.summary.attendance.available">
+                  {{ formatNumber(debrief.summary.attendance.byStatus.present ?? 0) }} ·
+                  {{
+                    debrief.summary.attendance.ratePercent === null
+                      ? t('debrief.notRecorded')
+                      : `${formatNumber(debrief.summary.attendance.ratePercent, {
+                          maximumFractionDigits: 1,
+                        })}%`
+                  }}
+                </template>
+                <template v-else>{{ t('debrief.notRecorded') }}</template>
+              </strong>
+              <span class="mt-1 block text-xs">
+                {{ deltaText(debrief.comparison.attendancePresent) }} ·
                 {{ deltaText(debrief.comparison.attendanceRate, 'rate') }}
               </span>
             </div>
