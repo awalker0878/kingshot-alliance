@@ -14,6 +14,7 @@ This is the user/product view of implemented and actively delivered capability g
 | Recruitment | Intake, filter, preview/bulk-triage, review and convert recruitment candidates through controlled membership handoff. | Alliance |
 | Alliance content | Publish reviewed, revisioned and context-linked knowledge plus testable timezone-safe recurring announcements with delivery history and selective recovery. | Alliance intent + Communications delivery + ReadModels composition |
 | Kingdom governance | Manage Kingdom role/governance facts for Players. | GameWorld/Governance; workflows coordinate cross-context effects |
+| Kingdom Transfer Planning | Plan a sourced Transfer Window, preserve Alliance participant/readiness workflow, record window-specific official Transfer Groups/Power Caps and dated Governor observations, and answer whether a Governor can transfer to a target Kingdom with explicit blockers/source/freshness. | GameWorld/KingdomTransfers |
 | Territory & hive planning | Build, validate, analyze, version, compare and share Alliance/Kingdom layouts using versioned KingShot map facts; plan HQs, Banners, Governor cities, Bear Traps, territory coverage, hive presets, march times and multi-Alliance positioning. | GameWorld/KingdomMaps owns map facts/rules; Operations/TerritoryPlanning owns plans/analysis; ReadModels composes editor reads |
 | Events | Define/schedule recurring Events and occurrences. | Operations/Events |
 | Participation | Registration, responses and attendance. | Operations/Participation |
@@ -31,6 +32,22 @@ This is the user/product view of implemented and actively delivered capability g
 | Dashboards/history | Compose cross-context user-facing views without changing source ownership. | ReadModels |
 
 This catalogue should change when a real product outcome changes, not for internal class/file movement.
+
+## Kingdom Transfer Planning product contract
+
+Kingdom Transfer Planning is a `GameWorld/KingdomTransfers` capability extension, not a generic workflow. It preserves participant/readiness/blocker/completion behavior while adding:
+
+- sourced Transfer Windows with explicit phase boundaries;
+- official Transfer Groups whose Kingdom membership is window-specific;
+- sourced target-Kingdom Power Caps and Leading/Ordinary classification;
+- append-only Governor Power, Transfer Score, Transfer Pass, invitation and in-game eligibility observations with observation/validity boundaries;
+- deterministic per-requirement eligibility outcomes rather than a stored boolean;
+- a strict rule that stale, missing, conflicting or non-authoritative evidence yields `needs_verification`, never `eligible_now`;
+- visible provenance/freshness and next actions in the manager-facing participant UX;
+- an evidence gate for the unpublished Transfer Score → Transfer Pass formula and other unpublished in-game rules;
+- a terminology correction that reserves **Transfer Group** for the official game concept and renames Alliance planning groups to **Transfer Cohorts**.
+
+The canonical contract and active phase queue live in [Kingdom Transfer Planning](kingdom-transfer-planning.md).
 
 ## Bear Hunt Debrief product contract
 
