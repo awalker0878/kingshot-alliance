@@ -107,6 +107,67 @@ final class BearHuntBattleReportLedgerV3Test extends TestCase
         self::assertSame(100, $this->score($occurrenceId, $actor->playerId));
     }
 
+    public function test_import_preserves_and_restores_the_preexisting_result_baseline(): void
+    {
+        $scenario = new ScenarioFactory;
+        $account = $scenario->authUser();
+        $actor = $scenario->player((int) $account->id, 59102);
+        $alliance = $scenario->alliance($actor);
+        $scenario->roster($actor, $alliance);
+        $configuration = EventTypeScope::query()
+            ->where('scope', EventScope::Alliance->value)
+            ->whereHas('eventType', static fn ($query) => $query->where('slug', 'bear-hunt'))
+            ->firstOrFail();
+        $created = app(CreateEvent::class)->handle(
+            actorPlayerId: $actor->playerId,
+            configurationId: (string) $configuration->id,
+            scope: EventScope::Alliance,
+            targetId: $alliance->allianceId,
+            firstLocalStart: CarbonImmutable::now('UTC')->addDay(),
+            title: 'Baseline Preservation Bear Hunt',
+            durationMinutes: 30,
+        );
+        self::assertNotNull($created->firstOccurrenceId);
+        $occurrenceId = $created->firstOccurrenceId;
+
+        $existing = EventPlayerResult::query()->create([
+            'occurrence_id' => $occurrenceId,
+            'player_id' => $actor->playerId,
+            'score' => 50,
+            'rank' => 7,
+            'recorded_by_player_id' => $actor->playerId,
+            'recorded_at' => now(),
+        ]);
+
+        $report = app(RecordBearHuntBattleReport::class)->handle(
+            actorPlayerId: $actor->playerId,
+            occurrenceId: $occurrenceId,
+            sourceEvidenceId: (string) Str::ulid(),
+            sourceCommitAttemptId: (string) Str::ulid(),
+            idempotencyKey: hash('sha256', 'baseline-idempotency'),
+            reportFingerprint: hash('sha256', 'baseline-report'),
+            reportTimestampText: '2026-08-22 14:05:23',
+            entries: [[
+                'player_id' => $actor->playerId,
+                'reported_rank' => 1,
+                'damage_points' => 100,
+            ]],
+        );
+
+        $existing->refresh();
+        self::assertSame(150, $existing->score);
+
+        app(RemoveBearHuntBattleReport::class)->handle(
+            $actor->playerId,
+            $report->reportId,
+            'The imported report was confirmed to be unrelated to this occurrence.',
+        );
+
+        $existing->refresh();
+        self::assertSame(50, $existing->score);
+        self::assertSame(7, $existing->rank);
+    }
+
     private function score(string $occurrenceId, string $playerId): int
     {
         return (int) EventPlayerResult::query()
