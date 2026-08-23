@@ -11,6 +11,7 @@ use App\Contexts\Intelligence\Evidence\Models\GameEvidence;
 use App\Contexts\Intelligence\Evidence\Services\EvidenceRedactor;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Throwable;
@@ -27,7 +28,15 @@ final readonly class EnforceEvidenceRetention
     {
         $limit = max(1, min(1000, $limit));
         $candidates = GameEvidence::query()
-            ->whereNotIn('lifecycle_status', [EvidenceLifecycleStatus::Purged->value])
+            ->where(static function ($query): void {
+                $query->whereNotNull('path')
+                    ->orWhereNotExists(static function (Builder $commit): void {
+                        $commit->selectRaw('1')
+                            ->from('evidence_commit_attempts')
+                            ->whereColumn('evidence_commit_attempts.evidence_id', 'game_evidence.id')
+                            ->where('evidence_commit_attempts.status', EvidenceCommitStatus::Succeeded->value);
+                    });
+            })
             ->orderBy('created_at')
             ->limit($limit)
             ->pluck('id')
@@ -68,9 +77,7 @@ final readonly class EnforceEvidenceRetention
                     }
 
                     $days = match ($status) {
-                        EvidenceLifecycleStatus::Rejected,
-                        EvidenceLifecycleStatus::Duplicate,
-                        EvidenceLifecycleStatus::Deleted => max(1, (int) config('evidence.retention.rejected_days', 14)),
+                        EvidenceLifecycleStatus::Deleted => max(1, (int) config('evidence.retention.deleted_days', 14)),
                         EvidenceLifecycleStatus::Failed,
                         EvidenceLifecycleStatus::Unsupported => max(1, (int) config('evidence.retention.failed_days', 30)),
                         default => max(1, (int) config('evidence.retention.uncommitted_days', 90)),
