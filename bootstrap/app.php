@@ -43,6 +43,7 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::middleware('web')->group(base_path('routes/kingdoms.php'));
             Route::middleware('web')->group(base_path('routes/notifications.php'));
             Route::middleware('web')->group(base_path('routes/platform.php'));
+            Route::middleware('web')->group(base_path('routes/progression.php'));
         },
     )
     ->withSchedule(static function (Schedule $schedule): void {
