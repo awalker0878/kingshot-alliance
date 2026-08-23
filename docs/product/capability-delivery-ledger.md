@@ -44,29 +44,29 @@ Architectural ownership is intentionally split:
 - `app/ReadModels/ScreenshotIntake` composes the review workspace without becoming a writer.
 - The Evidence application Action coordinates the commit handshake through scalar/value-object data and the destination owner Action; Screenshot Intake does not add a top-level `app/Workflows` family.
 
-`Complete` means the phase is implemented across behavior, authorization, idempotency, persistence, UX, accessibility/localization, observability/recovery, tests and current-truth documentation. The final capability is not complete until one immutable candidate passes the applicable repository quality/release gates and the Phase 15 spec→code, code→spec and UX→backend scan finds no remaining gap.
+`Complete` means the phase is implemented across behavior, authorization, idempotency, persistence, UX, accessibility/localization, observability/recovery, tests and current-truth documentation. Screenshot Intake reached that state after one immutable implementation candidate passed the applicable repository quality/release gates and the Phase 15 spec→code, code→spec and UX→backend scan found no remaining gap.
 
 ### Phase queue
 
 | Phase | Status | Slice | Exit condition |
 | --- | --- | --- | --- |
 | 1 | Complete | Product contract and architecture ownership | `/docs/product` defines the full capability, ownership is recorded in architecture/data-ownership/ADR docs, and Evidence vs Operations write ownership is unambiguous. |
-| 2 | Verification | Secure evidence upload and immutable provenance | Private storage, actual MIME/image validation, size limits, shared security scan, checksums/dimensions/source metadata, current authorization and same-scope exact duplicate reuse are implemented and covered by behavior tests. |
-| 3 | Verification | Screenshot classification | Versioned immutable classification attempts, OCR provenance, failure state, queues/retry and Bear Hunt classification are implemented. |
-| 4 | Verification | Bear Hunt battle-report extraction | The first schema extracts only supported report timestamp/ranking-row facts through a versioned extractor contract, with failure/retry behavior. |
-| 5 | Verification | Field-level confidence and extraction history | Raw OCR, normalized candidates, data type, confidence, bounding boxes/warnings and immutable extraction-attempt history are retained. |
-| 6 | Verification | Review, Player resolution and manual correction | Every first-release screenshot requires review; included rows resolve to existing eligible Player IDs; corrections never overwrite machine history and OCR text cannot create/mutate Players. |
-| 7 | Verification | Exact, visual and semantic duplicate detection | SHA duplicates are scoped/reused, perceptually similar binary-distinct images remain separate warnings, semantic duplicates block commit until explicitly resolved, and cross-Alliance evidence is never disclosed. |
-| 8 | Verification | Commit preview and validation | The workspace previews current + report = post-commit score changes and blocks unresolved/ineligible/duplicate-invalid reviewed meaning. |
-| 9 | Verification | Scalar cross-context commit | Evidence builds reviewed scalar/value-object meaning and invokes the `Operations/Results` owner Action without foreign Eloquent models or cross-context persistence writes. |
-| 10 | Verification | Bear Hunt report ledger and idempotent aggregation | Operations records source-linked immutable report/entry facts and deterministically recomputes Governor totals without additive double counting. |
-| 11 | Verification | Retry/recovery and commit receipts | Stable destination idempotency survives interrupted acknowledgement; retries recover the same Operations report and Evidence retains immutable attempt/receipt history. |
-| 12 | Verification | Evidence deletion, redaction and retention | Deletion/retention physically removes binaries/sensitive OCR as required, keeps minimum committed provenance, and never cascades into accepted Operations results. |
-| 13 | Verification | Operational diagnostics and observability | Privacy-safe diagnostics, queue/retry visibility, audit/outbox records, failure codes and retention/recovery procedures are implemented and documented. |
-| 14 | Verification | Accessibility, responsive UX, localization and visual regression | Bear Hunt entry, upload/processing/review/duplicate/preview/commit/history states are localized, keyboard/mobile-safe and protected by desktop/mobile visual baselines. |
-| 15 | Active | Full capability audit and closeout | All phases are gate-verified; the repository-wide contract scan finds no TODO/scaffolding/stale ownership/undocumented behavior; the ledger and Screenshot Intake contract are rewritten as implemented current state; one immutable release candidate passes all applicable gates. |
+| 2 | Complete | Secure evidence upload and immutable provenance | Private storage, actual MIME/image validation, size limits, shared security scan, checksums/dimensions/source metadata, current authorization and same-scope exact duplicate reuse are implemented and behavior-tested. |
+| 3 | Complete | Screenshot classification | Versioned immutable classification attempts, OCR provenance, failure state, queues/retry and Bear Hunt classification are implemented and verified. |
+| 4 | Complete | Bear Hunt battle-report extraction | The first schema extracts only supported report timestamp/ranking-row facts through a versioned extractor contract with verified failure/retry behavior. |
+| 5 | Complete | Field-level confidence and extraction history | Raw OCR, normalized candidates, data type, confidence, bounding boxes/warnings and immutable extraction-attempt history are retained and verified. |
+| 6 | Complete | Review, Player resolution and manual correction | Every first-release screenshot requires review; included rows resolve to existing eligible Player IDs; corrections never overwrite machine history and OCR text cannot create/mutate Players. |
+| 7 | Complete | Exact, visual and semantic duplicate detection | SHA duplicates are scoped/reused, perceptually similar binary-distinct images remain separate warnings, semantic duplicates block commit until explicitly resolved, and cross-Alliance evidence is never disclosed. |
+| 8 | Complete | Commit preview and validation | The workspace previews current + report = post-commit score changes and blocks unresolved/ineligible/duplicate-invalid reviewed meaning. |
+| 9 | Complete | Scalar cross-context commit | Evidence builds reviewed scalar/value-object meaning and invokes the `Operations/Results` owner Action without foreign Eloquent models or cross-context persistence writes. |
+| 10 | Complete | Bear Hunt report ledger and idempotent aggregation | Operations records source-linked immutable report/entry facts, preserves pre-import baselines and deterministically recomputes Governor totals without additive double counting. |
+| 11 | Complete | Retry/recovery and commit receipts | Stable destination idempotency survives interrupted acknowledgement; retries recover the same Operations report and Evidence retains immutable attempt/receipt history. |
+| 12 | Complete | Evidence deletion, redaction and retention | Deletion/retention physically removes binaries/sensitive OCR as required, keeps minimum committed provenance, prevents bounded-scan starvation and never cascades into accepted Operations results. |
+| 13 | Complete | Operational diagnostics and observability | Privacy-safe diagnostics, queue/retry visibility, audit/outbox records, failure codes and retention/recovery procedures are implemented and documented. |
+| 14 | Complete | Accessibility, responsive UX, localization and visual regression | Bear Hunt entry, upload/processing/review/duplicate/preview/commit/history states are localized, keyboard/mobile-safe and protected by deterministic desktop/mobile visual baselines. |
+| 15 | Complete | Full capability audit and closeout | The repository-wide contract scan found no TODO/scaffolding/stale ownership/undocumented behavior; the ledger and Screenshot Intake contract describe implemented current state; one immutable implementation candidate passed all applicable gates. |
 
-No Verification phase may be promoted to Complete because code exists alone. Final promotion happens only after the immutable release candidate and Phase 15 closeout prove the documented behavior.
+The Screenshot Intake delivery queue is closed: every phase is Complete and no known Screenshot Intake product feature is deferred. Any defect or material change that invalidates a phase exit condition is a regression that reopens the affected phase and must restore the same release evidence before closeout.
 
 ### Cross-phase invariants
 
