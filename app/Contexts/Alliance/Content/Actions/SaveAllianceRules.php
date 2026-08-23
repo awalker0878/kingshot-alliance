@@ -37,8 +37,29 @@ final readonly class SaveAllianceRules
             $context = $this->allianceWriteState->lockActiveScope($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, AlliancePermission::ContentManage);
 
-            $sanitizedBody = $this->sanitizer->body($body);
+            $rawBody = trim($body);
             $normalizedLocale = strtolower(trim($locale));
+            $errors = [];
+
+            if ($rawBody === '') {
+                $errors['body'] = 'Alliance Rules cannot be empty.';
+            } elseif (mb_strlen($rawBody) > 10000) {
+                $errors['body'] = 'Alliance Rules cannot exceed 10,000 characters.';
+            }
+
+            if (
+                $normalizedLocale === ''
+                || mb_strlen($normalizedLocale) > 16
+                || preg_match('/^[a-z]{2,3}(?:-[a-z0-9]{2,8})*$/i', $normalizedLocale) !== 1
+            ) {
+                $errors['locale'] = 'The Rules language must be a valid locale code no longer than 16 characters.';
+            }
+
+            if ($errors !== []) {
+                throw ValidationException::withMessages($errors);
+            }
+
+            $sanitizedBody = $this->sanitizer->body($rawBody);
 
             if (trim($sanitizedBody) === '') {
                 throw ValidationException::withMessages([
