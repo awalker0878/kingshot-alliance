@@ -54,10 +54,7 @@ export function domainsForPage(name: string): LocalizationDomain[] {
   if (name.startsWith('Alliance/')) {
     domains.add('alliance');
     if (name.startsWith('Alliance/Recruitment/')) domains.add('recruitment');
-    if (
-      name.startsWith('Alliance/Noticeboard/') ||
-      name.startsWith('Alliance/Rules/')
-    ) {
+    if (name.startsWith('Alliance/Noticeboard/') || name.startsWith('Alliance/Rules/')) {
       domains.add('content');
     }
     if (name.startsWith('Alliance/Connections/')) domains.add('integrations');
