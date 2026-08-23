@@ -214,7 +214,9 @@ Each control must:
 - disable while its request is processing;
 - allow switching reactions;
 - allow removing the selected reaction by pressing it again;
-- preserve scroll/state across the Inertia mutation.
+- preserve scroll/state across the Inertia mutation;
+- avoid optimistic count/selection changes before the server confirms the mutation;
+- on validation/mutation failure, re-enable the controls, preserve the prior server-backed reaction state, expose localized inline alert feedback, and allow the Governor to retry immediately.
 
 Non-Announcement Content does not show reaction controls. Public unauthenticated Alliance pages do not expose reaction writes or private member reaction identity.
 
@@ -281,6 +283,7 @@ All new player-facing copy belongs in the existing Content localization catalogu
 - Dislike;
 - remove reaction semantics;
 - accessible count labels;
+- reaction failure/retry feedback;
 - saving/validation copy.
 
 `Alliance/Rules/*` Inertia pages must load the existing `content` localization domain through the page-domain registry before render. Source-level localization checks alone are insufficient: automated frontend contract coverage must prove that the Rules route family resolves the Content catalogue so localized semantic names are present at runtime.
@@ -307,11 +310,12 @@ The slice is accepted only when all of the following are true:
 12. Draft/scheduled/archived/non-Announcement/foreign-Alliance targets reject reaction writes.
 13. Noticeboard Index and Show expose counts + current-member state without per-card N+1 queries.
 14. Reaction totals never influence Content ordering, visibility, pinning, moderation, recommendations or public-page ranking.
-15. New UX is responsive, keyboard-safe, screen-reader meaningful and localized through the Content catalogue, including explicit `Alliance/Rules/*` page-domain registration.
-16. Behavior, authorization, idempotency, persistence invariants, architecture boundaries and HTTP/frontend contracts have automated coverage.
-17. Desktop/mobile visual regression covers Rules empty/populated/editable state and Notice reactions on both Noticeboard card and detail surfaces with stable accepted fingerprints.
-18. Product/reference/architecture/frontend capability documentation is reconciled wherever implementation changes those contracts.
-19. The repository's applicable quality/release gates are green on one immutable implementation head before the slice is marked Complete.
+15. Reaction mutation failures preserve the prior server-backed state, re-enable controls, expose localized inline feedback and remain immediately retryable.
+16. New UX is responsive, keyboard-safe, screen-reader meaningful and localized through the Content catalogue, including explicit `Alliance/Rules/*` page-domain registration.
+17. Behavior, authorization, idempotency, persistence invariants, architecture boundaries and HTTP/frontend contracts have automated coverage.
+18. Desktop/mobile visual regression covers Rules empty/populated/editable state and Notice reactions on both Noticeboard card and detail surfaces with stable accepted fingerprints.
+19. Product/reference/architecture/frontend capability documentation is reconciled wherever implementation changes those contracts.
+20. The repository's applicable quality/release gates are green on one immutable implementation head before the slice is marked Complete.
 
 ## Delivery queue
 
@@ -320,7 +324,7 @@ The slice is accepted only when all of the following are true:
 | 1 | Complete | Product contract and ownership | This contract defines scope, ownership, authorization/data invariants, UX states, acceptance criteria and anti-ranking boundaries before application-code changes. |
 | 2 | In progress | First-class Alliance Rules | Canonical Rules Action/read surface, reserved identity, revisions, audit/outbox, owner-boundary validation, read/write authorization and idempotency are implemented and behavior-tested, including ordinary-member HTTP read proof. |
 | 3 | In progress | Alliance Notice reactions | Reaction enum/model/schema/actions enforce active-member authorization, target validity, uniqueness, switching/removal/idempotency and audit semantics. |
-| 4 | In progress | Read composition and UX | Notice reads include bounded reaction summaries; Rules/reaction UI, navigation, mobile/accessibility/localization states and no-ranking ordering are complete; all eight desktop/mobile visual surfaces have accepted stable fingerprints. |
+| 4 | In progress | Read composition and UX | Notice reads include bounded reaction summaries; Rules/reaction UI, navigation, mobile/accessibility/localization/failure-retry states and no-ranking ordering are complete; all eight desktop/mobile visual surfaces have accepted stable fingerprints. |
 | 5 | In progress | Verification and closeout | Automated behavior/contract/architecture/visual coverage and affected product/reference/architecture/frontend docs are reconciled; applicable repository quality gates are green on one immutable head. |
 
 ## Reconciliation findings
@@ -332,6 +336,7 @@ Implementation is required to close findings discovered after the initial contra
 - `Alliance/Rules/*` must be registered to load the `content` localization domain at runtime;
 - the Rules page must preserve a single page-level heading hierarchy while keeping document/edit sections semantically named;
 - deterministic visual coverage must include published Rules, empty Rules, Noticeboard reactions and Notice-detail reactions on desktop and mobile;
+- Notice reaction failure must follow the repository mutation UX: no optimistic state drift, localized inline feedback, controls re-enabled and retry available;
 - the frontend capability map must explicitly describe first-class Alliance Rules and informational non-ranking Notice reactions so UI documentation agrees with the shipped capability.
 
 These findings are part of the current product scope and keep the corresponding delivery phases open until implemented and verified.
