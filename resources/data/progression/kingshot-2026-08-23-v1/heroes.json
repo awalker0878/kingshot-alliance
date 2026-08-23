@@ -1,5 +1,10 @@
 {
   "schema_version": 1,
+  "provenance": {
+    "evidence_status": "single_source",
+    "source_ids": ["kingshotdata"],
+    "applies_to": ["hero identity", "canonical name", "rarity", "troop class", "generation", "typical unlock day"]
+  },
   "heroes": [
     {"id":"helga","name":"Helga","rarity":"Legendary","troop_class":"Infantry","generation":1,"typical_unlock_day":0,"release_group":"generation-1"},
     {"id":"amadeus","name":"Amadeus","rarity":"Legendary","troop_class":"Infantry","generation":1,"typical_unlock_day":0,"release_group":"generation-1"},
