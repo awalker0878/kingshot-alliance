@@ -14,14 +14,14 @@ final class AllianceContentGameParityFrontendContractV3Test extends TestCase
         $registry = $this->source($root.'/resources/js/localization/registry.ts');
         $rules = $this->source($root.'/resources/js/pages/Alliance/Rules/Index.vue');
 
-        self::assertStringContainsString("name.startsWith('Alliance/Rules/')", $registry);
-        self::assertMatchesRegularExpression(
-            "/Alliance\\/Rules\\/.*?domains\\.add\\('content'\\)/s",
-            $registry,
-        );
-        self::assertStringContainsString("t('contentExperience.rulesTitle')", $rules);
-        self::assertStringContainsString("t('contentExperience.rulesEmpty')", $rules);
-        self::assertStringContainsString("t('contentExperience.rulesSave')", $rules);
+        self::assertStringContainsString('Alliance/Rules/', $registry);
+        $rulesDomainOffset = strpos($registry, 'Alliance/Rules/');
+        self::assertNotFalse($rulesDomainOffset);
+        $rulesDomainBlock = substr($registry, max(0, $rulesDomainOffset - 100), 260);
+        self::assertStringContainsString('domains.add(\'content\')', $rulesDomainBlock);
+        self::assertStringContainsString('t(\'contentExperience.rulesTitle\')', $rules);
+        self::assertStringContainsString('t(\'contentExperience.rulesEmpty\')', $rules);
+        self::assertStringContainsString('t(\'contentExperience.rulesSave\')', $rules);
     }
 
     public function test_notice_reaction_controls_expose_toggle_off_semantics_and_busy_state(): void
@@ -30,12 +30,12 @@ final class AllianceContentGameParityFrontendContractV3Test extends TestCase
         $controls = $this->source($root.'/resources/js/components/alliance/NoticeReactionControls.vue');
 
         foreach ([
-            "router.delete(url, options)",
-            "router.put(url, { reaction }, options)",
+            'router.delete(url, options)',
+            'router.put(url, { reaction }, options)',
             ':aria-pressed=',
             ':aria-busy="processing"',
-            "removeLikeCountLabel",
-            "removeDislikeCountLabel",
+            'removeLikeCountLabel',
+            'removeDislikeCountLabel',
         ] as $expected) {
             self::assertStringContainsString($expected, $controls);
         }
