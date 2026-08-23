@@ -15,6 +15,7 @@ export const localizationDomains = [
   'content',
   'integrations',
   'kingdom',
+  'progression',
   'territory',
   'transfers',
   'platform',
@@ -75,6 +76,7 @@ export function domainsForPage(name: string): LocalizationDomain[] {
   }
   if (name.startsWith('Kingdom/')) {
     domains.add('kingdom');
+    if (name.startsWith('Kingdom/Progression/')) domains.add('progression');
     if (name.startsWith('Kingdom/Territory/')) domains.add('territory');
     if (name.startsWith('Kingdom/Transfer/')) domains.add('transfers');
   }
