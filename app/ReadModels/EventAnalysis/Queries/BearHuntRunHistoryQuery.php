@@ -18,7 +18,7 @@ final class BearHuntRunHistoryQuery
      * occurrence IDs. This is a read-model projection only; owner contexts remain
      * authoritative for writes and validation.
      *
-     * @param list<string> $occurrenceIds
+     * @param  list<string>  $occurrenceIds
      * @return array<string,array{
      *   totalDamage:?int,
      *   governorCount:int,

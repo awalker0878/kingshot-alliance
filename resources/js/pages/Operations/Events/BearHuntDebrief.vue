@@ -255,10 +255,7 @@ function barWidth(value: number | null | undefined, max: number): string {
       {{ t('debrief.subtitle') }}
     </p>
 
-    <section
-      class="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4"
-      :aria-label="t('debrief.title')"
-    >
+    <section class="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4" :aria-label="t('debrief.title')">
       <StatSeal
         :label="t('debrief.totalDamage')"
         :value="damage(debrief.summary.totalDamage)"
@@ -332,7 +329,9 @@ function barWidth(value: number | null | undefined, max: number): string {
                 {{ t('debrief.recordedRallies') }}
               </p>
               <p class="mt-1 text-xl font-semibold">
-                {{ count(debrief.personal.rallies.participated, debrief.personal.rallies.available) }}
+                {{
+                  count(debrief.personal.rallies.participated, debrief.personal.rallies.available)
+                }}
               </p>
             </div>
           </div>
@@ -526,10 +525,7 @@ function barWidth(value: number | null | undefined, max: number): string {
                 : t('debrief.noPrevious')
             }}
           </h2>
-          <div
-            v-if="debrief.previousRun && debrief.comparison"
-            class="mt-4 space-y-3 text-sm"
-          >
+          <div v-if="debrief.previousRun && debrief.comparison" class="mt-4 space-y-3 text-sm">
             <div class="rounded border border-[var(--ks-border)] p-3">
               <p class="text-[var(--ks-muted)]">{{ t('debrief.totalDamage') }}</p>
               <strong class="mt-1 block">{{ damage(debrief.summary.totalDamage) }}</strong>
@@ -555,9 +551,7 @@ function barWidth(value: number | null | undefined, max: number): string {
             <div class="rounded border border-[var(--ks-border)] p-3">
               <p class="text-[var(--ks-muted)]">{{ t('debrief.recordedRallies') }}</p>
               <strong class="mt-1 block">
-                {{
-                  count(debrief.summary.rallies.participated, debrief.summary.rallies.available)
-                }}
+                {{ count(debrief.summary.rallies.participated, debrief.summary.rallies.available) }}
               </strong>
               <span class="mt-1 block text-xs">
                 {{ deltaText(debrief.comparison.recordedRallies) }}

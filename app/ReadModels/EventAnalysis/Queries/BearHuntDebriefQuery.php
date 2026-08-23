@@ -225,8 +225,8 @@ final readonly class BearHuntDebriefQuery
     }
 
     /**
-     * @param array<string,mixed>|null $current
-     * @param array<string,mixed>|null $previous
+     * @param  array<string,mixed>|null  $current
+     * @param  array<string,mixed>|null  $previous
      * @return array<string,mixed>|null
      */
     private function comparison(?array $current, ?array $previous): ?array

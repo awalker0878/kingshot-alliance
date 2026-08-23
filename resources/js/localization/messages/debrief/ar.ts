@@ -31,8 +31,7 @@ const messages = {
     noResults: 'لم يتم تسجيل ضرر للحكام في هذا الصيد بعد.',
     needsReview: 'يحتاج إلى مراجعة',
     unmatchedGovernors: '{count} حكام يحتاجون إلى مطابقة',
-    reviewHelp:
-      'أكمل مطابقة الحكام في Screenshot Intake. لا تنشئ المراجعة مسار هوية ثانياً.',
+    reviewHelp: 'أكمل مطابقة الحكام في Screenshot Intake. لا تنشئ المراجعة مسار هوية ثانياً.',
     reviewImport: 'مراجعة التقرير المستورد',
     trends: 'الاتجاهات',
     runTrends: 'اتجاهات صيد الدب الأخيرة',

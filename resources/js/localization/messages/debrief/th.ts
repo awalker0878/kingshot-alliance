@@ -40,8 +40,7 @@ const messages = {
     allianceDamageTrend: 'ดาเมจ Alliance ในแต่ละครั้ง',
     previousHunt: 'ครั้งก่อน',
     noPrevious: 'ไม่มีครั้งก่อน',
-    noPreviousHelp:
-      'การเปรียบเทียบจะแสดงเมื่อ Alliance นี้มี Bear Hunt ก่อนหน้าที่เสร็จสิ้นแล้ว',
+    noPreviousHelp: 'การเปรียบเทียบจะแสดงเมื่อ Alliance นี้มี Bear Hunt ก่อนหน้าที่เสร็จสิ้นแล้ว',
     history: 'ประวัติ',
     runHistory: 'ประวัติ Bear Hunt',
   },
