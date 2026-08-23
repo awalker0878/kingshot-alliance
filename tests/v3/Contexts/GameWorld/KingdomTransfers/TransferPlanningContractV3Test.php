@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\v3\Contexts\GameWorld\KingdomTransfers;
 
+use App\Contexts\Alliance\Membership\Enums\AllianceRank;
+use App\Contexts\Alliance\Membership\Models\AllianceMembership;
+use App\Contexts\GameWorld\KingdomTransfers\Access\Enums\TransferPermission;
+use App\Contexts\GameWorld\KingdomTransfers\Access\Services\TransferAuthorization;
 use App\Contexts\GameWorld\KingdomTransfers\Actions\SaveTransferWindow;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferObservationKind;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferRequirementState;
@@ -75,5 +79,32 @@ final class TransferPlanningContractV3Test extends TestCase
         self::assertSame(TransferRequirementState::Unknown, $selected->state);
         self::assertSame(TransferSourceType::Community, $selected->sourceType);
         self::assertSame(118_000_000, $selected->value);
+    }
+
+    public function test_active_member_can_view_transfer_planning_without_manage_authority(): void
+    {
+        $factory = app(ScenarioFactory::class);
+        $account = $factory->account();
+        $actor = $factory->player($account->userId, 7382, 'TRANSFER-CONTRACT-7382');
+        $alliance = $factory->alliance($actor);
+
+        $membership = AllianceMembership::query()
+            ->where('alliance_id', $alliance->allianceId)
+            ->where('player_id', $actor->playerId)
+            ->firstOrFail();
+        $membership->forceFill(['rank' => AllianceRank::R1])->save();
+
+        $authorization = app(TransferAuthorization::class);
+
+        self::assertTrue($authorization->allows(
+            $actor->playerId,
+            $alliance->allianceId,
+            TransferPermission::View,
+        ));
+        self::assertFalse($authorization->allows(
+            $actor->playerId,
+            $alliance->allianceId,
+            TransferPermission::Manage,
+        ));
     }
 }
