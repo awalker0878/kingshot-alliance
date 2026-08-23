@@ -23,6 +23,7 @@ use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferSourceType;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferParticipant;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferPlan;
 use App\Contexts\GameWorld\KingdomTransfers\Queries\TransferEligibilityQuery;
+use App\Contexts\GameWorld\KingdomTransfers\Services\TransferObservationSelector;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -65,7 +66,6 @@ final class TransferPlanningCompletenessV3Test extends TestCase
             'Reviewed Governor profile screenshot',
             $this->now->subMinutes(2)->toIso8601String(),
             $this->now->addHours(2)->toIso8601String(),
-            evidenceId: 'evidence-conflicting-power',
         );
 
         $row = $this->eligibility($scenario);
@@ -77,7 +77,7 @@ final class TransferPlanningCompletenessV3Test extends TestCase
         self::assertSame(TransferRequirementState::Conflicting, $power->state);
         self::assertSame(
             TransferRequirementState::Conflicting,
-            app(\App\Contexts\GameWorld\KingdomTransfers\Services\TransferObservationSelector::class)
+            app(TransferObservationSelector::class)
                 ->select(
                     $row['observations'],
                     TransferObservationKind::GovernorPower,
@@ -306,7 +306,7 @@ final class TransferPlanningCompletenessV3Test extends TestCase
     }
 
     /**
-     * @param array{alliance:AllianceReference,plan:TransferPlan,participant:TransferParticipant} $scenario
+     * @param  array{alliance:AllianceReference,plan:TransferPlan,participant:TransferParticipant}  $scenario
      * @return array{assessment:mixed,transferScore:mixed,observations:mixed,officialGroup:?string,targetCondition:mixed}
      */
     private function eligibility(array $scenario): array
