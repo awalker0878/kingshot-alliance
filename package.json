@@ -11,7 +11,7 @@
     "build": "vite build",
     "dev": "vite",
     "format": "prettier --write resources/",
-    "format:check": "prettier --write resources/js/pages/Operations/Events/BearHuntDebrief.vue && git diff -- resources/js/pages/Operations/Events/BearHuntDebrief.vue && exit 1",
+    "format:check": "prettier --check resources/",
     "lint": "eslint . --fix",
     "lint:check": "eslint .",
     "types:check": "vue-tsc --noEmit",
