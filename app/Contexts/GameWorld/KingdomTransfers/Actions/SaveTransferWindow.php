@@ -8,6 +8,7 @@ use App\Contexts\GameWorld\KingdomTransfers\Access\Enums\TransferPermission;
 use App\Contexts\GameWorld\KingdomTransfers\Access\Services\TransferAuthorization;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferSourceType;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferWindow;
+use App\Contexts\GameWorld\KingdomTransfers\Services\TransferEvidenceReferenceGuard;
 use App\Contexts\GameWorld\KingdomTransfers\Services\TransferWriteState;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
@@ -17,7 +18,13 @@ use Illuminate\Validation\ValidationException;
 
 final readonly class SaveTransferWindow
 {
-    public function __construct(private TransferWriteState $writeState, private TransferAuthorization $authority, private AuditRecorder $audit, private OutboxRecorder $outbox) {}
+    public function __construct(
+        private TransferWriteState $writeState,
+        private TransferAuthorization $authority,
+        private TransferEvidenceReferenceGuard $evidence,
+        private AuditRecorder $audit,
+        private OutboxRecorder $outbox,
+    ) {}
 
     /** @param array{label:string,pre_transfer_starts_at:string,invitational_starts_at:string,transfer_opens_at:string,ends_at:string,source_type:TransferSourceType,source_reference:string,observed_at:string,evidence_id?:string|null} $data */
     public function handle(string $allianceId, string $actorPlayerId, array $data, ?string $windowId = null): string
@@ -35,12 +42,17 @@ final readonly class SaveTransferWindow
             if ($label === '' || $source === '') {
                 throw ValidationException::withMessages(['window' => 'Window label and source reference are required.']);
             }
+            $evidenceId = $this->evidence->assertUsable(
+                $allianceId,
+                $data['source_type'],
+                $data['evidence_id'] ?? null,
+            );
 
             $window = $windowId === null ? new TransferWindow(['alliance_id' => $allianceId]) : TransferWindow::query()->where('alliance_id', $allianceId)->whereKey($windowId)->lockForUpdate()->firstOrFail();
             if ($window->exists && $now->gte($window->pre_transfer_starts_at)) {
                 throw ValidationException::withMessages(['window' => 'A Transfer Window cannot be edited after Phase I starts; record sourced game-fact corrections instead.']);
             }
-            $window->forceFill(['label' => $label, 'pre_transfer_starts_at' => $times[0], 'invitational_starts_at' => $times[1], 'transfer_opens_at' => $times[2], 'ends_at' => $times[3], 'source_type' => $data['source_type'], 'source_reference' => $source, 'observed_at' => CarbonImmutable::parse($data['observed_at'])->utc(), 'evidence_id' => $data['evidence_id'] ?? null, 'recorded_by_player_id' => $actorPlayerId])->save();
+            $window->forceFill(['label' => $label, 'pre_transfer_starts_at' => $times[0], 'invitational_starts_at' => $times[1], 'transfer_opens_at' => $times[2], 'ends_at' => $times[3], 'source_type' => $data['source_type'], 'source_reference' => $source, 'observed_at' => CarbonImmutable::parse($data['observed_at'])->utc(), 'evidence_id' => $evidenceId, 'recorded_by_player_id' => $actorPlayerId])->save();
             $event = $windowId === null ? 'kingdoms.transfer_window_created' : 'kingdoms.transfer_window_updated';
             $metadata = ['alliance_id' => $allianceId, 'transfer_window_id' => (string) $window->id, 'source_type' => $data['source_type']->value, 'observed_at' => $window->observed_at->toIso8601String()];
             $this->audit->record($event, $context->actor, $window, null, $metadata);
