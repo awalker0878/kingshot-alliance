@@ -81,7 +81,8 @@ Supplementary generic `rule` content may continue to exist under other slugs, bu
 Read:
 
 - requires the normal authenticated, verified, active Alliance context;
-- does not require `ContentManage`.
+- does not require `ContentManage`;
+- must have executable HTTP behavior coverage proving an ordinary active member can render the Rules surface while management UI/authority remains absent.
 
 Write:
 
@@ -107,6 +108,8 @@ Required validation:
 - body is required after trimming and is bounded to 10,000 characters;
 - locale uses the existing Content locale format and is bounded to 16 characters;
 - the reserved slug cannot be occupied by a non-Rule item.
+
+These validation invariants belong to the owner Action and must be enforced there even when the HTTP request layer performs the same checks. Controller validation is defense in depth, not the authoritative domain/application boundary. Direct Action tests must prove invalid body/locale input cannot create or mutate Rules, revisions, audit records or outbox messages.
 
 Repeated submission of identical Rules content must not manufacture a new revision/audit event. The Action returns the existing canonical item unchanged when the sanitized body and locale have not changed.
 
@@ -250,6 +253,8 @@ Rules write route, inside the existing password-confirm boundary:
 
 Controllers pass scalar IDs/enums/value input to owner Actions. Eloquent models are loaded and locked inside the owning Action.
 
+HTTP contract tests must cover methods, URIs and middleware composition, while behavior tests must separately prove the authorization result at runtime. Route metadata alone is not sufficient evidence that a non-manager can read Rules or that reaction authority is independent from Content management.
+
 ## Audit and observability
 
 Rules:
@@ -290,32 +295,46 @@ The slice is accepted only when all of the following are true:
 
 1. `/alliance/rules` is a first-class member destination.
 2. A Content manager can create and update the canonical Rules document.
-3. A non-manager can read Rules but cannot update them.
+3. A non-manager can read Rules but cannot update them, with executable HTTP behavior coverage rather than route-metadata assertions alone.
 4. Canonical Rules reuse Content persistence/revisions/audit rather than a duplicate Rules store.
 5. Generic Content writes cannot claim the reserved `alliance-rules` slug.
 6. Rules no-op saves are idempotent.
-7. Published Alliance Notices expose Like/Dislike to active members.
-8. One member can have at most one reaction per Notice.
-9. Like, Dislike, switching, toggling off and repeated no-op requests behave deterministically.
-10. Reaction writes do not require or consult publishing/Content-management permission.
-11. Draft/scheduled/archived/non-Announcement/foreign-Alliance targets reject reaction writes.
-12. Noticeboard Index and Show expose counts + current-member state without per-card N+1 queries.
-13. Reaction totals never influence Content ordering, visibility, pinning, moderation, recommendations or public-page ranking.
-14. New UX is responsive, keyboard-safe, screen-reader meaningful and localized through the Content catalogue, including explicit `Alliance/Rules/*` page-domain registration.
-15. Behavior, authorization, idempotency, persistence invariants, architecture boundaries and HTTP/frontend contracts have automated coverage.
-16. Desktop/mobile visual regression covers Rules empty/populated/editable state and Notice reactions on both Noticeboard card and detail surfaces.
-17. Product/reference/architecture/operations documentation is reconciled wherever implementation changes those contracts.
-18. The repository's applicable quality/release gates are green on one immutable implementation head before the slice is marked Complete.
+7. Rules body/locale invariants are enforced at the owner Action boundary as well as the HTTP boundary, and invalid direct Action calls leave Content/revision/audit/outbox state unchanged.
+8. Published Alliance Notices expose Like/Dislike to active members.
+9. One member can have at most one reaction per Notice.
+10. Like, Dislike, switching, toggling off and repeated no-op requests behave deterministically.
+11. Reaction writes do not require or consult publishing/Content-management permission.
+12. Draft/scheduled/archived/non-Announcement/foreign-Alliance targets reject reaction writes.
+13. Noticeboard Index and Show expose counts + current-member state without per-card N+1 queries.
+14. Reaction totals never influence Content ordering, visibility, pinning, moderation, recommendations or public-page ranking.
+15. New UX is responsive, keyboard-safe, screen-reader meaningful and localized through the Content catalogue, including explicit `Alliance/Rules/*` page-domain registration.
+16. Behavior, authorization, idempotency, persistence invariants, architecture boundaries and HTTP/frontend contracts have automated coverage.
+17. Desktop/mobile visual regression covers Rules empty/populated/editable state and Notice reactions on both Noticeboard card and detail surfaces with stable accepted fingerprints.
+18. Product/reference/architecture/frontend capability documentation is reconciled wherever implementation changes those contracts.
+19. The repository's applicable quality/release gates are green on one immutable implementation head before the slice is marked Complete.
 
 ## Delivery queue
 
 | Phase | Status | Slice | Exit condition |
 | --- | --- | --- | --- |
 | 1 | Complete | Product contract and ownership | This contract defines scope, ownership, authorization/data invariants, UX states, acceptance criteria and anti-ranking boundaries before application-code changes. |
-| 2 | In progress | First-class Alliance Rules | Canonical Rules Action/read surface, reserved identity, revisions, audit/outbox, authorization, validation and idempotency are implemented and tested. |
+| 2 | In progress | First-class Alliance Rules | Canonical Rules Action/read surface, reserved identity, revisions, audit/outbox, owner-boundary validation, read/write authorization and idempotency are implemented and behavior-tested, including ordinary-member HTTP read proof. |
 | 3 | In progress | Alliance Notice reactions | Reaction enum/model/schema/actions enforce active-member authorization, target validity, uniqueness, switching/removal/idempotency and audit semantics. |
-| 4 | In progress | Read composition and UX | Notice reads include bounded reaction summaries; Rules/reaction UI, navigation, mobile/accessibility/localization states and no-ranking ordering are complete. |
-| 5 | In progress | Verification and closeout | Automated behavior/contract/architecture/visual coverage and affected docs are reconciled; applicable repository quality gates are green on one immutable head. |
+| 4 | In progress | Read composition and UX | Notice reads include bounded reaction summaries; Rules/reaction UI, navigation, mobile/accessibility/localization states and no-ranking ordering are complete; all eight desktop/mobile visual surfaces have accepted stable fingerprints. |
+| 5 | In progress | Verification and closeout | Automated behavior/contract/architecture/visual coverage and affected product/reference/architecture/frontend docs are reconciled; applicable repository quality gates are green on one immutable head. |
+
+## Reconciliation findings
+
+Implementation is required to close findings discovered after the initial contract was written rather than treating them as follow-up work:
+
+- the Rules owner Action must independently enforce the body/locale limits already present at the HTTP boundary;
+- ordinary-member Rules read authorization requires executable HTTP behavior proof, not only route registration/middleware inspection;
+- `Alliance/Rules/*` must be registered to load the `content` localization domain at runtime;
+- the Rules page must preserve a single page-level heading hierarchy while keeping document/edit sections semantically named;
+- deterministic visual coverage must include published Rules, empty Rules, Noticeboard reactions and Notice-detail reactions on desktop and mobile;
+- the frontend capability map must explicitly describe first-class Alliance Rules and informational non-ranking Notice reactions so UI documentation agrees with the shipped capability.
+
+These findings are part of the current product scope and keep the corresponding delivery phases open until implemented and verified.
 
 ## Completion rule
 
