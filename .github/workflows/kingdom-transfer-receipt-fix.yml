@@ -1,0 +1,70 @@
+name: Kingdom Transfer Receipt Fix
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: ${{ github.event.pull_request.head.ref == 'feature/kingdom-transfer-planning' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Check out feature branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: feature/kingdom-transfer-planning
+
+      - name: Replace retired transfer receipt codes
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('resources/js/localization/messages/core/en.ts')
+          source = path.read_text()
+          replacements = {
+              "    'transfer-group-created': 'Transfer group created.',": "    'transfer-cohort-created': 'Transfer cohort created.',",
+              "    'transfer-group-updated': 'Transfer group updated.',": "    'transfer-cohort-updated': 'Transfer cohort updated.',",
+              "    'transfer-group-archived': 'Transfer group archived.',": "    'transfer-cohort-archived': 'Transfer cohort archived.',",
+              "    'transfer-participant-group-updated': 'Transfer group assignment updated.',": "    'transfer-participant-cohort-updated': 'Transfer cohort assignment updated.',",
+          }
+          for old, new in replacements.items():
+              if old not in source:
+                  raise SystemExit(f'Missing expected receipt line: {old}')
+              source = source.replace(old, new, 1)
+
+          anchor = "    'transfer-plan-state-changed': 'Transfer cycle status updated.',\n"
+          additions = (
+              "    'transfer-window-created': 'Transfer Window created.',\n"
+              "    'transfer-window-updated': 'Transfer Window updated.',\n"
+              "    'transfer-official-group-recorded': 'Official Transfer Group recorded.',\n"
+              "    'transfer-kingdom-condition-recorded': 'Target Kingdom transfer conditions recorded.',\n"
+              "    'transfer-observation-recorded': 'Governor transfer observation recorded.',\n"
+          )
+          if anchor not in source:
+              raise SystemExit('Missing transfer plan receipt anchor')
+          source = source.replace(anchor, anchor + additions, 1)
+          path.write_text(source)
+          PY
+
+      - name: Verify receipt contract
+        run: |
+          node scripts/check-action-receipt-coverage.mjs
+          git diff --check
+
+      - name: Commit receipt corrections
+        run: |
+          if git diff --quiet; then
+            echo "No receipt corrections required."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add resources/js/localization/messages/core/en.ts
+          git commit -m "fix: align transfer action receipts"
+          git push origin HEAD:feature/kingdom-transfer-planning
