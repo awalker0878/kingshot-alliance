@@ -60,9 +60,9 @@ function updated(value: string | null | undefined): string {
         <div class="flex flex-wrap items-start justify-between gap-3">
           <div>
             <p class="ks-kicker">{{ t('contentExperience.rulesEyebrow') }}</p>
-            <h1 id="alliance-rules-heading" class="ks-display mt-1 text-3xl font-semibold">
+            <h2 id="alliance-rules-heading" class="ks-display mt-1 text-3xl font-semibold">
               {{ t('contentExperience.rulesTitle') }}
-            </h1>
+            </h2>
           </div>
           <span v-if="rules" class="ks-chip">{{ rules.locale }}</span>
         </div>
