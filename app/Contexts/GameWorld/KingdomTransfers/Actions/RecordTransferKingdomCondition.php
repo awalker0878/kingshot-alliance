@@ -53,7 +53,7 @@ final readonly class RecordTransferKingdomCondition
                     throw ValidationException::withMessages(['power_cap' => 'The Power Cap is fixed after Phase II begins. A changed value must be recorded explicitly as an authoritative correction.']);
                 }
             }
-            $fingerprint = hash('sha256', implode('|', [$allianceId, $windowId, $kingdom->kingdomId, (string) $powerCap, $classification->value, $sourceType->value, $sourceReference, $observed->toIso8601String(), $isCorrection ? '1' : '0']));
+            $fingerprint = hash('sha256', implode('|', [$allianceId, $windowId, $kingdom->kingdomId, (string) $powerCap, $classification->value, $sourceType->value, $sourceReference, $observed->toIso8601String(), $isCorrection ? '1' : '0', $evidenceId ?? '']));
             $existing = TransferKingdomConditionObservation::query()->where('fingerprint', $fingerprint)->first();
             if ($existing instanceof TransferKingdomConditionObservation) {
                 return (string) $existing->id;
