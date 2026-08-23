@@ -1,10 +1,10 @@
 # Bear Hunt Debrief
 
-Status: Active implementation contract — 2026-08-23
+Status: Implemented current state — 2026-08-23
 
 Bear Hunt Debrief is the first complete post-Event analysis vertical slice for Bear Hunt. It turns already-owned Event, Result, Participation, Rally and reviewed Evidence facts into a useful after-action view for Governors and Alliance leadership. It is deliberately **not** a `BearHunt` bounded context.
 
-This document is the source of truth for implementation. A requirement is not complete until its backend behavior, authorization, data semantics, UX, accessibility, localization, observability, tests and applicable visual/release evidence are complete.
+This document is the source of truth for the implemented capability. A requirement remains complete only while its backend behavior, authorization, data semantics, UX, accessibility, localization, observability, tests and applicable visual/release evidence remain complete.
 
 ## Product outcome
 
@@ -288,19 +288,21 @@ Required automated coverage includes:
 
 ## Delivery queue
 
-A phase advances only when its implementation and evidence are complete.
+All phases are complete. Any defect or material change that invalidates an exit condition reopens the affected phase and must restore the same evidence before closeout.
 
 | Phase | Status | Slice | Exit condition |
 | --- | --- | --- | --- |
-| 1 | In progress | Product contract and ownership | `/docs/product` defines the complete debrief and existing-owner boundaries; catalogue/ledger/journeys reflect active delivery. |
-| 2 | In progress | Results and attendance read contracts | Authoritative total/Governor result and attendance summaries are batched, bounded where applicable and behavior-tested. |
-| 3 | In progress | Rally and unresolved-Evidence read contracts | Actual rally participation and unmatched Governor review summaries are owner-query based, availability-aware, non-starving under the queue bound and authorization-tested. |
-| 4 | In progress | Debrief composition and history | EventAnalysis composes current run, previous run, personal trends, Alliance trends and run history without becoming a writer. |
-| 5 | In progress | Authorized HTTP/Inertia surface | Bear Hunt occurrence entry and dedicated debrief route/page enforce current/historical target authority. |
-| 6 | In progress | Responsive UX, accessibility and localization | Complete/missing/review/mobile/desktop states and supported locales are implemented with accessible trend/chart equivalents. |
-| 7 | In progress | Audit/observability and mutation integration | Owner mutations retain audit/idempotency; privacy-safe debrief diagnostics and recovery links are complete. |
-| 8 | In progress | Behavior, architecture and visual regression | Backend/frontend/authorization/architecture/query-performance and deterministic visual coverage is green. |
-| 9 | In progress | Final contract audit and release closeout | Spec→code, code→spec, UX→backend, data-ownership and authorization audits find no gap; applicable repository gates are green on one immutable candidate. |
+| 1 | Complete | Product contract and ownership | `/docs/product` defines the complete debrief and existing-owner boundaries; catalogue/ledger/journeys reflect implemented delivery. |
+| 2 | Complete | Results and attendance read contracts | Authoritative total/Governor result and attendance summaries are batched, bounded where applicable and behavior-tested. |
+| 3 | Complete | Rally and unresolved-Evidence read contracts | Actual rally participation and unmatched Governor review summaries are owner-query based, availability-aware, non-starving under the queue bound and authorization-tested. |
+| 4 | Complete | Debrief composition and history | EventAnalysis composes current run, previous run, personal trends, Alliance trends and run history without becoming a writer. |
+| 5 | Complete | Authorized HTTP/Inertia surface | Bear Hunt occurrence entry and dedicated debrief route/page enforce current/historical target authority. |
+| 6 | Complete | Responsive UX, accessibility and localization | Complete/missing/review/mobile/desktop states and supported locales are implemented with accessible trend/chart equivalents. |
+| 7 | Complete | Audit/observability and mutation integration | Owner mutations retain audit/idempotency; privacy-safe debrief diagnostics and recovery links are complete. |
+| 8 | Complete | Behavior, architecture and visual regression | Backend/frontend/authorization/architecture/query-performance and deterministic visual coverage is green. |
+| 9 | Complete | Final contract audit and release closeout | Spec→code, code→spec, UX→backend, data-ownership and authorization audits found no gap; all applicable repository gates passed on immutable implementation head `fd821e470ef19f51bfff14499c3f417f3cd3eeff`. |
+
+The Bear Hunt Debrief delivery queue is closed: every phase is Complete and no known Bear Hunt Debrief product feature is deferred. Final closeout documentation is status-only; the closeout head must repeat the applicable repository gates before merge. Any later defect or material change that invalidates an exit condition is a regression that reopens the affected phase.
 
 ## Cross-phase invariants
 
@@ -313,11 +315,11 @@ A phase advances only when its implementation and evidence are complete.
 7. Unmatched Governor resolution reuses Screenshot Intake rather than duplicating identity matching.
 8. Debrief composition is read-only; mutations route through owner Actions.
 9. Public owner contracts exchange scalar IDs/value objects/read DTOs, not foreign Eloquent models.
-10. No phase is Complete until UX, backend, authorization, tests, observability, docs and applicable visual/release evidence agree.
+10. No phase is Complete unless UX, backend, authorization, tests, observability, docs and applicable visual/release evidence agree.
 
 ## Definition of done
 
-Delivery is complete only when every item below is true:
+Delivery remains complete only while every item below is true:
 
 - run history is available and bounded;
 - total recorded Alliance damage is authoritative;
