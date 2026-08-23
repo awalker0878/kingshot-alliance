@@ -36,6 +36,13 @@ async function openBearHuntDebrief(page: Page): Promise<void> {
   await page.waitForLoadState('networkidle');
 }
 
+async function expectNoHorizontalOverflow(page: Page): Promise<void> {
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
+  );
+  expect(overflow).toBeFalsy();
+}
+
 test('Bear Hunt Debrief remains readable and complete on desktop and mobile', async (
   { page },
   testInfo,
@@ -50,16 +57,18 @@ test('Bear Hunt Debrief remains readable and complete on desktop and mobile', as
   await expect(page.getByRole('heading', { name: 'Recent Bear Hunt trends' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Bear Hunt run history' })).toBeVisible();
 
-  for (const governor of ['Bear Marshal', 'Ember Scout', 'Unknown Ember']) {
+  for (const governor of [
+    'Bear Marshal',
+    'Ember Scout',
+    'Frost Guard of the Northern Aurora Vanguard Expedition',
+    'Unknown Ember',
+  ]) {
     await expect(
       page.locator('h3:visible, strong:visible', { hasText: governor }).first(),
     ).toBeVisible();
   }
 
-  const overflow = await page.evaluate(
-    () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
-  );
-  expect(overflow).toBeFalsy();
+  await expectNoHorizontalOverflow(page);
 
   const screenshot = await page.screenshot({
     animations: 'disabled',
@@ -75,4 +84,17 @@ test('Bear Hunt Debrief remains readable and complete on desktop and mobile', as
     actualFingerprint,
     `Update Bear Hunt Debrief visual fingerprint for ${testInfo.project.name}`,
   ).toBe(expectedFingerprint);
+});
+
+test('Bear Hunt Debrief long localized strings do not overflow', async ({ page }) => {
+  await openBearHuntDebrief(page);
+  await page.evaluate(() => window.localStorage.setItem('kingshot.locale', 'de'));
+  await page.reload();
+  await page.waitForLoadState('networkidle');
+  await page.evaluate(() => document.fonts.ready);
+
+  await expect(page.locator('html')).toHaveAttribute('lang', 'de');
+  await expect(page.getByRole('heading', { name: 'Bärenjagd-Auswertung', level: 1 })).toBeVisible();
+  await expect(page.getByText('Prüfe Schaden, Anwesenheit, Rally-Teilnahme, offene Gouverneure und letzte Jagden.')).toBeVisible();
+  await expectNoHorizontalOverflow(page);
 });
