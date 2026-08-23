@@ -18,7 +18,7 @@ jobs:
         with:
           ref: feature/kingdom-transfer-planning
       - name: Configure PHP
-        uses: shivammathur/setup-php@f3e473d116dccc5834248c87452386958240 # v2.37.2
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
         with:
           php-version: '8.5'
           coverage: none
@@ -42,165 +42,52 @@ jobs:
               p = Path(path)
               text = p.read_text()
               if old not in text:
-                  raise SystemExit(f'{path}: expected block not found')
+                  raise SystemExit(f'{path}: expected block not found: {old[:80]!r}')
               p.write_text(text.replace(old, new, 1))
 
           q = 'app/Contexts/GameWorld/KingdomTransfers/Queries/TransferEligibilityQuery.php'
+          replace(q, '     *     officialGroup: string|null,\n', '     *     officialGroup: TransferGroup|null,\n')
           replace(
               q,
-              '     *     officialGroup: string|null,\n',
-              '     *     officialGroup: TransferGroup|null,\n',
+              '        $membership = [];\n        $authoritative = [];\n        foreach ($groups as $group) {\n            foreach ($group->kingdoms as $kingdom) {\n                $kingdomId = (string) $kingdom->id;\n                $membership[$kingdomId] = $group->official_label;\n                $authoritative[$kingdomId] = $group->source_type->isAuthoritative();\n            }\n        }\n',
+              '        $groupsByKingdom = [];\n        foreach ($groups as $group) {\n            foreach ($group->kingdoms as $kingdom) {\n                $groupsByKingdom[(string) $kingdom->id] = $group;\n            }\n        }\n',
           )
           replace(
               q,
-              '''        $membership = [];
-        $authoritative = [];
-        foreach ($groups as $group) {
-            foreach ($group->kingdoms as $kingdom) {
-                $kingdomId = (string) $kingdom->id;
-                $membership[$kingdomId] = $group->official_label;
-                $authoritative[$kingdomId] = $group->source_type->isAuthoritative();
-            }
-        }
-''',
-              '''        $groupsByKingdom = [];
-        foreach ($groups as $group) {
-            foreach ($group->kingdoms as $kingdom) {
-                $groupsByKingdom[(string) $kingdom->id] = $group;
-            }
-        }
-''',
+              '            $sourceLabel = $membership[$sourceId] ?? null;\n            $targetLabel = $membership[$targetId] ?? null;\n            $groupState = $sourceLabel !== null\n                && $targetLabel !== null\n                && ($authoritative[$sourceId] ?? false)\n                && ($authoritative[$targetId] ?? false)\n                    ? TransferRequirementState::Met\n                    : TransferRequirementState::Unknown;\n',
+              '            $sourceGroup = $groupsByKingdom[$sourceId] ?? null;\n            $targetGroup = $groupsByKingdom[$targetId] ?? null;\n            $sourceLabel = $sourceGroup instanceof TransferGroup ? $sourceGroup->official_label : null;\n            $targetLabel = $targetGroup instanceof TransferGroup ? $targetGroup->official_label : null;\n            $groupState = $sourceGroup instanceof TransferGroup\n                && $targetGroup instanceof TransferGroup\n                && $sourceGroup->source_type->isAuthoritative()\n                && $targetGroup->source_type->isAuthoritative()\n                    ? TransferRequirementState::Met\n                    : TransferRequirementState::Unknown;\n',
           )
-          replace(
-              q,
-              '''            $sourceLabel = $membership[$sourceId] ?? null;
-            $targetLabel = $membership[$targetId] ?? null;
-            $groupState = $sourceLabel !== null
-                && $targetLabel !== null
-                && ($authoritative[$sourceId] ?? false)
-                && ($authoritative[$targetId] ?? false)
-                    ? TransferRequirementState::Met
-                    : TransferRequirementState::Unknown;
-''',
-              '''            $sourceGroup = $groupsByKingdom[$sourceId] ?? null;
-            $targetGroup = $groupsByKingdom[$targetId] ?? null;
-            $sourceLabel = $sourceGroup instanceof TransferGroup ? $sourceGroup->official_label : null;
-            $targetLabel = $targetGroup instanceof TransferGroup ? $targetGroup->official_label : null;
-            $groupState = $sourceGroup instanceof TransferGroup
-                && $targetGroup instanceof TransferGroup
-                && $sourceGroup->source_type->isAuthoritative()
-                && $targetGroup->source_type->isAuthoritative()
-                    ? TransferRequirementState::Met
-                    : TransferRequirementState::Unknown;
-''',
-          )
-          replace(
-              q,
-              "                'officialGroup' => $targetLabel,\n",
-              "                'officialGroup' => $targetGroup instanceof TransferGroup ? $targetGroup : null,\n",
-          )
+          replace(q, "                'officialGroup' => $targetLabel,\n", "                'officialGroup' => $targetGroup instanceof TransferGroup ? $targetGroup : null,\n")
 
           c = 'app/Contexts/GameWorld/KingdomTransfers/Http/Controllers/TransferReadinessController.php'
-          replace(
-              c,
-              'use App\\Contexts\\GameWorld\\KingdomTransfers\\Models\\TransferBlocker;\n',
-              'use App\\Contexts\\GameWorld\\KingdomTransfers\\Models\\TransferBlocker;\nuse App\\Contexts\\GameWorld\\KingdomTransfers\\Models\\TransferGroup;\n',
-          )
-          replace(
-              c,
-              '     *     officialGroup: string|null,\n',
-              '     *     officialGroup: TransferGroup|null,\n',
-          )
+          replace(c, 'use App\\Contexts\\GameWorld\\KingdomTransfers\\Models\\TransferBlocker;\n', 'use App\\Contexts\\GameWorld\\KingdomTransfers\\Models\\TransferBlocker;\nuse App\\Contexts\\GameWorld\\KingdomTransfers\\Models\\TransferGroup;\n')
+          replace(c, '     *     officialGroup: string|null,\n', '     *     officialGroup: TransferGroup|null,\n')
           replace(
               c,
               "            'officialGroup' => $planning['officialGroup'] ?? null,\n",
-              '''            'officialGroup' => ($planning['officialGroup'] ?? null) instanceof TransferGroup
-                ? [
-                    'label' => $planning['officialGroup']->official_label,
-                    'sourceType' => $planning['officialGroup']->source_type->value,
-                    'sourceReference' => $planning['officialGroup']->source_reference,
-                    'observedAt' => $planning['officialGroup']->observed_at->toIso8601String(),
-                ]
-                : null,
-''',
+              "            'officialGroup' => ($planning['officialGroup'] ?? null) instanceof TransferGroup\n                ? [\n                    'label' => $planning['officialGroup']->official_label,\n                    'sourceType' => $planning['officialGroup']->source_type->value,\n                    'sourceReference' => $planning['officialGroup']->source_reference,\n                    'observedAt' => $planning['officialGroup']->observed_at->toIso8601String(),\n                ]\n                : null,\n",
           )
 
           v = 'resources/js/pages/Kingdom/Transfer/Readiness.vue'
           replace(
               v,
               '  officialGroup: string | null;\n',
-              '''  officialGroup: {
-    label: string;
-    sourceType: SourceType;
-    sourceReference: string;
-    observedAt: string;
-  } | null;
-''',
+              '  officialGroup: {\n    label: string;\n    sourceType: SourceType;\n    sourceReference: string;\n    observedAt: string;\n  } | null;\n',
           )
           replace(
               v,
-              '''              <dd class="mt-1 font-semibold">
-                {{ p.officialGroup ?? t('kingdomP7D.needsVerification') }}
-              </dd>
-''',
-              '''              <dd class="mt-1 font-semibold">
-                {{ p.officialGroup?.label ?? t('kingdomP7D.needsVerification') }}
-              </dd>
-              <dd v-if="p.officialGroup" class="mt-1 text-xs text-[var(--ks-muted)]">
-                {{ sourceLabel(p.officialGroup.sourceType) }} · {{ timestamp(p.officialGroup.observedAt) }}
-              </dd>
-              <dd v-if="p.officialGroup" class="mt-1 text-xs break-all text-[var(--ks-muted)]">
-                {{ p.officialGroup.sourceReference }}
-              </dd>
-''',
+              '              <dd class="mt-1 font-semibold">\n                {{ p.officialGroup ?? t(\'kingdomP7D.needsVerification\') }}\n              </dd>\n',
+              '              <dd class="mt-1 font-semibold">\n                {{ p.officialGroup?.label ?? t(\'kingdomP7D.needsVerification\') }}\n              </dd>\n              <dd v-if="p.officialGroup" class="mt-1 text-xs text-[var(--ks-muted)]">\n                {{ sourceLabel(p.officialGroup.sourceType) }} · {{ timestamp(p.officialGroup.observedAt) }}\n              </dd>\n              <dd v-if="p.officialGroup" class="mt-1 text-xs break-all text-[var(--ks-muted)]">\n                {{ p.officialGroup.sourceReference }}\n              </dd>\n',
           )
           replace(
               v,
-              '''              <dd class="mt-1 font-semibold">
-                {{
-                  p.targetCondition?.powerCap == null
-                    ? t('kingdomP7D.needsVerification')
-                    : formatNumber(p.targetCondition.powerCap)
-                }}
-              </dd>
-''',
-              '''              <dd class="mt-1 font-semibold">
-                {{
-                  p.targetCondition?.powerCap == null
-                    ? t('kingdomP7D.needsVerification')
-                    : formatNumber(p.targetCondition.powerCap)
-                }}
-              </dd>
-              <dd v-if="p.targetCondition" class="mt-1 text-xs text-[var(--ks-muted)]">
-                {{ sourceLabel(p.targetCondition.sourceType) }} · {{ timestamp(p.targetCondition.observedAt) }}
-              </dd>
-              <dd v-if="p.targetCondition" class="mt-1 text-xs break-all text-[var(--ks-muted)]">
-                {{ p.targetCondition.sourceReference }}
-              </dd>
-''',
+              '              <dd class="mt-1 font-semibold">\n                {{\n                  p.targetCondition?.powerCap == null\n                    ? t(\'kingdomP7D.needsVerification\')\n                    : formatNumber(p.targetCondition.powerCap)\n                }}\n              </dd>\n',
+              '              <dd class="mt-1 font-semibold">\n                {{\n                  p.targetCondition?.powerCap == null\n                    ? t(\'kingdomP7D.needsVerification\')\n                    : formatNumber(p.targetCondition.powerCap)\n                }}\n              </dd>\n              <dd v-if="p.targetCondition" class="mt-1 text-xs text-[var(--ks-muted)]">\n                {{ sourceLabel(p.targetCondition.sourceType) }} · {{ timestamp(p.targetCondition.observedAt) }}\n              </dd>\n              <dd v-if="p.targetCondition" class="mt-1 text-xs break-all text-[var(--ks-muted)]">\n                {{ p.targetCondition.sourceReference }}\n              </dd>\n',
           )
           replace(
               v,
-              '''              <dd class="mt-1 text-xs text-[var(--ks-muted)]">
-                {{
-                  p.transferScore.observedAt
-                    ? timestamp(p.transferScore.observedAt)
-                    : t('kingdomP7D.noObservation')
-                }}
-              </dd>
-''',
-              '''              <dd class="mt-1 text-xs text-[var(--ks-muted)]">
-                {{ sourceLabel(p.transferScore.sourceType) }} ·
-                {{
-                  p.transferScore.observedAt
-                    ? timestamp(p.transferScore.observedAt)
-                    : t('kingdomP7D.noObservation')
-                }}
-              </dd>
-              <dd v-if="p.transferScore.sourceReference" class="mt-1 text-xs break-all text-[var(--ks-muted)]">
-                {{ p.transferScore.sourceReference }}
-              </dd>
-''',
+              '              <dd class="mt-1 text-xs text-[var(--ks-muted)]">\n                {{\n                  p.transferScore.observedAt\n                    ? timestamp(p.transferScore.observedAt)\n                    : t(\'kingdomP7D.noObservation\')\n                }}\n              </dd>\n',
+              '              <dd class="mt-1 text-xs text-[var(--ks-muted)]">\n                {{ sourceLabel(p.transferScore.sourceType) }} ·\n                {{\n                  p.transferScore.observedAt\n                    ? timestamp(p.transferScore.observedAt)\n                    : t(\'kingdomP7D.noObservation\')\n                }}\n              </dd>\n              <dd v-if="p.transferScore.sourceReference" class="mt-1 text-xs break-all text-[var(--ks-muted)]">\n                {{ p.transferScore.sourceReference }}\n              </dd>\n',
           )
           PY
           vendor/bin/pint app/Contexts/GameWorld/KingdomTransfers/Queries/TransferEligibilityQuery.php app/Contexts/GameWorld/KingdomTransfers/Http/Controllers/TransferReadinessController.php
