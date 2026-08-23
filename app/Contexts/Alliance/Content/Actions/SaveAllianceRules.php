@@ -20,7 +20,7 @@ use Illuminate\Validation\ValidationException;
 
 final readonly class SaveAllianceRules
 {
-    public const SLUG = 'alliance-rules';
+    public const SLUG = ContentItem::ALLIANCE_RULES_SLUG;
 
     public function __construct(
         private AllianceWriteState $allianceWriteState,
