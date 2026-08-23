@@ -97,10 +97,6 @@ final class BearHuntRunHistoryQuery
             $result[$occurrenceId]['personalRank'] = $row->rank === null ? null : (int) $row->rank;
         }
 
-        $validAttendanceStatuses = array_map(
-            static fn (EventAttendanceStatus $case): string => $case->value,
-            EventAttendanceStatus::cases(),
-        );
         foreach (DB::table('event_attendance')
             ->whereIn('occurrence_id', $ids)
             ->get(['occurrence_id', 'player_id', 'status']) as $row) {
@@ -108,16 +104,21 @@ final class BearHuntRunHistoryQuery
             if (isset($result[$occurrenceId]) === false) {
                 continue;
             }
-            $status = (string) $row->status;
-            if (in_array($status, $validAttendanceStatuses, true) === false) {
+            $status = EventAttendanceStatus::tryFrom((string) $row->status);
+            if (! $status instanceof EventAttendanceStatus) {
                 continue;
             }
 
             $result[$occurrenceId]['attendance']['available'] = true;
             $result[$occurrenceId]['attendance']['total'] = $result[$occurrenceId]['attendance']['total'] + 1;
-            $result[$occurrenceId]['attendance'][$status] = $result[$occurrenceId]['attendance'][$status] + 1;
+            match ($status) {
+                EventAttendanceStatus::Present => $result[$occurrenceId]['attendance']['present'] = $result[$occurrenceId]['attendance']['present'] + 1,
+                EventAttendanceStatus::Absent => $result[$occurrenceId]['attendance']['absent'] = $result[$occurrenceId]['attendance']['absent'] + 1,
+                EventAttendanceStatus::Excused => $result[$occurrenceId]['attendance']['excused'] = $result[$occurrenceId]['attendance']['excused'] + 1,
+                EventAttendanceStatus::Unknown => $result[$occurrenceId]['attendance']['unknown'] = $result[$occurrenceId]['attendance']['unknown'] + 1,
+            };
             if ((string) $row->player_id === $actorPlayerId) {
-                $result[$occurrenceId]['attendance']['personalStatus'] = $status;
+                $result[$occurrenceId]['attendance']['personalStatus'] = $status->value;
             }
         }
 
@@ -152,18 +153,18 @@ final class BearHuntRunHistoryQuery
 
             $result[$occurrenceId]['rallies']['participated'] = $result[$occurrenceId]['rallies']['participated'] + 1;
             if ($isActor) {
-                $result[$occurrenceId]['rallies']['personalParticipated'] = $result[$occurrenceId]['rallies']['personalParticipated'] + 1;
+                $result[$occurrenceId]['rallies']['personalParticipated'] = ((int) $result[$occurrenceId]['rallies']['personalParticipated']) + 1;
             }
 
             if ((string) $row->role === RallyAssignmentRole::Lead->value) {
                 $result[$occurrenceId]['rallies']['led'] = $result[$occurrenceId]['rallies']['led'] + 1;
                 if ($isActor) {
-                    $result[$occurrenceId]['rallies']['personalLed'] = $result[$occurrenceId]['rallies']['personalLed'] + 1;
+                    $result[$occurrenceId]['rallies']['personalLed'] = ((int) $result[$occurrenceId]['rallies']['personalLed']) + 1;
                 }
             } elseif ((string) $row->role === RallyAssignmentRole::Joiner->value) {
                 $result[$occurrenceId]['rallies']['joined'] = $result[$occurrenceId]['rallies']['joined'] + 1;
                 if ($isActor) {
-                    $result[$occurrenceId]['rallies']['personalJoined'] = $result[$occurrenceId]['rallies']['personalJoined'] + 1;
+                    $result[$occurrenceId]['rallies']['personalJoined'] = ((int) $result[$occurrenceId]['rallies']['personalJoined']) + 1;
                 }
             }
         }
