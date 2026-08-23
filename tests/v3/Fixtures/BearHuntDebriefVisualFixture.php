@@ -64,7 +64,7 @@ final class BearHuntDebriefVisualFixture
         $third = Player::query()->create([
             'current_kingdom_id' => $kingdom->id,
             'game_player_id' => 'GOV-DEBRIEF-C',
-            'current_name' => 'Frost Guard',
+            'current_name' => 'Frost Guard of the Northern Aurora Vanguard Expedition',
         ]);
 
         $allianceId = app(CreateAlliance::class)->handle(
