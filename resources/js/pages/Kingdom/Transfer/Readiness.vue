@@ -75,7 +75,12 @@ type Participant = {
   sourceKingdom: string | null;
   withdrawnAt: string | null;
   completedAt: string | null;
-  officialGroup: string | null;
+  officialGroup: {
+    label: string;
+    sourceType: SourceType;
+    sourceReference: string;
+    observedAt: string;
+  } | null;
   targetCondition: {
     powerCap: number | null;
     classification: string;
@@ -460,7 +465,14 @@ function recordObservation(p: Participant): void {
             <div class="rounded-lg border border-[var(--ks-border)] p-3">
               <dt class="ks-kicker">{{ t('kingdomP7D.officialTransferGroup') }}</dt>
               <dd class="mt-1 font-semibold">
-                {{ p.officialGroup ?? t('kingdomP7D.needsVerification') }}
+                {{ p.officialGroup?.label ?? t('kingdomP7D.needsVerification') }}
+              </dd>
+              <dd v-if="p.officialGroup" class="mt-1 text-xs text-[var(--ks-muted)]">
+                {{ sourceLabel(p.officialGroup.sourceType) }} ·
+                {{ timestamp(p.officialGroup.observedAt) }}
+              </dd>
+              <dd v-if="p.officialGroup" class="mt-1 text-xs break-all text-[var(--ks-muted)]">
+                {{ p.officialGroup.sourceReference }}
               </dd>
             </div>
             <div class="rounded-lg border border-[var(--ks-border)] p-3">
@@ -472,16 +484,30 @@ function recordObservation(p: Participant): void {
                     : formatNumber(p.targetCondition.powerCap)
                 }}
               </dd>
+              <dd v-if="p.targetCondition" class="mt-1 text-xs text-[var(--ks-muted)]">
+                {{ sourceLabel(p.targetCondition.sourceType) }} ·
+                {{ timestamp(p.targetCondition.observedAt) }}
+              </dd>
+              <dd v-if="p.targetCondition" class="mt-1 text-xs break-all text-[var(--ks-muted)]">
+                {{ p.targetCondition.sourceReference }}
+              </dd>
             </div>
             <div class="rounded-lg border border-[var(--ks-border)] p-3">
               <dt class="ks-kicker">{{ t('kingdomP7D.transferScore') }}</dt>
               <dd class="mt-1 font-semibold">{{ displayValue(p.transferScore.value) }}</dd>
               <dd class="mt-1 text-xs text-[var(--ks-muted)]">
+                {{ sourceLabel(p.transferScore.sourceType) }} ·
                 {{
                   p.transferScore.observedAt
                     ? timestamp(p.transferScore.observedAt)
                     : t('kingdomP7D.noObservation')
                 }}
+              </dd>
+              <dd
+                v-if="p.transferScore.sourceReference"
+                class="mt-1 text-xs break-all text-[var(--ks-muted)]"
+              >
+                {{ p.transferScore.sourceReference }}
               </dd>
             </div>
             <div class="rounded-lg border border-[var(--ks-border)] p-3">

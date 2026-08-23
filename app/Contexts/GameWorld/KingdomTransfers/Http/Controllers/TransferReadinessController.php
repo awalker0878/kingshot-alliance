@@ -19,6 +19,7 @@ use App\Contexts\GameWorld\KingdomTransfers\Actions\TransitionTransferReadiness;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferPlanState;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferReadinessState;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferBlocker;
+use App\Contexts\GameWorld\KingdomTransfers\Models\TransferGroup;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferKingdomConditionObservation;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferObservation;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferParticipant;
@@ -210,7 +211,7 @@ final class TransferReadinessController extends Controller
      *     assessment: TransferEligibilityAssessment,
      *     transferScore: TransferObservedValue,
      *     observations: Collection<int, TransferObservation>,
-     *     officialGroup: string|null,
+     *     officialGroup: TransferGroup|null,
      *     targetCondition: TransferKingdomConditionObservation|null
      * }|null $planning
      * @return array<string, mixed>
@@ -236,7 +237,14 @@ final class TransferReadinessController extends Controller
                 : (string) $participant->sourceKingdom->number,
             'withdrawnAt' => $participant->withdrawn_at?->toIso8601String(),
             'completedAt' => $participant->completion?->completed_at->toIso8601String(),
-            'officialGroup' => $planning['officialGroup'] ?? null,
+            'officialGroup' => ($planning['officialGroup'] ?? null) instanceof TransferGroup
+                ? [
+                    'label' => $planning['officialGroup']->official_label,
+                    'sourceType' => $planning['officialGroup']->source_type->value,
+                    'sourceReference' => $planning['officialGroup']->source_reference,
+                    'observedAt' => $planning['officialGroup']->observed_at->toIso8601String(),
+                ]
+                : null,
             'targetCondition' => $targetCondition instanceof TransferKingdomConditionObservation
                 ? [
                     'powerCap' => $targetCondition->power_cap,

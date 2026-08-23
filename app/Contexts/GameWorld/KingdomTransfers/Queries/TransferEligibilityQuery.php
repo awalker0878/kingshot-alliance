@@ -36,7 +36,7 @@ final readonly class TransferEligibilityQuery
      *     assessment: TransferEligibilityAssessment,
      *     transferScore: TransferObservedValue,
      *     observations: Collection<int, TransferObservation>,
-     *     officialGroup: string|null,
+     *     officialGroup: TransferGroup|null,
      *     targetCondition: TransferKingdomConditionObservation|null
      * }>
      */
@@ -65,13 +65,10 @@ final readonly class TransferEligibilityQuery
             ->get()
             ->groupBy('transfer_participant_id');
 
-        $membership = [];
-        $authoritative = [];
+        $groupsByKingdom = [];
         foreach ($groups as $group) {
             foreach ($group->kingdoms as $kingdom) {
-                $kingdomId = (string) $kingdom->id;
-                $membership[$kingdomId] = $group->official_label;
-                $authoritative[$kingdomId] = $group->source_type->isAuthoritative();
+                $groupsByKingdom[(string) $kingdom->id] = $group;
             }
         }
 
@@ -145,12 +142,14 @@ final readonly class TransferEligibilityQuery
                 continue;
             }
 
-            $sourceLabel = $membership[$sourceId] ?? null;
-            $targetLabel = $membership[$targetId] ?? null;
-            $groupState = $sourceLabel !== null
-                && $targetLabel !== null
-                && ($authoritative[$sourceId] ?? false)
-                && ($authoritative[$targetId] ?? false)
+            $sourceGroup = $groupsByKingdom[$sourceId] ?? null;
+            $targetGroup = $groupsByKingdom[$targetId] ?? null;
+            $sourceLabel = $sourceGroup instanceof TransferGroup ? $sourceGroup->official_label : null;
+            $targetLabel = $targetGroup instanceof TransferGroup ? $targetGroup->official_label : null;
+            $groupState = $sourceGroup instanceof TransferGroup
+                && $targetGroup instanceof TransferGroup
+                && $sourceGroup->source_type->isAuthoritative()
+                && $targetGroup->source_type->isAuthoritative()
                     ? TransferRequirementState::Met
                     : TransferRequirementState::Unknown;
 
@@ -185,7 +184,7 @@ final readonly class TransferEligibilityQuery
                     $now,
                 ),
                 'observations' => $rows,
-                'officialGroup' => $targetLabel,
+                'officialGroup' => $targetGroup instanceof TransferGroup ? $targetGroup : null,
                 'targetCondition' => $condition instanceof TransferKingdomConditionObservation
                     ? $condition
                     : null,
