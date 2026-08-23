@@ -17,15 +17,18 @@ final class AllianceRulesOwnerValidationV3Test extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_owner_action_rejects_rules_longer_than_ten_thousand_characters(): void
+    public function test_owner_action_rejects_empty_or_oversized_rules_body(): void
     {
         [$owner, $alliance] = $this->allianceScenario();
+        $save = app(SaveAllianceRules::class);
 
-        try {
-            app(SaveAllianceRules::class)->handle($alliance, $owner, str_repeat('x', 10001), 'en');
-            self::fail('Expected oversized Alliance Rules to be rejected by the owner Action.');
-        } catch (ValidationException $exception) {
-            self::assertArrayHasKey('body', $exception->errors());
+        foreach (['   ', str_repeat('x', 10001)] as $body) {
+            try {
+                $save->handle($alliance, $owner, $body, 'en');
+                self::fail('Expected invalid Alliance Rules body to be rejected by the owner Action.');
+            } catch (ValidationException $exception) {
+                self::assertArrayHasKey('body', $exception->errors());
+            }
         }
 
         $this->assertNoRulesSideEffects();
