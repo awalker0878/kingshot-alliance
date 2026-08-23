@@ -270,7 +270,7 @@ const messages = {
     requirement_stale: 'Stale',
     requirement_conflicting: 'Conflicting',
     requirement_not_applicable: 'Not applicable',
-    requirementKey_official_phase: 'Official phase',
+    requirementKey_window_phase: 'Official phase',
     requirementKey_transfer_group: 'Official Transfer Group',
     requirementKey_power_cap: 'Power Cap',
     requirementKey_invitation: 'Invitation',
