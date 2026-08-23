@@ -31,14 +31,14 @@ jobs:
               "    'transfer-group-created': 'Transfer group created.',": "    'transfer-cohort-created': 'Transfer cohort created.',",
               "    'transfer-group-updated': 'Transfer group updated.',": "    'transfer-cohort-updated': 'Transfer cohort updated.',",
               "    'transfer-group-archived': 'Transfer group archived.',": "    'transfer-cohort-archived': 'Transfer cohort archived.',",
-              "    'transfer-participant-group-updated': 'Transfer group assignment updated.',": "    'transfer-participant-cohort-updated': 'Transfer cohort assignment updated.',",
+              "    'transfer-participant-group-updated': 'Governor transfer group updated.',": "    'transfer-participant-cohort-updated': 'Governor transfer cohort updated.',",
           }
           for old, new in replacements.items():
               if old not in source:
                   raise SystemExit(f'Missing expected receipt line: {old}')
               source = source.replace(old, new, 1)
 
-          anchor = "    'transfer-plan-state-changed': 'Transfer cycle status updated.',\n"
+          anchor = "    'transfer-blocker-created': 'Transfer blocker added.',\n"
           additions = (
               "    'transfer-window-created': 'Transfer Window created.',\n"
               "    'transfer-window-updated': 'Transfer Window updated.',\n"
@@ -47,8 +47,8 @@ jobs:
               "    'transfer-observation-recorded': 'Governor transfer observation recorded.',\n"
           )
           if anchor not in source:
-              raise SystemExit('Missing transfer plan receipt anchor')
-          source = source.replace(anchor, anchor + additions, 1)
+              raise SystemExit('Missing transfer receipt anchor')
+          source = source.replace(anchor, additions + anchor, 1)
           path.write_text(source)
           PY
 
