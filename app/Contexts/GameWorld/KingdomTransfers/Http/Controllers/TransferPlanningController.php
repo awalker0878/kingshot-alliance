@@ -37,7 +37,7 @@ final class TransferPlanningController extends Controller
     }
 
     public function storeGroup(Request $request, AllianceContext $context, SaveTransferGroup $save, string $window): RedirectResponse
-    {/** @var array{official_label:string,kingdom_numbers:list<int>,source_type:string,source_reference:string,observed_at:string} $v */ $v = $request->validate(['official_label' => ['required', 'string', 'max:160'], 'kingdom_numbers' => ['required', 'array', 'min:1', 'max:500'], 'kingdom_numbers.*' => ['integer', 'min:1'], 'source_type' => ['required', Rule::in(array_column(TransferSourceType::cases(), 'value'))], 'source_reference' => ['required', 'string', 'max:2048'], 'observed_at' => ['required', 'date']]);
+    {/** @var array{official_label:string,kingdom_numbers:list<int>,source_type:string,source_reference:string,observed_at:string,evidence_id?:string|null} $v */ $v = $request->validate(['official_label' => ['required', 'string', 'max:160'], 'kingdom_numbers' => ['required', 'array', 'min:1', 'max:500'], 'kingdom_numbers.*' => ['integer', 'min:1'], 'source_type' => ['required', Rule::in(array_column(TransferSourceType::cases(), 'value'))], 'source_reference' => ['required', 'string', 'max:2048'], 'observed_at' => ['required', 'date'], 'evidence_id' => ['nullable', 'string', 'max:64']]);
         $s = $context->scope();
         $save->handle($s->allianceId, $s->playerId, $window, [...$v, 'source_type' => TransferSourceType::from($v['source_type'])]);
 
