@@ -205,7 +205,7 @@ Target: sourced KingShot transfer planning that preserves Alliance readiness whi
 
 Canonical contract: [Kingdom Transfer Planning](kingdom-transfer-planning.md).
 
-A previous implementation candidate passed the standard release gates, but final code→spec reconciliation reopened the Evidence-provenance slice: Evidence-backed transfer facts must prove same-Alliance ownership and latest approved review through the Intelligence/Evidence owner contract, and manual forms must not claim an Evidence source without that authorized reference. The program remains active until the corrected candidate passes the complete gate set again.
+The Evidence-provenance reconciliation is complete. Evidence-backed transfer facts prove same-Alliance ownership and latest approved review through the Intelligence/Evidence owner contract; manual forms cannot claim an Evidence source without an owner-authorized selection; optional Evidence attachments on other source types are same-Alliance checked. Canonical closeout commit `72e4472ded5b1b6c08ae4c98c9848438f74f03ef` passed CI, Architecture V3 Verification, Intelligence Verification, CodeQL, Dependency Review and Visual Regression.
 
 ### Phase queue
 
@@ -213,18 +213,18 @@ A previous implementation candidate passed the standard release gates, but final
 | --- | --- | --- |
 | 1 | Complete | Product contract |
 | 2 | Complete | Cohort terminology correction |
-| 3 | In progress | Transfer Window + official groups |
-| 4 | In progress | Governor observation history |
+| 3 | Complete | Transfer Window + official groups |
+| 4 | Complete | Governor observation history |
 | 5 | Complete | Eligibility domain |
 | 6 | Complete | HTTP/read composition |
-| 7 | In progress | Management UX |
+| 7 | Complete | Management UX |
 | 8 | Complete | Decision-first participant UX |
 | 9 | Complete | Accessibility/localization/mobile |
 | 10 | Complete | Audit/observability/recovery |
-| 11 | In progress | Behavioral/architecture/performance tests |
-| 12 | In progress | Visual regression + closeout |
+| 11 | Complete | Behavioral/architecture/performance tests |
+| 12 | Complete | Visual regression + closeout |
 
-The queue is reopened for the Evidence-provenance correction and final immutable-head verification. The exact Transfer Pass formula remains evidence-gated because no authoritative version-bounded formula is available; observed required-pass facts are supported and missing formula evidence never produces false eligibility.
+The Kingdom Transfer Planning queue is closed: every phase is Complete and no known implementable capability requirement is deferred. The exact Transfer Pass formula remains evidence-gated because no authoritative version-bounded formula is available; observed required-pass facts are supported and missing formula evidence never produces false eligibility. Any later defect or material change that invalidates a phase exit condition reopens that phase and must restore the same release evidence before closeout.
 
 ### Cross-phase invariants
 
