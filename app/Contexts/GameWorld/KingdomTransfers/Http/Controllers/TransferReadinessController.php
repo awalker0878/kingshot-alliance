@@ -112,10 +112,10 @@ final class TransferReadinessController extends Controller
         return ['id' => (string) $o->id, 'kind' => $o->kind->value, 'value' => $o->kind->usesNumericValue() ? $o->numeric_value : ($o->kind->value === 'in_game_rules_verified' ? $o->boolean_value : $o->text_value), 'details' => $o->details, 'targetKingdom' => $o->targetKingdom === null ? null : (string) $o->targetKingdom->number, 'sourceType' => $o->source_type->value, 'sourceReference' => $o->source_reference, 'observedAt' => $o->observed_at->toIso8601String(), 'validUntil' => $o->valid_until?->toIso8601String()];
     }
 
-    private function account(Request $r,AccountIdentityQuery $q): AccountIdentity
+    private function account(Request $r, AccountIdentityQuery $q): AccountIdentity
     {
         $id = $r->user()?->getAuthIdentifier();
-        abort_unless(is_numeric($id),401);
+        abort_unless(is_numeric($id), 401);
 
         return $q->require((int) $id);
     }

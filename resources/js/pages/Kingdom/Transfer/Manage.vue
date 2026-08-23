@@ -775,6 +775,6 @@ function compatibleCohorts(p: Participant): Cohort[] {
     <section v-else class="ks-surface mt-5 p-6">
       <p>{{ t('kingdomP7D.noMutableCycle') }}</p>
     </section>
-    <ConfirmActionDialog :dialog="dialog" @cancel="cancelConfirmation" @confirm="confirmAction"
+    <ConfirmActionDialog v-bind="dialog" @cancel="cancelConfirmation" @confirm="confirmAction"
   /></AppLayout>
 </template>

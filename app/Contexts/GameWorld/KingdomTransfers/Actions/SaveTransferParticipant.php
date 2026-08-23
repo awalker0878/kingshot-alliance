@@ -107,7 +107,7 @@ final readonly class SaveTransferParticipant
             }
         }
 
-return ['roster_entry_id' => $roster->rosterEntryId, 'player_id' => $player->playerId, 'observed_name' => $roster->observedName, 'game_player_id' => $player->gamePlayerId, 'source_kingdom_id' => (string) $plan->home_kingdom_id, 'destination_kingdom_id' => $destination?->kingdomId];
+        return ['roster_entry_id' => $roster->rosterEntryId, 'player_id' => $player->playerId, 'observed_name' => $roster->observedName, 'game_player_id' => $player->gamePlayerId, 'source_kingdom_id' => (string) $plan->home_kingdom_id, 'destination_kingdom_id' => $destination?->kingdomId];
     }
 
     /** @param array<string,mixed> $a @return array{roster_entry_id:null,player_id:string,observed_name:string,game_player_id:?string,source_kingdom_id:string,destination_kingdom_id:string} */
@@ -124,7 +124,7 @@ return ['roster_entry_id' => $roster->rosterEntryId, 'player_id' => $player->pla
             throw ValidationException::withMessages(['player_id' => 'Withdraw and recreate the participant to change Player identity.']);
         }
 
-return ['roster_entry_id' => null, 'player_id' => $player->playerId, 'observed_name' => $name, 'game_player_id' => $player->gamePlayerId, 'source_kingdom_id' => $source->kingdomId, 'destination_kingdom_id' => (string) $plan->home_kingdom_id];
+        return ['roster_entry_id' => null, 'player_id' => $player->playerId, 'observed_name' => $name, 'game_player_id' => $player->gamePlayerId, 'source_kingdom_id' => $source->kingdomId, 'destination_kingdom_id' => (string) $plan->home_kingdom_id];
     }
 
     private function kingdom(mixed $number, string $field): ?KingdomReference

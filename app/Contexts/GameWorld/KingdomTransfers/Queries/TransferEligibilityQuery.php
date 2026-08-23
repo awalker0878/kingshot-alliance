@@ -69,7 +69,7 @@ final readonly class TransferEligibilityQuery
             $result[(string) $participant->id] = ['assessment' => $this->evaluator->evaluate($input, $now), 'transferScore' => $this->selector->select($rows, TransferObservationKind::TransferScore, null, $now), 'observations' => $rows, 'officialGroup' => $targetLabel, 'targetCondition' => $condition instanceof TransferKingdomConditionObservation ? $condition : null];
         }
 
-return $result;
+        return $result;
     }
 
     /** @param Collection<int,TransferKingdomConditionObservation> $rows */
@@ -85,9 +85,9 @@ return $result;
         if ($sameTime->pluck('power_cap')->unique()->count() > 1) {
             return new TransferObservedValue(TransferRequirementState::Conflicting, null, $latest->source_type, $latest->source_reference, CarbonImmutable::instance($latest->observed_at));
         }if ($latest->power_cap === null) {
-            return new TransferObservedValue(TransferRequirementState::Unknown,null,$latest->source_type,$latest->source_reference,CarbonImmutable::instance($latest->observed_at));
+            return new TransferObservedValue(TransferRequirementState::Unknown, null, $latest->source_type, $latest->source_reference, CarbonImmutable::instance($latest->observed_at));
         }
 
-return new TransferObservedValue(TransferRequirementState::Met,$latest->power_cap,$latest->source_type,$latest->source_reference,CarbonImmutable::instance($latest->observed_at));
+        return new TransferObservedValue(TransferRequirementState::Met, $latest->power_cap, $latest->source_type, $latest->source_reference, CarbonImmutable::instance($latest->observed_at));
     }
 }

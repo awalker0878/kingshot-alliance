@@ -748,6 +748,6 @@ function recordObservation(p: Participant): void {
       <h2 class="text-xl font-semibold">{{ t('kingdomP7D.noCurrentCycle') }}</h2>
       <p class="mt-2 text-[var(--ks-muted)]">{{ t('kingdomP7D.createWindowAndPlan') }}</p>
     </section>
-    <ConfirmActionDialog :dialog="dialog" @cancel="cancelConfirmation" @confirm="confirmAction" />
+    <ConfirmActionDialog v-bind="dialog" @cancel="cancelConfirmation" @confirm="confirmAction" />
   </AppLayout>
 </template>

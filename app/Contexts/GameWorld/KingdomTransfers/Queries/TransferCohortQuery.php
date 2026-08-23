@@ -18,6 +18,6 @@ final class TransferCohortQuery
             $query->where('state', TransferCohortState::Active->value);
         }
 
-return $query->orderByRaw("case state when 'active' then 0 else 1 end")->orderBy('name')->orderBy('id')->get();
+        return $query->orderByRaw("case state when 'active' then 0 else 1 end")->orderBy('name')->orderBy('id')->get();
     }
 }

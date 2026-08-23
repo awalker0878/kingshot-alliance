@@ -21,7 +21,8 @@ const messages = {
     notSpecified: 'Not specified',
     notConfigured: 'Not set',
     noCurrentCycle: 'There is no current Kingdom Transfer plan for this Alliance.',
-    createWindowAndPlan: 'Record a Transfer Window and create an Alliance plan to start planning Governors.',
+    createWindowAndPlan:
+      'Record a Transfer Window and create an Alliance plan to start planning Governors.',
     participants: 'Governors',
     incoming: 'Incoming',
     outgoing: 'Outgoing',

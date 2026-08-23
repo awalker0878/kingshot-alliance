@@ -97,8 +97,8 @@ Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->gro
         Route::post('/alliance/transfers/{plan}/participants/{participant}/observations', [TransferPlanningController::class, 'storeObservation'])->name('alliance.transfers.participants.observations.store');
         Route::patch('/alliance/transfers/{plan}/participants/{participant}/readiness', [TransferReadinessController::class, 'transition'])->name('alliance.transfers.participants.readiness');
         Route::post('/alliance/transfers/{plan}/participants/{participant}/blockers', [TransferReadinessController::class, 'storeBlocker'])->name('alliance.transfers.participants.blockers.store');
-        Route::post('/alliance/transfers/{plan}/participants/{participant}/blockers/{blocker}/resolve',[TransferReadinessController::class, 'resolveBlocker'])->name('alliance.transfers.participants.blockers.resolve');
-        Route::post('/alliance/transfers/{plan}/participants/{participant}/withdraw',[TransferParticipantController::class, 'withdraw'])->name('alliance.transfers.participants.withdraw');
-        Route::post('/alliance/transfers/{plan}/participants/{participant}/complete',[TransferCompletionController::class, 'store'])->name('alliance.transfers.participants.complete');
+        Route::post('/alliance/transfers/{plan}/participants/{participant}/blockers/{blocker}/resolve', [TransferReadinessController::class, 'resolveBlocker'])->name('alliance.transfers.participants.blockers.resolve');
+        Route::post('/alliance/transfers/{plan}/participants/{participant}/withdraw', [TransferParticipantController::class, 'withdraw'])->name('alliance.transfers.participants.withdraw');
+        Route::post('/alliance/transfers/{plan}/participants/{participant}/complete', [TransferCompletionController::class, 'store'])->name('alliance.transfers.participants.complete');
     });
 });

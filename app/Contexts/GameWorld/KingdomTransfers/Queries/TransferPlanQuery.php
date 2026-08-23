@@ -25,7 +25,7 @@ final class TransferPlanQuery
             }
         }
 
-return null;
+        return null;
     }
 
     public function mutableForAlliance(string $allianceId): ?TransferPlan
@@ -37,6 +37,6 @@ return null;
             }
         }
 
-return null;
+        return null;
     }
 }

@@ -138,7 +138,7 @@ final class TransferPlanController extends Controller
             $row['managerNotes'] = $c->manager_notes;
         }
 
-return $row;
+        return $row;
     }
 
     /** @return array<string,mixed> */
@@ -163,13 +163,13 @@ return $row;
             $row['managerNotes'] = $p->manager_notes;
         }
 
-return $row;
+        return $row;
     }
 
-    private function account(Request $r,AccountIdentityQuery $q): AccountIdentity
+    private function account(Request $r, AccountIdentityQuery $q): AccountIdentity
     {
         $id = $r->user()?->getAuthIdentifier();
-        abort_unless(is_numeric($id),401);
+        abort_unless(is_numeric($id), 401);
 
         return $q->require((int) $id);
     }

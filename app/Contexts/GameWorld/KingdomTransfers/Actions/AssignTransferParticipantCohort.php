@@ -51,7 +51,7 @@ final readonly class AssignTransferParticipantCohort
             }$participant->forceFill(['transfer_cohort_id' => $new])->save();
             $metadata = ['alliance_id' => $allianceId, 'transfer_plan_id' => $planId, 'transfer_participant_id' => $participantId, 'previous_transfer_cohort_id' => $old, 'transfer_cohort_id' => $new];
             $this->audit->record('kingdoms.transfer_participant_cohort_changed', $context->actor, $participant, null, $metadata);
-            $this->outbox->record('kingdoms.transfer_participant_cohort_changed',$allianceId,$participant,$metadata);
+            $this->outbox->record('kingdoms.transfer_participant_cohort_changed', $allianceId, $participant, $metadata);
         });
     }
 }
