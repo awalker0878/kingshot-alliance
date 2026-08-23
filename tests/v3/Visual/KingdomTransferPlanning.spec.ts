@@ -45,6 +45,18 @@ test('Kingdom Transfer Planning keeps eligibility, verification, and readiness d
   await expect(page.getByText('K1524 Vanguard', { exact: true }).first()).toBeVisible();
   await expect(page.getByText('Confirm alliance hand-off time', { exact: true })).toBeVisible();
 
+  const filter = page.getByRole('combobox', { name: /eligibility/i });
+  await expect(filter).toBeVisible();
+  await expect(filter).toHaveAccessibleName(/eligibility/i);
+  await filter.focus();
+  await page.keyboard.press('ArrowDown');
+  await expect(filter).toHaveValue('eligible_now');
+  await expect(page.getByText('Northstar Marshal', { exact: true })).toBeVisible();
+  await expect(page.getByText('Ember Vanguard', { exact: true })).toBeHidden();
+  await page.keyboard.press('Home');
+  await expect(filter).toHaveValue('all');
+  await expect(page.getByText('Ember Vanguard', { exact: true })).toBeVisible();
+
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
   );
