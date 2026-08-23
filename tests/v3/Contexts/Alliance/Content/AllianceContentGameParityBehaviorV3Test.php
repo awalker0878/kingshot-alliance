@@ -24,6 +24,7 @@ use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Shared\Infrastructure\AuditTrail\Models\AuditEvent;
 use App\Shared\Infrastructure\Messaging\Outbox\Models\OutboxMessage;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
 use Tests\v3\Support\ScenarioFactory;
@@ -150,7 +151,7 @@ final class AllianceContentGameParityBehaviorV3Test extends TestCase
             try {
                 app(SetNoticeReaction::class)->handle($alliance, $owner, $invalidTarget, NoticeReaction::Like);
                 self::fail('Expected a non-reactable Content target to be rejected.');
-            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
+            } catch (ModelNotFoundException) {
                 self::assertTrue(true);
             }
         }
@@ -158,7 +159,7 @@ final class AllianceContentGameParityBehaviorV3Test extends TestCase
         [$foreignOwner, $foreignAlliance] = $this->allianceScenario();
         $foreignNotice = $this->publishedAnnouncement($foreignAlliance, $foreignOwner, 'foreign-notice');
 
-        $this->expectException(\Illuminate\Database\Eloquent\ModelNotFoundException::class);
+        $this->expectException(ModelNotFoundException::class);
         app(SetNoticeReaction::class)->handle($alliance, $owner, $foreignNotice, NoticeReaction::Dislike);
     }
 
