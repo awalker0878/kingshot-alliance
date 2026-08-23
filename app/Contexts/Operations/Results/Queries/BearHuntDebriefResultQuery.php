@@ -7,7 +7,6 @@ namespace App\Contexts\Operations\Results\Queries;
 use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Contexts\Operations\Results\Enums\BearHuntBattleReportStatus;
 use App\Contexts\Operations\Results\Models\BearHuntBattleReport;
-use App\Contexts\Operations\Results\Models\BearHuntBattleReportEntry;
 use App\Contexts\Operations\Results\Models\EventPlayerResult;
 use DateTimeInterface;
 use Illuminate\Support\Facades\DB;
@@ -58,14 +57,14 @@ final readonly class BearHuntDebriefResultQuery
 
         $contributionCounts = [];
         if ($playerIds !== []) {
-            foreach (BearHuntBattleReportEntry::query()
-                ->join('bear_hunt_battle_reports as report', 'report.id', '=', 'bear_hunt_battle_report_entries.report_id')
+            foreach (DB::table('bear_hunt_battle_report_entries as entry')
+                ->join('bear_hunt_battle_reports as report', 'report.id', '=', 'entry.report_id')
                 ->where('report.occurrence_id', $occurrenceId)
                 ->where('report.status', BearHuntBattleReportStatus::Accepted->value)
-                ->whereIn('bear_hunt_battle_report_entries.player_id', $playerIds)
-                ->groupBy('bear_hunt_battle_report_entries.player_id')
+                ->whereIn('entry.player_id', $playerIds)
+                ->groupBy('entry.player_id')
                 ->get([
-                    'bear_hunt_battle_report_entries.player_id',
+                    'entry.player_id',
                     DB::raw('COUNT(*) AS accepted_report_count'),
                 ]) as $row) {
                 $contributionCounts[(string) $row->player_id] = (int) $row->accepted_report_count;
