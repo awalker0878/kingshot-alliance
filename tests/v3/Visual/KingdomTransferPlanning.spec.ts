@@ -48,6 +48,7 @@ test('Kingdom Transfer Planning keeps eligibility, verification, and readiness d
   await expect(northstarCard).toBeVisible();
   await expect(emberCard).toBeVisible();
   await expect(frostCard).toBeVisible();
+  await expect(page.getByText(/kingdomP7D\./)).toHaveCount(0);
   await expect(northstarCard.getByText('Eligible now', { exact: true })).toBeVisible();
   await expect(emberCard.getByText('Blocked', { exact: true }).first()).toBeVisible();
   await expect(frostCard.getByText('Needs verification', { exact: true }).first()).toBeVisible();
