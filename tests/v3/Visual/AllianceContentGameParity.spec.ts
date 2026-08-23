@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
 import { expect, test } from '@playwright/test';
 import type { Page, TestInfo } from '@playwright/test';
 
@@ -12,6 +13,18 @@ const fingerprints: Record<string, Record<string, string>> = {
     mobile: '0000000000000000000000000000000000000000000000000000000000000000',
   },
 };
+
+test.beforeAll(() => {
+  execFileSync(
+    'php',
+    [
+      'artisan',
+      'tinker',
+      '--execute=\\Tests\\v3\\Fixtures\\AllianceContentGameParityVisualFixture::seed();',
+    ],
+    { stdio: 'inherit' },
+  );
+});
 
 async function login(page: Page): Promise<void> {
   await page.goto('/login');
