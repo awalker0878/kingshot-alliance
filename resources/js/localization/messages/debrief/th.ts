@@ -4,7 +4,8 @@ const messages = {
   debrief: {
     title: 'สรุป Bear Hunt',
     eyebrow: 'Bear Hunt · หลังจบกิจกรรม',
-    subtitle: 'ตรวจสอบดาเมจที่บันทึก การเข้าร่วม การร่วม Rally Governor ที่ยังจับคู่ไม่ได้ และเปรียบเทียบกับการล่าครั้งล่าสุด',
+    subtitle:
+      'ตรวจสอบดาเมจที่บันทึก การเข้าร่วม การร่วม Rally Governor ที่ยังจับคู่ไม่ได้ และเปรียบเทียบกับการล่าครั้งล่าสุด',
     totalDamage: 'ดาเมจรวม',
     governors: 'Governor',
     governor: 'Governor',
@@ -30,7 +31,8 @@ const messages = {
     noResults: 'ยังไม่มีดาเมจของ Governor ที่บันทึกสำหรับการล่าครั้งนี้',
     needsReview: 'ต้องตรวจสอบ',
     unmatchedGovernors: 'มี {count} Governor ที่ต้องจับคู่',
-    reviewHelp: 'จับคู่ Governor ให้เสร็จใน Screenshot Intake หน้าสรุปจะไม่สร้างขั้นตอนระบุตัวตนซ้ำ',
+    reviewHelp:
+      'จับคู่ Governor ให้เสร็จใน Screenshot Intake หน้าสรุปจะไม่สร้างขั้นตอนระบุตัวตนซ้ำ',
     reviewImport: 'ตรวจสอบรายงานที่นำเข้า',
     trends: 'แนวโน้ม',
     runTrends: 'แนวโน้ม Bear Hunt ล่าสุด',
@@ -38,7 +40,8 @@ const messages = {
     allianceDamageTrend: 'ดาเมจ Alliance ในแต่ละครั้ง',
     previousHunt: 'ครั้งก่อน',
     noPrevious: 'ไม่มีครั้งก่อน',
-    noPreviousHelp: 'การเปรียบเทียบจะแสดงเมื่อ Alliance นี้มี Bear Hunt ก่อนหน้าที่เสร็จสิ้นแล้ว',
+    noPreviousHelp:
+      'การเปรียบเทียบจะแสดงเมื่อ Alliance นี้มี Bear Hunt ก่อนหน้าที่เสร็จสิ้นแล้ว',
     history: 'ประวัติ',
     runHistory: 'ประวัติ Bear Hunt',
   },
