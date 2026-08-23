@@ -98,7 +98,9 @@ test('Alliance Notices expose lightweight reactions without ranking UI', async (
   });
   await expect(notice).toBeVisible();
 
-  const like = notice.getByRole('button', { name: /Like this Alliance Notice\. 1 likes\./ });
+  const like = notice.getByRole('button', {
+    name: /Remove your Like from this Alliance Notice\. 1 likes\./,
+  });
   const dislike = notice.getByRole('button', { name: /Dislike this Alliance Notice\. 1 dislikes\./ });
   await expect(like).toHaveAttribute('aria-pressed', 'true');
   await expect(dislike).toHaveAttribute('aria-pressed', 'false');
