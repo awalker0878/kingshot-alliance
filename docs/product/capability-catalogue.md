@@ -47,7 +47,7 @@ Kingdom Transfer Planning is a `GameWorld/KingdomTransfers` capability extension
 - an evidence gate for the unpublished Transfer Score → Transfer Pass formula and other unpublished in-game rules;
 - a terminology correction that reserves **Transfer Group** for the official game concept and renames Alliance planning groups to **Transfer Cohorts**.
 
-The canonical contract and active phase queue live in [Kingdom Transfer Planning](kingdom-transfer-planning.md).
+The canonical contract and completed delivery ledger live in [Kingdom Transfer Planning](kingdom-transfer-planning.md).
 
 ## Bear Hunt Debrief product contract
 

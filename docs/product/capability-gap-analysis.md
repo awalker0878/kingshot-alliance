@@ -16,6 +16,8 @@ This plan compares the current product with maintained Kingshot community tools.
 
 The application has governed workflows across Alliance membership/access, recruitment review, content revisions, Events and participation, rosters/battle plans/rallies, King Perks, results, intelligence provenance, Kingdom transfers, platform administration, webhooks, Gift Codes, retryable notifications, Territory & Hive planning, Screenshot Intake, and Bear Hunt Debrief.
 
+Kingdom Transfer Planning is implemented end-to-end and is no longer a product capability gap. It preserves participant/readiness/blocker/completion planning while adding sourced Transfer Windows, official window-scoped Transfer Groups, target Power Caps/classification, append-only Governor observations, deterministic eligibility requirements, explicit stale/conflicting/unknown handling, read-vs-manage authority, responsive decision-first UX, bounded queries and deterministic visual regression. The exact Transfer Pass formula remains evidence-gated because authoritative public material does not publish it; observed in-game required-pass counts are supported without inventing formula truth.
+
 Bear Hunt Debrief is implemented as a composed `EventAnalysis` read experience rather than a new bounded context. The completed slice composes the existing Events, Results, Participation, Rallies and Intelligence/Evidence owners for authoritative run identity, damage/rank, attendance, recorded Rally participation and unresolved review state. It provides bounded same-Alliance run history, previous-Hunt comparison, personal trends, Alliance trends, privacy-safe read telemetry, responsive/mobile UX and full localization. Deterministic desktop/mobile visual fingerprints and owner/read-model behavior, authorization, tenant-safety and query-budget tests are complete. Immutable implementation head `fd821e470ef19f51bfff14499c3f417f3cd3eeff` passed the full applicable repository gate set, including production image, ephemeral staging, backup/restore and container scanning; final status-only closeout documentation repeats the applicable gates before merge.
 
 The Alliance Territory & Hive Planner is implemented end-to-end and is no longer a product capability gap. It provides versioned/checksummed map datasets; PHP/TypeScript geometry parity; saved Alliance/Kingdom plans; HQ, Banner, Governor City and Bear Trap placement; coverage and structured validation; typed hive generators; advanced editing; deterministic march/layout analysis; multi-Alliance Kingdom planning; immutable revisions and comparison; previewed JSON import; JSON/PNG/SVG export; accessible synchronized DOM controls; scoped authorization; audit/telemetry; and immutable Event positioning references.
@@ -26,6 +28,7 @@ All Territory & Hive Planner delivery-ledger slices are **Complete**. No known T
 
 | Priority | Capability/UX | Outcome | Guardrail |
 | --- | --- | --- | --- |
+| Complete | Kingdom Transfer Planning | Sourced, window-scoped transfer eligibility with explicit next actions, provenance/freshness and independent Alliance readiness | GameWorld/KingdomTransfers owns transfer facts/rules; no invented Transfer Pass formula or community-derived eligibility truth |
 | Complete | Bear Hunt Debrief | One authorized, mobile-accessible after-action surface for authoritative damage/rank, recorded Rally participation, attendance, unresolved Governor review, same-Alliance previous-run comparison and personal/Alliance trends | Reuse Events, Results, Participation, Rallies, Intelligence/Evidence and EventAnalysis; no BearHunt bounded context or duplicate writes/statistics store |
 | Complete | Alliance Territory & Hive Planner | Complete spatial planning from sourced map datasets through accessible editing, analysis, revisions, interchange and Operations references | GameWorld owns map facts/rules; Operations owns planning; community data remains provenance-gated |
 | Complete | Pagination and list completeness | Opaque cursor pagination, stable sorting, URL filters and bounded query budgets for every potentially large list | Cursor scope is bound to actor, Alliance, filters and ordering |
@@ -38,6 +41,21 @@ All Territory & Hive Planner delivery-ledger slices are **Complete**. No known T
 | Complete | Knowledge trust | Stale-content review queue, revisioned corrections and contextual Event links | No unreviewed or invented strategy claims |
 | Complete | Operational diagnostics | Safe queue/outbox/delivery inspection, correlation search and allowlisted replay | Sensitive payloads are fingerprinted and replay remains idempotent |
 | Evidence-gated | Calculators | Troop, Governor Gear, Charm and Hero Gear planning with saved scenarios | No implementation until the dataset gate in the delivery ledger is satisfied |
+
+## Kingdom Transfer Planning implemented scope
+
+An authorized active Alliance member can inspect sourced, server-authoritative transfer eligibility, while R4/R5 managers can maintain the owned planning facts and workflow. The completed capability:
+
+1. binds each Transfer Plan to a sourced Transfer Window with explicit UTC phase boundaries;
+2. keeps official Transfer Group membership and target Power Caps/classification scoped to that window;
+3. records Power, Transfer Score, available/required Transfer Passes, invitation state and in-game verification as append-only sourced observations with explicit freshness;
+4. derives eligibility per requirement without persisting an eligible boolean;
+5. returns Needs verification for missing, stale, conflicting or non-authoritative material facts;
+6. keeps workflow readiness/manual blockers independent from game eligibility;
+7. exposes source/date/freshness and the primary remaining action on responsive participant cards;
+8. supports useful eligibility triage filters and bounded query composition;
+9. preserves authorized observation/history context so corrections deterministically re-evaluate the result;
+10. leaves the unpublished Transfer Pass formula evidence-gated while supporting observed required-pass counts.
 
 ## Bear Hunt Debrief implemented scope
 

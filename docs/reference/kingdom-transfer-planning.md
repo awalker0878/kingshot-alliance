@@ -40,7 +40,7 @@ Window/group/condition writes require explicit provenance. Official game facts a
 
 Window input carries a label and strictly increasing UTC boundaries for:
 
-- `starts_at`;
+- `pre_transfer_starts_at`;
 - `invitational_starts_at`;
 - `transfer_opens_at`;
 - `ends_at`.

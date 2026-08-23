@@ -198,3 +198,43 @@ Calculator work may start only when all of these are true:
 8. Saved scenarios reference their dataset version so later data corrections cannot silently rewrite historical plans.
 
 Until that evidence gate opens, calculator pages, guessed formulas, placeholder values and copied opaque tables remain intentionally out of scope.
+
+## Kingdom Transfer Planning delivery program
+
+Target: sourced KingShot transfer planning that preserves Alliance readiness while answering whether a Governor can transfer to a specific target Kingdom in the selected Transfer Window and exactly what remains.
+
+Canonical contract: [Kingdom Transfer Planning](kingdom-transfer-planning.md).
+
+Implementation candidate `4ee688508f8ef741bb1c43d8909f747743cf9526` completed the product, domain, persistence, authorization, UX, accessibility/localization-path, provenance, observability, tests, query-budget and deterministic visual requirements. The repository's standard release gate set passed on that candidate; final status-only documentation repeats the normal gates before merge.
+
+### Phase queue
+
+| Phase | Status | Slice |
+| --- | --- | --- |
+| 1 | Complete | Product contract |
+| 2 | Complete | Cohort terminology correction |
+| 3 | Complete | Transfer Window + official groups |
+| 4 | Complete | Governor observation history |
+| 5 | Complete | Eligibility domain |
+| 6 | Complete | HTTP/read composition |
+| 7 | Complete | Management UX |
+| 8 | Complete | Decision-first participant UX |
+| 9 | Complete | Accessibility/localization/mobile |
+| 10 | Complete | Audit/observability/recovery |
+| 11 | Complete | Behavioral/architecture/performance tests |
+| 12 | Complete | Visual regression + closeout |
+
+The queue is closed. The exact Transfer Pass formula remains evidence-gated because no authoritative version-bounded formula is available; observed required-pass facts are supported and missing formula evidence never produces false eligibility.
+
+### Cross-phase invariants
+
+1. Readiness is not eligibility.
+2. Eligibility is derived, never stored as a boolean.
+3. Mutable eligibility facts retain source, observation time and validity.
+4. Missing, stale, conflicting or non-authoritative facts cannot produce `eligible_now`.
+5. Official Transfer Groups are window-scoped; Alliance planning uses Transfer Cohorts.
+6. Community data is discovery evidence only.
+7. View authority is distinct from R4/R5 management authority; every write reauthorizes current scope.
+8. Owner Actions keep writes; controllers/read models/Vue do not own game rules.
+9. No compatibility shim, dual read/write path or legacy planning-group name survives.
+10. Evidence-gated unpublished game truth is never invented.
