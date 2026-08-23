@@ -4,7 +4,8 @@ const messages = {
   debrief: {
     title: 'Resumo da Caça ao Urso',
     eyebrow: 'Caça ao Urso · Pós-ação',
-    subtitle: 'Veja o dano registrado, presença, participação em Rally, Governadores não resolvidos e como esta Caça se compara às anteriores.',
+    subtitle:
+      'Veja o dano registrado, presença, participação em Rally, Governadores não resolvidos e como esta Caça se compara às anteriores.',
     totalDamage: 'Dano total',
     governors: 'Governadores',
     governor: 'Governador',
@@ -30,7 +31,8 @@ const messages = {
     noResults: 'Ainda não há dano de Governadores registrado para esta Caça.',
     needsReview: 'Precisa de revisão',
     unmatchedGovernors: '{count} Governadores precisam ser vinculados',
-    reviewHelp: 'Conclua a identificação dos Governadores no Screenshot Intake. O resumo não cria um segundo fluxo de identidade.',
+    reviewHelp:
+      'Conclua a identificação dos Governadores no Screenshot Intake. O resumo não cria um segundo fluxo de identidade.',
     reviewImport: 'Revisar relatório importado',
     trends: 'Tendências',
     runTrends: 'Tendências recentes da Caça ao Urso',
@@ -38,7 +40,8 @@ const messages = {
     allianceDamageTrend: 'Dano da Aliança por Caça',
     previousHunt: 'Caça anterior',
     noPrevious: 'Sem Caça anterior',
-    noPreviousHelp: 'A comparação aparece quando existe uma Caça ao Urso concluída anteriormente para esta Aliança.',
+    noPreviousHelp:
+      'A comparação aparece quando existe uma Caça ao Urso concluída anteriormente para esta Aliança.',
     history: 'Histórico',
     runHistory: 'Histórico da Caça ao Urso',
   },
