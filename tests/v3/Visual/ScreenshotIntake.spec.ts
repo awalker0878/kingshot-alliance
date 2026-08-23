@@ -25,7 +25,11 @@ async function openScreenshotIntake(page: Page): Promise<void> {
   }
 
   await page.goto('/events');
-  await page.getByRole('link', { name: /Bear Hunt · Visual Review/ }).first().click();
+  await page
+    .locator('div.divide-y')
+    .getByRole('link', { name: /Bear Hunt · Visual Review/ })
+    .first()
+    .click();
   await page.getByRole('link', { name: 'Import battle report' }).click();
   await page.waitForLoadState('networkidle');
 }
