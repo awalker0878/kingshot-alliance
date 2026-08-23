@@ -29,6 +29,8 @@ final class ScreenshotIntakeVisualFixture
 {
     public static function seed(): void
     {
+        CarbonImmutable::setTestNow(CarbonImmutable::parse('2026-08-23 02:00:00', 'UTC'));
+
         $user = User::factory()->create([
             'name' => 'Screenshot Visual',
             'email' => 'screenshot-visual@example.test',
