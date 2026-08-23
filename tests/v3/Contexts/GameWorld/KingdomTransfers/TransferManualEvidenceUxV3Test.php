@@ -32,6 +32,9 @@ final class TransferManualEvidenceUxV3Test extends TestCase
             );
 
             self::assertStringNotContainsString("'evidence'", $sourceTypes, $path);
+            foreach (['in_game', 'official_publication', 'manager_note', 'community'] as $manualSource) {
+                self::assertStringContainsString("'{$manualSource}'", $sourceTypes, $path);
+            }
         }
     }
 }
