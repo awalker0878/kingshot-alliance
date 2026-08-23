@@ -49,16 +49,20 @@ final class BearHuntDebriefController extends Controller
             OperationsPermission::from((string) $event->typeScope->manage_permission_key),
         );
         $payload = $debrief->forOccurrence($eventOccurrence, $actor, $canManage);
+        $summary = is_array($payload['summary'] ?? null) ? $payload['summary'] : [];
+        $attendanceSummary = is_array($summary['attendance'] ?? null) ? $summary['attendance'] : [];
+        $rallySummary = is_array($summary['rallies'] ?? null) ? $summary['rallies'] : [];
+        $runs = is_array($payload['runs'] ?? null) ? $payload['runs'] : [];
 
         Log::info('bear_hunt.debrief.viewed', [
             'occurrence_id' => (string) $eventOccurrence->id,
             'alliance_id' => (string) $event->alliance_id,
-            'results_available' => (bool) ($payload['summary']['resultsAvailable'] ?? false),
-            'governor_count' => (int) ($payload['summary']['governorCount'] ?? 0),
-            'attendance_available' => (bool) ($payload['summary']['attendance']['available'] ?? false),
-            'rally_data_available' => (bool) ($payload['summary']['rallies']['available'] ?? false),
-            'unmatched_governor_count' => (int) ($payload['summary']['unmatchedGovernorCount'] ?? 0),
-            'history_count' => is_array($payload['runs'] ?? null) ? count($payload['runs']) : 0,
+            'results_available' => (bool) ($summary['resultsAvailable'] ?? false),
+            'governor_count' => (int) ($summary['governorCount'] ?? 0),
+            'attendance_available' => (bool) ($attendanceSummary['available'] ?? false),
+            'rally_data_available' => (bool) ($rallySummary['available'] ?? false),
+            'unmatched_governor_count' => (int) ($summary['unmatchedGovernorCount'] ?? 0),
+            'history_count' => count($runs),
             'can_review_evidence' => $canManage,
         ]);
 
