@@ -42,4 +42,6 @@ const messages = {
     history: '歷史',
     runHistory: '獵熊行動歷史',
   },
-}
+} satisfies MessageCatalogue;
+
+export default messages;
