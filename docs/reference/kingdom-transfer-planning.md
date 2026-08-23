@@ -23,7 +23,7 @@ Frontend permission flags control affordances only. They are not authorization e
 | `GET` | `/alliance/transfers/readiness` | Decision-first participant eligibility and independent workflow readiness. |
 | `GET` | `/alliance/transfers/completion` | Final transfer outcome workflow. |
 
-The readiness response composes, for each participant, the selected Transfer Window, target Kingdom, official phase, official Transfer Group, applicable target condition observation, selected Governor observations, structured eligibility assessment, planning readiness, cohort, manual blockers and relevant history.
+The readiness response composes, for each participant, the selected Transfer Window, target Kingdom, official phase, official Transfer Group, applicable target condition observation, selected Governor observations, structured eligibility assessment, planning readiness, cohort, manual blockers and relevant history. Material decision facts include their source type, source reference and observation time; the UI does not present an official Transfer Group, target Power Cap or Transfer Score without the provenance context needed to explain the conclusion.
 
 ## Transfer Window writes
 
@@ -49,11 +49,13 @@ It also carries source type/reference, `observed_at`, and optional evidence refe
 
 ### Official Transfer Group fields
 
-An official Transfer Group record includes its window, official label, Kingdom membership, source/reference and `observed_at`. Re-recording identical evidence is idempotent. A correction creates a new revision and supersedes the previous current revision; a Kingdom cannot belong to two current official groups in the same window.
+An official Transfer Group record includes its window, official label, Kingdom membership, source/reference, `observed_at`, and an optional `evidence_id`. Re-recording identical evidence is idempotent. A correction creates a new revision and supersedes the previous current revision; a Kingdom cannot belong to two current official groups in the same window.
+
+When `source_type=evidence`, `evidence_id` is mandatory and must resolve through the Intelligence/Evidence owner contract to the same Alliance with a latest approved review. A foreign, missing, or unapproved Evidence reference is rejected before the official Group fact is recorded.
 
 ### Target condition fields
 
-Target Kingdom condition observations are append-only and window/Kingdom-scoped. Supported typed facts include the observed Power Cap and Kingdom classification. Corrections preserve prior records rather than rewriting history.
+Target Kingdom condition observations are append-only and window/Kingdom-scoped. Supported typed facts include the observed Power Cap and Kingdom classification. Corrections preserve prior records rather than rewriting history. An optional Evidence reference follows the same owner-scope and approval rules described below.
 
 ## Plan and cohort writes
 
@@ -96,7 +98,9 @@ The write fingerprint is derived from owner scope plus the normalized observatio
 | `manager_note` | Planning context only; not authoritative eligibility truth. |
 | `community` | Discovery/context only; not authoritative eligibility truth. |
 
-A source reference is mandatory for recorded sourced facts. `source_type=evidence` additionally requires an `evidence_id` validated through the Intelligence/Evidence owner contract; a foreign or unapproved Evidence record is rejected. Optional Evidence attachments on other source types are also same-Alliance checked. Manual transfer forms do not expose `evidence` as a selectable source until an authorized Evidence selection flow can provide that identifier. Mutable Governor observations without an explicit validity boundary cannot silently become current eligibility truth.
+A source reference is mandatory for recorded sourced facts. `source_type=evidence` additionally requires an `evidence_id` validated through the Intelligence/Evidence owner contract; a foreign or unapproved Evidence record is rejected. Optional Evidence attachments on other source types are also same-Alliance checked. KingdomTransfers consumes only the owner-side Evidence reference contract and never loads or mutates Evidence models directly.
+
+Manual transfer forms do not expose `evidence` as a selectable source until an authorized Evidence selection flow can provide a validated identifier. Mutable Governor observations without an explicit validity boundary cannot silently become current eligibility truth.
 
 ## Eligibility response contract
 
@@ -115,6 +119,8 @@ Each requirement contains:
 - human-readable explanation/next action;
 - source/reference and observation time for material evidence.
 
+The participant summary also exposes provenance for the selected official Transfer Group, target Kingdom condition/Power Cap, and Transfer Score observation so the decision can be traced without opening a separate management page.
+
 Overall outcomes are `eligible_now`, `eligible_with_action`, `blocked`, `needs_verification`, `not_open_yet`, `window_closed`, or `not_applicable`.
 
 `eligible_now` is impossible when a material requirement is missing, stale, conflicting, non-authoritative or otherwise unverified.
@@ -127,6 +133,8 @@ The application does **not** invent a public Transfer Pass formula. Where KingSh
 
 - invalid typed input → validation error;
 - wrong Alliance/plan/window/participant scope → authorization/not-found boundary without cross-scope disclosure;
+- Evidence source without a same-Alliance approved Evidence review → validation error;
+- optional cross-Alliance Evidence attachment on another source type → validation error;
 - withdrawn participant → observation mutation rejected;
 - mutable observation without valid provenance/freshness → rejected or evaluated as unknown according to the contract;
 - stale/conflicting facts → successful read with `needs_verification`, never optimistic eligibility;
