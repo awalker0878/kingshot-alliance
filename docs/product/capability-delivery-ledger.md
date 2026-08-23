@@ -213,16 +213,16 @@ A previous implementation candidate passed the standard release gates, but final
 | --- | --- | --- |
 | 1 | Complete | Product contract |
 | 2 | Complete | Cohort terminology correction |
-| 3 | Complete | Transfer Window + official groups |
-| 4 | Complete | Governor observation history |
+| 3 | In progress | Transfer Window + official groups |
+| 4 | In progress | Governor observation history |
 | 5 | Complete | Eligibility domain |
 | 6 | Complete | HTTP/read composition |
-| 7 | Complete | Management UX |
+| 7 | In progress | Management UX |
 | 8 | Complete | Decision-first participant UX |
 | 9 | Complete | Accessibility/localization/mobile |
 | 10 | Complete | Audit/observability/recovery |
-| 11 | Complete | Behavioral/architecture/performance tests |
-| 12 | Complete | Visual regression + closeout |
+| 11 | In progress | Behavioral/architecture/performance tests |
+| 12 | In progress | Visual regression + closeout |
 
 The queue is reopened for the Evidence-provenance correction and final immutable-head verification. The exact Transfer Pass formula remains evidence-gated because no authoritative version-bounded formula is available; observed required-pass facts are supported and missing formula evidence never produces false eligibility.
 
