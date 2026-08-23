@@ -21,6 +21,7 @@ This is the user/product view of implemented and actively delivered capability g
 | Rallies | Plan and coordinate rallies against Event occurrences. | Operations/Rallies |
 | King Perks | Plan/schedule King Perk appointments and King Skills with occupancy/cooldown rules. | Operations/KingPerks |
 | Results | Capture operational Event results and metrics. | Operations/Results |
+| Bear Hunt Debrief | Review one Alliance Bear Hunt run with authoritative total/Governor damage and rank, recorded Rally participation, attendance, unmatched-Governor review handoff, previous-Hunt comparison, bounded run history and personal/Alliance trends. | ReadModels/EventAnalysis composes Operations/Events, Results, Participation, Rallies and Intelligence/Evidence owner reads; no BearHunt bounded context |
 | Screenshot Intake | Upload KingShot evidence, classify/extract it with immutable provenance, review/correct field-level candidates, detect duplicates and commit reviewed results into the owning domain exactly once. Bear Hunt battle reports are the first supported evidence type. | Intelligence/Evidence owns evidence, review and its commit handshake; Operations/Results owns accepted Bear Hunt reports/results |
 | Intelligence | Ingest observations and maintain roster/contribution/event/diplomacy intelligence. | Intelligence |
 | Shared intelligence | Control sharing/grants and compose Kingdom intelligence views. | Intelligence + ReadModels |
@@ -30,6 +31,23 @@ This is the user/product view of implemented and actively delivered capability g
 | Dashboards/history | Compose cross-context user-facing views without changing source ownership. | ReadModels |
 
 This catalogue should change when a real product outcome changes, not for internal class/file movement.
+
+## Bear Hunt Debrief product contract
+
+Bear Hunt Debrief is a read-side composition over existing capabilities, not a new BearHunt domain. Its complete user outcome includes:
+
+- one `EventOccurrence` as the canonical Hunt/run identity;
+- Operations/Results-owned total damage plus Governor damage/rank and accepted-report counts;
+- Participation-owned attendance that remains independent from whether damage exists;
+- Rallies-owned actual participation counts only when an explicit recorded participation decision exists, preserving the difference between zero and not recorded;
+- manager-only unresolved Governor observations from Intelligence/Evidence with a deep link back to the existing Screenshot Intake review workflow;
+- the immediately preceding completed Bear Hunt for the same historical Alliance target, with null/zero-safe Alliance and active-Governor comparisons;
+- bounded personal and Alliance trends plus navigable run history without materializing a second statistics store;
+- active-Player and concrete-Alliance authorization before current, historical or Evidence facts are exposed;
+- a read-only Debrief boundary whose corrective mutations continue through the owning Results, Participation, Rallies or Evidence actions and therefore retain their existing idempotency, audit and outbox contracts;
+- privacy-safe read telemetry, mobile-first Governor presentation, accessible textual trend equivalents, localization and deterministic desktop/mobile visual regression.
+
+The canonical implementation and acceptance contract lives in [Bear Hunt Debrief](bear-hunt-debrief.md). `EventAnalysis` owns composition only and does not become the writer for any displayed fact.
 
 ## Screenshot Intake product contract
 
