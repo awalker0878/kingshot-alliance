@@ -278,6 +278,8 @@ All new player-facing copy belongs in the existing Content localization catalogu
 - accessible count labels;
 - saving/validation copy.
 
+`Alliance/Rules/*` Inertia pages must load the existing `content` localization domain through the page-domain registry before render. Source-level localization checks alone are insufficient: automated frontend contract coverage must prove that the Rules route family resolves the Content catalogue so localized semantic names are present at runtime.
+
 No new hardcoded English player-facing copy is introduced in the Vue surfaces.
 
 Keyboard operation, focus visibility, semantic headings, associated labels/errors, `aria-pressed`, `aria-busy` and mobile layout are part of acceptance—not follow-up polish.
@@ -299,9 +301,9 @@ The slice is accepted only when all of the following are true:
 11. Draft/scheduled/archived/non-Announcement/foreign-Alliance targets reject reaction writes.
 12. Noticeboard Index and Show expose counts + current-member state without per-card N+1 queries.
 13. Reaction totals never influence Content ordering, visibility, pinning, moderation, recommendations or public-page ranking.
-14. New UX is responsive, keyboard-safe, screen-reader meaningful and localized through the Content catalogue.
-15. Behavior, authorization, idempotency, persistence invariants, architecture boundaries and HTTP contracts have automated coverage.
-16. Desktop/mobile visual regression covers Rules empty/populated/editable state and Notice reactions.
+14. New UX is responsive, keyboard-safe, screen-reader meaningful and localized through the Content catalogue, including explicit `Alliance/Rules/*` page-domain registration.
+15. Behavior, authorization, idempotency, persistence invariants, architecture boundaries and HTTP/frontend contracts have automated coverage.
+16. Desktop/mobile visual regression covers Rules empty/populated/editable state and Notice reactions on both Noticeboard card and detail surfaces.
 17. Product/reference/architecture/operations documentation is reconciled wherever implementation changes those contracts.
 18. The repository's applicable quality/release gates are green on one immutable implementation head before the slice is marked Complete.
 
