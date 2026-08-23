@@ -80,6 +80,22 @@ final class TransferEvidenceBoundaryV3Test extends TestCase
         }
     }
 
+    public function test_provenance_identity_participates_in_transfer_idempotency_fingerprints(): void
+    {
+        $observation = file_get_contents(base_path(
+            'app/Contexts/GameWorld/KingdomTransfers/Actions/RecordTransferObservation.php',
+        ));
+        self::assertIsString($observation);
+        self::assertStringContainsString("$evidenceId ?? ''", $observation);
+        self::assertStringContainsString("$details ?? ''", $observation);
+
+        $condition = file_get_contents(base_path(
+            'app/Contexts/GameWorld/KingdomTransfers/Actions/RecordTransferKingdomCondition.php',
+        ));
+        self::assertIsString($condition);
+        self::assertStringContainsString("$evidenceId ?? ''", $condition);
+    }
+
     private function lookup(): EvidenceReferenceLookup
     {
         return new class implements EvidenceReferenceLookup
