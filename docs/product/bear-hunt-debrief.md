@@ -87,6 +87,8 @@ Unresolved Governor observations remain owned by `Intelligence/Evidence`.
 
 The debrief may show a bounded review queue containing the minimum information needed to explain pending work, such as observed name, visible damage/rank, confidence/review state and Evidence/review identity. It must not implement a second matching workflow.
 
+An Evidence item is an unmatched-Governor item only while Governor row matching still remains unresolved. If a saved Evidence review has already resolved every included row and intentionally excluded any non-result rows, the Debrief must not list those extracted rows as unmatched merely because the Evidence lifecycle remains `needs_review` for a different reason such as semantic-duplicate resolution.
+
 The action is **Review imported report**, linking to the existing Screenshot Intake review surface. Resolution, exclusion, approval and commit continue through Evidence owner Actions and the existing idempotent Evidence → Results commit handshake.
 
 Unauthorized Evidence, raw OCR/provider payloads and cross-Alliance duplicate information must never be exposed by the debrief.
@@ -269,7 +271,7 @@ Required automated coverage includes:
 - all attendance statuses;
 - participated lead/joiner rally counting and exclusion of non-participated statuses;
 - missing rally evidence vs recorded zero;
-- unresolved/resolved/excluded Evidence behavior;
+- unresolved/resolved/excluded Evidence behavior, including duplicate-blocked Evidence that is still `needs_review` but has no unmatched Governor rows;
 - tenant-safe Evidence and historical authorization;
 - correct previous-run selection;
 - zero/missing comparison semantics;
@@ -287,14 +289,14 @@ A phase advances only when its implementation and evidence are complete.
 | Phase | Status | Slice | Exit condition |
 | --- | --- | --- | --- |
 | 1 | In progress | Product contract and ownership | `/docs/product` defines the complete debrief and existing-owner boundaries; catalogue/ledger/journeys reflect active delivery. |
-| 2 | Planned | Results and attendance read contracts | Authoritative total/Governor result and attendance summaries are batched, bounded where applicable and behavior-tested. |
-| 3 | Planned | Rally and unresolved-Evidence read contracts | Actual rally participation and unmatched Governor review summaries are owner-query based, availability-aware and authorization-tested. |
-| 4 | Planned | Debrief composition and history | EventAnalysis composes current run, previous run, personal trends, Alliance trends and run history without becoming a writer. |
-| 5 | Planned | Authorized HTTP/Inertia surface | Bear Hunt occurrence entry and dedicated debrief route/page enforce current/historical target authority. |
-| 6 | Planned | Responsive UX, accessibility and localization | Complete/missing/review/mobile/desktop states and supported locales are implemented with accessible trend/chart equivalents. |
-| 7 | Planned | Audit/observability and mutation integration | Owner mutations retain audit/idempotency; privacy-safe debrief diagnostics and recovery links are complete. |
-| 8 | Planned | Behavior, architecture and visual regression | Backend/frontend/authorization/architecture/query-performance and deterministic visual coverage is green. |
-| 9 | Planned | Final contract audit and release closeout | Spec→code, code→spec, UX→backend, data-ownership and authorization audits find no gap; applicable repository gates are green on one immutable candidate. |
+| 2 | In progress | Results and attendance read contracts | Authoritative total/Governor result and attendance summaries are batched, bounded where applicable and behavior-tested. |
+| 3 | In progress | Rally and unresolved-Evidence read contracts | Actual rally participation and unmatched Governor review summaries are owner-query based, availability-aware and authorization-tested. |
+| 4 | In progress | Debrief composition and history | EventAnalysis composes current run, previous run, personal trends, Alliance trends and run history without becoming a writer. |
+| 5 | In progress | Authorized HTTP/Inertia surface | Bear Hunt occurrence entry and dedicated debrief route/page enforce current/historical target authority. |
+| 6 | In progress | Responsive UX, accessibility and localization | Complete/missing/review/mobile/desktop states and supported locales are implemented with accessible trend/chart equivalents. |
+| 7 | In progress | Audit/observability and mutation integration | Owner mutations retain audit/idempotency; privacy-safe debrief diagnostics and recovery links are complete. |
+| 8 | In progress | Behavior, architecture and visual regression | Backend/frontend/authorization/architecture/query-performance and deterministic visual coverage is green. |
+| 9 | In progress | Final contract audit and release closeout | Spec→code, code→spec, UX→backend, data-ownership and authorization audits find no gap; applicable repository gates are green on one immutable candidate. |
 
 ## Cross-phase invariants
 
