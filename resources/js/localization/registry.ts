@@ -8,6 +8,7 @@ export const localizationDomains = [
   'alliance',
   'events',
   'evidence',
+  'debrief',
   'roster',
   'contributions',
   'recruitment',
@@ -60,6 +61,9 @@ export function domainsForPage(name: string): LocalizationDomain[] {
   if (name.startsWith('Operations/Events/')) {
     domains.add('events');
     domains.add('evidence');
+    if (['Operations/Events/BearHuntDebrief', 'Operations/Events/Show'].includes(name)) {
+      domains.add('debrief');
+    }
     if (name === 'Operations/Events/Manage') domains.add('territory');
   }
   if (name.startsWith('Intelligence/')) {

@@ -1,6 +1,6 @@
 # Capability delivery ledger
 
-Status: Current as of 2026-08-22
+Status: Current as of 2026-08-23
 
 This ledger records shipped outcomes, active capability delivery, remaining evidence gates, and the implementation standard. GitHub remains the source of truth for exact diffs and CI results.
 
@@ -82,6 +82,52 @@ These are not deferrable cleanup items:
 8. Evidence deletion/redaction never silently removes an accepted Operations result.
 9. No compatibility shims, legacy routes, dual reads/writes or placeholder architecture survive closeout.
 10. A phase is not Complete until its tests, UX, docs, observability/recovery and applicable gates are complete.
+
+## Bear Hunt Debrief delivery program
+
+Target: one complete Alliance Bear Hunt after-action experience from authoritative run facts through review handoff, comparison and trends—not a parallel BearHunt domain or a second result store.
+
+Canonical contract: [Bear Hunt Debrief](bear-hunt-debrief.md).
+
+Architectural ownership is intentionally composed rather than transferred:
+
+- `Operations/Events` owns Event type, target and `EventOccurrence` run identity.
+- `Operations/Results` owns accepted Bear Hunt reports and authoritative projected Governor damage/rank.
+- `Operations/Participation` owns attendance facts.
+- `Operations/Rallies` owns actual recorded Rally participation.
+- `Intelligence/Evidence` owns unresolved extracted Governor observations and review lifecycle.
+- `app/ReadModels/EventAnalysis` composes current/history/comparison/trend reads only and owns no Debrief persistence or write semantics.
+
+`Complete` means the phase has backend behavior, authorization, applicable owner idempotency/audit/recovery, observability, responsive/accessibility/localization UX, tests, visual proof and current-truth documentation. All phases reached Complete after immutable implementation head `fd821e470ef19f51bfff14499c3f417f3cd3eeff` satisfied the documented exit conditions and passed every applicable repository release gate.
+
+### Phase queue
+
+| Phase | Status | Slice | Exit condition |
+| --- | --- | --- | --- |
+| 1 | Complete | Product contract and ownership | Canonical Debrief contract, capability catalogue, gap analysis, delivery ledger and architecture/reference/operations docs agree on complete scope and owner boundaries. |
+| 2 | Complete | Authoritative current-run facts | Results, Participation and Rallies owner queries expose total/Governor damage/rank, attendance and recorded Rally facts with explicit zero-vs-missing semantics and owner behavior tests. |
+| 3 | Complete | Historical composition and comparison | EventAnalysis returns bounded same-Alliance Bear Hunt history, correct immediately preceding completed run, personal/Alliance trends and null/zero-safe Alliance + active-Governor comparison. |
+| 4 | Complete | Unmatched-Governor review and authorization | Manager-only Intelligence/Evidence unresolved rows deep-link to Screenshot Intake, lifecycle advancement removes resolved rows, and cross-Alliance/current-authority tests prevent leakage. |
+| 5 | Complete | HTTP, idempotency integration, audit and observability | Authenticated/verified active-Governor HTTP route is authorized; Debrief stays read-only; corrective writes keep owner idempotency/audit/outbox contracts; read telemetry is privacy-safe and tested. |
+| 6 | Complete | Responsive, accessible and localized UX | Desktop and mobile surfaces cover summary, Your Hunt, leaderboard, Needs Review, previous Hunt, trends, history and all explicit missing-data states with keyboard/semantic/text-equivalent behavior in every supported locale. |
+| 7 | Complete | Behavioral and performance verification | Current facts, all attendance states, Rally evidence semantics, Evidence lifecycle/tenant safety, comparisons, history bounds, active Governor without result and a 100-Governor no-N+1 budget are covered. |
+| 8 | Complete | Deterministic visual regression | Complete/unmatched Debrief renders on deterministic desktop/mobile fixtures without horizontal overflow and both screenshots have accepted stable SHA-256 fingerprints. |
+| 9 | Complete | Final audits and repository release gates | Spec→code, code→spec, UX→backend, authorization, architecture and data-ownership scans found no known gap/TODO/placeholder; PHP/Pint/PHPStan/frontend/architecture/Intelligence/CodeQL/dependency/visual/container/staging/backup/recovery gates passed on immutable implementation head `fd821e470ef19f51bfff14499c3f417f3cd3eeff`. |
+
+The Bear Hunt Debrief delivery queue is closed: every phase is Complete and no known Bear Hunt Debrief product feature is deferred. Final closeout documentation is status-only and repeats the applicable repository gates before merge. Any defect or material change that invalidates a phase exit condition is a regression that reopens the affected phase and must restore the same release evidence before closeout.
+
+### Cross-phase invariants
+
+1. A Hunt/run is an existing `EventOccurrence`; there is no `bear_hunt_runs` store.
+2. Results-owned projected scores/ranks are authoritative; EventAnalysis never re-sums OCR rows into competing domain truth.
+3. Attendance is independent from damage; damage does not imply present and no damage does not imply absent.
+4. Rally counts require explicit recorded participation evidence. Assigned/confirmed planning state is not actual participation, while recorded zero remains distinct from not recorded.
+5. Unmatched Governor identity review remains an Intelligence/Evidence workflow; Debrief never creates/mutates Players from extracted names.
+6. Historical comparison is same Bear Hunt type and same historical Alliance target only; current membership does not rewrite historical scope.
+7. Debrief is read-only. Any review/correction/removal/attendance/Rally mutation uses the owning capability Action and inherits that owner's current authorization, idempotency, audit/outbox and recovery rules.
+8. Read diagnostics never log Governor names, damage values, OCR text, screenshots or raw Evidence.
+9. EventAnalysis owns composition only; no BearHunt bounded context, cross-context persistence write or duplicate statistics table may appear.
+10. Missing is never silently rendered as zero, including historical Rally/attendance data and comparison percentages from a zero baseline.
 
 ## Territory & Hive Planner delivery program
 

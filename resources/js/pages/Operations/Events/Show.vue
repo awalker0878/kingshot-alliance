@@ -261,6 +261,14 @@ function statusTone(value: string): 'success' | 'warning' | 'danger' | 'info' {
           {{ t('events.show.manage') }}
         </Link>
         <Link
+          v-if="event.eventTypeSlug === 'bear-hunt' && event.capabilities.includes('results')"
+          :href="`/events/${event.id}/debrief`"
+          class="ks-command-link"
+          data-variant="secondary"
+        >
+          {{ t('debrief.title') }}
+        </Link>
+        <Link
           v-if="
             event.canManage &&
             event.eventTypeSlug === 'bear-hunt' &&
