@@ -14,9 +14,9 @@ This plan compares the current product with maintained Kingshot community tools.
 
 ## Current coverage and remaining gaps
 
-The application has governed workflows across Alliance membership/access, recruitment review, content revisions, Events and participation, rosters/battle plans/rallies, King Perks, results, intelligence provenance, Kingdom transfers, platform administration, webhooks, Gift Codes, retryable notifications, Territory & Hive planning, Screenshot Intake, and an active Bear Hunt Debrief delivery program.
+The application has governed workflows across Alliance membership/access, recruitment review, content revisions, Events and participation, rosters/battle plans/rallies, King Perks, results, intelligence provenance, Kingdom transfers, platform administration, webhooks, Gift Codes, retryable notifications, Territory & Hive planning, Screenshot Intake, and Bear Hunt Debrief.
 
-Bear Hunt Debrief is being delivered as a composed `EventAnalysis` read experience rather than a new bounded context. The implemented slice composes the existing Events, Results, Participation, Rallies and Intelligence/Evidence owners for authoritative run identity, damage/rank, attendance, recorded Rally participation and unresolved review state. It also provides bounded same-Alliance run history, previous-Hunt comparison, personal trends, Alliance trends, privacy-safe read telemetry, responsive/mobile UX and full localization. The capability is not considered complete until its canonical contract, owner/read-model behavior tests, HTTP authorization, Evidence tenant safety, query-budget coverage, deterministic desktop/mobile visual fingerprints and full immutable-head repository gates are reconciled and green.
+Bear Hunt Debrief is implemented as a composed `EventAnalysis` read experience rather than a new bounded context. The completed slice composes the existing Events, Results, Participation, Rallies and Intelligence/Evidence owners for authoritative run identity, damage/rank, attendance, recorded Rally participation and unresolved review state. It provides bounded same-Alliance run history, previous-Hunt comparison, personal trends, Alliance trends, privacy-safe read telemetry, responsive/mobile UX and full localization. Deterministic desktop/mobile visual fingerprints and owner/read-model behavior, authorization, tenant-safety and query-budget tests are complete. Immutable implementation head `fd821e470ef19f51bfff14499c3f417f3cd3eeff` passed the full applicable repository gate set, including production image, ephemeral staging, backup/restore and container scanning; final status-only closeout documentation repeats the applicable gates before merge.
 
 The Alliance Territory & Hive Planner is implemented end-to-end and is no longer a product capability gap. It provides versioned/checksummed map datasets; PHP/TypeScript geometry parity; saved Alliance/Kingdom plans; HQ, Banner, Governor City and Bear Trap placement; coverage and structured validation; typed hive generators; advanced editing; deterministic march/layout analysis; multi-Alliance Kingdom planning; immutable revisions and comparison; previewed JSON import; JSON/PNG/SVG export; accessible synchronized DOM controls; scoped authorization; audit/telemetry; and immutable Event positioning references.
 
@@ -26,7 +26,7 @@ All Territory & Hive Planner delivery-ledger slices are **Complete**. No known T
 
 | Priority | Capability/UX | Outcome | Guardrail |
 | --- | --- | --- | --- |
-| Active | Bear Hunt Debrief | One authorized, mobile-accessible after-action surface for authoritative damage/rank, recorded Rally participation, attendance, unresolved Governor review, same-Alliance previous-run comparison and personal/Alliance trends | Reuse Events, Results, Participation, Rallies, Intelligence/Evidence and EventAnalysis; no BearHunt bounded context or duplicate writes/statistics store |
+| Complete | Bear Hunt Debrief | One authorized, mobile-accessible after-action surface for authoritative damage/rank, recorded Rally participation, attendance, unresolved Governor review, same-Alliance previous-run comparison and personal/Alliance trends | Reuse Events, Results, Participation, Rallies, Intelligence/Evidence and EventAnalysis; no BearHunt bounded context or duplicate writes/statistics store |
 | Complete | Alliance Territory & Hive Planner | Complete spatial planning from sourced map datasets through accessible editing, analysis, revisions, interchange and Operations references | GameWorld owns map facts/rules; Operations owns planning; community data remains provenance-gated |
 | Complete | Pagination and list completeness | Opaque cursor pagination, stable sorting, URL filters and bounded query budgets for every potentially large list | Cursor scope is bound to actor, Alliance, filters and ordering |
 | Complete | Shared workflow UX | Common page headers, filters, empty/loading/failure states, result receipts and permission-aware navigation | Server remains the authorization authority |
@@ -39,9 +39,9 @@ All Territory & Hive Planner delivery-ledger slices are **Complete**. No known T
 | Complete | Operational diagnostics | Safe queue/outbox/delivery inspection, correlation search and allowlisted replay | Sensitive payloads are fingerprinted and replay remains idempotent |
 | Evidence-gated | Calculators | Troop, Governor Gear, Charm and Hero Gear planning with saved scenarios | No implementation until the dataset gate in the delivery ledger is satisfied |
 
-## Bear Hunt Debrief active scope
+## Bear Hunt Debrief implemented scope
 
-The delivery contract requires an authorized Governor to be able to:
+An authorized Governor can now:
 
 1. open Debrief from an Alliance Bear Hunt occurrence while preserving the occurrence as the canonical run identity;
 2. see Operations/Results-owned total damage, Governor damage/rank and accepted-report contribution facts without recomputing OCR rows;
@@ -54,7 +54,7 @@ The delivery contract requires an authorized Governor to be able to:
 9. rely on owner mutations for corrections/review so idempotency, audit, outbox and recovery rules are not duplicated by EventAnalysis;
 10. receive a privacy-safe read surface whose telemetry records availability/count dimensions but not Governor names, damage values, OCR text or screenshot data.
 
-No phase closes until the canonical [Bear Hunt Debrief contract](bear-hunt-debrief.md), global delivery ledger and implementation agree and one immutable candidate passes all applicable release gates.
+The canonical [Bear Hunt Debrief contract](bear-hunt-debrief.md), global delivery ledger and implementation agree on the completed capability. Final spec→code, code→spec, UX→backend, authorization, architecture and data-ownership audits found no known product gap on the immutable implementation candidate; any later regression reopens the affected delivery phase.
 
 ## Territory & Hive Planner implemented scope
 
