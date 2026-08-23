@@ -3,8 +3,8 @@ import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
 
 const transferVisualFingerprints: Record<string, string> = {
-  desktop: 'PENDING_DESKTOP',
-  mobile: 'PENDING_MOBILE',
+  desktop: 'a2abf6f10534d1501b04b0bd954c774ea2bef834a1df6c93eff3baffa418d6d0',
+  mobile: '54f935862d072155d3008cbb7a54caf3493d02690f9491b13fbe2887b08e1865',
 };
 
 async function openTransferPlanning(page: Page): Promise<void> {
@@ -19,7 +19,11 @@ async function openTransferPlanning(page: Page): Promise<void> {
     const label = (await identitySwitcher.textContent()) ?? '';
     if (/select governor/i.test(label)) {
       await identitySwitcher.click();
-      await page.getByRole('listbox', { name: 'Active Governor' }).getByRole('option').first().click();
+      await page
+        .getByRole('listbox', { name: 'Active Governor' })
+        .getByRole('option')
+        .first()
+        .click();
       await page.waitForURL('**/dashboard');
     }
   }
@@ -28,10 +32,9 @@ async function openTransferPlanning(page: Page): Promise<void> {
   await page.waitForLoadState('networkidle');
 }
 
-test('Kingdom Transfer Planning keeps eligibility, verification, and readiness distinct', async (
-  { page },
-  testInfo,
-) => {
+test('Kingdom Transfer Planning keeps eligibility, verification, and readiness distinct', async ({
+  page,
+}, testInfo) => {
   await openTransferPlanning(page);
   await page.evaluate(() => document.fonts.ready);
 
@@ -50,7 +53,9 @@ test('Kingdom Transfer Planning keeps eligibility, verification, and readiness d
   await expect(frostCard.getByText('Needs verification', { exact: true }).first()).toBeVisible();
   await expect(northstarCard.getByText('Transfer Group 7', { exact: true })).toBeVisible();
   await expect(northstarCard).toContainText('K1524 Vanguard');
-  await expect(northstarCard.getByText('Confirm alliance hand-off time', { exact: true })).toBeVisible();
+  await expect(
+    northstarCard.getByText('Confirm alliance hand-off time', { exact: true }),
+  ).toBeVisible();
 
   const filter = page.getByRole('combobox', { name: /eligibility/i });
   await expect(filter).toBeVisible();
@@ -72,7 +77,9 @@ test('Kingdom Transfer Planning keeps eligibility, verification, and readiness d
   await page
     .locator('p')
     .filter({ hasText: /^Evaluated/ })
-    .evaluateAll((elements) => elements.forEach((element) => (element.textContent = 'Evaluated at fixture time')));
+    .evaluateAll((elements) =>
+      elements.forEach((element) => (element.textContent = 'Evaluated at fixture time')),
+    );
 
   const screenshot = await page.screenshot({
     animations: 'disabled',
