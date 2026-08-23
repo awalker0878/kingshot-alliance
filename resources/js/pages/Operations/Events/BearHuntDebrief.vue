@@ -382,7 +382,7 @@ function barWidth(value: number | null | undefined, max: number): string {
               <div class="flex min-w-0 items-start justify-between gap-3">
                 <div class="min-w-0">
                   <p class="text-xs text-[var(--ks-muted)]">{{ rank(governor.rank) }}</p>
-                  <h3 class="truncate font-semibold">
+                  <h3 class="break-words font-semibold">
                     {{ governor.playerName || t('debrief.unknownGovernor') }}
                   </h3>
                 </div>
@@ -423,7 +423,7 @@ function barWidth(value: number | null | undefined, max: number): string {
                   class="border-t border-[var(--ks-border)]"
                 >
                   <td class="px-2 py-3 font-semibold">{{ rank(governor.rank) }}</td>
-                  <td class="max-w-60 truncate px-2 py-3">
+                  <td class="max-w-60 break-words px-2 py-3">
                     {{ governor.playerName || t('debrief.unknownGovernor') }}
                   </td>
                   <td class="px-2 py-3 text-right font-semibold">
