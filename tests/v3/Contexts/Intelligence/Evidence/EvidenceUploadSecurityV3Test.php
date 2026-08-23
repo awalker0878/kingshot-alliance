@@ -74,6 +74,44 @@ final class EvidenceUploadSecurityV3Test extends TestCase
         Queue::assertPushed(ClassifyGameEvidenceJob::class, 2);
     }
 
+    public function test_visually_identical_but_binary_distinct_screenshots_warn_without_auto_merging(): void
+    {
+        Storage::fake('local');
+        Queue::fake();
+        config()->set('evidence.disk', 'local');
+        config()->set('evidence.visual_duplicate_distance', 0);
+        $this->bindScanner(clean: true);
+
+        $scenario = new ScenarioFactory;
+        $account = $scenario->authUser();
+        $actor = $scenario->player((int) $account->id, 59117);
+        [, $occurrenceId] = $this->bearHunt($scenario, $actor);
+        $upload = app(UploadGameEvidence::class);
+
+        $first = $upload->handle(
+            $actor->playerId,
+            $occurrenceId,
+            UploadedFile::fake()->createWithContent('visual-a.png', $this->visualPngA()),
+        );
+        $second = $upload->handle(
+            $actor->playerId,
+            $occurrenceId,
+            UploadedFile::fake()->createWithContent('visual-b.png', $this->visualPngB()),
+        );
+
+        self::assertFalse($first->duplicate);
+        self::assertFalse($second->duplicate);
+        self::assertNotSame($first->evidenceId, $second->evidenceId);
+        $firstEvidence = GameEvidence::query()->findOrFail($first->evidenceId);
+        $secondEvidence = GameEvidence::query()->findOrFail($second->evidenceId);
+        self::assertNotSame((string) $firstEvidence->sha256, (string) $secondEvidence->sha256);
+        self::assertSame((string) $firstEvidence->perceptual_hash, (string) $secondEvidence->perceptual_hash);
+        self::assertSame($first->evidenceId, (string) $secondEvidence->visual_duplicate_evidence_id);
+        self::assertSame(0, $secondEvidence->visual_duplicate_distance);
+        self::assertSame(2, GameEvidence::query()->where('occurrence_id', $occurrenceId)->count());
+        Queue::assertPushed(ClassifyGameEvidenceJob::class, 2);
+    }
+
     public function test_unsafe_spoofed_and_oversized_uploads_fail_closed_without_persisting_evidence(): void
     {
         Storage::fake('local');
@@ -185,10 +223,28 @@ final class EvidenceUploadSecurityV3Test extends TestCase
 
     private function pngBinary(): string
     {
-        $binary = base64_decode(
+        return $this->decodePng(
             'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAFgwJ/l3MB9QAAAABJRU5ErkJggg==',
-            true,
         );
+    }
+
+    private function visualPngA(): string
+    {
+        return $this->decodePng(
+            'iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAA00lEQVR4AQHIADf/Af///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABW1AMNZTpZ6QAAAABJRU5ErkJggg==',
+        );
+    }
+
+    private function visualPngB(): string
+    {
+        return $this->decodePng(
+            'iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAABnRFWHRub3RlAHjLyl4vAAAAFUlEQVR42mP8//8/AzbAxIADDE4JAFbUAw3/dxQWAAAAAElFTkSuQmCC',
+        );
+    }
+
+    private function decodePng(string $encoded): string
+    {
+        $binary = base64_decode($encoded, true);
         self::assertIsString($binary);
 
         return $binary;
