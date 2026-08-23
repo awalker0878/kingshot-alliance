@@ -12,6 +12,7 @@ use App\Contexts\Operations\Participation\Models\EventAttendance;
 use App\Contexts\Operations\Participation\Queries\BearHuntAttendanceSummaryQuery;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Tests\v3\Support\ScenarioFactory;
 use Tests\v3\TestCase;
 
@@ -80,7 +81,7 @@ final class BearHuntAttendanceSummaryV3Test extends TestCase
 
     public function test_no_attendance_rows_is_not_recorded_instead_of_zero_percent(): void
     {
-        $summary = app(BearHuntAttendanceSummaryQuery::class)->forOccurrence((string) \Illuminate\Support\Str::ulid());
+        $summary = app(BearHuntAttendanceSummaryQuery::class)->forOccurrence((string) Str::ulid());
 
         self::assertFalse($summary['available']);
         self::assertSame(0, $summary['total']);
