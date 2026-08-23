@@ -13,8 +13,8 @@ const fingerprints: Record<string, Record<string, string>> = {
     mobile: '0000000000000000000000000000000000000000000000000000000000000000',
   },
   noticeboard: {
-    desktop: '0000000000000000000000000000000000000000000000000000000000000000',
-    mobile: '0000000000000000000000000000000000000000000000000000000000000000',
+    desktop: 'fccbadf99ba56470d0cbecaa51c0e82756e53146c6b1cd6aa39e4fb1ea1ff348',
+    mobile: '44084d405757bed544f009242f2abf8847745ee77dd418760a267a89b6ba7949',
   },
   noticeDetail: {
     desktop: '0000000000000000000000000000000000000000000000000000000000000000',
@@ -91,6 +91,7 @@ test('Alliance Rules are a first-class readable and editable member surface', as
 
   await expect(page.getByRole('heading', { name: 'Alliance Rules', level: 1 })).toBeVisible();
   await expect(page.getByText('Join Bear Hunt rallies on time.')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Alliance Rules', level: 2 })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Edit Alliance Rules', level: 2 })).toBeVisible();
   const rules = page.getByLabel('Rules');
   await expect(rules).toHaveValue(/Follow R4\/R5 battle calls/);
@@ -107,6 +108,7 @@ test('Alliance Rules expose the localized empty and editable state', async ({ pa
 
   await expect(page.getByRole('heading', { name: 'Alliance Rules', level: 1 })).toBeVisible();
   await expect(page.getByText('No Alliance Rules have been posted yet.')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Alliance Rules', level: 2 })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Add Alliance Rules', level: 2 })).toBeVisible();
   await expect(page.getByLabel('Rules')).toHaveValue('');
   await expect(page.getByRole('button', { name: 'Save Alliance Rules' })).toBeEnabled();
@@ -143,13 +145,14 @@ test('Alliance Notice detail preserves reaction state and anti-ranking semantics
   await page.goto('/alliance/content/bear-hunt-rally-window');
   await page.waitForLoadState('networkidle');
 
+  const article = page.getByRole('article');
   await expect(
-    page.getByRole('heading', { name: 'Bear Hunt Rally Window', level: 1 }),
+    article.getByRole('heading', { name: 'Bear Hunt Rally Window', level: 1 }),
   ).toBeVisible();
-  const like = page.getByRole('button', {
+  const like = article.getByRole('button', {
     name: /Remove your Like from this Alliance Notice\. 1 likes\./,
   });
-  const dislike = page.getByRole('button', {
+  const dislike = article.getByRole('button', {
     name: /Dislike this Alliance Notice\. 1 dislikes\./,
   });
   await expect(like).toHaveAttribute('aria-pressed', 'true');
