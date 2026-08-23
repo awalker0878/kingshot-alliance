@@ -40,6 +40,16 @@ jobs:
       - name: Install locked frontend dependencies
         run: npm ci --no-audit --no-fund
 
+      - name: Remove known dead declaration
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('resources/js/pages/Kingdom/Transfer/Readiness.vue')
+          source = path.read_text()
+          source = source.replace("const readinessStates: Readiness[] = ['not_started','preparing','ready','blocked','confirmed','withdrawn'];\n", '')
+          path.write_text(source)
+          PY
+
       - name: Apply repository formatters
         run: |
           vendor/bin/pint
