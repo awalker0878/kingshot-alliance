@@ -1,3 +1,27 @@
-import messages from './en';
+import type { MessageCatalogue } from '../../types';
+
+const messages = {
+  evidence: {
+    openIntake: 'Importer un rapport de bataille',
+    eyebrow: 'Chasse à l’ours · Vérification du rapport',
+    title: 'Import de captures d’écran',
+    subtitle: 'Importez un rapport de Chasse à l’ours, vérifiez chaque valeur relevée et prévisualisez les changements de score avant de les enregistrer.',
+    back: 'Retour à la Chasse à l’ours',
+    uploadTitle: 'Importer un rapport de bataille',
+    uploadHelp: 'JPEG, PNG ou WebP. L’original reste privé, est analysé pour la sécurité et reçoit une empreinte de contrôle.',
+    chooseFile: 'Capture du rapport de bataille', upload: 'Importer la capture', uploading: 'Importation…',
+    existingTitle: 'Captures de rapports de bataille', empty: 'Aucune capture n’a encore été importée pour cette Chasse à l’ours.', acceptedReports: 'Rapports de bataille enregistrés',
+    originalName: 'Source', status: 'État', received: 'Reçu', security: 'Détails de la source', dimensions: 'Dimensions', checksum: 'Empreinte du fichier', imagePreview: 'Capture d’origine', imageUnavailable: 'La capture d’origine n’est plus conservée.',
+    processing: 'Lecture de la capture', processingHelp: 'Le rapport est en cours de lecture. Actualisez pour voir le dernier résultat.', retry: 'Relire la capture', retrying: 'Nouvelle tentative…',
+    visualDuplicate: 'Capture similaire possible', visualDuplicateHelp: 'Cette image ressemble à une autre capture de cette Chasse à l’ours. Ce n’est qu’un avertissement : vérifiez le rapport avant de décider.', distance: 'Différence d’image',
+    classificationHistory: 'Historique de détection du rapport', extractionHistory: 'Historique de lecture du rapport', attempt: 'Tentative', confidence: 'Confiance', failureCode: 'Code d’échec', extractedFields: 'Valeurs relevées du rapport', reportTimestamp: 'Horodatage du rapport',
+    governor: 'Gouverneur', rank: 'Rang', damage: 'Dégâts', include: 'Inclure', rawText: 'Lu sur la capture', reviewTitle: 'Vérifier le rapport de bataille', reviewHelp: 'Associez chaque Gouverneur inclus, corrigez les valeurs mal lues et expliquez les corrections. Les valeurs relevées à l’origine et leur niveau de confiance restent dans l’historique.',
+    playerResolution: 'Gouverneur associé', unresolved: 'Sélectionner un Gouverneur', correctionReason: 'Motif de la correction', correctionReasonHelp: 'Obligatoire lorsque vous corrigez sensiblement une valeur relevée.', saveReview: 'Enregistrer le rapport vérifié', savingReview: 'Enregistrement…', reviewHistory: 'Historique des vérifications', revision: 'Révision',
+    semanticDuplicate: 'Rapport de bataille correspondant bloqué', semanticDuplicateHelp: 'Une autre capture vérifiée contient le même rapport de Chasse à l’ours. L’enregistrement est bloqué jusqu’à ce que vous expliquiez pourquoi il s’agit d’un rapport différent.', distinctJustification: 'Pourquoi s’agit-il d’un autre rapport de bataille ?', resolveDuplicate: 'Marquer comme rapport différent',
+    previewTitle: 'Aperçu des scores', previewHelp: 'Vérifiez les totaux actuels de la Chasse à l’ours, les dégâts de ce rapport et les totaux qui seront enregistrés.', before: 'Actuel', report: 'Ce rapport', after: 'Après enregistrement',
+    commit: 'Enregistrer dans les résultats de la Chasse à l’ours', commitTitle: 'Enregistrer le rapport de bataille vérifié ?', commitDescription: 'Ce rapport de bataille sera enregistré une seule fois et les totaux des Gouverneurs seront recalculés. Répéter le même enregistrement n’ajoutera pas les dégâts deux fois.', committing: 'Enregistrement…', committed: 'Enregistré dans les résultats', commitHistory: 'Historique des enregistrements', destinationReport: 'Rapport de bataille enregistré', replayed: 'Déjà enregistré',
+    delete: 'Supprimer la preuve de capture', deleteTitle: 'Supprimer la capture conservée ?', deleteDescription: 'L’image source et le texte sensible qui en a été lu seront supprimés. Les résultats de Chasse à l’ours déjà enregistrés à partir de ce rapport ne seront pas supprimés.', deleting: 'Suppression…', deleted: 'Preuve de capture supprimée', redacted: 'Données source sensibles supprimées', refresh: 'Actualiser l’état', noRows: 'Aucune ligne de classement n’a été trouvée. Relancez la lecture ou importez une capture plus nette.', lowConfidence: 'Faible confiance', corrected: 'Corrigé par le vérificateur', excluded: 'Exclu de l’enregistrement', history: 'Historique de la source',
+  },
+} satisfies MessageCatalogue;
 
 export default messages;
