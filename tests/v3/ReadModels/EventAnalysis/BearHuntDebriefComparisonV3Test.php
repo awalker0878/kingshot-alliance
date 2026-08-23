@@ -40,14 +40,14 @@ final class BearHuntDebriefComparisonV3Test extends TestCase
 
         $previous = $this->occurrence($actor, $alliance, CarbonImmutable::now('UTC')->subDay());
         $previous->forceFill(['status' => EventOccurrenceStatus::Completed])->save();
-        $this->result($previous, $actor, 100, 1);
+        $this->recordPlayerResult($previous, $actor, 100, 1);
         $this->attendance($previous, $actor, EventAttendanceStatus::Absent, $actor);
         $this->attendance($previous, $other, EventAttendanceStatus::Present, $actor);
         $this->rally($previous, $alliance, $actor, $actor, 'Previous Rally');
 
         $current = $this->occurrence($actor, $alliance, CarbonImmutable::now('UTC'));
-        $this->result($current, $actor, 150, 1);
-        $this->result($current, $other, 75, 2);
+        $this->recordPlayerResult($current, $actor, 150, 1);
+        $this->recordPlayerResult($current, $other, 75, 2);
         $this->attendance($current, $actor, EventAttendanceStatus::Present, $actor);
         $this->attendance($current, $other, EventAttendanceStatus::Present, $actor);
         $this->rally($current, $alliance, $actor, $actor, 'Current Rally 1');
@@ -80,10 +80,10 @@ final class BearHuntDebriefComparisonV3Test extends TestCase
 
         $previous = $this->occurrence($actor, $alliance, CarbonImmutable::now('UTC')->subDay());
         $previous->forceFill(['status' => EventOccurrenceStatus::Completed])->save();
-        $this->result($previous, $actor, 100, 1);
+        $this->recordPlayerResult($previous, $actor, 100, 1);
 
         $current = $this->occurrence($actor, $alliance, CarbonImmutable::now('UTC'));
-        $this->result($current, $actor, 120, 1);
+        $this->recordPlayerResult($current, $actor, 120, 1);
         $current->load(['event.eventType', 'event.typeScope.capabilities']);
 
         $debrief = app(BearHuntDebriefQuery::class)->forOccurrence($current, $actor, false);
@@ -120,7 +120,7 @@ final class BearHuntDebriefComparisonV3Test extends TestCase
         return EventOccurrence::query()->findOrFail($created->firstOccurrenceId);
     }
 
-    private function result(
+    private function recordPlayerResult(
         EventOccurrence $occurrence,
         PlayerReference $player,
         int $score,
