@@ -40,11 +40,7 @@ function updated(value: string | null | undefined): string {
 <template>
   <Head :title="`${t('contentExperience.rulesTitle')} · ${alliance.name}`" />
 
-  <AppLayout
-    :user="user"
-    :player-alliance-name="alliance.name"
-    :has-player-alliance="true"
-  >
+  <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
     <RoomBanner
       :eyebrow="t('contentExperience.eyebrow')"
       :title="t('contentExperience.rulesTitle')"
@@ -59,9 +55,7 @@ function updated(value: string | null | undefined): string {
       </template>
     </RoomBanner>
 
-    <div
-      class="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(20rem,.65fr)]"
-    >
+    <div class="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(20rem,.65fr)]">
       <section class="ks-surface p-5 sm:p-7" aria-labelledby="alliance-rules-heading">
         <div class="flex flex-wrap items-start justify-between gap-3">
           <div>
@@ -75,7 +69,7 @@ function updated(value: string | null | undefined): string {
 
         <div
           v-if="rules"
-          class="mt-6 whitespace-pre-wrap text-sm leading-7 text-[var(--ks-text-secondary)] sm:text-base"
+          class="mt-6 text-sm leading-7 whitespace-pre-wrap text-[var(--ks-text-secondary)] sm:text-base"
         >
           {{ rules.body }}
         </div>
