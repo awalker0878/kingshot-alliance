@@ -49,9 +49,12 @@ test('Bear Hunt Debrief remains readable and complete on desktop and mobile', as
   await expect(page.getByRole('heading', { name: /Governors need matching/ })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Recent Bear Hunt trends' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Bear Hunt run history' })).toBeVisible();
-  await expect(page.getByText('Bear Marshal').first()).toBeVisible();
-  await expect(page.getByText('Ember Scout').first()).toBeVisible();
-  await expect(page.getByText('Unknown Ember').first()).toBeVisible();
+
+  for (const governor of ['Bear Marshal', 'Ember Scout', 'Unknown Ember']) {
+    await expect(
+      page.locator('h3:visible, strong:visible', { hasText: governor }).first(),
+    ).toBeVisible();
+  }
 
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
