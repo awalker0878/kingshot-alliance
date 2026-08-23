@@ -22,6 +22,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  * @property TransferSourceType $source_type
  * @property string $source_reference
  * @property CarbonImmutable $observed_at
+ * @property string|null $evidence_id
  * @property CarbonImmutable|null $superseded_at
  * @property string|null $recorded_by_player_id
  * @property-read TransferWindow $window
