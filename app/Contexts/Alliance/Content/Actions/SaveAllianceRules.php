@@ -34,7 +34,7 @@ final readonly class SaveAllianceRules
     public function handle(string $allianceId, string $actorPlayerId, string $body, string $locale): string
     {
         return DB::transaction(function () use ($allianceId, $actorPlayerId, $body, $locale): string {
-            $context = $this->allianceWriteState->lockActiveScope($actorPlayerId, $allianceId);
+            $context = $this->allianceWriteState->lockExclusiveScope($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, AlliancePermission::ContentManage);
 
             $rawBody = trim($body);
