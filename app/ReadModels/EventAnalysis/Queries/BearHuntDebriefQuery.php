@@ -99,7 +99,10 @@ final readonly class BearHuntDebriefQuery
             ->limit(self::HISTORY_LIMIT)
             ->get();
 
-        $runIds = $runOccurrences->pluck('id')->map(static fn ($id): string => (string) $id)->all();
+        /** @var list<string> $runIds */
+        $runIds = array_values(
+            $runOccurrences->pluck('id')->map(static fn ($id): string => (string) $id)->all(),
+        );
         $historyFacts = $this->history->forOccurrences($runIds, $actor->playerId);
         $runs = [];
         foreach ($runOccurrences as $run) {
@@ -221,7 +224,11 @@ final readonly class BearHuntDebriefQuery
         ];
     }
 
-    /** @return array<string,mixed>|null */
+    /**
+     * @param array<string,mixed>|null $current
+     * @param array<string,mixed>|null $previous
+     * @return array<string,mixed>|null
+     */
     private function comparison(?array $current, ?array $previous): ?array
     {
         if ($current === null || $previous === null) {
