@@ -48,7 +48,7 @@ final class TransferEligibilityEvaluatorV3Test extends TestCase
         );
 
         self::assertSame(TransferEligibilityOutcome::EligibleNow, $assessment->outcome);
-        self::assertNull($assessment->primaryNextAction);
+        self::assertNull($assessment->primaryAction);
         self::assertContains(
             TransferRequirementState::NotApplicable,
             array_map(static fn ($requirement): TransferRequirementState => $requirement->state, $assessment->requirements),
@@ -131,7 +131,7 @@ final class TransferEligibilityEvaluatorV3Test extends TestCase
         $assessment = app(TransferEligibilityEvaluator::class)->evaluate($input, $this->now);
 
         self::assertSame(TransferEligibilityOutcome::EligibleWithAction, $assessment->outcome);
-        self::assertSame('Acquire 2 more Transfer Pass(es).', $assessment->primaryNextAction);
+        self::assertSame('Acquire 2 more Transfer Pass(es).', $assessment->primaryAction);
     }
 
     public function test_false_in_game_verification_is_a_hard_blocker_and_missing_verification_never_silently_passes(): void
