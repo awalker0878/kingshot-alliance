@@ -4,7 +4,8 @@ const messages = {
   debrief: {
     title: 'Bear Hunt Debrief',
     eyebrow: 'Bear Hunt · After action',
-    subtitle: 'Review recorded damage, attendance, Rally participation, unresolved Governors, and how this Hunt compares with recent runs.',
+    subtitle:
+      'Review recorded damage, attendance, Rally participation, unresolved Governors, and how this Hunt compares with recent runs.',
     totalDamage: 'Total damage',
     governors: 'Governors',
     governor: 'Governor',
@@ -30,7 +31,8 @@ const messages = {
     noResults: 'No Governor damage has been recorded for this Hunt yet.',
     needsReview: 'Needs review',
     unmatchedGovernors: '{count} Governors need matching',
-    reviewHelp: 'Finish Governor matching in Screenshot Intake. The debrief never creates a second identity-matching workflow.',
+    reviewHelp:
+      'Finish Governor matching in Screenshot Intake. The debrief never creates a second identity-matching workflow.',
     reviewImport: 'Review imported report',
     trends: 'Trends',
     runTrends: 'Recent Bear Hunt trends',
@@ -38,7 +40,8 @@ const messages = {
     allianceDamageTrend: 'Alliance damage by Hunt',
     previousHunt: 'Previous Hunt',
     noPrevious: 'No previous Hunt',
-    noPreviousHelp: 'A comparison appears after an earlier completed Bear Hunt exists for this Alliance.',
+    noPreviousHelp:
+      'A comparison appears after an earlier completed Bear Hunt exists for this Alliance.',
     history: 'History',
     runHistory: 'Bear Hunt run history',
   },
