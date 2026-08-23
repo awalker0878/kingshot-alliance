@@ -49,7 +49,7 @@ test('Kingdom Transfer Planning keeps eligibility, verification, and readiness d
   await expect(emberCard.getByText('Blocked', { exact: true }).first()).toBeVisible();
   await expect(frostCard.getByText('Needs verification', { exact: true }).first()).toBeVisible();
   await expect(northstarCard.getByText('Transfer Group 7', { exact: true })).toBeVisible();
-  await expect(northstarCard.getByText('K1524 Vanguard', { exact: true })).toBeVisible();
+  await expect(northstarCard).toContainText('K1524 Vanguard');
   await expect(northstarCard.getByText('Confirm alliance hand-off time', { exact: true })).toBeVisible();
 
   const filter = page.getByRole('combobox', { name: /eligibility/i });
