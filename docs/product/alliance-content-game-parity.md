@@ -63,7 +63,18 @@ The canonical document is identified by:
 - `type = rule`;
 - reserved slug `alliance-rules`.
 
-The existing database uniqueness of `(alliance_id, slug)` provides the persistence-level singleton invariant for the canonical Rules document. Generic content management must not be allowed to claim the reserved `alliance-rules` slug; the dedicated Rules Action owns that identity.
+The existing database uniqueness of `(alliance_id, slug)` provides the persistence-level singleton invariant for the canonical Rules document. The dedicated Rules workflow exclusively owns that canonical identity.
+
+Generic Content management therefore must not:
+
+- create a generic item with the reserved `alliance-rules` slug;
+- mutate or rename an existing canonical Rules item by Content-item ID;
+- publish or schedule the canonical Rules item through the generic publication Action;
+- archive the canonical Rules item through the generic archive Action;
+- restore one of its revisions through the generic revision-restore Action;
+- present the canonical Rules item as an editable item in the generic Noticeboard-management inventory.
+
+Those owner-side restrictions are required even if the current UI does not expose a generic control, so crafted requests cannot bypass the first-class Rules workflow.
 
 The canonical Rules document is:
 
@@ -300,14 +311,14 @@ The slice is accepted only when all of the following are true:
 2. A Content manager can create and update the canonical Rules document.
 3. A non-manager can read Rules but cannot update them, with executable HTTP behavior coverage rather than route-metadata assertions alone.
 4. Canonical Rules reuse Content persistence/revisions/audit rather than a duplicate Rules store.
-5. Generic Content writes cannot claim the reserved `alliance-rules` slug.
+5. Generic Content creation cannot claim the reserved `alliance-rules` slug, and generic save/publish/schedule/archive/restore flows cannot mutate an existing canonical Rules item; the generic manager inventory omits that item.
 6. Rules no-op saves are idempotent.
 7. Rules body/locale invariants are enforced at the owner Action boundary as well as the HTTP boundary, and invalid direct Action calls leave Content/revision/audit/outbox state unchanged.
 8. Published Alliance Notices expose Like/Dislike to active members.
 9. One member can have at most one reaction per Notice.
 10. Like, Dislike, switching, toggling off and repeated no-op requests behave deterministically.
 11. Reaction writes do not require or consult publishing/Content-management permission.
-12. Draft/scheduled/archived/non-Announcement/foreign-Alliance targets reject reaction writes.
+12. Draft/scheduled/archived/non-Announcement/foreign-Alliance targets reject reaction writes, and losing active membership removes reaction-write authority.
 13. Noticeboard Index and Show expose counts + current-member state without per-card N+1 queries.
 14. Reaction totals never influence Content ordering, visibility, pinning, moderation, recommendations or public-page ranking.
 15. Reaction mutation failures preserve the prior server-backed state, re-enable controls, expose localized inline feedback and remain immediately retryable.
@@ -322,7 +333,7 @@ The slice is accepted only when all of the following are true:
 | Phase | Status | Slice | Exit condition |
 | --- | --- | --- | --- |
 | 1 | Complete | Product contract and ownership | This contract defines scope, ownership, authorization/data invariants, UX states, acceptance criteria and anti-ranking boundaries before application-code changes. |
-| 2 | In progress | First-class Alliance Rules | Canonical Rules Action/read surface, reserved identity, revisions, audit/outbox, owner-boundary validation, read/write authorization and idempotency are implemented and behavior-tested, including ordinary-member HTTP read proof. |
+| 2 | In progress | First-class Alliance Rules | Canonical Rules Action/read surface, reserved identity, revisions, audit/outbox, owner-boundary validation, dedicated-workflow isolation from generic Content mutations, read/write authorization and idempotency are implemented and behavior-tested, including ordinary-member HTTP read proof. |
 | 3 | In progress | Alliance Notice reactions | Reaction enum/model/schema/actions enforce active-member authorization, target validity, uniqueness, switching/removal/idempotency and audit semantics. |
 | 4 | In progress | Read composition and UX | Notice reads include bounded reaction summaries; Rules/reaction UI, navigation, mobile/accessibility/localization/failure-retry states and no-ranking ordering are complete; all eight desktop/mobile visual surfaces have accepted stable fingerprints. |
 | 5 | In progress | Verification and closeout | Automated behavior/contract/architecture/visual coverage and affected product/reference/architecture/frontend docs are reconciled; applicable repository quality gates are green on one immutable head. |
@@ -337,6 +348,8 @@ Implementation is required to close findings discovered after the initial contra
 - the Rules page must preserve a single page-level heading hierarchy while keeping document/edit sections semantically named;
 - deterministic visual coverage must include published Rules, empty Rules, Noticeboard reactions and Notice-detail reactions on desktop and mobile;
 - Notice reaction failure must follow the repository mutation UX: no optimistic state drift, localized inline feedback, controls re-enabled and retry available;
+- scheduled/archived targets and membership-loss reaction denial require direct behavior coverage rather than code inspection alone;
+- the canonical Rules identity must be isolated from every generic Content mutation path and omitted from the generic management inventory, not merely protected against generic creation with the reserved slug;
 - the frontend capability map must explicitly describe first-class Alliance Rules and informational non-ranking Notice reactions so UI documentation agrees with the shipped capability.
 
 These findings are part of the current product scope and keep the corresponding delivery phases open until implemented and verified.
