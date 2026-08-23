@@ -110,8 +110,8 @@ final class BearHuntRunHistoryQuery
             }
 
             $result[$occurrenceId]['attendance']['available'] = true;
-            $result[$occurrenceId]['attendance']['total']++;
-            $result[$occurrenceId]['attendance'][$status]++;
+            $result[$occurrenceId]['attendance']['total'] += 1;
+            $result[$occurrenceId]['attendance'][$status] += 1;
             if ((string) $row->player_id === $actorPlayerId) {
                 $result[$occurrenceId]['attendance']['personalStatus'] = $status;
             }
@@ -147,20 +147,20 @@ final class BearHuntRunHistoryQuery
                 continue;
             }
 
-            $result[$occurrenceId]['rallies']['participated']++;
+            $result[$occurrenceId]['rallies']['participated'] += 1;
             if ($isActor) {
-                $result[$occurrenceId]['rallies']['personalParticipated']++;
+                $result[$occurrenceId]['rallies']['personalParticipated'] += 1;
             }
 
             if ((string) $row->role === RallyAssignmentRole::Lead->value) {
-                $result[$occurrenceId]['rallies']['led']++;
+                $result[$occurrenceId]['rallies']['led'] += 1;
                 if ($isActor) {
-                    $result[$occurrenceId]['rallies']['personalLed']++;
+                    $result[$occurrenceId]['rallies']['personalLed'] += 1;
                 }
             } elseif ((string) $row->role === RallyAssignmentRole::Joiner->value) {
-                $result[$occurrenceId]['rallies']['joined']++;
+                $result[$occurrenceId]['rallies']['joined'] += 1;
                 if ($isActor) {
-                    $result[$occurrenceId]['rallies']['personalJoined']++;
+                    $result[$occurrenceId]['rallies']['personalJoined'] += 1;
                 }
             }
         }
