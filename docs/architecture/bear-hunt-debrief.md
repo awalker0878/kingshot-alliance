@@ -12,7 +12,7 @@ Bear Hunt Debrief is a composed read experience. It is not a bounded context and
 | Governor damage, rank and accepted battle-report truth | `Operations/Results` | Reads the projected Event result plus accepted Bear Hunt report provenance. |
 | Attendance | `Operations/Participation` | Reads recorded attendance without inferring missing rows. |
 | Rally participation | `Operations/Rallies` | Reads only explicitly recorded assignment outcomes; only `participated` counts participation. |
-| Screenshot provenance, extraction and unresolved Governor review | `Intelligence/Evidence` | Reads a manager-authorized unresolved review summary and links back to Screenshot Intake. |
+| Screenshot provenance, extraction and unresolved Governor review | `Intelligence/Evidence` | Reads a manager-authorized unresolved review summary and links back to Screenshot Intake. A `needs_review` lifecycle by itself is not enough: if the latest extraction already has a saved review, its Governor rows are resolved/excluded and are not exposed as unmatched even when another Evidence decision, such as semantic-duplicate resolution, remains pending. |
 | Cross-owner history/comparison/trends | `app/ReadModels/EventAnalysis` | Composes already-owned facts into a bounded debrief payload. |
 
 `EventAnalysis` never writes owner tables. No `BearHunt` application/domain namespace, schema, repository, job family or aggregate is introduced.
@@ -24,7 +24,7 @@ Bear Hunt Debrief is a composed read experience. It is not a bounded context and
 3. `BearHuntDebriefQuery` reacquires `event.alliance.view` authority before historical Alliance reads.
 4. Owner queries return current Results, Participation and Rally facts.
 5. EventAnalysis loads at most the configured recent Bear Hunt occurrence window for the same Alliance target and composes history, previous-run comparison and trend series.
-6. When the caller can manage the occurrence, Intelligence/Evidence returns unresolved rows through its own authorization boundary. Non-managers receive no unresolved Evidence payload.
+6. When the caller can manage the occurrence, Intelligence/Evidence reacquires manager authority, batches the bounded candidate Evidence/review/extraction/field reads, and returns only latest extractions that still lack a saved review. Non-managers receive no unresolved Evidence payload.
 7. The controller emits one privacy-safe structured read event and returns the Inertia view model.
 
 ## Data semantics
@@ -32,6 +32,8 @@ Bear Hunt Debrief is a composed read experience. It is not a bounded context and
 Missing owner data remains `null`/unavailable and is never converted to zero. Recorded Rally rows make Rally evidence available even when the resulting `participated` count is zero. Previous-run selection skips the current occurrence and chooses the immediately preceding completed Bear Hunt for the same Alliance target.
 
 Historical Results remain owned by Results. The read model never recomputes accepted screenshot rows as domain truth; it consumes the owner projection so replay, correction, report removal and preserved baseline behavior stay centralized in Results.
+
+Unmatched-Governor state remains Evidence-owned. The Debrief does not infer matching state from lifecycle alone, does not inspect another tenant's Evidence, and does not reinterpret a semantic-duplicate block as an identity-matching problem.
 
 ## Authorization
 
