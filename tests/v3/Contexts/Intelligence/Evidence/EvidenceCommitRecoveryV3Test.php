@@ -39,7 +39,11 @@ final class EvidenceCommitRecoveryV3Test extends TestCase
     {
         [$actor, $allianceId, $occurrenceId] = $this->bearHunt();
         $review = $this->approvedReview($actor, $allianceId, $occurrenceId);
-        $command = app(BeginEvidenceCommit::class)->handle($actor->playerId, (string) $review->id);
+        $command = app(BeginEvidenceCommit::class)->handle(
+            $actor->playerId,
+            $occurrenceId,
+            (string) $review->id,
+        );
         $firstAttemptId = $command->commitAttemptId;
 
         $operationsReceipt = app(RecordBearHuntBattleReport::class)->handle(
@@ -68,6 +72,7 @@ final class EvidenceCommitRecoveryV3Test extends TestCase
 
         $retryReceipt = app(CommitReviewedBearHuntEvidence::class)->handle(
             $actor->playerId,
+            $occurrenceId,
             (string) $review->id,
         );
 
