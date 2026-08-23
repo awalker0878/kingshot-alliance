@@ -24,6 +24,7 @@ use App\Contexts\Operations\Results\Models\EventPlayerResult;
 use App\Contexts\Operations\Results\Queries\BearHuntDebriefResultQuery;
 use App\ReadModels\EventAnalysis\Queries\BearHuntDebriefQuery;
 use Carbon\CarbonImmutable;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Tests\v3\Support\ScenarioFactory;
@@ -185,37 +186,18 @@ final class BearHuntDebriefV3Test extends TestCase
 
         $previous = $this->bearHuntOccurrence($actor, $alliance, CarbonImmutable::now('UTC')->subDays(2));
         $previous->forceFill(['status' => EventOccurrenceStatus::Completed])->save();
-        EventPlayerResult::query()->create([
-            'occurrence_id' => (string) $previous->id,
-            'player_id' => $actor->playerId,
-            'score' => 100,
-            'rank' => 4,
-            'recorded_by_player_id' => $actor->playerId,
-            'recorded_at' => now(),
-        ]);
+        $this->result($previous, $actor, 100, 4);
 
-        $otherAlliance = $scenario->alliance($actor);
-        $scenario->roster($actor, $otherAlliance);
-        $wrongTarget = $this->bearHuntOccurrence($actor, $otherAlliance, CarbonImmutable::now('UTC')->subDay());
+        $otherAccount = $scenario->authUser();
+        $otherOwner = $scenario->player((int) $otherAccount->id, 61104);
+        $otherAlliance = $scenario->alliance($otherOwner);
+        $scenario->roster($otherOwner, $otherAlliance);
+        $wrongTarget = $this->bearHuntOccurrence($otherOwner, $otherAlliance, CarbonImmutable::now('UTC')->subDay());
         $wrongTarget->forceFill(['status' => EventOccurrenceStatus::Completed])->save();
-        EventPlayerResult::query()->create([
-            'occurrence_id' => (string) $wrongTarget->id,
-            'player_id' => $actor->playerId,
-            'score' => 999,
-            'rank' => 1,
-            'recorded_by_player_id' => $actor->playerId,
-            'recorded_at' => now(),
-        ]);
+        $this->result($wrongTarget, $otherOwner, 999, 1);
 
         $current = $this->bearHuntOccurrence($actor, $alliance, CarbonImmutable::now('UTC'));
-        EventPlayerResult::query()->create([
-            'occurrence_id' => (string) $current->id,
-            'player_id' => $actor->playerId,
-            'score' => 150,
-            'rank' => 2,
-            'recorded_by_player_id' => $actor->playerId,
-            'recorded_at' => now(),
-        ]);
+        $this->result($current, $actor, 150, 2);
 
         $current->load(['event.eventType', 'event.typeScope.capabilities']);
         $debrief = app(BearHuntDebriefQuery::class)->forOccurrence($current, $actor, false);
@@ -228,6 +210,129 @@ final class BearHuntDebriefV3Test extends TestCase
         self::assertFalse($debrief['canReviewEvidence']);
         self::assertCount(2, $debrief['runs']);
         self::assertSame(150, $debrief['personalTrend'][1]['damage']);
+    }
+
+    public function test_zero_previous_damage_uses_absolute_delta_without_invalid_percentage(): void
+    {
+        $scenario = new ScenarioFactory;
+        $account = $scenario->authUser();
+        $actor = $scenario->player((int) $account->id, 61105);
+        $alliance = $scenario->alliance($actor);
+        $scenario->roster($actor, $alliance);
+
+        $previous = $this->bearHuntOccurrence($actor, $alliance, CarbonImmutable::now('UTC')->subDay());
+        $previous->forceFill(['status' => EventOccurrenceStatus::Completed])->save();
+        $this->result($previous, $actor, 0, 2);
+
+        $current = $this->bearHuntOccurrence($actor, $alliance, CarbonImmutable::now('UTC'));
+        $this->result($current, $actor, 50, 1);
+        $current->load(['event.eventType', 'event.typeScope.capabilities']);
+
+        $debrief = app(BearHuntDebriefQuery::class)->forOccurrence($current, $actor, false);
+
+        self::assertSame('previous_zero', $debrief['comparison']['allianceDamage']['state']);
+        self::assertSame(50, $debrief['comparison']['allianceDamage']['delta']);
+        self::assertNull($debrief['comparison']['allianceDamage']['percentChange']);
+        self::assertSame(1, $debrief['comparison']['personalRank']['movement']);
+    }
+
+    public function test_idempotent_result_replay_does_not_change_debrief_totals_or_report_count(): void
+    {
+        $scenario = new ScenarioFactory;
+        $account = $scenario->authUser();
+        $actor = $scenario->player((int) $account->id, 61106);
+        $alliance = $scenario->alliance($actor);
+        $scenario->roster($actor, $alliance);
+        $occurrence = $this->bearHuntOccurrence($actor, $alliance, CarbonImmutable::now('UTC'));
+        $record = app(RecordBearHuntBattleReport::class);
+        $sourceEvidenceId = (string) Str::ulid();
+        $sourceCommitAttemptId = (string) Str::ulid();
+        $idempotencyKey = hash('sha256', 'debrief-replay-idempotency');
+        $fingerprint = hash('sha256', 'debrief-replay-report');
+        $entries = [[
+            'player_id' => $actor->playerId,
+            'reported_rank' => 1,
+            'damage_points' => 500,
+        ]];
+
+        $first = $record->handle(
+            $actor->playerId,
+            (string) $occurrence->id,
+            $sourceEvidenceId,
+            $sourceCommitAttemptId,
+            $idempotencyKey,
+            $fingerprint,
+            '2026-08-23 01:30:00',
+            $entries,
+        );
+        self::assertFalse($first->idempotentReplay);
+        $before = app(BearHuntDebriefResultQuery::class)->forOccurrence((string) $occurrence->id);
+
+        $replay = $record->handle(
+            $actor->playerId,
+            (string) $occurrence->id,
+            (string) Str::ulid(),
+            (string) Str::ulid(),
+            $idempotencyKey,
+            $fingerprint,
+            '2026-08-23 01:30:00',
+            $entries,
+        );
+        self::assertTrue($replay->idempotentReplay);
+        $after = app(BearHuntDebriefResultQuery::class)->forOccurrence((string) $occurrence->id);
+
+        self::assertSame($first->reportId, $replay->reportId);
+        self::assertSame(500, $before['totalDamage']);
+        self::assertSame(500, $after['totalDamage']);
+        self::assertSame(1, $before['acceptedReportCount']);
+        self::assertSame(1, $after['acceptedReportCount']);
+    }
+
+    public function test_history_is_bounded_to_twelve_runs(): void
+    {
+        $scenario = new ScenarioFactory;
+        $account = $scenario->authUser();
+        $actor = $scenario->player((int) $account->id, 61107);
+        $alliance = $scenario->alliance($actor);
+        $scenario->roster($actor, $alliance);
+        $current = null;
+
+        for ($daysAgo = 12; $daysAgo >= 0; $daysAgo--) {
+            $run = $this->bearHuntOccurrence(
+                $actor,
+                $alliance,
+                CarbonImmutable::now('UTC')->subDays($daysAgo),
+            );
+            $run->forceFill(['status' => EventOccurrenceStatus::Completed])->save();
+            $this->result($run, $actor, 100 + $daysAgo, 1);
+            $current = $run;
+        }
+        self::assertInstanceOf(EventOccurrence::class, $current);
+        $current->load(['event.eventType', 'event.typeScope.capabilities']);
+
+        $debrief = app(BearHuntDebriefQuery::class)->forOccurrence($current, $actor, false);
+
+        self::assertCount(12, $debrief['runs']);
+        self::assertCount(12, $debrief['personalTrend']);
+        self::assertCount(12, $debrief['allianceTrend']);
+        self::assertSame((string) $current->id, $debrief['runs'][0]['occurrenceId']);
+    }
+
+    public function test_history_composition_rejects_player_without_alliance_event_view_authority(): void
+    {
+        $scenario = new ScenarioFactory;
+        $ownerAccount = $scenario->authUser();
+        $owner = $scenario->player((int) $ownerAccount->id, 61108);
+        $alliance = $scenario->alliance($owner);
+        $scenario->roster($owner, $alliance);
+        $occurrence = $this->bearHuntOccurrence($owner, $alliance, CarbonImmutable::now('UTC'));
+        $occurrence->load(['event.eventType', 'event.typeScope.capabilities']);
+
+        $outsiderAccount = $scenario->authUser();
+        $outsider = $scenario->player((int) $outsiderAccount->id, 61109);
+
+        $this->expectException(AuthorizationException::class);
+        app(BearHuntDebriefQuery::class)->forOccurrence($occurrence, $outsider, false);
     }
 
     private function bearHuntOccurrence(
@@ -251,5 +356,21 @@ final class BearHuntDebriefV3Test extends TestCase
         self::assertNotNull($created->firstOccurrenceId);
 
         return EventOccurrence::query()->findOrFail($created->firstOccurrenceId);
+    }
+
+    private function result(
+        EventOccurrence $occurrence,
+        PlayerReference $player,
+        int $score,
+        int $rank,
+    ): EventPlayerResult {
+        return EventPlayerResult::query()->create([
+            'occurrence_id' => (string) $occurrence->id,
+            'player_id' => $player->playerId,
+            'score' => $score,
+            'rank' => $rank,
+            'recorded_by_player_id' => $player->playerId,
+            'recorded_at' => now(),
+        ]);
     }
 }
