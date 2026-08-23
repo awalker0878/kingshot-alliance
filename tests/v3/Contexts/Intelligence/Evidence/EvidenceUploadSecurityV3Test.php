@@ -83,9 +83,9 @@ final class EvidenceUploadSecurityV3Test extends TestCase
         $account = $scenario->authUser();
         $actor = $scenario->player((int) $account->id, 59111);
         [, $occurrenceId] = $this->bearHunt($scenario, $actor);
-        $upload = app(UploadGameEvidence::class);
 
         $this->bindScanner(clean: false, reason: 'Security scan rejected the screenshot.');
+        $upload = app(UploadGameEvidence::class);
         try {
             $upload->handle(
                 $actor->playerId,
@@ -99,6 +99,7 @@ final class EvidenceUploadSecurityV3Test extends TestCase
         self::assertSame(0, GameEvidence::query()->count());
 
         $this->bindScanner(clean: true);
+        $upload = app(UploadGameEvidence::class);
         try {
             $upload->handle(
                 $actor->playerId,
