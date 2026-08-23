@@ -64,16 +64,20 @@ test('Bear Hunt Debrief remains readable and complete on desktop and mobile', as
     'Unknown Ember',
   ]) {
     await expect(
-      page.locator('h3:visible, strong:visible', { hasText: governor }).first(),
+      page.locator('h3:visible, td:visible, strong:visible', { hasText: governor }).first(),
     ).toBeVisible();
   }
 
   await expectNoHorizontalOverflow(page);
 
-  const screenshot = await page.screenshot({
+  // Capture only the capability surface. The application shell includes fixed
+  // mobile navigation that Playwright composites at different scroll offsets
+  // during full-page capture, which makes otherwise-identical pixels unstable.
+  // Shell responsiveness is still exercised above through real-page overflow
+  // assertions and by the repository's dedicated application-shell visual tests.
+  const screenshot = await page.locator('main').screenshot({
     animations: 'disabled',
     caret: 'hide',
-    fullPage: true,
     path: testInfo.outputPath('bear-hunt-debrief.png'),
     scale: 'css',
   });
@@ -95,6 +99,10 @@ test('Bear Hunt Debrief long localized strings do not overflow', async ({ page }
 
   await expect(page.locator('html')).toHaveAttribute('lang', 'de');
   await expect(page.getByRole('heading', { name: 'Bärenjagd-Auswertung', level: 1 })).toBeVisible();
-  await expect(page.getByText('Prüfe Schaden, Anwesenheit, Rally-Teilnahme, offene Gouverneure und letzte Jagden.')).toBeVisible();
+  await expect(
+    page.getByText(
+      'Prüfe Schaden, Anwesenheit, Rally-Teilnahme, offene Gouverneure und letzte Jagden.',
+    ),
+  ).toBeVisible();
   await expectNoHorizontalOverflow(page);
 });
