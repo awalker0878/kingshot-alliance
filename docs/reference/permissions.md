@@ -28,6 +28,17 @@ Source: `app/Contexts/GameWorld/Governance/Enums/KingdomPermission.php`
 
 `GameWorld/KingdomMaps` currently exposes map truth through owner queries and does not grant a separate user-managed map permission merely to consume immutable dataset facts.
 
+## GameWorld / Kingdom Transfers
+
+Source: `app/Contexts/GameWorld/KingdomTransfers/Access/Enums/TransferPermission.php`
+
+| Key | Meaning |
+| --- | --- |
+| `kingdom_transfer.view` | View the active Alliance's Kingdom Transfer plans, participants, readiness, sourced game facts, observations, and server-authoritative eligibility assessments. |
+| `kingdom_transfer.manage` | Manage the active Alliance's Transfer Windows, official Transfer Group observations, target conditions, participant observations, planning cohorts, readiness, blockers, and outcomes. |
+
+Transfer permissions are always interpreted against the active Player and concrete Alliance-owned transfer scope. Possessing a transfer permission in one Alliance does not authorize another Alliance's Transfer Window, plan, participant, observation, blocker, or cohort. Mutating HTTP routes additionally require password confirmation and reauthorize the concrete owner-scoped records at commit time.
+
 ## Operations
 
 Source: `app/Contexts/Operations/Access/Enums/OperationsPermission.php`
