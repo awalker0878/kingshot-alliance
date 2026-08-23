@@ -17,8 +17,8 @@ const fingerprints: Record<string, Record<string, string>> = {
     mobile: '44084d405757bed544f009242f2abf8847745ee77dd418760a267a89b6ba7949',
   },
   noticeDetail: {
-    desktop: '0000000000000000000000000000000000000000000000000000000000000000',
-    mobile: '0000000000000000000000000000000000000000000000000000000000000000',
+    desktop: '703a95336fc6895c48863110e7fe72453ae122cf7468d70777831ecd4b4fb08d',
+    mobile: '0f6dd10b829b35f2924845b391c22e7be4646f8479ef035fa802f789332008b3',
   },
 };
 
@@ -89,9 +89,13 @@ test('Alliance Rules are a first-class readable and editable member surface', as
   await page.goto('/alliance/rules');
   await page.waitForLoadState('networkidle');
 
-  await expect(page.getByRole('heading', { name: 'Alliance Rules', level: 1 })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Alliance Rules', level: 1, exact: true }),
+  ).toBeVisible();
   await expect(page.getByText('Join Bear Hunt rallies on time.')).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Alliance Rules', level: 2 })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Alliance Rules', level: 2, exact: true }),
+  ).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Edit Alliance Rules', level: 2 })).toBeVisible();
   const rules = page.getByLabel('Rules');
   await expect(rules).toHaveValue(/Follow R4\/R5 battle calls/);
@@ -106,9 +110,13 @@ test('Alliance Rules expose the localized empty and editable state', async ({ pa
   await page.goto('/alliance/rules');
   await page.waitForLoadState('networkidle');
 
-  await expect(page.getByRole('heading', { name: 'Alliance Rules', level: 1 })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Alliance Rules', level: 1, exact: true }),
+  ).toBeVisible();
   await expect(page.getByText('No Alliance Rules have been posted yet.')).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Alliance Rules', level: 2 })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Alliance Rules', level: 2, exact: true }),
+  ).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Add Alliance Rules', level: 2 })).toBeVisible();
   await expect(page.getByLabel('Rules')).toHaveValue('');
   await expect(page.getByRole('button', { name: 'Save Alliance Rules' })).toBeEnabled();
