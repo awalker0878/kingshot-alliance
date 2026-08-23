@@ -9,7 +9,12 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-/** @property NoticeReaction $reaction */
+/**
+ * @property string $alliance_id
+ * @property string $content_item_id
+ * @property string $player_id
+ * @property NoticeReaction $reaction
+ */
 final class AllianceNoticeReaction extends Model
 {
     use HasUlids;
