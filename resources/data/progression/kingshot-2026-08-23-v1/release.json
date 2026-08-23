@@ -1,0 +1,40 @@
+{
+  "id": "kingshot-2026-08-23-v1",
+  "schema_version": 1,
+  "dataset_version": "2026.08.23.1",
+  "observed_at": "2026-08-23",
+  "generated_at": "2026-08-23T23:30:00Z",
+  "review_status": "reviewed_reference",
+  "release_notes": "Initial factual progression release. Missing values remain unknown. Full third-party tables that cannot yet be safely and independently reconciled are indexed and explicitly dispositioned rather than guessed or silently omitted.",
+  "sources": [
+    {"id":"century-games-kingshot","publisher":"Century Games","label":"KingShot official site","uri":"https://www.centurygames.com/games/kingshot/","kind":"official_site","authority_tier":"A","official":true,"locale":"en","retrieved_at":"2026-08-23","observed_at":"2026-08-23","license_note":"First-party public product information; factual reference only."},
+    {"id":"kingshot-official-wiki","publisher":"Century Games / KingShot Wiki","label":"KingShot Official Wiki","uri":"https://kingshotwiki.com/","kind":"official_wiki","authority_tier":"A","official":true,"locale":"en","retrieved_at":"2026-08-23","observed_at":"2026-08-23","license_note":"First-party wiki; normalized facts only rather than wholesale text reproduction."},
+    {"id":"kingshotdata","publisher":"Kingshot Data community maintainers","label":"Kingshot Data","uri":"https://kingshotdata.com/","kind":"community_database","authority_tier":"B","official":false,"locale":"en","retrieved_at":"2026-08-23","observed_at":"2026-08-23","license_note":"Community site explicitly states it is not tied to the developers; normalized factual summaries only."},
+    {"id":"kingshotdata-kr","publisher":"Kingshot Data KR community maintainers","label":"Kingshot Data KR","uri":"https://kingshotdata.kr/en/","kind":"community_database","authority_tier":"B","official":false,"locale":"en","retrieved_at":"2026-08-23","observed_at":"2026-08-23","license_note":"Community reference; normalized factual summaries only."},
+    {"id":"g2384-kingshot-data","publisher":"g2384","label":"Kingshot-Data GitHub dataset","uri":"https://github.com/g2384/Kingshot-Data","kind":"inspectable_repository","authority_tier":"C","official":false,"locale":"en","retrieved_at":"2026-08-23","observed_at":"2026-08-23","content_revision":"heroes2.json blob 2f82606619cf2973e95442c48b22c9df573b6256","license_note":"No LICENSE file was observed in the repository root during this survey; used for discovery/reconciliation rather than wholesale copying."},
+    {"id":"reddit-kingshot-formations","publisher":"r/KingShot community","label":"KingShot community formation discussions","uri":"https://www.reddit.com/r/KingShot/","kind":"community_discussion","authority_tier":"D","official":false,"locale":"en","retrieved_at":"2026-08-23","observed_at":"2026-08-23","license_note":"Community observation only; never treated as an authoritative game rule."}
+  ],
+  "conflicts": [
+    {"id":"governor-charm-max-level","family":"governor_charms","description":"Maintained sources disagree on the current maximum Governor Charm level.","claims":[{"source_id":"kingshotdata","value":21,"unit":"level"},{"source_id":"kingshotdata-kr","value":22,"unit":"level"}],"resolution":"unresolved; show both claims and keep calculator gate closed"},
+    {"id":"training-building-unlock-copy","family":"buildings","description":"Maintained pages contain prose/table inconsistencies around early Range/Stable requirements.","claims":[],"resolution":"exclude the disputed early per-level prerequisite rows until first-party or independent in-game evidence reconciles them"}
+  ],
+  "family_dispositions": [
+    {"family":"heroes","status":"canonicalized","discovered_entities":34,"canonical_entities":34,"reason":"Identity, rarity, class, generation and typical unlock age captured."},
+    {"family":"hero_skills","status":"indexed_external_table","discovered_entities":34,"canonical_entities":0,"reason":"Full skill ladders are discoverable, but large descriptive/source tables are not wholesale reproduced without a licensed/first-party structured source or independently reviewed extraction."},
+    {"family":"hero_star_shards","status":"canonicalized","discovered_entities":5,"canonical_entities":5,"reason":"Star totals and unlock exceptions captured."},
+    {"family":"hero_exclusive_equipment","status":"canonicalized_summary","discovered_entities":34,"canonical_entities":1,"reason":"Global unlock/max/widget ladder captured; per-Hero equipment effects remain source-indexed."},
+    {"family":"hero_gear","status":"canonicalized_summary","discovered_entities":6,"canonical_entities":6,"reason":"Quality caps, merge XP, Red Gear gates and complete Mastery Forge level/material ladder captured."},
+    {"family":"governor_gear","status":"canonicalized_summary","discovered_entities":6,"canonical_entities":6,"reason":"Slots, troop associations, unlock and material facts captured; complete cost ladder stays calculator-gated pending reconciliation."},
+    {"family":"governor_charms","status":"conflicting","discovered_entities":3,"canonical_entities":3,"reason":"Family/material/unlock facts captured; max-level conflict retained explicitly."},
+    {"family":"formations","status":"community_conventions","discovered_entities":8,"canonical_entities":8,"reason":"Repeated troop ratios captured as sourced conventions with no recommendation semantics."},
+    {"family":"buildings","status":"canonicalized_summary","discovered_entities":20,"canonical_entities":20,"reason":"Current max levels and key progression unlocks captured; full level cost/prerequisite tables remain indexed."},
+    {"family":"troops","status":"indexed_external_table","discovered_entities":3,"canonical_entities":3,"reason":"Classes and training-building ownership captured; full T1-T11 numeric progression remains indexed pending reconciliation."},
+    {"family":"academy_research","status":"indexed_external_table","discovered_entities":191,"canonical_entities":3,"reason":"Three tree counts and 714-level coverage recorded; wholesale level table remains indexed pending licensed/independent reconciliation."},
+    {"family":"war_academy","status":"indexed_external_table","discovered_entities":2,"canonical_entities":2,"reason":"Basic T11 and Advanced Truegold research families indexed."},
+    {"family":"alliance_tech","status":"indexed_external_table","discovered_entities":3,"canonical_entities":3,"reason":"Growth, Territory and Battle trees indexed."},
+    {"family":"pets","status":"canonicalized_identity","discovered_entities":14,"canonical_entities":14,"reason":"Current Pet identities captured; detailed level/material ladders remain indexed."},
+    {"family":"masters","status":"canonicalized_identity","discovered_entities":6,"canonical_entities":6,"reason":"Current Master identities/titles and max Affinity captured; detailed talent/skill/research ladders remain indexed."},
+    {"family":"max_levels","status":"canonicalized_summary","discovered_entities":10,"canonical_entities":10,"reason":"Major current system caps captured."},
+    {"family":"g2384_lineups","status":"excluded_strategy_opinion","discovered_entities":6,"canonical_entities":0,"reason":"Gen1 lineup strings are tactical opinion, not factual recommendation truth; repository root also had no observed license."}
+  ]
+}
