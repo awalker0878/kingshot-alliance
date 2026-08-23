@@ -84,6 +84,7 @@ final class ContentQuery
     {
         return ContentItem::query()
             ->where('alliance_id', $allianceId)
+            ->where('slug', '!=', ContentItem::ALLIANCE_RULES_SLUG)
             ->with('category:id,alliance_id,name,slug')
             ->orderByRaw("CASE status WHEN 'draft' THEN 0 WHEN 'scheduled' THEN 1 WHEN 'published' THEN 2 ELSE 3 END")
             ->orderBy('sort_order')
