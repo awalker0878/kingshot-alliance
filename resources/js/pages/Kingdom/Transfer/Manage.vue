@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 import { computed, reactive } from 'vue';
 
 import ConfirmActionDialog from '@/components/ui/ConfirmActionDialog.vue';
@@ -94,6 +94,12 @@ const props = defineProps<{
   players: PlayerOption[];
 }>();
 const { t, formatDate, formatNumber } = useLocale();
+const page = usePage();
+const validationErrors = computed(() =>
+  Object.values(
+    ((page.props as Record<string, unknown>).errors as Record<string, string> | undefined) ?? {},
+  ),
+);
 const { dialog, requestConfirmation, cancelConfirmation, confirmAction } = useConfirmAction();
 const sourceTypes: SourceType[] = ['official_publication', 'in_game', 'manager_note', 'community'];
 function local(v?: string): string {
@@ -353,6 +359,14 @@ function compatibleCohorts(p: Participant): Cohort[] {
         }}</Link>
       </nav>
     </header>
+    <div
+      v-if="validationErrors.length"
+      role="alert"
+      aria-live="assertive"
+      class="mt-5 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-200"
+    >
+      {{ validationErrors[0] }}
+    </div>
     <section class="mt-6 grid gap-5 xl:grid-cols-2">
       <form class="ks-surface p-5" @submit.prevent="createWindow">
         <h2 class="text-xl font-semibold">{{ t('kingdomP7D.createTransferWindow') }}</h2>

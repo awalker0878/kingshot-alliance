@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, Link, router } from '@inertiajs/vue3';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { computed, reactive, ref } from 'vue';
 
 import ConfirmActionDialog from '@/components/ui/ConfirmActionDialog.vue';
@@ -129,6 +129,12 @@ const props = defineProps<{
   participants: Participant[];
 }>();
 const { t, formatDate, formatNumber } = useLocale();
+const page = usePage();
+const validationErrors = computed(() =>
+  Object.values(
+    ((page.props as Record<string, unknown>).errors as Record<string, string> | undefined) ?? {},
+  ),
+);
 const { dialog, requestConfirmation, cancelConfirmation, confirmAction } = useConfirmAction();
 const filter = ref('all');
 const readinessDrafts = reactive(
@@ -358,6 +364,14 @@ function recordObservation(p: Participant): void {
         }}</Link>
       </nav>
     </header>
+    <div
+      v-if="validationErrors.length"
+      role="alert"
+      aria-live="assertive"
+      class="mt-5 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-200"
+    >
+      {{ validationErrors[0] }}
+    </div>
 
     <section v-if="plan" class="ks-surface-gold mt-6 p-5 sm:p-6" aria-labelledby="window-heading">
       <div class="flex flex-wrap justify-between gap-4">
