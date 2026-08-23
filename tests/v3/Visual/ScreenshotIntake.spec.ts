@@ -38,11 +38,11 @@ test('Screenshot Intake keeps evidence and review controls accessible without pa
   await page.evaluate(() => document.fonts.ready);
 
   await expect(page.getByRole('heading', { name: 'Screenshot Intake', level: 1 })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Extracted fields' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Captured report values' })).toBeVisible();
   await expect(page.getByText('raging-bear-battle-record.png')).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Commit preview' })).toBeVisible();
-  await expect(page.getByRole('combobox', { name: 'Resolved Governor' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Commit to Bear Hunt results' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Score preview' })).toBeVisible();
+  await expect(page.getByRole('combobox', { name: 'Matched Governor' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Save to Bear Hunt results' })).toBeVisible();
 
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
