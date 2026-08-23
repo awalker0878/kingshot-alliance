@@ -11,7 +11,7 @@ use Illuminate\Support\Collection;
 final class NoticeReactionSummaryQuery
 {
     /**
-     * @param list<string> $contentItemIds
+     * @param  list<string>  $contentItemIds
      * @return array<string, array{likes:int, dislikes:int, current:string|null}>
      */
     public function forNotices(string $allianceId, string $playerId, array $contentItemIds): array
