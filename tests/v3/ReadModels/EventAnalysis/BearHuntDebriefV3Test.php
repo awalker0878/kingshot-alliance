@@ -186,7 +186,7 @@ final class BearHuntDebriefV3Test extends TestCase
 
         $previous = $this->bearHuntOccurrence($actor, $alliance, CarbonImmutable::now('UTC')->subDays(2));
         $previous->forceFill(['status' => EventOccurrenceStatus::Completed])->save();
-        $this->result($previous, $actor, 100, 4);
+        $this->recordPlayerResult($previous, $actor, 100, 4);
 
         $otherAccount = $scenario->authUser();
         $otherOwner = $scenario->player((int) $otherAccount->id, 61104);
@@ -194,10 +194,10 @@ final class BearHuntDebriefV3Test extends TestCase
         $scenario->roster($otherOwner, $otherAlliance);
         $wrongTarget = $this->bearHuntOccurrence($otherOwner, $otherAlliance, CarbonImmutable::now('UTC')->subDay());
         $wrongTarget->forceFill(['status' => EventOccurrenceStatus::Completed])->save();
-        $this->result($wrongTarget, $otherOwner, 999, 1);
+        $this->recordPlayerResult($wrongTarget, $otherOwner, 999, 1);
 
         $current = $this->bearHuntOccurrence($actor, $alliance, CarbonImmutable::now('UTC'));
-        $this->result($current, $actor, 150, 2);
+        $this->recordPlayerResult($current, $actor, 150, 2);
 
         $current->load(['event.eventType', 'event.typeScope.capabilities']);
         $debrief = app(BearHuntDebriefQuery::class)->forOccurrence($current, $actor, false);
@@ -222,10 +222,10 @@ final class BearHuntDebriefV3Test extends TestCase
 
         $previous = $this->bearHuntOccurrence($actor, $alliance, CarbonImmutable::now('UTC')->subDay());
         $previous->forceFill(['status' => EventOccurrenceStatus::Completed])->save();
-        $this->result($previous, $actor, 0, 2);
+        $this->recordPlayerResult($previous, $actor, 0, 2);
 
         $current = $this->bearHuntOccurrence($actor, $alliance, CarbonImmutable::now('UTC'));
-        $this->result($current, $actor, 50, 1);
+        $this->recordPlayerResult($current, $actor, 50, 1);
         $current->load(['event.eventType', 'event.typeScope.capabilities']);
 
         $debrief = app(BearHuntDebriefQuery::class)->forOccurrence($current, $actor, false);
@@ -304,7 +304,7 @@ final class BearHuntDebriefV3Test extends TestCase
                 CarbonImmutable::now('UTC')->subDays($daysAgo),
             );
             $run->forceFill(['status' => EventOccurrenceStatus::Completed])->save();
-            $this->result($run, $actor, 100 + $daysAgo, 1);
+            $this->recordPlayerResult($run, $actor, 100 + $daysAgo, 1);
             $current = $run;
         }
         self::assertInstanceOf(EventOccurrence::class, $current);
@@ -358,7 +358,7 @@ final class BearHuntDebriefV3Test extends TestCase
         return EventOccurrence::query()->findOrFail($created->firstOccurrenceId);
     }
 
-    private function result(
+    private function recordPlayerResult(
         EventOccurrence $occurrence,
         PlayerReference $player,
         int $score,
