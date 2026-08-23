@@ -16,10 +16,5 @@ enum EvidenceLifecycleStatus: string
     case Committed = 'committed';
     case Unsupported = 'unsupported';
     case Failed = 'failed';
-    case Rejected = 'rejected';
-    case Duplicate = 'duplicate';
-    case DeletePending = 'delete_pending';
     case Deleted = 'deleted';
-    case PurgePending = 'purge_pending';
-    case Purged = 'purged';
 }
