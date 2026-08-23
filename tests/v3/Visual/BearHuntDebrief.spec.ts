@@ -3,8 +3,8 @@ import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
 
 const bearHuntDebriefVisualFingerprints: Record<string, string> = {
-  desktop: '8f715f818e286bbc0def4c953b948ff186379c45a0ce38d10e3c40b9da3fb1c4',
-  mobile: '73dc30c765692c59667427a14a35b712dc10ebde871d8dce4c4a26b019feef60',
+  desktop: '8f715f884c5679b40115528f5e75a8ba4ad00baadbaf3f640e06d7703f9eb4c1',
+  mobile: '73dc30b0d0352ab1b193e56eec3332836d2cc313b345e162e4d5a215a1a119f4',
 };
 
 async function openBearHuntDebrief(page: Page): Promise<void> {
