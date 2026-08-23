@@ -55,7 +55,14 @@ function toggle(reaction: Reaction): void {
       data-variant="secondary"
       :data-selected="reactions.current === 'like' ? 'true' : 'false'"
       :aria-pressed="reactions.current === 'like'"
-      :aria-label="t('contentExperience.likeCountLabel', { count: reactions.likes })"
+      :aria-label="
+        t(
+          reactions.current === 'like'
+            ? 'contentExperience.removeLikeCountLabel'
+            : 'contentExperience.likeCountLabel',
+          { count: reactions.likes },
+        )
+      "
       :disabled="processing"
       @click="toggle('like')"
     >
@@ -71,7 +78,14 @@ function toggle(reaction: Reaction): void {
       data-variant="secondary"
       :data-selected="reactions.current === 'dislike' ? 'true' : 'false'"
       :aria-pressed="reactions.current === 'dislike'"
-      :aria-label="t('contentExperience.dislikeCountLabel', { count: reactions.dislikes })"
+      :aria-label="
+        t(
+          reactions.current === 'dislike'
+            ? 'contentExperience.removeDislikeCountLabel'
+            : 'contentExperience.dislikeCountLabel',
+          { count: reactions.dislikes },
+        )
+      "
       :disabled="processing"
       @click="toggle('dislike')"
     >
