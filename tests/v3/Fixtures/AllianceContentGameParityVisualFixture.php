@@ -25,6 +25,10 @@ final class AllianceContentGameParityVisualFixture
 {
     public static function seed(): void
     {
+        if (User::query()->where('email', 'content-visual@example.test')->exists()) {
+            return;
+        }
+
         CarbonImmutable::setTestNow(CarbonImmutable::parse('2026-08-23 16:00:00', 'UTC'));
 
         $user = User::factory()->create([
@@ -75,7 +79,7 @@ final class AllianceContentGameParityVisualFixture
             'title' => 'Bear Hunt Rally Window',
             'slug' => 'bear-hunt-rally-window',
             'summary' => 'Rally leaders open five minutes before Bear Hunt starts.',
-            'body' => "Be ready at 19:55 UTC. Join the marked rallies first and keep your strongest march available for the opening wave.",
+            'body' => 'Be ready at 19:55 UTC. Join the marked rallies first and keep your strongest march available for the opening wave.',
             'locale' => 'en',
             'sort_order' => 0,
             'notify_members' => false,
