@@ -12,7 +12,7 @@ This is the user/product view of implemented and actively delivered capability g
 | Alliance management | Manage Alliance core/settings and tenant lifecycle. | Alliance |
 | Membership and leadership | Membership, invitations, R1–R5 leadership and specialist roles. | Alliance |
 | Recruitment | Intake, filter, preview/bulk-triage, review and convert recruitment candidates through controlled membership handoff. | Alliance |
-| Alliance content | Publish reviewed, revisioned and context-linked knowledge plus testable timezone-safe recurring announcements with delivery history and selective recovery. | Alliance intent + Communications delivery + ReadModels composition |
+| Alliance content | Publish reviewed, revisioned and context-linked knowledge; maintain first-class canonical Alliance Rules; let active members Like/Dislike published Alliance Notices without affecting authority or ranking; and deliver testable timezone-safe recurring announcements with delivery history and selective recovery. | Alliance/Content intent and reaction state + Communications delivery + ReadModels composition |
 | Kingdom governance | Manage Kingdom role/governance facts for Players. | GameWorld/Governance; workflows coordinate cross-context effects |
 | Kingdom Transfer Planning | Plan a sourced Transfer Window, preserve Alliance participant/readiness workflow, record window-specific official Transfer Groups/Power Caps and dated Governor observations, and answer whether a Governor can transfer to a target Kingdom with explicit blockers/source/freshness. | GameWorld/KingdomTransfers |
 | Territory & hive planning | Build, validate, analyze, version, compare and share Alliance/Kingdom layouts using versioned KingShot map facts; plan HQs, Banners, Governor cities, Bear Traps, territory coverage, hive presets, march times and multi-Alliance positioning. | GameWorld/KingdomMaps owns map facts/rules; Operations/TerritoryPlanning owns plans/analysis; ReadModels composes editor reads |
@@ -32,6 +32,18 @@ This is the user/product view of implemented and actively delivered capability g
 | Dashboards/history | Compose cross-context user-facing views without changing source ownership. | ReadModels |
 
 This catalogue should change when a real product outcome changes, not for internal class/file movement.
+
+## Alliance Content game-parity product contract
+
+The small game-parity Content slice keeps ownership inside `Alliance/Content` while making two familiar KingShot concepts explicit:
+
+- one canonical, first-class **Alliance Rules** document at the reserved Alliance-local identity `alliance-rules`, managed with existing Content authority, revisions, audit and outbox behavior rather than a parallel Rules store;
+- one lightweight **Like** or **Dislike** reaction per active Governor and published Alliance Notice, with switching/removal and idempotent no-op behavior;
+- reaction authorization based on active Alliance membership only, explicitly independent from `ContentManage`, publication, editing, archiving or broadcast authority;
+- member reads limited to Like count, Dislike count and the current Governor's reaction;
+- an anti-ranking contract: reactions never influence Notice ordering, visibility, prominence, moderation, recommendations, reputation, notification delivery or popularity ranking.
+
+The canonical requirements, acceptance criteria and delivery ledger live in [Alliance Content game parity](alliance-content-game-parity.md).
 
 ## Kingdom Transfer Planning product contract
 
