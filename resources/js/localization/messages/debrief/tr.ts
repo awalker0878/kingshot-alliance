@@ -4,7 +4,8 @@ const messages = {
   debrief: {
     title: 'Ayı Avı Değerlendirmesi',
     eyebrow: 'Ayı Avı · Etkinlik sonrası',
-    subtitle: 'Kaydedilen hasarı, katılımı, Rally performansını, eşleşmemiş Valileri ve son avlarla karşılaştırmayı inceleyin.',
+    subtitle:
+      'Kaydedilen hasarı, katılımı, Rally performansını, eşleşmemiş Valileri ve son avlarla karşılaştırmayı inceleyin.',
     totalDamage: 'Toplam hasar',
     governors: 'Valiler',
     governor: 'Vali',
@@ -30,7 +31,8 @@ const messages = {
     noResults: 'Bu av için henüz Vali hasarı kaydedilmedi.',
     needsReview: 'İnceleme gerekli',
     unmatchedGovernors: '{count} Vali eşleştirilmeli',
-    reviewHelp: 'Vali eşleştirmesini Screenshot Intake içinde tamamlayın. Değerlendirme ikinci bir kimlik akışı oluşturmaz.',
+    reviewHelp:
+      'Vali eşleştirmesini Screenshot Intake içinde tamamlayın. Değerlendirme ikinci bir kimlik akışı oluşturmaz.',
     reviewImport: 'İçe aktarılan raporu incele',
     trends: 'Eğilimler',
     runTrends: 'Son Ayı Avı eğilimleri',
@@ -38,7 +40,8 @@ const messages = {
     allianceDamageTrend: 'Av başına İttifak hasarı',
     previousHunt: 'Önceki av',
     noPrevious: 'Önceki av yok',
-    noPreviousHelp: 'Bu İttifak için tamamlanmış daha eski bir Ayı Avı olduğunda karşılaştırma görünür.',
+    noPreviousHelp:
+      'Bu İttifak için tamamlanmış daha eski bir Ayı Avı olduğunda karşılaştırma görünür.',
     history: 'Geçmiş',
     runHistory: 'Ayı Avı geçmişi',
   },
