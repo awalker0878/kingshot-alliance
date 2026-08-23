@@ -4,7 +4,11 @@ import { expect, test } from '@playwright/test';
 import type { Page, TestInfo } from '@playwright/test';
 
 const fingerprints: Record<string, Record<string, string>> = {
-  rules: {
+  rulesPublished: {
+    desktop: '0000000000000000000000000000000000000000000000000000000000000000',
+    mobile: '0000000000000000000000000000000000000000000000000000000000000000',
+  },
+  rulesEmpty: {
     desktop: '0000000000000000000000000000000000000000000000000000000000000000',
     mobile: '0000000000000000000000000000000000000000000000000000000000000000',
   },
@@ -12,7 +16,13 @@ const fingerprints: Record<string, Record<string, string>> = {
     desktop: '0000000000000000000000000000000000000000000000000000000000000000',
     mobile: '0000000000000000000000000000000000000000000000000000000000000000',
   },
+  noticeDetail: {
+    desktop: '0000000000000000000000000000000000000000000000000000000000000000',
+    mobile: '0000000000000000000000000000000000000000000000000000000000000000',
+  },
 };
+
+type VisualSurface = 'rulesPublished' | 'rulesEmpty' | 'noticeboard' | 'noticeDetail';
 
 test.beforeAll(() => {
   execFileSync(
@@ -26,9 +36,9 @@ test.beforeAll(() => {
   );
 });
 
-async function login(page: Page): Promise<void> {
+async function login(page: Page, email = 'content-visual@example.test'): Promise<void> {
   await page.goto('/login');
-  await page.locator('#email').fill('content-visual@example.test');
+  await page.locator('#email').fill(email);
   await page.locator('#password').fill('password');
   await page.locator('button[type="submit"]').click();
   await page.waitForURL('**/dashboard');
@@ -51,7 +61,7 @@ async function login(page: Page): Promise<void> {
 async function assertVisual(
   page: Page,
   testInfo: TestInfo,
-  surface: 'rules' | 'noticeboard',
+  surface: VisualSurface,
 ): Promise<void> {
   await page.evaluate(() => document.fonts.ready);
   const overflow = await page.evaluate(
@@ -69,7 +79,9 @@ async function assertVisual(
   const actual = createHash('sha256').update(screenshot).digest('hex');
   const expected = fingerprints[surface]?.[testInfo.project.name];
 
-  expect(actual, `Update ${surface} visual fingerprint for ${testInfo.project.name}`).toBe(expected);
+  expect(actual, `Update ${surface} visual fingerprint for ${testInfo.project.name}`).toBe(
+    expected,
+  );
 }
 
 test('Alliance Rules are a first-class readable and editable member surface', async ({ page }, testInfo) => {
@@ -85,10 +97,24 @@ test('Alliance Rules are a first-class readable and editable member surface', as
   await expect(rules).toHaveAttribute('maxlength', '10000');
   await expect(page.getByRole('button', { name: 'Save Alliance Rules' })).toBeEnabled();
 
-  await assertVisual(page, testInfo, 'rules');
+  await assertVisual(page, testInfo, 'rulesPublished');
 });
 
-test('Alliance Notices expose lightweight reactions without ranking UI', async ({ page }, testInfo) => {
+test('Alliance Rules expose the localized empty and editable state', async ({ page }, testInfo) => {
+  await login(page, 'content-empty-visual@example.test');
+  await page.goto('/alliance/rules');
+  await page.waitForLoadState('networkidle');
+
+  await expect(page.getByRole('heading', { name: 'Alliance Rules', level: 1 })).toBeVisible();
+  await expect(page.getByText('No Alliance Rules have been posted yet.')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Add Alliance Rules', level: 2 })).toBeVisible();
+  await expect(page.getByLabel('Rules')).toHaveValue('');
+  await expect(page.getByRole('button', { name: 'Save Alliance Rules' })).toBeEnabled();
+
+  await assertVisual(page, testInfo, 'rulesEmpty');
+});
+
+test('Alliance Notice cards expose lightweight reactions without ranking UI', async ({ page }, testInfo) => {
   await login(page);
   await page.goto('/alliance/content');
   await page.waitForLoadState('networkidle');
@@ -101,11 +127,34 @@ test('Alliance Notices expose lightweight reactions without ranking UI', async (
   const like = notice.getByRole('button', {
     name: /Remove your Like from this Alliance Notice\. 1 likes\./,
   });
-  const dislike = notice.getByRole('button', { name: /Dislike this Alliance Notice\. 1 dislikes\./ });
+  const dislike = notice.getByRole('button', {
+    name: /Dislike this Alliance Notice\. 1 dislikes\./,
+  });
   await expect(like).toHaveAttribute('aria-pressed', 'true');
   await expect(dislike).toHaveAttribute('aria-pressed', 'false');
   await expect(page.getByText(/trending|popular|score|approval ratio/i)).toHaveCount(0);
   await expect(page.getByRole('link', { name: 'Alliance Rules' }).first()).toBeVisible();
 
   await assertVisual(page, testInfo, 'noticeboard');
+});
+
+test('Alliance Notice detail preserves reaction state and anti-ranking semantics', async ({ page }, testInfo) => {
+  await login(page);
+  await page.goto('/alliance/content/bear-hunt-rally-window');
+  await page.waitForLoadState('networkidle');
+
+  await expect(
+    page.getByRole('heading', { name: 'Bear Hunt Rally Window', level: 1 }),
+  ).toBeVisible();
+  const like = page.getByRole('button', {
+    name: /Remove your Like from this Alliance Notice\. 1 likes\./,
+  });
+  const dislike = page.getByRole('button', {
+    name: /Dislike this Alliance Notice\. 1 dislikes\./,
+  });
+  await expect(like).toHaveAttribute('aria-pressed', 'true');
+  await expect(dislike).toHaveAttribute('aria-pressed', 'false');
+  await expect(page.getByText(/trending|popular|score|approval ratio/i)).toHaveCount(0);
+
+  await assertVisual(page, testInfo, 'noticeDetail');
 });
