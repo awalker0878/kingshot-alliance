@@ -43,6 +43,7 @@ type NavigationItem = {
     | 'kingdom'
     | 'transfers'
     | 'giftCodes'
+    | 'progression'
     | 'notifications'
     | 'integrations';
   href: string;
@@ -101,6 +102,7 @@ const currentPath = computed(() => page.url.split('?')[0]?.replace(/\/+$/, '') |
 const navigationItems: NavigationItem[] = [
   { key: 'dashboard', href: '/dashboard', icon: 'dashboard', exact: true },
   { key: 'giftCodes', href: '/gift-codes', icon: 'giftCodes', playerScoped: true },
+  { key: 'progression', href: '/progression', icon: 'kingdom', playerScoped: true, exact: true },
   { key: 'notifications', href: '/notifications', icon: 'notifications', exact: true },
   { key: 'alliance', href: '/alliance', icon: 'alliance', allianceScoped: true, exact: true },
   {
