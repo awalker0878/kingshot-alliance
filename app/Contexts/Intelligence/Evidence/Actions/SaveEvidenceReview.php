@@ -35,6 +35,7 @@ final readonly class SaveEvidenceReview
      */
     public function handle(
         string $actorPlayerId,
+        string $occurrenceId,
         string $evidenceId,
         string $extractionAttemptId,
         array $rows,
@@ -44,16 +45,22 @@ final readonly class SaveEvidenceReview
             throw ValidationException::withMessages(['rows' => 'Review between 1 and 100 ranking rows.']);
         }
 
-        $evidence = GameEvidence::query()->findOrFail($evidenceId);
-        $target = $this->targets->authorizeManage($actorPlayerId, (string) $evidence->occurrence_id);
-        if ((string) $evidence->alliance_id !== $target->allianceId) {
-            throw ValidationException::withMessages(['evidence' => 'This evidence is outside the current Bear Hunt scope.']);
-        }
+        $target = $this->targets->authorizeManage($actorPlayerId, $occurrenceId);
+        $evidence = GameEvidence::query()
+            ->whereKey($evidenceId)
+            ->where('alliance_id', $target->allianceId)
+            ->where('occurrence_id', $target->occurrenceId)
+            ->firstOrFail();
 
         return DB::transaction(function () use ($actorPlayerId, $evidenceId, $extractionAttemptId, $rows, $reportTimestampText, $target): string {
             $this->targets->authorizeManage($actorPlayerId, $target->occurrenceId);
             $actor = $this->players->lockCurrent($actorPlayerId);
-            $evidence = GameEvidence::query()->whereKey($evidenceId)->where('alliance_id', $target->allianceId)->lockForUpdate()->firstOrFail();
+            $evidence = GameEvidence::query()
+                ->whereKey($evidenceId)
+                ->where('alliance_id', $target->allianceId)
+                ->where('occurrence_id', $target->occurrenceId)
+                ->lockForUpdate()
+                ->firstOrFail();
             $extraction = EvidenceExtractionAttempt::query()
                 ->whereKey($extractionAttemptId)
                 ->where('evidence_id', $evidenceId)
