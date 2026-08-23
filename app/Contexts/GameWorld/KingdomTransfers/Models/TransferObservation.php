@@ -14,10 +14,25 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 final class TransferObservation extends Model
 {
     use HasUlids;
+
     public $incrementing = false;
+
     protected $keyType = 'string';
+
     protected $guarded = [];
-    protected function casts(): array { return ['kind' => TransferObservationKind::class, 'source_type' => TransferSourceType::class, 'numeric_value' => 'integer', 'boolean_value' => 'boolean', 'observed_at' => 'immutable_datetime', 'valid_until' => 'immutable_datetime']; }
-    public function participant(): BelongsTo { return $this->belongsTo(TransferParticipant::class, 'transfer_participant_id'); }
-    public function targetKingdom(): BelongsTo { return $this->belongsTo(Kingdom::class, 'target_kingdom_id'); }
+
+    protected function casts(): array
+    {
+        return ['kind' => TransferObservationKind::class, 'source_type' => TransferSourceType::class, 'numeric_value' => 'integer', 'boolean_value' => 'boolean', 'observed_at' => 'immutable_datetime', 'valid_until' => 'immutable_datetime'];
+    }
+
+    public function participant(): BelongsTo
+    {
+        return $this->belongsTo(TransferParticipant::class, 'transfer_participant_id');
+    }
+
+    public function targetKingdom(): BelongsTo
+    {
+        return $this->belongsTo(Kingdom::class, 'target_kingdom_id');
+    }
 }

@@ -22,12 +22,15 @@ final class TransferObservationSelector
             ->sortByDesc(static fn (TransferObservation $row): string => $row->observed_at->toIso8601String())
             ->values();
 
-        if ($matching->isEmpty()) return TransferObservedValue::unknown();
+        if ($matching->isEmpty()) {
+            return TransferObservedValue::unknown();
+        }
 
         $authoritative = $matching->filter(static fn (TransferObservation $row): bool => $row->source_type->isAuthoritative())->values();
         if ($authoritative->isEmpty()) {
             /** @var TransferObservation $latest */
             $latest = $matching->first();
+
             return new TransferObservedValue(TransferRequirementState::Unknown, $this->value($latest), $latest->source_type, $latest->source_reference, CarbonImmutable::instance($latest->observed_at), $latest->valid_until === null ? null : CarbonImmutable::instance($latest->valid_until), $latest->details);
         }
 
@@ -39,19 +42,26 @@ final class TransferObservationSelector
             if ($values->count() > 1) {
                 return new TransferObservedValue(TransferRequirementState::Conflicting, null, $latest->source_type, $latest->source_reference, CarbonImmutable::instance($latest->observed_at), CarbonImmutable::instance($latest->valid_until), $latest->details);
             }
+
             return new TransferObservedValue(TransferRequirementState::Met, $this->value($latest), $latest->source_type, $latest->source_reference, CarbonImmutable::instance($latest->observed_at), CarbonImmutable::instance($latest->valid_until), $latest->details);
         }
 
         /** @var TransferObservation $latest */
         $latest = $authoritative->first();
         $state = $latest->valid_until === null ? TransferRequirementState::Unknown : TransferRequirementState::Stale;
+
         return new TransferObservedValue($state, $this->value($latest), $latest->source_type, $latest->source_reference, CarbonImmutable::instance($latest->observed_at), $latest->valid_until === null ? null : CarbonImmutable::instance($latest->valid_until), $latest->details);
     }
 
     private function value(TransferObservation $row): int|string|bool|null
     {
-        if ($row->kind->usesNumericValue()) return $row->numeric_value;
-        if ($row->kind === TransferObservationKind::InGameRulesVerified) return $row->boolean_value;
+        if ($row->kind->usesNumericValue()) {
+            return $row->numeric_value;
+        }
+        if ($row->kind === TransferObservationKind::InGameRulesVerified) {
+            return $row->boolean_value;
+        }
+
         return $row->text_value;
     }
 }

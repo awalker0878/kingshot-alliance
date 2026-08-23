@@ -14,8 +14,11 @@ use Illuminate\Support\Carbon;
 final class TransferWindow extends Model
 {
     use HasUlids;
+
     public $incrementing = false;
+
     protected $keyType = 'string';
+
     protected $guarded = [];
 
     protected function casts(): array
@@ -29,13 +32,29 @@ final class TransferWindow extends Model
 
     public function phaseAt(Carbon $now): TransferWindowPhase
     {
-        if ($now->lt($this->pre_transfer_starts_at)) return TransferWindowPhase::NotStarted;
-        if ($now->lt($this->invitational_starts_at)) return TransferWindowPhase::PreTransfer;
-        if ($now->lt($this->transfer_opens_at)) return TransferWindowPhase::InvitationalTransfer;
-        if ($now->lt($this->ends_at)) return TransferWindowPhase::TransferOpens;
+        if ($now->lt($this->pre_transfer_starts_at)) {
+            return TransferWindowPhase::NotStarted;
+        }
+        if ($now->lt($this->invitational_starts_at)) {
+            return TransferWindowPhase::PreTransfer;
+        }
+        if ($now->lt($this->transfer_opens_at)) {
+            return TransferWindowPhase::InvitationalTransfer;
+        }
+        if ($now->lt($this->ends_at)) {
+            return TransferWindowPhase::TransferOpens;
+        }
+
         return TransferWindowPhase::Closed;
     }
 
-    public function groups(): HasMany { return $this->hasMany(TransferGroup::class, 'transfer_window_id'); }
-    public function conditions(): HasMany { return $this->hasMany(TransferKingdomConditionObservation::class, 'transfer_window_id'); }
+    public function groups(): HasMany
+    {
+        return $this->hasMany(TransferGroup::class, 'transfer_window_id');
+    }
+
+    public function conditions(): HasMany
+    {
+        return $this->hasMany(TransferKingdomConditionObservation::class, 'transfer_window_id');
+    }
 }

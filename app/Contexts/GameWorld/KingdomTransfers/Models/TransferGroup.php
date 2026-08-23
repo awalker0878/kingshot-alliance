@@ -14,11 +14,25 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 final class TransferGroup extends Model
 {
     use HasUlids;
+
     public $incrementing = false;
+
     protected $keyType = 'string';
+
     protected $guarded = [];
 
-    protected function casts(): array { return ['source_type' => TransferSourceType::class, 'observed_at' => 'immutable_datetime', 'superseded_at' => 'immutable_datetime']; }
-    public function window(): BelongsTo { return $this->belongsTo(TransferWindow::class, 'transfer_window_id'); }
-    public function kingdoms(): BelongsToMany { return $this->belongsToMany(Kingdom::class, 'transfer_group_kingdoms', 'transfer_group_id', 'kingdom_id'); }
+    protected function casts(): array
+    {
+        return ['source_type' => TransferSourceType::class, 'observed_at' => 'immutable_datetime', 'superseded_at' => 'immutable_datetime'];
+    }
+
+    public function window(): BelongsTo
+    {
+        return $this->belongsTo(TransferWindow::class, 'transfer_window_id');
+    }
+
+    public function kingdoms(): BelongsToMany
+    {
+        return $this->belongsToMany(Kingdom::class, 'transfer_group_kingdoms', 'transfer_group_id', 'kingdom_id');
+    }
 }

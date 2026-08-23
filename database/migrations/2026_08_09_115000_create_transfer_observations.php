@@ -35,5 +35,8 @@ return new class extends Migration
         });
     }
 
-    public function down(): void { Schema::dropIfExists('transfer_observations'); }
+    public function down(): void
+    {
+        Schema::dropIfExists('transfer_observations');
+    }
 };

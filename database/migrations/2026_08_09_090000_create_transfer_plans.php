@@ -26,5 +26,8 @@ return new class extends Migration
         DB::statement("CREATE UNIQUE INDEX transfer_plans_one_open_per_alliance ON transfer_plans (alliance_id) WHERE state = 'open'");
     }
 
-    public function down(): void { Schema::dropIfExists('transfer_plans'); }
+    public function down(): void
+    {
+        Schema::dropIfExists('transfer_plans');
+    }
 };

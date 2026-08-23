@@ -12,6 +12,6 @@ final class TransferWindowQuery
     /** @return Collection<int,TransferWindow> */
     public function forAlliance(string $allianceId): Collection
     {
-        return TransferWindow::query()->where('alliance_id',$allianceId)->orderByDesc('pre_transfer_starts_at')->orderByDesc('id')->limit(25)->get();
+        return TransferWindow::query()->where('alliance_id', $allianceId)->orderByDesc('pre_transfer_starts_at')->orderByDesc('id')->limit(25)->get();
     }
 }

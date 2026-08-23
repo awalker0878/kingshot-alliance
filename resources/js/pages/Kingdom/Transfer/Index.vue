@@ -5,7 +5,168 @@ import RoomBanner from '@/components/game/RoomBanner.vue';
 import StatSeal from '@/components/game/StatSeal.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
-type WindowRow={id:string;label:string;phase:string;preTransferStartsAt:string;invitationalStartsAt:string;transferOpensAt:string;endsAt:string;sourceType:string;sourceReference:string;observedAt:string};type Plan={id:string;label:string;homeKingdom:string;state:string;createdAt:string|null;window:WindowRow};type Cohort={name:string;direction:'incoming'|'outgoing';destinationKingdom:string|null;coordinator:{name:string}|null};type Participant={id:string;direction:'staying'|'outgoing'|'incoming';readiness:string;name:string;gamePlayerId:string|null;sourceKingdom:string|null;destinationKingdom:string|null;cohort:Cohort|null;completedAt:string|null};
-const props=defineProps<{user:{name:string;email:string};alliance:{id:string;name:string;kingdom:string};canManage:boolean;plan:Plan|null;cohorts:Cohort[];participants:Participant[]}>();const{t,formatDate,formatNumber}=useLocale();const counts=computed(()=>({incoming:props.participants.filter(p=>p.direction==='incoming').length,outgoing:props.participants.filter(p=>p.direction==='outgoing').length,staying:props.participants.filter(p=>p.direction==='staying').length,completed:props.participants.filter(p=>p.completedAt).length}));function ts(v:string):string{return formatDate(v,{dateStyle:'medium',timeStyle:'short'});}function phase(v:string):string{return t(`kingdomP7D.phase_${v}`);}
+type WindowRow = {
+  id: string;
+  label: string;
+  phase: string;
+  preTransferStartsAt: string;
+  invitationalStartsAt: string;
+  transferOpensAt: string;
+  endsAt: string;
+  sourceType: string;
+  sourceReference: string;
+  observedAt: string;
+};
+type Plan = {
+  id: string;
+  label: string;
+  homeKingdom: string;
+  state: string;
+  createdAt: string | null;
+  window: WindowRow;
+};
+type Cohort = {
+  name: string;
+  direction: 'incoming' | 'outgoing';
+  destinationKingdom: string | null;
+  coordinator: { name: string } | null;
+};
+type Participant = {
+  id: string;
+  direction: 'staying' | 'outgoing' | 'incoming';
+  readiness: string;
+  name: string;
+  gamePlayerId: string | null;
+  sourceKingdom: string | null;
+  destinationKingdom: string | null;
+  cohort: Cohort | null;
+  completedAt: string | null;
+};
+const props = defineProps<{
+  user: { name: string; email: string };
+  alliance: { id: string; name: string; kingdom: string };
+  canManage: boolean;
+  plan: Plan | null;
+  cohorts: Cohort[];
+  participants: Participant[];
+}>();
+const { t, formatDate, formatNumber } = useLocale();
+const counts = computed(() => ({
+  incoming: props.participants.filter((p) => p.direction === 'incoming').length,
+  outgoing: props.participants.filter((p) => p.direction === 'outgoing').length,
+  staying: props.participants.filter((p) => p.direction === 'staying').length,
+  completed: props.participants.filter((p) => p.completedAt).length,
+}));
+function ts(v: string): string {
+  return formatDate(v, { dateStyle: 'medium', timeStyle: 'short' });
+}
+function phase(v: string): string {
+  return t(`kingdomP7D.phase_${v}`);
+}
 </script>
-<template><Head :title="`${t('kingdomP7D.title')} · ${alliance.name}`"/><AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true"><RoomBanner :eyebrow="t('kingdomP7D.eyebrow')" :title="t('kingdomP7D.title')" :subtitle="t('kingdomP7D.planningOverviewSubtitle')" image="/images/kingshot/v4/kingdom-transfer.svg"><template #actions><Link v-if="canManage" class="ks-command-link" href="/alliance/transfers/readiness">{{t('kingdomP7D.eligibilityTitle')}}</Link><Link v-if="canManage" class="ks-command-link" data-variant="secondary" href="/alliance/transfers/manage">{{t('kingdomP7D.manageTransfers')}}</Link></template></RoomBanner><section class="mt-4 grid gap-3 sm:grid-cols-2 2xl:grid-cols-5"><StatSeal :label="t('kingdomP7D.currentCycle')" :value="plan?.label??t('kingdomP7D.noCurrentCycle')" icon="◇"/><StatSeal :label="t('kingdomP7D.incoming')" :value="formatNumber(counts.incoming)" icon="←" tone="teal"/><StatSeal :label="t('kingdomP7D.outgoing')" :value="formatNumber(counts.outgoing)" icon="→" tone="stone"/><StatSeal :label="t('kingdomP7D.staying')" :value="formatNumber(counts.staying)" icon="◆"/><StatSeal :label="t('kingdomP7D.completed')" :value="formatNumber(counts.completed)" icon="✓" tone="teal"/></section><section v-if="plan" class="ks-surface-gold mt-5 p-5 sm:p-6"><p class="ks-kicker">{{t('kingdomP7D.transferWindow')}}</p><h2 class="ks-display mt-1 text-2xl">{{plan.window.label}}</h2><p class="mt-2 text-sm text-[var(--ks-muted)]">{{phase(plan.window.phase)}} · {{ts(plan.window.preTransferStartsAt)}} → {{ts(plan.window.endsAt)}}</p><p class="mt-1 break-all text-xs text-[var(--ks-muted)]">{{t(`kingdomP7D.source_${plan.window.sourceType}`)}} · {{ts(plan.window.observedAt)}} · {{plan.window.sourceReference}}</p><div class="mt-4 rounded-xl border border-[var(--ks-border)] bg-black/15 p-4"><p class="font-semibold">{{t('kingdomP7D.decisionQuestion')}}</p><p class="mt-1 text-sm text-[var(--ks-muted)]">{{t('kingdomP7D.decisionQuestionHelp')}}</p><Link v-if="canManage" class="ks-command-link mt-3 inline-flex" href="/alliance/transfers/readiness">{{t('kingdomP7D.openEligibilityBoard')}}</Link></div></section><section v-else class="ks-surface mt-5 p-6"><h2 class="text-xl font-semibold">{{t('kingdomP7D.noCurrentCycle')}}</h2><p class="mt-2 text-[var(--ks-muted)]">{{t('kingdomP7D.createWindowAndPlan')}}</p></section><section v-if="plan" class="ks-surface mt-5 overflow-hidden"><div class="border-b border-[var(--ks-border)] p-5"><h2 class="ks-display text-2xl">{{t('kingdomP7D.participants')}}</h2><p class="mt-2 text-sm text-[var(--ks-muted)]">{{t('kingdomP7D.overviewEligibilityHelp')}}</p></div><div class="grid gap-0 divide-y divide-[var(--ks-border)]"><article v-for="p in participants" :key="p.id" class="p-4"><div class="flex flex-wrap justify-between gap-3"><div><strong>{{p.name}}</strong><p class="mt-1 text-sm text-[var(--ks-muted)]">{{p.direction}} · {{p.direction==='outgoing'?(p.destinationKingdom??t('kingdomP7D.undecided')):(p.sourceKingdom??'—')}} · {{p.cohort?.name??t('kingdomP7D.unassigned')}}</p></div><span class="ks-chip">{{t(`kingdomP7D.readiness_${p.readiness}`)}}</span></div></article></div></section></AppLayout></template>
+<template>
+  <Head :title="`${t('kingdomP7D.title')} · ${alliance.name}`" /><AppLayout
+    :user="user"
+    :player-alliance-name="alliance.name"
+    :has-player-alliance="true"
+    ><RoomBanner
+      :eyebrow="t('kingdomP7D.eyebrow')"
+      :title="t('kingdomP7D.title')"
+      :subtitle="t('kingdomP7D.planningOverviewSubtitle')"
+      image="/images/kingshot/v4/kingdom-transfer.svg"
+      ><template #actions
+        ><Link v-if="canManage" class="ks-command-link" href="/alliance/transfers/readiness">{{
+          t('kingdomP7D.eligibilityTitle')
+        }}</Link
+        ><Link
+          v-if="canManage"
+          class="ks-command-link"
+          data-variant="secondary"
+          href="/alliance/transfers/manage"
+          >{{ t('kingdomP7D.manageTransfers') }}</Link
+        ></template
+      ></RoomBanner
+    >
+    <section class="mt-4 grid gap-3 sm:grid-cols-2 2xl:grid-cols-5">
+      <StatSeal
+        :label="t('kingdomP7D.currentCycle')"
+        :value="plan?.label ?? t('kingdomP7D.noCurrentCycle')"
+        icon="◇"
+      /><StatSeal
+        :label="t('kingdomP7D.incoming')"
+        :value="formatNumber(counts.incoming)"
+        icon="←"
+        tone="teal"
+      /><StatSeal
+        :label="t('kingdomP7D.outgoing')"
+        :value="formatNumber(counts.outgoing)"
+        icon="→"
+        tone="stone"
+      /><StatSeal
+        :label="t('kingdomP7D.staying')"
+        :value="formatNumber(counts.staying)"
+        icon="◆"
+      /><StatSeal
+        :label="t('kingdomP7D.completed')"
+        :value="formatNumber(counts.completed)"
+        icon="✓"
+        tone="teal"
+      />
+    </section>
+    <section v-if="plan" class="ks-surface-gold mt-5 p-5 sm:p-6">
+      <p class="ks-kicker">{{ t('kingdomP7D.transferWindow') }}</p>
+      <h2 class="ks-display mt-1 text-2xl">{{ plan.window.label }}</h2>
+      <p class="mt-2 text-sm text-[var(--ks-muted)]">
+        {{ phase(plan.window.phase) }} · {{ ts(plan.window.preTransferStartsAt) }} →
+        {{ ts(plan.window.endsAt) }}
+      </p>
+      <p class="mt-1 text-xs break-all text-[var(--ks-muted)]">
+        {{ t(`kingdomP7D.source_${plan.window.sourceType}`) }} · {{ ts(plan.window.observedAt) }} ·
+        {{ plan.window.sourceReference }}
+      </p>
+      <div class="mt-4 rounded-xl border border-[var(--ks-border)] bg-black/15 p-4">
+        <p class="font-semibold">{{ t('kingdomP7D.decisionQuestion') }}</p>
+        <p class="mt-1 text-sm text-[var(--ks-muted)]">
+          {{ t('kingdomP7D.decisionQuestionHelp') }}
+        </p>
+        <Link
+          v-if="canManage"
+          class="ks-command-link mt-3 inline-flex"
+          href="/alliance/transfers/readiness"
+          >{{ t('kingdomP7D.openEligibilityBoard') }}</Link
+        >
+      </div>
+    </section>
+    <section v-else class="ks-surface mt-5 p-6">
+      <h2 class="text-xl font-semibold">{{ t('kingdomP7D.noCurrentCycle') }}</h2>
+      <p class="mt-2 text-[var(--ks-muted)]">{{ t('kingdomP7D.createWindowAndPlan') }}</p>
+    </section>
+    <section v-if="plan" class="ks-surface mt-5 overflow-hidden">
+      <div class="border-b border-[var(--ks-border)] p-5">
+        <h2 class="ks-display text-2xl">{{ t('kingdomP7D.participants') }}</h2>
+        <p class="mt-2 text-sm text-[var(--ks-muted)]">
+          {{ t('kingdomP7D.overviewEligibilityHelp') }}
+        </p>
+      </div>
+      <div class="grid gap-0 divide-y divide-[var(--ks-border)]">
+        <article v-for="p in participants" :key="p.id" class="p-4">
+          <div class="flex flex-wrap justify-between gap-3">
+            <div>
+              <strong>{{ p.name }}</strong>
+              <p class="mt-1 text-sm text-[var(--ks-muted)]">
+                {{ p.direction }} ·
+                {{
+                  p.direction === 'outgoing'
+                    ? (p.destinationKingdom ?? t('kingdomP7D.undecided'))
+                    : (p.sourceKingdom ?? '—')
+                }}
+                · {{ p.cohort?.name ?? t('kingdomP7D.unassigned') }}
+              </p>
+            </div>
+            <span class="ks-chip">{{ t(`kingdomP7D.readiness_${p.readiness}`) }}</span>
+          </div>
+        </article>
+      </div>
+    </section></AppLayout
+  >
+</template>
