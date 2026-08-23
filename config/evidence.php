@@ -13,7 +13,7 @@ return [
         'page_segmentation_mode' => (int) env('EVIDENCE_OCR_PSM', 6),
     ],
     'retention' => [
-        'rejected_days' => (int) env('EVIDENCE_REJECTED_RETENTION_DAYS', 14),
+        'deleted_days' => (int) env('EVIDENCE_DELETED_RETENTION_DAYS', 14),
         'failed_days' => (int) env('EVIDENCE_FAILED_RETENTION_DAYS', 30),
         'uncommitted_days' => (int) env('EVIDENCE_UNCOMMITTED_RETENTION_DAYS', 90),
         'committed_binary_days' => (int) env('EVIDENCE_COMMITTED_BINARY_RETENTION_DAYS', 180),
