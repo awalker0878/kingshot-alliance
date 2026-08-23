@@ -28,19 +28,31 @@ final readonly class BeginEvidenceCommit
         private OutboxRecorder $outbox,
     ) {}
 
-    public function handle(string $actorPlayerId, string $reviewId): ReviewedBearHuntCommitCommand
-    {
-        $route = EvidenceReview::query()->select(['id', 'evidence_id', 'occurrence_id'])->findOrFail($reviewId);
-        $target = $this->targets->authorizeManage($actorPlayerId, (string) $route->occurrence_id);
+    public function handle(
+        string $actorPlayerId,
+        string $occurrenceId,
+        string $reviewId,
+    ): ReviewedBearHuntCommitCommand {
+        $target = $this->targets->authorizeManage($actorPlayerId, $occurrenceId);
 
         return DB::transaction(function () use ($actorPlayerId, $reviewId, $target): ReviewedBearHuntCommitCommand {
             $this->targets->authorizeManage($actorPlayerId, $target->occurrenceId);
             $actor = $this->players->lockCurrent($actorPlayerId);
-            $review = EvidenceReview::query()->whereKey($reviewId)->where('alliance_id', $target->allianceId)->lockForUpdate()->firstOrFail();
+            $review = EvidenceReview::query()
+                ->whereKey($reviewId)
+                ->where('alliance_id', $target->allianceId)
+                ->where('occurrence_id', $target->occurrenceId)
+                ->lockForUpdate()
+                ->firstOrFail();
             if ($review->getRawOriginal('status') !== EvidenceReviewStatus::Approved->value) {
                 throw ValidationException::withMessages(['review' => 'Resolve the review before committing this battle report.']);
             }
-            $evidence = GameEvidence::query()->whereKey($review->evidence_id)->where('occurrence_id', $target->occurrenceId)->lockForUpdate()->firstOrFail();
+            $evidence = GameEvidence::query()
+                ->whereKey($review->evidence_id)
+                ->where('alliance_id', $target->allianceId)
+                ->where('occurrence_id', $target->occurrenceId)
+                ->lockForUpdate()
+                ->firstOrFail();
             $idempotencyKey = hash('sha256', 'bear-hunt-review:'.(string) $review->id.':'.(string) $review->semantic_fingerprint);
             $pending = EvidenceCommitAttempt::query()
                 ->where('review_id', $review->id)
