@@ -49,10 +49,15 @@ final class TransferCompletionController extends Controller
         $alliance = $alliances->require($scope->allianceId);
         $kingdom = $kingdoms->require($alliance->kingdomId);
 
-        if (! $authorization->allows($scope->playerId, $scope->allianceId, TransferPermission::Manage)) {
+        if (! $authorization->allows($scope->playerId, $scope->allianceId, TransferPermission::View)) {
             throw new AuthorizationException;
         }
 
+        $canManage = $authorization->allows(
+            $scope->playerId,
+            $scope->allianceId,
+            TransferPermission::Manage,
+        );
         $plan = $plans->currentForAlliance($scope->allianceId);
         $participantRows = $plan === null
             ? collect()
@@ -78,7 +83,7 @@ final class TransferCompletionController extends Controller
                 'label' => (string) $plan->label,
                 'homeKingdom' => (string) $plan->homeKingdom->number,
                 'state' => $plan->state->value,
-                'completable' => $plan->state === TransferPlanState::Locked,
+                'completable' => $canManage && $plan->state === TransferPlanState::Locked,
             ],
             'participants' => $participantRows
                 ->map(fn (TransferParticipant $participant): array => $this->participant($participant, $rosterById, $playersById))
