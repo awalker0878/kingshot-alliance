@@ -10,6 +10,9 @@ use App\Contexts\Accounts\Registration\Data\RegisteredAccount;
 use App\Contexts\Alliance\Lifecycle\Actions\CreateAlliance;
 use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
 use App\Contexts\Alliance\Lifecycle\ValueObjects\AllianceReference;
+use App\Contexts\Alliance\Membership\Actions\UpsertRosterEntry;
+use App\Contexts\Alliance\Membership\Enums\RosterState;
+use App\Contexts\Alliance\Membership\ValueObjects\RosterEntryReference;
 use App\Contexts\GameWorld\Kingdoms\Actions\ResolveKingdom;
 use App\Contexts\GameWorld\Kingdoms\ValueObjects\KingdomReference;
 use App\Contexts\GameWorld\Players\Actions\ClaimPlayerAccount;
@@ -79,5 +82,24 @@ final class ScenarioFactory
         );
 
         return app(AllianceReferenceQuery::class)->require($allianceId);
+    }
+
+    public function roster(
+        PlayerReference $actor,
+        AllianceReference $alliance,
+        ?PlayerReference $player = null,
+    ): RosterEntryReference {
+        $player ??= $actor;
+
+        return app(UpsertRosterEntry::class)->handle(
+            actorPlayerId: $actor->playerId,
+            allianceId: $alliance->allianceId,
+            attributes: [
+                'name' => $player->currentName,
+                'game_player_id' => $player->gamePlayerId,
+                'state' => RosterState::Active,
+            ],
+            expectedPlayerId: $player->playerId,
+        );
     }
 }

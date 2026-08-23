@@ -11,10 +11,10 @@ use App\Contexts\Alliance\Content\Enums\MediaLifecycleStatus;
 use App\Contexts\Alliance\Content\Enums\MediaScanStatus;
 use App\Contexts\Alliance\Content\Models\MediaAsset;
 use App\Contexts\Alliance\Content\Policies\StorageCapacityPolicy;
-use App\Contexts\Alliance\Content\Services\MediaScanner;
 use App\Contexts\Alliance\Lifecycle\ValueObjects\TenantContextSnapshot;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
+use App\Shared\Infrastructure\Uploads\Services\UploadScanner;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -27,7 +27,7 @@ final readonly class UploadMediaAsset
     public function __construct(
         private AllianceAuthorization $authority,
         private AllianceWriteState $allianceWriteState,
-        private MediaScanner $scanner,
+        private UploadScanner $scanner,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
         private StorageCapacityPolicy $capacity,
@@ -35,8 +35,6 @@ final readonly class UploadMediaAsset
 
     public function handle(string $allianceId, string $actorPlayerId, UploadedFile $file): string
     {
-        // Early gate protects the expensive scan/storage path, but is never trusted for the write.
-        // The mutation transaction below reacquires and re-authorizes current authority.
         DB::transaction(function () use ($actorPlayerId, $allianceId): void {
             $context = $this->allianceWriteState->lockActiveScope($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, AlliancePermission::ContentManage);
@@ -68,9 +66,7 @@ final readonly class UploadMediaAsset
                 ]);
             });
 
-            throw ValidationException::withMessages([
-                'media' => $scan->reason ?? 'The uploaded file failed security screening.',
-            ]);
+            throw ValidationException::withMessages(['media' => $scan->reason ?? 'The uploaded file failed security screening.']);
         }
 
         $sha256 = hash_file('sha256', $file->getPathname());

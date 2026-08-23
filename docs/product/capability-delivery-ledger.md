@@ -4,7 +4,7 @@ Status: Current as of 2026-08-22
 
 This ledger records shipped outcomes, active capability delivery, remaining evidence gates, and the implementation standard. GitHub remains the source of truth for exact diffs and CI results.
 
-The delivery ledger is a work queue, not a roadmap. Every incomplete Territory & Hive Planner item created by this effort must be implemented before the effort is considered complete. A feature discovered during implementation that is required for capability correctness, usability, security, operability or architectural integrity is added to the appropriate slice rather than deferred as an unspecified future enhancement.
+The delivery ledger is a work queue, not a roadmap. Every incomplete capability item created by an active delivery effort must be implemented before that effort is considered complete. A feature discovered during implementation that is required for capability correctness, usability, security, operability or architectural integrity is added to the appropriate slice rather than deferred as an unspecified future enhancement.
 
 ## Merged delivery
 
@@ -30,6 +30,58 @@ The delivery ledger is a work queue, not a roadmap. Every incomplete Territory &
 | [#97](https://github.com/awalker0878/kingshot-alliance/pull/97) | Accessibility and localization | Replaced browser prompts with the shared accessible modal contract and an AST-based enforcement gate. |
 
 Every merged slice passed the repository's applicable PHP, Pint, PHPStan, frontend lint/format/type/build, architecture, CodeQL, dependency-review, visual, production-image, staging, backup/restore and image-scan checks.
+
+## Screenshot Intake delivery program
+
+Target: a complete Bear Hunt Screenshot Intake capability from private upload through reviewed, exactly-once Operations result commit—not a generic OCR demo.
+
+Canonical contract: [Screenshot Intake](screenshot-intake.md).
+
+Architectural ownership is intentionally split:
+
+- `Intelligence/Evidence` owns uploaded binaries, immutable source provenance, classification/extraction attempts, field confidence, reviews/corrections, duplicate decisions, Evidence-side commit attempts/receipts and retention.
+- `Operations/Results` owns accepted Bear Hunt battle-report ledgers, entries and recomputed Event result aggregates.
+- `app/ReadModels/ScreenshotIntake` composes the review workspace without becoming a writer.
+- The Evidence application Action coordinates the commit handshake through scalar/value-object data and the destination owner Action; Screenshot Intake does not add a top-level `app/Workflows` family.
+
+`Complete` means the phase is implemented across behavior, authorization, idempotency, persistence, UX, accessibility/localization, observability/recovery, tests and current-truth documentation. Screenshot Intake reached that state after one immutable implementation candidate passed the applicable repository quality/release gates and the Phase 15 spec→code, code→spec and UX→backend scan found no remaining gap.
+
+### Phase queue
+
+| Phase | Status | Slice | Exit condition |
+| --- | --- | --- | --- |
+| 1 | Complete | Product contract and architecture ownership | `/docs/product` defines the full capability, ownership is recorded in architecture/data-ownership/ADR docs, and Evidence vs Operations write ownership is unambiguous. |
+| 2 | Complete | Secure evidence upload and immutable provenance | Private storage, actual MIME/image validation, size limits, shared security scan, checksums/dimensions/source metadata, current authorization and same-scope exact duplicate reuse are implemented and behavior-tested. |
+| 3 | Complete | Screenshot classification | Versioned immutable classification attempts, OCR provenance, failure state, queues/retry and Bear Hunt classification are implemented and verified. |
+| 4 | Complete | Bear Hunt battle-report extraction | The first schema extracts only supported report timestamp/ranking-row facts through a versioned extractor contract with verified failure/retry behavior. |
+| 5 | Complete | Field-level confidence and extraction history | Raw OCR, normalized candidates, data type, confidence, bounding boxes/warnings and immutable extraction-attempt history are retained and verified. |
+| 6 | Complete | Review, Player resolution and manual correction | Every first-release screenshot requires review; included rows resolve to existing eligible Player IDs; corrections never overwrite machine history and OCR text cannot create/mutate Players. |
+| 7 | Complete | Exact, visual and semantic duplicate detection | SHA duplicates are scoped/reused, perceptually similar binary-distinct images remain separate warnings, semantic duplicates block commit until explicitly resolved, and cross-Alliance evidence is never disclosed. |
+| 8 | Complete | Commit preview and validation | The workspace previews current + report = post-commit score changes and blocks unresolved/ineligible/duplicate-invalid reviewed meaning. |
+| 9 | Complete | Scalar cross-context commit | Evidence builds reviewed scalar/value-object meaning and invokes the `Operations/Results` owner Action without foreign Eloquent models or cross-context persistence writes. |
+| 10 | Complete | Bear Hunt report ledger and idempotent aggregation | Operations records source-linked immutable report/entry facts, preserves pre-import baselines and deterministically recomputes Governor totals without additive double counting. |
+| 11 | Complete | Retry/recovery and commit receipts | Stable destination idempotency survives interrupted acknowledgement; retries recover the same Operations report and Evidence retains immutable attempt/receipt history. |
+| 12 | Complete | Evidence deletion, redaction and retention | Deletion/retention physically removes binaries/sensitive OCR as required, keeps minimum committed provenance, prevents bounded-scan starvation and never cascades into accepted Operations results. |
+| 13 | Complete | Operational diagnostics and observability | Privacy-safe diagnostics, queue/retry visibility, audit/outbox records, failure codes and retention/recovery procedures are implemented and documented. |
+| 14 | Complete | Accessibility, responsive UX, localization and visual regression | Bear Hunt entry, upload/processing/review/duplicate/preview/commit/history states are localized, keyboard/mobile-safe and protected by deterministic desktop/mobile visual baselines. |
+| 15 | Complete | Full capability audit and closeout | The repository-wide contract scan found no TODO/scaffolding/stale ownership/undocumented behavior; the ledger and Screenshot Intake contract describe implemented current state; one immutable implementation candidate passed all applicable gates. |
+
+The Screenshot Intake delivery queue is closed: every phase is Complete and no known Screenshot Intake product feature is deferred. Any defect or material change that invalidates a phase exit condition is a regression that reopens the affected phase and must restore the same release evidence before closeout.
+
+### Cross-phase invariants
+
+These are not deferrable cleanup items:
+
+1. Evidence is not domain truth; accepted Bear Hunt result facts remain Operations-owned.
+2. Public write contracts use scalar IDs/value objects and never pass foreign Eloquent models.
+3. Every material mutation revalidates current active-Player/scope authority at the write boundary.
+4. Original extraction/confidence/history remains immutable after manual correction.
+5. OCR names never create or mutate Player identity.
+6. Exact/perceptual/semantic duplicate handling cannot disclose another Alliance's evidence.
+7. Operations aggregation is report-ledger recomputation; retry cannot add damage twice.
+8. Evidence deletion/redaction never silently removes an accepted Operations result.
+9. No compatibility shims, legacy routes, dual reads/writes or placeholder architecture survive closeout.
+10. A phase is not Complete until its tests, UX, docs, observability/recovery and applicable gates are complete.
 
 ## Territory & Hive Planner delivery program
 
