@@ -387,7 +387,7 @@ function barWidth(value: number | null | undefined, max: number): string {
               <div class="flex min-w-0 items-start justify-between gap-3">
                 <div class="min-w-0">
                   <p class="text-xs text-[var(--ks-muted)]">{{ rank(governor.rank) }}</p>
-                  <h3 class="break-words font-semibold">
+                  <h3 class="font-semibold break-words">
                     {{ governor.playerName || t('debrief.unknownGovernor') }}
                   </h3>
                 </div>
@@ -428,7 +428,7 @@ function barWidth(value: number | null | undefined, max: number): string {
                   class="border-t border-[var(--ks-border)]"
                 >
                   <td class="px-2 py-3 font-semibold">{{ rank(governor.rank) }}</td>
-                  <td class="max-w-60 break-words px-2 py-3">
+                  <td class="max-w-60 px-2 py-3 break-words">
                     {{ governor.playerName || t('debrief.unknownGovernor') }}
                   </td>
                   <td class="px-2 py-3 text-right font-semibold">
@@ -514,9 +514,8 @@ function barWidth(value: number | null | undefined, max: number): string {
                   </span>
                   <span class="min-w-16 text-right">{{ damage(point.damage) }}</span>
                   <span class="col-span-3 text-xs leading-5 text-[var(--ks-muted)]">
-                    {{ t('debrief.rank') }}: {{ rank(point.rank) }} ·
-                    {{ t('debrief.attendance') }}: {{ attendance(point.attendanceStatus) }} ·
-                    {{ t('debrief.recordedRallies') }}:
+                    {{ t('debrief.rank') }}: {{ rank(point.rank) }} · {{ t('debrief.attendance') }}:
+                    {{ attendance(point.attendanceStatus) }} · {{ t('debrief.recordedRallies') }}:
                     {{ count(point.rallies, point.ralliesAvailable ?? false) }}
                   </span>
                 </li>
