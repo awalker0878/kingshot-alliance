@@ -6,8 +6,6 @@ namespace App\Contexts\GameWorld\KingdomTransfers\Http\Controllers;
 
 use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
 use App\Contexts\Accounts\Identity\ValueObjects\AccountIdentity;
-use App\Contexts\Alliance\Access\Enums\AlliancePermission;
-use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
 use App\Contexts\Alliance\Lifecycle\Services\AllianceContext;
 use App\Contexts\Alliance\Membership\Queries\PlayerMembershipQuery;
@@ -43,13 +41,13 @@ use Inertia\Response;
 
 final class TransferPlanController extends Controller
 {
-    public function index(Request $request, AllianceContext $context, AccountIdentityQuery $accounts, AllianceReferenceQuery $alliances, KingdomReferenceQuery $kingdoms, AllianceAuthorization $authorization, TransferAuthorization $transferAuthorization, TransferPlanQuery $plans, TransferParticipantQuery $participants, TransferCohortQuery $cohorts): Response
+    public function index(Request $request, AllianceContext $context, AccountIdentityQuery $accounts, AllianceReferenceQuery $alliances, KingdomReferenceQuery $kingdoms, TransferAuthorization $transferAuthorization, TransferPlanQuery $plans, TransferParticipantQuery $participants, TransferCohortQuery $cohorts): Response
     {
         $s = $context->scope();
         $account = $this->account($request, $accounts);
         $alliance = $alliances->require($s->allianceId);
         $kingdom = $kingdoms->require($alliance->kingdomId);
-        if (! $authorization->allows($s->playerId, $s->allianceId, AlliancePermission::View)) {
+        if (! $transferAuthorization->allows($s->playerId, $s->allianceId, TransferPermission::View)) {
             throw new AuthorizationException;
         }$current = $plans->currentForAlliance($s->allianceId);
 
