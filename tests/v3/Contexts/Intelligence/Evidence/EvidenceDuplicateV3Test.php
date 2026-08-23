@@ -41,6 +41,7 @@ final class EvidenceDuplicateV3Test extends TestCase
 
         $firstReviewId = $save->handle(
             $actor->playerId,
+            $occurrenceId,
             (string) $firstEvidence->id,
             $firstExtractionId,
             $rows,
@@ -48,6 +49,7 @@ final class EvidenceDuplicateV3Test extends TestCase
         );
         $secondReviewId = $save->handle(
             $actor->playerId,
+            $occurrenceId,
             (string) $secondEvidence->id,
             $secondExtractionId,
             $rows,
@@ -65,21 +67,26 @@ final class EvidenceDuplicateV3Test extends TestCase
         );
 
         try {
-            app(BeginEvidenceCommit::class)->handle($actor->playerId, $secondReviewId);
+            app(BeginEvidenceCommit::class)->handle($actor->playerId, $occurrenceId, $secondReviewId);
             self::fail('Expected semantic duplicate to block commit.');
         } catch (ValidationException $exception) {
             self::assertArrayHasKey('review', $exception->errors());
         }
 
         $justification = 'This is a separate rally report with matching visible totals.';
-        app(ResolveSemanticDuplicate::class)->handle($actor->playerId, $secondReviewId, $justification);
+        app(ResolveSemanticDuplicate::class)->handle(
+            $actor->playerId,
+            $occurrenceId,
+            $secondReviewId,
+            $justification,
+        );
         $secondReview->refresh();
         self::assertSame(EvidenceReviewStatus::Approved, $secondReview->status);
         self::assertSame($justification, $secondReview->duplicate_resolution);
         self::assertNotNull($secondReview->resolved_at);
         self::assertSame($actor->playerId, (string) $secondReview->resolved_by_player_id);
 
-        $command = app(BeginEvidenceCommit::class)->handle($actor->playerId, $secondReviewId);
+        $command = app(BeginEvidenceCommit::class)->handle($actor->playerId, $occurrenceId, $secondReviewId);
         self::assertNotSame((string) $secondReview->semantic_fingerprint, $command->reportFingerprint);
     }
 
@@ -93,6 +100,7 @@ final class EvidenceDuplicateV3Test extends TestCase
         try {
             app(SaveEvidenceReview::class)->handle(
                 actorPlayerId: $actor->playerId,
+                occurrenceId: $occurrenceId,
                 evidenceId: (string) $evidence->id,
                 extractionAttemptId: $extractionId,
                 rows: [[
