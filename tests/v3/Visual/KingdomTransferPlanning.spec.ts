@@ -35,10 +35,14 @@ test('Kingdom Transfer Planning keeps eligibility, verification, and readiness d
   await openTransferPlanning(page);
   await page.evaluate(() => document.fonts.ready);
 
-  await expect(page.getByText('Northstar Marshal', { exact: true })).toBeVisible();
-  await expect(page.getByText('Ember Vanguard', { exact: true })).toBeVisible();
-  await expect(page.getByText('Frost Envoy', { exact: true })).toBeVisible();
-  await expect(page.getByText('Eligible now', { exact: true })).toBeVisible();
+  const northstar = page.getByRole('heading', { name: 'Northstar Marshal', level: 2 });
+  const ember = page.getByRole('heading', { name: 'Ember Vanguard', level: 2 });
+  const frost = page.getByRole('heading', { name: 'Frost Envoy', level: 2 });
+
+  await expect(northstar).toBeVisible();
+  await expect(ember).toBeVisible();
+  await expect(frost).toBeVisible();
+  await expect(page.getByText('Eligible now', { exact: true }).first()).toBeVisible();
   await expect(page.getByText('Blocked', { exact: true }).first()).toBeVisible();
   await expect(page.getByText('Needs verification', { exact: true }).first()).toBeVisible();
   await expect(page.getByText('Transfer Group 7', { exact: true }).first()).toBeVisible();
@@ -51,11 +55,11 @@ test('Kingdom Transfer Planning keeps eligibility, verification, and readiness d
   await filter.focus();
   await page.keyboard.press('ArrowDown');
   await expect(filter).toHaveValue('eligible_now');
-  await expect(page.getByText('Northstar Marshal', { exact: true })).toBeVisible();
-  await expect(page.getByText('Ember Vanguard', { exact: true })).toBeHidden();
+  await expect(northstar).toBeVisible();
+  await expect(ember).toBeHidden();
   await page.keyboard.press('Home');
   await expect(filter).toHaveValue('all');
-  await expect(page.getByText('Ember Vanguard', { exact: true })).toBeVisible();
+  await expect(ember).toBeVisible();
 
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
