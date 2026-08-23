@@ -12,6 +12,7 @@ use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferSourceType;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferWindowPhase;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferKingdomConditionObservation;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferWindow;
+use App\Contexts\GameWorld\KingdomTransfers\Services\TransferEvidenceReferenceGuard;
 use App\Contexts\GameWorld\KingdomTransfers\Services\TransferWriteState;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
@@ -21,7 +22,14 @@ use Illuminate\Validation\ValidationException;
 
 final readonly class RecordTransferKingdomCondition
 {
-    public function __construct(private TransferWriteState $writeState, private TransferAuthorization $authority, private ResolveKingdom $kingdoms, private AuditRecorder $audit, private OutboxRecorder $outbox) {}
+    public function __construct(
+        private TransferWriteState $writeState,
+        private TransferAuthorization $authority,
+        private ResolveKingdom $kingdoms,
+        private TransferEvidenceReferenceGuard $evidence,
+        private AuditRecorder $audit,
+        private OutboxRecorder $outbox,
+    ) {}
 
     public function handle(string $allianceId, string $actorPlayerId, string $windowId, int|string $kingdomNumber, ?int $powerCap, TransferKingdomClassification $classification, TransferSourceType $sourceType, string $sourceReference, string $observedAt, bool $isCorrection = false, ?string $evidenceId = null): string
     {
@@ -37,6 +45,7 @@ final readonly class RecordTransferKingdomCondition
             if ($sourceReference === '') {
                 throw ValidationException::withMessages(['source_reference' => 'A source reference is required.']);
             }
+            $evidenceId = $this->evidence->assertUsable($allianceId, $sourceType, $evidenceId);
             $observed = CarbonImmutable::parse($observedAt)->utc();
             $previous = TransferKingdomConditionObservation::query()->where('alliance_id', $allianceId)->where('transfer_window_id', $windowId)->where('kingdom_id', $kingdom->kingdomId)->orderByDesc('observed_at')->orderByDesc('id')->lockForUpdate()->first();
             if ($previous instanceof TransferKingdomConditionObservation && $previous->power_cap !== $powerCap && in_array($window->phaseAt(CarbonImmutable::now('UTC')), [TransferWindowPhase::InvitationalTransfer, TransferWindowPhase::TransferOpens, TransferWindowPhase::Closed], true)) {
