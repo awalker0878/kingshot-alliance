@@ -69,6 +69,7 @@ final class BearHuntDebriefHttpV3Test extends TestCase
         $user = $scenario->authUser();
         $this->verify($user);
         $owner = $scenario->player((int) $user->id, 61504);
+        $scenario->player((int) $user->id, 61506);
         $alliance = $scenario->alliance($owner);
         $scenario->roster($owner, $alliance);
         $occurrence = $this->occurrence($owner, $alliance);
