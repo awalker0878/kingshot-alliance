@@ -7,7 +7,6 @@ namespace App\Contexts\Intelligence\Evidence\Queries;
 use App\Contexts\Intelligence\Evidence\Enums\EvidenceLifecycleStatus;
 use App\Contexts\Intelligence\Evidence\Models\EvidenceExtractedField;
 use App\Contexts\Intelligence\Evidence\Models\EvidenceExtractionAttempt;
-use App\Contexts\Intelligence\Evidence\Models\EvidenceReview;
 use App\Contexts\Intelligence\Evidence\Models\GameEvidence;
 use App\Contexts\Operations\Results\Queries\BearHuntEvidenceTargetQuery;
 use Illuminate\Support\Collection;
@@ -27,6 +26,8 @@ final readonly class BearHuntUnmatchedGovernorQuery
      * semantic duplicate still needs resolution. A saved review for the latest
      * extraction means its included rows are resolved and excluded rows were
      * intentionally excluded, so that Evidence is not an unmatched-Governor item.
+     * Resolved/reviewed Evidence is filtered before the queue bound is applied so
+     * duplicate follow-up work cannot starve genuinely unmatched Evidence.
      *
      * @return list<array{
      *   evidenceId:string,
@@ -42,7 +43,24 @@ final readonly class BearHuntUnmatchedGovernorQuery
             ->where('alliance_id', $target->allianceId)
             ->where('occurrence_id', $target->occurrenceId)
             ->where('lifecycle_status', EvidenceLifecycleStatus::NeedsReview->value)
+            ->whereExists(static function ($query): void {
+                $query->selectRaw('1')
+                    ->from('evidence_extraction_attempts as unmatched_attempt')
+                    ->whereColumn('unmatched_attempt.evidence_id', 'game_evidence.id');
+            })
+            ->whereNotExists(static function ($query): void {
+                $query->selectRaw('1')
+                    ->from('evidence_reviews as resolved_review')
+                    ->whereColumn('resolved_review.evidence_id', 'game_evidence.id')
+                    ->whereRaw(
+                        'resolved_review.extraction_attempt_id = ('.
+                        'SELECT latest_attempt.id FROM evidence_extraction_attempts AS latest_attempt '.
+                        'WHERE latest_attempt.evidence_id = game_evidence.id '.
+                        'ORDER BY latest_attempt.created_at DESC, latest_attempt.id DESC LIMIT 1)'
+                    );
+            })
             ->orderByDesc('created_at')
+            ->orderByDesc('id')
             ->limit(self::MAX_EVIDENCE)
             ->get();
         if ($items->isEmpty()) {
@@ -67,31 +85,11 @@ final readonly class BearHuntUnmatchedGovernorQuery
             $latestAttempts[$evidenceId] ??= $attempt;
         }
 
-        /** @var array<string,EvidenceReview> $latestReviews */
-        $latestReviews = [];
-        foreach (EvidenceReview::query()
-            ->whereIn('evidence_id', $evidenceIds)
-            ->orderBy('evidence_id')
-            ->orderByDesc('revision_number')
-            ->get() as $review) {
-            $evidenceId = (string) $review->evidence_id;
-            $latestReviews[$evidenceId] ??= $review;
-        }
-
         /** @var list<string> $unreviewedAttemptIds */
-        $unreviewedAttemptIds = [];
-        foreach ($evidenceIds as $evidenceId) {
-            $attempt = $latestAttempts[$evidenceId] ?? null;
-            if (! $attempt instanceof EvidenceExtractionAttempt) {
-                continue;
-            }
-            $review = $latestReviews[$evidenceId] ?? null;
-            if ($review instanceof EvidenceReview
-                && (string) $review->extraction_attempt_id === (string) $attempt->id) {
-                continue;
-            }
-            $unreviewedAttemptIds[] = (string) $attempt->id;
-        }
+        $unreviewedAttemptIds = array_values(array_map(
+            static fn (EvidenceExtractionAttempt $attempt): string => (string) $attempt->id,
+            $latestAttempts,
+        ));
         if ($unreviewedAttemptIds === []) {
             return [];
         }
@@ -110,11 +108,6 @@ final readonly class BearHuntUnmatchedGovernorQuery
             $evidenceId = (string) $evidence->id;
             $attempt = $latestAttempts[$evidenceId] ?? null;
             if (! $attempt instanceof EvidenceExtractionAttempt) {
-                continue;
-            }
-            $review = $latestReviews[$evidenceId] ?? null;
-            if ($review instanceof EvidenceReview
-                && (string) $review->extraction_attempt_id === (string) $attempt->id) {
                 continue;
             }
 
