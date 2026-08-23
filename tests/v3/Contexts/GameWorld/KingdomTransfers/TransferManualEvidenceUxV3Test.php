@@ -37,4 +37,18 @@ final class TransferManualEvidenceUxV3Test extends TestCase
             }
         }
     }
+
+    public function test_transfer_mutation_pages_surface_accessible_validation_failures(): void
+    {
+        foreach ([
+            'resources/js/pages/Kingdom/Transfer/Manage.vue',
+            'resources/js/pages/Kingdom/Transfer/Readiness.vue',
+        ] as $path) {
+            $source = file_get_contents(base_path($path));
+            self::assertIsString($source, $path);
+            self::assertStringContainsString('validationErrors', $source, $path);
+            self::assertStringContainsString('role="alert"', $source, $path);
+            self::assertStringContainsString('aria-live="assertive"', $source, $path);
+        }
+    }
 }
