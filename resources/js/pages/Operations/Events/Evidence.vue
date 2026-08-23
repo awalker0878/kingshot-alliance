@@ -687,7 +687,7 @@ function refresh(): void {
               <section
                 v-if="item.preview && item.latestReview?.status === 'approved'"
                 class="mt-5"
-                aria-label="Commit preview"
+                :aria-label="t('evidence.previewTitle')"
               >
                 <p class="ks-kicker">{{ t('evidence.previewTitle') }}</p>
                 <h4 class="mt-1 text-xl font-semibold">{{ t('evidence.previewTitle') }}</h4>
