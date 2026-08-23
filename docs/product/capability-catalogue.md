@@ -21,7 +21,7 @@ This is the user/product view of implemented and actively delivered capability g
 | Rallies | Plan and coordinate rallies against Event occurrences. | Operations/Rallies |
 | King Perks | Plan/schedule King Perk appointments and King Skills with occupancy/cooldown rules. | Operations/KingPerks |
 | Results | Capture operational Event results and metrics. | Operations/Results |
-| Screenshot Intake | Upload KingShot evidence, classify/extract it with immutable provenance, review/correct field-level candidates, detect duplicates and commit reviewed results into the owning domain exactly once. Bear Hunt battle reports are the first supported evidence type. | Intelligence/Evidence owns evidence and review; Workflows coordinate; Operations/Results owns accepted Bear Hunt report/results |
+| Screenshot Intake | Upload KingShot evidence, classify/extract it with immutable provenance, review/correct field-level candidates, detect duplicates and commit reviewed results into the owning domain exactly once. Bear Hunt battle reports are the first supported evidence type. | Intelligence/Evidence owns evidence, review and its commit handshake; Operations/Results owns accepted Bear Hunt reports/results |
 | Intelligence | Ingest observations and maintain roster/contribution/event/diplomacy intelligence. | Intelligence |
 | Shared intelligence | Control sharing/grants and compose Kingdom intelligence views. | Intelligence + ReadModels |
 | Communications | Deliver reminders/notifications with preferences/retry/idempotency. | Communications |
@@ -42,7 +42,7 @@ Screenshot Intake is delivered as an evidence-to-domain workflow rather than a g
 - Player resolution through supported owner reads without creating identity from extracted text;
 - exact, visual and semantic duplicate detection that does not disclose cross-tenant evidence;
 - review-first commit preview with no automatic promotion in the first release;
-- a crash-safe/idempotent workflow that passes scalar reviewed values into `Operations/Results`;
+- a crash-safe/idempotent Evidence commit handshake that passes scalar reviewed values into `Operations/Results` through the destination owner Action;
 - an Operations-owned Bear Hunt report ledger that recomputes result aggregates instead of blindly incrementing them;
 - destination receipts and retry recovery when acknowledgement is interrupted;
 - evidence deletion/retention that never silently deletes accepted Operations results;
