@@ -7,7 +7,9 @@ namespace App\Contexts\Intelligence\Evidence\Providers;
 use App\Contexts\Intelligence\Evidence\Console\Commands\EvidenceDiagnosticsCommand;
 use App\Contexts\Intelligence\Evidence\Contracts\EvidenceClassifier;
 use App\Contexts\Intelligence\Evidence\Contracts\EvidenceExtractor;
+use App\Contexts\Intelligence\Evidence\Contracts\EvidenceReferenceLookup;
 use App\Contexts\Intelligence\Evidence\Contracts\OcrEngine;
+use App\Contexts\Intelligence\Evidence\Queries\EvidenceReferenceQuery;
 use App\Contexts\Intelligence\Evidence\Services\BearHuntBattleReportExtractor;
 use App\Contexts\Intelligence\Evidence\Services\BearHuntEvidenceClassifier;
 use App\Contexts\Intelligence\Evidence\Services\TesseractOcrEngine;
@@ -20,6 +22,7 @@ final class EvidenceServiceProvider extends ServiceProvider
         $this->app->bind(OcrEngine::class, TesseractOcrEngine::class);
         $this->app->bind(EvidenceClassifier::class, BearHuntEvidenceClassifier::class);
         $this->app->bind(EvidenceExtractor::class, BearHuntBattleReportExtractor::class);
+        $this->app->bind(EvidenceReferenceLookup::class, EvidenceReferenceQuery::class);
     }
 
     public function boot(): void
