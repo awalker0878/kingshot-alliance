@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "formations": [
+    {"id":"balanced-50-20-30","name":"Balanced 50/20/30","infantry":50,"cavalry":20,"archer":30,"mode":"general_pvp","scope":"Frequently described as a general or balanced split.","evidence_status":"community_convention","source_ids":["reddit-kingshot-formations"]},
+    {"id":"balanced-40-20-40","name":"Balanced 40/20/40","infantry":40,"cavalry":20,"archer":40,"mode":"general_pvp","scope":"Community alternative to 50/20/30.","evidence_status":"community_convention","source_ids":["reddit-kingshot-formations"]},
+    {"id":"infantry-cavalry-60-40-0","name":"Infantry/Cavalry 60/40","infantry":60,"cavalry":40,"archer":0,"mode":"pvp_defense","scope":"Reported by some Generation 4/community defensive builds; not universal.","evidence_status":"community_convention","source_ids":["reddit-kingshot-formations"]},
+    {"id":"infantry-archer-50-0-50","name":"Infantry/Archer 50/50","infantry":50,"cavalry":0,"archer":50,"mode":"pvp","scope":"Reported build with disputed effectiveness depending on Heroes and progression.","evidence_status":"community_convention","source_ids":["reddit-kingshot-formations"]},
+    {"id":"infantry-archer-48-4-48","name":"48/4/48","infantry":48,"cavalry":4,"archer":48,"mode":"pvp","scope":"Reported counter/build-specific convention.","evidence_status":"community_convention","source_ids":["reddit-kingshot-formations"]},
+    {"id":"bear-10-10-80","name":"Archer-heavy Bear 10/10/80","infantry":10,"cavalry":10,"archer":80,"mode":"bear_hunt","scope":"Common community Bear convention; effectiveness depends on Heroes, stats and troop availability.","evidence_status":"community_convention","source_ids":["reddit-kingshot-formations"]},
+    {"id":"bear-5-5-90","name":"Archer-heavy Bear 5/5/90","infantry":5,"cavalry":5,"archer":90,"mode":"bear_hunt","scope":"More aggressive community Bear variant.","evidence_status":"community_convention","source_ids":["reddit-kingshot-formations"]},
+    {"id":"bear-10-30-60","name":"Bear 10/30/60","infantry":10,"cavalry":30,"archer":60,"mode":"bear_hunt","scope":"Reported community alternative; Hero/stat dependent.","evidence_status":"community_convention","source_ids":["reddit-kingshot-formations"]}
+  ]
+}
