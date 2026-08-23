@@ -17,9 +17,12 @@ final readonly class CommitReviewedBearHuntEvidence
         private FailEvidenceCommit $fail,
     ) {}
 
-    public function handle(string $actorPlayerId, string $reviewId): EvidenceCommitReceipt
-    {
-        $command = $this->begin->handle($actorPlayerId, $reviewId);
+    public function handle(
+        string $actorPlayerId,
+        string $occurrenceId,
+        string $reviewId,
+    ): EvidenceCommitReceipt {
+        $command = $this->begin->handle($actorPlayerId, $occurrenceId, $reviewId);
 
         try {
             $receipt = $this->record->handle(
