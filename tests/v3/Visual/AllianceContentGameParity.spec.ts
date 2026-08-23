@@ -1,0 +1,96 @@
+import { createHash } from 'node:crypto';
+import { expect, test } from '@playwright/test';
+import type { Page, TestInfo } from '@playwright/test';
+
+const fingerprints: Record<string, Record<string, string>> = {
+  rules: {
+    desktop: '0000000000000000000000000000000000000000000000000000000000000000',
+    mobile: '0000000000000000000000000000000000000000000000000000000000000000',
+  },
+  noticeboard: {
+    desktop: '0000000000000000000000000000000000000000000000000000000000000000',
+    mobile: '0000000000000000000000000000000000000000000000000000000000000000',
+  },
+};
+
+async function login(page: Page): Promise<void> {
+  await page.goto('/login');
+  await page.locator('#email').fill('content-visual@example.test');
+  await page.locator('#password').fill('password');
+  await page.locator('button[type="submit"]').click();
+  await page.waitForURL('**/dashboard');
+
+  const identitySwitcher = page.locator('button[aria-haspopup="listbox"]:visible').first();
+  if (await identitySwitcher.isVisible()) {
+    const label = (await identitySwitcher.textContent()) ?? '';
+    if (/select governor/i.test(label)) {
+      await identitySwitcher.click();
+      await page
+        .getByRole('listbox', { name: 'Active Governor' })
+        .getByRole('option')
+        .first()
+        .click();
+      await page.waitForURL('**/dashboard');
+    }
+  }
+}
+
+async function assertVisual(
+  page: Page,
+  testInfo: TestInfo,
+  surface: 'rules' | 'noticeboard',
+): Promise<void> {
+  await page.evaluate(() => document.fonts.ready);
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
+  );
+  expect(overflow).toBeFalsy();
+
+  const screenshot = await page.screenshot({
+    animations: 'disabled',
+    caret: 'hide',
+    fullPage: true,
+    path: testInfo.outputPath(`alliance-content-${surface}.png`),
+    scale: 'css',
+  });
+  const actual = createHash('sha256').update(screenshot).digest('hex');
+  const expected = fingerprints[surface]?.[testInfo.project.name];
+
+  expect(actual, `Update ${surface} visual fingerprint for ${testInfo.project.name}`).toBe(expected);
+}
+
+test('Alliance Rules are a first-class readable and editable member surface', async ({ page }, testInfo) => {
+  await login(page);
+  await page.goto('/alliance/rules');
+  await page.waitForLoadState('networkidle');
+
+  await expect(page.getByRole('heading', { name: 'Alliance Rules', level: 1 })).toBeVisible();
+  await expect(page.getByText('Join Bear Hunt rallies on time.')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Edit Alliance Rules', level: 2 })).toBeVisible();
+  const rules = page.getByLabel('Rules');
+  await expect(rules).toHaveValue(/Follow R4\/R5 battle calls/);
+  await expect(rules).toHaveAttribute('maxlength', '10000');
+  await expect(page.getByRole('button', { name: 'Save Alliance Rules' })).toBeEnabled();
+
+  await assertVisual(page, testInfo, 'rules');
+});
+
+test('Alliance Notices expose lightweight reactions without ranking UI', async ({ page }, testInfo) => {
+  await login(page);
+  await page.goto('/alliance/content');
+  await page.waitForLoadState('networkidle');
+
+  const notice = page.locator('article').filter({
+    has: page.getByRole('heading', { name: 'Bear Hunt Rally Window', level: 3 }),
+  });
+  await expect(notice).toBeVisible();
+
+  const like = notice.getByRole('button', { name: /Like this Alliance Notice\. 1 likes\./ });
+  const dislike = notice.getByRole('button', { name: /Dislike this Alliance Notice\. 1 dislikes\./ });
+  await expect(like).toHaveAttribute('aria-pressed', 'true');
+  await expect(dislike).toHaveAttribute('aria-pressed', 'false');
+  await expect(page.getByText(/trending|popular|score|approval ratio/i)).toHaveCount(0);
+  await expect(page.getByRole('link', { name: 'Alliance Rules' }).first()).toBeVisible();
+
+  await assertVisual(page, testInfo, 'noticeboard');
+});
