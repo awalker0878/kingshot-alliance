@@ -12,6 +12,7 @@ use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferSourceType;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferObservation;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferParticipant;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferPlan;
+use App\Contexts\GameWorld\KingdomTransfers\Services\TransferEvidenceReferenceGuard;
 use App\Contexts\GameWorld\KingdomTransfers\Services\TransferWriteState;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
@@ -21,7 +22,13 @@ use Illuminate\Validation\ValidationException;
 
 final readonly class RecordTransferObservation
 {
-    public function __construct(private TransferWriteState $writeState, private TransferAuthorization $authority, private AuditRecorder $audit, private OutboxRecorder $outbox) {}
+    public function __construct(
+        private TransferWriteState $writeState,
+        private TransferAuthorization $authority,
+        private TransferEvidenceReferenceGuard $evidence,
+        private AuditRecorder $audit,
+        private OutboxRecorder $outbox,
+    ) {}
 
     public function handle(string $allianceId, string $actorPlayerId, string $planId, string $participantId, TransferObservationKind $kind, int|string|bool $value, TransferSourceType $sourceType, string $sourceReference, string $observedAt, ?string $validUntil, ?string $details = null, ?string $evidenceId = null): string
     {
@@ -42,6 +49,7 @@ final readonly class RecordTransferObservation
             if ($sourceReference === '') {
                 throw ValidationException::withMessages(['source_reference' => 'A source reference is required.']);
             }
+            $evidenceId = $this->evidence->assertUsable($allianceId, $sourceType, $evidenceId);
             if ($kind->usesNumericValue() && (! is_int($value) || $value < 0)) {
                 throw ValidationException::withMessages(['value' => 'This observation requires a non-negative integer value.']);
             }
