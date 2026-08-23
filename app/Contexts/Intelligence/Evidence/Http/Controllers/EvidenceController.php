@@ -85,6 +85,7 @@ final class EvidenceController extends Controller
         ]);
         $reviewId = $save->handle(
             actorPlayerId: $this->actor()->playerId,
+            occurrenceId: $occurrence,
             evidenceId: $evidence,
             extractionAttemptId: (string) $validated['extraction_attempt_id'],
             rows: $validated['rows'],
@@ -103,7 +104,12 @@ final class EvidenceController extends Controller
         $validated = $request->validate([
             'justification' => ['required', 'string', 'min:10', 'max:1000'],
         ]);
-        $resolve->handle($this->actor()->playerId, $review, (string) $validated['justification']);
+        $resolve->handle(
+            $this->actor()->playerId,
+            $occurrence,
+            $review,
+            (string) $validated['justification'],
+        );
 
         return $this->back($occurrence, ['reviewId' => $review]);
     }
@@ -123,7 +129,7 @@ final class EvidenceController extends Controller
         string $review,
         CommitReviewedBearHuntEvidence $commit,
     ): RedirectResponse {
-        $receipt = $commit->handle($this->actor()->playerId, $review);
+        $receipt = $commit->handle($this->actor()->playerId, $occurrence, $review);
 
         return $this->back($occurrence, [
             'reviewId' => $review,
