@@ -38,6 +38,7 @@ return new class extends Migration
             $table->string('source_type', 32);
             $table->string('source_reference', 2048);
             $table->timestampTz('observed_at');
+            $table->string('evidence_id', 64)->nullable();
             $table->timestampTz('superseded_at')->nullable();
             $table->foreignUlid('recorded_by_player_id')->nullable()->constrained('players')->nullOnDelete();
             $table->timestamps();
