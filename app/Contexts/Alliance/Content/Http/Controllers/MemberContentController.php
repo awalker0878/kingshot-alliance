@@ -45,11 +45,10 @@ final class MemberContentController extends Controller
             $request->string('category')->toString(),
             $request->string('locale')->toString(),
         );
-        $noticeIds = $items
+        $noticeIds = array_values($items
             ->filter(static fn (ContentItem $item): bool => $item->type === ContentType::Announcement)
             ->map(static fn (ContentItem $item): string => (string) $item->id)
-            ->values()
-            ->all();
+            ->all());
         $reactionSummaries = $reactions->forNotices($scope->allianceId, $scope->playerId, $noticeIds);
 
         $categories = ContentCategory::query()
