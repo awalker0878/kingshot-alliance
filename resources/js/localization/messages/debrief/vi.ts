@@ -4,7 +4,8 @@ const messages = {
   debrief: {
     title: 'Tổng kết Bear Hunt',
     eyebrow: 'Bear Hunt · Sau sự kiện',
-    subtitle: 'Xem sát thương đã ghi nhận, điểm danh, tham gia Rally, Governor chưa khớp và so sánh với các lần săn gần đây.',
+    subtitle:
+      'Xem sát thương đã ghi nhận, điểm danh, tham gia Rally, Governor chưa khớp và so sánh với các lần săn gần đây.',
     totalDamage: 'Tổng sát thương',
     governors: 'Governor',
     governor: 'Governor',
@@ -30,7 +31,8 @@ const messages = {
     noResults: 'Chưa có sát thương Governor nào được ghi nhận cho lần săn này.',
     needsReview: 'Cần xem lại',
     unmatchedGovernors: '{count} Governor cần được khớp',
-    reviewHelp: 'Hoàn tất khớp Governor trong Screenshot Intake. Trang tổng kết không tạo luồng nhận dạng thứ hai.',
+    reviewHelp:
+      'Hoàn tất khớp Governor trong Screenshot Intake. Trang tổng kết không tạo luồng nhận dạng thứ hai.',
     reviewImport: 'Xem báo cáo đã nhập',
     trends: 'Xu hướng',
     runTrends: 'Xu hướng Bear Hunt gần đây',
@@ -38,7 +40,8 @@ const messages = {
     allianceDamageTrend: 'Sát thương Alliance theo lần săn',
     previousHunt: 'Lần săn trước',
     noPrevious: 'Không có lần săn trước',
-    noPreviousHelp: 'So sánh sẽ xuất hiện khi Alliance này có một Bear Hunt trước đó đã hoàn thành.',
+    noPreviousHelp:
+      'So sánh sẽ xuất hiện khi Alliance này có một Bear Hunt trước đó đã hoàn thành.',
     history: 'Lịch sử',
     runHistory: 'Lịch sử Bear Hunt',
   },
