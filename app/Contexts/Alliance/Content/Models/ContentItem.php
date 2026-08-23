@@ -33,6 +33,8 @@ final class ContentItem extends Model
 {
     use HasUlids;
 
+    public const ALLIANCE_RULES_SLUG = 'alliance-rules';
+
     public $incrementing = false;
 
     protected $keyType = 'string';
