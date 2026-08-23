@@ -7,6 +7,7 @@ namespace Tests\v3\Contexts\Intelligence\Evidence;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Intelligence\Evidence\Actions\CommitReviewedBearHuntEvidence;
 use App\Contexts\Intelligence\Evidence\Actions\DeleteEvidence;
+use App\Contexts\Intelligence\Evidence\Actions\ResolveSemanticDuplicate;
 use App\Contexts\Intelligence\Evidence\Actions\SaveEvidenceReview;
 use App\Contexts\Intelligence\Evidence\Enums\EvidenceAttemptStatus;
 use App\Contexts\Intelligence\Evidence\Enums\EvidenceKind;
@@ -24,6 +25,7 @@ use App\Contexts\Operations\Results\Actions\RecordBearHuntBattleReport;
 use App\Contexts\Operations\Results\Actions\RemoveBearHuntBattleReport;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Tests\v3\Support\ScenarioFactory;
@@ -46,9 +48,10 @@ final class EvidenceAuthorizationV3Test extends TestCase
         $outsiderAccount = $scenario->authUser();
         $outsider = $scenario->player((int) $outsiderAccount->id, 59115);
 
-        $this->assertAuthorizationDenied(function () use ($outsider, $evidence, $extractionId, $owner): void {
+        $this->assertAuthorizationDenied(function () use ($outsider, $occurrenceId, $evidence, $extractionId, $owner): void {
             app(SaveEvidenceReview::class)->handle(
                 actorPlayerId: $outsider->playerId,
+                occurrenceId: $occurrenceId,
                 evidenceId: (string) $evidence->id,
                 extractionAttemptId: $extractionId,
                 rows: [[
@@ -63,8 +66,12 @@ final class EvidenceAuthorizationV3Test extends TestCase
             );
         });
 
-        $this->assertAuthorizationDenied(function () use ($outsider, $review): void {
-            app(CommitReviewedBearHuntEvidence::class)->handle($outsider->playerId, (string) $review->id);
+        $this->assertAuthorizationDenied(function () use ($outsider, $occurrenceId, $review): void {
+            app(CommitReviewedBearHuntEvidence::class)->handle(
+                $outsider->playerId,
+                $occurrenceId,
+                (string) $review->id,
+            );
         });
 
         $this->assertAuthorizationDenied(function () use ($outsider, $occurrenceId, $evidence): void {
@@ -95,6 +102,62 @@ final class EvidenceAuthorizationV3Test extends TestCase
         });
     }
 
+    public function test_foreign_evidence_and_reviews_are_not_resolved_inside_an_authorized_occurrence(): void
+    {
+        $scenario = new ScenarioFactory;
+        $ownerAccount = $scenario->authUser();
+        $owner = $scenario->player((int) $ownerAccount->id, 59116);
+        $ownerAlliance = $scenario->alliance($owner);
+        $scenario->roster($owner, $ownerAlliance);
+        $ownerOccurrenceId = $this->bearHunt($owner, $ownerAlliance->allianceId);
+
+        $foreignAccount = $scenario->authUser();
+        $foreignOwner = $scenario->player((int) $foreignAccount->id, 59116);
+        $foreignAlliance = $scenario->alliance($foreignOwner);
+        $scenario->roster($foreignOwner, $foreignAlliance);
+        $foreignOccurrenceId = $this->bearHunt($foreignOwner, $foreignAlliance->allianceId);
+        [$foreignEvidence, $foreignExtractionId, $foreignReview] = $this->reviewFixture(
+            $foreignOwner,
+            $foreignAlliance->allianceId,
+            $foreignOccurrenceId,
+        );
+
+        $this->assertNotFound(function () use ($owner, $ownerOccurrenceId, $foreignEvidence, $foreignExtractionId): void {
+            app(SaveEvidenceReview::class)->handle(
+                actorPlayerId: $owner->playerId,
+                occurrenceId: $ownerOccurrenceId,
+                evidenceId: (string) $foreignEvidence->id,
+                extractionAttemptId: $foreignExtractionId,
+                rows: [[
+                    'row_ordinal' => 1,
+                    'included' => false,
+                    'player_id' => null,
+                    'player_name' => 'Unknown',
+                    'reported_rank' => 1,
+                    'damage_points' => 100,
+                    'correction_reason' => null,
+                ]],
+            );
+        });
+
+        $this->assertNotFound(function () use ($owner, $ownerOccurrenceId, $foreignReview): void {
+            app(CommitReviewedBearHuntEvidence::class)->handle(
+                $owner->playerId,
+                $ownerOccurrenceId,
+                (string) $foreignReview->id,
+            );
+        });
+
+        $this->assertNotFound(function () use ($owner, $ownerOccurrenceId, $foreignReview): void {
+            app(ResolveSemanticDuplicate::class)->handle(
+                $owner->playerId,
+                $ownerOccurrenceId,
+                (string) $foreignReview->id,
+                'This should never resolve a foreign review.',
+            );
+        });
+    }
+
     private function bearHunt(PlayerReference $actor, string $allianceId): string
     {
         $configuration = EventTypeScope::query()
@@ -120,7 +183,7 @@ final class EvidenceAuthorizationV3Test extends TestCase
         string $allianceId,
         string $occurrenceId,
     ): array {
-        $sha256 = hash('sha256', 'authorization-source');
+        $sha256 = hash('sha256', 'authorization-source-'.$occurrenceId);
         $evidence = GameEvidence::query()->create([
             'alliance_id' => $allianceId,
             'occurrence_id' => $occurrenceId,
@@ -129,7 +192,7 @@ final class EvidenceAuthorizationV3Test extends TestCase
             'lifecycle_status' => EvidenceLifecycleStatus::Approved,
             'original_name' => 'authorization.png',
             'disk' => 'local',
-            'path' => 'evidence/authorization.png',
+            'path' => 'evidence/authorization-'.$occurrenceId.'.png',
             'mime_type' => 'image/png',
             'size_bytes' => 100,
             'width' => 1080,
@@ -169,7 +232,7 @@ final class EvidenceAuthorizationV3Test extends TestCase
             'occurrence_id' => $occurrenceId,
             'revision_number' => 1,
             'status' => EvidenceReviewStatus::Approved,
-            'semantic_fingerprint' => hash('sha256', 'authorization-semantic'),
+            'semantic_fingerprint' => hash('sha256', 'authorization-semantic-'.$occurrenceId),
             'reviewed_by_player_id' => $owner->playerId,
             'reviewed_at' => now(),
         ]);
@@ -193,6 +256,17 @@ final class EvidenceAuthorizationV3Test extends TestCase
             $operation();
             self::fail('Expected current authority to be rejected.');
         } catch (AuthorizationException) {
+            self::assertTrue(true);
+        }
+    }
+
+    /** @param callable():void $operation */
+    private function assertNotFound(callable $operation): void
+    {
+        try {
+            $operation();
+            self::fail('Expected the foreign Evidence or Review to remain unresolved.');
+        } catch (ModelNotFoundException) {
             self::assertTrue(true);
         }
     }
