@@ -31,7 +31,7 @@ final readonly class TransferEligibilityQuery
     ) {}
 
     /**
-     * @param Collection<int, TransferParticipant> $participants
+     * @param  Collection<int, TransferParticipant>  $participants
      * @return array<string, array{
      *     assessment: TransferEligibilityAssessment,
      *     transferScore: TransferObservedValue,
