@@ -25,19 +25,29 @@ final class AllianceContentGameParityVisualFixture
 {
     public static function seed(): void
     {
-        if (User::query()->where('email', 'content-visual@example.test')->exists()) {
-            return;
-        }
-
         CarbonImmutable::setTestNow(CarbonImmutable::parse('2026-08-23 16:00:00', 'UTC'));
 
+        if (! User::query()->where('email', 'content-visual@example.test')->exists()) {
+            self::seedPublishedRulesAndNotice();
+        }
+
+        if (! User::query()->where('email', 'content-empty-visual@example.test')->exists()) {
+            self::seedEmptyRules();
+        }
+    }
+
+    private static function seedPublishedRulesAndNotice(): void
+    {
         $user = User::factory()->create([
             'name' => 'Alliance Content Visual',
             'email' => 'content-visual@example.test',
             'password' => Hash::make('password'),
             'timezone' => 'UTC',
         ]);
-        $kingdom = Kingdom::query()->create(['number' => 1723, 'status' => 'active']);
+        $kingdom = Kingdom::query()->firstOrCreate(
+            ['number' => 1723],
+            ['status' => 'active'],
+        );
         $actor = Player::query()->create([
             'user_id' => $user->id,
             'current_kingdom_id' => $kingdom->id,
@@ -102,6 +112,34 @@ final class AllianceContentGameParityVisualFixture
             (string) $member->id,
             $noticeId,
             NoticeReaction::Dislike,
+        );
+    }
+
+    private static function seedEmptyRules(): void
+    {
+        $user = User::factory()->create([
+            'name' => 'Alliance Rules Empty Visual',
+            'email' => 'content-empty-visual@example.test',
+            'password' => Hash::make('password'),
+            'timezone' => 'UTC',
+        ]);
+        $kingdom = Kingdom::query()->firstOrCreate(
+            ['number' => 1724],
+            ['status' => 'active'],
+        );
+        $actor = Player::query()->create([
+            'user_id' => $user->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'CONTENT-EMPTY-VISUAL-A',
+            'current_name' => 'Harbor Steward',
+        ]);
+
+        app(CreateAlliance::class)->handle(
+            (string) $actor->id,
+            'Quiet Harbor',
+            'quiet-harbor',
+            'en',
+            'UTC',
         );
     }
 }
