@@ -30,6 +30,7 @@ These are valid product states, not operational errors:
 - recorded Rally outcomes with zero participation;
 - no previous completed same-Alliance Bear Hunt;
 - unresolved Governor Evidence awaiting manager review;
+- Evidence that is still `needs_review` for duplicate resolution after all Governor rows were already resolved/excluded; this does **not** appear as unmatched-Governor work;
 - a historical run with only some owner data available.
 
 The UI must label these states explicitly and never substitute zero for missing evidence.
@@ -42,7 +43,7 @@ When a Debrief looks incomplete, verify the owner in this order:
 2. `Operations/Results`: Event Player result projection and accepted Bear Hunt report ledger contain the expected result facts.
 3. `Operations/Participation`: attendance rows exist for the occurrence.
 4. `Operations/Rallies`: assignments have a non-null recorded outcome before Rally participation is considered available.
-5. `Intelligence/Evidence`: unresolved screenshots use `needs_review`, are scoped to the same Alliance/occurrence and have a completed extraction attempt.
+5. `Intelligence/Evidence`: unresolved screenshots use `needs_review`, are scoped to the same Alliance/occurrence and have a latest completed extraction that does not already have a saved review. If the latest extraction has a review with duplicate-blocked status, Governor matching is already complete and Debrief correctly omits it from unmatched-Governor work.
 6. `EventAnalysis`: the occurrence is inside the bounded history window and the request has `event.alliance.view` authority.
 
 Do not repair Debrief output by writing directly to read-model state; there is no such state. Correct or replay data through the owning capability.
@@ -52,10 +53,11 @@ Do not repair Debrief output by writing directly to read-model state; there is n
 - Screenshot commit interruption/retry uses the existing Evidence-to-Results idempotent commit receipt/report ledger.
 - Result correction or accepted-report removal is recovered in Results and is reflected on the next Debrief read.
 - Attendance and Rally corrections are performed through their existing owner write flows and are reflected immediately on the next read.
-- Unmatched Governor recovery is performed in Screenshot Intake; the Debrief review queue disappears when Evidence leaves the unresolved state.
+- Unmatched Governor recovery is performed in Screenshot Intake; the Debrief review queue disappears when the latest extraction has a saved review or Evidence otherwise leaves the unresolved matching state.
+- Semantic-duplicate recovery remains Screenshot Intake/Evidence work and is not mislabeled as Governor matching in Debrief.
 
 No Debrief cache is persisted, so there is no cache invalidation or replay procedure specific to this feature.
 
 ## Bounds
 
-The Debrief history window is intentionally bounded. Current implementation returns at most 12 run navigation/trend points and the low-level history query rejects unbounded expansion beyond its defensive maximum. Evidence review results are independently bounded by Intelligence/Evidence.
+The Debrief history window is intentionally bounded. Current implementation returns at most 12 run navigation/trend points and the low-level history query rejects unbounded expansion beyond its defensive maximum. Evidence review results are independently bounded by Intelligence/Evidence and batch-loaded by Evidence/review/extraction/field identifiers rather than fetched per Evidence row.
