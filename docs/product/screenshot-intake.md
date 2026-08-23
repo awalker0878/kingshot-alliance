@@ -1,10 +1,10 @@
 # Screenshot Intake
 
-Status: Active delivery contract — 2026-08-22
+Status: Implemented current state — 2026-08-22
 
 Screenshot Intake turns user-provided KingShot screenshots into reviewed domain commands without transferring ownership of the resulting game data to the intake pipeline. The first supported evidence type is the **Bear Hunt battle report** because its value, validation boundary and destination result model are concrete.
 
-This document is the product implementation contract. Delivery continues until every non-evidence-gated requirement below is implemented, tested, documented and reflected as current product truth.
+This document is the product implementation contract and current-state reference. Every non-evidence-gated requirement below is implemented, tested, documented and reflected as current product truth.
 
 ## Product outcome
 
@@ -173,21 +173,23 @@ A phase is `Complete` only when its behavior, authorization, persistence, UX, ac
 
 | Phase | Status | Outcome / exit condition |
 | --- | --- | --- |
-| 1 | Complete | Product contract and architecture ownership are documented before application-code changes. |
-| 2 | Verification | Secure evidence upload, immutable source metadata, private storage, scan/checksum, exact duplicate boundary and lifecycle persistence are implemented and under final gate verification. |
-| 3 | Verification | Versioned screenshot classification with immutable attempts, queued execution and unsupported/failure UX is implemented and under final gate verification. |
-| 4 | Verification | Bear Hunt battle-report extractor with fixture-proven narrow schema and deterministic normalization is implemented and under final gate verification. |
-| 5 | Verification | Immutable field-level confidence/provenance and extraction history are implemented and under final gate verification. |
-| 6 | Verification | Review revisions, Player resolution, manual correction/exclusion and commit eligibility rules are implemented and under final gate verification. |
-| 7 | Verification | Exact, visual and semantic duplicate detection with tenant-safe disclosure behavior is implemented and under final gate verification. |
-| 8 | Verification | Commit preview and authoritative validation of reviewed meaning are implemented and under final gate verification. |
-| 9 | Verification | Evidence application-Action orchestration sends a scalar cross-context command into `Operations/Results` with no foreign persistence writes; final gates remain. |
-| 10 | Verification | Operations-owned Bear Hunt report ledger, entries, database uniqueness, baseline preservation, deterministic recomputation and idempotent aggregation are implemented and under final gate verification. |
-| 11 | Verification | Crash-safe retry/recovery, stable destination idempotency and commit receipts are implemented and under final gate verification. |
-| 12 | Verification | Evidence deletion, redaction/physical purge, configurable retention and committed provenance preservation are implemented and under final gate verification. |
-| 13 | Verification | Operational diagnostics, queue/retry visibility, audit/outbox coverage and privacy-safe metrics are implemented and under final gate verification. |
-| 14 | Verification | Responsive/accessibility/localization/visual-regression coverage is implemented, including native supported-locale catalogues; final frontend and visual gates remain. |
-| 15 | Active | Repository-wide spec→code, code→spec and UX→backend audit is active. Current-truth docs, dead-state removal, gate-environment parity and full release-gate closeout must pass before this phase becomes Complete. |
+| 1 | Complete | Product contract and architecture ownership are documented and match implemented ownership. |
+| 2 | Complete | Secure evidence upload, immutable source metadata, private storage, scan/checksum, exact duplicate boundary and lifecycle persistence are implemented and verified. |
+| 3 | Complete | Versioned screenshot classification with immutable attempts, queued execution and unsupported/failure UX is implemented and verified. |
+| 4 | Complete | The Bear Hunt battle-report extractor uses the fixture-proven narrow schema and deterministic normalization. |
+| 5 | Complete | Immutable field-level confidence/provenance and extraction history are retained and verified. |
+| 6 | Complete | Review revisions, Player resolution, manual correction/exclusion and commit eligibility rules are implemented and verified. |
+| 7 | Complete | Exact, visual and semantic duplicate detection is implemented with tenant-safe disclosure behavior. |
+| 8 | Complete | Commit preview and authoritative validation of reviewed meaning are implemented and verified. |
+| 9 | Complete | Evidence sends scalar/value-object reviewed meaning into the `Operations/Results` owner Action with no foreign persistence writes. |
+| 10 | Complete | Operations owns the Bear Hunt report ledger, entries, database uniqueness, baseline preservation, deterministic recomputation and idempotent aggregation. |
+| 11 | Complete | Crash-safe retry/recovery, stable destination idempotency and commit receipts are implemented and verified. |
+| 12 | Complete | Evidence deletion, redaction/physical purge, configurable retention and committed provenance preservation are implemented and verified. |
+| 13 | Complete | Operational diagnostics, queue/retry visibility, audit/outbox coverage and privacy-safe metrics are implemented and documented. |
+| 14 | Complete | Responsive/accessibility/localization/visual-regression coverage is complete, including native supported-locale catalogues and deterministic desktop/mobile visual baselines. |
+| 15 | Complete | The repository-wide spec→code, code→spec and UX→backend audit found no remaining Screenshot Intake gap; current-truth docs are aligned and all applicable release gates passed on one immutable implementation candidate. |
+
+The Screenshot Intake delivery program is closed. A fresh Phase 15 scan found no remaining planned, partial, placeholder, compatibility, stale-ownership, lifecycle, authorization, UX, test, documentation or operational requirement. Any future regression or material change reopens the affected phase rather than becoming an undocumented exception.
 
 ## Cross-phase invariants
 
@@ -223,4 +225,4 @@ Delivery is closed only when:
 - supported locales contain native Screenshot Intake catalogues and pass localization/type/build checks;
 - PHP tests, Pint, PHPStan, frontend lint/format/type/build, architecture/contracts, accessibility/visual regression, CodeQL, dependency review, production image/container scanning, staging, clean-database install and backup/restore checks are green on one immutable release candidate.
 
-After Phase 15, perform a fresh repository-wide scan against this document. Any missing workflow, edge state, authorization path, lifecycle transition, test, operational requirement or contradictory current documentation reopens the relevant phase. Stop only when this document describes implemented current state rather than future intent.
+The final Phase 15 scan is complete. This document describes the implemented current state; any later change that invalidates a definition-of-done item reopens the relevant phase and must restore the same release evidence before closeout.
