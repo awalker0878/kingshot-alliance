@@ -56,11 +56,17 @@ final class RallyParticipationSummaryQuery
             $participated++;
             $players[$playerId]['participated']++;
 
-            match ($assignment->roleEnum()) {
-                RallyAssignmentRole::Lead => [$led++, $players[$playerId]['led']++],
-                RallyAssignmentRole::Joiner => [$joined++, $players[$playerId]['joined']++],
-                RallyAssignmentRole::Standby => [$standby++, $players[$playerId]['standby']++],
-            };
+            $role = $assignment->roleEnum();
+            if ($role === RallyAssignmentRole::Lead) {
+                $led++;
+                $players[$playerId]['led']++;
+            } elseif ($role === RallyAssignmentRole::Joiner) {
+                $joined++;
+                $players[$playerId]['joined']++;
+            } else {
+                $standby++;
+                $players[$playerId]['standby']++;
+            }
         }
 
         return [
