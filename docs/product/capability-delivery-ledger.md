@@ -98,23 +98,23 @@ Architectural ownership is intentionally composed rather than transferred:
 - `Intelligence/Evidence` owns unresolved extracted Governor observations and review lifecycle.
 - `app/ReadModels/EventAnalysis` composes current/history/comparison/trend reads only and owns no Debrief persistence or write semantics.
 
-`Complete` means the phase has backend behavior, authorization, applicable owner idempotency/audit/recovery, observability, responsive/accessibility/localization UX, tests, visual proof and current-truth documentation. No phase below is marked Complete until one immutable implementation candidate satisfies its exit condition.
+`Complete` means the phase has backend behavior, authorization, applicable owner idempotency/audit/recovery, observability, responsive/accessibility/localization UX, tests, visual proof and current-truth documentation. All phases reached Complete after immutable implementation head `fd821e470ef19f51bfff14499c3f417f3cd3eeff` satisfied the documented exit conditions and passed every applicable repository release gate.
 
 ### Phase queue
 
 | Phase | Status | Slice | Exit condition |
 | --- | --- | --- | --- |
-| 1 | In progress | Product contract and ownership | Canonical Debrief contract, capability catalogue, gap analysis, delivery ledger and architecture/reference/operations docs agree on complete scope and owner boundaries. |
-| 2 | In progress | Authoritative current-run facts | Results, Participation and Rallies owner queries expose total/Governor damage/rank, attendance and recorded Rally facts with explicit zero-vs-missing semantics and owner behavior tests. |
-| 3 | In progress | Historical composition and comparison | EventAnalysis returns bounded same-Alliance Bear Hunt history, correct immediately preceding completed run, personal/Alliance trends and null/zero-safe Alliance + active-Governor comparison. |
-| 4 | In progress | Unmatched-Governor review and authorization | Manager-only Intelligence/Evidence unresolved rows deep-link to Screenshot Intake, lifecycle advancement removes resolved rows, and cross-Alliance/current-authority tests prevent leakage. |
-| 5 | In progress | HTTP, idempotency integration, audit and observability | Authenticated/verified active-Governor HTTP route is authorized; Debrief stays read-only; corrective writes keep owner idempotency/audit/outbox contracts; read telemetry is privacy-safe and tested. |
-| 6 | In progress | Responsive, accessible and localized UX | Desktop and mobile surfaces cover summary, Your Hunt, leaderboard, Needs Review, previous Hunt, trends, history and all explicit missing-data states with keyboard/semantic/text-equivalent behavior in every supported locale. |
-| 7 | In progress | Behavioral and performance verification | Current facts, all attendance states, Rally evidence semantics, Evidence lifecycle/tenant safety, comparisons, history bounds, active Governor without result and a 100-Governor no-N+1 budget are covered. |
-| 8 | In progress | Deterministic visual regression | Complete/unmatched Debrief renders on deterministic desktop/mobile fixtures without horizontal overflow and both screenshots have accepted stable SHA-256 fingerprints. |
-| 9 | In progress | Final audits and repository release gates | Spec→code, code→spec, UX→backend, authorization, architecture and data-ownership scans find no known gap/TODO/placeholder; PHP/Pint/PHPStan/frontend/architecture/Intelligence/CodeQL/dependency/visual/container/staging/backup/recovery gates are green on one immutable head. |
+| 1 | Complete | Product contract and ownership | Canonical Debrief contract, capability catalogue, gap analysis, delivery ledger and architecture/reference/operations docs agree on complete scope and owner boundaries. |
+| 2 | Complete | Authoritative current-run facts | Results, Participation and Rallies owner queries expose total/Governor damage/rank, attendance and recorded Rally facts with explicit zero-vs-missing semantics and owner behavior tests. |
+| 3 | Complete | Historical composition and comparison | EventAnalysis returns bounded same-Alliance Bear Hunt history, correct immediately preceding completed run, personal/Alliance trends and null/zero-safe Alliance + active-Governor comparison. |
+| 4 | Complete | Unmatched-Governor review and authorization | Manager-only Intelligence/Evidence unresolved rows deep-link to Screenshot Intake, lifecycle advancement removes resolved rows, and cross-Alliance/current-authority tests prevent leakage. |
+| 5 | Complete | HTTP, idempotency integration, audit and observability | Authenticated/verified active-Governor HTTP route is authorized; Debrief stays read-only; corrective writes keep owner idempotency/audit/outbox contracts; read telemetry is privacy-safe and tested. |
+| 6 | Complete | Responsive, accessible and localized UX | Desktop and mobile surfaces cover summary, Your Hunt, leaderboard, Needs Review, previous Hunt, trends, history and all explicit missing-data states with keyboard/semantic/text-equivalent behavior in every supported locale. |
+| 7 | Complete | Behavioral and performance verification | Current facts, all attendance states, Rally evidence semantics, Evidence lifecycle/tenant safety, comparisons, history bounds, active Governor without result and a 100-Governor no-N+1 budget are covered. |
+| 8 | Complete | Deterministic visual regression | Complete/unmatched Debrief renders on deterministic desktop/mobile fixtures without horizontal overflow and both screenshots have accepted stable SHA-256 fingerprints. |
+| 9 | Complete | Final audits and repository release gates | Spec→code, code→spec, UX→backend, authorization, architecture and data-ownership scans found no known gap/TODO/placeholder; PHP/Pint/PHPStan/frontend/architecture/Intelligence/CodeQL/dependency/visual/container/staging/backup/recovery gates passed on immutable implementation head `fd821e470ef19f51bfff14499c3f417f3cd3eeff`. |
 
-Until every phase is Complete, Bear Hunt Debrief remains an active delivery program. Any discovered correctness, authorization, ownership, UX, localization, observability, test or release-gate gap is fixed in this program rather than deferred.
+The Bear Hunt Debrief delivery queue is closed: every phase is Complete and no known Bear Hunt Debrief product feature is deferred. Final closeout documentation is status-only and repeats the applicable repository gates before merge. Any defect or material change that invalidates a phase exit condition is a regression that reopens the affected phase and must restore the same release evidence before closeout.
 
 ### Cross-phase invariants
 
