@@ -59,11 +59,16 @@ final class TransferReadinessController extends Controller
         if (! $authorization->allows(
             $scope->playerId,
             $scope->allianceId,
-            TransferPermission::Manage,
+            TransferPermission::View,
         )) {
             throw new AuthorizationException;
         }
 
+        $canManage = $authorization->allows(
+            $scope->playerId,
+            $scope->allianceId,
+            TransferPermission::Manage,
+        );
         $plan = $plans->currentForAlliance($scope->allianceId);
         $rows = $plan === null
             ? collect()
@@ -83,7 +88,7 @@ final class TransferReadinessController extends Controller
                 'label' => $plan->label,
                 'homeKingdom' => (string) $plan->homeKingdom->number,
                 'state' => $plan->state->value,
-                'mutable' => in_array(
+                'mutable' => $canManage && in_array(
                     $plan->state,
                     [TransferPlanState::Draft, TransferPlanState::Open],
                     true,
