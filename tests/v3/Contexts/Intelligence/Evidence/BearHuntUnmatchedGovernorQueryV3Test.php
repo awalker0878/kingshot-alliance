@@ -163,6 +163,75 @@ final class BearHuntUnmatchedGovernorQueryV3Test extends TestCase
         ));
     }
 
+    public function test_reviewed_duplicate_follow_up_cannot_starve_older_unmatched_evidence_from_the_bounded_queue(): void
+    {
+        $scenario = new ScenarioFactory;
+        $account = $scenario->authUser();
+        $actor = $scenario->player((int) $account->id, 61406);
+        $alliance = $scenario->alliance($actor);
+        $scenario->roster($actor, $alliance);
+        $occurrence = $this->occurrence($actor, $alliance, CarbonImmutable::now('UTC'));
+        $unmatched = $this->evidence(
+            $alliance->allianceId,
+            (string) $occurrence->id,
+            $actor->playerId,
+            EvidenceLifecycleStatus::NeedsReview,
+            'Older Unmatched Governor',
+            'older-unmatched',
+        );
+
+        $reviews = app(SaveEvidenceReview::class);
+        $reviewRows = [[
+            'row_ordinal' => 1,
+            'included' => true,
+            'player_id' => $actor->playerId,
+            'player_name' => $actor->currentName,
+            'reported_rank' => 4,
+            'damage_points' => 450000,
+            'correction_reason' => null,
+        ]];
+
+        // The first review becomes approved; the next fifty share its reviewed
+        // meaning and remain needs_review only for semantic-duplicate resolution.
+        // Without filtering reviewed latest extractions before LIMIT 50, those
+        // fifty newer items hide the genuinely unmatched Evidence above.
+        for ($index = 0; $index <= 50; $index++) {
+            $reviewed = $this->evidence(
+                $alliance->allianceId,
+                (string) $occurrence->id,
+                $actor->playerId,
+                EvidenceLifecycleStatus::NeedsReview,
+                $actor->currentName,
+                'reviewed-follow-up-'.$index,
+            );
+            $extraction = EvidenceExtractionAttempt::query()
+                ->where('evidence_id', $reviewed->id)
+                ->firstOrFail();
+            $reviews->handle(
+                $actor->playerId,
+                (string) $occurrence->id,
+                (string) $reviewed->id,
+                (string) $extraction->id,
+                $reviewRows,
+            );
+        }
+
+        self::assertSame(50, GameEvidence::query()
+            ->where('occurrence_id', $occurrence->id)
+            ->where('lifecycle_status', EvidenceLifecycleStatus::NeedsReview->value)
+            ->whereKeyNot($unmatched->id)
+            ->count());
+
+        $queue = app(BearHuntUnmatchedGovernorQuery::class)->forOccurrence(
+            $actor->playerId,
+            (string) $occurrence->id,
+        );
+
+        self::assertCount(1, $queue);
+        self::assertSame((string) $unmatched->id, $queue[0]['evidenceId']);
+        self::assertSame('Older Unmatched Governor', $queue[0]['rows'][0]['observedName']);
+    }
+
     public function test_manager_authority_is_reacquired_before_evidence_is_exposed(): void
     {
         $scenario = new ScenarioFactory;
