@@ -35,19 +35,22 @@ test('Kingdom Transfer Planning keeps eligibility, verification, and readiness d
   await openTransferPlanning(page);
   await page.evaluate(() => document.fonts.ready);
 
-  const northstar = page.getByRole('heading', { name: 'Northstar Marshal', level: 2 });
-  const ember = page.getByRole('heading', { name: 'Ember Vanguard', level: 2 });
-  const frost = page.getByRole('heading', { name: 'Frost Envoy', level: 2 });
+  const northstarHeading = page.getByRole('heading', { name: 'Northstar Marshal', level: 2 });
+  const emberHeading = page.getByRole('heading', { name: 'Ember Vanguard', level: 2 });
+  const frostHeading = page.getByRole('heading', { name: 'Frost Envoy', level: 2 });
+  const northstarCard = page.locator('article').filter({ has: northstarHeading });
+  const emberCard = page.locator('article').filter({ has: emberHeading });
+  const frostCard = page.locator('article').filter({ has: frostHeading });
 
-  await expect(northstar).toBeVisible();
-  await expect(ember).toBeVisible();
-  await expect(frost).toBeVisible();
-  await expect(page.getByText('Eligible now', { exact: true }).first()).toBeVisible();
-  await expect(page.getByText('Blocked', { exact: true }).first()).toBeVisible();
-  await expect(page.getByText('Needs verification', { exact: true }).first()).toBeVisible();
-  await expect(page.getByText('Transfer Group 7', { exact: true }).first()).toBeVisible();
-  await expect(page.getByText('K1524 Vanguard', { exact: true }).first()).toBeVisible();
-  await expect(page.getByText('Confirm alliance hand-off time', { exact: true })).toBeVisible();
+  await expect(northstarCard).toBeVisible();
+  await expect(emberCard).toBeVisible();
+  await expect(frostCard).toBeVisible();
+  await expect(northstarCard.getByText('Eligible now', { exact: true })).toBeVisible();
+  await expect(emberCard.getByText('Blocked', { exact: true }).first()).toBeVisible();
+  await expect(frostCard.getByText('Needs verification', { exact: true }).first()).toBeVisible();
+  await expect(northstarCard.getByText('Transfer Group 7', { exact: true })).toBeVisible();
+  await expect(northstarCard.getByText('K1524 Vanguard', { exact: true })).toBeVisible();
+  await expect(northstarCard.getByText('Confirm alliance hand-off time', { exact: true })).toBeVisible();
 
   const filter = page.getByRole('combobox', { name: /eligibility/i });
   await expect(filter).toBeVisible();
@@ -55,11 +58,11 @@ test('Kingdom Transfer Planning keeps eligibility, verification, and readiness d
   await filter.focus();
   await page.keyboard.press('ArrowDown');
   await expect(filter).toHaveValue('eligible_now');
-  await expect(northstar).toBeVisible();
-  await expect(ember).toBeHidden();
+  await expect(northstarCard).toBeVisible();
+  await expect(emberCard).toBeHidden();
   await page.keyboard.press('Home');
   await expect(filter).toHaveValue('all');
-  await expect(ember).toBeVisible();
+  await expect(emberCard).toBeVisible();
 
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
