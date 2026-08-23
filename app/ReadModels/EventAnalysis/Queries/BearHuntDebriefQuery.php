@@ -238,6 +238,11 @@ final readonly class BearHuntDebriefQuery
         return [
             'allianceDamage' => $this->delta($current['totalDamage'], $previous['totalDamage']),
             'governorCount' => $this->delta($current['governorCount'], $previous['governorCount'], percent: false),
+            'attendancePresent' => $this->delta(
+                $current['attendance']['available'] ? $current['attendance']['present'] : null,
+                $previous['attendance']['available'] ? $previous['attendance']['present'] : null,
+                percent: false,
+            ),
             'attendanceRate' => $this->delta(
                 $current['attendance']['ratePercent'],
                 $previous['attendance']['ratePercent'],
@@ -255,6 +260,18 @@ final readonly class BearHuntDebriefQuery
                     ? $previous['personalRank'] - $current['personalRank']
                     : null,
             ],
+            'personalAttendance' => [
+                'current' => $current['attendance']['personalStatus'],
+                'previous' => $previous['attendance']['personalStatus'],
+                'state' => $current['attendance']['personalStatus'] !== null
+                    && $previous['attendance']['personalStatus'] !== null
+                        ? 'available'
+                        : 'unavailable',
+            ],
+            'personalRallies' => $this->delta(
+                $current['rallies']['personalParticipated'],
+                $previous['rallies']['personalParticipated'],
+            ),
         ];
     }
 
