@@ -1,10 +1,10 @@
 # Alliance Content game-parity slice
 
-Status: In progress — 2026-08-23
+Status: Complete — 2026-08-23
 
 This document is the implementation contract for the small KingShot-parity Content slice that introduces **first-class Alliance Rules** and **lightweight Like / Dislike reactions on Alliance Notices**. The slice deliberately improves familiarity without creating a social-ranking system or coupling member reactions to Alliance publishing authority.
 
-A delivery item is complete only when its behavior, persistence, authorization, idempotency where applicable, audit/observability, responsive UX, accessibility, localization, automated tests, architecture/contracts and visual proof are complete. Implementation must continue until every item in this contract and the delivery ledger is complete.
+A delivery item is complete only when its behavior, persistence, authorization, idempotency where applicable, audit/observability, responsive UX, accessibility, localization, automated tests, architecture/contracts and visual proof are complete. Every item in this contract and its delivery queue has reached that state.
 
 ## Product outcomes
 
@@ -95,14 +95,15 @@ Read:
 
 - requires the normal authenticated, verified, active Alliance context;
 - does not require `ContentManage`;
-- must have executable HTTP behavior coverage proving an ordinary active member can render the Rules surface while management UI/authority remains absent.
+- has executable HTTP behavior coverage proving an ordinary active member can render the Rules surface while management UI/authority remains absent.
 
 Write:
 
 - revalidates active Player + Alliance write scope inside the Action transaction;
 - acquires the Alliance aggregate's exclusive write lock so canonical create/update is serialized;
 - requires `AlliancePermission::ContentManage`;
-- remains behind the repository's existing password-confirm boundary for Content-management writes.
+- remains behind the repository's existing password-confirm boundary for Content-management writes;
+- has executable HTTP behavior coverage proving an ordinary R1 member cannot update the canonical Rules document.
 
 Rules editing authority is unrelated to Notice reaction authority.
 
@@ -123,13 +124,13 @@ Required validation:
 - locale uses the existing Content locale format and is bounded to 16 characters;
 - the reserved slug cannot be occupied by a non-Rule item.
 
-These validation invariants belong to the owner Action and must be enforced there even when the HTTP request layer performs the same checks. Controller validation is defense in depth, not the authoritative domain/application boundary. Direct Action tests must prove invalid body/locale input cannot create or mutate Rules, revisions, audit records or outbox messages.
+These validation invariants belong to the owner Action and are enforced there even when the HTTP request layer performs the same checks. Controller validation is defense in depth, not the authoritative domain/application boundary. Direct Action tests prove invalid body/locale input cannot create or mutate Rules, revisions, audit records or outbox messages.
 
-Repeated submission of identical Rules content must not manufacture a new revision/audit event. The Action returns the existing canonical item unchanged when the sanitized body and locale have not changed.
+Repeated submission of identical Rules content does not manufacture a new revision/audit event. The Action returns the existing canonical item unchanged when the sanitized body and locale have not changed.
 
 ### Rules UX states
 
-The `/alliance/rules` member surface must provide:
+The `/alliance/rules` member surface provides:
 
 1. **Empty** — clear message that no Alliance Rules have been posted yet.
 2. **Published** — readable, whitespace-preserving Rules text and last-updated context.
@@ -139,7 +140,7 @@ The `/alliance/rules` member surface must provide:
 6. **Success** — the current saved Rules are rendered after the Inertia redirect.
 7. **Unauthorized** — server authorization remains authoritative even if a client manufactures a write request.
 
-The page must be usable without horizontal overflow on mobile and with keyboard-only navigation.
+The page is usable without horizontal overflow on mobile and with keyboard-only navigation.
 
 ## Alliance Notice reaction contract
 
@@ -158,7 +159,7 @@ Draft, scheduled, archived, foreign-Alliance and non-Announcement Content cannot
 
 ### Reaction persistence
 
-Create `alliance_notice_reactions` with:
+`alliance_notice_reactions` stores:
 
 - ULID primary key;
 - Alliance ID;
@@ -167,7 +168,7 @@ Create `alliance_notice_reactions` with:
 - reaction enum value (`like` or `dislike`);
 - timestamps.
 
-Required database invariants:
+Database invariants are:
 
 - foreign Alliance and Content relationships cascade safely with Alliance/Content deletion;
 - Player deletion follows the repository's Player referential-integrity convention;
@@ -176,7 +177,7 @@ Required database invariants:
 
 ### Reaction authorization boundary
 
-Reaction writes revalidate the active Player + Alliance scope through `AllianceWriteState` but **must not call `AllianceAuthorization` for `ContentManage` or any publishing permission**.
+Reaction writes revalidate the active Player + Alliance scope through `AllianceWriteState` but **do not call `AllianceAuthorization` for `ContentManage` or any publishing permission**.
 
 Therefore:
 
@@ -185,7 +186,7 @@ Therefore:
 - losing active membership removes reaction-write eligibility regardless of historical publishing authority;
 - reacting never grants or changes create/edit/publish/archive/broadcast permissions.
 
-This separation must have automated behavior coverage.
+This separation has automated behavior coverage.
 
 ### Reaction idempotency
 
@@ -206,31 +207,31 @@ No-op requests do not create duplicate rows, extra domain meaning or duplicate a
 
 ### Reaction read contract
 
-Member Noticeboard reads may expose only:
+Member Noticeboard reads expose only:
 
 - `likes` count;
 - `dislikes` count;
 - the current Player's reaction (`like`, `dislike`, or null).
 
-Counts are composed without N+1 per-Notice queries.
+Counts are composed without N+1 per-Notice queries. Behavior coverage proves five Notices still require exactly two reaction-summary queries.
 
-Reaction data must **not** affect the existing Content query ordering (`sort_order`, then publication recency), filtering, visibility, prominence or public pages. No query may order or recommend Content by reaction totals.
+Reaction data does **not** affect the existing Content query ordering (`sort_order`, then publication recency), filtering, visibility, prominence or public pages. No query orders or recommends Content by reaction totals.
 
 ### Reaction UX states
 
 Published Announcement cards and detail pages expose compact Like and Dislike controls.
 
-Each control must:
+Each control:
 
-- show its count;
-- expose a localized accessible name containing the count;
-- expose selected state with `aria-pressed` and a visible non-color-only state;
-- disable while its request is processing;
-- allow switching reactions;
-- allow removing the selected reaction by pressing it again;
-- preserve scroll/state across the Inertia mutation;
-- avoid optimistic count/selection changes before the server confirms the mutation;
-- on validation/mutation failure, re-enable the controls, preserve the prior server-backed reaction state, expose localized inline alert feedback, and allow the Governor to retry immediately.
+- shows its count;
+- exposes a localized accessible name containing the count;
+- exposes selected state with `aria-pressed` and a visible non-color-only state;
+- disables while its request is processing;
+- allows switching reactions;
+- allows removing the selected reaction by pressing it again;
+- preserves scroll/state across the Inertia mutation;
+- avoids optimistic count/selection changes before the server confirms the mutation;
+- on validation/mutation failure, re-enables the controls, preserves the prior server-backed reaction state, exposes localized inline alert feedback, and allows the Governor to retry immediately.
 
 Non-Announcement Content does not show reaction controls. Public unauthenticated Alliance pages do not expose reaction writes or private member reaction identity.
 
@@ -238,7 +239,7 @@ Non-Announcement Content does not show reaction controls. Public unauthenticated
 
 Reactions are not popularity data.
 
-The implementation must not add or derive:
+The implementation does not add or derive:
 
 - net reaction score;
 - approval/disapproval percentage;
@@ -250,11 +251,11 @@ The implementation must not add or derive:
 - badges, reputation, achievements or Governor scoring;
 - sorting or pinning based on reactions.
 
-A regression test must prove Noticeboard ordering remains the existing Content ordering regardless of reaction totals.
+A regression test proves Noticeboard ordering remains the existing Content ordering regardless of reaction totals.
 
 ## HTTP/application boundaries
 
-Member read routes:
+Member read route:
 
 - `GET /alliance/rules` — first-class Rules surface.
 
@@ -269,9 +270,9 @@ Rules write route, inside the existing password-confirm boundary:
 
 Controllers pass scalar IDs/enums/value input to owner Actions. Eloquent models are loaded and locked inside the owning Action.
 
-Reaction mutations also inherit the repository-wide current-Governor authority-context version precondition. A request carrying the current context version proceeds to the Content Action; a missing or stale version remains the standard `409 CONTEXT_STALE` response and must not be translated into a reaction-validation error. This protects old tabs after Governor, Alliance authority or Kingdom authority changes without coupling reaction eligibility to `ContentManage`.
+Reaction mutations also inherit the repository-wide current-Governor authority-context version precondition. A request carrying the current context version proceeds to the Content Action; a missing or stale version remains the standard `409 CONTEXT_STALE` response and is not translated into a reaction-validation error. This protects old tabs after Governor, Alliance authority or Kingdom authority changes without coupling reaction eligibility to `ContentManage`.
 
-HTTP contract tests must cover methods, URIs and middleware composition, while behavior tests must separately prove the authorization result at runtime. Route metadata alone is not sufficient evidence that a non-manager can read Rules or that reaction authority is independent from Content management. Successful reaction HTTP behavior tests must carry a freshly issued current-Governor context version so they exercise the reaction boundary rather than failing at the global stale-context guard.
+HTTP contract tests cover methods, URIs and middleware composition, while behavior tests separately prove authorization results at runtime. Successful reaction HTTP behavior tests carry a freshly issued current-Governor context version so they exercise the reaction boundary rather than failing at the global stale-context guard.
 
 ## Audit and observability
 
@@ -291,7 +292,7 @@ No notification or broadcast is emitted from reactions.
 
 ## Localization and accessibility
 
-All new player-facing copy belongs in the existing Content localization catalogue. Required concepts include:
+All new player-facing copy belongs in the existing Content localization catalogue. Covered concepts include:
 
 - Alliance Rules;
 - Rules empty/edit/save/help/updated states;
@@ -302,15 +303,15 @@ All new player-facing copy belongs in the existing Content localization catalogu
 - reaction failure/retry feedback;
 - saving/validation copy.
 
-`Alliance/Rules/*` Inertia pages must load the existing `content` localization domain through the page-domain registry before render. Source-level localization checks alone are insufficient: automated frontend contract coverage must prove that the Rules route family resolves the Content catalogue so localized semantic names are present at runtime.
+`Alliance/Rules/*` Inertia pages load the existing `content` localization domain through the page-domain registry before render. Automated frontend contract coverage proves that the Rules route family resolves the Content catalogue so localized semantic names are present at runtime.
 
 No new hardcoded English player-facing copy is introduced in the Vue surfaces.
 
-Keyboard operation, focus visibility, semantic headings, associated labels/errors, `aria-pressed`, `aria-busy` and mobile layout are part of acceptance—not follow-up polish.
+Keyboard operation, focus visibility, semantic headings, associated labels/errors, `aria-pressed`, `aria-busy` and mobile layout are part of the completed acceptance surface.
 
 ## Acceptance criteria
 
-The slice is accepted only when all of the following are true:
+All acceptance criteria are satisfied:
 
 1. `/alliance/rules` is a first-class member destination.
 2. A Content manager can create and update the canonical Rules document.
@@ -333,36 +334,62 @@ The slice is accepted only when all of the following are true:
 19. Behavior, authorization, idempotency, persistence invariants, architecture boundaries and HTTP/frontend contracts have automated coverage.
 20. Desktop/mobile visual regression covers Rules empty/populated/editable state and Notice reactions on both Noticeboard card and detail surfaces with stable accepted fingerprints.
 21. Product/reference/architecture/frontend capability documentation is reconciled wherever implementation changes those contracts.
-22. The repository's applicable quality/release gates are green on one immutable implementation head before the slice is marked Complete.
+22. The repository's applicable quality/release gates are green on immutable implementation head `59699b34a9edaebb16e422522d6c78d4aba558f8`.
 
 ## Delivery queue
 
 | Phase | Status | Slice | Exit condition |
 | --- | --- | --- | --- |
 | 1 | Complete | Product contract and ownership | This contract defines scope, ownership, authorization/data invariants, UX states, acceptance criteria and anti-ranking boundaries before application-code changes. |
-| 2 | In progress | First-class Alliance Rules | Canonical Rules Action/read surface, reserved identity, revisions, audit/outbox, owner-boundary validation, aggregate-lock singleton serialization, dedicated-workflow isolation from generic Content mutations, read/write authorization and idempotency are implemented and behavior-tested, including ordinary-member HTTP read proof. |
-| 3 | In progress | Alliance Notice reactions | Reaction enum/model/schema/actions enforce active-member authorization, target validity, uniqueness, switching/removal/idempotency, current-context preconditions and audit semantics. |
-| 4 | In progress | Read composition and UX | Notice reads include bounded reaction summaries; Rules/reaction UI, navigation, mobile/accessibility/localization/failure-retry states and no-ranking ordering are complete; all eight desktop/mobile visual surfaces have accepted stable fingerprints. |
-| 5 | In progress | Verification and closeout | Automated behavior/contract/architecture/visual coverage and affected product/reference/architecture/frontend docs are reconciled; applicable repository quality gates are green on one immutable head. |
+| 2 | Complete | First-class Alliance Rules | Canonical Rules Action/read surface, reserved identity, revisions, audit/outbox, owner-boundary validation, aggregate-lock singleton serialization, dedicated-workflow isolation from generic Content mutations, read/write authorization and idempotency are implemented and behavior-tested, including ordinary-member HTTP read/write authority proof. |
+| 3 | Complete | Alliance Notice reactions | Reaction enum/model/schema/actions enforce active-member authorization, target validity, uniqueness, switching/removal/idempotency, current-context preconditions and audit semantics. |
+| 4 | Complete | Read composition and UX | Notice reads include bounded reaction summaries; Rules/reaction UI, navigation, mobile/accessibility/localization/failure-retry states and no-ranking ordering are complete; all eight desktop/mobile visual surfaces have accepted stable fingerprints. |
+| 5 | Complete | Verification and closeout | Automated behavior/contract/architecture/visual coverage and affected product/reference/architecture/frontend docs are reconciled; every applicable repository quality/release gate is green on immutable implementation head `59699b34a9edaebb16e422522d6c78d4aba558f8`. |
 
 ## Reconciliation findings
 
-Implementation is required to close findings discovered after the initial contract was written rather than treating them as follow-up work:
+Implementation closed every finding discovered after the initial contract was written rather than deferring it as follow-up work:
 
-- the Rules owner Action must independently enforce the body/locale limits already present at the HTTP boundary;
-- ordinary-member Rules read authorization requires executable HTTP behavior proof, not only route registration/middleware inspection;
-- `Alliance/Rules/*` must be registered to load the `content` localization domain at runtime;
-- the Rules page must preserve a single page-level heading hierarchy while keeping document/edit sections semantically named;
-- deterministic visual coverage must include published Rules, empty Rules, Noticeboard reactions and Notice-detail reactions on desktop and mobile;
-- Notice reaction failure must follow the repository mutation UX: no optimistic state drift, localized inline feedback, controls re-enabled and retry available;
-- scheduled/archived targets and membership-loss reaction denial require direct behavior coverage rather than code inspection alone;
-- the canonical Rules identity must be isolated from every generic Content mutation path and omitted from the generic management inventory, not merely protected against generic creation with the reserved slug;
-- canonical Rules creation must serialize on the Alliance aggregate because locking a missing Content row cannot prevent competing first-create attempts;
-- reaction HTTP behavior must use the repository's current-Governor authority-context version contract; otherwise tests stop at the global 409 stale-context guard and never prove reaction authorization or retry behavior;
-- the frontend capability map must explicitly describe first-class Alliance Rules and informational non-ranking Notice reactions so UI documentation agrees with the shipped capability.
+- the Rules owner Action independently enforces the body/locale limits present at the HTTP boundary;
+- ordinary-member Rules read and write authorization have executable HTTP behavior proof, not only route registration/middleware inspection;
+- `Alliance/Rules/*` is registered to load the `content` localization domain at runtime;
+- the Rules page preserves a single page-level heading hierarchy while keeping document/edit sections semantically named;
+- deterministic visual coverage includes published Rules, empty Rules, Noticeboard reactions and Notice-detail reactions on desktop and mobile;
+- Notice reaction failure follows the repository mutation UX: no optimistic state drift, localized inline feedback, controls re-enabled and retry available;
+- scheduled/archived targets and membership-loss reaction denial have direct behavior coverage;
+- the canonical Rules identity is isolated from every generic Content mutation path and omitted from the generic management inventory;
+- canonical Rules creation serializes on the Alliance aggregate because locking a missing Content row cannot prevent competing first-create attempts;
+- reaction HTTP behavior uses the repository's current-Governor authority-context version contract, while stale/missing context remains the standard 409 precondition;
+- the frontend capability map explicitly describes first-class Alliance Rules and informational non-ranking Notice reactions;
+- the repository-wide visual gate's Kingdom Transfer fixture was made cross-process time-stable after the full release run exposed that its old fixed validity horizon expired at the real web-server clock; the transfer eligibility semantics and assertions remained strict.
 
-These findings are part of the current product scope and keep the corresponding delivery phases open until implemented and verified.
+No known Alliance Content parity requirement remains open.
+
+## Verification closeout
+
+Immutable implementation head `59699b34a9edaebb16e422522d6c78d4aba558f8` was verified against unchanged `main` base `b7d126cc29d4794d0bcfd1d9e2ed39b6daf55e00` with the feature branch 0 commits behind.
+
+All seven pull-request workflows completed successfully on that same implementation head:
+
+- **CI** — fresh PostgreSQL installation; Composer/manifest/dependency checks; Pint; PHPStan; full PHP tests; frontend dependency/lint/format/type/build checks; production image build; ephemeral staging deployment; backup/restore demonstration; production image scan.
+- **Architecture V3 Verification** — syntax, route boot, architecture contracts, V3 migration, static analysis and full V3 PHPUnit suite.
+- **Intelligence Verification** — backend behavior/contracts plus frontend contracts, including formatting and Larastan coverage.
+- **King Perks Verification** — success.
+- **Visual Regression** — all 26 Playwright tests passed on desktop/mobile, including all eight Alliance Content parity surfaces.
+- **CodeQL** — success.
+- **Dependency Review** — success.
+
+Accepted Alliance Content SHA-256 visual fingerprints are:
+
+| Surface | Desktop | Mobile |
+| --- | --- | --- |
+| Published Alliance Rules | `ec0303e50751d6c014a782632b90a8dda5599145f4d893f3192c097d3d33a407` | `56982afc2084d5d96f9b6613ab0f4456afccfcf0a245c0140a299423fdcd5619` |
+| Empty/editable Alliance Rules | `b5c44be56f7a7450f6b2ea3fc7bf93cfc004c4338a268ff923242fabc867dec9` | `f22cc8b63006d4755667ecc0fa2a5b9481ff34871ebb9bbb7a6accd2a0e6782e` |
+| Noticeboard reactions | `fccbadf99ba56470d0cbecaa51c0e82756e53146c6b1cd6aa39e4fb1ea1ff348` | `44084d405757bed544f009242f2abf8847745ee77dd418760a267a89b6ba7949` |
+| Notice detail reactions | `703a95336fc6895c48863110e7fe72453ae122cf7468d70777831ecd4b4fb08d` | `0f6dd10b829b35f2924845b391c22e7be4646f8479ef035fa802f789332008b3` |
+
+The final spec→code, code→spec and UX→backend audit found no Alliance Content TODO, placeholder, compatibility shim, parallel Rules store, generic social/reputation abstraction, reaction-ranking field/query, unguarded canonical Rules mutation path, or undocumented product behavior.
 
 ## Completion rule
 
-Do not close this delivery program with an incomplete phase, undocumented follow-up, compatibility shim or "future enhancement" required by the contract. If implementation exposes a missing edge case required for correctness, usability, security, operability or architectural integrity, add it here and implement it before closeout.
+This delivery program is closed: every documented feature is implemented, every acceptance criterion is satisfied, every local delivery-queue phase is Complete, affected product/reference/architecture/frontend documentation agrees with the implementation, and immutable implementation head `59699b34a9edaebb16e422522d6c78d4aba558f8` passed the complete repository release gate. Any later defect or material change that invalidates an exit condition reopens the affected phase and must restore the same evidence before closeout.
