@@ -40,7 +40,11 @@ function updated(value: string | null | undefined): string {
 <template>
   <Head :title="`${t('contentExperience.rulesTitle')} · ${alliance.name}`" />
 
-  <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
+  <AppLayout
+    :user="user"
+    :player-alliance-name="alliance.name"
+    :has-player-alliance="true"
+  >
     <RoomBanner
       :eyebrow="t('contentExperience.eyebrow')"
       :title="t('contentExperience.rulesTitle')"
@@ -55,7 +59,9 @@ function updated(value: string | null | undefined): string {
       </template>
     </RoomBanner>
 
-    <div class="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(20rem,.65fr)]">
+    <div
+      class="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(20rem,.65fr)]"
+    >
       <section class="ks-surface p-5 sm:p-7" aria-labelledby="alliance-rules-heading">
         <div class="flex flex-wrap items-start justify-between gap-3">
           <div>
@@ -82,7 +88,11 @@ function updated(value: string | null | undefined): string {
         </p>
       </section>
 
-      <aside v-if="canManageContent" class="ks-surface p-5 sm:p-6" aria-labelledby="edit-rules-heading">
+      <aside
+        v-if="canManageContent"
+        class="ks-surface p-5 sm:p-6"
+        aria-labelledby="edit-rules-heading"
+      >
         <p class="ks-kicker">{{ t('contentExperience.rulesManageEyebrow') }}</p>
         <h2 id="edit-rules-heading" class="ks-display mt-1 text-2xl font-semibold">
           {{ rules ? t('contentExperience.rulesEdit') : t('contentExperience.rulesAdd') }}
@@ -126,9 +136,14 @@ function updated(value: string | null | undefined): string {
               maxlength="10000"
               :placeholder="t('contentExperience.rulesPlaceholder')"
               :aria-invalid="form.errors.body ? 'true' : 'false'"
-              :aria-describedby="form.errors.body ? 'rules-body-error rules-body-help' : 'rules-body-help'"
+              :aria-describedby="
+                form.errors.body ? 'rules-body-error rules-body-help' : 'rules-body-help'
+              "
             />
-            <div id="rules-body-help" class="mt-1 flex justify-between gap-3 text-xs text-[var(--ks-muted)]">
+            <div
+              id="rules-body-help"
+              class="mt-1 flex justify-between gap-3 text-xs text-[var(--ks-muted)]"
+            >
               <span>{{ t('contentExperience.rulesBodyHelp') }}</span>
               <span>{{ form.body.length }}/10000</span>
             </div>
