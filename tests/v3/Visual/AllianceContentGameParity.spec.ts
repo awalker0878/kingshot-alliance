@@ -97,7 +97,7 @@ test('Alliance Rules are a first-class readable and editable member surface', as
     page.getByRole('heading', { name: 'Alliance Rules', level: 2, exact: true }),
   ).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Edit Alliance Rules', level: 2 })).toBeVisible();
-  const rules = page.getByLabel('Rules');
+  const rules = page.getByRole('textbox', { name: 'Rules', exact: true });
   await expect(rules).toHaveValue(/Follow R4\/R5 battle calls/);
   await expect(rules).toHaveAttribute('maxlength', '10000');
   await expect(page.getByRole('button', { name: 'Save Alliance Rules' })).toBeEnabled();
@@ -118,7 +118,7 @@ test('Alliance Rules expose the localized empty and editable state', async ({ pa
     page.getByRole('heading', { name: 'Alliance Rules', level: 2, exact: true }),
   ).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Add Alliance Rules', level: 2 })).toBeVisible();
-  await expect(page.getByLabel('Rules')).toHaveValue('');
+  await expect(page.getByRole('textbox', { name: 'Rules', exact: true })).toHaveValue('');
   await expect(page.getByRole('button', { name: 'Save Alliance Rules' })).toBeEnabled();
 
   await assertVisual(page, testInfo, 'rulesEmpty');
