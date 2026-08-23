@@ -58,6 +58,13 @@ final readonly class SaveContentItem
         return DB::transaction(function () use ($allianceId, $actorPlayerId, $attributes, $contentItemId): string {
             $context = $this->allianceWriteState->lockActiveScope($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, AlliancePermission::ContentManage);
+
+            if (strtolower(trim($attributes['slug'])) === SaveAllianceRules::SLUG) {
+                throw ValidationException::withMessages([
+                    'slug' => 'The alliance-rules address is reserved for the Alliance Rules workflow.',
+                ]);
+            }
+
             $categoryId = $attributes['category_id'] ?? null;
             $this->assertCategory((string) $context->alliance->id, $categoryId);
             $provenance = $this->normalizeProvenance($attributes);
