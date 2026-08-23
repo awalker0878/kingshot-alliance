@@ -13,6 +13,11 @@ use App\Contexts\Alliance\Content\Enums\NoticeReaction;
 use App\Contexts\Alliance\Membership\Enums\AllianceRank;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
+use App\Contexts\Alliance\Membership\Queries\PlayerIdentityContextQuery;
+use App\Contexts\GameWorld\Governance\Queries\KingdomAuthorityFactsQuery;
+use App\Contexts\GameWorld\Players\Http\Middleware\RequireCurrentPlayerContextVersion;
+use App\Contexts\GameWorld\Players\Services\PlayerAuthorityContextVersion;
+use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\v3\Support\ScenarioFactory;
 use Tests\v3\TestCase;
@@ -40,9 +45,11 @@ final class AllianceNoticeReactionHttpBehaviorV3Test extends TestCase
             'rank' => AllianceRank::R1,
             'joined_at' => now(),
         ]);
+        $contextVersion = $this->versionFor($member);
 
         $this->actingAs($memberUser)
             ->withSession([(string) config('game_world.active_player_session_key') => $member->playerId])
+            ->withHeader(RequireCurrentPlayerContextVersion::HEADER_NAME, $contextVersion)
             ->from('/alliance/content')
             ->put('/alliance/content/'.$noticeId.'/reaction', ['reaction' => NoticeReaction::Like->value])
             ->assertRedirect('/alliance/content');
@@ -62,14 +69,38 @@ final class AllianceNoticeReactionHttpBehaviorV3Test extends TestCase
         $owner = $scenarios->player((int) $user->id, 723002);
         $alliance = $scenarios->alliance($owner);
         $noticeId = $this->publishedAnnouncement($alliance->allianceId, $owner->playerId, 'http-stale-reaction');
+        $contextVersion = $this->versionFor($owner);
         app(ArchiveContentItem::class)->handle($alliance->allianceId, $owner->playerId, $noticeId);
 
         $this->actingAs($user)
             ->withSession([(string) config('game_world.active_player_session_key') => $owner->playerId])
+            ->withHeader(RequireCurrentPlayerContextVersion::HEADER_NAME, $contextVersion)
             ->from('/alliance/content')
             ->put('/alliance/content/'.$noticeId.'/reaction', ['reaction' => NoticeReaction::Dislike->value])
             ->assertRedirect('/alliance/content')
             ->assertSessionHasErrors('reaction');
+
+        self::assertDatabaseMissing('alliance_notice_reactions', [
+            'content_item_id' => $noticeId,
+            'player_id' => $owner->playerId,
+        ]);
+    }
+
+    public function test_reaction_http_preserves_the_standard_stale_context_precondition(): void
+    {
+        $scenarios = app(ScenarioFactory::class);
+        $user = $scenarios->authUser();
+        $user->forceFill(['email_verified_at' => now()])->save();
+        $owner = $scenarios->player((int) $user->id, 723003);
+        $alliance = $scenarios->alliance($owner);
+        $noticeId = $this->publishedAnnouncement($alliance->allianceId, $owner->playerId, 'http-context-precondition');
+
+        $this->actingAs($user)
+            ->withSession([(string) config('game_world.active_player_session_key') => $owner->playerId])
+            ->put('/alliance/content/'.$noticeId.'/reaction', ['reaction' => NoticeReaction::Like->value])
+            ->assertStatus(409)
+            ->assertHeader(RequireCurrentPlayerContextVersion::ERROR_HEADER, 'stale')
+            ->assertJsonPath('code', 'CONTEXT_STALE');
 
         self::assertDatabaseMissing('alliance_notice_reactions', [
             'content_item_id' => $noticeId,
@@ -99,5 +130,20 @@ final class AllianceNoticeReactionHttpBehaviorV3Test extends TestCase
         app(PublishContentItem::class)->handle($allianceId, $ownerPlayerId, $contentId);
 
         return $contentId;
+    }
+
+    private function versionFor(PlayerReference $player): string
+    {
+        $alliance = app(PlayerIdentityContextQuery::class)
+            ->forPlayers([$player->playerId])[$player->playerId] ?? null;
+        $kingdomPermissions = app(KingdomAuthorityFactsQuery::class)
+            ->findCurrent($player->playerId, $player->kingdomId)
+            ?->permissionKeysObservedAtRead ?? [];
+
+        return app(PlayerAuthorityContextVersion::class)->issue(
+            $player,
+            $alliance,
+            $kingdomPermissions,
+        );
     }
 }
