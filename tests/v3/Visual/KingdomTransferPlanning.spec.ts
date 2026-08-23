@@ -3,8 +3,8 @@ import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
 
 const transferVisualFingerprints: Record<string, string> = {
-  desktop: 'a2abf6f10534d1501b04b0bd954c774ea2bef834a1df6c93eff3baffa418d6d0',
-  mobile: '54f935862d072155d3008cbb7a54caf3493d02690f9491b13fbe2887b08e1865',
+  desktop: '2719983e3aea9617e697fc9f3a6611b7512d957ed6c6716b9f47f2912bd5fc5d',
+  mobile: 'ca70c1cb19e1a8c85349a89fbba5184615393ce07072acf48ea46b7a839a612b',
 };
 
 async function openTransferPlanning(page: Page): Promise<void> {
