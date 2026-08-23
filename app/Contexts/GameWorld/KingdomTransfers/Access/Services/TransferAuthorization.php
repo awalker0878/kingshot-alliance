@@ -33,6 +33,7 @@ final readonly class TransferAuthorization
     private function allowsFacts(AllianceAuthorityFacts $facts, TransferPermission $permission): bool
     {
         return match ($permission) {
+            TransferPermission::View => true,
             TransferPermission::Manage => in_array(
                 $facts->rankObservedAtRead,
                 [AllianceRank::R4, AllianceRank::R5],
