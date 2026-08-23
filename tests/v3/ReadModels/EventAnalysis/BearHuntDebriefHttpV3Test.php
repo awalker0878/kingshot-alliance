@@ -44,7 +44,6 @@ final class BearHuntDebriefHttpV3Test extends TestCase
             ->assertJsonPath('props.debrief.run.allianceId', $alliance->allianceId);
 
         Log::shouldHaveReceived('info')
-            ->once()
             ->withArgs(function (string $message, array $context) use ($actor): bool {
                 if ($message !== 'bear_hunt.debrief.viewed') {
                     return false;
@@ -60,7 +59,8 @@ final class BearHuntDebriefHttpV3Test extends TestCase
                     && array_key_exists('alliance_id', $context)
                     && array_key_exists('governor_count', $context)
                     && array_key_exists('history_count', $context);
-            });
+            })
+            ->once();
     }
 
     public function test_outsider_cannot_open_another_alliances_bear_hunt_debrief(): void
