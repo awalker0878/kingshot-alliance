@@ -62,8 +62,8 @@ final class TransferPlanningCompletenessV3Test extends TestCase
             (string) $scenario['participant']->id,
             TransferObservationKind::GovernorPower,
             121_000_000,
-            TransferSourceType::Evidence,
-            'Reviewed Governor profile screenshot',
+            TransferSourceType::InGame,
+            'Second KingShot Governor profile observation',
             $this->now->subMinutes(2)->toIso8601String(),
             $this->now->addHours(2)->toIso8601String(),
         );
