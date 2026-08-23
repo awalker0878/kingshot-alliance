@@ -12,6 +12,11 @@ use Tests\v3\TestCase;
 
 final class TransferEvidenceBoundaryV3Test extends TestCase
 {
+    public function test_evidence_owner_lookup_is_bound_through_its_contract(): void
+    {
+        self::assertInstanceOf(EvidenceReferenceLookup::class, app(EvidenceReferenceLookup::class));
+    }
+
     public function test_evidence_source_requires_same_alliance_latest_approved_reference(): void
     {
         $guard = new TransferEvidenceReferenceGuard($this->lookup());
