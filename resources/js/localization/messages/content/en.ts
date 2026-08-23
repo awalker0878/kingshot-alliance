@@ -49,6 +49,9 @@ const messages = {
     dislike: 'Dislike',
     likeCountLabel: 'Like this Alliance Notice. {count} likes.',
     dislikeCountLabel: 'Dislike this Alliance Notice. {count} dislikes.',
+    removeLikeCountLabel: 'Remove your Like from this Alliance Notice. {count} likes.',
+    removeDislikeCountLabel:
+      'Remove your Dislike from this Alliance Notice. {count} dislikes.',
     managementEyebrow: 'Alliance publishing',
     managementTitle: 'Manage Noticeboard',
     managementSubtitle:
