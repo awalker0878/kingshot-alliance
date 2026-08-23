@@ -238,3 +238,38 @@ The Kingdom Transfer Planning queue is closed: every phase is Complete and no kn
 8. Owner Actions keep writes; controllers/read models/Vue do not own game rules.
 9. No compatibility shim, dual read/write path or legacy planning-group name survives.
 10. Evidence-gated unpublished game truth is never invented.
+
+## Alliance Content game-parity delivery program
+
+Target: a deliberately small KingShot-familiar Content slice with one first-class canonical Alliance Rules workflow and lightweight member Like/Dislike reactions on published Alliance Notices—without creating a social-ranking system or expanding publishing authority.
+
+Canonical contract: [Alliance Content game-parity slice](alliance-content-game-parity.md).
+
+Ownership remains in `Alliance/Content`; `Alliance/Access` continues to own active scope and `ContentManage`. Canonical Rules reuse Content persistence/revisions/audit/outbox, while reaction writes revalidate active Alliance membership and never consult Content publishing authority. The slice introduces no social/reputation context, engagement score, ranking read model, recommendation behavior or reaction-driven ordering.
+
+Immutable implementation head `59699b34a9edaebb16e422522d6c78d4aba558f8` passed the complete repository Definition of Done against unchanged `main` base `b7d126cc29d4794d0bcfd1d9e2ed39b6daf55e00`: CI, Architecture V3 Verification, Intelligence Verification, King Perks Verification, Visual Regression, CodeQL and Dependency Review all succeeded. CI included fresh PostgreSQL installation, PHP/Pint/PHPStan/full tests, frontend lint/format/type/build, production image build, ephemeral staging, backup/restore and image scan. Visual Regression passed all 26 Playwright tests, including all eight Alliance Content desktop/mobile surfaces.
+
+### Phase queue
+
+| Phase | Status | Slice | Exit condition |
+| --- | --- | --- | --- |
+| 1 | Complete | Product contract and ownership | Product contract, capability ownership, authorization/data invariants, UX states, acceptance criteria and anti-ranking boundaries are explicit and current. |
+| 2 | Complete | First-class Alliance Rules | Dedicated canonical Rules Action/read surface, reserved identity, Content revisions/audit/outbox, owner validation, exclusive aggregate locking, generic-mutation isolation, member read and manager-only write authority are implemented and behavior-tested. |
+| 3 | Complete | Alliance Notice reactions | Like/Dislike persistence, one-reaction invariant, active-member authority, current-context precondition, target validity, switching/removal/idempotency and privacy-minimal audit behavior are implemented and tested. |
+| 4 | Complete | Read composition and UX | Bounded reaction summaries, first-class Rules navigation, localized/accessibility/mobile states, retryable failure UX, anti-ranking behavior and eight accepted desktop/mobile visual fingerprints are complete. |
+| 5 | Complete | Verification and closeout | Spec→code/code→spec/UX→backend audits are clean; affected product/reference/architecture/frontend docs are reconciled; the complete repository release gate is green on immutable implementation head `59699b34a9edaebb16e422522d6c78d4aba558f8`. |
+
+The Alliance Content game-parity delivery queue is closed: every phase is Complete, all 22 acceptance criteria in the canonical contract are satisfied, and no known Alliance Rules or Notice reaction requirement is deferred. Any later defect or material change that invalidates an exit condition reopens the affected phase and must restore the same release evidence before closeout.
+
+### Cross-phase invariants
+
+1. Canonical Alliance Rules are Content-owned and use the reserved Alliance-local `alliance-rules` identity; no parallel Rules store exists.
+2. The dedicated Rules workflow is the only mutation path for the canonical item; generic create/save/publish/schedule/archive/restore flows cannot claim or mutate it.
+3. Rules writes reauthorize `ContentManage` inside the transaction and serialize canonical first-create/update with the Alliance aggregate's exclusive write lock.
+4. Ordinary active members can read Rules but cannot update them.
+5. Notice reactions require active Alliance membership, not Content-management or publishing authority.
+6. Draft, future-scheduled, archived, non-Announcement and foreign-Alliance targets are not reactable; stale/missing Governor context retains the repository-standard 409 precondition.
+7. One Player has at most one Like/Dislike per Notice; switching/removal/repeated requests are deterministic and idempotent.
+8. Reaction reads expose only Like count, Dislike count and the current Player's reaction through a bounded query composition.
+9. Reactions never affect ordering, visibility, pinning, moderation, recommendation, reputation, notification delivery or any derived popularity/ranking signal.
+10. Accessibility, localization, mobile behavior, visual regression, audit/observability and failure/retry behavior are part of the capability contract, not follow-up polish.
