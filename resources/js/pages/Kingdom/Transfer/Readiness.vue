@@ -179,12 +179,7 @@ const observationKinds: ObservationKind[] = [
   'invitation_status',
   'in_game_rules_verified',
 ];
-const sourceTypes: SourceType[] = [
-  'in_game',
-  'official_publication',
-  'manager_note',
-  'community',
-];
+const sourceTypes: SourceType[] = ['in_game', 'official_publication', 'manager_note', 'community'];
 
 const filtered = computed(() =>
   props.participants.filter((p) => {

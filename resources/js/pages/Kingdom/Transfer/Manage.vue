@@ -95,12 +95,7 @@ const props = defineProps<{
 }>();
 const { t, formatDate, formatNumber } = useLocale();
 const { dialog, requestConfirmation, cancelConfirmation, confirmAction } = useConfirmAction();
-const sourceTypes: SourceType[] = [
-  'official_publication',
-  'in_game',
-  'manager_note',
-  'community',
-];
+const sourceTypes: SourceType[] = ['official_publication', 'in_game', 'manager_note', 'community'];
 function local(v?: string): string {
   if (v) {
     const d = new Date(v);
