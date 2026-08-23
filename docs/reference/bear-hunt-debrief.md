@@ -37,10 +37,26 @@ The `debrief` payload contains:
 - `unmatchedGovernors`: manager-only Evidence review summaries with Screenshot Intake handoff links;
 - `canReviewEvidence`: whether the current caller may open review actions;
 - `previousRun`: immediately preceding completed same-Alliance Bear Hunt, or `null`;
-- `comparison`: null-safe current-vs-previous deltas;
+- `comparison`: null-safe current-vs-previous comparison facts;
 - `personalTrend`: bounded chronological personal trend points;
 - `allianceTrend`: bounded chronological Alliance trend points;
 - `runs`: bounded newest-first run history used for navigation.
+
+### Comparison contract
+
+When `previousRun` is available, `comparison` contains:
+
+- `allianceDamage`: total-damage current/previous/delta/percent state;
+- `governorCount`: Governors with recorded result data, current/previous/absolute delta;
+- `attendancePresent`: recorded present-count current/previous/absolute delta when attendance evidence exists in both runs;
+- `attendanceRate`: attendance-rate current/previous/absolute percentage-point delta when both denominators are meaningful;
+- `recordedRallies`: actual recorded Rally-participation current/previous/delta/percent state;
+- `personalDamage`: active-Governor damage current/previous/delta/percent state;
+- `personalRank`: active-Governor current/previous rank and signed rank movement;
+- `personalAttendance`: active-Governor current/previous attendance status with an availability state;
+- `personalRallies`: active-Governor actual recorded Rally participation current/previous/delta/percent state.
+
+Numeric delta objects use `state=available`, `state=previous_zero`, or `state=unavailable`. `previous_zero` retains the absolute delta but suppresses percentage change. Personal attendance uses `available` only when both runs contain a recorded attendance status.
 
 ## Missing-data contract
 
