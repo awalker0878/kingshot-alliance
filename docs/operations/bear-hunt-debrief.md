@@ -60,4 +60,6 @@ No Debrief cache is persisted, so there is no cache invalidation or replay proce
 
 ## Bounds
 
-The Debrief history window is intentionally bounded. Current implementation returns at most 12 run navigation/trend points and the low-level history query rejects unbounded expansion beyond its defensive maximum. Evidence review results are independently bounded by Intelligence/Evidence and batch-loaded by Evidence/review/extraction/field identifiers rather than fetched per Evidence row.
+The Debrief history window is intentionally bounded. Current implementation returns at most 12 run navigation/trend points and the low-level history query rejects unbounded expansion beyond its defensive maximum.
+
+The Intelligence/Evidence unmatched queue returns at most 50 Evidence items. Evidence with no extraction or whose latest extraction already has a saved review is filtered **before** that limit is applied, so semantic-duplicate follow-up cannot consume the unmatched queue or starve older unresolved Governor work. Remaining Evidence/extraction/field data is batch-loaded rather than fetched per Evidence row.
