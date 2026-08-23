@@ -6,10 +6,12 @@ namespace App\ReadModels\EventAnalysis\Queries;
 
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Intelligence\Evidence\Queries\BearHuntUnmatchedGovernorQuery;
+use App\Contexts\Operations\Access\Enums\OperationsPermission;
 use App\Contexts\Operations\Events\Enums\EventOccurrenceStatus;
 use App\Contexts\Operations\Events\Enums\EventScope;
 use App\Contexts\Operations\Events\Models\Event;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
+use App\Contexts\Operations\Events\Services\EventAuthorization;
 use App\Contexts\Operations\Participation\Queries\BearHuntAttendanceSummaryQuery;
 use App\Contexts\Operations\Rallies\Queries\RallyParticipationSummaryQuery;
 use App\Contexts\Operations\Results\Queries\BearHuntDebriefResultQuery;
@@ -22,6 +24,7 @@ final readonly class BearHuntDebriefQuery
     private const HISTORY_LIMIT = 12;
 
     public function __construct(
+        private EventAuthorization $authorization,
         private BearHuntDebriefResultQuery $results,
         private BearHuntAttendanceSummaryQuery $attendance,
         private RallyParticipationSummaryQuery $rallies,
@@ -45,6 +48,13 @@ final readonly class BearHuntDebriefQuery
                 'event' => 'Bear Hunt Debrief is available only for Alliance Bear Hunt occurrences.',
             ]);
         }
+
+        $this->authorization->authorize(
+            $actor->playerId,
+            EventScope::Alliance,
+            $event->alliance_id,
+            OperationsPermission::EventAllianceView,
+        );
 
         $currentResults = $this->results->forOccurrence((string) $occurrence->id);
         $currentAttendance = $this->attendance->forOccurrence((string) $occurrence->id);
@@ -159,7 +169,7 @@ final readonly class BearHuntDebriefQuery
             'run' => [
                 'occurrenceId' => (string) $occurrence->id,
                 'eventId' => (string) $event->id,
-                'allianceId' => (string) $event->alliance_id,
+                'allianceId' => $event->alliance_id,
                 'title' => $event->title,
                 'startsAt' => $occurrence->starts_at->toIso8601String(),
                 'endsAt' => $occurrence->ends_at->toIso8601String(),
