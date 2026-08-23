@@ -1,0 +1,118 @@
+name: Kingdom Transfer Provenance Reconcile
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  reconcile:
+    if: ${{ github.event.pull_request.head.ref == 'feature/kingdom-transfer-planning' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out feature branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: feature/kingdom-transfer-planning
+          fetch-depth: 0
+
+      - name: Reconcile provenance UX and documentation
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def replace(path: str, old: str, new: str, count: int = 1) -> None:
+              p = Path(path)
+              text = p.read_text()
+              actual = text.count(old)
+              if actual < count:
+                  raise SystemExit(f'{path}: expected at least {count} occurrence(s) of {old!r}, found {actual}')
+              p.write_text(text.replace(old, new, count))
+
+          # Evidence is a valid persisted/history source type, but manual forms cannot claim it
+          # without an owner-authorized Evidence picker/reference.
+          replace(
+              'resources/js/pages/Kingdom/Transfer/Manage.vue',
+              "  'official_publication',\n  'in_game',\n  'evidence',\n  'manager_note',\n  'community',\n",
+              "  'official_publication',\n  'in_game',\n  'manager_note',\n  'community',\n",
+          )
+          replace(
+              'resources/js/pages/Kingdom/Transfer/Readiness.vue',
+              "  'in_game',\n  'evidence',\n  'official_publication',\n  'manager_note',\n  'community',\n",
+              "  'in_game',\n  'official_publication',\n  'manager_note',\n  'community',\n",
+          )
+
+          product = Path('docs/product/kingdom-transfer-planning.md')
+          text = product.read_text()
+          text = text.replace(
+              'Status: Current — Complete 2026-08-23',
+              'Status: Current — Provenance reconciliation reopened 2026-08-23',
+              1,
+          )
+          text = text.replace(
+              'Only `official_publication`, `in_game`, and reviewed `evidence` may satisfy an authoritative eligibility requirement. `manager_note` and `community` remain visible context but cannot produce a `met` requirement.',
+              'Only `official_publication`, `in_game`, and reviewed `evidence` may satisfy an authoritative eligibility requirement. An `evidence` source must include an Intelligence/Evidence-owned identifier that resolves to the same Alliance and whose latest review is approved; raw or cross-Alliance Evidence identifiers are rejected. Manual transfer forms do not offer `evidence` as a source unless an owner-authorized Evidence selection flow supplies that identifier. `manager_note` and `community` remain visible context but cannot produce a `met` requirement.',
+              1,
+          )
+          text = text.replace(
+              '- Evidence references never bypass Intelligence/Evidence authorization or disclose cross-Alliance evidence.',
+              '- Evidence references never bypass Intelligence/Evidence authorization or disclose cross-Alliance evidence. `source_type=evidence` requires a same-Alliance Evidence identifier whose latest owner review is approved; optional Evidence attachments on other source types are also same-Alliance checked.',
+              1,
+          )
+          for phase in ('3', '4', '7', '11', '12'):
+              text = text.replace(f'| {phase} | Complete |', f'| {phase} | In progress |', 1)
+          old_close = 'The Kingdom Transfer Planning delivery queue is closed: every implementable phase is Complete on implementation candidate `4ee688508f8ef741bb1c43d8909f747743cf9526`. That candidate passed strict PHP/Pint/PHPStan and full tests, frontend checks/build, Architecture V3, Intelligence Verification, CodeQL, Dependency Review, deterministic desktop/mobile Visual Regression, production-image build, ephemeral staging, backup/restore and HIGH/CRITICAL container scanning. The unpublished Transfer Pass formula remains explicitly evidence-gated because no authoritative version-bounded formula is available; it is not an implementation TODO. Final closeout documentation is status-only and the resulting PR head must repeat the repository\'s normal gates; any failure reopens the affected phase.'
+          new_close = 'The delivery queue is reopened after final code→spec provenance reconciliation found that Evidence identifiers were not owner-validated at every transfer write boundary. Phases 3, 4, 7, 11 and 12 remain in progress until the same-Alliance/latest-approved Evidence guard, manual-source UX, regression coverage and full repository release gates pass on one immutable candidate. The unpublished Transfer Pass formula remains explicitly evidence-gated because no authoritative version-bounded formula is available; it is not an implementation TODO.'
+          if old_close not in text:
+              raise SystemExit('docs/product/kingdom-transfer-planning.md: closeout paragraph not found')
+          product.write_text(text.replace(old_close, new_close, 1))
+
+          architecture = Path('docs/architecture/contexts/game-world/kingdom-transfers.md')
+          text = architecture.read_text()
+          needle = 'Evidence may support a transfer observation, but Intelligence/Evidence remains the owner of the source artifact, provenance lifecycle, review and retention.'
+          replacement = needle + ' KingdomTransfers validates Evidence references only through the Intelligence/Evidence owner contract: the identifier must belong to the same Alliance, and an `evidence` source is authoritative only when the latest owner review is approved. KingdomTransfers never loads or mutates Evidence models directly.'
+          if needle not in text:
+              raise SystemExit('architecture Evidence boundary sentence not found')
+          architecture.write_text(text.replace(needle, replacement, 1))
+
+          reference = Path('docs/reference/kingdom-transfer-planning.md')
+          text = reference.read_text()
+          needle = '| `evidence` | May satisfy a fact when backed by an authorized reviewed evidence record. |'
+          replacement = '| `evidence` | May satisfy a fact only when `evidence_id` resolves through Intelligence/Evidence to the same Alliance and its latest review is approved. |'
+          if needle not in text:
+              raise SystemExit('reference Evidence source row not found')
+          text = text.replace(needle, replacement, 1)
+          needle = 'A source reference is mandatory for recorded sourced facts. Mutable Governor observations without an explicit validity boundary cannot silently become current eligibility truth.'
+          replacement = 'A source reference is mandatory for recorded sourced facts. `source_type=evidence` additionally requires an `evidence_id` validated through the Intelligence/Evidence owner contract; a foreign or unapproved Evidence record is rejected. Optional Evidence attachments on other source types are also same-Alliance checked. Manual transfer forms do not expose `evidence` as a selectable source until an authorized Evidence selection flow can provide that identifier. Mutable Governor observations without an explicit validity boundary cannot silently become current eligibility truth.'
+          if needle not in text:
+              raise SystemExit('reference source paragraph not found')
+          reference.write_text(text.replace(needle, replacement, 1))
+
+          operations = Path('docs/operations/kingdom-transfer-planning.md')
+          text = operations.read_text()
+          needle = 'An `evidence_id` is a reference to Intelligence/Evidence-owned source material, not ownership transfer. Support tooling must not expose or dereference evidence across an unauthorized Alliance or Player scope. If evidence is unavailable to the current operator, the transfer UI may retain a safe reference/status without exposing the artifact content.'
+          replacement = 'An `evidence_id` is a reference to Intelligence/Evidence-owned source material, not ownership transfer. Every supplied Evidence identifier is validated through the owner contract for the same Alliance; `source_type=evidence` additionally requires the latest Evidence review to be approved. Support tooling must not expose or dereference evidence across an unauthorized Alliance or Player scope. If evidence is unavailable to the current operator, the transfer UI may retain a safe reference/status without exposing the artifact content.'
+          if needle not in text:
+              raise SystemExit('operations Evidence paragraph not found')
+          operations.write_text(text.replace(needle, replacement, 1))
+          PY
+
+      - name: Commit reconciliation and remove this workflow
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/kingdom-transfer-provenance-reconcile.yml
+          git add \
+            resources/js/pages/Kingdom/Transfer/Manage.vue \
+            resources/js/pages/Kingdom/Transfer/Readiness.vue \
+            docs/product/kingdom-transfer-planning.md \
+            docs/architecture/contexts/game-world/kingdom-transfers.md \
+            docs/reference/kingdom-transfer-planning.md \
+            docs/operations/kingdom-transfer-planning.md
+          git commit -m "fix: reconcile transfer evidence provenance boundary"
+          git push origin HEAD:feature/kingdom-transfer-planning
