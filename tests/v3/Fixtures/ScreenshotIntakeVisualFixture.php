@@ -20,6 +20,7 @@ use App\Contexts\Intelligence\Evidence\Models\EvidenceReviewRow;
 use App\Contexts\Intelligence\Evidence\Models\GameEvidence;
 use App\Contexts\Operations\Events\Actions\CreateEvent;
 use App\Contexts\Operations\Events\Enums\EventScope;
+use App\Contexts\Operations\Events\Enums\RecurrenceFrequency;
 use App\Contexts\Operations\Events\Models\EventTypeScope;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Hash;
@@ -63,6 +64,7 @@ final class ScreenshotIntakeVisualFixture
             firstLocalStart: CarbonImmutable::parse('2026-08-23 13:00:00', 'UTC'),
             title: 'Bear Hunt · Visual Review',
             durationMinutes: 30,
+            frequency: RecurrenceFrequency::None,
         );
         if ($event->firstOccurrenceId === null) {
             return;
