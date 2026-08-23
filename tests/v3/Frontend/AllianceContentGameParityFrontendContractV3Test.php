@@ -24,7 +24,7 @@ final class AllianceContentGameParityFrontendContractV3Test extends TestCase
         self::assertStringContainsString('t(\'contentExperience.rulesSave\')', $rules);
     }
 
-    public function test_notice_reaction_controls_expose_toggle_off_semantics_and_busy_state(): void
+    public function test_notice_reaction_controls_expose_toggle_off_busy_and_retryable_failure_semantics(): void
     {
         $root = dirname(__DIR__, 3);
         $controls = $this->source($root.'/resources/js/components/alliance/NoticeReactionControls.vue');
@@ -36,6 +36,10 @@ final class AllianceContentGameParityFrontendContractV3Test extends TestCase
             ':aria-busy="processing"',
             'removeLikeCountLabel',
             'removeDislikeCountLabel',
+            'mutationError.value = null',
+            'onError:',
+            'contentExperience.reactionFailed',
+            '<ActionNotice :message="mutationError" tone="danger" />',
         ] as $expected) {
             self::assertStringContainsString($expected, $controls);
         }
