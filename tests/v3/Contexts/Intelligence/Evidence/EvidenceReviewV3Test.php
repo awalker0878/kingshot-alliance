@@ -93,6 +93,7 @@ final class EvidenceReviewV3Test extends TestCase
 
         $reviewId = app(SaveEvidenceReview::class)->handle(
             actorPlayerId: $actor->playerId,
+            occurrenceId: $occurrenceId,
             evidenceId: (string) $evidence->id,
             extractionAttemptId: (string) $extraction->id,
             rows: [[
@@ -119,6 +120,7 @@ final class EvidenceReviewV3Test extends TestCase
 
         $secondReviewId = app(SaveEvidenceReview::class)->handle(
             actorPlayerId: $actor->playerId,
+            occurrenceId: $occurrenceId,
             evidenceId: (string) $evidence->id,
             extractionAttemptId: (string) $extraction->id,
             rows: [[
