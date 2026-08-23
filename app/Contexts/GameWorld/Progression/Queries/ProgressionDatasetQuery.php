@@ -13,6 +13,26 @@ final class ProgressionDatasetQuery
 {
     private const DIRECTORY = 'resources/data/progression';
 
+    /** @var list<string> */
+    private const REQUIRED_FAMILIES = [
+        'heroes',
+        'hero_skills',
+        'hero_star_shards',
+        'hero_exclusive_equipment',
+        'hero_gear',
+        'governor_gear',
+        'governor_charms',
+        'formations',
+        'buildings',
+        'troops',
+        'academy_research',
+        'war_academy',
+        'alliance_tech',
+        'pets',
+        'masters',
+        'max_levels',
+    ];
+
     /** @return list<ProgressionDataset> */
     public function all(): array
     {
@@ -83,6 +103,7 @@ final class ProgressionDatasetQuery
             || ! is_array($release['sources'] ?? null)
             || ! is_array($release['family_dispositions'] ?? null)
             || ! is_array($heroFile['heroes'] ?? null)
+            || ! is_array($heroFile['provenance'] ?? null)
             || ! is_array($formationFile['formations'] ?? null)) {
             throw new RuntimeException('Factual progression dataset does not satisfy schema version 1.');
         }
@@ -91,7 +112,8 @@ final class ProgressionDatasetQuery
         $formations = array_values(array_filter($formationFile['formations'], 'is_array'));
         $this->validateHeroes($heroes);
         $this->validateFormations($formations);
-        $this->validateSources($release, $heroes, $systems, $formations);
+        $this->validateDispositions($release);
+        $this->validateSources($release, [$heroFile, $systems, $formationFile]);
 
         $checksumParts = [];
         foreach (['formations.json', 'heroes.json', 'release.json', 'systems.json'] as $file) {
@@ -145,7 +167,8 @@ final class ProgressionDatasetQuery
             if (! is_string($id) || $id === '' || ! is_string($hero['name'] ?? null)
                 || ! in_array($hero['rarity'] ?? null, ['Rare', 'Epic', 'Legendary'], true)
                 || ! in_array($hero['troop_class'] ?? null, ['Infantry', 'Cavalry', 'Archer'], true)
-                || ! is_int($hero['generation'] ?? null)) {
+                || ! is_int($hero['generation'] ?? null)
+                || ! is_int($hero['typical_unlock_day'] ?? null)) {
                 throw new RuntimeException('Hero catalogue row is invalid.');
             }
             if (isset($ids[$id])) {
@@ -167,38 +190,102 @@ final class ProgressionDatasetQuery
             if (! is_string($id) || isset($ids[$id]) || ! is_int($infantry) || ! is_int($cavalry) || ! is_int($archer)
                 || min($infantry, $cavalry, $archer) < 0 || max($infantry, $cavalry, $archer) > 100
                 || $infantry + $cavalry + $archer !== 100
-                || ($formation['evidence_status'] ?? null) !== 'community_convention') {
+                || ($formation['evidence_status'] ?? null) !== 'community_convention'
+                || ! is_array($formation['source_ids'] ?? null)
+                || $formation['source_ids'] === []) {
                 throw new RuntimeException('Formation convention row is invalid.');
+            }
+            foreach (['best', 'recommended', 'score', 'optimization_score'] as $forbidden) {
+                if (array_key_exists($forbidden, $formation)) {
+                    throw new RuntimeException('Formation convention cannot contain recommendation semantics.');
+                }
             }
             $ids[$id] = true;
         }
     }
 
+    /** @param array<string,mixed> $release */
+    private function validateDispositions(array $release): void
+    {
+        $seen = [];
+        foreach ($release['family_dispositions'] as $row) {
+            if (! is_array($row)
+                || ! is_string($row['family'] ?? null)
+                || ! is_string($row['status'] ?? null)
+                || ! is_int($row['discovered_entities'] ?? null)
+                || ! is_int($row['canonical_entities'] ?? null)
+                || ! is_string($row['reason'] ?? null)
+                || $row['discovered_entities'] < 0
+                || $row['canonical_entities'] < 0
+                || $row['canonical_entities'] > $row['discovered_entities']) {
+                throw new RuntimeException('Progression family disposition is invalid.');
+            }
+            if (isset($seen[$row['family']])) {
+                throw new RuntimeException('Progression family dispositions must be unique.');
+            }
+            $seen[$row['family']] = true;
+        }
+
+        foreach (self::REQUIRED_FAMILIES as $family) {
+            if (! isset($seen[$family])) {
+                throw new RuntimeException('Progression release silently omitted required family: '.$family);
+            }
+        }
+    }
+
     /**
      * @param array<string,mixed> $release
-     * @param list<array<string,mixed>> $heroes
-     * @param array<string,mixed> $systems
-     * @param list<array<string,mixed>> $formations
+     * @param list<array<string,mixed>> $documents
      */
-    private function validateSources(array $release, array $heroes, array $systems, array $formations): void
+    private function validateSources(array $release, array $documents): void
     {
         $sourceIds = [];
         foreach ($release['sources'] as $source) {
-            if (! is_array($source) || ! is_string($source['id'] ?? null) || ! is_string($source['uri'] ?? null)
-                || ! is_string($source['retrieved_at'] ?? null) || ! is_string($source['authority_tier'] ?? null)) {
+            if (! is_array($source)
+                || ! is_string($source['id'] ?? null)
+                || ! is_string($source['label'] ?? null)
+                || ! is_string($source['uri'] ?? null)
+                || filter_var($source['uri'], FILTER_VALIDATE_URL) === false
+                || ! is_string($source['retrieved_at'] ?? null)
+                || ! is_string($source['observed_at'] ?? null)
+                || ! in_array($source['authority_tier'] ?? null, ['A', 'B', 'C', 'D'], true)
+                || ! is_string($source['license_note'] ?? null)) {
                 throw new RuntimeException('Progression source registry row is invalid.');
+            }
+            if (isset($sourceIds[$source['id']])) {
+                throw new RuntimeException('Progression source registry IDs must be unique.');
             }
             $sourceIds[$source['id']] = true;
         }
 
-        $encoded = json_encode([$heroes, $systems, $formations], JSON_THROW_ON_ERROR);
-        preg_match_all('/"source_ids?"\s*:\s*(?:\[([^\]]*)\]|"([^"]+)")/', $encoded, $matches);
-        foreach (array_merge($matches[1] ?? [], $matches[2] ?? []) as $match) {
-            preg_match_all('/"([^"]+)"/', (string) $match, $ids);
-            foreach ($ids[1] ?? [] as $sourceId) {
-                if (! isset($sourceIds[$sourceId])) {
+        foreach ($documents as $document) {
+            $this->validateSourceReferencesRecursively($document, $sourceIds);
+        }
+    }
+
+    /** @param array<string,mixed> $value @param array<string,true> $sourceIds */
+    private function validateSourceReferencesRecursively(array $value, array $sourceIds): void
+    {
+        foreach ($value as $key => $child) {
+            if ($key === 'source_id') {
+                if (! is_string($child) || ! isset($sourceIds[$child])) {
                     throw new RuntimeException('Progression fact references an unregistered source.');
                 }
+                continue;
+            }
+            if ($key === 'source_ids') {
+                if (! is_array($child) || $child === []) {
+                    throw new RuntimeException('Progression fact source_ids must be a non-empty list.');
+                }
+                foreach ($child as $sourceId) {
+                    if (! is_string($sourceId) || ! isset($sourceIds[$sourceId])) {
+                        throw new RuntimeException('Progression fact references an unregistered source.');
+                    }
+                }
+                continue;
+            }
+            if (is_array($child)) {
+                $this->validateSourceReferencesRecursively($child, $sourceIds);
             }
         }
     }
