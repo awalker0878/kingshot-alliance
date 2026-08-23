@@ -4,7 +4,8 @@ const messages = {
   debrief: {
     title: 'Podsumowanie Polowania na Niedźwiedzia',
     eyebrow: 'Polowanie na Niedźwiedzia · Analiza po walce',
-    subtitle: 'Sprawdź zapisane obrażenia, obecność, udział w Rally, nierozpoznanych Gubernatorów i porównanie z ostatnimi polowaniami.',
+    subtitle:
+      'Sprawdź zapisane obrażenia, obecność, udział w Rally, nierozpoznanych Gubernatorów i porównanie z ostatnimi polowaniami.',
     totalDamage: 'Łączne obrażenia',
     governors: 'Gubernatorzy',
     governor: 'Gubernator',
@@ -30,7 +31,8 @@ const messages = {
     noResults: 'Dla tego polowania nie zapisano jeszcze obrażeń Gubernatorów.',
     needsReview: 'Wymaga przeglądu',
     unmatchedGovernors: '{count} Gubernatorów wymaga dopasowania',
-    reviewHelp: 'Dokończ dopasowanie Gubernatorów w Screenshot Intake. Podsumowanie nie tworzy osobnego procesu tożsamości.',
+    reviewHelp:
+      'Dokończ dopasowanie Gubernatorów w Screenshot Intake. Podsumowanie nie tworzy osobnego procesu tożsamości.',
     reviewImport: 'Przejrzyj importowany raport',
     trends: 'Trendy',
     runTrends: 'Ostatnie trendy Polowania na Niedźwiedzia',
@@ -38,7 +40,8 @@ const messages = {
     allianceDamageTrend: 'Obrażenia Sojuszu według polowania',
     previousHunt: 'Poprzednie polowanie',
     noPrevious: 'Brak poprzedniego polowania',
-    noPreviousHelp: 'Porównanie pojawi się, gdy dla tego Sojuszu istnieje wcześniejsze zakończone Polowanie na Niedźwiedzia.',
+    noPreviousHelp:
+      'Porównanie pojawi się, gdy dla tego Sojuszu istnieje wcześniejsze zakończone Polowanie na Niedźwiedzia.',
     history: 'Historia',
     runHistory: 'Historia Polowań na Niedźwiedzia',
   },
