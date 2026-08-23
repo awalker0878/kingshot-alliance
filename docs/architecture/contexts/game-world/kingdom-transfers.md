@@ -24,7 +24,7 @@ KingdomTransfers owns:
 
 A transfer may reference Player, Kingdom, Alliance and Evidence identifiers, but the capability does not take ownership of those aggregates. It does not mutate Alliance membership, Kingdom identity, Player identity/progression or Intelligence/Evidence records directly.
 
-Cross-context effects use explicit owner Actions, immutable references/snapshots, scalar identifiers, value objects or composed reads. Evidence may support a transfer observation, but Intelligence/Evidence remains the owner of the source artifact, provenance lifecycle, review and retention.
+Cross-context effects use explicit owner Actions, immutable references/snapshots, scalar identifiers, value objects or composed reads. Evidence may support a transfer observation, but Intelligence/Evidence remains the owner of the source artifact, provenance lifecycle, review and retention. KingdomTransfers validates Evidence references only through the Intelligence/Evidence owner contract: the identifier must belong to the same Alliance, and an `evidence` source is authoritative only when the latest owner review is approved. KingdomTransfers never loads or mutates Evidence models directly.
 
 The capability is not placed in `app/Workflows`; Kingdom transfer is a GameWorld business capability with its own state and invariants.
 

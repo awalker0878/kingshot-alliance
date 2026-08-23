@@ -98,7 +98,6 @@ const { dialog, requestConfirmation, cancelConfirmation, confirmAction } = useCo
 const sourceTypes: SourceType[] = [
   'official_publication',
   'in_game',
-  'evidence',
   'manager_note',
   'community',
 ];

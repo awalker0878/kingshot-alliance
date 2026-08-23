@@ -61,7 +61,7 @@ Resolve by determining which source is authoritative/current and recording a cor
 
 ## Evidence references
 
-An `evidence_id` is a reference to Intelligence/Evidence-owned source material, not ownership transfer. Support tooling must not expose or dereference evidence across an unauthorized Alliance or Player scope. If evidence is unavailable to the current operator, the transfer UI may retain a safe reference/status without exposing the artifact content.
+An `evidence_id` is a reference to Intelligence/Evidence-owned source material, not ownership transfer. Every supplied Evidence identifier is validated through the owner contract for the same Alliance; `source_type=evidence` additionally requires the latest Evidence review to be approved. Support tooling must not expose or dereference evidence across an unauthorized Alliance or Player scope. If evidence is unavailable to the current operator, the transfer UI may retain a safe reference/status without exposing the artifact content.
 
 ## Audit and outbox
 

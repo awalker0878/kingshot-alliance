@@ -92,11 +92,11 @@ The write fingerprint is derived from owner scope plus the normalized observatio
 | --- | --- |
 | `official_publication` | May satisfy an authoritative published game fact. |
 | `in_game` | May satisfy a fact observed directly in KingShot. |
-| `evidence` | May satisfy a fact when backed by an authorized reviewed evidence record. |
+| `evidence` | May satisfy a fact only when `evidence_id` resolves through Intelligence/Evidence to the same Alliance and its latest review is approved. |
 | `manager_note` | Planning context only; not authoritative eligibility truth. |
 | `community` | Discovery/context only; not authoritative eligibility truth. |
 
-A source reference is mandatory for recorded sourced facts. Mutable Governor observations without an explicit validity boundary cannot silently become current eligibility truth.
+A source reference is mandatory for recorded sourced facts. `source_type=evidence` additionally requires an `evidence_id` validated through the Intelligence/Evidence owner contract; a foreign or unapproved Evidence record is rejected. Optional Evidence attachments on other source types are also same-Alliance checked. Manual transfer forms do not expose `evidence` as a selectable source until an authorized Evidence selection flow can provide that identifier. Mutable Governor observations without an explicit validity boundary cannot silently become current eligibility truth.
 
 ## Eligibility response contract
 

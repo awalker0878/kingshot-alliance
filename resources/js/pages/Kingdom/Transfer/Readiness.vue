@@ -181,7 +181,6 @@ const observationKinds: ObservationKind[] = [
 ];
 const sourceTypes: SourceType[] = [
   'in_game',
-  'evidence',
   'official_publication',
   'manager_note',
   'community',

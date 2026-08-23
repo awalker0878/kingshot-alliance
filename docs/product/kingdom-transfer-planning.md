@@ -1,6 +1,6 @@
 # Kingdom Transfer Planning
 
-Status: Current — Complete 2026-08-23
+Status: Current — Provenance reconciliation reopened 2026-08-23
 
 Kingdom Transfer Planning extends the existing Kingdom Transfer participant/readiness workflow into a sourced game-planning capability. This document is the implementation contract for the active delivery program. A delivery-ledger item is not complete until the behavior, authorization, persistence, idempotency where applicable, audit/observability, responsive UX, accessibility, localization, tests and visual proof required by that item are complete.
 
@@ -154,7 +154,7 @@ Supported source types are:
 - `manager_note` — human planning note without authoritative supporting evidence;
 - `community` — discovery-only external community material.
 
-Only `official_publication`, `in_game`, and reviewed `evidence` may satisfy an authoritative eligibility requirement. `manager_note` and `community` remain visible context but cannot produce a `met` requirement.
+Only `official_publication`, `in_game`, and reviewed `evidence` may satisfy an authoritative eligibility requirement. An `evidence` source must include an Intelligence/Evidence-owned identifier that resolves to the same Alliance and whose latest review is approved; raw or cross-Alliance Evidence identifiers are rejected. Manual transfer forms do not offer `evidence` as a source unless an owner-authorized Evidence selection flow supplies that identifier. `manager_note` and `community` remain visible context but cannot produce a `met` requirement.
 
 ### Freshness
 
@@ -309,7 +309,7 @@ Material source facts cannot be edited into anonymous values: source type, sourc
 - Transfer management permission is required to create/update Windows, Transfer Groups, Kingdom conditions, observations, readiness, cohorts and manual blockers.
 - Every mutation re-resolves active Player + Alliance authority inside the transaction and re-checks the concrete plan/window/participant scope.
 - IDs from another Alliance/plan/window cannot be used to infer whether a record exists.
-- Evidence references never bypass Intelligence/Evidence authorization or disclose cross-Alliance evidence.
+- Evidence references never bypass Intelligence/Evidence authorization or disclose cross-Alliance evidence. `source_type=evidence` requires a same-Alliance Evidence identifier whose latest owner review is approved; optional Evidence attachments on other source types are also same-Alliance checked.
 
 ## Idempotency and concurrency
 
@@ -389,18 +389,18 @@ The capability is complete only when all of the following are true:
 | --- | --- | --- | --- |
 | 1 | Complete | Product contract | This contract defines complete scope, source/evidence boundary, ownership, UX states, acceptance criteria and delivery ledger before application changes. |
 | 2 | Complete | Cohort terminology correction | Existing Alliance planning `TransferGroup` is renamed to `TransferCohort` across schema/code/routes/events/localization/tests with no compatibility layer; official Transfer Group vocabulary becomes unambiguous. |
-| 3 | Complete | Transfer Window + official groups | Window/phase persistence, official Transfer Group membership, target conditions and provenance are writable through authorized domain Actions and exposed by bounded queries. |
-| 4 | Complete | Governor observation history | Typed append-only sourced observations, explicit validity, conflict handling and idempotent ingestion are implemented with history UI. |
+| 3 | In progress | Transfer Window + official groups | Window/phase persistence, official Transfer Group membership, target conditions and provenance are writable through authorized domain Actions and exposed by bounded queries. |
+| 4 | In progress | Governor observation history | Typed append-only sourced observations, explicit validity, conflict handling and idempotent ingestion are implemented with history UI. |
 | 5 | Complete | Eligibility domain | Deterministic evaluator implements the sourced rule set, evidence gates, requirement states and structured next actions without a persisted eligibility boolean. |
 | 6 | Complete | HTTP/read composition | Authorized planning reads expose window, phase, target, observations, manual blockers and assessments with bounded query counts and no cross-tenant leakage. |
-| 7 | Complete | Management UX | Managers can maintain sourced window/group/condition/observation data and see validation, history and receipts without raw IDs or hidden provenance requirements. |
+| 7 | In progress | Management UX | Managers can maintain sourced window/group/condition/observation data and see validation, history and receipts without raw IDs or hidden provenance requirements. |
 | 8 | Complete | Decision-first participant UX | Readiness page leads with eligibility, requirement/source/freshness details and required triage filters while preserving readiness/cohort/blocker/completion controls. |
 | 9 | Complete | Accessibility/localization/mobile | All new states are translated, keyboard/screen-reader usable, mobile-first and free of horizontal overflow; visual status has text equivalents. |
 | 10 | Complete | Audit/observability/recovery | Material writes are audited/outboxed, observation retries are idempotent, diagnostics are privacy-safe and recovery/correction behavior is documented. |
-| 11 | Complete | Behavioral/architecture/performance tests | Rule boundaries, authorization, idempotency, history, independence invariants, query budgets and architecture constraints are covered. |
-| 12 | Complete | Visual regression + closeout | Deterministic eligible/blocked/needs-verification desktop/mobile states are accepted; spec→code, code→spec, UX→backend and docs scans show no implementable gap and full release gates pass. |
+| 11 | In progress | Behavioral/architecture/performance tests | Rule boundaries, authorization, idempotency, history, independence invariants, query budgets and architecture constraints are covered. |
+| 12 | In progress | Visual regression + closeout | Deterministic eligible/blocked/needs-verification desktop/mobile states are accepted; spec→code, code→spec, UX→backend and docs scans show no implementable gap and full release gates pass. |
 
-The Kingdom Transfer Planning delivery queue is closed: every implementable phase is Complete on implementation candidate `4ee688508f8ef741bb1c43d8909f747743cf9526`. That candidate passed strict PHP/Pint/PHPStan and full tests, frontend checks/build, Architecture V3, Intelligence Verification, CodeQL, Dependency Review, deterministic desktop/mobile Visual Regression, production-image build, ephemeral staging, backup/restore and HIGH/CRITICAL container scanning. The unpublished Transfer Pass formula remains explicitly evidence-gated because no authoritative version-bounded formula is available; it is not an implementation TODO. Final closeout documentation is status-only and the resulting PR head must repeat the repository's normal gates; any failure reopens the affected phase.
+The delivery queue is reopened after final code→spec provenance reconciliation found that Evidence identifiers were not owner-validated at every transfer write boundary. Phases 3, 4, 7, 11 and 12 remain in progress until the same-Alliance/latest-approved Evidence guard, manual-source UX, regression coverage and full repository release gates pass on one immutable candidate. The unpublished Transfer Pass formula remains explicitly evidence-gated because no authoritative version-bounded formula is available; it is not an implementation TODO.
 
 ### Cross-phase invariants
 
