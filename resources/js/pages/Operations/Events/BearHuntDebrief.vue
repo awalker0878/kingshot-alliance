@@ -186,6 +186,11 @@ function count(value: number | null | undefined, available = true): string {
 function attendance(value: string | null | undefined): string {
   return value ? t(`events.attendanceStatuses.${value}`) : t('debrief.notRecorded');
 }
+function attendanceRate(value: number | null | undefined, available = true): string {
+  return available && value !== null && value !== undefined
+    ? `${formatNumber(value, { maximumFractionDigits: 1 })}%`
+    : t('debrief.notRecorded');
+}
 function rank(value: number | null | undefined): string {
   return value === null || value === undefined
     ? t('debrief.notRecorded')
@@ -494,11 +499,11 @@ function barWidth(value: number | null | undefined, max: number): string {
           <div class="mt-5 grid gap-6 lg:grid-cols-2">
             <div>
               <h3 class="font-semibold">{{ t('debrief.yourDamageTrend') }}</h3>
-              <ol class="mt-3 space-y-2" :aria-label="t('debrief.yourDamageTrend')">
+              <ol class="mt-3 space-y-3" :aria-label="t('debrief.yourDamageTrend')">
                 <li
                   v-for="point in debrief.personalTrend"
                   :key="point.occurrenceId"
-                  class="grid grid-cols-[5rem_1fr_auto] items-center gap-2 text-sm"
+                  class="grid grid-cols-[5rem_1fr_auto] items-center gap-x-2 gap-y-1 text-sm"
                 >
                   <span class="text-[var(--ks-muted)]">{{ shortDate(point.startsAt) }}</span>
                   <span class="h-2 rounded bg-white/10" aria-hidden="true">
@@ -508,16 +513,22 @@ function barWidth(value: number | null | undefined, max: number): string {
                     />
                   </span>
                   <span class="min-w-16 text-right">{{ damage(point.damage) }}</span>
+                  <span class="col-span-3 text-xs leading-5 text-[var(--ks-muted)]">
+                    {{ t('debrief.rank') }}: {{ rank(point.rank) }} ·
+                    {{ t('debrief.attendance') }}: {{ attendance(point.attendanceStatus) }} ·
+                    {{ t('debrief.recordedRallies') }}:
+                    {{ count(point.rallies, point.ralliesAvailable ?? false) }}
+                  </span>
                 </li>
               </ol>
             </div>
             <div>
               <h3 class="font-semibold">{{ t('debrief.allianceDamageTrend') }}</h3>
-              <ol class="mt-3 space-y-2" :aria-label="t('debrief.allianceDamageTrend')">
+              <ol class="mt-3 space-y-3" :aria-label="t('debrief.allianceDamageTrend')">
                 <li
                   v-for="point in debrief.allianceTrend"
                   :key="point.occurrenceId"
-                  class="grid grid-cols-[5rem_1fr_auto] items-center gap-2 text-sm"
+                  class="grid grid-cols-[5rem_1fr_auto] items-center gap-x-2 gap-y-1 text-sm"
                 >
                   <span class="text-[var(--ks-muted)]">{{ shortDate(point.startsAt) }}</span>
                   <span class="h-2 rounded bg-white/10" aria-hidden="true">
@@ -527,6 +538,22 @@ function barWidth(value: number | null | undefined, max: number): string {
                     />
                   </span>
                   <span class="min-w-16 text-right">{{ damage(point.totalDamage) }}</span>
+                  <span class="col-span-3 text-xs leading-5 text-[var(--ks-muted)]">
+                    {{
+                      t('debrief.governorCount', {
+                        count: formatNumber(point.governorCount ?? 0),
+                      })
+                    }}
+                    · {{ t('debrief.attendance') }}:
+                    {{
+                      attendanceRate(
+                        point.attendanceRatePercent,
+                        point.attendanceAvailable ?? false,
+                      )
+                    }}
+                    · {{ t('debrief.recordedRallies') }}:
+                    {{ count(point.recordedRallies, point.ralliesAvailable ?? false) }}
+                  </span>
                 </li>
               </ol>
             </div>
