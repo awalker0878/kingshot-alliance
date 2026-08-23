@@ -13,6 +13,7 @@ use App\Contexts\Alliance\Content\Services\DeactivateAnnouncementBroadcastSchedu
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 final readonly class ArchiveContentItem
 {
@@ -35,6 +36,12 @@ final readonly class ArchiveContentItem
                 ->where('alliance_id', $context->alliance->id)
                 ->lockForUpdate()
                 ->firstOrFail();
+
+            if ((string) $item->slug === ContentItem::ALLIANCE_RULES_SLUG) {
+                throw ValidationException::withMessages([
+                    'content' => 'Alliance Rules cannot be archived through generic Content management.',
+                ]);
+            }
 
             $item->forceFill([
                 'status' => ContentStatus::Archived,

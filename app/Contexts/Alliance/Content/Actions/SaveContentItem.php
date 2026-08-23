@@ -58,10 +58,6 @@ final readonly class SaveContentItem
         return DB::transaction(function () use ($allianceId, $actorPlayerId, $attributes, $contentItemId): string {
             $context = $this->allianceWriteState->lockActiveScope($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, AlliancePermission::ContentManage);
-            $categoryId = $attributes['category_id'] ?? null;
-            $this->assertCategory((string) $context->alliance->id, $categoryId);
-            $provenance = $this->normalizeProvenance($attributes);
-            $contextLinks = $this->normalizeContextLinks($attributes['context_links'] ?? []);
 
             $item = $contentItemId === null
                 ? new ContentItem([
@@ -74,6 +70,23 @@ final readonly class SaveContentItem
                     ->where('alliance_id', $context->alliance->id)
                     ->lockForUpdate()
                     ->firstOrFail();
+
+            if ($contentItemId !== null && (string) $item->slug === ContentItem::ALLIANCE_RULES_SLUG) {
+                throw ValidationException::withMessages([
+                    'content' => 'Alliance Rules must be changed through the dedicated Alliance Rules workflow.',
+                ]);
+            }
+
+            if (strtolower(trim($attributes['slug'])) === ContentItem::ALLIANCE_RULES_SLUG) {
+                throw ValidationException::withMessages([
+                    'slug' => 'The alliance-rules address is reserved for the Alliance Rules workflow.',
+                ]);
+            }
+
+            $categoryId = $attributes['category_id'] ?? null;
+            $this->assertCategory((string) $context->alliance->id, $categoryId);
+            $provenance = $this->normalizeProvenance($attributes);
+            $contextLinks = $this->normalizeContextLinks($attributes['context_links'] ?? []);
 
             if ($contentItemId !== null) {
                 $item->current_revision_number = (int) $item->current_revision_number + 1;

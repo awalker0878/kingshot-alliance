@@ -8,9 +8,12 @@ use App\Contexts\Accounts\Identity\Contracts\AuthenticatedAccount;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Content\Enums\ContentStatus;
+use App\Contexts\Alliance\Content\Enums\ContentType;
 use App\Contexts\Alliance\Content\Enums\ContentVisibility;
 use App\Contexts\Alliance\Content\Models\ContentCategory;
+use App\Contexts\Alliance\Content\Models\ContentItem;
 use App\Contexts\Alliance\Content\Queries\ContentQuery;
+use App\Contexts\Alliance\Content\Queries\NoticeReactionSummaryQuery;
 use App\Contexts\Alliance\Content\Services\ContentPresenter;
 use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
 use App\Contexts\Alliance\Lifecycle\Services\AllianceContext;
@@ -27,6 +30,7 @@ final class MemberContentController extends Controller
         AllianceAuthorization $authorization,
         ContentQuery $content,
         ContentPresenter $presenter,
+        NoticeReactionSummaryQuery $reactions,
         AllianceReferenceQuery $alliances,
     ): Response {
         $user = $request->user();
@@ -41,6 +45,11 @@ final class MemberContentController extends Controller
             $request->string('category')->toString(),
             $request->string('locale')->toString(),
         );
+        $noticeIds = array_values($items
+            ->filter(static fn (ContentItem $item): bool => $item->type === ContentType::Announcement)
+            ->map(static fn (ContentItem $item): string => (string) $item->id)
+            ->all());
+        $reactionSummaries = $reactions->forNotices($scope->allianceId, $scope->playerId, $noticeIds);
 
         $categories = ContentCategory::query()
             ->where('alliance_id', $scope->allianceId)
@@ -76,15 +85,24 @@ final class MemberContentController extends Controller
                 'name' => $category->name,
                 'slug' => $category->slug,
             ])->values()->all(),
-            'content' => $items->map(fn ($item): array => $presenter->item($item))->values()->all(),
+            'content' => $items->map(function (ContentItem $item) use ($presenter, $reactionSummaries): array {
+                $presented = $presenter->item($item);
+                $presented['reactions'] = $item->type === ContentType::Announcement
+                    ? ($reactionSummaries[(string) $item->id] ?? ['likes' => 0, 'dislikes' => 0, 'current' => null])
+                    : null;
+
+                return $presented;
+            })->values()->all(),
         ]);
     }
 
     public function show(
         Request $request,
         AllianceContext $context,
+        AllianceAuthorization $authorization,
         ContentQuery $content,
         ContentPresenter $presenter,
+        NoticeReactionSummaryQuery $reactions,
         AllianceReferenceQuery $alliances,
         string $contentSlug,
     ): Response {
@@ -94,6 +112,18 @@ final class MemberContentController extends Controller
         $alliance = $alliances->require($scope->allianceId);
         $item = $content->memberBySlug($scope->allianceId, $contentSlug);
         abort_unless($item !== null, 404);
+
+        $presented = $presenter->item($item, true);
+        $presented['reactions'] = null;
+
+        if ($item->type === ContentType::Announcement) {
+            $summary = $reactions->forNotices(
+                $scope->allianceId,
+                $scope->playerId,
+                [(string) $item->id],
+            );
+            $presented['reactions'] = $summary[(string) $item->id] ?? ['likes' => 0, 'dislikes' => 0, 'current' => null];
+        }
 
         return Inertia::render('Alliance/Noticeboard/Show', [
             'user' => [
@@ -106,7 +136,8 @@ final class MemberContentController extends Controller
                 'timezone' => $alliance->timezone,
             ],
             'viewerTimezone' => $user->timezone,
-            'content' => $presenter->item($item, true),
+            'canManageContent' => $authorization->allows($scope->playerId, $scope->allianceId, AlliancePermission::ContentManage),
+            'content' => $presented,
         ]);
     }
 }

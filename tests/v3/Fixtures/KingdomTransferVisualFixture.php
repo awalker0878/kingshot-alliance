@@ -36,6 +36,7 @@ final class KingdomTransferVisualFixture
     public static function seed(): void
     {
         $now = CarbonImmutable::parse('2026-08-23 16:00:00', 'UTC');
+        $currentThrough = CarbonImmutable::parse('2099-08-24 16:00:00', 'UTC');
         CarbonImmutable::setTestNow($now);
 
         $user = User::factory()->create([
@@ -92,7 +93,7 @@ final class KingdomTransferVisualFixture
                 'pre_transfer_starts_at' => $now->subDays(3)->toIso8601String(),
                 'invitational_starts_at' => $now->subDays(2)->toIso8601String(),
                 'transfer_opens_at' => $now->subDay()->toIso8601String(),
-                'ends_at' => $now->addDay()->toIso8601String(),
+                'ends_at' => $currentThrough->toIso8601String(),
                 'source_type' => TransferSourceType::OfficialPublication,
                 'source_reference' => 'Century Games Kingdom Transfer event notice',
                 'observed_at' => $now->subDays(4)->toIso8601String(),
@@ -171,9 +172,9 @@ final class KingdomTransferVisualFixture
         $gameBlocked = TransferParticipant::query()->where('player_id', $blocked->id)->firstOrFail();
         $needsVerification = TransferParticipant::query()->where('player_id', $verify->id)->firstOrFail();
 
-        self::recordFacts($allianceId, (string) $actor->id, $plan, $eligible, $now, true, false);
-        self::recordFacts($allianceId, (string) $actor->id, $plan, $gameBlocked, $now, false, false);
-        self::recordFacts($allianceId, (string) $actor->id, $plan, $needsVerification, $now, true, true);
+        self::recordFacts($allianceId, (string) $actor->id, $plan, $eligible, $now, $currentThrough, true, false);
+        self::recordFacts($allianceId, (string) $actor->id, $plan, $gameBlocked, $now, $currentThrough, false, false);
+        self::recordFacts($allianceId, (string) $actor->id, $plan, $needsVerification, $now, $currentThrough, true, true);
 
         app(CreateTransferBlocker::class)->handle(
             $allianceId,
@@ -220,11 +221,12 @@ final class KingdomTransferVisualFixture
         TransferPlan $plan,
         TransferParticipant $participant,
         CarbonImmutable $now,
+        CarbonImmutable $currentThrough,
         bool $rulesVerified,
         bool $stalePower,
     ): void {
         $record = app(RecordTransferObservation::class);
-        $validUntil = $now->addHours(6)->toIso8601String();
+        $validUntil = $currentThrough->toIso8601String();
         $record->handle(
             $allianceId,
             $actorPlayerId,
@@ -235,7 +237,7 @@ final class KingdomTransferVisualFixture
             TransferSourceType::InGame,
             'KingShot Governor transfer screen',
             $now->subMinutes(20)->toIso8601String(),
-            ($stalePower ? $now->subMinute() : $now->addHours(6))->toIso8601String(),
+            ($stalePower ? $now->subMinute() : $currentThrough)->toIso8601String(),
         );
         $record->handle(
             $allianceId,

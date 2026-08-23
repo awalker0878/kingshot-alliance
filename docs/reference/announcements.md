@@ -15,6 +15,16 @@ Alliance announcements use the existing Content capability as their source of tr
 
 Saving an existing item creates a new draft revision and deactivates any active recurring rule. Archiving also deactivates recurrence. Publishing the new revision creates a new one-off broadcast when member notification is enabled; recurrence must be deliberately saved again.
 
+## Member reactions
+
+Published Alliance Notices (`Announcement` Content) expose lightweight **Like** and **Dislike** controls to active Alliance members. One Governor may hold at most one reaction on a Notice and can switch or remove it. Repeating the same desired state is a no-op.
+
+Reaction authority is intentionally independent from announcement authoring authority. The reaction write revalidates active Alliance membership but does not require `ContentManage`, publish, edit, archive or broadcast permission. A Dislike is not a report or moderation action.
+
+Member Noticeboard reads expose only Like count, Dislike count and the current Governor's reaction. These values are informational and never affect publication order, visibility, prominence, delivery, moderation, recommendations, reputation or ranking. There is no net score, approval ratio, trending list or popularity sort.
+
+Reaction mutations do not enqueue Communications notifications or broadcast deliveries.
+
 ## Recipient behavior
 
 - Only claimed Governors with an active Alliance membership are recipients.

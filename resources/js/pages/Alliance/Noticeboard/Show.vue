@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
 
+import NoticeReactionControls from '@/components/alliance/NoticeReactionControls.vue';
 import RoomBanner from '@/components/game/RoomBanner.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
@@ -20,6 +21,11 @@ defineProps<{
     body: string;
     locale: string;
     publishedAt: string | null;
+    reactions: {
+      likes: number;
+      dislikes: number;
+      current: 'like' | 'dislike' | null;
+    } | null;
     provenance: {
       sourceLabel: string | null;
       sourceUrl: string | null;
@@ -55,6 +61,9 @@ function reviewed(value: string | null): string {
       <template #actions>
         <Link href="/alliance/content" class="ks-command-link">
           ← {{ t('contentExperience.hubTitle') }}
+        </Link>
+        <Link href="/alliance/rules" class="ks-command-link" data-variant="secondary">
+          {{ t('contentExperience.rulesTitle') }}
         </Link>
         <Link
           v-if="canManageContent"
@@ -102,6 +111,13 @@ function reviewed(value: string | null): string {
           >
             {{ content.body }}
           </div>
+
+          <NoticeReactionControls
+            v-if="content.type === 'announcement' && content.reactions"
+            class="mt-7 border-t border-[var(--ks-border)] pt-5"
+            :content-id="content.id"
+            :reactions="content.reactions"
+          />
         </div>
       </article>
 

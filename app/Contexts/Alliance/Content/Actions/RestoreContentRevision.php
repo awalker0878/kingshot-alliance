@@ -39,6 +39,12 @@ final readonly class RestoreContentRevision
                 ->lockForUpdate()
                 ->firstOrFail();
 
+            if ((string) $item->slug === ContentItem::ALLIANCE_RULES_SLUG) {
+                throw ValidationException::withMessages([
+                    'content' => 'Alliance Rules revisions are managed only through the dedicated Alliance Rules workflow.',
+                ]);
+            }
+
             $revision = ContentRevision::query()
                 ->where('id', $revisionId)
                 ->where('content_item_id', $item->id)

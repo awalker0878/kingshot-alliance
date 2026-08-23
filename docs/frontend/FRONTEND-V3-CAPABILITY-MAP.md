@@ -16,6 +16,7 @@ Active Governor
       │   ├── Alliance Hall
       │   ├── Recruitment Hall
       │   ├── Noticeboard
+      │   ├── Alliance Rules
       │   └── Alliance Connections
       │
       ├── Event Command
@@ -71,6 +72,16 @@ Backed by Alliance Recruitment: modes/questions, Governor applications, stages, 
 ## Noticeboard
 
 Backed by Alliance Content: public profile, categories, member content, announcements, drafts/publishing, revisions/restore, media and public pages.
+
+Published Alliance Notices may expose lightweight member Like/Dislike reactions on both cards and detail pages. Reactions show only Like/Dislike counts and the active Governor's selected state. They are informational only: the UI must not derive or expose scores, approval ratios, popularity, trending, recommendations, ranking, moderation signals or reaction-based ordering/pinning.
+
+Reaction controls are available to eligible active members independently of Content publishing authority. A Governor does not gain create/edit/publish/archive/broadcast authority by reacting, and a Content manager can react only because they are also an eligible active member.
+
+## Alliance Rules
+
+Backed by Alliance Content as one canonical member-visible `alliance-rules` document, not as a special Notice and not as a separate Rules domain/store.
+
+Every active Alliance member may read the first-class Rules surface. Only Governors with current Content-management authority see and may use the edit form. The surface covers empty, published, editable, submitting, validation and saved states; it remains localized, keyboard-operable and mobile-safe. Rules updates use the existing Content revision, audit and outbox contracts and do not notify/broadcast members merely because Rules changed.
 
 ## Alliance Connections
 

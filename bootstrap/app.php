@@ -34,6 +34,7 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::get('/health/ready', ReadinessController::class)
                 ->name('health.ready');
             Route::middleware('web')->group(base_path('routes/account.php'));
+            Route::middleware('web')->group(base_path('routes/alliance-content-parity.php'));
             Route::middleware('web')->group(base_path('routes/contributions.php'));
             Route::middleware('web')->group(base_path('routes/event-history.php'));
             Route::middleware('web')->group(base_path('routes/gift-codes.php'));

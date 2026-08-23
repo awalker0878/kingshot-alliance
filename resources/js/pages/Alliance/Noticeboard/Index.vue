@@ -2,10 +2,17 @@
 import { Head, Link, router } from '@inertiajs/vue3';
 import { computed, reactive } from 'vue';
 
+import NoticeReactionControls from '@/components/alliance/NoticeReactionControls.vue';
 import RoomBanner from '@/components/game/RoomBanner.vue';
 import StatSeal from '@/components/game/StatSeal.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
+
+type ReactionSummary = {
+  likes: number;
+  dislikes: number;
+  current: 'like' | 'dislike' | null;
+};
 
 type ContentCard = {
   id: string;
@@ -18,6 +25,7 @@ type ContentCard = {
   summary: string | null;
   locale: string;
   publishedAt: string | null;
+  reactions: ReactionSummary | null;
   provenance: {
     sourceLabel: string | null;
     gameVersion: string | null;
@@ -89,6 +97,9 @@ function visibilityTone(value: string): 'success' | 'warning' | 'info' {
       image="/images/kingshot/v4/noticeboard.svg"
     >
       <template #actions>
+        <Link href="/alliance/rules" class="ks-command-link">
+          {{ t('contentExperience.rulesTitle') }}
+        </Link>
         <Link v-if="canManageContent" href="/alliance/content/manage" class="ks-command-link">
           {{ t('contentExperience.manageContent') }}
         </Link>
@@ -249,6 +260,13 @@ function visibilityTone(value: string): 'success' | 'warning' | 'info' {
               · {{ t('contentExperience.reviewed') }} {{ item.provenance.reviewedAt }}
             </template>
           </p>
+
+          <NoticeReactionControls
+            v-if="item.type === 'announcement' && item.reactions"
+            class="mt-5"
+            :content-id="item.id"
+            :reactions="item.reactions"
+          />
 
           <div class="mt-auto flex flex-wrap items-end justify-between gap-3 pt-6">
             <span class="ks-status" :data-tone="visibilityTone(item.visibility)">
