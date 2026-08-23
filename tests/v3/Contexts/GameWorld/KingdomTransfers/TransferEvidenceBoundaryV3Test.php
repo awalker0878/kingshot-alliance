@@ -86,14 +86,14 @@ final class TransferEvidenceBoundaryV3Test extends TestCase
             'app/Contexts/GameWorld/KingdomTransfers/Actions/RecordTransferObservation.php',
         ));
         self::assertIsString($observation);
-        self::assertStringContainsString("$evidenceId ?? ''", $observation);
-        self::assertStringContainsString("$details ?? ''", $observation);
+        self::assertStringContainsString('$evidenceId ?? \'\'', $observation);
+        self::assertStringContainsString('$details ?? \'\'', $observation);
 
         $condition = file_get_contents(base_path(
             'app/Contexts/GameWorld/KingdomTransfers/Actions/RecordTransferKingdomCondition.php',
         ));
         self::assertIsString($condition);
-        self::assertStringContainsString("$evidenceId ?? ''", $condition);
+        self::assertStringContainsString('$evidenceId ?? \'\'', $condition);
     }
 
     private function lookup(): EvidenceReferenceLookup
