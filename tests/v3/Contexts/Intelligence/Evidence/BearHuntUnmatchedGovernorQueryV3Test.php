@@ -6,12 +6,15 @@ namespace Tests\v3\Contexts\Intelligence\Evidence;
 
 use App\Contexts\Alliance\Lifecycle\ValueObjects\AllianceReference;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
+use App\Contexts\Intelligence\Evidence\Actions\SaveEvidenceReview;
 use App\Contexts\Intelligence\Evidence\Enums\EvidenceAttemptStatus;
 use App\Contexts\Intelligence\Evidence\Enums\EvidenceKind;
 use App\Contexts\Intelligence\Evidence\Enums\EvidenceLifecycleStatus;
+use App\Contexts\Intelligence\Evidence\Enums\EvidenceReviewStatus;
 use App\Contexts\Intelligence\Evidence\Models\EvidenceClassificationAttempt;
 use App\Contexts\Intelligence\Evidence\Models\EvidenceExtractedField;
 use App\Contexts\Intelligence\Evidence\Models\EvidenceExtractionAttempt;
+use App\Contexts\Intelligence\Evidence\Models\EvidenceReview;
 use App\Contexts\Intelligence\Evidence\Models\GameEvidence;
 use App\Contexts\Intelligence\Evidence\Queries\BearHuntUnmatchedGovernorQuery;
 use App\Contexts\Operations\Events\Actions\CreateEvent;
@@ -89,6 +92,71 @@ final class BearHuntUnmatchedGovernorQueryV3Test extends TestCase
         self::assertStringContainsString('/events/'.(string) $occurrence->id.'/screenshot-intake', $queue[0]['reviewHref']);
 
         $needsReview->forceFill(['lifecycle_status' => EvidenceLifecycleStatus::Approved])->save();
+        self::assertSame([], app(BearHuntUnmatchedGovernorQuery::class)->forOccurrence(
+            $actor->playerId,
+            (string) $occurrence->id,
+        ));
+    }
+
+    public function test_duplicate_blocked_review_is_not_mislabeled_as_unmatched_governor_work(): void
+    {
+        $scenario = new ScenarioFactory;
+        $account = $scenario->authUser();
+        $actor = $scenario->player((int) $account->id, 61405);
+        $alliance = $scenario->alliance($actor);
+        $scenario->roster($actor, $alliance);
+        $occurrence = $this->occurrence($actor, $alliance, CarbonImmutable::now('UTC'));
+        $first = $this->evidence(
+            $alliance->allianceId,
+            (string) $occurrence->id,
+            $actor->playerId,
+            EvidenceLifecycleStatus::NeedsReview,
+            $actor->currentName,
+            'semantic-first',
+        );
+        $second = $this->evidence(
+            $alliance->allianceId,
+            (string) $occurrence->id,
+            $actor->playerId,
+            EvidenceLifecycleStatus::NeedsReview,
+            $actor->currentName,
+            'semantic-second',
+        );
+        $firstExtraction = EvidenceExtractionAttempt::query()
+            ->where('evidence_id', $first->id)
+            ->firstOrFail();
+        $secondExtraction = EvidenceExtractionAttempt::query()
+            ->where('evidence_id', $second->id)
+            ->firstOrFail();
+        $reviewRows = [[
+            'row_ordinal' => 1,
+            'included' => true,
+            'player_id' => $actor->playerId,
+            'player_name' => $actor->currentName,
+            'reported_rank' => 4,
+            'damage_points' => 450000,
+            'correction_reason' => null,
+        ]];
+        $reviews = app(SaveEvidenceReview::class);
+        $reviews->handle(
+            $actor->playerId,
+            (string) $occurrence->id,
+            (string) $first->id,
+            (string) $firstExtraction->id,
+            $reviewRows,
+        );
+        $secondReviewId = $reviews->handle(
+            $actor->playerId,
+            (string) $occurrence->id,
+            (string) $second->id,
+            (string) $secondExtraction->id,
+            $reviewRows,
+        );
+
+        $second->refresh();
+        $secondReview = EvidenceReview::query()->findOrFail($secondReviewId);
+        self::assertSame(EvidenceLifecycleStatus::NeedsReview, $second->lifecycle_status);
+        self::assertSame(EvidenceReviewStatus::DuplicateBlocked, $secondReview->status);
         self::assertSame([], app(BearHuntUnmatchedGovernorQuery::class)->forOccurrence(
             $actor->playerId,
             (string) $occurrence->id,
