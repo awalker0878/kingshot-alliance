@@ -24,19 +24,27 @@ final readonly class ResolveSemanticDuplicate
         private OutboxRecorder $outbox,
     ) {}
 
-    public function handle(string $actorPlayerId, string $reviewId, string $justification): void
-    {
+    public function handle(
+        string $actorPlayerId,
+        string $occurrenceId,
+        string $reviewId,
+        string $justification,
+    ): void {
         $justification = trim($justification);
         if (mb_strlen($justification) < 10 || mb_strlen($justification) > 1000) {
             throw ValidationException::withMessages(['justification' => 'Explain in 10 to 1000 characters why these are distinct battle reports.']);
         }
-        $route = EvidenceReview::query()->select(['id', 'evidence_id', 'occurrence_id'])->findOrFail($reviewId);
-        $target = $this->targets->authorizeManage($actorPlayerId, (string) $route->occurrence_id);
+        $target = $this->targets->authorizeManage($actorPlayerId, $occurrenceId);
 
         DB::transaction(function () use ($actorPlayerId, $reviewId, $justification, $target): void {
             $this->targets->authorizeManage($actorPlayerId, $target->occurrenceId);
             $actor = $this->players->lockCurrent($actorPlayerId);
-            $review = EvidenceReview::query()->whereKey($reviewId)->where('alliance_id', $target->allianceId)->lockForUpdate()->firstOrFail();
+            $review = EvidenceReview::query()
+                ->whereKey($reviewId)
+                ->where('alliance_id', $target->allianceId)
+                ->where('occurrence_id', $target->occurrenceId)
+                ->lockForUpdate()
+                ->firstOrFail();
             if ($review->getRawOriginal('status') !== EvidenceReviewStatus::DuplicateBlocked->value || $review->semantic_duplicate_review_id === null) {
                 throw ValidationException::withMessages(['review' => 'This review is not blocked by a semantic duplicate.']);
             }
@@ -46,7 +54,12 @@ final readonly class ResolveSemanticDuplicate
                 'resolved_by_player_id' => $actorPlayerId,
                 'resolved_at' => now(),
             ])->save();
-            $evidence = GameEvidence::query()->whereKey($review->evidence_id)->lockForUpdate()->firstOrFail();
+            $evidence = GameEvidence::query()
+                ->whereKey($review->evidence_id)
+                ->where('alliance_id', $target->allianceId)
+                ->where('occurrence_id', $target->occurrenceId)
+                ->lockForUpdate()
+                ->firstOrFail();
             $evidence->forceFill(['lifecycle_status' => EvidenceLifecycleStatus::Approved])->save();
             $metadata = ['evidence_id' => (string) $evidence->id, 'review_id' => (string) $review->id, 'duplicate_review_id' => (string) $review->semantic_duplicate_review_id];
             $this->audit->record('evidence.semantic_duplicate_resolved', $actor, $evidence, $target->allianceId, $metadata);
