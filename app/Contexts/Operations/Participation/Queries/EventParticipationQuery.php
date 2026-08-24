@@ -25,22 +25,28 @@ final readonly class EventParticipationQuery
 
         return [
             'response' => $response === null ? null : [
+                'id' => (string) $response->id,
                 'response' => $response->response->value,
                 'preferredRole' => $response->preferred_role,
                 'preferredTeam' => $response->preferred_team,
                 'availableFrom' => $response->available_from?->toIso8601String(),
                 'availableUntil' => $response->available_until?->toIso8601String(),
                 'note' => $response->note,
+                'updatedAt' => $response->updated_at?->toIso8601String(),
             ],
             'registration' => $registration === null ? null : [
+                'id' => (string) $registration->id,
                 'status' => $registration->status->value,
                 'waitlistPosition' => $registration->waitlist_position,
                 'registeredAt' => $registration->registered_at?->toIso8601String(),
+                'updatedAt' => $registration->updated_at?->toIso8601String(),
             ],
             'attendance' => $attendance === null ? null : [
+                'id' => (string) $attendance->id,
                 'status' => $attendance->status->value,
                 'notes' => $attendance->notes,
                 'recordedAt' => $attendance->recorded_at?->toIso8601String(),
+                'updatedAt' => $attendance->updated_at?->toIso8601String(),
             ],
         ];
     }
