@@ -1,4 +1,4 @@
-name: Factual Progression Closeout Artifact
+name: Factual Progression Closeout
 
 on:
   push:
@@ -6,24 +6,45 @@ on:
       - feature/factual-governor-progression
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   closeout:
-    if: contains(github.event.head_commit.message, 'Prepare factual progression closeout artifact')
+    if: contains(github.event.head_commit.message, 'Run factual progression closeout')
     runs-on: ubuntu-24.04
     steps:
       - name: Check out candidate branch head
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
-      - name: Apply evidence-backed product status closeout
-        run: python3 scripts/progression/closeout_product_docs.py
-      - name: Upload transformed product docs
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: factual-progression-closeout-docs
-          path: |
-            docs/product/factual-governor-progression.md
-            docs/product/capability-gap-analysis.md
-            docs/product/capability-delivery-ledger.md
-          if-no-files-found: error
-          retention-days: 1
+          ref: feature/factual-governor-progression
+          fetch-depth: 0
+
+      - name: Apply evidence-backed product status closeout
+        run: |
+          python3 scripts/progression/closeout_product_docs.py
+          rm scripts/progression/closeout_product_docs.py
+
+      - name: Verify closeout touches only intended durable files
+        shell: bash
+        run: |
+          set -euo pipefail
+          actual="$(git status --short | awk '{print $2}' | sort)"
+          expected="$(printf '%s\n' \
+            docs/product/capability-delivery-ledger.md \
+            docs/product/capability-gap-analysis.md \
+            docs/product/factual-governor-progression.md \
+            scripts/progression/closeout_product_docs.py | sort)"
+          test "$actual" = "$expected"
+
+      - name: Commit closeout documentation
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/product/factual-governor-progression.md \
+                  docs/product/capability-gap-analysis.md \
+                  docs/product/capability-delivery-ledger.md \
+                  scripts/progression/closeout_product_docs.py
+          git commit -m "Close factual progression product status"
+          git push origin HEAD:feature/factual-governor-progression
