@@ -1,0 +1,101 @@
+name: Assistant Product Docs Reconcile
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/assistant-product-docs-reconcile.yml'
+      - 'docs/product/**'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+      - name: Reconcile Alliance Assistant product truth
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          # Canonical Assistant contract: localized response protocol + closed prompt identifiers.
+          path = Path('docs/product/alliance-assistant.md')
+          text = path.read_text()
+          old_request = '''Request:\n\n```json\n{\n  "question": "What time is Swordland and am I rostered?"\n}\n```\n\nValidation:\n\n- required string;\n- trimmed;\n- minimum 2 visible characters;\n- maximum 500 characters;\n- control characters rejected/normalized by the normal request boundary;\n- rate limited by a dedicated Assistant limiter.\n\nResponse shape:\n\n```json\n{\n  "intent": "event_roster_self",\n  "status": "answered",\n  "answer": "Swordland starts ... You are rostered ...",\n  "classifications": ["operational_fact"],\n  "evidence": [],\n  "citations": [],\n  "ambiguity": null,\n  "suggestedQuestions": []\n}\n```'''
+          new_request = '''Request:\n\n```json\n{\n  "question": "What time is Swordland and am I rostered?",\n  "prompt": "swordland_roster"\n}\n```\n\n`question` is always required. `prompt` is optional and is accepted only for a server-owned localized suggestion button. The closed identifiers are `swordland_roster`, `next_event`, `bear_hunt_guide`, and `observation`; any other identifier is a validation error. A prompt identifier may select only its documented read intent and never overrides write-attempt detection or authorization.\n\nValidation:\n\n- required string;\n- trimmed;\n- minimum 2 visible characters;\n- maximum 500 characters;\n- control characters rejected;\n- optional `prompt` must be one of the closed identifiers above;\n- rate limited by a dedicated Assistant limiter.\n\nResponse shape:\n\n```json\n{\n  "intent": "event_roster_self",\n  "status": "answered",\n  "messageKey": "assistant.answers.eventTimeRostered",\n  "messageParameters": {\n    "event": "Swordland",\n    "startsAt": "2026-08-29T20:00:00+00:00",\n    "roster": "Combatants",\n    "role": "Rally Lead",\n    "slot": 7,\n    "status": "assigned"\n  },\n  "classifications": ["operational_fact"],\n  "evidence": [],\n  "citations": [],\n  "ambiguity": null,\n  "suggestedQuestions": ["swordland_roster", "next_event", "bear_hunt_guide", "observation"]\n}\n```\n\nThe server returns a stable localization key plus typed parameters rather than pre-rendered English answer prose. The browser localizes the answer in the active locale. Suggested questions are closed prompt identifiers, not trusted free-form text or tool names.'''
+          if old_request not in text:
+              raise SystemExit('Canonical HTTP request/response block not found')
+          text = text.replace(old_request, new_request, 1)
+          marker = 'Alliance-authored strategy must never be presented as universal KingShot mechanics. Observations must never be presented as established fact.\n'
+          if marker not in text:
+              raise SystemExit('Provenance marker not found')
+          reserved = marker + '\n`game_fact` is a reserved provenance classification, not an implemented generic question intent in the first release. It may be emitted only by a future explicitly bounded query backed by an authorized GameWorld owner projection; its existence never permits fallback to model knowledge.\n'
+          text = text.replace(marker, reserved, 1)
+          path.write_text(text)
+
+          # Capability catalogue: make the active final-composition capability visible globally.
+          path = Path('docs/product/capability-catalogue.md')
+          text = path.read_text()
+          row_anchor = '| Dashboards/history | Compose cross-context user-facing views without changing source ownership. | ReadModels |\n'
+          row = '| Alliance Assistant | Ask bounded questions about authorized Events, the active Governor’s own roster state, published Alliance guides and Alliance observations with mandatory source/provenance labels and no direct writes or unsourced KingShot fallback. | `ReadModels/AllianceAssistant` composes owner Queries from Operations, Alliance and Intelligence; owner contexts retain all truth and writes |\n'
+          if row not in text:
+              if row_anchor not in text:
+                  raise SystemExit('Capability catalogue row anchor not found')
+              text = text.replace(row_anchor, row_anchor + row, 1)
+          section_anchor = '## Assurance contract\n'
+          section = '''## Alliance Assistant product contract\n\nAlliance Assistant is the final constrained read/composition capability. It answers only from current data the active Governor is already authorized to view, cites every substantive source, preserves `operational_fact`, `alliance_strategy`, `observation` and future owner-backed `game_fact` provenance, and never becomes an alternate writer. The first release uses deterministic bounded intent resolution with no external model provider or persisted conversation. Localized suggestion buttons submit closed prompt identifiers while arbitrary write-like or unsupported KingShot questions remain unsupported.\n\nThe canonical requirements, acceptance criteria and active delivery queue live in [Alliance Assistant](alliance-assistant.md) and the global [capability delivery ledger](capability-delivery-ledger.md).\n\n'''
+          if '## Alliance Assistant product contract' not in text:
+              if section_anchor not in text:
+                  raise SystemExit('Catalogue assurance anchor not found')
+              text = text.replace(section_anchor, section + section_anchor, 1)
+          path.write_text(text)
+
+          # Gap analysis: explicitly make Assistant the active final-composition gap.
+          path = Path('docs/product/capability-gap-analysis.md')
+          text = path.read_text().replace('Status: Current — 2026-08-23', 'Status: Current — 2026-08-24', 1)
+          coverage_anchor = 'The application has governed workflows across Alliance membership/access, recruitment review, content revisions, Events and participation, rosters/battle plans/rallies, King Perks, results, intelligence provenance, Kingdom transfers, platform administration, webhooks, Gift Codes, retryable notifications, Territory & Hive planning, Screenshot Intake, and Bear Hunt Debrief.\n'
+          active_para = '\nAlliance Assistant is the active final-composition capability. Its product gap is not “add a chatbot”; it is to expose a bounded authorization-aware question surface over already-trusted Events, self-roster state, published Alliance Content and Intelligence observations with server-owned citations/provenance, explicit ambiguity/missing states, zero direct mutation and no model-knowledge fallback. Any correctness, provenance or authorization defect found in an owner capability is repaired there before Assistant composition proceeds.\n'
+          if active_para.strip() not in text:
+              if coverage_anchor not in text:
+                  raise SystemExit('Gap coverage anchor not found')
+              text = text.replace(coverage_anchor, coverage_anchor + active_para, 1)
+          table_anchor = '| Complete | Kingdom Transfer Planning |'
+          active_row = '| Active | Alliance Assistant | Authorized, source-cited answers for Events, the active Governor’s roster, Alliance strategy and observations without creating a second source of truth or mutation path | ReadModels only composes owner-authorized Queries; no unsourced model fallback, no cross-tenant retrieval, no direct writes |\n'
+          if active_row not in text:
+              idx = text.find(table_anchor)
+              if idx < 0:
+                  raise SystemExit('Gap priority table anchor not found')
+              line_start = text.rfind('\n', 0, idx) + 1
+              text = text[:line_start] + active_row + text[line_start:]
+          path.write_text(text)
+
+          # Global delivery ledger: append the active work queue, keeping every phase open until immutable verification.
+          path = Path('docs/product/capability-delivery-ledger.md')
+          text = path.read_text().replace('Status: Current as of 2026-08-23', 'Status: Current as of 2026-08-24', 1)
+          if '## Alliance Assistant delivery program' not in text:
+              text = text.rstrip() + '''\n\n## Alliance Assistant delivery program\n\nTarget: the final constrained Alliance composition capability, not an unconstrained KingShot chatbot.\n\nCanonical contract: [Alliance Assistant](alliance-assistant.md).\n\nOwnership remains with existing capabilities: Operations/Events owns Event schedule and occurrence truth; Operations/Rosters owns assignments; Alliance/Content owns published strategy/guide revisions; Intelligence/Observations owns recorded observation truth; future factual game intents require an explicit authorized GameWorld owner projection. `app/ReadModels/AllianceAssistant` owns only bounded intent/evidence/citation composition and HTTP presentation.\n\nNo phase is Complete until its whole exit condition—including authorization, tenant isolation, tests, UX/accessibility/localization, observability and applicable repository gates—is satisfied on the implementation.\n\n### Phase queue\n\n| Phase | Status | Slice | Exit condition |\n| --- | --- | --- | --- |\n| 1 | In progress | Product contract and dependency audit | Product catalogue, gap analysis, delivery ledger, journeys, architecture/reference/operations docs and owner dependencies agree on the complete constrained capability. |\n| 2 | In progress | Typed intent/evidence/provenance contract | Closed intents, closed localized prompt IDs, evidence values, provenance classes and response-local citation identity are typed and behavior-tested. |\n| 3 | In progress | Event and self-roster composition | Event time/next Event and active-Governor-only roster answers use owner reads, handle missing/ambiguous states and never expose another Governor’s assignment. |\n| 4 | In progress | Alliance Content composition | Only current-Alliance member-visible published content is retrieved; strategy remains labelled Alliance strategy with revision/provenance/freshness metadata. |\n| 5 | In progress | Observation composition | Intelligence authorizes before querying and returns bounded same-Alliance observations labelled Observation; hidden observations remain indistinguishable from missing data. |\n| 6 | In progress | Deterministic interpreter/composer | Supported free-form questions and localized closed prompts resolve deterministically; generic KingShot and write-like questions are unsupported with no model-knowledge fallback. |\n| 7 | In progress | Citation integrity | Every substantive answered claim uses server-constructed citations from the response-local authorized evidence set; non-answer states cannot emit citations. |\n| 8 | In progress | HTTP, privacy and abuse bounds | Auth/verified/active-Player/Alliance scope, bounded validation, account rate limit, privacy-safe logs and retry-safe unavailable behavior are enforced. |\n| 9 | In progress | Responsive, accessible, localized UX | Desktop/mobile navigation, four first-use prompts, semantic answer/source states, keyboard submission, live status, locale-safe dates/messages and no horizontal overflow are implemented. |\n| 10 | In progress | Read-only and injection architecture enforcement | Assistant has no persistence/write/provider bypass; owner contexts do not import it; source text cannot alter scope/tool/write behavior; external model calls are absent in release one. |\n| 11 | In progress | Behavioral, performance and visual verification | Owner-integrated tenant/citation tests, bounded query budget and deterministic cited-answer desktop/mobile fingerprints pass. |\n| 12 | In progress | Final reconciliation and immutable release gates | Spec→code, code→spec, UX→backend and authorization/provenance scans find no remaining gap; every applicable repository quality/security/container/staging/backup/recovery gate passes on one immutable head. |\n\n### Cross-phase invariants\n\n1. Unauthorized information never enters retrieval candidates, evidence, prompt/provider context, cache or citations.\n2. Assistant never persists domain/application state or conversation history.\n3. Every source remains owned and authorized by its existing capability.\n4. Strategy and observations never become factual KingShot truth.\n5. `game_fact` is reserved for future bounded GameWorld-owner reads and cannot authorize model-memory answers.\n6. Requested mutations remain unsupported in release one; any future action handoff must call the normal owner Action.\n7. User-authored source text is inert data and cannot change authorization, tools, instructions or provenance.\n8. No phase or capability is closed based on code presence alone; immutable release evidence is mandatory.\n'''
+          path.write_text(text)
+
+          # User journey: capture the expected Governor interaction and non-write handoff behavior.
+          path = Path('docs/product/experience/user-journeys.md')
+          text = path.read_text()
+          if '## Ask your Alliance' not in text:
+              text = text.rstrip() + '''\n\n## Ask your Alliance\n\n```text\nAuthenticate + select active Governor with an active Alliance\n -> open Ask your Alliance\n -> choose a localized bounded suggestion or enter a supported question\n -> owner capabilities authorize before returning any candidate data\n -> resolve one Event/content/observation target or return a neutral missing/ambiguity state\n -> compose the answer from the minimum authorized evidence set\n -> show provenance badges and deep-linked Event/Roster/Alliance guide/Observation sources\n -> ask another question or open the canonical source workflow\n```\n\nThe canonical first-use example is **“What time is Swordland and am I rostered?”**. The answer combines the authorized Event occurrence and only the active Governor’s own roster assignment. Alliance-authored guidance is labelled **Alliance strategy**; recorded intelligence is labelled **Observation**. A question such as **“Put me on the Swordland roster”** performs no mutation and does not create an Assistant-specific write path. Unsupported general KingShot questions are not answered from model memory.\n'''
+          path.write_text(text)
+          PY
+          rm .github/workflows/assistant-product-docs-reconcile.yml
+          git diff --check
+      - name: Commit product reconciliation
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/product .github/workflows/assistant-product-docs-reconcile.yml
+          git commit -m 'docs(product): reconcile Alliance Assistant delivery contract'
+          git push origin "HEAD:${{ github.event.pull_request.head.ref }}"
