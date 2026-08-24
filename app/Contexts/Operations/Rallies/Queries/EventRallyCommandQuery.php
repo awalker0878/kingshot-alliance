@@ -14,14 +14,14 @@ final readonly class EventRallyCommandQuery
 {
     /**
      * @return array{
-     *   groupCount:int,
-     *   plannedAssignmentCount:int,
-     *   leadCount:int,
-     *   joinerCount:int,
-     *   groupsWithoutLeadCount:int,
-     *   declinedCount:int,
-     *   recordedActualCount:int,
-     *   missingActualCount:int
+     *     groupCount:int,
+     *     plannedAssignmentCount:int,
+     *     leadCount:int,
+     *     joinerCount:int,
+     *     groupsWithoutLeadCount:int,
+     *     declinedCount:int,
+     *     recordedActualCount:int,
+     *     missingActualCount:int
      * }
      */
     public function forOccurrence(EventOccurrence $occurrence): array
@@ -63,8 +63,14 @@ final readonly class EventRallyCommandQuery
             )->count();
 
             foreach ($active as $assignment) {
-                if ($assignment->recorded_at !== null
-                    || in_array($assignment->status, [RallyAssignmentStatus::Participated, RallyAssignmentStatus::Absent], true)) {
+                if (
+                    $assignment->recorded_at !== null
+                    || in_array(
+                        $assignment->status,
+                        [RallyAssignmentStatus::Participated, RallyAssignmentStatus::Absent],
+                        true,
+                    )
+                ) {
                     $recordedActualCount++;
                 } else {
                     $missingActualCount++;
