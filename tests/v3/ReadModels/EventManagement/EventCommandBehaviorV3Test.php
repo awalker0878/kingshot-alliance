@@ -9,6 +9,7 @@ use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Operations\Events\Actions\CreateEvent;
 use App\Contexts\Operations\Events\Enums\EventOccurrenceStatus;
 use App\Contexts\Operations\Events\Enums\EventScope;
+use App\Contexts\Operations\Events\Enums\EventStatus;
 use App\Contexts\Operations\Events\Models\Event;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Events\Models\EventTypeScope;
@@ -40,7 +41,12 @@ final class EventCommandBehaviorV3Test extends TestCase
 
         $planning = $this->event($actor, $alliance, CarbonImmutable::now('UTC')->addDays(10));
         $ready = $this->event($actor, $alliance, CarbonImmutable::now('UTC')->addDays(2));
-        $attention = $this->event($actor, $alliance, CarbonImmutable::now('UTC')->addDays(2), reminder: false);
+        $attention = $this->event(
+            $actor,
+            $alliance,
+            CarbonImmutable::now('UTC')->addDays(2),
+            reminder: false,
+        );
 
         self::assertSame('planning', $this->command($actor, $planning)['state']);
         self::assertSame('ready', $this->command($actor, $ready)['state']);
@@ -66,7 +72,7 @@ final class EventCommandBehaviorV3Test extends TestCase
         $activeEvent = $this->event($actor, $alliance, $base->addHour());
         $activeOccurrence = $activeEvent->occurrences()->firstOrFail();
         CarbonImmutable::setTestNow($base->addMinutes(70));
-        self::assertSame('active', $this->command($actor, $activeEvent->fresh())['state']);
+        self::assertSame('active', $this->command($actor, $activeEvent)['state']);
         self::assertSame(EventOccurrenceStatus::Scheduled, $activeOccurrence->fresh()->status);
 
         CarbonImmutable::setTestNow($base);
@@ -74,7 +80,7 @@ final class EventCommandBehaviorV3Test extends TestCase
         $endedOccurrence = $endedEvent->occurrences()->firstOrFail();
         $endedOccurrence->forceFill(['status' => EventOccurrenceStatus::Completed])->save();
 
-        $required = $this->command($actor, $endedEvent->fresh());
+        $required = $this->command($actor, $endedEvent);
         self::assertSame('closeout_required', $required['state']);
         self::assertGreaterThan(0, $required['blockerCount']);
 
@@ -86,10 +92,11 @@ final class EventCommandBehaviorV3Test extends TestCase
             'recorded_at' => CarbonImmutable::now('UTC'),
         ]);
 
-        $complete = $this->command($actor, $endedEvent->fresh());
+        $complete = $this->command($actor, $endedEvent);
         self::assertSame('complete', $complete['state']);
         self::assertSame(0, $complete['blockerCount']);
-        self::assertSame(0, Event::query()->whereKey($endedEvent->id)->whereNotNull('settings')->count() < 0 ? 1 : 0);
+        self::assertSame(EventStatus::Published, $this->reloadEvent($endedEvent)->status);
+        self::assertSame(EventOccurrenceStatus::Completed, $endedOccurrence->fresh()->status);
     }
 
     public function test_cancelled_occurrence_preserves_event_truth_and_becomes_not_applicable(): void
@@ -100,10 +107,11 @@ final class EventCommandBehaviorV3Test extends TestCase
         $occurrence = $event->occurrences()->firstOrFail();
         $occurrence->forceFill(['status' => EventOccurrenceStatus::Cancelled])->save();
 
-        $projection = $this->command($actor, $event->fresh());
+        $projection = $this->command($actor, $event);
         self::assertNull($projection['state']);
         self::assertSame('cancelled', $projection['occurrenceStatus']);
         self::assertSame('not_applicable', $projection['sections'][0]['items'][0]['status']);
+        self::assertSame(EventStatus::Published, $this->reloadEvent($event)->status);
     }
 
     public function test_explicit_occurrence_must_belong_to_the_authorized_event(): void
@@ -117,7 +125,7 @@ final class EventCommandBehaviorV3Test extends TestCase
         $this->expectException(ValidationException::class);
         app(EventCommandQuery::class)->forEvent(
             $actor,
-            $first->fresh(['eventType', 'typeScope.capabilities', 'occurrences']),
+            $this->reloadEvent($first),
             (string) $foreignOccurrence->id,
         );
     }
@@ -138,7 +146,7 @@ final class EventCommandBehaviorV3Test extends TestCase
             'settings' => [],
         ]);
 
-        $projection = $this->command($actor, $event->fresh());
+        $projection = $this->command($actor, $event);
         self::assertSame((string) $ended->id, $projection['selectedOccurrenceId']);
         self::assertSame('closeout_required', $projection['state']);
 
@@ -150,7 +158,7 @@ final class EventCommandBehaviorV3Test extends TestCase
             'recorded_at' => $now,
         ]);
 
-        $afterCloseout = $this->command($actor, $event->fresh());
+        $afterCloseout = $this->command($actor, $event);
         self::assertSame((string) $upcoming->id, $afterCloseout['selectedOccurrenceId']);
     }
 
@@ -158,7 +166,12 @@ final class EventCommandBehaviorV3Test extends TestCase
     {
         CarbonImmutable::setTestNow(CarbonImmutable::parse('2026-08-24 18:00:00', 'UTC'));
         [$actor, $alliance] = $this->allianceScenario();
-        $event = $this->event($actor, $alliance, CarbonImmutable::now('UTC')->addDays(2), reminder: false);
+        $event = $this->event(
+            $actor,
+            $alliance,
+            CarbonImmutable::now('UTC')->addDays(2),
+            reminder: false,
+        );
         $projection = $this->command($actor, $event);
 
         $actionable = [];
@@ -200,7 +213,10 @@ final class EventCommandBehaviorV3Test extends TestCase
     ): Event {
         $configuration = EventTypeScope::query()
             ->where('scope', EventScope::Alliance->value)
-            ->whereHas('eventType', static fn ($query) => $query->where('slug', 'alliance-mobilization'))
+            ->whereHas(
+                'eventType',
+                static fn ($query) => $query->where('slug', 'alliance-mobilization'),
+            )
             ->firstOrFail();
         $created = app(CreateEvent::class)->handle(
             actorPlayerId: $actor->playerId,
@@ -229,12 +245,16 @@ final class EventCommandBehaviorV3Test extends TestCase
         return Event::query()->findOrFail($created->eventId);
     }
 
-    /** @return array<string,mixed> */
+    /** @return array<string, mixed> */
     private function command(PlayerReference $actor, Event $event): array
     {
-        return app(EventCommandQuery::class)->forEvent(
-            $actor,
-            $event->fresh(['eventType', 'typeScope.capabilities', 'occurrences']),
-        );
+        return app(EventCommandQuery::class)->forEvent($actor, $this->reloadEvent($event));
+    }
+
+    private function reloadEvent(Event $event): Event
+    {
+        return Event::query()
+            ->with(['eventType', 'typeScope.capabilities', 'occurrences'])
+            ->findOrFail($event->id);
     }
 }
