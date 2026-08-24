@@ -17,6 +17,7 @@ use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Events\Queries\EventCalendarQuery;
 use App\Contexts\Operations\Rosters\Queries\EventRosterQuery;
 use App\ReadModels\AllianceAssistant\Enums\AssistantIntent;
+use App\ReadModels\AllianceAssistant\Enums\AssistantPrompt;
 use App\ReadModels\AllianceAssistant\Enums\AssistantStatus;
 use App\ReadModels\AllianceAssistant\Enums\EvidenceClassification;
 use App\ReadModels\AllianceAssistant\Enums\EvidenceSourceType;
@@ -39,9 +40,13 @@ final readonly class AllianceAssistantQuery
         private AssistantObservationQuery $observations,
     ) {}
 
-    public function ask(PlayerReference $actor, AllianceScopeReference $scope, string $question): AssistantResult
-    {
-        $parsed = $this->interpreter->interpret($question);
+    public function ask(
+        PlayerReference $actor,
+        AllianceScopeReference $scope,
+        string $question,
+        ?AssistantPrompt $prompt = null,
+    ): AssistantResult {
+        $parsed = $this->interpreter->interpret($question, $prompt);
 
         return match ($parsed->intent) {
             AssistantIntent::Help => $this->help(),
@@ -145,7 +150,7 @@ final readonly class AllianceAssistantQuery
                 'assistant.answers.eventTime',
                 ['event' => $title, 'startsAt' => $startsAt],
                 [$eventEvidence],
-                suggestedQuestions: ['What time is '.$title.' and am I rostered?'],
+                suggestedQuestions: [AssistantPrompt::SwordlandRoster->value],
             );
         }
 
@@ -207,56 +212,41 @@ final readonly class AllianceAssistantQuery
 
         // Fresh Alliance read authorization is performed before member content is queried.
         $this->allianceAuthorization->authorize($actor->playerId, $scope->allianceId, AlliancePermission::View);
-        $items = $this->content->memberList($scope->allianceId, $subject)
-            ->take(max(1, min(10, (int) config('assistant.content_result_limit', 5))))
-            ->values();
+        $item = $this->content->memberList($scope->allianceId, $subject)->first();
 
-        if ($items->isEmpty()) {
+        if (! $item instanceof ContentItem) {
             return $this->notFound($parsed->intent, 'assistant.answers.contentNotFound', ['subject' => $subject]);
         }
 
-        $evidence = [];
-        foreach ($items as $index => $item) {
-            if (! $item instanceof ContentItem) {
-                continue;
-            }
-
-            $presented = $this->contentPresenter->item($item);
-            $excerpt = $this->contentExcerpt($item);
-            $provenance = is_array($presented['provenance'] ?? null) ? $presented['provenance'] : [];
-            $freshness = is_array($presented['freshness'] ?? null) ? $presented['freshness'] : [];
-            $evidence[] = new AssistantEvidence(
-                'content-'.(string) $item->id,
-                EvidenceSourceType::AllianceContent,
-                (string) $item->id,
-                (string) $item->title,
-                EvidenceClassification::AllianceStrategy,
-                $excerpt,
-                occurredAt: $item->published_at?->toIso8601String(),
-                updatedAt: $item->updated_at?->toIso8601String(),
-                href: route('alliance.content.show', ['contentSlug' => (string) $item->slug], false),
-                metadata: [
-                    'revisionNumber' => (int) $item->current_revision_number,
-                    'sourceLabel' => $this->stringOrNull($provenance['sourceLabel'] ?? null),
-                    'gameVersion' => $this->stringOrNull($provenance['gameVersion'] ?? null),
-                    'reviewedAt' => $this->stringOrNull($provenance['reviewedAt'] ?? null),
-                    'freshness' => $this->stringOrNull($freshness['status'] ?? null),
-                    'primary' => $index === 0,
-                ],
-            );
-        }
-
-        $primary = $evidence[0] ?? null;
-        if (! $primary instanceof AssistantEvidence) {
-            return $this->notFound($parsed->intent, 'assistant.answers.contentNotFound', ['subject' => $subject]);
-        }
+        $presented = $this->contentPresenter->item($item);
+        $excerpt = $this->contentExcerpt($item);
+        $provenance = is_array($presented['provenance'] ?? null) ? $presented['provenance'] : [];
+        $freshness = is_array($presented['freshness'] ?? null) ? $presented['freshness'] : [];
+        $evidence = new AssistantEvidence(
+            'content-'.(string) $item->id,
+            EvidenceSourceType::AllianceContent,
+            (string) $item->id,
+            (string) $item->title,
+            EvidenceClassification::AllianceStrategy,
+            $excerpt,
+            occurredAt: $item->published_at?->toIso8601String(),
+            updatedAt: $item->updated_at?->toIso8601String(),
+            href: route('alliance.content.show', ['contentSlug' => (string) $item->slug], false),
+            metadata: [
+                'revisionNumber' => (int) $item->current_revision_number,
+                'sourceLabel' => $this->stringOrNull($provenance['sourceLabel'] ?? null),
+                'gameVersion' => $this->stringOrNull($provenance['gameVersion'] ?? null),
+                'reviewedAt' => $this->stringOrNull($provenance['reviewedAt'] ?? null),
+                'freshness' => $this->stringOrNull($freshness['status'] ?? null),
+            ],
+        );
 
         return new AssistantResult(
             AssistantIntent::AllianceContent,
             AssistantStatus::Answered,
             'assistant.answers.contentFound',
-            ['title' => $primary->title, 'excerpt' => $primary->statement],
-            $evidence,
+            ['title' => $evidence->title, 'excerpt' => $evidence->statement],
+            [$evidence],
         );
     }
 
@@ -274,40 +264,36 @@ final readonly class AllianceAssistantQuery
             max(1, min(10, (int) config('assistant.observation_result_limit', 5))),
         );
 
-        if ($rows === []) {
+        $row = $rows[0] ?? null;
+        if (! is_array($row)) {
             return $this->notFound($parsed->intent, 'assistant.answers.observationNotFound', ['subject' => $subject]);
         }
 
-        $evidence = [];
-        foreach ($rows as $row) {
-            $display = $row['observedTag'] === null || $row['observedTag'] === ''
-                ? $row['observedName']
-                : '['.$row['observedTag'].'] '.$row['observedName'];
-            $evidence[] = new AssistantEvidence(
-                'observation-'.$row['id'],
-                EvidenceSourceType::Observation,
-                $row['id'],
-                $display,
-                EvidenceClassification::Observation,
-                $this->observationStatement($row),
-                occurredAt: $row['capturedAt'],
-                href: route('alliance.kingdom-alliances.history', ['tracking' => $row['trackingId']], false),
-                metadata: [
-                    'power' => $row['power'],
-                    'memberCount' => $row['memberCount'],
-                    'source' => $row['source'],
-                ],
-            );
-        }
-
-        $primary = $evidence[0];
+        $display = $row['observedTag'] === null || $row['observedTag'] === ''
+            ? $row['observedName']
+            : '['.$row['observedTag'].'] '.$row['observedName'];
+        $evidence = new AssistantEvidence(
+            'observation-'.$row['id'],
+            EvidenceSourceType::Observation,
+            $row['id'],
+            $display,
+            EvidenceClassification::Observation,
+            $this->observationStatement($row),
+            occurredAt: $row['capturedAt'],
+            href: route('alliance.kingdom-alliances.history', ['tracking' => $row['trackingId']], false),
+            metadata: [
+                'power' => $row['power'],
+                'memberCount' => $row['memberCount'],
+                'source' => $row['source'],
+            ],
+        );
 
         return new AssistantResult(
             AssistantIntent::AllianceObservation,
             AssistantStatus::Answered,
             'assistant.answers.observationFound',
-            ['title' => $primary->title, 'observation' => $primary->statement],
-            $evidence,
+            ['title' => $evidence->title, 'observation' => $evidence->statement],
+            [$evidence],
         );
     }
 
@@ -453,12 +439,10 @@ final readonly class AllianceAssistantQuery
     /** @return list<string> */
     private function suggestedQuestions(): array
     {
-        return [
-            'What time is Swordland and am I rostered?',
-            'What is my next Event?',
-            'What does our Bear Hunt guide say?',
-            'What have we observed about our opponent?',
-        ];
+        return array_map(
+            static fn (AssistantPrompt $prompt): string => $prompt->value,
+            AssistantPrompt::cases(),
+        );
     }
 
     private function normalize(string $value): string
