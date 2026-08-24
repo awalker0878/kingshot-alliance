@@ -275,7 +275,10 @@ final readonly class RecordPlayerSnapshot
         return $value;
     }
 
-    /** @param array<string,mixed> $provenance @return array<string,string|null> */
+    /**
+     * @param  array<string,mixed>  $provenance
+     * @return array<string,string|null>
+     */
     private function machineProvenance(array $provenance): array
     {
         return [
