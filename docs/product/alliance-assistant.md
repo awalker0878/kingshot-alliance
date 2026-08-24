@@ -257,6 +257,8 @@ Authenticated routes:
 
 `POST /assistant/ask` is logically read-only despite using POST to avoid placing private questions in URLs, browser history and intermediary query-string logs.
 
+Because it is a non-safe HTTP method, `POST /assistant/ask` also participates in the repository-wide current Player authority-context version protocol. The browser/caller must submit the current `X-Game-Context-Version` value. The normal same-origin frontend runtime attaches this header automatically. A missing or stale value is rejected **before Assistant retrieval** with `409 CONTEXT_STALE` and `X-Game-Context-Error: stale`; the caller must reload or re-resolve the active Governor context rather than retrying against stale authority.
+
 Request:
 
 ```json
@@ -276,6 +278,7 @@ Validation:
 - maximum 500 characters;
 - control characters rejected;
 - optional `prompt` must be one of the closed identifiers above;
+- current `X-Game-Context-Version` required by the shared authority-context guard before retrieval;
 - rate limited by a dedicated Assistant limiter.
 
 Response shape:
@@ -312,7 +315,7 @@ Supported statuses:
 - `validation_error`
 - `unavailable`
 
-HTTP responses must not encode inaccessible-source existence differently from a normal authorized `not_found` result.
+HTTP responses must not encode inaccessible-source existence differently from a normal authorized `not_found` result. A stale/missing authority-context version is a separate request-boundary failure and returns the shared `409 CONTEXT_STALE` response before source retrieval.
 
 ## Rate limiting and abuse bounds
 
@@ -350,6 +353,10 @@ Return `not_found` without indicating whether hidden observations exist.
 ### Unsupported/general KingShot question
 
 Return `unsupported` and explain the bounded supported sources. Do not answer from prior model knowledge.
+
+### Stale Governor/authority context
+
+Return the shared `409 CONTEXT_STALE` boundary response before any Assistant owner query or evidence construction. The frontend must use the normal authority-context recovery flow and must not silently replay the question against a changed Governor context.
 
 ### Owner query/provider failure
 
@@ -398,6 +405,7 @@ Every answered response presents:
 - no authorized source found;
 - unsupported question;
 - validation error;
+- stale Governor/authority context recovery through the shared application flow;
 - rate limited;
 - transient unavailable/retry;
 - long source titles/content excerpts;
@@ -497,6 +505,7 @@ Required automated coverage includes:
 - unsupported generic KingShot questions do not receive unsourced answers;
 - citations cannot reference absent/inaccessible evidence;
 - question validation and dedicated rate limiting;
+- current authority-context version is accepted while stale/missing versions are rejected before retrieval;
 - no domain writes from write-like prompts;
 - controller authentication/active-Player/Alliance-scope behavior;
 - privacy-safe logs omit question/answer/source text;
@@ -517,8 +526,8 @@ Alliance Assistant is the final composition capability. A phase is `Complete` on
 | 5 | Not started | Authorized observation retrieval | Intelligence owner query exposes a bounded authorization-safe Assistant projection without raw ingestion/evidence leakage. |
 | 6 | Not started | Deterministic interpreter and answer composer | Supported natural-language forms resolve to closed intents; answers are generated only from authorized evidence; unsupported questions never use external/model knowledge. |
 | 7 | Not started | Citation validation and source links | Every substantive answer has server-validated citations to evidence actually used; invented or inaccessible references are impossible. |
-| 8 | Not started | HTTP boundary, rate limit and privacy-safe observability | `GET /assistant` + `POST /assistant/ask` validate/authenticate/rate-limit correctly and log only privacy-safe metadata. |
-| 9 | Not started | Responsive accessible localized UX | First-use, answered, provenance, ambiguity, not-found, unsupported, validation, rate-limit and unavailable states work on mobile/desktop/keyboard in every supported locale. |
+| 8 | Not started | HTTP boundary, rate limit and privacy-safe observability | `GET /assistant` + `POST /assistant/ask` validate/authenticate/current-authority-check/rate-limit correctly and log only privacy-safe metadata. |
+| 9 | Not started | Responsive accessible localized UX | First-use, answered, provenance, ambiguity, not-found, unsupported, validation, stale-context recovery, rate-limit and unavailable states work on mobile/desktop/keyboard in every supported locale. |
 | 10 | Not started | Write-boundary and injection enforcement | Write-like prompts cause zero mutation; architecture tests prohibit direct writes; untrusted source text cannot change Assistant behavior. |
 | 11 | Not started | Behavior/security/performance/visual verification | Backend/frontend/authorization/tenant-isolation/citation/privacy/performance and deterministic visual suites are green. |
 | 12 | Not started | Final reconciliation and release closeout | Spec→code, code→spec, UX→backend, authorization, architecture and data-ownership audits find no incomplete item; all applicable repository release gates pass on one immutable candidate. |
