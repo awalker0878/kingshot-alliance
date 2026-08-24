@@ -8,6 +8,7 @@ on:
     paths:
       - scripts/progression/**
       - .github/workflows/progression-source-refresh.yml
+      - docs/product/factual-governor-progression-source-inventory.md
   pull_request:
     branches:
       - main
@@ -15,6 +16,7 @@ on:
       - scripts/progression/**
       - .github/workflows/progression-source-refresh.yml
       - docs/product/factual-governor-progression.md
+      - docs/product/factual-governor-progression-source-inventory.md
 
 permissions:
   contents: write
@@ -26,7 +28,7 @@ concurrency:
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - name: Checkout candidate branch
         uses: actions/checkout@v4
@@ -44,16 +46,21 @@ jobs:
       - name: Refresh immutable source-backed release
         run: python scripts/progression/build_v2.py
 
-      - name: Validate generated JSON and advisory-field exclusion
+      - name: Validate generated corpus, source inventory and advisory-field exclusion
         run: |
           python - <<'PY'
           import json
+          import re
           from pathlib import Path
 
           release_dir = Path('resources/data/progression/kingshot-2026-08-23-v2')
           files = sorted(release_dir.glob('*.json'))
           assert files, 'No generated progression JSON files found.'
-          blocked = {'tier_list','tierlist','ranking','recommended','recommendation','recommendations','investment_priority','upgrade_priority','priority_score','optimizer','optimization','best_use','best_for','f2p_rating','value_rating','longevity_rating'}
+          blocked = {
+              'tier_list','tierlist','ranking','recommended','recommendation','recommendations',
+              'investment_priority','upgrade_priority','priority_score','optimizer','optimization',
+              'best_use','best_for','f2p_rating','value_rating','longevity_rating'
+          }
 
           def walk(value, path='root'):
               if isinstance(value, dict):
@@ -71,7 +78,22 @@ jobs:
           release = json.loads((release_dir / 'release.json').read_text(encoding='utf-8'))
           assert release['schema_version'] == 2
           assert release['dataset_version'] == '2026.08.23.2'
-          assert 'source-lock.json' in release['files']
+          assert release['source_inventory_document'] == 'docs/product/factual-governor-progression-source-inventory.md'
+          declared_files = sorted(release['files'])
+          actual_files = sorted(path.name for path in files if path.name != 'release.json')
+          assert declared_files == actual_files, (declared_files, actual_files)
+          assert 'source-lock.json' in declared_files
+
+          dispositions = {row['family']: row for row in release['family_dispositions']}
+          assert all(row['status'] != 'indexed_external_table' for row in dispositions.values())
+          for required in (
+              'heroes','hero_skills','hero_star_shards','hero_xp','hero_exclusive_equipment','hero_gear',
+              'governor_gear','governor_charms','formations','buildings','troops','academy_research',
+              'war_academy','alliance_tech','pets','masters','truegold','vip','kvk_scoring',
+              'database_reference_tables','progression_event_tables'
+          ):
+              assert required in dispositions, f'Missing disposition: {required}'
+
           assert release['source_gaps'] == [{
               'id': 'academy-fortified-mail-vi-level-table',
               'family': 'academy_research',
@@ -82,6 +104,7 @@ jobs:
               'status': 'source_table_missing',
               'resolution': 'Do not infer the six rows. Retain the technology identity and wait for an inspectable source table or independently verified in-game evidence.'
           }]
+
           academy = json.loads((release_dir / 'academy_research.json').read_text(encoding='utf-8'))
           assert len(academy['technologies']) == 191
           assert sum(len(t['levels']) for t in academy['technologies']) == 714
@@ -91,11 +114,46 @@ jobs:
           assert fortified['max_level'] == 6
           assert fortified['levels_status'] == 'source_table_missing'
           assert fortified['levels'] == []
+
+          alliance = json.loads((release_dir / 'alliance_tech_tables.json').read_text(encoding='utf-8'))
+          assert len(alliance['technologies']) == 60
+          assert sum(len(t['levels']) for t in alliance['technologies']) == 279
+          assert alliance['trees'] == [
+              {'name': 'Growth', 'technologies': 24, 'levels': 108},
+              {'name': 'Territory', 'technologies': 16, 'levels': 80},
+              {'name': 'Battle', 'technologies': 20, 'levels': 91},
+          ]
+
+          expected_pages = {
+              'buildings_tables.json': 12,
+              'pets_tables.json': 14,
+              'masters_tables.json': 6,
+              'heroes_tables.json': 34,
+              'database_tables.json': 8,
+              'events_tables.json': 33,
+          }
+          for filename, expected in expected_pages.items():
+              data = json.loads((release_dir / filename).read_text(encoding='utf-8'))
+              assert data['discovered_pages'] == expected
+              assert len(data['pages']) == expected
+
           gear = json.loads((release_dir / 'governor_gear.json').read_text(encoding='utf-8'))
           assert gear['source_meta']['count'] == 58
           war = json.loads((release_dir / 'war_academy.json').read_text(encoding='utf-8'))
           assert war['source_meta']['count'] == 30
-          print(f'Validated {len(files)} generated JSON files, including one explicit Academy source gap.')
+
+          source_lock = json.loads((release_dir / 'source-lock.json').read_text(encoding='utf-8'))
+          assert source_lock['sources']
+          for row in source_lock['sources']:
+              assert re.fullmatch(r'[a-f0-9]{64}', row['sha256']), row
+
+          registered_sources = {row['id'] for row in release['sources']}
+          assert {'kingshotdata','kingshotpro-open-data','g2384-kingshot-data'} <= registered_sources
+
+          print(
+              f'Validated {len(files)} generated JSON files: 191 Academy techs/714 visible rows, '
+              '60 Alliance Tech techs/279 rows, complete confirmed category sweeps, and one explicit Academy source gap.'
+          )
           PY
 
       - name: Upload generated immutable candidate
