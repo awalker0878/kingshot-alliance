@@ -34,14 +34,17 @@ final readonly class EventDeliveryHealthQuery
         $failed = $deliveries->filter(
             static fn (NotificationDelivery $delivery): bool => $delivery->status === DeliveryStatus::Failed,
         );
+        $countStatus = static fn (DeliveryStatus $status): int => $deliveries->filter(
+            static fn (NotificationDelivery $delivery): bool => $delivery->status === $status,
+        )->count();
 
         return [
             'deliveryCount' => $deliveries->count(),
-            'pendingCount' => $deliveries->where('status', DeliveryStatus::Pending)->count(),
-            'queuedCount' => $deliveries->where('status', DeliveryStatus::Queued)->count(),
-            'sentCount' => $deliveries->where('status', DeliveryStatus::Sent)->count(),
+            'pendingCount' => $countStatus(DeliveryStatus::Pending),
+            'queuedCount' => $countStatus(DeliveryStatus::Queued),
+            'sentCount' => $countStatus(DeliveryStatus::Sent),
             'failedCount' => $failed->count(),
-            'cancelledCount' => $deliveries->where('status', DeliveryStatus::Cancelled)->count(),
+            'cancelledCount' => $countStatus(DeliveryStatus::Cancelled),
             'retryableFailedCount' => $failed->filter(
                 static fn (NotificationDelivery $delivery): bool => $delivery->attempt_count < $delivery->max_attempts,
             )->count(),
