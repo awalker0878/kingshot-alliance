@@ -25,7 +25,7 @@ const messages = {
     factRows: 'factual rows',
     sourceConfidence: 'Confidence',
     sourceVerified: 'Source verified',
-    provenance: 'Provenance',
+    provenance: 'Source details',
     unknown: 'Unknown',
     previous: 'Previous',
     next: 'Next',
@@ -74,7 +74,7 @@ const messages = {
     discovered: 'Discovered',
     canonical: 'Canonical',
     disposition: 'Disposition',
-    sources: 'Sources & provenance',
+    sources: 'Sources & evidence',
     official: 'Official',
     community: 'Community',
     retrieved: 'Retrieved',
@@ -85,7 +85,7 @@ const messages = {
     observedFacts: 'Observed Governor facts',
     governorObservations: 'Observation history',
     observationHelp:
-      'Append-only observations record only what was actually captured. A missing Hero or field is unknown unless the source explicitly represents a complete roster capture.',
+      'Observations keep a dated history of what was actually captured. A missing Hero or field is unknown unless the source explicitly represents a complete roster capture.',
     observationUnavailable:
       'Governor observations are unavailable in the current Alliance context or your current Intelligence permissions do not allow this read.',
     observedPower: 'Observed power',
