@@ -21,7 +21,11 @@ export type EventCommandItem = {
   status: EventCommandStatus;
   severity: EventCommandSeverity;
   owner: string;
-  classification: 'operational_fact' | 'alliance_strategy' | 'evidence' | 'derived';
+  classification:
+    | 'operational_fact'
+    | 'alliance_strategy'
+    | 'evidence'
+    | 'derived';
   count: number | null;
   messageKey: string;
   messageParameters: Record<string, string | number | null>;
