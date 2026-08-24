@@ -51,10 +51,15 @@ final class AssistantQuestionInterpreter
         }
 
         if (preg_match('/\b(rsvp|registered|register|registration|waitlist|waitlisted|response)\b/u', $normalized) === 1) {
+            $mode = preg_match('/\bwaitlist|waitlisted\b/u', $normalized) === 1
+                ? 'waitlist'
+                : (preg_match('/\bregistered|register|registration\b/u', $normalized) === 1 ? 'registration' : 'rsvp');
+
             return new ParsedQuestion(
                 AssistantIntent::EventParticipationSelf,
                 $this->eventSubject($normalized),
                 thisWeek: str_contains($normalized, 'this week'),
+                participationMode: $mode,
             );
         }
 
@@ -124,7 +129,11 @@ final class AssistantQuestionInterpreter
                 AssistantIntent::GameFact,
                 gameFact: new ProgressionFactRequest(ProgressionFactKind::HeroGeneration, 'Amadeus'),
             ),
-            AssistantPrompt::RsvpWeek => new ParsedQuestion(AssistantIntent::EventParticipationSelf, thisWeek: true),
+            AssistantPrompt::RsvpWeek => new ParsedQuestion(
+                AssistantIntent::EventParticipationSelf,
+                thisWeek: true,
+                participationMode: 'rsvp',
+            ),
             AssistantPrompt::BattleAssignment => new ParsedQuestion(AssistantIntent::BattlePlanSelf, 'Swordland'),
             AssistantPrompt::TransferStatus => new ParsedQuestion(AssistantIntent::TransferStatusSelf),
             AssistantPrompt::TerritoryPlan => new ParsedQuestion(AssistantIntent::TerritoryPlan, 'Bear Hunt'),
