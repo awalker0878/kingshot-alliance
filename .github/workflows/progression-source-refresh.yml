@@ -8,6 +8,13 @@ on:
     paths:
       - scripts/progression/**
       - .github/workflows/progression-source-refresh.yml
+  pull_request:
+    branches:
+      - main
+    paths:
+      - scripts/progression/**
+      - .github/workflows/progression-source-refresh.yml
+      - docs/product/factual-governor-progression.md
 
 permissions:
   contents: write
@@ -18,7 +25,6 @@ concurrency:
 
 jobs:
   refresh:
-    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -69,10 +75,23 @@ jobs:
           academy = json.loads((release_dir / 'academy_research.json').read_text(encoding='utf-8'))
           assert len(academy['technologies']) == 191
           assert sum(len(t['levels']) for t in academy['technologies']) == 714
+          gear = json.loads((release_dir / 'governor_gear.json').read_text(encoding='utf-8'))
+          assert gear['source_meta']['count'] == 58
+          war = json.loads((release_dir / 'war_academy.json').read_text(encoding='utf-8'))
+          assert war['source_meta']['count'] == 30
           print(f'Validated {len(files)} generated JSON files.')
           PY
 
-      - name: Record generated immutable candidate
+      - name: Upload generated immutable candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: factual-progression-2026.08.23.2
+          path: resources/data/progression/kingshot-2026-08-23-v2
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Record generated immutable candidate on branch push
+        if: github.event_name == 'push' && github.actor != 'github-actions[bot]'
         run: |
           if git diff --quiet -- resources/data/progression/kingshot-2026-08-23-v2; then
             echo 'Generated release is already identical.'
