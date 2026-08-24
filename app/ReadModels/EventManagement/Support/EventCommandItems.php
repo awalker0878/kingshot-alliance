@@ -12,10 +12,10 @@ use App\ReadModels\EventManagement\Enums\EventCommandSeverity;
 final class EventCommandItems
 {
     /**
-     * @param array<string,int|string|null> $parameters
-     * @param array{href:string,labelKey:string}|null $handoff
-     * @param array<string,mixed>|null $source
-     * @return array<string,mixed>
+     * @param  array<string, int|string|null>  $parameters
+     * @param  array{href:string,labelKey:string}|null  $handoff
+     * @param  array<string, mixed>|null  $source
+     * @return array<string, mixed>
      */
     public static function make(
         string $code,
@@ -45,10 +45,18 @@ final class EventCommandItems
         ];
     }
 
-    /** @param list<array<string,mixed>> $items @return array<string,mixed> */
+    /**
+     * @param  list<array<string, mixed>>  $items
+     * @return array{key:string,labelKey:string,phase:string,items:list<array<string,mixed>>}
+     */
     public static function section(string $key, string $labelKey, string $phase, array $items): array
     {
-        return ['key' => $key, 'labelKey' => $labelKey, 'phase' => $phase, 'items' => array_values($items)];
+        return [
+            'key' => $key,
+            'labelKey' => $labelKey,
+            'phase' => $phase,
+            'items' => array_values($items),
+        ];
     }
 
     /** @return array{href:string,labelKey:string} */
@@ -68,7 +76,10 @@ final class EventCommandItems
         return '/events/'.(string) $event->id.'/manage?occurrence='.(string) $occurrence->id.'#'.$anchor;
     }
 
-    /** @param list<array<string,mixed>> $sections @return list<array<string,mixed>> */
+    /**
+     * @param  list<array<string, mixed>>  $sections
+     * @return list<array<string, mixed>>
+     */
     public static function flatten(array $sections): array
     {
         $items = [];
@@ -80,20 +91,34 @@ final class EventCommandItems
             }
         }
 
-        return $items;
+        return array_values($items);
     }
 
-    /** @param list<array<string,mixed>> $items */
+    /** @param  list<array<string, mixed>>  $items */
     public static function blockers(array $items): int
     {
-        return count(array_filter($items, static fn (array $item): bool => ($item['severity'] ?? null) === EventCommandSeverity::Blocking->value
-            && in_array($item['status'] ?? null, [EventCommandItemStatus::NeedsAttention->value, EventCommandItemStatus::Unknown->value], true)));
+        return count(array_filter(
+            $items,
+            static fn (array $item): bool => ($item['severity'] ?? null) === EventCommandSeverity::Blocking->value
+                && in_array(
+                    $item['status'] ?? null,
+                    [EventCommandItemStatus::NeedsAttention->value, EventCommandItemStatus::Unknown->value],
+                    true,
+                ),
+        ));
     }
 
-    /** @param list<array<string,mixed>> $items */
+    /** @param  list<array<string, mixed>>  $items */
     public static function warnings(array $items): int
     {
-        return count(array_filter($items, static fn (array $item): bool => ($item['severity'] ?? null) === EventCommandSeverity::Warning->value
-            && in_array($item['status'] ?? null, [EventCommandItemStatus::Warning->value, EventCommandItemStatus::Unknown->value], true)));
+        return count(array_filter(
+            $items,
+            static fn (array $item): bool => ($item['severity'] ?? null) === EventCommandSeverity::Warning->value
+                && in_array(
+                    $item['status'] ?? null,
+                    [EventCommandItemStatus::Warning->value, EventCommandItemStatus::Unknown->value],
+                    true,
+                ),
+        ));
     }
 }
