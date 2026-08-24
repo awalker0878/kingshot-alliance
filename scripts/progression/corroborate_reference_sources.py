@@ -37,12 +37,7 @@ def percentage(value: str) -> float:
 
 
 def numeric_tokens(value: str) -> list[int]:
-    """Parse integer material counts with comma or dot thousands separators.
-
-    Source tables occasionally localize an integer such as 1,280 as ``1.280``. This helper is
-    intentionally used only for integer material fields; percentages retain decimal semantics in
-    ``percentage`` above.
-    """
+    """Parse integer material counts with comma or dot thousands separators."""
     tokens = re.findall(r"\d+(?:[.,]\d+)*", value)
     return [int(token.replace(",", "").replace(".", "")) for token in tokens]
 
@@ -82,40 +77,62 @@ def corroborate_official_gear(release_dir: Path) -> dict[str, Any]:
     if not isinstance(steps, list) or len(steps) != 58:
         raise RuntimeError("Canonical Governor Gear ladder is not the expected 58-step release.")
 
-    max_power_rounding_delta = 0
+    superseded_claims: list[dict[str, Any]] = []
     for index, (official, canonical) in enumerate(zip(gear_rows, steps, strict=True), start=1):
         if not isinstance(canonical, dict):
             raise RuntimeError(f"Canonical Governor Gear row {index} is invalid.")
-        if official["Tier"].strip() != str(canonical.get("tier", "")).strip():
-            raise RuntimeError(f"Official Governor Gear tier mismatch at row {index}: {official!r}")
-        if integer(official["Stars"]) != int(canonical.get("stars", -1)):
-            raise RuntimeError(f"Official Governor Gear star mismatch at row {index}: {official!r}")
+        tier = official["Tier"].strip()
+        stars = integer(official["Stars"])
+        if tier != str(canonical.get("tier", "")).strip():
+            raise RuntimeError(f"Official Governor Gear tier identity mismatch at row {index}: {official!r}")
+        if stars != int(canonical.get("stars", -1)):
+            raise RuntimeError(f"Official Governor Gear star identity mismatch at row {index}: {official!r}")
 
         official_materials = numeric_tokens(official["Materials"])
         if len(official_materials) != 3:
             raise RuntimeError(f"Official Governor Gear material shape changed at row {index}: {official!r}")
         materials = canonical.get("materials") if isinstance(canonical.get("materials"), dict) else {}
-        canonical_materials = [
+        prior_materials = [
             int(materials.get("satin", 0)),
             int(materials.get("gilded_threads", 0)),
             int(materials.get("artisans_vision", 0)),
         ]
-        if official_materials != canonical_materials:
-            raise RuntimeError(
-                f"Official Governor Gear material mismatch at row {index}: "
-                f"official={official_materials!r}, canonical={canonical_materials!r}"
-            )
-
         bonuses = canonical.get("bonuses") if isinstance(canonical.get("bonuses"), dict) else {}
-        if abs(percentage(official["Stat Total"]) - percentage(str(bonuses.get("attack", "")))) > 0.001:
-            raise RuntimeError(f"Official Governor Gear stat mismatch at row {index}: {official!r}")
-        power_delta = abs(integer(official["Power Total"]) - int(canonical.get("power_total", -1)))
-        max_power_rounding_delta = max(max_power_rounding_delta, power_delta)
-        if power_delta > 1:
-            raise RuntimeError(
-                f"Official Governor Gear cumulative power mismatch at row {index}: "
-                f"official={official['Power Total']!r}, canonical={canonical.get('power_total')!r}"
-            )
+        prior_stat = percentage(str(bonuses.get("attack", "")))
+        prior_power = int(canonical.get("power_total", -1))
+        official_stat = percentage(official["Stat Total"])
+        official_power = integer(official["Power Total"])
+
+        if prior_materials != official_materials or abs(prior_stat - official_stat) > 0.001 or prior_power != official_power:
+            superseded_claims.append({
+                "row": index,
+                "tier": tier,
+                "stars": stars,
+                "source_id": "kingshotpro-open-data",
+                "materials": {
+                    "satin": prior_materials[0],
+                    "gilded_threads": prior_materials[1],
+                    "artisans_vision": prior_materials[2],
+                },
+                "stat_total_pct": prior_stat,
+                "power_total": prior_power,
+                "resolution_status": "superseded_by_tier_a",
+            })
+
+        canonical["materials"] = {
+            "satin": official_materials[0],
+            "gilded_threads": official_materials[1],
+            "artisans_vision": official_materials[2],
+        }
+        canonical_bonuses = canonical.get("bonuses") if isinstance(canonical.get("bonuses"), dict) else {}
+        canonical_bonuses["attack"] = f"{official_stat:.2f}%"
+        canonical_bonuses["defense"] = f"{official_stat:.2f}%"
+        canonical["bonuses"] = canonical_bonuses
+        canonical["power_total"] = official_power
+        canonical["evidence_status"] = "official"
+        source_ids = canonical.get("source_ids") if isinstance(canonical.get("source_ids"), list) else []
+        canonical["source_ids"] = list(dict.fromkeys([*source_ids, "kingshot-official-wiki"]))
+        canonical["official_source_url"] = OFFICIAL_GOVERNOR_GEAR
 
     charms = load(release_dir / "governor_charms.json")
     levels = charms.get("data", {}).get("charmLevels") if isinstance(charms.get("data"), dict) else None
@@ -142,19 +159,25 @@ def corroborate_official_gear(release_dir: Path) -> dict[str, Any]:
             raise RuntimeError(f"Official Governor Charm stat mismatch at level {level}")
         if integer(official["Power Total"]) != cumulative_power:
             raise RuntimeError(f"Official Governor Charm cumulative power mismatch at level {level}")
+        canonical["evidence_status"] = "official"
+        source_ids = canonical.get("source_ids") if isinstance(canonical.get("source_ids"), list) else []
+        canonical["source_ids"] = list(dict.fromkeys([*source_ids, "kingshot-official-wiki"]))
 
     gear.setdefault("source_meta", {})["official_corroboration"] = {
         "source_id": "kingshot-official-wiki",
         "url": OFFICIAL_GOVERNOR_GEAR,
         "rows_matched": 58,
         "scope": "tier, stars, materials, cumulative stat and cumulative power",
-        "max_power_rounding_delta": max_power_rounding_delta,
+        "canonical_precedence": "tier_a",
+        "superseded_claim_count": len(superseded_claims),
+        "superseded_claims": superseded_claims,
     }
     charms.setdefault("source_meta", {})["official_corroboration"] = {
         "source_id": "kingshot-official-wiki",
         "url": OFFICIAL_GOVERNOR_GEAR,
         "rows_matched": 22,
         "scope": "level, materials, cumulative stat and cumulative power",
+        "canonical_precedence": "tier_a",
     }
     write(release_dir / "governor_gear.json", gear)
     write(release_dir / "governor_charms.json", charms)
@@ -167,7 +190,8 @@ def corroborate_official_gear(release_dir: Path) -> dict[str, Any]:
         "kind": "first_party_reconciliation",
         "governor_gear_rows": 58,
         "governor_charm_rows": 22,
-        "max_power_rounding_delta": max_power_rounding_delta,
+        "canonical_precedence": "tier_a",
+        "superseded_claim_count": len(superseded_claims),
     }
 
 
@@ -248,22 +272,43 @@ def update_release(release_dir: Path) -> None:
     conflicts = release.get("conflicts")
     if not isinstance(conflicts, list):
         raise RuntimeError("Release conflicts are unavailable.")
-    conflict = next(
+    charm_conflict = next(
         (row for row in conflicts if isinstance(row, dict) and row.get("id") == "governor-charm-max-level"),
         None,
     )
-    if not isinstance(conflict, dict) or not isinstance(conflict.get("claims"), list):
+    if not isinstance(charm_conflict, dict) or not isinstance(charm_conflict.get("claims"), list):
         raise RuntimeError("Expected Governor Charm historical max-level conflict is missing.")
     if not any(
         isinstance(row, dict) and row.get("source_id") == "kingshot-official-wiki"
-        for row in conflict["claims"]
+        for row in charm_conflict["claims"]
     ):
-        conflict["claims"].append({"source_id": "kingshot-official-wiki", "value": 22, "unit": "level"})
-    conflict["resolution_status"] = "resolved_by_tier_a"
-    conflict["resolution"] = (
+        charm_conflict["claims"].append({"source_id": "kingshot-official-wiki", "value": 22, "unit": "level"})
+    charm_conflict["resolution_status"] = "resolved_by_tier_a"
+    charm_conflict["resolution"] = (
         "Resolved for this release by the Century Games official wiki and complete 22-level open ladders. "
         "The older Kingshot Data 21-level claim remains recorded as superseded historical evidence; calculator eligibility remains separately gated."
     )
+
+    gear = load(release_dir / "governor_gear.json")
+    official_meta = gear.get("source_meta", {}).get("official_corroboration") if isinstance(gear.get("source_meta"), dict) else None
+    superseded_count = int(official_meta.get("superseded_claim_count", 0)) if isinstance(official_meta, dict) else 0
+    conflicts[:] = [
+        row for row in conflicts
+        if not (isinstance(row, dict) and row.get("id") == "governor-gear-community-official-values")
+    ]
+    if superseded_count > 0:
+        conflicts.append({
+            "id": "governor-gear-community-official-values",
+            "family": "governor_gear",
+            "description": "The imported open community Governor Gear ladder disagreed with the current Century Games official wiki on one or more row values.",
+            "claims": [
+                {"source_id": "kingshotpro-open-data", "scope": "prior imported rows retained in governor_gear source metadata"},
+                {"source_id": "kingshot-official-wiki", "scope": "current 58-row official Governor Gear table"},
+            ],
+            "resolution_status": "resolved_by_tier_a",
+            "resolution": "The official Century Games table is canonical for this release; every displaced community row is retained as a superseded claim in governor_gear.json. Calculator eligibility remains separately gated.",
+            "superseded_claim_count": superseded_count,
+        })
 
     dispositions = release.get("family_dispositions")
     if not isinstance(dispositions, list):
@@ -273,7 +318,7 @@ def update_release(release_dir: Path) -> None:
             continue
         if row.get("family") == "governor_gear":
             row["reason"] = (
-                "All 58 open per-step rows are canonicalized with source confidence and reconciled against the Century Games official wiki's complete Gear table for tier, stars, materials, cumulative stat and cumulative power."
+                "All 58 official per-step Gear rows are canonicalized from the Century Games wiki for tier, stars, materials, cumulative stat and cumulative power. Prior differing open-community rows remain explicit superseded claims with source provenance."
             )
         elif row.get("family") == "governor_charms":
             row["reason"] = (
@@ -303,7 +348,7 @@ def corroborate_release(release_dir: Path) -> None:
     ]
     update_release(release_dir)
     update_source_lock(release_dir, locks)
-    print("Corroborated Governor Gear/Charms with Tier-A official tables and pinned KR Charm/Widget references.")
+    print("Canonicalized Governor Gear from Tier-A official tables and pinned KR Charm/Widget references.")
 
 
 if __name__ == "__main__":
