@@ -15,18 +15,9 @@ from bs4 import BeautifulSoup, Tag
 import refresh
 
 
-ACADEMY_TREE_BOUNDARIES = (
-    (45, "Development"),
-    (89, "Economy"),
-    (191, "Battle"),
-)
-ALLIANCE_TECH_TREE_BOUNDARIES = (
-    (24, "Growth"),
-    (40, "Territory"),
-    (60, "Battle"),
-)
+ACADEMY_TREE_BOUNDARIES = ((45, "Development"), (89, "Economy"), (191, "Battle"))
+ALLIANCE_TECH_TREE_BOUNDARIES = ((24, "Growth"), (40, "Territory"), (60, "Battle"))
 EXPECTED_ACADEMY_SOURCE_GAP = ("Fortified Mail VI", 6)
-
 CATEGORY_ADAPTERS: dict[str, tuple[str, int]] = {
     "category/buildings/": ("buildings/", 12),
     "category/pets/": ("pets/", 14),
@@ -65,7 +56,6 @@ def details_technology(
     strong = summary.find("strong")
     name = " ".join(strong.stripped_strings).strip() if isinstance(strong, Tag) else ""
     if name == "":
-        # Some renderers put an image before the technology name without <strong>.
         name = re.sub(r"\s+Max Level\s+\d+.*$", "", summary_text, flags=re.IGNORECASE).strip()
     if name == "":
         raise RuntimeError(f"Technology is missing a name: {summary_text[:160]}")
@@ -141,7 +131,6 @@ def parse_academy() -> tuple[dict[str, Any], list[dict[str, Any]]]:
     declared_max_level_sum = sum(int(technology["max_level"]) for technology in technologies)
     ids = [technology["id"] for technology in technologies]
     tree_counts = Counter(technology["tree"] for technology in technologies)
-
     if len(technologies) != 191:
         raise RuntimeError(f"Academy expected 191 technology identities; got {len(technologies)}")
     if level_count != 714:
@@ -196,8 +185,7 @@ def discover_detail_urls(hub_url: str, detail_root: str, expected: int) -> tuple
     root = "/" + detail_root.strip("/") + "/"
     urls: list[str] = []
     for anchor in soup.find_all("a", href=True):
-        href = str(anchor.get("href"))
-        absolute = normalized_url(hub_url, href)
+        absolute = normalized_url(hub_url, str(anchor.get("href")))
         parsed = urlparse(absolute)
         if parsed.netloc != urlparse(refresh.KSD_BASE).netloc:
             continue
@@ -206,11 +194,17 @@ def discover_detail_urls(hub_url: str, detail_root: str, expected: int) -> tuple
         if absolute not in urls:
             urls.append(absolute)
     urls.sort()
-    if len(urls) != expected:
+    if len(urls) < expected:
         raise RuntimeError(
-            f"{hub_url} expected {expected} detail pages under /{detail_root}, got {len(urls)}"
+            f"{hub_url} expected at least {expected} detail links under /{detail_root}, got {len(urls)}"
         )
-    return urls, {"url": hub_url, "sha256": hub.sha256, "kind": "category_hub", "discovered_pages": expected}
+    return urls, {
+        "url": hub_url,
+        "sha256": hub.sha256,
+        "kind": "category_hub",
+        "expected_entities": expected,
+        "discovered_candidate_links": len(urls),
+    }
 
 
 def factual_tables(page_soup: BeautifulSoup) -> list[dict[str, Any]]:
@@ -228,11 +222,25 @@ def factual_tables(page_soup: BeautifulSoup) -> list[dict[str, Any]]:
         header_text = " ".join(headers).lower()
         if any(word in header_text for word in ("recommendation", "recommended", "tier list", "best lineup")):
             continue
-        # These source categories are selected factual surfaces. Preserve every structured table
-        # except explicitly advisory ones so we do not lose factual tables merely because a new
-        # heading is not yet in a heuristic allow-list.
-        tables.append({"heading": heading, "headers": headers, "rows": rows})
+        normalized_headers = ["Rank" if header.strip().lower() == "ranking" else header for header in headers]
+        normalized_rows: list[dict[str, str]] = []
+        for row in rows:
+            normalized_rows.append({
+                ("Rank" if str(key).strip().lower() == "ranking" else str(key)): value
+                for key, value in row.items()
+            })
+        tables.append({"heading": heading, "headers": normalized_headers, "rows": normalized_rows})
     return tables
+
+
+def canonical_hero_names() -> set[str]:
+    path = refresh.PROGRESSION_ROOT / "kingshot-2026-08-23-v1" / "heroes.json"
+    data = json.loads(path.read_text(encoding="utf-8"))
+    return {
+        refresh.normalized_name(str(hero.get("name", "")))
+        for hero in data.get("heroes", [])
+        if isinstance(hero, dict) and str(hero.get("name", "")).strip() != ""
+    }
 
 
 def scrape_confirmed_category(hub_path: str) -> tuple[dict[str, Any], list[dict[str, Any]]]:
@@ -246,6 +254,7 @@ def scrape_confirmed_category(hub_path: str) -> tuple[dict[str, Any], list[dict[
     urls, hub_lock = discover_detail_urls(hub_url, detail_root, expected)
     pages: list[dict[str, Any]] = []
     locks: list[dict[str, Any]] = [hub_lock]
+    allowed_hero_names = canonical_hero_names() if hub_path == "category/heroes/" else None
 
     for url in urls:
         try:
@@ -257,14 +266,23 @@ def scrape_confirmed_category(hub_path: str) -> tuple[dict[str, Any], list[dict[
         title = " ".join(title_node.stripped_strings).strip() if isinstance(title_node, Tag) else ""
         if title == "":
             raise RuntimeError(f"Confirmed detail source is missing H1 title: {url}")
+        if allowed_hero_names is not None and refresh.normalized_name(title) not in allowed_hero_names:
+            continue
+        tables = factual_tables(soup)
         pages.append({
             "id": refresh.slug(title),
             "name": title,
             "source_url": url,
-            "structured_table_count": len(factual_tables(soup)),
-            "tables": factual_tables(soup),
+            "structured_table_count": len(tables),
+            "tables": tables,
         })
         locks.append({"url": url, "sha256": page.sha256, "kind": "factual_detail_page"})
+
+    if len(pages) != expected:
+        names = [page["name"] for page in pages]
+        raise RuntimeError(
+            f"{hub_url} expected {expected} confirmed entities after filtering, got {len(pages)}: {names}"
+        )
 
     return ({
         "schema_version": 1,
@@ -418,7 +436,6 @@ def assert_category_release(release_dir: Any, file_name: str, expected: int) -> 
 def main() -> int:
     source_release = "kingshot-2026-08-23-v1"
     target_release = "kingshot-2026-08-23-v2"
-
     refresh.academy_research = parse_academy
     refresh.scrape_category = scrape_confirmed_category
     refresh.KSD_CATEGORY_PATHS = {
@@ -430,7 +447,6 @@ def main() -> int:
         "events_tables": "category/events/",
         "alliance_tech_tables": "alliance-tech/",
     }
-
     refresh.build_release(source_release, target_release, "2026-08-23")
     reconcile_release(target_release)
 
