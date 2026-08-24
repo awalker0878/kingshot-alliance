@@ -1,8 +1,8 @@
 # Alliance Assistant — GameWorld Extension
 
-Status: Active delivery — 2026-08-24
+Status: Complete — 2026-08-24
 
-This document extends `docs/product/alliance-assistant.md` and is the implementation source of truth for the Alliance Assistant GameWorld extension. The base Alliance Assistant invariants remain mandatory. No item in this extension is complete until its owner-query/domain behavior, authorization and tenant isolation, unknown/conflicting-data handling, provenance and citations, stale-context behavior, UX, mobile behavior, accessibility, localization, observability, automated tests, architecture enforcement, contract tests and applicable visual regression are complete.
+This document extends `docs/product/alliance-assistant.md` and is the implementation source of truth for the Alliance Assistant GameWorld extension. The base Alliance Assistant invariants remain mandatory. Completion requires owner-query/domain behavior, authorization and tenant isolation, unknown/conflicting-data handling, provenance and citations, stale-context behavior, UX, mobile behavior, accessibility, localization, observability, automated tests, architecture enforcement, contract tests and applicable visual regression to remain complete.
 
 ## Product outcome
 
@@ -301,83 +301,83 @@ Add/retain privacy-safe metrics for:
 
 ### AC-GF — Game facts
 
-- [ ] `game_fact` is a closed deterministic intent, not a generic fallback.
-- [ ] GameWorld owns fact lookup and evidence/conflict semantics.
-- [ ] supported hero generation/troop-class questions resolve from Progression.
-- [ ] max-level, Governor Gear requirement, troop-tier stats and Academy-level questions resolve only from supported Progression families.
-- [ ] every answer contains dataset release/version, checksum, source IDs and confidence/evidence status where available.
-- [ ] unknown/conflicting evidence is preserved and visibly reported.
-- [ ] canonical Progression route is server-created.
+- [x] `game_fact` is a closed deterministic intent, not a generic fallback.
+- [x] GameWorld owns fact lookup and evidence/conflict semantics.
+- [x] supported hero generation/troop-class questions resolve from Progression.
+- [x] max-level, Governor Gear requirement, troop-tier stats and Academy-level questions resolve only from supported Progression families.
+- [x] every answer contains dataset release/version, checksum, source IDs and confidence/evidence status where available.
+- [x] unknown/conflicting evidence is preserved and visibly reported.
+- [x] canonical Progression route is server-created.
 
 ### AC-PART — Self participation
 
-- [ ] named Event registration/RSVP resolves Event authorization before self participation retrieval.
-- [ ] waitlist status and position are preserved.
-- [ ] bounded `this week` RSVP question returns only authorized occurrences and the active Governor's rows.
-- [ ] absent participation never produces fabricated evidence.
+- [x] named Event registration/RSVP resolves Event authorization before self participation retrieval.
+- [x] waitlist status and position are preserved.
+- [x] bounded `this week` RSVP question returns only authorized occurrences and the active Governor's rows.
+- [x] absent participation never produces fabricated evidence.
 
 ### AC-BP — Self battle plan
 
-- [ ] a narrow owner query returns only effective assignments for the active Governor.
-- [ ] management-wide assignment projection is not consumed by Assistant.
-- [ ] direct and roster-derived assignment behavior is tested.
-- [ ] multiple legitimate assignments remain multiple.
+- [x] a narrow owner query returns only effective assignments for the active Governor.
+- [x] management-wide assignment projection is not consumed by Assistant.
+- [x] direct and roster-derived assignment behavior is tested.
+- [x] multiple legitimate assignments remain multiple.
 
 ### AC-TR — Self transfer status
 
-- [ ] active Governor transfer scope is proven before participant evidence is loaded.
-- [ ] only the active Governor participant is evaluated.
-- [ ] canonical eligibility evaluator is reused.
-- [ ] unmet/unknown/conflicting requirements are returned as owned assessment semantics.
-- [ ] `NeedsVerification` is never rewritten as eligible.
-- [ ] out-of-scope Governor receives neutral response.
+- [x] active Governor transfer scope is proven before participant evidence is loaded.
+- [x] only the active Governor participant is evaluated.
+- [x] canonical eligibility evaluator is reused.
+- [x] unmet/unknown/conflicting requirements are returned as owned assessment semantics.
+- [x] `NeedsVerification` is never rewritten as eligible.
+- [x] out-of-scope Governor receives neutral response.
 
 ### AC-TP — Territory plan
 
-- [ ] a narrow owner query returns only the immutable published revision attached to the authorized occurrence.
-- [ ] mutable plan head and unrelated revisions never enter the Assistant candidate set.
-- [ ] no attachment -> `not_found`; multiple purpose matches -> `ambiguous`.
-- [ ] revision/map dataset provenance is cited.
+- [x] a narrow owner query returns only the immutable published revision attached to the authorized occurrence.
+- [x] mutable plan head and unrelated revisions never enter the Assistant candidate set.
+- [x] no attachment -> `not_found`; multiple purpose matches -> `ambiguous`.
+- [x] revision/map dataset provenance is cited.
 
 ### AC-HO — Action handoff
 
-- [ ] recognized roster write request returns read-only navigation handoff.
-- [ ] handoff performs zero mutation.
-- [ ] destination is server-created and Event-resolved.
-- [ ] normal destination authorization/current-context handling remains authoritative.
-- [ ] unknown writes remain unsupported.
+- [x] recognized roster write request returns read-only navigation handoff.
+- [x] handoff performs zero mutation.
+- [x] destination is server-created and Event-resolved.
+- [x] normal destination authorization/current-context handling remains authoritative.
+- [x] unknown writes remain unsupported.
 
 ### AC-X — Cross-cutting
 
-- [ ] owner contexts do not import Alliance Assistant.
-- [ ] Alliance Assistant does not import owner Actions or write repositories.
-- [ ] no broad management-query-and-filter implementation is introduced.
-- [ ] every substantive answer has typed evidence and server-created citations.
-- [ ] frontend renders all required mobile/desktop/accessibility states and preserves all nine bounded discovery prompts.
-- [ ] all supported locales contain native extension strings; English fallback is not counted as extension completion.
-- [ ] transfer requirement keys/states are localized without presenting English owner explanatory prose as UI copy.
-- [ ] Assistant-only localization payloads remain lazy/domain-scoped and all repository performance budgets remain green without a budget increase.
-- [ ] PHP tests, Pint, PHPStan, frontend lint/format/type/build, architecture/contract tests and visual regression are green.
-- [ ] applicable CodeQL, dependency review, container/staging/release checks are green before status becomes Complete.
+- [x] owner contexts do not import Alliance Assistant.
+- [x] Alliance Assistant does not import owner Actions or write repositories.
+- [x] no broad management-query-and-filter implementation is introduced.
+- [x] every substantive answer has typed evidence and server-created citations.
+- [x] frontend renders all required mobile/desktop/accessibility states and preserves all nine bounded discovery prompts.
+- [x] all supported locales contain native extension strings; English fallback is not counted as extension completion.
+- [x] transfer requirement keys/states are localized without presenting English owner explanatory prose as UI copy.
+- [x] Assistant-only localization payloads remain lazy/domain-scoped and all repository performance budgets remain green without a budget increase.
+- [x] PHP tests, Pint, PHPStan, frontend lint/format/type/build, architecture/contract tests and visual regression are green.
+- [x] applicable CodeQL, dependency review, container/staging/release checks are green before status becomes Complete.
 
 ## Delivery ledger
 
-The ledger below is authoritative for this extension. Work proceeds to the next incomplete row immediately after the previous row is implemented and verified.
+The ledger below is authoritative for this extension. Every row has been implemented and verified against the completed acceptance contract.
 
 | ID | Deliverable | Status |
 | --- | --- | --- |
 | AA-GW-001 | Product contract and acceptance criteria | Complete |
-| AA-GW-002 | Typed intents, parsed requests, evidence/result/handoff contracts | Pending |
-| AA-GW-003 | Narrow GameWorld Progression fact query | Pending |
-| AA-GW-004 | `game_fact` interpretation/composition/citations | Pending |
-| AA-GW-005 | `event_participation_self` owner composition | Pending |
-| AA-GW-006 | self-only BattlePlans owner query + composition | Pending |
-| AA-GW-007 | self-only authorized transfer assessment query + composition | Pending |
-| AA-GW-008 | narrow Event-attached published territory revision query + composition | Pending |
-| AA-GW-009 | navigation-only recognized-write handoff | Pending |
-| AA-GW-010 | additive nine-prompt UX, accessibility, native all-locale localization and domain-scoped performance | Pending |
-| AA-GW-011 | authorization, architecture, behavior, contract and visual tests | Pending |
-| AA-GW-012 | reference/architecture/operations reconciliation | Pending |
-| AA-GW-013 | full quality/release verification and final ledger reconciliation | Pending |
+| AA-GW-002 | Typed intents, parsed requests, evidence/result/handoff contracts | Complete |
+| AA-GW-003 | Narrow GameWorld Progression fact query | Complete |
+| AA-GW-004 | `game_fact` interpretation/composition/citations | Complete |
+| AA-GW-005 | `event_participation_self` owner composition | Complete |
+| AA-GW-006 | self-only BattlePlans owner query + composition | Complete |
+| AA-GW-007 | self-only authorized transfer assessment query + composition | Complete |
+| AA-GW-008 | narrow Event-attached published territory revision query + composition | Complete |
+| AA-GW-009 | navigation-only recognized-write handoff | Complete |
+| AA-GW-010 | additive nine-prompt UX, accessibility, native all-locale localization and domain-scoped performance | Complete |
+| AA-GW-011 | authorization, architecture, behavior, contract and visual tests | Complete |
+| AA-GW-012 | reference/architecture/operations reconciliation | Complete |
+| AA-GW-013 | full quality/release verification and final ledger reconciliation | Complete |
 
-Do not change this document to Complete while any ledger row or acceptance criterion remains incomplete.
+Any regression that invalidates an acceptance criterion reopens the corresponding ledger row; new Assistant capabilities require a new explicit bounded extension rather than broadening this completed contract implicitly.
