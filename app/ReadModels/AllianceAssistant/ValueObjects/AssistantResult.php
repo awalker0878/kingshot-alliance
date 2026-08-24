@@ -10,14 +10,16 @@ use App\ReadModels\AllianceAssistant\Enums\AssistantStatus;
 final readonly class AssistantResult
 {
     /**
+     * @param array<string, bool|float|int|string|null> $messageParameters
      * @param list<AssistantEvidence> $evidence
-     * @param list<array{title:string,startsAt:string}> $ambiguity
+     * @param list<array{title:string,startsAt:string,occurrenceId:string}> $ambiguity
      * @param list<string> $suggestedQuestions
      */
     public function __construct(
         public AssistantIntent $intent,
         public AssistantStatus $status,
-        public string $answer,
+        public string $messageKey,
+        public array $messageParameters = [],
         public array $evidence = [],
         public array $ambiguity = [],
         public array $suggestedQuestions = [],
@@ -34,7 +36,8 @@ final readonly class AssistantResult
         return [
             'intent' => $this->intent->value,
             'status' => $this->status->value,
-            'answer' => $this->answer,
+            'messageKey' => $this->messageKey,
+            'messageParameters' => $this->messageParameters,
             'classifications' => array_keys($classifications),
             'evidence' => array_map(
                 static fn (AssistantEvidence $evidence): array => $evidence->toArray(),
