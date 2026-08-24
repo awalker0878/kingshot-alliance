@@ -16,18 +16,18 @@ final readonly class EventStrategyCommandQuery
 
     /**
      * @return array{
-     *   guideCount:int,
-     *   guide:?array{id:string,slug:string,title:string,revisionNumber:int,publishedAt:?string,sourceLabel:?string,reviewedAt:?string,freshness:array{status:string,dueAt:?string,daysUntilDue:?int}}
+     *     guideCount:int,
+     *     guide:?array{id:string,slug:string,title:string,revisionNumber:int,publishedAt:?string,sourceLabel:?string,reviewedAt:?string,freshness:array{status:string,dueAt:?string,daysUntilDue:?int}}
      * }
      */
     public function forEventType(string $allianceId, string $eventTypeSlug): array
     {
         $items = $this->content->contextualForEventType($allianceId, $eventTypeSlug);
         $item = $items->first();
+        $guide = null;
 
-        return [
-            'guideCount' => $items->count(),
-            'guide' => $item instanceof ContentItem ? [
+        if ($item instanceof ContentItem) {
+            $guide = [
                 'id' => (string) $item->id,
                 'slug' => (string) $item->slug,
                 'title' => (string) $item->title,
@@ -36,7 +36,12 @@ final readonly class EventStrategyCommandQuery
                 'sourceLabel' => $item->source_label,
                 'reviewedAt' => $item->reviewed_at?->toDateString(),
                 'freshness' => $this->freshness->assess($item),
-            ] : null,
+            ];
+        }
+
+        return [
+            'guideCount' => $items->count(),
+            'guide' => $guide,
         ];
     }
 }
