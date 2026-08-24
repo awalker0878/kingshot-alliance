@@ -1,6 +1,6 @@
 # Capability delivery ledger
 
-Status: Current as of 2026-08-23
+Status: Current as of 2026-08-24
 
 This ledger records shipped outcomes, active capability delivery, remaining evidence gates, and the implementation standard. GitHub remains the source of truth for exact diffs and CI results.
 
@@ -309,3 +309,40 @@ The capability must not be marked complete merely because another site publishes
 
 The Factual Governor Progression delivery queue is closed: every phase is Complete and no known Factual Governor Progression product feature is deferred. The calculator evidence gate remains independently closed; later calculator work requires its own qualifying evidence. Any regression or newly discovered factual-source requirement that invalidates an exit condition reopens the affected phase.
 
+## Alliance Assistant delivery program
+
+Target: the final constrained Alliance composition capability, not an unconstrained KingShot chatbot.
+
+Canonical contract: [Alliance Assistant](alliance-assistant.md).
+
+Ownership remains with existing capabilities: Operations/Events owns Event schedule and occurrence truth; Operations/Rosters owns assignments; Alliance/Content owns published strategy/guide revisions; Intelligence/Observations owns recorded observation truth; future factual game intents require an explicit authorized GameWorld owner projection. `app/ReadModels/AllianceAssistant` owns only bounded intent/evidence/citation composition and HTTP presentation.
+
+No phase is Complete until its whole exit condition—including authorization, tenant isolation, tests, UX/accessibility/localization, observability and applicable repository gates—is satisfied on the implementation.
+
+### Phase queue
+
+| Phase | Status | Slice | Exit condition |
+| --- | --- | --- | --- |
+| 1 | In progress | Product contract and dependency audit | Product catalogue, gap analysis, delivery ledger, journeys, architecture/reference/operations docs and owner dependencies agree on the complete constrained capability. |
+| 2 | In progress | Typed intent/evidence/provenance contract | Closed intents, closed localized prompt IDs, evidence values, provenance classes and response-local citation identity are typed and behavior-tested. |
+| 3 | In progress | Event and self-roster composition | Event time/next Event and active-Governor-only roster answers use owner reads, handle missing/ambiguous states and never expose another Governor’s assignment. |
+| 4 | In progress | Alliance Content composition | Only current-Alliance member-visible published content is retrieved; strategy remains labelled Alliance strategy with revision/provenance/freshness metadata. |
+| 5 | In progress | Observation composition | Intelligence authorizes before querying and returns bounded same-Alliance observations labelled Observation; hidden observations remain indistinguishable from missing data. |
+| 6 | In progress | Deterministic interpreter/composer | Supported free-form questions and localized closed prompts resolve deterministically; generic KingShot and write-like questions are unsupported with no model-knowledge fallback. |
+| 7 | In progress | Citation integrity | Every substantive answered claim uses server-constructed citations from the response-local authorized evidence set; non-answer states cannot emit citations. |
+| 8 | In progress | HTTP, privacy and abuse bounds | Auth/verified/active-Player/Alliance scope, bounded validation, account rate limit, privacy-safe logs and retry-safe unavailable behavior are enforced. |
+| 9 | In progress | Responsive, accessible, localized UX | Desktop/mobile navigation, four first-use prompts, semantic answer/source states, keyboard submission, live status, locale-safe dates/messages and no horizontal overflow are implemented. |
+| 10 | In progress | Read-only and injection architecture enforcement | Assistant has no persistence/write/provider bypass; owner contexts do not import it; source text cannot alter scope/tool/write behavior; external model calls are absent in release one. |
+| 11 | In progress | Behavioral, performance and visual verification | Owner-integrated tenant/citation tests, bounded query budget and deterministic cited-answer desktop/mobile fingerprints pass. |
+| 12 | In progress | Final reconciliation and immutable release gates | Spec→code, code→spec, UX→backend and authorization/provenance scans find no remaining gap; every applicable repository quality/security/container/staging/backup/recovery gate passes on one immutable head. |
+
+### Cross-phase invariants
+
+1. Unauthorized information never enters retrieval candidates, evidence, prompt/provider context, cache or citations.
+2. Assistant never persists domain/application state or conversation history.
+3. Every source remains owned and authorized by its existing capability.
+4. Strategy and observations never become factual KingShot truth.
+5. `game_fact` is reserved for future bounded GameWorld-owner reads and cannot authorize model-memory answers.
+6. Requested mutations remain unsupported in release one; any future action handoff must call the normal owner Action.
+7. User-authored source text is inert data and cannot change authorization, tools, instructions or provenance.
+8. No phase or capability is closed based on code presence alone; immutable release evidence is mandatory.

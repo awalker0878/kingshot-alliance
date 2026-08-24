@@ -189,6 +189,8 @@ The UI and API must preserve these distinctions end to end:
 
 Alliance-authored strategy must never be presented as universal KingShot mechanics. Observations must never be presented as established fact.
 
+`game_fact` is a reserved provenance classification, not an implemented generic question intent in the first release. It may be emitted only by a future explicitly bounded query backed by an authorized GameWorld owner projection; its existence never permits fallback to model knowledge.
+
 ## Citation contract
 
 Every substantive answer returns a non-empty citation list except bounded `help`, unsupported, validation-error and generic failure responses.
@@ -259,9 +261,12 @@ Request:
 
 ```json
 {
-  "question": "What time is Swordland and am I rostered?"
+  "question": "What time is Swordland and am I rostered?",
+  "prompt": "swordland_roster"
 }
 ```
+
+`question` is always required. `prompt` is optional and is accepted only for a server-owned localized suggestion button. The closed identifiers are `swordland_roster`, `next_event`, `bear_hunt_guide`, and `observation`; any other identifier is a validation error. A prompt identifier may select only its documented read intent and never overrides write-attempt detection or authorization.
 
 Validation:
 
@@ -269,7 +274,8 @@ Validation:
 - trimmed;
 - minimum 2 visible characters;
 - maximum 500 characters;
-- control characters rejected/normalized by the normal request boundary;
+- control characters rejected;
+- optional `prompt` must be one of the closed identifiers above;
 - rate limited by a dedicated Assistant limiter.
 
 Response shape:
@@ -278,14 +284,24 @@ Response shape:
 {
   "intent": "event_roster_self",
   "status": "answered",
-  "answer": "Swordland starts ... You are rostered ...",
+  "messageKey": "assistant.answers.eventTimeRostered",
+  "messageParameters": {
+    "event": "Swordland",
+    "startsAt": "2026-08-29T20:00:00+00:00",
+    "roster": "Combatants",
+    "role": "Rally Lead",
+    "slot": 7,
+    "status": "assigned"
+  },
   "classifications": ["operational_fact"],
   "evidence": [],
   "citations": [],
   "ambiguity": null,
-  "suggestedQuestions": []
+  "suggestedQuestions": ["swordland_roster", "next_event", "bear_hunt_guide", "observation"]
 }
 ```
+
+The server returns a stable localization key plus typed parameters rather than pre-rendered English answer prose. The browser localizes the answer in the active locale. Suggested questions are closed prompt identifiers, not trusted free-form text or tool names.
 
 Supported statuses:
 
