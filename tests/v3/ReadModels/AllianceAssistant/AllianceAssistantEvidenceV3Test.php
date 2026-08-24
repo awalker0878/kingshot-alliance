@@ -94,6 +94,6 @@ final class AllianceAssistantEvidenceV3Test extends TestCase
         ))->toArray();
 
         self::assertSame(['alliance_strategy', 'observation'], $payload['classifications']);
-        self::assertNotContains('game_fact', $payload['classifications'], true);
+        self::assertNotContains('game_fact', $payload['classifications']);
     }
 }

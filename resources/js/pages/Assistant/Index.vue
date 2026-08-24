@@ -384,7 +384,7 @@ function freshness(citation: Citation): string | null {
 
           <form
             class="sticky bottom-3 rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[rgba(5,14,14,.96)] p-3 shadow-2xl backdrop-blur"
-            @submit.prevent="submit"
+            @submit.prevent="submit()"
           >
             <label for="assistant-question" class="text-sm font-bold text-[var(--ks-text)]">{{
               t('assistant.questionLabel')

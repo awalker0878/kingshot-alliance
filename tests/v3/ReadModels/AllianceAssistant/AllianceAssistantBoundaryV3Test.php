@@ -6,12 +6,17 @@ namespace Tests\v3\ReadModels\AllianceAssistant;
 
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Alliance\Lifecycle\ValueObjects\AllianceReference;
+use App\Contexts\Alliance\Membership\Queries\PlayerIdentityContextQuery;
+use App\Contexts\GameWorld\Governance\Queries\KingdomAuthorityFactsQuery;
+use App\Contexts\GameWorld\Players\Http\Middleware\RequireCurrentPlayerContextVersion;
+use App\Contexts\GameWorld\Players\Services\PlayerAuthorityContextVersion;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Operations\Events\Actions\CreateEvent;
 use App\Contexts\Operations\Events\Enums\EventScope;
 use App\Contexts\Operations\Events\Models\EventTypeScope;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Testing\TestResponse;
 use Tests\v3\Support\ScenarioFactory;
 use Tests\v3\TestCase;
 
@@ -62,6 +67,19 @@ final class AllianceAssistantBoundaryV3Test extends TestCase
             ->assertStatus(422)
             ->assertJsonPath('status', 'validation_error')
             ->assertJsonCount(0, 'evidence');
+    }
+
+    public function test_stale_authority_version_is_rejected_before_assistant_retrieval(): void
+    {
+        [$user, $actor] = $this->governorWithAlliance(63406);
+
+        $this->actingAs($user)
+            ->withSession([$this->sessionKey() => $actor->playerId])
+            ->withHeader(RequireCurrentPlayerContextVersion::HEADER_NAME, 'stale-version')
+            ->postJson('/assistant/ask', ['question' => 'What is my next Event?'])
+            ->assertStatus(409)
+            ->assertHeader(RequireCurrentPlayerContextVersion::ERROR_HEADER, 'stale')
+            ->assertJsonPath('code', 'CONTEXT_STALE');
     }
 
     public function test_verified_account_without_an_active_governor_cannot_use_assistant(): void
@@ -115,11 +133,27 @@ final class AllianceAssistantBoundaryV3Test extends TestCase
     }
 
     /** @param array<string, string> $payload */
-    private function assistantRequest(User $user, PlayerReference $actor, array $payload): \Illuminate\Testing\TestResponse
+    private function assistantRequest(User $user, PlayerReference $actor, array $payload): TestResponse
     {
         return $this->actingAs($user)
             ->withSession([$this->sessionKey() => $actor->playerId])
+            ->withHeader(RequireCurrentPlayerContextVersion::HEADER_NAME, $this->versionFor($actor))
             ->postJson('/assistant/ask', $payload);
+    }
+
+    private function versionFor(PlayerReference $player): string
+    {
+        $alliance = app(PlayerIdentityContextQuery::class)
+            ->forPlayers([$player->playerId])[$player->playerId] ?? null;
+        $kingdomPermissions = app(KingdomAuthorityFactsQuery::class)
+            ->findCurrent($player->playerId, $player->kingdomId)
+            ?->permissionKeysObservedAtRead ?? [];
+
+        return app(PlayerAuthorityContextVersion::class)->issue(
+            $player,
+            $alliance,
+            $kingdomPermissions,
+        );
     }
 
     private function verify(User $user): void

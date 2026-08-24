@@ -6,6 +6,10 @@ namespace Tests\v3\ReadModels\AllianceAssistant;
 
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Alliance\Lifecycle\ValueObjects\AllianceReference;
+use App\Contexts\Alliance\Membership\Queries\PlayerIdentityContextQuery;
+use App\Contexts\GameWorld\Governance\Queries\KingdomAuthorityFactsQuery;
+use App\Contexts\GameWorld\Players\Http\Middleware\RequireCurrentPlayerContextVersion;
+use App\Contexts\GameWorld\Players\Services\PlayerAuthorityContextVersion;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Operations\Events\Actions\CreateEvent;
 use App\Contexts\Operations\Events\Enums\EventScope;
@@ -17,6 +21,7 @@ use App\Contexts\Operations\Rosters\Models\EventRosterMember;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Testing\TestResponse;
 use Tests\v3\Support\ScenarioFactory;
 use Tests\v3\TestCase;
 
@@ -206,11 +211,27 @@ final class AllianceAssistantHttpV3Test extends TestCase
         return EventOccurrence::query()->findOrFail($created->firstOccurrenceId);
     }
 
-    private function assistantRequest(User $user, PlayerReference $actor, string $question): \Illuminate\Testing\TestResponse
+    private function assistantRequest(User $user, PlayerReference $actor, string $question): TestResponse
     {
         return $this->actingAs($user)
             ->withSession([$this->sessionKey() => $actor->playerId])
+            ->withHeader(RequireCurrentPlayerContextVersion::HEADER_NAME, $this->versionFor($actor))
             ->postJson('/assistant/ask', ['question' => $question]);
+    }
+
+    private function versionFor(PlayerReference $player): string
+    {
+        $alliance = app(PlayerIdentityContextQuery::class)
+            ->forPlayers([$player->playerId])[$player->playerId] ?? null;
+        $kingdomPermissions = app(KingdomAuthorityFactsQuery::class)
+            ->findCurrent($player->playerId, $player->kingdomId)
+            ?->permissionKeysObservedAtRead ?? [];
+
+        return app(PlayerAuthorityContextVersion::class)->issue(
+            $player,
+            $alliance,
+            $kingdomPermissions,
+        );
     }
 
     private function verify(User $user): void

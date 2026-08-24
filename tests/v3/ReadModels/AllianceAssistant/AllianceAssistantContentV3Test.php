@@ -10,8 +10,13 @@ use App\Contexts\Alliance\Content\Actions\SaveContentItem;
 use App\Contexts\Alliance\Content\Enums\ContentType;
 use App\Contexts\Alliance\Content\Enums\ContentVisibility;
 use App\Contexts\Alliance\Lifecycle\ValueObjects\AllianceReference;
+use App\Contexts\Alliance\Membership\Queries\PlayerIdentityContextQuery;
+use App\Contexts\GameWorld\Governance\Queries\KingdomAuthorityFactsQuery;
+use App\Contexts\GameWorld\Players\Http\Middleware\RequireCurrentPlayerContextVersion;
+use App\Contexts\GameWorld\Players\Services\PlayerAuthorityContextVersion;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Testing\TestResponse;
 use Tests\v3\Support\ScenarioFactory;
 use Tests\v3\TestCase;
 
@@ -119,11 +124,27 @@ final class AllianceAssistantContentV3Test extends TestCase
         ]);
     }
 
-    private function assistantRequest(User $user, PlayerReference $actor, string $question): \Illuminate\Testing\TestResponse
+    private function assistantRequest(User $user, PlayerReference $actor, string $question): TestResponse
     {
         return $this->actingAs($user)
             ->withSession([$this->sessionKey() => $actor->playerId])
+            ->withHeader(RequireCurrentPlayerContextVersion::HEADER_NAME, $this->versionFor($actor))
             ->postJson('/assistant/ask', ['question' => $question]);
+    }
+
+    private function versionFor(PlayerReference $player): string
+    {
+        $alliance = app(PlayerIdentityContextQuery::class)
+            ->forPlayers([$player->playerId])[$player->playerId] ?? null;
+        $kingdomPermissions = app(KingdomAuthorityFactsQuery::class)
+            ->findCurrent($player->playerId, $player->kingdomId)
+            ?->permissionKeysObservedAtRead ?? [];
+
+        return app(PlayerAuthorityContextVersion::class)->issue(
+            $player,
+            $alliance,
+            $kingdomPermissions,
+        );
     }
 
     private function verify(User $user): void

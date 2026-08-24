@@ -84,7 +84,11 @@ async function openAssistant(page: Page): Promise<void> {
     const label = (await identitySwitcher.textContent()) ?? '';
     if (/select governor/i.test(label)) {
       await identitySwitcher.click();
-      await page.getByRole('listbox', { name: 'Active Governor' }).getByRole('option').first().click();
+      await page
+        .getByRole('listbox', { name: 'Active Governor' })
+        .getByRole('option')
+        .first()
+        .click();
       await page.waitForURL('**/dashboard');
     }
   }
@@ -110,19 +114,24 @@ async function expectNoHorizontalOverflow(page: Page): Promise<void> {
   expect(overflow).toBeFalsy();
 }
 
-test('Alliance Assistant renders a cited Swordland roster answer on desktop and mobile', async (
-  { page },
-  testInfo,
-) => {
+test('Alliance Assistant renders a cited Swordland roster answer on desktop and mobile', async ({
+  page,
+}, testInfo) => {
   await mockCitedAnswer(page);
   await openAssistant(page);
   await page.evaluate(() => document.fonts.ready);
 
   await expect(page.getByRole('heading', { name: 'Ask your Alliance', level: 1 })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'What time is Swordland and am I rostered?' })).toBeVisible();
+  await expect(
+    page.getByRole('button', { name: 'What time is Swordland and am I rostered?' }),
+  ).toBeVisible();
   await expect(page.getByRole('button', { name: 'What is my next Event?' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'What does our Bear Hunt guide say?' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'What have we observed about our opponent?' })).toBeVisible();
+  await expect(
+    page.getByRole('button', { name: 'What does our Bear Hunt guide say?' }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole('button', { name: 'What have we observed about our opponent?' }),
+  ).toBeVisible();
 
   await page.getByRole('button', { name: 'What time is Swordland and am I rostered?' }).click();
   await expect(page.getByText(/Swordland starts/)).toBeVisible();
@@ -166,7 +175,11 @@ test('Alliance Assistant supports keyboard submission and a localized non-overfl
 
   await expect(page.locator('html')).toHaveAttribute('lang', 'de');
   await expect(page.getByRole('heading', { name: 'Frag deine Allianz', level: 1 })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Wann ist Swordland und bin ich im Roster?' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Was haben wir über unseren Gegner beobachtet?' })).toBeVisible();
+  await expect(
+    page.getByRole('button', { name: 'Wann ist Swordland und bin ich im Roster?' }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole('button', { name: 'Was haben wir über unseren Gegner beobachtet?' }),
+  ).toBeVisible();
   await expectNoHorizontalOverflow(page);
 });
