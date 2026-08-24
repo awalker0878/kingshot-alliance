@@ -34,9 +34,9 @@ The product already has governed workflows across account security, Player conte
 
 ### Alliance Assistant — current complete
 
-The delivered Assistant is a bounded authorization-aware read surface for trusted Events, the active Governor's self-roster state, published Alliance Content and authorized Intelligence observations. It has server-owned citations/provenance, explicit ambiguity/missing states, zero direct mutation and no model-knowledge fallback.
+The delivered Assistant is a bounded authorization-aware read surface for trusted Events, the active Governor's self-roster/Participation state, the active Governor's BattlePlan assignments, published Alliance Content, authorized Intelligence observations, source-backed Progression facts, authorized self transfer assessment and immutable Event-attached published Territory revisions. It has server-owned citations/provenance, explicit ambiguity/missing/unknown/conflicting states, zero direct mutation and no model-knowledge fallback.
 
-`game_fact` is a reserved provenance classification, not a delivered generic intent. The new `game_fact`/operational-self work is therefore a **Selected extension**, not a correction to the completed first release.
+Recognized roster write attempts return navigation-only handoff into the normal owner workflow; unknown writes remain unsupported. The completed [Alliance Assistant GameWorld extension](alliance-assistant-gameworld-extension.md) preserves authorization-before-retrieval and narrow owner projections rather than importing broad management views into Assistant composition.
 
 ### Factual Governor Progression — current complete
 
@@ -70,8 +70,6 @@ Any global ledger row still showing phases 3, 4, 7, 11 or 12 as `In progress` wa
 
 | Priority/order | Selected extension | User outcome | Canonical owners | Primary guardrail |
 | --- | --- | --- | --- | --- |
-| 1 | Alliance Assistant `game_fact` | Ask bounded source-backed progression questions with dataset/source/confidence citations. | GameWorld/Progression + ReadModels/AllianceAssistant | No model-memory fallback or copied knowledge store. |
-| 2 | Assistant operational-self + handoffs | Ask self Participation, BattlePlan, Transfer and applicable published Territory questions; write-like requests can navigate to canonical owner workflows. | Operations owners, GameWorld/KingdomTransfers, Operations/TerritoryPlanning + ReadModels/AllianceAssistant | Self-only/private scope; zero Assistant mutation. |
 | 3 | Event Readiness | One pre-Event view of schedule, registration, roster, BattlePlan, strategy, Territory, Communications and Rally blockers. | Existing Operations/Alliance/Communications owners + ReadModels/EventManagement | Derived composition only; no persisted readiness boolean/state machine. |
 | 4 | Event Closeout | One post-Event view of attendance/Rallies/Results/Evidence/review/Debrief work still required. | Operations + Intelligence/Evidence + EventAnalysis/ReadModels | Missing is not complete; owner workflows retain every correction/write. |
 | 5 | Kingdom Transfer Screenshot Intake | Review supported in-game Transfer screenshots and commit approved observations exactly once. | Intelligence/Evidence + GameWorld/KingdomTransfers | Evidence owns provenance; KingdomTransfers owns observations/eligibility. |
@@ -156,9 +154,9 @@ Evidence cannot silently become game truth. Planning intent cannot silently beco
 
 | Phase | State | Slice |
 | --- | --- | --- |
-| 0 | Complete in this documentation branch | Reconcile `/docs/product`, ownership/provenance and global delivery ledger |
-| 1 | Selected extension | Alliance Assistant `game_fact` |
-| 2 | Selected extension | Assistant operational-self intents and safe owner-workflow handoffs |
+| 0 | Complete | Reconcile `/docs/product`, ownership/provenance and global delivery ledger |
+| 1 | Complete | Alliance Assistant `game_fact` |
+| 2 | Complete | Assistant operational-self intents and safe owner-workflow handoffs |
 | 3 | Selected extension | Event Readiness |
 | 4 | Selected extension | Event Closeout |
 | 5 | Selected extension | Kingdom Transfer Screenshot Intake |
@@ -186,13 +184,13 @@ Evidence cannot silently become game truth. Planning intent cannot silently beco
 
 ## Phase 0 reconciliation result
 
-Phase 0 establishes documentation truth only. It must not change application code, migrations, routes, frontend components or runtime configuration.
+Phase 0 established documentation truth before application code changed.
 
-The completed documentation outcome is:
+The completed documentation outcome was:
 
 - Screenshot Intake global ledger status reconciled to the canonical completed contract;
 - a canonical extension-program document with acceptance criteria and ownership/provenance rules;
 - catalogue rows that clearly separate delivered behavior from selected/evidence-gated work;
 - this gap analysis using the three-state taxonomy;
 - global delivery-ledger rows for every extension phase;
-- user journeys for the selected extension outcomes, explicitly labelled as contract journeys until implemented.
+- user journeys for extension outcomes, with delivered journeys promoted as their implementation rows close.
