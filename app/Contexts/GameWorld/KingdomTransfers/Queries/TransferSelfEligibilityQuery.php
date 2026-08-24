@@ -188,7 +188,7 @@ final readonly class TransferSelfEligibilityQuery
     }
 
     /**
-     * @param Collection<int,TransferObservation> $observations
+     * @param  Collection<int,TransferObservation>  $observations
      * @return array<string,mixed>
      */
     private function result(

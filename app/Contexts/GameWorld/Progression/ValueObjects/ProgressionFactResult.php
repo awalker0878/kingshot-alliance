@@ -9,8 +9,8 @@ use App\Contexts\GameWorld\Progression\Enums\ProgressionFactResolution;
 final readonly class ProgressionFactResult
 {
     /**
-     * @param array<string, bool|float|int|string|null> $values
-     * @param list<string> $sourceIds
+     * @param  array<string, bool|float|int|string|null>  $values
+     * @param  list<string>  $sourceIds
      */
     public function __construct(
         public ProgressionFactResolution $resolution,
