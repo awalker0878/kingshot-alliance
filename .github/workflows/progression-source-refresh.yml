@@ -49,9 +49,6 @@ jobs:
       - name: Verify generated corpus and release contract
         run: python scripts/progression/verify_release.py
 
-      - name: Verify checked-in release is reproducible
-        run: git diff --exit-code -- resources/data/progression/kingshot-2026-08-23-v2
-
       - name: Upload regenerated immutable candidate
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
@@ -59,3 +56,6 @@ jobs:
           path: resources/data/progression/kingshot-2026-08-23-v2
           if-no-files-found: error
           retention-days: 7
+
+      - name: Verify checked-in release is reproducible
+        run: git diff --exit-code -- resources/data/progression/kingshot-2026-08-23-v2
