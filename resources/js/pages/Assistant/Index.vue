@@ -9,7 +9,7 @@ type Classification = 'operational_fact' | 'game_fact' | 'alliance_strategy' | '
 type SourceType = 'event' | 'roster' | 'alliance_content' | 'observation' | 'game_fact';
 type AssistantStatus =
   'answered' | 'ambiguous' | 'not_found' | 'unsupported' | 'validation_error' | 'unavailable';
-type AssistantPrompt = 'swordland_roster' | 'next_event' | 'bear_hunt_guide';
+type AssistantPrompt = 'swordland_roster' | 'next_event' | 'bear_hunt_guide' | 'observation';
 type PromptOption = { id: AssistantPrompt; label: string };
 
 type Evidence = {
@@ -59,7 +59,12 @@ const turns = ref<Turn[]>([]);
 const requestError = ref<string | null>(null);
 let turnId = 0;
 
-const defaultPromptIds: AssistantPrompt[] = ['swordland_roster', 'next_event', 'bear_hunt_guide'];
+const defaultPromptIds: AssistantPrompt[] = [
+  'swordland_roster',
+  'next_event',
+  'bear_hunt_guide',
+  'observation',
+];
 
 const canSubmit = computed(
   () =>
@@ -76,10 +81,16 @@ const suggestedQuestions = computed<PromptOption[]>(() => {
   return prompts.map((id) => ({ id, label: promptLabel(id) }));
 });
 
+const latestAnnouncement = computed(() => {
+  const latest = turns.value.at(-1);
+  return latest ? answerText(latest.response) : '';
+});
+
 function promptLabel(prompt: AssistantPrompt): string {
   if (prompt === 'swordland_roster') return t('assistant.prompts.swordland');
   if (prompt === 'next_event') return t('assistant.prompts.nextEvent');
-  return t('assistant.prompts.bearGuide');
+  if (prompt === 'bear_hunt_guide') return t('assistant.prompts.bearGuide');
+  return t('assistant.prompts.observation');
 }
 
 function isPrompt(value: string): value is AssistantPrompt {
@@ -213,7 +224,7 @@ function freshness(citation: Citation): string | null {
     :player-alliance-name="props.alliance.name"
     :has-player-alliance="true"
   >
-    <main id="main-content" class="mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 lg:py-10">
+    <div class="mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 lg:py-10">
       <section
         class="overflow-hidden rounded-[var(--ks-radius-lg)] border border-[var(--ks-border)] bg-[var(--ks-panel)] shadow-2xl"
       >
@@ -385,11 +396,11 @@ function freshness(citation: Citation): string | null {
               :maxlength="props.maxQuestionLength"
               :placeholder="t('assistant.questionPlaceholder')"
               class="mt-2 w-full resize-y rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-surface)] px-3 py-3 text-base text-[var(--ks-text)] outline-none placeholder:text-[var(--ks-muted)] focus:border-[var(--ks-gold)] focus:ring-2 focus:ring-[var(--ks-gold-soft)]"
-              :aria-describedby="requestError ? 'assistant-request-status' : undefined"
+              aria-describedby="assistant-input-hint assistant-request-status"
               @keydown="onQuestionKeydown"
             />
             <div class="mt-2 flex flex-wrap items-center justify-between gap-3">
-              <p class="text-xs text-[var(--ks-muted)]">
+              <p id="assistant-input-hint" class="text-xs text-[var(--ks-muted)]">
                 {{
                   t('assistant.inputHint', { count: question.length, max: props.maxQuestionLength })
                 }}
@@ -402,12 +413,12 @@ function freshness(citation: Citation): string | null {
                 {{ busy ? t('assistant.asking') : t('assistant.ask') }}
               </button>
             </div>
-            <p id="assistant-request-status" class="sr-only" aria-live="polite">
-              {{ busy ? t('assistant.asking') : (requestError ?? '') }}
+            <p id="assistant-request-status" class="sr-only" role="status" aria-live="polite">
+              {{ busy ? t('assistant.asking') : (requestError ?? latestAnnouncement) }}
             </p>
           </form>
         </div>
       </section>
-    </main>
+    </div>
   </AppLayout>
 </template>
