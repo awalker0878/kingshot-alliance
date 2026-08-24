@@ -19,7 +19,7 @@ on:
       - docs/product/factual-governor-progression-source-inventory.md
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: progression-source-refresh-${{ github.ref }}
@@ -33,7 +33,6 @@ jobs:
       - name: Checkout candidate branch head
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.2.2
         with:
-          ref: feature/factual-governor-progression
           fetch-depth: 1
 
       - name: Set up Python
@@ -57,18 +56,6 @@ jobs:
           path: resources/data/progression/kingshot-2026-08-23-v2
           if-no-files-found: error
           retention-days: 7
-
-      - name: Promote verified immutable candidate
-        run: |
-          if git diff --quiet -- resources/data/progression/kingshot-2026-08-23-v2; then
-            echo "Checked-in progression release already matches regenerated candidate."
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add resources/data/progression/kingshot-2026-08-23-v2
-          git commit -m "Update verified factual progression release"
-          git push origin HEAD:feature/factual-governor-progression
 
       - name: Verify checked-in release is reproducible
         run: git diff --exit-code -- resources/data/progression/kingshot-2026-08-23-v2
