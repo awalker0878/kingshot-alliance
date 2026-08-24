@@ -7,7 +7,10 @@ const factualProgressionVisualFingerprints: Record<
   { library: string; governor: string }
 > = {
   desktop: { library: 'PENDING', governor: 'PENDING' },
-  mobile: { library: 'PENDING', governor: 'PENDING' },
+  mobile: {
+    library: '14c1a66a426fba6a735e4fec644071a744113023ca201615c1b93649b6ca6af9',
+    governor: '48e75ff86f85a9342c7326f984209efc0e4adfe97b67a95a2dae6f19b18a1f6b',
+  },
 };
 
 async function loginAndActivateGovernor(page: Page): Promise<void> {
@@ -57,7 +60,7 @@ test('Factual Progression library and Governor view remain complete on desktop a
 
   await expect(page.getByRole('heading', { name: 'Factual Progression', level: 1 })).toBeVisible();
   await expect(page.getByText('2026.08.23.2', { exact: true }).first()).toBeVisible();
-  await expect(page.getByText('Fortified Mail VI', { exact: true }).first()).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Fortified Mail VI', exact: true })).toBeVisible();
   await expect(page.getByText('Source gaps', { exact: true }).first()).toBeVisible();
   await expect(page.getByText('Sources & evidence', { exact: true }).first()).toBeVisible();
   await expectNoHorizontalOverflow(page);
