@@ -4,7 +4,8 @@ const messages = {
   progression: {
     title: 'Factual Progression',
     eyebrow: 'KingShot reference data',
-    subtitle: 'Versioned, source-labelled progression facts. Unknowns, conflicts and source gaps stay visible instead of being guessed.',
+    subtitle:
+      'Versioned, source-labelled progression facts. Unknowns, conflicts and source gaps stay visible instead of being guessed.',
     datasetVersion: 'Dataset version',
     schemaVersion: 'Schema version',
     datasetChecksum: 'Dataset checksum',
@@ -13,9 +14,11 @@ const messages = {
     conflicts: 'Conflicts',
     sourceGaps: 'Source gaps',
     factualOnly: 'Factual reference only.',
-    noRecommendations: 'Community formations are conventions, not recommendations. Calculators remain evidence-gated.',
+    noRecommendations:
+      'Community formations are conventions, not recommendations. Calculators remain evidence-gated.',
     detailedFacts: 'Detailed factual rows',
-    detailedFactsHelp: 'Browse the immutable per-level and per-step data retained in this dataset release. Missing source cells remain unknown.',
+    detailedFactsHelp:
+      'Browse the immutable per-level and per-step data retained in this dataset release. Missing source cells remain unknown.',
     selectFamily: 'Select a factual family',
     searchFamily: 'Search this family',
     showFamily: 'Show facts',
@@ -29,7 +32,8 @@ const messages = {
     pageOf: 'Page {page} of {pages}',
     noFamilyRows: 'No factual rows match this family search.',
     heroRoster: 'Hero roster',
-    heroRosterHelp: 'Current canonical Hero identities, class, rarity, generation and typical release age.',
+    heroRosterHelp:
+      'Current canonical Hero identities, class, rarity, generation and typical release age.',
     search: 'Search Heroes',
     generation: 'Generation',
     generationShort: 'Generation {value}',
@@ -63,7 +67,8 @@ const messages = {
     communityConvention: 'Community convention',
     sourceConflicts: 'Source conflicts',
     coverage: 'Dataset coverage',
-    coverageHelp: 'Every discovered family is canonicalized, conflicting, explicitly source-gapped or excluded. Reusable complete tables are not left index-only.',
+    coverageHelp:
+      'Every discovered family is canonicalized, conflicting, explicitly source-gapped or excluded. Reusable complete tables are not left index-only.',
     family: 'Family',
     status: 'Status',
     discovered: 'Discovered',
@@ -75,17 +80,21 @@ const messages = {
     retrieved: 'Retrieved',
     governorProgression: 'Governor progression',
     backToLibrary: 'Factual library',
-    separationHelp: 'Catalogue facts, dated Governor observations and saved loadouts stay separate. The catalogue describes KingShot; observations describe what was seen; loadouts are your planning intent.',
+    separationHelp:
+      'Catalogue facts, dated Governor observations and saved loadouts stay separate. The catalogue describes KingShot; observations describe what was seen; loadouts are your planning intent.',
     observedFacts: 'Observed Governor facts',
     governorObservations: 'Observation history',
-    observationHelp: 'Append-only observations record only what was actually captured. A missing Hero or field is unknown unless the source explicitly represents a complete roster capture.',
-    observationUnavailable: 'Governor observations are unavailable in the current Alliance context or your current Intelligence permissions do not allow this read.',
+    observationHelp:
+      'Append-only observations record only what was actually captured. A missing Hero or field is unknown unless the source explicitly represents a complete roster capture.',
+    observationUnavailable:
+      'Governor observations are unavailable in the current Alliance context or your current Intelligence permissions do not allow this read.',
     observedPower: 'Observed power',
     capturedAt: 'Captured at',
     progressionLevel: 'Observed progression level',
     completeRosterCapture: 'This evidence captured the complete Hero roster',
     heroObservations: 'Observed Heroes',
-    heroObservationHelp: 'Add only Heroes visible in the evidence. Leave level, star or Widget blank when the value was not observed.',
+    heroObservationHelp:
+      'Add only Heroes visible in the evidence. Leave level, star or Widget blank when the value was not observed.',
     addHero: 'Add Hero',
     heroObservationNumber: 'Hero observation {number}',
     hero: 'Hero',
@@ -100,7 +109,8 @@ const messages = {
     noObservations: 'No Governor progression observations have been recorded.',
     planningIntent: 'User planning intent',
     savedLoadouts: 'Saved loadouts',
-    loadoutHelp: 'Loadouts are your saved formations. Hero identity and troop percentages are validated against the pinned factual release, but the application does not score or recommend them.',
+    loadoutHelp:
+      'Loadouts are your saved formations. Hero identity and troop percentages are validated against the pinned factual release, but the application does not score or recommend them.',
     loadoutName: 'Loadout name',
     formationTotal: 'Formation total: {total}%',
     heroesUpToFive: 'Heroes (up to five)',

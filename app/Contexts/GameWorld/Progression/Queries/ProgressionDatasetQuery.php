@@ -391,6 +391,7 @@ final class ProgressionDatasetQuery
                 if (! is_string($child) || ! isset($sourceIds[$child])) {
                     throw new RuntimeException('Progression fact references an unregistered source.');
                 }
+
                 continue;
             }
             if ($key === 'source_ids') {
@@ -402,6 +403,7 @@ final class ProgressionDatasetQuery
                         throw new RuntimeException('Progression fact references an unregistered source.');
                     }
                 }
+
                 continue;
             }
             if (is_array($child)) {

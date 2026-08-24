@@ -7,11 +7,11 @@ namespace App\Contexts\GameWorld\Progression\ValueObjects;
 final readonly class ProgressionDataset
 {
     /**
-     * @param array<string,mixed> $release
-     * @param list<array<string,mixed>> $heroes
-     * @param array<string,mixed> $systems
-     * @param list<array<string,mixed>> $formations
-     * @param array<string,array<string,mixed>> $catalogues
+     * @param  array<string,mixed>  $release
+     * @param  list<array<string,mixed>>  $heroes
+     * @param  array<string,mixed>  $systems
+     * @param  list<array<string,mixed>>  $formations
+     * @param  array<string,array<string,mixed>>  $catalogues
      */
     public function __construct(
         public string $id,

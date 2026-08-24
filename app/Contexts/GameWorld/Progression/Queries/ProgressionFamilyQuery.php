@@ -251,6 +251,7 @@ final class ProgressionFamilyQuery
                     'sourceIds' => is_string($technology['source_id'] ?? null) ? [$technology['source_id']] : [],
                     'confidence' => 'unknown_level_table',
                 ];
+
                 continue;
             }
             foreach ($technology['levels'] as $index => $level) {
@@ -280,9 +281,8 @@ final class ProgressionFamilyQuery
     }
 
     /**
-     * @param mixed $value
-     * @param list<array{path:string,values:array<string,string|null>,sourceIds:list<string>,confidence:string|null}> $rows
-     * @param list<string> $sourceIds
+     * @param  list<array{path:string,values:array<string,string|null>,sourceIds:list<string>,confidence:string|null}>  $rows
+     * @param  list<string>  $sourceIds
      */
     private function flattenDocumentRows(
         mixed $value,
@@ -310,14 +310,17 @@ final class ProgressionFamilyQuery
         foreach ($value as $key => $child) {
             if (is_scalar($child) || $child === null) {
                 $values[(string) $key] = $child === null ? null : (string) $child;
+
                 continue;
             }
             if (is_array($child) && $this->isScalarList($child)) {
                 $values[(string) $key] = implode(' · ', array_map(static fn (mixed $item): string => (string) $item, $child));
+
                 continue;
             }
             if (is_array($child) && ! array_is_list($child) && $this->containsOnlyScalarLeaves($child)) {
                 $this->flattenScalarValues($child, (string) $key, $values);
+
                 continue;
             }
             if (is_array($child)) {
@@ -338,7 +341,6 @@ final class ProgressionFamilyQuery
         }
     }
 
-    /** @param mixed $value */
     private function isScalarList(mixed $value): bool
     {
         if (! is_array($value) || ! array_is_list($value)) {
@@ -361,6 +363,7 @@ final class ProgressionFamilyQuery
                 if (array_is_list($child) ? ! $this->isScalarList($child) : ! $this->containsOnlyScalarLeaves($child)) {
                     return false;
                 }
+
                 continue;
             }
             if (! is_scalar($child) && $child !== null) {
@@ -381,10 +384,12 @@ final class ProgressionFamilyQuery
             $label = $prefix.' · '.str_replace('_', ' ', (string) $key);
             if (is_scalar($child) || $child === null) {
                 $target[$label] = $child === null ? null : (string) $child;
+
                 continue;
             }
             if ($this->isScalarList($child)) {
                 $target[$label] = implode(' · ', array_map(static fn (mixed $item): string => (string) $item, $child));
+
                 continue;
             }
             if (is_array($child)) {
