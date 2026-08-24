@@ -14,14 +14,14 @@ final readonly class EventDeliveryHealthQuery
      * Communications owns provider delivery state but does not import Operations models.
      *
      * @return array{
-     *   deliveryCount:int,
-     *   pendingCount:int,
-     *   queuedCount:int,
-     *   sentCount:int,
-     *   failedCount:int,
-     *   cancelledCount:int,
-     *   retryableFailedCount:int,
-     *   exhaustedFailedCount:int
+     *     deliveryCount:int,
+     *     pendingCount:int,
+     *     queuedCount:int,
+     *     sentCount:int,
+     *     failedCount:int,
+     *     cancelledCount:int,
+     *     retryableFailedCount:int,
+     *     exhaustedFailedCount:int
      * }
      */
     public function forEventOccurrence(string $occurrenceId): array
