@@ -3,60 +3,7 @@ import { router } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
 import { useLocale } from '@/localization';
-
-type EventCommandStatus =
-  | 'complete'
-  | 'needs_attention'
-  | 'warning'
-  | 'unknown'
-  | 'not_applicable';
-type EventCommandSeverity = 'blocking' | 'warning' | 'informational';
-type EventCommandState =
-  | 'planning'
-  | 'needs_attention'
-  | 'ready'
-  | 'active'
-  | 'closeout_required'
-  | 'complete';
-type EventCommandItem = {
-  code: string;
-  phase: 'readiness' | 'closeout';
-  status: EventCommandStatus;
-  severity: EventCommandSeverity;
-  owner: string;
-  classification: 'operational_fact' | 'alliance_strategy' | 'evidence' | 'derived';
-  count: number | null;
-  messageKey: string;
-  messageParameters: Record<string, string | number | null>;
-  source: Record<string, unknown> | null;
-  handoff: { href: string; labelKey: string } | null;
-};
-type EventCommandSection = {
-  key: string;
-  labelKey: string;
-  phase: 'readiness' | 'closeout';
-  items: EventCommandItem[];
-};
-export type EventCommandProjection = {
-  eventId: string;
-  selectedOccurrenceId: string | null;
-  occurrences: Array<{
-    id: string;
-    startsAt: string;
-    endsAt: string;
-    status: string;
-    selected: boolean;
-  }>;
-  state: EventCommandState | null;
-  eventStatus: string;
-  occurrenceStatus: string | null;
-  startsAt: string | null;
-  endsAt: string | null;
-  timezone: string;
-  blockerCount: number;
-  warningCount: number;
-  sections: EventCommandSection[];
-};
+import type { EventCommandItem, EventCommandProjection } from '@/types/event-command';
 
 const props = defineProps<{ command: EventCommandProjection }>();
 const { t, formatDate } = useLocale();
