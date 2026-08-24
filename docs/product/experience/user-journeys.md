@@ -2,6 +2,8 @@
 
 Status: Current
 
+Implemented journeys are described in present tense. Journeys under **Capability Extension Program — implementation contract journeys** are approved product contracts but are not implemented until their delivery-ledger rows close.
+
 ## Account to game context
 
 ```text
@@ -276,4 +278,237 @@ Authenticate + select active Governor with an active Alliance
  -> ask another question or open the canonical source workflow
 ```
 
-The canonical first-use example is **“What time is Swordland and am I rostered?”**. The answer combines the authorized Event occurrence and only the active Governor’s own roster assignment. Alliance-authored guidance is labelled **Alliance strategy**; recorded intelligence is labelled **Observation**. A question such as **“Put me on the Swordland roster”** performs no mutation and does not create an Assistant-specific write path. Unsupported general KingShot questions are not answered from model memory.
+The canonical first-use example is **“What time is Swordland and am I rostered?”**. The answer combines the authorized Event occurrence and only the active Governor's own roster assignment. Alliance-authored guidance is labelled **Alliance strategy**; recorded intelligence is labelled **Observation**. A question such as **“Put me on the Swordland roster”** performs no mutation and does not create an Assistant-specific write path. Unsupported general KingShot questions are not answered from model memory.
+
+# Capability Extension Program — implementation contract journeys
+
+Status: **Selected extension / Evidence-gated extension — not implemented until the corresponding delivery-ledger row closes.**
+
+These journeys are the UX contract for implementation. They do not change the present-tense behavior documented above.
+
+## Ask a source-backed Game Data question
+
+Program state: **Selected extension**.
+
+```text
+Authenticate + select active Governor
+ -> ask a bounded Progression question such as "What generation is Amadeus?"
+ -> Assistant resolves `game_fact`
+ -> GameWorld/Progression owner query selects a concrete immutable release before returning data
+ -> match one supported canonical row or return ambiguity/not-found/conflict/unknown
+ -> compose answer from typed owner projection
+ -> show Game data provenance with dataset identity/version/checksum, source IDs and confidence
+ -> open canonical Progression source/detail when desired
+```
+
+The Assistant does not scrape the web, query model memory, or persist a second knowledge base. A conflicting or unknown Progression row stays conflicting/unknown.
+
+## Ask about my own operational state
+
+Program state: **Selected extension**.
+
+```text
+Ask "Did I register for Swordland?" / "What is my objective?" / "Can I transfer to Kingdom 123?"
+ -> resolve the bounded self intent
+ -> authorize the Event/Transfer/resource scope before retrieval
+ -> query only the active Governor's Participation/BattlePlan/Transfer state
+ -> preserve owner states such as waitlisted, missing, stale, conflicting or needs verification
+ -> cite the owner records used
+```
+
+A self intent never reveals another Governor's private operational state.
+
+## Handoff a write-like Assistant question to the owner workflow
+
+Program state: **Selected extension**.
+
+```text
+Ask "Put me on the Swordland roster"
+ -> Assistant recognizes a write-like request
+ -> perform no mutation
+ -> when a safe canonical destination is resolved, offer "Open Swordland roster"
+ -> navigate with bounded resource identity only
+ -> destination owner workflow reauthorizes current Governor/context
+ -> user performs or confirms the normal owner action
+```
+
+The Assistant never silently submits the action and never receives a privileged mutation capability.
+
+## Event readiness before an Event
+
+Program state: **Selected extension**.
+
+```text
+Open Event Command for an authorized occurrence
+ -> compose only capabilities enabled/applicable to this Event
+ -> inspect schedule/cancellation
+ -> inspect registration/response/capacity/waitlist
+ -> inspect roster coverage
+ -> inspect applicable polls/objectives/assignments
+ -> inspect Event-linked Alliance strategy freshness
+ -> inspect referenced immutable Territory revision when applicable
+ -> inspect reminder/announcement delivery readiness
+ -> inspect required Rally plans
+ -> derive ready / needs attention from owner projections
+ -> open the owner workflow for each blocker
+```
+
+There is no persisted `event_ready` boolean. Missing/unknown owner state cannot silently count as complete. Alliance Content remains Alliance strategy, not game truth. Queued Communications delivery is not presented as sent.
+
+## Event closeout after an Event
+
+Program state: **Selected extension**.
+
+```text
+Event ends
+ -> Event Command switches to derived closeout view when applicable
+ -> inspect attendance recording completeness
+ -> inspect recorded Rally participation completeness
+ -> inspect Results state
+ -> inspect Evidence still processing / awaiting review / failed commit
+ -> inspect unmatched Governor review
+ -> inspect unresolved owner corrections
+ -> expose Debrief when authoritative data is available
+ -> derive closeout required / complete
+ -> deep-link every unresolved item to its owner workflow
+```
+
+Closeout remains read-side composition. Correcting attendance, Rallies, Results or Evidence uses the existing owner Actions and recovery semantics.
+
+## Import Kingdom Transfer evidence
+
+Program state: **Selected extension**.
+
+```text
+Open authorized Transfer participant/window
+ -> choose Add in-game evidence
+ -> upload supported private screenshot
+ -> scan/checksum/store immutable Evidence
+ -> classify with a versioned Transfer screenshot schema
+ -> extract only fixture-proven fields
+ -> review field confidence/source meaning
+ -> correct/exclude unresolved fields
+ -> preview typed Transfer observations and resulting deterministic eligibility effect
+ -> commit reviewed meaning
+ -> GameWorld/KingdomTransfers reauthorizes scope and validates window/participant/target
+ -> append/reuse idempotent owner observations
+ -> recompute eligibility through existing evaluator
+ -> Evidence records the destination receipt
+```
+
+A screenshot may record an observed required Transfer Pass count but cannot invent the unpublished Transfer Score → Pass formula. Retrying after destination success returns the same destination meaning rather than adding another observation.
+
+## Import Governor progression evidence
+
+Program state: **Selected extension**.
+
+```text
+Open authorized Governor progression workflow
+ -> upload supported profile/Hero/Gear screenshot
+ -> Evidence classifies/extracts a narrow fixture-proven schema
+ -> select the concrete immutable Progression release used for normalization
+ -> match observed Hero/Gear/Charm identity to canonical catalogue IDs
+ -> expose ambiguous/unresolved matches for human review
+ -> approve reviewed meaning
+ -> Intelligence/Roster reauthorizes and appends dated observation pinned to dataset identity/checksum
+ -> Evidence records destination receipt
+ -> progression history shows the new observation without rewriting prior observations
+```
+
+OCR names never create or rename Players or canonical Heroes. Not seeing an item does not prove non-ownership unless the evidence schema explicitly proves a complete capture.
+
+## Plan a factual progression goal
+
+Program state: **Selected extension**.
+
+```text
+Open Progression Goal Planner
+ -> choose current authorized Governor observation
+ -> inspect its captured-at/source and pinned/current normalization context
+ -> choose a target canonical level/tier/entity from a concrete Progression release
+ -> show factual prerequisite/step path supported by that release
+ -> mark missing/conflicting prerequisite data explicitly
+ -> optionally save user planning intent pinned to the dataset
+```
+
+The planner does not call a target best/optimal/recommended and does not display resource/time totals for a family whose calculator evidence gate has not passed.
+
+## Qualify a calculator family
+
+Program state: **Evidence-gated extension**.
+
+```text
+Select one numeric family
+ -> inventory every required input/output row and unit
+ -> attach source/version/observed boundary
+ -> reconcile conflicts and unknowns
+ -> create immutable checksummed calculation dataset
+ -> implement typed calculation contract and golden fixtures
+ -> produce machine-readable qualification report
+ -> if every gate passes: mark only this family qualified
+ -> otherwise: keep runtime calculator disabled with explicit blockers
+```
+
+Qualification of Governor Gear does not qualify Charms, Hero Gear, troops, research or buildings.
+
+## Use a qualified calculator
+
+Program state: **Evidence-gated extension; unavailable until that family's qualification report passes**.
+
+```text
+Choose qualified family
+ -> select canonical current and target steps
+ -> validate both against the qualified immutable dataset
+ -> run typed server/domain calculation
+ -> show factual delta with dataset/checksum/calculation version, sources and assumptions
+ -> return unavailable/conflicting when required inputs are unknown/conflicting
+ -> optionally save scenario pinned to all versions/inputs
+```
+
+Calculators answer the selected scenario. They are not recommendations.
+
+## Compare Territory plan with observed state
+
+Program state: **Selected extension**.
+
+```text
+Open immutable published Territory revision
+ -> choose latest authorized observed-state evidence set
+ -> verify observation/map/plan version compatibility
+ -> compare planned HQ/Banner/Bear Trap/Governor positions with observations
+ -> show matched / displaced / not observed / unexpected / stale / unknown states
+ -> show deterministic distance/coverage effects when supported
+ -> provide text equivalents for every spatial comparison result
+ -> correct observation through Evidence/observation workflow or correct desired plan by creating a new editable plan revision
+```
+
+Observed coordinates never rewrite a published plan or GameWorld map dataset. A missing observation is not coordinate zero and is not proof an object does not exist.
+
+## Review Intelligence change signals
+
+Program state: **Selected extension**.
+
+```text
+Authorized owner history changes
+ -> derive bounded deterministic signal from explicit source observations
+ -> retain source observation IDs/timestamps and typed threshold/window
+ -> expose signal in an authorized ReadModel surface
+ -> optionally compose it into Command Overview / Kingdom Intelligence / Assistant
+ -> if notification is part of the delivered slice, send through Communications preferences/idempotency
+```
+
+Examples may include tracked Alliance power/member-count change, Governor progression change, stale observation or expiring Transfer evidence. A numeric change never becomes an inferred conclusion such as "preparing to attack" unless an explicit future product contract/source supports that separate claim.
+
+## Extension-program recovery rule
+
+For every implementation-contract journey:
+
+```text
+failure / stale authority / duplicate / conflict / unavailable source
+ -> preserve owner and provenance boundaries
+ -> show explicit localized state
+ -> perform no compensating hidden write
+ -> retry/review/correct only through documented owner recovery path
+```
+
+The canonical acceptance criteria, ownership/provenance rules and delivery order for these journeys live in [Capability Extension Program](../capability-extension-program.md) and the [Capability delivery ledger](../capability-delivery-ledger.md).
