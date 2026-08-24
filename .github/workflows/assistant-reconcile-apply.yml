@@ -1,0 +1,50 @@
+name: Assistant Reconcile Apply
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'resources/js/layouts/AppLayout.vue'
+      - 'resources/js/pages/Assistant/Index.vue'
+      - '.github/workflows/assistant-reconcile-apply.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Fix navigation helper and format Assistant frontend
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('resources/js/layouts/AppLayout.vue')
+          text = path.read_text()
+          old = "return item.key === 'assistant' ? t('assistant.navigation') : navigationLabel(item);"
+          new = "return item.key === 'assistant' ? t('assistant.navigation') : t(`navigation.${item.key}`);"
+          if old not in text:
+              raise SystemExit('Expected recursive navigation helper was not found')
+          path.write_text(text.replace(old, new, 1))
+          PY
+          npx prettier --write resources/js/layouts/AppLayout.vue resources/js/pages/Assistant/Index.vue
+          rm .github/workflows/assistant-reconcile-apply.yml
+          git diff --check
+      - name: Commit reconciliation
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resources/js/layouts/AppLayout.vue resources/js/pages/Assistant/Index.vue .github/workflows/assistant-reconcile-apply.yml
+          git commit -m 'fix(assistant): restore application navigation rendering'
+          git push origin "HEAD:${{ github.event.pull_request.head.ref }}"
