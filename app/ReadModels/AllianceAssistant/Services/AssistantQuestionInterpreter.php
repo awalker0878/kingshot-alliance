@@ -299,6 +299,7 @@ final class AssistantQuestionInterpreter
     {
         $subject = trim((string) preg_replace('/[^\pL\pN\-\s]+/u', ' ', (string) $subject));
         $subject = trim((string) preg_replace('/\s+/u', ' ', $subject));
+        $subject = trim((string) preg_replace('/^the\s+/u', '', $subject));
 
         return $subject === '' ? null : $subject;
     }
