@@ -37,6 +37,7 @@ final class AssistantQuestionInterpreterV3Test extends TestCase
         yield 'guide' => ['What does our Bear Hunt guide say?', AssistantIntent::AllianceContent, 'bear hunt', false, false];
         yield 'observation' => ['What have we observed about K123?', AssistantIntent::AllianceObservation, 'k123', false, false];
         yield 'registration' => ['Did I register for Swordland?', AssistantIntent::EventParticipationSelf, 'swordland', false, false];
+        yield 'weekly RSVP' => ['What did I RSVP for this week?', AssistantIntent::EventParticipationSelf, null, false, false];
         yield 'assignment' => ['What is my Swordland assignment?', AssistantIntent::BattlePlanSelf, 'swordland', false, false];
         yield 'territory' => ['Which hive layout are we using for Bear Hunt?', AssistantIntent::TerritoryPlan, 'bear hunt', false, false];
     }
