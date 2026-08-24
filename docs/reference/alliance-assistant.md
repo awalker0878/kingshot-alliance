@@ -26,8 +26,11 @@ Middleware:
 - `auth`;
 - `auth.session`;
 - `verified`;
+- the repository-wide current Player authority-context version guard;
 - `alliance.context`;
 - `throttle:alliance-assistant`.
+
+The browser must submit the current `X-Game-Context-Version` value on same-origin POST requests. The normal frontend authority-context runtime attaches this header automatically. A missing or stale value is rejected before Assistant retrieval with `409 CONTEXT_STALE` and `X-Game-Context-Error: stale`; the caller must reload/re-resolve the active Governor context rather than retrying against stale authority.
 
 Request JSON:
 
@@ -44,7 +47,8 @@ Request JSON:
 
 - `swordland_roster`;
 - `next_event`;
-- `bear_hunt_guide`.
+- `bear_hunt_guide`;
+- `observation`.
 
 A prompt identifier selects only a predeclared read intent. It grants no additional source visibility. Write-like question text remains unsupported even when paired with a read prompt identifier.
 
@@ -69,7 +73,7 @@ Successful Assistant processing returns a structured JSON object. User-visible o
   "evidence": [],
   "citations": [],
   "ambiguity": null,
-  "suggestedQuestions": ["swordland_roster", "next_event", "bear_hunt_guide"]
+  "suggestedQuestions": ["swordland_roster", "next_event", "bear_hunt_guide", "observation"]
 }
 ```
 
@@ -88,9 +92,10 @@ HTTP status mapping:
 
 - normal Assistant outcomes, including `not_found`, `unsupported`, and `ambiguous`: `200`;
 - invalid question or prompt: `422`;
+- stale/missing Player authority context: `409 CONTEXT_STALE` with `X-Game-Context-Error: stale` when the current-authority guard rejects the POST;
 - rate limit: `429` from middleware;
 - unavailable owner/composition failure: `503`;
-- authorization failures: normal `401`/`403`/`409` application boundaries.
+- other authorization failures: normal `401`/`403`/`409` application boundaries.
 
 ## Evidence and citations
 
