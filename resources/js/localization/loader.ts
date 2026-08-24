@@ -1,4 +1,5 @@
 import { assistantGameWorldExtension } from './assistant-gameworld-extension';
+import { assistantTransferLabels } from './assistant-transfer-labels';
 import { defaultLocale, type LocaleCode } from './locales';
 import { importDomainCatalogue, type LocalizationDomain } from './registry';
 import type { MessageCatalogue } from './types';
@@ -31,10 +32,7 @@ function mergeCatalogue(base: MessageCatalogue, overlay: MessageCatalogue): Mess
     }
 
     const current = result[key];
-    result[key] = mergeCatalogue(
-      typeof current === 'object' ? current : {},
-      value,
-    );
+    result[key] = mergeCatalogue(typeof current === 'object' ? current : {}, value);
   }
 
   return result;
@@ -51,7 +49,10 @@ async function loadOne(domain: LocalizationDomain, locale: LocaleCode): Promise<
   const request = importDomainCatalogue(domain, locale).then((module) => {
     const catalogue =
       domain === 'assistant'
-        ? mergeCatalogue(module.default, assistantGameWorldExtension(locale))
+        ? mergeCatalogue(
+            mergeCatalogue(module.default, assistantGameWorldExtension(locale)),
+            assistantTransferLabels(locale),
+          )
         : module.default;
     catalogues.set(key, catalogue);
     pending.delete(key);
