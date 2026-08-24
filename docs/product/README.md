@@ -8,6 +8,7 @@ This area explains **what Kingshot Alliance provides to users**. It does not def
 - [Capability catalogue](capability-catalogue.md)
 - [Capability completeness plan](capability-gap-analysis.md)
 - [Capability delivery ledger](capability-delivery-ledger.md)
+- [Alliance Assistant](alliance-assistant.md)
 - [Factual Governor Progression](factual-governor-progression.md)
 - [Screenshot Intake](screenshot-intake.md)
 - [Terminology](terminology.md)
