@@ -92,7 +92,8 @@ const englishCommand: MessageCatalogue = {
     participationUnavailable: 'Participation status is temporarily unavailable.',
     unansweredMembers: '{count} Governors have not answered.',
     responsesComplete: 'All eligible Governors have answered.',
-    registrationState: '{registeredCount} registered · {waitlistCount} waitlisted · registration {state}.',
+    registrationState:
+      '{registeredCount} registered · {waitlistCount} waitlisted · registration {state}.',
     waitlistActive: '{count} Governors are on the waitlist.',
     waitlistClear: 'No Governors are waitlisted.',
     pollsUnavailable: 'Poll readiness is temporarily unavailable.',
@@ -108,9 +109,11 @@ const englishCommand: MessageCatalogue = {
     battlePlanUnavailable: 'Battle Plan readiness is temporarily unavailable.',
     objectivesMissing: 'No Battle Plan objectives are configured.',
     objectivesConfigured: '{count} Battle Plan objectives are configured.',
-    battlePlanUnassigned: '{count} rostered Governors have no Battle Plan assignment.',
+    battlePlanUnassigned:
+      '{count} rostered Governors have no Battle Plan assignment.',
     battlePlanAssigned: 'Rostered Governors have Battle Plan assignments.',
-    battlePlanInvalidAssignments: '{count} Battle Plan assignments reference an invalid target.',
+    battlePlanInvalidAssignments:
+      '{count} Battle Plan assignments reference an invalid target.',
     ralliesUnavailable: 'Rally status is temporarily unavailable.',
     ralliesMissing: 'No Rally groups are configured.',
     ralliesConfigured: '{count} Rally groups are configured.',
@@ -118,41 +121,55 @@ const englishCommand: MessageCatalogue = {
     rallyLeadsReady: 'Configured Rally groups have leads.',
     strategyUnavailable: 'Alliance strategy status is temporarily unavailable.',
     strategyMissing: 'No published Event-linked Alliance strategy is available.',
-    strategyNeedsReview: '{title} is published but its review status is {freshness}.',
+    strategyNeedsReview:
+      '{title} is published but its review status is {freshness}.',
     strategyCurrent: '{title} revision {revision} is current.',
     territoryUnavailable: 'Territory status is temporarily unavailable.',
-    territoryNotAttached: 'No published Territory revision is attached to this occurrence.',
-    territoryViolations: 'The referenced Territory revision has {count} validation violations.',
+    territoryNotAttached:
+      'No published Territory revision is attached to this occurrence.',
+    territoryViolations:
+      'The referenced Territory revision has {count} validation violations.',
     territoryReady: 'The referenced published Territory revision is valid.',
-    territoryWarnings: 'The referenced Territory revision has {count} validation warnings.',
-    territoryDraftDiffers: 'The current Territory draft differs from the immutable Event revision.',
+    territoryWarnings:
+      'The referenced Territory revision has {count} validation warnings.',
+    territoryDraftDiffers:
+      'The current Territory draft differs from the immutable Event revision.',
     reminderUnavailable: 'Event reminder configuration is temporarily unavailable.',
     reminderMissing: 'An Event-start reminder has not been scheduled.',
     reminderScheduled: 'An Event-start reminder is scheduled.',
     deliveryUnavailable: 'Reminder delivery health is temporarily unavailable.',
-    deliveryFailed: '{count} reminder deliveries failed; {retryableCount} can be retried.',
-    deliveryPending: '{count} reminder deliveries are pending or queued, not delivered yet.',
+    deliveryFailed:
+      '{count} reminder deliveries failed; {retryableCount} can be retried.',
+    deliveryPending:
+      '{count} reminder deliveries are pending or queued, not delivered yet.',
     deliverySent: '{count} reminder deliveries were sent.',
     attendanceUnavailable: 'Attendance closeout status is temporarily unavailable.',
-    attendanceMissing: '{count} Governors do not have a recorded attendance result.',
+    attendanceMissing:
+      '{count} Governors do not have a recorded attendance result.',
     attendanceComplete: 'Attendance has been recorded for eligible Governors.',
-    rallyActualsNotApplicable: 'No planned Rally assignments require participation closeout.',
-    rallyActualsMissing: '{count} Rally assignments do not have recorded participation.',
+    rallyActualsNotApplicable:
+      'No planned Rally assignments require participation closeout.',
+    rallyActualsMissing:
+      '{count} Rally assignments do not have recorded participation.',
     rallyActualsComplete: 'Rally participation has been recorded.',
     resultsUnavailable: 'Results closeout status is temporarily unavailable.',
     resultsComplete: 'The Event result is recorded.',
     resultsMissing: 'The Event result has not been recorded.',
-    playerResultsMissing: '{count} eligible Governors do not have an individual result.',
-    correctionsUnsupported: 'Results does not currently expose an explicit unresolved-correction workflow.',
+    playerResultsMissing:
+      '{count} eligible Governors do not have an individual result.',
+    correctionsUnsupported:
+      'Results does not currently expose an explicit unresolved-correction workflow.',
     evidenceUnavailable: 'Evidence closeout status is temporarily unavailable.',
     evidenceProcessing: '{count} Evidence items are still processing.',
     evidenceAwaitingReview: '{count} Evidence items are awaiting review.',
     evidenceUnmatched: '{count} Evidence items contain unmatched Governors.',
     evidenceCommitPending: '{count} reviewed Evidence commits are pending.',
     evidenceFailed: '{count} Evidence processing or commit attempts failed.',
-    evidenceClear: 'No Evidence workflow blockers remain; {count} items are committed.',
+    evidenceClear:
+      'No Evidence workflow blockers remain; {count} items are committed.',
     debriefAvailable: 'Debrief is available.',
-    debriefUnavailable: 'Debrief will become available when its required owner data exists.',
+    debriefUnavailable:
+      'Debrief will become available when its required owner data exists.',
   },
 };
 
@@ -180,6 +197,8 @@ type CompactLabels = {
   debrief: string;
 };
 
+// The locale table is intentionally kept compact so translators can review one locale per line.
+// prettier-ignore
 const compact: Partial<Record<LocaleCode, CompactLabels>> = {
   ar: { title: 'الجاهزية', closeout: 'الإغلاق', occurrence: 'الموعد', planning: 'التخطيط', attention: 'يتطلب الانتباه', ready: 'جاهز', active: 'نشط', closeoutRequired: 'الإغلاق مطلوب', complete: 'مكتمل', cancelled: 'ملغى', schedule: 'الجدول', participation: 'الحضور والتسجيل', roster: 'القائمة', battlePlan: 'خطة المعركة', strategy: 'استراتيجية التحالف', territory: 'الإقليم', communications: 'الاتصالات', rallies: 'التجمعات', results: 'النتائج', evidence: 'الأدلة', debrief: 'المراجعة' },
   de: { title: 'Bereitschaft', closeout: 'Abschluss', occurrence: 'Termin', planning: 'Planung', attention: 'Handlungsbedarf', ready: 'Bereit', active: 'Aktiv', closeoutRequired: 'Abschluss erforderlich', complete: 'Abgeschlossen', cancelled: 'Abgesagt', schedule: 'Zeitplan', participation: 'Teilnahme & Anmeldung', roster: 'Aufstellung', battlePlan: 'Schlachtplan', strategy: 'Allianzstrategie', territory: 'Territorium', communications: 'Kommunikation', rallies: 'Rallyes', results: 'Ergebnisse', evidence: 'Nachweise', debrief: 'Nachbesprechung' },
