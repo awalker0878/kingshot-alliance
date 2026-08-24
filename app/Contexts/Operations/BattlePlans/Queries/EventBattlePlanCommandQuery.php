@@ -37,53 +37,54 @@ final readonly class EventBattlePlanCommandQuery
             ->map(static fn ($id): string => (string) $id)
             ->unique()
             ->values();
+        $assignments = $objectives
+            ->flatMap(static fn (EventObjective $objective) => $objective->assignments)
+            ->filter(static fn ($assignment): bool => $assignment instanceof EventObjectiveAssignment)
+            ->values();
+        $rosterIds = $assignments
+            ->map(static fn (EventObjectiveAssignment $assignment): ?string => is_string($assignment->roster_id) && $assignment->roster_id !== '' ? $assignment->roster_id : null)
+            ->filter()
+            ->unique()
+            ->values();
+        $rosterPlayers = $rosterIds->isEmpty()
+            ? collect()
+            : EventRosterMember::query()
+                ->whereIn('roster_id', $rosterIds->all())
+                ->whereNotIn('status', [EventRosterMemberStatus::Declined->value, EventRosterMemberStatus::Removed->value])
+                ->whereHas('roster', static fn ($query) => $query->where('occurrence_id', $occurrence->id))
+                ->get(['roster_id', 'player_id'])
+                ->groupBy('roster_id');
         $assignedPlayerIds = collect();
-        $assignmentCount = 0;
         $invalidAssignmentCount = 0;
 
-        foreach ($objectives as $objective) {
-            if (! $objective instanceof EventObjective) {
+        foreach ($assignments as $assignment) {
+            if (is_string($assignment->player_id) && $assignment->player_id !== '') {
+                $assignedPlayerIds->push($assignment->player_id);
                 continue;
             }
 
-            foreach ($objective->assignments as $assignment) {
-                if (! $assignment instanceof EventObjectiveAssignment) {
-                    continue;
+            if (is_string($assignment->roster_id) && $assignment->roster_id !== '') {
+                $players = $rosterPlayers->get($assignment->roster_id, collect());
+                if ($players->isEmpty()) {
+                    $invalidAssignmentCount++;
                 }
-                $assignmentCount++;
-
-                if (is_string($assignment->player_id) && $assignment->player_id !== '') {
-                    $assignedPlayerIds->push($assignment->player_id);
-                    continue;
+                foreach ($players as $member) {
+                    $assignedPlayerIds->push((string) $member->player_id);
                 }
-
-                if (is_string($assignment->roster_id) && $assignment->roster_id !== '') {
-                    $rosterPlayers = EventRosterMember::query()
-                        ->where('roster_id', $assignment->roster_id)
-                        ->whereNotIn('status', [EventRosterMemberStatus::Declined->value, EventRosterMemberStatus::Removed->value])
-                        ->whereHas('roster', static fn ($query) => $query->where('occurrence_id', $occurrence->id))
-                        ->pluck('player_id')
-                        ->map(static fn ($id): string => (string) $id);
-                    if ($rosterPlayers->isEmpty()) {
-                        $invalidAssignmentCount++;
-                    }
-                    $assignedPlayerIds = $assignedPlayerIds->merge($rosterPlayers);
-                    continue;
-                }
-
-                $invalidAssignmentCount++;
+                continue;
             }
+
+            $invalidAssignmentCount++;
         }
 
         $assignedPlayerIds = $assignedPlayerIds->unique()->values();
-        $unassigned = $plannedPlayerIds->diff($assignedPlayerIds)->values();
 
         return [
             'objectiveCount' => $objectives->count(),
-            'assignmentCount' => $assignmentCount,
+            'assignmentCount' => $assignments->count(),
             'plannedPlayerCount' => $plannedPlayerIds->count(),
             'assignedPlayerCount' => $plannedPlayerIds->intersect($assignedPlayerIds)->count(),
-            'unassignedPlayerCount' => $unassigned->count(),
+            'unassignedPlayerCount' => $plannedPlayerIds->diff($assignedPlayerIds)->count(),
             'invalidAssignmentCount' => $invalidAssignmentCount,
         ];
     }
