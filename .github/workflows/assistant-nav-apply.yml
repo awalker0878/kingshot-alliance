@@ -1,0 +1,48 @@
+name: Assistant Navigation Apply
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/assistant-nav-apply.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.head_ref }}
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Patch Assistant navigation
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('resources/js/layouts/AppLayout.vue')
+          text = path.read_text()
+          text = text.replace("    | 'alliance'\n    | 'events'", "    | 'alliance'\n    | 'assistant'\n    | 'events'", 1)
+          text = text.replace("  { key: 'alliance', href: '/alliance', icon: 'alliance', allianceScoped: true, exact: true },\n", "  { key: 'alliance', href: '/alliance', icon: 'alliance', allianceScoped: true, exact: true },\n  { key: 'assistant', href: '/assistant', icon: 'alliance', allianceScoped: true, exact: true },\n", 1)
+          marker = "function isDisabled(item: NavigationItem): boolean {"
+          helper = "function navigationLabel(item: NavigationItem): string {\n  return item.key === 'assistant' ? t('assistant.navigation') : t(`navigation.${item.key}`);\n}\n\n"
+          if helper not in text:
+              text = text.replace(marker, helper + marker, 1)
+          text = text.replace("t(`navigation.${item.key}`)", "navigationLabel(item)")
+          path.write_text(text)
+          PY
+          npx prettier --write resources/js/layouts/AppLayout.vue
+          rm .github/workflows/assistant-nav-apply.yml
+      - name: Commit navigation integration
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resources/js/layouts/AppLayout.vue .github/workflows/assistant-nav-apply.yml
+          git commit -m 'feat(assistant): add Alliance navigation entry'
+          git push origin HEAD:${{ github.head_ref }}
