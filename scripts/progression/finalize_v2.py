@@ -16,6 +16,7 @@ from typing import Any
 import build_v2
 import corroborate_reference_sources
 import refresh
+import stabilize_reference_snapshots
 import validate_prerequisites
 
 TARGET_RELEASE = "kingshot-2026-08-23-v2"
@@ -234,6 +235,7 @@ def main() -> int:
     counts = reviewed_semantic_counts(release_dir)
     update_release_report(release_dir, skill_count, counts)
     corroborate_reference_sources.corroborate_release(release_dir)
+    stabilize_reference_snapshots.stabilize_release(release_dir)
     prerequisite_stats = validate_prerequisites.validate_release(release_dir)
     validate_final_candidate(release_dir)
     print(
