@@ -1,0 +1,96 @@
+name: Assistant Extension Autofix
+
+on:
+  push:
+    branches:
+      - alliance-assistant-gameworld-extension
+
+permissions:
+  contents: write
+
+jobs:
+  autofix:
+    if: ${{ !contains(github.event.head_commit.message, '[assistant-autofix]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: alliance-assistant-gameworld-extension
+          fetch-depth: 0
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
+        with:
+          php-version: '8.5'
+          extensions: dom, gd, intl, mbstring, pcntl, pdo_pgsql, posix, redis, simplexml, xml, xmlwriter, zip
+          coverage: none
+          tools: composer:v2
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '24'
+          cache: npm
+      - run: composer install --no-interaction --no-progress --prefer-dist
+      - run: npm ci --no-audit --no-fund
+      - name: Apply static-analysis shape corrections
+        shell: python
+        run: |
+          from pathlib import Path
+
+          p = Path('app/Contexts/GameWorld/Progression/Queries/ProgressionFactQuery.php')
+          s = p.read_text()
+          s = s.replace(
+              "        $matches = [];\n        foreach ($steps as $index => $row) {",
+              "        /** @var list<array{index:int,row:array<string,mixed>}> $matches */\n        $matches = [];\n        foreach ($steps as $index => $row) {",
+          )
+          s = s.replace("            $matches[] = [$index, $row];", "            $matches[] = ['index' => (int) $index, 'row' => $row];")
+          s = s.replace(
+              "        $match = $matches[0] ?? null;\n        if (! is_array($match) || ! is_array($match[1] ?? null)) {",
+              "        $match = $matches[0] ?? null;\n        if ($match === null) {",
+          )
+          s = s.replace(
+              "        $index = (int) $match[0];\n        /** @var array<string,mixed> $row */\n        $row = $match[1];",
+              "        $index = $match['index'];\n        $row = $match['row'];",
+          )
+          s = s.replace(
+              "    /** @param array<string,mixed> $document @return list<string> */\n    private function documentSourceIds(array $document): array",
+              "    /**\n     * @param array<string,mixed> $document\n     * @return list<string>\n     */\n    private function documentSourceIds(array $document): array",
+          )
+          s = s.replace(
+              "    /** @param array<string,mixed> $row @param list<string> $keys */\n    private function firstString(array $row, array $keys): ?string",
+              "    /**\n     * @param array<string,mixed> $row\n     * @param list<string> $keys\n     */\n    private function firstString(array $row, array $keys): ?string",
+          )
+          p.write_text(s)
+
+          p = Path('app/ReadModels/AllianceAssistant/Queries/AllianceAssistantQuery.php')
+          s = p.read_text()
+          s = s.replace(
+              "        $occurrenceIds = $calendar\n            ->map(static fn (EventOccurrence $occurrence): string => (string) $occurrence->id)\n            ->all();",
+              "        /** @var list<string> $occurrenceIds */\n        $occurrenceIds = array_values($calendar\n            ->map(static fn (EventOccurrence $occurrence): string => (string) $occurrence->id)\n            ->all());",
+          )
+          s = s.replace(
+              "        $items = [];\n        $evidence = [];\n        foreach ($calendar as $occurrence) {",
+              "        $items = [];\n        /** @var list<AssistantEvidence> $evidence */\n        $evidence = [];\n        foreach ($calendar as $occurrence) {",
+          )
+          s = s.replace(
+              "        $items = [];\n        $evidence = [$this->eventEvidence($occurrence)];\n        foreach (array_slice($rows, 0, 10) as $row) {",
+              "        $items = [];\n        /** @var list<AssistantEvidence> $evidence */\n        $evidence = [$this->eventEvidence($occurrence)];\n        foreach (array_slice($rows, 0, 10) as $row) {",
+          )
+          s = s.replace(
+              "    /** @param list<AssistantEvidence> $evidence @return list<AssistantEvidence> */\n    private function uniqueEvidence(array $evidence): array",
+              "    /**\n     * @param list<AssistantEvidence> $evidence\n     * @return list<AssistantEvidence>\n     */\n    private function uniqueEvidence(array $evidence): array",
+          )
+          p.write_text(s)
+      - name: Format PHP
+        run: vendor/bin/pint app/Contexts/GameWorld/Progression/Queries/ProgressionFactQuery.php app/Contexts/Operations/BattlePlans/Queries/PlayerBattlePlanQuery.php app/Contexts/Operations/Participation/Queries/EventParticipationQuery.php app/Contexts/Operations/TerritoryPlanning/Queries/PublishedEventTerritoryRevisionQuery.php app/ReadModels/AllianceAssistant/Queries/AllianceAssistantQuery.php tests/v3/Contexts/GameWorld/Progression/ProgressionFactQueryV3Test.php tests/v3/Contexts/GameWorld/Progression/ProgressionFamilyQueryV3Test.php tests/v3/ReadModels/AllianceAssistant/AssistantQuestionInterpreterV3Test.php tests/v3/ReadModels/AllianceAssistant/AllianceAssistantHttpV3Test.php
+      - name: Format frontend
+        run: npx prettier --write resources/js/localization/messages/assistant/en.ts resources/js/pages/Assistant/Index.vue
+      - name: Commit normalized files
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            exit 0
+          fi
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add app/Contexts/GameWorld/Progression/Queries/ProgressionFactQuery.php app/Contexts/Operations/BattlePlans/Queries/PlayerBattlePlanQuery.php app/Contexts/Operations/Participation/Queries/EventParticipationQuery.php app/Contexts/Operations/TerritoryPlanning/Queries/PublishedEventTerritoryRevisionQuery.php app/ReadModels/AllianceAssistant/Queries/AllianceAssistantQuery.php tests/v3/Contexts/GameWorld/Progression/ProgressionFactQueryV3Test.php tests/v3/Contexts/GameWorld/Progression/ProgressionFamilyQueryV3Test.php tests/v3/ReadModels/AllianceAssistant/AssistantQuestionInterpreterV3Test.php tests/v3/ReadModels/AllianceAssistant/AllianceAssistantHttpV3Test.php resources/js/localization/messages/assistant/en.ts resources/js/pages/Assistant/Index.vue
+          git commit -m 'chore: normalize assistant extension [assistant-autofix]'
+          git push origin HEAD:alliance-assistant-gameworld-extension
