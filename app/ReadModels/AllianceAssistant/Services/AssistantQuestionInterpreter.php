@@ -54,11 +54,15 @@ final class AssistantQuestionInterpreter
             $mode = preg_match('/\bwaitlist|waitlisted\b/u', $normalized) === 1
                 ? 'waitlist'
                 : (preg_match('/\bregistered|register|registration\b/u', $normalized) === 1 ? 'registration' : 'rsvp');
+            $thisWeek = str_contains($normalized, 'this week');
+            $subject = preg_match('/\bfor\s+this week\b/u', $normalized) === 1
+                ? null
+                : $this->eventSubject($normalized);
 
             return new ParsedQuestion(
                 AssistantIntent::EventParticipationSelf,
-                $this->eventSubject($normalized),
-                thisWeek: str_contains($normalized, 'this week'),
+                $subject,
+                thisWeek: $thisWeek,
                 participationMode: $mode,
             );
         }
