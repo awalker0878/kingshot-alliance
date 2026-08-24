@@ -10,9 +10,9 @@ use App\ReadModels\AllianceAssistant\Enums\AssistantStatus;
 final readonly class AssistantResult
 {
     /**
-     * @param  array<string, bool|float|int|string|null>  $messageParameters
+     * @param  array<string, mixed>  $messageParameters
      * @param  list<AssistantEvidence>  $evidence
-     * @param  list<array{title:string,startsAt:string,occurrenceId:string}>  $ambiguity
+     * @param  list<array<string,mixed>>  $ambiguity
      * @param  list<string>  $suggestedQuestions
      */
     public function __construct(
@@ -23,6 +23,7 @@ final readonly class AssistantResult
         public array $evidence = [],
         public array $ambiguity = [],
         public array $suggestedQuestions = [],
+        public ?AssistantNavigationHandoff $handoff = null,
     ) {}
 
     /** @return array<string, mixed> */
@@ -51,6 +52,7 @@ final readonly class AssistantResult
                 : [],
             'ambiguity' => $this->ambiguity === [] ? null : $this->ambiguity,
             'suggestedQuestions' => $this->suggestedQuestions,
+            'handoff' => $this->handoff?->toArray(),
         ];
     }
 }
