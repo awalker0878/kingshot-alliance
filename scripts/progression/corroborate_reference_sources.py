@@ -37,7 +37,14 @@ def percentage(value: str) -> float:
 
 
 def numeric_tokens(value: str) -> list[int]:
-    return [int(token.replace(",", "")) for token in re.findall(r"\d[\d,]*", value)]
+    """Parse integer material counts with comma or dot thousands separators.
+
+    Source tables occasionally localize an integer such as 1,280 as ``1.280``. This helper is
+    intentionally used only for integer material fields; percentages retain decimal semantics in
+    ``percentage`` above.
+    """
+    tokens = re.findall(r"\d+(?:[.,]\d+)*", value)
+    return [int(token.replace(",", "").replace(".", "")) for token in tokens]
 
 
 def table_by_headers(soup: BeautifulSoup, required: set[str]) -> list[dict[str, str]]:
