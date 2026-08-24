@@ -11,6 +11,7 @@ final readonly class ProgressionDataset
      * @param list<array<string,mixed>> $heroes
      * @param array<string,mixed> $systems
      * @param list<array<string,mixed>> $formations
+     * @param array<string,array<string,mixed>> $catalogues
      */
     public function __construct(
         public string $id,
@@ -22,6 +23,7 @@ final readonly class ProgressionDataset
         public array $heroes,
         public array $systems,
         public array $formations,
+        public array $catalogues = [],
     ) {}
 
     /** @return list<array<string,mixed>> */
@@ -46,5 +48,22 @@ final readonly class ProgressionDataset
         $items = $this->release['conflicts'] ?? [];
 
         return is_array($items) ? array_values(array_filter($items, 'is_array')) : [];
+    }
+
+    /** @return array<string,mixed>|null */
+    public function catalogue(string $family): ?array
+    {
+        $value = $this->catalogues[$family] ?? null;
+
+        return is_array($value) ? $value : null;
+    }
+
+    /** @return list<string> */
+    public function catalogueFamilies(): array
+    {
+        $families = array_keys($this->catalogues);
+        sort($families);
+
+        return $families;
     }
 }
