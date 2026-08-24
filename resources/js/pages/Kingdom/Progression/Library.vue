@@ -565,11 +565,21 @@ function sourceMetaValue(key: string): string | null {
           <dl class="mt-4 space-y-2 text-sm">
             <div class="flex justify-between gap-3">
               <dt>{{ t('progression.heroGearUnlock') }}</dt>
-              <dd>TC {{ systems.hero_gear.unlock_town_center }}</dd>
+              <dd>
+                {{
+                  t('progression.townCenterLevel', { level: systems.hero_gear.unlock_town_center })
+                }}
+              </dd>
             </div>
             <div class="flex justify-between gap-3">
               <dt>{{ t('progression.masteryUnlock') }}</dt>
-              <dd>TC {{ systems.hero_gear.mastery_forging.unlock_town_center }}</dd>
+              <dd>
+                {{
+                  t('progression.townCenterLevel', {
+                    level: systems.hero_gear.mastery_forging.unlock_town_center,
+                  })
+                }}
+              </dd>
             </div>
             <div class="flex justify-between gap-3">
               <dt>{{ t('progression.masteryMax') }}</dt>
@@ -577,7 +587,13 @@ function sourceMetaValue(key: string): string | null {
             </div>
             <div class="flex justify-between gap-3">
               <dt>{{ t('progression.governorGearUnlock') }}</dt>
-              <dd>TC {{ systems.governor_gear.unlock_town_center }}</dd>
+              <dd>
+                {{
+                  t('progression.townCenterLevel', {
+                    level: systems.governor_gear.unlock_town_center,
+                  })
+                }}
+              </dd>
             </div>
           </dl>
         </article>
@@ -739,7 +755,9 @@ function sourceMetaValue(key: string): string | null {
           >
             <div class="flex flex-wrap items-center gap-2">
               <h3 class="font-semibold">{{ source.label }}</h3>
-              <span class="ks-chip">Tier {{ source.authority_tier }}</span>
+              <span class="ks-chip">{{
+                t('progression.authorityTier', { tier: source.authority_tier })
+              }}</span>
               <span v-if="source.official" class="ks-chip">{{ t('progression.official') }}</span>
               <span v-else class="ks-chip">{{ t('progression.community') }}</span>
             </div>

@@ -402,7 +402,9 @@ function formatCaptured(value: string): string {
                   class="ks-chip"
                 >
                   {{ heroName(hero.hero_id) }}
-                  <template v-if="hero.level !== null"> · Lv {{ hero.level }}</template>
+                  <template v-if="hero.level !== null">
+                    · {{ t('progression.levelShort', { value: hero.level }) }}</template
+                  >
                   <template v-if="hero.star !== null"> · ★{{ hero.star }}</template>
                   <template v-if="hero.widget_level !== null"> · W{{ hero.widget_level }}</template>
                 </span>

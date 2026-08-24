@@ -298,11 +298,21 @@ function clearFilters(): void {
           <dl class="mt-4 space-y-2 text-sm">
             <div class="flex justify-between">
               <dt>{{ t('progression.heroGearUnlock') }}</dt>
-              <dd>TC {{ systems.hero_gear.unlock_town_center }}</dd>
+              <dd>
+                {{
+                  t('progression.townCenterLevel', { level: systems.hero_gear.unlock_town_center })
+                }}
+              </dd>
             </div>
             <div class="flex justify-between">
               <dt>{{ t('progression.masteryUnlock') }}</dt>
-              <dd>TC {{ systems.hero_gear.mastery_forging.unlock_town_center }}</dd>
+              <dd>
+                {{
+                  t('progression.townCenterLevel', {
+                    level: systems.hero_gear.mastery_forging.unlock_town_center,
+                  })
+                }}
+              </dd>
             </div>
             <div class="flex justify-between">
               <dt>{{ t('progression.masteryMax') }}</dt>
@@ -310,7 +320,13 @@ function clearFilters(): void {
             </div>
             <div class="flex justify-between">
               <dt>{{ t('progression.governorGearUnlock') }}</dt>
-              <dd>TC {{ systems.governor_gear.unlock_town_center }}</dd>
+              <dd>
+                {{
+                  t('progression.townCenterLevel', {
+                    level: systems.governor_gear.unlock_town_center,
+                  })
+                }}
+              </dd>
             </div>
           </dl>
         </article>
@@ -457,7 +473,9 @@ function clearFilters(): void {
                 rel="noreferrer"
                 class="font-semibold text-[var(--ks-teal-bright)] underline"
                 >{{ source.label }}</a
-              ><span class="text-xs">Tier {{ source.authority_tier }}</span>
+              ><span class="text-xs">{{
+                t('progression.authorityTier', { tier: source.authority_tier })
+              }}</span>
             </div>
             <p class="mt-2 text-xs text-[var(--ks-muted)]">
               {{ source.official ? t('progression.official') : t('progression.community') }} ·
