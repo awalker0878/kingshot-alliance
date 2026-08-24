@@ -74,19 +74,26 @@ final readonly class EventEvidenceCommandQuery
             EvidenceLifecycleStatus::Approved,
             EvidenceLifecycleStatus::Committing,
         ];
-        $unmatchedRows = $this->unmatched->forOccurrence($actorPlayerId, $occurrenceId);
+        $unmatchedEvidence = $this->unmatched->forOccurrence($actorPlayerId, $occurrenceId);
+        $unmatchedGovernorCount = array_sum(array_map(
+            static fn (array $item): int => is_array($item['rows'] ?? null) ? count($item['rows']) : 0,
+            $unmatchedEvidence,
+        ));
+        $countStatus = static fn (EvidenceLifecycleStatus $status): int => $evidence->filter(
+            static fn (GameEvidence $item): bool => $item->lifecycle_status === $status,
+        )->count();
 
         return [
             'evidenceCount' => $evidence->count(),
             'processingCount' => $evidence->filter(
                 static fn (GameEvidence $item): bool => in_array($item->lifecycle_status, $processingStatuses, true),
             )->count(),
-            'awaitingReviewCount' => $evidence->where('lifecycle_status', EvidenceLifecycleStatus::NeedsReview)->count(),
-            'unmatchedGovernorCount' => count($unmatchedRows),
+            'awaitingReviewCount' => $countStatus(EvidenceLifecycleStatus::NeedsReview),
+            'unmatchedGovernorCount' => $unmatchedGovernorCount,
             'commitPendingCount' => $commitPendingCount,
             'commitFailedCount' => $commitFailedCount,
-            'processingFailedCount' => $evidence->where('lifecycle_status', EvidenceLifecycleStatus::Failed)->count(),
-            'committedCount' => $evidence->where('lifecycle_status', EvidenceLifecycleStatus::Committed)->count(),
+            'processingFailedCount' => $countStatus(EvidenceLifecycleStatus::Failed),
+            'committedCount' => $countStatus(EvidenceLifecycleStatus::Committed),
         ];
     }
 }
