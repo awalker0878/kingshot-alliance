@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
 
 const transferVisualFingerprints: Record<string, string> = {
-  desktop: '86d5047f1ce4303e21415e067dbfeac006e9049671c808cbcc4d1c3cd9acadc0',
+  desktop: 'c0ceabb32ab50cd1926bd70f32eb07a47f6c0f00ed47b2681f9a6689d610d415',
   mobile: '5cf3892a79b12d876fdfd10fe99a31bb315a4663dc670eab345a981516e754b5',
 };
 
