@@ -88,9 +88,20 @@ test('Alliance Rules are a first-class readable and editable member surface', as
   await login(page);
   await page.goto('/alliance/rules');
   await page.waitForLoadState('networkidle');
-  await expect(page.getByRole('heading', { name: 'Alliance Rules', level: 1 })).toBeVisible();
+
+  await expect(
+    page.getByRole('heading', { name: 'Alliance Rules', level: 1, exact: true }),
+  ).toBeVisible();
   await expect(page.getByText('Join Bear Hunt rallies on time.')).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Update rules' })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Alliance Rules', level: 2, exact: true }),
+  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Edit Alliance Rules', level: 2 })).toBeVisible();
+  const rules = page.getByRole('textbox', { name: 'Rules', exact: true });
+  await expect(rules).toHaveValue(/Follow R4\/R5 battle calls/);
+  await expect(rules).toHaveAttribute('maxlength', '10000');
+  await expect(page.getByRole('button', { name: 'Save Alliance Rules' })).toBeEnabled();
+
   await assertVisual(page, testInfo, 'rulesPublished');
 });
 
@@ -98,8 +109,18 @@ test('Alliance Rules expose the localized empty and editable state', async ({ pa
   await login(page, 'content-empty-visual@example.test');
   await page.goto('/alliance/rules');
   await page.waitForLoadState('networkidle');
-  await expect(page.getByText('No Alliance Rules have been published yet.')).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Publish rules' })).toBeVisible();
+
+  await expect(
+    page.getByRole('heading', { name: 'Alliance Rules', level: 1, exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText('No Alliance Rules have been posted yet.')).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Alliance Rules', level: 2, exact: true }),
+  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Add Alliance Rules', level: 2 })).toBeVisible();
+  await expect(page.getByRole('textbox', { name: 'Rules', exact: true })).toHaveValue('');
+  await expect(page.getByRole('button', { name: 'Save Alliance Rules' })).toBeEnabled();
+
   await assertVisual(page, testInfo, 'rulesEmpty');
 });
 
@@ -107,21 +128,44 @@ test('Alliance Notice cards expose lightweight reactions without ranking UI', as
   await login(page);
   await page.goto('/alliance/content');
   await page.waitForLoadState('networkidle');
-  await expect(page.getByRole('heading', { name: 'Noticeboard', level: 1 })).toBeVisible();
-  await expect(page.getByText('Bear Hunt Rally Timing')).toBeVisible();
-  await expect(page.getByRole('button', { name: /Acknowledge/i }).first()).toBeVisible();
-  await expect(page.getByText(/leaderboard/i)).toHaveCount(0);
+
+  const notice = page.locator('article').filter({
+    has: page.getByRole('heading', { name: 'Bear Hunt Rally Window', level: 3 }),
+  });
+  await expect(notice).toBeVisible();
+
+  const like = notice.getByRole('button', {
+    name: /Remove your Like from this Alliance Notice\. 1 likes\./,
+  });
+  const dislike = notice.getByRole('button', {
+    name: /Dislike this Alliance Notice\. 1 dislikes\./,
+  });
+  await expect(like).toHaveAttribute('aria-pressed', 'true');
+  await expect(dislike).toHaveAttribute('aria-pressed', 'false');
+  await expect(page.getByText(/trending|popular|score|approval ratio/i)).toHaveCount(0);
+  await expect(page.getByRole('link', { name: 'Alliance Rules' }).first()).toBeVisible();
+
   await assertVisual(page, testInfo, 'noticeboard');
 });
 
 test('Alliance Notice detail preserves reaction state and anti-ranking semantics', async ({ page }, testInfo) => {
   await login(page);
-  await page.goto('/alliance/content');
+  await page.goto('/alliance/content/bear-hunt-rally-window');
   await page.waitForLoadState('networkidle');
-  await page.getByRole('link', { name: 'Bear Hunt Rally Timing' }).first().click();
-  await page.waitForLoadState('networkidle');
-  await expect(page.getByRole('heading', { name: 'Bear Hunt Rally Timing', level: 1 })).toBeVisible();
-  await expect(page.getByRole('button', { name: /Acknowledge/i })).toBeVisible();
-  await expect(page.getByText(/leaderboard/i)).toHaveCount(0);
+
+  const article = page.getByRole('article');
+  await expect(
+    article.getByRole('heading', { name: 'Bear Hunt Rally Window', level: 1 }),
+  ).toBeVisible();
+  const like = article.getByRole('button', {
+    name: /Remove your Like from this Alliance Notice\. 1 likes\./,
+  });
+  const dislike = article.getByRole('button', {
+    name: /Dislike this Alliance Notice\. 1 dislikes\./,
+  });
+  await expect(like).toHaveAttribute('aria-pressed', 'true');
+  await expect(dislike).toHaveAttribute('aria-pressed', 'false');
+  await expect(page.getByText(/trending|popular|score|approval ratio/i)).toHaveCount(0);
+
   await assertVisual(page, testInfo, 'noticeDetail');
 });
