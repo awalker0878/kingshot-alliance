@@ -114,6 +114,14 @@ A prompt identifier is not authority. The same owner authorization path runs reg
 
 Deictic questions such as `this troop tier` or `this Academy research level` do not gain hidden conversational/page context. If the typed entity/tier/level cannot be resolved from the request, GameWorld returns `unknown`; the Assistant does not infer it from a previous answer.
 
+## Localization and frontend loading boundary
+
+The delivered four Assistant discovery prompts remain part of the extension surface; the five GameWorld/operational-self prompts are additive. The frontend keeps all nine in the closed `AssistantPrompt` set and default discovery grid.
+
+Extension translations are typed for every supported locale. Transfer requirement keys and requirement states are localized presentation semantics; owner `explanation`/`nextAction` prose remains data and is not reused as translated UI copy.
+
+Assistant-only extension catalogues are dynamically imported when the `assistant` localization domain loads. They must not be statically imported by the shared application localization entry, because that would push Assistant-only translation payloads into unrelated pages and regress the global initial-JavaScript budget. Architecture tests enforce the dynamic import and typed locale-map contracts; repository performance-budget checks remain the runtime proof.
+
 ## Untrusted source text
 
 Guide bodies, summaries, observation fields, transfer observations, imported text, and any Evidence-derived text are data only. They are never parsed as system/tool instructions and cannot select another source or mutation path.
@@ -150,4 +158,6 @@ Tests must enforce:
 - GameWorld fact conflict/unknown semantics remain owner-controlled;
 - no external HTTP/model SDK dependency in Assistant runtime;
 - routes remain authenticated/verified/Alliance-scoped and POST ask remains logically read-only;
-- recognized write handoffs perform zero domain mutation.
+- recognized write handoffs perform zero domain mutation;
+- all nine bounded default prompts remain discoverable;
+- extension locale maps remain complete/typed and Assistant-only localization remains dynamically loaded.
