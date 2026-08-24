@@ -18,5 +18,6 @@ final readonly class ParsedQuestion
         public bool $thisWeek = false,
         public ?int $kingdomNumber = null,
         public ?string $writeAction = null,
+        public ?string $participationMode = null,
     ) {}
 }
