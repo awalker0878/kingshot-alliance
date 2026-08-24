@@ -10,10 +10,10 @@ use App\ReadModels\AllianceAssistant\Enums\AssistantStatus;
 final readonly class AssistantResult
 {
     /**
-     * @param array<string, bool|float|int|string|null> $messageParameters
-     * @param list<AssistantEvidence> $evidence
-     * @param list<array{title:string,startsAt:string,occurrenceId:string}> $ambiguity
-     * @param list<string> $suggestedQuestions
+     * @param  array<string, bool|float|int|string|null>  $messageParameters
+     * @param  list<AssistantEvidence>  $evidence
+     * @param  list<array{title:string,startsAt:string,occurrenceId:string}>  $ambiguity
+     * @param  list<string>  $suggestedQuestions
      */
     public function __construct(
         public AssistantIntent $intent,

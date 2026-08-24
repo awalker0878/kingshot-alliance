@@ -1,7 +1,67 @@
 import type { MessageCatalogue } from '../../types';
-const messages = { assistant: {
-  navigation: '助理', title: '詢問你的聯盟', eyebrow: '聯盟助理 · 依權限回答', subtitle: '可以詢問活動、你的名單、聯盟指南與觀察資訊。回答只依據你原本就有權查看的來源。', authorizationHint: '回答只使用你有權查看的聯盟資料。', tryAsking: '試著問問', conversation: '聯盟助理對話', youAsked: '你的問題', possibleEvents: '可能的活動', openEvent: '開啟活動', sourcesHeading: '使用的來源', sourceTime: '來源時間：{time}', questionLabel: '詢問你的聯盟', questionPlaceholder: 'Swordland 幾點開始，我在名單裡嗎？', inputHint: '{count}/{max} 個字元 · Enter 提問 · Shift+Enter 換行', asking: '正在檢查來源…', ask: '提問', notRecorded: '未記錄',
-  classifications: { operational_fact: '營運事實', game_fact: '遊戲資料', alliance_strategy: '聯盟策略', observation: '觀察資訊' }, sources: { event: '活動', roster: '名單', alliance_content: '聯盟指南', observation: '觀察資訊', game_fact: '遊戲資料' }, prompts: { swordland: 'Swordland 幾點開始，我在名單裡嗎？', nextEvent: '我的下一個活動是什麼？', bearGuide: '我們的 Bear Hunt 指南怎麼說？', observation: '我們對對手觀察到了什麼？' },
-  answers: { help: '我可以根據活動、你的名單、聯盟指南與你有權查看的觀察資訊回答。我不會使用沒有來源的 KingShot 知識。', unsupported: '我只能根據你有權查看的活動、你的名單、聯盟指南與觀察資訊回答。我不能在這裡進行修改。', unavailable: '聯盟助理目前無法檢查來源，請再試一次。', rateLimited: '你的提問速度太快，請稍後再試。', validationError: '請輸入 2 到 {max} 個字元的問題。', noUpcomingEvent: '沒有找到你有權查看的即將到來活動。', eventSubjectMissing: '請說明要查詢的活動。', eventNotFound: '沒有找到與「{subject}」相符且你有權查看的即將到來活動。', eventAmbiguous: '找到多個與「{subject}」相符的活動。請在下方開啟你指的活動。', eventTime: '{event} 將於 {startsAt} 開始。', eventTimeNotRostered: '{event} 將於 {startsAt} 開始。你目前不在名單中。', notRostered: '你目前不在 {event} 的名單中。', eventTimeRostered: '{event} 將於 {startsAt} 開始。你在 {roster} 中。角色：{role}；位置：{slot}；狀態：{status}。', rostered: '你在 {event} 的 {roster} 中。角色：{role}；位置：{slot}；狀態：{status}。', contentSubjectMissing: '請說明要查詢哪個活動或主題的聯盟指南。', contentNotFound: '沒有找到與「{subject}」相符的已發布聯盟內容。', contentFound: '聯盟策略 — {title}：{excerpt}', observationSubjectMissing: '請說明要查詢的聯盟或觀察主題。', observationNotFound: '沒有找到與「{subject}」相符且你有權查看的觀察資訊。', observationFound: '觀察資訊 — {title}：{observation}' }
-} } satisfies MessageCatalogue;
+const messages = {
+  assistant: {
+    navigation: '助理',
+    title: '詢問你的聯盟',
+    eyebrow: '聯盟助理 · 依權限回答',
+    subtitle: '可以詢問活動、你的名單、聯盟指南與觀察資訊。回答只依據你原本就有權查看的來源。',
+    authorizationHint: '回答只使用你有權查看的聯盟資料。',
+    tryAsking: '試著問問',
+    conversation: '聯盟助理對話',
+    youAsked: '你的問題',
+    possibleEvents: '可能的活動',
+    openEvent: '開啟活動',
+    sourcesHeading: '使用的來源',
+    sourceTime: '來源時間：{time}',
+    questionLabel: '詢問你的聯盟',
+    questionPlaceholder: 'Swordland 幾點開始，我在名單裡嗎？',
+    inputHint: '{count}/{max} 個字元 · Enter 提問 · Shift+Enter 換行',
+    asking: '正在檢查來源…',
+    ask: '提問',
+    notRecorded: '未記錄',
+    classifications: {
+      operational_fact: '營運事實',
+      game_fact: '遊戲資料',
+      alliance_strategy: '聯盟策略',
+      observation: '觀察資訊',
+    },
+    sources: {
+      event: '活動',
+      roster: '名單',
+      alliance_content: '聯盟指南',
+      observation: '觀察資訊',
+      game_fact: '遊戲資料',
+    },
+    prompts: {
+      swordland: 'Swordland 幾點開始，我在名單裡嗎？',
+      nextEvent: '我的下一個活動是什麼？',
+      bearGuide: '我們的 Bear Hunt 指南怎麼說？',
+      observation: '我們對對手觀察到了什麼？',
+    },
+    answers: {
+      help: '我可以根據活動、你的名單、聯盟指南與你有權查看的觀察資訊回答。我不會使用沒有來源的 KingShot 知識。',
+      unsupported:
+        '我只能根據你有權查看的活動、你的名單、聯盟指南與觀察資訊回答。我不能在這裡進行修改。',
+      unavailable: '聯盟助理目前無法檢查來源，請再試一次。',
+      rateLimited: '你的提問速度太快，請稍後再試。',
+      validationError: '請輸入 2 到 {max} 個字元的問題。',
+      noUpcomingEvent: '沒有找到你有權查看的即將到來活動。',
+      eventSubjectMissing: '請說明要查詢的活動。',
+      eventNotFound: '沒有找到與「{subject}」相符且你有權查看的即將到來活動。',
+      eventAmbiguous: '找到多個與「{subject}」相符的活動。請在下方開啟你指的活動。',
+      eventTime: '{event} 將於 {startsAt} 開始。',
+      eventTimeNotRostered: '{event} 將於 {startsAt} 開始。你目前不在名單中。',
+      notRostered: '你目前不在 {event} 的名單中。',
+      eventTimeRostered:
+        '{event} 將於 {startsAt} 開始。你在 {roster} 中。角色：{role}；位置：{slot}；狀態：{status}。',
+      rostered: '你在 {event} 的 {roster} 中。角色：{role}；位置：{slot}；狀態：{status}。',
+      contentSubjectMissing: '請說明要查詢哪個活動或主題的聯盟指南。',
+      contentNotFound: '沒有找到與「{subject}」相符的已發布聯盟內容。',
+      contentFound: '聯盟策略 — {title}：{excerpt}',
+      observationSubjectMissing: '請說明要查詢的聯盟或觀察主題。',
+      observationNotFound: '沒有找到與「{subject}」相符且你有權查看的觀察資訊。',
+      observationFound: '觀察資訊 — {title}：{observation}',
+    },
+  },
+} satisfies MessageCatalogue;
 export default messages;

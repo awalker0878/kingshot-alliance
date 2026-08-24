@@ -1,7 +1,75 @@
 import type { MessageCatalogue } from '../../types';
-const messages = { assistant: {
-  navigation: 'Assistent', title: 'Frag deine Allianz', eyebrow: 'Allianz-Assistent · Autorisierte Antworten', subtitle: 'Frage nach Events, deinem Roster, Allianz-Guides und Beobachtungen. Antworten basieren auf Quellen, die du bereits sehen darfst.', authorizationHint: 'Antworten verwenden nur Allianz-Daten, die du sehen darfst.', tryAsking: 'Probier eine Frage', conversation: 'Unterhaltung mit dem Allianz-Assistenten', youAsked: 'Du hast gefragt', possibleEvents: 'Mögliche Events', openEvent: 'Event öffnen', sourcesHeading: 'Verwendete Quellen', sourceTime: 'Quellenzeit: {time}', questionLabel: 'Frag deine Allianz', questionPlaceholder: 'Wann ist Swordland und bin ich im Roster?', inputHint: '{count}/{max} Zeichen · Enter zum Fragen · Umschalt+Enter für neue Zeile', asking: 'Quellen werden geprüft…', ask: 'Fragen', notRecorded: 'Nicht erfasst',
-  classifications: { operational_fact: 'Operative Tatsache', game_fact: 'Spieldaten', alliance_strategy: 'Allianzstrategie', observation: 'Beobachtung' }, sources: { event: 'Event', roster: 'Roster', alliance_content: 'Allianz-Guide', observation: 'Beobachtung', game_fact: 'Spieldaten' }, prompts: { swordland: 'Wann ist Swordland und bin ich im Roster?', nextEvent: 'Was ist mein nächstes Event?', bearGuide: 'Was sagt unser Bear-Hunt-Guide?', observation: 'Was haben wir über unseren Gegner beobachtet?' },
-  answers: { help: 'Ich kann anhand von Events, deinem Roster, Allianz-Guides und autorisierten Beobachtungen antworten. Ich verwende kein unbelegtes KingShot-Wissen.', unsupported: 'Ich kann nur anhand autorisierter Events, deines Rosters, Allianz-Guides und Beobachtungen antworten. Änderungen kann ich hier nicht durchführen.', unavailable: 'Der Allianz-Assistent kann seine Quellen gerade nicht prüfen. Versuche es erneut.', rateLimited: 'Du fragst zu schnell. Versuche es gleich noch einmal.', validationError: 'Gib eine Frage mit 2 bis {max} Zeichen ein.', noUpcomingEvent: 'Ich konnte kein bevorstehendes Event finden, das du sehen darfst.', eventSubjectMissing: 'Nenne das Event, das ich prüfen soll.', eventNotFound: 'Ich konnte kein autorisiertes bevorstehendes Event finden, das „{subject}“ entspricht.', eventAmbiguous: 'Ich habe mehrere Events gefunden, die „{subject}“ entsprechen. Öffne unten das gewünschte Event.', eventTime: '{event} beginnt {startsAt}.', eventTimeNotRostered: '{event} beginnt {startsAt}. Du bist derzeit nicht im Roster.', notRostered: 'Du bist derzeit nicht für {event} eingetragen.', eventTimeRostered: '{event} beginnt {startsAt}. Du bist in {roster}. Rolle: {role}; Platz: {slot}; Status: {status}.', rostered: 'Du bist für {event} in {roster} eingetragen. Rolle: {role}; Platz: {slot}; Status: {status}.', contentSubjectMissing: 'Nenne das Event oder Thema, dessen Allianz-Guide ich prüfen soll.', contentNotFound: 'Ich konnte keinen veröffentlichten Allianz-Inhalt finden, der „{subject}“ entspricht.', contentFound: 'Allianzstrategie — {title}: {excerpt}', observationSubjectMissing: 'Nenne die Allianz oder das Beobachtungsthema, das ich prüfen soll.', observationNotFound: 'Ich konnte keine autorisierte Beobachtung finden, die „{subject}“ entspricht.', observationFound: 'Beobachtung — {title}: {observation}' }
-} } satisfies MessageCatalogue;
+const messages = {
+  assistant: {
+    navigation: 'Assistent',
+    title: 'Frag deine Allianz',
+    eyebrow: 'Allianz-Assistent · Autorisierte Antworten',
+    subtitle:
+      'Frage nach Events, deinem Roster, Allianz-Guides und Beobachtungen. Antworten basieren auf Quellen, die du bereits sehen darfst.',
+    authorizationHint: 'Antworten verwenden nur Allianz-Daten, die du sehen darfst.',
+    tryAsking: 'Probier eine Frage',
+    conversation: 'Unterhaltung mit dem Allianz-Assistenten',
+    youAsked: 'Du hast gefragt',
+    possibleEvents: 'Mögliche Events',
+    openEvent: 'Event öffnen',
+    sourcesHeading: 'Verwendete Quellen',
+    sourceTime: 'Quellenzeit: {time}',
+    questionLabel: 'Frag deine Allianz',
+    questionPlaceholder: 'Wann ist Swordland und bin ich im Roster?',
+    inputHint: '{count}/{max} Zeichen · Enter zum Fragen · Umschalt+Enter für neue Zeile',
+    asking: 'Quellen werden geprüft…',
+    ask: 'Fragen',
+    notRecorded: 'Nicht erfasst',
+    classifications: {
+      operational_fact: 'Operative Tatsache',
+      game_fact: 'Spieldaten',
+      alliance_strategy: 'Allianzstrategie',
+      observation: 'Beobachtung',
+    },
+    sources: {
+      event: 'Event',
+      roster: 'Roster',
+      alliance_content: 'Allianz-Guide',
+      observation: 'Beobachtung',
+      game_fact: 'Spieldaten',
+    },
+    prompts: {
+      swordland: 'Wann ist Swordland und bin ich im Roster?',
+      nextEvent: 'Was ist mein nächstes Event?',
+      bearGuide: 'Was sagt unser Bear-Hunt-Guide?',
+      observation: 'Was haben wir über unseren Gegner beobachtet?',
+    },
+    answers: {
+      help: 'Ich kann anhand von Events, deinem Roster, Allianz-Guides und autorisierten Beobachtungen antworten. Ich verwende kein unbelegtes KingShot-Wissen.',
+      unsupported:
+        'Ich kann nur anhand autorisierter Events, deines Rosters, Allianz-Guides und Beobachtungen antworten. Änderungen kann ich hier nicht durchführen.',
+      unavailable:
+        'Der Allianz-Assistent kann seine Quellen gerade nicht prüfen. Versuche es erneut.',
+      rateLimited: 'Du fragst zu schnell. Versuche es gleich noch einmal.',
+      validationError: 'Gib eine Frage mit 2 bis {max} Zeichen ein.',
+      noUpcomingEvent: 'Ich konnte kein bevorstehendes Event finden, das du sehen darfst.',
+      eventSubjectMissing: 'Nenne das Event, das ich prüfen soll.',
+      eventNotFound:
+        'Ich konnte kein autorisiertes bevorstehendes Event finden, das „{subject}“ entspricht.',
+      eventAmbiguous:
+        'Ich habe mehrere Events gefunden, die „{subject}“ entsprechen. Öffne unten das gewünschte Event.',
+      eventTime: '{event} beginnt {startsAt}.',
+      eventTimeNotRostered: '{event} beginnt {startsAt}. Du bist derzeit nicht im Roster.',
+      notRostered: 'Du bist derzeit nicht für {event} eingetragen.',
+      eventTimeRostered:
+        '{event} beginnt {startsAt}. Du bist in {roster}. Rolle: {role}; Platz: {slot}; Status: {status}.',
+      rostered:
+        'Du bist für {event} in {roster} eingetragen. Rolle: {role}; Platz: {slot}; Status: {status}.',
+      contentSubjectMissing: 'Nenne das Event oder Thema, dessen Allianz-Guide ich prüfen soll.',
+      contentNotFound:
+        'Ich konnte keinen veröffentlichten Allianz-Inhalt finden, der „{subject}“ entspricht.',
+      contentFound: 'Allianzstrategie — {title}: {excerpt}',
+      observationSubjectMissing:
+        'Nenne die Allianz oder das Beobachtungsthema, das ich prüfen soll.',
+      observationNotFound:
+        'Ich konnte keine autorisierte Beobachtung finden, die „{subject}“ entspricht.',
+      observationFound: 'Beobachtung — {title}: {observation}',
+    },
+  },
+} satisfies MessageCatalogue;
 export default messages;

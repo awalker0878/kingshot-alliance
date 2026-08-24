@@ -5,7 +5,8 @@ const messages = {
     navigation: 'Assistant',
     title: 'Ask your Alliance',
     eyebrow: 'Alliance Assistant · Authorized answers',
-    subtitle: 'Ask about Events, your roster, Alliance guides, and observations. Answers are grounded in sources you can already view.',
+    subtitle:
+      'Ask about Events, your roster, Alliance guides, and observations. Answers are grounded in sources you can already view.',
     authorizationHint: 'Answers use only Alliance data you are authorized to see.',
     tryAsking: 'Try asking',
     conversation: 'Alliance Assistant conversation',
@@ -41,19 +42,23 @@ const messages = {
     },
     answers: {
       help: 'I can answer from Events, your roster, Alliance guides, and authorized observations. I do not use unsourced KingShot knowledge.',
-      unsupported: 'I can only answer from authorized Events, your roster, Alliance guides, and observations. I cannot make changes from here.',
+      unsupported:
+        'I can only answer from authorized Events, your roster, Alliance guides, and observations. I cannot make changes from here.',
       unavailable: 'Alliance Assistant cannot check its sources right now. Try again.',
       rateLimited: 'You are asking too quickly. Try again shortly.',
       validationError: 'Enter a question between 2 and {max} characters.',
       noUpcomingEvent: 'I could not find an upcoming Event you are authorized to view.',
       eventSubjectMissing: 'Name the Event you want me to check.',
       eventNotFound: 'I could not find an authorized upcoming Event matching “{subject}”.',
-      eventAmbiguous: 'I found more than one Event matching “{subject}”. Open the Event you mean below.',
+      eventAmbiguous:
+        'I found more than one Event matching “{subject}”. Open the Event you mean below.',
       eventTime: '{event} starts {startsAt}.',
       eventTimeNotRostered: '{event} starts {startsAt}. You are not currently rostered.',
       notRostered: 'You are not currently rostered for {event}.',
-      eventTimeRostered: '{event} starts {startsAt}. You are rostered in {roster}. Role: {role}; slot: {slot}; status: {status}.',
-      rostered: 'You are rostered for {event} in {roster}. Role: {role}; slot: {slot}; status: {status}.',
+      eventTimeRostered:
+        '{event} starts {startsAt}. You are rostered in {roster}. Role: {role}; slot: {slot}; status: {status}.',
+      rostered:
+        'You are rostered for {event} in {roster}. Role: {role}; slot: {slot}; status: {status}.',
       contentSubjectMissing: 'Name the Event or topic whose Alliance guide you want me to check.',
       contentNotFound: 'I could not find published Alliance content matching “{subject}”.',
       contentFound: 'Alliance strategy — {title}: {excerpt}',

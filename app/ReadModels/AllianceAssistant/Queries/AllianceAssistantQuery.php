@@ -315,7 +315,7 @@ final readonly class AllianceAssistantQuery
      * Reduce recurring occurrences of the same Event identity to its nearest authorized occurrence.
      * Multiple distinct matching Event identities remain ambiguous.
      *
-     * @param Collection<int, EventOccurrence> $calendar
+     * @param  Collection<int, EventOccurrence>  $calendar
      * @return list<EventOccurrence>
      */
     private function matchEvents(Collection $calendar, string $subject): array
@@ -421,7 +421,7 @@ final readonly class AllianceAssistantQuery
     }
 
     /**
-     * @param array{id:string,trackingId:string,observedName:string,observedTag:?string,power:?int,memberCount:?int,capturedAt:string,source:string} $row
+     * @param  array{id:string,trackingId:string,observedName:string,observedTag:?string,power:?int,memberCount:?int,capturedAt:string,source:string}  $row
      */
     private function observationStatement(array $row): string
     {

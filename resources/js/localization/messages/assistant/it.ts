@@ -1,7 +1,73 @@
 import type { MessageCatalogue } from '../../types';
-const messages = { assistant: {
-  navigation: 'Assistente', title: 'Chiedi alla tua Alleanza', eyebrow: 'Assistente Alleanza · Risposte autorizzate', subtitle: 'Chiedi informazioni su Eventi, roster, guide dell’Alleanza e osservazioni. Le risposte si basano su fonti che puoi già consultare.', authorizationHint: 'Le risposte usano solo dati dell’Alleanza che sei autorizzato a vedere.', tryAsking: 'Prova a chiedere', conversation: 'Conversazione con l’Assistente Alleanza', youAsked: 'Hai chiesto', possibleEvents: 'Eventi possibili', openEvent: 'Apri Evento', sourcesHeading: 'Fonti usate', sourceTime: 'Data fonte: {time}', questionLabel: 'Chiedi alla tua Alleanza', questionPlaceholder: 'A che ora è Swordland e sono nel roster?', inputHint: '{count}/{max} caratteri · Invio per chiedere · Maiusc+Invio per una nuova riga', asking: 'Controllo delle fonti…', ask: 'Chiedi', notRecorded: 'Non registrato',
-  classifications: { operational_fact: 'Dato operativo', game_fact: 'Dati di gioco', alliance_strategy: 'Strategia dell’Alleanza', observation: 'Osservazione' }, sources: { event: 'Evento', roster: 'Roster', alliance_content: 'Guida dell’Alleanza', observation: 'Osservazione', game_fact: 'Dati di gioco' }, prompts: { swordland: 'A che ora è Swordland e sono nel roster?', nextEvent: 'Qual è il mio prossimo Evento?', bearGuide: 'Cosa dice la nostra guida Bear Hunt?', observation: 'Cosa abbiamo osservato sul nostro avversario?' },
-  answers: { help: 'Posso rispondere usando Eventi, il tuo roster, le guide dell’Alleanza e osservazioni autorizzate. Non uso conoscenze KingShot senza fonte.', unsupported: 'Posso rispondere solo usando Eventi autorizzati, il tuo roster, guide dell’Alleanza e osservazioni. Non posso effettuare modifiche da qui.', unavailable: 'L’Assistente Alleanza non può controllare le fonti in questo momento. Riprova.', rateLimited: 'Stai facendo domande troppo rapidamente. Riprova tra poco.', validationError: 'Inserisci una domanda tra 2 e {max} caratteri.', noUpcomingEvent: 'Non ho trovato un Evento imminente che sei autorizzato a vedere.', eventSubjectMissing: 'Indica l’Evento che vuoi controllare.', eventNotFound: 'Non ho trovato un Evento imminente autorizzato corrispondente a “{subject}”.', eventAmbiguous: 'Ho trovato più Eventi corrispondenti a “{subject}”. Apri quello desiderato qui sotto.', eventTime: '{event} inizia {startsAt}.', eventTimeNotRostered: '{event} inizia {startsAt}. Al momento non sei nel roster.', notRostered: 'Al momento non sei nel roster di {event}.', eventTimeRostered: '{event} inizia {startsAt}. Sei in {roster}. Ruolo: {role}; posizione: {slot}; stato: {status}.', rostered: 'Sei nel roster di {event}, in {roster}. Ruolo: {role}; posizione: {slot}; stato: {status}.', contentSubjectMissing: 'Indica l’Evento o l’argomento della guida dell’Alleanza da controllare.', contentNotFound: 'Non ho trovato contenuti pubblicati dell’Alleanza corrispondenti a “{subject}”.', contentFound: 'Strategia dell’Alleanza — {title}: {excerpt}', observationSubjectMissing: 'Indica l’Alleanza o l’argomento di osservazione da controllare.', observationNotFound: 'Non ho trovato un’osservazione autorizzata corrispondente a “{subject}”.', observationFound: 'Osservazione — {title}: {observation}' }
-} } satisfies MessageCatalogue;
+const messages = {
+  assistant: {
+    navigation: 'Assistente',
+    title: 'Chiedi alla tua Alleanza',
+    eyebrow: 'Assistente Alleanza · Risposte autorizzate',
+    subtitle:
+      'Chiedi informazioni su Eventi, roster, guide dell’Alleanza e osservazioni. Le risposte si basano su fonti che puoi già consultare.',
+    authorizationHint: 'Le risposte usano solo dati dell’Alleanza che sei autorizzato a vedere.',
+    tryAsking: 'Prova a chiedere',
+    conversation: 'Conversazione con l’Assistente Alleanza',
+    youAsked: 'Hai chiesto',
+    possibleEvents: 'Eventi possibili',
+    openEvent: 'Apri Evento',
+    sourcesHeading: 'Fonti usate',
+    sourceTime: 'Data fonte: {time}',
+    questionLabel: 'Chiedi alla tua Alleanza',
+    questionPlaceholder: 'A che ora è Swordland e sono nel roster?',
+    inputHint: '{count}/{max} caratteri · Invio per chiedere · Maiusc+Invio per una nuova riga',
+    asking: 'Controllo delle fonti…',
+    ask: 'Chiedi',
+    notRecorded: 'Non registrato',
+    classifications: {
+      operational_fact: 'Dato operativo',
+      game_fact: 'Dati di gioco',
+      alliance_strategy: 'Strategia dell’Alleanza',
+      observation: 'Osservazione',
+    },
+    sources: {
+      event: 'Evento',
+      roster: 'Roster',
+      alliance_content: 'Guida dell’Alleanza',
+      observation: 'Osservazione',
+      game_fact: 'Dati di gioco',
+    },
+    prompts: {
+      swordland: 'A che ora è Swordland e sono nel roster?',
+      nextEvent: 'Qual è il mio prossimo Evento?',
+      bearGuide: 'Cosa dice la nostra guida Bear Hunt?',
+      observation: 'Cosa abbiamo osservato sul nostro avversario?',
+    },
+    answers: {
+      help: 'Posso rispondere usando Eventi, il tuo roster, le guide dell’Alleanza e osservazioni autorizzate. Non uso conoscenze KingShot senza fonte.',
+      unsupported:
+        'Posso rispondere solo usando Eventi autorizzati, il tuo roster, guide dell’Alleanza e osservazioni. Non posso effettuare modifiche da qui.',
+      unavailable: 'L’Assistente Alleanza non può controllare le fonti in questo momento. Riprova.',
+      rateLimited: 'Stai facendo domande troppo rapidamente. Riprova tra poco.',
+      validationError: 'Inserisci una domanda tra 2 e {max} caratteri.',
+      noUpcomingEvent: 'Non ho trovato un Evento imminente che sei autorizzato a vedere.',
+      eventSubjectMissing: 'Indica l’Evento che vuoi controllare.',
+      eventNotFound: 'Non ho trovato un Evento imminente autorizzato corrispondente a “{subject}”.',
+      eventAmbiguous:
+        'Ho trovato più Eventi corrispondenti a “{subject}”. Apri quello desiderato qui sotto.',
+      eventTime: '{event} inizia {startsAt}.',
+      eventTimeNotRostered: '{event} inizia {startsAt}. Al momento non sei nel roster.',
+      notRostered: 'Al momento non sei nel roster di {event}.',
+      eventTimeRostered:
+        '{event} inizia {startsAt}. Sei in {roster}. Ruolo: {role}; posizione: {slot}; stato: {status}.',
+      rostered:
+        'Sei nel roster di {event}, in {roster}. Ruolo: {role}; posizione: {slot}; stato: {status}.',
+      contentSubjectMissing:
+        'Indica l’Evento o l’argomento della guida dell’Alleanza da controllare.',
+      contentNotFound:
+        'Non ho trovato contenuti pubblicati dell’Alleanza corrispondenti a “{subject}”.',
+      contentFound: 'Strategia dell’Alleanza — {title}: {excerpt}',
+      observationSubjectMissing: 'Indica l’Alleanza o l’argomento di osservazione da controllare.',
+      observationNotFound:
+        'Non ho trovato un’osservazione autorizzata corrispondente a “{subject}”.',
+      observationFound: 'Osservazione — {title}: {observation}',
+    },
+  },
+} satisfies MessageCatalogue;
 export default messages;
