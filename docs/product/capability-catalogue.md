@@ -41,9 +41,9 @@ Factual Governor Progression establishes a data-first foundation before any reco
 - immutable `GameWorld/Progression` releases with deterministic checksums and a source registry;
 - source authority tiers, observation/version boundaries, explicit conflict states and per-family dispositions;
 - current Hero identity coverage across all discovered generations/rarities/classes plus sourced progression-system summaries;
-- sourced Hero shard/Widget/Mastery progression, Hero/Governor Gear and Charm facts with unresolved numeric conflicts preserved rather than guessed;
+- sourced Hero shard/Widget/Mastery progression plus Hero/Governor Gear and Charm facts, with current conflicts resolved only through documented source precedence and all superseded/unresolved claims preserved rather than guessed away;
 - named troop formations stored only as community conventions with mode/scope and no best/recommended score;
-- indexed/dispositioned building, troop, Academy/War Academy, Alliance Tech, Pet, Master and additional progression families;
+- canonicalized building, troop, Academy/War Academy, Alliance Tech, Pet, Master and additional progression families at every selected inspectable row, with genuinely unpublished or disputed values explicitly dispositioned;
 - a factual read-only Progression Library showing dataset version, checksum, sources, conflicts and completeness rather than hiding uncertainty;
 - append-only `Intelligence/Roster` Hero observations that pin a progression dataset identity/checksum when normalized;
 - `Operations/Rallies` saved formation/loadout intent that stores canonical Hero IDs and pins the factual release used to interpret them;

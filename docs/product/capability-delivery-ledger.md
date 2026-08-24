@@ -273,3 +273,37 @@ The Alliance Content game-parity delivery queue is closed: every phase is Comple
 8. Reaction reads expose only Like count, Dislike count and the current Player's reaction through a bounded query composition.
 9. Reactions never affect ordering, visibility, pinning, moderation, recommendation, reputation, notification delivery or any derived popularity/ranking signal.
 10. Accessibility, localization, mobile behavior, visual regression, audit/observability and failure/retry behavior are part of the capability contract, not follow-up polish.
+
+## Factual Governor Progression delivery program
+
+Target: a comprehensive factual KingShot progression corpus and Governor progression/loadout experience whose completeness is proven by reproducible source-backed releases, not by links to external sites. Canonical contract: [Factual Governor Progression](factual-governor-progression.md).
+
+Architectural ownership remains split: `GameWorld/Progression` owns immutable catalogue truth and reconciliation; `Intelligence/Roster` owns dated Governor observations; `Operations/Rallies` owns saved loadout/planning intent. The calculator evidence gate remains closed independently of factual-reference completeness.
+
+Release `2026.08.23.2` canonicalizes the selected open/inspectable source surface: 34 Heroes/262 skills/1,054 star rows, 220 Exclusive Weapon rows, Hero Gear/Mastery, 58 official Governor Gear rows, 22 Charm levels, 8 community formation conventions, 12 Buildings, 15 troop records, 191 Academy technologies/714 published rows, 30 War Academy technologies, 60 Alliance Technologies/279 rows, 14 Pets, 6 Masters and the selected Truegold/VIP/max-level/event reference families. `Fortified Mail VI` remains the single explicit Academy table gap because its six level rows are not published; no values are inferred.
+
+### Phase queue
+
+| Phase | Status | Slice | Exit condition |
+| --- | --- | --- | --- |
+| 0 | Complete | Product contract | Product/evidence/reuse/ownership/UX/authorization/calculator-gate contract is the implementation source of truth. |
+| 1 | Complete | Architecture + release foundation | Source registry, immutable releases, deterministic checksums, owner boundaries and import validation are implemented. |
+| 2 | Complete | Source discovery + snapshots | Selected official/community/open/GitHub source surfaces are surveyed and reproducibly pinned; complete reusable tables are not left index-only. |
+| 3 | Complete | Heroes | 34-Hero roster, progression, XP/shards and 262 structured skills are represented/dispositioned. |
+| 4 | Complete | Exclusive equipment + Widgets | 22 applicable ten-level Exclusive Weapon ladders (220 rows), non-applicability and Widget progression are represented. |
+| 5 | Complete | Hero Gear + Mastery | Selected inspectable enhancement/mastery/material tables are represented with provenance. |
+| 6 | Complete | Governor Gear + Charms | 58 official Gear rows and 22 Charm levels are canonical; Tier-A resolutions retain superseded claims. |
+| 7 | Complete | Named formations | Eight sourced ratios remain scoped community conventions with no recommendation semantics. |
+| 8 | Complete | Buildings + unlocks | All 12 maintained Building entities/tables are represented; disputed early prerequisite prose is explicitly dispositioned. |
+| 9 | Complete | Troops | Selected troop-tier/cost/time/points facts are canonicalized with source terminology. |
+| 10 | Complete | Academy + War Academy | 191 Academy identities/714 published rows and 30 War Academy technologies are represented; Academy dependency graph is validated and the single unpublished table remains explicit unknown. |
+| 11 | Complete | Pets + Masters | All 14 maintained Pets and 6 Masters retain every selected published structured factual table. |
+| 12 | Complete | Additional families | Alliance Tech 60/279, Truegold, VIP, caps/server timeline and selected progression-event tables are canonicalized/dispositioned. |
+| 13 | Complete | Governor Hero observations | Intelligence/Roster observations normalize canonical Hero identities, retain unknowns, remain idempotent and pin the factual release. |
+| 14 | Complete | Saved loadouts | Operations planning intent stores canonical Hero IDs/formation ratios and exact dataset identity/checksum separately from observations. |
+| 15 | Complete | Progression Library UX | Factual rows, source/confidence/conflict/unknown states, formations, observations and loadouts are localized, accessible and responsive with deterministic visual coverage. |
+| 16 | Complete | Completeness/reconciliation gates | Source/coverage/licence/reference/advisory-field/prerequisite/idempotency checks and read-only source regeneration pass; dynamic pages use normalized factual-table checksums. |
+| 17 | In progress | Final reconciliation + release gates | Product docs are reconciled to implemented evidence and one human-authored immutable candidate must pass CI, Architecture V3, Intelligence, Progression Source Refresh, Visual Regression, CodeQL, Dependency Review and King Perks together before closeout. |
+
+The capability must not be marked complete merely because another site publishes a table. Conversely, community ownership is not a reason to refuse a complete reusable factual table: selected tables are imported and reconciled when evidence/reuse rules permit, while strategy opinion remains excluded and calculator eligibility remains separately gated.
+

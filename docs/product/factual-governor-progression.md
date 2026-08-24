@@ -1,6 +1,6 @@
 # Factual Governor Progression
 
-Status: Active delivery — 2026-08-23
+Status: Release verification — 2026-08-24
 
 ## Product outcome
 
@@ -199,6 +199,8 @@ Published releases are immutable. A changed source snapshot, parser, normalizati
 
 Re-importing identical source snapshots and normalization rules must produce identical semantic content/checksum and no duplicate facts.
 
+For dynamic HTML sources, the immutable snapshot checksum is computed from the normalized factual rows after structural validation rather than from volatile page chrome. This keeps a release stable across non-factual HTML changes while any changed Gear, Charm, Widget or other pinned factual row still changes the semantic checksum and forces review.
+
 ## Reconciliation rules
 
 1. Normalize source-specific names to explicit candidates and preserve aliases/source spelling.
@@ -288,6 +290,29 @@ Every release emits a machine-readable per-family report with entities discovere
 
 A family cannot be marked complete while a discovered structured entity is silently absent. With the open-data policy above, a complete reusable public table must be imported rather than left index-only unless a concrete conflict/licensing/schema reason is documented.
 
+## Implemented release evidence
+
+Release `kingshot-2026-08-23-v2` / dataset `2026.08.23.2` is the reviewed factual corpus candidate for the 2026-08-23 source cutoff. The reproducible release contains 24 generated JSON documents and currently verifies:
+
+- 34/34 discovered Heroes with structured skills (262 structured skill records);
+- 1,054 Hero star/progression rows and 80 Hero XP/deployment-capacity rows;
+- 22 applicable Exclusive Weapons with 220 ten-level rows, plus the complete 10-level / 275-total Widget reference;
+- Hero Gear/Mastery reference tables;
+- all 58 Governor Gear steps, with Century Games Tier-A values canonical and 10 differing prior community rows retained as superseded claims;
+- all 22 Governor Charm levels, with the historical 21-vs-22 maximum conflict resolved for this release by Tier-A/current corroboration while the older claim remains recorded;
+- 8 named formation conventions with no recommendation semantics;
+- all 12 maintained Building entities and 15 selected troop-tier records;
+- 191 Academy technologies with all 714 source-published level rows, plus one explicit source gap for `Fortified Mail VI` (declared max level 6, no published six-row table);
+- Academy prerequisite validation across 720 declared levels with 232 explicit technology edges, while source-labelled external prerequisites remain distinct external nodes;
+- 30 War Academy technologies;
+- 60 Alliance Technologies with 279 source-published level rows;
+- all 14 maintained Pets and all 6 maintained Masters with every structured table published on their selected detail pages; and
+- Truegold/Tempered Truegold, VIP, max-level/server-timeline/cap references and factual progression-event tables discovered in the selected source sweep.
+
+The only missing Academy values are the six unpublished `Fortified Mail VI` level rows. They remain `unknown`; their absence is a documented source gap rather than an unfinished import. The Building inventory also retains the explicitly dispositioned early Range/Stable prose/table inconsistency rather than inventing a prerequisite. Resolved conflicts remain visible in provenance instead of being deleted.
+
+The current official/KR reconciliation pages are pinned by deterministic SHA-256 values over their normalized factual tables, so cosmetic/dynamic HTML changes do not mutate this immutable release. Runtime requests consume the committed release and never scrape these sources.
+
 ## Acceptance criteria
 
 - **AC-1 Product/architecture truth:** `/docs/product`, architecture/reference docs and implementation agree on GameWorld catalogue ownership, Intelligence observation ownership and Operations planning ownership.
@@ -315,22 +340,22 @@ A family cannot be marked complete while a discovered structured entity is silen
 | Phase | Status | Slice | Exit condition |
 | --- | --- | --- | --- |
 | 0 | Complete | Product contract | This contract defines outcome, taxonomy, open-data reuse, evidence/reconciliation, ownership, UX, authorization, acceptance criteria and calculator gate. |
-| 1 | In progress | Architecture + release foundation | Ownership docs, source registry, immutable releases, deterministic checksum, idempotent import/publication and validation tests are complete. |
-| 2 | In progress | Source discovery + source snapshots | Official/community wiki/database/open API/GitHub/community sources are surveyed; reusable complete tables are snapshotted/imported rather than index-only. |
-| 3 | In progress | Heroes | Full discovered Hero identity/acquisition/progression/XP/shards/skills/aliases are canonicalized/dispositioned. |
-| 4 | In progress | Exclusive equipment + Widgets | Full inspectable Widget levels/costs/effects/unlocks are canonicalized/dispositioned. |
-| 5 | In progress | Hero Gear + Mastery | Full inspectable Gear enhancement/rarity/material/stat and Mastery Forge ladders are canonicalized/dispositioned. |
-| 6 | In progress | Governor Gear + Charms | Complete open per-step Gear/Charm tables, slots/classes/materials/effects/power/confidence/conflicts are canonicalized. |
-| 7 | In progress | Named formations | Repeatedly documented ratios remain source/mode scoped and explicitly non-recommendation. |
-| 8 | In progress | Buildings + unlocks | Complete reusable building level/prerequisite/cost/time/power/capacity/unlock/Truegold tables are canonicalized. |
-| 9 | In progress | Troops | Complete reusable troop tiers/stats/unlocks/training/promotion/T11/T12/Truegold facts are canonicalized. |
-| 10 | In progress | Academy + War Academy | Discovered per-tech/per-level tables are canonicalized and dependency/unit/schema validated. |
-| 11 | In progress | Pets + Masters | Discovered progression/skills/material/Affinity/talent/research facts are canonicalized/dispositioned. |
-| 12 | In progress | Additional progression families | Alliance Tech, Truegold, VIP, capacity, materials, Watchtower/Beast/Terror/Bear Pitfall and every other discovered structured family is canonicalized or explicitly justified. |
-| 13 | In progress | Governor Hero observations | Roster history retains normalized sourced Hero observations with dataset pins and unknown-safe semantics. |
-| 14 | In progress | Saved loadouts | Authorized planning intent references canonical Heroes/formations/dataset release without recommendation semantics. |
-| 15 | In progress | Progression Library UX | Detailed rows, search/filters, provenance/confidence/conflict/unknown states, formations, observations and loadouts are responsive/accessibility/localization complete. |
-| 16 | In progress | Completeness/reconciliation gates | Machine-readable coverage/conflict/source/licence/unit/reference checks, source-snapshot checksums and idempotency/no-silent-omission tests are green. |
+| 1 | Complete | Architecture + release foundation | Ownership docs, source registry, immutable releases, deterministic checksum, idempotent import/publication and validation tests are complete. |
+| 2 | Complete | Source discovery + source snapshots | Official/community wiki/database/open API/GitHub/community sources are surveyed; reusable complete tables are snapshotted/imported rather than index-only. |
+| 3 | Complete | Heroes | Full discovered Hero identity/acquisition/progression/XP/shards/skills/aliases are canonicalized/dispositioned. |
+| 4 | Complete | Exclusive equipment + Widgets | Full inspectable Widget levels/costs/effects/unlocks are canonicalized/dispositioned. |
+| 5 | Complete | Hero Gear + Mastery | Full inspectable Gear enhancement/rarity/material/stat and Mastery Forge ladders are canonicalized/dispositioned. |
+| 6 | Complete | Governor Gear + Charms | Complete open per-step Gear/Charm tables, slots/classes/materials/effects/power/confidence/conflicts are canonicalized. |
+| 7 | Complete | Named formations | Repeatedly documented ratios remain source/mode scoped and explicitly non-recommendation. |
+| 8 | Complete | Buildings + unlocks | Complete reusable building level/prerequisite/cost/time/power/capacity/unlock/Truegold tables are canonicalized. |
+| 9 | Complete | Troops | Complete reusable troop tiers/stats/unlocks/training/promotion/T11/T12/Truegold facts are canonicalized. |
+| 10 | Complete | Academy + War Academy | Discovered per-tech/per-level tables are canonicalized and dependency/unit/schema validated. |
+| 11 | Complete | Pets + Masters | Discovered progression/skills/material/Affinity/talent/research facts are canonicalized/dispositioned. |
+| 12 | Complete | Additional progression families | Alliance Tech, Truegold, VIP, capacity, materials, Watchtower/Beast/Terror/Bear Pitfall and every other discovered structured family is canonicalized or explicitly justified. |
+| 13 | Complete | Governor Hero observations | Roster history retains normalized sourced Hero observations with dataset pins and unknown-safe semantics. |
+| 14 | Complete | Saved loadouts | Authorized planning intent references canonical Heroes/formations/dataset release without recommendation semantics. |
+| 15 | Complete | Progression Library UX | Detailed rows, search/filters, provenance/confidence/conflict/unknown states, formations, observations and loadouts are responsive/accessibility/localization complete. |
+| 16 | Complete | Completeness/reconciliation gates | Machine-readable coverage/conflict/source/licence/unit/reference checks, source-snapshot checksums and idempotency/no-silent-omission tests are green. |
 | 17 | In progress | Final reconciliation + release gates | Spec→code, code→spec, source→data, data→source, source→disposition, UX→backend, authorization and ownership scans are reconciled; all applicable repository gates pass on one immutable candidate. |
 
 After each completed requirement implementation proceeds directly to the next incomplete ledger row. Research that exposes another progression family, source conflict, provenance requirement or architecture/UX gap updates this contract and is implemented before closeout.

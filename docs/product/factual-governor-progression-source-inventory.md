@@ -30,6 +30,16 @@ Authority: Tier A.
 
 Use official site/wiki/support/game evidence for terminology, first-party unlock behavior, version boundaries and reconciliation where available. Normalize factual content; do not wholesale-copy expressive guide prose or third-party images.
 
+### Century Games official Governor Gear / Charm tables
+
+The selected official KingShot wiki Governor Gear page exposes a complete 58-row Governor Gear ladder and a complete 22-level Governor Charm ladder. Release `2026.08.23.2` uses those Tier-A rows as canonical current Gear/Charm facts where they overlap community data. Ten Governor Gear rows differed from the earlier open structured community feed; the official values are canonical and every displaced community row is retained as an explicit `superseded_by_tier_a` claim. The older community claim that Governor Charms stop at level 21 remains historical provenance; the current 22-level boundary is resolved by the official table plus the maintained KR table.
+
+Because the official page contains dynamic non-factual HTML, its immutable source snapshot is the SHA-256 of the normalized 58 Gear + 22 Charm factual rows after the expected table structure and row counts are validated. A cosmetic page change therefore does not create false release drift; a factual row change does.
+
+### Kingshot Data KR corroboration
+
+The maintained KR reference contributes independent structured corroboration for all 22 Governor Charm levels and the 10-level Exclusive Hero Gear Widget ladder (275 Widgets total). These pages are likewise pinned by normalized factual-table SHA-256 rather than volatile page HTML.
+
 ### Kingshot Data
 
 Authority: Tier B maintained structured community reference.
