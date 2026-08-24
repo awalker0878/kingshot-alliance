@@ -1,8 +1,8 @@
 # Alliance Assistant operations
 
-Status: Complete — 2026-08-24
+Status: Active delivery — GameWorld extension — 2026-08-24
 
-Alliance Assistant is a synchronous, read-only composition surface. The current release uses deterministic intent parsing and owner queries only. It has no external LLM/model-provider dependency, no Assistant database tables, no queue, and no persisted conversation history.
+Alliance Assistant remains a synchronous, read-only composition surface. It uses deterministic bounded intent parsing and owner queries only. It has no external LLM/model-provider dependency, no Assistant database tables, no queue, no persisted conversation history, and no Assistant mutation worker.
 
 ## Configuration
 
@@ -15,15 +15,23 @@ Alliance Assistant is a synchronous, read-only composition surface. The current 
 - `observation_result_limit` — bounded observation candidate cap.
 - `rate_limit_per_minute` — named Assistant request limit; default 30 per authenticated account.
 
-The application service provider registers the `alliance-assistant` limiter. Authenticated account ID is the primary limiter key; IP is only a fallback when no authenticated identity exists.
+Weekly participation questions use a seven-day past/future authorized Event window and then filter to the current UTC week. The owner batch projection accepts at most 500 already-authorized occurrence IDs and reads only the active Player's participation records.
 
 ## Provider posture
 
-There is no external model call in this release. Private questions, roster facts, Alliance guide text, observations, and citation evidence remain inside the application process/database boundary.
+There is no external model call. Private questions, self roster/participation/assignment state, transfer assessment evidence, Alliance guide text, observations and citations remain inside the application process/database boundary.
 
-Adding a model provider later is a material product/architecture change. It requires an updated product contract and ADR before implementation, an allowlisted provider/data-handling contract, prompt-injection evaluation, explicit data minimization, provider timeout/retry policy, and proof that owner authorization occurs before any content is transmitted.
+Game facts are loaded from the existing immutable `GameWorld/Progression` release. No online scrape or model lookup occurs during an Assistant request.
 
-Provider/model training knowledge must never be an application source of truth.
+Adding a model provider later remains a material product/architecture change requiring product contract/ADR review, allowlisted provider/data-handling rules, prompt-injection evaluation, data minimization, timeout/retry policy and proof that owner authorization occurs before any content transmission.
+
+## Frontend localization and performance posture
+
+The GameWorld extension adds native Assistant strings for every supported locale and five new bounded discovery prompts while preserving the original four. TypeScript locale-map contracts and architecture tests enforce that complete extension shapes exist.
+
+Assistant-only extension catalogues load dynamically with the `assistant` localization domain. They must not be moved into the shared application entry or made eager for unrelated pages. Release verification must keep the existing initial-JavaScript, largest-page and stylesheet budgets green; increasing a budget is not an acceptable fix for an Assistant-only regression.
+
+Transfer requirement presentation localizes the canonical owner requirement key and requirement state. English owner `explanation`/`nextAction` prose is not treated as translated interface copy.
 
 ## Privacy-safe telemetry
 
@@ -35,56 +43,69 @@ Successful reads may log only bounded operational dimensions:
 - source-type counts;
 - composition latency.
 
-Failures may log:
+Failures may log allowlisted failure category/class, latency and shared request/trace correlation.
 
-- allowlisted failure category/class;
-- latency;
-- normal request/trace correlation supplied by shared observability middleware.
+Routine logs must not contain raw question text, localized answer text, GameWorld value payloads/source excerpts, guide bodies, observation/transfer-observation details, roster/assignment notes, Governor names, or sensitive source URLs.
 
-Routine logs must not contain:
+Metrics may count `game_fact` unknown/conflicting outcomes and action-handoff offers, but labels must remain bounded and must not include entity/player/question text.
 
-- raw question text;
-- generated/localized answer text;
-- guide excerpts or bodies;
-- observation text/details;
-- roster notes or Governor names;
-- source URLs that contain sensitive query material;
-- provider prompts/responses (none exist in this release).
+## Dependency-specific failure behavior
 
-## Failure behavior
+### Progression
 
-Owner authorization failures are returned through the normal application authorization boundary and are not converted into `not_found` after retrieval.
+If the immutable release cannot be loaded or parsed, return `unavailable`; do not fall back to model knowledge. A release-level `unknown` or `conflicting` fact is a successful sourced answer state, not an infrastructure failure.
 
-Unexpected owner/composition failures return `503` with the localized `assistant.answers.unavailable` semantic response. The Assistant must not retry against a broader source set and must not fall back to model knowledge.
+### Participation and BattlePlans
 
-There is no automatic server-side request retry because the operation is synchronous and read-only. A user may retry a transient unavailable response. Rate-limited callers should wait for the limiter window rather than loop aggressively.
+Dependent self state is read only after authorized Event resolution. An ambiguous Event stops the flow before self-state retrieval. Batch participation queries remain scoped to the active Player.
+
+### Kingdom Transfers
+
+No transfer result is returned unless the active Player is a legitimate, visible, non-withdrawn participant in the current plan. A supplied Kingdom number never expands scope. Troubleshooting uses the canonical transfer planning/readiness capability rather than an Assistant override.
+
+### Territory Planning
+
+The Assistant reads only immutable published revisions attached to the Event occurrence. Missing or ambiguous attachments are repaired in the normal Event/TerritoryPlanning workflow; do not point the Assistant at mutable plan head state or the management revision catalogue.
+
+### Handoff
+
+A handoff is a normal GET link only. There is no handoff retry, worker, or Action. The destination remains authoritative for authorization, stale authority-context handling, validation and mutation.
 
 ## Recovery
 
 There is no Assistant state to replay or rebuild. Recovery is dependency-oriented:
 
-1. confirm authentication, active Player, and active Alliance context;
-2. confirm the relevant owner capability query works directly for the same actor/scope;
-3. inspect privacy-safe request/trace logs for failure category and latency;
-4. verify database/read dependency health;
-5. verify `AllianceAssistantServiceProvider` and `routes/assistant.php` are loaded;
-6. verify configured bounds/rate limit are valid integers;
-7. restore the failing owner capability first when the error originates there.
+1. confirm authentication, active Player and active Alliance context;
+2. confirm the relevant owner query works directly for the same actor/scope;
+3. for Event-dependent questions, confirm the Event resolves uniquely through authorized calendar visibility;
+4. for Game facts, confirm the current Progression release/checksum and owner fact query;
+5. for transfers, confirm current participant scope and canonical readiness evaluation;
+6. for territory plans, confirm a published revision is attached to the occurrence;
+7. inspect privacy-safe trace/failure dimensions;
+8. verify database/read dependency health;
+9. restore the failing owner capability first.
 
-Do not create an Assistant cache, shadow database, replicated guide corpus, or elevated service account as a recovery shortcut.
+Do not create an Assistant cache, shadow database, replicated game-fact corpus, management-query bypass or elevated service account as a recovery shortcut.
 
 ## Security checks
 
-Operational verification should include:
+Operational verification includes:
 
-- cross-Alliance denial/non-disclosure tests;
+- cross-Alliance Event non-disclosure;
+- self-only participation/assignment/transfer tests;
+- unknown/conflicting Progression behavior;
+- source-release/checksum citation assertions;
 - prompt-injection tests using hostile guide/observation text;
-- unsupported-write tests that assert zero mutations;
+- recognized-write handoff tests asserting zero mutations;
+- unknown-write unsupported tests;
 - log assertions showing question/source text is absent;
 - limiter tests;
 - response-citation validation;
-- architecture tests proving the ReadModel has no persistence/write dependencies.
+- architecture tests proving the ReadModel has no persistence/write Action dependency and no broad management projection dependency;
+- exact nine-prompt default discovery coverage;
+- typed native extension locale-map coverage;
+- dynamic Assistant-domain localization imports and repository performance budgets.
 
 ## Release gate
 
-Alliance Assistant is releasable only when its dedicated behavior/security/frontend/visual tests and the repository's applicable PHP, Pint, PHPStan, frontend lint/format/type/build, Architecture V3, Intelligence, CodeQL, Dependency Review, Visual Regression, production-image/container, staging, clean-install, and backup/restore checks are green on one immutable candidate.
+The GameWorld extension is releasable only when its product delivery ledger is complete and the same immutable candidate is green across applicable PHP tests, Pint, PHPStan, frontend lint/format/type/build/performance budgets, Architecture V3, Intelligence Verification, CodeQL, Dependency Review, Visual Regression, production-image/container, staging, clean-install and backup/restore checks.

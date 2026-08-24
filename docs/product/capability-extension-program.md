@@ -1,10 +1,10 @@
 # Capability Extension Program
 
-Status: Phase 0 contract complete — implementation not started
+Status: Active extension program — phases 0–2 complete — 2026-08-24
 
 Date: 2026-08-24
 
-This document is the product implementation contract for the next capability-extension program. It starts from the complete capabilities already present on `main` and extends them through their existing owners. It is not permission to create a parallel KingShot knowledge store, a generic OCR domain, a generic Event-readiness domain, an Assistant write path, or a second copy of existing operational truth.
+This document is the product implementation contract for the capability-extension program. It starts from the complete capabilities already present on `main` and extends them through their existing owners. It is not permission to create a parallel KingShot knowledge store, a generic OCR domain, a generic Event-readiness domain, an Assistant write path, or a second copy of existing operational truth.
 
 A delivery item is complete only when its domain/application behavior, persistence where applicable, authorization, idempotency/concurrency where applicable, provenance, audit/observability, recovery, frontend UX, mobile behavior, accessibility, localization, automated tests, architecture enforcement, visual regression where applicable, documentation reconciliation and repository release gates are complete.
 
@@ -14,7 +14,7 @@ A delivery item is complete only when its domain/application behavior, persisten
 
 Use the strong owner capabilities already delivered in GameWorld, Operations, Alliance, Intelligence, Communications, Platform and ReadModels to make the product more connected and useful without duplicating state or weakening provenance.
 
-The selected extensions are:
+The program extensions are listed below. Alliance Assistant Game Data and bounded operational-self queries are now a **Current complete capability**; the remaining items retain the Selected extension or Evidence-gated extension state recorded in the delivery ledger:
 
 1. Alliance Assistant Game Data and bounded operational-self queries;
 2. Event Readiness and Event Closeout composition;
@@ -58,7 +58,7 @@ Do not use `planned`, `partial`, `MVP`, or vague future-enhancement language as 
 | Alliance/Kingdom observations and historical intelligence | `Intelligence/Observations` and applicable Intelligence owners | change signals derive from owner history; no copied intelligence store |
 | delivery preferences, provider delivery and retry state | `Communications` | Event readiness can display delivery state but does not own it |
 | cross-context user-facing composition | `app/ReadModels/*` | composition only; never a write owner |
-| Alliance Assistant interpretation/evidence composition | `app/ReadModels/AllianceAssistant` | adds bounded intents only; still zero direct domain writes |
+| Alliance Assistant interpretation/evidence composition | `app/ReadModels/AllianceAssistant` | bounded intents only; still zero direct domain writes |
 
 ### Evidence is not destination truth
 
@@ -105,7 +105,9 @@ Do not create top-level bounded contexts named `EventReadiness`, `EventCloseout`
 
 A new owner context is justified only if implementation proves a genuinely new source of business truth that cannot belong to the owners above; that architectural change requires `/docs/architecture` and an ADR before implementation proceeds.
 
-## Selected extension 1 — Alliance Assistant: Game Data and operational self
+## Current complete capability — Alliance Assistant: Game Data and operational self
+
+Program delivery: **Complete — phases 1–2**. The canonical delivered contract and detailed completion ledger live in [Alliance Assistant — GameWorld Extension](alliance-assistant-gameworld-extension.md).
 
 ### Outcome
 
@@ -464,9 +466,9 @@ The program is implemented continuously in this order unless a documented depend
 
 | Phase | Classification | Slice |
 | --- | --- | --- |
-| 0 | Current contract work | Reconcile `/docs/product`, provenance/ownership and delivery ledger |
-| 1 | Selected extension | Alliance Assistant `game_fact` |
-| 2 | Selected extension | Assistant operational-self intents and safe owner-workflow handoffs |
+| 0 | Current complete capability | Reconcile `/docs/product`, provenance/ownership and delivery ledger |
+| 1 | Current complete capability | Alliance Assistant `game_fact` |
+| 2 | Current complete capability | Assistant operational-self intents and safe owner-workflow handoffs |
 | 3 | Selected extension | Event Readiness |
 | 4 | Selected extension | Event Closeout |
 | 5 | Selected extension | Kingdom Transfer Screenshot Intake |
@@ -507,6 +509,6 @@ Phase 0 is complete when all of the following are true in one documentation chan
 3. the capability catalogue identifies the extension program and its ownership without claiming unimplemented outcomes are already delivered;
 4. the capability gap analysis distinguishes Current complete capability, Selected extension and Evidence-gated extension;
 5. the global delivery ledger contains every program phase and acceptance-criteria reference;
-6. primary user journeys contain the selected future implementation journeys and clearly label them as extension-contract journeys until implemented;
+6. primary user journeys contain the program journey contracts and clearly label each journey's current program state;
 7. data provenance/ownership rules above are the canonical product contract before application changes;
 8. no application code, migrations, routes, frontend components or runtime configuration are changed by Phase 0.

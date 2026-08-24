@@ -3,8 +3,8 @@ import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
 
 const assistantVisualFingerprints: Record<string, string> = {
-  desktop: 'd07e2b3564ec7f9a1c311fb93a58148e287bb081703c805646da804f215bae23',
-  mobile: '3a49c2e28f4fa4a946eafce4e0314fb39eeb3cc5db9731e5f422cd85eec8980d',
+  desktop: '6142c4e26ceedd3336b1a1d859741bf3e841467037be910e87c4b28a862af445',
+  mobile: 'b5dbe13833b51637b445825609ea58480f27e2d1ad4a42e68718c0ebe0bb6f3a',
 };
 
 const citedSwordlandResponse = {

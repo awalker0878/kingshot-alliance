@@ -26,6 +26,7 @@ final class AllianceAssistantEvidenceV3Test extends TestCase
             occurredAt: '2026-08-29T20:00:00+00:00',
             updatedAt: '2026-08-24T12:00:00+00:00',
             href: '/events/01',
+            metadata: ['provenanceKey' => 'event-01'],
         );
 
         $payload = (new AssistantResult(
@@ -42,8 +43,8 @@ final class AllianceAssistantEvidenceV3Test extends TestCase
         self::assertSame('event-01', $payload['citations'][0]['evidenceId']);
         self::assertSame($payload['evidence'][0]['sourceId'], $payload['citations'][0]['sourceId']);
         self::assertSame($payload['evidence'][0]['classification'], $payload['citations'][0]['classification']);
+        self::assertSame($payload['evidence'][0]['metadata'], $payload['citations'][0]['metadata']);
         self::assertArrayNotHasKey('statement', $payload['citations'][0]);
-        self::assertArrayNotHasKey('metadata', $payload['citations'][0]);
     }
 
     public function test_non_answer_states_never_emit_citations_even_if_evidence_is_accidentally_supplied(): void

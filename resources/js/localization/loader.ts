@@ -20,6 +20,37 @@ function readPath(source: MessageCatalogue | undefined, path: string): string | 
   return typeof value === 'string' ? value : null;
 }
 
+function mergeCatalogue(base: MessageCatalogue, overlay: MessageCatalogue): MessageCatalogue {
+  const result: MessageCatalogue = { ...base };
+
+  for (const [key, value] of Object.entries(overlay)) {
+    if (typeof value === 'string') {
+      result[key] = value;
+      continue;
+    }
+
+    const current = result[key];
+    result[key] = mergeCatalogue(typeof current === 'object' ? current : {}, value);
+  }
+
+  return result;
+}
+
+async function assistantCatalogue(
+  base: MessageCatalogue,
+  locale: LocaleCode,
+): Promise<MessageCatalogue> {
+  const [{ assistantGameWorldExtension }, { assistantTransferLabels }] = await Promise.all([
+    import('./assistant-gameworld-extension'),
+    import('./assistant-transfer-labels'),
+  ]);
+
+  return mergeCatalogue(
+    mergeCatalogue(base, assistantGameWorldExtension(locale)),
+    assistantTransferLabels(locale),
+  );
+}
+
 async function loadOne(domain: LocalizationDomain, locale: LocaleCode): Promise<MessageCatalogue> {
   const key = cacheKey(domain, locale);
   const cached = catalogues.get(key);
@@ -28,10 +59,12 @@ async function loadOne(domain: LocalizationDomain, locale: LocaleCode): Promise<
   const existing = pending.get(key);
   if (existing) return existing;
 
-  const request = importDomainCatalogue(domain, locale).then((module) => {
-    catalogues.set(key, module.default);
+  const request = importDomainCatalogue(domain, locale).then(async (module) => {
+    const catalogue =
+      domain === 'assistant' ? await assistantCatalogue(module.default, locale) : module.default;
+    catalogues.set(key, catalogue);
     pending.delete(key);
-    return module.default;
+    return catalogue;
   });
   pending.set(key, request);
   return request;

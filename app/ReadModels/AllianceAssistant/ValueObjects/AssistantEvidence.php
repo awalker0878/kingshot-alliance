@@ -9,7 +9,7 @@ use App\ReadModels\AllianceAssistant\Enums\EvidenceSourceType;
 
 final readonly class AssistantEvidence
 {
-    /** @param array<string, bool|float|int|string|null> $metadata */
+    /** @param array<string, mixed> $metadata */
     public function __construct(
         public string $id,
         public EvidenceSourceType $sourceType,
@@ -52,6 +52,7 @@ final readonly class AssistantEvidence
             'occurredAt' => $this->occurredAt,
             'updatedAt' => $this->updatedAt,
             'href' => $this->href,
+            'metadata' => $this->metadata,
         ];
     }
 }

@@ -34,10 +34,7 @@ final class AllianceAssistantHttpV3Test extends TestCase
     {
         [$user, $actor, $alliance] = $this->governorWithAlliance(63101);
         $occurrence = $this->swordland($actor, $alliance, 'Swordland');
-        $roster = EventRoster::query()
-            ->where('occurrence_id', $occurrence->id)
-            ->where('key', 'combatants')
-            ->firstOrFail();
+        $roster = EventRoster::query()->where('occurrence_id', $occurrence->id)->where('key', 'combatants')->firstOrFail();
 
         app(AssignEventRosterPlayer::class)->handle(
             actorPlayerId: $actor->playerId,
@@ -75,10 +72,7 @@ final class AllianceAssistantHttpV3Test extends TestCase
         (new ScenarioFactory)->roster($actor, $alliance, $other);
 
         $occurrence = $this->swordland($actor, $alliance, 'Swordland');
-        $roster = EventRoster::query()
-            ->where('occurrence_id', $occurrence->id)
-            ->where('key', 'combatants')
-            ->firstOrFail();
+        $roster = EventRoster::query()->where('occurrence_id', $occurrence->id)->where('key', 'combatants')->firstOrFail();
         app(AssignEventRosterPlayer::class)->handle(
             actorPlayerId: $actor->playerId,
             occurrenceId: (string) $occurrence->id,
@@ -122,20 +116,44 @@ final class AllianceAssistantHttpV3Test extends TestCase
             ->assertJsonMissing(['sourceId' => (string) $hiddenOccurrence->id]);
     }
 
-    public function test_write_like_question_is_unsupported_and_causes_zero_domain_mutations(): void
+    public function test_game_fact_answer_is_source_backed_and_carries_release_provenance(): void
+    {
+        [$user, $actor] = $this->governorWithAlliance(63104);
+
+        $response = $this->assistantRequest($user, $actor, 'What generation is Amadeus?');
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('intent', 'game_fact')
+            ->assertJsonPath('status', 'answered')
+            ->assertJsonPath('messageKey', 'assistant.answers.gameFactKnown')
+            ->assertJsonPath('evidence.0.sourceType', 'game_fact')
+            ->assertJsonPath('evidence.0.classification', 'game_fact')
+            ->assertJsonPath('evidence.0.metadata.datasetReleaseId', 'kingshot-2026-08-23-v2')
+            ->assertJsonPath('evidence.0.metadata.datasetVersion', '2026.08.23.2')
+            ->assertJsonPath('citations.0.metadata.datasetVersion', '2026.08.23.2');
+        self::assertNotEmpty($response->json('evidence.0.metadata.checksum'));
+        self::assertNotEmpty($response->json('evidence.0.metadata.sourceIds'));
+    }
+
+    public function test_recognized_roster_write_returns_navigation_handoff_and_causes_zero_domain_mutations(): void
     {
         [$user, $actor, $alliance] = $this->governorWithAlliance(63105);
-        $this->swordland($actor, $alliance, 'Swordland');
+        $occurrence = $this->swordland($actor, $alliance, 'Swordland');
         $before = EventRosterMember::query()->count();
 
         $response = $this->assistantRequest($user, $actor, 'Put me on the Swordland roster');
 
         $response
             ->assertOk()
-            ->assertJsonPath('status', 'unsupported')
-            ->assertJsonPath('messageKey', 'assistant.answers.unsupported')
-            ->assertJsonCount(0, 'evidence')
-            ->assertJsonCount(0, 'citations');
+            ->assertJsonPath('intent', 'action_handoff')
+            ->assertJsonPath('status', 'answered')
+            ->assertJsonPath('messageKey', 'assistant.answers.rosterWriteHandoff')
+            ->assertJsonPath('handoff.kind', 'navigation')
+            ->assertJsonPath('handoff.labelKey', 'assistant.handoffs.openRoster')
+            ->assertJsonPath('handoff.href', route('events.show', ['occurrence' => (string) $occurrence->id], false))
+            ->assertJsonCount(1, 'evidence')
+            ->assertJsonCount(1, 'citations');
         self::assertSame($before, EventRosterMember::query()->count());
     }
 
@@ -153,7 +171,6 @@ final class AllianceAssistantHttpV3Test extends TestCase
                 if ($message !== 'alliance_assistant.answered') {
                     return false;
                 }
-
                 $encoded = json_encode($context);
 
                 return is_string($encoded)
@@ -170,10 +187,6 @@ final class AllianceAssistantHttpV3Test extends TestCase
 
     public function test_dedicated_assistant_rate_limit_is_account_scoped(): void
     {
-        // Parallel test workers share the Redis throttle store while using isolated
-        // databases whose numeric account IDs may overlap. Use unhashed named-limiter
-        // keys in this process so this test gets a fresh bucket without weakening the
-        // production limiter's account-scoped behavior.
         ThrottleRequests::shouldHashKeys(false);
 
         try {
@@ -185,10 +198,6 @@ final class AllianceAssistantHttpV3Test extends TestCase
             $this->assistantRequest($user, $actor, 'What time is Swordland?')->assertOk();
             $this->assistantRequest($user, $actor, 'What time is Swordland?')->assertStatus(429);
 
-            // `auth.session` stores a password hash for the current account. Reset the
-            // test client session before changing authenticated accounts so the second
-            // request represents an independent browser session rather than an invalid
-            // mid-session identity swap.
             $this->flushSession();
             [$otherUser, $otherActor, $otherAlliance] = $this->governorWithAlliance(63108);
             $this->swordland($otherActor, $otherAlliance, 'Swordland');
@@ -198,7 +207,7 @@ final class AllianceAssistantHttpV3Test extends TestCase
         }
     }
 
-    /** @return array{User, PlayerReference, AllianceReference} */
+    /** @return array{User,PlayerReference,AllianceReference} */
     private function governorWithAlliance(int $kingdomNumber): array
     {
         $scenario = new ScenarioFactory;
@@ -241,17 +250,11 @@ final class AllianceAssistantHttpV3Test extends TestCase
 
     private function versionFor(PlayerReference $player): string
     {
-        $alliance = app(PlayerIdentityContextQuery::class)
-            ->forPlayers([$player->playerId])[$player->playerId] ?? null;
+        $alliance = app(PlayerIdentityContextQuery::class)->forPlayers([$player->playerId])[$player->playerId] ?? null;
         $kingdomPermissions = app(KingdomAuthorityFactsQuery::class)
-            ->findCurrent($player->playerId, $player->kingdomId)
-            ?->permissionKeysObservedAtRead ?? [];
+            ->findCurrent($player->playerId, $player->kingdomId)?->permissionKeysObservedAtRead ?? [];
 
-        return app(PlayerAuthorityContextVersion::class)->issue(
-            $player,
-            $alliance,
-            $kingdomPermissions,
-        );
+        return app(PlayerAuthorityContextVersion::class)->issue($player, $alliance, $kingdomPermissions);
     }
 
     private function verify(User $user): void

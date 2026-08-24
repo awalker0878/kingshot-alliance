@@ -97,11 +97,21 @@ final class AllianceAssistantController extends Controller
             $sourceTypes[$evidence['sourceType']] = ($sourceTypes[$evidence['sourceType']] ?? 0) + 1;
         }
 
+        $gameFactResolution = null;
+        if ($result->intent === AssistantIntent::GameFact) {
+            $candidate = $result->messageParameters['resolution'] ?? null;
+            if (is_string($candidate) && in_array($candidate, ['known', 'unknown', 'conflicting'], true)) {
+                $gameFactResolution = $candidate;
+            }
+        }
+
         Log::info('alliance_assistant.answered', [
             'intent' => $result->intent->value,
             'status' => $result->status->value,
             'evidence_count' => count($result->evidence),
             'source_type_counts' => $sourceTypes,
+            'game_fact_resolution' => $gameFactResolution,
+            'handoff_kind' => $result->handoff === null ? null : 'navigation',
             'duration_ms' => $this->durationMs($startedAt),
         ]);
 

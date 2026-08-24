@@ -1,6 +1,6 @@
 # Alliance Assistant HTTP contract
 
-Status: Complete — 2026-08-24
+Status: Active delivery — GameWorld extension — 2026-08-24
 
 The Alliance Assistant HTTP surface is an authenticated, Alliance-scoped read/composition contract. It does not expose an unconstrained chat API and does not create a second application write path.
 
@@ -10,106 +10,170 @@ The Alliance Assistant HTTP surface is an authenticated, Alliance-scoped read/co
 
 Returns the Inertia `Assistant/Index` page for an authenticated, verified account with an active Player and active Alliance context.
 
-Possible boundary responses include:
-
-- `401` when the account is unauthenticated;
-- verification redirect/denial under the normal `verified` middleware;
-- `409` when no active Player or active Alliance context can be resolved;
-- `200` when the authorized page is rendered.
-
 ### `POST /assistant/ask`
 
-This POST is logically read-only. POST is used so private question text is not placed in the URL, browser history, proxy query strings, or routine GET access logs.
+This POST remains logically read-only. POST is used so private question text is not placed in the URL, browser history, proxy query strings, or routine GET access logs.
 
-Middleware:
+Middleware remains:
 
 - `auth`;
 - `auth.session`;
 - `verified`;
-- the repository-wide current Player authority-context version guard;
+- current Player authority-context version guard;
 - `alliance.context`;
 - `throttle:alliance-assistant`.
 
-The browser must submit the current `X-Game-Context-Version` value on same-origin POST requests. The normal frontend authority-context runtime attaches this header automatically. A missing or stale value is rejected before Assistant retrieval with `409 CONTEXT_STALE` and `X-Game-Context-Error: stale`; the caller must reload/re-resolve the active Governor context rather than retrying against stale authority.
+The browser must submit the current `X-Game-Context-Version`. Missing/stale context is rejected before Assistant retrieval with `409 CONTEXT_STALE` and `X-Game-Context-Error: stale`.
 
 Request JSON:
 
 ```json
 {
-  "question": "What time is Swordland and am I rostered?",
-  "prompt": "swordland_roster"
+  "question": "What generation is Amadeus?",
+  "prompt": "hero_fact"
 }
 ```
 
-`question` is required by behavior and must contain 2 through the configured maximum number of characters after trimming. ASCII control characters other than normal whitespace are rejected.
+`question` must contain 2 through the configured maximum characters after trimming. Control characters are rejected.
 
-`prompt` is optional. When supplied it must be one of the closed localized suggestion identifiers:
+Closed `prompt` identifiers:
 
 - `swordland_roster`;
 - `next_event`;
 - `bear_hunt_guide`;
-- `observation`.
+- `observation`;
+- `hero_fact`;
+- `rsvp_week`;
+- `battle_assignment`;
+- `transfer_status`;
+- `territory_plan`.
 
-A prompt identifier selects only a predeclared read intent. It grants no additional source visibility. Write-like question text remains unsupported even when paired with a read prompt identifier.
+Prompt identifiers select only predeclared intents and grant no authority. Write-attempt detection is evaluated before prompt override.
+
+## Supported intent values
+
+- `help`;
+- `event_time`;
+- `event_roster_self`;
+- `event_participation_self`;
+- `battle_plan_self`;
+- `game_fact`;
+- `transfer_status_self`;
+- `territory_plan`;
+- `alliance_content`;
+- `alliance_observation`;
+- `action_handoff`;
+- `unsupported`.
+
+No other value creates a generic chatbot fallback.
 
 ## Response
 
-Successful Assistant processing returns a structured JSON object. User-visible operational prose is represented by a localization key plus typed parameters rather than a server-authored English answer string.
-
 ```json
 {
-  "intent": "event_roster_self",
+  "intent": "game_fact",
   "status": "answered",
-  "messageKey": "assistant.answers.eventTimeRostered",
+  "messageKey": "assistant.answers.gameFactKnown",
   "messageParameters": {
-    "event": "Swordland",
-    "startsAt": "2026-08-29T20:00:00+00:00",
-    "roster": "Team 2",
-    "role": "joiner",
-    "slot": 4,
-    "status": "assigned"
+    "title": "Amadeus",
+    "resolution": "known",
+    "values": {
+      "fact": "Generation",
+      "value": "6"
+    },
+    "datasetVersion": "2026.08.23.2",
+    "evidenceStatus": "maintained_source_inspectable"
   },
-  "classifications": ["operational_fact"],
+  "classifications": ["game_fact"],
   "evidence": [],
   "citations": [],
   "ambiguity": null,
-  "suggestedQuestions": ["swordland_roster", "next_event", "bear_hunt_guide", "observation"]
+  "suggestedQuestions": [],
+  "handoff": null
 }
 ```
 
-The exact evidence/citation objects are generated on the server from owner-authorized evidence. The browser cannot submit citation identifiers to make them authoritative.
+`messageParameters` may contain bounded typed lists/objects for answer details such as participation items, battle assignments, GameWorld values, and transfer requirements. User-visible prose still comes from localization keys; typed structures are rendered semantically by the frontend.
 
-Statuses:
+Statuses remain:
 
-- `answered` — a supported question was answered from authorized evidence;
-- `ambiguous` — more than one authorized source could match and the Assistant will not choose arbitrarily;
-- `not_found` — no authorized source supports the requested answer;
-- `unsupported` — the request is outside the bounded intent catalogue or is write-like;
-- `validation_error` — input validation failed;
-- `unavailable` — an owner read or composition dependency failed; no model-knowledge fallback is used.
+- `answered`;
+- `ambiguous`;
+- `not_found`;
+- `unsupported`;
+- `validation_error`;
+- `unavailable`.
 
-HTTP status mapping:
-
-- normal Assistant outcomes, including `not_found`, `unsupported`, and `ambiguous`: `200`;
-- invalid question or prompt: `422`;
-- stale/missing Player authority context: `409 CONTEXT_STALE` with `X-Game-Context-Error: stale` when the current-authority guard rejects the POST;
-- rate limit: `429` from middleware;
-- unavailable owner/composition failure: `503`;
-- other authorization failures: normal `401`/`403`/`409` application boundaries.
+Normal Assistant outcomes return HTTP 200. Input validation returns 422, stale context 409, rate limit 429, and owner/composition unavailability 503.
 
 ## Evidence and citations
 
-Each evidence item contains a server-created evidence ID, source type, source ID, title, provenance classification, bounded statement, timestamps where applicable, safe deep link where applicable, and allowlisted metadata.
+Evidence source types include:
 
-Each citation is derived from an evidence item actually used by the answer. Citation classifications are closed:
+- `event`;
+- `roster`;
+- `participation`;
+- `battle_plan_assignment`;
+- `transfer_assessment`;
+- `territory_plan_revision`;
+- `alliance_content`;
+- `observation`;
+- `game_fact`.
+
+Classifications remain:
 
 - `operational_fact`;
 - `game_fact`;
 - `alliance_strategy`;
 - `observation`.
 
-`game_fact` is reserved for a future bounded intent backed by an approved GameWorld owner query. The current Assistant does not answer arbitrary KingShot mechanics questions from model knowledge.
+Citation metadata is server-created from the exact evidence item. It may contain bounded nested typed metadata.
 
-## Write boundary
+### GameWorld factual metadata
 
-Neither route mutates domain state. A request such as `Put me on the Swordland roster` returns `unsupported`; it does not invoke a roster write. Any future action handoff must call the existing owning capability Action and inherit its authorization, validation, idempotency, audit/outbox, observability, and recovery semantics.
+Every `game_fact` evidence/citation includes:
+
+```json
+{
+  "resolution": "known|unknown|conflicting",
+  "family": "heroes",
+  "path": "heroes.amadeus.generation",
+  "datasetReleaseId": "kingshot-2026-08-23-v2",
+  "datasetVersion": "2026.08.23.2",
+  "checksum": "...",
+  "sourceIds": ["..."],
+  "confidence": "...",
+  "evidenceStatus": "..."
+}
+```
+
+An `unknown` or `conflicting` factual result is still an answered, cited source state. The Assistant does not replace it with model knowledge.
+
+## Navigation-only handoff
+
+A recognized write request may return:
+
+```json
+{
+  "intent": "action_handoff",
+  "status": "answered",
+  "messageKey": "assistant.answers.rosterWriteHandoff",
+  "handoff": {
+    "kind": "navigation",
+    "labelKey": "assistant.handoffs.openRoster",
+    "href": "/events/<authorized-occurrence-id>"
+  }
+}
+```
+
+This is a normal GET navigation target only. The Assistant does not call a roster Action, submit a hidden form, attach a privileged authorization token, or automatically POST after navigation. The destination performs normal authorization/current-context checks.
+
+Unknown writes remain `unsupported`.
+
+## Owner-specific response rules
+
+- Event-dependent private state is not queried until one authorized Event occurrence has been resolved.
+- `event_participation_self` returns only the active Governor's rows; weekly list questions use a self-only batch query over authorized occurrence IDs.
+- `battle_plan_self` returns only direct or active-roster-derived assignments for the active Governor.
+- `transfer_status_self` returns no assessment unless the active Governor has legitimate visible participant scope. A requested Kingdom number constrains the existing participant target and never grants scope.
+- `territory_plan` returns only immutable published revisions attached to the Event occurrence; mutable plan heads are never an Assistant source.

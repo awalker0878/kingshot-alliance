@@ -10,4 +10,9 @@ enum AssistantPrompt: string
     case NextEvent = 'next_event';
     case BearHuntGuide = 'bear_hunt_guide';
     case Observation = 'observation';
+    case HeroFact = 'hero_fact';
+    case RsvpWeek = 'rsvp_week';
+    case BattleAssignment = 'battle_assignment';
+    case TransferStatus = 'transfer_status';
+    case TerritoryPlan = 'territory_plan';
 }
