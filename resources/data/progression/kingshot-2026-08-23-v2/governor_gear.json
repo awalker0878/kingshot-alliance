@@ -1,0 +1,894 @@
+{
+  "schema_version": 1,
+  "source_id": "kingshotpro-open-data",
+  "source_meta": {
+    "dataset": "kingshot-governor-gear",
+    "canonical": "https://kingshotpro.com/data/gear.json",
+    "count": 58,
+    "updated": "2026-06-18",
+    "verified": "2026-06-18",
+    "confidence": "scored",
+    "confidence_detail": {
+      "steps_0_41_green_to_redT2": "verified (two independent sources agree + in-game confirmation at Red T2)",
+      "steps_42_49_redT3_redT4": "community (sources conflict; kingshot.net used; needs in-game confirmation)",
+      "steps_50_57_redT5_redT6": "community (single source kingshot.net; needs in-game confirmation)"
+    },
+    "sources": [
+      "https://kingshot.net/database/governor-gear",
+      "https://www.kingshotguide.org/data-center/governor-gear-kingshot",
+      "https://kingshot-data.com/gears/governor-gears/ (ks.h5joy-games.com)",
+      "https://kingshot.fandom.com/wiki/Governor_Gear (through Gold 3*)"
+    ],
+    "license": "CC-BY-4.0 — free to reuse, including by AI assistants, with attribution to https://kingshotpro.com"
+  },
+  "data": {
+    "upgradeSteps": [
+      {
+        "tier": "Green",
+        "stars": 0,
+        "materials": {
+          "satin": 1500,
+          "gilded_threads": 15
+        },
+        "bonuses": {
+          "attack": "9.35%",
+          "defense": "9.35%"
+        },
+        "power_total": 224400,
+        "confidence": 99
+      },
+      {
+        "tier": "Green",
+        "stars": 1,
+        "materials": {
+          "satin": 3800,
+          "gilded_threads": 40
+        },
+        "bonuses": {
+          "attack": "12.75%",
+          "defense": "12.75%"
+        },
+        "power_total": 306000,
+        "confidence": 99
+      },
+      {
+        "tier": "Blue",
+        "stars": 0,
+        "materials": {
+          "satin": 7000,
+          "gilded_threads": 70
+        },
+        "bonuses": {
+          "attack": "17.00%",
+          "defense": "17.00%"
+        },
+        "power_total": 408000,
+        "confidence": 99
+      },
+      {
+        "tier": "Blue",
+        "stars": 1,
+        "materials": {
+          "satin": 9700,
+          "gilded_threads": 95
+        },
+        "bonuses": {
+          "attack": "21.25%",
+          "defense": "21.25%"
+        },
+        "power_total": 510000,
+        "confidence": 99
+      },
+      {
+        "tier": "Blue",
+        "stars": 2,
+        "materials": {
+          "satin": 1000,
+          "gilded_threads": 10,
+          "artisans_vision": 45
+        },
+        "bonuses": {
+          "attack": "25.50%",
+          "defense": "25.50%"
+        },
+        "power_total": 612000,
+        "confidence": 99
+      },
+      {
+        "tier": "Blue",
+        "stars": 3,
+        "materials": {
+          "satin": 1000,
+          "gilded_threads": 10,
+          "artisans_vision": 50
+        },
+        "bonuses": {
+          "attack": "29.75%",
+          "defense": "29.75%"
+        },
+        "power_total": 714000,
+        "confidence": 99
+      },
+      {
+        "tier": "Purple",
+        "stars": 0,
+        "materials": {
+          "satin": 1500,
+          "gilded_threads": 15,
+          "artisans_vision": 60
+        },
+        "bonuses": {
+          "attack": "34.00%",
+          "defense": "34.00%"
+        },
+        "power_total": 816000,
+        "confidence": 99
+      },
+      {
+        "tier": "Purple",
+        "stars": 1,
+        "materials": {
+          "satin": 1500,
+          "gilded_threads": 15,
+          "artisans_vision": 70
+        },
+        "bonuses": {
+          "attack": "36.89%",
+          "defense": "36.89%"
+        },
+        "power_total": 885360,
+        "confidence": 99
+      },
+      {
+        "tier": "Purple",
+        "stars": 2,
+        "materials": {
+          "satin": 6500,
+          "gilded_threads": 65,
+          "artisans_vision": 40
+        },
+        "bonuses": {
+          "attack": "39.78%",
+          "defense": "39.78%"
+        },
+        "power_total": 954720,
+        "confidence": 99
+      },
+      {
+        "tier": "Purple",
+        "stars": 3,
+        "materials": {
+          "satin": 8000,
+          "gilded_threads": 80,
+          "artisans_vision": 50
+        },
+        "bonuses": {
+          "attack": "42.67%",
+          "defense": "42.67%"
+        },
+        "power_total": 1024080,
+        "confidence": 99
+      },
+      {
+        "tier": "Purple T1",
+        "stars": 0,
+        "materials": {
+          "satin": 10000,
+          "gilded_threads": 95,
+          "artisans_vision": 60
+        },
+        "bonuses": {
+          "attack": "45.56%",
+          "defense": "45.56%"
+        },
+        "power_total": 1093440,
+        "confidence": 99
+      },
+      {
+        "tier": "Purple T1",
+        "stars": 1,
+        "materials": {
+          "satin": 11000,
+          "gilded_threads": 110,
+          "artisans_vision": 70
+        },
+        "bonuses": {
+          "attack": "48.45%",
+          "defense": "48.45%"
+        },
+        "power_total": 1162800,
+        "confidence": 99
+      },
+      {
+        "tier": "Purple T1",
+        "stars": 2,
+        "materials": {
+          "satin": 13000,
+          "gilded_threads": 130,
+          "artisans_vision": 85
+        },
+        "bonuses": {
+          "attack": "51.34%",
+          "defense": "51.34%"
+        },
+        "power_total": 1232160,
+        "confidence": 99
+      },
+      {
+        "tier": "Purple T1",
+        "stars": 3,
+        "materials": {
+          "satin": 15000,
+          "gilded_threads": 160,
+          "artisans_vision": 100
+        },
+        "bonuses": {
+          "attack": "54.23%",
+          "defense": "54.23%"
+        },
+        "power_total": 1301520,
+        "confidence": 99
+      },
+      {
+        "tier": "Gold",
+        "stars": 0,
+        "materials": {
+          "satin": 22000,
+          "gilded_threads": 220,
+          "artisans_vision": 40
+        },
+        "bonuses": {
+          "attack": "56.78%",
+          "defense": "56.78%"
+        },
+        "power_total": 1362720,
+        "confidence": 99
+      },
+      {
+        "tier": "Gold",
+        "stars": 1,
+        "materials": {
+          "satin": 23000,
+          "gilded_threads": 230,
+          "artisans_vision": 40
+        },
+        "bonuses": {
+          "attack": "59.33%",
+          "defense": "59.33%"
+        },
+        "power_total": 1423920,
+        "confidence": 99
+      },
+      {
+        "tier": "Gold",
+        "stars": 2,
+        "materials": {
+          "satin": 25000,
+          "gilded_threads": 250,
+          "artisans_vision": 45
+        },
+        "bonuses": {
+          "attack": "61.88%",
+          "defense": "61.88%"
+        },
+        "power_total": 1485120,
+        "confidence": 99
+      },
+      {
+        "tier": "Gold",
+        "stars": 3,
+        "materials": {
+          "satin": 26000,
+          "gilded_threads": 260,
+          "artisans_vision": 45
+        },
+        "bonuses": {
+          "attack": "64.43%",
+          "defense": "64.43%"
+        },
+        "power_total": 1546320,
+        "confidence": 99
+      },
+      {
+        "tier": "Gold T1",
+        "stars": 0,
+        "materials": {
+          "satin": 28000,
+          "gilded_threads": 280,
+          "artisans_vision": 45
+        },
+        "bonuses": {
+          "attack": "66.98%",
+          "defense": "66.98%"
+        },
+        "power_total": 1607520,
+        "confidence": 99
+      },
+      {
+        "tier": "Gold T1",
+        "stars": 1,
+        "materials": {
+          "satin": 30000,
+          "gilded_threads": 300,
+          "artisans_vision": 55
+        },
+        "bonuses": {
+          "attack": "69.53%",
+          "defense": "69.53%"
+        },
+        "power_total": 1668720,
+        "confidence": 99
+      },
+      {
+        "tier": "Gold T1",
+        "stars": 2,
+        "materials": {
+          "satin": 32000,
+          "gilded_threads": 320,
+          "artisans_vision": 55
+        },
+        "bonuses": {
+          "attack": "72.08%",
+          "defense": "72.08%"
+        },
+        "power_total": 1729920,
+        "confidence": 99
+      },
+      {
+        "tier": "Gold T1",
+        "stars": 3,
+        "materials": {
+          "satin": 35000,
+          "gilded_threads": 340,
+          "artisans_vision": 55
+        },
+        "bonuses": {
+          "attack": "74.63%",
+          "defense": "74.63%"
+        },
+        "power_total": 1791120,
+        "confidence": 99
+      },
+      {
+        "tier": "Gold T2",
+        "stars": 0,
+        "materials": {
+          "satin": 38000,
+          "gilded_threads": 390,
+          "artisans_vision": 55
+        },
+        "bonuses": {
+          "attack": "77.18%",
+          "defense": "77.18%"
+        },
+        "power_total": 1852320,
+        "confidence": 99
+      },
+      {
+        "tier": "Gold T2",
+        "stars": 1,
+        "materials": {
+          "satin": 43000,
+          "gilded_threads": 430,
+          "artisans_vision": 75
+        },
+        "bonuses": {
+          "attack": "79.73%",
+          "defense": "79.73%"
+        },
+        "power_total": 1913520,
+        "confidence": 99
+      },
+      {
+        "tier": "Gold T2",
+        "stars": 2,
+        "materials": {
+          "satin": 45000,
+          "gilded_threads": 460,
+          "artisans_vision": 80
+        },
+        "bonuses": {
+          "attack": "82.28%",
+          "defense": "82.28%"
+        },
+        "power_total": 1974720,
+        "confidence": 99
+      },
+      {
+        "tier": "Gold T2",
+        "stars": 3,
+        "materials": {
+          "satin": 48000,
+          "gilded_threads": 500,
+          "artisans_vision": 85
+        },
+        "bonuses": {
+          "attack": "84.83%",
+          "defense": "84.83%"
+        },
+        "power_total": 2040000,
+        "confidence": 99
+      },
+      {
+        "tier": "Gold T3",
+        "stars": 0,
+        "materials": {
+          "satin": 60000,
+          "gilded_threads": 600,
+          "artisans_vision": 120
+        },
+        "bonuses": {
+          "attack": "87.38%",
+          "defense": "87.38%"
+        },
+        "power_total": 2097120,
+        "confidence": 99
+      },
+      {
+        "tier": "Gold T3",
+        "stars": 1,
+        "materials": {
+          "satin": 70000,
+          "gilded_threads": 700,
+          "artisans_vision": 140
+        },
+        "bonuses": {
+          "attack": "89.93%",
+          "defense": "89.93%"
+        },
+        "power_total": 2158320,
+        "confidence": 99
+      },
+      {
+        "tier": "Gold T3",
+        "stars": 2,
+        "materials": {
+          "satin": 80000,
+          "gilded_threads": 800,
+          "artisans_vision": 160
+        },
+        "bonuses": {
+          "attack": "92.48%",
+          "defense": "92.48%"
+        },
+        "power_total": 2219520,
+        "confidence": 99
+      },
+      {
+        "tier": "Gold T3",
+        "stars": 3,
+        "materials": {
+          "satin": 90000,
+          "gilded_threads": 900,
+          "artisans_vision": 180
+        },
+        "bonuses": {
+          "attack": "95.00%",
+          "defense": "95.00%"
+        },
+        "power_total": 2280000,
+        "confidence": 99
+      },
+      {
+        "tier": "Red",
+        "stars": 0,
+        "materials": {
+          "satin": 108000,
+          "gilded_threads": 1080,
+          "artisans_vision": 220
+        },
+        "bonuses": {
+          "attack": "97.50%",
+          "defense": "97.50%"
+        },
+        "power_total": 2340000,
+        "confidence": 99
+      },
+      {
+        "tier": "Red",
+        "stars": 1,
+        "materials": {
+          "satin": 114000,
+          "gilded_threads": 1140,
+          "artisans_vision": 230
+        },
+        "bonuses": {
+          "attack": "100.00%",
+          "defense": "100.00%"
+        },
+        "power_total": 2400000,
+        "confidence": 99
+      },
+      {
+        "tier": "Red",
+        "stars": 2,
+        "materials": {
+          "satin": 121000,
+          "gilded_threads": 1210,
+          "artisans_vision": 240
+        },
+        "bonuses": {
+          "attack": "102.50%",
+          "defense": "102.50%"
+        },
+        "power_total": 2460000,
+        "confidence": 99
+      },
+      {
+        "tier": "Red",
+        "stars": 3,
+        "materials": {
+          "satin": 128000,
+          "gilded_threads": 1280,
+          "artisans_vision": 250
+        },
+        "bonuses": {
+          "attack": "105.00%",
+          "defense": "105.00%"
+        },
+        "power_total": 2520000,
+        "confidence": 99
+      },
+      {
+        "tier": "Red T1",
+        "stars": 0,
+        "materials": {
+          "satin": 154000,
+          "gilded_threads": 1540,
+          "artisans_vision": 300
+        },
+        "bonuses": {
+          "attack": "107.50%",
+          "defense": "107.50%"
+        },
+        "power_total": 2580000,
+        "confidence": 99
+      },
+      {
+        "tier": "Red T1",
+        "stars": 1,
+        "materials": {
+          "satin": 163000,
+          "gilded_threads": 1630,
+          "artisans_vision": 320
+        },
+        "bonuses": {
+          "attack": "110.00%",
+          "defense": "110.00%"
+        },
+        "power_total": 2640000,
+        "confidence": 99
+      },
+      {
+        "tier": "Red T1",
+        "stars": 2,
+        "materials": {
+          "satin": 173000,
+          "gilded_threads": 1730,
+          "artisans_vision": 340
+        },
+        "bonuses": {
+          "attack": "112.50%",
+          "defense": "112.50%"
+        },
+        "power_total": 2700000,
+        "confidence": 99
+      },
+      {
+        "tier": "Red T1",
+        "stars": 3,
+        "materials": {
+          "satin": 183000,
+          "gilded_threads": 1830,
+          "artisans_vision": 360
+        },
+        "bonuses": {
+          "attack": "115.00%",
+          "defense": "115.00%"
+        },
+        "power_total": 2760000,
+        "confidence": 99
+      },
+      {
+        "tier": "Red T2",
+        "stars": 0,
+        "materials": {
+          "satin": 220000,
+          "gilded_threads": 2200,
+          "artisans_vision": 430
+        },
+        "bonuses": {
+          "attack": "117.50%",
+          "defense": "117.50%"
+        },
+        "power_total": 2820000,
+        "confidence": 99
+      },
+      {
+        "tier": "Red T2",
+        "stars": 1,
+        "materials": {
+          "satin": 233000,
+          "gilded_threads": 2330,
+          "artisans_vision": 460
+        },
+        "bonuses": {
+          "attack": "120.00%",
+          "defense": "120.00%"
+        },
+        "power_total": 2880000,
+        "confidence": 99
+      },
+      {
+        "tier": "Red T2",
+        "stars": 2,
+        "materials": {
+          "satin": 247000,
+          "gilded_threads": 2470,
+          "artisans_vision": 490
+        },
+        "bonuses": {
+          "attack": "122.50%",
+          "defense": "122.50%"
+        },
+        "power_total": 2940000,
+        "confidence": 99
+      },
+      {
+        "tier": "Red T2",
+        "stars": 3,
+        "materials": {
+          "satin": 264000,
+          "gilded_threads": 2640,
+          "artisans_vision": 520
+        },
+        "bonuses": {
+          "attack": "125.00%",
+          "defense": "125.00%"
+        },
+        "power_total": 3000000,
+        "confidence": 99
+      },
+      {
+        "tier": "Red T3",
+        "stars": 0,
+        "materials": {
+          "satin": 288000,
+          "gilded_threads": 2880,
+          "artisans_vision": 570
+        },
+        "bonuses": {
+          "attack": "127.75%",
+          "defense": "127.75%"
+        },
+        "power_total": 3066000,
+        "confidence": 91
+      },
+      {
+        "tier": "Red T3",
+        "stars": 1,
+        "materials": {
+          "satin": 302000,
+          "gilded_threads": 3020,
+          "artisans_vision": 600
+        },
+        "bonuses": {
+          "attack": "130.50%",
+          "defense": "130.50%"
+        },
+        "power_total": 3132000,
+        "confidence": 91
+      },
+      {
+        "tier": "Red T3",
+        "stars": 2,
+        "materials": {
+          "satin": 317000,
+          "gilded_threads": 3170,
+          "artisans_vision": 630
+        },
+        "bonuses": {
+          "attack": "133.25%",
+          "defense": "133.25%"
+        },
+        "power_total": 3198000,
+        "confidence": 91
+      },
+      {
+        "tier": "Red T3",
+        "stars": 3,
+        "materials": {
+          "satin": 333000,
+          "gilded_threads": 3330,
+          "artisans_vision": 660
+        },
+        "bonuses": {
+          "attack": "136.00%",
+          "defense": "136.00%"
+        },
+        "power_total": 3264000,
+        "confidence": 91
+      },
+      {
+        "tier": "Red T4",
+        "stars": 0,
+        "materials": {
+          "satin": 358000,
+          "gilded_threads": 3580,
+          "artisans_vision": 720
+        },
+        "bonuses": {
+          "attack": "138.75%",
+          "defense": "138.75%"
+        },
+        "power_total": 3330000,
+        "confidence": 91
+      },
+      {
+        "tier": "Red T4",
+        "stars": 1,
+        "materials": {
+          "satin": 384000,
+          "gilded_threads": 3840,
+          "artisans_vision": 770
+        },
+        "bonuses": {
+          "attack": "141.50%",
+          "defense": "141.50%"
+        },
+        "power_total": 3396000,
+        "confidence": 91
+      },
+      {
+        "tier": "Red T4",
+        "stars": 2,
+        "materials": {
+          "satin": 403000,
+          "gilded_threads": 4030,
+          "artisans_vision": 810
+        },
+        "bonuses": {
+          "attack": "144.25%",
+          "defense": "144.25%"
+        },
+        "power_total": 3462000,
+        "confidence": 91
+      },
+      {
+        "tier": "Red T4",
+        "stars": 3,
+        "materials": {
+          "satin": 423000,
+          "gilded_threads": 4230,
+          "artisans_vision": 850
+        },
+        "bonuses": {
+          "attack": "147.00%",
+          "defense": "147.00%"
+        },
+        "power_total": 3528000,
+        "confidence": 91
+      },
+      {
+        "tier": "Red T5",
+        "stars": 0,
+        "materials": {
+          "satin": 451000,
+          "gilded_threads": 4510,
+          "artisans_vision": 910
+        },
+        "bonuses": {
+          "attack": "150.00%",
+          "defense": "150.00%"
+        },
+        "power_total": 3600000,
+        "confidence": 87
+      },
+      {
+        "tier": "Red T5",
+        "stars": 1,
+        "materials": {
+          "satin": 479000,
+          "gilded_threads": 4790,
+          "artisans_vision": 970
+        },
+        "bonuses": {
+          "attack": "153.00%",
+          "defense": "153.00%"
+        },
+        "power_total": 3672000,
+        "confidence": 87
+      },
+      {
+        "tier": "Red T5",
+        "stars": 2,
+        "materials": {
+          "satin": 507000,
+          "gilded_threads": 5070,
+          "artisans_vision": 1030
+        },
+        "bonuses": {
+          "attack": "156.00%",
+          "defense": "156.00%"
+        },
+        "power_total": 3744000,
+        "confidence": 87
+      },
+      {
+        "tier": "Red T5",
+        "stars": 3,
+        "materials": {
+          "satin": 535000,
+          "gilded_threads": 5350,
+          "artisans_vision": 1090
+        },
+        "bonuses": {
+          "attack": "159.00%",
+          "defense": "159.00%"
+        },
+        "power_total": 3816000,
+        "confidence": 87
+      },
+      {
+        "tier": "Red T6",
+        "stars": 0,
+        "materials": {
+          "satin": 548000,
+          "gilded_threads": 5480,
+          "artisans_vision": 1110
+        },
+        "bonuses": {
+          "attack": "162.00%",
+          "defense": "162.00%"
+        },
+        "power_total": 3888000,
+        "confidence": 87
+      },
+      {
+        "tier": "Red T6",
+        "stars": 1,
+        "materials": {
+          "satin": 565000,
+          "gilded_threads": 5650,
+          "artisans_vision": 1140
+        },
+        "bonuses": {
+          "attack": "165.00%",
+          "defense": "165.00%"
+        },
+        "power_total": 3960000,
+        "confidence": 87
+      },
+      {
+        "tier": "Red T6",
+        "stars": 2,
+        "materials": {
+          "satin": 582000,
+          "gilded_threads": 5820,
+          "artisans_vision": 1170
+        },
+        "bonuses": {
+          "attack": "168.00%",
+          "defense": "168.00%"
+        },
+        "power_total": 4032000,
+        "confidence": 87
+      },
+      {
+        "tier": "Red T6",
+        "stars": 3,
+        "materials": {
+          "satin": 599000,
+          "gilded_threads": 5990,
+          "artisans_vision": 1210
+        },
+        "bonuses": {
+          "attack": "171.00%",
+          "defense": "171.00%"
+        },
+        "power_total": 4104000,
+        "confidence": 87
+      }
+    ]
+  }
+}

@@ -1,0 +1,212 @@
+{
+  "schema_version": 1,
+  "source_id": "kingshotpro-open-data",
+  "source_meta": {
+    "dataset": "kingshot-kvk-scoring",
+    "canonical": "https://kingshotpro.com/data/kvk.json",
+    "count": 5,
+    "updated": "2026-06-14",
+    "verified": "2026-06-18",
+    "confidence": "scored",
+    "confidence_detail": null,
+    "sources": [
+      "kingshotguide.org/guide/kingshot-kvk-event",
+      "kingshotdata.com"
+    ],
+    "license": "CC-BY-4.0 — attribute to https://kingshotpro.com"
+  },
+  "data": {
+    "days": [
+      {
+        "day": 1,
+        "name": "City Construction",
+        "actions": [
+          {
+            "label": "Charm level increase",
+            "unit": "levels",
+            "pts": 70
+          },
+          {
+            "label": "Truegold building upgrade",
+            "unit": "upgrades",
+            "pts": 2000
+          },
+          {
+            "label": "Speedups used (1M each)",
+            "unit": "million",
+            "pts": 30
+          },
+          {
+            "label": "Intel Mission completed",
+            "unit": "missions",
+            "pts": 6000
+          }
+        ]
+      },
+      {
+        "day": 2,
+        "name": "Basic Skills Up",
+        "actions": [
+          {
+            "label": "Truegold building upgrade",
+            "unit": "upgrades",
+            "pts": 2000
+          },
+          {
+            "label": "Speedups used (1M each)",
+            "unit": "million",
+            "pts": 30
+          },
+          {
+            "label": "Hero Roulette spin",
+            "unit": "spins",
+            "pts": 8000
+          },
+          {
+            "label": "Hero Shards ascension (Epic)",
+            "unit": "ascensions",
+            "pts": 1220
+          },
+          {
+            "label": "Hero Shards ascension (Mythic)",
+            "unit": "ascensions",
+            "pts": 3040
+          },
+          {
+            "label": "Resources gathered (per 1K food/wood)",
+            "unit": "thousands",
+            "pts": 2
+          }
+        ]
+      },
+      {
+        "day": 3,
+        "name": "Pet Training",
+        "actions": [
+          {
+            "label": "Pet advancement",
+            "unit": "levels",
+            "pts": 50
+          },
+          {
+            "label": "Advanced Taming Mark",
+            "unit": "marks",
+            "pts": 15000
+          },
+          {
+            "label": "Common Taming Mark",
+            "unit": "marks",
+            "pts": 1150
+          },
+          {
+            "label": "Charm level increase",
+            "unit": "levels",
+            "pts": 70
+          },
+          {
+            "label": "Hero Roulette spin",
+            "unit": "spins",
+            "pts": 8000
+          },
+          {
+            "label": "Intel Mission completed",
+            "unit": "missions",
+            "pts": 6000
+          }
+        ]
+      },
+      {
+        "day": 4,
+        "name": "Hero Development",
+        "actions": [
+          {
+            "label": "Charm level increase",
+            "unit": "levels",
+            "pts": 70
+          },
+          {
+            "label": "Hero Gear Forgehammer used",
+            "unit": "hammers",
+            "pts": 4000
+          },
+          {
+            "label": "Hero Exclusive Gear Widget",
+            "unit": "widgets",
+            "pts": 8000
+          },
+          {
+            "label": "Mithril used",
+            "unit": "mithril",
+            "pts": 40000
+          },
+          {
+            "label": "Troops trained (per unit, T1-T3)",
+            "unit": "troops",
+            "pts": 3
+          },
+          {
+            "label": "Troops trained (per unit, T4-T6)",
+            "unit": "troops",
+            "pts": 10
+          },
+          {
+            "label": "Troops trained (per unit, T7-T10)",
+            "unit": "troops",
+            "pts": 30
+          }
+        ]
+      },
+      {
+        "day": 5,
+        "name": "Power Boost",
+        "actions": [
+          {
+            "label": "Pet advancement",
+            "unit": "levels",
+            "pts": 50
+          },
+          {
+            "label": "Advanced Taming Mark",
+            "unit": "marks",
+            "pts": 15000
+          },
+          {
+            "label": "Common Taming Mark",
+            "unit": "marks",
+            "pts": 1150
+          },
+          {
+            "label": "Mithril used",
+            "unit": "mithril",
+            "pts": 40000
+          },
+          {
+            "label": "Forgehammer used",
+            "unit": "hammers",
+            "pts": 4000
+          },
+          {
+            "label": "Widget used",
+            "unit": "widgets",
+            "pts": 8000
+          },
+          {
+            "label": "Truegold building upgrade",
+            "unit": "upgrades",
+            "pts": 2000
+          },
+          {
+            "label": "Speedups used (1M each)",
+            "unit": "million",
+            "pts": 30
+          },
+          {
+            "label": "Intel Mission completed",
+            "unit": "missions",
+            "pts": 6000
+          }
+        ]
+      }
+    ]
+  }
+}

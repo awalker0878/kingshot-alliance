@@ -1,0 +1,421 @@
+{
+  "schema_version": 1,
+  "source_id": "kingshotpro-open-data",
+  "source_meta": {
+    "dataset": "kingshot-hero-xp",
+    "canonical": "https://kingshotpro.com/data/hero-xp.json",
+    "count": 80,
+    "updated": "2026-06-14",
+    "verified": "2026-06-18",
+    "confidence": "scored",
+    "confidence_detail": null,
+    "sources": [
+      "kingshot-data.com/guides/hero-level/"
+    ],
+    "license": "CC-BY-4.0 — attribute to https://kingshotpro.com"
+  },
+  "data": {
+    "heroXp": [
+      {
+        "level": 1,
+        "xpToReach": 0,
+        "deploymentCapacity": 65
+      },
+      {
+        "level": 2,
+        "xpToReach": 480,
+        "deploymentCapacity": 140
+      },
+      {
+        "level": 3,
+        "xpToReach": 690,
+        "deploymentCapacity": 220
+      },
+      {
+        "level": 4,
+        "xpToReach": 920,
+        "deploymentCapacity": 305
+      },
+      {
+        "level": 5,
+        "xpToReach": 1200,
+        "deploymentCapacity": 400
+      },
+      {
+        "level": 6,
+        "xpToReach": 1500,
+        "deploymentCapacity": 500
+      },
+      {
+        "level": 7,
+        "xpToReach": 1800,
+        "deploymentCapacity": 605
+      },
+      {
+        "level": 8,
+        "xpToReach": 2200,
+        "deploymentCapacity": 720
+      },
+      {
+        "level": 9,
+        "xpToReach": 2600,
+        "deploymentCapacity": 840
+      },
+      {
+        "level": 10,
+        "xpToReach": 3100,
+        "deploymentCapacity": 970
+      },
+      {
+        "level": 11,
+        "xpToReach": 3800,
+        "deploymentCapacity": 1100
+      },
+      {
+        "level": 12,
+        "xpToReach": 4200,
+        "deploymentCapacity": 1240
+      },
+      {
+        "level": 13,
+        "xpToReach": 5100,
+        "deploymentCapacity": 1390
+      },
+      {
+        "level": 14,
+        "xpToReach": 5700,
+        "deploymentCapacity": 1540
+      },
+      {
+        "level": 15,
+        "xpToReach": 6800,
+        "deploymentCapacity": 1700
+      },
+      {
+        "level": 16,
+        "xpToReach": 7800,
+        "deploymentCapacity": 1870
+      },
+      {
+        "level": 17,
+        "xpToReach": 8900,
+        "deploymentCapacity": 2050
+      },
+      {
+        "level": 18,
+        "xpToReach": 10000,
+        "deploymentCapacity": 2240
+      },
+      {
+        "level": 19,
+        "xpToReach": 12000,
+        "deploymentCapacity": 2440
+      },
+      {
+        "level": 20,
+        "xpToReach": 13000,
+        "deploymentCapacity": 2650
+      },
+      {
+        "level": 21,
+        "xpToReach": 14000,
+        "deploymentCapacity": 2870
+      },
+      {
+        "level": 22,
+        "xpToReach": 15000,
+        "deploymentCapacity": 3100
+      },
+      {
+        "level": 23,
+        "xpToReach": 16000,
+        "deploymentCapacity": 3340
+      },
+      {
+        "level": 24,
+        "xpToReach": 17000,
+        "deploymentCapacity": 3590
+      },
+      {
+        "level": 25,
+        "xpToReach": 18000,
+        "deploymentCapacity": 3850
+      },
+      {
+        "level": 26,
+        "xpToReach": 19000,
+        "deploymentCapacity": 4120
+      },
+      {
+        "level": 27,
+        "xpToReach": 20000,
+        "deploymentCapacity": 4400
+      },
+      {
+        "level": 28,
+        "xpToReach": 21000,
+        "deploymentCapacity": 4690
+      },
+      {
+        "level": 29,
+        "xpToReach": 22000,
+        "deploymentCapacity": 4990
+      },
+      {
+        "level": 30,
+        "xpToReach": 24000,
+        "deploymentCapacity": 5300
+      },
+      {
+        "level": 31,
+        "xpToReach": 26000,
+        "deploymentCapacity": 5620
+      },
+      {
+        "level": 32,
+        "xpToReach": 28000,
+        "deploymentCapacity": 5950
+      },
+      {
+        "level": 33,
+        "xpToReach": 30000,
+        "deploymentCapacity": 6290
+      },
+      {
+        "level": 34,
+        "xpToReach": 32000,
+        "deploymentCapacity": 6640
+      },
+      {
+        "level": 35,
+        "xpToReach": 36000,
+        "deploymentCapacity": 7000
+      },
+      {
+        "level": 36,
+        "xpToReach": 40000,
+        "deploymentCapacity": 7170
+      },
+      {
+        "level": 37,
+        "xpToReach": 44000,
+        "deploymentCapacity": 7340
+      },
+      {
+        "level": 38,
+        "xpToReach": 48000,
+        "deploymentCapacity": 7510
+      },
+      {
+        "level": 39,
+        "xpToReach": 52000,
+        "deploymentCapacity": 7680
+      },
+      {
+        "level": 40,
+        "xpToReach": 58000,
+        "deploymentCapacity": 7775
+      },
+      {
+        "level": 41,
+        "xpToReach": 64000,
+        "deploymentCapacity": 8070
+      },
+      {
+        "level": 42,
+        "xpToReach": 70000,
+        "deploymentCapacity": 8365
+      },
+      {
+        "level": 43,
+        "xpToReach": 76000,
+        "deploymentCapacity": 8655
+      },
+      {
+        "level": 44,
+        "xpToReach": 82000,
+        "deploymentCapacity": 8950
+      },
+      {
+        "level": 45,
+        "xpToReach": 90000,
+        "deploymentCapacity": 9245
+      },
+      {
+        "level": 46,
+        "xpToReach": 98000,
+        "deploymentCapacity": 9540
+      },
+      {
+        "level": 47,
+        "xpToReach": 100000,
+        "deploymentCapacity": 9835
+      },
+      {
+        "level": 48,
+        "xpToReach": 110000,
+        "deploymentCapacity": 10130
+      },
+      {
+        "level": 49,
+        "xpToReach": 120000,
+        "deploymentCapacity": 10425
+      },
+      {
+        "level": 50,
+        "xpToReach": 130000,
+        "deploymentCapacity": 10630
+      },
+      {
+        "level": 51,
+        "xpToReach": 140000,
+        "deploymentCapacity": 10925
+      },
+      {
+        "level": 52,
+        "xpToReach": 150000,
+        "deploymentCapacity": 11140
+      },
+      {
+        "level": 53,
+        "xpToReach": 160000,
+        "deploymentCapacity": 11340
+      },
+      {
+        "level": 54,
+        "xpToReach": 170000,
+        "deploymentCapacity": 11525
+      },
+      {
+        "level": 55,
+        "xpToReach": 190000,
+        "deploymentCapacity": 11700
+      },
+      {
+        "level": 56,
+        "xpToReach": 210000,
+        "deploymentCapacity": 11875
+      },
+      {
+        "level": 57,
+        "xpToReach": 230000,
+        "deploymentCapacity": 12050
+      },
+      {
+        "level": 58,
+        "xpToReach": 250000,
+        "deploymentCapacity": 12225
+      },
+      {
+        "level": 59,
+        "xpToReach": 270000,
+        "deploymentCapacity": 12400
+      },
+      {
+        "level": 60,
+        "xpToReach": 300000,
+        "deploymentCapacity": 12575
+      },
+      {
+        "level": 61,
+        "xpToReach": 330000,
+        "deploymentCapacity": 12750
+      },
+      {
+        "level": 62,
+        "xpToReach": 360000,
+        "deploymentCapacity": 12925
+      },
+      {
+        "level": 63,
+        "xpToReach": 390000,
+        "deploymentCapacity": 13100
+      },
+      {
+        "level": 64,
+        "xpToReach": 420000,
+        "deploymentCapacity": 13275
+      },
+      {
+        "level": 65,
+        "xpToReach": 470000,
+        "deploymentCapacity": 13450
+      },
+      {
+        "level": 66,
+        "xpToReach": 520000,
+        "deploymentCapacity": 13625
+      },
+      {
+        "level": 67,
+        "xpToReach": 570000,
+        "deploymentCapacity": 13800
+      },
+      {
+        "level": 68,
+        "xpToReach": 620000,
+        "deploymentCapacity": 13975
+      },
+      {
+        "level": 69,
+        "xpToReach": 670000,
+        "deploymentCapacity": 14150
+      },
+      {
+        "level": 70,
+        "xpToReach": 770000,
+        "deploymentCapacity": 14325
+      },
+      {
+        "level": 71,
+        "xpToReach": 870000,
+        "deploymentCapacity": 14500
+      },
+      {
+        "level": 72,
+        "xpToReach": 970000,
+        "deploymentCapacity": 14675
+      },
+      {
+        "level": 73,
+        "xpToReach": 1000000,
+        "deploymentCapacity": 14850
+      },
+      {
+        "level": 74,
+        "xpToReach": 1100000,
+        "deploymentCapacity": 15025
+      },
+      {
+        "level": 75,
+        "xpToReach": 1300000,
+        "deploymentCapacity": 15200
+      },
+      {
+        "level": 76,
+        "xpToReach": 1500000,
+        "deploymentCapacity": 15375
+      },
+      {
+        "level": 77,
+        "xpToReach": 1700000,
+        "deploymentCapacity": 15550
+      },
+      {
+        "level": 78,
+        "xpToReach": 1900000,
+        "deploymentCapacity": 15725
+      },
+      {
+        "level": 79,
+        "xpToReach": 2100000,
+        "deploymentCapacity": 15900
+      },
+      {
+        "level": 80,
+        "xpToReach": 2400000,
+        "deploymentCapacity": 16075
+      }
+    ]
+  }
+}

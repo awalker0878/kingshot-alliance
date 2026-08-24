@@ -1,0 +1,912 @@
+{
+  "schema_version": 1,
+  "observed_at": "2026-08-23",
+  "sources": [
+    {
+      "source_id": "kingshotdata",
+      "dataset": "alliance_tech_tables",
+      "url": "https://kingshotdata.com/alliance-tech/",
+      "sha256": "385f0ea0c2791a6918f88df72750b2651c0a7867cb793f8dc197bf34d707f445",
+      "kind": "alliance_tech",
+      "technology_identities": 60,
+      "visible_level_rows": 279
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "buildings_tables",
+      "url": "https://kingshotdata.com/buildings/academy/",
+      "sha256": "566a29f6902b81f809390112640f40cc6b34688f1d7a7776d43237667a5ab80c",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "buildings_tables",
+      "url": "https://kingshotdata.com/buildings/barracks/",
+      "sha256": "4eb1a5e00968d393ae126c4b2d7f4afcffcfba59a21e8e44cbdfbd024521acac",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "buildings_tables",
+      "url": "https://kingshotdata.com/buildings/command-center/",
+      "sha256": "8b2acafa16a6cdd896dca463d9e105a18532de8564621284636c9620e3919a76",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "buildings_tables",
+      "url": "https://kingshotdata.com/buildings/embassy/",
+      "sha256": "628d770780cd1f4abcade862b7e505d412bd0315ee0ff44ba40975790932620c",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "buildings_tables",
+      "url": "https://kingshotdata.com/buildings/guard-station/",
+      "sha256": "082d7602841c37b35cd57b89f72ba0e46a9d828b4db1cee5fcd0f937e60a3922",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "buildings_tables",
+      "url": "https://kingshotdata.com/buildings/kitchen/",
+      "sha256": "7f4a8c3f48fdd01add89fdac093ae2ef7649d818c36a7e0cb8a08c2bccdce04c",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "buildings_tables",
+      "url": "https://kingshotdata.com/buildings/range/",
+      "sha256": "d08fc2a0ddfe038a7ee236803a642d6767d21cff689fae5f14cd7643f17869bd",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "buildings_tables",
+      "url": "https://kingshotdata.com/buildings/stable/",
+      "sha256": "0d140136581f2c097f18f80001b97a804543054cbb762b1195dbbc69fd805f3f",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "buildings_tables",
+      "url": "https://kingshotdata.com/buildings/storehouse/",
+      "sha256": "8a2ec388ce22724a9b894e7d23f0dc152a137ad92b9c0f87326ebe9decc4cf17",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "buildings_tables",
+      "url": "https://kingshotdata.com/buildings/town-center/",
+      "sha256": "0b08a53127a5b9335d69a36db5744cc90c050e33d46fc9bd2ca5eb89df9f11c1",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "buildings_tables",
+      "url": "https://kingshotdata.com/buildings/truegold-crucible/",
+      "sha256": "c55d905baa3717a1366495f7488e3c04a5642d601e5c8b8271d093160bd63c36",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "buildings_tables",
+      "url": "https://kingshotdata.com/buildings/war-academy/",
+      "sha256": "cade96c3e8805ea3b610ecd32d18b8ef971faff8ea5934d92ddbf5bd91582a00",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "buildings_tables",
+      "url": "https://kingshotdata.com/category/buildings/",
+      "sha256": "bad86d0b3943d49e076de3f83133e8d3f74ce6898d719838513ebdc0dfa26fb5",
+      "kind": "category_hub",
+      "expected_entities": 12,
+      "discovered_candidate_links": 12
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "database_tables",
+      "url": "https://kingshotdata.com/category/database/",
+      "sha256": "57efca179d186f19b66f6e6d932fb2d95adeabccad19efed0928389bcf6d7dee",
+      "kind": "category_hub",
+      "expected_entities": 8,
+      "discovered_candidate_links": 8
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "events_tables",
+      "url": "https://kingshotdata.com/category/events/",
+      "sha256": "188e8d5979f053566ced178edc76a47ae7ea2f9323222e063fe1deaa666fb426",
+      "kind": "category_hub",
+      "expected_entities": 33,
+      "discovered_candidate_links": 33
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "heroes_tables",
+      "url": "https://kingshotdata.com/category/heroes/",
+      "sha256": "005f2190e8222c473aff569723c290b95838dab5cd41faad378def4197846e56",
+      "kind": "category_hub",
+      "expected_entities": 34,
+      "discovered_candidate_links": 41
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "masters_tables",
+      "url": "https://kingshotdata.com/category/masters/",
+      "sha256": "b586be7ef5c33323f845075945f46d25c3de26431d149a9a8e147e766a197ad6",
+      "kind": "category_hub",
+      "expected_entities": 6,
+      "discovered_candidate_links": 6
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "pets_tables",
+      "url": "https://kingshotdata.com/category/pets/",
+      "sha256": "bbb38b2187296b907aa7787848af64ef8d4217a763b05a389575d784ab446af4",
+      "kind": "category_hub",
+      "expected_entities": 14,
+      "discovered_candidate_links": 14
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "database_tables",
+      "url": "https://kingshotdata.com/database/governor-charm/",
+      "sha256": "05d988587e96f4c911f5dfce633b270b87c15fa49c743e41f6c4b336c63ccaa5",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "database_tables",
+      "url": "https://kingshotdata.com/database/governor-gear/",
+      "sha256": "c75dd82c4e121bfc61d2bfd693f486d8fa7ed70e5e159d78c8b8323606b94716",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "database_tables",
+      "url": "https://kingshotdata.com/database/hero-gear-enhancement-chart/",
+      "sha256": "74d97af648f6126e0dc61817a059a85b15fc9d95613bdba50fc6d0f4834fddd7",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "database_tables",
+      "url": "https://kingshotdata.com/database/hero-shards/",
+      "sha256": "26060b6b64ebdfb4baf5e5be0a2c191580a5a0513d9ff3b3fc5a1f8372e22319",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "database_tables",
+      "url": "https://kingshotdata.com/database/mastery-forging/",
+      "sha256": "52e5a5e5fb38cf0747b18f0a73276616d64aa0b18a9dc82908812a73dde19275",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "database_tables",
+      "url": "https://kingshotdata.com/database/max-levels/",
+      "sha256": "4cf78d4095caba7f5670b10caa16223d3286ed754289ac9db566ccc8841b0f60",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "database_tables",
+      "url": "https://kingshotdata.com/database/server-timeline-state-age/",
+      "sha256": "b53cc2914d1c0893e736617437b2be0bd259536202a9d3d859d050c0c9bb6c02",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "database_tables",
+      "url": "https://kingshotdata.com/database/widgets/",
+      "sha256": "5fb19c0c26c65af9468e815348a16b2e809e6224c145c67a35ea3012fe81c2b6",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "events_tables",
+      "url": "https://kingshotdata.com/events/all-out-event/",
+      "sha256": "c70fd942f2b24aeffe232b5ec134007f19eb09000a8d7a9a428aabba9b25a15a",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "events_tables",
+      "url": "https://kingshotdata.com/events/alliance-brawl-event/",
+      "sha256": "9f9f9828b8b9a16be33e97b6d9495ff0860cbadc6a8c574ba0bee5f632f118f3",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "events_tables",
+      "url": "https://kingshotdata.com/events/armament-competition/",
+      "sha256": "894febbbc628e6609d84babffd34bf973b65d7646214195ba9035cb56d06490c",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "events_tables",
+      "url": "https://kingshotdata.com/events/beast-whisperer-event/",
+      "sha256": "0487f9e440d6a796e49e3afb446a21975bab78285fa21121d902a5c4b958b316",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "events_tables",
+      "url": "https://kingshotdata.com/events/buccaneer-bounty-event/",
+      "sha256": "96bd6f3d39b7f07a9c3151d6cadb909bc9aa4ac617e7d411e27de033ded0c971",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "events_tables",
+      "url": "https://kingshotdata.com/events/call-of-the-sovereign/",
+      "sha256": "0fe9abc20bd460d6ba3a980ea7a3f1e798871208e03595c5a269eed71b571ab5",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "events_tables",
+      "url": "https://kingshotdata.com/events/cesares-fury/",
+      "sha256": "e29a004d652c8cc1130bc57e7c91a5be6980eecbec49818c9afbcd6b96614c62",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "events_tables",
+      "url": "https://kingshotdata.com/events/champagne-fair/",
+      "sha256": "655363c90e5a3e06be4320bc1bc746f5bb8015f75ad2cdac5b4748118739baef",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "events_tables",
+      "url": "https://kingshotdata.com/events/champions-way-event/",
+      "sha256": "c49f73c9bbe6e7590d1dd978c1d85916d1926385f8da228d714834db518da6d5",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "events_tables",
+      "url": "https://kingshotdata.com/events/city-development-event/",
+      "sha256": "f53c52c24428452f20cbb1db8a56427b89d2b26733ca7df5cf0f1e370b055386",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "events_tables",
+      "url": "https://kingshotdata.com/events/defeat-nearby-beasts-event/",
+      "sha256": "1faedf60f9444f84cb1bce1d206aa0df3423b54b2383a83e4156822d20200fa3",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "events_tables",
+      "url": "https://kingshotdata.com/events/desert-trial-event/",
+      "sha256": "77822e536a5aa6d6458566c6206aa5cb62fbb1147c3ba9a68012e26a528714a0",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "events_tables",
+      "url": "https://kingshotdata.com/events/develop-new-tech-event/",
+      "sha256": "3b8ec44a0e026a0f02d5cf6dd122916c836db307880405e4fd7a65a30b7473a4",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "events_tables",
+      "url": "https://kingshotdata.com/events/golden-glaives-event/",
+      "sha256": "cd945dec7aa75f476b4f6a456c9ee0858cfffe393c367cc8d496612a24ffff45",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "events_tables",
+      "url": "https://kingshotdata.com/events/grow-your-heroes-event/",
+      "sha256": "96666961ad2b5c09e4bc418f51f9e681347570a809218cdad7d50b85b502cd56",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "events_tables",
+      "url": "https://kingshotdata.com/events/hall-of-governors/",
+      "sha256": "0cf368c3768fa280d507024550545ac965d38d963c46811abb023be899824bbf",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "events_tables",
+      "url": "https://kingshotdata.com/events/hall-of-heroes/",
+      "sha256": "127ddaae3416acae96a891cd43da22da12ee757f9a6f665f4fc88f28b3e486ba",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "events_tables",
+      "url": "https://kingshotdata.com/events/hero-roulette/",
+      "sha256": "a8d62464a13502aa19d6a4d1218c0790983200c2ec7e14c05e92ab12124c4197",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "events_tables",
+      "url": "https://kingshotdata.com/events/kingdom-of-power-kvk-event/",
+      "sha256": "e3768f511751310d98f7adebb397d6592f7667092ea985263f45012c0d2c3081",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "events_tables",
+      "url": "https://kingshotdata.com/events/kingdom-transfer-event/",
+      "sha256": "2c4b4818e3face15768705eb695fa95556c5dc9c93fa0da5cb70ebef08cf1536",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "events_tables",
+      "url": "https://kingshotdata.com/events/merchant-empire-event/",
+      "sha256": "3d610b24e7ff0e7ff3d9ba605bc89d14f80251c0b1ee5995d635519b85f9e0b7",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "events_tables",
+      "url": "https://kingshotdata.com/events/mystic-divination-event/",
+      "sha256": "7475c53f5c62d2a3eb1ca27861b37c9789f287242ef17fdf52e832dc58cf9d67",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "events_tables",
+      "url": "https://kingshotdata.com/events/mystic-trial/",
+      "sha256": "1ffa58b8253d6215ea5e0878f72318b714bce63af0aafa9135f1dd73dc9e84ff",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "events_tables",
+      "url": "https://kingshotdata.com/events/officer-project-event/",
+      "sha256": "d59c9aeb6b6b9d8eba47e36ec3fda87616258a9475576fe22f150417e5e7045b",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "events_tables",
+      "url": "https://kingshotdata.com/events/path-of-growth-event/",
+      "sha256": "1350e245a168aa8b5afd1a392cf881509419a3b2d44b7a33e603203f9f2c6ba2",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "events_tables",
+      "url": "https://kingshotdata.com/events/plan-your-city-event/",
+      "sha256": "3d21b6abc4726261a1e8306b21df8fa8df7231cfdb1b94e7952cfe3495e70061",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "events_tables",
+      "url": "https://kingshotdata.com/events/power-up-event/",
+      "sha256": "224753f5e34cd5932fd0e0971c70f703484298d8d481c79ab7556501173bb9e5",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "events_tables",
+      "url": "https://kingshotdata.com/events/stand-of-arms-event/",
+      "sha256": "43de298ab7a27fce68ed94b462f10e65b553e44944b9577ddb388729e3ade594",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "events_tables",
+      "url": "https://kingshotdata.com/events/steel-edge-event/",
+      "sha256": "8daff4cfa7cc1d0f093540af39869c0da76ff44451b4b01284a31fd3f66b6ab3",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "events_tables",
+      "url": "https://kingshotdata.com/events/strongest-governor-event/",
+      "sha256": "929def0746fa1630c5fe6af7b13da6beb59961b45d79139fe1fad71e729ffb51",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "events_tables",
+      "url": "https://kingshotdata.com/events/viking-vengeance-level-stats/",
+      "sha256": "21d22068166d81c16b6c803333c5b35d9adba1f0c5c8950652f208c71780d1b7",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "events_tables",
+      "url": "https://kingshotdata.com/events/war-preparation-event/",
+      "sha256": "93f6f41658b1f7c9f9eb8c16d40b9ce2b0c0bd05db0010a6f2ea3736e16f565f",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "events_tables",
+      "url": "https://kingshotdata.com/events/working-overtime-event/",
+      "sha256": "0289780f5b23036653793738804530b51482875f2d49308e22e0469c0d03347d",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "heroes_tables",
+      "url": "https://kingshotdata.com/heroes/alcar/",
+      "sha256": "f7f2da0797c651057c223f3e1f06942a9b56efd26b5ee731f67bbe4224670d7d",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "heroes_tables",
+      "url": "https://kingshotdata.com/heroes/amadeus/",
+      "sha256": "57adbfdb2d98af087e61cd6a14f4e85cf182fabb72a4deb6841b3425aa9eb849",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "heroes_tables",
+      "url": "https://kingshotdata.com/heroes/amane/",
+      "sha256": "f51fea777c9eb1f4aed3547cea44b48da942873b8fbf8c59ec2987708aa103af",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "heroes_tables",
+      "url": "https://kingshotdata.com/heroes/ava/",
+      "sha256": "0a54c071b35d7195a7e1802fdf5ccb7806c7b5f68b8ecd2791cea99120eeb241",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "heroes_tables",
+      "url": "https://kingshotdata.com/heroes/charles/",
+      "sha256": "181a273c3ca140ceb6a8ee719de61890bcc9f1a5a4a31620770ac82cbd81de64",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "heroes_tables",
+      "url": "https://kingshotdata.com/heroes/chenko/",
+      "sha256": "a2dcd6ad998953cc8c8033de48bbe0e106813e0219b1573a1aa84e8fbbbd7dea",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "heroes_tables",
+      "url": "https://kingshotdata.com/heroes/diana/",
+      "sha256": "1cbfabf9418d4fee60ac82478b727b8d607317ad1d447365db129fecd2e23095",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "heroes_tables",
+      "url": "https://kingshotdata.com/heroes/edwin/",
+      "sha256": "76e42fb3f6f361dac69ba1e5e0e5b5ce255c380f6788608c8a706d1b82798e82",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "heroes_tables",
+      "url": "https://kingshotdata.com/heroes/eric/",
+      "sha256": "be204d76b4e5873a38245613c391eb421fb12d6b881e6dc911977ed798732108",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "heroes_tables",
+      "url": "https://kingshotdata.com/heroes/fahd/",
+      "sha256": "91bef67182c533e0840bb8a5fd2d3a0ed8a511dab4f77fadeac2a6bbf464d96a",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "heroes_tables",
+      "url": "https://kingshotdata.com/heroes/forrest/",
+      "sha256": "52e0f70ad3ee9cbfa3267c7fc7ae1062eed5c6c74b6d0c90389b6fbe3bc90c22",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "heroes_tables",
+      "url": "https://kingshotdata.com/heroes/gordon/",
+      "sha256": "11254602bca73d05fc181c3bc7c6672849f6855e8973108c2f3b29b47ad1ea77",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "heroes_tables",
+      "url": "https://kingshotdata.com/heroes/helga/",
+      "sha256": "d7109d43cf7a71059f3a8694f12771ef87ad40667eb3441c716a82910448423b",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "heroes_tables",
+      "url": "https://kingshotdata.com/heroes/hilde/",
+      "sha256": "b431759b9aec465bc6a763d928959a6ee9fe0bb663cf1e77e16f463afcc4be10",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "heroes_tables",
+      "url": "https://kingshotdata.com/heroes/howard/",
+      "sha256": "764cad7e237701aaeeb51e440dada92047a33d7f8a1a23a9b5a96a28e0c76bc7",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "heroes_tables",
+      "url": "https://kingshotdata.com/heroes/jabel/",
+      "sha256": "8eee6d1cd43541f0b6caaf7615e71041d8e9bfffa5e4fdd7686b94716dc25e55",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "heroes_tables",
+      "url": "https://kingshotdata.com/heroes/jaeger/",
+      "sha256": "5b4d5f7dc72b89dc9124b92dd569105dbba4a73d11a29098d3b3ffdcf97659b6",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "heroes_tables",
+      "url": "https://kingshotdata.com/heroes/long-fei/",
+      "sha256": "37f30102bbb1c0cca8e4d32563fd6b85d02c0ca66abbf02b0c35ef0c4429d437",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "heroes_tables",
+      "url": "https://kingshotdata.com/heroes/margot/",
+      "sha256": "3a7b1bebdbe96c083d022a52eae753c13ab8f2784ed97696c8395e51fdc78b32",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "heroes_tables",
+      "url": "https://kingshotdata.com/heroes/marlin/",
+      "sha256": "b27392be54cf33c0b4b531feafa51783c0b9375d0186da9758e5855edac58549",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "heroes_tables",
+      "url": "https://kingshotdata.com/heroes/olive/",
+      "sha256": "fa30edb894210be8f04d644ff3cd4effce5c484c5e7ed4b122fb272c57f92d33",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "heroes_tables",
+      "url": "https://kingshotdata.com/heroes/petra/",
+      "sha256": "2af3221bf56cae0580f0e6ec54b58a60caa7c72f8ced15e3a991365994bf2ab2",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "heroes_tables",
+      "url": "https://kingshotdata.com/heroes/quinn/",
+      "sha256": "5d7c1e67820abf3d24f4c4aed9304ff01f0af0f6f11e1fb1d89cea08bd4aef1e",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "heroes_tables",
+      "url": "https://kingshotdata.com/heroes/rosa/",
+      "sha256": "1c592091daf528d865e265d631d9094048a04e084590d6cf881145c79408b403",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "heroes_tables",
+      "url": "https://kingshotdata.com/heroes/saul/",
+      "sha256": "7f780f11dccbb38568924e36ace88e285d7374101398da79aa515f3d139cc83e",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "heroes_tables",
+      "url": "https://kingshotdata.com/heroes/seth/",
+      "sha256": "3748cbae4ce587693c0c1389905aefc5016d75ca53cda25893d36ab37c713f4d",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "heroes_tables",
+      "url": "https://kingshotdata.com/heroes/sophia/",
+      "sha256": "7fe40e7c3c76ffd50c733dcb176d99b8fd8e347c6b67fa3948169c5cf7b4d8b7",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "heroes_tables",
+      "url": "https://kingshotdata.com/heroes/thrud/",
+      "sha256": "7c2e529be8970479156fdc7fbf22843afe0684b16d004b7c6bb623011abcec8e",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "heroes_tables",
+      "url": "https://kingshotdata.com/heroes/triton/",
+      "sha256": "71a57baa93da69fa399cb7e610fefa0508b2c96c474ac17aaf229360ae958fe7",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "heroes_tables",
+      "url": "https://kingshotdata.com/heroes/vivian/",
+      "sha256": "c497b87aba1d780b792bf243025bb640691b88937ad8861a85d769514d1c25c7",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "heroes_tables",
+      "url": "https://kingshotdata.com/heroes/wee-woo/",
+      "sha256": "cd80deb49a884f5068aebfa39a811b12bd5e29254826de5f0637909e2947d039",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "heroes_tables",
+      "url": "https://kingshotdata.com/heroes/yang/",
+      "sha256": "be3d08e9d826c636c4ddc76c1b1332fa6e1d91317b00fde021deb6be728df816",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "heroes_tables",
+      "url": "https://kingshotdata.com/heroes/yeonwoo/",
+      "sha256": "045658cd142ada991ae07c59d58e3e04443956053f27914d701ae314a3858674",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "heroes_tables",
+      "url": "https://kingshotdata.com/heroes/zoe/",
+      "sha256": "1446c1e9a7e4901c1c835dbcbcef85e1c5df61242f4692433aa7a535cd7c6c33",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "masters_tables",
+      "url": "https://kingshotdata.com/masters/cassia/",
+      "sha256": "ef62122f15c6a099765c76cbdcc20c3fb44e1ca142cfd47c85315c1636841976",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "masters_tables",
+      "url": "https://kingshotdata.com/masters/guinevere/",
+      "sha256": "6b1cea3cb7cf5bf95bfe5ce34651d4f109f7ae55f0779bb592bab931a77ff90f",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "masters_tables",
+      "url": "https://kingshotdata.com/masters/pan/",
+      "sha256": "dc4edc93647ad2f4f183516138b4c8c5b7c3db5fbb341c26947aa7fa69e86a61",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "masters_tables",
+      "url": "https://kingshotdata.com/masters/roman/",
+      "sha256": "e3e10a69cda4b613888987f696688a38db8a9eb2db276bc6cb486a41395028f6",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "masters_tables",
+      "url": "https://kingshotdata.com/masters/valora/",
+      "sha256": "a56706c759e0cc94e83d8820e166d378678daa806339583db1ad7a19342525e6",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "masters_tables",
+      "url": "https://kingshotdata.com/masters/wilson/",
+      "sha256": "a4c72d15cd230506e576411f15b6dfacf3990b4965f8b1957b61656d0b8ef478",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "pets_tables",
+      "url": "https://kingshotdata.com/pets/alpha-black-panther/",
+      "sha256": "d1f3574e06cdd6528a27e9dfaeaea63af878dc71406fc749cba2a383305c9424",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "pets_tables",
+      "url": "https://kingshotdata.com/pets/bison/",
+      "sha256": "a6b79deb42b7fb39bdd06cf52a6d411c152515f8b81350afa927aad8c8fa8e7a",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "pets_tables",
+      "url": "https://kingshotdata.com/pets/cheetah/",
+      "sha256": "34a76406a3b178d0f406569132ba02d66815a91ba1c821b10eada2ed9e03f048",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "pets_tables",
+      "url": "https://kingshotdata.com/pets/giant-rhino/",
+      "sha256": "506a50c1b7fe113288301994f99820232d08555c1eac623e1c6e9070c993011f",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "pets_tables",
+      "url": "https://kingshotdata.com/pets/gray-wolf/",
+      "sha256": "151269bc07aa936523ad8a884c9e5dfb5f3e42428984e4cdc740cf84a1772d24",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "pets_tables",
+      "url": "https://kingshotdata.com/pets/great-moose/",
+      "sha256": "4847233b9ad4c6d69136edde461176387b57b7e9a3e7506450e0aa42d244f51d",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "pets_tables",
+      "url": "https://kingshotdata.com/pets/grizzly-bear/",
+      "sha256": "9932b861337d9076508805d0a116a108fbe552aff3565746b0346741f9442bfa",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "pets_tables",
+      "url": "https://kingshotdata.com/pets/ironclad-war-bear/",
+      "sha256": "6dbac429fe56a04426b77ee81e3eb6cab37066cceb04ba667c4c9780e869776b",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "pets_tables",
+      "url": "https://kingshotdata.com/pets/ironclad-war-elephant/",
+      "sha256": "5fbf633f9f127efb07d4dd9f0b001c2a33fed4c801a4fb74c4e5bdd21a98beb1",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "pets_tables",
+      "url": "https://kingshotdata.com/pets/lion/",
+      "sha256": "433b9814e790b652596e42df8b377f15704774399d5916eb1b4001b3e95f1dde",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "pets_tables",
+      "url": "https://kingshotdata.com/pets/lynx/",
+      "sha256": "f3fd96379abbb41c65d46ee6dad24bd117ca50cffd7ed1d0458f65cc7014ce01",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "pets_tables",
+      "url": "https://kingshotdata.com/pets/mighty-bison/",
+      "sha256": "f611673903d703a266c85b092879f42423d93ac09370df98f9a8745e4d9f1472",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "pets_tables",
+      "url": "https://kingshotdata.com/pets/moose/",
+      "sha256": "33cd84a9d2fc517aa24f261562761c619b3733b5b3172717a42686b80c7de256",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "dataset": "pets_tables",
+      "url": "https://kingshotdata.com/pets/regal-white-lion/",
+      "sha256": "e8d2953223ab73482e9a51d0cb9332cdca181b2a842346bc89a24f6225c58d52",
+      "kind": "factual_detail_page"
+    },
+    {
+      "source_id": "kingshotdata",
+      "url": "https://kingshotdata.com/research/",
+      "sha256": "d0d616f8f18ee90f8922098edf8b16497fc86161ba75101b5850b8dbf9bafa30",
+      "kind": "academy_research",
+      "technology_identities": 191,
+      "visible_level_rows": 714,
+      "source_table_gaps": 1
+    },
+    {
+      "source_id": "kingshotpro-open-data",
+      "dataset": "buildings_core",
+      "url": "https://kingshotpro.com/data/buildings.json",
+      "sha256": "d8b0fe69e611783a665fe2cf9f2d36499753a186ad3254a70f65b1fbc3aa449f",
+      "content_type": "application/json; charset=utf-8"
+    },
+    {
+      "source_id": "kingshotpro-open-data",
+      "dataset": "governor_charms",
+      "url": "https://kingshotpro.com/data/charm.json",
+      "sha256": "7b0d08fed80a89ce9d2284d02befe52d89d7ccdf88ded79817f0660aa3ed48d8",
+      "content_type": "application/json; charset=utf-8"
+    },
+    {
+      "source_id": "kingshotpro-open-data",
+      "dataset": "governor_gear",
+      "url": "https://kingshotpro.com/data/gear.json",
+      "sha256": "3dea2808e1cd0ff0242bf60885c4db8704f0faeed54a93a4611816d6ee6b4a9e",
+      "content_type": "application/json; charset=utf-8"
+    },
+    {
+      "source_id": "kingshotpro-open-data",
+      "dataset": "hero_xp",
+      "url": "https://kingshotpro.com/data/hero-xp.json",
+      "sha256": "bb3a40264e48022696633a64a4bf676e72d6c6fd4950ee8b56e9243b4236d781",
+      "content_type": "application/json; charset=utf-8"
+    },
+    {
+      "source_id": "kingshotpro-open-data",
+      "dataset": "kvk_scoring",
+      "url": "https://kingshotpro.com/data/kvk.json",
+      "sha256": "63b44bd00be08d33b9920b6e32d81c4396e1dceec58e088343734622fd5a69d1",
+      "content_type": "application/json; charset=utf-8"
+    },
+    {
+      "source_id": "kingshotpro-open-data",
+      "dataset": "masters_open",
+      "url": "https://kingshotpro.com/data/masters.json",
+      "sha256": "de2aabdc92e610a9950ad72ec26393e485c19a2cb8f0ce0df2aa625bfee2d09d",
+      "content_type": "application/json; charset=utf-8"
+    },
+    {
+      "source_id": "kingshotpro-open-data",
+      "dataset": "hero_shards",
+      "url": "https://kingshotpro.com/data/shards.json",
+      "sha256": "36af30a3568ab2b61b777ff3113dc4ba4c15da7c6e66a54e8c0390df08543a04",
+      "content_type": "application/json; charset=utf-8"
+    },
+    {
+      "source_id": "kingshotpro-open-data",
+      "dataset": "troops",
+      "url": "https://kingshotpro.com/data/troops.json",
+      "sha256": "5f18ee3124f6931998ed8e1f7b5e1d0f2658c99e79276fbba4f0185ef8d5b691",
+      "content_type": "application/json; charset=utf-8"
+    },
+    {
+      "source_id": "kingshotpro-open-data",
+      "dataset": "truegold",
+      "url": "https://kingshotpro.com/data/truegold.json",
+      "sha256": "78f1ba614ee25ae522ad2ba6d3bf8a854d02d652498a546759068e68f98ecbfb",
+      "content_type": "application/json; charset=utf-8"
+    },
+    {
+      "source_id": "kingshotpro-open-data",
+      "dataset": "vip",
+      "url": "https://kingshotpro.com/data/vip.json",
+      "sha256": "79c078e172a9386ce8a8d2e7341a7a2bfe863be14f3e1fb1f504b954c1db3859",
+      "content_type": "application/json; charset=utf-8"
+    },
+    {
+      "source_id": "kingshotpro-open-data",
+      "dataset": "war_academy",
+      "url": "https://kingshotpro.com/data/war-academy.json",
+      "sha256": "702af1a282a0932c7674e85e0b83814a5043274fe976fd379e452145cac6393a",
+      "content_type": "application/json; charset=utf-8"
+    },
+    {
+      "source_id": "g2384-kingshot-data",
+      "dataset": "hero_skills",
+      "url": "https://raw.githubusercontent.com/g2384/Kingshot-Data/82f668b5fd1a77caca841a7149469aea51aead84/heroes2.json",
+      "sha256": "ccffcf5f381605987a3265f8852f9b46641204212d630037eedb76689c394406",
+      "content_type": "text/plain; charset=utf-8",
+      "upstream_commit": "82f668b5fd1a77caca841a7149469aea51aead84"
+    }
+  ]
+}

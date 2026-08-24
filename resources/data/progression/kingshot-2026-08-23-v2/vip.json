@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "source_id": "kingshotpro-open-data",
+  "source_meta": {
+    "dataset": "kingshot-vip",
+    "canonical": "https://kingshotpro.com/data/vip.json",
+    "count": 12,
+    "updated": "2026-06-14",
+    "verified": "2026-06-18",
+    "confidence": "scored",
+    "confidence_detail": null,
+    "sources": [
+      "kingshot.net/vip-calculator"
+    ],
+    "license": "CC-BY-4.0 — attribute to https://kingshotpro.com"
+  },
+  "data": {
+    "vipLevels": [
+      {
+        "level": 1,
+        "xpToReach": 0,
+        "gemsEquivalent": 0
+      },
+      {
+        "level": 2,
+        "xpToReach": 2500,
+        "gemsEquivalent": 5000
+      },
+      {
+        "level": 3,
+        "xpToReach": 5000,
+        "gemsEquivalent": 10000
+      },
+      {
+        "level": 4,
+        "xpToReach": 12500,
+        "gemsEquivalent": 25000
+      },
+      {
+        "level": 5,
+        "xpToReach": 30000,
+        "gemsEquivalent": 60000
+      },
+      {
+        "level": 6,
+        "xpToReach": 40000,
+        "gemsEquivalent": 80000
+      },
+      {
+        "level": 7,
+        "xpToReach": 60000,
+        "gemsEquivalent": 120000
+      },
+      {
+        "level": 8,
+        "xpToReach": 100000,
+        "gemsEquivalent": 200000
+      },
+      {
+        "level": 9,
+        "xpToReach": 350000,
+        "gemsEquivalent": 700000
+      },
+      {
+        "level": 10,
+        "xpToReach": 600000,
+        "gemsEquivalent": 1200000
+      },
+      {
+        "level": 11,
+        "xpToReach": 1200000,
+        "gemsEquivalent": 2400000
+      },
+      {
+        "level": 12,
+        "xpToReach": 2400000,
+        "gemsEquivalent": 4800000
+      }
+    ]
+  }
+}

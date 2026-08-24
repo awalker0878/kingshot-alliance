@@ -1,0 +1,4371 @@
+{
+  "schema_version": 2,
+  "heroes": [
+    {
+      "id": "helga",
+      "name": "Helga",
+      "rarity": "Legendary",
+      "troop_class": "Infantry",
+      "generation": 1,
+      "typical_unlock_day": 0,
+      "release_group": "generation-1",
+      "stats": {
+        "attack": 1873,
+        "defense": 2220,
+        "health": 36630
+      },
+      "unlock_methods": [
+        "1st Purchase",
+        "VIP Special Packs"
+      ],
+      "skills": [
+        {
+          "name": "Power of the Deer",
+          "effects": {},
+          "upgrade_preview": {
+            "attack_and_defense_up": [
+              "2%",
+              "4%",
+              "6%",
+              "8%",
+              "10%"
+            ]
+          }
+        },
+        {
+          "name": "Antler Assault",
+          "effects": {},
+          "upgrade_preview": {
+            "area_of_effect_damage_up": [
+              "160%",
+              "176%",
+              "192%",
+              "208%",
+              "224%"
+            ]
+          }
+        },
+        {
+          "name": "Spear Charge",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_up": [
+              "150%",
+              "165%",
+              "180%",
+              "195%",
+              "210%"
+            ]
+          }
+        },
+        {
+          "name": "Fury",
+          "effects": {},
+          "upgrade_preview": {
+            "attack_up": [
+              "4%",
+              "6%",
+              "8%",
+              "10%",
+              "12%"
+            ]
+          }
+        },
+        {
+          "name": "Expedition",
+          "effects": {
+            "infantry_attack": "+200.16%",
+            "infantry_defense": "+200.16%"
+          },
+          "upgrade_preview": {}
+        },
+        {
+          "name": "Oath of Guardian",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_taken_chance_down": [
+              "8%",
+              "16%",
+              "24%",
+              "32%",
+              "40%"
+            ]
+          }
+        },
+        {
+          "name": "Echoes of Valhalla",
+          "effects": {},
+          "upgrade_preview": {
+            "attack_up": [
+              "5%",
+              "10%",
+              "15%",
+              "20%",
+              "25%"
+            ]
+          }
+        },
+        {
+          "name": "Nature’s Balance",
+          "effects": {},
+          "upgrade_preview": {
+            "lethality_up": [
+              "5%",
+              "10%",
+              "15%",
+              "20%",
+              "25%"
+            ]
+          }
+        },
+        {
+          "name": "Valiant Fury",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_dealt_up": [
+              "10%",
+              "15%",
+              "20%",
+              "25%",
+              "30%"
+            ]
+          }
+        },
+        {
+          "name": "Zeal",
+          "effects": {},
+          "upgrade_preview": {
+            "rally_troops_lethality_up": [
+              "5%",
+              "7.5%",
+              "10%",
+              "12.5%",
+              "15%"
+            ]
+          }
+        }
+      ],
+      "skill_source_status": "single_source_inspectable",
+      "source_ids": [
+        "g2384-kingshot-data"
+      ]
+    },
+    {
+      "id": "amadeus",
+      "name": "Amadeus",
+      "rarity": "Legendary",
+      "troop_class": "Infantry",
+      "generation": 1,
+      "typical_unlock_day": 0,
+      "release_group": "generation-1",
+      "stats": {
+        "attack": 2128,
+        "defense": 2220,
+        "health": 41624
+      },
+      "unlock_methods": [
+        "Hall of Governors",
+        "VIP Packs"
+      ],
+      "skills": [
+        {
+          "name": "Born Leader",
+          "effects": {},
+          "upgrade_preview": {
+            "lethality_and_health_up": [
+              "3%",
+              "6%",
+              "9%",
+              "12%",
+              "15%"
+            ]
+          }
+        },
+        {
+          "name": "Combo Slash",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_up": [
+              "160%",
+              "176%",
+              "192%",
+              "208%",
+              "224%"
+            ]
+          }
+        },
+        {
+          "name": "Arcane Swordship",
+          "effects": {},
+          "upgrade_preview": {
+            "defense_up": [
+              "15%",
+              "17%",
+              "19%",
+              "21%",
+              "23%"
+            ]
+          }
+        },
+        {
+          "name": "Onslaught",
+          "effects": {},
+          "upgrade_preview": {
+            "attack_up": [
+              "16%",
+              "24%",
+              "32%",
+              "40%",
+              "48%"
+            ]
+          }
+        },
+        {
+          "name": "Expedition",
+          "effects": {
+            "infantry_attack": "+260.20%",
+            "infantry_defense": "+260.20%"
+          },
+          "upgrade_preview": {}
+        },
+        {
+          "name": "Battle Ready",
+          "effects": {},
+          "upgrade_preview": {
+            "lethality_up": [
+              "5%",
+              "10%",
+              "15%",
+              "20%",
+              "25%"
+            ]
+          }
+        },
+        {
+          "name": "Way of the Blade",
+          "effects": {},
+          "upgrade_preview": {
+            "attack_up": [
+              "5%",
+              "10%",
+              "15%",
+              "20%",
+              "25%"
+            ]
+          }
+        },
+        {
+          "name": "Unrighteous Strike",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_dealt_chance_up": [
+              "8%",
+              "16%",
+              "24%",
+              "32%",
+              "40%"
+            ]
+          }
+        },
+        {
+          "name": "Double Parry",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_taken_down": [
+              "10%",
+              "15%",
+              "20%",
+              "25%",
+              "30%"
+            ]
+          }
+        },
+        {
+          "name": "Discernment",
+          "effects": {},
+          "upgrade_preview": {
+            "rally_attack_up": [
+              "5%",
+              "7.5%",
+              "10%",
+              "12.5%",
+              "15%"
+            ]
+          }
+        }
+      ],
+      "skill_source_status": "single_source_inspectable",
+      "source_ids": [
+        "g2384-kingshot-data"
+      ]
+    },
+    {
+      "id": "jabel",
+      "name": "Jabel",
+      "rarity": "Legendary",
+      "troop_class": "Cavalry",
+      "generation": 1,
+      "typical_unlock_day": 0,
+      "release_group": "generation-1",
+      "stats": {
+        "attack": 2220,
+        "defense": 2220,
+        "health": 22200
+      },
+      "unlock_methods": [
+        "7-day Sign-in Gift",
+        "Path of Growth Event",
+        "Recruit Heroes",
+        "Watchtower Intel",
+        "Hall of Heroes",
+        "Swordland Showdown Shop",
+        "Jabel’s Courage Pack"
+      ],
+      "skills": [
+        {
+          "name": "Gallant Throw",
+          "effects": {},
+          "upgrade_preview": {
+            "area_of_effect_damage_up": [
+              "180%",
+              "198%",
+              "216%",
+              "234%",
+              "252%"
+            ]
+          }
+        },
+        {
+          "name": "Brave the Storm",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_up": [
+              "150%",
+              "165%",
+              "180%",
+              "195%",
+              "210%"
+            ]
+          }
+        },
+        {
+          "name": "Persistence",
+          "effects": {},
+          "upgrade_preview": {
+            "attack_speed_up": [
+              "20%",
+              "30%",
+              "40%",
+              "50%",
+              "60%"
+            ]
+          }
+        },
+        {
+          "name": "Expedition",
+          "effects": {
+            "cavalry_attack": "+200.16%",
+            "cavalry_defense": "+200.16%"
+          },
+          "upgrade_preview": {}
+        },
+        {
+          "name": "Rally Flag",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_taken_chance_down": [
+              "8%",
+              "16%",
+              "24%",
+              "32%",
+              "40%"
+            ]
+          }
+        },
+        {
+          "name": "Hero’s Domain",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_up": [
+              "10%",
+              "20%",
+              "30%",
+              "40%",
+              "50%"
+            ]
+          }
+        },
+        {
+          "name": "Youthful Rage",
+          "effects": {},
+          "upgrade_preview": {
+            "lethality_up": [
+              "5%",
+              "10%",
+              "15%",
+              "20%",
+              "25%"
+            ]
+          }
+        },
+        {
+          "name": "Crimson Spirit",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_dealt_up": [
+              "10%",
+              "15%",
+              "20%",
+              "25%",
+              "30%"
+            ]
+          }
+        },
+        {
+          "name": "Divine Strength",
+          "effects": {},
+          "upgrade_preview": {
+            "defender_troops_lethality_up": [
+              "5%",
+              "7.5%",
+              "10%",
+              "12.5%",
+              "15%"
+            ]
+          }
+        }
+      ],
+      "skill_source_status": "single_source_inspectable",
+      "source_ids": [
+        "g2384-kingshot-data"
+      ]
+    },
+    {
+      "id": "saul",
+      "name": "Saul",
+      "rarity": "Legendary",
+      "troop_class": "Archer",
+      "generation": 1,
+      "typical_unlock_day": 0,
+      "release_group": "generation-1",
+      "stats": {
+        "attack": 2697,
+        "defense": 2220,
+        "health": 16650
+      },
+      "unlock_methods": [
+        "Hero Roulette",
+        "Hall of Heroes",
+        "Swordland Showdown Shop"
+      ],
+      "skills": [
+        {
+          "name": "Rapidfire",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_up": [
+              "55%",
+              "60%",
+              "65%",
+              "70%",
+              "75%"
+            ]
+          }
+        },
+        {
+          "name": "Final Prayer",
+          "effects": {},
+          "upgrade_preview": {
+            "defense_up": [
+              "50%",
+              "75%",
+              "100%",
+              "125%",
+              "150%"
+            ]
+          }
+        },
+        {
+          "name": "Superior Techniques",
+          "effects": {},
+          "upgrade_preview": {
+            "attack_up": [
+              "10%",
+              "15%",
+              "20%",
+              "25%",
+              "30%"
+            ]
+          }
+        },
+        {
+          "name": "Expedition",
+          "effects": {
+            "archer_attack": "+200.16%",
+            "archer_defense": "+200.16%"
+          },
+          "upgrade_preview": {}
+        },
+        {
+          "name": "Taskforce Training",
+          "effects": {},
+          "upgrade_preview": {
+            "defense_up": [
+              "2%",
+              "4%",
+              "6%",
+              "8%",
+              "10%"
+            ],
+            "health_up": [
+              "3%",
+              "6%",
+              "9%",
+              "12%",
+              "15%"
+            ]
+          }
+        },
+        {
+          "name": "Resourceful",
+          "effects": {},
+          "upgrade_preview": {
+            "construction_speed_up": [
+              "3%",
+              "6%",
+              "9%",
+              "12%",
+              "15%"
+            ],
+            "construction_cost_down": [
+              "3%",
+              "6%",
+              "9%",
+              "12%",
+              "15%"
+            ]
+          }
+        },
+        {
+          "name": "Positional Batter",
+          "effects": {},
+          "upgrade_preview": {
+            "lethality_up": [
+              "5%",
+              "10%",
+              "15%",
+              "20%",
+              "25%"
+            ]
+          }
+        },
+        {
+          "name": "Fearless Advance",
+          "effects": {},
+          "upgrade_preview": {
+            "attack_up": [
+              "6%",
+              "12%",
+              "16%",
+              "20%",
+              "24%"
+            ]
+          }
+        },
+        {
+          "name": "Defend to Attack",
+          "effects": {},
+          "upgrade_preview": {
+            "defender_troops_attack_up": [
+              "5%",
+              "7.5%",
+              "10%",
+              "12.5%",
+              "15%"
+            ]
+          }
+        }
+      ],
+      "skill_source_status": "single_source_inspectable",
+      "source_ids": [
+        "g2384-kingshot-data"
+      ]
+    },
+    {
+      "id": "howard",
+      "name": "Howard",
+      "rarity": "Epic",
+      "troop_class": "Infantry",
+      "generation": 1,
+      "typical_unlock_day": 0,
+      "release_group": "epic",
+      "stats": {
+        "attack": 1361,
+        "defense": 2220,
+        "health": 26640
+      },
+      "unlock_methods": [
+        "Hero Recruitment",
+        "Intel Missions"
+      ],
+      "skills": [
+        {
+          "name": "Shielded Strike",
+          "effects": {},
+          "upgrade_preview": {
+            "area_of_effect_damage_up": [
+              "200%",
+              "220%",
+              "240%",
+              "260%",
+              "280%"
+            ]
+          }
+        },
+        {
+          "name": "Joint Defense",
+          "effects": {},
+          "upgrade_preview": {
+            "defense_up": [
+              "5%",
+              "7.5%",
+              "10%",
+              "12.5%",
+              "15%"
+            ]
+          }
+        },
+        {
+          "name": "Shield Block",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_taken_down": [
+              "10%",
+              "15%",
+              "20%",
+              "25%",
+              "30%"
+            ]
+          }
+        },
+        {
+          "name": "Expedition",
+          "effects": {
+            "infantry_attack": "+140.11%",
+            "infantry_defense": "+140.11%"
+          },
+          "upgrade_preview": {}
+        },
+        {
+          "name": "Defenders’ Edge",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_taken_down": [
+              "4%",
+              "8%",
+              "12%",
+              "16%",
+              "20%"
+            ]
+          }
+        },
+        {
+          "name": "Weaken",
+          "effects": {},
+          "upgrade_preview": {
+            "enemy_attack_down": [
+              "4%",
+              "8%",
+              "12%",
+              "16%",
+              "20%"
+            ]
+          }
+        }
+      ],
+      "skill_source_status": "single_source_inspectable",
+      "source_ids": [
+        "g2384-kingshot-data"
+      ]
+    },
+    {
+      "id": "gordon",
+      "name": "Gordon",
+      "rarity": "Epic",
+      "troop_class": "Cavalry",
+      "generation": 1,
+      "typical_unlock_day": 0,
+      "release_group": "epic",
+      "stats": {
+        "attack": 1776,
+        "defense": 2220,
+        "health": 17760
+      },
+      "unlock_methods": [
+        "Hero Recruitment",
+        "Intel Missions",
+        "Alliance Championship Store"
+      ],
+      "skills": [
+        {
+          "name": "BBQ Feast",
+          "effects": {},
+          "upgrade_preview": {
+            "health_up": [
+              "200%",
+              "220%",
+              "240%",
+              "260%",
+              "280%"
+            ],
+            "attack_up": [
+              "5%",
+              "5.5%",
+              "6%",
+              "6.5%",
+              "7%"
+            ]
+          }
+        },
+        {
+          "name": "Culinary Chaos",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_taken_down": [
+              "10%",
+              "15%",
+              "20%",
+              "25%",
+              "30%"
+            ]
+          }
+        },
+        {
+          "name": "Emergency Snack",
+          "effects": {},
+          "upgrade_preview": {
+            "health_up": [
+              "50%",
+              "55%",
+              "60%",
+              "65%",
+              "70%"
+            ]
+          }
+        },
+        {
+          "name": "Expedition",
+          "effects": {
+            "cavalry_attack": "+140.11%",
+            "cavalry_defense": "+140.11%"
+          },
+          "upgrade_preview": {}
+        },
+        {
+          "name": "Super Nutrients",
+          "effects": {},
+          "upgrade_preview": {
+            "health_up": [
+              "5%",
+              "10%",
+              "15%",
+              "20%",
+              "25%"
+            ]
+          }
+        },
+        {
+          "name": "Trash Talk",
+          "effects": {},
+          "upgrade_preview": {
+            "attack_up": [
+              "5%",
+              "10%",
+              "15%",
+              "20%",
+              "25%"
+            ]
+          }
+        }
+      ],
+      "skill_source_status": "single_source_inspectable",
+      "source_ids": [
+        "g2384-kingshot-data"
+      ]
+    },
+    {
+      "id": "quinn",
+      "name": "Quinn",
+      "rarity": "Epic",
+      "troop_class": "Archer",
+      "generation": 1,
+      "typical_unlock_day": 0,
+      "release_group": "epic",
+      "stats": {
+        "attack": 2157,
+        "defense": 2220,
+        "health": 13320
+      },
+      "unlock_methods": [
+        "Hero Recruitment",
+        "Intel Missions"
+      ],
+      "skills": [
+        {
+          "name": "Headshot",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_up": [
+              "400%",
+              "440%",
+              "480%",
+              "520%",
+              "560%"
+            ]
+          }
+        },
+        {
+          "name": "Quick Shot",
+          "effects": {},
+          "upgrade_preview": {
+            "attack_speed_up": [
+              "10%",
+              "15%",
+              "20%",
+              "25%",
+              "30%"
+            ]
+          }
+        },
+        {
+          "name": "Natural Selection",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_up": [
+              "10%",
+              "15%",
+              "20%",
+              "25%",
+              "30%"
+            ]
+          }
+        },
+        {
+          "name": "Expedition",
+          "effects": {
+            "archer_attack": "+140.11%",
+            "archer_defense": "+140.11%"
+          },
+          "upgrade_preview": {}
+        },
+        {
+          "name": "Sixth Sense",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_taken_down": [
+              "4%",
+              "8%",
+              "12%",
+              "16%",
+              "20%"
+            ]
+          }
+        },
+        {
+          "name": "Precision Shot",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_up": [
+              "10%",
+              "20%",
+              "30%",
+              "40%",
+              "50%"
+            ]
+          }
+        }
+      ],
+      "skill_source_status": "single_source_inspectable",
+      "source_ids": [
+        "g2384-kingshot-data"
+      ]
+    },
+    {
+      "id": "chenko",
+      "name": "Chenko",
+      "rarity": "Epic",
+      "troop_class": "Cavalry",
+      "generation": 1,
+      "typical_unlock_day": 0,
+      "release_group": "epic",
+      "stats": {
+        "attack": 1776,
+        "defense": 2220,
+        "health": 17760
+      },
+      "unlock_methods": [
+        "Path of Growth Event",
+        "Hero Recruitment",
+        "Intel Missions – Watchtower"
+      ],
+      "skills": [
+        {
+          "name": "Burst Fire",
+          "effects": {},
+          "upgrade_preview": {
+            "area_of_effect_damage_up": [
+              "55%",
+              "60%",
+              "65%",
+              "70%",
+              "75%"
+            ]
+          }
+        },
+        {
+          "name": "Defense Upgrade",
+          "effects": {},
+          "upgrade_preview": {
+            "defense_up": [
+              "25%",
+              "37.5%",
+              "50%",
+              "62.5%",
+              "70%"
+            ]
+          }
+        },
+        {
+          "name": "Weapon Upgrade",
+          "effects": {},
+          "upgrade_preview": {
+            "attack_up": [
+              "8%",
+              "12%",
+              "16%",
+              "20%",
+              "24%"
+            ]
+          }
+        },
+        {
+          "name": "Expedition",
+          "effects": {
+            "cavalry_attack": "+140.11%",
+            "cavalry_defense": "+140.11%"
+          },
+          "upgrade_preview": {}
+        },
+        {
+          "name": "Stand of Arms",
+          "effects": {},
+          "upgrade_preview": {
+            "lethality_up": [
+              "5%",
+              "10%",
+              "15%",
+              "20%",
+              "25%"
+            ]
+          }
+        },
+        {
+          "name": "Shield Wall",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_taken_down": [
+              "4%",
+              "8%",
+              "12%",
+              "16%",
+              "20%"
+            ]
+          }
+        }
+      ],
+      "skill_source_status": "single_source_inspectable",
+      "source_ids": [
+        "g2384-kingshot-data"
+      ]
+    },
+    {
+      "id": "diana",
+      "name": "Diana",
+      "rarity": "Epic",
+      "troop_class": "Archer",
+      "generation": 1,
+      "typical_unlock_day": 0,
+      "release_group": "epic",
+      "stats": {
+        "attack": 2157,
+        "defense": 2220,
+        "health": 13320
+      },
+      "unlock_methods": [
+        "Desert Trial Event"
+      ],
+      "skills": [
+        {
+          "name": "Incendiary Arrows",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_up": [
+              "210%",
+              "230%",
+              "250%",
+              "270%",
+              "290%"
+            ],
+            "area_of_effect_damage_up": [
+              "70%",
+              "77%",
+              "84%",
+              "91%",
+              "98%"
+            ]
+          }
+        },
+        {
+          "name": "Sharpshooter",
+          "effects": {},
+          "upgrade_preview": {
+            "attack_speed_up": [
+              "10%",
+              "15%",
+              "20%",
+              "25%",
+              "30%"
+            ]
+          }
+        },
+        {
+          "name": "Deadly Strike",
+          "effects": {},
+          "upgrade_preview": {
+            "crit_rate": [
+              "7%",
+              "10%",
+              "13%",
+              "16%",
+              "20%"
+            ]
+          }
+        },
+        {
+          "name": "Expedition",
+          "effects": {
+            "archer_attack": "+110.08%",
+            "archer_defense": "+110.08%"
+          },
+          "upgrade_preview": {}
+        },
+        {
+          "name": "Iron Constitution",
+          "effects": {},
+          "upgrade_preview": {
+            "stamina_cost_down": [
+              "10%",
+              "12%",
+              "15%",
+              "18%",
+              "20%"
+            ]
+          }
+        },
+        {
+          "name": "Quick Paced",
+          "effects": {},
+          "upgrade_preview": {
+            "wilderness_march_speed": [
+              "20%",
+              "40%",
+              "60%",
+              "80%",
+              "100%"
+            ]
+          }
+        }
+      ],
+      "skill_source_status": "single_source_inspectable",
+      "source_ids": [
+        "g2384-kingshot-data"
+      ]
+    },
+    {
+      "id": "amane",
+      "name": "Amane",
+      "rarity": "Epic",
+      "troop_class": "Archer",
+      "generation": 1,
+      "typical_unlock_day": 0,
+      "release_group": "epic",
+      "stats": {
+        "attack": 2157,
+        "defense": 2220,
+        "health": 13320
+      },
+      "unlock_methods": [
+        "Hero Recruitment",
+        "Oasis & Beyond Event"
+      ],
+      "skills": [
+        {
+          "name": "Sakura Blossom",
+          "effects": {},
+          "upgrade_preview": {
+            "attack_up": [
+              "1.5%",
+              "2%",
+              "2.5%",
+              "3%",
+              "3.5%"
+            ],
+            "attack_speed_up": [
+              "2.5%",
+              "3%",
+              "3.5%",
+              "4%",
+              "4.5%"
+            ]
+          }
+        },
+        {
+          "name": "Fire Sigil",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_up": [
+              "150%",
+              "165%",
+              "180%",
+              "195%",
+              "210%"
+            ]
+          }
+        },
+        {
+          "name": "Divine Melody",
+          "effects": {},
+          "upgrade_preview": {
+            "attack_speed_up": [
+              "1%",
+              "2%",
+              "3%",
+              "4%",
+              "5%"
+            ]
+          }
+        },
+        {
+          "name": "Expedition",
+          "effects": {
+            "archer_attack": "+140.11%",
+            "archer_defense": "+140.11%"
+          },
+          "upgrade_preview": {}
+        },
+        {
+          "name": "Tri-Phalanx",
+          "effects": {},
+          "upgrade_preview": {
+            "attack_up": [
+              "5%",
+              "10%",
+              "15%",
+              "20%",
+              "25%"
+            ]
+          }
+        },
+        {
+          "name": "Exorcism",
+          "effects": {},
+          "upgrade_preview": {
+            "healing_speed_up": [
+              "10%",
+              "20%",
+              "30%",
+              "40%",
+              "50%"
+            ]
+          }
+        }
+      ],
+      "skill_source_status": "single_source_inspectable",
+      "source_ids": [
+        "g2384-kingshot-data"
+      ]
+    },
+    {
+      "id": "yeonwoo",
+      "name": "Yeonwoo",
+      "rarity": "Epic",
+      "troop_class": "Archer",
+      "generation": 1,
+      "typical_unlock_day": 0,
+      "release_group": "epic",
+      "stats": {
+        "attack": 2157,
+        "defense": 2220,
+        "health": 13320
+      },
+      "unlock_methods": [
+        "Hero Recruitment",
+        "Oasis & Beyond Event"
+      ],
+      "skills": [
+        {
+          "name": "Petalbloom",
+          "effects": {},
+          "upgrade_preview": {
+            "2nd_wave_damage_up": [
+              "125%",
+              "137.5%",
+              "150%",
+              "162.5%",
+              "175%"
+            ],
+            "3rd_wave_damage_up": [
+              "150%",
+              "165%",
+              "180%",
+              "195%",
+              "210%"
+            ]
+          }
+        },
+        {
+          "name": "Falling Swallow",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_up": [
+              "100%",
+              "110%",
+              "120%",
+              "130%",
+              "140%"
+            ],
+            "enemy_attack_speed_down": [
+              "30%",
+              "35%",
+              "40%",
+              "45%",
+              "50%"
+            ]
+          }
+        },
+        {
+          "name": "Twin Fangs",
+          "effects": {},
+          "upgrade_preview": {
+            "attack_up": [
+              "8%",
+              "12%",
+              "16%",
+              "20%",
+              "24%"
+            ]
+          }
+        },
+        {
+          "name": "Expedition",
+          "effects": {
+            "archer_attack": "+140.11%",
+            "archer_defense": "+140.11%"
+          },
+          "upgrade_preview": {}
+        },
+        {
+          "name": "On Guard",
+          "effects": {},
+          "upgrade_preview": {
+            "lethality_up": [
+              "5%",
+              "10%",
+              "15%",
+              "20%",
+              "25%"
+            ]
+          }
+        },
+        {
+          "name": "Well-Traveled",
+          "effects": {},
+          "upgrade_preview": {
+            "research_speed_up": [
+              "3%",
+              "6%",
+              "9%",
+              "12%",
+              "15%"
+            ]
+          }
+        }
+      ],
+      "skill_source_status": "single_source_inspectable",
+      "source_ids": [
+        "g2384-kingshot-data"
+      ]
+    },
+    {
+      "id": "fahd",
+      "name": "Fahd",
+      "rarity": "Epic",
+      "troop_class": "Cavalry",
+      "generation": 1,
+      "typical_unlock_day": 0,
+      "release_group": "epic",
+      "stats": {
+        "attack": 1776,
+        "defense": 2220,
+        "health": 17760
+      },
+      "unlock_methods": [
+        "Hero Recruitment",
+        "Oasis & Beyond Event"
+      ],
+      "skills": [
+        {
+          "name": "Sandstorm",
+          "effects": {},
+          "upgrade_preview": {
+            "enemy_attack_down": [
+              "1%",
+              "2%",
+              "3%",
+              "4%",
+              "5%"
+            ]
+          }
+        },
+        {
+          "name": "Eagle Wings",
+          "effects": {},
+          "upgrade_preview": {
+            "attack_up": [
+              "15%",
+              "20%",
+              "25%",
+              "30%",
+              "35%"
+            ]
+          }
+        },
+        {
+          "name": "Dune General",
+          "effects": {},
+          "upgrade_preview": {
+            "attack_speed_up": [
+              "10%",
+              "15%",
+              "20%",
+              "25%",
+              "30%"
+            ]
+          }
+        },
+        {
+          "name": "Expedition",
+          "effects": {
+            "cavalry_attack": "+140.11%",
+            "cavalry_defense": "+140.11%"
+          },
+          "upgrade_preview": {}
+        },
+        {
+          "name": "Desert Eclipse",
+          "effects": {},
+          "upgrade_preview": {
+            "enemy_damage_down": [
+              "4%",
+              "8%",
+              "12%",
+              "16%",
+              "20%"
+            ]
+          }
+        },
+        {
+          "name": "Pathfinder",
+          "effects": {},
+          "upgrade_preview": {
+            "hunting_march_speed": [
+              "20%",
+              "40%",
+              "60%",
+              "80%",
+              "100%"
+            ]
+          }
+        }
+      ],
+      "skill_source_status": "single_source_inspectable",
+      "source_ids": [
+        "g2384-kingshot-data"
+      ]
+    },
+    {
+      "id": "forrest",
+      "name": "Forrest",
+      "rarity": "Rare",
+      "troop_class": "Infantry",
+      "generation": 1,
+      "typical_unlock_day": 0,
+      "release_group": "rare",
+      "stats": {
+        "attack": 1106,
+        "defense": 2220,
+        "health": 21644
+      },
+      "unlock_methods": [
+        "Hero Recruitment",
+        "Intel Missions"
+      ],
+      "skills": [
+        {
+          "name": "Axe Whirl",
+          "effects": {},
+          "upgrade_preview": {
+            "area_of_effect_damage_up": [
+              "80%",
+              "88%",
+              "96%",
+              "104%",
+              "110%"
+            ]
+          }
+        },
+        {
+          "name": "Razor Sharp",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_up": [
+              "10%",
+              "15%",
+              "20%",
+              "25%",
+              "30%"
+            ]
+          }
+        },
+        {
+          "name": "Expedition",
+          "effects": {
+            "infantry_attack": "+90.07%",
+            "infantry_defense": "+90.07%"
+          },
+          "upgrade_preview": {}
+        },
+        {
+          "name": "Woodland Inheritor",
+          "effects": {},
+          "upgrade_preview": {
+            "logging_income": [
+              "5%",
+              "10%",
+              "15%",
+              "20%",
+              "25%"
+            ]
+          }
+        },
+        {
+          "name": "Master Woodcutter",
+          "effects": {},
+          "upgrade_preview": {
+            "wood_gathering_speed": [
+              "5%",
+              "10%",
+              "15%",
+              "20%",
+              "25%"
+            ]
+          }
+        }
+      ],
+      "skill_source_status": "single_source_inspectable",
+      "source_ids": [
+        "g2384-kingshot-data"
+      ]
+    },
+    {
+      "id": "seth",
+      "name": "Seth",
+      "rarity": "Rare",
+      "troop_class": "Infantry",
+      "generation": 1,
+      "typical_unlock_day": 0,
+      "release_group": "rare",
+      "stats": {
+        "attack": 1106,
+        "defense": 2220,
+        "health": 21644
+      },
+      "unlock_methods": [
+        "Hero Recruitment",
+        "Intel Missions"
+      ],
+      "skills": [
+        {
+          "name": "Hammer Burn",
+          "effects": {},
+          "upgrade_preview": {
+            "area_of_effect_damage_up": [
+              "200%",
+              "220%",
+              "240%",
+              "260%",
+              "280%"
+            ]
+          }
+        },
+        {
+          "name": "Armor Enhancement",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_taken_down": [
+              "10%",
+              "15%",
+              "20%",
+              "25%",
+              "30%"
+            ]
+          }
+        },
+        {
+          "name": "Expedition",
+          "effects": {
+            "infantry_attack": "+90.07%",
+            "infantry_defense": "+90.07%"
+          },
+          "upgrade_preview": {}
+        },
+        {
+          "name": "Burnished Iron",
+          "effects": {},
+          "upgrade_preview": {
+            "iron_mine_income": [
+              "5%",
+              "10%",
+              "15%",
+              "20%",
+              "25%"
+            ]
+          }
+        },
+        {
+          "name": "Craftsmanship",
+          "effects": {},
+          "upgrade_preview": {
+            "iron_mining_speed": [
+              "5%",
+              "10%",
+              "15%",
+              "20%",
+              "25%"
+            ]
+          }
+        }
+      ],
+      "skill_source_status": "single_source_inspectable",
+      "source_ids": [
+        "g2384-kingshot-data"
+      ]
+    },
+    {
+      "id": "edwin",
+      "name": "Edwin",
+      "rarity": "Rare",
+      "troop_class": "Cavalry",
+      "generation": 1,
+      "typical_unlock_day": 0,
+      "release_group": "rare",
+      "stats": {
+        "attack": 1442,
+        "defense": 2220,
+        "health": 14430
+      },
+      "unlock_methods": [
+        "Hero Recruitment",
+        "Intel Missions"
+      ],
+      "skills": [
+        {
+          "name": "Shrapnel Load",
+          "effects": {},
+          "upgrade_preview": {
+            "area_of_effect_damage_up": [
+              "140%",
+              "154%",
+              "168%",
+              "182%",
+              "196%"
+            ]
+          }
+        },
+        {
+          "name": "Detonate",
+          "effects": {
+            "stun_chance": "20%",
+            "stun_time": "1.5s"
+          },
+          "upgrade_preview": {
+            "stun_chance": [
+              "10%",
+              "15%",
+              "15%",
+              "20%",
+              "20%"
+            ],
+            "stun_time": [
+              "0.5s",
+              "0.5s",
+              "1s",
+              "1s",
+              "1.5s"
+            ]
+          }
+        },
+        {
+          "name": "Expedition",
+          "effects": {
+            "cavalry_attack": "+90.07%",
+            "cavalry_defense": "+90.07%"
+          },
+          "upgrade_preview": {}
+        },
+        {
+          "name": "Demolitions Expert",
+          "effects": {},
+          "upgrade_preview": {
+            "quarry_income": [
+              "5%",
+              "10%",
+              "15%",
+              "20%",
+              "25%"
+            ]
+          }
+        },
+        {
+          "name": "Stone Mining",
+          "effects": {},
+          "upgrade_preview": {
+            "stone_gathering_speed": [
+              "5%",
+              "10%",
+              "15%",
+              "20%",
+              "25%"
+            ]
+          }
+        }
+      ],
+      "skill_source_status": "single_source_inspectable",
+      "source_ids": [
+        "g2384-kingshot-data"
+      ]
+    },
+    {
+      "id": "olive",
+      "name": "Olive",
+      "rarity": "Rare",
+      "troop_class": "Archer",
+      "generation": 1,
+      "typical_unlock_day": 0,
+      "release_group": "rare",
+      "stats": {
+        "attack": 1752,
+        "defense": 2220,
+        "health": 10822
+      },
+      "unlock_methods": [
+        "Hero Recruitment",
+        "Intel Missions"
+      ],
+      "skills": [
+        {
+          "name": "Rain of Arrows",
+          "effects": {},
+          "upgrade_preview": {
+            "area_of_effect_damage_up": [
+              "180%",
+              "198%",
+              "216%",
+              "234%",
+              "252%"
+            ]
+          }
+        },
+        {
+          "name": "Target Lock",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_up": [
+              "10%",
+              "15%",
+              "20%",
+              "25%",
+              "30%"
+            ]
+          }
+        },
+        {
+          "name": "Expedition",
+          "effects": {
+            "archer_attack": "+90.07%",
+            "archer_defense": "+90.07%"
+          },
+          "upgrade_preview": {}
+        },
+        {
+          "name": "Green Thumb",
+          "effects": {},
+          "upgrade_preview": {
+            "mill_income": [
+              "5%",
+              "10%",
+              "15%",
+              "20%",
+              "25%"
+            ]
+          }
+        },
+        {
+          "name": "Forager’s Luck",
+          "effects": {},
+          "upgrade_preview": {
+            "bread_gathering_speed": [
+              "5%",
+              "10%",
+              "15%",
+              "20%",
+              "25%"
+            ]
+          }
+        }
+      ],
+      "skill_source_status": "single_source_inspectable",
+      "source_ids": [
+        "g2384-kingshot-data"
+      ]
+    },
+    {
+      "id": "zoe",
+      "name": "Zoe",
+      "rarity": "Legendary",
+      "troop_class": "Infantry",
+      "generation": 2,
+      "typical_unlock_day": 40,
+      "release_group": "generation-2",
+      "stats": {
+        "attack": 2043,
+        "defense": 2664,
+        "health": 39960
+      },
+      "unlock_methods": [
+        "Hero Roulette",
+        "Hall of Heroes (Gen 3+)"
+      ],
+      "skills": [
+        {
+          "name": "Shield Strike",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_up": [
+              "60%",
+              "66%",
+              "72%",
+              "78%",
+              "84%"
+            ],
+            "enemy_damage_taken_up": [
+              "10%",
+              "15%",
+              "20%",
+              "25%",
+              "30%"
+            ]
+          }
+        },
+        {
+          "name": "Agony Rush",
+          "effects": {},
+          "upgrade_preview": {
+            "heal_up": [
+              "20%",
+              "25%",
+              "30%",
+              "35%",
+              "40%"
+            ]
+          }
+        },
+        {
+          "name": "Holy Might",
+          "effects": {},
+          "upgrade_preview": {
+            "attack_speed_up": [
+              "3%",
+              "4%",
+              "5%",
+              "6%",
+              "7%"
+            ]
+          }
+        },
+        {
+          "name": "Expedition",
+          "effects": {
+            "infantry_attack": "+240.19%",
+            "infantry_defense": "+240.19%"
+          },
+          "upgrade_preview": {}
+        },
+        {
+          "name": "Sundering Wound",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_up": [
+              "8%",
+              "16%",
+              "24%",
+              "32%",
+              "40%"
+            ]
+          }
+        },
+        {
+          "name": "Stoic",
+          "effects": {},
+          "upgrade_preview": {
+            "attack_up": [
+              "5%",
+              "10%",
+              "15%",
+              "20%",
+              "25%"
+            ]
+          }
+        },
+        {
+          "name": "Infinite Arsenal",
+          "effects": {},
+          "upgrade_preview": {
+            "enemy_damage_taken_up": [
+              "10%",
+              "20%",
+              "30%",
+              "40%",
+              "50%"
+            ]
+          }
+        },
+        {
+          "name": "Death or Glory",
+          "effects": {},
+          "upgrade_preview": {
+            "attack_up": [
+              "8%",
+              "12%",
+              "16%",
+              "20%",
+              "24%"
+            ]
+          }
+        },
+        {
+          "name": "Dark Lady",
+          "effects": {},
+          "upgrade_preview": {
+            "defender_troops_attack_up": [
+              "5%",
+              "7.5%",
+              "10%",
+              "12.5%",
+              "15%"
+            ]
+          }
+        }
+      ],
+      "skill_source_status": "single_source_inspectable",
+      "source_ids": [
+        "g2384-kingshot-data"
+      ]
+    },
+    {
+      "id": "hilde",
+      "name": "Hilde",
+      "rarity": "Legendary",
+      "troop_class": "Cavalry",
+      "generation": 2,
+      "typical_unlock_day": 40,
+      "release_group": "generation-2",
+      "stats": {
+        "attack": 2664,
+        "defense": 2220,
+        "health": 26640
+      },
+      "unlock_methods": [
+        "Strongest Governor",
+        "Hero Rally",
+        "Champion's Way (Gen 4)",
+        "Hall of Heroes (Gen 3+)",
+        "Kingdom of Power"
+      ],
+      "skills": [
+        {
+          "name": "Rejuvenating Plea",
+          "effects": {},
+          "upgrade_preview": {
+            "heal_up": [
+              "200%",
+              "220%",
+              "240%",
+              "260%",
+              "280%"
+            ]
+          }
+        },
+        {
+          "name": "Redeemer",
+          "effects": {},
+          "upgrade_preview": {
+            "heal_up": [
+              "100%",
+              "110%",
+              "120%",
+              "130%",
+              "140%"
+            ]
+          }
+        },
+        {
+          "name": "Intimidation",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_up": [
+              "140%",
+              "154%",
+              "168%",
+              "182%",
+              "196%"
+            ]
+          }
+        },
+        {
+          "name": "Expedition",
+          "effects": {
+            "cavalry_attack": "+240.19%",
+            "cavalry_defense": "+240.19%"
+          },
+          "upgrade_preview": {}
+        },
+        {
+          "name": "Noble Path",
+          "effects": {},
+          "upgrade_preview": {
+            "attack_up": [
+              "3%",
+              "6%",
+              "9%",
+              "12%",
+              "15%"
+            ],
+            "defense_up": [
+              "2%",
+              "4%",
+              "6%",
+              "8%",
+              "10%"
+            ]
+          }
+        },
+        {
+          "name": "Elixir of Strength",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_up": [
+              "120%",
+              "140%",
+              "160%",
+              "180%",
+              "200%"
+            ]
+          }
+        },
+        {
+          "name": "Trial by Fire",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_taken_chance_down": [
+              "8%",
+              "16%",
+              "24%",
+              "32%",
+              "40%"
+            ]
+          }
+        },
+        {
+          "name": "Holy Invocation",
+          "effects": {},
+          "upgrade_preview": {
+            "healing_effects_up": [
+              "30%",
+              "40%",
+              "50%",
+              "60%",
+              "70%"
+            ]
+          }
+        },
+        {
+          "name": "Fortitude",
+          "effects": {},
+          "upgrade_preview": {
+            "defender_squads_health_up": [
+              "5%",
+              "7.5%",
+              "10%",
+              "12.5%",
+              "15%"
+            ]
+          }
+        }
+      ],
+      "skill_source_status": "single_source_inspectable",
+      "source_ids": [
+        "g2384-kingshot-data"
+      ]
+    },
+    {
+      "id": "marlin",
+      "name": "Marlin",
+      "rarity": "Legendary",
+      "troop_class": "Archer",
+      "generation": 2,
+      "typical_unlock_day": 40,
+      "release_group": "generation-2",
+      "stats": {
+        "attack": 3235,
+        "defense": 2220,
+        "health": 19980
+      },
+      "unlock_methods": [
+        "Hall of Heroes"
+      ],
+      "skills": [
+        {
+          "name": "Tidal Rush",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_up": [
+              "200%",
+              "220%",
+              "240%",
+              "260%",
+              "280%"
+            ]
+          }
+        },
+        {
+          "name": "Fermented Blow",
+          "effects": {},
+          "upgrade_preview": {
+            "area_of_effect_damage_up": [
+              "50%",
+              "55%",
+              "60%",
+              "65%",
+              "70%"
+            ]
+          }
+        },
+        {
+          "name": "Lucky Hit",
+          "effects": {},
+          "upgrade_preview": {
+            "no_of_attacks": [
+              "8",
+              "7",
+              "7",
+              "6",
+              "5"
+            ],
+            "stun_time": [
+              "0.2s",
+              "0.2s",
+              "0.4s",
+              "0.4s",
+              "0.5s"
+            ]
+          }
+        },
+        {
+          "name": "Expedition",
+          "effects": {
+            "archer_attack": "+240.19%",
+            "archer_defense": "+240.19%"
+          },
+          "upgrade_preview": {}
+        },
+        {
+          "name": "Wild Card",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_dealt_chance_up": [
+              "8%",
+              "16%",
+              "24%",
+              "32%",
+              "40%"
+            ]
+          }
+        },
+        {
+          "name": "Rumhead",
+          "effects": {},
+          "upgrade_preview": {
+            "enemy_lethality_down": [
+              "10%",
+              "20%",
+              "30%",
+              "40%",
+              "50%"
+            ]
+          }
+        },
+        {
+          "name": "Dynamo",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_up": [
+              "10%",
+              "20%",
+              "30%",
+              "40%",
+              "50%"
+            ]
+          }
+        },
+        {
+          "name": "Servant of Wine",
+          "effects": {},
+          "upgrade_preview": {
+            "weakest_hero_health_up": [
+              "5%",
+              "7.5%",
+              "10%",
+              "12.5%",
+              "15%"
+            ]
+          }
+        },
+        {
+          "name": "Admiral of the Line",
+          "effects": {},
+          "upgrade_preview": {
+            "rally_squads_lethality_up": [
+              "5%",
+              "7.5%",
+              "10%",
+              "12.5%",
+              "15%"
+            ]
+          }
+        }
+      ],
+      "skill_source_status": "single_source_inspectable",
+      "source_ids": [
+        "g2384-kingshot-data"
+      ]
+    },
+    {
+      "id": "eric",
+      "name": "Eric",
+      "rarity": "Legendary",
+      "troop_class": "Infantry",
+      "generation": 3,
+      "typical_unlock_day": 120,
+      "release_group": "generation-3",
+      "stats": {
+        "attack": 2554,
+        "defense": 3330,
+        "health": 49950
+      },
+      "unlock_methods": [
+        "Hall of Heroes",
+        "Swordland Showdown Shop"
+      ],
+      "skills": [
+        {
+          "name": "Ground Shock",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_up": [
+              "120%",
+              "132%",
+              "144%",
+              "156%",
+              "168%"
+            ]
+          }
+        },
+        {
+          "name": "Veterancy",
+          "effects": {},
+          "upgrade_preview": {
+            "probability_up": [
+              "8%",
+              "10%",
+              "12%",
+              "14%",
+              "16%"
+            ],
+            "defense_up": [
+              "8%",
+              "11%",
+              "14%",
+              "17%",
+              "20%"
+            ]
+          }
+        },
+        {
+          "name": "Hammer of Justice",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_up": [
+              "80%",
+              "88%",
+              "96%",
+              "104%",
+              "112%"
+            ]
+          }
+        },
+        {
+          "name": "Expedition",
+          "effects": {
+            "infantry_attack": "+290.23%",
+            "infantry_defense": "+290.23%"
+          },
+          "upgrade_preview": {}
+        },
+        {
+          "name": "Holy Warrior",
+          "effects": {},
+          "upgrade_preview": {
+            "enemy_troop_attack_down": [
+              "4%",
+              "8%",
+              "12%",
+              "16%",
+              "20%"
+            ]
+          }
+        },
+        {
+          "name": "Conviction",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_taken_down": [
+              "4%",
+              "8%",
+              "12%",
+              "16%",
+              "20%"
+            ]
+          }
+        },
+        {
+          "name": "Exhortation",
+          "effects": {},
+          "upgrade_preview": {
+            "health_up": [
+              "5%",
+              "10%",
+              "15%",
+              "20%",
+              "25%"
+            ]
+          }
+        },
+        {
+          "name": "Blessed Hammer",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_up": [
+              "10%",
+              "15%",
+              "20%",
+              "25%",
+              "30%"
+            ]
+          }
+        },
+        {
+          "name": "Vanguard",
+          "effects": {},
+          "upgrade_preview": {
+            "defender_defense_up": [
+              "5%",
+              "7.5%",
+              "10%",
+              "12.5%",
+              "15%"
+            ]
+          }
+        }
+      ],
+      "skill_source_status": "single_source_inspectable",
+      "source_ids": [
+        "g2384-kingshot-data"
+      ]
+    },
+    {
+      "id": "petra",
+      "name": "Petra",
+      "rarity": "Legendary",
+      "troop_class": "Cavalry",
+      "generation": 3,
+      "typical_unlock_day": 120,
+      "release_group": "generation-3",
+      "stats": {
+        "attack": 3330,
+        "defense": 3330,
+        "health": 33300
+      },
+      "unlock_methods": [
+        "Hero Roulette",
+        "Swordland Showdown Shop"
+      ],
+      "skills": [
+        {
+          "name": "Dichotomy",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_up": [
+              "270%",
+              "297%",
+              "324%",
+              "351%",
+              "378%"
+            ]
+          }
+        },
+        {
+          "name": "Change of Fate",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_up": [
+              "50%",
+              "55%",
+              "60%",
+              "65%",
+              "70%"
+            ]
+          }
+        },
+        {
+          "name": "Turn Card",
+          "effects": {},
+          "upgrade_preview": {
+            "heal_up": [
+              "100%",
+              "110%",
+              "120%",
+              "130%",
+              "140%"
+            ]
+          }
+        },
+        {
+          "name": "Expedition",
+          "effects": {
+            "cavalry_attack": "+290.23%",
+            "cavalry_defense": "+290.23%"
+          },
+          "upgrade_preview": {}
+        },
+        {
+          "name": "Evil Eye",
+          "effects": {},
+          "upgrade_preview": {
+            "enemy_damage_taken_up": [
+              "10%",
+              "20%",
+              "30%",
+              "40%",
+              "50%"
+            ]
+          }
+        },
+        {
+          "name": "The Favor",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_up": [
+              "10%",
+              "20%",
+              "30%",
+              "40%",
+              "50%"
+            ]
+          }
+        },
+        {
+          "name": "The Shield",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_taken_down": [
+              "10%",
+              "20%",
+              "30%",
+              "40%",
+              "50%"
+            ]
+          }
+        },
+        {
+          "name": "Weighted Deck",
+          "effects": {},
+          "upgrade_preview": {
+            "fluctuating_skills_effects_up": [
+              "30%",
+              "60%",
+              "90%",
+              "120%",
+              "150%"
+            ]
+          }
+        },
+        {
+          "name": "Cosmic Eye",
+          "effects": {},
+          "upgrade_preview": {
+            "rally_squad_attack_up": [
+              "5%",
+              "7.5%",
+              "10%",
+              "12.5%",
+              "15%"
+            ]
+          }
+        }
+      ],
+      "skill_source_status": "single_source_inspectable",
+      "source_ids": [
+        "g2384-kingshot-data"
+      ]
+    },
+    {
+      "id": "jaeger",
+      "name": "Jaeger",
+      "rarity": "Legendary",
+      "troop_class": "Archer",
+      "generation": 3,
+      "typical_unlock_day": 120,
+      "release_group": "generation-3",
+      "stats": {
+        "attack": 4045,
+        "defense": 3330,
+        "health": 24974
+      },
+      "unlock_methods": [
+        "Strongest Governor",
+        "Swordland Showdown Shop",
+        "Hero Rally",
+        "Kingdom of Power"
+      ],
+      "skills": [
+        {
+          "name": "Fatal Attraction",
+          "effects": {},
+          "upgrade_preview": {
+            "area_of_effect_damage_up": [
+              "160%",
+              "176%",
+              "192%",
+              "208%",
+              "224%"
+            ]
+          }
+        },
+        {
+          "name": "Game of Chance",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_up": [
+              "220%",
+              "240%",
+              "260%",
+              "280%",
+              "300%"
+            ]
+          }
+        },
+        {
+          "name": "Rumormonger",
+          "effects": {},
+          "upgrade_preview": {
+            "enemy_damage_taken_up": [
+              "1%",
+              "15%",
+              "20%",
+              "25%",
+              "30%"
+            ]
+          }
+        },
+        {
+          "name": "Expedition",
+          "effects": {
+            "archer_attack": "+290.23%",
+            "archer_defense": "+290.23%"
+          },
+          "upgrade_preview": {}
+        },
+        {
+          "name": "The Tempest",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_up": [
+              "8%",
+              "16%",
+              "24%",
+              "32%",
+              "40%"
+            ]
+          }
+        },
+        {
+          "name": "The Resistance",
+          "effects": {},
+          "upgrade_preview": {
+            "enemy_lethality_down": [
+              "10%",
+              "20%",
+              "30%",
+              "40%",
+              "50%"
+            ]
+          }
+        },
+        {
+          "name": "The Celebration",
+          "effects": {},
+          "upgrade_preview": {
+            "health_up": [
+              "5%",
+              "10%",
+              "15%",
+              "20%",
+              "25%"
+            ]
+          }
+        },
+        {
+          "name": "Sound of Silence",
+          "effects": {},
+          "upgrade_preview": {
+            "skill_prevention_duration": [
+              "3s",
+              "3.5s",
+              "4s",
+              "4.5s",
+              "5s"
+            ],
+            "damage_up": [
+              "220%",
+              "240%",
+              "260%",
+              "280%",
+              "300%"
+            ]
+          }
+        },
+        {
+          "name": "Hymn to Survival",
+          "effects": {},
+          "upgrade_preview": {
+            "defender_squads_health_up": [
+              "5%",
+              "7.5%",
+              "10%",
+              "12.5%",
+              "15%"
+            ]
+          }
+        }
+      ],
+      "skill_source_status": "single_source_inspectable",
+      "source_ids": [
+        "g2384-kingshot-data"
+      ]
+    },
+    {
+      "id": "alcar",
+      "name": "Alcar",
+      "rarity": "Legendary",
+      "troop_class": "Infantry",
+      "generation": 4,
+      "typical_unlock_day": 195,
+      "release_group": "generation-4",
+      "stats": {
+        "attack": 3150,
+        "defense": 4106,
+        "health": 61604
+      },
+      "unlock_methods": [
+        "Hero Rally",
+        "Strongest Governor",
+        "Kingdom of Power",
+        "Swordland Showdown Shop"
+      ],
+      "skills": [
+        {
+          "name": "Glorious Mark",
+          "effects": {},
+          "upgrade_preview": {
+            "friendly_damage_taken_down": [
+              "30%",
+              "40%",
+              "50%",
+              "60%",
+              "70%"
+            ]
+          }
+        },
+        {
+          "name": "Boneshatter",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_up": [
+              "70%",
+              "77%",
+              "84%",
+              "91%",
+              "98%"
+            ]
+          }
+        },
+        {
+          "name": "Second Wind",
+          "effects": {},
+          "upgrade_preview": {
+            "heal_up": [
+              "30%",
+              "33%",
+              "36%",
+              "39%",
+              "42%"
+            ]
+          }
+        },
+        {
+          "name": "Expedition",
+          "effects": {
+            "infantry_attack": "+370.29%",
+            "infantry_defense": "+370.29%"
+          },
+          "upgrade_preview": {}
+        },
+        {
+          "name": "Rescuing Hands",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_taken_down": [
+              "14%",
+              "28%",
+              "42%",
+              "56%",
+              "70%"
+            ]
+          }
+        },
+        {
+          "name": "Praetorian Will",
+          "effects": {},
+          "upgrade_preview": {
+            "infantry_damage_up": [
+              "20%",
+              "40%",
+              "60%",
+              "80%",
+              "100%"
+            ],
+            "cavalry_archer_damage_up": [
+              "2%",
+              "4%",
+              "6%",
+              "8%",
+              "10%"
+            ]
+          }
+        },
+        {
+          "name": "Capre Diem",
+          "effects": {},
+          "upgrade_preview": {
+            "extra_damage_up": [
+              "12%",
+              "24%",
+              "36%",
+              "48%",
+              "60%"
+            ],
+            "enemy_damage_taken_up": [
+              "5%",
+              "10%",
+              "15%",
+              "20%",
+              "25%"
+            ]
+          }
+        },
+        {
+          "name": "Flagbearer",
+          "effects": {},
+          "upgrade_preview": {
+            "attack_up": [
+              "30%",
+              "33%",
+              "36%",
+              "39%",
+              "42%"
+            ]
+          }
+        },
+        {
+          "name": "Vow of Honor",
+          "effects": {},
+          "upgrade_preview": {
+            "defender_health_up": [
+              "5%",
+              "7.5%",
+              "10%",
+              "12.5%",
+              "15%"
+            ]
+          }
+        }
+      ],
+      "skill_source_status": "single_source_inspectable",
+      "source_ids": [
+        "g2384-kingshot-data"
+      ]
+    },
+    {
+      "id": "margot",
+      "name": "Margot",
+      "rarity": "Legendary",
+      "troop_class": "Cavalry",
+      "generation": 4,
+      "typical_unlock_day": 195,
+      "release_group": "generation-4",
+      "stats": {
+        "attack": 4106,
+        "defense": 4106,
+        "health": 41070
+      },
+      "unlock_methods": [
+        "Hall of Heroes",
+        "Swordland Showdown Shop"
+      ],
+      "skills": [
+        {
+          "name": "Ambush",
+          "effects": {},
+          "upgrade_preview": {
+            "area_of_effect_damage_up": [
+              "300%",
+              "330%",
+              "360%",
+              "390%",
+              "420%"
+            ]
+          }
+        },
+        {
+          "name": "Parry",
+          "effects": {},
+          "upgrade_preview": {
+            "dodge_probability_up": [
+              "5%",
+              "10%",
+              "15%",
+              "20%",
+              "25%"
+            ]
+          }
+        },
+        {
+          "name": "Stiletto",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_up": [
+              "100%",
+              "110%",
+              "120%",
+              "130%",
+              "140%"
+            ]
+          }
+        },
+        {
+          "name": "Expedition",
+          "effects": {
+            "cavalry_attack": "+370.29%",
+            "cavalry_defense": "+370.29%"
+          },
+          "upgrade_preview": {}
+        },
+        {
+          "name": "Warbringer",
+          "effects": {},
+          "upgrade_preview": {
+            "attack_up": [
+              "5%",
+              "10%",
+              "15%",
+              "20%",
+              "25%"
+            ]
+          }
+        },
+        {
+          "name": "Subterfuge",
+          "effects": {},
+          "upgrade_preview": {
+            "dodge_probability_up": [
+              "4%",
+              "8%",
+              "12%",
+              "16%",
+              "20%"
+            ]
+          }
+        },
+        {
+          "name": "Sleight Hand",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_up": [
+              "120%",
+              "140%",
+              "160%",
+              "180%",
+              "200%"
+            ]
+          }
+        },
+        {
+          "name": "Indefensible",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_up": [
+              "25%",
+              "30%",
+              "35%",
+              "40%",
+              "45%"
+            ]
+          }
+        },
+        {
+          "name": "Pugilist",
+          "effects": {},
+          "upgrade_preview": {
+            "defender_lethality_up": [
+              "5%",
+              "7.5%",
+              "10%",
+              "12.5%",
+              "15%"
+            ]
+          }
+        }
+      ],
+      "skill_source_status": "single_source_inspectable",
+      "source_ids": [
+        "g2384-kingshot-data"
+      ]
+    },
+    {
+      "id": "rosa",
+      "name": "Rosa",
+      "rarity": "Legendary",
+      "troop_class": "Archer",
+      "generation": 4,
+      "typical_unlock_day": 195,
+      "release_group": "generation-4",
+      "stats": {
+        "attack": 4989,
+        "defense": 4106,
+        "health": 30802
+      },
+      "unlock_methods": [
+        "Hero Roulette",
+        "Swordland Showdown Shop"
+      ],
+      "skills": [
+        {
+          "name": "Battle Focus",
+          "effects": {},
+          "upgrade_preview": {
+            "attack_up": [
+              "3%",
+              "4%",
+              "5%",
+              "6%",
+              "7%"
+            ],
+            "effect_duration": [
+              "3s",
+              "3.5s",
+              "4s",
+              "4.5s",
+              "5s"
+            ]
+          }
+        },
+        {
+          "name": "Flutterfang",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_up": [
+              "220%",
+              "240%",
+              "260%",
+              "280%",
+              "300%"
+            ]
+          }
+        },
+        {
+          "name": "Swoon Chakra",
+          "effects": {},
+          "upgrade_preview": {
+            "enemy_attack_speed_down": [
+              "1%",
+              "1.5%",
+              "2%",
+              "2.5%",
+              "3%"
+            ],
+            "enemy_healing_down": [
+              "40%",
+              "45%",
+              "50%",
+              "55%",
+              "60%"
+            ]
+          }
+        },
+        {
+          "name": "Expedition",
+          "effects": {
+            "archer_attack": "+370.29%",
+            "archer_defense": "+370.29%"
+          },
+          "upgrade_preview": {}
+        },
+        {
+          "name": "Chaos Gambit",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_up": [
+              "10%",
+              "20%",
+              "30%",
+              "40%",
+              "50%"
+            ]
+          }
+        },
+        {
+          "name": "Rose of War",
+          "effects": {},
+          "upgrade_preview": {
+            "enemy_damage_down": [
+              "4%",
+              "8%",
+              "12%",
+              "16%",
+              "20%"
+            ]
+          }
+        },
+        {
+          "name": "Golden Rhythm",
+          "effects": {},
+          "upgrade_preview": {
+            "attack_up": [
+              "6%",
+              "12%",
+              "18%",
+              "24%",
+              "30%"
+            ]
+          }
+        },
+        {
+          "name": "Night Reverie",
+          "effects": {},
+          "upgrade_preview": {
+            "attack_up": [
+              "5%",
+              "7.5%",
+              "10%",
+              "12.5%",
+              "15%"
+            ]
+          }
+        },
+        {
+          "name": "Perihelion",
+          "effects": {},
+          "upgrade_preview": {
+            "rally_squad_lethality_up": [
+              "5%",
+              "7.5%",
+              "10%",
+              "12.5%",
+              "15%"
+            ]
+          }
+        }
+      ],
+      "skill_source_status": "single_source_inspectable",
+      "source_ids": [
+        "g2384-kingshot-data"
+      ]
+    },
+    {
+      "id": "long-fei",
+      "name": "Long Fei",
+      "rarity": "Legendary",
+      "troop_class": "Infantry",
+      "generation": 5,
+      "typical_unlock_day": 270,
+      "release_group": "generation-5",
+      "stats": {
+        "attack": 3780,
+        "defense": 4928,
+        "health": 73926
+      },
+      "unlock_methods": [
+        "Hero Roulette",
+        "Swordland Showdown Shop"
+      ],
+      "skills": [
+        {
+          "name": "Ambrosia",
+          "effects": {},
+          "upgrade_preview": {
+            "attack_speed_up": [
+              "80%",
+              "90%",
+              "100%",
+              "110%",
+              "120%"
+            ]
+          }
+        },
+        {
+          "name": "Above and Beyond",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_taken_down": [
+              "20%",
+              "30%",
+              "40%",
+              "50%",
+              "60%"
+            ]
+          }
+        },
+        {
+          "name": "Mountain Mover",
+          "effects": {},
+          "upgrade_preview": {
+            "attack_up": [
+              "16%",
+              "24%",
+              "32%",
+              "40%",
+              "48%"
+            ]
+          }
+        },
+        {
+          "name": "Expedition",
+          "effects": {
+            "infantry_attack": "+444.35%",
+            "infantry_defense": "+444.35%"
+          },
+          "upgrade_preview": {}
+        },
+        {
+          "name": "Mighty Paragon",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_taken_down": [
+              "10%",
+              "20%",
+              "30%",
+              "40%",
+              "50%"
+            ]
+          }
+        },
+        {
+          "name": "Celestial Sustenance",
+          "effects": {},
+          "upgrade_preview": {
+            "defense_up": [
+              "5%",
+              "10%",
+              "15%",
+              "20%",
+              "25%"
+            ]
+          }
+        },
+        {
+          "name": "Art of War",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_up": [
+              "120%",
+              "140%",
+              "160%",
+              "180%",
+              "200%"
+            ]
+          }
+        },
+        {
+          "name": "Strong Brew",
+          "effects": {},
+          "upgrade_preview": {
+            "health_up": [
+              "7%",
+              "9%",
+              "11%",
+              "13%",
+              "15%"
+            ]
+          }
+        },
+        {
+          "name": "Strategic Strike",
+          "effects": {},
+          "upgrade_preview": {
+            "defender_attack_up": [
+              "5%",
+              "7.5%",
+              "10%",
+              "12.5%",
+              "15%"
+            ]
+          }
+        }
+      ],
+      "skill_source_status": "single_source_inspectable",
+      "source_ids": [
+        "g2384-kingshot-data"
+      ]
+    },
+    {
+      "id": "thrud",
+      "name": "Thrud",
+      "rarity": "Legendary",
+      "troop_class": "Cavalry",
+      "generation": 5,
+      "typical_unlock_day": 270,
+      "release_group": "generation-5",
+      "stats": {
+        "attack": 4928,
+        "defense": 4928,
+        "health": 49284
+      },
+      "unlock_methods": [
+        "Hero Rally",
+        "Strongest Governor",
+        "Kingdom of Power",
+        "Swordland Showdown Shop"
+      ],
+      "skills": [
+        {
+          "name": "Axe Flurry",
+          "effects": {},
+          "upgrade_preview": {
+            "area_of_effect_damage_up": [
+              "60%",
+              "66%",
+              "72%",
+              "78%",
+              "84%"
+            ]
+          }
+        },
+        {
+          "name": "Brutal Throw",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_up": [
+              "50%",
+              "55%",
+              "60%",
+              "65%",
+              "70%"
+            ]
+          }
+        },
+        {
+          "name": "Feast of the Pack",
+          "effects": {},
+          "upgrade_preview": {
+            "attack_up": [
+              "3%",
+              "3.5%",
+              "4%",
+              "4.5%",
+              "5%"
+            ]
+          }
+        },
+        {
+          "name": "Expedition",
+          "effects": {
+            "cavalry_attack": "+444.35%",
+            "cavalry_defense": "+444.35%"
+          },
+          "upgrade_preview": {}
+        },
+        {
+          "name": "Battle Hunger",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_taken_down": [
+              "3%",
+              "6%",
+              "9%",
+              "12%",
+              "15%"
+            ],
+            "damage_up": [
+              "3%",
+              "6%",
+              "9%",
+              "12%",
+              "15%"
+            ]
+          }
+        },
+        {
+          "name": "Reckless Charge",
+          "effects": {},
+          "upgrade_preview": {
+            "extra_damage_up": [
+              "20%",
+              "40%",
+              "60%",
+              "80%",
+              "100%"
+            ]
+          }
+        },
+        {
+          "name": "Ancestral Guidance",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_up": [
+              "5%",
+              "10%",
+              "15%",
+              "20%",
+              "25%"
+            ],
+            "damage_taken_down": [
+              "5%",
+              "10%",
+              "15%",
+              "20%",
+              "25%"
+            ]
+          }
+        },
+        {
+          "name": "Berserker’s Edge",
+          "effects": {},
+          "upgrade_preview": {
+            "stun_chance_up": [
+              "25%",
+              "27.5%",
+              "30%",
+              "32.5%",
+              "35%"
+            ],
+            "stun_duration": [
+              "0.6s",
+              "0.7s",
+              "0.8s",
+              "0.9s",
+              "1s"
+            ]
+          }
+        },
+        {
+          "name": "Wolf-Kissed",
+          "effects": {},
+          "upgrade_preview": {
+            "rally_lethality_up": [
+              "5%",
+              "7.5%",
+              "10%",
+              "12.5%",
+              "15%"
+            ]
+          }
+        }
+      ],
+      "skill_source_status": "single_source_inspectable",
+      "source_ids": [
+        "g2384-kingshot-data"
+      ]
+    },
+    {
+      "id": "vivian",
+      "name": "Vivian",
+      "rarity": "Legendary",
+      "troop_class": "Archer",
+      "generation": 5,
+      "typical_unlock_day": 270,
+      "release_group": "generation-5",
+      "stats": {
+        "attack": 5987,
+        "defense": 4928,
+        "health": 36962
+      },
+      "unlock_methods": [
+        "Hall of Heroes",
+        "Swordland Showdown Shop"
+      ],
+      "skills": [
+        {
+          "name": "Gilded Barrage",
+          "effects": {},
+          "upgrade_preview": {
+            "area_of_effect_damage_up": [
+              "180%",
+              "198%",
+              "216%",
+              "234%",
+              "252%"
+            ]
+          }
+        },
+        {
+          "name": "Lucky Strike",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_up": [
+              "100%",
+              "110%",
+              "120%",
+              "130%",
+              "140%"
+            ]
+          }
+        },
+        {
+          "name": "Priceless Shot",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_up": [
+              "35%",
+              "38.5%",
+              "42%",
+              "45.5%",
+              "49%"
+            ]
+          }
+        },
+        {
+          "name": "Expedition",
+          "effects": {
+            "archer_attack": "+444.35%",
+            "archer_defense": "+444.35%"
+          },
+          "upgrade_preview": {}
+        },
+        {
+          "name": "Crouching Tiger",
+          "effects": {},
+          "upgrade_preview": {
+            "enemy_damage_taken_up": [
+              "5%",
+              "10%",
+              "15%",
+              "20%",
+              "25%"
+            ]
+          }
+        },
+        {
+          "name": "Focus Fire",
+          "effects": {},
+          "upgrade_preview": {
+            "extra_damage_up": [
+              "20%",
+              "40%",
+              "60%",
+              "80%",
+              "100%"
+            ],
+            "enemy_damage_taken_up": [
+              "5%",
+              "7.5%",
+              "10%",
+              "12.5%",
+              "15%"
+            ]
+          }
+        },
+        {
+          "name": "Trap of Greed",
+          "effects": {},
+          "upgrade_preview": {
+            "extra_damage_up": [
+              "12%",
+              "24%",
+              "36%",
+              "48%",
+              "60%"
+            ]
+          }
+        },
+        {
+          "name": "Refined Gunplay",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_up": [
+              "50%",
+              "55%",
+              "60%",
+              "65%",
+              "70%"
+            ]
+          }
+        },
+        {
+          "name": "Money Driven",
+          "effects": {},
+          "upgrade_preview": {
+            "defender_defense_up": [
+              "5%",
+              "7.5%",
+              "10%",
+              "12.5%",
+              "15%"
+            ]
+          }
+        }
+      ],
+      "skill_source_status": "single_source_inspectable",
+      "source_ids": [
+        "g2384-kingshot-data"
+      ]
+    },
+    {
+      "id": "triton",
+      "name": "Triton",
+      "rarity": "Legendary",
+      "troop_class": "Infantry",
+      "generation": 6,
+      "typical_unlock_day": 360,
+      "release_group": "generation-6",
+      "skills": [
+        {
+          "name": "Tidewill",
+          "kind": "conquest",
+          "effects": {},
+          "upgrade_preview": {
+            "area_of_effect_damage_up": [
+              "100%",
+              "110%",
+              "120%",
+              "130%",
+              "140%"
+            ]
+          }
+        },
+        {
+          "name": "Regal Wrath",
+          "kind": "conquest",
+          "effects": {},
+          "upgrade_preview": {
+            "attack_up": [
+              "8%",
+              "12%",
+              "16%",
+              "20%",
+              "24%"
+            ],
+            "defense_up": [
+              "16%",
+              "24%",
+              "32%",
+              "40%",
+              "48%"
+            ]
+          }
+        },
+        {
+          "name": "Striking Hit",
+          "kind": "conquest",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_up": [
+              "20%",
+              "22%",
+              "24%",
+              "26%",
+              "28%"
+            ]
+          }
+        },
+        {
+          "name": "Command of Power",
+          "kind": "expedition",
+          "effects": {},
+          "upgrade_preview": {
+            "defense_up": [
+              "5%",
+              "10%",
+              "15%",
+              "20%",
+              "25%"
+            ]
+          }
+        },
+        {
+          "name": "Warfare of Power",
+          "kind": "expedition",
+          "effects": {},
+          "upgrade_preview": {
+            "skill_damage_up": [
+              "6%",
+              "12%",
+              "18%",
+              "24%",
+              "30%"
+            ]
+          }
+        },
+        {
+          "name": "Oath of Power",
+          "kind": "expedition",
+          "effects": {},
+          "upgrade_preview": {
+            "infantry_health_up": [
+              "4%",
+              "8%",
+              "12%",
+              "16%",
+              "20%"
+            ],
+            "cavalry_and_archer_health_up": [
+              "6%",
+              "12%",
+              "18%",
+              "24%",
+              "30%"
+            ]
+          }
+        },
+        {
+          "name": "Magnetic Reformation",
+          "kind": "exclusive_conquest",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_up": [
+              "10%",
+              "15%",
+              "20%",
+              "25%",
+              "30%"
+            ]
+          }
+        },
+        {
+          "name": "Whale Call",
+          "kind": "exclusive_expedition",
+          "effects": {},
+          "upgrade_preview": {
+            "defender_defense_up": [
+              "5%",
+              "7.5%",
+              "10%",
+              "12.5%",
+              "15%"
+            ]
+          }
+        }
+      ],
+      "skill_source_status": "maintained_source_inspectable",
+      "source_ids": [
+        "kingshotdata"
+      ],
+      "skill_source_url": "https://kingshotdata.com/heroes/triton/"
+    },
+    {
+      "id": "sophia",
+      "name": "Sophia",
+      "rarity": "Legendary",
+      "troop_class": "Cavalry",
+      "generation": 6,
+      "typical_unlock_day": 360,
+      "release_group": "generation-6",
+      "skills": [
+        {
+          "name": "Puppet Master",
+          "kind": "conquest",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_up": [
+              "100%",
+              "110%",
+              "120%",
+              "130%",
+              "140%"
+            ]
+          }
+        },
+        {
+          "name": "Scalding Mark",
+          "kind": "conquest",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_up": [
+              "50%",
+              "55%",
+              "60%",
+              "65%",
+              "70%"
+            ],
+            "enemy_damage_taken_up": [
+              "2%",
+              "3%",
+              "4%",
+              "5%",
+              "6%"
+            ]
+          }
+        },
+        {
+          "name": "Scalding Mark - Lash",
+          "kind": "conquest",
+          "effects": {},
+          "upgrade_preview": {
+            "attack_up": [
+              "8%",
+              "12%",
+              "16%",
+              "20%",
+              "24%"
+            ],
+            "damage_up": [
+              "4%",
+              "6%",
+              "8%",
+              "10%",
+              "12%"
+            ]
+          }
+        },
+        {
+          "name": "Arcane Pact",
+          "kind": "expedition",
+          "effects": {},
+          "upgrade_preview": {
+            "probability_up": [
+              "8%",
+              "16%",
+              "24%",
+              "32%",
+              "40%"
+            ]
+          }
+        },
+        {
+          "name": "Terror - Deathblow",
+          "kind": "expedition",
+          "effects": {},
+          "upgrade_preview": {
+            "extra_damage_up": [
+              "40%",
+              "80%",
+              "120%",
+              "160%",
+              "200%"
+            ]
+          }
+        },
+        {
+          "name": "Terror - Annihilation",
+          "kind": "expedition",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_up": [
+              "15%",
+              "30%",
+              "45%",
+              "60%",
+              "75%"
+            ]
+          }
+        },
+        {
+          "name": "Eyes of Obedience",
+          "kind": "exclusive_conquest",
+          "effects": {},
+          "upgrade_preview": {
+            "chance_to_confuse": [
+              "2%",
+              "3.5%",
+              "5%",
+              "6.5%",
+              "8%"
+            ]
+          }
+        },
+        {
+          "name": "Queen of Night",
+          "kind": "exclusive_expedition",
+          "effects": {},
+          "upgrade_preview": {
+            "defender_lethality_up": [
+              "5%",
+              "7.5%",
+              "10%",
+              "12.5%",
+              "15%"
+            ]
+          }
+        }
+      ],
+      "skill_source_status": "maintained_source_inspectable",
+      "source_ids": [
+        "kingshotdata"
+      ],
+      "skill_source_url": "https://kingshotdata.com/heroes/sophia/"
+    },
+    {
+      "id": "yang",
+      "name": "Yang",
+      "rarity": "Legendary",
+      "troop_class": "Archer",
+      "generation": 6,
+      "typical_unlock_day": 360,
+      "release_group": "generation-6",
+      "skills": [
+        {
+          "name": "Kin Throw",
+          "kind": "conquest",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_up": [
+              "100%",
+              "110%",
+              "120%",
+              "130%",
+              "140%"
+            ]
+          }
+        },
+        {
+          "name": "Combo",
+          "kind": "conquest",
+          "effects": {},
+          "upgrade_preview": {
+            "extra_attack_chance": [
+              "15%",
+              "20%",
+              "25%",
+              "30%",
+              "35%"
+            ]
+          }
+        },
+        {
+          "name": "Deadshot",
+          "kind": "conquest",
+          "effects": {},
+          "upgrade_preview": {
+            "crit_rate": [
+              "3%",
+              "6%",
+              "9%",
+              "12%",
+              "15%"
+            ]
+          }
+        },
+        {
+          "name": "Avalanche",
+          "kind": "expedition",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_up": [
+              "20%",
+              "40%",
+              "60%",
+              "80%",
+              "100%"
+            ]
+          }
+        },
+        {
+          "name": "Ice Zone",
+          "kind": "expedition",
+          "effects": {
+            "trigger_chance": "40%"
+          },
+          "upgrade_preview": {
+            "extra_damage_up": [
+              "20%",
+              "40%",
+              "60%",
+              "80%",
+              "100%"
+            ]
+          }
+        },
+        {
+          "name": "Ambush",
+          "kind": "expedition",
+          "effects": {
+            "damage_dealt_up_on_trigger": "50%"
+          },
+          "upgrade_preview": {
+            "probability_up": [
+              "8%",
+              "16%",
+              "24%",
+              "32%",
+              "40%"
+            ]
+          }
+        },
+        {
+          "name": "Quick Draw",
+          "kind": "exclusive_conquest",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_up": [
+              "40%",
+              "44%",
+              "48%",
+              "52%",
+              "56%"
+            ],
+            "knockdown_chance": [
+              "40%",
+              "55%",
+              "70%",
+              "85%",
+              "100%"
+            ]
+          }
+        },
+        {
+          "name": "Offensive Defense",
+          "kind": "exclusive_expedition",
+          "effects": {},
+          "upgrade_preview": {
+            "rally_squads_lethality_up": [
+              "5%",
+              "7.5%",
+              "10%",
+              "12.5%",
+              "15%"
+            ]
+          }
+        }
+      ],
+      "skill_source_status": "maintained_source_inspectable",
+      "source_ids": [
+        "kingshotdata"
+      ],
+      "skill_source_url": "https://kingshotdata.com/heroes/yang/"
+    },
+    {
+      "id": "charles",
+      "name": "Charles",
+      "rarity": "Legendary",
+      "troop_class": "Infantry",
+      "generation": 7,
+      "typical_unlock_day": 440,
+      "release_group": "generation-7",
+      "skills": [
+        {
+          "name": "Vengeance",
+          "kind": "conquest",
+          "effects": {
+            "stun_duration": "1s",
+            "attack_buff_duration": "2s"
+          },
+          "upgrade_preview": {
+            "damage_up": [
+              "100%",
+              "110%",
+              "120%",
+              "130%",
+              "140%"
+            ],
+            "attack_up": [
+              "20%",
+              "40%",
+              "60%",
+              "80%",
+              "100%"
+            ]
+          }
+        },
+        {
+          "name": "Parting Gift",
+          "kind": "conquest",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_up": [
+              "200%",
+              "220%",
+              "240%",
+              "260%",
+              "280%"
+            ]
+          }
+        },
+        {
+          "name": "Nimble Soul",
+          "kind": "conquest",
+          "effects": {
+            "damage_taken_reduction_on_trigger": "50%"
+          },
+          "upgrade_preview": {
+            "probability_up": [
+              "10%",
+              "20%",
+              "30%",
+              "40%",
+              "50%"
+            ]
+          }
+        },
+        {
+          "name": "Intimidation",
+          "kind": "expedition",
+          "effects": {},
+          "upgrade_preview": {
+            "enemy_lethality_down": [
+              "4%",
+              "8%",
+              "12%",
+              "16%",
+              "20%"
+            ]
+          }
+        },
+        {
+          "name": "Iron Bodies",
+          "kind": "expedition",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_taken_down": [
+              "4%",
+              "8%",
+              "12%",
+              "16%",
+              "20%"
+            ]
+          }
+        },
+        {
+          "name": "Great Justice",
+          "kind": "expedition",
+          "effects": {},
+          "upgrade_preview": {
+            "health_up": [
+              "5%",
+              "10%",
+              "15%",
+              "20%",
+              "25%"
+            ]
+          }
+        },
+        {
+          "name": "Mechanic",
+          "kind": "exclusive_conquest",
+          "effects": {
+            "trigger": "once when first under 50% Health"
+          },
+          "upgrade_preview": {
+            "heal_up": [
+              "15%",
+              "20%",
+              "25%",
+              "30%",
+              "35%"
+            ],
+            "defense_up": [
+              "10%",
+              "15%",
+              "20%",
+              "25%",
+              "30%"
+            ]
+          }
+        },
+        {
+          "name": "Shock and Awe",
+          "kind": "exclusive_expedition",
+          "effects": {},
+          "upgrade_preview": {
+            "defender_squad_health_up": [
+              "5%",
+              "7.5%",
+              "10%",
+              "12.5%",
+              "15%"
+            ]
+          }
+        }
+      ],
+      "skill_source_status": "maintained_source_inspectable",
+      "source_ids": [
+        "kingshotdata"
+      ],
+      "skill_source_url": "https://kingshotdata.com/heroes/charles/"
+    },
+    {
+      "id": "ava",
+      "name": "Ava",
+      "rarity": "Legendary",
+      "troop_class": "Cavalry",
+      "generation": 7,
+      "typical_unlock_day": 440,
+      "release_group": "generation-7",
+      "skills": [
+        {
+          "name": "Color Bomb",
+          "kind": "conquest",
+          "effects": {
+            "tick_interval": "0.5s",
+            "duration": "3s"
+          },
+          "upgrade_preview": {
+            "area_of_effect_damage_up": [
+              "50%",
+              "55%",
+              "60%",
+              "65%",
+              "70%"
+            ]
+          }
+        },
+        {
+          "name": "Corruption Bomb",
+          "kind": "conquest",
+          "effects": {
+            "tick_interval": "0.5s",
+            "debuff_duration": "2s"
+          },
+          "upgrade_preview": {
+            "damage_up": [
+              "25%",
+              "27.5%",
+              "30%",
+              "32.5%",
+              "35%"
+            ],
+            "enemy_damage_taken_up": [
+              "5%",
+              "10%",
+              "15%",
+              "20%",
+              "25%"
+            ]
+          }
+        },
+        {
+          "name": "Disguise Pigment",
+          "kind": "conquest",
+          "effects": {},
+          "upgrade_preview": {
+            "defense_up": [
+              "25%",
+              "37.5%",
+              "50%",
+              "62.5%",
+              "75%"
+            ]
+          }
+        },
+        {
+          "name": "Dissolution",
+          "kind": "expedition",
+          "effects": {},
+          "upgrade_preview": {
+            "enemy_defense_down": [
+              "5%",
+              "10%",
+              "15%",
+              "20%",
+              "25%"
+            ]
+          }
+        },
+        {
+          "name": "Chiaroscuro",
+          "kind": "expedition",
+          "effects": {
+            "duration": "2 turns",
+            "interval": "every 4 turns"
+          },
+          "upgrade_preview": {
+            "enemy_damage_taken_up": [
+              "10%",
+              "20%",
+              "30%",
+              "40%",
+              "50%"
+            ]
+          }
+        },
+        {
+          "name": "Light and Cold",
+          "kind": "expedition",
+          "effects": {},
+          "upgrade_preview": {
+            "lethality_up": [
+              "5%",
+              "10%",
+              "15%",
+              "20%",
+              "25%"
+            ]
+          }
+        },
+        {
+          "name": "Irradiance",
+          "kind": "exclusive_conquest",
+          "effects": {
+            "enemy_attack_down": "15%"
+          },
+          "upgrade_preview": {
+            "attack_up": [
+              "5%",
+              "10%",
+              "15%",
+              "20%",
+              "25%"
+            ]
+          }
+        },
+        {
+          "name": "Color Storm",
+          "kind": "exclusive_expedition",
+          "effects": {},
+          "upgrade_preview": {
+            "rally_lethality_up": [
+              "5%",
+              "7.5%",
+              "10%",
+              "12.5%",
+              "15%"
+            ]
+          }
+        }
+      ],
+      "skill_source_status": "maintained_source_inspectable",
+      "source_ids": [
+        "kingshotdata"
+      ],
+      "skill_source_url": "https://kingshotdata.com/heroes/ava/"
+    },
+    {
+      "id": "wee-and-woo",
+      "name": "Wee & Woo",
+      "rarity": "Legendary",
+      "troop_class": "Archer",
+      "generation": 7,
+      "typical_unlock_day": 440,
+      "release_group": "generation-7",
+      "skills": [
+        {
+          "name": "High Ground",
+          "kind": "conquest",
+          "effects": {},
+          "upgrade_preview": {
+            "area_of_effect_damage_up": [
+              "300%",
+              "330%",
+              "360%",
+              "390%",
+              "420%"
+            ]
+          }
+        },
+        {
+          "name": "Incendiaries",
+          "kind": "conquest",
+          "effects": {
+            "crater_tick_interval": "0.5s",
+            "crater_duration": "2s"
+          },
+          "upgrade_preview": {
+            "initial_damage_up": [
+              "60%",
+              "66%",
+              "72%",
+              "78%",
+              "84%"
+            ],
+            "crater_damage_up": [
+              "17%",
+              "19%",
+              "21%",
+              "23%",
+              "25%"
+            ]
+          }
+        },
+        {
+          "name": "Frontal Support",
+          "kind": "conquest",
+          "effects": {},
+          "upgrade_preview": {
+            "attack_up": [
+              "10%",
+              "14%",
+              "18%",
+              "22%",
+              "26%"
+            ]
+          }
+        },
+        {
+          "name": "Artillerymen",
+          "kind": "expedition",
+          "effects": {},
+          "upgrade_preview": {
+            "attack_up": [
+              "3%",
+              "6%",
+              "9%",
+              "12%",
+              "15%"
+            ],
+            "lethality_up": [
+              "2%",
+              "4%",
+              "6%",
+              "8%",
+              "10%"
+            ]
+          }
+        },
+        {
+          "name": "Chain Shelling",
+          "kind": "expedition",
+          "effects": {},
+          "upgrade_preview": {
+            "damage_to_archer_up": [
+              "6%",
+              "12%",
+              "18%",
+              "24%",
+              "30%"
+            ],
+            "damage_to_infantry_up": [
+              "5%",
+              "10%",
+              "15%",
+              "20%",
+              "25%"
+            ]
+          }
+        },
+        {
+          "name": "Boom Boom",
+          "kind": "expedition",
+          "effects": {
+            "extra_damage_on_trigger": "50%"
+          },
+          "upgrade_preview": {
+            "probability_up": [
+              "10%",
+              "20%",
+              "30%",
+              "40%",
+              "50%"
+            ]
+          }
+        },
+        {
+          "name": "Zero Sympathy",
+          "kind": "exclusive_conquest",
+          "effects": {
+            "duration": "5s"
+          },
+          "upgrade_preview": {
+            "attack_speed_up": [
+              "6%",
+              "8%",
+              "10%",
+              "12%",
+              "14%"
+            ]
+          }
+        },
+        {
+          "name": "Landmines",
+          "kind": "exclusive_expedition",
+          "effects": {},
+          "upgrade_preview": {
+            "defender_squads_attack_up": [
+              "5%",
+              "7.5%",
+              "10%",
+              "12.5%",
+              "15%"
+            ]
+          }
+        }
+      ],
+      "skill_source_status": "maintained_source_inspectable",
+      "source_ids": [
+        "kingshotdata"
+      ],
+      "skill_source_url": "https://kingshotdata.com/heroes/wee-woo/"
+    }
+  ],
+  "provenance": [
+    {
+      "source_id": "g2384-kingshot-data",
+      "scope": "structured hero stats, acquisition methods, skill names and effect ladders; guide prose omitted",
+      "matched_heroes": 28
+    },
+    {
+      "source_id": "kingshotdata",
+      "scope": "Gen 6-7 structured skill names/effect ladders for Triton, Sophia, Yang, Charles, Ava and Wee & Woo; expressive descriptions omitted",
+      "source_locked_by": "heroes_tables.json detail-page SHA-256 entries in source-lock.json",
+      "observed_at": "2026-08-23"
+    }
+  ]
+}

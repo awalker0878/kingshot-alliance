@@ -1,0 +1,246 @@
+{
+  "schema_version": 1,
+  "source_id": "kingshotpro-open-data",
+  "source_meta": {
+    "dataset": "kingshot-troops",
+    "canonical": "https://kingshotpro.com/data/troops.json",
+    "count": 15,
+    "updated": "2026-06-14",
+    "verified": null,
+    "confidence": "scored",
+    "confidence_detail": null,
+    "sources": [
+      "Direct in-game observation and community estimates (KingshotPro)"
+    ],
+    "license": "CC-BY-4.0 — attribute to https://kingshotpro.com"
+  },
+  "data": {
+    "troops": {
+      "infantry": {
+        "name": "Infantry",
+        "tiers": {
+          "t1": {
+            "label": "T1 Infantry",
+            "food": 80,
+            "wood": 80,
+            "stone": 0,
+            "iron": 0,
+            "timeSec": 12,
+            "pts": {
+              "hog": 1,
+              "kvk": 1,
+              "tsg": 1
+            },
+            "status": "EST"
+          },
+          "t2": {
+            "label": "T2 Infantry",
+            "food": 150,
+            "wood": 150,
+            "stone": 60,
+            "iron": 0,
+            "timeSec": 45,
+            "pts": {
+              "hog": 2,
+              "kvk": 2,
+              "tsg": 2
+            },
+            "status": "EST"
+          },
+          "t3": {
+            "label": "T3 Infantry",
+            "food": 400,
+            "wood": 400,
+            "stone": 200,
+            "iron": 100,
+            "timeSec": 180,
+            "pts": {
+              "hog": 5,
+              "kvk": 5,
+              "tsg": 2
+            },
+            "status": "EST"
+          },
+          "t4": {
+            "label": "T4 Infantry",
+            "food": 1200,
+            "wood": 1200,
+            "stone": 600,
+            "iron": 400,
+            "timeSec": 600,
+            "pts": {
+              "hog": 10,
+              "kvk": 10,
+              "tsg": 4
+            },
+            "status": "EST"
+          },
+          "t5": {
+            "label": "T5 Infantry",
+            "food": 3500,
+            "wood": 3500,
+            "stone": 2000,
+            "iron": 1500,
+            "timeSec": 1800,
+            "pts": {
+              "hog": 25,
+              "kvk": 25,
+              "tsg": 10
+            },
+            "status": "EST"
+          }
+        }
+      },
+      "lancer": {
+        "name": "Lancer",
+        "tiers": {
+          "t1": {
+            "label": "T1 Lancer",
+            "food": 80,
+            "wood": 0,
+            "stone": 80,
+            "iron": 0,
+            "timeSec": 12,
+            "pts": {
+              "hog": 1,
+              "kvk": 1,
+              "tsg": 1
+            },
+            "status": "EST"
+          },
+          "t2": {
+            "label": "T2 Lancer",
+            "food": 150,
+            "wood": 60,
+            "stone": 150,
+            "iron": 0,
+            "timeSec": 45,
+            "pts": {
+              "hog": 2,
+              "kvk": 2,
+              "tsg": 2
+            },
+            "status": "EST"
+          },
+          "t3": {
+            "label": "T3 Lancer",
+            "food": 400,
+            "wood": 100,
+            "stone": 400,
+            "iron": 200,
+            "timeSec": 180,
+            "pts": {
+              "hog": 5,
+              "kvk": 5,
+              "tsg": 2
+            },
+            "status": "EST"
+          },
+          "t4": {
+            "label": "T4 Lancer",
+            "food": 1200,
+            "wood": 400,
+            "stone": 1200,
+            "iron": 600,
+            "timeSec": 600,
+            "pts": {
+              "hog": 10,
+              "kvk": 10,
+              "tsg": 4
+            },
+            "status": "EST"
+          },
+          "t5": {
+            "label": "T5 Lancer",
+            "food": 3500,
+            "wood": 1500,
+            "stone": 3500,
+            "iron": 2000,
+            "timeSec": 1800,
+            "pts": {
+              "hog": 25,
+              "kvk": 25,
+              "tsg": 10
+            },
+            "status": "EST"
+          }
+        }
+      },
+      "marksman": {
+        "name": "Marksman",
+        "tiers": {
+          "t1": {
+            "label": "T1 Marksman",
+            "food": 80,
+            "wood": 0,
+            "stone": 0,
+            "iron": 80,
+            "timeSec": 12,
+            "pts": {
+              "hog": 1,
+              "kvk": 1,
+              "tsg": 1
+            },
+            "status": "EST"
+          },
+          "t2": {
+            "label": "T2 Marksman",
+            "food": 150,
+            "wood": 0,
+            "stone": 60,
+            "iron": 150,
+            "timeSec": 45,
+            "pts": {
+              "hog": 2,
+              "kvk": 2,
+              "tsg": 2
+            },
+            "status": "EST"
+          },
+          "t3": {
+            "label": "T3 Marksman",
+            "food": 400,
+            "wood": 200,
+            "stone": 100,
+            "iron": 400,
+            "timeSec": 180,
+            "pts": {
+              "hog": 5,
+              "kvk": 5,
+              "tsg": 2
+            },
+            "status": "EST"
+          },
+          "t4": {
+            "label": "T4 Marksman",
+            "food": 1200,
+            "wood": 600,
+            "stone": 400,
+            "iron": 1200,
+            "timeSec": 600,
+            "pts": {
+              "hog": 10,
+              "kvk": 10,
+              "tsg": 4
+            },
+            "status": "EST"
+          },
+          "t5": {
+            "label": "T5 Marksman",
+            "food": 3500,
+            "wood": 2000,
+            "stone": 1500,
+            "iron": 3500,
+            "timeSec": 1800,
+            "pts": {
+              "hog": 25,
+              "kvk": 25,
+              "tsg": 10
+            },
+            "status": "EST"
+          }
+        }
+      }
+    }
+  }
+}

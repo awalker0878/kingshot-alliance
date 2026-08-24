@@ -1,0 +1,2422 @@
+{
+  "schema_version": 1,
+  "source_id": "kingshotdata",
+  "hub_url": "https://kingshotdata.com/category/database/",
+  "discovered_pages": 8,
+  "pages": [
+    {
+      "id": "governor-charm",
+      "name": "Governor Charm",
+      "source_url": "https://kingshotdata.com/database/governor-charm/",
+      "structured_table_count": 1,
+      "tables": [
+        {
+          "heading": null,
+          "headers": [
+            "Level",
+            "Power",
+            "Score",
+            "Attributes",
+            "Cost"
+          ],
+          "rows": [
+            {
+              "Level": "1",
+              "Power": "205.7K",
+              "Score": "625",
+              "Attributes": "+9% / +9%",
+              "Cost": "Charm Guide ×5, Charm Design ×5"
+            },
+            {
+              "Level": "2",
+              "Power": "288K",
+              "Score": "1,875",
+              "Attributes": "+12% / +12%",
+              "Cost": "Charm Guide ×40, Charm Design ×15"
+            },
+            {
+              "Level": "3",
+              "Power": "370K",
+              "Score": "5,000",
+              "Attributes": "+16% / +16%",
+              "Cost": "Charm Guide ×60, Charm Design ×40"
+            },
+            {
+              "Level": "4",
+              "Power": "452K",
+              "Score": "13.8K",
+              "Attributes": "+19% / +19%",
+              "Cost": "Charm Guide ×80, Charm Design ×100"
+            },
+            {
+              "Level": "5",
+              "Power": "576K",
+              "Score": "25K",
+              "Attributes": "+25% / +25%",
+              "Cost": "Charm Guide ×100, Charm Design ×200"
+            },
+            {
+              "Level": "6",
+              "Power": "700K",
+              "Score": "37.5K",
+              "Attributes": "+30% / +30%",
+              "Cost": "Charm Guide ×120, Charm Design ×300"
+            },
+            {
+              "Level": "7",
+              "Power": "824K",
+              "Score": "50K",
+              "Attributes": "+35% / +35%",
+              "Cost": "Charm Guide ×140, Charm Design ×400"
+            },
+            {
+              "Level": "8",
+              "Power": "948K",
+              "Score": "63K",
+              "Attributes": "+40% / +40%",
+              "Cost": "Charm Guide ×200, Charm Design ×400"
+            },
+            {
+              "Level": "9",
+              "Power": "1.1M",
+              "Score": "77K",
+              "Attributes": "+45% / +45%",
+              "Cost": "Charm Guide ×300, Charm Design ×400"
+            },
+            {
+              "Level": "10",
+              "Power": "1.2M",
+              "Score": "92K",
+              "Attributes": "+50% / +50%",
+              "Cost": "Charm Guide ×420, Charm Design ×420"
+            },
+            {
+              "Level": "11",
+              "Power": "1.3M",
+              "Score": "108K",
+              "Attributes": "+55% / +55%",
+              "Cost": "Charm Guide ×560, Charm Design ×420"
+            },
+            {
+              "Level": "12",
+              "Power": "1.4M",
+              "Score": "126K",
+              "Attributes": "+59% / +59%",
+              "Cost": "Charm Guide ×580, Charm Design ×600"
+            },
+            {
+              "Level": "13",
+              "Power": "1.5M",
+              "Score": "147K",
+              "Attributes": "+63% / +63%",
+              "Cost": "Charm Guide ×610, Charm Design ×780"
+            },
+            {
+              "Level": "14",
+              "Power": "1.6M",
+              "Score": "171K",
+              "Attributes": "+67% / +67%",
+              "Cost": "Charm Guide ×645, Charm Design ×960"
+            },
+            {
+              "Level": "15",
+              "Power": "1.7M",
+              "Score": "198K",
+              "Attributes": "+71% / +71%",
+              "Cost": "Charm Guide ×685, Charm Design ×1,140"
+            },
+            {
+              "Level": "16",
+              "Power": "1.8M",
+              "Score": "228K",
+              "Attributes": "+75% / +75%",
+              "Cost": "Charm Guide ×730, Charm Design ×1,320"
+            },
+            {
+              "Level": "17",
+              "Power": "1.9M",
+              "Score": "261K",
+              "Attributes": "+79% / +79%",
+              "Cost": "Charm Guide ×780, Charm Design ×1,500"
+            },
+            {
+              "Level": "18",
+              "Power": "2M",
+              "Score": "297K",
+              "Attributes": "+83% / +83%",
+              "Cost": "Charm Guide ×835, Charm Design ×1,680"
+            },
+            {
+              "Level": "19",
+              "Power": "2.1M",
+              "Score": "336K",
+              "Attributes": "+87% / +87%",
+              "Cost": "Charm Guide ×895, Charm Design ×1,860"
+            },
+            {
+              "Level": "20",
+              "Power": "2.2M",
+              "Score": "378K",
+              "Attributes": "+91% / +91%",
+              "Cost": "Charm Guide ×960, Charm Design ×2,040"
+            },
+            {
+              "Level": "21",
+              "Power": "2.3M",
+              "Score": "423K",
+              "Attributes": "+95% / +95%",
+              "Cost": "Charm Guide ×1,030, Charm Design ×2,220"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "governor-gear",
+      "name": "Governor Gear",
+      "source_url": "https://kingshotdata.com/database/governor-gear/",
+      "structured_table_count": 1,
+      "tables": [
+        {
+          "heading": null,
+          "headers": [
+            "Tier",
+            "Stars",
+            "Power",
+            "Score",
+            "Attributes",
+            "Cost"
+          ],
+          "rows": [
+            {
+              "Tier": "Green",
+              "Stars": "0",
+              "Power": "224.4K",
+              "Score": "1,125",
+              "Attributes": "+9.35% / +9.35%",
+              "Cost": "Satin ×1,500, Gilded Threads ×15"
+            },
+            {
+              "Tier": "Green",
+              "Stars": "1",
+              "Power": "306K",
+              "Score": "3,000",
+              "Attributes": "+12.75% / +12.75%",
+              "Cost": "Satin ×3,800, Gilded Threads ×40"
+            },
+            {
+              "Tier": "Blue",
+              "Stars": "0",
+              "Power": "408K",
+              "Score": "6,000",
+              "Attributes": "+17% / +17%",
+              "Cost": "Satin ×7,000, Gilded Threads ×70"
+            },
+            {
+              "Tier": "Blue",
+              "Stars": "1",
+              "Power": "510K",
+              "Score": "10.5K",
+              "Attributes": "+21.25% / +21.25%",
+              "Cost": "Satin ×9,700, Gilded Threads ×95"
+            },
+            {
+              "Tier": "Blue",
+              "Stars": "2",
+              "Power": "612K",
+              "Score": "15.6K",
+              "Attributes": "+25.5% / +25.5%",
+              "Cost": "Satin ×1,000, Gilded Threads ×10, Artisan's Vision ×45"
+            },
+            {
+              "Tier": "Blue",
+              "Stars": "3",
+              "Power": "714K",
+              "Score": "21K",
+              "Attributes": "+29.75% / +29.75%",
+              "Cost": "Satin ×1,000, Gilded Threads ×10, Artisan's Vision ×50"
+            },
+            {
+              "Tier": "Purple",
+              "Stars": "0",
+              "Power": "816K",
+              "Score": "24.3K",
+              "Attributes": "+34% / +34%",
+              "Cost": "Satin ×1,500, Gilded Threads ×15, Artisan's Vision ×60"
+            },
+            {
+              "Tier": "Purple",
+              "Stars": "1",
+              "Power": "885.4K",
+              "Score": "27.5K",
+              "Attributes": "+36.89% / +36.89%",
+              "Cost": "Satin ×1,500, Gilded Threads ×15, Artisan's Vision ×70"
+            },
+            {
+              "Tier": "Purple",
+              "Stars": "2",
+              "Power": "954.7K",
+              "Score": "30.7K",
+              "Attributes": "+39.78% / +39.78%",
+              "Cost": "Satin ×6,500, Gilded Threads ×65, Artisan's Vision ×40"
+            },
+            {
+              "Tier": "Purple",
+              "Stars": "3",
+              "Power": "1M",
+              "Score": "34K",
+              "Attributes": "+42.67% / +42.67%",
+              "Cost": "Satin ×8,000, Gilded Threads ×80, Artisan's Vision ×50"
+            },
+            {
+              "Tier": "Purple T1",
+              "Stars": "0",
+              "Power": "1.1M",
+              "Score": "37.4K",
+              "Attributes": "+45.56% / +45.56%",
+              "Cost": "Satin ×10K, Gilded Threads ×95, Artisan's Vision ×60"
+            },
+            {
+              "Tier": "Purple T1",
+              "Stars": "1",
+              "Power": "1.2M",
+              "Score": "40.8K",
+              "Attributes": "+48.45% / +48.45%",
+              "Cost": "Satin ×11K, Gilded Threads ×110, Artisan's Vision ×70"
+            },
+            {
+              "Tier": "Purple T1",
+              "Stars": "2",
+              "Power": "1.2M",
+              "Score": "44.9K",
+              "Attributes": "+51.34% / +51.34%",
+              "Cost": "Satin ×13K, Gilded Threads ×130, Artisan's Vision ×85"
+            },
+            {
+              "Tier": "Purple T1",
+              "Stars": "3",
+              "Power": "1.3M",
+              "Score": "49K",
+              "Attributes": "+54.23% / +54.23%",
+              "Cost": "Satin ×15K, Gilded Threads ×160, Artisan's Vision ×100"
+            },
+            {
+              "Tier": "Gold",
+              "Stars": "0",
+              "Power": "1.4M",
+              "Score": "55.2K",
+              "Attributes": "+56.78% / +56.78%",
+              "Cost": "Satin ×22K, Gilded Threads ×220, Artisan's Vision ×40"
+            },
+            {
+              "Tier": "Gold",
+              "Stars": "1",
+              "Power": "1.4M",
+              "Score": "61.5K",
+              "Attributes": "+59.33% / +59.33%",
+              "Cost": "Satin ×23K, Gilded Threads ×230, Artisan's Vision ×40"
+            },
+            {
+              "Tier": "Gold",
+              "Stars": "2",
+              "Power": "1.5M",
+              "Score": "67.8K",
+              "Attributes": "+61.88% / +61.88%",
+              "Cost": "Satin ×25K, Gilded Threads ×250, Artisan's Vision ×45"
+            },
+            {
+              "Tier": "Gold",
+              "Stars": "3",
+              "Power": "1.5M",
+              "Score": "74K",
+              "Attributes": "+64.43% / +64.43%",
+              "Cost": "Satin ×26K, Gilded Threads ×260, Artisan's Vision ×45"
+            },
+            {
+              "Tier": "Gold T1",
+              "Stars": "0",
+              "Power": "1.6M",
+              "Score": "80.2K",
+              "Attributes": "+66.98% / +66.98%",
+              "Cost": "Satin ×28K, Gilded Threads ×280, Artisan's Vision ×45"
+            },
+            {
+              "Tier": "Gold T1",
+              "Stars": "1",
+              "Power": "1.7M",
+              "Score": "86.5K",
+              "Attributes": "+69.53% / +69.53%",
+              "Cost": "Satin ×30K, Gilded Threads ×300, Artisan's Vision ×55"
+            },
+            {
+              "Tier": "Gold T1",
+              "Stars": "2",
+              "Power": "1.7M",
+              "Score": "92.8K",
+              "Attributes": "+72.08% / +72.08%",
+              "Cost": "Satin ×32K, Gilded Threads ×320, Artisan's Vision ×55"
+            },
+            {
+              "Tier": "Gold T1",
+              "Stars": "3",
+              "Power": "1.8M",
+              "Score": "99K",
+              "Attributes": "+74.63% / +74.63%",
+              "Cost": "Satin ×35K, Gilded Threads ×340, Artisan's Vision ×55"
+            },
+            {
+              "Tier": "Gold T2",
+              "Stars": "0",
+              "Power": "1.9M",
+              "Score": "105.2K",
+              "Attributes": "+77.18% / +77.18%",
+              "Cost": "Satin ×38K, Gilded Threads ×360, Artisan's Vision ×55"
+            },
+            {
+              "Tier": "Gold T2",
+              "Stars": "1",
+              "Power": "1.9M",
+              "Score": "111.5K",
+              "Attributes": "+79.73% / +79.73%",
+              "Cost": "Satin ×43K, Gilded Threads ×430, Artisan's Vision ×75"
+            },
+            {
+              "Tier": "Gold T2",
+              "Stars": "2",
+              "Power": "2M",
+              "Score": "117.8K",
+              "Attributes": "+82.28% / +82.28%",
+              "Cost": "Satin ×45K, Gilded Threads ×460, Artisan's Vision ×80"
+            },
+            {
+              "Tier": "Gold T2",
+              "Stars": "3",
+              "Power": "2M",
+              "Score": "124K",
+              "Attributes": "+84.83% / +84.83%",
+              "Cost": "Satin ×48K, Gilded Threads ×500, Artisan's Vision ×85"
+            },
+            {
+              "Tier": "Gold T3",
+              "Stars": "0",
+              "Power": "2.1M",
+              "Score": "133K",
+              "Attributes": "+87.38% / +87.38%",
+              "Cost": "Satin ×60K, Gilded Threads ×600, Artisan's Vision ×120"
+            },
+            {
+              "Tier": "Gold T3",
+              "Stars": "1",
+              "Power": "2.2M",
+              "Score": "142K",
+              "Attributes": "+89.93% / +89.93%",
+              "Cost": "Satin ×70K, Gilded Threads ×700, Artisan's Vision ×140"
+            },
+            {
+              "Tier": "Gold T3",
+              "Stars": "2",
+              "Power": "2.2M",
+              "Score": "151K",
+              "Attributes": "+92.48% / +92.48%",
+              "Cost": "Satin ×80K, Gilded Threads ×800, Artisan's Vision ×160"
+            },
+            {
+              "Tier": "Gold T3",
+              "Stars": "3",
+              "Power": "2.3M",
+              "Score": "160K",
+              "Attributes": "+95% / +95%",
+              "Cost": "Satin ×90K, Gilded Threads ×900, Artisan's Vision ×180"
+            },
+            {
+              "Tier": "Red",
+              "Stars": "0",
+              "Power": "2.3M",
+              "Score": "172K",
+              "Attributes": "+97.5% / +97.5%",
+              "Cost": "Satin ×108K, Gilded Threads ×1,080, Artisan's Vision ×220"
+            },
+            {
+              "Tier": "Red",
+              "Stars": "1",
+              "Power": "2.4M",
+              "Score": "184K",
+              "Attributes": "+100% / +100%",
+              "Cost": "Satin ×114K, Gilded Threads ×1,140, Artisan's Vision ×230"
+            },
+            {
+              "Tier": "Red",
+              "Stars": "2",
+              "Power": "2.5M",
+              "Score": "196K",
+              "Attributes": "+102.5% / +102.5%",
+              "Cost": "Satin ×121K, Gilded Threads ×1,210, Artisan's Vision ×240"
+            },
+            {
+              "Tier": "Red",
+              "Stars": "3",
+              "Power": "2.5M",
+              "Score": "208K",
+              "Attributes": "+105% / +105%",
+              "Cost": "Satin ×128K, Gilded Threads ×1,280, Artisan's Vision ×250"
+            },
+            {
+              "Tier": "Red T1",
+              "Stars": "0",
+              "Power": "2.6M",
+              "Score": "223K",
+              "Attributes": "+107.5% / +107.5%",
+              "Cost": "Satin ×154K, Gilded Threads ×1,540, Artisan's Vision ×300"
+            },
+            {
+              "Tier": "Red T1",
+              "Stars": "1",
+              "Power": "2.6M",
+              "Score": "238K",
+              "Attributes": "+110% / +110%",
+              "Cost": "Satin ×163K, Gilded Threads ×1,630, Artisan's Vision ×320"
+            },
+            {
+              "Tier": "Red T1",
+              "Stars": "2",
+              "Power": "2.7M",
+              "Score": "253K",
+              "Attributes": "+112.5% / +112.5%",
+              "Cost": "Satin ×173K, Gilded Threads ×1,730, Artisan's Vision ×340"
+            },
+            {
+              "Tier": "Red T1",
+              "Stars": "3",
+              "Power": "2.8M",
+              "Score": "268K",
+              "Attributes": "+115% / +115%",
+              "Cost": "Satin ×183K, Gilded Threads ×1,830, Artisan's Vision ×360"
+            },
+            {
+              "Tier": "Red T2",
+              "Stars": "0",
+              "Power": "2.8M",
+              "Score": "288K",
+              "Attributes": "+117.5% / +117.5%",
+              "Cost": "Satin ×220K, Gilded Threads ×2,200, Artisan's Vision ×430"
+            },
+            {
+              "Tier": "Red T2",
+              "Stars": "1",
+              "Power": "2.9M",
+              "Score": "308K",
+              "Attributes": "+120% / +120%",
+              "Cost": "Satin ×233K, Gilded Threads ×2,330, Artisan's Vision ×460"
+            },
+            {
+              "Tier": "Red T2",
+              "Stars": "2",
+              "Power": "2.9M",
+              "Score": "328K",
+              "Attributes": "+122.5% / +122.5%",
+              "Cost": "Satin ×247K, Gilded Threads ×2,470, Artisan's Vision ×490"
+            },
+            {
+              "Tier": "Red T2",
+              "Stars": "3",
+              "Power": "3M",
+              "Score": "348K",
+              "Attributes": "+125% / +125%",
+              "Cost": "Satin ×262K, Gilded Threads ×2,620, Artisan's Vision ×520"
+            },
+            {
+              "Tier": "Red T3",
+              "Stars": "0",
+              "Power": "3.1M",
+              "Score": "373K",
+              "Attributes": "+127.75% / +127.75%",
+              "Cost": "Satin ×288K, Gilded Threads ×2,880, Artisan's Vision ×570"
+            },
+            {
+              "Tier": "Red T3",
+              "Stars": "1",
+              "Power": "3.1M",
+              "Score": "398K",
+              "Attributes": "+130.5% / +130.5%",
+              "Cost": "Satin ×302K, Gilded Threads ×3,020, Artisan's Vision ×600"
+            },
+            {
+              "Tier": "Red T3",
+              "Stars": "2",
+              "Power": "3.2M",
+              "Score": "423K",
+              "Attributes": "+133.25% / +133.25%",
+              "Cost": "Satin ×317K, Gilded Threads ×3,170, Artisan's Vision ×630"
+            },
+            {
+              "Tier": "Red T3",
+              "Stars": "3",
+              "Power": "3.3M",
+              "Score": "448K",
+              "Attributes": "+136% / +136%",
+              "Cost": "Satin ×333K, Gilded Threads ×3,330, Artisan's Vision ×660"
+            },
+            {
+              "Tier": "Red T4",
+              "Stars": "0",
+              "Power": "3.3M",
+              "Score": "478K",
+              "Attributes": "+138.75% / +138.75%",
+              "Cost": "Satin ×366K, Gilded Threads ×3,660, Artisan's Vision ×730"
+            },
+            {
+              "Tier": "Red T4",
+              "Stars": "1",
+              "Power": "3.4M",
+              "Score": "508K",
+              "Attributes": "+141.5% / +141.5%",
+              "Cost": "Satin ×384K, Gilded Threads ×3,840, Artisan's Vision ×770"
+            },
+            {
+              "Tier": "Red T4",
+              "Stars": "2",
+              "Power": "3.5M",
+              "Score": "538K",
+              "Attributes": "+144.25% / +144.25%",
+              "Cost": "Satin ×403K, Gilded Threads ×4,030, Artisan's Vision ×810"
+            },
+            {
+              "Tier": "Red T4",
+              "Stars": "3",
+              "Power": "3.5M",
+              "Score": "568K",
+              "Attributes": "+147% / +147%",
+              "Cost": "Satin ×423K, Gilded Threads ×4,230, Artisan's Vision ×850"
+            },
+            {
+              "Tier": "Red T5",
+              "Stars": "0",
+              "Power": "3.6M",
+              "Score": "603K",
+              "Attributes": "+150% / +150%",
+              "Cost": "Satin ×465K, Gilded Threads ×4,650, Artisan's Vision ×940"
+            },
+            {
+              "Tier": "Red T5",
+              "Stars": "1",
+              "Power": "3.7M",
+              "Score": "638K",
+              "Attributes": "+153% / +153%",
+              "Cost": "Satin ×479K, Gilded Threads ×4,790, Artisan's Vision ×970"
+            },
+            {
+              "Tier": "Red T5",
+              "Stars": "2",
+              "Power": "3.7M",
+              "Score": "673K",
+              "Attributes": "+156% / +156%",
+              "Cost": "Satin ×493K, Gilded Threads ×4,930, Artisan's Vision ×1,000"
+            },
+            {
+              "Tier": "Red T5",
+              "Stars": "3",
+              "Power": "3.8M",
+              "Score": "708K",
+              "Attributes": "+159% / +159%",
+              "Cost": "Satin ×508K, Gilded Threads ×5,080, Artisan's Vision ×1,030"
+            },
+            {
+              "Tier": "Red T6",
+              "Stars": "0",
+              "Power": "3.9M",
+              "Score": "748K",
+              "Attributes": "+162% / +162%",
+              "Cost": "Satin ×549K, Gilded Threads ×5,490, Artisan's Vision ×1,110"
+            },
+            {
+              "Tier": "Red T6",
+              "Stars": "1",
+              "Power": "4M",
+              "Score": "788K",
+              "Attributes": "+165% / +165%",
+              "Cost": "Satin ×565K, Gilded Threads ×5,650, Artisan's Vision ×1,140"
+            },
+            {
+              "Tier": "Red T6",
+              "Stars": "2",
+              "Power": "4M",
+              "Score": "828K",
+              "Attributes": "+168% / +168%",
+              "Cost": "Satin ×582K, Gilded Threads ×5,820, Artisan's Vision ×1,170"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hero-gear-enhancement-chart",
+      "name": "Hero Gear Enhancement Chart",
+      "source_url": "https://kingshotdata.com/database/hero-gear-enhancement-chart/",
+      "structured_table_count": 1,
+      "tables": [
+        {
+          "heading": null,
+          "headers": [
+            "Level",
+            "Enhancement XP Required",
+            "Mithril",
+            "Mythic Gears"
+          ],
+          "rows": [
+            {
+              "Level": "0",
+              "Enhancement XP Required": "0",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "1",
+              "Enhancement XP Required": "10",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "2",
+              "Enhancement XP Required": "15",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "3",
+              "Enhancement XP Required": "20",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "4",
+              "Enhancement XP Required": "25",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "5",
+              "Enhancement XP Required": "30",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "6",
+              "Enhancement XP Required": "35",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "7",
+              "Enhancement XP Required": "40",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "8",
+              "Enhancement XP Required": "45",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "9",
+              "Enhancement XP Required": "50",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "10",
+              "Enhancement XP Required": "55",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "11",
+              "Enhancement XP Required": "60",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "12",
+              "Enhancement XP Required": "65",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "13",
+              "Enhancement XP Required": "70",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "14",
+              "Enhancement XP Required": "75",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "15",
+              "Enhancement XP Required": "80",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "16",
+              "Enhancement XP Required": "85",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "17",
+              "Enhancement XP Required": "90",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "18",
+              "Enhancement XP Required": "95",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "19",
+              "Enhancement XP Required": "100",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "20",
+              "Enhancement XP Required": "105",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "21",
+              "Enhancement XP Required": "110",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "22",
+              "Enhancement XP Required": "115",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "23",
+              "Enhancement XP Required": "120",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "24",
+              "Enhancement XP Required": "125",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "25",
+              "Enhancement XP Required": "130",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "26",
+              "Enhancement XP Required": "135",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "27",
+              "Enhancement XP Required": "140",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "28",
+              "Enhancement XP Required": "145",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "29",
+              "Enhancement XP Required": "150",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "30",
+              "Enhancement XP Required": "160",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "31",
+              "Enhancement XP Required": "170",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "32",
+              "Enhancement XP Required": "180",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "33",
+              "Enhancement XP Required": "190",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "34",
+              "Enhancement XP Required": "200",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "35",
+              "Enhancement XP Required": "210",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "36",
+              "Enhancement XP Required": "220",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "37",
+              "Enhancement XP Required": "230",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "38",
+              "Enhancement XP Required": "240",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "39",
+              "Enhancement XP Required": "250",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "40",
+              "Enhancement XP Required": "270",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "41",
+              "Enhancement XP Required": "290",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "42",
+              "Enhancement XP Required": "310",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "43",
+              "Enhancement XP Required": "330",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "44",
+              "Enhancement XP Required": "350",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "45",
+              "Enhancement XP Required": "370",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "46",
+              "Enhancement XP Required": "390",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "47",
+              "Enhancement XP Required": "410",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "48",
+              "Enhancement XP Required": "430",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "49",
+              "Enhancement XP Required": "450",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "50",
+              "Enhancement XP Required": "470",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "51",
+              "Enhancement XP Required": "490",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "52",
+              "Enhancement XP Required": "510",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "53",
+              "Enhancement XP Required": "530",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "54",
+              "Enhancement XP Required": "550",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "55",
+              "Enhancement XP Required": "570",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "56",
+              "Enhancement XP Required": "590",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "57",
+              "Enhancement XP Required": "610",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "58",
+              "Enhancement XP Required": "630",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "59",
+              "Enhancement XP Required": "650",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "60",
+              "Enhancement XP Required": "680",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "61",
+              "Enhancement XP Required": "710",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "62",
+              "Enhancement XP Required": "740",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "63",
+              "Enhancement XP Required": "770",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "64",
+              "Enhancement XP Required": "800",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "65",
+              "Enhancement XP Required": "830",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "66",
+              "Enhancement XP Required": "860",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "67",
+              "Enhancement XP Required": "890",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "68",
+              "Enhancement XP Required": "920",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "69",
+              "Enhancement XP Required": "950",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "70",
+              "Enhancement XP Required": "990",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "71",
+              "Enhancement XP Required": "1030",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "72",
+              "Enhancement XP Required": "1070",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "73",
+              "Enhancement XP Required": "1110",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "74",
+              "Enhancement XP Required": "1150",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "75",
+              "Enhancement XP Required": "1190",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "76",
+              "Enhancement XP Required": "1230",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "77",
+              "Enhancement XP Required": "1270",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "78",
+              "Enhancement XP Required": "1310",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "79",
+              "Enhancement XP Required": "1350",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "80",
+              "Enhancement XP Required": "1400",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "81",
+              "Enhancement XP Required": "1450",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "82",
+              "Enhancement XP Required": "1500",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "83",
+              "Enhancement XP Required": "1550",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "84",
+              "Enhancement XP Required": "1600",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "85",
+              "Enhancement XP Required": "1650",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "86",
+              "Enhancement XP Required": "1700",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "87",
+              "Enhancement XP Required": "1750",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "88",
+              "Enhancement XP Required": "1800",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "89",
+              "Enhancement XP Required": "1850",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "90",
+              "Enhancement XP Required": "1900",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "91",
+              "Enhancement XP Required": "1950",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "92",
+              "Enhancement XP Required": "2000",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "93",
+              "Enhancement XP Required": "2050",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "94",
+              "Enhancement XP Required": "2100",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "95",
+              "Enhancement XP Required": "2150",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "96",
+              "Enhancement XP Required": "2200",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "97",
+              "Enhancement XP Required": "2250",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "98",
+              "Enhancement XP Required": "2300",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "99",
+              "Enhancement XP Required": "2350",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "100",
+              "Enhancement XP Required": "2400",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "101",
+              "Enhancement XP Required": "0",
+              "Mithril": "0",
+              "Mythic Gears": "2"
+            },
+            {
+              "Level": "102",
+              "Enhancement XP Required": "2500",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "103",
+              "Enhancement XP Required": "2550",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "104",
+              "Enhancement XP Required": "2600",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "105",
+              "Enhancement XP Required": "2650",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "106",
+              "Enhancement XP Required": "2700",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "107",
+              "Enhancement XP Required": "2750",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "108",
+              "Enhancement XP Required": "2800",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "109",
+              "Enhancement XP Required": "2850",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "110",
+              "Enhancement XP Required": "2900",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "111",
+              "Enhancement XP Required": "2950",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "112",
+              "Enhancement XP Required": "3000",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "113",
+              "Enhancement XP Required": "3050",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "114",
+              "Enhancement XP Required": "3100",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "115",
+              "Enhancement XP Required": "3150",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "116",
+              "Enhancement XP Required": "3200",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "117",
+              "Enhancement XP Required": "3250",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "118",
+              "Enhancement XP Required": "3300",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "119",
+              "Enhancement XP Required": "3350",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "120",
+              "Enhancement XP Required": "0",
+              "Mithril": "10",
+              "Mythic Gears": "3"
+            },
+            {
+              "Level": "121",
+              "Enhancement XP Required": "3500",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "122",
+              "Enhancement XP Required": "3550",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "123",
+              "Enhancement XP Required": "3600",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "124",
+              "Enhancement XP Required": "3650",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "125",
+              "Enhancement XP Required": "3700",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "126",
+              "Enhancement XP Required": "3750",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "127",
+              "Enhancement XP Required": "3800",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "128",
+              "Enhancement XP Required": "3850",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "129",
+              "Enhancement XP Required": "3900",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "130",
+              "Enhancement XP Required": "3950",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "131",
+              "Enhancement XP Required": "4000",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "132",
+              "Enhancement XP Required": "4050",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "133",
+              "Enhancement XP Required": "4100",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "134",
+              "Enhancement XP Required": "4150",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "135",
+              "Enhancement XP Required": "4200",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "136",
+              "Enhancement XP Required": "4250",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "137",
+              "Enhancement XP Required": "4300",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "138",
+              "Enhancement XP Required": "4350",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "139",
+              "Enhancement XP Required": "4400",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "140",
+              "Enhancement XP Required": "0",
+              "Mithril": "20",
+              "Mythic Gears": "5"
+            },
+            {
+              "Level": "141",
+              "Enhancement XP Required": "4450",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "142",
+              "Enhancement XP Required": "4500",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "143",
+              "Enhancement XP Required": "4550",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "144",
+              "Enhancement XP Required": "4600",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "145",
+              "Enhancement XP Required": "4650",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "146",
+              "Enhancement XP Required": "4700",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "147",
+              "Enhancement XP Required": "4750",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "148",
+              "Enhancement XP Required": "4800",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "149",
+              "Enhancement XP Required": "4850",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "150",
+              "Enhancement XP Required": "4900",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "151",
+              "Enhancement XP Required": "4950",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "152",
+              "Enhancement XP Required": "5000",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "153",
+              "Enhancement XP Required": "5050",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "154",
+              "Enhancement XP Required": "5100",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "155",
+              "Enhancement XP Required": "5150",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "156",
+              "Enhancement XP Required": "5200",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "157",
+              "Enhancement XP Required": "5250",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "158",
+              "Enhancement XP Required": "5300",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "159",
+              "Enhancement XP Required": "5350",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "160",
+              "Enhancement XP Required": "0",
+              "Mithril": "30",
+              "Mythic Gears": "5"
+            },
+            {
+              "Level": "161",
+              "Enhancement XP Required": "5500",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "162",
+              "Enhancement XP Required": "5600",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "163",
+              "Enhancement XP Required": "5700",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "164",
+              "Enhancement XP Required": "5800",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "165",
+              "Enhancement XP Required": "5900",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "166",
+              "Enhancement XP Required": "6000",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "167",
+              "Enhancement XP Required": "6100",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "168",
+              "Enhancement XP Required": "6200",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "169",
+              "Enhancement XP Required": "6300",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "170",
+              "Enhancement XP Required": "6400",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "171",
+              "Enhancement XP Required": "6500",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "172",
+              "Enhancement XP Required": "6600",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "173",
+              "Enhancement XP Required": "6700",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "174",
+              "Enhancement XP Required": "6800",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "175",
+              "Enhancement XP Required": "6900",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "176",
+              "Enhancement XP Required": "7000",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "177",
+              "Enhancement XP Required": "7100",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "178",
+              "Enhancement XP Required": "7200",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "179",
+              "Enhancement XP Required": "7300",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "180",
+              "Enhancement XP Required": "0",
+              "Mithril": "40",
+              "Mythic Gears": "10"
+            },
+            {
+              "Level": "181",
+              "Enhancement XP Required": "7500",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "182",
+              "Enhancement XP Required": "7600",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "183",
+              "Enhancement XP Required": "7700",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "184",
+              "Enhancement XP Required": "7800",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "185",
+              "Enhancement XP Required": "7900",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "186",
+              "Enhancement XP Required": "8000",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "187",
+              "Enhancement XP Required": "8100",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "188",
+              "Enhancement XP Required": "8200",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "189",
+              "Enhancement XP Required": "8300",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "190",
+              "Enhancement XP Required": "8400",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "191",
+              "Enhancement XP Required": "8500",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "192",
+              "Enhancement XP Required": "8600",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "193",
+              "Enhancement XP Required": "8700",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "194",
+              "Enhancement XP Required": "8800",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "195",
+              "Enhancement XP Required": "8900",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "196",
+              "Enhancement XP Required": "9000",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "197",
+              "Enhancement XP Required": "9100",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "198",
+              "Enhancement XP Required": "9200",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "199",
+              "Enhancement XP Required": "9300",
+              "Mithril": "0",
+              "Mythic Gears": "0"
+            },
+            {
+              "Level": "200",
+              "Enhancement XP Required": "0",
+              "Mithril": "50",
+              "Mythic Gears": "10"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hero-shards",
+      "name": "Hero Shards",
+      "source_url": "https://kingshotdata.com/database/hero-shards/",
+      "structured_table_count": 1,
+      "tables": [
+        {
+          "heading": null,
+          "headers": [
+            "Star Level",
+            "Tier 1",
+            "Tier 2",
+            "Tier 3",
+            "Tier 4",
+            "Tier 5",
+            "Tier 6",
+            "Total"
+          ],
+          "rows": [
+            {
+              "Star Level": "",
+              "Tier 1": "1",
+              "Tier 2": "1",
+              "Tier 3": "2",
+              "Tier 4": "2",
+              "Tier 5": "2",
+              "Tier 6": "2",
+              "Total": "10"
+            },
+            {
+              "Star Level": "",
+              "Tier 1": "5",
+              "Tier 2": "5",
+              "Tier 3": "5",
+              "Tier 4": "5",
+              "Tier 5": "5",
+              "Tier 6": "15",
+              "Total": "40"
+            },
+            {
+              "Star Level": "",
+              "Tier 1": "15",
+              "Tier 2": "15",
+              "Tier 3": "15",
+              "Tier 4": "15",
+              "Tier 5": "15",
+              "Tier 6": "40",
+              "Total": "115"
+            },
+            {
+              "Star Level": "",
+              "Tier 1": "40",
+              "Tier 2": "40",
+              "Tier 3": "40",
+              "Tier 4": "40",
+              "Tier 5": "40",
+              "Tier 6": "100",
+              "Total": "300"
+            },
+            {
+              "Star Level": "",
+              "Tier 1": "100",
+              "Tier 2": "100",
+              "Tier 3": "100",
+              "Tier 4": "100",
+              "Tier 5": "100",
+              "Tier 6": "100",
+              "Total": "600"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mastery-forging",
+      "name": "Mastery Forging",
+      "source_url": "https://kingshotdata.com/database/mastery-forging/",
+      "structured_table_count": 1,
+      "tables": [
+        {
+          "heading": "Requirements",
+          "headers": [
+            "Level",
+            "Forgehammers",
+            "Mythic Gears Required",
+            "+% Bonus",
+            "Stat Multiplier"
+          ],
+          "rows": [
+            {
+              "Level": "1",
+              "Forgehammers": "10",
+              "Mythic Gears Required": "-",
+              "+% Bonus": "10",
+              "Stat Multiplier": "x 1.1"
+            },
+            {
+              "Level": "2",
+              "Forgehammers": "20",
+              "Mythic Gears Required": "-",
+              "+% Bonus": "20",
+              "Stat Multiplier": "x 1.2"
+            },
+            {
+              "Level": "3",
+              "Forgehammers": "30",
+              "Mythic Gears Required": "-",
+              "+% Bonus": "30",
+              "Stat Multiplier": "x 1.3"
+            },
+            {
+              "Level": "4",
+              "Forgehammers": "40",
+              "Mythic Gears Required": "-",
+              "+% Bonus": "40",
+              "Stat Multiplier": "x 1.4"
+            },
+            {
+              "Level": "5",
+              "Forgehammers": "50",
+              "Mythic Gears Required": "-",
+              "+% Bonus": "50",
+              "Stat Multiplier": "x 1.5"
+            },
+            {
+              "Level": "6",
+              "Forgehammers": "60",
+              "Mythic Gears Required": "-",
+              "+% Bonus": "60",
+              "Stat Multiplier": "x 1.6"
+            },
+            {
+              "Level": "7",
+              "Forgehammers": "70",
+              "Mythic Gears Required": "-",
+              "+% Bonus": "70",
+              "Stat Multiplier": "x 1.7"
+            },
+            {
+              "Level": "8",
+              "Forgehammers": "80",
+              "Mythic Gears Required": "-",
+              "+% Bonus": "80",
+              "Stat Multiplier": "x 1.8"
+            },
+            {
+              "Level": "9",
+              "Forgehammers": "90",
+              "Mythic Gears Required": "-",
+              "+% Bonus": "90",
+              "Stat Multiplier": "x 1.9"
+            },
+            {
+              "Level": "10",
+              "Forgehammers": "100",
+              "Mythic Gears Required": "-",
+              "+% Bonus": "100",
+              "Stat Multiplier": "x 2"
+            },
+            {
+              "Level": "11",
+              "Forgehammers": "110",
+              "Mythic Gears Required": "1",
+              "+% Bonus": "110",
+              "Stat Multiplier": "x 2.1"
+            },
+            {
+              "Level": "12",
+              "Forgehammers": "120",
+              "Mythic Gears Required": "2",
+              "+% Bonus": "120",
+              "Stat Multiplier": "x 2.2"
+            },
+            {
+              "Level": "13",
+              "Forgehammers": "130",
+              "Mythic Gears Required": "3",
+              "+% Bonus": "130",
+              "Stat Multiplier": "x 2.3"
+            },
+            {
+              "Level": "14",
+              "Forgehammers": "140",
+              "Mythic Gears Required": "4",
+              "+% Bonus": "140",
+              "Stat Multiplier": "x 2.4"
+            },
+            {
+              "Level": "15",
+              "Forgehammers": "150",
+              "Mythic Gears Required": "5",
+              "+% Bonus": "150",
+              "Stat Multiplier": "x 2.5"
+            },
+            {
+              "Level": "16",
+              "Forgehammers": "160",
+              "Mythic Gears Required": "6",
+              "+% Bonus": "160",
+              "Stat Multiplier": "x 2.6"
+            },
+            {
+              "Level": "17",
+              "Forgehammers": "170",
+              "Mythic Gears Required": "7",
+              "+% Bonus": "170",
+              "Stat Multiplier": "x 2.7"
+            },
+            {
+              "Level": "18",
+              "Forgehammers": "180",
+              "Mythic Gears Required": "8",
+              "+% Bonus": "180",
+              "Stat Multiplier": "x 2.8"
+            },
+            {
+              "Level": "19",
+              "Forgehammers": "190",
+              "Mythic Gears Required": "9",
+              "+% Bonus": "190",
+              "Stat Multiplier": "x 2.9"
+            },
+            {
+              "Level": "20",
+              "Forgehammers": "200",
+              "Mythic Gears Required": "10",
+              "+% Bonus": "200",
+              "Stat Multiplier": "x 3"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "max-levels",
+      "name": "Max Levels",
+      "source_url": "https://kingshotdata.com/database/max-levels/",
+      "structured_table_count": 8,
+      "tables": [
+        {
+          "heading": "Max Levels for Buildings",
+          "headers": [
+            "Building",
+            "Base Max",
+            "Truegold"
+          ],
+          "rows": [
+            {
+              "Building": "Town Center",
+              "Base Max": "30",
+              "Truegold": "TG8"
+            },
+            {
+              "Building": "Kitchen",
+              "Base Max": "10",
+              "Truegold": "—"
+            },
+            {
+              "Building": "House",
+              "Base Max": "10",
+              "Truegold": "—"
+            },
+            {
+              "Building": "Sawmill",
+              "Base Max": "30",
+              "Truegold": "—"
+            },
+            {
+              "Building": "Mill",
+              "Base Max": "30",
+              "Truegold": "—"
+            },
+            {
+              "Building": "Quarry",
+              "Base Max": "30",
+              "Truegold": "—"
+            },
+            {
+              "Building": "Clinic",
+              "Base Max": "10",
+              "Truegold": "—"
+            },
+            {
+              "Building": "Iron Mine",
+              "Base Max": "30",
+              "Truegold": "—"
+            },
+            {
+              "Building": "Barricade",
+              "Base Max": "10",
+              "Truegold": "—"
+            },
+            {
+              "Building": "Defense Tower",
+              "Base Max": "10",
+              "Truegold": "—"
+            },
+            {
+              "Building": "Barracks",
+              "Base Max": "30",
+              "Truegold": "TG8"
+            },
+            {
+              "Building": "Stable",
+              "Base Max": "30",
+              "Truegold": "TG8"
+            },
+            {
+              "Building": "Range",
+              "Base Max": "30",
+              "Truegold": "TG8"
+            },
+            {
+              "Building": "Guard Station",
+              "Base Max": "10",
+              "Truegold": "—"
+            },
+            {
+              "Building": "Academy",
+              "Base Max": "30",
+              "Truegold": "—"
+            },
+            {
+              "Building": "Infirmary",
+              "Base Max": "30",
+              "Truegold": "TG8"
+            },
+            {
+              "Building": "Embassy",
+              "Base Max": "30",
+              "Truegold": "TG8"
+            },
+            {
+              "Building": "Storehouse",
+              "Base Max": "30",
+              "Truegold": "—"
+            },
+            {
+              "Building": "Command Center",
+              "Base Max": "30",
+              "Truegold": "TG8"
+            },
+            {
+              "Building": "War Academy",
+              "Base Max": "30",
+              "Truegold": "TG8"
+            }
+          ]
+        },
+        {
+          "heading": "Max Hero and Hero Gear Levels",
+          "headers": [
+            "System",
+            "Max Level"
+          ],
+          "rows": [
+            {
+              "System": "Hero level",
+              "Max Level": "80"
+            },
+            {
+              "System": "Hero Gear strength",
+              "Max Level": "100"
+            },
+            {
+              "System": "Hero Exclusive Gear",
+              "Max Level": "10"
+            },
+            {
+              "System": "Mastery Forging (Mythic gear)",
+              "Max Level": "20"
+            }
+          ]
+        },
+        {
+          "heading": "Governor Gear and Governor Charms",
+          "headers": [
+            "Item",
+            "Max Level",
+            "Unlocks"
+          ],
+          "rows": [
+            {
+              "Item": "Governor Gear",
+              "Max Level": "57",
+              "Unlocks": "Town Center Lv.22"
+            },
+            {
+              "Item": "Governor Charms",
+              "Max Level": "21",
+              "Unlocks": "Town Center Lv.25"
+            }
+          ]
+        },
+        {
+          "heading": "Academy Research",
+          "headers": [
+            "Tree",
+            "Notes"
+          ],
+          "rows": [
+            {
+              "Tree": "Academy Research",
+              "Notes": "Development, Economy, Battle — multi-tier tech lines"
+            },
+            {
+              "Tree": "War Academy Research",
+              "Notes": "Basic T11 trees & Advanced Truegold Research"
+            },
+            {
+              "Tree": "Alliance Tech",
+              "Notes": "Growth, Territory, Battle"
+            }
+          ]
+        },
+        {
+          "heading": "Intel Missions / Watchtower",
+          "headers": [
+            "System",
+            "Max Level"
+          ],
+          "rows": [
+            {
+              "System": "Intel Missions (Watchtower)",
+              "Max Level": "20"
+            }
+          ]
+        },
+        {
+          "heading": "Beasts and Terrors",
+          "headers": [
+            "Entity",
+            "Max Level"
+          ],
+          "rows": [
+            {
+              "Entity": "Beasts",
+              "Max Level": "30"
+            },
+            {
+              "Entity": "Terrors",
+              "Max Level": "7"
+            }
+          ]
+        },
+        {
+          "heading": "Alliance Related Max Levels",
+          "headers": [
+            "System",
+            "Max Level"
+          ],
+          "rows": [
+            {
+              "System": "Alliance level",
+              "Max Level": "11"
+            },
+            {
+              "System": "Bear Pitfall",
+              "Max Level": "5"
+            },
+            {
+              "System": "Viking (Viking Vengeance)",
+              "Max Level": "21"
+            }
+          ]
+        },
+        {
+          "heading": "Masters",
+          "headers": [
+            "System",
+            "Max Level"
+          ],
+          "rows": [
+            {
+              "System": "Master Affinity",
+              "Max Level": "100"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "server-timeline-kingdom-age",
+      "name": "Server Timeline (Kingdom Age)",
+      "source_url": "https://kingshotdata.com/database/server-timeline-state-age/",
+      "structured_table_count": 0,
+      "tables": []
+    },
+    {
+      "id": "widgets",
+      "name": "Widgets",
+      "source_url": "https://kingshotdata.com/database/widgets/",
+      "structured_table_count": 1,
+      "tables": [
+        {
+          "heading": "Requirements",
+          "headers": [
+            "Exclusive Hero Gear Level",
+            "Widgets Required"
+          ],
+          "rows": [
+            {
+              "Exclusive Hero Gear Level": "1",
+              "Widgets Required": "5"
+            },
+            {
+              "Exclusive Hero Gear Level": "2",
+              "Widgets Required": "10"
+            },
+            {
+              "Exclusive Hero Gear Level": "3",
+              "Widgets Required": "15"
+            },
+            {
+              "Exclusive Hero Gear Level": "4",
+              "Widgets Required": "20"
+            },
+            {
+              "Exclusive Hero Gear Level": "5",
+              "Widgets Required": "25"
+            },
+            {
+              "Exclusive Hero Gear Level": "6",
+              "Widgets Required": "30"
+            },
+            {
+              "Exclusive Hero Gear Level": "7",
+              "Widgets Required": "35"
+            },
+            {
+              "Exclusive Hero Gear Level": "8",
+              "Widgets Required": "40"
+            },
+            {
+              "Exclusive Hero Gear Level": "9",
+              "Widgets Required": "45"
+            },
+            {
+              "Exclusive Hero Gear Level": "10",
+              "Widgets Required": "50"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
