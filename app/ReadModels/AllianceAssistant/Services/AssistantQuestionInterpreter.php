@@ -73,6 +73,7 @@ final class AssistantQuestionInterpreter
             ),
             AssistantPrompt::NextEvent => new ParsedQuestion(AssistantIntent::EventTime, null, true, true),
             AssistantPrompt::BearHuntGuide => new ParsedQuestion(AssistantIntent::AllianceContent, 'Bear Hunt'),
+            AssistantPrompt::Observation => new ParsedQuestion(AssistantIntent::AllianceObservation, 'opponent'),
         };
     }
 
