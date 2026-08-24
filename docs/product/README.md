@@ -16,13 +16,14 @@ The next cross-capability work is governed by the [Capability Extension Program]
 - [Alliance Assistant](alliance-assistant.md)
 - [Factual Governor Progression](factual-governor-progression.md)
 - [Kingdom Transfer Planning](kingdom-transfer-planning.md)
-- [Territory & Hive Planner](territory-hive-planner.md)
 - [Bear Hunt Debrief](bear-hunt-debrief.md)
 - [Screenshot Intake](screenshot-intake.md)
 - [Alliance Content game parity](alliance-content-game-parity.md)
 - [Terminology](terminology.md)
 - [Experience principles](experience/README.md)
 - [Primary user journeys](experience/user-journeys.md)
+
+Territory & Hive Planner current product truth is recorded in the [Capability catalogue](capability-catalogue.md), [Capability completeness plan](capability-gap-analysis.md), [Primary user journeys](experience/user-journeys.md), and the architecture/ADR documentation under `docs/architecture`.
 
 Architecture is documented under [Architecture](../architecture/README.md); physical implementation under [Codebase](../codebase/README.md); deploy/recovery under [Operations](../operations/README.md).
 
