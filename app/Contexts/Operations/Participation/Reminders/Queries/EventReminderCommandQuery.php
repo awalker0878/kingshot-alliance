@@ -19,16 +19,18 @@ final readonly class EventReminderCommandQuery
             ->where('trigger_type', EventReminderTrigger::BeforeStart->value)
             ->get(['is_enabled', 'channel']);
 
+        $channels = $rules
+            ->where('is_enabled', true)
+            ->pluck('channel')
+            ->map(static fn ($channel): string => (string) $channel)
+            ->unique()
+            ->values()
+            ->all();
+
         return [
             'enabledBeforeStartCount' => $rules->where('is_enabled', true)->count(),
             'disabledBeforeStartCount' => $rules->where('is_enabled', false)->count(),
-            'channels' => $rules
-                ->where('is_enabled', true)
-                ->pluck('channel')
-                ->map(static fn ($channel): string => (string) $channel)
-                ->unique()
-                ->values()
-                ->all(),
+            'channels' => array_values($channels),
         ];
     }
 }
