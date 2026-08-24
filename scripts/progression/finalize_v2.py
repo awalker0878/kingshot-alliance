@@ -14,6 +14,7 @@ from typing import Any
 
 import build_v2
 import refresh
+import validate_prerequisites
 
 TARGET_RELEASE = "kingshot-2026-08-23-v2"
 SUPPLEMENT = Path(__file__).with_name("hero_skills_gen6_7.json")
@@ -230,10 +231,13 @@ def main() -> int:
     skill_count = complete_gen6_gen7_hero_skills(release_dir)
     counts = reviewed_semantic_counts(release_dir)
     update_release_report(release_dir, skill_count, counts)
+    prerequisite_stats = validate_prerequisites.validate_release(release_dir)
     validate_final_candidate(release_dir)
     print(
         f"Finalized {TARGET_RELEASE}: 34/34 Heroes with skills ({skill_count} structured skills), "
-        f"{counts['hero_star_rows']} Hero star rows, {counts['exclusive_weapon_rows']} Exclusive Weapon rows."
+        f"{counts['hero_star_rows']} Hero star rows, {counts['exclusive_weapon_rows']} Exclusive Weapon rows; "
+        f"Academy prerequisite graph validated across {prerequisite_stats['level_nodes']} declared levels "
+        f"with {prerequisite_stats['explicit_technology_edges']} explicit technology edges."
     )
     return 0
 
