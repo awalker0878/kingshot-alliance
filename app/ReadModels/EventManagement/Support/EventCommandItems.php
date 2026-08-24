@@ -59,6 +59,12 @@ final class EventCommandItems
 
     public static function href(Event $event, EventOccurrence $occurrence, string $anchor): string
     {
+        $anchor = match ($anchor) {
+            'participation' => 'participants',
+            'territory' => 'territory-positioning',
+            default => $anchor,
+        };
+
         return '/events/'.(string) $event->id.'/manage?occurrence='.(string) $occurrence->id.'#'.$anchor;
     }
 
