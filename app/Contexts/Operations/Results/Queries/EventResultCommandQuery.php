@@ -16,12 +16,12 @@ final readonly class EventResultCommandQuery
 
     /**
      * @return array{
-     *   summaryExists:bool,
-     *   eligiblePlayerCount:int,
-     *   playerResultCount:int,
-     *   missingPlayerResultCount:int,
-     *   correctionStateSupported:bool,
-     *   unresolvedCorrectionCount:int|null
+     *     summaryExists:bool,
+     *     eligiblePlayerCount:int,
+     *     playerResultCount:int,
+     *     missingPlayerResultCount:int,
+     *     correctionStateSupported:bool,
+     *     unresolvedCorrectionCount:int|null
      * }
      */
     public function forOccurrence(EventOccurrence $occurrence): array
@@ -40,7 +40,9 @@ final readonly class EventResultCommandQuery
                 ->count('player_id');
 
         return [
-            'summaryExists' => EventResult::query()->where('occurrence_id', $occurrence->id)->exists(),
+            'summaryExists' => EventResult::query()
+                ->where('occurrence_id', $occurrence->id)
+                ->exists(),
             'eligiblePlayerCount' => count($eligibleIds),
             'playerResultCount' => $resultCount,
             'missingPlayerResultCount' => max(0, count($eligibleIds) - $resultCount),
