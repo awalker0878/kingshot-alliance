@@ -20,6 +20,7 @@ use App\Contexts\Operations\Rosters\Models\EventRoster;
 use App\Contexts\Operations\Rosters\Models\EventRosterMember;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Testing\TestResponse;
 use Tests\v3\Support\ScenarioFactory;
@@ -169,13 +170,27 @@ final class AllianceAssistantHttpV3Test extends TestCase
 
     public function test_dedicated_assistant_rate_limit_is_account_scoped(): void
     {
-        config(['assistant.rate_limit_per_minute' => 2]);
-        [$user, $actor, $alliance] = $this->governorWithAlliance(63107);
-        $this->swordland($actor, $alliance, 'Swordland');
+        // Parallel test workers share the Redis throttle store while using isolated
+        // databases whose numeric account IDs may overlap. Use unhashed named-limiter
+        // keys in this process so this test gets a fresh bucket without weakening the
+        // production limiter's account-scoped behavior.
+        ThrottleRequests::shouldHashKeys(false);
 
-        $this->assistantRequest($user, $actor, 'What time is Swordland?')->assertOk();
-        $this->assistantRequest($user, $actor, 'What time is Swordland?')->assertOk();
-        $this->assistantRequest($user, $actor, 'What time is Swordland?')->assertStatus(429);
+        try {
+            config(['assistant.rate_limit_per_minute' => 2]);
+            [$user, $actor, $alliance] = $this->governorWithAlliance(63107);
+            $this->swordland($actor, $alliance, 'Swordland');
+
+            $this->assistantRequest($user, $actor, 'What time is Swordland?')->assertOk();
+            $this->assistantRequest($user, $actor, 'What time is Swordland?')->assertOk();
+            $this->assistantRequest($user, $actor, 'What time is Swordland?')->assertStatus(429);
+
+            [$otherUser, $otherActor, $otherAlliance] = $this->governorWithAlliance(63108);
+            $this->swordland($otherActor, $otherAlliance, 'Swordland');
+            $this->assistantRequest($otherUser, $otherActor, 'What time is Swordland?')->assertOk();
+        } finally {
+            ThrottleRequests::shouldHashKeys();
+        }
     }
 
     /** @return array{User, PlayerReference, AllianceReference} */
