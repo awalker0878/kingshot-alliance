@@ -4,15 +4,15 @@ Status: Active delivery — 2026-08-23
 
 ## Product outcome
 
-Factual Governor Progression gives Governors and Alliance officers a trustworthy, inspectable KingShot progression reference and a factual view of an observed Governor roster without turning community advice into authoritative game rules.
+Factual Governor Progression gives Governors and Alliance officers a trustworthy, inspectable KingShot progression reference and a factual view of observed Governor progression without turning strategy advice into authoritative game rules.
 
-The capability has three deliberately separate concepts:
+The capability deliberately keeps three concepts separate:
 
 1. **KingShot progression catalogue truth** — immutable, versioned factual reference data owned by `GameWorld/Progression`.
 2. **Observed Governor progression** — dated, source-labelled observations owned by `Intelligence/Roster`; an observation is evidence about a Governor, not catalogue truth.
-3. **Saved tactical intent** — named Hero/formation loadouts owned by the applicable Operations planning capability; a saved loadout is a plan, not an observation and not a recommendation.
+3. **Saved tactical intent** — named Hero/formation loadouts owned by the applicable Operations planning capability; a saved loadout is user intent, not an observation and not a recommendation.
 
-The first delivery objective is data completeness and trustworthiness. Hero recommendations, tier lists, personalized upgrade advice, optimization, cost calculators and inferred combat formulas are explicitly not part of this capability.
+The primary delivery objective is data completeness and trustworthiness. Hero recommendations, tier rankings, personalized upgrade advice, optimization, cost calculators and inferred combat formulas are outside this capability.
 
 ## Non-negotiable trust rules
 
@@ -21,11 +21,29 @@ The first delivery objective is data completeness and trustworthiness. Hero reco
 3. A community strategy statement is not a game rule.
 4. A source changing later never rewrites a published dataset release.
 5. Every canonical fact is traceable to one or more source records and a concrete immutable dataset release.
-6. Every source record has a source URI, source label, retrieval timestamp, observation/version boundary when available, locale, content checksum and usage/licensing note.
-7. Numeric facts intended to unlock a calculator remain subject to the existing calculator evidence gate even when they are useful as clearly-labelled reference data.
-8. Conflicting source values are preserved as a conflict. The importer must not pick whichever value was seen last.
-9. Community formations are stored as sourced, scoped **community conventions**. They are never labelled `best`, `optimal` or authoritative unless an official inspectable game source explicitly establishes such a rule.
-10. Raw external pages are discovery/evidence inputs. Runtime product behavior uses committed/reviewed canonical releases; production requests do not scrape community sites.
+6. Every source record carries source URI, source label, retrieval timestamp, observation/version boundary when available, locale, content checksum or immutable upstream revision when obtainable, and usage/licensing notes.
+7. Numeric facts that might later power calculators remain subject to the existing calculator evidence gate even when they are accepted into the factual reference corpus.
+8. Conflicting source values are preserved as conflicts unless an inspectable higher-confidence/current source resolves the same scoped fact.
+9. Community formations are stored as sourced, scoped **community conventions**. They are never labelled `best`, `optimal`, `recommended` or authoritative.
+10. Runtime product behavior uses committed reviewed releases; production requests do not scrape community sites.
+11. **Open factual tables are data, not merely discovery indexes.** When a maintained source publishes structured factual tables under a reuse-compatible licence, exposes provenance/version/confidence metadata, and the values are inspectable and sufficiently corroborated for factual display, the complete factual table is canonicalized into the immutable release instead of being left `indexed_external_table` solely because the publisher is community-maintained.
+12. Recommendation/tier/optimizer fields from an otherwise useful open dataset are excluded at import. Factual fields from that dataset remain eligible for canonicalization.
+13. Source confidence is retained at the finest available scope. A dataset may contain verified, corroborated, likely and conflicting rows without collapsing the whole source to one badge.
+
+## Open-source and community-data reuse policy
+
+The corpus may copy, normalize and redistribute factual tables from openly reusable sources when licence terms permit it. The release records attribution and the upstream canonical URI/revision. For example, a CC-BY-4.0 structured source may be snapshotted into `resources/data/progression` with attribution and its source metadata preserved.
+
+A Tier B/C community source can therefore be **canonical factual input** rather than an index-only pointer when all of the following hold:
+
+- the table is structured/inspectable rather than an opaque calculator output;
+- the source identifies when or how the values were verified, or another source independently corroborates them;
+- units and scope can be represented without guessing;
+- reuse is permitted or the imported representation consists of non-expressive factual values that can be safely normalized;
+- known source conflicts are retained rather than erased;
+- strategy/recommendation fields are excluded from canonical game truth.
+
+This policy does **not** weaken the calculator gate. A table can be complete enough for factual reference and still remain ineligible to drive an automated calculator until the calculator-specific evidence threshold is met.
 
 ## Architectural ownership
 
@@ -33,152 +51,93 @@ The first delivery objective is data completeness and trustworthiness. Hero reco
 
 `GameWorld/Progression` owns:
 
-- source registry records used to establish game-reference provenance;
-- immutable source observations/snapshots or manifests where copying the raw work is permitted;
+- source registry and source snapshots/manifests;
 - immutable dataset releases and checksums;
-- canonical KingShot reference entities, facts and relationships;
-- reconciliation outcomes and explicit conflicts;
+- canonical KingShot progression entities, facts and relationships;
+- reconciliation outcomes, row/fact confidence and explicit conflicts;
 - source-backed community convention records such as named formations;
-- dataset coverage/completeness reports.
+- machine-readable coverage/completeness reports.
 
-It does **not** own a Governor's observed roster, Alliance membership, Event roster assignments or saved tactical intent.
+It does **not** own a Governor's observed roster, Alliance membership, Event assignments or saved tactical intent.
 
 ### Intelligence/Roster
 
-`Intelligence/Roster` continues to own append-only Governor observations. Normalized Hero/loadout-related observations may reference stable progression catalogue identifiers, but the observation keeps its own `observed_at`, source and provenance. Deleting, correcting or superseding a catalogue source must not silently rewrite a historical Governor observation.
+`Intelligence/Roster` continues to own append-only Governor observations. Normalized observations may reference stable progression catalogue identifiers and a pinned dataset release, while retaining their own capture timestamp, source and provenance. Catalogue changes never rewrite historical observations.
 
 ### Operations planning
 
-Saved loadouts/formations are user planning intent and remain separate from both catalogue facts and observations. They may reference immutable catalogue entities and a dataset release. They cannot claim that the application recommended the selected Heroes or formation.
+Saved loadouts/formations are planning intent and remain separate from both catalogue facts and observations. They may reference immutable catalogue entities and a dataset release. They cannot claim the application recommended the selected Heroes or troop composition.
 
 ### Read composition
 
-Cross-owner pages may compose catalogue data, Governor observations and saved planning intent through `app/ReadModels`. A read model never becomes a persistence owner.
+Cross-owner pages may compose catalogue data, Governor observations and saved planning intent through `app/ReadModels`. Read models do not become persistence owners.
 
 ## Dataset taxonomy
 
-The canonical corpus must support all discovered progression families. The initial required families are:
+The canonical corpus must disposition every relevant structured progression family discovered during research. A family is not complete merely because its existence is documented.
 
 ### Heroes
 
-- Hero identity, canonical name and aliases/translations where sourced;
-- rarity;
-- troop class/type;
-- generation;
-- release/server-age boundary where sourced;
-- acquisition/unlock methods;
-- Hero level and star progression;
-- shard requirements and shard restrictions;
-- level/stat progression where inspectable;
-- Expedition/Conquest or equivalent supported stat/effect facts;
-- skills, skill slots/types and level-by-level sourced effects;
-- exclusive Hero equipment and Widget progression;
-- Widget costs, effects and skill/effect unlocks.
+Canonicalize/disposition:
 
-### Hero Gear
+- identity, canonical name and sourced aliases/translations;
+- rarity, troop class/type and generation;
+- release/server-age boundary and acquisition/unlock methods where sourced;
+- Hero level progression and level-by-level XP/deployment-capacity facts;
+- stars/substars, shards and rarity restrictions;
+- inspectable stats/effects;
+- Expedition/Conquest or equivalent factual effects;
+- skills, slots/types and level-by-level sourced effects;
+- exclusive Hero equipment/Widgets, levels, costs, effects and unlocks.
 
-- gear slot/type and troop-class applicability;
-- rarity/quality;
-- enhancement levels and enhancement XP where sourced;
-- equipment XP values where sourced;
-- stat/power effects;
-- Mythic/Legendary/Red progression where sourced;
-- Mithril or other material requirements;
-- Mastery Forge levels, costs, requirements and effects;
-- reforge/refund behavior only where inspectably sourced.
+### Hero Gear and Mastery Forge
+
+Canonicalize/disposition gear slot/type, troop applicability, rarity/quality, enhancement level/XP, material costs, stat/power effects, Mythic/Red progression, Mithril and other materials, Mastery Forge levels/costs/requirements/effects, and sourced transfer/reforge/refund behavior.
 
 ### Governor Gear
 
-- all equipment slots;
-- troop-type association;
-- quality/tier/level/star progression as represented by the game/source;
-- material requirements;
-- stat/power effects;
-- set thresholds and sourced set bonuses.
+Canonicalize all equipment slots, troop-type association, every inspectable tier/star/quality step, material requirements, attack/defense or other sourced effects, power contribution, set thresholds/bonuses and per-row confidence/conflicts.
 
 ### Governor Charms
 
-- charm family/slot and troop association;
-- level/tier progression;
-- material requirements;
-- stat/power effects;
-- explicit conflicts where maintained sources disagree on max level or costs.
+Canonicalize charm family/slot/troop association, every inspectable level/tier, Charm Guide/Design requirements, stat/effect values and power. Conflicting maintained-source max levels or costs remain explicit conflicts unless current corroborated evidence resolves them.
 
-### Named Formations
+### Named formations
 
-- stable internal identifier and descriptive canonical label;
-- sourced aliases where a community uses a name;
-- Infantry/Cavalry/Archer percentages;
-- mode/use scope, role and generation/server-age scope where stated;
-- required/compatible Hero references only when the source actually makes that claim;
-- source and evidence status;
-- community notes/disagreement;
-- no optimization score and no `best` flag.
-
-Formation percentages must sum to 100. Conflicting strategic claims may coexist because they are conventions, not a single authoritative rule.
+Store stable ID/label, sourced aliases, Infantry/Cavalry/Archer percentages, mode/use/role/generation scope, sourced Hero compatibility where explicitly claimed, source IDs, evidence status and disagreement notes. Percentages must sum to 100. No recommendation score, rank or `best` flag exists.
 
 ### Buildings and unlocks
 
-- building identity;
-- level/sublevel/Truegold stage where applicable;
-- prerequisite buildings/levels;
-- resource/material costs;
-- base upgrade duration;
-- power/effects/capacity;
-- feature unlocks;
-- Town Center or other gate requirements;
-- Truegold and Tempered Truegold progression where sourced.
+Canonicalize building identity, every inspectable normal/Truegold sublevel, prerequisites, resources/material costs, base duration, power/capacity/effects, feature unlocks, Town Center gates, Truegold and Tempered Truegold costs and current server-age gates.
 
 ### Troops
 
-- Infantry/Cavalry/Archer identity;
-- troop tier;
-- training-building and building-level unlock;
-- attack/defense/health/lethality/power where inspectable;
-- training/promotion costs and duration where inspectable;
-- training capacity/speed relationships where sourced;
-- T11/Truegold requirements where sourced.
+Canonicalize Infantry/Cavalry/Archer (including source synonyms such as Lancer/Marksman) identities, tiers, training-building/level unlocks, inspectable combat stats, power, training/promotion costs/duration, event points when factual, T11/T12/Truegold requirements and applicable server-age boundaries.
 
 ### Academy research
 
-- research tree/section;
-- technology identity;
-- every sourced level;
-- effect/value/unit;
-- resource costs;
-- base duration;
-- power;
-- Academy requirement;
-- technology prerequisite graph.
+Canonicalize each discovered Growth/Economy/Battle technology and every inspectable level with effect/value/unit, resources, base duration, power, Academy requirement and explicit prerequisite graph. Unresolved prerequisites prevent a complete disposition.
 
 ### War Academy research
 
-War Academy data follows the same level/fact/dependency model as Academy research and retains its own unlock/version/server-age boundaries.
+Use the same per-technology/per-level model for Basic/Advanced Truegold research, including Truegold Dust, resources, duration, effects, power, prerequisites, T11/T12 unlock relationships and server-age boundaries.
 
 ### Pets
 
-- Pet identity, generation/release boundary and rarity where sourced;
-- level/advancement/refinement;
-- skills and skill-level effects;
-- advancement/taming/material requirements;
-- unlock conditions.
+Canonicalize Pet identity, generation/release boundary, rarity where sourced, levels/advancement/refinement, skills/effects, advancement/taming materials and unlock conditions.
 
 ### Masters
 
-- Master identity and release boundary;
-- Affinity progression;
-- talents;
-- skills and skill-level effects;
-- Master Academy/Special Research where represented by the source;
-- manuscripts/learning XP/material requirements.
+Canonicalize Master identity/release boundary, role, Affinity/progression, passive effects, skills and skill levels, talents/special research where represented, power and manuscript/emblem/material requirements.
 
 ### Additional discovered families
 
-Source discovery is part of delivery. The sweep must also disposition factual progression material for, where available:
+The research sweep must also disposition and, where inspectable, canonicalize:
 
 - Alliance Technology;
 - Truegold/Tempered Truegold systems;
-- max-level caps and server-age unlocks;
+- Hero XP and shard ladders;
+- max-level/server-age unlocks;
 - deployment/rally capacity;
 - Infirmary/Storehouse/capacity progression;
 - recruitment/unlock pools;
@@ -187,59 +146,42 @@ Source discovery is part of delivery. The sweep must also disposition factual pr
 - Beast/Terror level caps;
 - Bear Pitfall progression;
 - recurring progression-scoring tables;
-- materials/items and their factual progression use;
-- any other structured KingShot progression family discovered during the research sweep.
+- materials/items and their factual progression uses;
+- every other structured KingShot progression family discovered during implementation.
 
-A newly discovered family is added to this contract and delivery ledger before implementation. It cannot be silently deferred as a future enhancement.
+A newly discovered family is added to this contract/ledger before closeout. It cannot be silently deferred.
 
 ## Source registry
 
-Each source record contains at minimum:
+Every registered source contains at minimum:
 
 - stable source key;
-- publisher/maintainer;
-- source label;
+- publisher/maintainer and source label;
 - canonical URI;
-- source kind;
-- authority tier;
+- source kind and authority tier;
 - official/first-party indicator;
 - locale;
-- `retrieved_at`;
-- `observed_at` or publication/update date where known;
-- game-version/server-age/generation applicability where known;
-- content checksum or immutable upstream commit/blob checksum where possible;
-- license/usage note;
-- source-specific locator for a fact when practical;
-- notes about access limitations, opacity or known conflicts.
+- `retrieved_at` and `observed_at`/updated date when known;
+- game-version/server-age/generation applicability when known;
+- content checksum, upstream revision/blob checksum, or deterministic source-snapshot checksum when obtainable;
+- licence/usage note and attribution requirement;
+- source-specific locator where practical;
+- access limitations, confidence notes and known conflicts.
 
 ### Authority tiers
 
-**Tier A — first-party/official**
+- **Tier A — first party/official:** Century Games/KingShot official wiki/support/patch material and reviewed in-game evidence with immutable provenance.
+- **Tier B — maintained structured community reference:** maintained KingShot databases/wikis or data APIs exposing inspectable tables, provenance and current updates.
+- **Tier C — inspectable community/open-source dataset:** GitHub or equivalent repositories where underlying values and revision can be inspected.
+- **Tier D — community observation/discussion:** Reddit, Discord, guides and similar discussion material. Tier D is primarily discovery/convention evidence and cannot alone silently establish an authoritative numeric table.
 
-- Century Games / KingShot official wiki or support material;
-- official patch notes/announcements;
-- reviewed in-game evidence with immutable evidence provenance.
+## Evidence/confidence status
 
-**Tier B — maintained structured community reference**
-
-- maintained KingShot data/wiki sites exposing inspectable tables or per-level facts.
-
-**Tier C — inspectable community/open-source dataset**
-
-- GitHub or equivalent repositories where the underlying structured values and revision can be inspected.
-
-**Tier D — community observation/discussion**
-
-- Reddit, Discord, guides and similar discussion material.
-
-Tier D is useful for discovery and conventions. It does not by itself satisfy the evidence threshold for an authoritative numeric game table.
-
-## Evidence status
-
-Canonical facts/conventions use explicit status values equivalent to:
+Facts/conventions expose explicit statuses equivalent to:
 
 - `official`;
 - `corroborated`;
+- `confirmed`;
 - `single_source`;
 - `community_convention`;
 - `observed_in_game`;
@@ -247,282 +189,152 @@ Canonical facts/conventions use explicit status values equivalent to:
 - `superseded`;
 - `unknown`.
 
-The UI must not collapse these into a generic `verified` badge.
+Numeric confidence scores from a source may be preserved in addition to the normalized status. The UX must not collapse all statuses to a generic “verified” badge.
 
-## Versioning and immutability
+## Versioning and immutable releases
 
-A dataset release has:
+A dataset release contains stable release ID, schema version, human dataset version, generated/reviewed timestamps, complete source manifest, deterministic checksum, per-family counts, conflict/unresolved counts, coverage report and release notes.
 
-- stable release ID;
-- schema version;
-- human-readable dataset version;
-- generated/reviewed timestamps;
-- complete source manifest;
-- release checksum;
-- per-family record counts;
-- conflict and unresolved counts;
-- coverage report;
-- release notes.
+Published releases are immutable. A changed source snapshot, parser, normalization/reconciliation rule or semantic fact produces a new release. Historical releases remain loadable for observations/loadouts pinned to them.
 
-Published releases are immutable. A changed source, parser, normalization rule or fact produces a new release. Historical releases remain queryable/reproducible for facts pinned by saved planning intent or historical observations.
-
-The checksum is calculated from a deterministic canonical representation. Re-importing identical canonical input must produce the same semantic release content and must not duplicate entities/facts.
+Re-importing identical source snapshots and normalization rules must produce identical semantic content/checksum and no duplicate facts.
 
 ## Reconciliation rules
 
-1. Normalize source-specific names into candidates before canonicalization; preserve source spelling/aliases.
-2. Reconcile by stable canonical identity and explicit source locator, never fuzzy-name overwrite.
-3. Exact agreement across independent sources may increase confidence; the provenance links remain independent.
-4. If values disagree and no higher-authority inspectable source resolves them, publish an explicit conflict rather than a chosen value.
-5. A first-party source may establish an official fact for the version/scope it actually covers; it does not automatically invalidate a community-observed value for a different version/server age.
-6. Units must be explicit before numeric values can be compared.
-7. Percentages/rates use one documented canonical representation; importers normalize source presentation without changing meaning.
-8. Durations retain base-duration semantics when a source gives base time. Buffed/player-specific times are not canonical game cost facts.
-9. Cumulative totals are derived only when all component levels needed for the sum are present in the same compatible dataset scope. Derived totals are marked derived and traceable to component facts.
-10. Research/build prerequisite graphs must resolve to canonical nodes; unresolved dependencies block a `complete` family disposition.
-11. A conflict cannot be hidden merely to satisfy a calculator prerequisite.
+1. Normalize source-specific names to explicit candidates and preserve aliases/source spelling.
+2. Reconcile by stable identity/source locator; never fuzzy-name overwrite.
+3. Exact agreement across independent sources increases confidence while preserving every provenance link.
+4. When a current, inspectable, higher-confidence source explicitly documents why an older conflicting table is stale, the current value may be canonical while the old claim remains a recorded conflict/superseded claim.
+5. If disagreement remains unresolved for the same scope/version, publish an explicit conflict instead of last-write-wins.
+6. Units must be explicit before numeric comparison.
+7. Percentages/rates use one documented canonical representation without changing meaning.
+8. Durations are base durations when sourced as base values; player-buffed times are not canonical costs.
+9. Derived totals are allowed only from complete compatible component rows and are flagged as derived with inputs traceable.
+10. Research/build prerequisite graphs must resolve and be cycle-checked.
+11. A conflict cannot be hidden to satisfy a calculator prerequisite.
+12. Open source metadata/confidence can be imported as provenance, but strategy/tier recommendation fields are discarded.
 
-## Existing calculator evidence gate
+## Calculator evidence gate
 
-This capability does not weaken the existing calculator gate.
+This capability does not implement or unlock calculators.
 
-A factual table can be useful in the reference UI while still being insufficient to power a calculator. Calculator-target numeric rows require the source URI, source label, `observed_at`, version boundary and unit already required by the global delivery ledger. They must also satisfy the existing reconciliation threshold: one official inspectable table, or the independently corroborated evidence package required by that ledger.
-
-Until a family passes that gate, downstream calculator status remains `Evidence-gated`.
+A factual table may be accepted into the corpus when it is openly inspectable, attributed and sufficiently corroborated for reference. Calculator-target rows additionally require the repository's existing calculator evidence threshold: source/version/unit completeness plus the required official or independently corroborated evidence package. Until that separate threshold is satisfied, calculator status remains `Evidence-gated`.
 
 ## Canonical storage/import contract
 
-The repository stores reviewed import manifests/canonical source material needed to reproduce a release. Runtime requests never depend on live scraping.
-
-The ingestion pipeline is conceptually:
+Reviewed source snapshots/manifests and normalized releases are repository-owned artifacts. Runtime reads never depend on live third-party availability.
 
 ```text
 source registry
-    -> immutable retrieval/manifest
+    -> immutable source snapshot/manifest
     -> source-specific parser/normalizer
     -> normalized candidates
     -> schema + unit validation
     -> reconciliation
-    -> conflict/coverage report
+    -> conflict + completeness report
     -> immutable canonical release
 ```
 
-Import is idempotent. A failed import leaves no partially published release. Release publication occurs only after validation/reconciliation completes.
+Imports are idempotent and all-or-nothing. Publication occurs only after validation/reconciliation completes. Importers must retain source attribution/licence requirements and strip non-factual recommendation fields.
 
-## Governor roster observation contract
+## Governor observation contract
 
-A normalized Governor Hero observation can include, when actually observed:
+A normalized Governor Hero observation may include, when actually observed: Hero catalogue ID, level, star/substar/tier, skill levels, observed Hero Gear slots/levels, Mastery levels, Widget level, observation time, source/provenance and confidence/review state.
 
-- Hero catalogue ID;
-- observed Hero level;
-- star/substar/tier;
-- skill levels;
-- observed Hero Gear slots/levels;
-- Mastery levels;
-- exclusive equipment/Widget level;
-- `observed_at`;
-- source/provenance;
-- confidence or review state.
-
-The observation is append-only history. Absence of a Hero in one observation does not prove that the Governor does not own it unless the source explicitly establishes a complete roster capture.
-
-Free-text progression observations remain supported for evidence that cannot yet be normalized safely.
+Observations are append-only history. Absence does not prove non-ownership unless the evidence explicitly represents a complete roster capture. Missing fields remain unknown/not observed.
 
 ## Saved loadout contract
 
-A saved loadout is factual user-entered planning intent with:
-
-- name;
-- optional Event/mode/purpose label;
-- three Hero references where the represented game mode uses three;
-- optional referenced named formation or explicit troop percentages;
-- pinned/recorded dataset release;
-- user notes;
-- ownership/scope;
-- created/updated attribution.
-
-The application may validate identity and percentages. It must not turn a saved loadout into an implicit recommendation score.
+A saved loadout is user planning intent with a name, optional mode/purpose, canonical Hero references, optional named formation or explicit percentages, pinned dataset release, user notes, ownership/scope and attribution. The application validates identity/ratios only; it does not score or recommend the composition.
 
 ## Authorization
 
-### Read
-
-Authenticated, email-verified users with an active Player may browse the factual progression catalogue. Alliance-specific Governor observations and loadouts additionally require the current concrete Alliance/Player access already defined by their owning capabilities.
-
-### Catalogue mutation
-
-End users do not directly edit canonical game facts. Dataset import/reconciliation/publication occurs through controlled system/platform-maintenance boundaries with explicit audit provenance.
-
-### Governor observations
-
-Recording/correcting normalized Governor observations uses the existing `Intelligence/Roster` authority model and revalidates current Player/Alliance scope at the write boundary.
-
-### Loadouts
-
-A Governor may manage their own permitted loadouts; Alliance-owned/shared loadouts require the owning Operations permission. Server authorization remains authoritative regardless of frontend visibility.
+- Authenticated, verified users with an active Player may browse the factual catalogue.
+- Alliance-specific observations/loadouts additionally require the existing concrete Alliance/Player permissions of their owners.
+- End users cannot directly mutate canonical game truth.
+- Import/reconciliation/publication is a controlled maintenance/platform boundary with audit provenance.
+- Recording/correcting Governor observations uses existing `Intelligence/Roster` authority.
+- Loadout mutation uses the existing Operations owner authorization.
 
 ## UX contract
 
 ### Progression Library
 
-The primary factual surface provides:
+The factual surface provides search, family/generation/troop/version filters where meaningful, bounded presentation, explicit unknown/conflict states, evidence/confidence text, dataset version/checksum and source provenance.
 
-- search;
-- family filters;
-- generation/troop-class/version filters where meaningful;
-- bounded pagination;
-- explicit unknown/conflict states;
-- source/evidence badge text;
-- dataset version and last-reviewed context.
+### Entity/family detail
 
-### Entity detail
-
-Each entity detail shows factual progression tables/relationships and a provenance panel containing the source label, observation/version boundary and evidence status. A conflicting value shows the competing sourced claims rather than one silently selected answer.
-
-### Heroes
-
-Hero details expose factual identity/class/generation/acquisition, progression, skills, exclusive equipment/Widgets and applicable Hero Gear relationships where present in the release.
+Hero, Gear, Charm, Building, Troop, Research, Pet and Master detail exposes factual progression rows and row/family provenance. A conflict shows competing claims; it never silently chooses a value without a documented reconciliation reason.
 
 ### Formations
 
-Formation cards show the troop ratio, use/mode scope, source and explicit `Community convention` wording. Strategy disagreement is visible. The page contains no ranking, score or `recommended` sort.
+Formation cards show ratio, scope, source and `Community convention`. There is no ranking/score/recommended sort.
 
 ### Governor Progression
 
-Governor history can display normalized Hero observations alongside existing observed power/progression facts without changing its append-only semantics. Missing values render as unknown/not observed, never zero.
+Roster history displays normalized Hero observations alongside existing observed power/progression facts while preserving append-only semantics and explicit unknowns.
 
 ### Loadouts
 
-Loadouts provide accessible form controls for Hero selection and troop percentages, expose the pinned dataset version and clearly say that the saved composition is user planning intent.
+Loadouts use accessible canonical Hero selection, expose the pinned dataset version and explicitly identify the record as user planning intent.
 
 ### Required states
 
-Desktop and mobile UX must cover:
+Mobile/desktop UX covers loading, no dataset, no results, complete factual result, single-source/low-confidence result, unknown, conflict, superseded release, stale source, permission denied and authorized import/reconciliation diagnostics. Controls are keyboard usable, semantically labelled and localized; deterministic visual coverage is added where repository policy requires it.
 
-- loading/busy;
-- no dataset published;
-- no results;
-- complete factual result;
-- single-source result;
-- unknown value;
-- source conflict;
-- superseded release;
-- stale/old source observation where applicable;
-- permission denied for owner-specific data;
-- invalid import/reconciliation diagnostics for authorized maintainers.
+## Completeness/conflict reporting
 
-All material controls are keyboard usable, semantically labelled, localized through the repository localization system and covered by deterministic visual regression where the repository requires it.
+Every release emits a machine-readable per-family report with entities discovered/canonicalized, facts imported, corroborated/single-source/community-convention counts, conflicts, unresolved references, exclusions, source coverage and reason for any non-canonicalized row.
 
-## Completeness and conflict reporting
-
-Every release emits a machine-readable per-family report containing at least:
-
-- entities discovered;
-- entities canonicalized;
-- facts imported;
-- corroborated facts;
-- single-source facts;
-- community conventions;
-- conflicts;
-- unresolved references;
-- explicitly excluded/unverifiable source items;
-- source coverage.
-
-A family cannot be marked complete while a discovered structured entity is silently absent. It must be canonicalized or have an explicit disposition.
+A family cannot be marked complete while a discovered structured entity is silently absent. With the open-data policy above, a complete reusable public table must be imported rather than left index-only unless a concrete conflict/licensing/schema reason is documented.
 
 ## Acceptance criteria
 
-### AC-1 — Product/architecture truth
-
-`/docs/product`, architecture ownership, reference docs, permission docs and implementation agree that GameWorld owns catalogue truth, Intelligence owns Governor observations and Operations owns planning intent.
-
-### AC-2 — Source provenance
-
-Every published canonical fact/convention traces to a registered source and immutable release. Required source/version/unit metadata is enforced by tests/schema validation.
-
-### AC-3 — Reproducible releases
-
-The same reviewed canonical input produces deterministic content/checksum and an idempotent import. Changed semantic input produces a new immutable release.
-
-### AC-4 — Conflict safety
-
-Contradictory source values remain explicit and cannot be silently promoted to authoritative truth or a calculator table.
-
-### AC-5 — Hero completeness
-
-The research sweep has dispositioned every discovered Hero and factual Hero skill/progression/exclusive-equipment family; the factual UI exposes the canonicalized portion with provenance.
-
-### AC-6 — Gear/Charm completeness
-
-Hero Gear, Mastery Forge, Governor Gear and Governor Charm source families are canonicalized or explicitly conflict/exclusion-dispositioned at the finest level made inspectable by the sources.
-
-### AC-7 — Formation honesty
-
-Named troop formations are source-scoped conventions, percentages sum to 100 and no product/API field claims an optimal or recommended formation.
-
-### AC-8 — Buildings/troops completeness
-
-Discovered building, unlock, resource/time/power and troop-tier progression tables are represented or explicitly dispositioned, with resolvable prerequisite/unlock relationships where supplied.
-
-### AC-9 — Research completeness
-
-Academy and War Academy technologies/levels and dependencies exposed by the selected inspectable sources are represented or explicitly dispositioned; dependency validation reports unresolved nodes/cycles.
-
-### AC-10 — Pets/Masters/additional families
-
-Pets, Masters and every additional factual progression family discovered in the sweep have canonical data or an explicit conflict/exclusion disposition.
-
-### AC-11 — Governor observation separation
-
-Normalized Hero observations extend append-only Roster history without making catalogue rows Player-owned or treating a missing observation as zero/non-ownership.
-
-### AC-12 — Loadout separation
-
-Saved loadouts are independently persisted planning intent, pin/reference dataset identity and are not stored as Roster observations or catalogue facts.
-
-### AC-13 — Factual UX
-
-Authorized users can search/browse detail/provenance/conflict states on mobile/desktop with accessibility/localization parity. The UX contains no recommendation/tier/optimization behavior.
-
-### AC-14 — Calculator gate remains closed by default
-
-No calculator is introduced by this delivery. A separate later change may unlock only the individual data family proven to satisfy the pre-existing calculator gate.
-
-### AC-15 — Completeness proof
-
-The release coverage report has no silently missing discovered structured entities; all unresolved/conflicting/excluded items are enumerated with reason and source.
-
-### AC-16 — Repository Definition of Done
-
-Behavior, authorization, idempotency, audit/observability, responsive UX, accessibility, localization, tests, deterministic visual coverage and applicable repository release gates pass on one immutable implementation candidate before closeout.
+- **AC-1 Product/architecture truth:** `/docs/product`, architecture/reference docs and implementation agree on GameWorld catalogue ownership, Intelligence observation ownership and Operations planning ownership.
+- **AC-2 Source provenance:** every canonical fact/convention traces to a registered source/release; source/version/unit/licence metadata is validated.
+- **AC-3 Reproducible releases:** identical reviewed source input produces deterministic content/checksum and idempotent import; semantic change produces a new immutable release.
+- **AC-4 Conflict safety:** unresolved contradictory values remain explicit and cannot silently become calculator truth.
+- **AC-5 Hero completeness:** every discovered Hero plus skills/progression/shards/XP/exclusive-equipment family is canonicalized or explicitly dispositioned; complete reusable open tables are imported.
+- **AC-6 Gear/Charm completeness:** Hero Gear, Mastery Forge, Governor Gear and Charms are canonicalized to the finest inspectable row level, including materials/effects/confidence/conflicts.
+- **AC-7 Formation honesty:** named ratios are source-scoped conventions summing to 100 with no recommendation semantics.
+- **AC-8 Building/troop completeness:** discovered per-level building/unlock/Truegold and troop-tier tables are imported or explicitly conflicted/excluded with resolvable relationships.
+- **AC-9 Research completeness:** Academy and War Academy technologies/levels/costs/effects/times/power/prerequisites exposed by selected structured sources are represented and graph-validated.
+- **AC-10 Pets/Masters/additional families:** Pets, Masters, Alliance Tech, VIP, Truegold, capacity/material and every other discovered factual family has canonical data or an explicit justified disposition.
+- **AC-11 Observation separation:** normalized Hero observations extend append-only Roster history without making catalogue facts Player-owned or interpreting missing observations as zero/non-ownership.
+- **AC-12 Loadout separation:** saved loadouts are independently persisted planning intent pinned to a dataset release and never stored as observations/catalogue facts.
+- **AC-13 Factual UX:** authorized users can browse detailed rows/provenance/confidence/conflicts on mobile/desktop with accessibility/localization parity and no recommendation behavior.
+- **AC-14 Calculator gate:** no calculator is introduced; only a later separately evidenced capability may unlock one.
+- **AC-15 Completeness proof:** release reports have no silently missing discovered structured rows; index-only dispositions are forbidden for otherwise reusable complete tables.
+- **AC-16 Import safety:** source import/normalization is idempotent, deterministic, recommendation-field stripping is tested and failed imports cannot partially publish.
+- **AC-17 Repository Definition of Done:** behavior, authorization, idempotency, audit/observability, responsive UX, accessibility, localization, tests, visual coverage and applicable repository release gates pass on one immutable candidate.
 
 ## Delivery ledger
 
-`Complete` requires the full exit condition, not scaffolding or a partial data sample.
+`Complete` means the exit condition is met; scaffolding/representative rows do not count.
 
 | Phase | Status | Slice | Exit condition |
 | --- | --- | --- | --- |
-| 0 | Complete | Product contract | This canonical `/docs/product` contract defines outcome, taxonomy, evidence/reconciliation, ownership, UX, authorization, acceptance criteria and the non-bypassable calculator gate. |
-| 1 | In progress | Architecture + source/release foundation | Capability/data ownership docs, source registry, immutable releases, canonical schema, deterministic checksum, idempotent publish and behavior tests are complete. |
-| 2 | In progress | Source discovery + evidence inventory | Official/community wiki/database/open-source/community sources are systematically surveyed; source manifests and explicit source/family dispositions exist. |
-| 3 | In progress | Heroes | Complete discovered Hero roster, identity, class/rarity/generation/acquisition, progression, shards, skills and aliases are canonicalized/dispositioned. |
-| 4 | In progress | Exclusive equipment + Widgets | Discovered exclusive Hero equipment/Widget levels, costs/effects/unlocks are canonicalized/dispositioned. |
-| 5 | In progress | Hero Gear + Mastery | Discovered Hero Gear enhancement/rarity/material/stat facts and Mastery Forge progression are canonicalized/dispositioned. |
-| 6 | In progress | Governor Gear + Charms | Slots/classes, tiers/levels, materials, effects/set bonuses and Charm conflicts are canonicalized/dispositioned. |
-| 7 | In progress | Named formations | Repeatedly documented troop-ratio conventions are source-scoped, mode-scoped, conflict-aware and explicitly non-recommendation. |
-| 8 | In progress | Buildings + unlocks | Discovered building levels, prerequisites, costs/times/power/capacities/unlocks and Truegold progression are canonicalized/dispositioned. |
-| 9 | In progress | Troops | Discovered troop tiers, stats, unlocks, training/promotion facts and T11/Truegold requirements are canonicalized/dispositioned. |
-| 10 | In progress | Academy + War Academy | Discovered technology levels/effects/costs/times/power/prerequisites are canonicalized/dispositioned and graph-validated. |
-| 11 | In progress | Pets + Masters | Discovered Pet and Master progression/skills/materials/Affinity/talent/research facts are canonicalized/dispositioned. |
-| 12 | In progress | Additional progression families | Alliance Tech, max-level/server-age, capacity, VIP/Watchtower/Beast/Terror/Bear Pitfall/material and every other discovered structured progression family is canonicalized or explicitly dispositioned. |
-| 13 | In progress | Governor Hero observations | Roster history can retain normalized sourced Hero/loadout-adjacent observations without weakening append-only/provenance semantics. |
-| 14 | In progress | Saved loadouts | Separate authorized user/Alliance planning intent references catalogue Heroes/formations/dataset release without recommendation semantics. |
-| 15 | In progress | Factual Progression Library UX | Search, filters, entity details, provenance, conflict/unknown states, formations, Governor history integration and loadouts are responsive/accessibility/localization complete. |
-| 16 | In progress | Completeness/reconciliation gates | Machine-readable coverage/conflict reports, schema/unit/reference checks, idempotency/checksum tests and no-silent-omission enforcement are green. |
-| 17 | In progress | Final reconciliation + release gates | Spec→code, code→spec, data→source, source→disposition, UX→backend, authorization and ownership scans find no unimplemented requirement; all applicable repository gates pass on one immutable candidate. |
+| 0 | Complete | Product contract | This contract defines outcome, taxonomy, open-data reuse, evidence/reconciliation, ownership, UX, authorization, acceptance criteria and calculator gate. |
+| 1 | In progress | Architecture + release foundation | Ownership docs, source registry, immutable releases, deterministic checksum, idempotent import/publication and validation tests are complete. |
+| 2 | In progress | Source discovery + source snapshots | Official/community wiki/database/open API/GitHub/community sources are surveyed; reusable complete tables are snapshotted/imported rather than index-only. |
+| 3 | In progress | Heroes | Full discovered Hero identity/acquisition/progression/XP/shards/skills/aliases are canonicalized/dispositioned. |
+| 4 | In progress | Exclusive equipment + Widgets | Full inspectable Widget levels/costs/effects/unlocks are canonicalized/dispositioned. |
+| 5 | In progress | Hero Gear + Mastery | Full inspectable Gear enhancement/rarity/material/stat and Mastery Forge ladders are canonicalized/dispositioned. |
+| 6 | In progress | Governor Gear + Charms | Complete open per-step Gear/Charm tables, slots/classes/materials/effects/power/confidence/conflicts are canonicalized. |
+| 7 | In progress | Named formations | Repeatedly documented ratios remain source/mode scoped and explicitly non-recommendation. |
+| 8 | In progress | Buildings + unlocks | Complete reusable building level/prerequisite/cost/time/power/capacity/unlock/Truegold tables are canonicalized. |
+| 9 | In progress | Troops | Complete reusable troop tiers/stats/unlocks/training/promotion/T11/T12/Truegold facts are canonicalized. |
+| 10 | In progress | Academy + War Academy | Discovered per-tech/per-level tables are canonicalized and dependency/unit/schema validated. |
+| 11 | In progress | Pets + Masters | Discovered progression/skills/material/Affinity/talent/research facts are canonicalized/dispositioned. |
+| 12 | In progress | Additional progression families | Alliance Tech, Truegold, VIP, capacity, materials, Watchtower/Beast/Terror/Bear Pitfall and every other discovered structured family is canonicalized or explicitly justified. |
+| 13 | In progress | Governor Hero observations | Roster history retains normalized sourced Hero observations with dataset pins and unknown-safe semantics. |
+| 14 | In progress | Saved loadouts | Authorized planning intent references canonical Heroes/formations/dataset release without recommendation semantics. |
+| 15 | In progress | Progression Library UX | Detailed rows, search/filters, provenance/confidence/conflict/unknown states, formations, observations and loadouts are responsive/accessibility/localization complete. |
+| 16 | In progress | Completeness/reconciliation gates | Machine-readable coverage/conflict/source/licence/unit/reference checks, source-snapshot checksums and idempotency/no-silent-omission tests are green. |
+| 17 | In progress | Final reconciliation + release gates | Spec→code, code→spec, source→data, data→source, source→disposition, UX→backend, authorization and ownership scans are reconciled; all applicable repository gates pass on one immutable candidate. |
 
-After each phase or requirement is completed, implementation proceeds directly to the next incomplete row. A discovered correctness, data, UX, authorization, observability or architectural requirement is added here and implemented before closeout.
+After each completed requirement implementation proceeds directly to the next incomplete ledger row. Research that exposes another progression family, source conflict, provenance requirement or architecture/UX gap updates this contract and is implemented before closeout.
 
 ## Closeout rule
 
-This capability is not complete because schemas exist or because a representative Hero subset renders. It is complete only when the public progression source surface has been systematically surveyed, all discovered relevant structured data is canonicalized or explicitly dispositioned, all required factual UX and ownership boundaries are implemented, completeness/conflict reports are green, the calculator gate remains intact, and one immutable candidate passes the repository Definition of Done.
+The capability is complete only when the public progression source surface has been systematically surveyed; reusable complete factual tables have been canonicalized rather than left as index-only pointers; all remaining exclusions/conflicts are explicit; source/provenance/confidence is visible; Governor observations and saved loadouts remain separate; imports/checksums/reconciliation are deterministic and idempotent; mobile/accessibility/localization are complete; calculator evidence gates remain intact; and one immutable candidate passes every applicable repository release gate.
