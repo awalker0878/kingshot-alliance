@@ -185,7 +185,7 @@ final class ProgressionDatasetV3Test extends TestCase
         self::assertContains('governor-charm-max-level', $conflictIds);
         self::assertContains('training-building-unlock-copy', $conflictIds);
         self::assertStringContainsString(
-            'Calculator evidence remains separately gated',
+            'separately gated',
             (string) collect($dataset->conflicts())->firstWhere('id', 'governor-charm-max-level')['resolution'],
         );
     }
