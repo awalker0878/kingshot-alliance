@@ -6,6 +6,7 @@ export const localizationDomains = [
   'auth',
   'account',
   'alliance',
+  'assistant',
   'events',
   'evidence',
   'debrief',
@@ -42,9 +43,9 @@ export async function importDomainCatalogue(
   return importer();
 }
 export function domainsForPage(name: string): LocalizationDomain[] {
-  // Progression stays globally available because the shared desktop/mobile navigation
-  // exposes the factual library from every authenticated surface.
-  const domains = new Set<LocalizationDomain>(['progression']);
+  // Progression and Assistant navigation labels stay globally available because
+  // the shared desktop/mobile navigation exposes both from authenticated surfaces.
+  const domains = new Set<LocalizationDomain>(['progression', 'assistant']);
   if (name.startsWith('Accounts/Access/')) domains.add('auth');
   if (name.startsWith('Accounts/Governor/')) domains.add('account');
   if (name.startsWith('Accounts/Notifications/')) domains.add('account');
@@ -54,6 +55,7 @@ export function domainsForPage(name: string): LocalizationDomain[] {
     if (name.startsWith('Public/Alliance/')) domains.add('content');
   }
   if (name.startsWith('Dashboard/')) domains.add('alliance');
+  if (name.startsWith('Assistant/')) domains.add('assistant');
   if (name.startsWith('Alliance/')) {
     domains.add('alliance');
     if (name.startsWith('Alliance/Recruitment/')) domains.add('recruitment');
