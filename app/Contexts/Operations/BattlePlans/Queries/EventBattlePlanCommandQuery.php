@@ -15,12 +15,12 @@ final readonly class EventBattlePlanCommandQuery
 {
     /**
      * @return array{
-     *   objectiveCount:int,
-     *   assignmentCount:int,
-     *   plannedPlayerCount:int,
-     *   assignedPlayerCount:int,
-     *   unassignedPlayerCount:int,
-     *   invalidAssignmentCount:int
+     *     objectiveCount:int,
+     *     assignmentCount:int,
+     *     plannedPlayerCount:int,
+     *     assignedPlayerCount:int,
+     *     unassignedPlayerCount:int,
+     *     invalidAssignmentCount:int
      * }
      */
     public function forOccurrence(EventOccurrence $occurrence): array
@@ -31,8 +31,14 @@ final readonly class EventBattlePlanCommandQuery
             ->with('assignments')
             ->get();
         $plannedPlayerIds = EventRosterMember::query()
-            ->whereNotIn('status', [EventRosterMemberStatus::Declined->value, EventRosterMemberStatus::Removed->value])
-            ->whereHas('roster', static fn ($query) => $query->where('occurrence_id', $occurrence->id))
+            ->whereNotIn('status', [
+                EventRosterMemberStatus::Declined->value,
+                EventRosterMemberStatus::Removed->value,
+            ])
+            ->whereHas(
+                'roster',
+                static fn ($query) => $query->where('occurrence_id', $occurrence->id),
+            )
             ->pluck('player_id')
             ->map(static fn ($id): string => (string) $id)
             ->unique()
@@ -42,7 +48,12 @@ final readonly class EventBattlePlanCommandQuery
             ->filter(static fn ($assignment): bool => $assignment instanceof EventObjectiveAssignment)
             ->values();
         $rosterIds = $assignments
-            ->map(static fn (EventObjectiveAssignment $assignment): ?string => is_string($assignment->roster_id) && $assignment->roster_id !== '' ? $assignment->roster_id : null)
+            ->map(
+                static fn (EventObjectiveAssignment $assignment): ?string => is_string($assignment->roster_id)
+                    && $assignment->roster_id !== ''
+                        ? $assignment->roster_id
+                        : null,
+            )
             ->filter()
             ->unique()
             ->values();
@@ -50,8 +61,14 @@ final readonly class EventBattlePlanCommandQuery
             ? collect()
             : EventRosterMember::query()
                 ->whereIn('roster_id', $rosterIds->all())
-                ->whereNotIn('status', [EventRosterMemberStatus::Declined->value, EventRosterMemberStatus::Removed->value])
-                ->whereHas('roster', static fn ($query) => $query->where('occurrence_id', $occurrence->id))
+                ->whereNotIn('status', [
+                    EventRosterMemberStatus::Declined->value,
+                    EventRosterMemberStatus::Removed->value,
+                ])
+                ->whereHas(
+                    'roster',
+                    static fn ($query) => $query->where('occurrence_id', $occurrence->id),
+                )
                 ->get(['roster_id', 'player_id'])
                 ->groupBy('roster_id');
         $assignedPlayerIds = collect();
@@ -60,6 +77,7 @@ final readonly class EventBattlePlanCommandQuery
         foreach ($assignments as $assignment) {
             if (is_string($assignment->player_id) && $assignment->player_id !== '') {
                 $assignedPlayerIds->push($assignment->player_id);
+
                 continue;
             }
 
@@ -71,6 +89,7 @@ final readonly class EventBattlePlanCommandQuery
                 foreach ($players as $member) {
                     $assignedPlayerIds->push((string) $member->player_id);
                 }
+
                 continue;
             }
 
