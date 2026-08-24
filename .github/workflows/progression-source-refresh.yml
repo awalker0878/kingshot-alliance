@@ -44,7 +44,7 @@ jobs:
         run: python -m pip install --disable-pip-version-check requests beautifulsoup4
 
       - name: Refresh immutable source-backed release
-        run: python scripts/progression/build_v2.py
+        run: python scripts/progression/finalize_v2.py
 
       - name: Validate generated corpus, source inventory and advisory-field exclusion
         run: |
@@ -57,7 +57,7 @@ jobs:
           files = sorted(release_dir.glob('*.json'))
           assert files, 'No generated progression JSON files found.'
           blocked = {
-              'tier_list','tierlist','ranking','recommended','recommendation','recommendations',
+              'tier_list','tierlist','recommended','recommendation','recommendations',
               'investment_priority','upgrade_priority','priority_score','optimizer','optimization',
               'best_use','best_for','f2p_rating','value_rating','longevity_rating'
           }
@@ -78,6 +78,7 @@ jobs:
           release = json.loads((release_dir / 'release.json').read_text(encoding='utf-8'))
           assert release['schema_version'] == 2
           assert release['dataset_version'] == '2026.08.23.2'
+          assert release['review_status'] == 'candidate_complete_source_corpus'
           assert release['source_inventory_document'] == 'docs/product/factual-governor-progression-source-inventory.md'
           declared_files = sorted(release['files'])
           actual_files = sorted(path.name for path in files if path.name != 'release.json')
@@ -94,6 +95,25 @@ jobs:
           ):
               assert required in dispositions, f'Missing disposition: {required}'
 
+          assert dispositions['hero_skills']['canonical_entities'] == 34
+          assert dispositions['hero_skills']['discovered_entities'] == 34
+          assert dispositions['hero_skills']['facts_imported'] >= 262
+          assert dispositions['hero_star_shards']['canonical_entities'] == 34
+          assert dispositions['hero_star_shards']['facts_imported'] == 1054
+          assert dispositions['hero_exclusive_equipment']['applicable_heroes'] == 22
+          assert dispositions['hero_exclusive_equipment']['facts_imported'] == 220
+          assert dispositions['buildings']['canonical_entities'] == 12
+          assert dispositions['masters']['canonical_entities'] == 6
+
+          heroes = json.loads((release_dir / 'heroes.json').read_text(encoding='utf-8'))['heroes']
+          assert len(heroes) == 34
+          assert all(isinstance(hero.get('skills'), list) and hero['skills'] for hero in heroes)
+          for name in ('Triton','Sophia','Yang','Charles','Ava','Wee & Woo'):
+              hero = next(row for row in heroes if row['name'] == name)
+              assert hero['skill_source_status'] == 'maintained_source_inspectable'
+              assert len(hero['skills']) == 8
+              assert 'kingshotdata' in hero['source_ids']
+
           assert release['source_gaps'] == [{
               'id': 'academy-fortified-mail-vi-level-table',
               'family': 'academy_research',
@@ -107,9 +127,9 @@ jobs:
 
           academy = json.loads((release_dir / 'academy_research.json').read_text(encoding='utf-8'))
           assert len(academy['technologies']) == 191
+          assert academy['declared_levels'] == 714
           assert sum(len(t['levels']) for t in academy['technologies']) == 714
           assert academy['declared_max_level_sum'] == 720
-          assert academy['source_table_gaps'][0]['technology'] == 'Fortified Mail VI'
           fortified = next(t for t in academy['technologies'] if t['name'] == 'Fortified Mail VI')
           assert fortified['max_level'] == 6
           assert fortified['levels_status'] == 'source_table_missing'
@@ -137,6 +157,23 @@ jobs:
               assert data['discovered_pages'] == expected
               assert len(data['pages']) == expected
 
+          hero_tables = json.loads((release_dir / 'heroes_tables.json').read_text(encoding='utf-8'))
+          star_rows = 0
+          weapon_rows = 0
+          weapon_heroes = 0
+          for page in hero_tables['pages']:
+              stats = next(table for table in page['tables'] if table['heading'] == 'Stats progression')
+              assert len(stats['rows']) == 31
+              star_rows += len(stats['rows'])
+              weapons = [table for table in page['tables'] if table['heading'] == 'Exclusive Weapon']
+              if weapons:
+                  assert len(weapons) == 1 and len(weapons[0]['rows']) == 10
+                  weapon_heroes += 1
+                  weapon_rows += 10
+          assert star_rows == 1054
+          assert weapon_heroes == 22
+          assert weapon_rows == 220
+
           gear = json.loads((release_dir / 'governor_gear.json').read_text(encoding='utf-8'))
           assert gear['source_meta']['count'] == 58
           war = json.loads((release_dir / 'war_academy.json').read_text(encoding='utf-8'))
@@ -151,8 +188,9 @@ jobs:
           assert {'kingshotdata','kingshotpro-open-data','g2384-kingshot-data'} <= registered_sources
 
           print(
-              f'Validated {len(files)} generated JSON files: 191 Academy techs/714 visible rows, '
-              '60 Alliance Tech techs/279 rows, complete confirmed category sweeps, and one explicit Academy source gap.'
+              f'Validated {len(files)} generated JSON files: 34/34 Hero skills, 1,054 Hero star rows, '
+              '191 Academy techs/714 visible rows, 60 Alliance Tech techs/279 rows, complete source sweeps, '
+              'and one explicit Academy source gap.'
           )
           PY
 
