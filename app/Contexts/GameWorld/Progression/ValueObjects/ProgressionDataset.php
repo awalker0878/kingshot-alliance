@@ -50,6 +50,14 @@ final readonly class ProgressionDataset
         return is_array($items) ? array_values(array_filter($items, 'is_array')) : [];
     }
 
+    /** @return list<array<string,mixed>> */
+    public function sourceGaps(): array
+    {
+        $items = $this->release['source_gaps'] ?? [];
+
+        return is_array($items) ? array_values(array_filter($items, 'is_array')) : [];
+    }
+
     /** @return array<string,mixed>|null */
     public function catalogue(string $family): ?array
     {
