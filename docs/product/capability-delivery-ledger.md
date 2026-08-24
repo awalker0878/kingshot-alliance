@@ -2,11 +2,13 @@
 
 Status: Current as of 2026-08-24
 
-This ledger records shipped outcomes, active capability delivery, remaining evidence gates, and the implementation standard. GitHub remains the source of truth for exact diffs and CI results.
+This ledger records current delivered outcomes, active selected-extension work and remaining evidence gates. It is a work queue, not a speculative roadmap. Git history remains the archive for retired/completed intermediate phase detail and exact diffs/CI runs.
 
-The delivery ledger is a work queue, not a roadmap. Every incomplete capability item created by an active delivery effort must be implemented before that effort is considered complete. A feature discovered during implementation that is required for capability correctness, usability, security, operability or architectural integrity is added to the appropriate slice rather than deferred as an unspecified future enhancement.
+A row is `Complete` only when its complete product/code outcome, authorization, persistence where applicable, idempotency/concurrency where applicable, audit/observability, recovery, responsive/accessibility/localization UX, tests, visual proof where applicable, documentation reconciliation and repository release gates are complete.
 
-## Merged delivery
+Program-state definitions and acceptance criteria for the active extension effort live in [Capability Extension Program](capability-extension-program.md).
+
+## Merged delivery baseline
 
 | PR | Slice | User outcome |
 | --- | --- | --- |
@@ -29,322 +31,135 @@ The delivery ledger is a work queue, not a roadmap. Every incomplete capability 
 | [#96](https://github.com/awalker0878/kingshot-alliance/pull/96) | Operational budgets | Made reviewed production JavaScript and stylesheet ceilings release gates. |
 | [#97](https://github.com/awalker0878/kingshot-alliance/pull/97) | Accessibility and localization | Replaced browser prompts with the shared accessible modal contract and an AST-based enforcement gate. |
 
-Every merged slice passed the repository's applicable PHP, Pint, PHPStan, frontend lint/format/type/build, architecture, CodeQL, dependency-review, visual, production-image, staging, backup/restore and image-scan checks.
+Later capability delivery is represented by the current canonical contracts below and Git history rather than duplicating every retired intermediate queue in this file.
 
-## Screenshot Intake delivery program
+## Current complete capability programs
 
-Target: a complete Bear Hunt Screenshot Intake capability from private upload through reviewed, exactly-once Operations result commit—not a generic OCR demo.
+| Capability/program | Status | Canonical current-truth contract |
+| --- | --- | --- |
+| Gift Code trust/recovery | Complete | [Capability catalogue](capability-catalogue.md) and owner/reference docs |
+| Notifications, recurring Alliance announcements and delivery recovery | Complete | [Capability catalogue](capability-catalogue.md), [user journeys](experience/user-journeys.md) and owner/reference docs |
+| Pagination, shared workflow UX and bounded bulk workflows | Complete | [Capability catalogue](capability-catalogue.md), [user journeys](experience/user-journeys.md) and owner tests |
+| Integration platform and bot/API participation parity | Complete | [Capability catalogue](capability-catalogue.md), [user journeys](experience/user-journeys.md) and public reference contracts |
+| Alliance Content game parity | Complete | [Alliance Content game parity](alliance-content-game-parity.md) |
+| Factual Governor Progression | Complete | [Factual Governor Progression](factual-governor-progression.md) |
+| Kingdom Transfer Planning | Complete | [Kingdom Transfer Planning](kingdom-transfer-planning.md) |
+| Alliance Territory & Hive Planner | Complete | [Capability catalogue](capability-catalogue.md), [Capability completeness plan](capability-gap-analysis.md), [user journeys](experience/user-journeys.md), and architecture/ADR docs |
+| Screenshot Intake — Bear Hunt | Complete | [Screenshot Intake](screenshot-intake.md) |
+| Bear Hunt Debrief | Complete | [Bear Hunt Debrief](bear-hunt-debrief.md) |
+| Alliance Assistant — initial bounded intents | Complete | [Alliance Assistant](alliance-assistant.md) |
+
+A defect or material change that invalidates a completed capability's canonical acceptance/Definition-of-Done contract reopens that capability as a regression. A new extension does not make the prior delivered capability incomplete.
+
+## Screenshot Intake — Bear Hunt reconciliation
+
+Target: a complete Bear Hunt Screenshot Intake workflow from private upload through reviewed, exactly-once Operations result commit.
 
 Canonical contract: [Screenshot Intake](screenshot-intake.md).
 
-Architectural ownership is intentionally split:
-
-- `Intelligence/Evidence` owns uploaded binaries, immutable source provenance, classification/extraction attempts, field confidence, reviews/corrections, duplicate decisions, Evidence-side commit attempts/receipts and retention.
-- `Operations/Results` owns accepted Bear Hunt battle-report ledgers, entries and recomputed Event result aggregates.
-- `app/ReadModels/ScreenshotIntake` composes the review workspace without becoming a writer.
-- The Evidence application Action coordinates the commit handshake through scalar/value-object data and the destination owner Action; Screenshot Intake does not add a top-level `app/Workflows` family.
-
-`Complete` means the phase is implemented across behavior, authorization, idempotency, persistence, UX, accessibility/localization, observability/recovery, tests and current-truth documentation. Screenshot Intake reached that state after one immutable implementation candidate passed the applicable repository quality/release gates and the Phase 15 spec→code, code→spec and UX→backend scan found no remaining gap.
-
-### Phase queue
-
-| Phase | Status | Slice | Exit condition |
-| --- | --- | --- | --- |
-| 1 | Complete | Product contract and architecture ownership | `/docs/product` defines the full capability, ownership is recorded in architecture/data-ownership/ADR docs, and Evidence vs Operations write ownership is unambiguous. |
-| 2 | Complete | Secure evidence upload and immutable provenance | Private storage, actual MIME/image validation, size limits, shared security scan, checksums/dimensions/source metadata, current authorization and same-scope exact duplicate reuse are implemented and behavior-tested. |
-| 3 | In progress | Screenshot classification | Versioned immutable classification attempts, OCR provenance, failure state, queues/retry and Bear Hunt classification are implemented and verified. |
-| 4 | In progress | Bear Hunt battle-report extraction | The first schema extracts only supported report timestamp/ranking-row facts through a versioned extractor contract with verified failure/retry behavior. |
-| 5 | Complete | Field-level confidence and extraction history | Raw OCR, normalized candidates, data type, confidence, bounding boxes/warnings and immutable extraction-attempt history are retained and verified. |
-| 6 | Complete | Review, Player resolution and manual correction | Every first-release screenshot requires review; included rows resolve to existing eligible Player IDs; corrections never overwrite machine history and OCR text cannot create/mutate Players. |
-| 7 | In progress | Exact, visual and semantic duplicate detection | SHA duplicates are scoped/reused, perceptually similar binary-distinct images remain separate warnings, semantic duplicates block commit until explicitly resolved, and cross-Alliance evidence is never disclosed. |
-| 8 | Complete | Commit preview and validation | The workspace previews current + report = post-commit score changes and blocks unresolved/ineligible/duplicate-invalid reviewed meaning. |
-| 9 | Complete | Scalar cross-context commit | Evidence builds reviewed scalar/value-object meaning and invokes the `Operations/Results` owner Action without foreign Eloquent models or cross-context persistence writes. |
-| 10 | Complete | Bear Hunt report ledger and idempotent aggregation | Operations records source-linked immutable report/entry facts, preserves pre-import baselines and deterministically recomputes Governor totals without additive double counting. |
-| 11 | In progress | Retry/recovery and commit receipts | Stable destination idempotency survives interrupted acknowledgement; retries recover the same Operations report and Evidence retains immutable attempt/receipt history. |
-| 12 | In progress | Evidence deletion, redaction and retention | Deletion/retention physically removes binaries/sensitive OCR as required, keeps minimum committed provenance, prevents bounded-scan starvation and never cascades into accepted Operations results. |
-| 13 | Complete | Operational diagnostics and observability | Privacy-safe diagnostics, queue/retry visibility, audit/outbox records, failure codes and retention/recovery procedures are implemented and documented. |
-| 14 | Complete | Accessibility, responsive UX, localization and visual regression | Bear Hunt entry, upload/processing/review/duplicate/preview/commit/history states are localized, keyboard/mobile-safe and protected by deterministic desktop/mobile visual baselines. |
-| 15 | Complete | Full capability audit and closeout | The repository-wide contract scan found no TODO/scaffolding/stale ownership/undocumented behavior; the ledger and Screenshot Intake contract describe implemented current state; one immutable implementation candidate passed all applicable gates. |
-
-The Screenshot Intake delivery queue is closed: every phase is Complete and no known Screenshot Intake product feature is deferred. Any defect or material change that invalidates a phase exit condition is a regression that reopens the affected phase and must restore the same release evidence before closeout.
-
-### Cross-phase invariants
-
-These are not deferrable cleanup items:
-
-1. Evidence is not domain truth; accepted Bear Hunt result facts remain Operations-owned.
-2. Public write contracts use scalar IDs/value objects and never pass foreign Eloquent models.
-3. Every material mutation revalidates current active-Player/scope authority at the write boundary.
-4. Original extraction/confidence/history remains immutable after manual correction.
-5. OCR names never create or mutate Player identity.
-6. Exact/perceptual/semantic duplicate handling cannot disclose another Alliance's evidence.
-7. Operations aggregation is report-ledger recomputation; retry cannot add damage twice.
-8. Evidence deletion/redaction never silently removes an accepted Operations result.
-9. No compatibility shims, legacy routes, dual reads/writes or placeholder architecture survive closeout.
-10. A phase is not Complete until its tests, UX, docs, observability/recovery and applicable gates are complete.
-
-## Bear Hunt Debrief delivery program
-
-Target: one complete Alliance Bear Hunt after-action experience from authoritative run facts through review handoff, comparison and trends—not a parallel BearHunt domain or a second result store.
-
-Canonical contract: [Bear Hunt Debrief](bear-hunt-debrief.md).
-
-Architectural ownership is intentionally composed rather than transferred:
-
-- `Operations/Events` owns Event type, target and `EventOccurrence` run identity.
-- `Operations/Results` owns accepted Bear Hunt reports and authoritative projected Governor damage/rank.
-- `Operations/Participation` owns attendance facts.
-- `Operations/Rallies` owns actual recorded Rally participation.
-- `Intelligence/Evidence` owns unresolved extracted Governor observations and review lifecycle.
-- `app/ReadModels/EventAnalysis` composes current/history/comparison/trend reads only and owns no Debrief persistence or write semantics.
-
-`Complete` means the phase has backend behavior, authorization, applicable owner idempotency/audit/recovery, observability, responsive/accessibility/localization UX, tests, visual proof and current-truth documentation. All phases reached Complete after immutable implementation head `fd821e470ef19f51bfff14499c3f417f3cd3eeff` satisfied the documented exit conditions and passed every applicable repository release gate.
-
-### Phase queue
-
-| Phase | Status | Slice | Exit condition |
-| --- | --- | --- | --- |
-| 1 | Complete | Product contract and ownership | Canonical Debrief contract, capability catalogue, gap analysis, delivery ledger and architecture/reference/operations docs agree on complete scope and owner boundaries. |
-| 2 | Complete | Authoritative current-run facts | Results, Participation and Rallies owner queries expose total/Governor damage/rank, attendance and recorded Rally facts with explicit zero-vs-missing semantics and owner behavior tests. |
-| 3 | Complete | Historical composition and comparison | EventAnalysis returns bounded same-Alliance Bear Hunt history, correct immediately preceding completed run, personal/Alliance trends and null/zero-safe Alliance + active-Governor comparison. |
-| 4 | Complete | Unmatched-Governor review and authorization | Manager-only Intelligence/Evidence unresolved rows deep-link to Screenshot Intake, lifecycle advancement removes resolved rows, and cross-Alliance/current-authority tests prevent leakage. |
-| 5 | Complete | HTTP, idempotency integration, audit and observability | Authenticated/verified active-Governor HTTP route is authorized; Debrief stays read-only; corrective writes keep owner idempotency/audit/outbox contracts; read telemetry is privacy-safe and tested. |
-| 6 | Complete | Responsive, accessible and localized UX | Desktop and mobile surfaces cover summary, Your Hunt, leaderboard, Needs Review, previous Hunt, trends, history and all explicit missing-data states with keyboard/semantic/text-equivalent behavior in every supported locale. |
-| 7 | Complete | Behavioral and performance verification | Current facts, all attendance states, Rally evidence semantics, Evidence lifecycle/tenant safety, comparisons, history bounds, active Governor without result and a 100-Governor no-N+1 budget are covered. |
-| 8 | Complete | Deterministic visual regression | Complete/unmatched Debrief renders on deterministic desktop/mobile fixtures without horizontal overflow and both screenshots have accepted stable SHA-256 fingerprints. |
-| 9 | Complete | Final audits and repository release gates | Spec→code, code→spec, UX→backend, authorization, architecture and data-ownership scans found no known gap/TODO/placeholder; PHP/Pint/PHPStan/frontend/architecture/Intelligence/CodeQL/dependency/visual/container/staging/backup/recovery gates passed on immutable implementation head `fd821e470ef19f51bfff14499c3f417f3cd3eeff`. |
-
-The Bear Hunt Debrief delivery queue is closed: every phase is Complete and no known Bear Hunt Debrief product feature is deferred. Final closeout documentation is status-only and repeats the applicable repository gates before merge. Any defect or material change that invalidates a phase exit condition is a regression that reopens the affected phase and must restore the same release evidence before closeout.
-
-### Cross-phase invariants
-
-1. A Hunt/run is an existing `EventOccurrence`; there is no `bear_hunt_runs` store.
-2. Results-owned projected scores/ranks are authoritative; EventAnalysis never re-sums OCR rows into competing domain truth.
-3. Attendance is independent from damage; damage does not imply present and no damage does not imply absent.
-4. Rally counts require explicit recorded participation evidence. Assigned/confirmed planning state is not actual participation, while recorded zero remains distinct from not recorded.
-5. Unmatched Governor identity review remains an Intelligence/Evidence workflow; Debrief never creates/mutates Players from extracted names.
-6. Historical comparison is same Bear Hunt type and same historical Alliance target only; current membership does not rewrite historical scope.
-7. Debrief is read-only. Any review/correction/removal/attendance/Rally mutation uses the owning capability Action and inherits that owner's current authorization, idempotency, audit/outbox and recovery rules.
-8. Read diagnostics never log Governor names, damage values, OCR text, screenshots or raw Evidence.
-9. EventAnalysis owns composition only; no BearHunt bounded context, cross-context persistence write or duplicate statistics table may appear.
-10. Missing is never silently rendered as zero, including historical Rally/attendance data and comparison percentages from a zero baseline.
-
-## Territory & Hive Planner delivery program
-
-Target: a complete Alliance Territory & Hive Planner, not a drawing-only MVP.
-
-Architectural ownership is intentionally split:
-
-- `GameWorld/KingdomMaps` owns immutable/versioned map facts, map-dataset provenance and sourced game placement rules.
-- `Operations/TerritoryPlanning` owns mutable planning intent, saved layouts, planning preferences, deterministic analysis, revisions and Operations-facing references.
-- `app/ReadModels/TerritoryPlanning` composes map, Alliance, Player and plan reads for the editor without becoming a writer.
-- `BattlePlans` remains Event-objective/assignment state and does not absorb spatial persistence.
-
-Territory implementation and release readiness are tracked together. `Complete` means the slice has its full product/code outcome, owner tests/contracts, documentation and required release evidence. The final PR candidate must pass the complete repository Definition of Done on one immutable head; the resulting `main` commit repeats the applicable CI, CodeQL, Architecture and Visual gates. A failing post-merge gate immediately reopens blocking closeout work rather than becoming deferred follow-up.
-
-### Slice queue
-
-| Order | Status | Slice | Exit condition |
-| --- | --- | --- | --- |
-| 0 | Complete | Product/architecture contract | Product catalogue, gap analysis, delivery ledger, journeys, capability/data-ownership maps, ADR, frontend capability truth and permissions describe the final ownership and complete delivery target with no contradictory “territory unsupported” current docs. |
-| 1 | Complete | Map dataset and geometry foundation | `GameWorld/KingdomMaps` has immutable schema-versioned/checksummed datasets, provenance/confidence metadata, canonical coordinate/rectangle geometry values, structured sourced placement rules and shared PHP/TypeScript golden geometry fixtures. No opaque community coordinate/rule set is treated as official truth. |
-| 2 | Complete | Plan persistence and authorization | `Operations/TerritoryPlanning` owns plan/alliance/object/group/preference state, active-Player scoped authorization, optimistic revision protection, normalized editable persistence and immutable published revision snapshots. External Alliance/Governor plan references do not create fake application entities. |
-| 3 | Complete | Accessible editor baseline | A localized Inertia/Vue Territory Command page supports list/create/open/save/publish/archive/clone, pan/zoom, exact coordinates, HQ/Banner/Governor city/Bear Trap placement, selection/move/delete/duplicate and synchronized keyboard/DOM editing. Laravel remains save authority. |
-| 4 | Complete | Validation, territory and advanced editing | Server-authoritative map bounds, footprint collision, fixed-structure/no-build zones, caps and territory connectivity return structured violations/warnings/suggestions; browser preview matches golden fixtures; coverage rendering, box select, grouping, ungrouping, 90-degree rotation, keyboard nudging and undo/redo are complete. |
-| 5 | Complete | Hive generators and march analysis | Bear-hive presets are typed generators with preview/validate/commit and customizable output; TC block placement works; distance/march analysis is deterministic, labels assumptions, supports Bear Trap selection and never presents guessed speed as official game truth. |
-| 6 | Complete | Layout analysis and comparison | The planner reports covered/uncovered Governors, disconnected territory, banner efficiency, invalid/warning counts, average/median/max distances and comparable deterministic metrics; immutable revisions can be compared without mutating either. |
-| 7 | Complete | Multi-Alliance Kingdom planning | One Kingdom plan supports multiple application-linked and external Alliances, independent visibility/labels/presentation colors, object counts, locks/access decisions and shared spatial validation without transferring Alliance or GameWorld ownership. Participant management revalidates authority/revision under lock and protects layers that still own planned objects. |
-| 8 | Complete | Revisions, interchange and export | Publish creates immutable revisions pinned to a map dataset/checksum; restore/clone is explicit; JSON import uses parse → normalize → validate → preview → commit with schema versioning; JSON export plus shareable PNG and SVG rendering are implemented and tested. |
-| 9 | Complete | Operations integration | Event positioning can reference an immutable published territory-plan revision through scalar IDs/read composition. Editing a plan head cannot rewrite an Event's referenced historical layout; BattlePlans retains objective/assignment ownership. |
-| 10 | Complete | Release closeout | No Territory/Hive TODOs, placeholders, compatibility shims, temporary workflows, dual schemas or incomplete ledger items remain. The immutable release candidate must keep accessibility/mobile/visual coverage, PHP tests, Pint, PHPStan, frontend checks/build, architecture checks, CodeQL, dependency review, production image build/scan, clean PostgreSQL install, staging and backup/restore green; the merged `main` commit repeats the applicable push-triggered gates. |
-
-The Territory & Hive Planner delivery queue is closed: every planned slice is Complete and no known Territory product feature is deferred. Any defect exposed by PR or post-merge `main` verification is a regression that reopens blocking closeout work; it is not recorded as a future enhancement.
-
-### Cross-slice invariants
-
-These are not deferrable cleanup items:
-
-1. **Map fact vs rule vs preference:** a map fact describes the world; a sourced game rule determines legality; an Alliance planning preference creates a warning/suggestion. They are persisted and presented separately.
-2. **Structured validation:** placement validation returns machine-readable violations, warnings and optional suggestions. A boolean-only `canPlace` API is not sufficient.
-3. **Geometry parity:** browser geometry is preview only; Laravel is authoritative. PHP and TypeScript consume shared golden fixtures for coordinates, footprints, bounds, collisions, rotations, coverage and rule outcomes.
-4. **Save boundaries:** pointer movement does not create one HTTP mutation per pixel/drag. The browser maintains working state and saves a coherent proposed layout against an expected plan revision.
-5. **Historical truth:** current editable state is normalized; immutable published/history snapshots pin the map dataset and checksum. Downstream workflows reference a revision, not mutable head state.
-6. **External references:** external Alliances/Governors used for Kingdom planning remain explicit plan-local references when no application identity exists.
-7. **Canvas accessibility:** canvas is never the only control surface. Objects remain selectable/editable through semantic DOM controls with exact coordinates and non-color validation messages; the viewport also exposes keyboard-focusable zoom/fit controls.
-8. **No hidden formulas/data:** Vue components do not own placement rules, cost tables, march constants or map datasets.
-9. **No partial completion:** a slice is not Complete until its UX, backend behavior, authorization, persistence, validation/concurrency, accessibility, localization, observability, tests and current-truth documentation are all complete.
-
-### Required observability/recovery
-
-The capability records audit evidence for plan create/save/publish/archive/restore/import and Kingdom participant-layer changes; conflicts distinguish stale revision from validation/authorization failures; imports are structurally validated and previewed before write; invalid map datasets fail closed; and published revisions remain readable after newer map datasets appear.
-
-## Previous completeness program
-
-The pagination, shared UX/navigation, safe-bulk, Gift Code trust, recurring communications, integration-contract, external-actor parity, knowledge/operations and release-closeout improvement slices have been completed. Their detailed history remains in Git history and their current outcomes live in the capability catalogue, journeys, reference docs and owner-context tests.
-
-## Remaining evidence gate: calculators
-
-Calculators remain outside the Territory & Hive Planner effort. Community calculator pages demonstrate demand, but their visible results do not provide an authoritative, reviewable dataset contract.
-
-Calculator work may start only when all of these are true:
-
-1. Every row has a source URI, source label, `observed_at`, game-version boundary, and unit.
-2. Values come from one official inspectable table or are reconciled across two independent inspectable sources plus recorded in-game evidence.
-3. Disagreements, regional differences, unlock conditions, and unknown values are explicit; unknown never means zero.
-4. Each released dataset is immutable, schema-versioned, checksummed, and retained when superseded.
-5. Calculation code consumes the dataset through a typed domain contract; Vue components contain no cost tables or formulas.
-6. Golden fixtures cover single-step, range, promotion, bonus, rounding, and unavailable-data boundaries.
-7. The UI displays dataset version, source, observation date, assumptions, and a report-correction path.
-8. Saved scenarios reference their dataset version so later data corrections cannot silently rewrite historical plans.
-
-Until that evidence gate opens, calculator pages, guessed formulas, placeholder values and copied opaque tables remain intentionally out of scope.
-
-## Kingdom Transfer Planning delivery program
-
-Target: sourced KingShot transfer planning that preserves Alliance readiness while answering whether a Governor can transfer to a specific target Kingdom in the selected Transfer Window and exactly what remains.
-
-Canonical contract: [Kingdom Transfer Planning](kingdom-transfer-planning.md).
-
-The Evidence-provenance reconciliation is complete. Evidence-backed transfer facts prove same-Alliance ownership and latest approved review through the Intelligence/Evidence owner contract; manual forms cannot claim an Evidence source without an owner-authorized selection; optional Evidence attachments on other source types are same-Alliance checked. Canonical closeout commit `72e4472ded5b1b6c08ae4c98c9848438f74f03ef` passed CI, Architecture V3 Verification, Intelligence Verification, CodeQL, Dependency Review and Visual Regression.
-
-### Phase queue
+The previous global ledger contained stale status labels for phases 3, 4, 7, 11 and 12 even though the canonical Screenshot Intake contract and final closeout state say the full 15-phase Bear Hunt program is complete. Phase 0 reconciles the ledger to that canonical truth.
 
 | Phase | Status | Slice |
 | --- | --- | --- |
-| 1 | Complete | Product contract |
-| 2 | Complete | Cohort terminology correction |
-| 3 | Complete | Transfer Window + official groups |
-| 4 | Complete | Governor observation history |
-| 5 | Complete | Eligibility domain |
-| 6 | Complete | HTTP/read composition |
-| 7 | Complete | Management UX |
-| 8 | Complete | Decision-first participant UX |
-| 9 | Complete | Accessibility/localization/mobile |
-| 10 | Complete | Audit/observability/recovery |
-| 11 | Complete | Behavioral/architecture/performance tests |
-| 12 | Complete | Visual regression + closeout |
+| 1 | Complete | Product contract and architecture ownership |
+| 2 | Complete | Secure evidence upload and immutable provenance |
+| 3 | Complete | Versioned screenshot classification |
+| 4 | Complete | Bear Hunt battle-report extraction |
+| 5 | Complete | Field-level confidence and extraction history |
+| 6 | Complete | Review, Player resolution and manual correction |
+| 7 | Complete | Exact, visual and semantic duplicate detection |
+| 8 | Complete | Commit preview and validation |
+| 9 | Complete | Scalar cross-context commit |
+| 10 | Complete | Bear Hunt report ledger and idempotent aggregation |
+| 11 | Complete | Retry/recovery and commit receipts |
+| 12 | Complete | Evidence deletion, redaction and retention |
+| 13 | Complete | Operational diagnostics and observability |
+| 14 | Complete | Accessibility, responsive UX, localization and visual regression |
+| 15 | Complete | Full capability audit and closeout |
 
-The Kingdom Transfer Planning queue is closed: every phase is Complete and no known implementable capability requirement is deferred. The exact Transfer Pass formula remains evidence-gated because no authoritative version-bounded formula is available; observed required-pass facts are supported and missing formula evidence never produces false eligibility. Any later defect or material change that invalidates a phase exit condition reopens that phase and must restore the same release evidence before closeout.
+### Bear Hunt Evidence invariants retained by later extensions
 
-### Cross-phase invariants
+1. Evidence is not domain truth; the destination owner owns accepted meaning.
+2. Public write contracts use scalar IDs/value objects and never pass foreign Eloquent models.
+3. Every material destination mutation revalidates current active-Player/concrete-scope authority.
+4. Original extraction/confidence history remains distinct from human review/correction.
+5. OCR text cannot create or mutate Player identity.
+6. Exact/perceptual/semantic duplicate handling cannot disclose another Alliance's evidence.
+7. Destination retries are idempotent; a recovered receipt cannot duplicate domain meaning.
+8. Evidence deletion/redaction never silently removes accepted destination truth.
+9. No compatibility shims, legacy routes, dual reads/writes or placeholder ownership survive closeout.
 
-1. Readiness is not eligibility.
-2. Eligibility is derived, never stored as a boolean.
-3. Mutable eligibility facts retain source, observation time and validity.
-4. Missing, stale, conflicting or non-authoritative facts cannot produce `eligible_now`.
-5. Official Transfer Groups are window-scoped; Alliance planning uses Transfer Cohorts.
-6. Community data is discovery evidence only.
-7. View authority is distinct from R4/R5 management authority; every write reauthorizes current scope.
-8. Owner Actions keep writes; controllers/read models/Vue do not own game rules.
-9. No compatibility shim, dual read/write path or legacy planning-group name survives.
-10. Evidence-gated unpublished game truth is never invented.
+Transfer and Governor Progression Screenshot Intake are separate selected extensions below. They reuse these Evidence invariants but have their own typed schemas, destination owner Actions and acceptance criteria.
 
-## Alliance Content game-parity delivery program
+## Capability Extension Program delivery queue
 
-Target: a deliberately small KingShot-familiar Content slice with one first-class canonical Alliance Rules workflow and lightweight member Like/Dislike reactions on published Alliance Notices—without creating a social-ranking system or expanding publishing authority.
+Canonical contract: [Capability Extension Program](capability-extension-program.md).
 
-Canonical contract: [Alliance Content game-parity slice](alliance-content-game-parity.md).
+Phase 0 is documentation-only. No application code, migration, route, frontend component or runtime configuration is part of Phase 0.
 
-Ownership remains in `Alliance/Content`; `Alliance/Access` continues to own active scope and `ContentManage`. Canonical Rules reuse Content persistence/revisions/audit/outbox, while reaction writes revalidate active Alliance membership and never consult Content publishing authority. The slice introduces no social/reputation context, engagement score, ranking read model, recommendation behavior or reaction-driven ordering.
+| Phase | Program state | Status | Slice | Acceptance criteria / exit condition |
+| --- | --- | --- | --- | --- |
+| 0 | Contract work | Complete | Reconcile `/docs/product` | Screenshot Intake stale rows reconciled; extension contract created/indexed; catalogue/gap analysis/ledger/journeys aligned; ownership/provenance documented before application changes; no runtime changes. |
+| 1 | Selected extension | Not started | Alliance Assistant `game_fact` | `AE-01`–`AE-03`, `AE-07`, `AE-09`–`AE-12`, plus `PX-*`: source-backed Progression query, immutable dataset/source/confidence citations, unknown/conflict semantics, authorization-before-retrieval, bounded UX/tests/release evidence. |
+| 2 | Selected extension | Not started | Assistant operational-self intents and safe handoffs | `AE-04`–`AE-12`, plus `PX-*`: Participation/BattlePlan/Transfer/Territory self reads are authorized/bounded; write-like requests perform zero mutation and only navigate to canonical owner workflows. |
+| 3 | Selected extension | Not started | Event Readiness | `ER-01`–`ER-12`, plus `PX-*`: capability-aware pre-Event readiness composed from owner projections with explicit blockers/source/action links and no persisted readiness state machine. |
+| 4 | Selected extension | Not started | Event Closeout | `ER-01`–`ER-12`, plus `PX-*`: post-Event attendance/Rally/Results/Evidence/review/Debrief completion composed with explicit missing semantics and owner correction links. |
+| 5 | Selected extension | Not started | Kingdom Transfer Screenshot Intake | `TE-01`–`TE-12`, plus `PX-*`: typed fixture-proven extraction/review, tenant-safe duplicate/retry, scalar owner commit, freshness/source semantics and eligibility reevaluation without invented rules. |
+| 6 | Selected extension | Not started | Governor Progression Screenshot Intake | `GE-01`–`GE-12`, plus `PX-*`: typed extraction/review, canonical identity normalization pinned to immutable Progression release, append-only Roster owner commit, tenant-safe retry/retention. |
+| 7 | Selected extension | Not started | Progression Goal Planner | `GP-01`–`GP-10`, plus `PX-*`: authorized observed current state + pinned factual target/prerequisites, explicit unknown/conflict/freshness, no recommendation semantics or unqualified totals. |
+| 8 | Evidence-gated extension | Gate not executed | Calculator evidence qualification per family | `CE-01`–`CE-06` and the ten qualification conditions: independent family reports, explicit source/version/unit/conflict coverage, immutable datasets, typed calculation contract/golden fixtures; no runtime calculator unlock. |
+| 9 | Evidence-gated extension | Blocked pending qualification | Evidence-backed calculators | `CI-01`–`CI-08`, plus `PX-*`; implement only for a family whose Phase 8 qualification report is `qualified`. Unqualified families remain unavailable. |
+| 10 | Selected extension | Not started | Territory plan vs observed state | `TR-01`–`TR-08`, plus `PX-*`: immutable desired plan versus dated observed evidence, typed coordinate tolerance, explicit stale/missing semantics, no plan/map rewrite from observation. |
+| 11 | Selected extension | Not started | Intelligence change signals | `IS-01`–`IS-08`, plus `PX-*`: deterministic source-cited signals over authorized histories, typed thresholds/windows, no inferred strategic intent, privacy-safe telemetry. |
+| 12 | Selected extension | Not started | Full reconciliation and release closeout | `PX-01`–`PX-15`: spec→code, code→spec, UX→backend, authorization, provenance/data ownership, missing-data, performance, accessibility/localization, observability/recovery and complete repository release gates are green on one immutable candidate. |
 
-Immutable implementation head `59699b34a9edaebb16e422522d6c78d4aba558f8` passed the complete repository Definition of Done against unchanged `main` base `b7d126cc29d4794d0bcfd1d9e2ed39b6daf55e00`: CI, Architecture V3 Verification, Intelligence Verification, King Perks Verification, Visual Regression, CodeQL and Dependency Review all succeeded. CI included fresh PostgreSQL installation, PHP/Pint/PHPStan/full tests, frontend lint/format/type/build, production image build, ephemeral staging, backup/restore and image scan. Visual Regression passed all 26 Playwright tests, including all eight Alliance Content desktop/mobile surfaces.
+`Not started` means the approved product contract exists but the implementation outcome must not be described in present tense. `Blocked pending qualification` is intentional evidence gating, not an implementation defect.
 
-### Phase queue
+## Calculator evidence qualification ledger
 
-| Phase | Status | Slice | Exit condition |
+Qualification is independent by family. Current factual-reference completeness does not imply calculator qualification.
+
+| Family | Qualification state | Runtime calculator state | Required next evidence work |
 | --- | --- | --- | --- |
-| 1 | Complete | Product contract and ownership | Product contract, capability ownership, authorization/data invariants, UX states, acceptance criteria and anti-ranking boundaries are explicit and current. |
-| 2 | Complete | First-class Alliance Rules | Dedicated canonical Rules Action/read surface, reserved identity, Content revisions/audit/outbox, owner validation, exclusive aggregate locking, generic-mutation isolation, member read and manager-only write authority are implemented and behavior-tested. |
-| 3 | Complete | Alliance Notice reactions | Like/Dislike persistence, one-reaction invariant, active-member authority, current-context precondition, target validity, switching/removal/idempotency and privacy-minimal audit behavior are implemented and tested. |
-| 4 | Complete | Read composition and UX | Bounded reaction summaries, first-class Rules navigation, localized/accessibility/mobile states, retryable failure UX, anti-ranking behavior and eight accepted desktop/mobile visual fingerprints are complete. |
-| 5 | Complete | Verification and closeout | Spec→code/code→spec/UX→backend audits are clean; affected product/reference/architecture/frontend docs are reconciled; the complete repository release gate is green on immutable implementation head `59699b34a9edaebb16e422522d6c78d4aba558f8`. |
+| Governor Gear | Gate not executed | Disabled | Produce `CE-*` qualification report against immutable source rows and calculation fixtures. |
+| Governor Charms | Gate not executed | Disabled | Produce `CE-*` qualification report against immutable source rows and calculation fixtures. |
+| Hero Gear / Mastery | Gate not executed | Disabled | Produce `CE-*` qualification report against immutable source rows and calculation fixtures. |
+| Troop training / promotion | Gate not executed | Disabled | Produce `CE-*` qualification report against immutable source rows and calculation fixtures. |
+| Academy / War Academy research | Gate not executed | Disabled | Produce `CE-*` qualification report; explicit source gaps/conflicts remain blockers where calculations depend on them. |
+| Buildings / Truegold progression | Gate not executed | Disabled | Produce `CE-*` qualification report against immutable source rows and calculation fixtures. |
 
-The Alliance Content game-parity delivery queue is closed: every phase is Complete, all 22 acceptance criteria in the canonical contract are satisfied, and no known Alliance Rules or Notice reaction requirement is deferred. Any later defect or material change that invalidates an exit condition reopens the affected phase and must restore the same release evidence before closeout.
+No family can transition to `qualified` by documentation assertion alone. The evidence package, immutable data release, reconciliation result and golden calculation fixtures must exist and pass review/tests. Qualifying one row has no effect on another family.
 
-### Cross-phase invariants
+## Program-wide ownership/provenance invariants
 
-1. Canonical Alliance Rules are Content-owned and use the reserved Alliance-local `alliance-rules` identity; no parallel Rules store exists.
-2. The dedicated Rules workflow is the only mutation path for the canonical item; generic create/save/publish/schedule/archive/restore flows cannot claim or mutate it.
-3. Rules writes reauthorize `ContentManage` inside the transaction and serialize canonical first-create/update with the Alliance aggregate's exclusive write lock.
-4. Ordinary active members can read Rules but cannot update them.
-5. Notice reactions require active Alliance membership, not Content-management or publishing authority.
-6. Draft, future-scheduled, archived, non-Announcement and foreign-Alliance targets are not reactable; stale/missing Governor context retains the repository-standard 409 precondition.
-7. One Player has at most one Like/Dislike per Notice; switching/removal/repeated requests are deterministic and idempotent.
-8. Reaction reads expose only Like count, Dislike count and the current Player's reaction through a bounded query composition.
-9. Reactions never affect ordering, visibility, pinning, moderation, recommendation, reputation, notification delivery or any derived popularity/ranking signal.
-10. Accessibility, localization, mobile behavior, visual regression, audit/observability and failure/retry behavior are part of the capability contract, not follow-up polish.
+These apply to every open delivery row and cannot be deferred:
 
-## Factual Governor Progression delivery program
+1. **One canonical owner.** Every new datum has exactly one source-of-truth owner; ReadModels and Assistant compose only.
+2. **Evidence is provenance, not destination truth.** Evidence owns artifact/extraction/review/receipt; destination owners reauthorize, validate and persist accepted meaning.
+3. **Authorization before retrieval.** Unauthorized data never enters a candidate/evidence/readiness/signal/comparison set and is not filtered only after retrieval.
+4. **Write ownership.** Cross-context writes use scalar IDs/value objects through owner Actions; no foreign Eloquent model mutation.
+5. **Immutable source boundaries.** GameWorld datasets/releases and published Territory revisions retain version/checksum/source identity; later source changes never rewrite historical meaning.
+6. **Explicit uncertainty.** Missing, stale, unknown, unsupported and conflicting states cannot silently satisfy readiness, eligibility, calculation or reconciliation.
+7. **Classification discipline.** Game data, operational fact, Alliance strategy, observation, evidence and planning intent remain distinct end to end.
+8. **No parallel domains for composition.** Do not create AssistantKnowledge, EventReadiness/EventCloseout, TransferOCR/ProgressionOCR, Calculator or TerritoryReality top-level contexts merely to compose existing owners.
+9. **No hidden formulas/policy in presentation.** Normalization, calculation, tolerance, thresholds and business rules live in typed domain/services/configuration with tests, never controllers/jobs/bots/Vue.
+10. **Recovery and privacy.** Retry/replay is bounded/idempotent and diagnostics never expose raw screenshots/OCR/private Assistant questions/sensitive provider payloads or unauthorized identity data.
+11. **No compatibility debt.** Because the application is not deployed, do not retain shims, deprecated aliases, dual schemas, dual reads/writes or legacy routes.
 
-Target: a comprehensive factual KingShot progression corpus and Governor progression/loadout experience whose completeness is proven by reproducible source-backed releases, not by links to external sites. Canonical contract: [Factual Governor Progression](factual-governor-progression.md).
+## Definition of Done for an extension row
 
-Architectural ownership remains split: `GameWorld/Progression` owns immutable catalogue truth and reconciliation; `Intelligence/Roster` owns dated Governor observations; `Operations/Rallies` owns saved loadout/planning intent. The calculator evidence gate remains closed independently of factual-reference completeness.
+A selected extension does not become a Current complete capability until all applicable items below are satisfied on one immutable candidate:
 
-Release `2026.08.23.2` canonicalizes the selected open/inspectable source surface: 34 Heroes/262 skills/1,054 star rows, 220 Exclusive Weapon rows, Hero Gear/Mastery, 58 official Governor Gear rows, 22 Charm levels, 8 community formation conventions, 12 Buildings, 15 troop records, 191 Academy technologies/714 published rows, 30 War Academy technologies, 60 Alliance Technologies/279 rows, 14 Pets, 6 Masters and the selected Truegold/VIP/max-level/event reference families. `Fortified Mail VI` remains the single explicit Academy table gap because its six level rows are not published; no values are inferred.
+- owner domain/application behavior and persistence/migrations where needed;
+- active-Player/concrete-resource authorization and tenant isolation;
+- idempotency/concurrency and crash/retry behavior where applicable;
+- provenance, immutable-version/checksum/freshness/conflict semantics;
+- audit/outbox/observability and documented recovery;
+- complete HTTP/application boundaries and stable typed contracts;
+- responsive/mobile UX, keyboard/screen-reader accessibility and supported-locale localization;
+- behavior, authorization, architecture, contract, performance/query-budget and frontend tests;
+- deterministic visual regression for material journeys;
+- current-truth `/docs/product` reconciliation and architecture/reference/operations/codebase/ADR updates when their contracts changed;
+- PHP tests, Pint, PHPStan, frontend lint/format/type/build, architecture/contracts, CodeQL, dependency review, production image/container scan, staging/clean-database, backup/restore and other repository release gates green as applicable.
 
-### Phase queue
-
-| Phase | Status | Slice | Exit condition |
-| --- | --- | --- | --- |
-| 0 | Complete | Product contract | Product/evidence/reuse/ownership/UX/authorization/calculator-gate contract is the implementation source of truth. |
-| 1 | Complete | Architecture + release foundation | Source registry, immutable releases, deterministic checksums, owner boundaries and import validation are implemented. |
-| 2 | Complete | Source discovery + snapshots | Selected official/community/open/GitHub source surfaces are surveyed and reproducibly pinned; complete reusable tables are not left index-only. |
-| 3 | Complete | Heroes | 34-Hero roster, progression, XP/shards and 262 structured skills are represented/dispositioned. |
-| 4 | Complete | Exclusive equipment + Widgets | 22 applicable ten-level Exclusive Weapon ladders (220 rows), non-applicability and Widget progression are represented. |
-| 5 | Complete | Hero Gear + Mastery | Selected inspectable enhancement/mastery/material tables are represented with provenance. |
-| 6 | Complete | Governor Gear + Charms | 58 official Gear rows and 22 Charm levels are canonical; Tier-A resolutions retain superseded claims. |
-| 7 | Complete | Named formations | Eight sourced ratios remain scoped community conventions with no recommendation semantics. |
-| 8 | Complete | Buildings + unlocks | All 12 maintained Building entities/tables are represented; disputed early prerequisite prose is explicitly dispositioned. |
-| 9 | Complete | Troops | Selected troop-tier/cost/time/points facts are canonicalized with source terminology. |
-| 10 | Complete | Academy + War Academy | 191 Academy identities/714 published rows and 30 War Academy technologies are represented; Academy dependency graph is validated and the single unpublished table remains explicit unknown. |
-| 11 | Complete | Pets + Masters | All 14 maintained Pets and 6 Masters retain every selected published structured factual table. |
-| 12 | Complete | Additional families | Alliance Tech 60/279, Truegold, VIP, caps/server timeline and selected progression-event tables are canonicalized/dispositioned. |
-| 13 | Complete | Governor Hero observations | Intelligence/Roster observations normalize canonical Hero identities, retain unknowns, remain idempotent and pin the factual release. |
-| 14 | Complete | Saved loadouts | Operations planning intent stores canonical Hero IDs/formation ratios and exact dataset identity/checksum separately from observations. |
-| 15 | Complete | Progression Library UX | Factual rows, source/confidence/conflict/unknown states, formations, observations and loadouts are localized, accessible and responsive with deterministic visual coverage. |
-| 16 | Complete | Completeness/reconciliation gates | Source/coverage/licence/reference/advisory-field/prerequisite/idempotency checks and read-only source regeneration pass; dynamic pages use normalized factual-table checksums. |
-| 17 | Complete | Final reconciliation + release gates | Product docs are reconciled to implemented evidence; immutable implementation candidate `299e3eddb1d1f16b4be0a08c09e8c7b5091a4c8a` passed CI, Architecture V3, Intelligence, Progression Source Refresh, Visual Regression, CodeQL, Dependency Review and King Perks together. |
-
-The capability must not be marked complete merely because another site publishes a table. Conversely, community ownership is not a reason to refuse a complete reusable factual table: selected tables are imported and reconciled when evidence/reuse rules permit, while strategy opinion remains excluded and calculator eligibility remains separately gated.
-
-The Factual Governor Progression delivery queue is closed: every phase is Complete and no known Factual Governor Progression product feature is deferred. The calculator evidence gate remains independently closed; later calculator work requires its own qualifying evidence. Any regression or newly discovered factual-source requirement that invalidates an exit condition reopens the affected phase.
-
-## Alliance Assistant delivery program
-
-Target: the final constrained Alliance composition capability, not an unconstrained KingShot chatbot.
-
-Canonical contract: [Alliance Assistant](alliance-assistant.md).
-
-Ownership remains with existing capabilities: Operations/Events owns Event schedule and occurrence truth; Operations/Rosters owns assignments; Alliance/Content owns published strategy/guide revisions; Intelligence/Observations owns recorded observation truth; future factual game intents require an explicit authorized GameWorld owner projection. `app/ReadModels/AllianceAssistant` owns only bounded intent/evidence/citation composition and HTTP presentation.
-
-No phase is Complete until its whole exit condition—including authorization, tenant isolation, tests, UX/accessibility/localization, observability and applicable repository gates—is satisfied on the implementation.
-
-### Phase queue
-
-| Phase | Status | Slice | Exit condition |
-| --- | --- | --- | --- |
-| 1 | Complete | Product contract and dependency audit | Product catalogue, gap analysis, delivery ledger, journeys, architecture/reference/operations docs and owner dependencies agree on the complete constrained capability. |
-| 2 | Complete | Typed intent/evidence/provenance contract | Closed intents, closed localized prompt IDs, evidence values, provenance classes and response-local citation identity are typed and behavior-tested. |
-| 3 | Complete | Event and self-roster composition | Event time/next Event and active-Governor-only roster answers use owner reads, handle missing/ambiguous states and never expose another Governor’s assignment. |
-| 4 | Complete | Alliance Content composition | Only current-Alliance member-visible published content is retrieved; strategy remains labelled Alliance strategy with revision/provenance/freshness metadata. |
-| 5 | Complete | Observation composition | Intelligence authorizes before querying and returns bounded same-Alliance observations labelled Observation; hidden observations remain indistinguishable from missing data. |
-| 6 | Complete | Deterministic interpreter/composer | Supported free-form questions and localized closed prompts resolve deterministically; generic KingShot and write-like questions are unsupported with no model-knowledge fallback. |
-| 7 | Complete | Citation integrity | Every substantive answered claim uses server-constructed citations from the response-local authorized evidence set; non-answer states cannot emit citations. |
-| 8 | Complete | HTTP, privacy and abuse bounds | Auth/verified/active-Player/Alliance scope, bounded validation, account rate limit, privacy-safe logs and retry-safe unavailable behavior are enforced. |
-| 9 | Complete | Responsive, accessible, localized UX | Desktop/mobile navigation, four first-use prompts, semantic answer/source states, keyboard submission, live status, locale-safe dates/messages and no horizontal overflow are implemented. |
-| 10 | Complete | Read-only and injection architecture enforcement | Assistant has no persistence/write/provider bypass; owner contexts do not import it; source text cannot alter scope/tool/write behavior; external model calls are absent in release one. |
-| 11 | Complete | Behavioral, performance and visual verification | Owner-integrated tenant/citation tests, bounded query budget and deterministic cited-answer desktop/mobile fingerprints pass. |
-| 12 | Complete | Final reconciliation and immutable release gates | Spec→code, code→spec, UX→backend and authorization/provenance scans find no remaining gap; every applicable repository quality/security/container/staging/backup/recovery gate passes on one immutable head. |
-
-The Alliance Assistant delivery queue is closed: every phase is Complete and no known Alliance Assistant requirement is deferred. Immutable implementation evidence head `0be7e4d8cd2e03c54202d06a1b084b3280c8ca1a` passed CI, Architecture V3 Verification, Intelligence Verification, Visual Regression, CodeQL, Dependency Review, and King Perks Verification. The final documentation-only closeout candidate repeats every applicable repository gate before merge; any regression or newly discovered contract gap reopens the affected phase.
-
-### Cross-phase invariants
-
-1. Unauthorized information never enters retrieval candidates, evidence, prompt/provider context, cache or citations.
-2. Assistant never persists domain/application state or conversation history.
-3. Every source remains owned and authorized by its existing capability.
-4. Strategy and observations never become factual KingShot truth.
-5. `game_fact` is reserved for future bounded GameWorld-owner reads and cannot authorize model-memory answers.
-6. Requested mutations remain unsupported in release one; any future action handoff must call the normal owner Action.
-7. User-authored source text is inert data and cannot change authorization, tools, instructions or provenance.
-8. No phase or capability is closed based on code presence alone; immutable release evidence is mandatory.
+If implementation discovers a required correctness, security, operability or usability item, add it to the appropriate program acceptance criteria/delivery row and implement it before closing that row. Do not defer it as an unspecified follow-up.
