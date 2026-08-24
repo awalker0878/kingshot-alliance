@@ -76,18 +76,16 @@ let turnId = 0;
 
 const defaultPromptIds: AssistantPrompt[] = [
   'swordland_roster',
-  'hero_fact',
-  'rsvp_week',
-  'battle_assignment',
-  'territory_plan',
-  'transfer_status',
-];
-const allPromptIds: AssistantPrompt[] = [
-  ...defaultPromptIds,
   'next_event',
   'bear_hunt_guide',
   'observation',
+  'hero_fact',
+  'rsvp_week',
+  'battle_assignment',
+  'transfer_status',
+  'territory_plan',
 ];
+const allPromptIds: AssistantPrompt[] = [...defaultPromptIds];
 
 const canSubmit = computed(
   () =>
@@ -99,7 +97,7 @@ const canSubmit = computed(
 const suggestedQuestions = computed<PromptOption[]>(() => {
   const latest = turns.value.at(-1)?.response.suggestedQuestions ?? [];
   const ids = latest.filter(isPrompt);
-  const prompts = ids.length > 0 ? ids.slice(0, 6) : defaultPromptIds;
+  const prompts = ids.length > 0 ? ids.slice(0, 9) : defaultPromptIds;
 
   return prompts.map((id) => ({ id, label: promptLabel(id) }));
 });
@@ -283,6 +281,14 @@ function humanKey(key: string): string {
     .replace(/^./, (value) => value.toUpperCase());
 }
 
+function transferRequirementLabel(value: unknown): string {
+  return t(`assistant.transferRequirements.${String(value)}`);
+}
+
+function transferStateLabel(value: unknown): string {
+  return t(`assistant.transferStates.${String(value)}`);
+}
+
 function ambiguityKey(candidate: Record<string, unknown>, index: number): string {
   return String(candidate.occurrenceId ?? candidate.revisionId ?? index);
 }
@@ -439,17 +445,22 @@ function ambiguityKey(candidate: Record<string, unknown>, index: number): string
                   >
                     <div class="flex flex-wrap items-center justify-between gap-2">
                       <strong class="text-[var(--ks-text)]">{{
-                        humanKey(displayValue(requirement.key))
+                        transferRequirementLabel(requirement.key)
                       }}</strong>
                       <span class="text-xs font-bold text-[var(--ks-gold-bright)]">{{
-                        displayValue(requirement.state)
+                        transferStateLabel(requirement.state)
                       }}</span>
                     </div>
-                    <p class="mt-1 text-[var(--ks-muted)]">
-                      {{ displayValue(requirement.explanation) }}
-                    </p>
-                    <p v-if="requirement.nextAction" class="mt-1 text-[var(--ks-text)]">
-                      {{ displayValue(requirement.nextAction) }}
+                    <p
+                      v-if="requirement.actual !== undefined || requirement.required !== undefined"
+                      class="mt-1 break-words text-[var(--ks-muted)]"
+                    >
+                      {{
+                        t('assistant.requirementValues', {
+                          actual: displayValue(requirement.actual),
+                          required: displayValue(requirement.required),
+                        })
+                      }}
                     </p>
                   </li>
                 </ul>
