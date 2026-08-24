@@ -1,0 +1,29 @@
+name: Factual Progression Closeout Artifact
+
+on:
+  push:
+    branches:
+      - feature/factual-governor-progression
+
+permissions:
+  contents: read
+
+jobs:
+  closeout:
+    if: contains(github.event.head_commit.message, 'Prepare factual progression closeout artifact')
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out candidate branch head
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - name: Apply evidence-backed product status closeout
+        run: python3 scripts/progression/closeout_product_docs.py
+      - name: Upload transformed product docs
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: factual-progression-closeout-docs
+          path: |
+            docs/product/factual-governor-progression.md
+            docs/product/capability-gap-analysis.md
+            docs/product/capability-delivery-ledger.md
+          if-no-files-found: error
+          retention-days: 1
