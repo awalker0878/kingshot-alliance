@@ -266,7 +266,7 @@ def corroborate_kr_widgets() -> dict[str, Any]:
     }
 
 
-def update_release(release_dir: Path) -> None:
+def update_release(release_dir: Path, snapshots: list[dict[str, Any]]) -> None:
     path = release_dir / "release.json"
     release = load(path)
     conflicts = release.get("conflicts")
@@ -324,31 +324,52 @@ def update_release(release_dir: Path) -> None:
             row["reason"] = (
                 "All 22 open Charm levels are canonicalized and reconciled against both the Century Games official wiki and maintained Kingshot Data KR table; the older 21-level claim remains superseded history."
             )
+
+    source_rows = release.get("sources")
+    if not isinstance(source_rows, list):
+        raise RuntimeError("Release source registry is unavailable.")
+    by_source = {
+        str(row.get("id")): row
+        for row in source_rows
+        if isinstance(row, dict) and isinstance(row.get("id"), str)
+    }
+    official = by_source.get("kingshot-official-wiki")
+    kr = by_source.get("kingshotdata-kr")
+    if not isinstance(official, dict) or not isinstance(kr, dict):
+        raise RuntimeError("Expected reconciliation sources are not registered.")
+
+    official_snapshot = next(
+        (row for row in snapshots if row.get("source_id") == "kingshot-official-wiki"),
+        None,
+    )
+    kr_snapshots = [row for row in snapshots if row.get("source_id") == "kingshotdata-kr"]
+    if not isinstance(official_snapshot, dict) or len(kr_snapshots) != 2:
+        raise RuntimeError("Expected reconciliation source snapshots are incomplete.")
+
+    official["content_snapshots"] = [{
+        "url": official_snapshot["url"],
+        "sha256": official_snapshot["sha256"],
+        "scope": "58 Governor Gear rows and 22 Governor Charm rows used for Tier-A reconciliation",
+    }]
+    kr["content_snapshots"] = [
+        {
+            "url": row["url"],
+            "sha256": row["sha256"],
+            "scope": row["dataset"],
+        }
+        for row in sorted(kr_snapshots, key=lambda value: str(value["url"]))
+    ]
     write(path, release)
 
 
-def update_source_lock(release_dir: Path, locks: list[dict[str, Any]]) -> None:
-    path = release_dir / "source-lock.json"
-    document = load(path)
-    sources = document.get("sources")
-    if not isinstance(sources, list):
-        raise RuntimeError("Source lock document is invalid.")
-    urls = {str(lock["url"]) for lock in locks}
-    sources[:] = [row for row in sources if not (isinstance(row, dict) and str(row.get("url")) in urls)]
-    sources.extend(locks)
-    sources.sort(key=lambda row: (str(row.get("source_id", "")), str(row.get("dataset", "")), str(row.get("url", ""))))
-    write(path, document)
-
-
 def corroborate_release(release_dir: Path) -> None:
-    locks = [
+    snapshots = [
         corroborate_official_gear(release_dir),
         corroborate_kr_charm(release_dir),
         corroborate_kr_widgets(),
     ]
-    update_release(release_dir)
-    update_source_lock(release_dir, locks)
-    print("Canonicalized Governor Gear from Tier-A official tables and pinned KR Charm/Widget references.")
+    update_release(release_dir, snapshots)
+    print("Canonicalized Governor Gear from Tier-A official tables and pinned official/KR snapshots in the release registry.")
 
 
 if __name__ == "__main__":
