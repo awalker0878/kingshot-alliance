@@ -1,0 +1,36 @@
+name: Assistant Format Preview
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'app/ReadModels/AllianceAssistant/**'
+      - 'app/Contexts/Intelligence/Observations/Queries/AssistantObservationQuery.php'
+      - 'resources/js/pages/Assistant/**'
+      - 'resources/js/localization/messages/assistant/**'
+      - '.github/workflows/assistant-format-preview.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  format-preview:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.5'
+          tools: composer:v2
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24'
+          cache: npm
+      - run: composer install --no-interaction --no-progress --prefer-dist
+      - run: npm ci --no-audit --no-fund
+      - name: Apply repository formatters
+        run: |
+          vendor/bin/pint app/ReadModels/AllianceAssistant app/Contexts/Intelligence/Observations/Queries/AssistantObservationQuery.php
+          npx prettier --write resources/js/pages/Assistant/Index.vue resources/js/localization/messages/assistant/*.ts
+      - name: Print formatter diff
+        run: git diff -- app/ReadModels/AllianceAssistant app/Contexts/Intelligence/Observations/Queries/AssistantObservationQuery.php resources/js/pages/Assistant/Index.vue resources/js/localization/messages/assistant
