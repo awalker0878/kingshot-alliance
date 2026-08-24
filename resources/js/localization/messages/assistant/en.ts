@@ -63,8 +63,7 @@ const messages = {
       openRoster: 'Open Event roster',
     },
     answers: {
-      help:
-        'I can answer from authorized Events, your roster and RSVPs, your assignments, Alliance guides and observations, published territory plans, source-backed Game data, and your transfer readiness when you are in scope. I do not use unsourced KingShot knowledge.',
+      help: 'I can answer from authorized Events, your roster and RSVPs, your assignments, Alliance guides and observations, published territory plans, source-backed Game data, and your transfer readiness when you are in scope. I do not use unsourced KingShot knowledge.',
       unsupported:
         'I can only answer from the supported authorized sources. I do not use general KingShot knowledge or make changes from the Assistant.',
       unavailable: 'Alliance Assistant cannot check its sources right now. Try again.',
@@ -91,10 +90,12 @@ const messages = {
       participationNone: 'You have no recorded RSVP or registration for {event}.',
       participationFound: 'Your participation for {event} is shown below.',
       participationWeekNone: 'I found no recorded RSVP or registration for you this week.',
-      participationNotFound: 'I found no matching recorded RSVP, registration, or waitlist state for you.',
+      participationNotFound:
+        'I found no matching recorded RSVP, registration, or waitlist state for you.',
       participationWeek: 'I found {count} Event participation record(s) for you this week.',
       participationList: 'I found {count} matching Event participation record(s) for you.',
-      battlePlanNotFound: 'I could not find an upcoming authorized Event with an assignment for you.',
+      battlePlanNotFound:
+        'I could not find an upcoming authorized Event with an assignment for you.',
       battlePlanNone: 'You do not currently have a battle-plan assignment for {event}.',
       battlePlanOne: 'You have one battle-plan assignment for {event}.',
       battlePlanMany: 'You have {count} battle-plan assignments for {event}.',
@@ -105,8 +106,7 @@ const messages = {
       territoryPlanNotFound: 'There is no published territory-plan revision attached to {event}.',
       territoryPlanAmbiguous:
         'More than one published territory-plan revision is attached to {event}; I will not choose one silently.',
-      territoryPlanFound:
-        '{event} is using {planName}, revision {revisionNumber}, for {purpose}.',
+      territoryPlanFound: '{event} is using {planName}, revision {revisionNumber}, for {purpose}.',
       rosterWriteHandoff:
         'I cannot change the roster from here. Open the normal {event} workflow to make the change.',
       contentSubjectMissing: 'Name the Event or topic whose Alliance guide you want me to check.',

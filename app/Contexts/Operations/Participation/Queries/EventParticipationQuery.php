@@ -24,7 +24,7 @@ final readonly class EventParticipationQuery
     }
 
     /**
-     * @param list<string> $occurrenceIds
+     * @param  list<string>  $occurrenceIds
      * @return array<string,array{response:?array<string,mixed>,registration:?array<string,mixed>,attendance:?array<string,mixed>}>
      */
     public function forPlayerOccurrences(array $occurrenceIds, PlayerReference $player): array

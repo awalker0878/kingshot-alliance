@@ -168,7 +168,9 @@ final class AllianceAssistantHttpV3Test extends TestCase
 
         Log::shouldHaveReceived('info')
             ->withArgs(function (string $message, array $context) use ($question): bool {
-                if ($message !== 'alliance_assistant.answered') return false;
+                if ($message !== 'alliance_assistant.answered') {
+                    return false;
+                }
                 $encoded = json_encode($context);
 
                 return is_string($encoded)

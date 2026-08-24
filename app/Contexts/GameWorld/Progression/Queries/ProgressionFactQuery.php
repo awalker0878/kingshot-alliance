@@ -153,6 +153,7 @@ final readonly class ProgressionFactQuery
         }
 
         $needle = $this->normalize($request->subject);
+        /** @var list<array{index:int,row:array<string,mixed>}> $matches */
         $matches = [];
         foreach ($steps as $index => $row) {
             if (! is_array($row)
@@ -160,7 +161,7 @@ final readonly class ProgressionFactQuery
                 || (int) ($row['stars'] ?? -1) !== $request->level) {
                 continue;
             }
-            $matches[] = [$index, $row];
+            $matches[] = ['index' => (int) $index, 'row' => $row];
         }
 
         if (count($matches) > 1 || $this->hasUnresolvedFamilyConflict($dataset, 'governor_gear')) {
@@ -175,7 +176,7 @@ final readonly class ProgressionFactQuery
         }
 
         $match = $matches[0] ?? null;
-        if (! is_array($match) || ! is_array($match[1] ?? null)) {
+        if ($match === null) {
             return $this->emptyResult(
                 $dataset,
                 ProgressionFactResolution::Unknown,
@@ -187,9 +188,8 @@ final readonly class ProgressionFactQuery
             );
         }
 
-        $index = (int) $match[0];
-        /** @var array<string,mixed> $row */
-        $row = $match[1];
+        $index = $match['index'];
+        $row = $match['row'];
         $materials = is_array($row['materials'] ?? null) ? $row['materials'] : [];
         $bonuses = is_array($row['bonuses'] ?? null) ? $row['bonuses'] : [];
         $sourceIds = $this->stringList($row['source_ids'] ?? []);
@@ -468,7 +468,10 @@ final readonly class ProgressionFactQuery
         return null;
     }
 
-    /** @param array<string,mixed> $document @return list<string> */
+    /**
+     * @param  array<string,mixed>  $document
+     * @return list<string>
+     */
     private function documentSourceIds(array $document): array
     {
         $sourceId = $document['source_id'] ?? null;
@@ -484,7 +487,10 @@ final readonly class ProgressionFactQuery
         return is_array($meta) ? $this->scalarString($meta['confidence'] ?? null) : null;
     }
 
-    /** @param array<string,mixed> $row @param list<string> $keys */
+    /**
+     * @param  array<string,mixed>  $row
+     * @param  list<string>  $keys
+     */
     private function firstString(array $row, array $keys): ?string
     {
         foreach ($keys as $key) {

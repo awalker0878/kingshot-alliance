@@ -285,11 +285,13 @@ final readonly class AllianceAssistantQuery
             })->values();
         }
 
-        $occurrenceIds = $calendar
+        /** @var list<string> $occurrenceIds */
+        $occurrenceIds = array_values($calendar
             ->map(static fn (EventOccurrence $occurrence): string => (string) $occurrence->id)
-            ->all();
+            ->all());
         $rows = $this->participation->forPlayerOccurrences($occurrenceIds, $actor);
         $items = [];
+        /** @var list<AssistantEvidence> $evidence */
         $evidence = [];
         foreach ($calendar as $occurrence) {
             $row = $rows[(string) $occurrence->id] ?? null;
@@ -371,6 +373,7 @@ final readonly class AllianceAssistantQuery
         }
 
         $items = [];
+        /** @var list<AssistantEvidence> $evidence */
         $evidence = [$this->eventEvidence($occurrence)];
         foreach (array_slice($rows, 0, 10) as $row) {
             $assignmentId = (string) ($row['assignmentId'] ?? '');
@@ -713,7 +716,7 @@ final readonly class AllianceAssistantQuery
     }
 
     /**
-     * @param array{response:?array<string,mixed>,registration:?array<string,mixed>,attendance:?array<string,mixed>} $row
+     * @param  array{response:?array<string,mixed>,registration:?array<string,mixed>,attendance:?array<string,mixed>}  $row
      * @return list<AssistantEvidence>
      */
     private function participationEvidence(EventOccurrence $occurrence, array $row): array
@@ -777,7 +780,10 @@ final readonly class AllianceAssistantQuery
         };
     }
 
-    /** @param list<AssistantEvidence> $evidence @return list<AssistantEvidence> */
+    /**
+     * @param  list<AssistantEvidence>  $evidence
+     * @return list<AssistantEvidence>
+     */
     private function uniqueEvidence(array $evidence): array
     {
         $unique = [];
@@ -789,7 +795,7 @@ final readonly class AllianceAssistantQuery
     }
 
     /**
-     * @param Collection<int,EventOccurrence> $calendar
+     * @param  Collection<int,EventOccurrence>  $calendar
      * @return list<EventOccurrence>
      */
     private function matchEvents(Collection $calendar, string $subject): array
