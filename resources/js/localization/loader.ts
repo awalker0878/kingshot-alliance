@@ -51,6 +51,14 @@ async function assistantCatalogue(
   );
 }
 
+async function eventsCatalogue(
+  base: MessageCatalogue,
+  locale: LocaleCode,
+): Promise<MessageCatalogue> {
+  const { eventCommandLabels } = await import('./event-command-labels');
+  return mergeCatalogue(base, eventCommandLabels(locale));
+}
+
 async function loadOne(domain: LocalizationDomain, locale: LocaleCode): Promise<MessageCatalogue> {
   const key = cacheKey(domain, locale);
   const cached = catalogues.get(key);
@@ -60,8 +68,9 @@ async function loadOne(domain: LocalizationDomain, locale: LocaleCode): Promise<
   if (existing) return existing;
 
   const request = importDomainCatalogue(domain, locale).then(async (module) => {
-    const catalogue =
-      domain === 'assistant' ? await assistantCatalogue(module.default, locale) : module.default;
+    let catalogue = module.default;
+    if (domain === 'assistant') catalogue = await assistantCatalogue(catalogue, locale);
+    if (domain === 'events') catalogue = await eventsCatalogue(catalogue, locale);
     catalogues.set(key, catalogue);
     pending.delete(key);
     return catalogue;
