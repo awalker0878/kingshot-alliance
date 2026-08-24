@@ -114,6 +114,11 @@ final class AllianceAssistantArchitectureV3Test extends TestCase
     {
         $source = file_get_contents(base_path('resources/js/pages/Assistant/Index.vue'));
         self::assertIsString($source);
+        $start = strpos($source, 'const defaultPromptIds: AssistantPrompt[] = [');
+        self::assertNotFalse($start);
+        $end = strpos($source, '];', $start);
+        self::assertNotFalse($end);
+        $defaultPromptBlock = substr($source, $start, $end - $start);
 
         foreach ([
             'swordland_roster',
@@ -127,12 +132,13 @@ final class AllianceAssistantArchitectureV3Test extends TestCase
             'territory_plan',
         ] as $prompt) {
             self::assertSame(
-                2,
-                substr_count($source, "'{$prompt}'"),
-                'The Assistant prompt contract must keep exactly one type member and one default discovery entry for '.$prompt.'.',
+                1,
+                substr_count($defaultPromptBlock, "'{$prompt}'"),
+                'The Assistant default discovery contract must contain exactly one '.$prompt.' prompt.',
             );
         }
 
+        self::assertStringContainsString('const allPromptIds: AssistantPrompt[] = [...defaultPromptIds];', $source);
         self::assertStringContainsString('ids.slice(0, 9)', $source);
     }
 
