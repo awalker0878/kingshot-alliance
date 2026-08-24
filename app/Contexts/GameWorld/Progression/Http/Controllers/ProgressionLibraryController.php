@@ -57,7 +57,7 @@ final class ProgressionLibraryController extends Controller
 
         $user = $request->user();
 
-        return Inertia::render('Kingdom/Progression/Index', [
+        return Inertia::render('Kingdom/Progression/Library', [
             'user' => ['name' => (string) $user?->name, 'email' => (string) $user?->email],
             'dataset' => [
                 'id' => $dataset->id,
@@ -79,6 +79,7 @@ final class ProgressionLibraryController extends Controller
             'systems' => $dataset->systems,
             'sources' => $dataset->sources(),
             'conflicts' => $dataset->conflicts(),
+            'sourceGaps' => $dataset->sourceGaps(),
             'dispositions' => $dataset->dispositions(),
             'familyOptions' => $familyOptions,
             'familyData' => $familyData,
