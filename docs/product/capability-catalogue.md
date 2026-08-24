@@ -31,6 +31,7 @@ This is the user/product view of implemented and actively delivered capability g
 | Platform administration | Cross-tenant admin, lifecycle/retention controls, Event-type administration, privacy-safe diagnostics and audited outbox recovery. | Platform + ReadModels composition |
 | Integrations | Scoped API credentials, revocable external-actor pairing, idempotent Event participation adapters, and signed/retryable webhooks. | Platform/Integrations |
 | Dashboards/history | Compose cross-context user-facing views without changing source ownership. | ReadModels |
+| Alliance Assistant | Ask bounded questions about authorized Events, the active Governor’s own roster state, published Alliance guides and Alliance observations with mandatory source/provenance labels and no direct writes or unsourced KingShot fallback. | `ReadModels/AllianceAssistant` composes owner Queries from Operations, Alliance and Intelligence; owner contexts retain all truth and writes |
 
 This catalogue should change when a real product outcome changes, not for internal class/file movement.
 
@@ -135,6 +136,12 @@ The capability is delivered as one complete product, not as disconnected map wid
 - integration with applicable Bear Hunt, Castle Battle and Kingdom of Power/Kingdom planning workflows through immutable plan-revision references rather than moving spatial state into BattlePlans.
 
 Community projects are discovery evidence, not authoritative KingShot truth. A community-derived coordinate, footprint, placement rule or march constant cannot silently become product logic; it must carry the provenance/confidence contract defined by GameWorld/KingdomMaps.
+
+## Alliance Assistant product contract
+
+Alliance Assistant is the final constrained read/composition capability. It answers only from current data the active Governor is already authorized to view, cites every substantive source, preserves `operational_fact`, `alliance_strategy`, `observation` and future owner-backed `game_fact` provenance, and never becomes an alternate writer. The first release uses deterministic bounded intent resolution with no external model provider or persisted conversation. Localized suggestion buttons submit closed prompt identifiers while arbitrary write-like or unsupported KingShot questions remain unsupported.
+
+The canonical requirements, acceptance criteria and completed delivery record live in [Alliance Assistant](alliance-assistant.md) and the global [capability delivery ledger](capability-delivery-ledger.md).
 
 ## Assurance contract
 

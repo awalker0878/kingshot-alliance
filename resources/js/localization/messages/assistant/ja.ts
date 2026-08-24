@@ -1,0 +1,71 @@
+import type { MessageCatalogue } from '../../types';
+const messages = {
+  assistant: {
+    navigation: 'アシスタント',
+    title: '同盟に質問',
+    eyebrow: '同盟アシスタント · 権限に基づく回答',
+    subtitle:
+      'イベント、自分のロスター、同盟ガイド、観察情報について質問できます。回答は、あなたが既に閲覧できる情報源だけに基づきます。',
+    authorizationHint: '回答には、あなたが閲覧を許可されている同盟データのみを使用します。',
+    tryAsking: '質問してみる',
+    conversation: '同盟アシスタントとの会話',
+    youAsked: 'あなたの質問',
+    possibleEvents: '候補のイベント',
+    openEvent: 'イベントを開く',
+    sourcesHeading: '使用した情報源',
+    sourceTime: '情報源の時刻: {time}',
+    questionLabel: '同盟に質問',
+    questionPlaceholder: 'Swordland は何時で、私はロスターに入っていますか？',
+    inputHint: '{count}/{max} 文字 · Enter で質問 · Shift+Enter で改行',
+    asking: '情報源を確認中…',
+    ask: '質問',
+    notRecorded: '記録なし',
+    classifications: {
+      operational_fact: '運用上の事実',
+      game_fact: 'ゲームデータ',
+      alliance_strategy: '同盟戦略',
+      observation: '観察',
+    },
+    sources: {
+      event: 'イベント',
+      roster: 'ロスター',
+      alliance_content: '同盟ガイド',
+      observation: '観察',
+      game_fact: 'ゲームデータ',
+    },
+    prompts: {
+      swordland: 'Swordland は何時で、私はロスターに入っていますか？',
+      nextEvent: '次のイベントは何ですか？',
+      bearGuide: 'Bear Hunt ガイドには何と書いてありますか？',
+      observation: '相手について何を観察していますか？',
+    },
+    answers: {
+      help: 'イベント、自分のロスター、同盟ガイド、権限のある観察情報から回答できます。出典のない KingShot の知識は使用しません。',
+      unsupported:
+        '権限のあるイベント、自分のロスター、同盟ガイド、観察情報からのみ回答できます。ここから変更を行うことはできません。',
+      unavailable: '現在、同盟アシスタントは情報源を確認できません。もう一度お試しください。',
+      rateLimited: '質問の頻度が高すぎます。少し待ってからお試しください。',
+      validationError: '2〜{max} 文字で質問を入力してください。',
+      noUpcomingEvent: 'あなたが閲覧できる今後のイベントは見つかりませんでした。',
+      eventSubjectMissing: '確認したいイベント名を指定してください。',
+      eventNotFound: '「{subject}」に一致する、閲覧可能な今後のイベントは見つかりませんでした。',
+      eventAmbiguous:
+        '「{subject}」に一致するイベントが複数あります。下から対象のイベントを開いてください。',
+      eventTime: '{event} は {startsAt} に開始します。',
+      eventTimeNotRostered:
+        '{event} は {startsAt} に開始します。現在あなたはロスターに入っていません。',
+      notRostered: '現在、{event} のロスターには入っていません。',
+      eventTimeRostered:
+        '{event} は {startsAt} に開始します。あなたは {roster} に入っています。役割: {role}、スロット: {slot}、状態: {status}。',
+      rostered:
+        '{event} では {roster} に入っています。役割: {role}、スロット: {slot}、状態: {status}。',
+      contentSubjectMissing: '確認したい同盟ガイドのイベントまたはトピックを指定してください。',
+      contentNotFound: '「{subject}」に一致する公開済み同盟コンテンツは見つかりませんでした。',
+      contentFound: '同盟戦略 — {title}: {excerpt}',
+      observationSubjectMissing: '確認したい同盟または観察対象を指定してください。',
+      observationNotFound: '「{subject}」に一致する、閲覧可能な観察情報は見つかりませんでした。',
+      observationFound: '観察 — {title}: {observation}',
+    },
+  },
+} satisfies MessageCatalogue;
+export default messages;

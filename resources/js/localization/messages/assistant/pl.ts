@@ -1,0 +1,71 @@
+import type { MessageCatalogue } from '../../types';
+const messages = {
+  assistant: {
+    navigation: 'Asystent',
+    title: 'Zapytaj swój Sojusz',
+    eyebrow: 'Asystent Sojuszu · Autoryzowane odpowiedzi',
+    subtitle:
+      'Pytaj o Wydarzenia, swój roster, poradniki Sojuszu i obserwacje. Odpowiedzi opierają się na źródłach, które już możesz wyświetlać.',
+    authorizationHint: 'Odpowiedzi używają wyłącznie danych Sojuszu, do których masz dostęp.',
+    tryAsking: 'Spróbuj zapytać',
+    conversation: 'Rozmowa z Asystentem Sojuszu',
+    youAsked: 'Twoje pytanie',
+    possibleEvents: 'Możliwe Wydarzenia',
+    openEvent: 'Otwórz Wydarzenie',
+    sourcesHeading: 'Użyte źródła',
+    sourceTime: 'Czas źródła: {time}',
+    questionLabel: 'Zapytaj swój Sojusz',
+    questionPlaceholder: 'O której jest Swordland i czy jestem w rosterze?',
+    inputHint: '{count}/{max} znaków · Enter, aby zapytać · Shift+Enter, aby dodać wiersz',
+    asking: 'Sprawdzanie źródeł…',
+    ask: 'Zapytaj',
+    notRecorded: 'Brak danych',
+    classifications: {
+      operational_fact: 'Fakt operacyjny',
+      game_fact: 'Dane gry',
+      alliance_strategy: 'Strategia Sojuszu',
+      observation: 'Obserwacja',
+    },
+    sources: {
+      event: 'Wydarzenie',
+      roster: 'Roster',
+      alliance_content: 'Poradnik Sojuszu',
+      observation: 'Obserwacja',
+      game_fact: 'Dane gry',
+    },
+    prompts: {
+      swordland: 'O której jest Swordland i czy jestem w rosterze?',
+      nextEvent: 'Jakie jest moje następne Wydarzenie?',
+      bearGuide: 'Co mówi nasz poradnik Bear Hunt?',
+      observation: 'Co zaobserwowaliśmy u przeciwnika?',
+    },
+    answers: {
+      help: 'Mogę odpowiadać na podstawie Wydarzeń, twojego rosteru, poradników Sojuszu i autoryzowanych obserwacji. Nie używam wiedzy o KingShot bez źródła.',
+      unsupported:
+        'Mogę odpowiadać tylko na podstawie autoryzowanych Wydarzeń, twojego rosteru, poradników Sojuszu i obserwacji. Nie mogę tutaj wprowadzać zmian.',
+      unavailable: 'Asystent Sojuszu nie może teraz sprawdzić źródeł. Spróbuj ponownie.',
+      rateLimited: 'Pytasz zbyt szybko. Spróbuj ponownie za chwilę.',
+      validationError: 'Wpisz pytanie od 2 do {max} znaków.',
+      noUpcomingEvent: 'Nie znalazłem nadchodzącego Wydarzenia, które możesz wyświetlić.',
+      eventSubjectMissing: 'Podaj Wydarzenie, które mam sprawdzić.',
+      eventNotFound:
+        'Nie znalazłem autoryzowanego nadchodzącego Wydarzenia pasującego do „{subject}”.',
+      eventAmbiguous:
+        'Znalazłem więcej niż jedno Wydarzenie pasujące do „{subject}”. Otwórz właściwe poniżej.',
+      eventTime: '{event} rozpoczyna się {startsAt}.',
+      eventTimeNotRostered: '{event} rozpoczyna się {startsAt}. Obecnie nie ma cię w rosterze.',
+      notRostered: 'Obecnie nie ma cię w rosterze na {event}.',
+      eventTimeRostered:
+        '{event} rozpoczyna się {startsAt}. Jesteś w {roster}. Rola: {role}; miejsce: {slot}; status: {status}.',
+      rostered:
+        'Jesteś w rosterze na {event}, w {roster}. Rola: {role}; miejsce: {slot}; status: {status}.',
+      contentSubjectMissing: 'Podaj Wydarzenie lub temat poradnika Sojuszu, który mam sprawdzić.',
+      contentNotFound: 'Nie znalazłem opublikowanej treści Sojuszu pasującej do „{subject}”.',
+      contentFound: 'Strategia Sojuszu — {title}: {excerpt}',
+      observationSubjectMissing: 'Podaj Sojusz lub temat obserwacji, który mam sprawdzić.',
+      observationNotFound: 'Nie znalazłem autoryzowanej obserwacji pasującej do „{subject}”.',
+      observationFound: 'Obserwacja — {title}: {observation}',
+    },
+  },
+} satisfies MessageCatalogue;
+export default messages;

@@ -262,3 +262,18 @@ The application layout announces successful mutation receipts consistently. A re
 4. The bot submits the linked Governor's Event response or registration change with `event-participation:write` and a unique idempotency key.
 5. The existing Operations action authorizes the Governor and applies Event capability, registration-window, capacity and waitlist rules. Exact transport retries return the first receipt.
 6. The Governor can revoke the link at any time; later bot writes fail before reaching Operations.
+
+## Ask your Alliance
+
+```text
+Authenticate + select active Governor with an active Alliance
+ -> open Ask your Alliance
+ -> choose a localized bounded suggestion or enter a supported question
+ -> owner capabilities authorize before returning any candidate data
+ -> resolve one Event/content/observation target or return a neutral missing/ambiguity state
+ -> compose the answer from the minimum authorized evidence set
+ -> show provenance badges and deep-linked Event/Roster/Alliance guide/Observation sources
+ -> ask another question or open the canonical source workflow
+```
+
+The canonical first-use example is **“What time is Swordland and am I rostered?”**. The answer combines the authorized Event occurrence and only the active Governor’s own roster assignment. Alliance-authored guidance is labelled **Alliance strategy**; recorded intelligence is labelled **Observation**. A question such as **“Put me on the Swordland roster”** performs no mutation and does not create an Assistant-specific write path. Unsupported general KingShot questions are not answered from model memory.

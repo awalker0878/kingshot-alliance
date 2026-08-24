@@ -9,6 +9,7 @@ Use:
 - [Runtime architecture](architecture.md)
 - [Configuration](configuration.md)
 - [Observability](observability.md)
+- [Alliance Assistant](alliance-assistant.md)
 - [Background processing](background-processing.md)
 - [Deployment](deployment/README.md)
 - [Runbooks](runbooks/README.md)

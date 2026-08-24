@@ -97,7 +97,7 @@ The following are implementation/composition mechanisms, not business capabiliti
 - `app/ReadModels`;
 - `app/Shared`.
 
-Cross-context analytical views such as Event analysis, Screenshot Intake workspaces and the Territory Command editor are composition surfaces under `app/ReadModels` when they combine multiple owners; they do not become new persistence owners.
+Cross-context analytical views such as Event analysis, Screenshot Intake workspaces, the Territory Command editor and Alliance Assistant are composition surfaces under `app/ReadModels` when they combine multiple owners; they do not become new persistence owners. `ReadModels/AllianceAssistant` composes authorized Event, self-roster, Alliance Content and observation reads only; its evidence/citations are response values rather than a new business truth store.
 
 The HTTP adapter that renders a cross-context composition surface lives with that read model; owner-context adapters must not import `app/ReadModels`.
 

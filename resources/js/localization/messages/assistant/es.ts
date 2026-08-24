@@ -1,0 +1,74 @@
+import type { MessageCatalogue } from '../../types';
+const messages = {
+  assistant: {
+    navigation: 'Asistente',
+    title: 'Pregunta a tu Alianza',
+    eyebrow: 'Asistente de Alianza · Respuestas autorizadas',
+    subtitle:
+      'Pregunta sobre Eventos, tu roster, las guías de la Alianza y observaciones. Las respuestas se basan en fuentes que ya puedes consultar.',
+    authorizationHint:
+      'Las respuestas usan únicamente datos de la Alianza que estás autorizado a ver.',
+    tryAsking: 'Prueba a preguntar',
+    conversation: 'Conversación con el Asistente de Alianza',
+    youAsked: 'Preguntaste',
+    possibleEvents: 'Eventos posibles',
+    openEvent: 'Abrir Evento',
+    sourcesHeading: 'Fuentes utilizadas',
+    sourceTime: 'Fecha de la fuente: {time}',
+    questionLabel: 'Pregunta a tu Alianza',
+    questionPlaceholder: '¿A qué hora es Swordland y estoy en el roster?',
+    inputHint: '{count}/{max} caracteres · Enter para preguntar · Mayús+Enter para nueva línea',
+    asking: 'Consultando fuentes…',
+    ask: 'Preguntar',
+    notRecorded: 'No registrado',
+    classifications: {
+      operational_fact: 'Dato operativo',
+      game_fact: 'Datos del juego',
+      alliance_strategy: 'Estrategia de la Alianza',
+      observation: 'Observación',
+    },
+    sources: {
+      event: 'Evento',
+      roster: 'Roster',
+      alliance_content: 'Guía de la Alianza',
+      observation: 'Observación',
+      game_fact: 'Datos del juego',
+    },
+    prompts: {
+      swordland: '¿A qué hora es Swordland y estoy en el roster?',
+      nextEvent: '¿Cuál es mi próximo Evento?',
+      bearGuide: '¿Qué dice nuestra guía de Bear Hunt?',
+      observation: '¿Qué hemos observado sobre nuestro oponente?',
+    },
+    answers: {
+      help: 'Puedo responder usando Eventos, tu roster, las guías de la Alianza y observaciones autorizadas. No uso conocimiento de KingShot sin fuente.',
+      unsupported:
+        'Solo puedo responder usando Eventos autorizados, tu roster, guías de la Alianza y observaciones. No puedo realizar cambios desde aquí.',
+      unavailable:
+        'El Asistente de Alianza no puede consultar sus fuentes ahora. Inténtalo de nuevo.',
+      rateLimited: 'Estás preguntando demasiado rápido. Inténtalo de nuevo en breve.',
+      validationError: 'Escribe una pregunta de entre 2 y {max} caracteres.',
+      noUpcomingEvent: 'No encontré ningún Evento próximo que estés autorizado a ver.',
+      eventSubjectMissing: 'Indica el Evento que quieres consultar.',
+      eventNotFound: 'No encontré ningún Evento próximo autorizado que coincida con «{subject}».',
+      eventAmbiguous:
+        'Encontré más de un Evento que coincide con «{subject}». Abre abajo el que quieras.',
+      eventTime: '{event} comienza {startsAt}.',
+      eventTimeNotRostered: '{event} comienza {startsAt}. Actualmente no estás en el roster.',
+      notRostered: 'Actualmente no estás en el roster de {event}.',
+      eventTimeRostered:
+        '{event} comienza {startsAt}. Estás en {roster}. Rol: {role}; puesto: {slot}; estado: {status}.',
+      rostered:
+        'Estás en el roster de {event}, en {roster}. Rol: {role}; puesto: {slot}; estado: {status}.',
+      contentSubjectMissing: 'Indica el Evento o tema cuya guía de la Alianza quieres consultar.',
+      contentNotFound:
+        'No encontré contenido publicado de la Alianza que coincida con «{subject}».',
+      contentFound: 'Estrategia de la Alianza — {title}: {excerpt}',
+      observationSubjectMissing:
+        'Indica la Alianza o el tema de observación que quieres consultar.',
+      observationNotFound: 'No encontré una observación autorizada que coincida con «{subject}».',
+      observationFound: 'Observación — {title}: {observation}',
+    },
+  },
+} satisfies MessageCatalogue;
+export default messages;
