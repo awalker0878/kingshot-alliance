@@ -41,6 +41,9 @@ jobs:
       - name: Install refresh dependencies
         run: python -m pip install --disable-pip-version-check requests beautifulsoup4
 
+      - name: Inspect Academy source structure
+        run: python scripts/progression/inspect_research.py
+
       - name: Refresh immutable source-backed release
         run: python scripts/progression/refresh.py
 
