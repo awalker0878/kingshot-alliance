@@ -9,11 +9,6 @@ from pathlib import Path
 from typing import Any
 
 LEVEL_REQUIREMENT = re.compile(r"^(?P<name>.+?)\s+Lv\.?\s*(?P<level>\d+)$", re.IGNORECASE)
-EXTERNAL_LEVEL_REQUIREMENTS = {
-    "Academy",
-    "Town Center",
-    "War Academy",
-}
 
 
 def load(path: Path) -> dict[str, Any]:
@@ -47,6 +42,7 @@ def validate_academy(release_dir: Path) -> dict[str, int]:
     graph: dict[tuple[str, int], set[tuple[str, int]]] = {node: set() for node in nodes}
     explicit_edges = 0
     external_requirements = 0
+    external_nodes: set[tuple[str, int]] = set()
 
     for technology in technologies:
         technology_id = str(technology["id"])
@@ -56,7 +52,7 @@ def validate_academy(release_dir: Path) -> dict[str, int]:
         if not isinstance(levels, list):
             raise RuntimeError(f"Academy levels are invalid for {technology_id}.")
 
-        # Research levels are sequential even when a source row only repeats the external Academy gate.
+        # Research levels are sequential even when a source row only repeats an external gate.
         for level in range(2, max_level + 1):
             graph[(technology_id, level)].add((technology_id, level - 1))
 
@@ -85,23 +81,35 @@ def validate_academy(release_dir: Path) -> dict[str, int]:
                     )
                 required_name = match.group("name").strip()
                 required_level = int(match.group("level"))
-                if required_name in EXTERNAL_LEVEL_REQUIREMENTS:
-                    external_requirements += 1
-                    continue
+                if required_level < 1:
+                    raise RuntimeError(
+                        f"Academy prerequisite {required_name!r} for {technology_id} Lv.{level} "
+                        "must reference a positive level."
+                    )
 
                 candidates = by_tree_and_name.get((tree, required_name), [])
                 if not candidates:
                     candidates = by_name.get(required_name, [])
-                if len(candidates) != 1:
+
+                if len(candidates) > 1:
                     raise RuntimeError(
                         f"Academy prerequisite {required_name!r} for {technology_id} Lv.{level} "
-                        f"resolved to {len(candidates)} technology identities."
+                        f"resolved ambiguously to {len(candidates)} technology identities."
                     )
+
+                if len(candidates) == 0:
+                    # The maintained source also names prerequisites outside the Academy technology
+                    # catalogue (for example Academy/Town Center levels and troop Upgrade tracks).
+                    # Preserve those labels as explicit source-scoped external leaf nodes instead of
+                    # guessing their owning family or rejecting otherwise complete source data.
+                    external_nodes.add((required_name, required_level))
+                    external_requirements += 1
+                    continue
 
                 required = candidates[0]
                 required_id = str(required["id"])
                 required_max = int(required["max_level"])
-                if required_level < 1 or required_level > required_max:
+                if required_level > required_max:
                     raise RuntimeError(
                         f"Academy prerequisite {required_id} Lv.{required_level} for {technology_id} Lv.{level} "
                         f"is outside declared max {required_max}."
@@ -132,6 +140,7 @@ def validate_academy(release_dir: Path) -> dict[str, int]:
         "level_nodes": len(nodes),
         "explicit_technology_edges": explicit_edges,
         "external_level_requirements": external_requirements,
+        "external_requirement_nodes": len(external_nodes),
     }
 
 
@@ -163,5 +172,6 @@ if __name__ == "__main__":
         "Validated Academy prerequisite graph: "
         f"{result['technology_nodes']} technologies / {result['level_nodes']} declared levels / "
         f"{result['explicit_technology_edges']} explicit technology edges / "
-        f"{result['external_level_requirements']} external level gates; no cycles."
+        f"{result['external_level_requirements']} external source requirements across "
+        f"{result['external_requirement_nodes']} external prerequisite nodes; no cycles."
     )
