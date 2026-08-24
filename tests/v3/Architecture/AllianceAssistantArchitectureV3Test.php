@@ -75,6 +75,41 @@ final class AllianceAssistantArchitectureV3Test extends TestCase
         }
     }
 
+    public function test_gameworld_extension_composes_only_narrow_owner_queries(): void
+    {
+        $path = base_path('app/ReadModels/AllianceAssistant/Queries/AllianceAssistantQuery.php');
+        $source = file_get_contents($path);
+        self::assertIsString($source);
+
+        foreach ([
+            'ProgressionFactQuery',
+            'EventParticipationQuery',
+            'PlayerBattlePlanQuery',
+            'TransferSelfEligibilityQuery',
+            'PublishedEventTerritoryRevisionQuery',
+        ] as $requiredOwnerQuery) {
+            self::assertStringContainsString(
+                $requiredOwnerQuery,
+                $source,
+                'Alliance Assistant must compose the narrow owner projection: '.$requiredOwnerQuery,
+            );
+        }
+
+        foreach ([
+            'TransferParticipantQuery',
+            'TransferPlanQuery',
+            'TerritoryPlanQuery',
+            'EventObjectiveAssignment',
+            '->management(',
+        ] as $forbiddenManagementSurface) {
+            self::assertStringNotContainsString(
+                $forbiddenManagementSurface,
+                $source,
+                'Alliance Assistant must not import/query a broad management surface: '.$forbiddenManagementSurface,
+            );
+        }
+    }
+
     /** @return array<string, string> */
     private function phpSources(string $directory): array
     {
