@@ -9,8 +9,9 @@ This is the user/product view of implemented and actively delivered capability g
 | Account security | Register, authenticate, verify email, manage profile/password/MFA/recovery. | Accounts |
 | Player context | Own/claim Players and operate as one active game persona at a time. | GameWorld/Players; workflows coordinate cross-context effects |
 | Gift Codes | Preserve source history and explicit trust, prepare official redemption for current/all/failed Governors, track per-Governor outcomes, and warn before expiry. | GameWorld/GiftCodes |
+| Factual Governor Progression | Browse immutable, source-labelled KingShot progression releases across Heroes, gear, formations, buildings, research, Pets, Masters and discovered system caps while keeping source conflicts/unknowns visible; normalize observed Governor Heroes and pin saved loadouts to a factual release without introducing recommendations or calculators. | GameWorld/Progression owns catalogue truth; Intelligence/Roster owns observations; Operations/Rallies owns saved loadout intent |
 | Alliance management | Manage Alliance core/settings and tenant lifecycle. | Alliance |
-| Membership and leadership | Membership, invitations, R1–R5 leadership and specialist roles. | Alliance |
+| Membership and leadership | Membership, invitations and R1–R5 leadership and specialist roles. | Alliance |
 | Recruitment | Intake, filter, preview/bulk-triage, review and convert recruitment candidates through controlled membership handoff. | Alliance |
 | Alliance content | Publish reviewed, revisioned and context-linked knowledge; maintain first-class canonical Alliance Rules; let active members Like/Dislike published Alliance Notices without affecting authority or ranking; and deliver testable timezone-safe recurring announcements with delivery history and selective recovery. | Alliance/Content intent and reaction state + Communications delivery + ReadModels composition |
 | Kingdom governance | Manage Kingdom role/governance facts for Players. | GameWorld/Governance; workflows coordinate cross-context effects |
@@ -32,6 +33,23 @@ This is the user/product view of implemented and actively delivered capability g
 | Dashboards/history | Compose cross-context user-facing views without changing source ownership. | ReadModels |
 
 This catalogue should change when a real product outcome changes, not for internal class/file movement.
+
+## Factual Governor Progression product contract
+
+Factual Governor Progression establishes a data-first foundation before any recommendation or calculator work. The current delivery contract requires:
+
+- immutable `GameWorld/Progression` releases with deterministic checksums and a source registry;
+- source authority tiers, observation/version boundaries, explicit conflict states and per-family dispositions;
+- current Hero identity coverage across all discovered generations/rarities/classes plus sourced progression-system summaries;
+- sourced Hero shard/Widget/Mastery progression plus Hero/Governor Gear and Charm facts, with current conflicts resolved only through documented source precedence and all superseded/unresolved claims preserved rather than guessed away;
+- named troop formations stored only as community conventions with mode/scope and no best/recommended score;
+- canonicalized building, troop, Academy/War Academy, Alliance Tech, Pet, Master and additional progression families at every selected inspectable row, with genuinely unpublished or disputed values explicitly dispositioned;
+- a factual read-only Progression Library showing dataset version, checksum, sources, conflicts and completeness rather than hiding uncertainty;
+- append-only `Intelligence/Roster` Hero observations that pin a progression dataset identity/checksum when normalized;
+- `Operations/Rallies` saved formation/loadout intent that stores canonical Hero IDs and pins the factual release used to interpret them;
+- the pre-existing calculator evidence gate remaining closed for any numeric family that has not independently satisfied its stricter source/reconciliation criteria.
+
+The canonical source/evidence policy, acceptance criteria and active delivery ledger live in [Factual Governor Progression](factual-governor-progression.md).
 
 ## Alliance Content game-parity product contract
 

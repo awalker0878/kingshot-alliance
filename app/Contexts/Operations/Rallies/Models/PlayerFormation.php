@@ -15,7 +15,20 @@ final class PlayerFormation extends Model
 
     protected $keyType = 'string';
 
-    protected $fillable = ['player_id', 'name', 'infantry_percent', 'cavalry_percent', 'archer_percent', 'heroes', 'notes', 'is_default', 'created_by_player_id', 'updated_by_player_id'];
+    protected $fillable = [
+        'player_id',
+        'name',
+        'infantry_percent',
+        'cavalry_percent',
+        'archer_percent',
+        'heroes',
+        'progression_dataset_id',
+        'progression_dataset_checksum',
+        'notes',
+        'is_default',
+        'created_by_player_id',
+        'updated_by_player_id',
+    ];
 
     protected function casts(): array
     {

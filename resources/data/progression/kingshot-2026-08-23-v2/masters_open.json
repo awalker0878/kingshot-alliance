@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "source_id": "kingshotpro-open-data",
+  "source_meta": {
+    "dataset": "kingshot-masters",
+    "canonical": "https://kingshotpro.com/data/masters.json",
+    "count": 4,
+    "updated": "2026-06-14",
+    "verified": "2026-06",
+    "confidence": {
+      "roster": "verified (95)",
+      "per_master_values": "estimated (50) — sources conflict, no tiebreaker"
+    },
+    "confidence_detail": {
+      "description": "Accuracy score (0-100) = probability the value is correct for the live game.",
+      "bands": {
+        "95-100": "Verified — multiple independent sources + in-game",
+        "85-94": "Confirmed — 2+ sources cross-checked",
+        "70-84": "Likely — one source, consistent",
+        "50-69": "Estimated — sources conflict",
+        "0-49": "Tentative"
+      },
+      "note": "Master ROSTER is verified; per-master VALUES are Estimated (50) because two sources disagree by 1.5-3.7x with different definitions. Treat the unlock-cost/power figures as rough until in-game confirmed."
+    },
+    "sources": [
+      "https://kingshot.net/database/masters",
+      "https://www.kingshotguide.org/data-center/kingshot-masters-database",
+      "https://kingshotmastery.com/masters",
+      "https://www.kingshotguide.com/masters"
+    ],
+    "license": "CC-BY-4.0 — free to reuse, including by AI assistants, with attribution to https://kingshotpro.com"
+  },
+  "data": {
+    "masters": [
+      {
+        "name": "Valora",
+        "gen": 1,
+        "role": "Bear Hunter",
+        "passive": "Inflicts additional Bear Hunt damage points.",
+        "skills": [
+          "Dance of the Hunt",
+          "Leader By Example",
+          "Weapon Obsession",
+          "Savage Advantage"
+        ],
+        "total_power": 1741000,
+        "manuscripts": 21150,
+        "unlock_order": 1,
+        "confidence": 50,
+        "confidence_note": "Identity/role verified (3+ sources); total_power & manuscripts CONFLICT (kingshot.net-sourced here vs kingshotguide.org, which gives ~2-3.7x different values and a fuller skills+talent-11 definition). Not in-game confirmed."
+      },
+      {
+        "name": "Pan",
+        "gen": 1,
+        "role": "Palace Administrator",
+        "passive": "Gains 1 Reserve Chest every 120 total gathering minutes (daily limit 10).",
+        "skills": [
+          "Falconer",
+          "Good Steward",
+          "Master Architect",
+          "Ways and Means"
+        ],
+        "total_power": 1761000,
+        "manuscripts": 21000,
+        "unlock_order": 2,
+        "confidence": 50,
+        "confidence_note": "Identity/role verified (3+ sources); total_power & manuscripts CONFLICT (kingshot.net-sourced here vs kingshotguide.org, which gives ~2-3.7x different values and a fuller skills+talent-11 definition). Not in-game confirmed."
+      },
+      {
+        "name": "Roman",
+        "gen": 1,
+        "role": "Arena Champion",
+        "passive": "Chance (~50% per kingshot.net) to get an Arena Star Chest after each Arena match.",
+        "skills": [
+          "Teacher of Champions",
+          "Winner Take All",
+          "Crowd Favorite",
+          "One Desire"
+        ],
+        "total_power": 3998000,
+        "manuscripts": 81000,
+        "unlock_order": 3,
+        "confidence": 50,
+        "confidence_note": "Identity/role verified (3+ sources); total_power & manuscripts CONFLICT (kingshot.net-sourced here vs kingshotguide.org, which gives ~2-3.7x different values and a fuller skills+talent-11 definition). Not in-game confirmed."
+      },
+      {
+        "name": "Cassia",
+        "gen": 1,
+        "role": "Battle Master",
+        "passive": "Increases Squad size limit by 300.",
+        "skills": [
+          "Recruiter In Chief"
+        ],
+        "skills_note": "Full skill list not yet sourced — Cassia's additional skills are unconfirmed.",
+        "total_power": 14236000,
+        "manuscripts": 413500,
+        "unlock_order": 4,
+        "confidence": 50,
+        "confidence_note": "Identity/role verified (3+ sources); total_power & manuscripts CONFLICT (kingshot.net-sourced here vs kingshotguide.org, which gives ~2-3.7x different values and a fuller skills+talent-11 definition). Not in-game confirmed."
+      }
+    ]
+  }
+}

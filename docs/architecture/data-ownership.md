@@ -14,16 +14,39 @@ Every writable business aggregate has one owning context/capability. Other conte
 - **GameWorld/Players** — Player identity/claim and active Player state.
 - **GameWorld/Kingdoms** — Kingdom/reference placement state.
 - **GameWorld/KingdomMaps** — immutable/versioned map datasets, coordinate/geometry facts, provenance and sourced game placement rules.
+- **GameWorld/Progression** — immutable/versioned factual KingShot progression catalogue releases, source registry, reconciliation/conflict outcomes and source-scoped community convention records.
 - **GameWorld/Governance** — Kingdom governance assignments.
 - **GameWorld/KingdomTransfers** — transfer-domain state.
 - **Alliance** capabilities — Alliance lifecycle, membership/leadership/access, recruitment and content.
 - **Operations/TerritoryPlanning** — mutable Alliance/Kingdom territory plans, plan participants/objects/groups/preferences, deterministic layout analysis and immutable published plan revisions.
 - **Operations/Results** — accepted Event result facts/metrics, including accepted Bear Hunt battle-report ledgers and recomputed damage aggregates.
-- **Other Operations capabilities** — live operational Event/participation/planning/rally/KingPerk state.
+- **Other Operations capabilities** — live operational Event/participation/planning/rally/KingPerk state, including Governor-saved tactical formation/loadout intent.
 - **Intelligence/Evidence** — uploaded game evidence, immutable source/attempt provenance, extracted candidates/confidence, review/correction history, duplicate decisions, commit attempts and retention state; never the resulting domain fact.
-- **Other Intelligence capabilities** — observations, ingestion, analytical/history state and sharing grants.
+- **Other Intelligence capabilities** — observations, ingestion, analytical/history state and sharing grants, including append-only Governor progression observations.
 - **Communications/Delivery** — generic delivery/preference/attempt state.
 - **Platform** capabilities — platform administration, Alliance platform administration, data governance, Event administration and integrations.
+
+## Factual progression ownership boundary
+
+Catalogue truth, Governor observations and tactical intent are deliberately separate.
+
+```text
+Versioned Hero / Gear / Building / Research / Pet / Master reference fact
+    -> GameWorld/Progression
+
+Source-scoped named troop-ratio convention
+    -> GameWorld/Progression
+
+Observed Governor Hero/gear/progression state at a point in time
+    -> Intelligence/Roster
+
+Governor-saved Hero/formation loadout or Event planning intent
+    -> Operations/Rallies or the applicable Operations owner
+```
+
+A Roster observation may retain a scalar `progression_dataset_id`, checksum and canonical Hero IDs to preserve historical meaning. An Operations loadout may pin the same release. Neither reference allows Intelligence or Operations to mutate catalogue truth.
+
+A later progression release never rewrites an older Governor observation or saved loadout. Missing observation data remains unknown and does not mean a Governor lacks a Hero or item unless the captured evidence explicitly represents a complete roster.
 
 ## Screenshot evidence ownership boundary
 
@@ -80,6 +103,8 @@ occurrence_id
 evidence_id
 commit_attempt_id
 kingdom_map_dataset_id
+progression_dataset_id
+progression_hero_id
 territory_plan_revision_id
 ```
 
@@ -100,6 +125,8 @@ Historical Event/Intelligence/contribution facts retain the identifiers and attr
 Machine extraction attempts and review revisions are historical Evidence facts. A later retry, improved extractor, corrected Player name or deleted binary does not silently rewrite them.
 
 Published territory-plan revisions are historical facts. Newer map datasets, current Player placement or later edits to the plan head must not rewrite them.
+
+Published progression releases are historical reference facts. A newer source or reconciliation result creates a new immutable release; it does not mutate the checksum or meaning pinned by an existing observation/loadout.
 
 ## Database
 

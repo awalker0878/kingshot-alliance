@@ -1,0 +1,2830 @@
+{
+  "schema_version": 1,
+  "source_id": "kingshotdata",
+  "hub_url": "https://kingshotdata.com/category/events/",
+  "discovered_pages": 33,
+  "pages": [
+    {
+      "id": "all-out-event",
+      "name": "All Out Event",
+      "source_url": "https://kingshotdata.com/events/all-out-event/",
+      "structured_table_count": 0,
+      "tables": []
+    },
+    {
+      "id": "alliance-brawl-event",
+      "name": "Alliance Brawl Event",
+      "source_url": "https://kingshotdata.com/events/alliance-brawl-event/",
+      "structured_table_count": 4,
+      "tables": [
+        {
+          "heading": "Day 3 - Pet Training",
+          "headers": [
+            "Governor Charm Level",
+            "Level Up Score"
+          ],
+          "rows": [
+            {
+              "Governor Charm Level": "1",
+              "Level Up Score": "625"
+            },
+            {
+              "Governor Charm Level": "2",
+              "Level Up Score": "1,250"
+            },
+            {
+              "Governor Charm Level": "3",
+              "Level Up Score": "3,125"
+            },
+            {
+              "Governor Charm Level": "4",
+              "Level Up Score": "8,750"
+            },
+            {
+              "Governor Charm Level": "5",
+              "Level Up Score": "11,250"
+            },
+            {
+              "Governor Charm Level": "6",
+              "Level Up Score": "12,500"
+            },
+            {
+              "Governor Charm Level": "7",
+              "Level Up Score": "12,500"
+            },
+            {
+              "Governor Charm Level": "8",
+              "Level Up Score": "13,000"
+            },
+            {
+              "Governor Charm Level": "9",
+              "Level Up Score": "14,000"
+            },
+            {
+              "Governor Charm Level": "10",
+              "Level Up Score": "15,000"
+            },
+            {
+              "Governor Charm Level": "11",
+              "Level Up Score": "16,000"
+            }
+          ]
+        },
+        {
+          "heading": "Day 3 - Pet Training",
+          "headers": [
+            "Pet Level",
+            "Advancement Score"
+          ],
+          "rows": [
+            {
+              "Pet Level": "10",
+              "Advancement Score": "500"
+            },
+            {
+              "Pet Level": "20",
+              "Advancement Score": "1,000"
+            },
+            {
+              "Pet Level": "30",
+              "Advancement Score": "2,000"
+            },
+            {
+              "Pet Level": "40",
+              "Advancement Score": "3,000"
+            },
+            {
+              "Pet Level": "50",
+              "Advancement Score": "4,500"
+            },
+            {
+              "Pet Level": "60",
+              "Advancement Score": "6,750"
+            },
+            {
+              "Pet Level": "70",
+              "Advancement Score": "10,000"
+            },
+            {
+              "Pet Level": "80",
+              "Advancement Score": "12,000"
+            },
+            {
+              "Pet Level": "90",
+              "Advancement Score": "14,500"
+            },
+            {
+              "Pet Level": "100",
+              "Advancement Score": "17,500"
+            }
+          ]
+        },
+        {
+          "heading": "Day 4 - Gear Enhancement",
+          "headers": [
+            "Governor Charm Level",
+            "Level Up Score"
+          ],
+          "rows": [
+            {
+              "Governor Charm Level": "1",
+              "Level Up Score": "625"
+            },
+            {
+              "Governor Charm Level": "2",
+              "Level Up Score": "1,250"
+            },
+            {
+              "Governor Charm Level": "3",
+              "Level Up Score": "3,125"
+            },
+            {
+              "Governor Charm Level": "4",
+              "Level Up Score": "8,750"
+            },
+            {
+              "Governor Charm Level": "5",
+              "Level Up Score": "11,250"
+            },
+            {
+              "Governor Charm Level": "6",
+              "Level Up Score": "12,500"
+            },
+            {
+              "Governor Charm Level": "7",
+              "Level Up Score": "12,500"
+            },
+            {
+              "Governor Charm Level": "8",
+              "Level Up Score": "13,000"
+            },
+            {
+              "Governor Charm Level": "9",
+              "Level Up Score": "14,000"
+            },
+            {
+              "Governor Charm Level": "10",
+              "Level Up Score": "15,000"
+            },
+            {
+              "Governor Charm Level": "11",
+              "Level Up Score": "16,000"
+            }
+          ]
+        },
+        {
+          "heading": "Day 5 - Trade Baron",
+          "headers": [
+            "Governor Gear Rarity",
+            "Level Up Score"
+          ],
+          "rows": [
+            {
+              "Governor Gear Rarity": "Uncommon",
+              "Level Up Score": "1,125"
+            },
+            {
+              "Governor Gear Rarity": "Uncommon (1-Star)",
+              "Level Up Score": "1,875"
+            },
+            {
+              "Governor Gear Rarity": "Rare",
+              "Level Up Score": "3,000"
+            },
+            {
+              "Governor Gear Rarity": "Rare (1-Star)",
+              "Level Up Score": "4,500"
+            },
+            {
+              "Governor Gear Rarity": "Rare (2-Star)",
+              "Level Up Score": "5,100"
+            },
+            {
+              "Governor Gear Rarity": "Rare (3-Star)",
+              "Level Up Score": "5,400"
+            },
+            {
+              "Governor Gear Rarity": "Epic",
+              "Level Up Score": "3,230"
+            },
+            {
+              "Governor Gear Rarity": "Epic (1-Star)",
+              "Level Up Score": "3,230"
+            },
+            {
+              "Governor Gear Rarity": "Epic (2-Star)",
+              "Level Up Score": "3,225"
+            },
+            {
+              "Governor Gear Rarity": "Epic (3-Star)",
+              "Level Up Score": "3,225"
+            },
+            {
+              "Governor Gear Rarity": "Epic T1",
+              "Level Up Score": "3,440"
+            },
+            {
+              "Governor Gear Rarity": "Epic T1 (1-Star)",
+              "Level Up Score": "3,440"
+            },
+            {
+              "Governor Gear Rarity": "Epic T1 (2-Star)",
+              "Level Up Score": "4,085"
+            },
+            {
+              "Governor Gear Rarity": "Epic T1 (3-Star)",
+              "Level Up Score": "4,085"
+            },
+            {
+              "Governor Gear Rarity": "Mythic",
+              "Level Up Score": "6,250"
+            },
+            {
+              "Governor Gear Rarity": "Mythic (1-Star)",
+              "Level Up Score": "6,250"
+            },
+            {
+              "Governor Gear Rarity": "Mythic (2-Star)",
+              "Level Up Score": "6,250"
+            },
+            {
+              "Governor Gear Rarity": "Mythic (3-Star)",
+              "Level Up Score": "6,250"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "armament-competition",
+      "name": "Armament Competition",
+      "source_url": "https://kingshotdata.com/events/armament-competition/",
+      "structured_table_count": 1,
+      "tables": [
+        {
+          "heading": "Event Tasks (Artisan’s Visions) - Type 1 Armament Competition",
+          "headers": [
+            "Governor Gear Rarity",
+            "Level Up Score"
+          ],
+          "rows": [
+            {
+              "Governor Gear Rarity": "Uncommon",
+              "Level Up Score": "1,125"
+            },
+            {
+              "Governor Gear Rarity": "Uncommon (1-Star)",
+              "Level Up Score": "1,875"
+            },
+            {
+              "Governor Gear Rarity": "Rare",
+              "Level Up Score": "3,000"
+            },
+            {
+              "Governor Gear Rarity": "Rare (1-Star)",
+              "Level Up Score": "4,500"
+            },
+            {
+              "Governor Gear Rarity": "Rare (2-Star)",
+              "Level Up Score": "5,100"
+            },
+            {
+              "Governor Gear Rarity": "Rare (3-Star)",
+              "Level Up Score": "5,400"
+            },
+            {
+              "Governor Gear Rarity": "Epic",
+              "Level Up Score": "3,230"
+            },
+            {
+              "Governor Gear Rarity": "Epic (1-Star)",
+              "Level Up Score": "3,230"
+            },
+            {
+              "Governor Gear Rarity": "Epic (2-Star)",
+              "Level Up Score": "3,225"
+            },
+            {
+              "Governor Gear Rarity": "Epic (3-Star)",
+              "Level Up Score": "3,225"
+            },
+            {
+              "Governor Gear Rarity": "Epic T1",
+              "Level Up Score": "3,440"
+            },
+            {
+              "Governor Gear Rarity": "Epic T1 (1-Star)",
+              "Level Up Score": "3,440"
+            },
+            {
+              "Governor Gear Rarity": "Epic T1 (2-Star)",
+              "Level Up Score": "4,085"
+            },
+            {
+              "Governor Gear Rarity": "Epic T1 (3-Star)",
+              "Level Up Score": "4,085"
+            },
+            {
+              "Governor Gear Rarity": "Mythic",
+              "Level Up Score": "6,250"
+            },
+            {
+              "Governor Gear Rarity": "Mythic (1-Star)",
+              "Level Up Score": "6,250"
+            },
+            {
+              "Governor Gear Rarity": "Mythic (2-Star)",
+              "Level Up Score": "6,250"
+            },
+            {
+              "Governor Gear Rarity": "Mythic (3-Star)",
+              "Level Up Score": "6,250"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "beast-whisperer-event",
+      "name": "Beast Whisperer Event",
+      "source_url": "https://kingshotdata.com/events/beast-whisperer-event/",
+      "structured_table_count": 0,
+      "tables": []
+    },
+    {
+      "id": "buccaneer-bounty-event",
+      "name": "Buccaneer Bounty Event",
+      "source_url": "https://kingshotdata.com/events/buccaneer-bounty-event/",
+      "structured_table_count": 1,
+      "tables": [
+        {
+          "heading": "Corsair Key Packs",
+          "headers": [
+            "Price",
+            "Corsair Keys",
+            "VIP XP"
+          ],
+          "rows": [
+            {
+              "Price": "$0.99",
+              "Corsair Keys": "120",
+              "VIP XP": "500"
+            },
+            {
+              "Price": "$2.99",
+              "Corsair Keys": "360",
+              "VIP XP": "1500"
+            },
+            {
+              "Price": "$4.99",
+              "Corsair Keys": "500",
+              "VIP XP": "2500"
+            },
+            {
+              "Price": "$9.99",
+              "Corsair Keys": "900",
+              "VIP XP": "4000"
+            },
+            {
+              "Price": "$19.99",
+              "Corsair Keys": "1700",
+              "VIP XP": "6000"
+            },
+            {
+              "Price": "$49.99",
+              "Corsair Keys": "3500",
+              "VIP XP": "12000"
+            },
+            {
+              "Price": "$99.99",
+              "Corsair Keys": "6000",
+              "VIP XP": "20000"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "call-of-the-sovereign",
+      "name": "Call of the Sovereign",
+      "source_url": "https://kingshotdata.com/events/call-of-the-sovereign/",
+      "structured_table_count": 4,
+      "tables": [
+        {
+          "heading": "Event Tasks",
+          "headers": [
+            "Task",
+            "Rewards"
+          ],
+          "rows": [
+            {
+              "Task": "Defeat 5 Beasts",
+              "Rewards": "2 Glory Points, 10K Hero XP, 100K Meat, 100K Wood"
+            },
+            {
+              "Task": "Defeat 15 Beasts",
+              "Rewards": "4 Glory Points, 2 Mythic Expedition Manuals, x5 5-minute General Speedups, x5 5-minute Construction Speedups"
+            },
+            {
+              "Task": "Call rally and hunt down 3 Polar Terrors",
+              "Rewards": "2 Glory Points, 10K Hero XP, 20K Coal, 5K Iron"
+            },
+            {
+              "Task": "Call rally and hunt down 10 Polar Terrors",
+              "Rewards": "4 Glory Points, 300 Enhancement XP Parts, x5 5-minute General Speedups, x5 5-minute Research Speedups"
+            },
+            {
+              "Task": "Gather 3,000,000 resources",
+              "Rewards": "2 Glory Points, 10K Hero XP, 100K Meat, 100K Wood"
+            },
+            {
+              "Task": "Gather 10,000,000 resources",
+              "Rewards": "4 Glory Points, 2 Mythic Exploration Manuals, x5 5-minute General Speedups, x5 5-minute Training Speedups"
+            },
+            {
+              "Task": "Raise 50,000 power by training/promoting troops",
+              "Rewards": "2 Glory Points, 300 Gems, 20K Coal, 5K Iron"
+            },
+            {
+              "Task": "Raise 100,000 power by training/promoting troops",
+              "Rewards": "4 Glory Points, x10 5-minute Construction Speedups, x10 5-minute Research Speedups, x10 5-minute Training Speedups"
+            },
+            {
+              "Task": "Raise 150,000 power by training/promoting troops",
+              "Rewards": "10 Glory Points, 1 Mythic Shard, 1h General Speedup, x10 Level 2 Custom Resource Chests"
+            },
+            {
+              "Task": "Make any purchase 1 time",
+              "Rewards": "20 Glory Points, War Chant Custom Chest, 100 Governor Stamina, 3h General Speedup"
+            }
+          ]
+        },
+        {
+          "heading": "Generation 3 Changes",
+          "headers": [
+            "Task",
+            "Rewards"
+          ],
+          "rows": [
+            {
+              "Task": "Defeat 5 Beasts",
+              "Rewards": "2 Glory Points, x2 10K Hero XP, 100K Meat, 100K Wood"
+            },
+            {
+              "Task": "Defeat 15 Beasts",
+              "Rewards": "4 Glory Points, 2 Mythic Expedition Manuals, x5 5-minute General Speedups, x5 5-minute Construction Speedups"
+            },
+            {
+              "Task": "Call rally and hunt down 3 Polar Terrors",
+              "Rewards": "2 Glory Points, x2 10K Hero XP, 20K Coal, 5K Iron"
+            },
+            {
+              "Task": "Call rally and hunt down 10 Polar Terrors",
+              "Rewards": "4 Glory Points, 300 Enhancement XP Parts, x5 5-minute General Speedups, x5 5-minute Research Speedups"
+            },
+            {
+              "Task": "Gather 3,000,000 resources",
+              "Rewards": "2 Glory Points, x2 10K Hero XP, 100K Meat, 100K Wood"
+            },
+            {
+              "Task": "Gather 10,000,000 resources",
+              "Rewards": "4 Glory Points, 2 Mythic Exploration Manuals, x5 5-minute General Speedups, x5 5-minute Training Speedups"
+            },
+            {
+              "Task": "Use Advanced Recruitment 10 times",
+              "Rewards": "2 Glory Points, 300 Gems, 20K Coal, 5K Iron"
+            },
+            {
+              "Task": "Use Epic Recruitment 10 times",
+              "Rewards": "4 Glory Points, x10 5-minute Construction Speedups, x10 5-minute Research Speedups, x10 5-minute Training Speedups"
+            },
+            {
+              "Task": "Use Epic Recruitment 30 times",
+              "Rewards": "10 Glory Points, x2 Mythic Shards, x5 Truegold, x10 Level 2 Custom Resource Chests"
+            },
+            {
+              "Task": "Make any purchase 1 time",
+              "Rewards": "20 Glory Points, War Chant Custom Chest, 100 Governor Stamina, 3h General Speedup"
+            }
+          ]
+        },
+        {
+          "heading": "Progress Chests",
+          "headers": [
+            "Chest Number",
+            "Glory Points Required",
+            "Rewards"
+          ],
+          "rows": [
+            {
+              "Chest Number": "1",
+              "Glory Points Required": "10",
+              "Rewards": "300 Gems, 20 Governor Stamina"
+            },
+            {
+              "Chest Number": "2",
+              "Glory Points Required": "30",
+              "Rewards": "2h General Speedup, 20 Governor Stamina"
+            },
+            {
+              "Chest Number": "3",
+              "Glory Points Required": "50",
+              "Rewards": "50,000 Hero XP, 30 Governor Stamina"
+            },
+            {
+              "Chest Number": "4",
+              "Glory Points Required": "80",
+              "Rewards": "1,000 Gems, 30 Governor Stamina"
+            },
+            {
+              "Chest Number": "5",
+              "Glory Points Required": "110",
+              "Rewards": "3 War Chant Custom Chests, 100 Governor Stamina"
+            }
+          ]
+        },
+        {
+          "heading": "Generation 3 Changes",
+          "headers": [
+            "Chest Number",
+            "Glory Points Required",
+            "Rewards"
+          ],
+          "rows": [
+            {
+              "Chest Number": "1",
+              "Glory Points Required": "10",
+              "Rewards": "1000 Gems, 50 Governor Stamina"
+            },
+            {
+              "Chest Number": "2",
+              "Glory Points Required": "30",
+              "Rewards": "3h General Speedup, 50 Governor Stamina"
+            },
+            {
+              "Chest Number": "3",
+              "Glory Points Required": "50",
+              "Rewards": "500 Enhancement XP Parts, 50 Governor Stamina"
+            },
+            {
+              "Chest Number": "4",
+              "Glory Points Required": "80",
+              "Rewards": "15 Truegold, 50 Governor Stamina"
+            },
+            {
+              "Chest Number": "5",
+              "Glory Points Required": "110",
+              "Rewards": "3 War Chant Custom Chests, 200 Governor Stamina"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cesares-fury",
+      "name": "Cesares Fury",
+      "source_url": "https://kingshotdata.com/events/cesares-fury/",
+      "structured_table_count": 2,
+      "tables": [
+        {
+          "heading": "Champion’s Initiation",
+          "headers": [
+            "Level",
+            "Easy",
+            "Normal",
+            "Hard",
+            "Nightmare",
+            "Insane"
+          ],
+          "rows": [
+            {
+              "Level": "1",
+              "Easy": "900",
+              "Normal": "936,000",
+              "Hard": "12,600,000",
+              "Nightmare": "27,930,000",
+              "Insane": "71,280,000"
+            },
+            {
+              "Level": "2",
+              "Easy": "1,378",
+              "Normal": "1,007,370",
+              "Hard": "12,805,766",
+              "Nightmare": "28,450,752",
+              "Insane": "73,192,680"
+            },
+            {
+              "Level": "3",
+              "Easy": "1,875",
+              "Normal": "1,081,080",
+              "Hard": "13,013,145",
+              "Nightmare": "28,975,608",
+              "Insane": "75,129,120"
+            },
+            {
+              "Level": "4",
+              "Easy": "2,870",
+              "Normal": "1,157,130",
+              "Hard": "13,222,137",
+              "Nightmare": "29,504,568",
+              "Insane": "77,089,320"
+            },
+            {
+              "Level": "5",
+              "Easy": "3,902",
+              "Normal": "1,235,520",
+              "Hard": "13,432,742",
+              "Nightmare": "30,037,632",
+              "Insane": "79,073,280"
+            },
+            {
+              "Level": "6",
+              "Easy": "4,973",
+              "Normal": "1,316,250",
+              "Hard": "13,644,960",
+              "Nightmare": "30,574,800",
+              "Insane": "81,081,000"
+            },
+            {
+              "Level": "7",
+              "Easy": "6,080",
+              "Normal": "1,399,320",
+              "Hard": "13,858,790",
+              "Nightmare": "31,116,072",
+              "Insane": "83,112,480"
+            },
+            {
+              "Level": "8",
+              "Easy": "7,227",
+              "Normal": "1,484,730",
+              "Hard": "14,074,233",
+              "Nightmare": "31,661,448",
+              "Insane": "85,167,720"
+            },
+            {
+              "Level": "9",
+              "Easy": "8,409",
+              "Normal": "1,572,480",
+              "Hard": "14,291,289",
+              "Nightmare": "32,210,928",
+              "Insane": "87,246,720"
+            },
+            {
+              "Level": "10",
+              "Easy": "21,405",
+              "Normal": "3,325,140",
+              "Hard": "29,019,916",
+              "Nightmare": "65,529,024",
+              "Insane": "178,698,960"
+            },
+            {
+              "Level": "11",
+              "Easy": "20,328",
+              "Normal": "2,700,000",
+              "Hard": "14,730,240",
+              "Nightmare": "33,322,200",
+              "Insane": "91,476,000"
+            },
+            {
+              "Level": "12",
+              "Easy": "26,593",
+              "Normal": "2,845,800",
+              "Hard": "14,952,134",
+              "Nightmare": "33,883,992",
+              "Insane": "93,626,280"
+            },
+            {
+              "Level": "13",
+              "Easy": "33,052",
+              "Normal": "2,995,200",
+              "Hard": "15,175,641",
+              "Nightmare": "34,449,888",
+              "Insane": "95,800,320"
+            },
+            {
+              "Level": "14",
+              "Easy": "39,723",
+              "Normal": "3,148,200",
+              "Hard": "15,400,761",
+              "Nightmare": "35,019,888",
+              "Insane": "97,998,120"
+            },
+            {
+              "Level": "15",
+              "Easy": "46,584",
+              "Normal": "3,304,800",
+              "Hard": "15,627,494",
+              "Nightmare": "35,593,992",
+              "Insane": "100,219,680"
+            },
+            {
+              "Level": "16",
+              "Easy": "53,660",
+              "Normal": "3,465,000",
+              "Hard": "15,855,840",
+              "Nightmare": "36,172,200",
+              "Insane": "102,465,000"
+            },
+            {
+              "Level": "17",
+              "Easy": "60,921",
+              "Normal": "3,628,800",
+              "Hard": "16,085,798",
+              "Nightmare": "36,754,512",
+              "Insane": "104,734,080"
+            },
+            {
+              "Level": "18",
+              "Easy": "68,402",
+              "Normal": "3,796,200",
+              "Hard": "16,317,369",
+              "Nightmare": "37,340,928",
+              "Insane": "107,026,920"
+            },
+            {
+              "Level": "19",
+              "Easy": "74,412",
+              "Normal": "3,967,200",
+              "Hard": "16,550,553",
+              "Nightmare": "37,931,448",
+              "Insane": "109,343,520"
+            },
+            {
+              "Level": "20",
+              "Easy": "273,384",
+              "Normal": "9,083,880",
+              "Hard": "35,124,311",
+              "Nightmare": "81,592,116",
+              "Insane": "239,487,937"
+            },
+            {
+              "Level": "21",
+              "Easy": "140,580",
+              "Normal": "4,320,000",
+              "Hard": "23,100,960",
+              "Nightmare": "51,480,000",
+              "Insane": "114,048,000"
+            },
+            {
+              "Level": "22",
+              "Easy": "155,649",
+              "Normal": "4,501,800",
+              "Hard": "23,423,990",
+              "Nightmare": "52,273,200",
+              "Insane": "116,435,880"
+            },
+            {
+              "Level": "23",
+              "Easy": "171,054",
+              "Normal": "4,687,200",
+              "Hard": "23,749,209",
+              "Nightmare": "53,071,800",
+              "Insane": "118,847,520"
+            },
+            {
+              "Level": "24",
+              "Easy": "186,883",
+              "Normal": "4,876,200",
+              "Hard": "24,076,617",
+              "Nightmare": "53,875,800",
+              "Insane": "121,282,920"
+            },
+            {
+              "Level": "25",
+              "Easy": "203,040",
+              "Normal": "5,068,800",
+              "Hard": "24,406,214",
+              "Nightmare": "54,685,200",
+              "Insane": "123,742,080"
+            },
+            {
+              "Level": "26",
+              "Easy": "219,628",
+              "Normal": "5,265,000",
+              "Hard": "24,738,000",
+              "Nightmare": "55,500,000",
+              "Insane": "126,225,000"
+            },
+            {
+              "Level": "27",
+              "Easy": "236,538",
+              "Normal": "5,464,800",
+              "Hard": "25,071,974",
+              "Nightmare": "56,320,200",
+              "Insane": "127,710,000"
+            },
+            {
+              "Level": "28",
+              "Easy": "253,886",
+              "Normal": "5,668,200",
+              "Hard": "25,408,137",
+              "Nightmare": "57,145,800",
+              "Insane": "129,195,000"
+            },
+            {
+              "Level": "29",
+              "Easy": "271,548",
+              "Normal": "5,875,200",
+              "Hard": "25,746,489",
+              "Nightmare": "57,976,800",
+              "Insane": "130,680,000"
+            },
+            {
+              "Level": "30",
+              "Easy": "982,368",
+              "Normal": "19,509,840",
+              "Hard": "56,092,012",
+              "Nightmare": "128,642,400",
+              "Insane": "294,030,000"
+            },
+            {
+              "Level": "31",
+              "Easy": "470,043",
+              "Normal": "8,988,000",
+              "Hard": "26,692,416",
+              "Nightmare": "60,393,000",
+              "Insane": "135,630,000"
+            },
+            {
+              "Level": "32",
+              "Easy": "500,742",
+              "Normal": "9,339,120",
+              "Hard": "27,104,822",
+              "Nightmare": "61,429,200",
+              "Insane": "137,610,000"
+            },
+            {
+              "Level": "33",
+              "Easy": "532,197",
+              "Normal": "9,696,960",
+              "Hard": "27,520,147",
+              "Nightmare": "62,472,600",
+              "Insane": "139,590,000"
+            },
+            {
+              "Level": "34",
+              "Easy": "564,408",
+              "Normal": "10,061,520",
+              "Hard": "27,938,390",
+              "Nightmare": "63,523,200",
+              "Insane": "141,570,000"
+            },
+            {
+              "Level": "35",
+              "Easy": "597,375",
+              "Normal": "10,432,800",
+              "Hard": "28,359,552",
+              "Nightmare": "64,581,000",
+              "Insane": "143,550,000"
+            },
+            {
+              "Level": "36",
+              "Easy": "631,098",
+              "Normal": "10,810,800",
+              "Hard": "28,783,632",
+              "Nightmare": "65,646,000",
+              "Insane": "145,530,000"
+            },
+            {
+              "Level": "37",
+              "Easy": "665,577",
+              "Normal": "11,195,520",
+              "Hard": "29,210,630",
+              "Nightmare": "66,718,200",
+              "Insane": "147,510,000"
+            },
+            {
+              "Level": "38",
+              "Easy": "700,812",
+              "Normal": "11,586,960",
+              "Hard": "29,640,547",
+              "Nightmare": "67,797,600",
+              "Insane": "149,490,000"
+            },
+            {
+              "Level": "39",
+              "Easy": "736,803",
+              "Normal": "11,985,120",
+              "Hard": "30,073,382",
+              "Nightmare": "68,884,200",
+              "Insane": "151,470,000"
+            },
+            {
+              "Level": "40",
+              "Easy": "2,554,344",
+              "Normal": "38,876,280",
+              "Hard": "66,396,153",
+              "Nightmare": "154,978,800",
+              "Insane": "345,510,000"
+            },
+            {
+              "Level": "41",
+              "Easy": "1,179,984",
+              "Normal": "17,510,400",
+              "Hard": "40,903,200",
+              "Nightmare": "94,335,120",
+              "Insane": "156,420,000"
+            },
+            {
+              "Level": "42",
+              "Easy": "1,244,256",
+              "Normal": "18,219,480",
+              "Hard": "41,668,560",
+              "Nightmare": "96,313,536",
+              "Insane": "159,390,000"
+            },
+            {
+              "Level": "43",
+              "Easy": "1,310,166",
+              "Normal": "18,942,240",
+              "Hard": "42,439,680",
+              "Nightmare": "98,306,208",
+              "Insane": "162,360,000"
+            },
+            {
+              "Level": "44",
+              "Easy": "1,377,714",
+              "Normal": "19,678,680",
+              "Hard": "43,216,560",
+              "Nightmare": "100,313,136",
+              "Insane": "165,330,000"
+            },
+            {
+              "Level": "45",
+              "Easy": "2,226,000",
+              "Normal": "20,428,800",
+              "Hard": "43,999,200",
+              "Nightmare": "102,334,320",
+              "Insane": "168,300,000"
+            },
+            {
+              "Level": "46",
+              "Easy": "2,350,080",
+              "Normal": "21,340,800",
+              "Hard": "44,974,800",
+              "Nightmare": "104,892,480",
+              "Insane": "172,260,000"
+            },
+            {
+              "Level": "47",
+              "Easy": "2,477,520",
+              "Normal": "22,271,040",
+              "Hard": "45,958,080",
+              "Nightmare": "107,469,648",
+              "Insane": "176,220,000"
+            },
+            {
+              "Level": "48",
+              "Easy": "2,608,320",
+              "Normal": "23,219,520",
+              "Hard": "46,949,040",
+              "Nightmare": "110,065,824",
+              "Insane": "180,180,000"
+            },
+            {
+              "Level": "49",
+              "Easy": "2,742,480",
+              "Normal": "24,186,240",
+              "Hard": "47,947,680",
+              "Nightmare": "112,681,008",
+              "Insane": "184,140,000"
+            },
+            {
+              "Level": "50",
+              "Easy": "5,760,000",
+              "Normal": "51,072,000",
+              "Hard": "98,400,000",
+              "Nightmare": "231,660,000",
+              "Insane": "376,200,000"
+            }
+          ]
+        },
+        {
+          "heading": "Legend’s Initiation",
+          "headers": [
+            "Level",
+            "Easy",
+            "Normal",
+            "Hard",
+            "Nightmare",
+            "Insane"
+          ],
+          "rows": [
+            {
+              "Level": "1",
+              "Easy": "85,140,000",
+              "Normal": "100,188,000",
+              "Hard": "116,424,000",
+              "Nightmare": "133,848,000",
+              "Insane": "152,460,000"
+            },
+            {
+              "Level": "2",
+              "Easy": "86,819,040",
+              "Normal": "101,995,740",
+              "Hard": "118,508,512",
+              "Nightmare": "136,223,208",
+              "Insane": "155,147,857"
+            },
+            {
+              "Level": "3",
+              "Easy": "88,509,960",
+              "Normal": "103,815,360",
+              "Hard": "120,602,196",
+              "Nightmare": "138,612,672",
+              "Insane": "157,846,788"
+            },
+            {
+              "Level": "4",
+              "Easy": "90,212,760",
+              "Normal": "105,646,860",
+              "Hard": "122,712,860",
+              "Nightmare": "141,016,392",
+              "Insane": "160,565,549"
+            },
+            {
+              "Level": "5",
+              "Easy": "91,927,440",
+              "Normal": "107,490,240",
+              "Hard": "124,832,664",
+              "Nightmare": "143,434,368",
+              "Insane": "163,295,352"
+            },
+            {
+              "Level": "6",
+              "Easy": "93,654,000",
+              "Normal": "109,345,500",
+              "Hard": "126,969,480",
+              "Nightmare": "145,866,600",
+              "Insane": "166,045,017"
+            },
+            {
+              "Level": "7",
+              "Easy": "95,392,440",
+              "Normal": "111,212,640",
+              "Hard": "129,115,404",
+              "Nightmare": "148,313,088",
+              "Insane": "168,805,692"
+            },
+            {
+              "Level": "8",
+              "Easy": "97,142,760",
+              "Normal": "113,091,660",
+              "Hard": "131,278,371",
+              "Nightmare": "150,773,832",
+              "Insane": "171,586,261"
+            },
+            {
+              "Level": "9",
+              "Easy": "98,904,960",
+              "Normal": "114,982,560",
+              "Hard": "133,450,416",
+              "Nightmare": "153,248,832",
+              "Insane": "174,377,808"
+            },
+            {
+              "Level": "10",
+              "Easy": "201,358,080",
+              "Normal": "233,770,680",
+              "Hard": "271,279,071",
+              "Nightmare": "311,476,176",
+              "Insane": "354,378,562"
+            },
+            {
+              "Level": "11",
+              "Easy": "102,465,000",
+              "Normal": "118,800,000",
+              "Hard": "137,837,700",
+              "Nightmare": "158,241,600",
+              "Insane": "180,011,700"
+            },
+            {
+              "Level": "12",
+              "Easy": "104,262,840",
+              "Normal": "120,726,540",
+              "Hard": "140,052,971",
+              "Nightmare": "160,759,368",
+              "Insane": "182,854,077"
+            },
+            {
+              "Level": "13",
+              "Easy": "106,072,560",
+              "Normal": "122,664,960",
+              "Hard": "142,277,256",
+              "Nightmare": "163,291,392",
+              "Insane": "185,707,368"
+            },
+            {
+              "Level": "14",
+              "Easy": "107,894,160",
+              "Normal": "124,615,260",
+              "Hard": "144,518,679",
+              "Nightmare": "165,837,672",
+              "Insane": "188,580,648"
+            },
+            {
+              "Level": "15",
+              "Easy": "109,727,640",
+              "Normal": "126,577,440",
+              "Hard": "146,769,084",
+              "Nightmare": "168,398,208",
+              "Insane": "191,464,812"
+            },
+            {
+              "Level": "16",
+              "Easy": "111,573,000",
+              "Normal": "128,551,500",
+              "Hard": "149,036,659",
+              "Nightmare": "170,973,000",
+              "Insane": "194,368,996"
+            },
+            {
+              "Level": "17",
+              "Easy": "113,430,240",
+              "Normal": "130,537,440",
+              "Hard": "151,313,184",
+              "Nightmare": "173,562,048",
+              "Insane": "197,284,032"
+            },
+            {
+              "Level": "18",
+              "Easy": "115,299,360",
+              "Normal": "132,535,260",
+              "Hard": "153,606,911",
+              "Nightmare": "176,165,352",
+              "Insane": "200,219,120"
+            },
+            {
+              "Level": "19",
+              "Easy": "117,180,360",
+              "Normal": "134,544,960",
+              "Hard": "155,909,556",
+              "Nightmare": "178,782,912",
+              "Insane": "203,165,028"
+            },
+            {
+              "Level": "20",
+              "Easy": "253,995,730",
+              "Normal": "289,998,308",
+              "Hard": "336,121,505",
+              "Nightmare": "385,500,772",
+              "Insane": "438,136,110"
+            },
+            {
+              "Level": "21",
+              "Easy": "120,978,000",
+              "Normal": "138,600,000",
+              "Hard": "160,558,200",
+              "Nightmare": "184,060,800",
+              "Insane": "209,107,800"
+            },
+            {
+              "Level": "22",
+              "Easy": "122,894,640",
+              "Normal": "140,645,340",
+              "Hard": "162,904,230",
+              "Nightmare": "186,721,128",
+              "Insane": "212,104,696"
+            },
+            {
+              "Level": "23",
+              "Easy": "124,823,160",
+              "Normal": "142,702,560",
+              "Hard": "165,259,116",
+              "Nightmare": "189,395,712",
+              "Insane": "215,112,348"
+            },
+            {
+              "Level": "24",
+              "Easy": "126,763,560",
+              "Normal": "144,771,660",
+              "Hard": "167,631,298",
+              "Nightmare": "192,084,552",
+              "Insane": "218,140,148"
+            },
+            {
+              "Level": "25",
+              "Easy": "128,715,840",
+              "Normal": "146,852,640",
+              "Hard": "170,012,304",
+              "Nightmare": "194,787,648",
+              "Insane": "221,178,672"
+            },
+            {
+              "Level": "26",
+              "Easy": "130,698,187",
+              "Normal": "148,945,500",
+              "Hard": "172,410,638",
+              "Nightmare": "197,505,000",
+              "Insane": "224,237,376"
+            },
+            {
+              "Level": "27",
+              "Easy": "132,656,040",
+              "Normal": "151,050,240",
+              "Hard": "174,817,764",
+              "Nightmare": "200,236,608",
+              "Insane": "227,306,772"
+            },
+            {
+              "Level": "28",
+              "Easy": "134,643,960",
+              "Normal": "153,166,860",
+              "Hard": "177,242,250",
+              "Nightmare": "202,982,472",
+              "Insane": "230,396,379"
+            },
+            {
+              "Level": "29",
+              "Easy": "136,643,760",
+              "Normal": "155,295,360",
+              "Hard": "179,675,496",
+              "Nightmare": "205,742,592",
+              "Insane": "233,496,648"
+            },
+            {
+              "Level": "30",
+              "Easy": "306,298,080",
+              "Normal": "345,640,680",
+              "Hard": "400,058,588",
+              "Nightmare": "458,233,776",
+              "Insane": "520,184,079"
+            },
+            {
+              "Level": "31",
+              "Easy": "142,619,400",
+              "Normal": "161,647,200",
+              "Hard": "186,981,300",
+              "Nightmare": "214,061,760",
+              "Insane": "242,888,580"
+            },
+            {
+              "Level": "32",
+              "Easy": "145,149,840",
+              "Normal": "164,336,040",
+              "Hard": "190,065,744",
+              "Nightmare": "217,565,568",
+              "Insane": "246,835,512"
+            },
+            {
+              "Level": "33",
+              "Easy": "147,696,120",
+              "Normal": "167,040,720",
+              "Hard": "193,167,612",
+              "Nightmare": "221,088,384",
+              "Insane": "250,803,036"
+            },
+            {
+              "Level": "34",
+              "Easy": "150,258,240",
+              "Normal": "169,761,240",
+              "Hard": "196,286,904",
+              "Nightmare": "224,630,208",
+              "Insane": "254,791,152"
+            },
+            {
+              "Level": "35",
+              "Easy": "152,836,200",
+              "Normal": "172,497,600",
+              "Hard": "199,423,620",
+              "Nightmare": "228,191,040",
+              "Insane": "258,799,860"
+            },
+            {
+              "Level": "36",
+              "Easy": "155,430,000",
+              "Normal": "175,249,800",
+              "Hard": "202,577,760",
+              "Nightmare": "231,770,880",
+              "Insane": "262,829,160"
+            },
+            {
+              "Level": "37",
+              "Easy": "158,039,640",
+              "Normal": "178,017,840",
+              "Hard": "205,749,324",
+              "Nightmare": "235,369,728",
+              "Insane": "266,879,052"
+            },
+            {
+              "Level": "38",
+              "Easy": "160,665,120",
+              "Normal": "180,801,720",
+              "Hard": "208,938,312",
+              "Nightmare": "238,987,584",
+              "Insane": "270,949,536"
+            },
+            {
+              "Level": "39",
+              "Easy": "163,306,440",
+              "Normal": "183,601,440",
+              "Hard": "212,144,724",
+              "Nightmare": "242,624,448",
+              "Insane": "275,040,612"
+            },
+            {
+              "Level": "40",
+              "Easy": "371,154,960",
+              "Normal": "414,378,360",
+              "Hard": "478,988,674",
+              "Nightmare": "547,973,712",
+              "Insane": "621,351,941"
+            },
+            {
+              "Level": "41",
+              "Easy": "169,646,400",
+              "Normal": "190,317,600",
+              "Hard": "219,851,280",
+              "Nightmare": "251,380,800",
+              "Insane": "284,906,160"
+            },
+            {
+              "Level": "42",
+              "Easy": "173,352,960",
+              "Normal": "194,241,960",
+              "Hard": "224,360,136",
+              "Nightmare": "256,509,792",
+              "Insane": "290,690,928"
+            },
+            {
+              "Level": "43",
+              "Easy": "177,083,280",
+              "Normal": "198,190,080",
+              "Hard": "228,895,128",
+              "Nightmare": "261,667,296",
+              "Insane": "296,506,584"
+            },
+            {
+              "Level": "44",
+              "Easy": "180,837,360",
+              "Normal": "202,161,960",
+              "Hard": "233,456,256",
+              "Nightmare": "266,853,312",
+              "Insane": "302,353,128"
+            },
+            {
+              "Level": "45",
+              "Easy": "184,615,200",
+              "Normal": "206,157,600",
+              "Hard": "238,043,520",
+              "Nightmare": "272,067,840",
+              "Insane": "308,230,560"
+            },
+            {
+              "Level": "46",
+              "Easy": "189,446,400",
+              "Normal": "211,266,000",
+              "Hard": "243,920,160",
+              "Nightmare": "278,760,240",
+              "Insane": "315,786,240"
+            },
+            {
+              "Level": "47",
+              "Easy": "194,309,280",
+              "Normal": "216,406,080",
+              "Hard": "249,831,648",
+              "Nightmare": "285,490,656",
+              "Insane": "323,383,104"
+            },
+            {
+              "Level": "48",
+              "Easy": "199,203,840",
+              "Normal": "221,577,840",
+              "Hard": "255,777,984",
+              "Nightmare": "292,259,088",
+              "Insane": "331,021,152"
+            },
+            {
+              "Level": "49",
+              "Easy": "204,130,080",
+              "Normal": "226,781,280",
+              "Hard": "261,759,168",
+              "Nightmare": "299,065,536",
+              "Insane": "338,700,384"
+            },
+            {
+              "Level": "50",
+              "Easy": "419,760,000",
+              "Normal": "465,696,000",
+              "Hard": "537,372,000",
+              "Nightmare": "613,800,000",
+              "Insane": "694,980,000"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "champagne-fair",
+      "name": "Champagne Fair",
+      "source_url": "https://kingshotdata.com/events/champagne-fair/",
+      "structured_table_count": 0,
+      "tables": []
+    },
+    {
+      "id": "champion-s-way-event",
+      "name": "Champion's Way Event",
+      "source_url": "https://kingshotdata.com/events/champions-way-event/",
+      "structured_table_count": 0,
+      "tables": []
+    },
+    {
+      "id": "city-development-event",
+      "name": "City Development Event",
+      "source_url": "https://kingshotdata.com/events/city-development-event/",
+      "structured_table_count": 1,
+      "tables": [
+        {
+          "heading": "Event Tasks",
+          "headers": [
+            "Governor Gear Rarity",
+            "Level Up Score"
+          ],
+          "rows": [
+            {
+              "Governor Gear Rarity": "Uncommon",
+              "Level Up Score": "1,125"
+            },
+            {
+              "Governor Gear Rarity": "Uncommon (1-Star)",
+              "Level Up Score": "1,875"
+            },
+            {
+              "Governor Gear Rarity": "Rare",
+              "Level Up Score": "3,000"
+            },
+            {
+              "Governor Gear Rarity": "Rare (1-Star)",
+              "Level Up Score": "4,500"
+            },
+            {
+              "Governor Gear Rarity": "Rare (2-Star)",
+              "Level Up Score": "5,100"
+            },
+            {
+              "Governor Gear Rarity": "Rare (3-Star)",
+              "Level Up Score": "5,400"
+            },
+            {
+              "Governor Gear Rarity": "Epic",
+              "Level Up Score": "3,230"
+            },
+            {
+              "Governor Gear Rarity": "Epic (1-Star)",
+              "Level Up Score": "3,230"
+            },
+            {
+              "Governor Gear Rarity": "Epic (2-Star)",
+              "Level Up Score": "3,225"
+            },
+            {
+              "Governor Gear Rarity": "Epic (3-Star)",
+              "Level Up Score": "3,225"
+            },
+            {
+              "Governor Gear Rarity": "Epic T1",
+              "Level Up Score": "3,440"
+            },
+            {
+              "Governor Gear Rarity": "Epic T1 (1-Star)",
+              "Level Up Score": "3,440"
+            },
+            {
+              "Governor Gear Rarity": "Epic T1 (2-Star)",
+              "Level Up Score": "4,085"
+            },
+            {
+              "Governor Gear Rarity": "Epic T1 (3-Star)",
+              "Level Up Score": "4,085"
+            },
+            {
+              "Governor Gear Rarity": "Mythic",
+              "Level Up Score": "6,250"
+            },
+            {
+              "Governor Gear Rarity": "Mythic (1-Star)",
+              "Level Up Score": "6,250"
+            },
+            {
+              "Governor Gear Rarity": "Mythic (2-Star)",
+              "Level Up Score": "6,250"
+            },
+            {
+              "Governor Gear Rarity": "Mythic (3-Star)",
+              "Level Up Score": "6,250"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "defeat-nearby-beasts-event",
+      "name": "Defeat Nearby Beasts Event",
+      "source_url": "https://kingshotdata.com/events/defeat-nearby-beasts-event/",
+      "structured_table_count": 0,
+      "tables": []
+    },
+    {
+      "id": "desert-trial-event",
+      "name": "Desert Trial Event",
+      "source_url": "https://kingshotdata.com/events/desert-trial-event/",
+      "structured_table_count": 0,
+      "tables": []
+    },
+    {
+      "id": "develop-new-tech-event",
+      "name": "Develop new tech Event",
+      "source_url": "https://kingshotdata.com/events/develop-new-tech-event/",
+      "structured_table_count": 0,
+      "tables": []
+    },
+    {
+      "id": "golden-glaives-event",
+      "name": "Golden Glaives Event",
+      "source_url": "https://kingshotdata.com/events/golden-glaives-event/",
+      "structured_table_count": 0,
+      "tables": []
+    },
+    {
+      "id": "grow-your-heroes-event",
+      "name": "Grow Your Heroes Event",
+      "source_url": "https://kingshotdata.com/events/grow-your-heroes-event/",
+      "structured_table_count": 0,
+      "tables": []
+    },
+    {
+      "id": "hall-of-governors",
+      "name": "Hall of Governors",
+      "source_url": "https://kingshotdata.com/events/hall-of-governors/",
+      "structured_table_count": 4,
+      "tables": [
+        {
+          "heading": "Stage 6: Governor Gear Upgrade",
+          "headers": [
+            "Governor Gear Rarity",
+            "Level Up Score"
+          ],
+          "rows": [
+            {
+              "Governor Gear Rarity": "Uncommon",
+              "Level Up Score": "1,125"
+            },
+            {
+              "Governor Gear Rarity": "Uncommon (1-Star)",
+              "Level Up Score": "1,875"
+            },
+            {
+              "Governor Gear Rarity": "Rare",
+              "Level Up Score": "3,000"
+            },
+            {
+              "Governor Gear Rarity": "Rare (1-Star)",
+              "Level Up Score": "4,500"
+            },
+            {
+              "Governor Gear Rarity": "Rare (2-Star)",
+              "Level Up Score": "5,100"
+            },
+            {
+              "Governor Gear Rarity": "Rare (3-Star)",
+              "Level Up Score": "5,400"
+            },
+            {
+              "Governor Gear Rarity": "Epic",
+              "Level Up Score": "3,230"
+            },
+            {
+              "Governor Gear Rarity": "Epic (1-Star)",
+              "Level Up Score": "3,230"
+            },
+            {
+              "Governor Gear Rarity": "Epic (2-Star)",
+              "Level Up Score": "3,225"
+            },
+            {
+              "Governor Gear Rarity": "Epic (3-Star)",
+              "Level Up Score": "3,225"
+            },
+            {
+              "Governor Gear Rarity": "Epic T1",
+              "Level Up Score": "3,440"
+            },
+            {
+              "Governor Gear Rarity": "Epic T1 (1-Star)",
+              "Level Up Score": "3,440"
+            },
+            {
+              "Governor Gear Rarity": "Epic T1 (2-Star)",
+              "Level Up Score": "4,085"
+            },
+            {
+              "Governor Gear Rarity": "Epic T1 (3-Star)",
+              "Level Up Score": "4,085"
+            },
+            {
+              "Governor Gear Rarity": "Mythic",
+              "Level Up Score": "6,250"
+            },
+            {
+              "Governor Gear Rarity": "Mythic (1-Star)",
+              "Level Up Score": "6,250"
+            },
+            {
+              "Governor Gear Rarity": "Mythic (2-Star)",
+              "Level Up Score": "6,250"
+            },
+            {
+              "Governor Gear Rarity": "Mythic (3-Star)",
+              "Level Up Score": "6,250"
+            }
+          ]
+        },
+        {
+          "heading": "Stage 6: Governor Gear Upgrade",
+          "headers": [
+            "Governor Gear Rarity",
+            "Level Up Score"
+          ],
+          "rows": [
+            {
+              "Governor Gear Rarity": "Uncommon",
+              "Level Up Score": "1,125"
+            },
+            {
+              "Governor Gear Rarity": "Uncommon (1-Star)",
+              "Level Up Score": "1,875"
+            },
+            {
+              "Governor Gear Rarity": "Rare",
+              "Level Up Score": "3,000"
+            },
+            {
+              "Governor Gear Rarity": "Rare (1-Star)",
+              "Level Up Score": "4,500"
+            },
+            {
+              "Governor Gear Rarity": "Rare (2-Star)",
+              "Level Up Score": "5,100"
+            },
+            {
+              "Governor Gear Rarity": "Rare (3-Star)",
+              "Level Up Score": "5,400"
+            },
+            {
+              "Governor Gear Rarity": "Epic",
+              "Level Up Score": "3,230"
+            },
+            {
+              "Governor Gear Rarity": "Epic (1-Star)",
+              "Level Up Score": "3,230"
+            },
+            {
+              "Governor Gear Rarity": "Epic (2-Star)",
+              "Level Up Score": "3,225"
+            },
+            {
+              "Governor Gear Rarity": "Epic (3-Star)",
+              "Level Up Score": "3,225"
+            },
+            {
+              "Governor Gear Rarity": "Epic T1",
+              "Level Up Score": "3,440"
+            },
+            {
+              "Governor Gear Rarity": "Epic T1 (1-Star)",
+              "Level Up Score": "3,440"
+            },
+            {
+              "Governor Gear Rarity": "Epic T1 (2-Star)",
+              "Level Up Score": "4,085"
+            },
+            {
+              "Governor Gear Rarity": "Epic T1 (3-Star)",
+              "Level Up Score": "4,085"
+            },
+            {
+              "Governor Gear Rarity": "Mythic",
+              "Level Up Score": "6,250"
+            },
+            {
+              "Governor Gear Rarity": "Mythic (1-Star)",
+              "Level Up Score": "6,250"
+            },
+            {
+              "Governor Gear Rarity": "Mythic (2-Star)",
+              "Level Up Score": "6,250"
+            },
+            {
+              "Governor Gear Rarity": "Mythic (3-Star)",
+              "Level Up Score": "6,250"
+            }
+          ]
+        },
+        {
+          "heading": "Stage 4: Charm Upgrade",
+          "headers": [
+            "Governor Charm Level",
+            "Level Up Score"
+          ],
+          "rows": [
+            {
+              "Governor Charm Level": "1",
+              "Level Up Score": "625"
+            },
+            {
+              "Governor Charm Level": "2",
+              "Level Up Score": "1,250"
+            },
+            {
+              "Governor Charm Level": "3",
+              "Level Up Score": "3,125"
+            },
+            {
+              "Governor Charm Level": "4",
+              "Level Up Score": "8,750"
+            },
+            {
+              "Governor Charm Level": "5",
+              "Level Up Score": "11,250"
+            },
+            {
+              "Governor Charm Level": "6",
+              "Level Up Score": "12,500"
+            },
+            {
+              "Governor Charm Level": "7",
+              "Level Up Score": "12,500"
+            },
+            {
+              "Governor Charm Level": "8",
+              "Level Up Score": "13,000"
+            },
+            {
+              "Governor Charm Level": "9",
+              "Level Up Score": "14,000"
+            },
+            {
+              "Governor Charm Level": "10",
+              "Level Up Score": "15,000"
+            },
+            {
+              "Governor Charm Level": "11",
+              "Level Up Score": "16,000"
+            }
+          ]
+        },
+        {
+          "heading": "Stage 6: Governor Gear Upgrade",
+          "headers": [
+            "Governor Gear Rarity",
+            "Level Up Score"
+          ],
+          "rows": [
+            {
+              "Governor Gear Rarity": "Uncommon",
+              "Level Up Score": "1,125"
+            },
+            {
+              "Governor Gear Rarity": "Uncommon (1-Star)",
+              "Level Up Score": "1,875"
+            },
+            {
+              "Governor Gear Rarity": "Rare",
+              "Level Up Score": "3,000"
+            },
+            {
+              "Governor Gear Rarity": "Rare (1-Star)",
+              "Level Up Score": "4,500"
+            },
+            {
+              "Governor Gear Rarity": "Rare (2-Star)",
+              "Level Up Score": "5,100"
+            },
+            {
+              "Governor Gear Rarity": "Rare (3-Star)",
+              "Level Up Score": "5,400"
+            },
+            {
+              "Governor Gear Rarity": "Epic",
+              "Level Up Score": "3,230"
+            },
+            {
+              "Governor Gear Rarity": "Epic (1-Star)",
+              "Level Up Score": "3,230"
+            },
+            {
+              "Governor Gear Rarity": "Epic (2-Star)",
+              "Level Up Score": "3,225"
+            },
+            {
+              "Governor Gear Rarity": "Epic (3-Star)",
+              "Level Up Score": "3,225"
+            },
+            {
+              "Governor Gear Rarity": "Epic T1",
+              "Level Up Score": "3,440"
+            },
+            {
+              "Governor Gear Rarity": "Epic T1 (1-Star)",
+              "Level Up Score": "3,440"
+            },
+            {
+              "Governor Gear Rarity": "Epic T1 (2-Star)",
+              "Level Up Score": "4,085"
+            },
+            {
+              "Governor Gear Rarity": "Epic T1 (3-Star)",
+              "Level Up Score": "4,085"
+            },
+            {
+              "Governor Gear Rarity": "Mythic",
+              "Level Up Score": "6,250"
+            },
+            {
+              "Governor Gear Rarity": "Mythic (1-Star)",
+              "Level Up Score": "6,250"
+            },
+            {
+              "Governor Gear Rarity": "Mythic (2-Star)",
+              "Level Up Score": "6,250"
+            },
+            {
+              "Governor Gear Rarity": "Mythic (3-Star)",
+              "Level Up Score": "6,250"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hall-of-heroes",
+      "name": "Hall of Heroes",
+      "source_url": "https://kingshotdata.com/events/hall-of-heroes/",
+      "structured_table_count": 0,
+      "tables": []
+    },
+    {
+      "id": "hero-roulette",
+      "name": "Hero Roulette",
+      "source_url": "https://kingshotdata.com/events/hero-roulette/",
+      "structured_table_count": 1,
+      "tables": [
+        {
+          "heading": "Chances of Content",
+          "headers": [
+            "Item",
+            "Chance"
+          ],
+          "rows": [
+            {
+              "Item": "Mythic Hero Shard x5",
+              "Chance": "4.37%"
+            },
+            {
+              "Item": "Mythic Hero Shard x1",
+              "Chance": "32.81%"
+            },
+            {
+              "Item": "Mystery Pack x1",
+              "Chance": "6.56%"
+            },
+            {
+              "Item": "Mystery Pack x1",
+              "Chance": "6.56%"
+            },
+            {
+              "Item": "1h General Speedup x1",
+              "Chance": "20.51%"
+            },
+            {
+              "Item": "10K Hero XP x1",
+              "Chance": "18.27%"
+            },
+            {
+              "Item": "10K Iron x20",
+              "Chance": "2.73%"
+            },
+            {
+              "Item": "10K Stone x80",
+              "Chance": "2.73%"
+            },
+            {
+              "Item": "10K Wood x400",
+              "Chance": "2.73%"
+            },
+            {
+              "Item": "10K Bread x400",
+              "Chance": "2.73%"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "kingdom-of-power-kvk-event",
+      "name": "Kingdom of Power (KvK) Event",
+      "source_url": "https://kingshotdata.com/events/kingdom-of-power-kvk-event/",
+      "structured_table_count": 2,
+      "tables": [
+        {
+          "heading": "Tasks",
+          "headers": [
+            "Governor Charm Level",
+            "Level Up Score"
+          ],
+          "rows": [
+            {
+              "Governor Charm Level": "1",
+              "Level Up Score": "625"
+            },
+            {
+              "Governor Charm Level": "2",
+              "Level Up Score": "1,250"
+            },
+            {
+              "Governor Charm Level": "3",
+              "Level Up Score": "3,125"
+            },
+            {
+              "Governor Charm Level": "4",
+              "Level Up Score": "8,750"
+            },
+            {
+              "Governor Charm Level": "5",
+              "Level Up Score": "11,250"
+            },
+            {
+              "Governor Charm Level": "6",
+              "Level Up Score": "12,500"
+            },
+            {
+              "Governor Charm Level": "7",
+              "Level Up Score": "12,500"
+            },
+            {
+              "Governor Charm Level": "8",
+              "Level Up Score": "13,000"
+            },
+            {
+              "Governor Charm Level": "9",
+              "Level Up Score": "14,000"
+            },
+            {
+              "Governor Charm Level": "10",
+              "Level Up Score": "15,000"
+            },
+            {
+              "Governor Charm Level": "11",
+              "Level Up Score": "16,000"
+            }
+          ]
+        },
+        {
+          "heading": "Tasks",
+          "headers": [
+            "Governor Gear Rarity",
+            "Level Up Score"
+          ],
+          "rows": [
+            {
+              "Governor Gear Rarity": "Uncommon",
+              "Level Up Score": "1,125"
+            },
+            {
+              "Governor Gear Rarity": "Uncommon (1-Star)",
+              "Level Up Score": "1,875"
+            },
+            {
+              "Governor Gear Rarity": "Rare",
+              "Level Up Score": "3,000"
+            },
+            {
+              "Governor Gear Rarity": "Rare (1-Star)",
+              "Level Up Score": "4,500"
+            },
+            {
+              "Governor Gear Rarity": "Rare (2-Star)",
+              "Level Up Score": "5,100"
+            },
+            {
+              "Governor Gear Rarity": "Rare (3-Star)",
+              "Level Up Score": "5,400"
+            },
+            {
+              "Governor Gear Rarity": "Epic",
+              "Level Up Score": "3,230"
+            },
+            {
+              "Governor Gear Rarity": "Epic (1-Star)",
+              "Level Up Score": "3,230"
+            },
+            {
+              "Governor Gear Rarity": "Epic (2-Star)",
+              "Level Up Score": "3,225"
+            },
+            {
+              "Governor Gear Rarity": "Epic (3-Star)",
+              "Level Up Score": "3,225"
+            },
+            {
+              "Governor Gear Rarity": "Epic T1",
+              "Level Up Score": "3,440"
+            },
+            {
+              "Governor Gear Rarity": "Epic T1 (1-Star)",
+              "Level Up Score": "3,440"
+            },
+            {
+              "Governor Gear Rarity": "Epic T1 (2-Star)",
+              "Level Up Score": "4,085"
+            },
+            {
+              "Governor Gear Rarity": "Epic T1 (3-Star)",
+              "Level Up Score": "4,085"
+            },
+            {
+              "Governor Gear Rarity": "Mythic",
+              "Level Up Score": "6,250"
+            },
+            {
+              "Governor Gear Rarity": "Mythic (1-Star)",
+              "Level Up Score": "6,250"
+            },
+            {
+              "Governor Gear Rarity": "Mythic (2-Star)",
+              "Level Up Score": "6,250"
+            },
+            {
+              "Governor Gear Rarity": "Mythic (3-Star)",
+              "Level Up Score": "6,250"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "kingdom-transfer-event",
+      "name": "Kingdom Transfer Event",
+      "source_url": "https://kingshotdata.com/events/kingdom-transfer-event/",
+      "structured_table_count": 1,
+      "tables": [
+        {
+          "heading": "Transfer Consequences",
+          "headers": [
+            "Feature",
+            "Outcome"
+          ],
+          "rows": [
+            {
+              "Feature": "Town Relocation",
+              "Outcome": "Your town will be randomly teleported to a new location in the target kingdom’s Badland area and will receive a 24-hour shield ."
+            },
+            {
+              "Feature": "Group Chats",
+              "Outcome": "You will be automatically removed from all active group chats."
+            },
+            {
+              "Feature": "The Arena",
+              "Outcome": "Your Arena Points will be reset to 1,000 , and your rank will be cleared."
+            },
+            {
+              "Feature": "Armament Competition & Officer Project",
+              "Outcome": "Personal Milestone Rewards will be issued, and your ranking data will be deleted . You can participate in a new event in your new kingdom if it’s available."
+            },
+            {
+              "Feature": "Hero Rally",
+              "Outcome": "Your participation will be discontinued . If you purchased a Pass, all unclaimed rewards will be reissued; otherwise, only unclaimed rewards from completed tiers will be reissued."
+            },
+            {
+              "Feature": "Age of Renewal",
+              "Outcome": "Your participation will immediately cease . Unclaimed rewards will be sent to your mail."
+            },
+            {
+              "Feature": "Fishing Tournament",
+              "Outcome": "Your involvement will immediately cease . If you purchased a Pass, all unclaimed rewards will be reissued; otherwise, only unclaimed rewards from completed tiers will be reissued. If the Master Fisher Leaderboard tally is ongoing, you’ll receive ranking rewards based on your rank in the previous kingdom."
+            },
+            {
+              "Feature": "Call of the Sovereign",
+              "Outcome": "If the event is ongoing in both kingdoms, your progress (mission, points, and rewards) will carry over . If not, the event will terminate , and unclaimed rewards will be mailed."
+            },
+            {
+              "Feature": "Arcane Trove",
+              "Outcome": "If the event is ongoing in both kingdoms, your progress (pack content, purchase status, and rewards) will carry over . If not, the event will terminate , and unclaimed rewards will be mailed."
+            },
+            {
+              "Feature": "Mystic Divination",
+              "Outcome": "If the event is ongoing in both kingdoms, your progress (Fortune count, divination status, and rewards) will carry over . If not, the event will terminate , and unclaimed rewards will be mailed."
+            },
+            {
+              "Feature": "Buccaneer Bounty",
+              "Outcome": "If the event is ongoing in both kingdoms, your progress (points, chest status, missions, and Emporium purchases) will carry over . If not, the event will terminate , and unclaimed rewards will be mailed. All unused Pearl of Enigma will be recycled ."
+            },
+            {
+              "Feature": "Forsaken Temple",
+              "Outcome": "If the event is ongoing in both kingdoms, your progress (Dice count, tile position, level, and rewards) will carry over . If not, the event will terminate , and unclaimed rewards will be mailed. All Common, Golden Dice, and Adventure Coins will be recycled ."
+            },
+            {
+              "Feature": "Packs",
+              "Outcome": "The purchase limit for the Top-up Center and event packs will be reset ."
+            },
+            {
+              "Feature": "Resources",
+              "Outcome": "Any resources exceeding your Storehouse protection threshold will be discarded , except for Secured Resources and unopened resource items."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "merchant-empire-event",
+      "name": "Merchant Empire Event",
+      "source_url": "https://kingshotdata.com/events/merchant-empire-event/",
+      "structured_table_count": 0,
+      "tables": []
+    },
+    {
+      "id": "mystic-divination-event",
+      "name": "Mystic Divination Event",
+      "source_url": "https://kingshotdata.com/events/mystic-divination-event/",
+      "structured_table_count": 0,
+      "tables": []
+    },
+    {
+      "id": "mystic-trial",
+      "name": "Mystic Trial",
+      "source_url": "https://kingshotdata.com/events/mystic-trial/",
+      "structured_table_count": 0,
+      "tables": []
+    },
+    {
+      "id": "officer-project-event",
+      "name": "Officer Project Event",
+      "source_url": "https://kingshotdata.com/events/officer-project-event/",
+      "structured_table_count": 2,
+      "tables": [
+        {
+          "heading": "Type-1 Event (Forgehammers)",
+          "headers": [
+            "Governor Charm Level",
+            "Level Up Score"
+          ],
+          "rows": [
+            {
+              "Governor Charm Level": "1",
+              "Level Up Score": "625"
+            },
+            {
+              "Governor Charm Level": "2",
+              "Level Up Score": "1,250"
+            },
+            {
+              "Governor Charm Level": "3",
+              "Level Up Score": "3,125"
+            },
+            {
+              "Governor Charm Level": "4",
+              "Level Up Score": "8,750"
+            },
+            {
+              "Governor Charm Level": "5",
+              "Level Up Score": "11,250"
+            },
+            {
+              "Governor Charm Level": "6",
+              "Level Up Score": "12,500"
+            },
+            {
+              "Governor Charm Level": "7",
+              "Level Up Score": "12,500"
+            },
+            {
+              "Governor Charm Level": "8",
+              "Level Up Score": "13,000"
+            },
+            {
+              "Governor Charm Level": "9",
+              "Level Up Score": "14,000"
+            },
+            {
+              "Governor Charm Level": "10",
+              "Level Up Score": "15,000"
+            },
+            {
+              "Governor Charm Level": "11",
+              "Level Up Score": "16,000"
+            }
+          ]
+        },
+        {
+          "heading": "Type-2 Event (Charm Designs)",
+          "headers": [
+            "Governor Gear Rarity",
+            "Level Up Score"
+          ],
+          "rows": [
+            {
+              "Governor Gear Rarity": "Uncommon",
+              "Level Up Score": "1,125"
+            },
+            {
+              "Governor Gear Rarity": "Uncommon (1-Star)",
+              "Level Up Score": "1,875"
+            },
+            {
+              "Governor Gear Rarity": "Rare",
+              "Level Up Score": "3,000"
+            },
+            {
+              "Governor Gear Rarity": "Rare (1-Star)",
+              "Level Up Score": "4,500"
+            },
+            {
+              "Governor Gear Rarity": "Rare (2-Star)",
+              "Level Up Score": "5,100"
+            },
+            {
+              "Governor Gear Rarity": "Rare (3-Star)",
+              "Level Up Score": "5,400"
+            },
+            {
+              "Governor Gear Rarity": "Epic",
+              "Level Up Score": "3,230"
+            },
+            {
+              "Governor Gear Rarity": "Epic (1-Star)",
+              "Level Up Score": "3,230"
+            },
+            {
+              "Governor Gear Rarity": "Epic (2-Star)",
+              "Level Up Score": "3,225"
+            },
+            {
+              "Governor Gear Rarity": "Epic (3-Star)",
+              "Level Up Score": "3,225"
+            },
+            {
+              "Governor Gear Rarity": "Epic T1",
+              "Level Up Score": "3,440"
+            },
+            {
+              "Governor Gear Rarity": "Epic T1 (1-Star)",
+              "Level Up Score": "3,440"
+            },
+            {
+              "Governor Gear Rarity": "Epic T1 (2-Star)",
+              "Level Up Score": "4,085"
+            },
+            {
+              "Governor Gear Rarity": "Epic T1 (3-Star)",
+              "Level Up Score": "4,085"
+            },
+            {
+              "Governor Gear Rarity": "Mythic",
+              "Level Up Score": "6,250"
+            },
+            {
+              "Governor Gear Rarity": "Mythic (1-Star)",
+              "Level Up Score": "6,250"
+            },
+            {
+              "Governor Gear Rarity": "Mythic (2-Star)",
+              "Level Up Score": "6,250"
+            },
+            {
+              "Governor Gear Rarity": "Mythic (3-Star)",
+              "Level Up Score": "6,250"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "path-of-growth-event",
+      "name": "Path of Growth Event",
+      "source_url": "https://kingshotdata.com/events/path-of-growth-event/",
+      "structured_table_count": 0,
+      "tables": []
+    },
+    {
+      "id": "plan-your-city-event",
+      "name": "Plan your City Event",
+      "source_url": "https://kingshotdata.com/events/plan-your-city-event/",
+      "structured_table_count": 0,
+      "tables": []
+    },
+    {
+      "id": "power-up-event",
+      "name": "Power Up Event",
+      "source_url": "https://kingshotdata.com/events/power-up-event/",
+      "structured_table_count": 0,
+      "tables": []
+    },
+    {
+      "id": "stand-of-arms-event",
+      "name": "Stand of Arms Event",
+      "source_url": "https://kingshotdata.com/events/stand-of-arms-event/",
+      "structured_table_count": 1,
+      "tables": [
+        {
+          "heading": "Event Tasks",
+          "headers": [
+            "Governor Charm Level",
+            "Level Up Score"
+          ],
+          "rows": [
+            {
+              "Governor Charm Level": "1",
+              "Level Up Score": "625"
+            },
+            {
+              "Governor Charm Level": "2",
+              "Level Up Score": "1,250"
+            },
+            {
+              "Governor Charm Level": "3",
+              "Level Up Score": "3,125"
+            },
+            {
+              "Governor Charm Level": "4",
+              "Level Up Score": "8,750"
+            },
+            {
+              "Governor Charm Level": "5",
+              "Level Up Score": "11,250"
+            },
+            {
+              "Governor Charm Level": "6",
+              "Level Up Score": "12,500"
+            },
+            {
+              "Governor Charm Level": "7",
+              "Level Up Score": "12,500"
+            },
+            {
+              "Governor Charm Level": "8",
+              "Level Up Score": "13,000"
+            },
+            {
+              "Governor Charm Level": "9",
+              "Level Up Score": "14,000"
+            },
+            {
+              "Governor Charm Level": "10",
+              "Level Up Score": "15,000"
+            },
+            {
+              "Governor Charm Level": "11",
+              "Level Up Score": "16,000"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "steel-edge-event",
+      "name": "Steel Edge Event",
+      "source_url": "https://kingshotdata.com/events/steel-edge-event/",
+      "structured_table_count": 0,
+      "tables": []
+    },
+    {
+      "id": "strongest-governor-event",
+      "name": "Strongest Governor Event",
+      "source_url": "https://kingshotdata.com/events/strongest-governor-event/",
+      "structured_table_count": 3,
+      "tables": [
+        {
+          "heading": "Stage 1 - City Construction",
+          "headers": [
+            "Governor Charm Level",
+            "Level Up Score"
+          ],
+          "rows": [
+            {
+              "Governor Charm Level": "1",
+              "Level Up Score": "625"
+            },
+            {
+              "Governor Charm Level": "2",
+              "Level Up Score": "1,250"
+            },
+            {
+              "Governor Charm Level": "3",
+              "Level Up Score": "3,125"
+            },
+            {
+              "Governor Charm Level": "4",
+              "Level Up Score": "8,750"
+            },
+            {
+              "Governor Charm Level": "5",
+              "Level Up Score": "11,250"
+            },
+            {
+              "Governor Charm Level": "6",
+              "Level Up Score": "12,500"
+            },
+            {
+              "Governor Charm Level": "7",
+              "Level Up Score": "12,500"
+            },
+            {
+              "Governor Charm Level": "8",
+              "Level Up Score": "13,000"
+            },
+            {
+              "Governor Charm Level": "9",
+              "Level Up Score": "14,000"
+            },
+            {
+              "Governor Charm Level": "10",
+              "Level Up Score": "15,000"
+            },
+            {
+              "Governor Charm Level": "11",
+              "Level Up Score": "16,000"
+            }
+          ]
+        },
+        {
+          "heading": "Stage 6 - Combat Training",
+          "headers": [
+            "Governor Gear Rarity",
+            "Level Up Score"
+          ],
+          "rows": [
+            {
+              "Governor Gear Rarity": "Uncommon",
+              "Level Up Score": "1,125"
+            },
+            {
+              "Governor Gear Rarity": "Uncommon (1-Star)",
+              "Level Up Score": "1,875"
+            },
+            {
+              "Governor Gear Rarity": "Rare",
+              "Level Up Score": "3,000"
+            },
+            {
+              "Governor Gear Rarity": "Rare (1-Star)",
+              "Level Up Score": "4,500"
+            },
+            {
+              "Governor Gear Rarity": "Rare (2-Star)",
+              "Level Up Score": "5,100"
+            },
+            {
+              "Governor Gear Rarity": "Rare (3-Star)",
+              "Level Up Score": "5,400"
+            },
+            {
+              "Governor Gear Rarity": "Epic",
+              "Level Up Score": "3,230"
+            },
+            {
+              "Governor Gear Rarity": "Epic (1-Star)",
+              "Level Up Score": "3,230"
+            },
+            {
+              "Governor Gear Rarity": "Epic (2-Star)",
+              "Level Up Score": "3,225"
+            },
+            {
+              "Governor Gear Rarity": "Epic (3-Star)",
+              "Level Up Score": "3,225"
+            },
+            {
+              "Governor Gear Rarity": "Epic T1",
+              "Level Up Score": "3,440"
+            },
+            {
+              "Governor Gear Rarity": "Epic T1 (1-Star)",
+              "Level Up Score": "3,440"
+            },
+            {
+              "Governor Gear Rarity": "Epic T1 (2-Star)",
+              "Level Up Score": "4,085"
+            },
+            {
+              "Governor Gear Rarity": "Epic T1 (3-Star)",
+              "Level Up Score": "4,085"
+            },
+            {
+              "Governor Gear Rarity": "Mythic",
+              "Level Up Score": "6,250"
+            },
+            {
+              "Governor Gear Rarity": "Mythic (1-Star)",
+              "Level Up Score": "6,250"
+            },
+            {
+              "Governor Gear Rarity": "Mythic (2-Star)",
+              "Level Up Score": "6,250"
+            },
+            {
+              "Governor Gear Rarity": "Mythic (3-Star)",
+              "Level Up Score": "6,250"
+            }
+          ]
+        },
+        {
+          "heading": "Stage 7 - Hero Development",
+          "headers": [
+            "Governor Gear Rarity",
+            "Level Up Score"
+          ],
+          "rows": [
+            {
+              "Governor Gear Rarity": "Uncommon",
+              "Level Up Score": "1,125"
+            },
+            {
+              "Governor Gear Rarity": "Uncommon (1-Star)",
+              "Level Up Score": "1,875"
+            },
+            {
+              "Governor Gear Rarity": "Rare",
+              "Level Up Score": "3,000"
+            },
+            {
+              "Governor Gear Rarity": "Rare (1-Star)",
+              "Level Up Score": "4,500"
+            },
+            {
+              "Governor Gear Rarity": "Rare (2-Star)",
+              "Level Up Score": "5,100"
+            },
+            {
+              "Governor Gear Rarity": "Rare (3-Star)",
+              "Level Up Score": "5,400"
+            },
+            {
+              "Governor Gear Rarity": "Epic",
+              "Level Up Score": "3,230"
+            },
+            {
+              "Governor Gear Rarity": "Epic (1-Star)",
+              "Level Up Score": "3,230"
+            },
+            {
+              "Governor Gear Rarity": "Epic (2-Star)",
+              "Level Up Score": "3,225"
+            },
+            {
+              "Governor Gear Rarity": "Epic (3-Star)",
+              "Level Up Score": "3,225"
+            },
+            {
+              "Governor Gear Rarity": "Epic T1",
+              "Level Up Score": "3,440"
+            },
+            {
+              "Governor Gear Rarity": "Epic T1 (1-Star)",
+              "Level Up Score": "3,440"
+            },
+            {
+              "Governor Gear Rarity": "Epic T1 (2-Star)",
+              "Level Up Score": "4,085"
+            },
+            {
+              "Governor Gear Rarity": "Epic T1 (3-Star)",
+              "Level Up Score": "4,085"
+            },
+            {
+              "Governor Gear Rarity": "Mythic",
+              "Level Up Score": "6,250"
+            },
+            {
+              "Governor Gear Rarity": "Mythic (1-Star)",
+              "Level Up Score": "6,250"
+            },
+            {
+              "Governor Gear Rarity": "Mythic (2-Star)",
+              "Level Up Score": "6,250"
+            },
+            {
+              "Governor Gear Rarity": "Mythic (3-Star)",
+              "Level Up Score": "6,250"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "viking-vengeance-level-stats",
+      "name": "Viking Vengeance Level Stats",
+      "source_url": "https://kingshotdata.com/events/viking-vengeance-level-stats/",
+      "structured_table_count": 1,
+      "tables": [
+        {
+          "heading": "Special waves",
+          "headers": [
+            "Wave",
+            "Target",
+            "Troop tier",
+            "Total troops",
+            "Max self def",
+            "Max reinforce",
+            "% vs prev Lv"
+          ],
+          "rows": [
+            {
+              "Wave": "1",
+              "Target": "All Members",
+              "Troop tier": "T1-T2",
+              "Total troops": "300",
+              "Max self def": "3,000",
+              "Max reinforce": "1,500",
+              "% vs prev Lv": "—"
+            },
+            {
+              "Wave": "2",
+              "Target": "All Members",
+              "Troop tier": "T2",
+              "Total troops": "546",
+              "Max self def": "4,200",
+              "Max reinforce": "2,100",
+              "% vs prev Lv": "—"
+            },
+            {
+              "Wave": "3",
+              "Target": "All Members",
+              "Troop tier": "T2-T3",
+              "Total troops": "840",
+              "Max self def": "5,400",
+              "Max reinforce": "2,700",
+              "% vs prev Lv": "—"
+            },
+            {
+              "Wave": "4",
+              "Target": "All Members",
+              "Troop tier": "T2-T3",
+              "Total troops": "1,271",
+              "Max self def": "6,600",
+              "Max reinforce": "3,300",
+              "% vs prev Lv": "—"
+            },
+            {
+              "Wave": "5",
+              "Target": "All Members",
+              "Troop tier": "T3",
+              "Total troops": "1,895",
+              "Max self def": "7,800",
+              "Max reinforce": "3,900",
+              "% vs prev Lv": "—"
+            },
+            {
+              "Wave": "6",
+              "Target": "All Members",
+              "Troop tier": "T3-T4",
+              "Total troops": "2,572",
+              "Max self def": "9,000",
+              "Max reinforce": "4,500",
+              "% vs prev Lv": "—"
+            },
+            {
+              "Wave": "7 Hero",
+              "Target": "Online Members",
+              "Troop tier": "T3-T4",
+              "Total troops": "3,657",
+              "Max self def": "20,400",
+              "Max reinforce": "10,200",
+              "% vs prev Lv": "—"
+            },
+            {
+              "Wave": "8",
+              "Target": "All Members",
+              "Troop tier": "T4",
+              "Total troops": "4,749",
+              "Max self def": "11,400",
+              "Max reinforce": "5,700",
+              "% vs prev Lv": "—"
+            },
+            {
+              "Wave": "9",
+              "Target": "All Members",
+              "Troop tier": "T4-T5",
+              "Total troops": "5,885",
+              "Max self def": "12,600",
+              "Max reinforce": "6,300",
+              "% vs prev Lv": "—"
+            },
+            {
+              "Wave": "10 King",
+              "Target": "HQ",
+              "Troop tier": "T4-T5",
+              "Total troops": "7,704",
+              "Max self def": "0",
+              "Max reinforce": "138,000",
+              "% vs prev Lv": "—"
+            },
+            {
+              "Wave": "11",
+              "Target": "All Members",
+              "Troop tier": "T5",
+              "Total troops": "9,477",
+              "Max self def": "15,000",
+              "Max reinforce": "7,500",
+              "% vs prev Lv": "—"
+            },
+            {
+              "Wave": "12",
+              "Target": "All Members",
+              "Troop tier": "T5-T6",
+              "Total troops": "12,145",
+              "Max self def": "16,200",
+              "Max reinforce": "8,100",
+              "% vs prev Lv": "—"
+            },
+            {
+              "Wave": "13",
+              "Target": "All Members",
+              "Troop tier": "T5-T6",
+              "Total troops": "16,223",
+              "Max self def": "17,400",
+              "Max reinforce": "8,700",
+              "% vs prev Lv": "—"
+            },
+            {
+              "Wave": "14 Hero",
+              "Target": "Online Members",
+              "Troop tier": "T6",
+              "Total troops": "22,535",
+              "Max self def": "37,200",
+              "Max reinforce": "18,600",
+              "% vs prev Lv": "—"
+            },
+            {
+              "Wave": "15",
+              "Target": "All Members",
+              "Troop tier": "T6-T7",
+              "Total troops": "38,966",
+              "Max self def": "19,800",
+              "Max reinforce": "9,900",
+              "% vs prev Lv": "—"
+            },
+            {
+              "Wave": "16",
+              "Target": "All Members",
+              "Troop tier": "T7-T8",
+              "Total troops": "62,051",
+              "Max self def": "21,000",
+              "Max reinforce": "10,500",
+              "% vs prev Lv": "—"
+            },
+            {
+              "Wave": "17 Hero",
+              "Target": "Online Members",
+              "Troop tier": "T8",
+              "Total troops": "89,972",
+              "Max self def": "44,400",
+              "Max reinforce": "22,200",
+              "% vs prev Lv": "—"
+            },
+            {
+              "Wave": "18",
+              "Target": "All Members",
+              "Troop tier": "T8-T9",
+              "Total troops": "124,908",
+              "Max self def": "23,400",
+              "Max reinforce": "11,700",
+              "% vs prev Lv": "—"
+            },
+            {
+              "Wave": "19",
+              "Target": "All Members",
+              "Troop tier": "T8-T9",
+              "Total troops": "173,601",
+              "Max self def": "24,600",
+              "Max reinforce": "12,300",
+              "% vs prev Lv": "—"
+            },
+            {
+              "Wave": "20 King",
+              "Target": "HQ",
+              "Troop tier": "T9-T10",
+              "Total troops": "241,494",
+              "Max self def": "0",
+              "Max reinforce": "258,000",
+              "% vs prev Lv": "—"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "war-preparation-event",
+      "name": "War Preparation Event",
+      "source_url": "https://kingshotdata.com/events/war-preparation-event/",
+      "structured_table_count": 0,
+      "tables": []
+    },
+    {
+      "id": "working-overtime-event",
+      "name": "Working Overtime Event",
+      "source_url": "https://kingshotdata.com/events/working-overtime-event/",
+      "structured_table_count": 0,
+      "tables": []
+    }
+  ]
+}

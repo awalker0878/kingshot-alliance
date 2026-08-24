@@ -15,6 +15,7 @@ export const localizationDomains = [
   'content',
   'integrations',
   'kingdom',
+  'progression',
   'territory',
   'transfers',
   'platform',
@@ -41,7 +42,9 @@ export async function importDomainCatalogue(
   return importer();
 }
 export function domainsForPage(name: string): LocalizationDomain[] {
-  const domains = new Set<LocalizationDomain>();
+  // Progression stays globally available because the shared desktop/mobile navigation
+  // exposes the factual library from every authenticated surface.
+  const domains = new Set<LocalizationDomain>(['progression']);
   if (name.startsWith('Accounts/Access/')) domains.add('auth');
   if (name.startsWith('Accounts/Governor/')) domains.add('account');
   if (name.startsWith('Accounts/Notifications/')) domains.add('account');

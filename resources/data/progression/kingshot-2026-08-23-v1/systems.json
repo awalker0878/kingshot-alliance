@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "hero_progression": {
+    "max_level": 80,
+    "star_levels": 5,
+    "shards_to_max_star": 1065,
+    "unlock_shards": {"default":10,"amadeus":20,"chenko":40},
+    "star_shard_totals": [{"star":1,"shards":10},{"star":2,"shards":40},{"star":3,"shards":115},{"star":4,"shards":300},{"star":5,"shards":600}],
+    "source_ids": ["kingshotdata"]
+  },
+  "exclusive_equipment": {
+    "unlock_town_center": 15,
+    "max_level": 10,
+    "widget_costs": [{"level":1,"widgets":5},{"level":2,"widgets":10},{"level":3,"widgets":15},{"level":4,"widgets":20},{"level":5,"widgets":25},{"level":6,"widgets":30},{"level":7,"widgets":35},{"level":8,"widgets":40},{"level":9,"widgets":45},{"level":10,"widgets":50}],
+    "total_widgets_to_level_10": 275,
+    "source_ids": ["kingshotdata","kingshotdata-kr"]
+  },
+  "hero_gear": {
+    "unlock_town_center": 15,
+    "quality_level_caps": {"grey":20,"green":40,"blue":60,"purple":80,"mythic":100,"red":200},
+    "merge_xp": {"grey":10,"green":30,"blue":60,"purple":150},
+    "red_gear": {"unlock_town_center":30,"approximate_server_age_days":40,"requires_mastery_forging":10,"requires_extra_mythic_gear":2,"mithril_interval_levels":20},
+    "mastery_forging": {
+      "unlock_town_center": 20,
+      "requires_mythic_gear_level": 20,
+      "max_level": 20,
+      "levels": [
+        {"level":1,"forgehammers":10,"mythic_gears":0},{"level":2,"forgehammers":20,"mythic_gears":0},{"level":3,"forgehammers":30,"mythic_gears":0},{"level":4,"forgehammers":40,"mythic_gears":0},{"level":5,"forgehammers":50,"mythic_gears":0},
+        {"level":6,"forgehammers":60,"mythic_gears":0},{"level":7,"forgehammers":70,"mythic_gears":0},{"level":8,"forgehammers":80,"mythic_gears":0},{"level":9,"forgehammers":90,"mythic_gears":0},{"level":10,"forgehammers":100,"mythic_gears":0},
+        {"level":11,"forgehammers":110,"mythic_gears":1},{"level":12,"forgehammers":120,"mythic_gears":2},{"level":13,"forgehammers":130,"mythic_gears":3},{"level":14,"forgehammers":140,"mythic_gears":4},{"level":15,"forgehammers":150,"mythic_gears":5},
+        {"level":16,"forgehammers":160,"mythic_gears":6},{"level":17,"forgehammers":170,"mythic_gears":7},{"level":18,"forgehammers":180,"mythic_gears":8},{"level":19,"forgehammers":190,"mythic_gears":9},{"level":20,"forgehammers":200,"mythic_gears":10}
+      ]
+    },
+    "source_ids": ["kingshotdata"]
+  },
+  "governor_gear": {
+    "unlock_town_center": 22,
+    "slots": [
+      {"slot":"hood","troop_class":"Cavalry","stat":"attack"},{"slot":"necklace","troop_class":"Cavalry","stat":"defense"},
+      {"slot":"cloak","troop_class":"Infantry","stat":"attack"},{"slot":"breeches","troop_class":"Infantry","stat":"defense"},
+      {"slot":"ring","troop_class":"Archer","stat":"attack"},{"slot":"staff","troop_class":"Archer","stat":"defense"}
+    ],
+    "materials": ["Satin","Gilded Threads","Artisan's Sketches"],
+    "max_level_claims": [{"value":57,"source_id":"kingshotdata","status":"single_source"}],
+    "source_ids": ["kingshot-official-wiki","kingshotdata"]
+  },
+  "governor_charms": {
+    "unlock_town_center": 25,
+    "families": ["Protection","Keenness","Vision"],
+    "materials": ["Charm Guide","Charm Design"],
+    "max_level_claims": [{"value":21,"source_id":"kingshotdata","status":"conflicting"},{"value":22,"source_id":"kingshotdata-kr","status":"conflicting"}],
+    "evidence_status": "conflicting"
+  },
+  "buildings": {
+    "max_levels": [
+      ["Town Center",30,8],["Kitchen",10,null],["House",10,null],["Sawmill",30,null],["Mill",30,null],["Quarry",30,null],["Clinic",10,null],["Iron Mine",30,null],["Barricade",10,null],["Defense Tower",10,null],
+      ["Barracks",30,8],["Stable",30,8],["Range",30,8],["Guard Station",10,null],["Academy",30,null],["Infirmary",30,8],["Embassy",30,8],["Storehouse",30,null],["Command Center",30,8],["War Academy",30,8]
+    ],
+    "feature_unlocks": [{"town_center":15,"feature":"Hero Gear"},{"town_center":20,"feature":"Mastery Forging"},{"town_center":22,"feature":"Governor Gear"},{"town_center":25,"feature":"Governor Charms"},{"town_center":30,"feature":"Truegold progression"}],
+    "source_ids": ["kingshotdata"]
+  },
+  "troops": {"classes":["Infantry","Cavalry","Archer"],"training_buildings":{"Infantry":"Barracks","Cavalry":"Stable","Archer":"Range"},"known_tier_scope":"T1-T11","source_ids":["kingshotdata"]},
+  "research": {
+    "academy": {"unlock_town_center":9,"technologies":191,"levels":714,"trees":[{"name":"Development","technologies":45,"levels":129},{"name":"Economy","technologies":44,"levels":132},{"name":"Battle","technologies":102,"levels":453}]},
+    "war_academy": {"families":["Basic T11 troop trees","Advanced Truegold Research"]},
+    "alliance_tech": {"trees":["Growth","Territory","Battle"]},
+    "source_ids": ["kingshotdata"]
+  },
+  "pets": ["Ironclad War Bear","Ironclad War Elephant","Regal White Lion","Alpha Black Panther","Great Moose","Giant Rhino","Mighty Bison","Grizzly Bear","Lion","Cheetah","Moose","Bison","Gray Wolf","Lynx"],
+  "masters": [{"name":"Valora","title":"Bear Hunter"},{"name":"Pan","title":"Palace Administrator"},{"name":"Roman","title":"Arena Champion"},{"name":"Cassia","title":"Battle Master"},{"name":"Wilson","title":"Royal Herald"},{"name":"Guinevere","title":"Queen of Holy Sword"}],
+  "max_levels": {"hero_level":80,"hero_gear_strength":100,"hero_exclusive_gear":10,"mastery_forging":20,"watchtower_intel":20,"beasts":30,"terrors":7,"alliance_level":11,"bear_pitfall":5,"viking_vengeance":21,"master_affinity":100},
+  "source_ids": ["kingshotdata"]
+}

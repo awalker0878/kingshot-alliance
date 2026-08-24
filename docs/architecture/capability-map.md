@@ -7,7 +7,7 @@ Capabilities are first-class modules inside the seven bounded contexts. This map
 | Context | Capabilities |
 | --- | --- |
 | Accounts | Identity, Registration, Authentication, Credentials, EmailVerification, Profile, MultiFactorAuthentication |
-| GameWorld | Players, Kingdoms, KingdomMaps, Governance, KingdomTransfers, GiftCodes |
+| GameWorld | Players, Kingdoms, KingdomMaps, Progression, Governance, KingdomTransfers, GiftCodes |
 | Alliance | Lifecycle, Membership, Access, Recruitment, Content |
 | Operations | Access, Events, Participation, Polls, Rosters, BattlePlans, Rallies, KingPerks, Results, TerritoryPlanning |
 | Intelligence | Access, Observations, Ingestion, Evidence, Roster, Contributions, Diplomacy, Sharing |
@@ -29,11 +29,12 @@ Capabilities are first-class modules inside the seven bounded contexts. This map
 - **Players** — Player identity/claim, Player ownership references and active Player selection.
 - **Kingdoms** — Kingdom identity and neutral Kingdom/Alliance placement/reference state.
 - **KingdomMaps** — immutable/versioned Kingdom-map datasets, coordinate/geometry facts, provenance and sourced game placement rules.
+- **Progression** — immutable/versioned KingShot progression catalogue releases, source registry, reconciliation/conflict metadata, factual Hero/gear/building/research/Pet/Master/system reference data and source-scoped community formation conventions.
 - **Governance** — Kingdom roles, assignments and GameWorld-owned governance authorization.
 - **KingdomTransfers** — Player/Kingdom transfer planning and transfer-domain state owned by GameWorld.
 - **GiftCodes** — normalized Gift Code catalogue, provider policy, and per-Player/per-Kingdom redemption state.
 
-`KingdomMaps` owns represented world truth, not Alliance planning preferences or saved layouts.
+`KingdomMaps` owns represented spatial world truth, not Alliance planning preferences or saved layouts. `Progression` owns game-reference catalogue truth, not a Governor's observed roster and not a saved tactical loadout.
 
 ## Alliance
 
@@ -53,12 +54,12 @@ Alliance policies belong to the capability that owns the rule; `Alliance/Policie
 - **Polls** — Event polls and voting.
 - **Rosters** — Event roster planning.
 - **BattlePlans** — objectives and assignments.
-- **Rallies** — rally coordination.
+- **Rallies** — rally coordination, including Governor-saved formation/loadout planning intent.
 - **KingPerks** — Kingdom of Power appointment/skill planning and scheduling.
 - **Results** — authoritative operational results and metrics, including accepted Bear Hunt battle-report ledgers and deterministic aggregate recomputation.
 - **TerritoryPlanning** — mutable Alliance/Kingdom layouts, planned HQs/Banners/Governor cities/Bear Traps, planning preferences, deterministic coverage/march/layout analysis, generated hive arrangements and immutable published revisions.
 
-`TerritoryPlanning` consumes `GameWorld/KingdomMaps` through explicit IDs/contracts. It does not own map truth. `BattlePlans` remains objective/assignment state and may reference a published territory-plan revision without absorbing spatial persistence.
+`TerritoryPlanning` consumes `GameWorld/KingdomMaps` through explicit IDs/contracts. It does not own map truth. `Rallies` may reference immutable `GameWorld/Progression` Hero/formation identifiers for saved tactical intent without owning catalogue facts. `BattlePlans` remains objective/assignment state and may reference a published territory-plan revision without absorbing spatial persistence.
 
 ## Intelligence
 
@@ -66,7 +67,7 @@ Alliance policies belong to the capability that owns the rule; `Alliance/Policie
 - **Observations** — durable observed facts and provenance.
 - **Ingestion** — import and reconciliation of external observations.
 - **Evidence** — private uploaded game evidence, immutable classification/extraction provenance, field confidence, review/correction history, duplicate decisions, commit receipts and retention. It owns evidence of a fact, never the accepted foreign-domain fact itself.
-- **Roster** — roster intelligence/history projections, not authoritative Alliance membership.
+- **Roster** — roster intelligence/history projections and append-only Governor progression observations. A normalized Hero observation may reference `GameWorld/Progression`, but that reference does not make catalogue truth an Intelligence write.
 - **Contributions** — contribution facts, history and reporting.
 - **Diplomacy** — diplomacy intelligence.
 - **Sharing** — Intelligence grants and distribution.

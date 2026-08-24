@@ -14,13 +14,32 @@ final class PlayerSnapshotController extends Controller
 {
     public function store(Request $request, AllianceContext $context, RecordPlayerSnapshot $record, string $entry): RedirectResponse
     {
-        /** @var array{observed_name:string,power:string,progression_level?:string|null,observed_alliance_tag?:string|null,captured_at:string} $validated */
+        /**
+         * @var array{
+         *   observed_name:string,
+         *   power:string,
+         *   progression_level?:string|null,
+         *   observed_alliance_tag?:string|null,
+         *   captured_at:string,
+         *   progression_dataset_id?:string|null,
+         *   progression_dataset_checksum?:string|null,
+         *   hero_observations?:list<array<string,mixed>>|null
+         * } $validated
+         */
         $validated = $request->validate([
             'observed_name' => ['required', 'string', 'max:160'],
             'power' => ['required', 'string', 'regex:/^\d{1,19}$/'],
             'progression_level' => ['nullable', 'string', 'max:64'],
             'observed_alliance_tag' => ['nullable', 'string', 'max:32'],
             'captured_at' => ['required', 'date'],
+            'progression_dataset_id' => ['nullable', 'string', 'max:120'],
+            'progression_dataset_checksum' => ['nullable', 'string', 'size:64', 'regex:/^[a-f0-9]{64}$/'],
+            'hero_observations' => ['nullable', 'array', 'max:34'],
+            'hero_observations.*.hero_id' => ['required_with:hero_observations', 'string', 'max:120'],
+            'hero_observations.*.level' => ['nullable', 'integer', 'min:0', 'max:80'],
+            'hero_observations.*.star' => ['nullable', 'integer', 'min:0', 'max:5'],
+            'hero_observations.*.widget_level' => ['nullable', 'integer', 'min:0', 'max:10'],
+            'hero_observations.*.complete_roster_capture' => ['sometimes', 'boolean'],
         ]);
         $scope = $context->scope();
         $record->handle($scope->allianceId, $scope->playerId, $entry, $validated);

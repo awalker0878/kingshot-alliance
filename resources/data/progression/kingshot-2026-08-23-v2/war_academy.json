@@ -1,0 +1,2901 @@
+{
+  "schema_version": 1,
+  "source_id": "kingshotpro-open-data",
+  "source_meta": {
+    "dataset": "kingshot-war-academy",
+    "canonical": "https://kingshotpro.com/data/war-academy.json",
+    "count": 30,
+    "updated": "2026-06-14",
+    "verified": "2026-06-18",
+    "confidence": "scored",
+    "confidence_detail": null,
+    "sources": [
+      "kingshot.net/database/war-academy"
+    ],
+    "license": "CC-BY-4.0 — attribute to https://kingshotpro.com"
+  },
+  "data": {
+    "technologies": [
+      {
+        "id": "truegold-battalion",
+        "name": "Truegold Battalion",
+        "category": "Infantry",
+        "benefit": "+200 Deploy Cap/lv",
+        "levels": [
+          {
+            "level": 1,
+            "food": 300000,
+            "wood": 300000,
+            "stone": 60000,
+            "iron": 15000,
+            "gold": 5000,
+            "truegoldDust": 16,
+            "timeSec": 480
+          },
+          {
+            "level": 2,
+            "food": 480000,
+            "wood": 480000,
+            "stone": 96000,
+            "iron": 24000,
+            "gold": 8000,
+            "truegoldDust": 25,
+            "timeSec": 768
+          },
+          {
+            "level": 3,
+            "food": 780000,
+            "wood": 780000,
+            "stone": 150000,
+            "iron": 39000,
+            "gold": 13000,
+            "truegoldDust": 41,
+            "timeSec": 1248
+          },
+          {
+            "level": 4,
+            "food": 1200000,
+            "wood": 1200000,
+            "stone": 250000,
+            "iron": 64000,
+            "gold": 21000,
+            "truegoldDust": 68,
+            "timeSec": 2064
+          },
+          {
+            "level": 5,
+            "food": 2000000,
+            "wood": 2000000,
+            "stone": 400000,
+            "iron": 100000,
+            "gold": 33000,
+            "truegoldDust": 108,
+            "timeSec": 3240
+          }
+        ]
+      },
+      {
+        "id": "truegold-shields",
+        "name": "Truegold Shields",
+        "category": "Infantry",
+        "benefit": "Infantry Health",
+        "levels": [
+          {
+            "level": 1,
+            "food": 800000,
+            "wood": 800000,
+            "stone": 160000,
+            "iron": 40000,
+            "gold": 10000,
+            "truegoldDust": 40,
+            "timeSec": 1200
+          },
+          {
+            "level": 2,
+            "food": 1100000,
+            "wood": 1100000,
+            "stone": 220000,
+            "iron": 56000,
+            "gold": 14000,
+            "truegoldDust": 56,
+            "timeSec": 1800
+          },
+          {
+            "level": 3,
+            "food": 1400000,
+            "wood": 1400000,
+            "stone": 290000,
+            "iron": 74000,
+            "gold": 18000,
+            "truegoldDust": 74,
+            "timeSec": 2220
+          },
+          {
+            "level": 4,
+            "food": 2000000,
+            "wood": 2000000,
+            "stone": 400000,
+            "iron": 100000,
+            "gold": 25000,
+            "truegoldDust": 102,
+            "timeSec": 3060
+          },
+          {
+            "level": 5,
+            "food": 2700000,
+            "wood": 2700000,
+            "stone": 540000,
+            "iron": 130000,
+            "gold": 34000,
+            "truegoldDust": 136,
+            "timeSec": 4080
+          },
+          {
+            "level": 6,
+            "food": 3600000,
+            "wood": 3600000,
+            "stone": 730000,
+            "iron": 180000,
+            "gold": 46000,
+            "truegoldDust": 184,
+            "timeSec": 5520
+          },
+          {
+            "level": 7,
+            "food": 4900000,
+            "wood": 4900000,
+            "stone": 990000,
+            "iron": 240000,
+            "gold": 62000,
+            "truegoldDust": 248,
+            "timeSec": 7440
+          },
+          {
+            "level": 8,
+            "food": 6600000,
+            "wood": 6600000,
+            "stone": 1300000,
+            "iron": 330000,
+            "gold": 83000,
+            "truegoldDust": 334,
+            "timeSec": 10020
+          }
+        ]
+      },
+      {
+        "id": "truegold-blades",
+        "name": "Truegold Blades",
+        "category": "Infantry",
+        "benefit": "Infantry Lethality",
+        "levels": [
+          {
+            "level": 1,
+            "food": 800000,
+            "wood": 800000,
+            "stone": 160000,
+            "iron": 40000,
+            "gold": 10000,
+            "truegoldDust": 40,
+            "timeSec": 1200
+          },
+          {
+            "level": 2,
+            "food": 1100000,
+            "wood": 1100000,
+            "stone": 220000,
+            "iron": 56000,
+            "gold": 14000,
+            "truegoldDust": 56,
+            "timeSec": 1680
+          },
+          {
+            "level": 3,
+            "food": 1400000,
+            "wood": 1400000,
+            "stone": 290000,
+            "iron": 74000,
+            "gold": 18000,
+            "truegoldDust": 74,
+            "timeSec": 2220
+          },
+          {
+            "level": 4,
+            "food": 2000000,
+            "wood": 2000000,
+            "stone": 400000,
+            "iron": 100000,
+            "gold": 25000,
+            "truegoldDust": 102,
+            "timeSec": 3060
+          },
+          {
+            "level": 5,
+            "food": 2700000,
+            "wood": 2700000,
+            "stone": 540000,
+            "iron": 130000,
+            "gold": 34000,
+            "truegoldDust": 136,
+            "timeSec": 4080
+          },
+          {
+            "level": 6,
+            "food": 3600000,
+            "wood": 3600000,
+            "stone": 730000,
+            "iron": 180000,
+            "gold": 46000,
+            "truegoldDust": 184,
+            "timeSec": 5520
+          },
+          {
+            "level": 7,
+            "food": 4900000,
+            "wood": 4900000,
+            "stone": 990000,
+            "iron": 240000,
+            "gold": 62000,
+            "truegoldDust": 248,
+            "timeSec": 7440
+          },
+          {
+            "level": 8,
+            "food": 6600000,
+            "wood": 6600000,
+            "stone": 1300000,
+            "iron": 330000,
+            "gold": 83000,
+            "truegoldDust": 334,
+            "timeSec": 10020
+          }
+        ]
+      },
+      {
+        "id": "truegold-legionaries",
+        "name": "Truegold Legionaries",
+        "category": "Infantry",
+        "benefit": "Rally Squad Cap",
+        "levels": [
+          {
+            "level": 1,
+            "food": 1000000,
+            "wood": 1000000,
+            "stone": 210000,
+            "iron": 54000,
+            "gold": 23000,
+            "truegoldDust": 83,
+            "timeSec": 1760
+          },
+          {
+            "level": 2,
+            "food": 1300000,
+            "wood": 1300000,
+            "stone": 260000,
+            "iron": 66000,
+            "gold": 28000,
+            "truegoldDust": 102,
+            "timeSec": 2165
+          },
+          {
+            "level": 3,
+            "food": 1600000,
+            "wood": 1600000,
+            "stone": 320000,
+            "iron": 81000,
+            "gold": 34000,
+            "truegoldDust": 125,
+            "timeSec": 2640
+          },
+          {
+            "level": 4,
+            "food": 1900000,
+            "wood": 1900000,
+            "stone": 390000,
+            "iron": 97000,
+            "gold": 41000,
+            "truegoldDust": 150,
+            "timeSec": 3168
+          },
+          {
+            "level": 5,
+            "food": 2300000,
+            "wood": 2300000,
+            "stone": 470000,
+            "iron": 110000,
+            "gold": 51000,
+            "truegoldDust": 184,
+            "timeSec": 3872
+          },
+          {
+            "level": 6,
+            "food": 2900000,
+            "wood": 2900000,
+            "stone": 580000,
+            "iron": 140000,
+            "gold": 62000,
+            "truegoldDust": 225,
+            "timeSec": 4752
+          },
+          {
+            "level": 7,
+            "food": 3500000,
+            "wood": 3500000,
+            "stone": 710000,
+            "iron": 170000,
+            "gold": 76000,
+            "truegoldDust": 276,
+            "timeSec": 5808
+          },
+          {
+            "level": 8,
+            "food": 4300000,
+            "wood": 4300000,
+            "stone": 860000,
+            "iron": 210000,
+            "gold": 93000,
+            "truegoldDust": 334,
+            "timeSec": 7041
+          },
+          {
+            "level": 9,
+            "food": 5400000,
+            "wood": 5400000,
+            "stone": 1000000,
+            "iron": 270000,
+            "gold": 110000,
+            "truegoldDust": 418,
+            "timeSec": 8800
+          },
+          {
+            "level": 10,
+            "food": 6500000,
+            "wood": 6500000,
+            "stone": 1300000,
+            "iron": 320000,
+            "gold": 130000,
+            "truegoldDust": 502,
+            "timeSec": 10562
+          },
+          {
+            "level": 11,
+            "food": 7800000,
+            "wood": 7800000,
+            "stone": 1500000,
+            "iron": 390000,
+            "gold": 160000,
+            "truegoldDust": 602,
+            "timeSec": 12674
+          },
+          {
+            "level": 12,
+            "food": 9600000,
+            "wood": 9600000,
+            "stone": 1900000,
+            "iron": 480000,
+            "gold": 200000,
+            "truegoldDust": 744,
+            "timeSec": 15666
+          }
+        ]
+      },
+      {
+        "id": "truegold-mauls",
+        "name": "Truegold Mauls",
+        "category": "Infantry",
+        "benefit": "Infantry Attack",
+        "levels": [
+          {
+            "level": 1,
+            "food": 700000,
+            "wood": 700000,
+            "stone": 140000,
+            "iron": 35000,
+            "gold": 15000,
+            "truegoldDust": 54,
+            "timeSec": 1135
+          },
+          {
+            "level": 2,
+            "food": 860000,
+            "wood": 860000,
+            "stone": 170000,
+            "iron": 43000,
+            "gold": 18000,
+            "truegoldDust": 66,
+            "timeSec": 1397
+          },
+          {
+            "level": 3,
+            "food": 1000000,
+            "wood": 1000000,
+            "stone": 210000,
+            "iron": 52000,
+            "gold": 22000,
+            "truegoldDust": 81,
+            "timeSec": 1703
+          },
+          {
+            "level": 4,
+            "food": 1200000,
+            "wood": 1200000,
+            "stone": 250000,
+            "iron": 63000,
+            "gold": 27000,
+            "truegoldDust": 97,
+            "timeSec": 2044
+          },
+          {
+            "level": 5,
+            "food": 1500000,
+            "wood": 1500000,
+            "stone": 300000,
+            "iron": 77000,
+            "gold": 33000,
+            "truegoldDust": 118,
+            "timeSec": 2498
+          },
+          {
+            "level": 6,
+            "food": 1800000,
+            "wood": 1800000,
+            "stone": 370000,
+            "iron": 94000,
+            "gold": 40000,
+            "truegoldDust": 145,
+            "timeSec": 3066
+          },
+          {
+            "level": 7,
+            "food": 2300000,
+            "wood": 2300000,
+            "stone": 460000,
+            "iron": 110000,
+            "gold": 49000,
+            "truegoldDust": 178,
+            "timeSec": 3748
+          },
+          {
+            "level": 8,
+            "food": 2800000,
+            "wood": 2800000,
+            "stone": 560000,
+            "iron": 140000,
+            "gold": 60000,
+            "truegoldDust": 216,
+            "timeSec": 4542
+          },
+          {
+            "level": 9,
+            "food": 3500000,
+            "wood": 3500000,
+            "stone": 700000,
+            "iron": 170000,
+            "gold": 75000,
+            "truegoldDust": 270,
+            "timeSec": 5678
+          },
+          {
+            "level": 10,
+            "food": 4200000,
+            "wood": 4200000,
+            "stone": 840000,
+            "iron": 210000,
+            "gold": 90000,
+            "truegoldDust": 324,
+            "timeSec": 6814
+          },
+          {
+            "level": 11,
+            "food": 5000000,
+            "wood": 5000000,
+            "stone": 1000000,
+            "iron": 250000,
+            "gold": 100000,
+            "truegoldDust": 388,
+            "timeSec": 8176
+          },
+          {
+            "level": 12,
+            "food": 6200000,
+            "wood": 6200000,
+            "stone": 1200000,
+            "iron": 310000,
+            "gold": 130000,
+            "truegoldDust": 480,
+            "timeSec": 10107
+          }
+        ]
+      },
+      {
+        "id": "truegold-plating",
+        "name": "Truegold Plating",
+        "category": "Infantry",
+        "benefit": "Infantry Defense",
+        "levels": [
+          {
+            "level": 1,
+            "food": 700000,
+            "wood": 700000,
+            "stone": 140000,
+            "iron": 35000,
+            "gold": 15000,
+            "truegoldDust": 54,
+            "timeSec": 1135
+          },
+          {
+            "level": 2,
+            "food": 860000,
+            "wood": 860000,
+            "stone": 170000,
+            "iron": 43000,
+            "gold": 18000,
+            "truegoldDust": 66,
+            "timeSec": 1397
+          },
+          {
+            "level": 3,
+            "food": 1000000,
+            "wood": 1000000,
+            "stone": 210000,
+            "iron": 52000,
+            "gold": 22000,
+            "truegoldDust": 81,
+            "timeSec": 1703
+          },
+          {
+            "level": 4,
+            "food": 1200000,
+            "wood": 1200000,
+            "stone": 250000,
+            "iron": 63000,
+            "gold": 27000,
+            "truegoldDust": 97,
+            "timeSec": 2044
+          },
+          {
+            "level": 5,
+            "food": 1500000,
+            "wood": 1500000,
+            "stone": 300000,
+            "iron": 77000,
+            "gold": 33000,
+            "truegoldDust": 118,
+            "timeSec": 2498
+          },
+          {
+            "level": 6,
+            "food": 1800000,
+            "wood": 1800000,
+            "stone": 370000,
+            "iron": 94000,
+            "gold": 40000,
+            "truegoldDust": 145,
+            "timeSec": 3066
+          },
+          {
+            "level": 7,
+            "food": 2300000,
+            "wood": 2300000,
+            "stone": 460000,
+            "iron": 110000,
+            "gold": 49000,
+            "truegoldDust": 178,
+            "timeSec": 3748
+          },
+          {
+            "level": 8,
+            "food": 2800000,
+            "wood": 2800000,
+            "stone": 560000,
+            "iron": 140000,
+            "gold": 60000,
+            "truegoldDust": 216,
+            "timeSec": 4542
+          },
+          {
+            "level": 9,
+            "food": 3500000,
+            "wood": 3500000,
+            "stone": 700000,
+            "iron": 170000,
+            "gold": 75000,
+            "truegoldDust": 270,
+            "timeSec": 5678
+          },
+          {
+            "level": 10,
+            "food": 4200000,
+            "wood": 4200000,
+            "stone": 840000,
+            "iron": 210000,
+            "gold": 90000,
+            "truegoldDust": 324,
+            "timeSec": 6814
+          },
+          {
+            "level": 11,
+            "food": 5000000,
+            "wood": 5000000,
+            "stone": 1000000,
+            "iron": 250000,
+            "gold": 100000,
+            "truegoldDust": 388,
+            "timeSec": 8176
+          },
+          {
+            "level": 12,
+            "food": 6200000,
+            "wood": 6200000,
+            "stone": 1200000,
+            "iron": 310000,
+            "gold": 130000,
+            "truegoldDust": 480,
+            "timeSec": 10107
+          }
+        ]
+      },
+      {
+        "id": "truegold-infantry",
+        "name": "Truegold Infantry",
+        "category": "Infantry",
+        "benefit": "Unlock T11 Infantry",
+        "levels": [
+          {
+            "level": 1,
+            "food": 85000000,
+            "wood": 85000000,
+            "stone": 17000000,
+            "iron": 4200000,
+            "gold": 1000000,
+            "truegoldDust": 2236,
+            "timeSec": 131500
+          }
+        ]
+      },
+      {
+        "id": "truegold-infantry-healing",
+        "name": "TG Infantry Healing",
+        "category": "Infantry",
+        "benefit": "-5% Heal Cost/lv",
+        "levels": [
+          {
+            "level": 1,
+            "food": 2500000,
+            "wood": 2500000,
+            "stone": 500000,
+            "iron": 120000,
+            "gold": 30000,
+            "truegoldDust": 102,
+            "timeSec": 3000
+          },
+          {
+            "level": 2,
+            "food": 3300000,
+            "wood": 3300000,
+            "stone": 670000,
+            "iron": 160000,
+            "gold": 40000,
+            "truegoldDust": 137,
+            "timeSec": 4050
+          },
+          {
+            "level": 3,
+            "food": 4600000,
+            "wood": 4600000,
+            "stone": 920000,
+            "iron": 230000,
+            "gold": 55000,
+            "truegoldDust": 188,
+            "timeSec": 5550
+          },
+          {
+            "level": 4,
+            "food": 6200000,
+            "wood": 6200000,
+            "stone": 1200000,
+            "iron": 310000,
+            "gold": 75000,
+            "truegoldDust": 255,
+            "timeSec": 7500
+          },
+          {
+            "level": 5,
+            "food": 8300000,
+            "wood": 8300000,
+            "stone": 1600000,
+            "iron": 410000,
+            "gold": 100000,
+            "truegoldDust": 341,
+            "timeSec": 10050
+          },
+          {
+            "level": 6,
+            "food": 11000000,
+            "wood": 11000000,
+            "stone": 2200000,
+            "iron": 560000,
+            "gold": 130000,
+            "truegoldDust": 459,
+            "timeSec": 13500
+          },
+          {
+            "level": 7,
+            "food": 15000000,
+            "wood": 15000000,
+            "stone": 3000000,
+            "iron": 750000,
+            "gold": 180000,
+            "truegoldDust": 612,
+            "timeSec": 18000
+          },
+          {
+            "level": 8,
+            "food": 20000000,
+            "wood": 20000000,
+            "stone": 4100000,
+            "iron": 1000000,
+            "gold": 240000,
+            "truegoldDust": 836,
+            "timeSec": 24600
+          },
+          {
+            "level": 9,
+            "food": 27000000,
+            "wood": 27000000,
+            "stone": 5500000,
+            "iron": 1300000,
+            "gold": 330000,
+            "truegoldDust": 1100,
+            "timeSec": 33000
+          },
+          {
+            "level": 10,
+            "food": 37000000,
+            "wood": 37000000,
+            "stone": 7500000,
+            "iron": 1800000,
+            "gold": 450000,
+            "truegoldDust": 1500,
+            "timeSec": 45000
+          }
+        ]
+      },
+      {
+        "id": "truegold-infantry-aid",
+        "name": "TG Infantry Aid",
+        "category": "Infantry",
+        "benefit": "-1.5% Heal Time/lv",
+        "levels": [
+          {
+            "level": 1,
+            "food": 1200000,
+            "wood": 1200000,
+            "stone": 250000,
+            "iron": 62000,
+            "gold": 15000,
+            "truegoldDust": 51,
+            "timeSec": 1500
+          },
+          {
+            "level": 2,
+            "food": 1600000,
+            "wood": 1600000,
+            "stone": 330000,
+            "iron": 84000,
+            "gold": 20000,
+            "truegoldDust": 68,
+            "timeSec": 2025
+          },
+          {
+            "level": 3,
+            "food": 2300000,
+            "wood": 2300000,
+            "stone": 460000,
+            "iron": 110000,
+            "gold": 27000,
+            "truegoldDust": 94,
+            "timeSec": 2775
+          },
+          {
+            "level": 4,
+            "food": 3100000,
+            "wood": 3100000,
+            "stone": 620000,
+            "iron": 150000,
+            "gold": 37000,
+            "truegoldDust": 127,
+            "timeSec": 3750
+          },
+          {
+            "level": 5,
+            "food": 4100000,
+            "wood": 4100000,
+            "stone": 830000,
+            "iron": 200000,
+            "gold": 50000,
+            "truegoldDust": 170,
+            "timeSec": 5025
+          },
+          {
+            "level": 6,
+            "food": 5600000,
+            "wood": 5600000,
+            "stone": 1100000,
+            "iron": 280000,
+            "gold": 67000,
+            "truegoldDust": 229,
+            "timeSec": 6750
+          },
+          {
+            "level": 7,
+            "food": 7500000,
+            "wood": 7500000,
+            "stone": 1500000,
+            "iron": 370000,
+            "gold": 90000,
+            "truegoldDust": 306,
+            "timeSec": 9000
+          },
+          {
+            "level": 8,
+            "food": 10000000,
+            "wood": 10000000,
+            "stone": 2000000,
+            "iron": 510000,
+            "gold": 120000,
+            "truegoldDust": 418,
+            "timeSec": 12300
+          },
+          {
+            "level": 9,
+            "food": 13000000,
+            "wood": 13000000,
+            "stone": 2700000,
+            "iron": 680000,
+            "gold": 160000,
+            "truegoldDust": 561,
+            "timeSec": 16500
+          },
+          {
+            "level": 10,
+            "food": 18000000,
+            "wood": 18000000,
+            "stone": 3700000,
+            "iron": 930000,
+            "gold": 220000,
+            "truegoldDust": 765,
+            "timeSec": 22500
+          }
+        ]
+      },
+      {
+        "id": "truegold-infantry-training",
+        "name": "TG Infantry Training",
+        "category": "Infantry",
+        "benefit": "-5% Train Cost/lv",
+        "levels": [
+          {
+            "level": 1,
+            "food": 2500000,
+            "wood": 2500000,
+            "stone": 500000,
+            "iron": 120000,
+            "gold": 30000,
+            "truegoldDust": 102,
+            "timeSec": 3000
+          },
+          {
+            "level": 2,
+            "food": 3300000,
+            "wood": 3300000,
+            "stone": 670000,
+            "iron": 160000,
+            "gold": 40000,
+            "truegoldDust": 137,
+            "timeSec": 4050
+          },
+          {
+            "level": 3,
+            "food": 4600000,
+            "wood": 4600000,
+            "stone": 920000,
+            "iron": 230000,
+            "gold": 55000,
+            "truegoldDust": 188,
+            "timeSec": 5550
+          },
+          {
+            "level": 4,
+            "food": 6200000,
+            "wood": 6200000,
+            "stone": 1200000,
+            "iron": 310000,
+            "gold": 75000,
+            "truegoldDust": 255,
+            "timeSec": 7500
+          },
+          {
+            "level": 5,
+            "food": 8300000,
+            "wood": 8300000,
+            "stone": 1600000,
+            "iron": 410000,
+            "gold": 100000,
+            "truegoldDust": 341,
+            "timeSec": 10050
+          },
+          {
+            "level": 6,
+            "food": 11000000,
+            "wood": 11000000,
+            "stone": 2200000,
+            "iron": 560000,
+            "gold": 130000,
+            "truegoldDust": 459,
+            "timeSec": 13500
+          },
+          {
+            "level": 7,
+            "food": 15000000,
+            "wood": 15000000,
+            "stone": 3000000,
+            "iron": 750000,
+            "gold": 180000,
+            "truegoldDust": 612,
+            "timeSec": 18000
+          },
+          {
+            "level": 8,
+            "food": 20000000,
+            "wood": 20000000,
+            "stone": 4100000,
+            "iron": 1000000,
+            "gold": 240000,
+            "truegoldDust": 836,
+            "timeSec": 24600
+          },
+          {
+            "level": 9,
+            "food": 27000000,
+            "wood": 27000000,
+            "stone": 5500000,
+            "iron": 1300000,
+            "gold": 330000,
+            "truegoldDust": 1100,
+            "timeSec": 33000
+          },
+          {
+            "level": 10,
+            "food": 37000000,
+            "wood": 37000000,
+            "stone": 7500000,
+            "iron": 1800000,
+            "gold": 450000,
+            "truegoldDust": 1500,
+            "timeSec": 45000
+          }
+        ]
+      },
+      {
+        "id": "truegold-battalion-cav",
+        "name": "TG Battalion (Cav)",
+        "category": "Cavalry",
+        "benefit": "+200 Deploy Cap/lv",
+        "levels": [
+          {
+            "level": 1,
+            "food": 300000,
+            "wood": 300000,
+            "stone": 60000,
+            "iron": 15000,
+            "gold": 5000,
+            "truegoldDust": 16,
+            "timeSec": 480
+          },
+          {
+            "level": 2,
+            "food": 480000,
+            "wood": 480000,
+            "stone": 96000,
+            "iron": 24000,
+            "gold": 8000,
+            "truegoldDust": 25,
+            "timeSec": 768
+          },
+          {
+            "level": 3,
+            "food": 780000,
+            "wood": 780000,
+            "stone": 150000,
+            "iron": 39000,
+            "gold": 13000,
+            "truegoldDust": 41,
+            "timeSec": 1248
+          },
+          {
+            "level": 4,
+            "food": 1200000,
+            "wood": 1200000,
+            "stone": 250000,
+            "iron": 64000,
+            "gold": 21000,
+            "truegoldDust": 68,
+            "timeSec": 2064
+          },
+          {
+            "level": 5,
+            "food": 2000000,
+            "wood": 2000000,
+            "stone": 400000,
+            "iron": 100000,
+            "gold": 33000,
+            "truegoldDust": 108,
+            "timeSec": 3240
+          }
+        ]
+      },
+      {
+        "id": "truegold-farriery",
+        "name": "Truegold Farriery",
+        "category": "Cavalry",
+        "benefit": "Cavalry Health",
+        "levels": [
+          {
+            "level": 1,
+            "food": 800000,
+            "wood": 800000,
+            "stone": 160000,
+            "iron": 40000,
+            "gold": 10000,
+            "truegoldDust": 40,
+            "timeSec": 1200
+          },
+          {
+            "level": 2,
+            "food": 1100000,
+            "wood": 1100000,
+            "stone": 220000,
+            "iron": 56000,
+            "gold": 14000,
+            "truegoldDust": 56,
+            "timeSec": 1800
+          },
+          {
+            "level": 3,
+            "food": 1400000,
+            "wood": 1400000,
+            "stone": 290000,
+            "iron": 74000,
+            "gold": 18000,
+            "truegoldDust": 74,
+            "timeSec": 2220
+          },
+          {
+            "level": 4,
+            "food": 2000000,
+            "wood": 2000000,
+            "stone": 400000,
+            "iron": 100000,
+            "gold": 25000,
+            "truegoldDust": 102,
+            "timeSec": 3060
+          },
+          {
+            "level": 5,
+            "food": 2700000,
+            "wood": 2700000,
+            "stone": 540000,
+            "iron": 130000,
+            "gold": 34000,
+            "truegoldDust": 136,
+            "timeSec": 4080
+          },
+          {
+            "level": 6,
+            "food": 3600000,
+            "wood": 3600000,
+            "stone": 730000,
+            "iron": 180000,
+            "gold": 46000,
+            "truegoldDust": 184,
+            "timeSec": 5520
+          },
+          {
+            "level": 7,
+            "food": 4900000,
+            "wood": 4900000,
+            "stone": 990000,
+            "iron": 240000,
+            "gold": 62000,
+            "truegoldDust": 248,
+            "timeSec": 7440
+          },
+          {
+            "level": 8,
+            "food": 6600000,
+            "wood": 6600000,
+            "stone": 1300000,
+            "iron": 330000,
+            "gold": 83000,
+            "truegoldDust": 334,
+            "timeSec": 10020
+          }
+        ]
+      },
+      {
+        "id": "truegold-charge",
+        "name": "Truegold Charge",
+        "category": "Cavalry",
+        "benefit": "Cavalry Lethality",
+        "levels": [
+          {
+            "level": 1,
+            "food": 800000,
+            "wood": 800000,
+            "stone": 160000,
+            "iron": 40000,
+            "gold": 10000,
+            "truegoldDust": 40,
+            "timeSec": 1200
+          },
+          {
+            "level": 2,
+            "food": 1100000,
+            "wood": 1100000,
+            "stone": 220000,
+            "iron": 56000,
+            "gold": 14000,
+            "truegoldDust": 56,
+            "timeSec": 1680
+          },
+          {
+            "level": 3,
+            "food": 1400000,
+            "wood": 1400000,
+            "stone": 290000,
+            "iron": 74000,
+            "gold": 18000,
+            "truegoldDust": 74,
+            "timeSec": 2220
+          },
+          {
+            "level": 4,
+            "food": 2000000,
+            "wood": 2000000,
+            "stone": 400000,
+            "iron": 100000,
+            "gold": 25000,
+            "truegoldDust": 102,
+            "timeSec": 3060
+          },
+          {
+            "level": 5,
+            "food": 2700000,
+            "wood": 2700000,
+            "stone": 540000,
+            "iron": 130000,
+            "gold": 34000,
+            "truegoldDust": 136,
+            "timeSec": 4080
+          },
+          {
+            "level": 6,
+            "food": 3600000,
+            "wood": 3600000,
+            "stone": 730000,
+            "iron": 180000,
+            "gold": 46000,
+            "truegoldDust": 184,
+            "timeSec": 5520
+          },
+          {
+            "level": 7,
+            "food": 4900000,
+            "wood": 4900000,
+            "stone": 990000,
+            "iron": 240000,
+            "gold": 62000,
+            "truegoldDust": 248,
+            "timeSec": 7440
+          },
+          {
+            "level": 8,
+            "food": 6600000,
+            "wood": 6600000,
+            "stone": 1300000,
+            "iron": 330000,
+            "gold": 83000,
+            "truegoldDust": 334,
+            "timeSec": 10020
+          }
+        ]
+      },
+      {
+        "id": "truegold-legionaries-cav",
+        "name": "TG Legionaries (Cav)",
+        "category": "Cavalry",
+        "benefit": "Rally Squad Cap",
+        "levels": [
+          {
+            "level": 1,
+            "food": 1000000,
+            "wood": 1000000,
+            "stone": 210000,
+            "iron": 54000,
+            "gold": 23000,
+            "truegoldDust": 83,
+            "timeSec": 1760
+          },
+          {
+            "level": 2,
+            "food": 1300000,
+            "wood": 1300000,
+            "stone": 260000,
+            "iron": 66000,
+            "gold": 28000,
+            "truegoldDust": 102,
+            "timeSec": 2165
+          },
+          {
+            "level": 3,
+            "food": 1600000,
+            "wood": 1600000,
+            "stone": 320000,
+            "iron": 81000,
+            "gold": 34000,
+            "truegoldDust": 125,
+            "timeSec": 2640
+          },
+          {
+            "level": 4,
+            "food": 1900000,
+            "wood": 1900000,
+            "stone": 390000,
+            "iron": 97000,
+            "gold": 41000,
+            "truegoldDust": 150,
+            "timeSec": 3168
+          },
+          {
+            "level": 5,
+            "food": 2300000,
+            "wood": 2300000,
+            "stone": 470000,
+            "iron": 110000,
+            "gold": 51000,
+            "truegoldDust": 184,
+            "timeSec": 3872
+          },
+          {
+            "level": 6,
+            "food": 2900000,
+            "wood": 2900000,
+            "stone": 580000,
+            "iron": 140000,
+            "gold": 62000,
+            "truegoldDust": 225,
+            "timeSec": 4752
+          },
+          {
+            "level": 7,
+            "food": 3500000,
+            "wood": 3500000,
+            "stone": 710000,
+            "iron": 170000,
+            "gold": 76000,
+            "truegoldDust": 276,
+            "timeSec": 5808
+          },
+          {
+            "level": 8,
+            "food": 4300000,
+            "wood": 4300000,
+            "stone": 860000,
+            "iron": 210000,
+            "gold": 93000,
+            "truegoldDust": 334,
+            "timeSec": 7041
+          },
+          {
+            "level": 9,
+            "food": 5400000,
+            "wood": 5400000,
+            "stone": 1000000,
+            "iron": 270000,
+            "gold": 110000,
+            "truegoldDust": 418,
+            "timeSec": 8800
+          },
+          {
+            "level": 10,
+            "food": 6500000,
+            "wood": 6500000,
+            "stone": 1300000,
+            "iron": 320000,
+            "gold": 130000,
+            "truegoldDust": 502,
+            "timeSec": 10562
+          },
+          {
+            "level": 11,
+            "food": 7800000,
+            "wood": 7800000,
+            "stone": 1500000,
+            "iron": 390000,
+            "gold": 160000,
+            "truegoldDust": 602,
+            "timeSec": 12674
+          },
+          {
+            "level": 12,
+            "food": 9600000,
+            "wood": 9600000,
+            "stone": 1900000,
+            "iron": 480000,
+            "gold": 200000,
+            "truegoldDust": 744,
+            "timeSec": 15666
+          }
+        ]
+      },
+      {
+        "id": "truegold-lances",
+        "name": "Truegold Lances",
+        "category": "Cavalry",
+        "benefit": "Cavalry Attack",
+        "levels": [
+          {
+            "level": 1,
+            "food": 700000,
+            "wood": 700000,
+            "stone": 140000,
+            "iron": 35000,
+            "gold": 15000,
+            "truegoldDust": 54,
+            "timeSec": 1135
+          },
+          {
+            "level": 2,
+            "food": 860000,
+            "wood": 860000,
+            "stone": 170000,
+            "iron": 43000,
+            "gold": 18000,
+            "truegoldDust": 66,
+            "timeSec": 1397
+          },
+          {
+            "level": 3,
+            "food": 1000000,
+            "wood": 1000000,
+            "stone": 210000,
+            "iron": 52000,
+            "gold": 22000,
+            "truegoldDust": 81,
+            "timeSec": 1703
+          },
+          {
+            "level": 4,
+            "food": 1200000,
+            "wood": 1200000,
+            "stone": 250000,
+            "iron": 63000,
+            "gold": 27000,
+            "truegoldDust": 97,
+            "timeSec": 2044
+          },
+          {
+            "level": 5,
+            "food": 1500000,
+            "wood": 1500000,
+            "stone": 300000,
+            "iron": 77000,
+            "gold": 33000,
+            "truegoldDust": 118,
+            "timeSec": 2498
+          },
+          {
+            "level": 6,
+            "food": 1800000,
+            "wood": 1800000,
+            "stone": 370000,
+            "iron": 94000,
+            "gold": 40000,
+            "truegoldDust": 145,
+            "timeSec": 3066
+          },
+          {
+            "level": 7,
+            "food": 2300000,
+            "wood": 2300000,
+            "stone": 460000,
+            "iron": 110000,
+            "gold": 49000,
+            "truegoldDust": 178,
+            "timeSec": 3748
+          },
+          {
+            "level": 8,
+            "food": 2800000,
+            "wood": 2800000,
+            "stone": 560000,
+            "iron": 140000,
+            "gold": 60000,
+            "truegoldDust": 216,
+            "timeSec": 4542
+          },
+          {
+            "level": 9,
+            "food": 3500000,
+            "wood": 3500000,
+            "stone": 700000,
+            "iron": 170000,
+            "gold": 75000,
+            "truegoldDust": 270,
+            "timeSec": 5678
+          },
+          {
+            "level": 10,
+            "food": 4200000,
+            "wood": 4200000,
+            "stone": 840000,
+            "iron": 210000,
+            "gold": 90000,
+            "truegoldDust": 324,
+            "timeSec": 6814
+          },
+          {
+            "level": 11,
+            "food": 5000000,
+            "wood": 5000000,
+            "stone": 1000000,
+            "iron": 250000,
+            "gold": 100000,
+            "truegoldDust": 388,
+            "timeSec": 8176
+          },
+          {
+            "level": 12,
+            "food": 6200000,
+            "wood": 6200000,
+            "stone": 1200000,
+            "iron": 310000,
+            "gold": 130000,
+            "truegoldDust": 480,
+            "timeSec": 10107
+          }
+        ]
+      },
+      {
+        "id": "truegold-platecraft",
+        "name": "Truegold Platecraft",
+        "category": "Cavalry",
+        "benefit": "Cavalry Defense",
+        "levels": [
+          {
+            "level": 1,
+            "food": 700000,
+            "wood": 700000,
+            "stone": 140000,
+            "iron": 35000,
+            "gold": 15000,
+            "truegoldDust": 54,
+            "timeSec": 1135
+          },
+          {
+            "level": 2,
+            "food": 860000,
+            "wood": 860000,
+            "stone": 170000,
+            "iron": 43000,
+            "gold": 18000,
+            "truegoldDust": 66,
+            "timeSec": 1397
+          },
+          {
+            "level": 3,
+            "food": 1000000,
+            "wood": 1000000,
+            "stone": 210000,
+            "iron": 52000,
+            "gold": 22000,
+            "truegoldDust": 81,
+            "timeSec": 1703
+          },
+          {
+            "level": 4,
+            "food": 1200000,
+            "wood": 1200000,
+            "stone": 250000,
+            "iron": 63000,
+            "gold": 27000,
+            "truegoldDust": 97,
+            "timeSec": 2044
+          },
+          {
+            "level": 5,
+            "food": 1500000,
+            "wood": 1500000,
+            "stone": 300000,
+            "iron": 77000,
+            "gold": 33000,
+            "truegoldDust": 118,
+            "timeSec": 2498
+          },
+          {
+            "level": 6,
+            "food": 1800000,
+            "wood": 1800000,
+            "stone": 370000,
+            "iron": 94000,
+            "gold": 40000,
+            "truegoldDust": 145,
+            "timeSec": 3066
+          },
+          {
+            "level": 7,
+            "food": 2300000,
+            "wood": 2300000,
+            "stone": 460000,
+            "iron": 110000,
+            "gold": 49000,
+            "truegoldDust": 178,
+            "timeSec": 3748
+          },
+          {
+            "level": 8,
+            "food": 2800000,
+            "wood": 2800000,
+            "stone": 560000,
+            "iron": 140000,
+            "gold": 60000,
+            "truegoldDust": 216,
+            "timeSec": 4542
+          },
+          {
+            "level": 9,
+            "food": 3500000,
+            "wood": 3500000,
+            "stone": 700000,
+            "iron": 170000,
+            "gold": 75000,
+            "truegoldDust": 270,
+            "timeSec": 5678
+          },
+          {
+            "level": 10,
+            "food": 4200000,
+            "wood": 4200000,
+            "stone": 840000,
+            "iron": 210000,
+            "gold": 90000,
+            "truegoldDust": 324,
+            "timeSec": 6814
+          },
+          {
+            "level": 11,
+            "food": 5000000,
+            "wood": 5000000,
+            "stone": 1000000,
+            "iron": 250000,
+            "gold": 100000,
+            "truegoldDust": 388,
+            "timeSec": 8176
+          },
+          {
+            "level": 12,
+            "food": 6200000,
+            "wood": 6200000,
+            "stone": 1200000,
+            "iron": 310000,
+            "gold": 130000,
+            "truegoldDust": 480,
+            "timeSec": 10107
+          }
+        ]
+      },
+      {
+        "id": "truegold-cavalry",
+        "name": "Truegold Cavalry",
+        "category": "Cavalry",
+        "benefit": "Unlock T11 Cavalry",
+        "levels": [
+          {
+            "level": 1,
+            "food": 85000000,
+            "wood": 85000000,
+            "stone": 17000000,
+            "iron": 4200000,
+            "gold": 1000000,
+            "truegoldDust": 2236,
+            "timeSec": 131500
+          }
+        ]
+      },
+      {
+        "id": "truegold-cavalry-healing",
+        "name": "TG Cavalry Healing",
+        "category": "Cavalry",
+        "benefit": "-5% Heal Cost/lv",
+        "levels": [
+          {
+            "level": 1,
+            "food": 2500000,
+            "wood": 2500000,
+            "stone": 500000,
+            "iron": 120000,
+            "gold": 30000,
+            "truegoldDust": 102,
+            "timeSec": 3000
+          },
+          {
+            "level": 2,
+            "food": 3300000,
+            "wood": 3300000,
+            "stone": 670000,
+            "iron": 160000,
+            "gold": 40000,
+            "truegoldDust": 137,
+            "timeSec": 4050
+          },
+          {
+            "level": 3,
+            "food": 4600000,
+            "wood": 4600000,
+            "stone": 920000,
+            "iron": 230000,
+            "gold": 55000,
+            "truegoldDust": 188,
+            "timeSec": 5550
+          },
+          {
+            "level": 4,
+            "food": 6200000,
+            "wood": 6200000,
+            "stone": 1200000,
+            "iron": 310000,
+            "gold": 75000,
+            "truegoldDust": 255,
+            "timeSec": 7500
+          },
+          {
+            "level": 5,
+            "food": 8300000,
+            "wood": 8300000,
+            "stone": 1600000,
+            "iron": 410000,
+            "gold": 100000,
+            "truegoldDust": 341,
+            "timeSec": 10050
+          },
+          {
+            "level": 6,
+            "food": 11000000,
+            "wood": 11000000,
+            "stone": 2200000,
+            "iron": 560000,
+            "gold": 130000,
+            "truegoldDust": 459,
+            "timeSec": 13500
+          },
+          {
+            "level": 7,
+            "food": 15000000,
+            "wood": 15000000,
+            "stone": 3000000,
+            "iron": 750000,
+            "gold": 180000,
+            "truegoldDust": 612,
+            "timeSec": 18000
+          },
+          {
+            "level": 8,
+            "food": 20000000,
+            "wood": 20000000,
+            "stone": 4100000,
+            "iron": 1000000,
+            "gold": 240000,
+            "truegoldDust": 836,
+            "timeSec": 24600
+          },
+          {
+            "level": 9,
+            "food": 27000000,
+            "wood": 27000000,
+            "stone": 5500000,
+            "iron": 1300000,
+            "gold": 330000,
+            "truegoldDust": 1100,
+            "timeSec": 33000
+          },
+          {
+            "level": 10,
+            "food": 37000000,
+            "wood": 37000000,
+            "stone": 7500000,
+            "iron": 1800000,
+            "gold": 450000,
+            "truegoldDust": 1500,
+            "timeSec": 45000
+          }
+        ]
+      },
+      {
+        "id": "truegold-cavalry-aid",
+        "name": "TG Cavalry Aid",
+        "category": "Cavalry",
+        "benefit": "-1.5% Heal Time/lv",
+        "levels": [
+          {
+            "level": 1,
+            "food": 1200000,
+            "wood": 1200000,
+            "stone": 250000,
+            "iron": 62000,
+            "gold": 15000,
+            "truegoldDust": 51,
+            "timeSec": 1500
+          },
+          {
+            "level": 2,
+            "food": 1600000,
+            "wood": 1600000,
+            "stone": 330000,
+            "iron": 84000,
+            "gold": 20000,
+            "truegoldDust": 68,
+            "timeSec": 2025
+          },
+          {
+            "level": 3,
+            "food": 2300000,
+            "wood": 2300000,
+            "stone": 460000,
+            "iron": 110000,
+            "gold": 27000,
+            "truegoldDust": 94,
+            "timeSec": 2775
+          },
+          {
+            "level": 4,
+            "food": 3100000,
+            "wood": 3100000,
+            "stone": 620000,
+            "iron": 150000,
+            "gold": 37000,
+            "truegoldDust": 127,
+            "timeSec": 3750
+          },
+          {
+            "level": 5,
+            "food": 4100000,
+            "wood": 4100000,
+            "stone": 830000,
+            "iron": 200000,
+            "gold": 50000,
+            "truegoldDust": 170,
+            "timeSec": 5025
+          },
+          {
+            "level": 6,
+            "food": 5600000,
+            "wood": 5600000,
+            "stone": 1100000,
+            "iron": 280000,
+            "gold": 67000,
+            "truegoldDust": 229,
+            "timeSec": 6750
+          },
+          {
+            "level": 7,
+            "food": 7500000,
+            "wood": 7500000,
+            "stone": 1500000,
+            "iron": 370000,
+            "gold": 90000,
+            "truegoldDust": 306,
+            "timeSec": 9000
+          },
+          {
+            "level": 8,
+            "food": 10000000,
+            "wood": 10000000,
+            "stone": 2000000,
+            "iron": 510000,
+            "gold": 120000,
+            "truegoldDust": 418,
+            "timeSec": 12300
+          },
+          {
+            "level": 9,
+            "food": 13000000,
+            "wood": 13000000,
+            "stone": 2700000,
+            "iron": 680000,
+            "gold": 160000,
+            "truegoldDust": 561,
+            "timeSec": 16500
+          },
+          {
+            "level": 10,
+            "food": 18000000,
+            "wood": 18000000,
+            "stone": 3700000,
+            "iron": 930000,
+            "gold": 220000,
+            "truegoldDust": 765,
+            "timeSec": 22500
+          }
+        ]
+      },
+      {
+        "id": "truegold-cavalry-training",
+        "name": "TG Cavalry Training",
+        "category": "Cavalry",
+        "benefit": "-5% Train Cost/lv",
+        "levels": [
+          {
+            "level": 1,
+            "food": 2500000,
+            "wood": 2500000,
+            "stone": 500000,
+            "iron": 120000,
+            "gold": 30000,
+            "truegoldDust": 102,
+            "timeSec": 3000
+          },
+          {
+            "level": 2,
+            "food": 3300000,
+            "wood": 3300000,
+            "stone": 670000,
+            "iron": 160000,
+            "gold": 40000,
+            "truegoldDust": 137,
+            "timeSec": 4050
+          },
+          {
+            "level": 3,
+            "food": 4600000,
+            "wood": 4600000,
+            "stone": 920000,
+            "iron": 230000,
+            "gold": 55000,
+            "truegoldDust": 188,
+            "timeSec": 5550
+          },
+          {
+            "level": 4,
+            "food": 6200000,
+            "wood": 6200000,
+            "stone": 1200000,
+            "iron": 310000,
+            "gold": 75000,
+            "truegoldDust": 255,
+            "timeSec": 7500
+          },
+          {
+            "level": 5,
+            "food": 8300000,
+            "wood": 8300000,
+            "stone": 1600000,
+            "iron": 410000,
+            "gold": 100000,
+            "truegoldDust": 341,
+            "timeSec": 10050
+          },
+          {
+            "level": 6,
+            "food": 11000000,
+            "wood": 11000000,
+            "stone": 2200000,
+            "iron": 560000,
+            "gold": 130000,
+            "truegoldDust": 459,
+            "timeSec": 13500
+          },
+          {
+            "level": 7,
+            "food": 15000000,
+            "wood": 15000000,
+            "stone": 3000000,
+            "iron": 750000,
+            "gold": 180000,
+            "truegoldDust": 612,
+            "timeSec": 18000
+          },
+          {
+            "level": 8,
+            "food": 20000000,
+            "wood": 20000000,
+            "stone": 4100000,
+            "iron": 1000000,
+            "gold": 240000,
+            "truegoldDust": 836,
+            "timeSec": 24600
+          },
+          {
+            "level": 9,
+            "food": 27000000,
+            "wood": 27000000,
+            "stone": 5500000,
+            "iron": 1300000,
+            "gold": 330000,
+            "truegoldDust": 1100,
+            "timeSec": 33000
+          },
+          {
+            "level": 10,
+            "food": 37000000,
+            "wood": 37000000,
+            "stone": 7500000,
+            "iron": 1800000,
+            "gold": 450000,
+            "truegoldDust": 1500,
+            "timeSec": 45000
+          }
+        ]
+      },
+      {
+        "id": "truegold-battalion-arc",
+        "name": "TG Battalion (Arc)",
+        "category": "Archer",
+        "benefit": "+200 Deploy Cap/lv",
+        "levels": [
+          {
+            "level": 1,
+            "food": 300000,
+            "wood": 300000,
+            "stone": 60000,
+            "iron": 15000,
+            "gold": 5000,
+            "truegoldDust": 16,
+            "timeSec": 480
+          },
+          {
+            "level": 2,
+            "food": 480000,
+            "wood": 480000,
+            "stone": 96000,
+            "iron": 24000,
+            "gold": 8000,
+            "truegoldDust": 25,
+            "timeSec": 768
+          },
+          {
+            "level": 3,
+            "food": 780000,
+            "wood": 780000,
+            "stone": 150000,
+            "iron": 39000,
+            "gold": 13000,
+            "truegoldDust": 41,
+            "timeSec": 1248
+          },
+          {
+            "level": 4,
+            "food": 1200000,
+            "wood": 1200000,
+            "stone": 250000,
+            "iron": 64000,
+            "gold": 21000,
+            "truegoldDust": 68,
+            "timeSec": 2064
+          },
+          {
+            "level": 5,
+            "food": 2000000,
+            "wood": 2000000,
+            "stone": 400000,
+            "iron": 100000,
+            "gold": 33000,
+            "truegoldDust": 108,
+            "timeSec": 3240
+          }
+        ]
+      },
+      {
+        "id": "truegold-bracers",
+        "name": "Truegold Bracers",
+        "category": "Archer",
+        "benefit": "Archer Health",
+        "levels": [
+          {
+            "level": 1,
+            "food": 800000,
+            "wood": 800000,
+            "stone": 160000,
+            "iron": 40000,
+            "gold": 10000,
+            "truegoldDust": 40,
+            "timeSec": 1200
+          },
+          {
+            "level": 2,
+            "food": 1100000,
+            "wood": 1100000,
+            "stone": 220000,
+            "iron": 56000,
+            "gold": 14000,
+            "truegoldDust": 56,
+            "timeSec": 1800
+          },
+          {
+            "level": 3,
+            "food": 1400000,
+            "wood": 1400000,
+            "stone": 290000,
+            "iron": 74000,
+            "gold": 18000,
+            "truegoldDust": 74,
+            "timeSec": 2220
+          },
+          {
+            "level": 4,
+            "food": 2000000,
+            "wood": 2000000,
+            "stone": 400000,
+            "iron": 100000,
+            "gold": 25000,
+            "truegoldDust": 102,
+            "timeSec": 3060
+          },
+          {
+            "level": 5,
+            "food": 2700000,
+            "wood": 2700000,
+            "stone": 540000,
+            "iron": 130000,
+            "gold": 34000,
+            "truegoldDust": 136,
+            "timeSec": 4080
+          },
+          {
+            "level": 6,
+            "food": 3600000,
+            "wood": 3600000,
+            "stone": 730000,
+            "iron": 180000,
+            "gold": 46000,
+            "truegoldDust": 184,
+            "timeSec": 5520
+          },
+          {
+            "level": 7,
+            "food": 4900000,
+            "wood": 4900000,
+            "stone": 990000,
+            "iron": 240000,
+            "gold": 62000,
+            "truegoldDust": 248,
+            "timeSec": 7440
+          },
+          {
+            "level": 8,
+            "food": 6600000,
+            "wood": 6600000,
+            "stone": 1300000,
+            "iron": 330000,
+            "gold": 83000,
+            "truegoldDust": 334,
+            "timeSec": 10020
+          }
+        ]
+      },
+      {
+        "id": "truegold-bows",
+        "name": "Truegold Bows",
+        "category": "Archer",
+        "benefit": "Archer Lethality",
+        "levels": [
+          {
+            "level": 1,
+            "food": 800000,
+            "wood": 800000,
+            "stone": 160000,
+            "iron": 40000,
+            "gold": 10000,
+            "truegoldDust": 40,
+            "timeSec": 1200
+          },
+          {
+            "level": 2,
+            "food": 1100000,
+            "wood": 1100000,
+            "stone": 220000,
+            "iron": 56000,
+            "gold": 14000,
+            "truegoldDust": 56,
+            "timeSec": 1680
+          },
+          {
+            "level": 3,
+            "food": 1400000,
+            "wood": 1400000,
+            "stone": 290000,
+            "iron": 74000,
+            "gold": 18000,
+            "truegoldDust": 74,
+            "timeSec": 2220
+          },
+          {
+            "level": 4,
+            "food": 2000000,
+            "wood": 2000000,
+            "stone": 400000,
+            "iron": 100000,
+            "gold": 25000,
+            "truegoldDust": 102,
+            "timeSec": 3060
+          },
+          {
+            "level": 5,
+            "food": 2700000,
+            "wood": 2700000,
+            "stone": 540000,
+            "iron": 130000,
+            "gold": 34000,
+            "truegoldDust": 136,
+            "timeSec": 4080
+          },
+          {
+            "level": 6,
+            "food": 3600000,
+            "wood": 3600000,
+            "stone": 730000,
+            "iron": 180000,
+            "gold": 46000,
+            "truegoldDust": 184,
+            "timeSec": 5520
+          },
+          {
+            "level": 7,
+            "food": 4900000,
+            "wood": 4900000,
+            "stone": 990000,
+            "iron": 240000,
+            "gold": 62000,
+            "truegoldDust": 248,
+            "timeSec": 7440
+          },
+          {
+            "level": 8,
+            "food": 6600000,
+            "wood": 6600000,
+            "stone": 1300000,
+            "iron": 330000,
+            "gold": 83000,
+            "truegoldDust": 334,
+            "timeSec": 10020
+          }
+        ]
+      },
+      {
+        "id": "truegold-legionaries-arc",
+        "name": "TG Legionaries (Arc)",
+        "category": "Archer",
+        "benefit": "Rally Squad Cap",
+        "levels": [
+          {
+            "level": 1,
+            "food": 1000000,
+            "wood": 1000000,
+            "stone": 210000,
+            "iron": 54000,
+            "gold": 23000,
+            "truegoldDust": 83,
+            "timeSec": 1760
+          },
+          {
+            "level": 2,
+            "food": 1300000,
+            "wood": 1300000,
+            "stone": 260000,
+            "iron": 66000,
+            "gold": 28000,
+            "truegoldDust": 102,
+            "timeSec": 2165
+          },
+          {
+            "level": 3,
+            "food": 1600000,
+            "wood": 1600000,
+            "stone": 320000,
+            "iron": 81000,
+            "gold": 34000,
+            "truegoldDust": 125,
+            "timeSec": 2640
+          },
+          {
+            "level": 4,
+            "food": 1900000,
+            "wood": 1900000,
+            "stone": 390000,
+            "iron": 97000,
+            "gold": 41000,
+            "truegoldDust": 150,
+            "timeSec": 3168
+          },
+          {
+            "level": 5,
+            "food": 2300000,
+            "wood": 2300000,
+            "stone": 470000,
+            "iron": 110000,
+            "gold": 51000,
+            "truegoldDust": 184,
+            "timeSec": 3872
+          },
+          {
+            "level": 6,
+            "food": 2900000,
+            "wood": 2900000,
+            "stone": 580000,
+            "iron": 140000,
+            "gold": 62000,
+            "truegoldDust": 225,
+            "timeSec": 4752
+          },
+          {
+            "level": 7,
+            "food": 3500000,
+            "wood": 3500000,
+            "stone": 710000,
+            "iron": 170000,
+            "gold": 76000,
+            "truegoldDust": 276,
+            "timeSec": 5808
+          },
+          {
+            "level": 8,
+            "food": 4300000,
+            "wood": 4300000,
+            "stone": 860000,
+            "iron": 210000,
+            "gold": 93000,
+            "truegoldDust": 334,
+            "timeSec": 7041
+          },
+          {
+            "level": 9,
+            "food": 5400000,
+            "wood": 5400000,
+            "stone": 1000000,
+            "iron": 270000,
+            "gold": 110000,
+            "truegoldDust": 418,
+            "timeSec": 8800
+          },
+          {
+            "level": 10,
+            "food": 6500000,
+            "wood": 6500000,
+            "stone": 1300000,
+            "iron": 320000,
+            "gold": 130000,
+            "truegoldDust": 502,
+            "timeSec": 10562
+          },
+          {
+            "level": 11,
+            "food": 7800000,
+            "wood": 7800000,
+            "stone": 1500000,
+            "iron": 390000,
+            "gold": 160000,
+            "truegoldDust": 602,
+            "timeSec": 12674
+          },
+          {
+            "level": 12,
+            "food": 9600000,
+            "wood": 9600000,
+            "stone": 1900000,
+            "iron": 480000,
+            "gold": 200000,
+            "truegoldDust": 744,
+            "timeSec": 15666
+          }
+        ]
+      },
+      {
+        "id": "truegold-arrows",
+        "name": "Truegold Arrows",
+        "category": "Archer",
+        "benefit": "Archer Attack",
+        "levels": [
+          {
+            "level": 1,
+            "food": 700000,
+            "wood": 700000,
+            "stone": 140000,
+            "iron": 35000,
+            "gold": 15000,
+            "truegoldDust": 54,
+            "timeSec": 1135
+          },
+          {
+            "level": 2,
+            "food": 860000,
+            "wood": 860000,
+            "stone": 170000,
+            "iron": 43000,
+            "gold": 18000,
+            "truegoldDust": 66,
+            "timeSec": 1397
+          },
+          {
+            "level": 3,
+            "food": 1000000,
+            "wood": 1000000,
+            "stone": 210000,
+            "iron": 52000,
+            "gold": 22000,
+            "truegoldDust": 81,
+            "timeSec": 1703
+          },
+          {
+            "level": 4,
+            "food": 1200000,
+            "wood": 1200000,
+            "stone": 250000,
+            "iron": 63000,
+            "gold": 27000,
+            "truegoldDust": 97,
+            "timeSec": 2044
+          },
+          {
+            "level": 5,
+            "food": 1500000,
+            "wood": 1500000,
+            "stone": 300000,
+            "iron": 77000,
+            "gold": 33000,
+            "truegoldDust": 118,
+            "timeSec": 2498
+          },
+          {
+            "level": 6,
+            "food": 1800000,
+            "wood": 1800000,
+            "stone": 370000,
+            "iron": 94000,
+            "gold": 40000,
+            "truegoldDust": 145,
+            "timeSec": 3066
+          },
+          {
+            "level": 7,
+            "food": 2300000,
+            "wood": 2300000,
+            "stone": 460000,
+            "iron": 110000,
+            "gold": 49000,
+            "truegoldDust": 178,
+            "timeSec": 3748
+          },
+          {
+            "level": 8,
+            "food": 2800000,
+            "wood": 2800000,
+            "stone": 560000,
+            "iron": 140000,
+            "gold": 60000,
+            "truegoldDust": 216,
+            "timeSec": 4542
+          },
+          {
+            "level": 9,
+            "food": 3500000,
+            "wood": 3500000,
+            "stone": 700000,
+            "iron": 170000,
+            "gold": 75000,
+            "truegoldDust": 270,
+            "timeSec": 5678
+          },
+          {
+            "level": 10,
+            "food": 4200000,
+            "wood": 4200000,
+            "stone": 840000,
+            "iron": 210000,
+            "gold": 90000,
+            "truegoldDust": 324,
+            "timeSec": 6814
+          },
+          {
+            "level": 11,
+            "food": 5000000,
+            "wood": 5000000,
+            "stone": 1000000,
+            "iron": 250000,
+            "gold": 100000,
+            "truegoldDust": 388,
+            "timeSec": 8176
+          },
+          {
+            "level": 12,
+            "food": 6200000,
+            "wood": 6200000,
+            "stone": 1200000,
+            "iron": 310000,
+            "gold": 130000,
+            "truegoldDust": 480,
+            "timeSec": 10107
+          }
+        ]
+      },
+      {
+        "id": "truegold-vests",
+        "name": "Truegold Vests",
+        "category": "Archer",
+        "benefit": "Archer Defense",
+        "levels": [
+          {
+            "level": 1,
+            "food": 700000,
+            "wood": 700000,
+            "stone": 140000,
+            "iron": 35000,
+            "gold": 15000,
+            "truegoldDust": 54,
+            "timeSec": 1135
+          },
+          {
+            "level": 2,
+            "food": 860000,
+            "wood": 860000,
+            "stone": 170000,
+            "iron": 43000,
+            "gold": 18000,
+            "truegoldDust": 66,
+            "timeSec": 1397
+          },
+          {
+            "level": 3,
+            "food": 1000000,
+            "wood": 1000000,
+            "stone": 210000,
+            "iron": 52000,
+            "gold": 22000,
+            "truegoldDust": 81,
+            "timeSec": 1703
+          },
+          {
+            "level": 4,
+            "food": 1200000,
+            "wood": 1200000,
+            "stone": 250000,
+            "iron": 63000,
+            "gold": 27000,
+            "truegoldDust": 97,
+            "timeSec": 2044
+          },
+          {
+            "level": 5,
+            "food": 1500000,
+            "wood": 1500000,
+            "stone": 300000,
+            "iron": 77000,
+            "gold": 33000,
+            "truegoldDust": 118,
+            "timeSec": 2498
+          },
+          {
+            "level": 6,
+            "food": 1800000,
+            "wood": 1800000,
+            "stone": 370000,
+            "iron": 94000,
+            "gold": 40000,
+            "truegoldDust": 145,
+            "timeSec": 3066
+          },
+          {
+            "level": 7,
+            "food": 2300000,
+            "wood": 2300000,
+            "stone": 460000,
+            "iron": 110000,
+            "gold": 49000,
+            "truegoldDust": 178,
+            "timeSec": 3748
+          },
+          {
+            "level": 8,
+            "food": 2800000,
+            "wood": 2800000,
+            "stone": 560000,
+            "iron": 140000,
+            "gold": 60000,
+            "truegoldDust": 216,
+            "timeSec": 4542
+          },
+          {
+            "level": 9,
+            "food": 3500000,
+            "wood": 3500000,
+            "stone": 700000,
+            "iron": 170000,
+            "gold": 75000,
+            "truegoldDust": 270,
+            "timeSec": 5678
+          },
+          {
+            "level": 10,
+            "food": 4200000,
+            "wood": 4200000,
+            "stone": 840000,
+            "iron": 210000,
+            "gold": 90000,
+            "truegoldDust": 324,
+            "timeSec": 6814
+          },
+          {
+            "level": 11,
+            "food": 5000000,
+            "wood": 5000000,
+            "stone": 1000000,
+            "iron": 250000,
+            "gold": 100000,
+            "truegoldDust": 388,
+            "timeSec": 8176
+          },
+          {
+            "level": 12,
+            "food": 6200000,
+            "wood": 6200000,
+            "stone": 1200000,
+            "iron": 310000,
+            "gold": 130000,
+            "truegoldDust": 480,
+            "timeSec": 10107
+          }
+        ]
+      },
+      {
+        "id": "truegold-archer",
+        "name": "Truegold Archer",
+        "category": "Archer",
+        "benefit": "Unlock T11 Archer",
+        "levels": [
+          {
+            "level": 1,
+            "food": 85000000,
+            "wood": 85000000,
+            "stone": 17000000,
+            "iron": 4200000,
+            "gold": 1000000,
+            "truegoldDust": 2236,
+            "timeSec": 131500
+          }
+        ]
+      },
+      {
+        "id": "truegold-archer-healing",
+        "name": "TG Archer Healing",
+        "category": "Archer",
+        "benefit": "-5% Heal Cost/lv",
+        "levels": [
+          {
+            "level": 1,
+            "food": 2500000,
+            "wood": 2500000,
+            "stone": 500000,
+            "iron": 120000,
+            "gold": 30000,
+            "truegoldDust": 102,
+            "timeSec": 3000
+          },
+          {
+            "level": 2,
+            "food": 3300000,
+            "wood": 3300000,
+            "stone": 670000,
+            "iron": 160000,
+            "gold": 40000,
+            "truegoldDust": 137,
+            "timeSec": 4050
+          },
+          {
+            "level": 3,
+            "food": 4600000,
+            "wood": 4600000,
+            "stone": 920000,
+            "iron": 230000,
+            "gold": 55000,
+            "truegoldDust": 188,
+            "timeSec": 5550
+          },
+          {
+            "level": 4,
+            "food": 6200000,
+            "wood": 6200000,
+            "stone": 1200000,
+            "iron": 310000,
+            "gold": 75000,
+            "truegoldDust": 255,
+            "timeSec": 7500
+          },
+          {
+            "level": 5,
+            "food": 8300000,
+            "wood": 8300000,
+            "stone": 1600000,
+            "iron": 410000,
+            "gold": 100000,
+            "truegoldDust": 341,
+            "timeSec": 10050
+          },
+          {
+            "level": 6,
+            "food": 11000000,
+            "wood": 11000000,
+            "stone": 2200000,
+            "iron": 560000,
+            "gold": 130000,
+            "truegoldDust": 459,
+            "timeSec": 13500
+          },
+          {
+            "level": 7,
+            "food": 15000000,
+            "wood": 15000000,
+            "stone": 3000000,
+            "iron": 750000,
+            "gold": 180000,
+            "truegoldDust": 612,
+            "timeSec": 18000
+          },
+          {
+            "level": 8,
+            "food": 20000000,
+            "wood": 20000000,
+            "stone": 4100000,
+            "iron": 1000000,
+            "gold": 240000,
+            "truegoldDust": 836,
+            "timeSec": 24600
+          },
+          {
+            "level": 9,
+            "food": 27000000,
+            "wood": 27000000,
+            "stone": 5500000,
+            "iron": 1300000,
+            "gold": 330000,
+            "truegoldDust": 1100,
+            "timeSec": 33000
+          },
+          {
+            "level": 10,
+            "food": 37000000,
+            "wood": 37000000,
+            "stone": 7500000,
+            "iron": 1800000,
+            "gold": 450000,
+            "truegoldDust": 1500,
+            "timeSec": 45000
+          }
+        ]
+      },
+      {
+        "id": "truegold-archer-training",
+        "name": "TG Archer Training",
+        "category": "Archer",
+        "benefit": "-5% Train Cost/lv",
+        "levels": [
+          {
+            "level": 1,
+            "food": 2500000,
+            "wood": 2500000,
+            "stone": 500000,
+            "iron": 120000,
+            "gold": 30000,
+            "truegoldDust": 102,
+            "timeSec": 3000
+          },
+          {
+            "level": 2,
+            "food": 3300000,
+            "wood": 3300000,
+            "stone": 670000,
+            "iron": 160000,
+            "gold": 40000,
+            "truegoldDust": 137,
+            "timeSec": 4050
+          },
+          {
+            "level": 3,
+            "food": 4600000,
+            "wood": 4600000,
+            "stone": 920000,
+            "iron": 230000,
+            "gold": 55000,
+            "truegoldDust": 188,
+            "timeSec": 5550
+          },
+          {
+            "level": 4,
+            "food": 6200000,
+            "wood": 6200000,
+            "stone": 1200000,
+            "iron": 310000,
+            "gold": 75000,
+            "truegoldDust": 255,
+            "timeSec": 7500
+          },
+          {
+            "level": 5,
+            "food": 8300000,
+            "wood": 8300000,
+            "stone": 1600000,
+            "iron": 410000,
+            "gold": 100000,
+            "truegoldDust": 341,
+            "timeSec": 10050
+          },
+          {
+            "level": 6,
+            "food": 11000000,
+            "wood": 11000000,
+            "stone": 2200000,
+            "iron": 560000,
+            "gold": 130000,
+            "truegoldDust": 459,
+            "timeSec": 13500
+          },
+          {
+            "level": 7,
+            "food": 15000000,
+            "wood": 15000000,
+            "stone": 3000000,
+            "iron": 750000,
+            "gold": 180000,
+            "truegoldDust": 612,
+            "timeSec": 18000
+          },
+          {
+            "level": 8,
+            "food": 20000000,
+            "wood": 20000000,
+            "stone": 4100000,
+            "iron": 1000000,
+            "gold": 240000,
+            "truegoldDust": 836,
+            "timeSec": 24600
+          },
+          {
+            "level": 9,
+            "food": 27000000,
+            "wood": 27000000,
+            "stone": 5500000,
+            "iron": 1300000,
+            "gold": 330000,
+            "truegoldDust": 1100,
+            "timeSec": 33000
+          },
+          {
+            "level": 10,
+            "food": 37000000,
+            "wood": 37000000,
+            "stone": 7500000,
+            "iron": 1800000,
+            "gold": 450000,
+            "truegoldDust": 1500,
+            "timeSec": 45000
+          }
+        ]
+      },
+      {
+        "id": "truegold-archer-aid",
+        "name": "TG Archer Aid",
+        "category": "Archer",
+        "benefit": "-1.5% Heal Time/lv",
+        "levels": [
+          {
+            "level": 1,
+            "food": 1200000,
+            "wood": 1200000,
+            "stone": 250000,
+            "iron": 62000,
+            "gold": 15000,
+            "truegoldDust": 51,
+            "timeSec": 1500
+          },
+          {
+            "level": 2,
+            "food": 1600000,
+            "wood": 1600000,
+            "stone": 330000,
+            "iron": 84000,
+            "gold": 20000,
+            "truegoldDust": 68,
+            "timeSec": 2025
+          },
+          {
+            "level": 3,
+            "food": 2300000,
+            "wood": 2300000,
+            "stone": 460000,
+            "iron": 110000,
+            "gold": 27000,
+            "truegoldDust": 94,
+            "timeSec": 2775
+          },
+          {
+            "level": 4,
+            "food": 3100000,
+            "wood": 3100000,
+            "stone": 620000,
+            "iron": 150000,
+            "gold": 37000,
+            "truegoldDust": 127,
+            "timeSec": 3750
+          },
+          {
+            "level": 5,
+            "food": 4100000,
+            "wood": 4100000,
+            "stone": 830000,
+            "iron": 200000,
+            "gold": 50000,
+            "truegoldDust": 170,
+            "timeSec": 5025
+          },
+          {
+            "level": 6,
+            "food": 5600000,
+            "wood": 5600000,
+            "stone": 1100000,
+            "iron": 280000,
+            "gold": 67000,
+            "truegoldDust": 229,
+            "timeSec": 6750
+          },
+          {
+            "level": 7,
+            "food": 7500000,
+            "wood": 7500000,
+            "stone": 1500000,
+            "iron": 370000,
+            "gold": 90000,
+            "truegoldDust": 306,
+            "timeSec": 9000
+          },
+          {
+            "level": 8,
+            "food": 10000000,
+            "wood": 10000000,
+            "stone": 2000000,
+            "iron": 510000,
+            "gold": 120000,
+            "truegoldDust": 418,
+            "timeSec": 12300
+          },
+          {
+            "level": 9,
+            "food": 13000000,
+            "wood": 13000000,
+            "stone": 2700000,
+            "iron": 680000,
+            "gold": 160000,
+            "truegoldDust": 561,
+            "timeSec": 16500
+          },
+          {
+            "level": 10,
+            "food": 18000000,
+            "wood": 18000000,
+            "stone": 3700000,
+            "iron": 930000,
+            "gold": 220000,
+            "truegoldDust": 765,
+            "timeSec": 22500
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,181 @@
+{
+  "schema_version": 1,
+  "source_id": "kingshotpro-open-data",
+  "source_meta": {
+    "dataset": "kingshot-truegold",
+    "canonical": "https://kingshotpro.com/data/truegold.json",
+    "count": 8,
+    "updated": "2026-06-18",
+    "verified": "2026-06-18",
+    "confidence": "scored",
+    "confidence_detail": {
+      "description": "Accuracy score (0-100) = probability the value is correct for the live game.",
+      "bands": {
+        "85-94": "Confirmed — 2 independent sources agree",
+        "70-84": "Likely — single corroborated source"
+      },
+      "note": "92 = kingshot.net + kingshotdata.kr agree exactly. War Academy = 80 (our data was broken; corrected from kingshotdata.kr alone, corroborated by its 77/88 agreement elsewhere)."
+    },
+    "sources": [
+      "kingshot.net/database/truegold-requirements",
+      "https://kingshotdata.kr/en/guides/truegold.html"
+    ],
+    "license": "CC-BY-4.0 — attribute to https://kingshotpro.com"
+  },
+  "data": {
+    "buildings": [
+      {
+        "building": "Town Center",
+        "truegold": {
+          "tg1": 660,
+          "tg2": 790,
+          "tg3": 1190,
+          "tg4": 1400,
+          "tg5": 1675,
+          "tg6": 900,
+          "tg7": 1080,
+          "tg8": 1080
+        },
+        "temperedTruegold": {
+          "tg6": 60,
+          "tg7": 90,
+          "tg8": 120
+        },
+        "confidence": 92
+      },
+      {
+        "building": "Embassy",
+        "truegold": {
+          "tg1": 165,
+          "tg2": 195,
+          "tg3": 295,
+          "tg4": 350,
+          "tg5": 415,
+          "tg6": 225,
+          "tg7": 270,
+          "tg8": 270
+        },
+        "temperedTruegold": {
+          "tg6": 13,
+          "tg7": 19,
+          "tg8": 24
+        },
+        "confidence": 92
+      },
+      {
+        "building": "Command Center",
+        "truegold": {
+          "tg1": 130,
+          "tg2": 155,
+          "tg3": 235,
+          "tg4": 280,
+          "tg5": 335,
+          "tg6": 180,
+          "tg7": 216,
+          "tg8": 216
+        },
+        "temperedTruegold": {
+          "tg6": 13,
+          "tg7": 19,
+          "tg8": 24
+        },
+        "confidence": 92
+      },
+      {
+        "building": "Infirmary",
+        "truegold": {
+          "tg1": 130,
+          "tg2": 155,
+          "tg3": 235,
+          "tg4": 280,
+          "tg5": 335,
+          "tg6": 180,
+          "tg7": 216,
+          "tg8": 216
+        },
+        "temperedTruegold": {
+          "tg6": 13,
+          "tg7": 19,
+          "tg8": 24
+        },
+        "confidence": 92
+      },
+      {
+        "building": "Barracks",
+        "truegold": {
+          "tg1": 295,
+          "tg2": 355,
+          "tg3": 535,
+          "tg4": 630,
+          "tg5": 750,
+          "tg6": 405,
+          "tg7": 486,
+          "tg8": 486
+        },
+        "temperedTruegold": {
+          "tg6": 25,
+          "tg7": 37,
+          "tg8": 54
+        },
+        "confidence": 92
+      },
+      {
+        "building": "Stable",
+        "truegold": {
+          "tg1": 295,
+          "tg2": 355,
+          "tg3": 535,
+          "tg4": 630,
+          "tg5": 750,
+          "tg6": 405,
+          "tg7": 486,
+          "tg8": 486
+        },
+        "temperedTruegold": {
+          "tg6": 25,
+          "tg7": 37,
+          "tg8": 54
+        },
+        "confidence": 92
+      },
+      {
+        "building": "Range",
+        "truegold": {
+          "tg1": 295,
+          "tg2": 355,
+          "tg3": 535,
+          "tg4": 630,
+          "tg5": 750,
+          "tg6": 405,
+          "tg7": 486,
+          "tg8": 486
+        },
+        "temperedTruegold": {
+          "tg6": 25,
+          "tg7": 37,
+          "tg8": 54
+        },
+        "confidence": 92
+      },
+      {
+        "building": "War Academy",
+        "truegold": {
+          "tg1": 0,
+          "tg2": 71,
+          "tg3": 107,
+          "tg4": 126,
+          "tg5": 150,
+          "tg6": 45,
+          "tg7": 54,
+          "tg8": 54
+        },
+        "temperedTruegold": {
+          "tg6": 9,
+          "tg7": 13,
+          "tg8": 18
+        },
+        "confidence": 80
+      }
+    ]
+  }
+}
