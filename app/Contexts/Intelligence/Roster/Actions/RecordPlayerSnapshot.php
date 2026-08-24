@@ -43,7 +43,7 @@ final readonly class RecordPlayerSnapshot
      *   progression_dataset_checksum?:string|null,
      *   hero_observations?:list<array<string,mixed>>|null
      * } $attributes
-     * @param array{subscription_id:string,batch_id:string,adapter_key:string,adapter_version:string,source_record_id?:string|null,identity_hash:string,payload_hash:string}|null $machineProvenance
+     * @param  array{subscription_id:string,batch_id:string,adapter_key:string,adapter_version:string,source_record_id?:string|null,identity_hash:string,payload_hash:string}|null  $machineProvenance
      */
     public function handle(
         string $allianceId,
@@ -161,7 +161,7 @@ final readonly class RecordPlayerSnapshot
     }
 
     /**
-     * @param array<string,mixed> $attributes
+     * @param  array<string,mixed>  $attributes
      * @return array{0:ProgressionDataset|null,1:list<array<string,mixed>>}
      */
     private function progressionObservation(array $attributes): array
@@ -203,6 +203,7 @@ final readonly class RecordPlayerSnapshot
             foreach (['level' => 80, 'star' => 5, 'widget_level' => 10] as $field => $max) {
                 if (! array_key_exists($field, $row) || $row[$field] === null || $row[$field] === '') {
                     $item[$field] = null;
+
                     continue;
                 }
                 $value = filter_var($row[$field], FILTER_VALIDATE_INT);
