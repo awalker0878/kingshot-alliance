@@ -19,7 +19,7 @@ on:
       - docs/product/factual-governor-progression-source-inventory.md
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: progression-source-refresh-${{ github.ref }}
@@ -31,189 +31,31 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Checkout candidate branch head
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.2.2
         with:
-          fetch-depth: 0
-          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 1
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
           python-version: '3.12'
 
       - name: Install refresh dependencies
         run: python -m pip install --disable-pip-version-check requests beautifulsoup4
 
-      - name: Refresh immutable source-backed release
+      - name: Regenerate immutable source-backed release
         run: python scripts/progression/finalize_v2.py
 
-      - name: Validate generated corpus, source inventory and advisory-field exclusion
-        run: |
-          python - <<'PY'
-          import json
-          import re
-          from pathlib import Path
+      - name: Verify generated corpus and release contract
+        run: python scripts/progression/verify_release.py
 
-          release_dir = Path('resources/data/progression/kingshot-2026-08-23-v2')
-          files = sorted(release_dir.glob('*.json'))
-          assert files, 'No generated progression JSON files found.'
-          blocked = {
-              'tier_list','tierlist','recommended','recommendation','recommendations',
-              'investment_priority','upgrade_priority','priority_score','optimizer','optimization',
-              'best_use','best_for','f2p_rating','value_rating','longevity_rating'
-          }
+      - name: Verify checked-in release is reproducible
+        run: git diff --exit-code -- resources/data/progression/kingshot-2026-08-23-v2
 
-          def walk(value, path='root'):
-              if isinstance(value, dict):
-                  for key, child in value.items():
-                      assert key.lower() not in blocked, f'Advisory field leaked into canonical release: {path}.{key}'
-                      walk(child, f'{path}.{key}')
-              elif isinstance(value, list):
-                  for index, child in enumerate(value):
-                      walk(child, f'{path}[{index}]')
-
-          for path in files:
-              data = json.loads(path.read_text(encoding='utf-8'))
-              walk(data, path.name)
-
-          release = json.loads((release_dir / 'release.json').read_text(encoding='utf-8'))
-          assert release['schema_version'] == 2
-          assert release['dataset_version'] == '2026.08.23.2'
-          assert release['review_status'] == 'candidate_complete_source_corpus'
-          assert release['source_inventory_document'] == 'docs/product/factual-governor-progression-source-inventory.md'
-          declared_files = sorted(release['files'])
-          actual_files = sorted(path.name for path in files if path.name != 'release.json')
-          assert declared_files == actual_files, (declared_files, actual_files)
-          assert 'source-lock.json' in declared_files
-
-          dispositions = {row['family']: row for row in release['family_dispositions']}
-          assert all(row['status'] != 'indexed_external_table' for row in dispositions.values())
-          for required in (
-              'heroes','hero_skills','hero_star_shards','hero_xp','hero_exclusive_equipment','hero_gear',
-              'governor_gear','governor_charms','formations','buildings','troops','academy_research',
-              'war_academy','alliance_tech','pets','masters','truegold','vip','kvk_scoring',
-              'database_reference_tables','progression_event_tables'
-          ):
-              assert required in dispositions, f'Missing disposition: {required}'
-
-          assert dispositions['hero_skills']['canonical_entities'] == 34
-          assert dispositions['hero_skills']['discovered_entities'] == 34
-          assert dispositions['hero_skills']['facts_imported'] >= 262
-          assert dispositions['hero_star_shards']['canonical_entities'] == 34
-          assert dispositions['hero_star_shards']['facts_imported'] == 1054
-          assert dispositions['hero_exclusive_equipment']['applicable_heroes'] == 22
-          assert dispositions['hero_exclusive_equipment']['facts_imported'] == 220
-          assert dispositions['buildings']['canonical_entities'] == 12
-          assert dispositions['masters']['canonical_entities'] == 6
-
-          heroes = json.loads((release_dir / 'heroes.json').read_text(encoding='utf-8'))['heroes']
-          assert len(heroes) == 34
-          assert all(isinstance(hero.get('skills'), list) and hero['skills'] for hero in heroes)
-          for name in ('Triton','Sophia','Yang','Charles','Ava','Wee & Woo'):
-              hero = next(row for row in heroes if row['name'] == name)
-              assert hero['skill_source_status'] == 'maintained_source_inspectable'
-              assert len(hero['skills']) == 8
-              assert 'kingshotdata' in hero['source_ids']
-
-          assert release['source_gaps'] == [{
-              'id': 'academy-fortified-mail-vi-level-table',
-              'family': 'academy_research',
-              'source_id': 'kingshotdata',
-              'entity': 'Fortified Mail VI',
-              'declared_max_level': 6,
-              'missing_visible_level_rows': 6,
-              'status': 'source_table_missing',
-              'resolution': 'Do not infer the six rows. Retain the technology identity and wait for an inspectable source table or independently verified in-game evidence.'
-          }]
-
-          academy = json.loads((release_dir / 'academy_research.json').read_text(encoding='utf-8'))
-          assert len(academy['technologies']) == 191
-          assert academy['declared_levels'] == 714
-          assert sum(len(t['levels']) for t in academy['technologies']) == 714
-          assert academy['declared_max_level_sum'] == 720
-          fortified = next(t for t in academy['technologies'] if t['name'] == 'Fortified Mail VI')
-          assert fortified['max_level'] == 6
-          assert fortified['levels_status'] == 'source_table_missing'
-          assert fortified['levels'] == []
-
-          alliance = json.loads((release_dir / 'alliance_tech_tables.json').read_text(encoding='utf-8'))
-          assert len(alliance['technologies']) == 60
-          assert sum(len(t['levels']) for t in alliance['technologies']) == 279
-          assert alliance['trees'] == [
-              {'name': 'Growth', 'technologies': 24, 'levels': 108},
-              {'name': 'Territory', 'technologies': 16, 'levels': 80},
-              {'name': 'Battle', 'technologies': 20, 'levels': 91},
-          ]
-
-          expected_pages = {
-              'buildings_tables.json': 12,
-              'pets_tables.json': 14,
-              'masters_tables.json': 6,
-              'heroes_tables.json': 34,
-              'database_tables.json': 8,
-              'events_tables.json': 33,
-          }
-          for filename, expected in expected_pages.items():
-              data = json.loads((release_dir / filename).read_text(encoding='utf-8'))
-              assert data['discovered_pages'] == expected
-              assert len(data['pages']) == expected
-
-          hero_tables = json.loads((release_dir / 'heroes_tables.json').read_text(encoding='utf-8'))
-          star_rows = 0
-          weapon_rows = 0
-          weapon_heroes = 0
-          for page in hero_tables['pages']:
-              stats = next(table for table in page['tables'] if table['heading'] == 'Stats progression')
-              assert len(stats['rows']) == 31
-              star_rows += len(stats['rows'])
-              weapons = [table for table in page['tables'] if table['heading'] == 'Exclusive Weapon']
-              if weapons:
-                  assert len(weapons) == 1 and len(weapons[0]['rows']) == 10
-                  weapon_heroes += 1
-                  weapon_rows += 10
-          assert star_rows == 1054
-          assert weapon_heroes == 22
-          assert weapon_rows == 220
-
-          gear = json.loads((release_dir / 'governor_gear.json').read_text(encoding='utf-8'))
-          assert gear['source_meta']['count'] == 58
-          war = json.loads((release_dir / 'war_academy.json').read_text(encoding='utf-8'))
-          assert war['source_meta']['count'] == 30
-
-          source_lock = json.loads((release_dir / 'source-lock.json').read_text(encoding='utf-8'))
-          assert source_lock['sources']
-          for row in source_lock['sources']:
-              assert re.fullmatch(r'[a-f0-9]{64}', row['sha256']), row
-
-          registered_sources = {row['id'] for row in release['sources']}
-          assert {'kingshotdata','kingshotpro-open-data','g2384-kingshot-data'} <= registered_sources
-
-          print(
-              f'Validated {len(files)} generated JSON files: 34/34 Hero skills, 1,054 Hero star rows, '
-              '191 Academy techs/714 visible rows, 60 Alliance Tech techs/279 rows, complete source sweeps, '
-              'and one explicit Academy source gap.'
-          )
-          PY
-
-      - name: Upload generated immutable candidate
-        uses: actions/upload-artifact@v4
+      - name: Upload regenerated immutable candidate
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: factual-progression-2026.08.23.2
           path: resources/data/progression/kingshot-2026-08-23-v2
           if-no-files-found: error
           retention-days: 7
-
-      - name: Freeze generated immutable candidate on same-repository branch
-        if: github.actor != 'github-actions[bot]' && (github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository))
-        env:
-          TARGET_BRANCH: ${{ github.head_ref || github.ref_name }}
-        run: |
-          git add resources/data/progression/kingshot-2026-08-23-v2
-          if git diff --cached --quiet; then
-            echo 'Generated release is already identical.'
-            exit 0
-          fi
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'data: refresh factual progression 2026.08.23.2'
-          git push origin "HEAD:${TARGET_BRANCH}"
