@@ -5,20 +5,25 @@ declare(strict_types=1);
 namespace App\ReadModels\AllianceAssistant\Services;
 
 use App\ReadModels\AllianceAssistant\Enums\AssistantIntent;
+use App\ReadModels\AllianceAssistant\Enums\AssistantPrompt;
 use App\ReadModels\AllianceAssistant\ValueObjects\ParsedQuestion;
 
 final class AssistantQuestionInterpreter
 {
-    public function interpret(string $question): ParsedQuestion
+    public function interpret(string $question, ?AssistantPrompt $prompt = null): ParsedQuestion
     {
         $normalized = $this->normalize($question);
 
-        if ($normalized === '' || preg_match('/^(help|what can you (answer|do)|how can you help)$/u', $normalized) === 1) {
-            return new ParsedQuestion(AssistantIntent::Help);
-        }
-
         if ($this->looksLikeWrite($normalized)) {
             return new ParsedQuestion(AssistantIntent::Unsupported);
+        }
+
+        if ($prompt instanceof AssistantPrompt) {
+            return $this->fromPrompt($prompt);
+        }
+
+        if ($normalized === '' || preg_match('/^(help|what can you (answer|do)|how can you help)$/u', $normalized) === 1) {
+            return new ParsedQuestion(AssistantIntent::Help);
         }
 
         if (preg_match('/\b(observ(?:e|ed|ation|ations)|intelligence|what do we know)\b/u', $normalized) === 1) {
@@ -56,6 +61,20 @@ final class AssistantQuestionInterpreter
         }
 
         return new ParsedQuestion(AssistantIntent::Unsupported);
+    }
+
+    private function fromPrompt(AssistantPrompt $prompt): ParsedQuestion
+    {
+        return match ($prompt) {
+            AssistantPrompt::SwordlandRoster => new ParsedQuestion(
+                AssistantIntent::EventRosterSelf,
+                'Swordland',
+                true,
+            ),
+            AssistantPrompt::NextEvent => new ParsedQuestion(AssistantIntent::EventTime, null, true, true),
+            AssistantPrompt::BearHuntGuide => new ParsedQuestion(AssistantIntent::AllianceContent, 'Bear Hunt'),
+            AssistantPrompt::Help => new ParsedQuestion(AssistantIntent::Help),
+        };
     }
 
     private function looksLikeWrite(string $question): bool
