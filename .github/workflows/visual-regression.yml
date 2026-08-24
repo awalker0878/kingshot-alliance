@@ -87,6 +87,7 @@ jobs:
           php artisan tinker --execute='\Tests\v3\Fixtures\ScreenshotIntakeVisualFixture::seed();'
           php artisan tinker --execute='\Tests\v3\Fixtures\BearHuntDebriefVisualFixture::seed();'
           php artisan tinker --execute='\Tests\v3\Fixtures\KingdomTransferVisualFixture::seed();'
+          php artisan tinker --execute='\Tests\v3\Fixtures\EventCommandVisualFixture::seed();'
 
       - name: Build production frontend
         run: npm run build
