@@ -13,6 +13,7 @@ Start with:
 - [Data ownership](data-ownership.md)
 - [Consistency and transactions](consistency-and-transactions.md)
 - [Integration model](integration-model.md)
+- [Alliance Assistant composition](alliance-assistant.md)
 - [Architecture decision records](adr/README.md)
 - [Bounded contexts](contexts/README.md)
 - [Architecture compliance](../governance/architecture-compliance.md)
