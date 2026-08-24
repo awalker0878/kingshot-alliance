@@ -108,6 +108,7 @@ final class ProgressionFamilyQuery
     /** @return list<array{path:string,values:array<string,string|null>,sourceIds:list<string>,confidence:string|null}> */
     private function heroSkillRows(ProgressionDataset $dataset): array
     {
+        /** @var list<array{path:string,values:array<string,string|null>,sourceIds:list<string>,confidence:string|null}> $rows */
         $rows = [];
         foreach ($dataset->heroes as $hero) {
             $skills = $hero['skills'] ?? [];
@@ -118,6 +119,7 @@ final class ProgressionFamilyQuery
                 if (! is_array($skill)) {
                     continue;
                 }
+                /** @var array<string,string|null> $values */
                 $values = [
                     'Hero' => (string) ($hero['name'] ?? ''),
                     'Skill' => is_string($skill['name'] ?? null) ? $skill['name'] : 'Unknown',
@@ -197,6 +199,7 @@ final class ProgressionFamilyQuery
                         if (! is_array($row)) {
                             continue;
                         }
+                        /** @var array<string,string|null> $values */
                         $values = [
                             'Entity' => is_string($page['name'] ?? null) ? $page['name'] : null,
                             'Table' => is_string($table['heading'] ?? null) ? $table['heading'] : null,
@@ -219,6 +222,7 @@ final class ProgressionFamilyQuery
             return [$rows, $sourceMeta];
         }
 
+        /** @var list<array{path:string,values:array<string,string|null>,sourceIds:list<string>,confidence:string|null}> $rows */
         $rows = [];
         $this->flattenDocumentRows(
             $document['data'] ?? $document,
@@ -231,9 +235,13 @@ final class ProgressionFamilyQuery
         return [$rows, $sourceMeta];
     }
 
-    /** @return list<array{path:string,values:array<string,string|null>,sourceIds:list<string>,confidence:string|null}> */
+    /**
+     * @param  array<string,mixed>  $document
+     * @return list<array{path:string,values:array<string,string|null>,sourceIds:list<string>,confidence:string|null}>
+     */
     private function academyRows(array $document): array
     {
+        /** @var list<array{path:string,values:array<string,string|null>,sourceIds:list<string>,confidence:string|null}> $rows */
         $rows = [];
         foreach ($document['technologies'] ?? [] as $technology) {
             if (! is_array($technology) || ! is_array($technology['levels'] ?? null)) {
@@ -258,6 +266,7 @@ final class ProgressionFamilyQuery
                 if (! is_array($level)) {
                     continue;
                 }
+                /** @var array<string,string|null> $values */
                 $values = [
                     'Tree' => is_string($technology['tree'] ?? null) ? $technology['tree'] : null,
                     'Technology' => is_string($technology['name'] ?? null) ? $technology['name'] : null,
@@ -282,6 +291,9 @@ final class ProgressionFamilyQuery
 
     /**
      * @param  list<array{path:string,values:array<string,string|null>,sourceIds:list<string>,confidence:string|null}>  $rows
+     *
+     * @param-out  list<array{path:string,values:array<string,string|null>,sourceIds:list<string>,confidence:string|null}>  $rows
+     *
      * @param  list<string>  $sourceIds
      */
     private function flattenDocumentRows(
@@ -305,6 +317,7 @@ final class ProgressionFamilyQuery
             return;
         }
 
+        /** @var array<string,string|null> $values */
         $values = [];
         $nested = [];
         foreach ($value as $key => $child) {
@@ -374,7 +387,11 @@ final class ProgressionFamilyQuery
         return true;
     }
 
-    /** @param mixed $value @param array<string,string|null> $target */
+    /**
+     * @param  array<string,string|null>  $target
+     *
+     * @param-out  array<string,string|null>  $target
+     */
     private function flattenScalarValues(mixed $value, string $prefix, array &$target): void
     {
         if (! is_array($value)) {
@@ -398,7 +415,9 @@ final class ProgressionFamilyQuery
         }
     }
 
-    /** @param mixed $value @return list<string> */
+    /**
+     * @return list<string>
+     */
     private function stringList(mixed $value): array
     {
         if (! is_array($value)) {

@@ -218,7 +218,10 @@ final class ProgressionDatasetQuery
         );
     }
 
-    /** @param array<string,mixed> $release @return list<string> */
+    /**
+     * @param  array<string,mixed>  $release
+     * @return list<string>
+     */
     private function releaseFiles(array $release, int $schemaVersion): array
     {
         if ($schemaVersion === 1) {
@@ -230,6 +233,7 @@ final class ProgressionDatasetQuery
             throw new RuntimeException('Progression schema v2 release must declare its immutable files.');
         }
 
+        /** @var array<string,true> $normalized */
         $normalized = [];
         foreach ($files as $file) {
             if (! is_string($file)
@@ -355,7 +359,10 @@ final class ProgressionDatasetQuery
         }
     }
 
-    /** @param array<string,mixed> $release @param list<array<string,mixed>> $documents */
+    /**
+     * @param  array<string,mixed>  $release
+     * @param  list<array<string,mixed>>  $documents
+     */
     private function validateSources(array $release, array $documents): void
     {
         $sourceIds = [];
@@ -383,7 +390,10 @@ final class ProgressionDatasetQuery
         }
     }
 
-    /** @param array<mixed> $value @param array<string,true> $sourceIds */
+    /**
+     * @param  array<mixed>  $value
+     * @param  array<string,true>  $sourceIds
+     */
     private function validateSourceReferencesRecursively(array $value, array $sourceIds): void
     {
         foreach ($value as $key => $child) {
