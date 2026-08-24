@@ -10,7 +10,6 @@ use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
 use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Operations\Events\Actions\CreateEvent;
 use App\Contexts\Operations\Events\Enums\EventScope;
-use App\Contexts\Operations\Events\Models\EventRoster as LegacyEventRoster;
 use App\Contexts\Operations\Events\Models\EventTypeScope;
 use App\Contexts\Operations\Rosters\Actions\AssignEventRosterPlayer;
 use App\Contexts\Operations\Rosters\Models\EventRoster;
