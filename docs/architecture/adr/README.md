@@ -14,3 +14,5 @@ Architecture decision records explain material changes to ownership, boundaries,
 - [ADR-0008: Bound operator recovery and expose privacy-safe diagnostics](0008-bounded-operator-recovery.md)
 - [ADR-0009: Separate versioned map truth from territory planning intent](0009-versioned-map-truth-and-territory-planning.md)
 - [ADR-0010: Separate screenshot evidence from domain results](0010-separate-screenshot-evidence-from-domain-results.md)
+- [ADR-0011: Separate transfer planning cohorts from official Transfer Groups](0011-separate-transfer-planning-cohorts-from-official-transfer-groups.md)
+- [ADR-0012: Keep Alliance Assistant as authorized read composition](0012-keep-alliance-assistant-as-authorized-read-composition.md)
