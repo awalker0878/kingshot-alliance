@@ -10,6 +10,7 @@ use App\Contexts\Alliance\Lifecycle\Services\AllianceContext;
 use App\Contexts\GameWorld\Players\Services\PlayerContext;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\ReadModels\AllianceAssistant\Enums\AssistantIntent;
+use App\ReadModels\AllianceAssistant\Enums\AssistantPrompt;
 use App\ReadModels\AllianceAssistant\Enums\AssistantStatus;
 use App\ReadModels\AllianceAssistant\Queries\AllianceAssistantQuery;
 use App\ReadModels\AllianceAssistant\ValueObjects\AssistantResult;
@@ -61,10 +62,16 @@ final class AllianceAssistantController extends Controller
             return $validation;
         }
 
+        $promptValue = trim((string) $request->input('prompt', ''));
+        $prompt = $promptValue === '' ? null : AssistantPrompt::tryFrom($promptValue);
+        if ($promptValue !== '' && ! $prompt instanceof AssistantPrompt) {
+            return $this->validationResponse();
+        }
+
         $startedAt = hrtime(true);
 
         try {
-            $result = $assistant->ask($actor, $scope, $question);
+            $result = $assistant->ask($actor, $scope, $question, $prompt);
         } catch (AuthorizationException $exception) {
             throw $exception;
         } catch (Throwable $exception) {
@@ -111,11 +118,16 @@ final class AllianceAssistantController extends Controller
             return null;
         }
 
+        return $this->validationResponse();
+    }
+
+    private function validationResponse(): JsonResponse
+    {
         $result = new AssistantResult(
             AssistantIntent::Unsupported,
             AssistantStatus::ValidationError,
             'assistant.answers.validationError',
-            ['max' => $maximum],
+            ['max' => max(2, (int) config('assistant.max_question_length', 500))],
         );
 
         return response()->json($result->toArray(), 422);
