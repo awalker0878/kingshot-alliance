@@ -32,5 +32,13 @@ jobs:
         run: |
           vendor/bin/pint app/ReadModels/AllianceAssistant app/Contexts/Intelligence/Observations/Queries/AssistantObservationQuery.php
           npx prettier --write resources/js/pages/Assistant/Index.vue resources/js/localization/messages/assistant/*.ts
-      - name: Print formatter diff
-        run: git diff -- app/ReadModels/AllianceAssistant app/Contexts/Intelligence/Observations/Queries/AssistantObservationQuery.php resources/js/pages/Assistant/Index.vue resources/js/localization/messages/assistant
+      - name: Upload formatted sources
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: assistant-formatted-sources
+          path: |
+            app/ReadModels/AllianceAssistant
+            app/Contexts/Intelligence/Observations/Queries/AssistantObservationQuery.php
+            resources/js/pages/Assistant/Index.vue
+            resources/js/localization/messages/assistant
+          retention-days: 1
