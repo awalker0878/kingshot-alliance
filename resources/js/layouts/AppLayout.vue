@@ -35,6 +35,7 @@ type NavigationItem = {
   key:
     | 'dashboard'
     | 'alliance'
+    | 'assistant'
     | 'events'
     | 'roster'
     | 'recruitment'
@@ -105,6 +106,7 @@ const navigationItems: NavigationItem[] = [
   { key: 'progression', href: '/progression', icon: 'kingdom', playerScoped: true, exact: true },
   { key: 'notifications', href: '/notifications', icon: 'notifications', exact: true },
   { key: 'alliance', href: '/alliance', icon: 'alliance', allianceScoped: true, exact: true },
+  { key: 'assistant', href: '/assistant', icon: 'alliance', allianceScoped: true, exact: true },
   {
     key: 'recruitment',
     href: '/alliance/recruitment',
@@ -130,6 +132,10 @@ const navigationItems: NavigationItem[] = [
     allianceScoped: true,
   },
 ];
+
+function navigationLabel(item: NavigationItem): string {
+  return item.key === 'assistant' ? t('assistant.navigation') : navigationLabel(item);
+}
 
 function isDisabled(item: NavigationItem): boolean {
   if (item.playerScoped === true && !activePlayer.value) return true;
@@ -214,11 +220,11 @@ function logout(): void {
             <span
               v-if="isDisabled(item)"
               class="flex min-h-11 items-center gap-3 rounded-[var(--ks-radius-sm)] px-3 py-2 text-sm text-[var(--ks-muted)] opacity-30"
-              :aria-label="t(`navigation.${item.key}`)"
+              :aria-label="navigationLabel(item)"
               aria-disabled="true"
             >
               <NavIcon :name="item.icon" class="h-5 w-5" />
-              <span class="truncate">{{ t(`navigation.${item.key}`) }}</span>
+              <span class="truncate">{{ navigationLabel(item) }}</span>
             </span>
             <Link
               v-else
@@ -239,7 +245,7 @@ function logout(): void {
                     : 'text-[var(--ks-gold)] opacity-80'
                 "
               />
-              <span class="min-w-0 flex-1 truncate">{{ t(`navigation.${item.key}`) }}</span>
+              <span class="min-w-0 flex-1 truncate">{{ navigationLabel(item) }}</span>
               <span v-if="isActive(item)" class="text-[var(--ks-teal-bright)]">›</span>
             </Link>
           </template>
@@ -351,7 +357,7 @@ function logout(): void {
                 aria-disabled="true"
               >
                 <NavIcon :name="item.icon" class="h-5 w-5" />
-                {{ t(`navigation.${item.key}`) }}
+                {{ navigationLabel(item) }}
               </span>
               <Link
                 v-else
@@ -365,7 +371,7 @@ function logout(): void {
                 @click="mobileOpen = false"
               >
                 <NavIcon :name="item.icon" class="h-5 w-5 text-[var(--ks-gold)]" />
-                <span class="flex-1">{{ t(`navigation.${item.key}`) }}</span>
+                <span class="flex-1">{{ navigationLabel(item) }}</span>
               </Link>
             </template>
           </div>
