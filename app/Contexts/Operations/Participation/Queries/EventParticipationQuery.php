@@ -8,13 +8,18 @@ use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Operations\Events\Models\Event;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
+use App\Contexts\Operations\Participation\Enums\EventAttendanceStatus;
+use App\Contexts\Operations\Participation\Enums\EventRegistrationStatus;
 use App\Contexts\Operations\Participation\Models\EventAttendance;
 use App\Contexts\Operations\Participation\Models\EventRegistration;
 use App\Contexts\Operations\Participation\Models\EventResponse;
 
 final readonly class EventParticipationQuery
 {
-    public function __construct(private PlayerReferenceQuery $players) {}
+    public function __construct(
+        private PlayerReferenceQuery $players,
+        private EventEligiblePlayerQuery $eligiblePlayers,
+    ) {}
 
     /** @return array{response:?array<string,mixed>,registration:?array<string,mixed>,attendance:?array<string,mixed>} */
     public function forPlayer(EventOccurrence $occurrence, PlayerReference $player): array
@@ -87,6 +92,79 @@ final readonly class EventParticipationQuery
         }
 
         return $result;
+    }
+
+    /**
+     * Bounded owner summary consumed by EventManagement Event Command composition.
+     *
+     * @return array{
+     *   eligibleCount:int,
+     *   responseCount:int,
+     *   unansweredCount:int,
+     *   registeredCount:int,
+     *   waitlistCount:int,
+     *   cancelledRegistrationCount:int,
+     *   attendanceRecordedCount:int,
+     *   attendanceUnknownCount:int,
+     *   attendanceMissingCount:int
+     * }
+     */
+    public function commandSummary(EventOccurrence $occurrence): array
+    {
+        $occurrence->loadMissing('event');
+        $eligibleIds = $this->eligiblePlayers->for($occurrence->event)
+            ->map(static fn (PlayerReference $player): string => $player->playerId)
+            ->values()
+            ->all();
+        $eligibleCount = count($eligibleIds);
+
+        if ($eligibleIds === []) {
+            return [
+                'eligibleCount' => 0,
+                'responseCount' => 0,
+                'unansweredCount' => 0,
+                'registeredCount' => 0,
+                'waitlistCount' => 0,
+                'cancelledRegistrationCount' => 0,
+                'attendanceRecordedCount' => 0,
+                'attendanceUnknownCount' => 0,
+                'attendanceMissingCount' => 0,
+            ];
+        }
+
+        $responseCount = EventResponse::query()
+            ->where('occurrence_id', $occurrence->id)
+            ->whereIn('player_id', $eligibleIds)
+            ->count();
+        $registrations = EventRegistration::query()
+            ->where('occurrence_id', $occurrence->id)
+            ->whereIn('player_id', $eligibleIds)
+            ->get(['status']);
+        $attendance = EventAttendance::query()
+            ->where('occurrence_id', $occurrence->id)
+            ->whereIn('player_id', $eligibleIds)
+            ->get(['status']);
+        $attendanceUnknownCount = $attendance
+            ->filter(static fn (EventAttendance $row): bool => $row->status === EventAttendanceStatus::Unknown)
+            ->count();
+
+        return [
+            'eligibleCount' => $eligibleCount,
+            'responseCount' => $responseCount,
+            'unansweredCount' => max(0, $eligibleCount - $responseCount),
+            'registeredCount' => $registrations
+                ->filter(static fn (EventRegistration $row): bool => $row->status === EventRegistrationStatus::Registered)
+                ->count(),
+            'waitlistCount' => $registrations
+                ->filter(static fn (EventRegistration $row): bool => $row->status === EventRegistrationStatus::Waitlisted)
+                ->count(),
+            'cancelledRegistrationCount' => $registrations
+                ->filter(static fn (EventRegistration $row): bool => $row->status === EventRegistrationStatus::Cancelled)
+                ->count(),
+            'attendanceRecordedCount' => max(0, $attendance->count() - $attendanceUnknownCount),
+            'attendanceUnknownCount' => $attendanceUnknownCount,
+            'attendanceMissingCount' => max(0, $eligibleCount - $attendance->count() + $attendanceUnknownCount),
+        ];
     }
 
     /** @return list<array<string,mixed>> */
