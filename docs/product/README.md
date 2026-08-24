@@ -13,6 +13,7 @@ The next cross-capability work is governed by the [Capability Extension Program]
 - [Capability completeness plan](capability-gap-analysis.md)
 - [Capability delivery ledger](capability-delivery-ledger.md)
 - [Capability Extension Program](capability-extension-program.md)
+- [Event Command — Readiness & Closeout](event-readiness-closeout.md)
 - [Alliance Assistant](alliance-assistant.md)
 - [Factual Governor Progression](factual-governor-progression.md)
 - [Kingdom Transfer Planning](kingdom-transfer-planning.md)
