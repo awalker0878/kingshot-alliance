@@ -1,5 +1,3 @@
-import { assistantGameWorldExtension } from './assistant-gameworld-extension';
-import { assistantTransferLabels } from './assistant-transfer-labels';
 import { defaultLocale, type LocaleCode } from './locales';
 import { importDomainCatalogue, type LocalizationDomain } from './registry';
 import type { MessageCatalogue } from './types';
@@ -38,6 +36,21 @@ function mergeCatalogue(base: MessageCatalogue, overlay: MessageCatalogue): Mess
   return result;
 }
 
+async function assistantCatalogue(
+  base: MessageCatalogue,
+  locale: LocaleCode,
+): Promise<MessageCatalogue> {
+  const [{ assistantGameWorldExtension }, { assistantTransferLabels }] = await Promise.all([
+    import('./assistant-gameworld-extension'),
+    import('./assistant-transfer-labels'),
+  ]);
+
+  return mergeCatalogue(
+    mergeCatalogue(base, assistantGameWorldExtension(locale)),
+    assistantTransferLabels(locale),
+  );
+}
+
 async function loadOne(domain: LocalizationDomain, locale: LocaleCode): Promise<MessageCatalogue> {
   const key = cacheKey(domain, locale);
   const cached = catalogues.get(key);
@@ -46,14 +59,9 @@ async function loadOne(domain: LocalizationDomain, locale: LocaleCode): Promise<
   const existing = pending.get(key);
   if (existing) return existing;
 
-  const request = importDomainCatalogue(domain, locale).then((module) => {
+  const request = importDomainCatalogue(domain, locale).then(async (module) => {
     const catalogue =
-      domain === 'assistant'
-        ? mergeCatalogue(
-            mergeCatalogue(module.default, assistantGameWorldExtension(locale)),
-            assistantTransferLabels(locale),
-          )
-        : module.default;
+      domain === 'assistant' ? await assistantCatalogue(module.default, locale) : module.default;
     catalogues.set(key, catalogue);
     pending.delete(key);
     return catalogue;
