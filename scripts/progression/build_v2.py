@@ -148,6 +148,7 @@ def parse_academy() -> tuple[dict[str, Any], list[dict[str, Any]]]:
         "schema_version": 1,
         "source_id": "kingshotdata",
         "declared_technologies": 191,
+        "declared_levels": 714,
         "visible_level_rows": 714,
         "declared_max_level_sum": 720,
         "source_table_gaps": [{
