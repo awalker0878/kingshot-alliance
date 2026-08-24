@@ -133,9 +133,10 @@ test('Alliance Assistant renders a cited Swordland roster answer on desktop and 
     page.getByRole('button', { name: 'What have we observed about our opponent?' }),
   ).toBeVisible();
 
+  const assistant = page.getByLabel('Alliance Assistant');
   await page.getByRole('button', { name: 'What time is Swordland and am I rostered?' }).click();
-  await expect(page.getByText(/Swordland starts/)).toBeVisible();
-  await expect(page.getByText(/Rally Lead/)).toBeVisible();
+  await expect(assistant.getByText(/Swordland starts/)).toBeVisible();
+  await expect(assistant.getByText(/Rally Lead/)).toBeVisible();
   await expect(page.getByRole('region', { name: 'Sources used' })).toBeVisible();
   await expect(page.getByText('Event', { exact: true }).last()).toBeVisible();
   await expect(page.getByText('Roster', { exact: true }).last()).toBeVisible();
@@ -163,10 +164,11 @@ test('Alliance Assistant supports keyboard submission and a localized non-overfl
   await openAssistant(page);
 
   const question = page.getByLabel('Ask your Alliance');
+  const assistant = page.getByLabel('Alliance Assistant');
   await question.fill('What time is Swordland and am I rostered?');
   await question.press('Enter');
-  await expect(page.getByText(/Swordland starts/)).toBeVisible();
-  await expect(page.getByText(/Rally Lead/)).toBeVisible();
+  await expect(assistant.getByText(/Swordland starts/)).toBeVisible();
+  await expect(assistant.getByText(/Rally Lead/)).toBeVisible();
 
   await page.evaluate(() => window.localStorage.setItem('kingshot.locale', 'de'));
   await page.reload();
