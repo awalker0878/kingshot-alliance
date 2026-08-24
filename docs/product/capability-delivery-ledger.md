@@ -48,6 +48,7 @@ Later capability delivery is represented by the current canonical contracts belo
 | Screenshot Intake — Bear Hunt | Complete | [Screenshot Intake](screenshot-intake.md) |
 | Bear Hunt Debrief | Complete | [Bear Hunt Debrief](bear-hunt-debrief.md) |
 | Alliance Assistant — initial bounded intents | Complete | [Alliance Assistant](alliance-assistant.md) |
+| Alliance Assistant — GameWorld and operational-self extension | Complete | [Alliance Assistant GameWorld extension](alliance-assistant-gameworld-extension.md) |
 
 A defect or material change that invalidates a completed capability's canonical acceptance/Definition-of-Done contract reopens that capability as a regression. A new extension does not make the prior delivered capability incomplete.
 
@@ -100,8 +101,8 @@ Phase 0 is documentation-only. No application code, migration, route, frontend c
 | Phase | Program state | Status | Slice | Acceptance criteria / exit condition |
 | --- | --- | --- | --- | --- |
 | 0 | Contract work | Complete | Reconcile `/docs/product` | Screenshot Intake stale rows reconciled; extension contract created/indexed; catalogue/gap analysis/ledger/journeys aligned; ownership/provenance documented before application changes; no runtime changes. |
-| 1 | Selected extension | Not started | Alliance Assistant `game_fact` | `AE-01`–`AE-03`, `AE-07`, `AE-09`–`AE-12`, plus `PX-*`: source-backed Progression query, immutable dataset/source/confidence citations, unknown/conflict semantics, authorization-before-retrieval, bounded UX/tests/release evidence. |
-| 2 | Selected extension | Not started | Assistant operational-self intents and safe handoffs | `AE-04`–`AE-12`, plus `PX-*`: Participation/BattlePlan/Transfer/Territory self reads are authorized/bounded; write-like requests perform zero mutation and only navigate to canonical owner workflows. |
+| 1 | Current complete capability | Complete | Alliance Assistant `game_fact` | `AE-01`–`AE-03`, `AE-07`, `AE-09`–`AE-12`, plus `PX-*`: source-backed Progression query, immutable dataset/source/confidence citations, unknown/conflict semantics, authorization-before-retrieval, bounded UX/tests/release evidence. |
+| 2 | Current complete capability | Complete | Assistant operational-self intents and safe handoffs | `AE-04`–`AE-12`, plus `PX-*`: Participation/BattlePlan/Transfer/Territory self reads are authorized/bounded; write-like requests perform zero mutation and only navigate to canonical owner workflows. |
 | 3 | Selected extension | Not started | Event Readiness | `ER-01`–`ER-12`, plus `PX-*`: capability-aware pre-Event readiness composed from owner projections with explicit blockers/source/action links and no persisted readiness state machine. |
 | 4 | Selected extension | Not started | Event Closeout | `ER-01`–`ER-12`, plus `PX-*`: post-Event attendance/Rally/Results/Evidence/review/Debrief completion composed with explicit missing semantics and owner correction links. |
 | 5 | Selected extension | Not started | Kingdom Transfer Screenshot Intake | `TE-01`–`TE-12`, plus `PX-*`: typed fixture-proven extraction/review, tenant-safe duplicate/retry, scalar owner commit, freshness/source semantics and eligibility reevaluation without invented rules. |
