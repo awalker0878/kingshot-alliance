@@ -19,36 +19,74 @@ final readonly class EventParticipationQuery
     /** @return array{response:?array<string,mixed>,registration:?array<string,mixed>,attendance:?array<string,mixed>} */
     public function forPlayer(EventOccurrence $occurrence, PlayerReference $player): array
     {
-        $response = EventResponse::query()->where('occurrence_id', $occurrence->id)->where('player_id', $player->playerId)->first();
-        $registration = EventRegistration::query()->where('occurrence_id', $occurrence->id)->where('player_id', $player->playerId)->first();
-        $attendance = EventAttendance::query()->where('occurrence_id', $occurrence->id)->where('player_id', $player->playerId)->first();
+        return $this->forPlayerOccurrences([(string) $occurrence->id], $player)[(string) $occurrence->id]
+            ?? ['response' => null, 'registration' => null, 'attendance' => null];
+    }
 
-        return [
-            'response' => $response === null ? null : [
-                'id' => (string) $response->id,
-                'response' => $response->response->value,
-                'preferredRole' => $response->preferred_role,
-                'preferredTeam' => $response->preferred_team,
-                'availableFrom' => $response->available_from?->toIso8601String(),
-                'availableUntil' => $response->available_until?->toIso8601String(),
-                'note' => $response->note,
-                'updatedAt' => $response->updated_at?->toIso8601String(),
-            ],
-            'registration' => $registration === null ? null : [
-                'id' => (string) $registration->id,
-                'status' => $registration->status->value,
-                'waitlistPosition' => $registration->waitlist_position,
-                'registeredAt' => $registration->registered_at?->toIso8601String(),
-                'updatedAt' => $registration->updated_at?->toIso8601String(),
-            ],
-            'attendance' => $attendance === null ? null : [
-                'id' => (string) $attendance->id,
-                'status' => $attendance->status->value,
-                'notes' => $attendance->notes,
-                'recordedAt' => $attendance->recorded_at?->toIso8601String(),
-                'updatedAt' => $attendance->updated_at?->toIso8601String(),
-            ],
-        ];
+    /**
+     * @param list<string> $occurrenceIds
+     * @return array<string,array{response:?array<string,mixed>,registration:?array<string,mixed>,attendance:?array<string,mixed>}>
+     */
+    public function forPlayerOccurrences(array $occurrenceIds, PlayerReference $player): array
+    {
+        $occurrenceIds = array_slice(array_values(array_unique(array_filter(
+            array_map('strval', $occurrenceIds),
+            static fn (string $id): bool => $id !== '',
+        ))), 0, 500);
+        if ($occurrenceIds === []) {
+            return [];
+        }
+
+        $responses = EventResponse::query()
+            ->where('player_id', $player->playerId)
+            ->whereIn('occurrence_id', $occurrenceIds)
+            ->get()
+            ->keyBy('occurrence_id');
+        $registrations = EventRegistration::query()
+            ->where('player_id', $player->playerId)
+            ->whereIn('occurrence_id', $occurrenceIds)
+            ->get()
+            ->keyBy('occurrence_id');
+        $attendance = EventAttendance::query()
+            ->where('player_id', $player->playerId)
+            ->whereIn('occurrence_id', $occurrenceIds)
+            ->get()
+            ->keyBy('occurrence_id');
+
+        $result = [];
+        foreach ($occurrenceIds as $occurrenceId) {
+            $response = $responses->get($occurrenceId);
+            $registration = $registrations->get($occurrenceId);
+            $attendanceRecord = $attendance->get($occurrenceId);
+            $result[$occurrenceId] = [
+                'response' => $response instanceof EventResponse ? [
+                    'id' => (string) $response->id,
+                    'response' => $response->response->value,
+                    'preferredRole' => $response->preferred_role,
+                    'preferredTeam' => $response->preferred_team,
+                    'availableFrom' => $response->available_from?->toIso8601String(),
+                    'availableUntil' => $response->available_until?->toIso8601String(),
+                    'note' => $response->note,
+                    'updatedAt' => $response->updated_at?->toIso8601String(),
+                ] : null,
+                'registration' => $registration instanceof EventRegistration ? [
+                    'id' => (string) $registration->id,
+                    'status' => $registration->status->value,
+                    'waitlistPosition' => $registration->waitlist_position,
+                    'registeredAt' => $registration->registered_at?->toIso8601String(),
+                    'updatedAt' => $registration->updated_at?->toIso8601String(),
+                ] : null,
+                'attendance' => $attendanceRecord instanceof EventAttendance ? [
+                    'id' => (string) $attendanceRecord->id,
+                    'status' => $attendanceRecord->status->value,
+                    'notes' => $attendanceRecord->notes,
+                    'recordedAt' => $attendanceRecord->recorded_at?->toIso8601String(),
+                    'updatedAt' => $attendanceRecord->updated_at?->toIso8601String(),
+                ] : null,
+            ];
+        }
+
+        return $result;
     }
 
     /** @return list<array<string,mixed>> */
