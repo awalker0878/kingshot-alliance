@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "observed_at": "2026-08-23",
+  "source_id": "kingshotdata",
+  "scope": "Structured skill names and effect ladders for the six Gen 6-7 Heroes absent from the pinned g2384 Hero snapshot. Expressive descriptions and recommendations are intentionally omitted.",
+  "heroes": [
+    {
+      "name": "Triton",
+      "source_url": "https://kingshotdata.com/heroes/triton/",
+      "skills": [
+        {"name":"Tidewill","kind":"conquest","effects":{},"upgrade_preview":{"area_of_effect_damage_up":["100%","110%","120%","130%","140%"]}},
+        {"name":"Regal Wrath","kind":"conquest","effects":{},"upgrade_preview":{"attack_up":["8%","12%","16%","20%","24%"],"defense_up":["16%","24%","32%","40%","48%"]}},
+        {"name":"Striking Hit","kind":"conquest","effects":{},"upgrade_preview":{"damage_up":["20%","22%","24%","26%","28%"]}},
+        {"name":"Command of Power","kind":"expedition","effects":{},"upgrade_preview":{"defense_up":["5%","10%","15%","20%","25%"]}},
+        {"name":"Warfare of Power","kind":"expedition","effects":{},"upgrade_preview":{"skill_damage_up":["6%","12%","18%","24%","30%"]}},
+        {"name":"Oath of Power","kind":"expedition","effects":{},"upgrade_preview":{"infantry_health_up":["4%","8%","12%","16%","20%"],"cavalry_and_archer_health_up":["6%","12%","18%","24%","30%"]}},
+        {"name":"Magnetic Reformation","kind":"exclusive_conquest","effects":{},"upgrade_preview":{"damage_up":["10%","15%","20%","25%","30%"]}},
+        {"name":"Whale Call","kind":"exclusive_expedition","effects":{},"upgrade_preview":{"defender_defense_up":["5%","7.5%","10%","12.5%","15%"]}}
+      ]
+    },
+    {
+      "name": "Sophia",
+      "source_url": "https://kingshotdata.com/heroes/sophia/",
+      "skills": [
+        {"name":"Puppet Master","kind":"conquest","effects":{},"upgrade_preview":{"damage_up":["100%","110%","120%","130%","140%"]}},
+        {"name":"Scalding Mark","kind":"conquest","effects":{},"upgrade_preview":{"damage_up":["50%","55%","60%","65%","70%"],"enemy_damage_taken_up":["2%","3%","4%","5%","6%"]}},
+        {"name":"Scalding Mark - Lash","kind":"conquest","effects":{},"upgrade_preview":{"attack_up":["8%","12%","16%","20%","24%"],"damage_up":["4%","6%","8%","10%","12%"]}},
+        {"name":"Arcane Pact","kind":"expedition","effects":{},"upgrade_preview":{"probability_up":["8%","16%","24%","32%","40%"]}},
+        {"name":"Terror - Deathblow","kind":"expedition","effects":{},"upgrade_preview":{"extra_damage_up":["40%","80%","120%","160%","200%"]}},
+        {"name":"Terror - Annihilation","kind":"expedition","effects":{},"upgrade_preview":{"damage_up":["15%","30%","45%","60%","75%"]}},
+        {"name":"Eyes of Obedience","kind":"exclusive_conquest","effects":{},"upgrade_preview":{"chance_to_confuse":["2%","3.5%","5%","6.5%","8%"]}},
+        {"name":"Queen of Night","kind":"exclusive_expedition","effects":{},"upgrade_preview":{"defender_lethality_up":["5%","7.5%","10%","12.5%","15%"]}}
+      ]
+    },
+    {
+      "name": "Yang",
+      "source_url": "https://kingshotdata.com/heroes/yang/",
+      "skills": [
+        {"name":"Kin Throw","kind":"conquest","effects":{},"upgrade_preview":{"damage_up":["100%","110%","120%","130%","140%"]}},
+        {"name":"Combo","kind":"conquest","effects":{},"upgrade_preview":{"extra_attack_chance":["15%","20%","25%","30%","35%"]}},
+        {"name":"Deadshot","kind":"conquest","effects":{},"upgrade_preview":{"crit_rate":["3%","6%","9%","12%","15%"]}},
+        {"name":"Avalanche","kind":"expedition","effects":{},"upgrade_preview":{"damage_up":["20%","40%","60%","80%","100%"]}},
+        {"name":"Ice Zone","kind":"expedition","effects":{"trigger_chance":"40%"},"upgrade_preview":{"extra_damage_up":["20%","40%","60%","80%","100%"]}},
+        {"name":"Ambush","kind":"expedition","effects":{"damage_dealt_up_on_trigger":"50%"},"upgrade_preview":{"probability_up":["8%","16%","24%","32%","40%"]}},
+        {"name":"Quick Draw","kind":"exclusive_conquest","effects":{},"upgrade_preview":{"damage_up":["40%","44%","48%","52%","56%"],"knockdown_chance":["40%","55%","70%","85%","100%"]}},
+        {"name":"Offensive Defense","kind":"exclusive_expedition","effects":{},"upgrade_preview":{"rally_squads_lethality_up":["5%","7.5%","10%","12.5%","15%"]}}
+      ]
+    },
+    {
+      "name": "Charles",
+      "source_url": "https://kingshotdata.com/heroes/charles/",
+      "skills": [
+        {"name":"Vengeance","kind":"conquest","effects":{"stun_duration":"1s","attack_buff_duration":"2s"},"upgrade_preview":{"damage_up":["100%","110%","120%","130%","140%"],"attack_up":["20%","40%","60%","80%","100%"]}},
+        {"name":"Parting Gift","kind":"conquest","effects":{},"upgrade_preview":{"damage_up":["200%","220%","240%","260%","280%"]}},
+        {"name":"Nimble Soul","kind":"conquest","effects":{"damage_taken_reduction_on_trigger":"50%"},"upgrade_preview":{"probability_up":["10%","20%","30%","40%","50%"]}},
+        {"name":"Intimidation","kind":"expedition","effects":{},"upgrade_preview":{"enemy_lethality_down":["4%","8%","12%","16%","20%"]}},
+        {"name":"Iron Bodies","kind":"expedition","effects":{},"upgrade_preview":{"damage_taken_down":["4%","8%","12%","16%","20%"]}},
+        {"name":"Great Justice","kind":"expedition","effects":{},"upgrade_preview":{"health_up":["5%","10%","15%","20%","25%"]}},
+        {"name":"Mechanic","kind":"exclusive_conquest","effects":{"trigger":"once when first under 50% Health"},"upgrade_preview":{"heal_up":["15%","20%","25%","30%","35%"],"defense_up":["10%","15%","20%","25%","30%"]}},
+        {"name":"Shock and Awe","kind":"exclusive_expedition","effects":{},"upgrade_preview":{"defender_squad_health_up":["5%","7.5%","10%","12.5%","15%"]}}
+      ]
+    },
+    {
+      "name": "Ava",
+      "source_url": "https://kingshotdata.com/heroes/ava/",
+      "skills": [
+        {"name":"Color Bomb","kind":"conquest","effects":{"tick_interval":"0.5s","duration":"3s"},"upgrade_preview":{"area_of_effect_damage_up":["50%","55%","60%","65%","70%"]}},
+        {"name":"Corruption Bomb","kind":"conquest","effects":{"tick_interval":"0.5s","debuff_duration":"2s"},"upgrade_preview":{"damage_up":["25%","27.5%","30%","32.5%","35%"],"enemy_damage_taken_up":["5%","10%","15%","20%","25%"]}},
+        {"name":"Disguise Pigment","kind":"conquest","effects":{},"upgrade_preview":{"defense_up":["25%","37.5%","50%","62.5%","75%"]}},
+        {"name":"Dissolution","kind":"expedition","effects":{},"upgrade_preview":{"enemy_defense_down":["5%","10%","15%","20%","25%"]}},
+        {"name":"Chiaroscuro","kind":"expedition","effects":{"duration":"2 turns","interval":"every 4 turns"},"upgrade_preview":{"enemy_damage_taken_up":["10%","20%","30%","40%","50%"]}},
+        {"name":"Light and Cold","kind":"expedition","effects":{},"upgrade_preview":{"lethality_up":["5%","10%","15%","20%","25%"]}},
+        {"name":"Irradiance","kind":"exclusive_conquest","effects":{"enemy_attack_down":"15%"},"upgrade_preview":{"attack_up":["5%","10%","15%","20%","25%"]}},
+        {"name":"Color Storm","kind":"exclusive_expedition","effects":{},"upgrade_preview":{"rally_lethality_up":["5%","7.5%","10%","12.5%","15%"]}}
+      ]
+    },
+    {
+      "name": "Wee & Woo",
+      "source_url": "https://kingshotdata.com/heroes/wee-woo/",
+      "skills": [
+        {"name":"High Ground","kind":"conquest","effects":{},"upgrade_preview":{"area_of_effect_damage_up":["300%","330%","360%","390%","420%"]}},
+        {"name":"Incendiaries","kind":"conquest","effects":{"crater_tick_interval":"0.5s","crater_duration":"2s"},"upgrade_preview":{"initial_damage_up":["60%","66%","72%","78%","84%"],"crater_damage_up":["17%","19%","21%","23%","25%"]}},
+        {"name":"Frontal Support","kind":"conquest","effects":{},"upgrade_preview":{"attack_up":["10%","14%","18%","22%","26%"]}},
+        {"name":"Artillerymen","kind":"expedition","effects":{},"upgrade_preview":{"attack_up":["3%","6%","9%","12%","15%"],"lethality_up":["2%","4%","6%","8%","10%"]}},
+        {"name":"Chain Shelling","kind":"expedition","effects":{},"upgrade_preview":{"damage_to_archer_up":["6%","12%","18%","24%","30%"],"damage_to_infantry_up":["5%","10%","15%","20%","25%"]}},
+        {"name":"Boom Boom","kind":"expedition","effects":{"extra_damage_on_trigger":"50%"},"upgrade_preview":{"probability_up":["10%","20%","30%","40%","50%"]}},
+        {"name":"Zero Sympathy","kind":"exclusive_conquest","effects":{"duration":"5s"},"upgrade_preview":{"attack_speed_up":["6%","8%","10%","12%","14%"]}},
+        {"name":"Landmines","kind":"exclusive_expedition","effects":{},"upgrade_preview":{"defender_squads_attack_up":["5%","7.5%","10%","12.5%","15%"]}}
+      ]
+    }
+  ]
+}
