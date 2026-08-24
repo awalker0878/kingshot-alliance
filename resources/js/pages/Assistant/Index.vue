@@ -8,12 +8,7 @@ import { useLocale } from '@/localization';
 type Classification = 'operational_fact' | 'game_fact' | 'alliance_strategy' | 'observation';
 type SourceType = 'event' | 'roster' | 'alliance_content' | 'observation' | 'game_fact';
 type AssistantStatus =
-  | 'answered'
-  | 'ambiguous'
-  | 'not_found'
-  | 'unsupported'
-  | 'validation_error'
-  | 'unavailable';
+  'answered' | 'ambiguous' | 'not_found' | 'unsupported' | 'validation_error' | 'unavailable';
 type AssistantPrompt = 'swordland_roster' | 'next_event' | 'bear_hunt_guide';
 type PromptOption = { id: AssistantPrompt; label: string };
 

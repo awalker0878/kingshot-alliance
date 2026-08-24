@@ -134,7 +134,7 @@ const navigationItems: NavigationItem[] = [
 ];
 
 function navigationLabel(item: NavigationItem): string {
-  return item.key === 'assistant' ? t('assistant.navigation') : navigationLabel(item);
+  return item.key === 'assistant' ? t('assistant.navigation') : t(`navigation.${item.key}`);
 }
 
 function isDisabled(item: NavigationItem): boolean {
