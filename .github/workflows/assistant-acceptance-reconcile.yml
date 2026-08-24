@@ -1,0 +1,113 @@
+name: Assistant Acceptance Reconcile
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/assistant-acceptance-reconcile.yml'
+      - 'tests/v3/ReadModels/AllianceAssistant/**'
+      - 'tests/v3/Architecture/AllianceAssistantArchitectureV3Test.php'
+      - 'tests/v3/Visual/AllianceAssistant.spec.ts'
+      - 'resources/js/pages/Assistant/Index.vue'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.5'
+          tools: composer:v2
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24'
+          cache: npm
+      - run: composer install --no-interaction --no-progress --prefer-dist
+      - run: npm ci --no-audit --no-fund
+      - name: Reconcile authority-aware acceptance tests and frontend typing
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          files = [
+              Path('tests/v3/ReadModels/AllianceAssistant/AllianceAssistantBoundaryV3Test.php'),
+              Path('tests/v3/ReadModels/AllianceAssistant/AllianceAssistantContentV3Test.php'),
+              Path('tests/v3/ReadModels/AllianceAssistant/AllianceAssistantHttpV3Test.php'),
+              Path('tests/v3/ReadModels/AllianceAssistant/AllianceAssistantObservationV3Test.php'),
+          ]
+          imports = [
+              'use App\\Contexts\\Alliance\\Membership\\Queries\\PlayerIdentityContextQuery;',
+              'use App\\Contexts\\GameWorld\\Governance\\Queries\\KingdomAuthorityFactsQuery;',
+              'use App\\Contexts\\GameWorld\\Players\\Http\\Middleware\\RequireCurrentPlayerContextVersion;',
+              'use App\\Contexts\\GameWorld\\Players\\Services\\PlayerAuthorityContextVersion;',
+              'use Illuminate\\Testing\\TestResponse;',
+          ]
+          version_method = '''\n    private function versionFor(PlayerReference $player): string\n    {\n        $alliance = app(PlayerIdentityContextQuery::class)\n            ->forPlayers([$player->playerId])[$player->playerId] ?? null;\n        $kingdomPermissions = app(KingdomAuthorityFactsQuery::class)\n            ->findCurrent($player->playerId, $player->kingdomId)\n            ?->permissionKeysObservedAtRead ?? [];\n\n        return app(PlayerAuthorityContextVersion::class)->issue(\n            $player,\n            $alliance,\n            $kingdomPermissions,\n        );\n    }\n'''
+
+          for path in files:
+              text = path.read_text()
+              anchor = 'use App\\Contexts\\GameWorld\\Players\\ValueObjects\\PlayerReference;\n'
+              if anchor not in text:
+                  raise SystemExit(f'PlayerReference import anchor missing: {path}')
+              missing = [line for line in imports if line not in text]
+              if missing:
+                  text = text.replace(anchor, anchor + '\n'.join(missing) + '\n', 1)
+              text = text.replace('\\Illuminate\\Testing\\TestResponse', 'TestResponse')
+              session_fragment = '->withSession([$this->sessionKey() => $actor->playerId])\n            ->postJson('
+              header_fragment = '->withSession([$this->sessionKey() => $actor->playerId])\n            ->withHeader(RequireCurrentPlayerContextVersion::HEADER_NAME, $this->versionFor($actor))\n            ->postJson('
+              if session_fragment in text:
+                  text = text.replace(session_fragment, header_fragment, 1)
+              elif header_fragment not in text:
+                  raise SystemExit(f'Assistant request session fragment missing: {path}')
+              if 'private function versionFor(PlayerReference $player): string' not in text:
+                  verify_anchor = '\n    private function verify(User $user): void\n'
+                  if verify_anchor not in text:
+                      raise SystemExit(f'Verify method anchor missing: {path}')
+                  text = text.replace(verify_anchor, version_method + verify_anchor, 1)
+              path.write_text(text)
+
+          evidence = Path('tests/v3/ReadModels/AllianceAssistant/AllianceAssistantEvidenceV3Test.php')
+          text = evidence.read_text()
+          old = "self::assertNotContains('game_fact', $payload['classifications'], true);"
+          if old not in text:
+              raise SystemExit('PHPUnit assertNotContains fragment missing')
+          evidence.write_text(text.replace(old, "self::assertNotContains('game_fact', $payload['classifications']);", 1))
+
+          boundary = Path('tests/v3/ReadModels/AllianceAssistant/AllianceAssistantBoundaryV3Test.php')
+          text = boundary.read_text()
+          marker = '    public function test_verified_account_without_an_active_governor_cannot_use_assistant(): void\n'
+          stale_test = '''    public function test_stale_authority_version_is_rejected_before_assistant_retrieval(): void\n    {\n        [$user, $actor] = $this->governorWithAlliance(63406);\n\n        $this->actingAs($user)\n            ->withSession([$this->sessionKey() => $actor->playerId])\n            ->withHeader(RequireCurrentPlayerContextVersion::HEADER_NAME, 'stale-version')\n            ->postJson('/assistant/ask', ['question' => 'What is my next Event?'])\n            ->assertStatus(409)\n            ->assertHeader(RequireCurrentPlayerContextVersion::ERROR_HEADER, 'stale')\n            ->assertJsonPath('code', 'CONTEXT_STALE');\n    }\n\n'''
+          if 'test_stale_authority_version_is_rejected_before_assistant_retrieval' not in text:
+              if marker not in text:
+                  raise SystemExit('Boundary stale-test insertion marker missing')
+              text = text.replace(marker, stale_test + marker, 1)
+          boundary.write_text(text)
+
+          page = Path('resources/js/pages/Assistant/Index.vue')
+          text = page.read_text()
+          if '@submit.prevent="submit"' in text:
+              text = text.replace('@submit.prevent="submit"', '@submit.prevent="submit()"', 1)
+          elif '@submit.prevent="submit()"' not in text:
+              raise SystemExit('Assistant form submit binding not found')
+          page.write_text(text)
+          PY
+          vendor/bin/pint tests/v3/ReadModels/AllianceAssistant tests/v3/Architecture/AllianceAssistantArchitectureV3Test.php
+          npx prettier --write resources/js/pages/Assistant/Index.vue tests/v3/Visual/AllianceAssistant.spec.ts
+          rm .github/workflows/assistant-acceptance-reconcile.yml
+          git diff --check
+      - name: Commit acceptance reconciliation
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tests/v3/ReadModels/AllianceAssistant tests/v3/Architecture/AllianceAssistantArchitectureV3Test.php tests/v3/Visual/AllianceAssistant.spec.ts resources/js/pages/Assistant/Index.vue .github/workflows/assistant-acceptance-reconcile.yml
+          git commit -m 'test(assistant): reconcile authority-aware acceptance suite'
+          git push origin "HEAD:${{ github.event.pull_request.head.ref }}"
