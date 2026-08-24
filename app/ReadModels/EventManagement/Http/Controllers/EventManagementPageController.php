@@ -95,7 +95,8 @@ final class EventManagementPageController extends Controller
                     'audience' => $rule->audience->value,
                     'channel' => (string) $rule->channel,
                     'enabled' => (bool) $rule->is_enabled,
-                ])->all(),
+                ])
+                ->all(),
         ]);
     }
 
@@ -114,7 +115,9 @@ final class EventManagementPageController extends Controller
             'title' => $event->title,
             'scope' => $event->scope->value,
             'timezone' => (string) $event->timezone,
-            'firstLocalStart' => $event->starts_at->setTimezone($event->timezone)->format('Y-m-d\TH:i'),
+            'firstLocalStart' => $event->starts_at
+                ->setTimezone($event->timezone)
+                ->format('Y-m-d\TH:i'),
             'instructions' => $event->instructions,
             'durationMinutes' => $event->duration_minutes,
             'capacity' => $event->capacity,
@@ -123,7 +126,9 @@ final class EventManagementPageController extends Controller
             'recurrencePolicy' => $event->recurrence_policy->value,
             'recurrenceFrequency' => $event->recurrence_frequency->value,
             'recurrenceInterval' => $event->recurrence_interval,
-            'recurrenceUntilLocal' => $event->recurrence_until?->setTimezone($event->timezone)->format('Y-m-d\TH:i'),
+            'recurrenceUntilLocal' => $event->recurrence_until
+                ?->setTimezone($event->timezone)
+                ->format('Y-m-d\TH:i'),
             'settings' => $event->settings ?? [],
             'capabilities' => $event->typeScope->capabilities
                 ->pluck('capability')
@@ -133,25 +138,36 @@ final class EventManagementPageController extends Controller
                 ->all(),
             'createdByPlayerId' => $event->created_by_player_id,
             'updatedByPlayerId' => $event->updated_by_player_id,
-            'occurrences' => $event->occurrences->sortBy('starts_at')->map(static fn ($occurrence): array => [
-                'id' => (string) $occurrence->id,
-                'startsAt' => $occurrence->starts_at->toIso8601String(),
-                'endsAt' => $occurrence->ends_at->toIso8601String(),
-                'status' => $occurrence->status->value,
-            ])->values()->all(),
+            'occurrences' => $event->occurrences
+                ->sortBy('starts_at')
+                ->map(static fn ($occurrence): array => [
+                    'id' => (string) $occurrence->id,
+                    'startsAt' => $occurrence->starts_at->toIso8601String(),
+                    'endsAt' => $occurrence->ends_at->toIso8601String(),
+                    'status' => $occurrence->status->value,
+                ])
+                ->values()
+                ->all(),
         ];
     }
 
     /** @return array{name:string,email:string} */
     private function identity(User $user): array
     {
-        return ['name' => (string) $user->name, 'email' => (string) $user->email];
+        return [
+            'name' => (string) $user->name,
+            'email' => (string) $user->email,
+        ];
     }
 
     private function player(): PlayerReference
     {
         $player = $this->playerContext->playerOrNull();
-        abort_unless($player instanceof PlayerReference, 409, 'Select a Player before performing Event operations.');
+        abort_unless(
+            $player instanceof PlayerReference,
+            409,
+            'Select a Player before performing Event operations.',
+        );
 
         return $player;
     }
