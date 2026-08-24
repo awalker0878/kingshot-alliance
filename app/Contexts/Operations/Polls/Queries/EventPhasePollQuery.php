@@ -88,6 +88,36 @@ final readonly class EventPhasePollQuery
         return ['phases' => $phaseRows, 'polls' => $pollRows];
     }
 
+    /**
+     * Bounded owner summary consumed by EventManagement Event Command composition.
+     * Polls are only considered unresolved when a configured poll is still draft/open;
+     * absence of a poll is not treated as a missing required poll because Polls owns no
+     * generic required-poll policy.
+     *
+     * @return array{pollCount:int,draftCount:int,openCount:int,closedCount:int,cancelledCount:int,unresolvedCount:int}
+     */
+    public function commandSummary(EventOccurrence $occurrence): array
+    {
+        $counts = EventPoll::query()
+            ->where('occurrence_id', $occurrence->id)
+            ->selectRaw('status, COUNT(*) AS aggregate')
+            ->groupBy('status')
+            ->pluck('aggregate', 'status');
+        $draft = (int) ($counts[EventPollStatus::Draft->value] ?? 0);
+        $open = (int) ($counts[EventPollStatus::Open->value] ?? 0);
+        $closed = (int) ($counts[EventPollStatus::Closed->value] ?? 0);
+        $cancelled = (int) ($counts[EventPollStatus::Cancelled->value] ?? 0);
+
+        return [
+            'pollCount' => $draft + $open + $closed + $cancelled,
+            'draftCount' => $draft,
+            'openCount' => $open,
+            'closedCount' => $closed,
+            'cancelledCount' => $cancelled,
+            'unresolvedCount' => $draft + $open,
+        ];
+    }
+
     /** @return list<array<string,mixed>> */
     public function management(Event $event): array
     {
