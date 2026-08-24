@@ -30,7 +30,7 @@ final readonly class EventCommandQuery
         private EventCommandCloseoutQuery $closeout,
     ) {}
 
-    /** @return array<string,mixed> */
+    /** @return array<string, mixed> */
     public function forEvent(PlayerReference $actor, Event $event, ?string $requestedOccurrenceId = null): array
     {
         $startedAt = hrtime(true);
@@ -59,32 +59,37 @@ final readonly class EventCommandQuery
         $cancelled = $this->cancelled($event, $occurrence);
         $ended = $this->ended($occurrence, $now);
         $active = ! $cancelled && $this->active($occurrence, $now);
+
+        /** @var list<array<string, mixed>> $sections */
         $sections = match (true) {
             $cancelled => [$this->cancelledSection($event, $occurrence)],
             $ended => $this->closeout->forOccurrence($actor, $event, $occurrence, $capabilities),
-            default => array_merge(
+            default => array_values(array_merge(
                 $this->operationalReadiness->forOccurrence($event, $occurrence, $capabilities, $now),
                 $this->contextReadiness->forOccurrence($actor, $event, $occurrence),
-            ),
+            )),
         };
         $items = Items::flatten($sections);
         $blockers = Items::blockers($items);
         $warnings = Items::warnings($items);
         $state = $cancelled ? null : $this->state($occurrence, $active, $ended, $blockers, $now);
 
+        $occurrences = $event->occurrences
+            ->sortBy('starts_at')
+            ->values()
+            ->map(static fn (EventOccurrence $item): array => [
+                'id' => (string) $item->id,
+                'startsAt' => $item->starts_at->toIso8601String(),
+                'endsAt' => $item->ends_at->toIso8601String(),
+                'status' => $item->status->value,
+                'selected' => (string) $item->id === (string) $occurrence->id,
+            ])
+            ->all();
+
         return $this->record($event, $occurrence, [
             'eventId' => (string) $event->id,
             'selectedOccurrenceId' => (string) $occurrence->id,
-            'occurrences' => $event->occurrences
-                ->sortBy('starts_at')
-                ->values()
-                ->map(static fn (EventOccurrence $item): array => [
-                    'id' => (string) $item->id,
-                    'startsAt' => $item->starts_at->toIso8601String(),
-                    'endsAt' => $item->ends_at->toIso8601String(),
-                    'status' => $item->status->value,
-                    'selected' => (string) $item->id === (string) $occurrence->id,
-                ])->all(),
+            'occurrences' => array_values($occurrences),
             'state' => $state?->value,
             'eventStatus' => $event->status->value,
             'occurrenceStatus' => $occurrence->status->value,
@@ -97,7 +102,7 @@ final readonly class EventCommandQuery
         ], $startedAt);
     }
 
-    /** @param list<string> $capabilities */
+    /** @param  list<string>  $capabilities */
     private function selectOccurrence(
         PlayerReference $actor,
         Event $event,
@@ -139,6 +144,7 @@ final readonly class EventCommandQuery
             if (! $item instanceof EventOccurrence) {
                 continue;
             }
+
             $sections = $this->closeout->forOccurrence($actor, $event, $item, $capabilities);
             if (Items::blockers(Items::flatten($sections)) > 0) {
                 return $item;
@@ -158,19 +164,29 @@ final readonly class EventCommandQuery
         return $recent instanceof EventOccurrence ? $recent : null;
     }
 
+    /** @return array<string, mixed> */
     private function cancelledSection(Event $event, EventOccurrence $occurrence): array
     {
         return Items::section('schedule', 'events.command.sections.schedule', 'readiness', [
             Items::make(
-                'schedule.cancelled', 'readiness', Status::NotApplicable, Severity::Informational,
-                'operations.events', 'events.command.items.cancelled',
+                'schedule.cancelled',
+                'readiness',
+                Status::NotApplicable,
+                Severity::Informational,
+                'operations.events',
+                'events.command.items.cancelled',
                 handoff: Items::handoff($event, $occurrence, 'schedule', 'events.command.actions.reviewSchedule'),
             ),
         ]);
     }
 
-    private function state(EventOccurrence $occurrence, bool $active, bool $ended, int $blockers, CarbonImmutable $now): EventCommandState
-    {
+    private function state(
+        EventOccurrence $occurrence,
+        bool $active,
+        bool $ended,
+        int $blockers,
+        CarbonImmutable $now,
+    ): EventCommandState {
         if ($active) {
             return EventCommandState::Active;
         }
@@ -188,7 +204,8 @@ final readonly class EventCommandQuery
 
     private function cancelled(Event $event, EventOccurrence $occurrence): bool
     {
-        return $event->status === EventStatus::Cancelled || $occurrence->status === EventOccurrenceStatus::Cancelled;
+        return $event->status === EventStatus::Cancelled
+            || $occurrence->status === EventOccurrenceStatus::Cancelled;
     }
 
     private function active(EventOccurrence $occurrence, CarbonImmutable $now): bool
@@ -208,14 +225,19 @@ final readonly class EventCommandQuery
     /** @return list<string> */
     private function capabilities(Event $event): array
     {
-        return $event->typeScope->capabilities
+        $capabilities = $event->typeScope->capabilities
             ->map(static fn (EventTypeCapability $capability): string => $capability->capabilityEnum()->value)
             ->unique()
             ->values()
             ->all();
+
+        return array_values($capabilities);
     }
 
-    /** @param array<string,mixed> $payload @return array<string,mixed> */
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
     private function record(Event $event, ?EventOccurrence $occurrence, array $payload, int $startedAt): array
     {
         Log::debug('event_command.rendered', [
