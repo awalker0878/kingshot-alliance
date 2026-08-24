@@ -1,0 +1,71 @@
+name: Assistant Extension UX Fix
+
+on:
+  push:
+    branches:
+      - alliance-assistant-gameworld-extension
+
+permissions:
+  contents: write
+
+jobs:
+  reconcile:
+    if: ${{ !contains(github.event.head_commit.message, '[assistant-ux-fix]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: alliance-assistant-gameworld-extension
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Preserve established prompts and expose extension prompts
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('resources/js/pages/Assistant/Index.vue')
+          s = p.read_text()
+          old = """const defaultPromptIds: AssistantPrompt[] = [
+  'swordland_roster',
+  'hero_fact',
+  'rsvp_week',
+  'battle_assignment',
+  'territory_plan',
+  'transfer_status',
+];
+const allPromptIds: AssistantPrompt[] = [
+  ...defaultPromptIds,
+  'next_event',
+  'bear_hunt_guide',
+  'observation',
+];"""
+          new = """const defaultPromptIds: AssistantPrompt[] = [
+  'swordland_roster',
+  'next_event',
+  'bear_hunt_guide',
+  'observation',
+  'hero_fact',
+  'rsvp_week',
+  'battle_assignment',
+  'transfer_status',
+  'territory_plan',
+];
+const allPromptIds: AssistantPrompt[] = [...defaultPromptIds];"""
+          if old not in s:
+              raise SystemExit('expected prompt block not found')
+          s = s.replace(old, new)
+          s = s.replace("const prompts = ids.length > 0 ? ids.slice(0, 6) : defaultPromptIds;", "const prompts = ids.length > 0 ? ids.slice(0, 9) : defaultPromptIds;")
+          p.write_text(s)
+      - run: npx prettier --write resources/js/pages/Assistant/Index.vue
+      - name: Commit
+        shell: bash
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add resources/js/pages/Assistant/Index.vue
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'fix: preserve assistant prompt discovery [assistant-ux-fix]'
+          git push origin HEAD:alliance-assistant-gameworld-extension
