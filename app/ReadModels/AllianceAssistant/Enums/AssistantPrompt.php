@@ -9,4 +9,5 @@ enum AssistantPrompt: string
     case SwordlandRoster = 'swordland_roster';
     case NextEvent = 'next_event';
     case BearHuntGuide = 'bear_hunt_guide';
+    case Observation = 'observation';
 }
