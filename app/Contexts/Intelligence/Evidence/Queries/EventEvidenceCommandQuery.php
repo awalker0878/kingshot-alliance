@@ -24,14 +24,14 @@ final readonly class EventEvidenceCommandQuery
      * The target query reauthorizes the concrete occurrence before any private Evidence is read.
      *
      * @return array{
-     *   evidenceCount:int,
-     *   processingCount:int,
-     *   awaitingReviewCount:int,
-     *   unmatchedGovernorCount:int,
-     *   commitPendingCount:int,
-     *   commitFailedCount:int,
-     *   processingFailedCount:int,
-     *   committedCount:int
+     *     evidenceCount:int,
+     *     processingCount:int,
+     *     awaitingReviewCount:int,
+     *     unmatchedGovernorCount:int,
+     *     commitPendingCount:int,
+     *     commitFailedCount:int,
+     *     processingFailedCount:int,
+     *     committedCount:int
      * }
      */
     public function forBearHuntOccurrence(string $actorPlayerId, string $occurrenceId): array
@@ -44,7 +44,12 @@ final readonly class EventEvidenceCommandQuery
             ->orderByDesc('created_at')
             ->limit(self::MAX_EVIDENCE)
             ->get(['id', 'lifecycle_status']);
-        $evidenceIds = $evidence->pluck('id')->map(static fn ($id): string => (string) $id)->all();
+        $evidenceIds = $evidence
+            ->pluck('id')
+            ->map(static fn ($id): string => (string) $id)
+            ->all();
+
+        /** @var array<string, EvidenceCommitAttempt> $latestCommitByEvidence */
         $latestCommitByEvidence = [];
         if ($evidenceIds !== []) {
             foreach (EvidenceCommitAttempt::query()
@@ -56,6 +61,7 @@ final readonly class EventEvidenceCommandQuery
                 $latestCommitByEvidence[(string) $attempt->evidence_id] ??= $attempt;
             }
         }
+
         $commitPendingCount = 0;
         $commitFailedCount = 0;
         foreach ($latestCommitByEvidence as $attempt) {
@@ -66,6 +72,7 @@ final readonly class EventEvidenceCommandQuery
                 $commitFailedCount++;
             }
         }
+
         $processingStatuses = [
             EvidenceLifecycleStatus::Uploaded,
             EvidenceLifecycleStatus::Classifying,
@@ -86,7 +93,11 @@ final readonly class EventEvidenceCommandQuery
         return [
             'evidenceCount' => $evidence->count(),
             'processingCount' => $evidence->filter(
-                static fn (GameEvidence $item): bool => in_array($item->lifecycle_status, $processingStatuses, true),
+                static fn (GameEvidence $item): bool => in_array(
+                    $item->lifecycle_status,
+                    $processingStatuses,
+                    true,
+                ),
             )->count(),
             'awaitingReviewCount' => $countStatus(EvidenceLifecycleStatus::NeedsReview),
             'unmatchedGovernorCount' => $unmatchedGovernorCount,
