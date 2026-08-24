@@ -14,7 +14,18 @@ final class PlayerSnapshotController extends Controller
 {
     public function store(Request $request, AllianceContext $context, RecordPlayerSnapshot $record, string $entry): RedirectResponse
     {
-        /** @var array<string,mixed> $validated */
+        /**
+         * @var array{
+         *   observed_name:string,
+         *   power:string,
+         *   progression_level?:string|null,
+         *   observed_alliance_tag?:string|null,
+         *   captured_at:string,
+         *   progression_dataset_id?:string|null,
+         *   progression_dataset_checksum?:string|null,
+         *   hero_observations?:list<array<string,mixed>>|null
+         * } $validated
+         */
         $validated = $request->validate([
             'observed_name' => ['required', 'string', 'max:160'],
             'power' => ['required', 'string', 'regex:/^\d{1,19}$/'],
