@@ -145,7 +145,7 @@ The owner query must:
 - evaluate only that participant;
 - reuse the canonical `TransferEligibilityEvaluator` and observation selection rules;
 - return the target Kingdom, eligibility outcome, requirement states, assessment timestamp and supporting source/observation references;
-- preserve `needs verification`, `unknown` and `conflicting` requirements without Assistant reinterpretation.
+- preserve `needs verification`, `unmet`, `unknown` and `conflicting` requirements without Assistant reinterpretation.
 
 If the active Governor is not legitimately in an authorized transfer scope, return neutral unavailable/not-found behavior. The Assistant never creates or changes a transfer participant to answer the question.
 
@@ -253,6 +253,8 @@ First-use scope copy must expand to communicate that answers can cover:
 - source-backed Game data;
 - the Governor's own transfer readiness when in scope.
 
+First-use discovery is additive, not a replacement for the delivered Assistant surface. The default prompt set must preserve the four established prompts (`swordland_roster`, `next_event`, `bear_hunt_guide`, `observation`) and add the five bounded extension prompts (`hero_fact`, `rsvp_week`, `battle_assignment`, `transfer_status`, `territory_plan`). All nine must remain keyboard reachable and wrap without horizontal overflow on narrow screens.
+
 Required new presentation states:
 
 - known Game fact;
@@ -272,11 +274,15 @@ Required new presentation states:
 
 Every source card must show a textual classification label. Game data must visibly expose release/source status. Territory plan must visibly identify the immutable revision.
 
-## Accessibility and localization
+## Accessibility, localization and performance
 
-All new answers are returned as stable message keys plus typed parameters. Add keys to every supported Assistant locale. Do not embed English answer prose in PHP owner queries or frontend conditionals.
+All new answers are returned as stable message keys plus typed parameters. The extension must provide native extension strings for every supported Assistant locale; the existence of the application's normal English fallback does not satisfy extension localization completeness. Do not embed English answer prose in PHP owner queries or frontend conditionals.
 
-New handoff links must be ordinary keyboard-focusable links with visible focus states. Status changes remain announced through the existing Assistant live-region pattern. Classification must not rely on color alone. Long requirements/source labels must wrap on mobile without horizontal overflow.
+Owner-domain explanatory prose is data, not localized Assistant UI. For transfer requirements the Assistant renders the canonical requirement key and owner requirement state through localized labels, while typed actual/required/source values remain data. It must not surface an English owner `explanation` or `nextAction` as translated interface copy.
+
+Extension-only localization payloads must load with the Assistant localization domain rather than the global application entry. The extension must continue to satisfy the repository's existing initial-JavaScript, page-chunk and stylesheet performance budgets; do not raise a budget to hide an Assistant-only loading regression.
+
+New handoff links must be ordinary keyboard-focusable links with visible focus states. Status changes remain announced through the existing Assistant live-region pattern. Classification must not rely on color alone. Long requirements/source labels and the nine-prompt discovery grid must wrap on mobile without horizontal overflow.
 
 ## Observability and privacy
 
@@ -347,8 +353,10 @@ Add/retain privacy-safe metrics for:
 - [ ] Alliance Assistant does not import owner Actions or write repositories.
 - [ ] no broad management-query-and-filter implementation is introduced.
 - [ ] every substantive answer has typed evidence and server-created citations.
-- [ ] frontend renders all required mobile/desktop/accessibility states.
-- [ ] all supported locales contain the new keys.
+- [ ] frontend renders all required mobile/desktop/accessibility states and preserves all nine bounded discovery prompts.
+- [ ] all supported locales contain native extension strings; English fallback is not counted as extension completion.
+- [ ] transfer requirement keys/states are localized without presenting English owner explanatory prose as UI copy.
+- [ ] Assistant-only localization payloads remain lazy/domain-scoped and all repository performance budgets remain green without a budget increase.
 - [ ] PHP tests, Pint, PHPStan, frontend lint/format/type/build, architecture/contract tests and visual regression are green.
 - [ ] applicable CodeQL, dependency review, container/staging/release checks are green before status becomes Complete.
 
@@ -367,7 +375,7 @@ The ledger below is authoritative for this extension. Work proceeds to the next 
 | AA-GW-007 | self-only authorized transfer assessment query + composition | Pending |
 | AA-GW-008 | narrow Event-attached published territory revision query + composition | Pending |
 | AA-GW-009 | navigation-only recognized-write handoff | Pending |
-| AA-GW-010 | UX, accessibility and all-locale localization | Pending |
+| AA-GW-010 | additive nine-prompt UX, accessibility, native all-locale localization and domain-scoped performance | Pending |
 | AA-GW-011 | authorization, architecture, behavior, contract and visual tests | Pending |
 | AA-GW-012 | reference/architecture/operations reconciliation | Pending |
 | AA-GW-013 | full quality/release verification and final ledger reconciliation | Pending |
