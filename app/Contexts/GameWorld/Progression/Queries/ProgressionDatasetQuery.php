@@ -39,6 +39,8 @@ final class ProgressionDatasetQuery
         'truegold',
         'vip',
         'kvk_scoring',
+        'database_reference_tables',
+        'progression_event_tables',
     ];
 
     /** @var list<string> */
@@ -47,6 +49,8 @@ final class ProgressionDatasetQuery
         'alliance_tech_tables.json',
         'buildings_core.json',
         'buildings_tables.json',
+        'database_tables.json',
+        'events_tables.json',
         'governor_charms.json',
         'governor_gear.json',
         'hero_shards.json',
@@ -67,7 +71,6 @@ final class ProgressionDatasetQuery
     private const ADVISORY_KEYS = [
         'tier_list',
         'tierlist',
-        'ranking',
         'recommended',
         'recommendation',
         'recommendations',
@@ -186,6 +189,7 @@ final class ProgressionDatasetQuery
         $this->validateNoAdvisoryKeys($documents);
         if ($schemaVersion >= 2) {
             $this->validateSourceLock($documents['source-lock.json'] ?? null);
+            $this->validateSourceGaps($release);
             $this->validateDetailedCoverage($catalogues);
         }
 
@@ -373,6 +377,7 @@ final class ProgressionDatasetQuery
             $sourceIds[$source['id']] = true;
         }
 
+        $this->validateSourceReferencesRecursively($release, $sourceIds);
         foreach ($documents as $document) {
             $this->validateSourceReferencesRecursively($document, $sourceIds);
         }
@@ -445,31 +450,108 @@ final class ProgressionDatasetQuery
         }
     }
 
+    /** @param array<string,mixed> $release */
+    private function validateSourceGaps(array $release): void
+    {
+        $gaps = $release['source_gaps'] ?? null;
+        if (! is_array($gaps)) {
+            throw new RuntimeException('Progression schema v2 requires explicit source-gap reporting.');
+        }
+
+        if (($release['dataset_version'] ?? null) !== '2026.08.23.2') {
+            return;
+        }
+
+        if (count($gaps) !== 1 || ! is_array($gaps[0] ?? null)) {
+            throw new RuntimeException('Progression 2026.08.23.2 must expose exactly one reviewed source gap.');
+        }
+        $gap = $gaps[0];
+        if (($gap['id'] ?? null) !== 'academy-fortified-mail-vi-level-table'
+            || ($gap['family'] ?? null) !== 'academy_research'
+            || ($gap['source_id'] ?? null) !== 'kingshotdata'
+            || ($gap['entity'] ?? null) !== 'Fortified Mail VI'
+            || ($gap['declared_max_level'] ?? null) !== 6
+            || ($gap['missing_visible_level_rows'] ?? null) !== 6
+            || ($gap['status'] ?? null) !== 'source_table_missing') {
+            throw new RuntimeException('Progression 2026.08.23.2 source gap does not match reviewed source evidence.');
+        }
+    }
+
     /** @param array<string,array<string,mixed>> $catalogues */
     private function validateDetailedCoverage(array $catalogues): void
     {
         $academy = $catalogues['academy_research'] ?? null;
         if (! is_array($academy)
             || ($academy['declared_technologies'] ?? null) !== 191
-            || ($academy['declared_levels'] ?? null) !== 714
+            || ($academy['visible_level_rows'] ?? null) !== 714
+            || ($academy['declared_max_level_sum'] ?? null) !== 720
+            || ! is_array($academy['source_table_gaps'] ?? null)
+            || count($academy['source_table_gaps']) !== 1
             || ! is_array($academy['technologies'] ?? null)
             || count($academy['technologies']) !== 191) {
             throw new RuntimeException('Academy progression release is incomplete.');
         }
+
         $levels = 0;
         $ids = [];
+        $fortifiedMail = null;
         foreach ($academy['technologies'] as $technology) {
             if (! is_array($technology)
                 || ! is_string($technology['id'] ?? null)
                 || isset($ids[$technology['id']])
+                || ! is_int($technology['max_level'] ?? null)
+                || ! is_string($technology['levels_status'] ?? null)
                 || ! is_array($technology['levels'] ?? null)) {
                 throw new RuntimeException('Academy technology row is invalid.');
             }
             $ids[$technology['id']] = true;
             $levels += count($technology['levels']);
+            if (($technology['name'] ?? null) === 'Fortified Mail VI') {
+                $fortifiedMail = $technology;
+            }
         }
-        if ($levels !== 714) {
-            throw new RuntimeException('Academy level coverage is incomplete.');
+        if ($levels !== 714
+            || ! is_array($fortifiedMail)
+            || ($fortifiedMail['max_level'] ?? null) !== 6
+            || ($fortifiedMail['levels_status'] ?? null) !== 'source_table_missing'
+            || ($fortifiedMail['levels'] ?? null) !== []) {
+            throw new RuntimeException('Academy level/source-gap coverage is incomplete.');
+        }
+
+        $alliance = $catalogues['alliance_tech_tables'] ?? null;
+        if (! is_array($alliance)
+            || ($alliance['declared_technologies'] ?? null) !== 60
+            || ($alliance['visible_level_rows'] ?? null) !== 279
+            || ! is_array($alliance['technologies'] ?? null)
+            || count($alliance['technologies']) !== 60) {
+            throw new RuntimeException('Alliance Technology progression release is incomplete.');
+        }
+        $allianceLevels = 0;
+        foreach ($alliance['technologies'] as $technology) {
+            if (! is_array($technology) || ! is_array($technology['levels'] ?? null)) {
+                throw new RuntimeException('Alliance Technology row is invalid.');
+            }
+            $allianceLevels += count($technology['levels']);
+        }
+        if ($allianceLevels !== 279) {
+            throw new RuntimeException('Alliance Technology level coverage is incomplete.');
+        }
+
+        foreach ([
+            'buildings_tables' => 12,
+            'pets_tables' => 14,
+            'masters_tables' => 6,
+            'heroes_tables' => 34,
+            'database_tables' => 8,
+            'events_tables' => 33,
+        ] as $family => $expectedPages) {
+            $document = $catalogues[$family] ?? null;
+            if (! is_array($document)
+                || ($document['discovered_pages'] ?? null) !== $expectedPages
+                || ! is_array($document['pages'] ?? null)
+                || count($document['pages']) !== $expectedPages) {
+                throw new RuntimeException('Progression confirmed source page coverage mismatch: '.$family);
+            }
         }
 
         foreach (['governor_gear' => 58, 'war_academy' => 30] as $family => $expected) {
