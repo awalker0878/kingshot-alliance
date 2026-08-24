@@ -82,7 +82,7 @@ final class ProgressionFamilyQuery
     /** @return list<array{path:string,values:array<string,string|null>,sourceIds:list<string>,confidence:string|null}> */
     private function heroRows(ProgressionDataset $dataset): array
     {
-        return array_map(static function (array $hero): array {
+        return array_map(function (array $hero): array {
             $unlockMethods = is_array($hero['unlock_methods'] ?? null)
                 ? implode(' · ', array_map('strval', $hero['unlock_methods']))
                 : null;
@@ -239,6 +239,20 @@ final class ProgressionFamilyQuery
             if (! is_array($technology) || ! is_array($technology['levels'] ?? null)) {
                 continue;
             }
+            if ($technology['levels'] === []) {
+                $rows[] = [
+                    'path' => (string) ($technology['id'] ?? 'technology'),
+                    'values' => [
+                        'Tree' => is_string($technology['tree'] ?? null) ? $technology['tree'] : null,
+                        'Technology' => is_string($technology['name'] ?? null) ? $technology['name'] : null,
+                        'Max level' => isset($technology['max_level']) ? (string) $technology['max_level'] : null,
+                        'Level data' => is_string($technology['levels_status'] ?? null) ? $technology['levels_status'] : 'unknown',
+                    ],
+                    'sourceIds' => is_string($technology['source_id'] ?? null) ? [$technology['source_id']] : [],
+                    'confidence' => 'unknown_level_table',
+                ];
+                continue;
+            }
             foreach ($technology['levels'] as $index => $level) {
                 if (! is_array($level)) {
                     continue;
@@ -246,6 +260,7 @@ final class ProgressionFamilyQuery
                 $values = [
                     'Tree' => is_string($technology['tree'] ?? null) ? $technology['tree'] : null,
                     'Technology' => is_string($technology['name'] ?? null) ? $technology['name'] : null,
+                    'Max level' => isset($technology['max_level']) ? (string) $technology['max_level'] : null,
                 ];
                 foreach ($level as $key => $value) {
                     if (is_scalar($value) || $value === null) {
