@@ -44,7 +44,7 @@ Later capability delivery is represented by the current canonical contracts belo
 | Alliance Content game parity | Complete | [Alliance Content game parity](alliance-content-game-parity.md) |
 | Factual Governor Progression | Complete | [Factual Governor Progression](factual-governor-progression.md) |
 | Kingdom Transfer Planning | Complete | [Kingdom Transfer Planning](kingdom-transfer-planning.md) |
-| Alliance Territory & Hive Planner | Complete | [Territory & Hive Planner](territory-hive-planner.md) and [capability catalogue](capability-catalogue.md) |
+| Alliance Territory & Hive Planner | Complete | [Capability catalogue](capability-catalogue.md), [Capability completeness plan](capability-gap-analysis.md), [user journeys](experience/user-journeys.md), and architecture/ADR docs |
 | Screenshot Intake — Bear Hunt | Complete | [Screenshot Intake](screenshot-intake.md) |
 | Bear Hunt Debrief | Complete | [Bear Hunt Debrief](bear-hunt-debrief.md) |
 | Alliance Assistant — initial bounded intents | Complete | [Alliance Assistant](alliance-assistant.md) |
