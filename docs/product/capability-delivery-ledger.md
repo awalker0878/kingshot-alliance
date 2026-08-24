@@ -303,7 +303,9 @@ Release `2026.08.23.2` canonicalizes the selected open/inspectable source surfac
 | 14 | Complete | Saved loadouts | Operations planning intent stores canonical Hero IDs/formation ratios and exact dataset identity/checksum separately from observations. |
 | 15 | Complete | Progression Library UX | Factual rows, source/confidence/conflict/unknown states, formations, observations and loadouts are localized, accessible and responsive with deterministic visual coverage. |
 | 16 | Complete | Completeness/reconciliation gates | Source/coverage/licence/reference/advisory-field/prerequisite/idempotency checks and read-only source regeneration pass; dynamic pages use normalized factual-table checksums. |
-| 17 | In progress | Final reconciliation + release gates | Product docs are reconciled to implemented evidence and one human-authored immutable candidate must pass CI, Architecture V3, Intelligence, Progression Source Refresh, Visual Regression, CodeQL, Dependency Review and King Perks together before closeout. |
+| 17 | Complete | Final reconciliation + release gates | Product docs are reconciled to implemented evidence; immutable implementation candidate `299e3eddb1d1f16b4be0a08c09e8c7b5091a4c8a` passed CI, Architecture V3, Intelligence, Progression Source Refresh, Visual Regression, CodeQL, Dependency Review and King Perks together. |
 
 The capability must not be marked complete merely because another site publishes a table. Conversely, community ownership is not a reason to refuse a complete reusable factual table: selected tables are imported and reconciled when evidence/reuse rules permit, while strategy opinion remains excluded and calculator eligibility remains separately gated.
+
+The Factual Governor Progression delivery queue is closed: every phase is Complete and no known Factual Governor Progression product feature is deferred. The calculator evidence gate remains independently closed; later calculator work requires its own qualifying evidence. Any regression or newly discovered factual-source requirement that invalidates an exit condition reopens the affected phase.
 

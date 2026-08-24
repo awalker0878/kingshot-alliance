@@ -1,6 +1,6 @@
 # Factual Governor Progression
 
-Status: Release verification — 2026-08-24
+Status: Complete — 2026-08-24
 
 ## Product outcome
 
@@ -356,9 +356,11 @@ The current official/KR reconciliation pages are pinned by deterministic SHA-256
 | 14 | Complete | Saved loadouts | Authorized planning intent references canonical Heroes/formations/dataset release without recommendation semantics. |
 | 15 | Complete | Progression Library UX | Detailed rows, search/filters, provenance/confidence/conflict/unknown states, formations, observations and loadouts are responsive/accessibility/localization complete. |
 | 16 | Complete | Completeness/reconciliation gates | Machine-readable coverage/conflict/source/licence/unit/reference checks, source-snapshot checksums and idempotency/no-silent-omission tests are green. |
-| 17 | In progress | Final reconciliation + release gates | Spec→code, code→spec, source→data, data→source, source→disposition, UX→backend, authorization and ownership scans are reconciled; all applicable repository gates pass on one immutable candidate. |
+| 17 | Complete | Final reconciliation + release gates | Spec→code, code→spec, source→data, data→source, source→disposition, UX→backend, authorization and ownership scans are reconciled; immutable implementation candidate `299e3eddb1d1f16b4be0a08c09e8c7b5091a4c8a` passed CI, Architecture V3 Verification, Intelligence Verification, Progression Source Refresh, Visual Regression, CodeQL, Dependency Review and King Perks Verification together. |
 
 After each completed requirement implementation proceeds directly to the next incomplete ledger row. Research that exposes another progression family, source conflict, provenance requirement or architecture/UX gap updates this contract and is implemented before closeout.
+
+The delivery queue is closed: phases 0–17 are Complete and no known Factual Governor Progression product feature is deferred. Any later defect, newly discovered source family, or material source/product change that invalidates an exit condition reopens the affected phase. Calculator eligibility remains a separate evidence-gated capability and is not unlocked by this factual-reference closeout.
 
 ## Closeout rule
 
