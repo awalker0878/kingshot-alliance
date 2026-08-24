@@ -5,19 +5,19 @@ import type { Page, TestInfo } from '@playwright/test';
 
 const fingerprints: Record<string, Record<string, string>> = {
   rulesPublished: {
-    desktop: 'ec0303e50751d6c014a782632b90a8dda5599145f4d893f3192c097d3d33a407',
+    desktop: '31f384067dd51190fb83d6ee6aa0430f42f9830eb018081b18af58250e555262',
     mobile: '56982afc2084d5d96f9b6613ab0f4456afccfcf0a245c0140a299423fdcd5619',
   },
   rulesEmpty: {
-    desktop: 'b5c44be56f7a7450f6b2ea3fc7bf93cfc004c4338a268ff923242fabc867dec9',
+    desktop: 'cb6adfd23c2af9f52e238eb9dd61183224112b53cfd032c76ca8a6816bd07c34',
     mobile: 'f22cc8b63006d4755667ecc0fa2a5b9481ff34871ebb9bbb7a6accd2a0e6782e',
   },
   noticeboard: {
-    desktop: 'fccbadf99ba56470d0cbecaa51c0e82756e53146c6b1cd6aa39e4fb1ea1ff348',
+    desktop: '18c5db65b893d3e163dc3628fb4a05472d9ac8806a04fc70467847b44e87a2be',
     mobile: '44084d405757bed544f009242f2abf8847745ee77dd418760a267a89b6ba7949',
   },
   noticeDetail: {
-    desktop: '703a95336fc6895c48863110e7fe72453ae122cf7468d70777831ecd4b4fb08d',
+    desktop: '8fb3f7c7cb4ba3c780caf704bf63ed1f1c36f868c63d56e7d93d61f9db13d7cd',
     mobile: '0f6dd10b829b35f2924845b391c22e7be4646f8479ef035fa802f789332008b3',
   },
 };
