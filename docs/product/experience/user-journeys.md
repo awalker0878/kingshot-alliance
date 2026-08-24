@@ -2,7 +2,7 @@
 
 Status: Current
 
-Implemented journeys are described in present tense. Journeys under **Capability Extension Program — implementation contract journeys** are approved product contracts but are not implemented until their delivery-ledger rows close.
+Implemented journeys are described in present tense. Journeys under **Capability Extension Program — journey contracts** carry an explicit program state; `Current complete capability` journeys are delivered, while `Selected extension` and `Evidence-gated extension` journeys remain implementation contracts until their delivery-ledger rows close.
 
 ## Account to game context
 
@@ -270,25 +270,26 @@ The application layout announces successful mutation receipts consistently. A re
 ```text
 Authenticate + select active Governor with an active Alliance
  -> open Ask your Alliance
- -> choose a localized bounded suggestion or enter a supported question
- -> owner capabilities authorize before returning any candidate data
- -> resolve one Event/content/observation target or return a neutral missing/ambiguity state
- -> compose the answer from the minimum authorized evidence set
- -> show provenance badges and deep-linked Event/Roster/Alliance guide/Observation sources
- -> ask another question or open the canonical source workflow
+ -> choose one of nine localized bounded suggestions or enter a supported question
+ -> owner capabilities authorize before returning any private candidate data
+ -> resolve a bounded Event/content/observation/Game Data/self-state target or return a neutral missing/ambiguity/unsupported state
+ -> query only the minimum authorized owner projection
+ -> compose typed evidence and server-created citations
+ -> show operational fact / Game data / Alliance strategy / Observation provenance
+ -> ask another question or open the canonical source/owner workflow
 ```
 
-The canonical first-use example is **“What time is Swordland and am I rostered?”**. The answer combines the authorized Event occurrence and only the active Governor's own roster assignment. Alliance-authored guidance is labelled **Alliance strategy**; recorded intelligence is labelled **Observation**. A question such as **“Put me on the Swordland roster”** performs no mutation and does not create an Assistant-specific write path. Unsupported general KingShot questions are not answered from model memory.
+The canonical first-use example is **“What time is Swordland and am I rostered?”**. The answer combines the authorized Event occurrence and only the active Governor's own roster assignment. The delivered extension also supports bounded source-backed Progression facts, self Participation/BattlePlan state, authorized self transfer assessment and immutable Event-attached published Territory revisions. Alliance-authored guidance and territory plans are labelled **Alliance strategy**; recorded intelligence is labelled **Observation**; source-backed Progression is labelled **Game data**. A question such as **“Put me on the Swordland roster”** performs no mutation and may offer a navigation-only handoff to the normal owner workflow. Unsupported general KingShot questions are not answered from model memory.
 
-# Capability Extension Program — implementation contract journeys
+# Capability Extension Program — journey contracts
 
-Status: **Selected extension / Evidence-gated extension — not implemented until the corresponding delivery-ledger row closes.**
+Status: **Mixed current complete / Selected extension / Evidence-gated extension. Each journey below states its current program state.**
 
-These journeys are the UX contract for implementation. They do not change the present-tense behavior documented above.
+These journeys are the UX contract for their corresponding delivery rows. Current-complete journeys are implemented behavior; selected/evidence-gated journeys remain contract-only until their rows close.
 
 ## Ask a source-backed Game Data question
 
-Program state: **Selected extension**.
+Program state: **Current complete capability**.
 
 ```text
 Authenticate + select active Governor
@@ -305,7 +306,7 @@ The Assistant does not scrape the web, query model memory, or persist a second k
 
 ## Ask about my own operational state
 
-Program state: **Selected extension**.
+Program state: **Current complete capability**.
 
 ```text
 Ask "Did I register for Swordland?" / "What is my objective?" / "Can I transfer to Kingdom 123?"
@@ -320,7 +321,7 @@ A self intent never reveals another Governor's private operational state.
 
 ## Handoff a write-like Assistant question to the owner workflow
 
-Program state: **Selected extension**.
+Program state: **Current complete capability**.
 
 ```text
 Ask "Put me on the Swordland roster"
