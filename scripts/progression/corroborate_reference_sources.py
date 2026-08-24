@@ -21,7 +21,7 @@ def load(path: Path) -> dict[str, Any]:
 
 
 def write(path: Path, value: Any) -> None:
-    refresh.write_json(path, value)
+    path.write_text(json.dumps(value, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
 
 
 def integer(value: str) -> int:
