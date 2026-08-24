@@ -22,6 +22,7 @@ use App\Contexts\Operations\Results\Queries\EventResultQuery;
 use App\Contexts\Operations\Rosters\Queries\EventRosterQuery;
 use App\Contexts\Operations\TerritoryPlanning\Queries\EventTerritoryPlanningQuery;
 use App\ReadModels\EventAnalysis\Queries\EventPlayerIntelligenceQuery;
+use App\ReadModels\EventManagement\Queries\EventCommandQuery;
 use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -44,6 +45,7 @@ final class EventManagementPageController extends Controller
         EventRallyQuery $rallies,
         EventCapabilityResolver $capabilities,
         EventTerritoryPlanningQuery $territoryPlanning,
+        EventCommandQuery $eventCommand,
     ): Response {
         $user = $this->user($request);
         $actor = $this->player();
@@ -67,6 +69,11 @@ final class EventManagementPageController extends Controller
         return Inertia::render('Operations/Events/Manage', [
             'user' => $this->identity($user),
             'event' => $this->managementPayload($record),
+            'eventCommand' => $eventCommand->forEvent(
+                $actor,
+                $record,
+                $request->string('occurrence')->toString(),
+            ),
             'participants' => $participation->management($record),
             'operations' => $phasePolls->management($record),
             'battlePlan' => $objectives->management($record),
@@ -107,7 +114,7 @@ final class EventManagementPageController extends Controller
             'title' => $event->title,
             'scope' => $event->scope->value,
             'timezone' => (string) $event->timezone,
-            'firstLocalStart' => $event->starts_at->setTimezone($event->timezone)->format('Y-m-d\\TH:i'),
+            'firstLocalStart' => $event->starts_at->setTimezone($event->timezone)->format('Y-m-d\TH:i'),
             'instructions' => $event->instructions,
             'durationMinutes' => $event->duration_minutes,
             'capacity' => $event->capacity,
@@ -116,7 +123,7 @@ final class EventManagementPageController extends Controller
             'recurrencePolicy' => $event->recurrence_policy->value,
             'recurrenceFrequency' => $event->recurrence_frequency->value,
             'recurrenceInterval' => $event->recurrence_interval,
-            'recurrenceUntilLocal' => $event->recurrence_until?->setTimezone($event->timezone)->format('Y-m-d\\TH:i'),
+            'recurrenceUntilLocal' => $event->recurrence_until?->setTimezone($event->timezone)->format('Y-m-d\TH:i'),
             'settings' => $event->settings ?? [],
             'capabilities' => $event->typeScope->capabilities
                 ->pluck('capability')
