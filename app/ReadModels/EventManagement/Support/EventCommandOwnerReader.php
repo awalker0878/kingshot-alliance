@@ -13,8 +13,8 @@ use Throwable;
 final class EventCommandOwnerReader
 {
     /**
-     * @param Closure():array<string,mixed> $query
-     * @return array<string,mixed>|null
+     * @param  Closure():array<string, mixed>  $query
+     * @return array<string, mixed>|null
      */
     public function read(string $owner, Event $event, EventOccurrence $occurrence, Closure $query): ?array
     {
