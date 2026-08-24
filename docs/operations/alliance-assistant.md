@@ -25,6 +25,14 @@ Game facts are loaded from the existing immutable `GameWorld/Progression` releas
 
 Adding a model provider later remains a material product/architecture change requiring product contract/ADR review, allowlisted provider/data-handling rules, prompt-injection evaluation, data minimization, timeout/retry policy and proof that owner authorization occurs before any content transmission.
 
+## Frontend localization and performance posture
+
+The GameWorld extension adds native Assistant strings for every supported locale and five new bounded discovery prompts while preserving the original four. TypeScript locale-map contracts and architecture tests enforce that complete extension shapes exist.
+
+Assistant-only extension catalogues load dynamically with the `assistant` localization domain. They must not be moved into the shared application entry or made eager for unrelated pages. Release verification must keep the existing initial-JavaScript, largest-page and stylesheet budgets green; increasing a budget is not an acceptable fix for an Assistant-only regression.
+
+Transfer requirement presentation localizes the canonical owner requirement key and requirement state. English owner `explanation`/`nextAction` prose is not treated as translated interface copy.
+
 ## Privacy-safe telemetry
 
 Successful reads may log only bounded operational dimensions:
@@ -93,8 +101,11 @@ Operational verification includes:
 - log assertions showing question/source text is absent;
 - limiter tests;
 - response-citation validation;
-- architecture tests proving the ReadModel has no persistence/write Action dependency and no broad management projection dependency.
+- architecture tests proving the ReadModel has no persistence/write Action dependency and no broad management projection dependency;
+- exact nine-prompt default discovery coverage;
+- typed native extension locale-map coverage;
+- dynamic Assistant-domain localization imports and repository performance budgets.
 
 ## Release gate
 
-The GameWorld extension is releasable only when its product delivery ledger is complete and the same immutable candidate is green across applicable PHP tests, Pint, PHPStan, frontend lint/format/type/build, Architecture V3, Intelligence Verification, CodeQL, Dependency Review, Visual Regression, production-image/container, staging, clean-install and backup/restore checks.
+The GameWorld extension is releasable only when its product delivery ledger is complete and the same immutable candidate is green across applicable PHP tests, Pint, PHPStan, frontend lint/format/type/build/performance budgets, Architecture V3, Intelligence Verification, CodeQL, Dependency Review, Visual Regression, production-image/container, staging, clean-install and backup/restore checks.
