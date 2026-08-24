@@ -6,7 +6,10 @@ const factualProgressionVisualFingerprints: Record<
   string,
   { library: string; governor: string }
 > = {
-  desktop: { library: 'PENDING', governor: 'PENDING' },
+  desktop: {
+    library: '7c06462bad3f35bc1495c2bc02f3fd57978797783e548aef6cceb0810a8ae36d',
+    governor: '558586bbf13b3ec889087db4c50d74692412aee9e8a73ddbb1d1c77574c8d9af',
+  },
   mobile: {
     library: '14c1a66a426fba6a735e4fec644071a744113023ca201615c1b93649b6ca6af9',
     governor: '48e75ff86f85a9342c7326f984209efc0e4adfe97b67a95a2dae6f19b18a1f6b',
