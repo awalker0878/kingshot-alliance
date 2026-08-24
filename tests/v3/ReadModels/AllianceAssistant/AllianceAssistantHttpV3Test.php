@@ -185,6 +185,11 @@ final class AllianceAssistantHttpV3Test extends TestCase
             $this->assistantRequest($user, $actor, 'What time is Swordland?')->assertOk();
             $this->assistantRequest($user, $actor, 'What time is Swordland?')->assertStatus(429);
 
+            // `auth.session` stores a password hash for the current account. Reset the
+            // test client session before changing authenticated accounts so the second
+            // request represents an independent browser session rather than an invalid
+            // mid-session identity swap.
+            $this->flushSession();
             [$otherUser, $otherActor, $otherAlliance] = $this->governorWithAlliance(63108);
             $this->swordland($otherActor, $otherAlliance, 'Swordland');
             $this->assistantRequest($otherUser, $otherActor, 'What time is Swordland?')->assertOk();
