@@ -4,6 +4,8 @@ Status: Current
 
 This area explains **what Kingshot Alliance provides to users**. It does not define code ownership or operational procedure.
 
+Alliance Assistant is delivered as the constrained, authorization-aware read/composition capability defined in [Alliance Assistant](alliance-assistant.md); its completed release evidence is recorded in the [capability delivery ledger](capability-delivery-ledger.md).
+
 - [Product overview](product-overview.md)
 - [Capability catalogue](capability-catalogue.md)
 - [Capability completeness plan](capability-gap-analysis.md)
