@@ -7,9 +7,74 @@ const assistantVisualFingerprints: Record<string, string> = {
   mobile: 'PENDING_MOBILE',
 };
 
+const citedSwordlandResponse = {
+  intent: 'event_roster_self',
+  status: 'answered',
+  messageKey: 'assistant.answers.eventTimeRostered',
+  messageParameters: {
+    event: 'Swordland',
+    startsAt: '2026-08-29T20:00:00+00:00',
+    roster: 'Combatants',
+    role: 'Rally Lead',
+    slot: 7,
+    status: 'assigned',
+  },
+  classifications: ['operational_fact'],
+  evidence: [
+    {
+      id: 'event-visual',
+      sourceType: 'event',
+      sourceId: 'visual-event',
+      title: 'Swordland · Aug 29',
+      classification: 'operational_fact',
+      statement: '2026-08-29T20:00:00+00:00',
+      occurredAt: '2026-08-29T20:00:00+00:00',
+      updatedAt: '2026-08-24T15:00:00+00:00',
+      href: '/events/01K00000000000000000000000',
+      metadata: {},
+    },
+    {
+      id: 'roster-visual',
+      sourceType: 'roster',
+      sourceId: 'visual-roster',
+      title: 'Swordland Combatants',
+      classification: 'operational_fact',
+      statement: 'assigned',
+      occurredAt: null,
+      updatedAt: '2026-08-24T15:05:00+00:00',
+      href: '/events/01K00000000000000000000000',
+      metadata: { role: 'Rally Lead', slot: 7, status: 'assigned' },
+    },
+  ],
+  citations: [
+    {
+      evidenceId: 'event-visual',
+      sourceType: 'event',
+      sourceId: 'visual-event',
+      title: 'Swordland · Aug 29',
+      classification: 'operational_fact',
+      occurredAt: '2026-08-29T20:00:00+00:00',
+      updatedAt: '2026-08-24T15:00:00+00:00',
+      href: '/events/01K00000000000000000000000',
+    },
+    {
+      evidenceId: 'roster-visual',
+      sourceType: 'roster',
+      sourceId: 'visual-roster',
+      title: 'Swordland Combatants',
+      classification: 'operational_fact',
+      occurredAt: null,
+      updatedAt: '2026-08-24T15:05:00+00:00',
+      href: '/events/01K00000000000000000000000',
+    },
+  ],
+  ambiguity: null,
+  suggestedQuestions: ['swordland_roster', 'next_event', 'bear_hunt_guide', 'observation'],
+};
+
 async function openAssistant(page: Page): Promise<void> {
   await page.goto('/login');
-  await page.locator('#email').fill('assistant-visual@example.test');
+  await page.locator('#email').fill('screenshot-visual@example.test');
   await page.locator('#password').fill('password');
   await page.locator('button[type="submit"]').click();
   await page.waitForURL('**/dashboard');
@@ -28,6 +93,16 @@ async function openAssistant(page: Page): Promise<void> {
   await page.waitForLoadState('networkidle');
 }
 
+async function mockCitedAnswer(page: Page): Promise<void> {
+  await page.route('**/assistant/ask', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(citedSwordlandResponse),
+    });
+  });
+}
+
 async function expectNoHorizontalOverflow(page: Page): Promise<void> {
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
@@ -39,6 +114,7 @@ test('Alliance Assistant renders a cited Swordland roster answer on desktop and 
   { page },
   testInfo,
 ) => {
+  await mockCitedAnswer(page);
   await openAssistant(page);
   await page.evaluate(() => document.fonts.ready);
 
@@ -74,6 +150,7 @@ test('Alliance Assistant renders a cited Swordland roster answer on desktop and 
 test('Alliance Assistant supports keyboard submission and a localized non-overflowing first-use state', async ({
   page,
 }) => {
+  await mockCitedAnswer(page);
   await openAssistant(page);
 
   const question = page.getByLabel('Ask your Alliance');
