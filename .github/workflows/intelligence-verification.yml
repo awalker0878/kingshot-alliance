@@ -85,16 +85,24 @@ jobs:
           fi
 
       - name: Pint Intelligence V3
-        run: >-
-          vendor/bin/pint --test
-          app/Contexts/Intelligence
-          app/ReadModels/ContributionHistory
-          app/ReadModels/EventAnalysis
-          app/ReadModels/EventHistory
-          app/ReadModels/KingdomIntelligence
-          app/ReadModels/SharedKingdomIntelligence
-          routes/event-history.php
-          routes/contributions.php
+        shell: bash
+        run: |
+          set -euo pipefail
+          vendor/bin/pint \
+            app/Contexts/Intelligence \
+            app/ReadModels/ContributionHistory \
+            app/ReadModels/EventAnalysis \
+            app/ReadModels/EventHistory \
+            app/ReadModels/KingdomIntelligence \
+            app/ReadModels/SharedKingdomIntelligence \
+            routes/event-history.php \
+            routes/contributions.php
+          if ! git diff --quiet; then
+            echo 'Pint would change the following files:'
+            git diff --check
+            git diff -- app/Contexts/Intelligence app/ReadModels/ContributionHistory app/ReadModels/EventAnalysis app/ReadModels/EventHistory app/ReadModels/KingdomIntelligence app/ReadModels/SharedKingdomIntelligence routes/event-history.php routes/contributions.php
+            exit 1
+          fi
 
       - name: Larastan Intelligence V3
         run: >-
