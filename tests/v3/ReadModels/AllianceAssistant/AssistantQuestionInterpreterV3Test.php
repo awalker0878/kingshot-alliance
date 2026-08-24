@@ -79,6 +79,7 @@ final class AssistantQuestionInterpreterV3Test extends TestCase
         yield 'Swordland roster' => [AssistantPrompt::SwordlandRoster, AssistantIntent::EventRosterSelf, 'Swordland'];
         yield 'next event' => [AssistantPrompt::NextEvent, AssistantIntent::EventTime, null];
         yield 'Bear Hunt guide' => [AssistantPrompt::BearHuntGuide, AssistantIntent::AllianceContent, 'Bear Hunt'];
+        yield 'observation' => [AssistantPrompt::Observation, AssistantIntent::AllianceObservation, 'opponent'];
     }
 
     public function test_write_like_question_is_unsupported_even_with_a_read_prompt_identifier(): void
