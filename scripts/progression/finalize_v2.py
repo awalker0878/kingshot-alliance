@@ -3,7 +3,8 @@
 
 This layer applies release-wide policy and reviewed source supplements that do not belong in the
 source-specific adapters: factual rank preservation, Gen 6-7 Hero skill completion, semantic
-coverage counts, and final completeness assertions.
+coverage counts, first-party/secondary reconciliation, prerequisite validation, and final
+completeness assertions.
 """
 from __future__ import annotations
 
@@ -13,6 +14,7 @@ from pathlib import Path
 from typing import Any
 
 import build_v2
+import corroborate_reference_sources
 import refresh
 import validate_prerequisites
 
@@ -231,6 +233,7 @@ def main() -> int:
     skill_count = complete_gen6_gen7_hero_skills(release_dir)
     counts = reviewed_semantic_counts(release_dir)
     update_release_report(release_dir, skill_count, counts)
+    corroborate_reference_sources.corroborate_release(release_dir)
     prerequisite_stats = validate_prerequisites.validate_release(release_dir)
     validate_final_candidate(release_dir)
     print(
