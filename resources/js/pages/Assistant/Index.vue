@@ -8,7 +8,14 @@ import { useLocale } from '@/localization';
 type Classification = 'operational_fact' | 'game_fact' | 'alliance_strategy' | 'observation';
 type SourceType = 'event' | 'roster' | 'alliance_content' | 'observation' | 'game_fact';
 type AssistantStatus =
-  'answered' | 'ambiguous' | 'not_found' | 'unsupported' | 'validation_error' | 'unavailable';
+  | 'answered'
+  | 'ambiguous'
+  | 'not_found'
+  | 'unsupported'
+  | 'validation_error'
+  | 'unavailable';
+type AssistantPrompt = 'swordland_roster' | 'next_event' | 'bear_hunt_guide';
+type PromptOption = { id: AssistantPrompt; label: string };
 
 type Evidence = {
   id: string;
@@ -57,6 +64,8 @@ const turns = ref<Turn[]>([]);
 const requestError = ref<string | null>(null);
 let turnId = 0;
 
+const defaultPromptIds: AssistantPrompt[] = ['swordland_roster', 'next_event', 'bear_hunt_guide'];
+
 const canSubmit = computed(
   () =>
     !busy.value &&
@@ -64,23 +73,29 @@ const canSubmit = computed(
     question.value.length <= props.maxQuestionLength,
 );
 
-const suggestedQuestions = computed(() => {
+const suggestedQuestions = computed<PromptOption[]>(() => {
   const latest = turns.value.at(-1)?.response.suggestedQuestions ?? [];
-  return latest.length > 0
-    ? latest
-    : [
-        t('assistant.prompts.swordland'),
-        t('assistant.prompts.nextEvent'),
-        t('assistant.prompts.bearGuide'),
-        t('assistant.prompts.observation'),
-      ];
+  const ids = latest.filter(isPrompt);
+  const prompts = ids.length > 0 ? ids : defaultPromptIds;
+
+  return prompts.map((id) => ({ id, label: promptLabel(id) }));
 });
+
+function promptLabel(prompt: AssistantPrompt): string {
+  if (prompt === 'swordland_roster') return t('assistant.prompts.swordland');
+  if (prompt === 'next_event') return t('assistant.prompts.nextEvent');
+  return t('assistant.prompts.bearGuide');
+}
+
+function isPrompt(value: string): value is AssistantPrompt {
+  return defaultPromptIds.includes(value as AssistantPrompt);
+}
 
 function csrfToken(): string | null {
   return document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? null;
 }
 
-async function submit(): Promise<void> {
+async function submit(prompt: AssistantPrompt | null = null): Promise<void> {
   const value = question.value.trim();
   if (value.length < 2 || value.length > props.maxQuestionLength || busy.value) return;
 
@@ -96,7 +111,7 @@ async function submit(): Promise<void> {
         'Content-Type': 'application/json',
         'X-CSRF-TOKEN': csrfToken() ?? '',
       },
-      body: JSON.stringify({ question: value }),
+      body: JSON.stringify(prompt ? { question: value, prompt } : { question: value }),
     });
 
     if (response.redirected) {
@@ -128,9 +143,9 @@ async function submit(): Promise<void> {
   }
 }
 
-function usePrompt(prompt: string): void {
-  question.value = prompt;
-  void submit();
+function usePrompt(prompt: PromptOption): void {
+  question.value = prompt.label;
+  void submit(prompt.id);
 }
 
 function onQuestionKeydown(event: KeyboardEvent): void {
@@ -235,12 +250,12 @@ function freshness(citation: Citation): string | null {
             <div class="mt-4 grid gap-2 sm:grid-cols-2">
               <button
                 v-for="prompt in suggestedQuestions"
-                :key="prompt"
+                :key="prompt.id"
                 type="button"
                 class="min-h-11 rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-panel)] px-4 py-3 text-start text-sm font-semibold text-[var(--ks-text)] transition hover:border-[var(--ks-gold-dark)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ks-gold)]"
                 @click="usePrompt(prompt)"
               >
-                {{ prompt }}
+                {{ prompt.label }}
               </button>
             </div>
           </div>
