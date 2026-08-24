@@ -1,6 +1,6 @@
 # Alliance Assistant
 
-Status: Active delivery contract — 2026-08-24
+Status: Complete — 2026-08-24
 
 Alliance Assistant is a constrained, authorization-aware natural-language read surface over existing Kingshot Alliance capabilities. It answers operational questions from application-owned data the active Governor is already allowed to see, preserves provenance in every answer, and never becomes a parallel source of truth or a privileged mutation path.
 
@@ -519,18 +519,20 @@ Alliance Assistant is the final composition capability. A phase is `Complete` on
 
 | Phase | Status | Slice | Exit condition |
 | --- | --- | --- | --- |
-| 1 | In progress | Product contract and dependency audit | `/docs/product` defines complete behavior/ownership/authorization/provenance/write boundaries; every source capability required by the first release is verified sufficient or corrected before Assistant composition depends on it. |
-| 2 | Not started | Typed evidence and intent contracts | Closed intent/status/classification/evidence/citation value contracts exist with unit tests and no persistence/domain ownership. |
-| 3 | Not started | Authorized Event and self-roster retrieval | Unique/ambiguous Event resolution and self-roster composition reuse owner Queries, prevent cross-scope leakage and preserve missing semantics. |
-| 4 | Not started | Authorized Alliance Content retrieval | Published member-visible content search produces bounded `alliance_strategy` evidence with revision/freshness/source links. |
-| 5 | Not started | Authorized observation retrieval | Intelligence owner query exposes a bounded authorization-safe Assistant projection without raw ingestion/evidence leakage. |
-| 6 | Not started | Deterministic interpreter and answer composer | Supported natural-language forms resolve to closed intents; answers are generated only from authorized evidence; unsupported questions never use external/model knowledge. |
-| 7 | Not started | Citation validation and source links | Every substantive answer has server-validated citations to evidence actually used; invented or inaccessible references are impossible. |
-| 8 | Not started | HTTP boundary, rate limit and privacy-safe observability | `GET /assistant` + `POST /assistant/ask` validate/authenticate/current-authority-check/rate-limit correctly and log only privacy-safe metadata. |
-| 9 | Not started | Responsive accessible localized UX | First-use, answered, provenance, ambiguity, not-found, unsupported, validation, stale-context recovery, rate-limit and unavailable states work on mobile/desktop/keyboard in every supported locale. |
-| 10 | Not started | Write-boundary and injection enforcement | Write-like prompts cause zero mutation; architecture tests prohibit direct writes; untrusted source text cannot change Assistant behavior. |
-| 11 | Not started | Behavior/security/performance/visual verification | Backend/frontend/authorization/tenant-isolation/citation/privacy/performance and deterministic visual suites are green. |
-| 12 | Not started | Final reconciliation and release closeout | Spec→code, code→spec, UX→backend, authorization, architecture and data-ownership audits find no incomplete item; all applicable repository release gates pass on one immutable candidate. |
+| 1 | Complete | Product contract and dependency audit | `/docs/product` defines complete behavior/ownership/authorization/provenance/write boundaries; every source capability required by the first release is verified sufficient or corrected before Assistant composition depends on it. |
+| 2 | Complete | Typed evidence and intent contracts | Closed intent/status/classification/evidence/citation value contracts exist with unit tests and no persistence/domain ownership. |
+| 3 | Complete | Authorized Event and self-roster retrieval | Unique/ambiguous Event resolution and self-roster composition reuse owner Queries, prevent cross-scope leakage and preserve missing semantics. |
+| 4 | Complete | Authorized Alliance Content retrieval | Published member-visible content search produces bounded `alliance_strategy` evidence with revision/freshness/source links. |
+| 5 | Complete | Authorized observation retrieval | Intelligence owner query exposes a bounded authorization-safe Assistant projection without raw ingestion/evidence leakage. |
+| 6 | Complete | Deterministic interpreter and answer composer | Supported natural-language forms resolve to closed intents; answers are generated only from authorized evidence; unsupported questions never use external/model knowledge. |
+| 7 | Complete | Citation validation and source links | Every substantive answer has server-validated citations to evidence actually used; invented or inaccessible references are impossible. |
+| 8 | Complete | HTTP boundary, rate limit and privacy-safe observability | `GET /assistant` + `POST /assistant/ask` validate/authenticate/current-authority-check/rate-limit correctly and log only privacy-safe metadata. |
+| 9 | Complete | Responsive accessible localized UX | First-use, answered, provenance, ambiguity, not-found, unsupported, validation, stale-context recovery, rate-limit and unavailable states work on mobile/desktop/keyboard in every supported locale. |
+| 10 | Complete | Write-boundary and injection enforcement | Write-like prompts cause zero mutation; architecture tests prohibit direct writes; untrusted source text cannot change Assistant behavior. |
+| 11 | Complete | Behavior/security/performance/visual verification | Backend/frontend/authorization/tenant-isolation/citation/privacy/performance and deterministic visual suites are green. |
+| 12 | Complete | Final reconciliation and release closeout | Spec→code, code→spec, UX→backend, authorization, architecture and data-ownership audits find no incomplete item; all applicable repository release gates pass on one immutable candidate. |
+
+Alliance Assistant implementation evidence head `0be7e4d8cd2e03c54202d06a1b084b3280c8ca1a` passed CI, Architecture V3 Verification, Intelligence Verification, Visual Regression, CodeQL, Dependency Review, and King Perks Verification on 2026-08-24. The documentation-reconciled closeout head must repeat every applicable repository release gate before merge; any failure reopens the affected phase.
 
 ## Cross-phase invariants
 

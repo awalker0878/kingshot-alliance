@@ -1,6 +1,6 @@
 # Alliance Assistant operations
 
-Status: Active delivery — 2026-08-24
+Status: Complete — 2026-08-24
 
 Alliance Assistant is a synchronous, read-only composition surface. The current release uses deterministic intent parsing and owner queries only. It has no external LLM/model-provider dependency, no Assistant database tables, no queue, and no persisted conversation history.
 

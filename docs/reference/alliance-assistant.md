@@ -1,6 +1,6 @@
 # Alliance Assistant HTTP contract
 
-Status: Active delivery — 2026-08-24
+Status: Complete — 2026-08-24
 
 The Alliance Assistant HTTP surface is an authenticated, Alliance-scoped read/composition contract. It does not expose an unconstrained chat API and does not create a second application write path.
 

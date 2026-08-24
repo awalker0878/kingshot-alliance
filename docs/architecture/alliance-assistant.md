@@ -1,6 +1,6 @@
 # Alliance Assistant architecture
 
-Status: Active delivery — 2026-08-24
+Status: Complete — 2026-08-24
 
 Alliance Assistant is a **ReadModel composition capability**, not a bounded context. It owns question interpretation, authorized read composition, evidence/citation shaping, and presentation semantics. It owns no business state and no write authority.
 

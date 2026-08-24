@@ -323,18 +323,20 @@ No phase is Complete until its whole exit condition—including authorization, t
 
 | Phase | Status | Slice | Exit condition |
 | --- | --- | --- | --- |
-| 1 | In progress | Product contract and dependency audit | Product catalogue, gap analysis, delivery ledger, journeys, architecture/reference/operations docs and owner dependencies agree on the complete constrained capability. |
-| 2 | In progress | Typed intent/evidence/provenance contract | Closed intents, closed localized prompt IDs, evidence values, provenance classes and response-local citation identity are typed and behavior-tested. |
-| 3 | In progress | Event and self-roster composition | Event time/next Event and active-Governor-only roster answers use owner reads, handle missing/ambiguous states and never expose another Governor’s assignment. |
-| 4 | In progress | Alliance Content composition | Only current-Alliance member-visible published content is retrieved; strategy remains labelled Alliance strategy with revision/provenance/freshness metadata. |
-| 5 | In progress | Observation composition | Intelligence authorizes before querying and returns bounded same-Alliance observations labelled Observation; hidden observations remain indistinguishable from missing data. |
-| 6 | In progress | Deterministic interpreter/composer | Supported free-form questions and localized closed prompts resolve deterministically; generic KingShot and write-like questions are unsupported with no model-knowledge fallback. |
-| 7 | In progress | Citation integrity | Every substantive answered claim uses server-constructed citations from the response-local authorized evidence set; non-answer states cannot emit citations. |
-| 8 | In progress | HTTP, privacy and abuse bounds | Auth/verified/active-Player/Alliance scope, bounded validation, account rate limit, privacy-safe logs and retry-safe unavailable behavior are enforced. |
-| 9 | In progress | Responsive, accessible, localized UX | Desktop/mobile navigation, four first-use prompts, semantic answer/source states, keyboard submission, live status, locale-safe dates/messages and no horizontal overflow are implemented. |
-| 10 | In progress | Read-only and injection architecture enforcement | Assistant has no persistence/write/provider bypass; owner contexts do not import it; source text cannot alter scope/tool/write behavior; external model calls are absent in release one. |
-| 11 | In progress | Behavioral, performance and visual verification | Owner-integrated tenant/citation tests, bounded query budget and deterministic cited-answer desktop/mobile fingerprints pass. |
-| 12 | In progress | Final reconciliation and immutable release gates | Spec→code, code→spec, UX→backend and authorization/provenance scans find no remaining gap; every applicable repository quality/security/container/staging/backup/recovery gate passes on one immutable head. |
+| 1 | Complete | Product contract and dependency audit | Product catalogue, gap analysis, delivery ledger, journeys, architecture/reference/operations docs and owner dependencies agree on the complete constrained capability. |
+| 2 | Complete | Typed intent/evidence/provenance contract | Closed intents, closed localized prompt IDs, evidence values, provenance classes and response-local citation identity are typed and behavior-tested. |
+| 3 | Complete | Event and self-roster composition | Event time/next Event and active-Governor-only roster answers use owner reads, handle missing/ambiguous states and never expose another Governor’s assignment. |
+| 4 | Complete | Alliance Content composition | Only current-Alliance member-visible published content is retrieved; strategy remains labelled Alliance strategy with revision/provenance/freshness metadata. |
+| 5 | Complete | Observation composition | Intelligence authorizes before querying and returns bounded same-Alliance observations labelled Observation; hidden observations remain indistinguishable from missing data. |
+| 6 | Complete | Deterministic interpreter/composer | Supported free-form questions and localized closed prompts resolve deterministically; generic KingShot and write-like questions are unsupported with no model-knowledge fallback. |
+| 7 | Complete | Citation integrity | Every substantive answered claim uses server-constructed citations from the response-local authorized evidence set; non-answer states cannot emit citations. |
+| 8 | Complete | HTTP, privacy and abuse bounds | Auth/verified/active-Player/Alliance scope, bounded validation, account rate limit, privacy-safe logs and retry-safe unavailable behavior are enforced. |
+| 9 | Complete | Responsive, accessible, localized UX | Desktop/mobile navigation, four first-use prompts, semantic answer/source states, keyboard submission, live status, locale-safe dates/messages and no horizontal overflow are implemented. |
+| 10 | Complete | Read-only and injection architecture enforcement | Assistant has no persistence/write/provider bypass; owner contexts do not import it; source text cannot alter scope/tool/write behavior; external model calls are absent in release one. |
+| 11 | Complete | Behavioral, performance and visual verification | Owner-integrated tenant/citation tests, bounded query budget and deterministic cited-answer desktop/mobile fingerprints pass. |
+| 12 | Complete | Final reconciliation and immutable release gates | Spec→code, code→spec, UX→backend and authorization/provenance scans find no remaining gap; every applicable repository quality/security/container/staging/backup/recovery gate passes on one immutable head. |
+
+The Alliance Assistant delivery queue is closed: every phase is Complete and no known Alliance Assistant requirement is deferred. Immutable implementation evidence head `0be7e4d8cd2e03c54202d06a1b084b3280c8ca1a` passed CI, Architecture V3 Verification, Intelligence Verification, Visual Regression, CodeQL, Dependency Review, and King Perks Verification. The final documentation-only closeout candidate repeats every applicable repository gate before merge; any regression or newly discovered contract gap reopens the affected phase.
 
 ### Cross-phase invariants
 

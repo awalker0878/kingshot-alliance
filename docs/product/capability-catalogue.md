@@ -141,7 +141,7 @@ Community projects are discovery evidence, not authoritative KingShot truth. A c
 
 Alliance Assistant is the final constrained read/composition capability. It answers only from current data the active Governor is already authorized to view, cites every substantive source, preserves `operational_fact`, `alliance_strategy`, `observation` and future owner-backed `game_fact` provenance, and never becomes an alternate writer. The first release uses deterministic bounded intent resolution with no external model provider or persisted conversation. Localized suggestion buttons submit closed prompt identifiers while arbitrary write-like or unsupported KingShot questions remain unsupported.
 
-The canonical requirements, acceptance criteria and active delivery queue live in [Alliance Assistant](alliance-assistant.md) and the global [capability delivery ledger](capability-delivery-ledger.md).
+The canonical requirements, acceptance criteria and completed delivery record live in [Alliance Assistant](alliance-assistant.md) and the global [capability delivery ledger](capability-delivery-ledger.md).
 
 ## Assurance contract
 
