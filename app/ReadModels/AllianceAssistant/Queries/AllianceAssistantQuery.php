@@ -433,7 +433,7 @@ final readonly class AllianceAssistantQuery
         $unmet = array_values(array_filter(
             $requirements,
             static fn (mixed $row): bool => is_array($row)
-                && in_array((string) ($row['state'] ?? ''), ['not_met', 'unknown', 'conflicting'], true),
+                && in_array((string) ($row['state'] ?? ''), ['unmet', 'unknown', 'conflicting'], true),
         ));
         $evidence = new AssistantEvidence(
             'transfer-assessment-'.(string) ($assessment['participantId'] ?? ''),
