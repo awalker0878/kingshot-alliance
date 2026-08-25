@@ -98,7 +98,9 @@ test('Event Command keeps closeout and readiness visible without responsive over
 
   const refreshed = page.locator('#event-command');
   await expect(refreshed.getByText('Ready', { exact: true })).toBeVisible();
-  await expect(refreshed.getByText('Alliance strategy', { exact: true }).first()).toBeVisible();
+  await expect(
+    refreshed.getByText('Owner: Alliance Content · Alliance strategy', { exact: true }),
+  ).toBeVisible();
   await normalizeDynamicTimes(refreshed);
 
   const overflow = await refreshed.evaluate(
