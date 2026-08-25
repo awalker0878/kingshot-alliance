@@ -162,6 +162,53 @@ final class EventCommandBehaviorV3Test extends TestCase
         self::assertSame((string) $upcoming->id, $afterCloseout['selectedOccurrenceId']);
     }
 
+    public function test_default_closeout_search_is_bounded_while_older_occurrences_remain_selectable(): void
+    {
+        $now = CarbonImmutable::parse('2026-08-24 18:00:00', 'UTC');
+        CarbonImmutable::setTestNow($now);
+        [$actor, $alliance] = $this->allianceScenario();
+        $event = $this->event($actor, $alliance, $now->subDays(30));
+        $olderUnclosed = $event->occurrences()->firstOrFail();
+        $olderUnclosed->forceFill(['status' => EventOccurrenceStatus::Completed])->save();
+
+        foreach (range(1, 12) as $index) {
+            $start = $now->subDays(13 - $index);
+            $closedOccurrence = EventOccurrence::query()->create([
+                'event_id' => (string) $event->id,
+                'starts_at' => $start,
+                'ends_at' => $start->addHour(),
+                'status' => EventOccurrenceStatus::Completed,
+                'settings' => [],
+            ]);
+            EventResult::query()->create([
+                'occurrence_id' => (string) $closedOccurrence->id,
+                'outcome' => 'recorded',
+                'score' => 0,
+                'recorded_by_player_id' => $actor->playerId,
+                'recorded_at' => $closedOccurrence->ends_at,
+            ]);
+        }
+
+        $upcoming = EventOccurrence::query()->create([
+            'event_id' => (string) $event->id,
+            'starts_at' => $now->addDays(2),
+            'ends_at' => $now->addDays(2)->addHour(),
+            'status' => EventOccurrenceStatus::Scheduled,
+            'settings' => [],
+        ]);
+
+        $automatic = $this->command($actor, $event);
+        self::assertSame((string) $upcoming->id, $automatic['selectedOccurrenceId']);
+
+        $explicit = app(EventCommandQuery::class)->forEvent(
+            $actor,
+            $this->reloadEvent($event),
+            (string) $olderUnclosed->id,
+        );
+        self::assertSame((string) $olderUnclosed->id, $explicit['selectedOccurrenceId']);
+        self::assertSame('closeout_required', $explicit['state']);
+    }
+
     public function test_blockers_and_warnings_expose_owner_and_navigation_only_handoffs(): void
     {
         CarbonImmutable::setTestNow(CarbonImmutable::parse('2026-08-24 18:00:00', 'UTC'));
