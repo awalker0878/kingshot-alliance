@@ -4,7 +4,7 @@ import type { Locator, Page } from '@playwright/test';
 
 const fingerprints: Record<string, Record<'closeout' | 'ready', string>> = {
   desktop: {
-    closeout: 'pending',
+    closeout: 'f50e4330fd0e20fef7b53ca43f78ec6d889874ffa1cba02f9a2955269318358a',
     ready: 'pending',
   },
   mobile: {
