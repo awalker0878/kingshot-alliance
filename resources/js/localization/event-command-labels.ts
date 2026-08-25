@@ -33,19 +33,29 @@ const englishCommand: MessageCatalogue = {
     not_applicable: 'Not applicable',
   },
   owners: {
-    'operations.events': 'Events',
-    'operations.participation': 'Participation',
-    'operations.polls': 'Polls',
-    'operations.rosters': 'Rosters',
-    'operations.battle_plans': 'Battle Plans',
-    'alliance.content': 'Alliance Content',
-    'operations.territory_planning': 'Territory Planning',
-    'operations.reminders': 'Event Reminders',
-    'communications.delivery': 'Communications',
-    'operations.rallies': 'Rallies',
-    'operations.results': 'Results',
-    'intelligence.evidence': 'Evidence',
-    'readmodels.event_analysis': 'Event Analysis',
+    operations: {
+      events: 'Events',
+      participation: 'Participation',
+      polls: 'Polls',
+      rosters: 'Rosters',
+      battle_plans: 'Battle Plans',
+      territory_planning: 'Territory Planning',
+      reminders: 'Event Reminders',
+      rallies: 'Rallies',
+      results: 'Results',
+    },
+    alliance: {
+      content: 'Alliance Content',
+    },
+    communications: {
+      delivery: 'Communications',
+    },
+    intelligence: {
+      evidence: 'Evidence',
+    },
+    readmodels: {
+      event_analysis: 'Event Analysis',
+    },
   },
   classifications: {
     alliance_strategy: 'Alliance strategy',
