@@ -1,19 +1,10 @@
 export type EventCommandStatus =
-  | 'complete'
-  | 'needs_attention'
-  | 'warning'
-  | 'unknown'
-  | 'not_applicable';
+  'complete' | 'needs_attention' | 'warning' | 'unknown' | 'not_applicable';
 
 export type EventCommandSeverity = 'blocking' | 'warning' | 'informational';
 
 export type EventCommandState =
-  | 'planning'
-  | 'needs_attention'
-  | 'ready'
-  | 'active'
-  | 'closeout_required'
-  | 'complete';
+  'planning' | 'needs_attention' | 'ready' | 'active' | 'closeout_required' | 'complete';
 
 export type EventCommandItem = {
   code: string;
@@ -21,11 +12,7 @@ export type EventCommandItem = {
   status: EventCommandStatus;
   severity: EventCommandSeverity;
   owner: string;
-  classification:
-    | 'operational_fact'
-    | 'alliance_strategy'
-    | 'evidence'
-    | 'derived';
+  classification: 'operational_fact' | 'alliance_strategy' | 'evidence' | 'derived';
   count: number | null;
   messageKey: string;
   messageParameters: Record<string, string | number | null>;

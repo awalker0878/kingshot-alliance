@@ -113,8 +113,7 @@ final readonly class EventTerritoryCommandQuery
             );
             $analysis = $this->analyzer->analyze($dataset, $objects, $preferences);
             foreach (
-                is_array($analysis['alliances'] ?? null) ? $analysis['alliances'] : []
-                as $allianceAnalysis
+                is_array($analysis['alliances'] ?? null) ? $analysis['alliances'] : [] as $allianceAnalysis
             ) {
                 if (! is_array($allianceAnalysis)) {
                     continue;

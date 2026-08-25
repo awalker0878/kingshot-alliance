@@ -3,24 +3,17 @@ import { router } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
 import { useLocale } from '@/localization';
-import type {
-  EventCommandItem,
-  EventCommandProjection,
-} from '@/types/event-command';
+import type { EventCommandItem, EventCommandProjection } from '@/types/event-command';
 
 const props = defineProps<{ command: EventCommandProjection }>();
 const { t, formatDate } = useLocale();
 
-const allItems = computed(() =>
-  props.command.sections.flatMap((section) => section.items),
-);
+const allItems = computed(() => props.command.sections.flatMap((section) => section.items));
 const attentionItems = computed(() =>
   allItems.value.filter(
     (item) =>
-      (item.severity === 'blocking' &&
-        ['needs_attention', 'unknown'].includes(item.status)) ||
-      (item.severity === 'warning' &&
-        ['warning', 'unknown'].includes(item.status)),
+      (item.severity === 'blocking' && ['needs_attention', 'unknown'].includes(item.status)) ||
+      (item.severity === 'warning' && ['warning', 'unknown'].includes(item.status)),
   ),
 );
 const settledSections = computed(() =>
@@ -28,16 +21,13 @@ const settledSections = computed(() =>
     .map((section) => ({
       ...section,
       items: section.items.filter(
-        (item) =>
-          !attentionItems.value.some((attention) => attention.code === item.code),
+        (item) => !attentionItems.value.some((attention) => attention.code === item.code),
       ),
     }))
     .filter((section) => section.items.length > 0),
 );
 const phase = computed<'readiness' | 'closeout'>(() =>
-  props.command.sections.some((section) => section.phase === 'closeout')
-    ? 'closeout'
-    : 'readiness',
+  props.command.sections.some((section) => section.phase === 'closeout') ? 'closeout' : 'readiness',
 );
 
 function params(item: EventCommandItem): Record<string, string | number> {
@@ -50,10 +40,7 @@ function params(item: EventCommandItem): Record<string, string | number> {
 }
 
 function stateLabel(): string {
-  if (
-    props.command.eventStatus === 'cancelled' ||
-    props.command.occurrenceStatus === 'cancelled'
-  ) {
+  if (props.command.eventStatus === 'cancelled' || props.command.occurrenceStatus === 'cancelled') {
     return t('events.command.states.cancelled');
   }
   if (!props.command.selectedOccurrenceId || !props.command.state) {
@@ -95,20 +82,14 @@ function selectOccurrence(event: Event): void {
           class="text-xs font-semibold tracking-[0.16em] text-slate-500 uppercase dark:text-slate-400"
         >
           {{
-            phase === 'closeout'
-              ? t('events.command.closeoutEyebrow')
-              : t('events.command.eyebrow')
+            phase === 'closeout' ? t('events.command.closeoutEyebrow') : t('events.command.eyebrow')
           }}
         </p>
         <h2
           id="event-command-title"
           class="mt-1 text-xl font-semibold text-slate-950 dark:text-white"
         >
-          {{
-            phase === 'closeout'
-              ? t('events.command.closeoutTitle')
-              : t('events.command.title')
-          }}
+          {{ phase === 'closeout' ? t('events.command.closeoutTitle') : t('events.command.title') }}
         </h2>
         <div
           class="mt-2 flex flex-wrap items-center gap-2 text-sm text-slate-600 dark:text-slate-300"
@@ -118,10 +99,7 @@ function selectOccurrence(event: Event): void {
           </strong>
           <span v-if="command.startsAt" aria-hidden="true">·</span>
           <span v-if="command.startsAt">{{ formatDate(command.startsAt) }}</span>
-          <span
-            v-if="command.timezone"
-            class="text-slate-500 dark:text-slate-400"
-          >
+          <span v-if="command.timezone" class="text-slate-500 dark:text-slate-400">
             {{ command.timezone }}
           </span>
         </div>
@@ -192,9 +170,7 @@ function selectOccurrence(event: Event): void {
           :key="item.code"
           class="rounded-xl border border-slate-200 p-4 dark:border-slate-700"
         >
-          <div
-            class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"
-          >
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div class="min-w-0">
               <div class="flex flex-wrap items-center gap-2">
                 <span class="font-semibold text-slate-950 dark:text-white">
@@ -246,11 +222,7 @@ function selectOccurrence(event: Event): void {
               {{ t(section.labelKey) }}
             </h3>
             <ul class="mt-1 space-y-1 text-sm text-slate-600 dark:text-slate-300">
-              <li
-                v-for="item in section.items"
-                :key="item.code"
-                class="flex items-start gap-2"
-              >
+              <li v-for="item in section.items" :key="item.code" class="flex items-start gap-2">
                 <span aria-hidden="true">
                   {{ item.status === 'complete' ? '✓' : '•' }}
                 </span>
