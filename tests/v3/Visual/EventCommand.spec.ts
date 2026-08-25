@@ -5,11 +5,11 @@ import type { Locator, Page } from '@playwright/test';
 const fingerprints: Record<string, Record<'closeout' | 'ready', string>> = {
   desktop: {
     closeout: '9d15cfa91b882d076515746130cac20381e04a48891a7dcaac3e77f7bc4eb102',
-    ready: 'pending',
+    ready: 'd6f33230fad8cb9cca1bfc17e39fea25893a434cb5cb8f9dc01a89dfe657fd23',
   },
   mobile: {
     closeout: '7f2a60108b725e79536b5db7392a6b5bff42d7d6aaaea85b21f0bdfdb6cae493',
-    ready: 'pending',
+    ready: '3e6e81efe4ea3579a07a95a66761076c51ebabf168cd4e5523f73da18a6f287d',
   },
 };
 
