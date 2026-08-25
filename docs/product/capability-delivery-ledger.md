@@ -1,6 +1,6 @@
 # Capability delivery ledger
 
-Status: Current as of 2026-08-24
+Status: Current as of 2026-08-25
 
 This ledger records current delivered outcomes, active selected-extension work and remaining evidence gates. It is a work queue, not a speculative roadmap. Git history remains the archive for retired/completed intermediate phase detail and exact diffs/CI runs.
 
@@ -51,6 +51,22 @@ Later capability delivery is represented by the current canonical contracts belo
 | Alliance Assistant — GameWorld and operational-self extension | Complete | [Alliance Assistant GameWorld extension](alliance-assistant-gameworld-extension.md) |
 
 A defect or material change that invalidates a completed capability's canonical acceptance/Definition-of-Done contract reopens that capability as a regression. A new extension does not make the prior delivered capability incomplete.
+
+## Active release candidate — Event Command Readiness & Closeout
+
+Canonical contract: [Event Command — Readiness & Closeout](event-readiness-closeout.md).
+
+PR #123 has implemented the occurrence-scoped Event Command projection and owner-query integrations. Functional, architecture, static/security and release-workflow gates are being reconciled against the same immutable candidate. Event Readiness and Event Closeout remain **Selected extensions** until visual verification and final documentation reconciliation are green; they must not be represented as shipped before those rows close.
+
+The release candidate preserves these non-negotiable boundaries:
+
+1. `ReadModels/EventManagement` authorizes and composes; it does not own Event, Participation, Poll, Roster, BattlePlan, Rally, Result, Territory, Content, Communications, Evidence or EventAnalysis facts.
+2. No `event_ready`, `event_complete`, readiness lifecycle or blocker count is persisted.
+3. Readiness and closeout are occurrence-scoped, including recurring Events and explicit occurrence switching.
+4. Cancellation remains Event-owned truth and is presented as not applicable rather than synthetic completion.
+5. Missing/unavailable blocking owner state is `unknown` and never silently satisfies readiness or closeout.
+6. Every actionable item exposes its canonical owner and a navigation-only handoff; the destination owner reauthorizes and performs the mutation.
+7. Alliance-authored guidance remains labelled Alliance strategy; Communications queued state is not delivery success; Evidence remains provenance/review state rather than destination truth.
 
 ## Screenshot Intake — Bear Hunt reconciliation
 
@@ -103,8 +119,8 @@ Phase 0 is documentation-only. No application code, migration, route, frontend c
 | 0 | Contract work | Complete | Reconcile `/docs/product` | Screenshot Intake stale rows reconciled; extension contract created/indexed; catalogue/gap analysis/ledger/journeys aligned; ownership/provenance documented before application changes; no runtime changes. |
 | 1 | Current complete capability | Complete | Alliance Assistant `game_fact` | `AE-01`–`AE-03`, `AE-07`, `AE-09`–`AE-12`, plus `PX-*`: source-backed Progression query, immutable dataset/source/confidence citations, unknown/conflict semantics, authorization-before-retrieval, bounded UX/tests/release evidence. |
 | 2 | Current complete capability | Complete | Assistant operational-self intents and safe handoffs | `AE-04`–`AE-12`, plus `PX-*`: Participation/BattlePlan/Transfer/Territory self reads are authorized/bounded; write-like requests perform zero mutation and only navigate to canonical owner workflows. |
-| 3 | Selected extension | Not started | Event Readiness | `ER-01`–`ER-12`, plus `PX-*`: capability-aware pre-Event readiness composed from owner projections with explicit blockers/source/action links and no persisted readiness state machine. |
-| 4 | Selected extension | Not started | Event Closeout | `ER-01`–`ER-12`, plus `PX-*`: post-Event attendance/Rally/Results/Evidence/review/Debrief completion composed with explicit missing semantics and owner correction links. |
+| 3 | Selected extension | Verification in progress | Event Readiness | `ER-01`–`ER-12`, `EC-01`–`EC-28`, plus `PX-*`: occurrence-scoped capability-aware pre-Event readiness composed from bounded owner projections with explicit blockers/source/action links, query-budget coverage and no persisted readiness state machine. |
+| 4 | Selected extension | Verification in progress | Event Closeout | `ER-01`–`ER-12`, `EC-01`–`EC-28`, plus `PX-*`: occurrence-scoped post-Event attendance/Rally/Results/Evidence/review/Debrief completion composed with explicit missing semantics, owner correction links and no Event Command write path. |
 | 5 | Selected extension | Not started | Kingdom Transfer Screenshot Intake | `TE-01`–`TE-12`, plus `PX-*`: typed fixture-proven extraction/review, tenant-safe duplicate/retry, scalar owner commit, freshness/source semantics and eligibility reevaluation without invented rules. |
 | 6 | Selected extension | Not started | Governor Progression Screenshot Intake | `GE-01`–`GE-12`, plus `PX-*`: typed extraction/review, canonical identity normalization pinned to immutable Progression release, append-only Roster owner commit, tenant-safe retry/retention. |
 | 7 | Selected extension | Not started | Progression Goal Planner | `GP-01`–`GP-10`, plus `PX-*`: authorized observed current state + pinned factual target/prerequisites, explicit unknown/conflict/freshness, no recommendation semantics or unqualified totals. |
@@ -114,7 +130,7 @@ Phase 0 is documentation-only. No application code, migration, route, frontend c
 | 11 | Selected extension | Not started | Intelligence change signals | `IS-01`–`IS-08`, plus `PX-*`: deterministic source-cited signals over authorized histories, typed thresholds/windows, no inferred strategic intent, privacy-safe telemetry. |
 | 12 | Selected extension | Not started | Full reconciliation and release closeout | `PX-01`–`PX-15`: spec→code, code→spec, UX→backend, authorization, provenance/data ownership, missing-data, performance, accessibility/localization, observability/recovery and complete repository release gates are green on one immutable candidate. |
 
-`Not started` means the approved product contract exists but the implementation outcome must not be described in present tense. `Blocked pending qualification` is intentional evidence gating, not an implementation defect.
+`Verification in progress` means implementation exists but the extension still remains a Selected extension until its required release evidence and documentation reconciliation are complete. `Not started` means the approved product contract exists but the implementation outcome must not be described in present tense. `Blocked pending qualification` is intentional evidence gating, not an implementation defect.
 
 ## Calculator evidence qualification ledger
 
