@@ -91,7 +91,7 @@ final class EventCommandItems
             }
         }
 
-        return array_values($items);
+        return $items;
     }
 
     /** @param  list<array<string, mixed>>  $items */

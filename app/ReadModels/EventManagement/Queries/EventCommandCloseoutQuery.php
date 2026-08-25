@@ -59,7 +59,7 @@ final readonly class EventCommandCloseoutQuery
             $sections[] = $debrief;
         }
 
-        return array_values($sections);
+        return $sections;
     }
 
     /** @return array<string, mixed> */

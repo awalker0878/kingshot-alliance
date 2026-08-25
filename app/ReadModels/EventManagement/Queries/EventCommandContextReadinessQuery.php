@@ -39,7 +39,7 @@ final readonly class EventCommandContextReadinessQuery
         }
         $sections[] = $this->communications($event, $occurrence);
 
-        return array_values($sections);
+        return $sections;
     }
 
     /** @return array<string, mixed> */

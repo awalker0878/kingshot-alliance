@@ -62,7 +62,7 @@ final readonly class EventCommandOperationalReadinessQuery
             $sections[] = $this->rallies($event, $occurrence);
         }
 
-        return array_values($sections);
+        return $sections;
     }
 
     /** @return array<string, mixed> */
