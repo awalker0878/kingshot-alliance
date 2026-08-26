@@ -9,7 +9,7 @@ use App\Contexts\Intelligence\Evidence\ValueObjects\OcrToken;
 
 abstract class AbstractTransferEvidenceExtractor
 {
-    /** @param list<OcrToken> $tokens */
+    /** @param  list<OcrToken>  $tokens */
     protected function lineText(array $tokens): string
     {
         return trim(implode(' ', array_map(static fn (OcrToken $token): string => $token->text, $tokens)));
@@ -60,7 +60,7 @@ abstract class AbstractTransferEvidenceExtractor
         return null;
     }
 
-    /** @param list<OcrToken> $line */
+    /** @param  list<OcrToken>  $line */
     protected function kingdomNumber(array $line): ?int
     {
         $text = $this->lineText($line);
@@ -75,8 +75,8 @@ abstract class AbstractTransferEvidenceExtractor
     }
 
     /**
-     * @param non-empty-list<OcrToken> $tokens
-     * @param list<string> $warnings
+     * @param  non-empty-list<OcrToken>  $tokens
+     * @param  list<string>  $warnings
      */
     protected function candidate(string $key, int $ordinal, array $tokens, string $normalized, string $type, array $warnings = []): ExtractedFieldCandidate
     {
