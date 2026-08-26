@@ -7,7 +7,7 @@ namespace App\Contexts\Intelligence\Roster\Services;
 use App\Contexts\Alliance\Membership\Queries\RosterEntryQuery;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceWriteState;
-use App\Contexts\Intelligence\Evidence\Contracts\EvidenceReferenceLookup;
+use App\Contexts\Intelligence\Evidence\Contracts\GovernorProgressionEvidenceReferenceLookup;
 use App\Contexts\Intelligence\Evidence\Enums\EvidenceKind;
 use App\Contexts\Intelligence\Roster\Models\GovernorProgressionEvidenceReceipt;
 use App\Contexts\Intelligence\Roster\Models\GovernorProgressionObservation;
@@ -24,7 +24,7 @@ final readonly class GovernorProgressionObservationWriter
     public function __construct(
         private AllianceIntelligenceWriteState $writeState,
         private RosterEntryQuery $roster,
-        private EvidenceReferenceLookup $evidence,
+        private GovernorProgressionEvidenceReferenceLookup $evidence,
         private GovernorProgressionObservationValidator $validator,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
