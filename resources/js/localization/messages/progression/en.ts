@@ -170,6 +170,10 @@ const messages = {
     processingScreenshot: 'Screenshot processing is still in progress.',
     screenshotProcessingFailed:
       'Screenshot processing failed. You can retry while the retained image is available.',
+    screenshotUnsupported: 'Unsupported screenshot',
+    screenshotNeedsReview: 'Ready for review',
+    screenshotApproved: 'Review approved',
+    screenshotCommitting: 'Updating Roster…',
     screenshotCommitted: 'Accepted into Roster history',
     screenshotDeleted: 'Evidence deleted or redacted',
     observedName: 'Observed name',
