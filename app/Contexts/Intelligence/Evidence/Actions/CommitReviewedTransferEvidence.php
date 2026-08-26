@@ -116,7 +116,9 @@ final readonly class CommitReviewedTransferEvidence
                 schemaVersion: $command->schemaVersion,
                 idempotencyKey: $command->idempotencyKey,
                 powerCap: $command->targetPowerCap ?? throw new LogicException('Power Cap is missing from an approved target-rules review.'),
-                classification: TransferKingdomClassification::from($command->kingdomClassification ?? 'unknown'),
+                classification: $command->kingdomClassification === null
+                    ? null
+                    : TransferKingdomClassification::from($command->kingdomClassification),
                 observedAt: $command->observedAt,
             ),
             EvidenceKind::TransferOfficialGroup => $this->officialGroup->handle(
