@@ -157,6 +157,8 @@ const englishCommand: MessageCatalogue = {
     correctionsUnsupported:
       'Results does not currently expose an explicit unresolved-correction workflow.',
     evidenceUnavailable: 'Evidence closeout status is temporarily unavailable.',
+    evidenceCoverageIncomplete:
+      'Evidence coverage exceeds the Event Command review window, so closeout cannot be confirmed.',
     evidenceProcessing: '{count} Evidence items are still processing.',
     evidenceAwaitingReview: '{count} Evidence items are awaiting review.',
     evidenceUnmatched: '{count} Evidence items contain unmatched Governors.',
