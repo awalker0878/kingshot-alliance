@@ -49,6 +49,7 @@ export type GovernorProgressionReview = {
 
 export type GovernorProgressionEvidenceSummary = {
   id: string;
+  originalName: string;
   expectedKind: string;
   detectedKind: string;
   lifecycleStatus: string;
