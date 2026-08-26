@@ -1,0 +1,21 @@
+{
+  "schema_version": "transfer-target-kingdom-rules/1",
+  "fixture_policy": "Synthetic redacted OCR projection; no user evidence.",
+  "positive": [
+    {"name":"canonical","lines":["Kingdom #654","Power Cap 90,000,000","Ordinary Kingdom"],"fields":{"target_kingdom_number":654,"power_cap":90000000,"kingdom_classification":"ordinary"}},
+    {"name":"leading","lines":["Kingdom 654","Power Cap 95,000,000","Leading Kingdom"],"fields":{"target_kingdom_number":654,"power_cap":95000000,"kingdom_classification":"leading"}}
+  ],
+  "negative": [
+    {"name":"governor_power_not_cap","lines":["Kingdom #654","Governor Power 90,000,000"],"must_not_extract":["power_cap"]},
+    {"name":"classification_not_visible","lines":["Kingdom #654","Power Cap 90,000,000"],"must_not_infer":["kingdom_classification"]}
+  ],
+  "ambiguity": [
+    {"name":"kingdom_only","lines":["Kingdom #654","Transfer Rules"],"classified":"unknown"}
+  ],
+  "semantic_duplicate": [
+    {"name":"same_condition","target_kingdom_number":654,"power_cap":90000000,"kingdom_classification":"ordinary","observed_at":"2026-08-26T01:00:00Z"}
+  ],
+  "semantic_newer": [
+    {"name":"newer_condition","target_kingdom_number":654,"power_cap":90000000,"kingdom_classification":"ordinary","observed_at":"2026-08-26T03:00:00Z"}
+  ]
+}
