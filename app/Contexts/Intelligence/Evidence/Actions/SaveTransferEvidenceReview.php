@@ -249,7 +249,7 @@ final readonly class SaveTransferEvidenceReview
             EvidenceKind::TransferInvitation => [
                 [...$empty, 'invitation_status' => $this->invitation($invitationStatus)],
                 [],
-                $this->verifiedTarget($targetKingdomId, $targetKingdomNumber, false, $validUntil),
+                $this->verifiedTargetWithValidity($targetKingdomId, $targetKingdomNumber, $validUntil),
             ],
             EvidenceKind::TransferTargetKingdomRules => [
                 [...$empty,
@@ -257,7 +257,7 @@ final readonly class SaveTransferEvidenceReview
                     'kingdom_classification' => $this->classification($kingdomClassification),
                 ],
                 [],
-                $this->verifiedTarget($targetKingdomId, $targetKingdomNumber, true, null),
+                $this->verifiedTarget($targetKingdomId, $targetKingdomNumber, true),
             ],
             EvidenceKind::TransferOfficialGroup => [
                 [...$empty, 'official_group_identifier' => $this->groupIdentifier($officialGroupIdentifier)],
@@ -296,11 +296,15 @@ final readonly class SaveTransferEvidenceReview
         return $targetKingdomId;
     }
 
-    private function verifiedTarget(?string $targetKingdomId, ?int $observedNumber, bool $requiredObservedNumber, ?CarbonImmutable $validUntil): string
+    private function verifiedTargetWithValidity(?string $targetKingdomId, ?int $observedNumber, ?CarbonImmutable $validUntil): string
     {
-        if ($validUntil !== null) {
-            $this->requireValidity($validUntil);
-        }
+        $this->requireValidity($validUntil);
+
+        return $this->verifiedTarget($targetKingdomId, $observedNumber, false);
+    }
+
+    private function verifiedTarget(?string $targetKingdomId, ?int $observedNumber, bool $requiredObservedNumber): string
+    {
         if ($targetKingdomId === null) {
             throw ValidationException::withMessages(['participant' => 'This screenshot class requires a current target Kingdom.']);
         }
