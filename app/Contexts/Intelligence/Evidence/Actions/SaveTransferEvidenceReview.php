@@ -23,6 +23,7 @@ use App\Contexts\Intelligence\Evidence\Services\TransferEvidenceSchemaRegistry;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -202,7 +203,7 @@ final readonly class SaveTransferEvidenceReview
     }
 
     /**
-     * @param  list<int>  $officialGroupKingdomNumbers
+     * @param list<int> $officialGroupKingdomNumbers
      * @return array{0:array<string,int|string|null>,1:list<int>,2:?string}
      */
     private function validatedMeaning(
@@ -277,7 +278,7 @@ final readonly class SaveTransferEvidenceReview
         return $value;
     }
 
-    private function requireValidity(?CarbonImmutable $validUntil): ?string
+    private function requireValidity(?CarbonImmutable $validUntil): null
     {
         if (! $validUntil instanceof CarbonImmutable) {
             throw ValidationException::withMessages(['valid_until' => 'A validity boundary is required for this mutable Transfer observation.']);
@@ -351,7 +352,10 @@ final readonly class SaveTransferEvidenceReview
         return $identifier;
     }
 
-    /** @param list<int> $numbers @return list<int> */
+    /**
+     * @param list<int> $numbers
+     * @return list<int>
+     */
     private function kingdomNumbers(array $numbers): array
     {
         $normalized = [];
@@ -371,8 +375,8 @@ final readonly class SaveTransferEvidenceReview
     }
 
     /**
-     * @param  array<string,int|string|null>  $values
-     * @param  list<int>  $kingdomNumbers
+     * @param array<string,int|string|null> $values
+     * @param list<int> $kingdomNumbers
      */
     private function fingerprint(EvidenceKind $kind, string $schemaVersion, string $windowId, string $participantId, ?string $targetId, CarbonImmutable $observedAt, array $values, array $kingdomNumbers): string
     {
@@ -388,8 +392,12 @@ final readonly class SaveTransferEvidenceReview
         return hash('sha256', json_encode($payload, JSON_THROW_ON_ERROR));
     }
 
-    /** @param array<string,int|string|null> $values */
-    private function correctedFieldCount(array $values, array $kingdomNumbers, $sourceMap): int
+    /**
+     * @param array<string,int|string|null> $values
+     * @param list<int> $kingdomNumbers
+     * @param Collection<string, Collection<int, EvidenceExtractedField>> $sourceMap
+     */
+    private function correctedFieldCount(array $values, array $kingdomNumbers, Collection $sourceMap): int
     {
         $count = 0;
         foreach ($values as $key => $value) {
