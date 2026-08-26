@@ -1,6 +1,6 @@
 # Event Command — Readiness & Closeout
 
-Status: Verification reopened — Evidence coverage bound
+Status: Current complete capability — verified 2026-08-25
 
 Date: 2026-08-25
 
@@ -364,12 +364,12 @@ No row may be marked complete based on scaffolding or backend-only implementatio
 | 5 | Complete | Reminders + Communications | Reminder configuration plus occurrence delivery health/failure semantics and recovery handoffs are implemented. |
 | 6 | Complete | Rally readiness | Capability-aware Rally planning projection is implemented. |
 | 7 | Complete | Closeout Participation + Rallies | Attendance and actual Rally participation closeout composition is implemented. |
-| 8 | In progress | Results + Evidence | Results semantics are implemented; Evidence must expose complete bounded coverage and fail closed when the reviewed artifact bound is exceeded. |
+| 8 | Complete | Results + Evidence | Results semantics and bounded Evidence coverage are implemented; Evidence explicitly fails closed as blocking `unknown` when the 200-artifact review window cannot prove complete coverage. |
 | 9 | Complete | Debrief availability | Bounded EventAnalysis availability is integrated without duplicated analysis rules. |
 | 10 | Complete | Event Command UX | Card, occurrence switcher, lifecycle states, stable deep links, responsive/accessibility/localization behavior and deterministic desktop/mobile visual fixtures are implemented. |
 | 11 | Complete | Performance + observability + architecture | query budget, safe diagnostics, isolation and boundary enforcement are implemented. |
-| 12 | In progress | Verification + reconciliation | Previous release candidate gates were green; rerun all repository gates after Evidence coverage semantics are implemented and reconcile the final immutable SHA. |
+| 12 | Complete | Verification + reconciliation | PR #124 hardening candidate `c9d5a09b48e132f811df896eef7d8721f8d35c66` passed CI, PHP/Pint/PHPStan, frontend checks/build, Architecture V3, Visual Regression, CodeQL, Dependency Review, Intelligence Verification, production image, ephemeral staging, backup/restore and image scan; final documentation reconciliation follows on a docs-only verified head. |
 
 ## Definition of Done
 
-Event Readiness & Closeout verification is reopened for the bounded Evidence coverage defect. The capability returns to **Current complete capability** only after phases 8 and 12 are complete, the fail-closed Evidence coverage regression is proven, all required repository gates are green on one immutable final candidate, and global product documentation is reconciled to that candidate. A missing owner query, failing test, architecture violation, inaccessible handoff, incomplete mobile/accessibility state, stale documentation or failed release gate is implementation work, not a reason to declare the capability complete.
+Event Readiness & Closeout is a **Current complete capability**. The occurrence-scoped Event Command composition, pre-Event readiness and post-Event closeout flows, bounded owner projections, fail-closed Evidence coverage, authorization/isolation including forged-occurrence HTTP rejection, canonical navigation-only handoffs, responsive/accessibility/localization UX, observability, query-budget coverage, automated/architecture/contract/visual tests, static/security gates, production image, ephemeral staging, backup/restore and documentation reconciliation are complete. The delivery ledger contains no incomplete Event Readiness or Event Closeout items, and no derived Event Command truth is persisted.
