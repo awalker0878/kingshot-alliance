@@ -23,7 +23,7 @@ final class GovernorProgressionObservationQuery
     }
 
     /**
-     * @param array<string,mixed> $payload
+     * @param  array<string,mixed>  $payload
      * @return array{before:array<string,mixed>,after:array<string,mixed>}
      */
     public function preview(
@@ -78,7 +78,10 @@ final class GovernorProgressionObservationQuery
         return $observations;
     }
 
-    /** @param Collection<int,GovernorProgressionObservation> $observations @return array<string,mixed> */
+    /**
+     * @param  Collection<int,GovernorProgressionObservation>  $observations
+     * @return array<string,mixed>
+     */
     private function project(Collection $observations): array
     {
         $current = [
@@ -109,7 +112,10 @@ final class GovernorProgressionObservationQuery
         return $current;
     }
 
-    /** @param array<string,mixed> $current @param array<string,mixed> $payload */
+    /**
+     * @param  array<string,mixed>  $current
+     * @param  array<string,mixed>  $payload
+     */
     private function apply(array &$current, GovernorProgressionObservation $observation, array $payload): void
     {
         $kind = $observation->kind;
