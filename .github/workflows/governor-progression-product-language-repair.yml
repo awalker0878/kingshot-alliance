@@ -1,0 +1,63 @@
+name: Governor Progression Product Language Repair
+
+on:
+  push:
+    branches:
+      - feature/screenshot-intake-governor-progression-main
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: feature/screenshot-intake-governor-progression-main
+          fetch-depth: 0
+      - name: Configure Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install locked frontend dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Replace architecture language in recovery receipt
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          component = Path('resources/js/components/progression/GovernorProgressionScreenshotIntake.vue')
+          text = component.read_text()
+          old = """                <template v-if=\"item.commit.destinationReceipt?.idempotent_replay\">\n                  · recovered idempotent replay\n                </template>"""
+          new = """                <template v-if=\"item.commit.destinationReceipt?.idempotent_replay\">\n                  · {{ t('progression.recoveredRosterUpdate') }}\n                </template>"""
+          if old not in text:
+              raise SystemExit('Expected recovery receipt copy not found')
+          component.write_text(text.replace(old, new, 1))
+
+          messages = Path('resources/js/localization/messages/progression/en.ts')
+          text = messages.read_text()
+          old = "    recoveredIdempotentReplay: 'Recovered idempotent replay',"
+          new = "    recoveredRosterUpdate: 'Previous Roster update recovered',"
+          if old not in text:
+              raise SystemExit('Expected recovery localization copy not found')
+          messages.write_text(text.replace(old, new, 1))
+          PY
+          npx prettier --write resources/js/components/progression/GovernorProgressionScreenshotIntake.vue resources/js/localization/messages/progression/en.ts
+          npm run types:check
+          npm run check:product-language
+          npx prettier --check resources/js/components/progression/GovernorProgressionScreenshotIntake.vue resources/js/localization/messages/progression/en.ts
+      - name: Commit repair
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resources/js/components/progression/GovernorProgressionScreenshotIntake.vue resources/js/localization/messages/progression/en.ts
+          git commit -m 'Use product language for Governor Progression recovery'
+          git push origin HEAD:feature/screenshot-intake-governor-progression-main
