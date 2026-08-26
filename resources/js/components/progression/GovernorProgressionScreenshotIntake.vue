@@ -1344,7 +1344,7 @@ function evidenceStatus(item: GovernorProgressionEvidenceSummary): string {
                   · {{ item.commit.destinationReceipt.observation_id }}
                 </template>
                 <template v-if="item.commit.destinationReceipt?.idempotent_replay">
-                  · recovered idempotent replay
+                  · {{ t('progression.recoveredRosterUpdate') }}
                 </template>
               </p>
             </div>

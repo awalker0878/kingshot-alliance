@@ -180,7 +180,7 @@ const messages = {
     screenshotClassMismatch:
       'Expected/detected class mismatch — review the detected class before approval.',
     approvedReview: 'Approved review #{revision}',
-    recoveredIdempotentReplay: 'Recovered idempotent replay',
+    recoveredRosterUpdate: 'Previous Roster update recovered',
     yes: 'Yes',
     no: 'No',
     observationLabel: 'Observation',
