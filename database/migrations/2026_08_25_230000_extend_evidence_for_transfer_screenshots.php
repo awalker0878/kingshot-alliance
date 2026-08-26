@@ -30,6 +30,7 @@ return new class extends Migration
         });
 
         $this->addScopeConstraint();
+        $this->allowUnobservedKingdomClassification();
 
         Schema::create('evidence_transfer_reviews', function (Blueprint $table): void {
             $table->ulid('id')->primary();
@@ -124,6 +125,7 @@ return new class extends Migration
         Schema::dropIfExists('evidence_transfer_commit_attempts');
         Schema::dropIfExists('evidence_transfer_review_kingdoms');
         Schema::dropIfExists('evidence_transfer_reviews');
+        $this->restoreRequiredKingdomClassification();
         $this->dropScopeConstraint();
 
         Schema::table('game_evidence', function (Blueprint $table): void {
@@ -133,6 +135,40 @@ return new class extends Migration
             $table->dropConstrainedForeignId('transfer_participant_id');
             $table->dropConstrainedForeignId('transfer_plan_id');
             $table->foreignUlid('occurrence_id')->nullable(false)->change();
+        });
+    }
+
+    private function allowUnobservedKingdomClassification(): void
+    {
+        $driver = DB::getDriverName();
+        if ($driver === 'pgsql') {
+            DB::statement('ALTER TABLE transfer_kingdom_condition_observations ALTER COLUMN classification DROP DEFAULT');
+            DB::statement('ALTER TABLE transfer_kingdom_condition_observations ALTER COLUMN classification DROP NOT NULL');
+
+            return;
+        }
+
+        Schema::table('transfer_kingdom_condition_observations', function (Blueprint $table): void {
+            $table->string('classification', 24)->nullable()->default(null)->change();
+        });
+    }
+
+    private function restoreRequiredKingdomClassification(): void
+    {
+        DB::table('transfer_kingdom_condition_observations')
+            ->whereNull('classification')
+            ->update(['classification' => 'unknown']);
+
+        $driver = DB::getDriverName();
+        if ($driver === 'pgsql') {
+            DB::statement("ALTER TABLE transfer_kingdom_condition_observations ALTER COLUMN classification SET DEFAULT 'unknown'");
+            DB::statement('ALTER TABLE transfer_kingdom_condition_observations ALTER COLUMN classification SET NOT NULL');
+
+            return;
+        }
+
+        Schema::table('transfer_kingdom_condition_observations', function (Blueprint $table): void {
+            $table->string('classification', 24)->nullable(false)->default('unknown')->change();
         });
     }
 
