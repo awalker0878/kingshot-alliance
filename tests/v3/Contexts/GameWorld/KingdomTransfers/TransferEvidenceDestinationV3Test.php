@@ -18,6 +18,7 @@ use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferDirection;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferInvitationStatus;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferKingdomClassification;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferObservationKind;
+use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferSourceType;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferEvidenceReceipt;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferGroup;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferKingdomConditionObservation;
@@ -264,7 +265,7 @@ final class TransferEvidenceDestinationV3Test extends TestCase
                 'invitational_starts_at' => $this->now->subDays(2)->toIso8601String(),
                 'transfer_opens_at' => $this->now->subDay()->toIso8601String(),
                 'ends_at' => $this->now->addDay()->toIso8601String(),
-                'source_type' => \App\Contexts\GameWorld\KingdomTransfers\Enums\TransferSourceType::OfficialPublication,
+                'source_type' => TransferSourceType::OfficialPublication,
                 'source_reference' => 'Synthetic official Transfer Window fixture',
                 'observed_at' => $this->now->subDays(4)->toIso8601String(),
             ],

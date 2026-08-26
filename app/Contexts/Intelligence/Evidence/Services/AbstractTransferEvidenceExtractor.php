@@ -33,8 +33,8 @@ abstract class AbstractTransferEvidenceExtractor
     }
 
     /**
-     * @param list<OcrToken> $line
-     * @param list<string> $signals
+     * @param  list<OcrToken>  $line
+     * @param  list<string>  $signals
      */
     protected function numericCandidate(array $line, array $signals, string $fieldKey, int $ordinal = 0): ?ExtractedFieldCandidate
     {

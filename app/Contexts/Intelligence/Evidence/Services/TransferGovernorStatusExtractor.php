@@ -7,7 +7,6 @@ namespace App\Contexts\Intelligence\Evidence\Services;
 use App\Contexts\Intelligence\Evidence\Contracts\EvidenceExtractor;
 use App\Contexts\Intelligence\Evidence\Enums\EvidenceKind;
 use App\Contexts\Intelligence\Evidence\ValueObjects\OcrDocument;
-use App\Contexts\Intelligence\Evidence\ValueObjects\OcrToken;
 use InvalidArgumentException;
 
 final class TransferGovernorStatusExtractor extends AbstractTransferEvidenceExtractor implements EvidenceExtractor

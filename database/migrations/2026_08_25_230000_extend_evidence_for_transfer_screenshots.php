@@ -138,7 +138,7 @@ return new class extends Migration
 
     private function addScopeConstraint(): void
     {
-        $valid = "((occurrence_id IS NOT NULL AND transfer_plan_id IS NULL AND transfer_participant_id IS NULL) OR (occurrence_id IS NULL AND transfer_plan_id IS NOT NULL AND transfer_participant_id IS NOT NULL))";
+        $valid = '((occurrence_id IS NOT NULL AND transfer_plan_id IS NULL AND transfer_participant_id IS NULL) OR (occurrence_id IS NULL AND transfer_plan_id IS NOT NULL AND transfer_participant_id IS NOT NULL))';
         $driver = DB::getDriverName();
         if ($driver === 'sqlite') {
             DB::statement("CREATE TRIGGER game_evidence_scope_insert BEFORE INSERT ON game_evidence WHEN NOT {$valid} BEGIN SELECT RAISE(ABORT, 'invalid game evidence scope'); END");

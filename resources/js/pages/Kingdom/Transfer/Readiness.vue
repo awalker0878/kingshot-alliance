@@ -144,7 +144,10 @@ const validationErrors = computed(() =>
 const { dialog, requestConfirmation, cancelConfirmation, confirmAction } = useConfirmAction();
 const filter = ref('all');
 const readinessDrafts = reactive(
-  Object.fromEntries(props.participants.map((p) => [p.id, p.readiness])) as Record<string, Readiness>,
+  Object.fromEntries(props.participants.map((p) => [p.id, p.readiness])) as Record<
+    string,
+    Readiness
+  >,
 );
 const blockerDrafts = reactive(
   Object.fromEntries(props.participants.map((p) => [p.id, { summary: '', details: '' }])) as Record<
@@ -193,12 +196,16 @@ const sourceTypes: SourceType[] = ['in_game', 'official_publication', 'manager_n
 const filtered = computed(() =>
   props.participants.filter((p) => {
     if (filter.value === 'all') return true;
-    if (filter.value === 'missing_target') return p.direction === 'outgoing' && p.destinationKingdom === null;
+    if (filter.value === 'missing_target')
+      return p.direction === 'outgoing' && p.destinationKingdom === null;
     if (filter.value === 'needs_invite') return requirement(p, 'invitation')?.state === 'unmet';
-    if (filter.value === 'insufficient_passes') return requirement(p, 'transfer_passes')?.state === 'unmet';
+    if (filter.value === 'insufficient_passes')
+      return requirement(p, 'transfer_passes')?.state === 'unmet';
     if (filter.value === 'over_cap') {
       const r = requirement(p, 'power_cap');
-      return typeof r?.actual === 'number' && typeof r.required === 'number' && r.actual > r.required;
+      return (
+        typeof r?.actual === 'number' && typeof r.required === 'number' && r.actual > r.required
+      );
     }
     return p.eligibility?.outcome === filter.value;
   }),
@@ -218,7 +225,9 @@ function requirement(p: Participant, key: string): Requirement | undefined {
   return p.eligibility?.requirements.find((r) => r.key === key);
 }
 function timestamp(v: string | null): string {
-  return v ? formatDate(v, { dateStyle: 'medium', timeStyle: 'short' }) : t('kingdomP7D.notSpecified');
+  return v
+    ? formatDate(v, { dateStyle: 'medium', timeStyle: 'short' })
+    : t('kingdomP7D.notSpecified');
 }
 function sourceLabel(v: SourceType | null): string {
   return v ? t(`kingdomP7D.source_${v}`) : t('kingdomP7D.unknown');
@@ -267,7 +276,11 @@ function allowedTransitions(p: Participant): Readiness[] {
 }
 function saveReadiness(p: Participant): void {
   if (!props.plan?.mutable || p.withdrawnAt) return;
-  router.patch(`/alliance/transfers/${props.plan.id}/participants/${p.id}/readiness`, { readiness: readinessDrafts[p.id] }, { preserveScroll: true });
+  router.patch(
+    `/alliance/transfers/${props.plan.id}/participants/${p.id}/readiness`,
+    { readiness: readinessDrafts[p.id] },
+    { preserveScroll: true },
+  );
 }
 function addBlocker(p: Participant): void {
   if (!props.plan?.mutable || p.withdrawnAt) return;
@@ -282,7 +295,11 @@ function addBlocker(p: Participant): void {
 }
 function resolveBlocker(p: Participant, b: Blocker): void {
   if (!props.plan?.mutable || b.state !== 'active') return;
-  router.post(`/alliance/transfers/${props.plan.id}/participants/${p.id}/blockers/${b.id}/resolve`, {}, { preserveScroll: true });
+  router.post(
+    `/alliance/transfers/${props.plan.id}/participants/${p.id}/blockers/${b.id}/resolve`,
+    {},
+    { preserveScroll: true },
+  );
 }
 function withdrawParticipant(p: Participant): void {
   if (!props.plan?.mutable || p.withdrawnAt) return;
@@ -294,14 +311,26 @@ function withdrawParticipant(p: Participant): void {
     confirmLabel: t('kingdomP7D.withdraw'),
     cancelLabel: t('common.cancel'),
     perform: (finish) =>
-      router.post(`/alliance/transfers/${id}/participants/${p.id}/withdraw`, {}, { preserveScroll: true, onFinish: finish }),
+      router.post(
+        `/alliance/transfers/${id}/participants/${p.id}/withdraw`,
+        {},
+        { preserveScroll: true, onFinish: finish },
+      ),
   });
 }
 function recordObservation(p: Participant): void {
   if (!props.plan?.mutable || p.withdrawnAt) return;
   const d = observationDrafts[p.id]!;
   let value: string | number | boolean = d.value;
-  if (['governor_power', 'transfer_score', 'transfer_passes_available', 'transfer_passes_required'].includes(d.kind)) value = Number(d.value);
+  if (
+    [
+      'governor_power',
+      'transfer_score',
+      'transfer_passes_available',
+      'transfer_passes_required',
+    ].includes(d.kind)
+  )
+    value = Number(d.value);
   if (d.kind === 'in_game_rules_verified') value = d.value === 'true';
   router.post(
     `/alliance/transfers/${props.plan.id}/participants/${p.id}/observations`,
@@ -323,17 +352,30 @@ function recordObservation(p: Participant): void {
     <header class="flex flex-wrap items-start justify-between gap-5">
       <div class="max-w-3xl">
         <p class="ks-kicker">{{ t('kingdomP7D.eyebrow') }}</p>
-        <h1 class="ks-display mt-2 text-3xl font-bold sm:text-4xl">{{ t('kingdomP7D.eligibilityTitle') }}</h1>
-        <p class="mt-3 text-sm leading-6 text-[var(--ks-text-secondary)]">{{ t('kingdomP7D.eligibilitySubtitle') }}</p>
+        <h1 class="ks-display mt-2 text-3xl font-bold sm:text-4xl">
+          {{ t('kingdomP7D.eligibilityTitle') }}
+        </h1>
+        <p class="mt-3 text-sm leading-6 text-[var(--ks-text-secondary)]">
+          {{ t('kingdomP7D.eligibilitySubtitle') }}
+        </p>
       </div>
       <nav :aria-label="t('kingdomP7D.overviewNavigation')" class="flex flex-wrap gap-2">
         <Link class="ks-command-link" href="/alliance/transfers">{{ t('kingdomP7D.title') }}</Link>
-        <Link class="ks-command-link" href="/alliance/transfers/manage">{{ t('kingdomP7D.manageTransfers') }}</Link>
-        <Link class="ks-command-link" href="/alliance/transfers/completion">{{ t('kingdomP7D.completion') }}</Link>
+        <Link class="ks-command-link" href="/alliance/transfers/manage">{{
+          t('kingdomP7D.manageTransfers')
+        }}</Link>
+        <Link class="ks-command-link" href="/alliance/transfers/completion">{{
+          t('kingdomP7D.completion')
+        }}</Link>
       </nav>
     </header>
 
-    <div v-if="validationErrors.length" role="alert" aria-live="assertive" class="mt-5 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-200">
+    <div
+      v-if="validationErrors.length"
+      role="alert"
+      aria-live="assertive"
+      class="mt-5 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-200"
+    >
       {{ validationErrors[0] }}
     </div>
 
@@ -342,7 +384,9 @@ function recordObservation(p: Participant): void {
         <div>
           <p class="ks-kicker">{{ t('kingdomP7D.transferWindow') }}</p>
           <h2 id="window-heading" class="ks-display mt-1 text-2xl">{{ plan.window.label }}</h2>
-          <p class="mt-2 text-sm text-[var(--ks-muted)]">{{ phaseLabel(plan.window.phase) }} · {{ timestamp(plan.window.endsAt) }}</p>
+          <p class="mt-2 text-sm text-[var(--ks-muted)]">
+            {{ phaseLabel(plan.window.phase) }} · {{ timestamp(plan.window.endsAt) }}
+          </p>
         </div>
         <div class="text-sm text-[var(--ks-muted)]">
           <p>{{ sourceLabel(plan.window.sourceType) }}</p>
@@ -353,14 +397,24 @@ function recordObservation(p: Participant): void {
     </section>
 
     <section v-if="plan" class="ks-surface mt-4 p-4">
-      <label class="ks-kicker" for="eligibility-filter">{{ t('kingdomP7D.eligibilityFilter') }}</label>
-      <select id="eligibility-filter" v-model="filter" class="mt-2 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2 sm:max-w-sm">
+      <label class="ks-kicker" for="eligibility-filter">{{
+        t('kingdomP7D.eligibilityFilter')
+      }}</label>
+      <select
+        id="eligibility-filter"
+        v-model="filter"
+        class="mt-2 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2 sm:max-w-sm"
+      >
         <option value="all">{{ t('kingdomP7D.filter_all') }}</option>
         <option value="eligible_now">{{ t('kingdomP7D.eligibility_eligible_now') }}</option>
         <option value="blocked">{{ t('kingdomP7D.eligibility_blocked') }}</option>
-        <option value="needs_verification">{{ t('kingdomP7D.eligibility_needs_verification') }}</option>
+        <option value="needs_verification">
+          {{ t('kingdomP7D.eligibility_needs_verification') }}
+        </option>
         <option value="needs_invite">{{ t('kingdomP7D.filter_needs_invite') }}</option>
-        <option value="insufficient_passes">{{ t('kingdomP7D.filter_insufficient_passes') }}</option>
+        <option value="insufficient_passes">
+          {{ t('kingdomP7D.filter_insufficient_passes') }}
+        </option>
         <option value="over_cap">{{ t('kingdomP7D.filter_over_cap') }}</option>
         <option value="missing_target">{{ t('kingdomP7D.filter_missing_target') }}</option>
       </select>
@@ -372,39 +426,91 @@ function recordObservation(p: Participant): void {
           <div class="flex flex-wrap items-start justify-between gap-4">
             <div>
               <p class="ks-kicker">
-                {{ p.direction === 'incoming' ? t('kingdomP7D.source') : t('kingdomP7D.destination') }} ·
-                {{ p.direction === 'incoming' ? (p.sourceKingdom ?? '—') : (p.destinationKingdom ?? t('kingdomP7D.undecided')) }}
+                {{
+                  p.direction === 'incoming' ? t('kingdomP7D.source') : t('kingdomP7D.destination')
+                }}
+                ·
+                {{
+                  p.direction === 'incoming'
+                    ? (p.sourceKingdom ?? '—')
+                    : (p.destinationKingdom ?? t('kingdomP7D.undecided'))
+                }}
               </p>
               <h2 class="ks-display mt-1 text-2xl">{{ p.name }}</h2>
               <p class="mt-2 text-sm text-[var(--ks-muted)]">
-                {{ t('kingdomP7D.planningCohort') }}: {{ p.cohortName ?? t('kingdomP7D.unassigned') }} ·
-                {{ t('kingdomP7D.readiness') }}: {{ readinessLabel(p.readiness) }}
+                {{ t('kingdomP7D.planningCohort') }}:
+                {{ p.cohortName ?? t('kingdomP7D.unassigned') }} · {{ t('kingdomP7D.readiness') }}:
+                {{ readinessLabel(p.readiness) }}
               </p>
             </div>
-            <span v-if="p.eligibility" :class="['rounded-full border px-3 py-1 text-sm font-bold', outcomeTone(p.eligibility.outcome)]">{{ outcomeLabel(p.eligibility.outcome) }}</span>
+            <span
+              v-if="p.eligibility"
+              :class="[
+                'rounded-full border px-3 py-1 text-sm font-bold',
+                outcomeTone(p.eligibility.outcome),
+              ]"
+              >{{ outcomeLabel(p.eligibility.outcome) }}</span
+            >
           </div>
-          <div v-if="p.eligibility" class="mt-4 rounded-xl border border-[var(--ks-border)] bg-black/15 p-4">
-            <p class="font-semibold">{{ p.eligibility.primaryAction ?? t('kingdomP7D.noRemainingActions') }}</p>
-            <p class="mt-1 text-xs text-[var(--ks-muted)]">{{ t('kingdomP7D.evaluatedAt') }} {{ timestamp(p.eligibility.evaluatedAt) }}</p>
+          <div
+            v-if="p.eligibility"
+            class="mt-4 rounded-xl border border-[var(--ks-border)] bg-black/15 p-4"
+          >
+            <p class="font-semibold">
+              {{ p.eligibility.primaryAction ?? t('kingdomP7D.noRemainingActions') }}
+            </p>
+            <p class="mt-1 text-xs text-[var(--ks-muted)]">
+              {{ t('kingdomP7D.evaluatedAt') }} {{ timestamp(p.eligibility.evaluatedAt) }}
+            </p>
           </div>
           <dl class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <div class="rounded-lg border border-[var(--ks-border)] p-3">
               <dt class="ks-kicker">{{ t('kingdomP7D.officialTransferGroup') }}</dt>
-              <dd class="mt-1 font-semibold">{{ p.officialGroup?.label ?? t('kingdomP7D.needsVerification') }}</dd>
-              <dd v-if="p.officialGroup" class="mt-1 text-xs text-[var(--ks-muted)]">{{ sourceLabel(p.officialGroup.sourceType) }} · {{ timestamp(p.officialGroup.observedAt) }}</dd>
-              <dd v-if="p.officialGroup" class="mt-1 text-xs break-all text-[var(--ks-muted)]">{{ p.officialGroup.sourceReference }}</dd>
+              <dd class="mt-1 font-semibold">
+                {{ p.officialGroup?.label ?? t('kingdomP7D.needsVerification') }}
+              </dd>
+              <dd v-if="p.officialGroup" class="mt-1 text-xs text-[var(--ks-muted)]">
+                {{ sourceLabel(p.officialGroup.sourceType) }} ·
+                {{ timestamp(p.officialGroup.observedAt) }}
+              </dd>
+              <dd v-if="p.officialGroup" class="mt-1 text-xs break-all text-[var(--ks-muted)]">
+                {{ p.officialGroup.sourceReference }}
+              </dd>
             </div>
             <div class="rounded-lg border border-[var(--ks-border)] p-3">
               <dt class="ks-kicker">{{ t('kingdomP7D.powerCap') }}</dt>
-              <dd class="mt-1 font-semibold">{{ p.targetCondition?.powerCap == null ? t('kingdomP7D.needsVerification') : formatNumber(p.targetCondition.powerCap) }}</dd>
-              <dd v-if="p.targetCondition" class="mt-1 text-xs text-[var(--ks-muted)]">{{ sourceLabel(p.targetCondition.sourceType) }} · {{ timestamp(p.targetCondition.observedAt) }}</dd>
-              <dd v-if="p.targetCondition" class="mt-1 text-xs break-all text-[var(--ks-muted)]">{{ p.targetCondition.sourceReference }}</dd>
+              <dd class="mt-1 font-semibold">
+                {{
+                  p.targetCondition?.powerCap == null
+                    ? t('kingdomP7D.needsVerification')
+                    : formatNumber(p.targetCondition.powerCap)
+                }}
+              </dd>
+              <dd v-if="p.targetCondition" class="mt-1 text-xs text-[var(--ks-muted)]">
+                {{ sourceLabel(p.targetCondition.sourceType) }} ·
+                {{ timestamp(p.targetCondition.observedAt) }}
+              </dd>
+              <dd v-if="p.targetCondition" class="mt-1 text-xs break-all text-[var(--ks-muted)]">
+                {{ p.targetCondition.sourceReference }}
+              </dd>
             </div>
             <div class="rounded-lg border border-[var(--ks-border)] p-3">
               <dt class="ks-kicker">{{ t('kingdomP7D.transferScore') }}</dt>
               <dd class="mt-1 font-semibold">{{ displayValue(p.transferScore.value) }}</dd>
-              <dd class="mt-1 text-xs text-[var(--ks-muted)]">{{ sourceLabel(p.transferScore.sourceType) }} · {{ p.transferScore.observedAt ? timestamp(p.transferScore.observedAt) : t('kingdomP7D.noObservation') }}</dd>
-              <dd v-if="p.transferScore.sourceReference" class="mt-1 text-xs break-all text-[var(--ks-muted)]">{{ p.transferScore.sourceReference }}</dd>
+              <dd class="mt-1 text-xs text-[var(--ks-muted)]">
+                {{ sourceLabel(p.transferScore.sourceType) }} ·
+                {{
+                  p.transferScore.observedAt
+                    ? timestamp(p.transferScore.observedAt)
+                    : t('kingdomP7D.noObservation')
+                }}
+              </dd>
+              <dd
+                v-if="p.transferScore.sourceReference"
+                class="mt-1 text-xs break-all text-[var(--ks-muted)]"
+              >
+                {{ p.transferScore.sourceReference }}
+              </dd>
             </div>
             <div class="rounded-lg border border-[var(--ks-border)] p-3">
               <dt class="ks-kicker">{{ t('kingdomP7D.windowPhase') }}</dt>
@@ -429,16 +535,34 @@ function recordObservation(p: Participant): void {
         <div v-if="p.eligibility" class="border-t border-[var(--ks-border)] p-5 sm:p-6">
           <h3 class="text-lg font-semibold">{{ t('kingdomP7D.eligibilityRequirements') }}</h3>
           <ul class="mt-3 grid gap-3">
-            <li v-for="r in p.eligibility.requirements" :key="r.key" class="rounded-xl border border-[var(--ks-border)] p-4">
+            <li
+              v-for="r in p.eligibility.requirements"
+              :key="r.key"
+              class="rounded-xl border border-[var(--ks-border)] p-4"
+            >
               <div class="flex flex-wrap justify-between gap-2">
                 <strong>{{ t(`kingdomP7D.requirementKey_${r.key}`) }}</strong>
-                <span :class="['text-sm font-bold', stateTone(r.state)]">{{ requirementStateLabel(r.state) }}</span>
+                <span :class="['text-sm font-bold', stateTone(r.state)]">{{
+                  requirementStateLabel(r.state)
+                }}</span>
               </div>
               <p class="mt-2 text-sm text-[var(--ks-text-secondary)]">{{ r.explanation }}</p>
-              <p v-if="r.actual !== null || r.required !== null" class="mt-2 text-sm">{{ t('kingdomP7D.actual') }}: {{ displayValue(r.actual) }} · {{ t('kingdomP7D.required') }}: {{ displayValue(r.required) }}</p>
-              <p v-if="r.nextAction" class="mt-2 text-sm font-semibold text-[var(--ks-gold-bright)]">{{ r.nextAction }}</p>
+              <p v-if="r.actual !== null || r.required !== null" class="mt-2 text-sm">
+                {{ t('kingdomP7D.actual') }}: {{ displayValue(r.actual) }} ·
+                {{ t('kingdomP7D.required') }}: {{ displayValue(r.required) }}
+              </p>
+              <p
+                v-if="r.nextAction"
+                class="mt-2 text-sm font-semibold text-[var(--ks-gold-bright)]"
+              >
+                {{ r.nextAction }}
+              </p>
               <div class="mt-3 text-xs text-[var(--ks-muted)]">
-                <span>{{ sourceLabel(r.sourceType) }}</span><span v-if="r.observedAt"> · {{ timestamp(r.observedAt) }}</span><span v-if="r.validUntil"> · {{ t('kingdomP7D.validUntil') }} {{ timestamp(r.validUntil) }}</span>
+                <span>{{ sourceLabel(r.sourceType) }}</span
+                ><span v-if="r.observedAt"> · {{ timestamp(r.observedAt) }}</span
+                ><span v-if="r.validUntil">
+                  · {{ t('kingdomP7D.validUntil') }} {{ timestamp(r.validUntil) }}</span
+                >
                 <p v-if="r.sourceReference" class="mt-1 break-all">{{ r.sourceReference }}</p>
               </div>
             </li>
@@ -447,44 +571,128 @@ function recordObservation(p: Participant): void {
 
         <div class="border-t border-[var(--ks-border)] p-5 sm:p-6">
           <details>
-            <summary class="cursor-pointer text-lg font-semibold">{{ t('kingdomP7D.recordObservation') }}</summary>
-            <form class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3" @submit.prevent="recordObservation(p)">
-              <label class="text-sm font-semibold">{{ t('kingdomP7D.observationKind') }}
-                <select v-model="observationDrafts[p.id]!.kind" class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2">
-                  <option v-for="k in observationKinds" :key="k" :value="k">{{ kindLabel(k) }}</option>
+            <summary class="cursor-pointer text-lg font-semibold">
+              {{ t('kingdomP7D.recordObservation') }}
+            </summary>
+            <form
+              class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3"
+              @submit.prevent="recordObservation(p)"
+            >
+              <label class="text-sm font-semibold"
+                >{{ t('kingdomP7D.observationKind') }}
+                <select
+                  v-model="observationDrafts[p.id]!.kind"
+                  class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2"
+                >
+                  <option v-for="k in observationKinds" :key="k" :value="k">
+                    {{ kindLabel(k) }}
+                  </option>
                 </select>
               </label>
-              <label class="text-sm font-semibold">{{ t('kingdomP7D.observedValue') }}
-                <select v-if="observationDrafts[p.id]!.kind === 'invitation_status'" v-model="observationDrafts[p.id]!.value" class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2" required>
+              <label class="text-sm font-semibold"
+                >{{ t('kingdomP7D.observedValue') }}
+                <select
+                  v-if="observationDrafts[p.id]!.kind === 'invitation_status'"
+                  v-model="observationDrafts[p.id]!.value"
+                  class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2"
+                  required
+                >
                   <option value="none">{{ t('kingdomP7D.invitation_none') }}</option>
-                  <option value="ordinary_received">{{ t('kingdomP7D.invitation_ordinary_received') }}</option>
-                  <option value="special_pending">{{ t('kingdomP7D.invitation_special_pending') }}</option>
-                  <option value="special_approved">{{ t('kingdomP7D.invitation_special_approved') }}</option>
+                  <option value="ordinary_received">
+                    {{ t('kingdomP7D.invitation_ordinary_received') }}
+                  </option>
+                  <option value="special_pending">
+                    {{ t('kingdomP7D.invitation_special_pending') }}
+                  </option>
+                  <option value="special_approved">
+                    {{ t('kingdomP7D.invitation_special_approved') }}
+                  </option>
                 </select>
-                <select v-else-if="observationDrafts[p.id]!.kind === 'in_game_rules_verified'" v-model="observationDrafts[p.id]!.value" class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2" required>
+                <select
+                  v-else-if="observationDrafts[p.id]!.kind === 'in_game_rules_verified'"
+                  v-model="observationDrafts[p.id]!.value"
+                  class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2"
+                  required
+                >
                   <option value="true">{{ t('common.yes') }}</option>
                   <option value="false">{{ t('common.no') }}</option>
                 </select>
-                <input v-else v-model="observationDrafts[p.id]!.value" class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2" min="0" required type="number" />
+                <input
+                  v-else
+                  v-model="observationDrafts[p.id]!.value"
+                  class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2"
+                  min="0"
+                  required
+                  type="number"
+                />
               </label>
-              <label class="text-sm font-semibold">{{ t('kingdomP7D.sourceType') }}
-                <select v-model="observationDrafts[p.id]!.source_type" class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2">
+              <label class="text-sm font-semibold"
+                >{{ t('kingdomP7D.sourceType') }}
+                <select
+                  v-model="observationDrafts[p.id]!.source_type"
+                  class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2"
+                >
                   <option v-for="s in sourceTypes" :key="s" :value="s">{{ sourceLabel(s) }}</option>
                 </select>
               </label>
-              <label class="text-sm font-semibold sm:col-span-2">{{ t('kingdomP7D.sourceReference') }}<input v-model="observationDrafts[p.id]!.source_reference" class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2" maxlength="2048" required /></label>
-              <label class="text-sm font-semibold">{{ t('kingdomP7D.observedAt') }}<input v-model="observationDrafts[p.id]!.observed_at" class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2" required type="datetime-local" /></label>
-              <label class="text-sm font-semibold">{{ t('kingdomP7D.validUntil') }}<input v-model="observationDrafts[p.id]!.valid_until" class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2" type="datetime-local" /></label>
-              <label class="text-sm font-semibold sm:col-span-2">{{ t('kingdomP7D.details') }}<textarea v-model="observationDrafts[p.id]!.details" class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2" rows="2" /></label>
-              <div><button class="rounded-lg bg-[var(--ks-gold)] px-4 py-2 text-sm font-bold text-[var(--ks-ink)]" type="submit">{{ t('kingdomP7D.recordObservation') }}</button></div>
+              <label class="text-sm font-semibold sm:col-span-2"
+                >{{ t('kingdomP7D.sourceReference')
+                }}<input
+                  v-model="observationDrafts[p.id]!.source_reference"
+                  class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2"
+                  maxlength="2048"
+                  required
+              /></label>
+              <label class="text-sm font-semibold"
+                >{{ t('kingdomP7D.observedAt')
+                }}<input
+                  v-model="observationDrafts[p.id]!.observed_at"
+                  class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2"
+                  required
+                  type="datetime-local"
+              /></label>
+              <label class="text-sm font-semibold"
+                >{{ t('kingdomP7D.validUntil')
+                }}<input
+                  v-model="observationDrafts[p.id]!.valid_until"
+                  class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2"
+                  type="datetime-local"
+              /></label>
+              <label class="text-sm font-semibold sm:col-span-2"
+                >{{ t('kingdomP7D.details')
+                }}<textarea
+                  v-model="observationDrafts[p.id]!.details"
+                  class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2"
+                  rows="2"
+                />
+              </label>
+              <div>
+                <button
+                  class="rounded-lg bg-[var(--ks-gold)] px-4 py-2 text-sm font-bold text-[var(--ks-ink)]"
+                  type="submit"
+                >
+                  {{ t('kingdomP7D.recordObservation') }}
+                </button>
+              </div>
             </form>
           </details>
           <details class="mt-4">
-            <summary class="cursor-pointer font-semibold">{{ t('kingdomP7D.observationHistory') }} ({{ p.observations.length }})</summary>
+            <summary class="cursor-pointer font-semibold">
+              {{ t('kingdomP7D.observationHistory') }} ({{ p.observations.length }})
+            </summary>
             <ul class="mt-3 grid gap-2">
-              <li v-for="o in p.observations" :key="o.id" class="rounded-lg border border-[var(--ks-border)] p-3 text-sm">
+              <li
+                v-for="o in p.observations"
+                :key="o.id"
+                class="rounded-lg border border-[var(--ks-border)] p-3 text-sm"
+              >
                 <strong>{{ kindLabel(o.kind) }} · {{ displayValue(o.value) }}</strong>
-                <p class="mt-1 text-[var(--ks-muted)]">{{ sourceLabel(o.sourceType) }} · {{ timestamp(o.observedAt) }}<span v-if="o.validUntil"> · {{ t('kingdomP7D.validUntil') }} {{ timestamp(o.validUntil) }}</span></p>
+                <p class="mt-1 text-[var(--ks-muted)]">
+                  {{ sourceLabel(o.sourceType) }} · {{ timestamp(o.observedAt)
+                  }}<span v-if="o.validUntil">
+                    · {{ t('kingdomP7D.validUntil') }} {{ timestamp(o.validUntil) }}</span
+                  >
+                </p>
                 <p class="mt-1 text-xs break-all text-[var(--ks-muted)]">{{ o.sourceReference }}</p>
                 <p v-if="o.details" class="mt-2">{{ o.details }}</p>
               </li>
@@ -494,30 +702,86 @@ function recordObservation(p: Participant): void {
 
         <div class="border-t border-[var(--ks-border)] p-5 sm:p-6">
           <h3 class="text-lg font-semibold">{{ t('kingdomP7D.readinessWorkflow') }}</h3>
-          <p class="mt-2 text-sm text-[var(--ks-muted)]">{{ t('kingdomP7D.readinessIndependentHelp') }}</p>
+          <p class="mt-2 text-sm text-[var(--ks-muted)]">
+            {{ t('kingdomP7D.readinessIndependentHelp') }}
+          </p>
           <div class="mt-4 grid gap-4 lg:grid-cols-2">
             <fieldset class="rounded-xl border border-[var(--ks-border)] p-4">
               <legend class="px-2 font-semibold">{{ t('kingdomP7D.readiness') }}</legend>
-              <select v-if="!p.withdrawnAt" v-model="readinessDrafts[p.id]" :disabled="!plan.mutable" class="w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2">
-                <option v-for="s in allowedTransitions(p)" :key="s" :value="s">{{ readinessLabel(s) }}</option>
+              <select
+                v-if="!p.withdrawnAt"
+                v-model="readinessDrafts[p.id]"
+                :disabled="!plan.mutable"
+                class="w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2"
+              >
+                <option v-for="s in allowedTransitions(p)" :key="s" :value="s">
+                  {{ readinessLabel(s) }}
+                </option>
               </select>
               <div class="mt-3 flex gap-2">
-                <button v-if="!p.withdrawnAt" :disabled="!plan.mutable || readinessDrafts[p.id] === p.readiness" class="rounded-lg border border-[var(--ks-border)] px-3 py-2 text-sm font-semibold disabled:opacity-40" type="button" @click="saveReadiness(p)">{{ t('kingdomP7D.saveReadiness') }}</button>
-                <button v-if="!p.withdrawnAt" :disabled="!plan.mutable" class="rounded-lg border border-red-400/30 px-3 py-2 text-sm text-red-200 disabled:opacity-40" type="button" @click="withdrawParticipant(p)">{{ t('kingdomP7D.withdraw') }}</button>
+                <button
+                  v-if="!p.withdrawnAt"
+                  :disabled="!plan.mutable || readinessDrafts[p.id] === p.readiness"
+                  class="rounded-lg border border-[var(--ks-border)] px-3 py-2 text-sm font-semibold disabled:opacity-40"
+                  type="button"
+                  @click="saveReadiness(p)"
+                >
+                  {{ t('kingdomP7D.saveReadiness') }}
+                </button>
+                <button
+                  v-if="!p.withdrawnAt"
+                  :disabled="!plan.mutable"
+                  class="rounded-lg border border-red-400/30 px-3 py-2 text-sm text-red-200 disabled:opacity-40"
+                  type="button"
+                  @click="withdrawParticipant(p)"
+                >
+                  {{ t('kingdomP7D.withdraw') }}
+                </button>
               </div>
             </fieldset>
             <fieldset class="rounded-xl border border-[var(--ks-border)] p-4">
-              <legend class="px-2 font-semibold">{{ t('kingdomP7D.manualPlanningBlockers') }}</legend>
+              <legend class="px-2 font-semibold">
+                {{ t('kingdomP7D.manualPlanningBlockers') }}
+              </legend>
               <form v-if="!p.withdrawnAt" @submit.prevent="addBlocker(p)">
-                <input v-model="blockerDrafts[p.id]!.summary" :disabled="!plan.mutable" :placeholder="t('kingdomP7D.blockerSummary')" class="w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2" required />
-                <textarea v-model="blockerDrafts[p.id]!.details" :disabled="!plan.mutable" :placeholder="t('kingdomP7D.privateDetails')" class="mt-2 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2" rows="2" />
-                <button :disabled="!plan.mutable" class="mt-2 rounded-lg border border-[var(--ks-border)] px-3 py-2 text-sm font-semibold" type="submit">{{ t('kingdomP7D.addBlocker') }}</button>
+                <input
+                  v-model="blockerDrafts[p.id]!.summary"
+                  :disabled="!plan.mutable"
+                  :placeholder="t('kingdomP7D.blockerSummary')"
+                  class="w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2"
+                  required
+                />
+                <textarea
+                  v-model="blockerDrafts[p.id]!.details"
+                  :disabled="!plan.mutable"
+                  :placeholder="t('kingdomP7D.privateDetails')"
+                  class="mt-2 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2"
+                  rows="2"
+                />
+                <button
+                  :disabled="!plan.mutable"
+                  class="mt-2 rounded-lg border border-[var(--ks-border)] px-3 py-2 text-sm font-semibold"
+                  type="submit"
+                >
+                  {{ t('kingdomP7D.addBlocker') }}
+                </button>
               </form>
               <ul class="mt-3 grid gap-2">
-                <li v-for="b in p.blockers" :key="b.id" class="rounded-lg border border-[var(--ks-border)] p-3 text-sm">
+                <li
+                  v-for="b in p.blockers"
+                  :key="b.id"
+                  class="rounded-lg border border-[var(--ks-border)] p-3 text-sm"
+                >
                   <div class="flex justify-between gap-2">
                     <strong>{{ b.summary }}</strong>
-                    <button v-if="b.state === 'active' && plan.mutable" class="text-[var(--ks-gold-bright)]" type="button" @click="resolveBlocker(p, b)">{{ t('kingdomP7D.resolve') }}</button>
+                    <button
+                      v-if="b.state === 'active' && plan.mutable"
+                      class="text-[var(--ks-gold-bright)]"
+                      type="button"
+                      @click="resolveBlocker(p, b)"
+                    >
+                      {{ t('kingdomP7D.resolve') }}
+                    </button>
                   </div>
                   <p v-if="b.details" class="mt-1 text-[var(--ks-muted)]">{{ b.details }}</p>
                 </li>
@@ -525,15 +789,22 @@ function recordObservation(p: Participant): void {
             </fieldset>
           </div>
           <details class="mt-4">
-            <summary class="cursor-pointer font-semibold">{{ t('kingdomP7D.readinessHistory') }}</summary>
+            <summary class="cursor-pointer font-semibold">
+              {{ t('kingdomP7D.readinessHistory') }}
+            </summary>
             <ul class="mt-2 text-sm text-[var(--ks-muted)]">
-              <li v-for="h in p.readinessHistory" :key="`${h.changedAt}-${h.to}`">{{ readinessLabel(h.from ?? h.to) }} → {{ readinessLabel(h.to) }} · {{ timestamp(h.changedAt) }} · {{ h.actor?.name ?? t('kingdomP7D.unknownActor') }}</li>
+              <li v-for="h in p.readinessHistory" :key="`${h.changedAt}-${h.to}`">
+                {{ readinessLabel(h.from ?? h.to) }} → {{ readinessLabel(h.to) }} ·
+                {{ timestamp(h.changedAt) }} · {{ h.actor?.name ?? t('kingdomP7D.unknownActor') }}
+              </li>
             </ul>
           </details>
         </div>
       </article>
     </section>
-    <section v-else-if="plan" class="ks-surface mt-5 p-6"><p>{{ t('kingdomP7D.noEligibilityMatch') }}</p></section>
+    <section v-else-if="plan" class="ks-surface mt-5 p-6">
+      <p>{{ t('kingdomP7D.noEligibilityMatch') }}</p>
+    </section>
     <section v-else class="ks-surface mt-6 p-6">
       <h2 class="text-xl font-semibold">{{ t('kingdomP7D.noCurrentCycle') }}</h2>
       <p class="mt-2 text-[var(--ks-muted)]">{{ t('kingdomP7D.createWindowAndPlan') }}</p>

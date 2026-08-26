@@ -202,7 +202,7 @@ final readonly class SaveTransferEvidenceReview
     }
 
     /**
-     * @param list<int> $officialGroupKingdomNumbers
+     * @param  list<int>  $officialGroupKingdomNumbers
      * @return array{0:array<string,int|string|null>,1:list<int>,2:?string}
      */
     private function validatedMeaning(
@@ -367,8 +367,8 @@ final readonly class SaveTransferEvidenceReview
     }
 
     /**
-     * @param array<string,int|string|null> $values
-     * @param list<int> $kingdomNumbers
+     * @param  array<string,int|string|null>  $values
+     * @param  list<int>  $kingdomNumbers
      */
     private function fingerprint(EvidenceKind $kind, string $schemaVersion, string $windowId, string $participantId, ?string $targetId, CarbonImmutable $observedAt, array $values, array $kingdomNumbers): string
     {

@@ -9,8 +9,8 @@ use App\Contexts\Intelligence\Evidence\Enums\EvidenceKind;
 final readonly class TransferEvidenceSchema
 {
     /**
-     * @param list<string> $supportedFields
-     * @param list<string> $requiredFields
+     * @param  list<string>  $supportedFields
+     * @param  list<string>  $requiredFields
      */
     public function __construct(
         public EvidenceKind $kind,

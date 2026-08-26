@@ -148,7 +148,7 @@ final class BearHuntBattleReportExtractor implements EvidenceExtractor
     }
 
     /**
-     * @param list<OcrToken> $line
+     * @param  list<OcrToken>  $line
      * @return list<OcrToken>
      */
     private function inlineNameTokens(array $line, int $damageIndex): array
@@ -168,7 +168,7 @@ final class BearHuntBattleReportExtractor implements EvidenceExtractor
     }
 
     /**
-     * @param list<OcrToken> $tokens
+     * @param  list<OcrToken>  $tokens
      * @return array{0:?int,1:list<OcrToken>}
      */
     private function rankAndName(array $tokens): array

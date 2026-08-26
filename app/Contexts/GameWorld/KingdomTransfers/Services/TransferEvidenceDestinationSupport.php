@@ -105,7 +105,7 @@ final readonly class TransferEvidenceDestinationSupport
     }
 
     /**
-     * @param array<string,string> $destinationIds
+     * @param  array<string,string>  $destinationIds
      */
     public function complete(
         TransferMutationContext $context,

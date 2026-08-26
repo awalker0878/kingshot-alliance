@@ -245,7 +245,8 @@ function ensureDraft(item: EvidenceItem): void {
     targetKingdomNumber: normalizedText(item, 'target_kingdom_number') || props.targetKingdom || '',
     targetPowerCap: item.review?.targetPowerCap?.toString() ?? normalizedText(item, 'power_cap'),
     kingdomClassification:
-      item.review?.kingdomClassification ?? normalizedText(item, 'kingdom_classification') || 'unknown',
+      (item.review?.kingdomClassification ?? normalizedText(item, 'kingdom_classification')) ||
+      'unknown',
     officialGroupIdentifier:
       item.review?.officialGroupIdentifier ?? normalizedText(item, 'official_group_identifier'),
     officialGroupKingdoms:
@@ -308,7 +309,9 @@ function upload(): void {
 }
 
 function requiresValidity(kind: EvidenceKind): boolean {
-  return ['transfer_governor_status', 'transfer_score_passes', 'transfer_invitation'].includes(kind);
+  return ['transfer_governor_status', 'transfer_score_passes', 'transfer_invitation'].includes(
+    kind,
+  );
 }
 
 function numeric(value: string): number | null {
@@ -318,9 +321,14 @@ function numeric(value: string): number | null {
 }
 
 function parseKingdoms(value: string): number[] {
-  return [...new Set(value.split(/[\s,;]+/).map(Number).filter((number) => Number.isInteger(number) && number > 0))].sort(
-    (a, b) => a - b,
-  );
+  return [
+    ...new Set(
+      value
+        .split(/[\s,;]+/)
+        .map(Number)
+        .filter((number) => Number.isInteger(number) && number > 0),
+    ),
+  ].sort((a, b) => a - b);
 }
 
 function review(item: EvidenceItem): void {
@@ -396,17 +404,25 @@ function commit(item: EvidenceItem): void {
     notice.value = t('kingdomP7D.previewRequired');
     return;
   }
-  router.post(`${basePath.value}/reviews/${item.review.id}/commit`, {}, {
-    preserveScroll: true,
-    onSuccess: () => void loadEvidence(true),
-  });
+  router.post(
+    `${basePath.value}/reviews/${item.review.id}/commit`,
+    {},
+    {
+      preserveScroll: true,
+      onSuccess: () => void loadEvidence(true),
+    },
+  );
 }
 
 function retry(item: EvidenceItem): void {
-  router.post(`${basePath.value}/${item.id}/retry`, {}, {
-    preserveScroll: true,
-    onSuccess: () => void loadEvidence(true),
-  });
+  router.post(
+    `${basePath.value}/${item.id}/retry`,
+    {},
+    {
+      preserveScroll: true,
+      onSuccess: () => void loadEvidence(true),
+    },
+  );
 }
 
 function remove(item: EvidenceItem): void {
@@ -464,7 +480,9 @@ function fieldCorrected(item: EvidenceItem, field: ExtractedField): boolean {
             <p class="ks-kicker">{{ t('kingdomP7D.addInGameEvidence') }}</p>
             <h3 class="mt-1 text-lg font-semibold">{{ t('kingdomP7D.transferEvidenceTitle') }}</h3>
           </div>
-          <span class="rounded-full border border-[var(--ks-border)] px-3 py-1 text-xs font-semibold">
+          <span
+            class="rounded-full border border-[var(--ks-border)] px-3 py-1 text-xs font-semibold"
+          >
             {{ loaded ? evidence.length : '…' }}
           </span>
         </div>
@@ -516,13 +534,24 @@ function fieldCorrected(item: EvidenceItem, field: ExtractedField): boolean {
           </div>
         </form>
 
-        <div v-if="loading" role="status" class="rounded-xl border border-[var(--ks-border)] p-4 text-sm">
+        <div
+          v-if="loading"
+          role="status"
+          class="rounded-xl border border-[var(--ks-border)] p-4 text-sm"
+        >
           {{ t('kingdomP7D.evidenceLoading') }}
         </div>
-        <div v-else-if="loadError" role="alert" class="rounded-xl border border-red-400/30 bg-red-500/10 p-4 text-sm text-red-100">
+        <div
+          v-else-if="loadError"
+          role="alert"
+          class="rounded-xl border border-red-400/30 bg-red-500/10 p-4 text-sm text-red-100"
+        >
           {{ t('kingdomP7D.evidenceLoadFailed') }}
         </div>
-        <div v-else-if="loaded && evidence.length === 0" class="rounded-xl border border-[var(--ks-border)] p-4 text-sm text-[var(--ks-muted)]">
+        <div
+          v-else-if="loaded && evidence.length === 0"
+          class="rounded-xl border border-[var(--ks-border)] p-4 text-sm text-[var(--ks-muted)]"
+        >
           {{ t('kingdomP7D.noTransferEvidence') }}
         </div>
 
@@ -544,7 +573,8 @@ function fieldCorrected(item: EvidenceItem, field: ExtractedField): boolean {
               :href="`${basePath}/${item.id}/image`"
               class="text-sm font-semibold text-[var(--ks-gold-bright)] underline-offset-4 hover:underline"
               target="_blank"
-            >{{ t('kingdomP7D.evidenceImage') }}</a>
+              >{{ t('kingdomP7D.evidenceImage') }}</a
+            >
           </header>
 
           <div
@@ -559,12 +589,29 @@ function fieldCorrected(item: EvidenceItem, field: ExtractedField): boolean {
             <section>
               <h5 class="ks-kicker">{{ t('kingdomP7D.detectedClass') }}</h5>
               <dl class="mt-2 grid gap-2 text-sm">
-                <div class="flex justify-between gap-4"><dt>{{ t('kingdomP7D.expectedClass') }}</dt><dd class="font-semibold">{{ kindLabel(item.expectedKind) }}</dd></div>
-                <div class="flex justify-between gap-4"><dt>{{ t('kingdomP7D.detectedClass') }}</dt><dd class="font-semibold">{{ item.classification ? kindLabel(item.classification.kind) : '—' }}</dd></div>
-                <div class="flex justify-between gap-4"><dt>{{ t('kingdomP7D.classificationConfidence') }}</dt><dd>{{ item.classification ? percent(item.classification.confidence) : '—' }}</dd></div>
+                <div class="flex justify-between gap-4">
+                  <dt>{{ t('kingdomP7D.expectedClass') }}</dt>
+                  <dd class="font-semibold">{{ kindLabel(item.expectedKind) }}</dd>
+                </div>
+                <div class="flex justify-between gap-4">
+                  <dt>{{ t('kingdomP7D.detectedClass') }}</dt>
+                  <dd class="font-semibold">
+                    {{ item.classification ? kindLabel(item.classification.kind) : '—' }}
+                  </dd>
+                </div>
+                <div class="flex justify-between gap-4">
+                  <dt>{{ t('kingdomP7D.classificationConfidence') }}</dt>
+                  <dd>{{ item.classification ? percent(item.classification.confidence) : '—' }}</dd>
+                </div>
               </dl>
-              <p v-if="item.classification?.reason" class="mt-2 text-xs text-[var(--ks-muted)]">{{ t('kingdomP7D.classificationReason') }}: {{ item.classification.reason }}</p>
-              <p v-if="classMismatch(item)" role="alert" class="mt-3 rounded-lg border border-red-400/30 bg-red-500/10 p-3 text-sm text-red-100">
+              <p v-if="item.classification?.reason" class="mt-2 text-xs text-[var(--ks-muted)]">
+                {{ t('kingdomP7D.classificationReason') }}: {{ item.classification.reason }}
+              </p>
+              <p
+                v-if="classMismatch(item)"
+                role="alert"
+                class="mt-3 rounded-lg border border-red-400/30 bg-red-500/10 p-3 text-sm text-red-100"
+              >
                 {{ t('kingdomP7D.classMismatch') }}
               </p>
             </section>
@@ -572,8 +619,10 @@ function fieldCorrected(item: EvidenceItem, field: ExtractedField): boolean {
               <h5 class="ks-kicker">{{ t('kingdomP7D.schemaVersion') }}</h5>
               <p class="mt-2 text-sm font-semibold">{{ schemaFor(item.expectedKind)!.version }}</p>
               <p class="mt-1 text-xs text-[var(--ks-muted)]">
-                {{ t('kingdomP7D.fixtureCorpus') }}: {{ schemaFor(item.expectedKind)!.fixtureCorpus }} ·
-                {{ t('kingdomP7D.fieldConfidence') }} ≥ {{ percent(schemaFor(item.expectedKind)!.minimumFieldConfidence) }}
+                {{ t('kingdomP7D.fixtureCorpus') }}:
+                {{ schemaFor(item.expectedKind)!.fixtureCorpus }} ·
+                {{ t('kingdomP7D.fieldConfidence') }} ≥
+                {{ percent(schemaFor(item.expectedKind)!.minimumFieldConfidence) }}
               </p>
             </section>
           </div>
@@ -581,89 +630,207 @@ function fieldCorrected(item: EvidenceItem, field: ExtractedField): boolean {
           <section v-if="item.extraction" class="border-t border-[var(--ks-border)] p-4">
             <div class="flex flex-wrap items-center justify-between gap-2">
               <h5 class="font-semibold">{{ t('kingdomP7D.reviewedFacts') }}</h5>
-              <span class="text-xs text-[var(--ks-muted)]">{{ t('kingdomP7D.schemaVersion') }} {{ item.extraction.schemaVersion }}</span>
+              <span class="text-xs text-[var(--ks-muted)]"
+                >{{ t('kingdomP7D.schemaVersion') }} {{ item.extraction.schemaVersion }}</span
+              >
             </div>
             <div class="mt-3 overflow-x-auto">
               <table class="w-full min-w-[620px] text-left text-sm">
                 <thead class="text-xs text-[var(--ks-muted)]">
                   <tr>
-                    <th class="pb-2 pr-3">Field</th>
-                    <th class="pb-2 pr-3">{{ t('kingdomP7D.rawObservation') }}</th>
-                    <th class="pb-2 pr-3">{{ t('kingdomP7D.normalizedValue') }}</th>
+                    <th class="pr-3 pb-2">Field</th>
+                    <th class="pr-3 pb-2">{{ t('kingdomP7D.rawObservation') }}</th>
+                    <th class="pr-3 pb-2">{{ t('kingdomP7D.normalizedValue') }}</th>
                     <th class="pb-2">{{ t('kingdomP7D.fieldConfidence') }}</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="field in item.extraction.fields" :key="`${field.key}-${field.ordinal}`" class="border-t border-[var(--ks-border)] align-top">
+                  <tr
+                    v-for="field in item.extraction.fields"
+                    :key="`${field.key}-${field.ordinal}`"
+                    class="border-t border-[var(--ks-border)] align-top"
+                  >
                     <td class="py-2 pr-3 font-semibold">{{ field.key }}</td>
                     <td class="py-2 pr-3 break-words">{{ field.raw }}</td>
                     <td class="py-2 pr-3">
                       {{ displayValue(field.value) }}
-                      <span v-if="fieldCorrected(item, field)" class="ml-1 text-xs font-semibold text-amber-200">· corrected</span>
+                      <span
+                        v-if="fieldCorrected(item, field)"
+                        class="ml-1 text-xs font-semibold text-amber-200"
+                        >· corrected</span
+                      >
                     </td>
                     <td class="py-2">
                       {{ percent(field.confidence) }}
-                      <p v-if="schemaFor(item.expectedKind) && field.confidence < schemaFor(item.expectedKind)!.minimumFieldConfidence" class="mt-1 max-w-xs text-xs text-amber-200">
+                      <p
+                        v-if="
+                          schemaFor(item.expectedKind) &&
+                          field.confidence < schemaFor(item.expectedKind)!.minimumFieldConfidence
+                        "
+                        class="mt-1 max-w-xs text-xs text-amber-200"
+                      >
                         {{ t('kingdomP7D.belowSchemaConfidence') }}
                       </p>
-                      <p v-for="warning in field.warnings" :key="warning" class="mt-1 text-xs text-amber-200">{{ warning }}</p>
+                      <p
+                        v-for="warning in field.warnings"
+                        :key="warning"
+                        class="mt-1 text-xs text-amber-200"
+                      >
+                        {{ warning }}
+                      </p>
                     </td>
                   </tr>
                 </tbody>
               </table>
             </div>
-            <p v-if="hasLowConfidence(item)" class="mt-3 text-sm text-amber-100">{{ t('kingdomP7D.belowSchemaConfidence') }}</p>
+            <p v-if="hasLowConfidence(item)" class="mt-3 text-sm text-amber-100">
+              {{ t('kingdomP7D.belowSchemaConfidence') }}
+            </p>
           </section>
 
-          <section v-if="item.extraction && item.status !== 'unsupported' && item.status !== 'deleted'" class="border-t border-[var(--ks-border)] p-4">
+          <section
+            v-if="item.extraction && item.status !== 'unsupported' && item.status !== 'deleted'"
+            class="border-t border-[var(--ks-border)] p-4"
+          >
             <div class="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <h5 class="font-semibold">{{ t('kingdomP7D.reviewEvidence') }}</h5>
-                <p class="mt-1 text-sm text-[var(--ks-muted)]">{{ t('kingdomP7D.reviewBeforeCommit') }}</p>
+                <p class="mt-1 text-sm text-[var(--ks-muted)]">
+                  {{ t('kingdomP7D.reviewBeforeCommit') }}
+                </p>
               </div>
-              <span v-if="item.review" class="rounded-full border border-[var(--ks-border)] px-3 py-1 text-xs font-semibold">
-                {{ reviewStatusLabel(item.review.status) }} · {{ t('kingdomP7D.evidenceRevision') }} {{ item.review.revision }}
+              <span
+                v-if="item.review"
+                class="rounded-full border border-[var(--ks-border)] px-3 py-1 text-xs font-semibold"
+              >
+                {{ reviewStatusLabel(item.review.status) }} · {{ t('kingdomP7D.evidenceRevision') }}
+                {{ item.review.revision }}
               </span>
             </div>
 
-            <form v-if="mutable && drafts[item.id]" class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3" @submit.prevent="review(item)">
+            <form
+              v-if="mutable && drafts[item.id]"
+              class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3"
+              @submit.prevent="review(item)"
+            >
               <label class="text-sm font-semibold">
                 {{ t('kingdomP7D.observationTime') }}
-                <input v-model="drafts[item.id]!.observedAt" class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2" required type="datetime-local" />
+                <input
+                  v-model="drafts[item.id]!.observedAt"
+                  class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2"
+                  required
+                  type="datetime-local"
+                />
               </label>
               <label v-if="requiresValidity(item.expectedKind)" class="text-sm font-semibold">
                 {{ t('kingdomP7D.freshnessBoundary') }}
-                <input v-model="drafts[item.id]!.validUntil" class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2" required type="datetime-local" />
+                <input
+                  v-model="drafts[item.id]!.validUntil"
+                  class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2"
+                  required
+                  type="datetime-local"
+                />
               </label>
 
-              <label v-if="item.expectedKind === 'transfer_governor_status'" class="text-sm font-semibold">
+              <label
+                v-if="item.expectedKind === 'transfer_governor_status'"
+                class="text-sm font-semibold"
+              >
                 {{ t('kingdomP7D.observation_governor_power') }}
-                <input v-model="drafts[item.id]!.governorPower" class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2" min="0" required type="number" />
+                <input
+                  v-model="drafts[item.id]!.governorPower"
+                  class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2"
+                  min="0"
+                  required
+                  type="number"
+                />
               </label>
 
               <template v-else-if="item.expectedKind === 'transfer_score_passes'">
-                <label class="text-sm font-semibold">{{ t('kingdomP7D.transferScore') }}<input v-model="drafts[item.id]!.transferScore" class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2" min="0" required type="number" /></label>
-                <label class="text-sm font-semibold">{{ t('kingdomP7D.passesAvailable') }}<input v-model="drafts[item.id]!.passesAvailable" class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2" min="0" required type="number" /></label>
-                <label class="text-sm font-semibold">{{ t('kingdomP7D.passesRequired') }}<input v-model="drafts[item.id]!.passesRequired" class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2" min="0" required type="number" /></label>
+                <label class="text-sm font-semibold"
+                  >{{ t('kingdomP7D.transferScore')
+                  }}<input
+                    v-model="drafts[item.id]!.transferScore"
+                    class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2"
+                    min="0"
+                    required
+                    type="number"
+                /></label>
+                <label class="text-sm font-semibold"
+                  >{{ t('kingdomP7D.passesAvailable')
+                  }}<input
+                    v-model="drafts[item.id]!.passesAvailable"
+                    class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2"
+                    min="0"
+                    required
+                    type="number"
+                /></label>
+                <label class="text-sm font-semibold"
+                  >{{ t('kingdomP7D.passesRequired')
+                  }}<input
+                    v-model="drafts[item.id]!.passesRequired"
+                    class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2"
+                    min="0"
+                    required
+                    type="number"
+                /></label>
               </template>
 
               <template v-else-if="item.expectedKind === 'transfer_invitation'">
-                <label class="text-sm font-semibold">{{ t('kingdomP7D.invitationStatus') }}
-                  <select v-model="drafts[item.id]!.invitationStatus" class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2" required>
+                <label class="text-sm font-semibold"
+                  >{{ t('kingdomP7D.invitationStatus') }}
+                  <select
+                    v-model="drafts[item.id]!.invitationStatus"
+                    class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2"
+                    required
+                  >
                     <option value="none">{{ t('kingdomP7D.invitation_none') }}</option>
-                    <option value="ordinary_received">{{ t('kingdomP7D.invitation_ordinary_received') }}</option>
-                    <option value="special_pending">{{ t('kingdomP7D.invitation_special_pending') }}</option>
-                    <option value="special_approved">{{ t('kingdomP7D.invitation_special_approved') }}</option>
+                    <option value="ordinary_received">
+                      {{ t('kingdomP7D.invitation_ordinary_received') }}
+                    </option>
+                    <option value="special_pending">
+                      {{ t('kingdomP7D.invitation_special_pending') }}
+                    </option>
+                    <option value="special_approved">
+                      {{ t('kingdomP7D.invitation_special_approved') }}
+                    </option>
                   </select>
                 </label>
-                <label class="text-sm font-semibold">{{ t('kingdomP7D.targetKingdomNumber') }}<input v-model="drafts[item.id]!.targetKingdomNumber" class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2" min="1" type="number" /></label>
+                <label class="text-sm font-semibold"
+                  >{{ t('kingdomP7D.targetKingdomNumber')
+                  }}<input
+                    v-model="drafts[item.id]!.targetKingdomNumber"
+                    class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2"
+                    min="1"
+                    type="number"
+                /></label>
               </template>
 
               <template v-else-if="item.expectedKind === 'transfer_target_kingdom_rules'">
-                <label class="text-sm font-semibold">{{ t('kingdomP7D.targetKingdomNumber') }}<input v-model="drafts[item.id]!.targetKingdomNumber" class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2" min="1" required type="number" /></label>
-                <label class="text-sm font-semibold">{{ t('kingdomP7D.powerCap') }}<input v-model="drafts[item.id]!.targetPowerCap" class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2" min="0" required type="number" /></label>
-                <label class="text-sm font-semibold">{{ t('kingdomP7D.kingdomClassification') }}
-                  <select v-model="drafts[item.id]!.kingdomClassification" class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2">
+                <label class="text-sm font-semibold"
+                  >{{ t('kingdomP7D.targetKingdomNumber')
+                  }}<input
+                    v-model="drafts[item.id]!.targetKingdomNumber"
+                    class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2"
+                    min="1"
+                    required
+                    type="number"
+                /></label>
+                <label class="text-sm font-semibold"
+                  >{{ t('kingdomP7D.powerCap')
+                  }}<input
+                    v-model="drafts[item.id]!.targetPowerCap"
+                    class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2"
+                    min="0"
+                    required
+                    type="number"
+                /></label>
+                <label class="text-sm font-semibold"
+                  >{{ t('kingdomP7D.kingdomClassification') }}
+                  <select
+                    v-model="drafts[item.id]!.kingdomClassification"
+                    class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2"
+                  >
                     <option value="unknown">{{ t('kingdomP7D.classification_unknown') }}</option>
                     <option value="ordinary">{{ t('kingdomP7D.classification_ordinary') }}</option>
                     <option value="leading">{{ t('kingdomP7D.classification_leading') }}</option>
@@ -672,47 +839,118 @@ function fieldCorrected(item: EvidenceItem, field: ExtractedField): boolean {
               </template>
 
               <template v-else-if="item.expectedKind === 'transfer_official_group'">
-                <label class="text-sm font-semibold">{{ t('kingdomP7D.officialGroupIdentifier') }}<input v-model="drafts[item.id]!.officialGroupIdentifier" class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2" maxlength="96" required /></label>
-                <label class="text-sm font-semibold sm:col-span-2">{{ t('kingdomP7D.officialGroupKingdoms') }}<input v-model="drafts[item.id]!.officialGroupKingdoms" class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2" required /></label>
+                <label class="text-sm font-semibold"
+                  >{{ t('kingdomP7D.officialGroupIdentifier')
+                  }}<input
+                    v-model="drafts[item.id]!.officialGroupIdentifier"
+                    class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2"
+                    maxlength="96"
+                    required
+                /></label>
+                <label class="text-sm font-semibold sm:col-span-2"
+                  >{{ t('kingdomP7D.officialGroupKingdoms')
+                  }}<input
+                    v-model="drafts[item.id]!.officialGroupKingdoms"
+                    class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2"
+                    required
+                /></label>
               </template>
 
-              <p v-if="requiresValidity(item.expectedKind)" class="text-xs text-[var(--ks-muted)] sm:col-span-2 lg:col-span-3">{{ t('kingdomP7D.freshnessRequiredHelp') }}</p>
-              <p class="text-xs text-[var(--ks-muted)] sm:col-span-2 lg:col-span-3">{{ t('kingdomP7D.correctionsHelp') }}</p>
+              <p
+                v-if="requiresValidity(item.expectedKind)"
+                class="text-xs text-[var(--ks-muted)] sm:col-span-2 lg:col-span-3"
+              >
+                {{ t('kingdomP7D.freshnessRequiredHelp') }}
+              </p>
+              <p class="text-xs text-[var(--ks-muted)] sm:col-span-2 lg:col-span-3">
+                {{ t('kingdomP7D.correctionsHelp') }}
+              </p>
               <div>
-                <button class="rounded-lg border border-[var(--ks-border)] px-4 py-2 text-sm font-semibold" type="submit">{{ t('kingdomP7D.reviewEvidence') }}</button>
+                <button
+                  class="rounded-lg border border-[var(--ks-border)] px-4 py-2 text-sm font-semibold"
+                  type="submit"
+                >
+                  {{ t('kingdomP7D.reviewEvidence') }}
+                </button>
               </div>
             </form>
           </section>
 
-          <section v-if="item.review" class="grid gap-4 border-t border-[var(--ks-border)] p-4 lg:grid-cols-2">
+          <section
+            v-if="item.review"
+            class="grid gap-4 border-t border-[var(--ks-border)] p-4 lg:grid-cols-2"
+          >
             <div>
               <h5 class="font-semibold">{{ t('kingdomP7D.currentTransferFacts') }}</h5>
-              <p class="mt-2 text-sm"><strong>{{ t('kingdomP7D.currentEligibility') }}:</strong> {{ currentEligibility ? t(`kingdomP7D.eligibility_${currentEligibility.outcome}`) : t('kingdomP7D.needsVerification') }}</p>
-              <p v-if="currentEligibility?.primaryAction" class="mt-1 text-sm text-[var(--ks-muted)]">{{ currentEligibility.primaryAction }}</p>
+              <p class="mt-2 text-sm">
+                <strong>{{ t('kingdomP7D.currentEligibility') }}:</strong>
+                {{
+                  currentEligibility
+                    ? t(`kingdomP7D.eligibility_${currentEligibility.outcome}`)
+                    : t('kingdomP7D.needsVerification')
+                }}
+              </p>
+              <p
+                v-if="currentEligibility?.primaryAction"
+                class="mt-1 text-sm text-[var(--ks-muted)]"
+              >
+                {{ currentEligibility.primaryAction }}
+              </p>
               <dl class="mt-3 grid gap-2 text-sm">
                 <div class="rounded-lg border border-[var(--ks-border)] p-3">
                   <dt class="ks-kicker">{{ t('kingdomP7D.transferScore') }}</dt>
                   <dd class="mt-1 font-semibold">{{ displayValue(currentTransferScore.value) }}</dd>
-                  <dd class="mt-1 text-xs text-[var(--ks-muted)]">{{ timestamp(currentTransferScore.observedAt) }}<span v-if="currentTransferScore.validUntil"> · {{ t('kingdomP7D.validUntil') }} {{ timestamp(currentTransferScore.validUntil) }}</span></dd>
+                  <dd class="mt-1 text-xs text-[var(--ks-muted)]">
+                    {{ timestamp(currentTransferScore.observedAt)
+                    }}<span v-if="currentTransferScore.validUntil">
+                      · {{ t('kingdomP7D.validUntil') }}
+                      {{ timestamp(currentTransferScore.validUntil) }}</span
+                    >
+                  </dd>
                 </div>
                 <div class="rounded-lg border border-[var(--ks-border)] p-3">
                   <dt class="ks-kicker">{{ t('kingdomP7D.officialTransferGroup') }}</dt>
-                  <dd class="mt-1 font-semibold">{{ currentOfficialGroup?.label ?? t('kingdomP7D.needsVerification') }}</dd>
-                  <dd v-if="currentOfficialGroup" class="mt-1 text-xs text-[var(--ks-muted)]">{{ timestamp(currentOfficialGroup.observedAt) }} · {{ currentOfficialGroup.sourceReference }}</dd>
+                  <dd class="mt-1 font-semibold">
+                    {{ currentOfficialGroup?.label ?? t('kingdomP7D.needsVerification') }}
+                  </dd>
+                  <dd v-if="currentOfficialGroup" class="mt-1 text-xs text-[var(--ks-muted)]">
+                    {{ timestamp(currentOfficialGroup.observedAt) }} ·
+                    {{ currentOfficialGroup.sourceReference }}
+                  </dd>
                 </div>
                 <div class="rounded-lg border border-[var(--ks-border)] p-3">
                   <dt class="ks-kicker">{{ t('kingdomP7D.powerCap') }}</dt>
-                  <dd class="mt-1 font-semibold">{{ displayValue(currentTargetCondition?.powerCap) }}</dd>
-                  <dd v-if="currentTargetCondition" class="mt-1 text-xs text-[var(--ks-muted)]">{{ timestamp(currentTargetCondition.observedAt) }} · {{ currentTargetCondition.sourceReference }}</dd>
+                  <dd class="mt-1 font-semibold">
+                    {{ displayValue(currentTargetCondition?.powerCap) }}
+                  </dd>
+                  <dd v-if="currentTargetCondition" class="mt-1 text-xs text-[var(--ks-muted)]">
+                    {{ timestamp(currentTargetCondition.observedAt) }} ·
+                    {{ currentTargetCondition.sourceReference }}
+                  </dd>
                 </div>
               </dl>
               <details v-if="currentEligibility?.requirements.length" class="mt-3">
-                <summary class="cursor-pointer text-sm font-semibold">{{ t('kingdomP7D.eligibilityRequirements') }}</summary>
+                <summary class="cursor-pointer text-sm font-semibold">
+                  {{ t('kingdomP7D.eligibilityRequirements') }}
+                </summary>
                 <ul class="mt-2 grid gap-2 text-sm">
-                  <li v-for="requirement in currentEligibility.requirements" :key="requirement.key" class="rounded-lg border border-[var(--ks-border)] p-3">
-                    <div class="flex justify-between gap-3"><strong>{{ t(`kingdomP7D.requirementKey_${requirement.key}`) }}</strong><span>{{ t(`kingdomP7D.requirement_${requirement.state}`) }}</span></div>
+                  <li
+                    v-for="requirement in currentEligibility.requirements"
+                    :key="requirement.key"
+                    class="rounded-lg border border-[var(--ks-border)] p-3"
+                  >
+                    <div class="flex justify-between gap-3">
+                      <strong>{{ t(`kingdomP7D.requirementKey_${requirement.key}`) }}</strong
+                      ><span>{{ t(`kingdomP7D.requirement_${requirement.state}`) }}</span>
+                    </div>
                     <p class="mt-1 text-[var(--ks-muted)]">{{ requirement.explanation }}</p>
-                    <p v-if="requirement.observedAt" class="mt-1 text-xs text-[var(--ks-muted)]">{{ timestamp(requirement.observedAt) }}<span v-if="requirement.validUntil"> · {{ t('kingdomP7D.validUntil') }} {{ timestamp(requirement.validUntil) }}</span></p>
+                    <p v-if="requirement.observedAt" class="mt-1 text-xs text-[var(--ks-muted)]">
+                      {{ timestamp(requirement.observedAt)
+                      }}<span v-if="requirement.validUntil">
+                        · {{ t('kingdomP7D.validUntil') }}
+                        {{ timestamp(requirement.validUntil) }}</span
+                      >
+                    </p>
                   </li>
                 </ul>
               </details>
@@ -720,29 +958,98 @@ function fieldCorrected(item: EvidenceItem, field: ExtractedField): boolean {
 
             <div>
               <h5 class="font-semibold">{{ t('kingdomP7D.reviewedFacts') }}</h5>
-              <p class="mt-2 text-sm text-[var(--ks-muted)]">{{ t('kingdomP7D.observationTime') }} {{ timestamp(item.review.observedAt) }}<span v-if="item.review.validUntil"> · {{ t('kingdomP7D.validUntil') }} {{ timestamp(item.review.validUntil) }}</span></p>
+              <p class="mt-2 text-sm text-[var(--ks-muted)]">
+                {{ t('kingdomP7D.observationTime') }} {{ timestamp(item.review.observedAt)
+                }}<span v-if="item.review.validUntil">
+                  · {{ t('kingdomP7D.validUntil') }} {{ timestamp(item.review.validUntil) }}</span
+                >
+              </p>
               <ul class="mt-3 grid gap-2 text-sm">
-                <li v-if="item.review.governorPower !== null" class="rounded-lg border border-[var(--ks-border)] p-3">{{ t('kingdomP7D.observation_governor_power') }}: <strong>{{ formatNumber(item.review.governorPower) }}</strong></li>
-                <li v-if="item.review.transferScore !== null" class="rounded-lg border border-[var(--ks-border)] p-3">{{ t('kingdomP7D.transferScore') }}: <strong>{{ formatNumber(item.review.transferScore) }}</strong></li>
-                <li v-if="item.review.passesAvailable !== null" class="rounded-lg border border-[var(--ks-border)] p-3">{{ t('kingdomP7D.passesAvailable') }}: <strong>{{ formatNumber(item.review.passesAvailable) }}</strong></li>
-                <li v-if="item.review.passesRequired !== null" class="rounded-lg border border-[var(--ks-border)] p-3">{{ t('kingdomP7D.passesRequired') }}: <strong>{{ formatNumber(item.review.passesRequired) }}</strong></li>
-                <li v-if="item.review.invitationStatus" class="rounded-lg border border-[var(--ks-border)] p-3">{{ t('kingdomP7D.invitationStatus') }}: <strong>{{ t(`kingdomP7D.invitation_${item.review.invitationStatus}`) }}</strong></li>
-                <li v-if="item.review.targetPowerCap !== null" class="rounded-lg border border-[var(--ks-border)] p-3">{{ t('kingdomP7D.powerCap') }}: <strong>{{ formatNumber(item.review.targetPowerCap) }}</strong></li>
-                <li v-if="item.review.officialGroupIdentifier" class="rounded-lg border border-[var(--ks-border)] p-3">{{ t('kingdomP7D.officialGroupIdentifier') }}: <strong>{{ item.review.officialGroupIdentifier }}</strong> · {{ item.review.officialGroupKingdomNumbers.join(', ') }}</li>
+                <li
+                  v-if="item.review.governorPower !== null"
+                  class="rounded-lg border border-[var(--ks-border)] p-3"
+                >
+                  {{ t('kingdomP7D.observation_governor_power') }}:
+                  <strong>{{ formatNumber(item.review.governorPower) }}</strong>
+                </li>
+                <li
+                  v-if="item.review.transferScore !== null"
+                  class="rounded-lg border border-[var(--ks-border)] p-3"
+                >
+                  {{ t('kingdomP7D.transferScore') }}:
+                  <strong>{{ formatNumber(item.review.transferScore) }}</strong>
+                </li>
+                <li
+                  v-if="item.review.passesAvailable !== null"
+                  class="rounded-lg border border-[var(--ks-border)] p-3"
+                >
+                  {{ t('kingdomP7D.passesAvailable') }}:
+                  <strong>{{ formatNumber(item.review.passesAvailable) }}</strong>
+                </li>
+                <li
+                  v-if="item.review.passesRequired !== null"
+                  class="rounded-lg border border-[var(--ks-border)] p-3"
+                >
+                  {{ t('kingdomP7D.passesRequired') }}:
+                  <strong>{{ formatNumber(item.review.passesRequired) }}</strong>
+                </li>
+                <li
+                  v-if="item.review.invitationStatus"
+                  class="rounded-lg border border-[var(--ks-border)] p-3"
+                >
+                  {{ t('kingdomP7D.invitationStatus') }}:
+                  <strong>{{ t(`kingdomP7D.invitation_${item.review.invitationStatus}`) }}</strong>
+                </li>
+                <li
+                  v-if="item.review.targetPowerCap !== null"
+                  class="rounded-lg border border-[var(--ks-border)] p-3"
+                >
+                  {{ t('kingdomP7D.powerCap') }}:
+                  <strong>{{ formatNumber(item.review.targetPowerCap) }}</strong>
+                </li>
+                <li
+                  v-if="item.review.officialGroupIdentifier"
+                  class="rounded-lg border border-[var(--ks-border)] p-3"
+                >
+                  {{ t('kingdomP7D.officialGroupIdentifier') }}:
+                  <strong>{{ item.review.officialGroupIdentifier }}</strong> ·
+                  {{ item.review.officialGroupKingdomNumbers.join(', ') }}
+                </li>
               </ul>
             </div>
           </section>
 
-          <section v-if="item.review?.status === 'duplicate_blocked'" class="border-t border-amber-400/20 bg-amber-500/10 p-4 text-sm">
+          <section
+            v-if="item.review?.status === 'duplicate_blocked'"
+            class="border-t border-amber-400/20 bg-amber-500/10 p-4 text-sm"
+          >
             <strong class="text-amber-100">{{ t('kingdomP7D.semanticDuplicate') }}</strong>
             <p class="mt-1 text-amber-50/90">{{ t('kingdomP7D.semanticDuplicateHelp') }}</p>
-            <form v-if="mutable" class="mt-3 flex flex-col gap-2 sm:flex-row" @submit.prevent="resolveDuplicate(item)">
-              <input v-model="duplicateJustifications[item.review.id]" :placeholder="t('kingdomP7D.duplicateJustification')" class="min-w-0 flex-1 rounded-lg border border-amber-400/30 bg-[var(--ks-bg)] px-3 py-2" minlength="8" required />
-              <button class="rounded-lg border border-amber-300/40 px-4 py-2 font-semibold text-amber-50" type="submit">{{ t('kingdomP7D.resolveDuplicate') }}</button>
+            <form
+              v-if="mutable"
+              class="mt-3 flex flex-col gap-2 sm:flex-row"
+              @submit.prevent="resolveDuplicate(item)"
+            >
+              <input
+                v-model="duplicateJustifications[item.review.id]"
+                :placeholder="t('kingdomP7D.duplicateJustification')"
+                class="min-w-0 flex-1 rounded-lg border border-amber-400/30 bg-[var(--ks-bg)] px-3 py-2"
+                minlength="8"
+                required
+              />
+              <button
+                class="rounded-lg border border-amber-300/40 px-4 py-2 font-semibold text-amber-50"
+                type="submit"
+              >
+                {{ t('kingdomP7D.resolveDuplicate') }}
+              </button>
             </form>
           </section>
 
-          <section v-if="item.review?.status === 'approved'" class="border-t border-[var(--ks-border)] p-4">
+          <section
+            v-if="item.review?.status === 'approved'"
+            class="border-t border-[var(--ks-border)] p-4"
+          >
             <button
               :disabled="previewLoading[item.id]"
               class="rounded-lg border border-[var(--ks-border)] px-4 py-2 text-sm font-semibold disabled:opacity-40"
@@ -754,34 +1061,88 @@ function fieldCorrected(item: EvidenceItem, field: ExtractedField): boolean {
             <div v-if="previews[item.id]" class="mt-4 grid gap-3 md:grid-cols-2">
               <div class="rounded-xl border border-[var(--ks-border)] p-4">
                 <p class="ks-kicker">{{ t('kingdomP7D.beforeImport') }}</p>
-                <p class="mt-1 font-semibold">{{ t(`kingdomP7D.eligibility_${previews[item.id]!.current_outcome}`) }}</p>
-                <p class="mt-2 text-sm text-[var(--ks-muted)]">{{ previews[item.id]!.current_primary_action ?? t('kingdomP7D.noRemainingActions') }}</p>
+                <p class="mt-1 font-semibold">
+                  {{ t(`kingdomP7D.eligibility_${previews[item.id]!.current_outcome}`) }}
+                </p>
+                <p class="mt-2 text-sm text-[var(--ks-muted)]">
+                  {{
+                    previews[item.id]!.current_primary_action ?? t('kingdomP7D.noRemainingActions')
+                  }}
+                </p>
               </div>
               <div class="rounded-xl border border-[var(--ks-gold)]/40 bg-[var(--ks-gold)]/5 p-4">
                 <p class="ks-kicker">{{ t('kingdomP7D.afterImport') }}</p>
-                <p class="mt-1 font-semibold">{{ t(`kingdomP7D.eligibility_${previews[item.id]!.after_outcome}`) }}</p>
-                <p class="mt-2 text-sm text-[var(--ks-muted)]">{{ previews[item.id]!.after_primary_action ?? t('kingdomP7D.noRemainingActions') }}</p>
+                <p class="mt-1 font-semibold">
+                  {{ t(`kingdomP7D.eligibility_${previews[item.id]!.after_outcome}`) }}
+                </p>
+                <p class="mt-2 text-sm text-[var(--ks-muted)]">
+                  {{
+                    previews[item.id]!.after_primary_action ?? t('kingdomP7D.noRemainingActions')
+                  }}
+                </p>
               </div>
-              <p class="text-xs text-[var(--ks-muted)] md:col-span-2">{{ t('kingdomP7D.reviewedFactKeys') }}: {{ previews[item.id]!.reviewed_fact_keys.join(', ') }}</p>
+              <p class="text-xs text-[var(--ks-muted)] md:col-span-2">
+                {{ t('kingdomP7D.reviewedFactKeys') }}:
+                {{ previews[item.id]!.reviewed_fact_keys.join(', ') }}
+              </p>
             </div>
-            <div v-if="mutable && previews[item.id] && item.commit?.status !== 'succeeded'" class="mt-4">
-              <button class="rounded-lg bg-[var(--ks-gold)] px-4 py-2 text-sm font-bold text-[var(--ks-ink)]" type="button" @click="commit(item)">{{ t('kingdomP7D.commitEvidence') }}</button>
+            <div
+              v-if="mutable && previews[item.id] && item.commit?.status !== 'succeeded'"
+              class="mt-4"
+            >
+              <button
+                class="rounded-lg bg-[var(--ks-gold)] px-4 py-2 text-sm font-bold text-[var(--ks-ink)]"
+                type="button"
+                @click="commit(item)"
+              >
+                {{ t('kingdomP7D.commitEvidence') }}
+              </button>
             </div>
           </section>
 
-          <footer class="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--ks-border)] p-4 text-sm">
+          <footer
+            class="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--ks-border)] p-4 text-sm"
+          >
             <div>
-              <span v-if="item.commit"><strong>{{ commitStatusLabel(item.commit.status) }}</strong><span v-if="item.commit.destinationReceiptId"> · {{ t('kingdomP7D.destinationReceipt') }} {{ item.commit.destinationReceiptId }}</span></span>
-              <span v-else-if="item.status === 'unsupported'" class="text-amber-100">{{ t('kingdomP7D.unsupportedEvidence') }}</span>
+              <span v-if="item.commit"
+                ><strong>{{ commitStatusLabel(item.commit.status) }}</strong
+                ><span v-if="item.commit.destinationReceiptId">
+                  · {{ t('kingdomP7D.destinationReceipt') }}
+                  {{ item.commit.destinationReceiptId }}</span
+                ></span
+              >
+              <span v-else-if="item.status === 'unsupported'" class="text-amber-100">{{
+                t('kingdomP7D.unsupportedEvidence')
+              }}</span>
             </div>
             <div v-if="mutable" class="flex flex-wrap gap-2">
-              <button v-if="item.status === 'failed'" class="rounded-lg border border-[var(--ks-border)] px-3 py-2 font-semibold" type="button" @click="retry(item)">{{ t('kingdomP7D.retryProcessing') }}</button>
-              <button v-if="!['classifying', 'extracting', 'committing', 'deleted'].includes(item.status)" class="rounded-lg border border-red-400/30 px-3 py-2 text-red-200" type="button" @click="remove(item)">{{ t('kingdomP7D.deleteEvidence') }}</button>
+              <button
+                v-if="item.status === 'failed'"
+                class="rounded-lg border border-[var(--ks-border)] px-3 py-2 font-semibold"
+                type="button"
+                @click="retry(item)"
+              >
+                {{ t('kingdomP7D.retryProcessing') }}
+              </button>
+              <button
+                v-if="!['classifying', 'extracting', 'committing', 'deleted'].includes(item.status)"
+                class="rounded-lg border border-red-400/30 px-3 py-2 text-red-200"
+                type="button"
+                @click="remove(item)"
+              >
+                {{ t('kingdomP7D.deleteEvidence') }}
+              </button>
             </div>
           </footer>
         </article>
 
-        <p v-if="notice" aria-live="polite" class="rounded-lg border border-amber-400/30 bg-amber-500/10 p-3 text-sm text-amber-100">{{ notice }}</p>
+        <p
+          v-if="notice"
+          aria-live="polite"
+          class="rounded-lg border border-amber-400/30 bg-amber-500/10 p-3 text-sm text-amber-100"
+        >
+          {{ notice }}
+        </p>
       </div>
     </details>
   </section>

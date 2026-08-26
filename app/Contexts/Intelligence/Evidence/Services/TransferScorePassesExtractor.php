@@ -45,11 +45,13 @@ final class TransferScorePassesExtractor extends AbstractTransferEvidenceExtract
             $score = $this->numericCandidate($line, ['transfer score'], 'transfer_score');
             if ($score !== null) {
                 $fields['transfer_score'] = $score;
+
                 continue;
             }
             $available = $this->numericCandidate($line, ['passes available', 'available passes'], 'transfer_passes_available');
             if ($available !== null) {
                 $fields['transfer_passes_available'] = $available;
+
                 continue;
             }
             $required = $this->numericCandidate($line, ['passes required', 'required passes'], 'transfer_passes_required');
