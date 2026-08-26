@@ -87,6 +87,7 @@ jobs:
           php artisan tinker --execute='\Tests\v3\Fixtures\ScreenshotIntakeVisualFixture::seed();'
           php artisan tinker --execute='\Tests\v3\Fixtures\BearHuntDebriefVisualFixture::seed();'
           php artisan tinker --execute='\Tests\v3\Fixtures\KingdomTransferVisualFixture::seed();'
+          php artisan tinker --execute='\Tests\v3\Fixtures\EventCommandVisualFixture::seed();'
 
       - name: Build production frontend
         run: npm run build
@@ -107,6 +108,11 @@ jobs:
 
       - name: Run visual regression
         run: npm run test:visual
+
+      - name: Print application failure log
+        if: failure()
+        shell: bash
+        run: cat "${RUNNER_TEMP}/ux-p9-server.log" || true
 
       - name: Upload visual failure evidence
         if: failure()

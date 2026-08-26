@@ -9,6 +9,7 @@ Use:
 - [Runtime architecture](architecture.md)
 - [Configuration](configuration.md)
 - [Observability](observability.md)
+- [Event Command readiness and closeout](event-command-readiness-closeout.md)
 - [Alliance Assistant](alliance-assistant.md)
 - [Background processing](background-processing.md)
 - [Deployment](deployment/README.md)

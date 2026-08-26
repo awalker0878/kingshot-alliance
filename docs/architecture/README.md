@@ -14,6 +14,7 @@ Start with:
 - [Consistency and transactions](consistency-and-transactions.md)
 - [Integration model](integration-model.md)
 - [Alliance Assistant composition](alliance-assistant.md)
+- [Event Command readiness and closeout](event-command-readiness-closeout.md)
 - [Architecture decision records](adr/README.md)
 - [Bounded contexts](contexts/README.md)
 - [Architecture compliance](../governance/architecture-compliance.md)

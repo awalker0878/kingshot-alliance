@@ -1,6 +1,6 @@
 # Capability Extension Program
 
-Status: Active extension program — phases 0–2 complete — 2026-08-24
+Status: Active extension program — phases 0–4 complete — 2026-08-25
 
 Date: 2026-08-24
 
@@ -14,7 +14,7 @@ A delivery item is complete only when its domain/application behavior, persisten
 
 Use the strong owner capabilities already delivered in GameWorld, Operations, Alliance, Intelligence, Communications, Platform and ReadModels to make the product more connected and useful without duplicating state or weakening provenance.
 
-The program extensions are listed below. Alliance Assistant Game Data and bounded operational-self queries are now a **Current complete capability**; the remaining items retain the Selected extension or Evidence-gated extension state recorded in the delivery ledger:
+The program extensions are listed below. Alliance Assistant Game Data and bounded operational-self queries plus Event Readiness & Closeout are now **Current complete capabilities**; the remaining items retain the Selected extension or Evidence-gated extension state recorded in the delivery ledger:
 
 1. Alliance Assistant Game Data and bounded operational-self queries;
 2. Event Readiness and Event Closeout composition;
@@ -189,7 +189,9 @@ The Assistant must not silently submit a form, call an owner Action, create an A
 - **AE-11** localized, keyboard/mobile-safe UI covers answered, ambiguous, not-found, unsupported, stale/conflicting and handoff states.
 - **AE-12** behavior, authorization/tenant isolation, architecture, query budget, localization and visual regression are covered before closeout.
 
-## Selected extension 2 — Event Readiness and Closeout
+## Current complete capability — Event Readiness and Closeout
+
+Program delivery: **Complete — phases 3–4**. The canonical delivered contract and completion ledger live in [Event Command — Readiness & Closeout](event-readiness-closeout.md).
 
 ### Outcome
 

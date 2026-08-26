@@ -6,6 +6,7 @@ Reference documentation is for **facts you look up**, not explanations that rede
 
 - [Permissions](permissions.md)
 - [Events and webhook selectors](events.md)
+- [Event Command readiness and closeout](event-command-readiness-closeout.md)
 - [Alliance Assistant](alliance-assistant.md)
 - [Configuration](configuration.md)
 - [Gift Codes](gift-codes.md)

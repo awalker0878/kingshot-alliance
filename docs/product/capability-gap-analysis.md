@@ -30,7 +30,7 @@ External projects may not silently supply a progression formula, transfer rule, 
 
 ## Current complete capabilities
 
-The product already has governed workflows across account security, Player context, Alliance membership/leadership, recruitment, Alliance Content, Kingdom governance, Events, Participation, rosters, polls, BattlePlans, Rallies, King Perks, Results, Intelligence, Communications, platform administration, integrations, Gift Codes, Territory & Hive planning, Kingdom Transfer Planning, Factual Governor Progression, Screenshot Intake for Bear Hunt, Bear Hunt Debrief and Alliance Assistant.
+The product already has governed workflows across account security, Player context, Alliance membership/leadership, recruitment, Alliance Content, Kingdom governance, Events, Participation, rosters, polls, BattlePlans, Rallies, King Perks, Results, Intelligence, Communications, platform administration, integrations, Gift Codes, Territory & Hive planning, Kingdom Transfer Planning, Factual Governor Progression, Screenshot Intake for Bear Hunt, Bear Hunt Debrief, Alliance Assistant and Event Readiness & Closeout.
 
 ### Alliance Assistant — current complete
 
@@ -66,12 +66,14 @@ The canonical [Screenshot Intake](screenshot-intake.md) contract closes all 15 B
 
 Any global ledger row still showing phases 3, 4, 7, 11 or 12 as `In progress` was stale documentation and is reconciled to `Complete` in Phase 0. The new Transfer and Governor Progression evidence work is represented as separate **Selected extensions** rather than reopening the Bear Hunt delivery program.
 
+### Event Readiness & Closeout — current complete
+
+The delivered Event Command is an occurrence-scoped `ReadModels/EventManagement` composition over existing owners. It derives `planning | needs_attention | ready | active | closeout_required | complete`, preserves cancellation and explicit unknown/not-applicable semantics, exposes canonical owner provenance/handoffs, performs no domain writes, and is verified through query-budget, authorization/isolation, accessibility/localization and deterministic desktop/mobile visual coverage.
+
 ## Selected extensions
 
 | Priority/order | Selected extension | User outcome | Canonical owners | Primary guardrail |
 | --- | --- | --- | --- | --- |
-| 3 | Event Readiness | One pre-Event view of schedule, registration, roster, BattlePlan, strategy, Territory, Communications and Rally blockers. | Existing Operations/Alliance/Communications owners + ReadModels/EventManagement | Derived composition only; no persisted readiness boolean/state machine. |
-| 4 | Event Closeout | One post-Event view of attendance/Rallies/Results/Evidence/review/Debrief work still required. | Operations + Intelligence/Evidence + EventAnalysis/ReadModels | Missing is not complete; owner workflows retain every correction/write. |
 | 5 | Kingdom Transfer Screenshot Intake | Review supported in-game Transfer screenshots and commit approved observations exactly once. | Intelligence/Evidence + GameWorld/KingdomTransfers | Evidence owns provenance; KingdomTransfers owns observations/eligibility. |
 | 6 | Governor Progression Screenshot Intake | Review profile/progression screenshots, normalize against a pinned Progression release and append Governor observations. | Intelligence/Evidence + Intelligence/Roster + GameWorld/Progression | OCR cannot create identity or alter catalogue truth. |
 | 7 | Progression Goal Planner | Compare authorized observed current state with a user-selected factual target/prerequisite path. | ReadModels composing Intelligence/Roster + GameWorld/Progression | No recommendation semantics or unqualified resource totals. |
@@ -157,8 +159,8 @@ Evidence cannot silently become game truth. Planning intent cannot silently beco
 | 0 | Complete | Reconcile `/docs/product`, ownership/provenance and global delivery ledger |
 | 1 | Complete | Alliance Assistant `game_fact` |
 | 2 | Complete | Assistant operational-self intents and safe owner-workflow handoffs |
-| 3 | Selected extension | Event Readiness |
-| 4 | Selected extension | Event Closeout |
+| 3 | Complete | Event Readiness |
+| 4 | Complete | Event Closeout |
 | 5 | Selected extension | Kingdom Transfer Screenshot Intake |
 | 6 | Selected extension | Governor Progression Screenshot Intake |
 | 7 | Selected extension | Progression Goal Planner |

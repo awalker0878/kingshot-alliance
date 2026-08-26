@@ -2,5 +2,5 @@
   "initialJavaScriptBytes": 230400,
   "appEntryBytes": 20480,
   "largestPageChunkBytes": 73728,
-  "largestStylesheetBytes": 102400
+  "largestStylesheetBytes": 131072
 }

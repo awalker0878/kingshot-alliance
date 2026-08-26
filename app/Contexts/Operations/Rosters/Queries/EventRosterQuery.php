@@ -52,6 +52,82 @@ final readonly class EventRosterQuery
             ])->all());
     }
 
+    /**
+     * Bounded owner summary consumed by EventManagement Event Command composition.
+     *
+     * @return array{
+     *   rosterCount:int,
+     *   capacityRosterCount:int,
+     *   requiredSlots:int,
+     *   filledSlots:int,
+     *   unfilledSlots:int,
+     *   activeMemberCount:int,
+     *   unassignedCount:int,
+     *   declinedCount:int,
+     *   removedCount:int,
+     *   warningCount:int
+     * }
+     */
+    public function commandSummary(EventOccurrence $occurrence): array
+    {
+        $rosters = EventRoster::query()
+            ->where('occurrence_id', $occurrence->id)
+            ->with('members')
+            ->get();
+        $requiredSlots = 0;
+        $filledSlots = 0;
+        $capacityRosterCount = 0;
+        $activeMemberCount = 0;
+        $unassignedCount = 0;
+        $declinedCount = 0;
+        $removedCount = 0;
+        $warningCount = 0;
+
+        foreach ($rosters as $roster) {
+            if (! $roster instanceof EventRoster) {
+                continue;
+            }
+
+            $occupying = $roster->members->filter(
+                static fn (EventRosterMember $member): bool => $member->status->occupiesSlot(),
+            );
+            $activeMemberCount += $occupying->count();
+            $unassignedCount += $occupying
+                ->filter(static fn (EventRosterMember $member): bool => $member->slot_number === null)
+                ->count();
+            $declinedCount += $roster->members
+                ->filter(static fn (EventRosterMember $member): bool => $member->status === EventRosterMemberStatus::Declined)
+                ->count();
+            $removedCount += $roster->members
+                ->filter(static fn (EventRosterMember $member): bool => $member->status === EventRosterMemberStatus::Removed)
+                ->count();
+            $warningCount += $roster->members->sum(static function (EventRosterMember $member): int {
+                $warnings = $member->assignment_warnings;
+
+                return is_array($warnings) ? count($warnings) : 0;
+            });
+
+            if ($roster->capacity !== null) {
+                $capacityRosterCount++;
+                $requiredSlots += max(0, (int) $roster->capacity);
+                $filledSlots += min(max(0, (int) $roster->capacity), $occupying->count());
+            }
+        }
+
+        return [
+            'rosterCount' => $rosters->count(),
+            'capacityRosterCount' => $capacityRosterCount,
+            'requiredSlots' => $requiredSlots,
+            'filledSlots' => $filledSlots,
+            'unfilledSlots' => max(0, $requiredSlots - $filledSlots),
+            'activeMemberCount' => $activeMemberCount,
+            'unassignedCount' => $unassignedCount,
+            'declinedCount' => $declinedCount,
+            'removedCount' => $removedCount,
+            'warningCount' => $warningCount,
+        ];
+    }
+
     /** @return list<array<string,mixed>> */
     public function management(Event $event): array
     {
