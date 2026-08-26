@@ -26,7 +26,7 @@ final readonly class GovernorProgressionEvidenceExtractor implements EvidenceExt
     {
         $this->schemas->require($kind);
 
-        return '1.0.0';
+        return '1.0.1';
     }
 
     public function schemaVersion(EvidenceKind $kind): string
@@ -143,8 +143,8 @@ final readonly class GovernorProgressionEvidenceExtractor implements EvidenceExt
                 continue;
             }
             $fields[] = $this->candidate('gear_slot', $ordinal, $line, $slot, 'string');
-            if (preg_match('/\b(?:quality|rarity|tier)\s*[:\-]?\s*([A-Za-z][A-Za-z0-9 _-]{1,24})/i', $text, $match) === 1) {
-                $fields[] = $this->candidate('gear_quality', $ordinal, $line, trim($match[1]), 'string');
+            if (($quality = $this->gearQuality($text)) !== null) {
+                $fields[] = $this->candidate('gear_quality', $ordinal, $line, $quality, 'string');
             }
             if (preg_match('/\b(?:gear\s+)?(?:level|lv\.?)\s*[:\-]?\s*(\d{1,3})\b/i', $text, $match) === 1) {
                 $fields[] = $this->candidate('gear_level', $ordinal, $line, (string) ((int) $match[1]), 'integer');
@@ -170,8 +170,8 @@ final readonly class GovernorProgressionEvidenceExtractor implements EvidenceExt
                 continue;
             }
             $fields[] = $this->candidate('gear_slot', $ordinal, $line, $slot, 'string');
-            if (preg_match('/\b(?:quality|rarity|tier)\s*[:\-]?\s*([A-Za-z][A-Za-z0-9 _-]{1,24})/i', $text, $match) === 1) {
-                $fields[] = $this->candidate('gear_quality', $ordinal, $line, trim($match[1]), 'string');
+            if (($quality = $this->gearQuality($text)) !== null) {
+                $fields[] = $this->candidate('gear_quality', $ordinal, $line, $quality, 'string');
             }
             if (preg_match('/\b(?:gear\s+)?(?:level|lv\.?)\s*[:\-]?\s*(\d{1,3})\b/i', $text, $match) === 1) {
                 $fields[] = $this->candidate('gear_level', $ordinal, $line, (string) ((int) $match[1]), 'integer');
@@ -239,6 +239,17 @@ final readonly class GovernorProgressionEvidenceExtractor implements EvidenceExt
         }
 
         return null;
+    }
+
+    private function gearQuality(string $text): ?string
+    {
+        if (preg_match('/\b(?:quality|rarity|tier)\s*[:\-]?\s*([A-Za-z][A-Za-z0-9 _-]{0,23}?)(?=\s+(?:(?:gear\s+)?(?:level|lv\.?)|mastery(?:\s+(?:forge|level))?|stars?|star)\b|$)/i', $text, $match) !== 1) {
+            return null;
+        }
+
+        $quality = trim($match[1]);
+
+        return $quality === '' ? null : $quality;
     }
 
     private function gearSlot(string $text): ?string
