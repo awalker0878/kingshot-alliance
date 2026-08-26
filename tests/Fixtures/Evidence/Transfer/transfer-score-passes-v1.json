@@ -17,5 +17,19 @@
   ],
   "semantic_newer": [
     {"name":"newer_pass_state","transfer_score":9100000,"passes_available":9,"passes_required":12,"observed_at":"2026-08-26T03:00:00Z"}
+  ],
+  "coverage_cases": [
+    {"category":"canonical","name":"canonical_supported","lines":["Transfer Score 9,000,000","Passes Available 7","Passes Required 12"],"expected_kind":"transfer_score_passes","fields":{"transfer_score":9000000,"transfer_passes_available":7,"transfer_passes_required":12}},
+    {"category":"alternate_resolution","name":"alternate_resolution_supported","representation":{"width":1440,"height":2560},"lines":["Transfer Score 9,000,000","Passes Available 7","Passes Required 12"],"expected_kind":"transfer_score_passes","fields":{"transfer_score":9000000,"transfer_passes_available":7,"transfer_passes_required":12}},
+    {"category":"safe_crop","name":"score_panel_crop_supported","representation":{"crop":"score_pass_panel"},"lines":["Transfer Score 9,000,000","Available Passes 7","Required Passes 12"],"expected_kind":"transfer_score_passes","fields":{"transfer_score":9000000,"transfer_passes_available":7,"transfer_passes_required":12}},
+    {"category":"numeric_grouping","name":"comma_grouping_supported","lines":["Transfer Score 1,234,567","Passes Available 5","Passes Required 6"],"expected_kind":"transfer_score_passes","fields":{"transfer_score":1234567,"transfer_passes_available":5,"transfer_passes_required":6}},
+    {"category":"low_confidence","name":"blurred_score_passes_reviewable","ocr_confidence":0.42,"lines":["Transfer Score 9,000,000","Passes Available 7","Passes Required 12"],"expected_kind":"transfer_score_passes","fields":{"transfer_score":9000000,"transfer_passes_available":7,"transfer_passes_required":12},"expect_below_field_threshold":true},
+    {"category":"adjacent_unrelated_numbers","name":"alliance_rank_is_not_required_passes","lines":["Transfer Score 9,000,000","Passes Available 7","Alliance Rank 12"],"expected_kind":"transfer_score_passes","fields":{"transfer_score":9000000,"transfer_passes_available":7},"forbidden_fields":["transfer_passes_required"]},
+    {"category":"missing_required_field","name":"required_passes_missing","lines":["Transfer Score 9,000,000","Passes Available 7"],"expected_kind":"transfer_score_passes","fields":{"transfer_score":9000000,"transfer_passes_available":7},"forbidden_fields":["transfer_passes_required"]},
+    {"category":"unsupported_ui_variant","name":"pass_cost_is_not_required_passes","lines":["Transfer Score 9,000,000","Passes Available 7","Pass Cost 12"],"expected_kind":"transfer_score_passes","fields":{"transfer_score":9000000,"transfer_passes_available":7},"forbidden_fields":["transfer_passes_required"]},
+    {"category":"wrong_screenshot_class","name":"governor_screen_is_not_score_passes","lines":["Governor Power 72,345,678"],"expected_kind":"transfer_governor_status","fields":{}},
+    {"category":"visual_duplicate_recompressed","name":"recompressed_same_visual_meaning","representation":{"compression":"reencoded"},"lines":["Transfer Score 9,000,000","Passes Available 7","Passes Required 12"],"expected_kind":"transfer_score_passes","fields":{"transfer_score":9000000,"transfer_passes_available":7,"transfer_passes_required":12},"visual_duplicate_of":"canonical_supported"},
+    {"category":"semantic_equal","name":"same_reviewed_meaning","lines":["Transfer Score 9,000,000","Passes Available 7","Passes Required 12"],"expected_kind":"transfer_score_passes","fields":{"transfer_score":9000000,"transfer_passes_available":7,"transfer_passes_required":12},"semantic":{"observed_at":"2026-08-26T01:00:00Z"}},
+    {"category":"semantic_newer","name":"newer_reviewed_meaning","lines":["Transfer Score 9,100,000","Passes Available 9","Passes Required 12"],"expected_kind":"transfer_score_passes","fields":{"transfer_score":9100000,"transfer_passes_available":9,"transfer_passes_required":12},"semantic":{"observed_at":"2026-08-26T03:00:00Z"}}
   ]
 }

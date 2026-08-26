@@ -17,5 +17,19 @@
   ],
   "semantic_newer": [
     {"name":"newer_condition","target_kingdom_number":654,"power_cap":90000000,"kingdom_classification":"ordinary","observed_at":"2026-08-26T03:00:00Z"}
+  ],
+  "coverage_cases": [
+    {"category":"canonical","name":"canonical_supported","lines":["Kingdom #654","Power Cap 90,000,000","Ordinary Kingdom"],"expected_kind":"transfer_target_kingdom_rules","fields":{"target_kingdom_number":654,"power_cap":90000000,"kingdom_classification":"ordinary"}},
+    {"category":"alternate_resolution","name":"alternate_resolution_supported","representation":{"width":1440,"height":2560},"lines":["Kingdom 654","Power Cap 95,000,000","Leading Kingdom"],"expected_kind":"transfer_target_kingdom_rules","fields":{"target_kingdom_number":654,"power_cap":95000000,"kingdom_classification":"leading"}},
+    {"category":"safe_crop","name":"rules_crop_without_classification","representation":{"crop":"target_rules_panel"},"lines":["Kingdom #654","Power Cap 90,000,000"],"expected_kind":"transfer_target_kingdom_rules","fields":{"target_kingdom_number":654,"power_cap":90000000},"forbidden_fields":["kingdom_classification"]},
+    {"category":"numeric_grouping","name":"comma_power_cap_supported","lines":["Kingdom #654","Power Cap 90,000,000"],"expected_kind":"transfer_target_kingdom_rules","fields":{"target_kingdom_number":654,"power_cap":90000000},"forbidden_fields":["kingdom_classification"]},
+    {"category":"low_confidence","name":"blurred_rules_reviewable","ocr_confidence":0.42,"lines":["Kingdom #654","Power Cap 90,000,000","Ordinary Kingdom"],"expected_kind":"transfer_target_kingdom_rules","fields":{"target_kingdom_number":654,"power_cap":90000000,"kingdom_classification":"ordinary"},"expect_below_field_threshold":true},
+    {"category":"adjacent_unrelated_numbers","name":"governor_power_is_not_cap","lines":["Kingdom #654","Power Cap 90,000,000","Governor Power 72,345,678"],"expected_kind":"transfer_target_kingdom_rules","fields":{"target_kingdom_number":654,"power_cap":90000000},"forbidden_fields":["governor_power","kingdom_classification"]},
+    {"category":"missing_required_field","name":"power_cap_missing","lines":["Kingdom #654","Ordinary Kingdom"],"expected_kind":"unknown","fields":{"target_kingdom_number":654,"kingdom_classification":"ordinary"},"forbidden_fields":["power_cap"]},
+    {"category":"unsupported_ui_variant","name":"maximum_power_wording_not_supported","lines":["Kingdom #654","Maximum Power 90,000,000"],"expected_kind":"unknown","fields":{"target_kingdom_number":654},"forbidden_fields":["power_cap"]},
+    {"category":"wrong_screenshot_class","name":"invitation_is_not_rules","lines":["Special Invite Approved","Kingdom #654"],"expected_kind":"transfer_invitation","fields":{"target_kingdom_number":654},"forbidden_fields":["power_cap","kingdom_classification"]},
+    {"category":"visual_duplicate_recompressed","name":"recompressed_same_visual_meaning","representation":{"compression":"reencoded"},"lines":["Kingdom #654","Power Cap 90,000,000","Ordinary Kingdom"],"expected_kind":"transfer_target_kingdom_rules","fields":{"target_kingdom_number":654,"power_cap":90000000,"kingdom_classification":"ordinary"},"visual_duplicate_of":"canonical_supported"},
+    {"category":"semantic_equal","name":"same_reviewed_meaning","lines":["Kingdom #654","Power Cap 90,000,000","Ordinary Kingdom"],"expected_kind":"transfer_target_kingdom_rules","fields":{"target_kingdom_number":654,"power_cap":90000000,"kingdom_classification":"ordinary"},"semantic":{"observed_at":"2026-08-26T01:00:00Z"}},
+    {"category":"semantic_newer","name":"newer_reviewed_meaning","lines":["Kingdom #654","Power Cap 90,000,000","Ordinary Kingdom"],"expected_kind":"transfer_target_kingdom_rules","fields":{"target_kingdom_number":654,"power_cap":90000000,"kingdom_classification":"ordinary"},"semantic":{"observed_at":"2026-08-26T03:00:00Z"}}
   ]
 }
