@@ -138,7 +138,6 @@ final readonly class CommitReviewedGovernorProgressionEvidence
             $this->outbox->record('evidence.governor_progression_commit_started', $allianceId, $evidence, $metadata);
 
             return [
-                'completed' => null,
                 'attempt_id' => (string) $attempt->id,
                 'evidence_id' => (string) $evidence->id,
                 'review_id' => (string) $review->id,
@@ -151,7 +150,7 @@ final readonly class CommitReviewedGovernorProgressionEvidence
                 'idempotency_key' => $idempotencyKey,
             ];
         });
-        if (($prepared['completed'] ?? null) instanceof GovernorProgressionEvidenceRecordResult) {
+        if (array_key_exists('completed', $prepared)) {
             return $prepared['completed'];
         }
 
