@@ -303,11 +303,15 @@ final readonly class GovernorProgressionEvidenceExtractor implements EvidenceExt
     }
 
     /**
-     * @param  non-empty-list<OcrToken>  $tokens
+     * @param  list<OcrToken>  $tokens
      * @param  list<string>  $warnings
      */
     private function candidate(string $key, int $ordinal, array $tokens, string $normalized, string $type, array $warnings = []): ExtractedFieldCandidate
     {
+        if ($tokens === []) {
+            throw new InvalidArgumentException('Governor Progression extraction candidates require at least one OCR token.');
+        }
+
         $confidenceTotal = 0.0;
         $left = $tokens[0]->left;
         $top = $tokens[0]->top;
