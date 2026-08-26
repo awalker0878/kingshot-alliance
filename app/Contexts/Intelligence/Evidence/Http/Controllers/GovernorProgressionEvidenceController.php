@@ -265,6 +265,6 @@ final class GovernorProgressionEvidenceController extends Controller
     private function back(array $parameters): RedirectResponse
     {
         return redirect()->route('progression.governor')
-            ->with('actionReceipt', $this->receipt('governor-progression-evidence-updated', $parameters));
+            ->with('actionReceipt', $this->receipt('completed', $parameters));
     }
 }
