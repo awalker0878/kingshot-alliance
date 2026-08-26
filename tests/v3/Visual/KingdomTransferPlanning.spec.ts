@@ -73,9 +73,18 @@ test('Kingdom Transfer Planning keeps eligibility, verification, readiness, and 
   const evidenceDetails = northstarCard.locator('details').filter({ hasText: 'Add in-game evidence' });
   await evidenceDetails.locator('summary').click();
   await expect(evidenceDetails.getByText('Upload and classify', { exact: true })).toBeVisible();
-  await expect(evidenceDetails.getByText('Transfer Governor status', { exact: true }).first()).toBeVisible();
-  await expect(evidenceDetails.getByText('Transfer Score / Passes', { exact: true }).first()).toBeVisible();
-  await expect(evidenceDetails.getByText('Transfer invitation', { exact: true }).first()).toBeVisible();
+
+  const screenshotClass = evidenceDetails.getByRole('combobox', { name: 'Screenshot class' });
+  await expect(screenshotClass).toBeVisible();
+  await expect(screenshotClass).toHaveValue('transfer_governor_status');
+  await expect(screenshotClass.locator('option')).toHaveText([
+    'Transfer Governor status',
+    'Transfer Score / Passes',
+    'Transfer invitation',
+    'Target Kingdom transfer rules',
+    'Official Transfer Group',
+  ]);
+
   await expect(evidenceDetails.getByText('Possible visual duplicate', { exact: true })).toBeVisible();
   await expect(
     evidenceDetails.getByText('Below the schema confidence requirement — verify carefully.', {
