@@ -342,7 +342,7 @@ final readonly class SaveTransferEvidenceReview
     private function classification(?string $classification): ?string
     {
         $classification = $classification === null ? '' : trim($classification);
-        if ($classification === '') {
+        if ($classification === '' || $classification === TransferKingdomClassification::Unknown->value) {
             return null;
         }
         if (TransferKingdomClassification::tryFrom($classification) === null) {
