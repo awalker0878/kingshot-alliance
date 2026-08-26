@@ -144,6 +144,7 @@ final class TransferEvidenceReviewV3Test extends TestCase
      *   targetNumber:int
      * } $scenario
      * @param list<array{0:string,1:string,2:string,3:string,4:float}> $fields
+     *
      * @return array{0:GameEvidence,1:EvidenceExtractionAttempt}
      */
     private function evidence(array $scenario, EvidenceKind $kind, string $schemaVersion, array $fields): array
