@@ -95,7 +95,7 @@ return new class extends Migration
             $table->timestamp('started_at');
             $table->timestamp('completed_at')->nullable();
             $table->timestamps();
-            $table->unique(['transfer_review_id', 'idempotency_key'], 'evidence_transfer_commit_review_key_unique');
+            $table->index(['transfer_review_id', 'idempotency_key', 'status'], 'evidence_transfer_commit_review_key_idx');
             $table->index(['alliance_id', 'status', 'created_at'], 'evidence_transfer_commit_status_idx');
         });
 
