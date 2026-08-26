@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Contexts\GameWorld\KingdomTransfers\Queries;
 
 use App\Contexts\GameWorld\Kingdoms\Queries\KingdomReferenceQuery;
+use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferEvidencePreviewKind;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferKingdomClassification;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferObservationKind;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferRequirementState;
@@ -19,7 +20,6 @@ use App\Contexts\GameWorld\KingdomTransfers\Services\TransferObservationSelector
 use App\Contexts\GameWorld\KingdomTransfers\ValueObjects\TransferEligibilityInput;
 use App\Contexts\GameWorld\KingdomTransfers\ValueObjects\TransferEvidencePreviewInput;
 use App\Contexts\GameWorld\KingdomTransfers\ValueObjects\TransferObservedValue;
-use App\Contexts\Intelligence\Evidence\Enums\EvidenceKind;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 
@@ -74,7 +74,7 @@ final readonly class TransferEvidencePreviewQuery
                 'after_primary_action' => $currentAssessment->primaryAction,
                 'reviewed_fact_keys' => $this->factKeys($review->kind),
                 'transfer_score_before' => $currentScore->value,
-                'transfer_score_after' => $review->kind === EvidenceKind::TransferScorePasses ? $review->transferScore : $currentScore->value,
+                'transfer_score_after' => $review->kind === TransferEvidencePreviewKind::ScorePasses ? $review->transferScore : $currentScore->value,
             ];
         }
 
@@ -97,16 +97,16 @@ final readonly class TransferEvidencePreviewQuery
             $review,
         );
 
-        $governorPower = $review->kind === EvidenceKind::TransferGovernorStatus
+        $governorPower = $review->kind === TransferEvidencePreviewKind::GovernorStatus
             ? $this->reviewedFact($review->governorPower, $review, $now)
             : $this->selector->select($rows, TransferObservationKind::GovernorPower, null, $now);
-        $invitation = $review->kind === EvidenceKind::TransferInvitation
+        $invitation = $review->kind === TransferEvidencePreviewKind::Invitation
             ? $this->reviewedFact($review->invitationStatus, $review, $now)
             : $this->selector->select($rows, TransferObservationKind::InvitationStatus, $targetId, $now);
-        $passesAvailable = $review->kind === EvidenceKind::TransferScorePasses
+        $passesAvailable = $review->kind === TransferEvidencePreviewKind::ScorePasses
             ? $this->reviewedFact($review->passesAvailable, $review, $now)
             : $this->selector->select($rows, TransferObservationKind::TransferPassesAvailable, null, $now);
-        $passesRequired = $review->kind === EvidenceKind::TransferScorePasses
+        $passesRequired = $review->kind === TransferEvidencePreviewKind::ScorePasses
             ? $this->reviewedFact($review->passesRequired, $review, $now)
             : $this->selector->select($rows, TransferObservationKind::TransferPassesRequired, $targetId, $now);
         $inGameRulesVerified = $this->selector->select($rows, TransferObservationKind::InGameRulesVerified, $targetId, $now);
@@ -132,7 +132,7 @@ final readonly class TransferEvidencePreviewQuery
             'after_primary_action' => $after->primaryAction,
             'reviewed_fact_keys' => $this->factKeys($review->kind),
             'transfer_score_before' => $currentScore->value,
-            'transfer_score_after' => $review->kind === EvidenceKind::TransferScorePasses ? $review->transferScore : $currentScore->value,
+            'transfer_score_after' => $review->kind === TransferEvidencePreviewKind::ScorePasses ? $review->transferScore : $currentScore->value,
         ];
     }
 
@@ -157,7 +157,7 @@ final readonly class TransferEvidencePreviewQuery
     /** @return array{0:TransferRequirementState,1:?string,2:?string} */
     private function groupFacts(string $allianceId, string $windowId, ?string $sourceId, ?string $targetId, TransferEvidencePreviewInput $review): array
     {
-        if ($review->kind === EvidenceKind::TransferOfficialGroup) {
+        if ($review->kind === TransferEvidencePreviewKind::OfficialGroup) {
             if ($sourceId === null || $targetId === null || $review->officialGroupIdentifier === null) {
                 return [TransferRequirementState::Unknown, null, null];
             }
@@ -202,7 +202,7 @@ final readonly class TransferEvidencePreviewQuery
     /** @return array{0:TransferObservedValue,1:TransferKingdomClassification} */
     private function conditionFacts(string $allianceId, string $windowId, ?string $targetId, TransferEvidencePreviewInput $review): array
     {
-        if ($review->kind === EvidenceKind::TransferTargetKingdomRules) {
+        if ($review->kind === TransferEvidencePreviewKind::TargetKingdomRules) {
             $classification = TransferKingdomClassification::tryFrom((string) $review->kingdomClassification)
                 ?? TransferKingdomClassification::Unknown;
 
@@ -251,15 +251,14 @@ final readonly class TransferEvidencePreviewQuery
     }
 
     /** @return list<string> */
-    private function factKeys(EvidenceKind $kind): array
+    private function factKeys(TransferEvidencePreviewKind $kind): array
     {
         return match ($kind) {
-            EvidenceKind::TransferGovernorStatus => ['governor_power'],
-            EvidenceKind::TransferScorePasses => ['transfer_score', 'transfer_passes_available', 'transfer_passes_required'],
-            EvidenceKind::TransferInvitation => ['invitation_status'],
-            EvidenceKind::TransferTargetKingdomRules => ['target_power_cap', 'kingdom_classification'],
-            EvidenceKind::TransferOfficialGroup => ['official_transfer_group'],
-            default => [],
+            TransferEvidencePreviewKind::GovernorStatus => ['governor_power'],
+            TransferEvidencePreviewKind::ScorePasses => ['transfer_score', 'transfer_passes_available', 'transfer_passes_required'],
+            TransferEvidencePreviewKind::Invitation => ['invitation_status'],
+            TransferEvidencePreviewKind::TargetKingdomRules => ['target_power_cap', 'kingdom_classification'],
+            TransferEvidencePreviewKind::OfficialGroup => ['official_transfer_group'],
         };
     }
 }
