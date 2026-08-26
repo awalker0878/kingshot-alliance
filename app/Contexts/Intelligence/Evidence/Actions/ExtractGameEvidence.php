@@ -52,9 +52,9 @@ final readonly class ExtractGameEvidence
                 'evidence_id' => $evidence->id,
                 'classification_attempt_id' => $classification->id,
                 'status' => EvidenceAttemptStatus::Running,
-                'extractor_key' => $this->extractor->key(),
-                'extractor_version' => $this->extractor->version(),
-                'schema_version' => $this->extractor->schemaVersion(),
+                'extractor_key' => $this->extractor->key($kind),
+                'extractor_version' => $this->extractor->version($kind),
+                'schema_version' => $this->extractor->schemaVersion($kind),
                 'input_sha256' => $evidence->sha256,
                 'overall_confidence' => 0,
                 'field_count' => 0,
@@ -65,9 +65,10 @@ final readonly class ExtractGameEvidence
                 'evidence_id' => (string) $evidence->id,
                 'extraction_attempt_id' => (string) $attempt->id,
                 'classification_attempt_id' => (string) $classification->id,
-                'extractor_key' => $this->extractor->key(),
-                'extractor_version' => $this->extractor->version(),
-                'schema_version' => $this->extractor->schemaVersion(),
+                'kind' => $kind->value,
+                'extractor_key' => $this->extractor->key($kind),
+                'extractor_version' => $this->extractor->version($kind),
+                'schema_version' => $this->extractor->schemaVersion($kind),
             ];
             $this->audit->record('evidence.extraction_started', $actor, $evidence, (string) $evidence->alliance_id, $metadata);
             $this->outbox->record('evidence.extraction_started', (string) $evidence->alliance_id, $evidence, $metadata);
@@ -83,11 +84,12 @@ final readonly class ExtractGameEvidence
             if (! is_array($classification->ocr_payload)) {
                 throw new RuntimeException('Classification OCR provenance is unavailable.');
             }
+            $kind = EvidenceKind::from((string) $classification->getRawOriginal('classified_kind'));
             $document = OcrDocument::fromArray($classification->ocr_payload);
-            $fields = $this->extractor->extract($document);
+            $fields = $this->extractor->extract($kind, $document);
             $overall = $fields === [] ? 0.0 : array_sum(array_map(static fn ($field): float => $field->confidence, $fields)) / count($fields);
 
-            DB::transaction(function () use ($evidenceId, $attemptId, $fields, $overall): void {
+            DB::transaction(function () use ($evidenceId, $attemptId, $fields, $overall, $kind): void {
                 $evidence = GameEvidence::query()->whereKey($evidenceId)->lockForUpdate()->firstOrFail();
                 $attempt = EvidenceExtractionAttempt::query()->whereKey($attemptId)->lockForUpdate()->firstOrFail();
                 if ($attempt->getRawOriginal('status') !== EvidenceAttemptStatus::Running->value) {
@@ -117,9 +119,10 @@ final readonly class ExtractGameEvidence
                 $metadata = [
                     'evidence_id' => (string) $evidence->id,
                     'extraction_attempt_id' => (string) $attempt->id,
-                    'extractor_key' => $this->extractor->key(),
-                    'extractor_version' => $this->extractor->version(),
-                    'schema_version' => $this->extractor->schemaVersion(),
+                    'kind' => $kind->value,
+                    'extractor_key' => $this->extractor->key($kind),
+                    'extractor_version' => $this->extractor->version($kind),
+                    'schema_version' => $this->extractor->schemaVersion($kind),
                     'field_count' => count($fields),
                     'overall_confidence' => $overall,
                 ];
