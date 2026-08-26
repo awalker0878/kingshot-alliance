@@ -38,7 +38,7 @@ final readonly class SaveTransferEvidenceReview
         private OutboxRecorder $outbox,
     ) {}
 
-    /** @param list<int> $officialGroupKingdomNumbers */
+    /** @param  list<int>  $officialGroupKingdomNumbers */
     public function handle(
         string $actorPlayerId,
         string $allianceId,
@@ -183,7 +183,9 @@ final readonly class SaveTransferEvidenceReview
                     : EvidenceLifecycleStatus::NeedsReview,
             ])->save();
 
-            $sourceMap = $sourceFields->groupBy(static fn (EvidenceExtractedField $field): string => (string) $field->field_key);
+            $sourceMap = $sourceFields
+                ->toBase()
+                ->groupBy(static fn (EvidenceExtractedField $field): string => (string) $field->field_key);
             $correctedFields = $this->correctedFieldCount($values, $kingdomNumbers, $sourceMap);
             $metadata = [
                 'evidence_id' => $evidenceId,
@@ -203,7 +205,7 @@ final readonly class SaveTransferEvidenceReview
     }
 
     /**
-     * @param list<int> $officialGroupKingdomNumbers
+     * @param  list<int>  $officialGroupKingdomNumbers
      * @return array{0:array<string,int|string|null>,1:list<int>,2:?string}
      */
     private function validatedMeaning(
@@ -236,7 +238,7 @@ final readonly class SaveTransferEvidenceReview
             EvidenceKind::TransferGovernorStatus => [
                 [...$empty, 'governor_power' => $this->nonNegative($governorPower, 'Governor Power')],
                 [],
-                $this->requireValidity($validUntil),
+                $this->noTargetWithValidity($validUntil),
             ],
             EvidenceKind::TransferScorePasses => [
                 [...$empty,
@@ -278,13 +280,18 @@ final readonly class SaveTransferEvidenceReview
         return $value;
     }
 
-    private function requireValidity(?CarbonImmutable $validUntil): null
+    private function noTargetWithValidity(?CarbonImmutable $validUntil): ?string
+    {
+        $this->requireValidity($validUntil);
+
+        return null;
+    }
+
+    private function requireValidity(?CarbonImmutable $validUntil): void
     {
         if (! $validUntil instanceof CarbonImmutable) {
             throw ValidationException::withMessages(['valid_until' => 'A validity boundary is required for this mutable Transfer observation.']);
         }
-
-        return null;
     }
 
     private function requireTarget(?string $targetKingdomId, ?CarbonImmutable $validUntil): string
@@ -353,7 +360,7 @@ final readonly class SaveTransferEvidenceReview
     }
 
     /**
-     * @param list<int> $numbers
+     * @param  list<int>  $numbers
      * @return list<int>
      */
     private function kingdomNumbers(array $numbers): array
@@ -375,8 +382,8 @@ final readonly class SaveTransferEvidenceReview
     }
 
     /**
-     * @param array<string,int|string|null> $values
-     * @param list<int> $kingdomNumbers
+     * @param  array<string, int|string|null>  $values
+     * @param  list<int>  $kingdomNumbers
      */
     private function fingerprint(EvidenceKind $kind, string $schemaVersion, string $windowId, string $participantId, ?string $targetId, CarbonImmutable $observedAt, array $values, array $kingdomNumbers): string
     {
@@ -393,9 +400,9 @@ final readonly class SaveTransferEvidenceReview
     }
 
     /**
-     * @param array<string,int|string|null> $values
-     * @param list<int> $kingdomNumbers
-     * @param Collection<string, Collection<int, EvidenceExtractedField>> $sourceMap
+     * @param  array<string, int|string|null>  $values
+     * @param  list<int>  $kingdomNumbers
+     * @param  Collection<int|string, Collection<int, EvidenceExtractedField>>  $sourceMap
      */
     private function correctedFieldCount(array $values, array $kingdomNumbers, Collection $sourceMap): int
     {
@@ -405,7 +412,8 @@ final readonly class SaveTransferEvidenceReview
                 continue;
             }
             $sources = $sourceMap->get($key, collect());
-            if ($sources->count() !== 1 || (string) $sources->first()->normalized_value !== (string) $value) {
+            $source = $sources->first();
+            if ($sources->count() !== 1 || ! $source instanceof EvidenceExtractedField || (string) $source->normalized_value !== (string) $value) {
                 $count++;
             }
         }
