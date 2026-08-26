@@ -1,0 +1,91 @@
+name: Format Transfer Evidence
+
+on:
+  push:
+    branches:
+      - feature/screenshot-intake-transfer-evidence
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out feature branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: feature/screenshot-intake-transfer-evidence
+          fetch-depth: 0
+
+      - name: Configure PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.5'
+          coverage: none
+          tools: composer:v2
+
+      - name: Configure Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install locked dependencies
+        run: |
+          composer install --no-interaction --no-progress --prefer-dist
+          npm ci --no-audit --no-fund
+
+      - name: Format Transfer Evidence PHP
+        run: |
+          vendor/bin/pint \
+            app/Contexts/GameWorld/KingdomTransfers/Services/TransferEvidenceDestinationSupport.php \
+            app/Contexts/Intelligence/Evidence/Actions/SaveTransferEvidenceReview.php \
+            app/Contexts/Intelligence/Evidence/Http/Controllers/TransferEvidenceController.php \
+            app/Contexts/Intelligence/Evidence/Services/AbstractTransferEvidenceExtractor.php \
+            app/Contexts/Intelligence/Evidence/Services/BearHuntBattleReportExtractor.php \
+            app/Contexts/Intelligence/Evidence/Services/TransferGovernorStatusExtractor.php \
+            app/Contexts/Intelligence/Evidence/Services/TransferScorePassesExtractor.php \
+            app/Contexts/Intelligence/Evidence/ValueObjects/TransferEvidenceSchema.php \
+            database/migrations/2026_08_25_230000_extend_evidence_for_transfer_screenshots.php \
+            routes/kingdoms.php \
+            tests/v3/Architecture/TransferEvidenceBoundaryV3Test.php \
+            tests/v3/Contexts/GameWorld/KingdomTransfers/TransferEvidenceDestinationV3Test.php \
+            tests/v3/Contexts/Intelligence/Evidence/BearHuntBattleReportExtractorV3Test.php \
+            tests/v3/Contexts/Intelligence/Evidence/TransferEvidenceSchemasV3Test.php
+
+      - name: Format Transfer Evidence frontend
+        run: |
+          npx prettier --write \
+            resources/js/components/transfers/TransferEvidencePanel.vue \
+            resources/js/localization/loader.ts \
+            resources/js/localization/transfer-evidence-labels.ts \
+            resources/js/pages/Kingdom/Transfer/Readiness.vue
+
+      - name: Remove one-shot formatter and commit results
+        run: |
+          git rm .github/workflows/format-transfer-evidence.yml
+          git add \
+            app/Contexts/GameWorld/KingdomTransfers/Services/TransferEvidenceDestinationSupport.php \
+            app/Contexts/Intelligence/Evidence/Actions/SaveTransferEvidenceReview.php \
+            app/Contexts/Intelligence/Evidence/Http/Controllers/TransferEvidenceController.php \
+            app/Contexts/Intelligence/Evidence/Services/AbstractTransferEvidenceExtractor.php \
+            app/Contexts/Intelligence/Evidence/Services/BearHuntBattleReportExtractor.php \
+            app/Contexts/Intelligence/Evidence/Services/TransferGovernorStatusExtractor.php \
+            app/Contexts/Intelligence/Evidence/Services/TransferScorePassesExtractor.php \
+            app/Contexts/Intelligence/Evidence/ValueObjects/TransferEvidenceSchema.php \
+            database/migrations/2026_08_25_230000_extend_evidence_for_transfer_screenshots.php \
+            routes/kingdoms.php \
+            tests/v3/Architecture/TransferEvidenceBoundaryV3Test.php \
+            tests/v3/Contexts/GameWorld/KingdomTransfers/TransferEvidenceDestinationV3Test.php \
+            tests/v3/Contexts/Intelligence/Evidence/BearHuntBattleReportExtractorV3Test.php \
+            tests/v3/Contexts/Intelligence/Evidence/TransferEvidenceSchemasV3Test.php \
+            resources/js/components/transfers/TransferEvidencePanel.vue \
+            resources/js/localization/loader.ts \
+            resources/js/localization/transfer-evidence-labels.ts \
+            resources/js/pages/Kingdom/Transfer/Readiness.vue
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git commit -m "Format Transfer Evidence implementation"
+          git push origin HEAD:feature/screenshot-intake-transfer-evidence
