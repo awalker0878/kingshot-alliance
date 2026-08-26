@@ -6,9 +6,23 @@ namespace App\Contexts\Intelligence\Evidence\Models;
 
 use App\Contexts\Intelligence\Evidence\Enums\EvidenceKind;
 use App\Contexts\Intelligence\Evidence\Enums\EvidenceReviewStatus;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property EvidenceKind $evidence_kind
+ * @property EvidenceReviewStatus $status
+ * @property CarbonImmutable $observed_at
+ * @property CarbonImmutable|null $valid_until
+ * @property CarbonImmutable $reviewed_at
+ * @property CarbonImmutable|null $resolved_at
+ * @property int|null $governor_power
+ * @property int|null $transfer_score
+ * @property int|null $transfer_passes_available
+ * @property int|null $transfer_passes_required
+ * @property int|null $target_power_cap
+ */
 final class TransferEvidenceReview extends Model
 {
     use HasUlids;
