@@ -32,7 +32,7 @@ final readonly class RecordTransferKingdomRulesEvidence
         string $schemaVersion,
         string $idempotencyKey,
         int $powerCap,
-        TransferKingdomClassification $classification,
+        ?TransferKingdomClassification $classification,
         string $observedAt,
     ): TransferEvidenceDestinationReceipt {
         return DB::transaction(function () use ($allianceId, $actorPlayerId, $planId, $participantId, $expectedWindowId, $expectedTargetKingdomId, $evidenceId, $reviewId, $schemaVersion, $idempotencyKey, $powerCap, $classification, $observedAt): TransferEvidenceDestinationReceipt {
