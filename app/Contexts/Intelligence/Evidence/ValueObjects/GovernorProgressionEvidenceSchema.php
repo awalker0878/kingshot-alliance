@@ -21,6 +21,5 @@ final readonly class GovernorProgressionEvidenceSchema
         public float $minimumFieldConfidence,
         public string $fixtureCorpus,
         public string $destinationAction,
-    ) {
-    }
+    ) {}
 }
