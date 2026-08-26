@@ -248,7 +248,7 @@ final class TransferReadinessController extends Controller
             'targetCondition' => $targetCondition instanceof TransferKingdomConditionObservation
                 ? [
                     'powerCap' => $targetCondition->power_cap,
-                    'classification' => $targetCondition->classification->value,
+                    'classification' => $targetCondition->classification?->value,
                     'sourceType' => $targetCondition->source_type->value,
                     'sourceReference' => $targetCondition->source_reference,
                     'observedAt' => $targetCondition->observed_at->toIso8601String(),
