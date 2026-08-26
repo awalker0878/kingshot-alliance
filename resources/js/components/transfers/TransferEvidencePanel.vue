@@ -2,6 +2,8 @@
 import { router } from '@inertiajs/vue3';
 import { computed, reactive, ref } from 'vue';
 
+import ConfirmActionDialog from '@/components/ui/ConfirmActionDialog.vue';
+import { useConfirmAction } from '@/components/ui/useConfirmAction';
 import { useLocale } from '@/localization';
 
 type EvidenceKind =
@@ -167,6 +169,7 @@ const props = defineProps<{
 }>();
 
 const { t, formatDate, formatNumber } = useLocale();
+const { dialog, requestConfirmation, cancelConfirmation, confirmAction } = useConfirmAction();
 const loaded = ref(false);
 const loading = ref(false);
 const loadError = ref(false);
@@ -428,10 +431,19 @@ function retry(item: EvidenceItem): void {
 }
 
 function remove(item: EvidenceItem): void {
-  if (!window.confirm(t('kingdomP7D.deleteEvidenceConfirm'))) return;
-  router.delete(`${basePath.value}/${item.id}`, {
-    preserveScroll: true,
-    onSuccess: () => void loadEvidence(true),
+  requestConfirmation({
+    id: `delete-transfer-evidence-${item.id}`,
+    title: t('kingdomP7D.deleteEvidence'),
+    description: t('kingdomP7D.deleteEvidenceConfirm'),
+    confirmLabel: t('kingdomP7D.deleteEvidence'),
+    cancelLabel: t('common.cancel'),
+    danger: true,
+    perform: (finish) =>
+      router.delete(`${basePath.value}/${item.id}`, {
+        preserveScroll: true,
+        onSuccess: () => void loadEvidence(true),
+        onFinish: finish,
+      }),
   });
 }
 
@@ -1150,5 +1162,6 @@ function fieldCorrected(item: EvidenceItem, field: ExtractedField): boolean {
         </p>
       </div>
     </details>
+    <ConfirmActionDialog v-bind="dialog" @confirm="confirmAction" @cancel="cancelConfirmation" />
   </section>
 </template>
