@@ -72,7 +72,7 @@ final readonly class TransferEvidencePreviewQuery
                 'current_primary_action' => $currentAssessment->primaryAction,
                 'after_outcome' => $currentAssessment->outcome->value,
                 'after_primary_action' => $currentAssessment->primaryAction,
-                'reviewed_fact_keys' => $this->factKeys($review->kind),
+                'reviewed_fact_keys' => $this->factKeys($review),
                 'transfer_score_before' => $currentScore->value,
                 'transfer_score_after' => $review->kind === TransferEvidencePreviewKind::ScorePasses ? $review->transferScore : $currentScore->value,
             ];
@@ -130,7 +130,7 @@ final readonly class TransferEvidencePreviewQuery
             'current_primary_action' => $currentAssessment->primaryAction,
             'after_outcome' => $after->outcome->value,
             'after_primary_action' => $after->primaryAction,
-            'reviewed_fact_keys' => $this->factKeys($review->kind),
+            'reviewed_fact_keys' => $this->factKeys($review),
             'transfer_score_before' => $currentScore->value,
             'transfer_score_after' => $review->kind === TransferEvidencePreviewKind::ScorePasses ? $review->transferScore : $currentScore->value,
         ];
@@ -202,21 +202,30 @@ final readonly class TransferEvidencePreviewQuery
     /** @return array{0:TransferObservedValue,1:TransferKingdomClassification} */
     private function conditionFacts(string $allianceId, string $windowId, ?string $targetId, TransferEvidencePreviewInput $review): array
     {
-        if ($review->kind === TransferEvidencePreviewKind::TargetKingdomRules) {
-            $classification = TransferKingdomClassification::tryFrom((string) $review->kingdomClassification)
-                ?? TransferKingdomClassification::Unknown;
-
-            return [
-                new TransferObservedValue(
-                    TransferRequirementState::Met,
-                    $review->targetPowerCap,
-                    TransferSourceType::Evidence,
-                    'Reviewed screenshot preview',
-                    CarbonImmutable::parse($review->observedAt)->utc(),
-                ),
-                $classification,
-            ];
+        [$currentPowerCap, $currentClassification] = $this->currentConditionFacts($allianceId, $windowId, $targetId);
+        if ($review->kind !== TransferEvidencePreviewKind::TargetKingdomRules) {
+            return [$currentPowerCap, $currentClassification];
         }
+
+        $classification = $review->kingdomClassification === null
+            ? $currentClassification
+            : TransferKingdomClassification::from($review->kingdomClassification);
+
+        return [
+            new TransferObservedValue(
+                TransferRequirementState::Met,
+                $review->targetPowerCap,
+                TransferSourceType::Evidence,
+                'Reviewed screenshot preview',
+                CarbonImmutable::parse($review->observedAt)->utc(),
+            ),
+            $classification,
+        ];
+    }
+
+    /** @return array{0:TransferObservedValue,1:TransferKingdomClassification} */
+    private function currentConditionFacts(string $allianceId, string $windowId, ?string $targetId): array
+    {
         if ($targetId === null) {
             return [TransferObservedValue::unknown(), TransferKingdomClassification::Unknown];
         }
@@ -246,18 +255,20 @@ final readonly class TransferEvidencePreviewQuery
             $latest->power_cap === null
                 ? new TransferObservedValue(TransferRequirementState::Unknown, null, $latest->source_type, $latest->source_reference, CarbonImmutable::instance($latest->observed_at))
                 : new TransferObservedValue(TransferRequirementState::Met, $latest->power_cap, $latest->source_type, $latest->source_reference, CarbonImmutable::instance($latest->observed_at)),
-            $latest->source_type->isAuthoritative() ? $latest->classification : TransferKingdomClassification::Unknown,
+            $latest->classification ?? TransferKingdomClassification::Unknown,
         ];
     }
 
     /** @return list<string> */
-    private function factKeys(TransferEvidencePreviewKind $kind): array
+    private function factKeys(TransferEvidencePreviewInput $review): array
     {
-        return match ($kind) {
+        return match ($review->kind) {
             TransferEvidencePreviewKind::GovernorStatus => ['governor_power'],
             TransferEvidencePreviewKind::ScorePasses => ['transfer_score', 'transfer_passes_available', 'transfer_passes_required'],
             TransferEvidencePreviewKind::Invitation => ['invitation_status'],
-            TransferEvidencePreviewKind::TargetKingdomRules => ['target_power_cap', 'kingdom_classification'],
+            TransferEvidencePreviewKind::TargetKingdomRules => $review->kingdomClassification === null
+                ? ['target_power_cap']
+                : ['target_power_cap', 'kingdom_classification'],
             TransferEvidencePreviewKind::OfficialGroup => ['official_transfer_group'],
         };
     }
