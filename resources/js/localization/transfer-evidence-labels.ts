@@ -1,4 +1,3 @@
-import type { LocaleCode } from './locales';
 import type { MessageCatalogue } from './types';
 
 const english: MessageCatalogue = {
@@ -18,6 +17,8 @@ const english: MessageCatalogue = {
     classificationConfidence: 'Classification confidence',
     classificationReason: 'Classifier result',
     fieldConfidence: 'Field confidence',
+    evidenceField: 'Field',
+    evidenceCorrected: 'corrected',
     belowSchemaConfidence: 'Below the schema confidence requirement — verify carefully.',
     rawObservation: 'Raw observation',
     normalizedValue: 'Normalized candidate',
@@ -72,6 +73,7 @@ const english: MessageCatalogue = {
     evidenceNoWarnings: 'No extraction warnings',
     evidenceRevision: 'Review revision',
     evidenceDeleted: 'Evidence source deleted',
+    evidenceKind_unknown: 'Unknown / unsupported',
     evidenceKind_transfer_governor_status: 'Transfer Governor status',
     evidenceKind_transfer_score_passes: 'Transfer Score / Passes',
     evidenceKind_transfer_invitation: 'Transfer invitation',
@@ -96,10 +98,6 @@ const english: MessageCatalogue = {
   },
 };
 
-export function transferEvidenceLabels(_locale: LocaleCode): MessageCatalogue {
-  // The localization loader falls back to the default English domain catalogue for keys that
-  // are not yet overridden by a locale-specific Transfer catalogue. Keeping this extension in
-  // the domain loader ensures every supported locale has deterministic, non-key UI text while
-  // allowing translations to be added independently without changing the Evidence workflow.
+export function transferEvidenceLabels(): MessageCatalogue {
   return english;
 }
