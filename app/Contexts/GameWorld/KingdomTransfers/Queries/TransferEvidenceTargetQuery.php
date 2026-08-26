@@ -21,6 +21,14 @@ final readonly class TransferEvidenceTargetQuery
         private TransferAuthorization $authorization,
     ) {}
 
+    public function authorizeAllianceManage(string $actorPlayerId, string $allianceId): void
+    {
+        DB::transaction(function () use ($actorPlayerId, $allianceId): void {
+            $context = $this->writeState->lockAuthority($actorPlayerId, $allianceId);
+            $this->authorization->authorizeContext($context, TransferPermission::Manage);
+        });
+    }
+
     public function authorizeManage(
         string $actorPlayerId,
         string $allianceId,
