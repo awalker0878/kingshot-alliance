@@ -16,6 +16,7 @@ const english: MessageCatalogue = {
     detectedClass: 'Detected class',
     classificationConfidence: 'Classification confidence',
     classificationReason: 'Classifier result',
+    classificationNotProved: 'Not proved by this screenshot',
     fieldConfidence: 'Field confidence',
     evidenceField: 'Field',
     evidenceCorrected: 'corrected',
