@@ -13,7 +13,9 @@ use InvalidArgumentException;
 
 final readonly class GovernorProgressionEvidenceExtractor implements EvidenceExtractor
 {
-    public function __construct(private GovernorProgressionEvidenceSchemaRegistry $schemas) {}
+    public function __construct(private GovernorProgressionEvidenceSchemaRegistry $schemas)
+    {
+    }
 
     public function key(EvidenceKind $kind): string
     {
@@ -70,8 +72,10 @@ final readonly class GovernorProgressionEvidenceExtractor implements EvidenceExt
             if (preg_match('/\b(?:governor|name)\s*[:\-]\s*([\pL\pN][\pL\pN ._\-]{1,79})/iu', $text, $match) === 1) {
                 $fields[] = $this->candidate('observed_name', 0, $line, trim($match[1]), 'string');
             }
-            if (preg_match('/\b(?:governor\s+)?power\s*[:\-]?\s*([\d, ]{1,24})\b/i', $text, $match) === 1
-                && ($value = $this->integer($match[1])) !== null) {
+            if (
+                preg_match('/\b(?:governor\s+)?power\s*[:\-]?\s*([\d, ]{1,24})\b/i', $text, $match) === 1
+                && ($value = $this->integer($match[1])) !== null
+            ) {
                 $fields[] = $this->candidate('power', 0, $line, (string) $value, 'integer');
             }
             if (preg_match('/\b(?:town\s*center|tc|progression(?:\s+level)?)\s*[:\-]?\s*([A-Za-z0-9 +._-]{1,32})/i', $text, $match) === 1) {
@@ -208,8 +212,8 @@ final readonly class GovernorProgressionEvidenceExtractor implements EvidenceExt
     }
 
     /**
-     * @param list<ExtractedFieldCandidate> $fields
-     * @param list<OcrToken> $line
+     * @param  list<ExtractedFieldCandidate>  $fields
+     * @param  list<OcrToken>  $line
      */
     private function appendHeroNumbers(array &$fields, array $line, string $text, int $ordinal, bool $includeSubstar): void
     {
@@ -284,7 +288,7 @@ final readonly class GovernorProgressionEvidenceExtractor implements EvidenceExt
         return null;
     }
 
-    /** @param list<OcrToken> $tokens */
+    /** @param  list<OcrToken>  $tokens */
     private function lineText(array $tokens): string
     {
         return trim(implode(' ', array_map(static fn (OcrToken $token): string => $token->text, $tokens)));
@@ -301,8 +305,8 @@ final readonly class GovernorProgressionEvidenceExtractor implements EvidenceExt
     }
 
     /**
-     * @param non-empty-list<OcrToken> $tokens
-     * @param list<string> $warnings
+     * @param  non-empty-list<OcrToken>  $tokens
+     * @param  list<string>  $warnings
      */
     private function candidate(string $key, int $ordinal, array $tokens, string $normalized, string $type, array $warnings = []): ExtractedFieldCandidate
     {
@@ -331,7 +335,10 @@ final readonly class GovernorProgressionEvidenceExtractor implements EvidenceExt
         );
     }
 
-    /** @param list<ExtractedFieldCandidate> $fields @return list<ExtractedFieldCandidate> */
+    /**
+     * @param  list<ExtractedFieldCandidate>  $fields
+     * @return list<ExtractedFieldCandidate>
+     */
     private function dedupe(array $fields): array
     {
         $seen = [];
