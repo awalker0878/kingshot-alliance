@@ -1,0 +1,75 @@
+name: Governor Progression Contract Repair
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    if: github.event.pull_request.head.ref == 'feature/screenshot-intake-governor-progression-main'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out Governor Progression branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: feature/screenshot-intake-governor-progression-main
+          fetch-depth: 0
+      - name: Configure Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Configure PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.5'
+          extensions: dom, gd, intl, mbstring, pcntl, pdo_pgsql, posix, redis, simplexml, xml, xmlwriter, zip
+          coverage: none
+          tools: composer:v2
+      - name: Install locked dependencies
+        run: |
+          npm ci --no-audit --no-fund
+          composer install --no-interaction --no-progress --prefer-dist
+      - name: Tighten review request payload type
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('resources/js/components/progression/GovernorProgressionScreenshotIntake.vue')
+          text = path.read_text()
+          marker = '''type ReviewCharmRow = {\n  slot_id: string;\n  charm_id: string;\n  level: string;\n};\n'''
+          addition = '''type ReviewPayloadValue =\n  | string\n  | number\n  | boolean\n  | null\n  | undefined\n  | ReviewPayloadValue[]\n  | { [key: string]: ReviewPayloadValue };\n\ntype ReviewPayload = Record<string, ReviewPayloadValue>;\n'''
+          if 'type ReviewPayloadValue =' not in text:
+              if marker not in text:
+                  raise SystemExit('ReviewCharmRow marker not found')
+              text = text.replace(marker, marker + '\n' + addition, 1)
+          text = text.replace('function reviewPayload(): Record<string, unknown> {', 'function reviewPayload(): ReviewPayload {', 1)
+          start = text.index('function reviewPayload(): ReviewPayload {')
+          end = text.index('\nfunction saveReview(', start)
+          block = text[start:end].replace('Record<string, unknown>', 'ReviewPayload')
+          text = text[:start] + block + text[end:]
+          path.write_text(text)
+          PY
+          npx prettier --write resources/js/components/progression/GovernorProgressionScreenshotIntake.vue
+      - name: Format fixture corpus test with locked Pint
+        run: vendor/bin/pint tests/v3/Contexts/Intelligence/Evidence/GovernorProgressionEvidenceFixtureCorpusV3Test.php
+      - name: Commit contract repairs
+        shell: bash
+        run: |
+          if git diff --quiet -- \
+            resources/js/components/progression/GovernorProgressionScreenshotIntake.vue \
+            tests/v3/Contexts/Intelligence/Evidence/GovernorProgressionEvidenceFixtureCorpusV3Test.php; then
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add \
+            resources/js/components/progression/GovernorProgressionScreenshotIntake.vue \
+            tests/v3/Contexts/Intelligence/Evidence/GovernorProgressionEvidenceFixtureCorpusV3Test.php
+          git commit -m 'Repair Governor Progression request and fixture contracts'
+          git push origin HEAD:feature/screenshot-intake-governor-progression-main
