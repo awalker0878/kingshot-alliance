@@ -8,6 +8,7 @@ use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferInvitationStatus;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferObservationKind;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferSourceType;
 use App\Contexts\GameWorld\KingdomTransfers\Services\TransferEvidenceDestinationSupport;
+use App\Contexts\GameWorld\KingdomTransfers\Services\TransferObservationWriter;
 use App\Contexts\GameWorld\KingdomTransfers\ValueObjects\TransferEvidenceDestinationReceipt;
 use Illuminate\Support\Facades\DB;
 
@@ -15,7 +16,7 @@ final readonly class RecordTransferInvitationEvidence
 {
     public function __construct(
         private TransferEvidenceDestinationSupport $support,
-        private RecordTransferObservation $observations,
+        private TransferObservationWriter $observations,
     ) {}
 
     public function handle(
@@ -40,17 +41,17 @@ final readonly class RecordTransferInvitationEvidence
                 return $existing;
             }
             $target = $this->support->lockScope($allianceId, $planId, $participantId, $expectedWindowId, $expectedTargetKingdomId, true);
-            $observationId = $this->observations->handle(
-                allianceId: $allianceId,
-                actorPlayerId: $actorPlayerId,
-                planId: $planId,
-                participantId: $participantId,
-                kind: TransferObservationKind::InvitationStatus,
-                value: $status->value,
-                sourceType: TransferSourceType::Evidence,
-                sourceReference: 'Screenshot Intake review '.$reviewId,
-                observedAt: $observedAt,
-                validUntil: $validUntil,
+            $observationId = $this->observations->append(
+                $context,
+                $allianceId,
+                $planId,
+                $participantId,
+                TransferObservationKind::InvitationStatus,
+                $status->value,
+                TransferSourceType::Evidence,
+                'Screenshot Intake review '.$reviewId,
+                $observedAt,
+                $validUntil,
                 evidenceId: $evidenceId,
             );
 
