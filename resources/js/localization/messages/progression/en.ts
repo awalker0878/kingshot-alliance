@@ -168,9 +168,22 @@ const messages = {
     completeRosterWarning:
       'Mark complete only when this screenshot genuinely shows the complete Hero roster. This is the only state that can establish observed Hero absence.',
     processingScreenshot: 'Screenshot processing is still in progress.',
-    screenshotProcessingFailed: 'Screenshot processing failed. You can retry while the retained image is available.',
+    screenshotProcessingFailed:
+      'Screenshot processing failed. You can retry while the retained image is available.',
     screenshotCommitted: 'Accepted into Roster history',
     screenshotDeleted: 'Evidence deleted or redacted',
+    observedName: 'Observed name',
+    observedAllianceTag: 'Observed Alliance tag',
+    kingdomNumber: 'Kingdom number',
+    substar: 'Substar',
+    visualDuplicateWarning: 'Visual duplicate warning · distance {distance}',
+    screenshotClassMismatch:
+      'Expected/detected class mismatch — review the detected class before approval.',
+    approvedReview: 'Approved review #{revision}',
+    recoveredIdempotentReplay: 'Recovered idempotent replay',
+    yes: 'Yes',
+    no: 'No',
+    observationLabel: 'Observation',
     planningIntent: 'User planning intent',
     savedLoadouts: 'Saved loadouts',
     loadoutHelp:
