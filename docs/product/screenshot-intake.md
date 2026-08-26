@@ -1,228 +1,234 @@
 # Screenshot Intake
 
-Status: Implemented current state — 2026-08-22
+Status: Current product contract — Bear Hunt family complete; Transfer Evidence family in release verification (2026-08-26)
 
-Screenshot Intake turns user-provided KingShot screenshots into reviewed domain commands without transferring ownership of the resulting game data to the intake pipeline. The first supported evidence type is the **Bear Hunt battle report** because its value, validation boundary and destination result model are concrete.
+Screenshot Intake turns user-provided KingShot screenshots into reviewed domain commands without transferring ownership of the resulting game data to the intake pipeline. It is one `Intelligence/Evidence` capability with explicit, versioned evidence families rather than a generic OCR/domain-ingestion framework.
 
-This document is the product implementation contract and current-state reference. Every non-evidence-gated requirement below is implemented, tested, documented and reflected as current product truth.
+The supported families are:
+
+1. **Bear Hunt battle report** — Event-occurrence-scoped Evidence committed to `Operations/Results`.
+2. **Transfer Evidence** — Transfer-Plan/participant-scoped Evidence committed to `GameWorld/KingdomTransfers` through five explicit screenshot schemas.
+
+The complete Transfer Evidence contract is [Screenshot Intake: Transfer Evidence](./screenshot-intake-transfer-evidence.md). That extension document is the implementation source of truth for its schema-specific fields, normalization, confidence thresholds, fixture corpora, review rules, semantic fingerprints, destination Actions, freshness behavior, preview behavior and delivery ledger.
+
+There is no Transfer OCR bounded context, generic `transfer_ocr` schema, unconstrained bag-of-fields extraction model or generic polymorphic evidence-target framework.
 
 ## Product outcome
 
-An authorized Player can start from a Bear Hunt Event occurrence, upload a battle-report screenshot, let the application classify and extract visible fields, review every extracted value and Player match, correct mistakes, detect duplicates, preview the resulting Bear Hunt changes, and commit the reviewed report exactly once. The original screenshot, machine attempts and human corrections retain immutable provenance. Deleting evidence never silently deletes committed Operations results.
+An authorized Player can add a supported screenshot from the workflow that owns the destination decision, allow Evidence to security-scan/classify/extract only fixture-proven candidates, review and correct those candidates, understand duplicate/freshness/conflict implications, preview the exact owner-domain effect, and explicitly commit an immutable reviewed revision exactly once.
+
+The original screenshot, machine attempts, normalized candidates, human corrections, duplicate decisions and destination receipt retain Evidence-owned provenance. Deleting/redacting Evidence never silently deletes or rewrites accepted owner-domain history.
 
 ## Ownership contract
 
 `Intelligence/Evidence` owns:
 
-- uploaded screenshot binaries and source metadata;
-- immutable source checksums and derived-representation provenance;
-- classification attempts;
-- extraction attempts and extractor/model/ruleset versions;
-- field-level raw text, normalized values, confidence and bounding regions;
-- review revisions, manual corrections and Player-resolution decisions;
-- exact, visual and semantic duplicate evidence decisions;
-- commit attempts, idempotency keys and destination receipts;
-- evidence lifecycle, redaction, deletion and retention state.
+- private screenshot binaries, source metadata, immutable checksums and derived-representation provenance;
+- security-scan results;
+- OCR/provider attempts;
+- classification attempts and expected-versus-detected class decisions;
+- extraction attempts, schema/extractor/provider versions and field candidates;
+- raw observation, normalized candidate, field confidence, bounding regions and warnings;
+- review revisions, manual corrections/exclusions and schema-scoped reviewed meaning;
+- exact, visual and semantic duplicate Evidence decisions;
+- commit attempts, retry/recovery state, stable destination-idempotency key and destination receipt;
+- source redaction, deletion and retention lifecycle;
+- only the narrow scalar scope references needed to authorize/explain a handoff.
 
-It does **not** own Event, EventOccurrence, Player, Alliance membership, Bear Hunt result, damage totals or rally metrics.
+Evidence does **not** own:
 
-`Operations/Results` owns accepted Bear Hunt battle reports, report entries and all derived Event result state. Cross-context writes use scalar IDs/value objects through owner Actions. An `Intelligence/Evidence` application Action coordinates the commit handshake while owning no destination persistence.
+- Alliance membership or Player/Kingdom identity;
+- Event/EventOccurrence lifecycle;
+- Bear Hunt result ledgers or result aggregates;
+- Transfer Plans, participants, Transfer Windows, official Transfer Groups or target-Kingdom conditions;
+- Transfer observations, freshness/validity/conflict semantics or eligibility decisions.
 
-The original evidence is never rewritten. If future extraction adds crop, rotation, resize, contrast adjustment or other preprocessing, each derived representation must carry its own checksum and source relationship. The first Bear Hunt implementation sends the retained original directly to OCR and therefore does not create a derived-image representation.
+Destination ownership remains explicit:
 
-## Primary journey
+- `Operations/Results` owns accepted Bear Hunt battle reports, report entries and derived Event result state.
+- `GameWorld/KingdomTransfers` owns accepted Transfer observations, target conditions, official Transfer Groups, freshness/validity/conflict semantics and eligibility.
 
-1. Open a Bear Hunt occurrence and choose **Import battle report**.
-2. Upload a supported private image.
-3. The application security-scans, checksums and stores the evidence.
-4. Exact duplicates are detected before expensive processing.
-5. The application classifies the evidence.
-6. A supported Bear Hunt report is extracted into field candidates.
-7. The review surface displays the screenshot alongside extracted values, confidence and Player-match candidates.
-8. The reviewer corrects or excludes fields/rows and resolves each committed row to a Player.
-9. The application checks visual and semantic duplicate warnings.
-10. A commit preview shows the concrete Bear Hunt result effect.
-11. The reviewer commits the approved revision.
-12. The Evidence commit Action sends a scalar Bear Hunt report command to `Operations/Results`.
-13. Operations validates current authority/Event scope, persists the report idempotently, recomputes owned result aggregates and returns a scalar receipt.
-14. Evidence records the receipt. Retrying after an interrupted acknowledgement returns the same result rather than double-counting damage.
+Cross-context writes use scalar IDs/value objects through destination-owner Actions. No foreign Eloquent model crosses the boundary.
 
-## Lifecycle
+## Narrow Evidence scopes
 
-Persisted Evidence lifecycle states are explicit. The normal progression is:
+Persistence supports only the explicit product scopes now required:
+
+- **Bear Hunt:** `occurrence_id` present; Transfer Plan/participant references absent.
+- **Transfer participant:** `occurrence_id` absent; `transfer_plan_id` and `transfer_participant_id` present together.
+
+Application validation and database constraints enforce those combinations. Adding another family does not justify a generic `target_type` / `target_id` abstraction.
+
+## Shared lifecycle
+
+Persisted Evidence lifecycle states remain explicit:
 
 `uploaded → classifying → classified → extracting → needs_review → approved → committing → committed`
 
-Exceptional persisted states are `unsupported`, `failed`, and `deleted`. Machine retries create new immutable attempts; they never overwrite previous attempts.
+Exceptional states are `unsupported`, `failed` and `deleted`. Machine retries append immutable attempts rather than overwriting historical output. Human corrections append reviewed meaning and never rewrite machine output or confidence.
 
-Rejected, unsafe, spoofed or oversized uploads fail before an Evidence row is created. An exact binary duplicate inside the authorized Alliance and Bear Hunt occurrence reuses the existing Evidence identity instead of creating a duplicate lifecycle row. Semantic duplicate blocking belongs to the immutable review state rather than the Evidence lifecycle. User deletion synchronously redacts retained source data and moves Evidence to `deleted`. Retention physically deletes expired uncommitted rows after redaction; committed Evidence retains a minimal provenance tombstone after its binary is removed rather than transitioning through artificial purge states.
+All currently supported screenshot classes require human review. Automatic commit is outside the current product contract.
 
-## Bear Hunt extraction contract
+## Classification and extraction contract
 
-The first extractor is intentionally narrow. It may commit only fields proven by fixture screenshots and visible game evidence. Initial review candidates are:
+The user-selected expected screenshot class is a hint, not truth. Classification independently verifies the actual supported class. A mismatch is surfaced as unsupported/needs user correction and must never be routed blindly through the selected extractor.
 
-- visible report timestamp when available;
-- ranking rows;
-- reported rank;
-- Player display name exactly as observed;
-- damage value exactly as observed/normalized.
+Every extractor is schema-bound and may emit only fields proven by that schema's fixture corpus. A field not fixture-proven for that schema cannot be extracted, reviewed into a commit command or committed by the destination.
 
-The extractor must not invent troop composition, heroes, buffs, rally role, `rallies_joined`, `rallies_led`, or other metrics when the screenshot does not expose them with a validated mapping.
+### Bear Hunt family
 
-Player names extracted from screenshots are observations, not identity. They cannot create or mutate Player records. Review resolves each accepted row to an existing Player through supported GameWorld/Alliance read APIs. Ambiguous or unresolved rows block commit unless explicitly excluded.
+The Bear Hunt extractor is intentionally narrow. Initial supported meaning includes visible report time where available, ranking rows, reported rank, Player display name and damage value. It does not infer troop composition, heroes, buffs, rally role, `rallies_joined`, `rallies_led` or other metrics that are not fixture-proven.
 
-## Field confidence and review
+Player names extracted from screenshots are observations, not identity. Review resolves accepted rows to existing Players; Screenshot Intake cannot create or mutate Player identity.
 
-Confidence is stored per extracted field, not only per screenshot. Each field retains:
+### Transfer Evidence family
 
-- field key/ordinal;
-- raw observed text;
-- normalized candidate value;
-- data type;
-- confidence;
-- optional bounding region;
-- warnings/normalization notes;
-- extraction-attempt identity.
+The five explicit v1 classes are:
 
-A human correction creates review state and does not rewrite machine output or change historical confidence to `1.0`. Review revisions retain who changed what and when.
+- `transfer_governor_status`;
+- `transfer_score_passes`;
+- `transfer_invitation`;
+- `transfer_target_kingdom_rules`;
+- `transfer_official_group`.
 
-Every screenshot requires human review in the first release. Automatic commit is not part of this delivery contract.
+Their complete independent contracts live in [Screenshot Intake: Transfer Evidence](./screenshot-intake-transfer-evidence.md). Important cross-family invariants are:
+
+- required Transfer Passes are observed game facts and are never calculated from Transfer Score;
+- generic Transfer screenshots never prove `in_game_rules_verified=true`;
+- only the official-group schema may provide complete visible Transfer Group membership;
+- only target-rules Evidence may provide target Power Cap/classification under its fixture-proven schema;
+- mutable Governor/score/pass/invitation observations require reviewer-confirmed observation time and owner-defined validity; Evidence has no hidden global TTL.
+
+## Review and confidence
+
+Confidence is retained per extracted field together with raw observation and normalized candidate. The review surface must make machine output understandable before approval and must identify manual corrections without changing historical machine confidence.
+
+For Transfer Evidence, the surface additionally shows:
+
+- expected versus detected class and classification confidence;
+- schema version and fixture corpus;
+- raw versus normalized fields and field confidence/warnings;
+- reviewer-confirmed `observed_at` and required validity where applicable;
+- current owner-domain facts and eligibility state;
+- visual/semantic duplicate warnings;
+- before/after destination preview using the KingdomTransfers evaluator;
+- the scalar destination receipt after commit.
 
 ## Duplicate contract
 
-Duplicate handling has three distinct layers:
+Duplicate controls solve different problems:
 
-1. **Exact** — SHA-256 equality inside the authorized Alliance and Bear Hunt occurrence. Exact duplicates reuse the existing Evidence identity before extraction and never disclose cross-Alliance evidence.
-2. **Visual** — perceptual similarity for resized or recompressed screenshots. This creates a review warning; it is not an automatic merge and the distinct binary remains its own Evidence record.
-3. **Semantic** — a deterministic fingerprint after review using stable Bear Hunt report meaning such as occurrence, visible report time when available, resolved Player IDs, ranks and damage values. A semantic collision blocks duplicate commit until explicitly resolved by supported product behavior.
+1. **Exact duplicate** — binary identity inside the authorized Evidence scope only. It must never disclose cross-Alliance evidence.
+2. **Visual duplicate** — perceptual similarity warning. Distinct evidence remains reviewable.
+3. **Semantic duplicate** — deterministic fingerprint over stable reviewed meaning and correct owner scope. Equivalent reviewed game state is blocked until an explicit supported resolution.
+4. **Destination idempotency** — stable key for one immutable approved review; destination-owner persistence returns the same receipt on retry instead of appending duplicate domain state.
 
-Duplicate checks must not disclose the existence of evidence from an unauthorized Alliance or tenant.
+A genuinely newer observation remains importable and appends destination-owner history.
 
-## Operations commit contract
+## Bear Hunt destination contract
 
-`Operations/Results` receives a scalar command containing the actor Player ID, occurrence ID, source evidence/commit attempt IDs, visible report time when available, deterministic report fingerprint and reviewed entry values.
-
-Operations must:
-
-- reacquire current authority in its transaction;
-- verify the occurrence belongs to a Bear Hunt Event with compatible scope/capability;
-- validate every referenced Player against the Event target;
-- reject/reuse an already accepted idempotency key/fingerprint;
-- enforce idempotency and occurrence/fingerprint uniqueness at the database boundary as well as the application boundary;
-- persist an immutable Bear Hunt battle-report ledger entry and its Player rows;
-- capture any pre-existing Event Player result as a baseline before the first imported report for that Player;
-- recompute the owned Bear Hunt result aggregate from the baseline plus currently accepted reports rather than incrementing blindly;
-- restore the exact pre-import baseline when all imported reports for that Player are removed;
-- populate only metrics supported by reviewed evidence;
-- return a scalar receipt with accepted report identity and affected result values/counts.
+`Operations/Results` receives scalar reviewed Bear Hunt meaning and must reacquire authority, validate occurrence/player scope, enforce idempotency/database uniqueness, append the accepted report ledger, preserve pre-import baselines, recompute owned aggregates deterministically and return a scalar receipt.
 
 Evidence cannot directly write `EventPlayerResult` or any Operations model.
 
-## Commit recovery
+## Transfer destination contract
 
-Cross-context commit uses an explicit handshake:
+Transfer Evidence commits through five dedicated `GameWorld/KingdomTransfers` Actions:
 
-`Evidence BeginCommitAttempt → Evidence CommitReviewedBearHuntEvidence → Operations RecordBearHuntBattleReport → Evidence MarkCommitSucceeded`
+- `RecordGovernorStatusEvidence`;
+- `RecordTransferScorePassEvidence`;
+- `RecordTransferInvitationEvidence`;
+- `RecordTransferKingdomRulesEvidence`;
+- `RecordOfficialTransferGroupEvidence`.
 
-The destination idempotency key is stable for the immutable approved review meaning. If Operations commits and the caller crashes before Evidence records success, retry returns the existing destination receipt and does not duplicate damage. Failed Evidence acknowledgement attempts remain historical records; a subsequent Evidence attempt can recover the already-accepted Operations receipt using the same stable destination key.
+Those Actions reacquire current Alliance authority, verify the immutable approved review's Plan/participant/window/target scope, validate Evidence provenance, enforce typed values and owner invariants, and return scalar receipts. They delegate persistence/invariant logic to owner-internal `TransferObservationWriter`, `TransferKingdomConditionWriter` and `TransferGroupWriter`; normal KingdomTransfers writes use those same writers after their own authorization boundary.
+
+Score/pass Evidence appends Transfer Score, passes available and passes required in one owner transaction so all three observations and the destination receipt commit together or none do.
+
+## Cross-context commit recovery
+
+Evidence coordinates a commit handshake; it does not own destination persistence. The destination idempotency key is stable for the immutable approved review meaning.
+
+If the destination commits and the caller exits before Evidence records acknowledgement, retry uses the same destination key. The destination returns the existing authorized receipt without appending duplicate owner history, after which Evidence records the recovered acknowledgement. Failed Evidence acknowledgement/attempt history is not repaired by editing owner tables.
+
+## Freshness and derived truth
+
+Evidence distinguishes upload time, trustworthy source metadata time, fixture-proven visible in-game timestamps, reviewer-confirmed observation time and destination-owner validity.
+
+Evidence does not own a global freshness TTL. `GameWorld/KingdomTransfers` remains solely responsible for stale/missing/conflicting/non-authoritative Transfer facts and for the `needs_verification`/requirement states they produce. Transfer Evidence preview calls the same owner evaluator against an in-memory substitution and never persists hypothetical eligibility or changes `in_game_rules_verified`.
 
 ## Deletion and retention
 
-Evidence deletion and Operations correction are separate capabilities.
+Evidence deletion/redaction and destination correction are separate capabilities.
 
-- Deleting evidence does not cascade into an accepted Bear Hunt result.
-- Correcting/removing an accepted Bear Hunt report requires an audited `Operations/Results` owner Action and deterministic recomputation.
-- Retention policy is configurable and enforced by a scheduled owner Action/command.
-- A user-deleted uncommitted tombstone, failed/unsupported evidence, other inactive uncommitted evidence and committed binary each have independently configurable retention windows.
-- Expired uncommitted evidence is redacted and then physically deleted.
-- A committed record retains enough immutable metadata, reviewed meaning and destination receipt to explain which evidence/review/commit produced the Operations report after its binary and sensitive OCR/raw source text are redacted.
-- Committed tombstones with no retained binary are excluded from bounded retention candidate scans so long-lived history cannot starve newer expired evidence.
-
-Policy values live in `config/evidence.php` and `/docs/operations`; Vue/controllers do not own retention policy.
+- deleting Evidence never cascades into an accepted destination result/observation/condition/group;
+- destination correction/removal is an explicit audited destination-owner operation;
+- committed Evidence can lose binary/OCR/raw sensitive material according to retention while retaining the minimum review/commit/receipt provenance needed to explain the handoff;
+- failed/unsupported/inactive uncommitted Evidence can be redacted/purged under Evidence retention policy;
+- retention policy belongs to Evidence configuration/operations, not Vue/controllers or destination owners.
 
 ## Security and privacy
 
-Uploads use private storage only. The pipeline validates allowlisted MIME types and size, verifies actual MIME and image dimensions, performs the shared repository upload security scan, computes SHA-256, generates non-user-controlled storage names, and removes stored bytes if persistence fails. Raw OCR/provider responses and diagnostics must not leak screenshot content, credentials, hashes, Player names, Alliance names, or cross-tenant duplicate information to unauthorized surfaces.
+Uploads use private storage only. The pipeline validates allowlisted MIME/size/dimensions, verifies actual MIME, performs the shared upload scan, computes source identity, generates non-user-controlled storage names and removes staged bytes when persistence fails. Diagnostics must not leak screenshot content, raw hashes, Player/Alliance identity or cross-tenant duplicate information.
 
-Authorization is checked before expensive work where useful and reacquired at each protected write boundary. Jobs and application Actions carry scalar IDs/value objects, never serialized Eloquent authority models.
+Authorization is checked before protected operations and reacquired at protected write/commit boundaries. Jobs/application Actions carry scalar IDs/value objects, never serialized Eloquent authority models.
 
 ## UX requirements
 
-The first entry point is the Bear Hunt occurrence/results workflow, not a generic AI page. The UI provides:
+Screenshot Intake is embedded in the owning workflow rather than exposed as a generic AI/OCR page.
 
-- upload/progress/failure/retry states;
-- screenshot preview with accessible alternative context;
-- extracted-field table/form that remains usable without image-only interaction;
-- confidence presentation that does not rely on color alone;
-- Player matching and explicit unresolved/excluded states;
-- manual correction with validation;
-- exact/visual/semantic duplicate messaging in player-facing language;
-- commit preview showing current value, imported contribution and resulting aggregate where applicable;
-- accessible destructive confirmation for evidence deletion;
-- keyboard operation and responsive layout;
-- native Screenshot Intake message catalogues for every supported application locale rather than English-only fallback modules;
-- stable action receipts for upload, review, commit, retry and deletion.
+- Bear Hunt Evidence starts from the Bear Hunt occurrence/results workflow.
+- Transfer Evidence starts from a Transfer participant via **Add in-game evidence**.
+
+Supported UX must provide upload/progress/failure/retry, accessible retained-image access, expected-versus-detected class, raw/normalized/confidence presentation, human correction, duplicate messaging, before/after owner preview, explicit commit, destination receipt, responsive layout, keyboard operation, non-colour-only confidence/error semantics, accessible destructive confirmation and localized player-facing labels.
 
 ## Observability
 
-Audit/outbox/diagnostic events cover material lifecycle transitions including upload accepted/rejected, classification/extraction attempted/failed, review approved, duplicate detected, commit started/succeeded/failed, destination deduplication, evidence deletion, retention redaction/purge and retention failure. Privacy-safe diagnostics report queue age, attempt latency, extraction failure rate, review correction rate, duplicate counts/rate, commit failure rate, retention failures, retained binaries and redacted evidence without exposing raw screenshot contents or identity/hash data.
+Audit/outbox/diagnostics cover material lifecycle transitions: upload accepted/rejected, classify/extract attempted/failed, review approved, duplicate blocked/resolved, commit started/succeeded/failed/recovered, destination deduplication, Evidence deletion/redaction/purge and retention failures. Diagnostics remain privacy-safe.
 
-## Delivery phases
+## Family delivery status
 
-A phase is `Complete` only when its behavior, authorization, persistence, UX, accessibility, localization, observability, tests and current-truth documentation are complete and applicable repository gates pass on the release candidate.
+A family is `Complete` only when its behavior, authorization, persistence, UX, accessibility, localization, observability, fixture contract, tests, documentation and all applicable repository gates pass on one immutable release candidate.
 
-| Phase | Status | Outcome / exit condition |
+| Family | Status | Source of truth |
 | --- | --- | --- |
-| 1 | Complete | Product contract and architecture ownership are documented and match implemented ownership. |
-| 2 | Complete | Secure evidence upload, immutable source metadata, private storage, scan/checksum, exact duplicate boundary and lifecycle persistence are implemented and verified. |
-| 3 | Complete | Versioned screenshot classification with immutable attempts, queued execution and unsupported/failure UX is implemented and verified. |
-| 4 | Complete | The Bear Hunt battle-report extractor uses the fixture-proven narrow schema and deterministic normalization. |
-| 5 | Complete | Immutable field-level confidence/provenance and extraction history are retained and verified. |
-| 6 | Complete | Review revisions, Player resolution, manual correction/exclusion and commit eligibility rules are implemented and verified. |
-| 7 | Complete | Exact, visual and semantic duplicate detection is implemented with tenant-safe disclosure behavior. |
-| 8 | Complete | Commit preview and authoritative validation of reviewed meaning are implemented and verified. |
-| 9 | Complete | Evidence sends scalar/value-object reviewed meaning into the `Operations/Results` owner Action with no foreign persistence writes. |
-| 10 | Complete | Operations owns the Bear Hunt report ledger, entries, database uniqueness, baseline preservation, deterministic recomputation and idempotent aggregation. |
-| 11 | Complete | Crash-safe retry/recovery, stable destination idempotency and commit receipts are implemented and verified. |
-| 12 | Complete | Evidence deletion, redaction/physical purge, configurable retention and committed provenance preservation are implemented and verified. |
-| 13 | Complete | Operational diagnostics, queue/retry visibility, audit/outbox coverage and privacy-safe metrics are implemented and documented. |
-| 14 | Complete | Responsive/accessibility/localization/visual-regression coverage is complete, including native supported-locale catalogues and deterministic desktop/mobile visual baselines. |
-| 15 | Complete | The repository-wide spec→code, code→spec and UX→backend audit found no remaining Screenshot Intake gap; current-truth docs are aligned and all applicable release gates passed on one immutable implementation candidate. |
+| Bear Hunt battle report | Complete | This document plus Operations/Results architecture/reference/runbooks |
+| Transfer Evidence | In release verification | [Screenshot Intake: Transfer Evidence](./screenshot-intake-transfer-evidence.md) |
 
-The Screenshot Intake delivery program is closed. A fresh Phase 15 scan found no remaining planned, partial, placeholder, compatibility, stale-ownership, lifecycle, authorization, UX, test, documentation or operational requirement. Any future regression or material change reopens the affected phase rather than becoming an undocumented exception.
+The original Bear Hunt Screenshot Intake program remains complete. The umbrella Screenshot Intake capability is **not** declared fully closed while the Transfer Evidence delivery ledger or release verification has an incomplete/failed item.
 
-## Cross-phase invariants
+## Cross-family invariants
 
 1. Evidence ownership never expands into ownership of the extracted domain fact.
 2. Public owner write contracts use scalar IDs/value objects and never accept/return foreign Eloquent models.
-3. Machine attempts and human review history are immutable/auditable until their configured retention boundary.
-4. No extraction field is silently promoted to domain truth without review in the first release.
-5. Duplicate handling is idempotent and tenant-safe.
-6. Operations recomputes accepted Bear Hunt aggregates from its report ledger and captured baseline; retries never increment blindly.
-7. Evidence deletion never silently rewrites committed Operations history.
-8. Extractor/provider-specific concerns stay behind contracts and versioned provenance.
-9. Vue/controllers do not own extraction rules, normalization formulas, retention policy or domain validation.
-10. No compatibility shims, dual schemas, dual reads/writes, temporary lifecycle states or legacy routes are retained.
+3. Machine attempts and human review remain immutable/auditable until their retention boundary.
+4. No current supported screenshot is auto-committed.
+5. A schema may extract/commit only fixture-proven fields.
+6. Classification verifies the expected class rather than trusting it.
+7. Exact/visual/semantic duplicate semantics remain distinct from destination idempotency.
+8. Evidence deletion never silently rewrites accepted owner history.
+9. Extractor/provider concerns remain behind versioned provenance contracts.
+10. Vue/controllers do not own extraction rules, normalization formulas, retention policy or destination-domain validation.
+11. No compatibility shim, generic Transfer OCR schema or unconstrained target polymorphism is introduced.
 
-## Definition of done
+## Definition of done for the current two-family capability
 
-Delivery is closed only when:
+Transfer Evidence may be marked complete only when:
 
-- the same screenshot/report cannot double-count damage;
-- multiple legitimate Bear Hunt reports aggregate deterministically;
-- pre-existing Event Player result state is preserved as a baseline and restored after imported reports are removed;
-- every machine attempt and field confidence remains historically inspectable until its configured retention boundary;
-- manual correction never overwrites machine provenance;
-- Player resolution cannot silently create/mutate identity;
-- all accepted domain writes enter Operations through owner Actions;
-- every commit crash point is idempotently recoverable;
-- deleting evidence cannot cascade into an accepted result;
-- authorization is tested at upload, review, commit, correction and deletion boundaries;
-- spoofed/oversized/unsafe uploads fail closed;
-- exact and visual duplicate detection never disclose cross-Alliance evidence;
-- retention physically removes expired uncommitted evidence, removes committed binaries/sensitive raw data after their window, preserves the required committed provenance tombstone and cannot be starved by old tombstones;
-- audit/observability cover the full lifecycle without raw-evidence leakage;
-- supported locales contain native Screenshot Intake catalogues and pass localization/type/build checks;
-- PHP tests, Pint, PHPStan, frontend lint/format/type/build, architecture/contracts, accessibility/visual regression, CodeQL, dependency review, production image/container scanning, staging, clean-database install and backup/restore checks are green on one immutable release candidate.
+- all five schema versions and fixture corpora execute as allowlist proofs;
+- expected-class mismatch, low-confidence, missing-required-field and adjacent-number negatives fail safely;
+- Transfer Score never implies required passes;
+- no v1 Transfer Evidence path can set `in_game_rules_verified`;
+- review corrections preserve machine provenance;
+- scope drift after review forces rejection/re-review rather than silent retargeting;
+- exact duplicates are tenant-safe, visual duplicates remain reviewable, semantic duplicates require explicit resolution and newer observations remain importable;
+- all five dedicated KingdomTransfers destination Actions use shared owner-internal writers and return scalar receipts;
+- score/pass commit is atomic;
+- destination idempotency recovers the owner-success/Evidence-acknowledgement crash window without duplicate observations;
+- owner freshness/conflict rules continue to produce `needs_verification` where evidence is missing/stale/conflicting/non-authoritative;
+- deleting/redacting Evidence cannot cascade into committed KingdomTransfers history;
+- participant UX is responsive, accessible, localized and visually regression-tested in review/preview/receipt states;
+- product/architecture/reference/operations current-truth documents agree;
+- clean PostgreSQL install, PHP tests, Pint, PHPStan, frontend lint/format/type/build, architecture/contracts, accessibility/visual regression, CodeQL, dependency review and all other applicable repository-wide release gates pass on one immutable candidate.
 
-The final Phase 15 scan is complete. This document describes the implemented current state; any later change that invalidates a definition-of-done item reopens the relevant phase and must restore the same release evidence before closeout.
+Until those conditions are verified on one candidate, the Transfer Evidence family and the umbrella Screenshot Intake extension remain open.

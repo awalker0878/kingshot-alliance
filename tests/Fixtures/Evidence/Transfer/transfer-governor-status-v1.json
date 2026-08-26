@@ -1,0 +1,35 @@
+{
+  "schema_version": "transfer-governor-status/1",
+  "fixture_policy": "Synthetic redacted OCR projection; no user evidence.",
+  "positive": [
+    {"name":"canonical","lines":["Transfer Governor Status","Governor Power 72,345,678"],"fields":{"governor_power":72345678}},
+    {"name":"grouped_digits","lines":["Governor Power 12,345,678"],"fields":{"governor_power":12345678}}
+  ],
+  "negative": [
+    {"name":"power_cap_not_governor_power","lines":["Power Cap 80,000,000"],"fields":{}},
+    {"name":"unsupported_abbreviation","lines":["Governor Power 72.3M"],"fields":{}}
+  ],
+  "ambiguity": [
+    {"name":"generic_transfer","lines":["Kingdom Transfer","Governor information"],"classified":"unknown"}
+  ],
+  "semantic_duplicate": [
+    {"name":"same_state_recompressed","governor_power":72345678,"observed_at":"2026-08-26T01:00:00Z"}
+  ],
+  "semantic_newer": [
+    {"name":"newer_power_observation","governor_power":73000000,"observed_at":"2026-08-26T03:00:00Z"}
+  ],
+  "coverage_cases": [
+    {"category":"canonical","name":"canonical_supported","lines":["Transfer Governor Status","Governor Power 72,345,678"],"expected_kind":"transfer_governor_status","fields":{"governor_power":72345678}},
+    {"category":"alternate_resolution","name":"alternate_resolution_supported","representation":{"width":1440,"height":2560},"lines":["Transfer Governor Status","Governor Power 72,345,678"],"expected_kind":"transfer_governor_status","fields":{"governor_power":72345678}},
+    {"category":"safe_crop","name":"safe_crop_supported","representation":{"crop":"governor_power_panel"},"lines":["Governor Power 72,345,678"],"expected_kind":"transfer_governor_status","fields":{"governor_power":72345678}},
+    {"category":"numeric_grouping","name":"comma_grouping_supported","lines":["Governor Power 12,345,678"],"expected_kind":"transfer_governor_status","fields":{"governor_power":12345678}},
+    {"category":"low_confidence","name":"blurred_but_reviewable","ocr_confidence":0.42,"lines":["Governor Power 72,345,678"],"expected_kind":"transfer_governor_status","fields":{"governor_power":72345678},"expect_below_field_threshold":true},
+    {"category":"adjacent_unrelated_numbers","name":"alliance_power_is_not_governor_power","lines":["Alliance Power 80,000,000","Governor Power 72,345,678","Alliance Rank 12"],"expected_kind":"transfer_governor_status","fields":{"governor_power":72345678},"forbidden_fields":["transfer_score","power_cap"]},
+    {"category":"missing_required_field","name":"missing_governor_power","lines":["Transfer Governor Status","Kingdom #123"],"expected_kind":"unknown","fields":{}},
+    {"category":"unsupported_ui_variant","name":"abbreviated_power_unsupported","lines":["Governor Power 72.3M"],"expected_kind":"transfer_governor_status","fields":{}},
+    {"category":"wrong_screenshot_class","name":"score_screen_is_not_governor","lines":["Transfer Score 9,000,000","Passes Available 7","Passes Required 12"],"expected_kind":"transfer_score_passes","fields":{}},
+    {"category":"visual_duplicate_recompressed","name":"recompressed_same_visual_meaning","representation":{"compression":"reencoded"},"lines":["Transfer Governor Status","Governor Power 72,345,678"],"expected_kind":"transfer_governor_status","fields":{"governor_power":72345678},"visual_duplicate_of":"canonical_supported"},
+    {"category":"semantic_equal","name":"same_reviewed_meaning","lines":["Governor Power 72,345,678"],"expected_kind":"transfer_governor_status","fields":{"governor_power":72345678},"semantic":{"observed_at":"2026-08-26T01:00:00Z"}},
+    {"category":"semantic_newer","name":"newer_reviewed_meaning","lines":["Governor Power 73,000,000"],"expected_kind":"transfer_governor_status","fields":{"governor_power":73000000},"semantic":{"observed_at":"2026-08-26T03:00:00Z"}}
+  ]
+}

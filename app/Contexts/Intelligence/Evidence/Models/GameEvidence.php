@@ -9,6 +9,11 @@ use App\Contexts\Intelligence\Evidence\Enums\EvidenceLifecycleStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property EvidenceKind $expected_kind
+ * @property EvidenceKind $kind
+ * @property EvidenceLifecycleStatus $lifecycle_status
+ */
 final class GameEvidence extends Model
 {
     use HasUlids;
@@ -22,6 +27,8 @@ final class GameEvidence extends Model
     protected $fillable = [
         'alliance_id',
         'occurrence_id',
+        'transfer_plan_id',
+        'transfer_participant_id',
         'expected_kind',
         'kind',
         'lifecycle_status',

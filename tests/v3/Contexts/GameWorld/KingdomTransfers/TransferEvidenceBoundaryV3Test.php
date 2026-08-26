@@ -67,9 +67,9 @@ final class TransferEvidenceBoundaryV3Test extends TestCase
     {
         $paths = [
             'app/Contexts/GameWorld/KingdomTransfers/Actions/SaveTransferWindow.php',
-            'app/Contexts/GameWorld/KingdomTransfers/Actions/SaveTransferGroup.php',
-            'app/Contexts/GameWorld/KingdomTransfers/Actions/RecordTransferKingdomCondition.php',
-            'app/Contexts/GameWorld/KingdomTransfers/Actions/RecordTransferObservation.php',
+            'app/Contexts/GameWorld/KingdomTransfers/Services/TransferGroupWriter.php',
+            'app/Contexts/GameWorld/KingdomTransfers/Services/TransferKingdomConditionWriter.php',
+            'app/Contexts/GameWorld/KingdomTransfers/Services/TransferObservationWriter.php',
         ];
 
         foreach ($paths as $path) {
@@ -83,14 +83,14 @@ final class TransferEvidenceBoundaryV3Test extends TestCase
     public function test_provenance_identity_participates_in_transfer_idempotency_fingerprints(): void
     {
         $observation = file_get_contents(base_path(
-            'app/Contexts/GameWorld/KingdomTransfers/Actions/RecordTransferObservation.php',
+            'app/Contexts/GameWorld/KingdomTransfers/Services/TransferObservationWriter.php',
         ));
         self::assertIsString($observation);
         self::assertStringContainsString('$evidenceId ?? \'\'', $observation);
         self::assertStringContainsString('$details ?? \'\'', $observation);
 
         $condition = file_get_contents(base_path(
-            'app/Contexts/GameWorld/KingdomTransfers/Actions/RecordTransferKingdomCondition.php',
+            'app/Contexts/GameWorld/KingdomTransfers/Services/TransferKingdomConditionWriter.php',
         ));
         self::assertIsString($condition);
         self::assertStringContainsString('$evidenceId ?? \'\'', $condition);
@@ -113,7 +113,7 @@ final class TransferEvidenceBoundaryV3Test extends TestCase
         };
     }
 
-    /** @param callable(): mixed $callback */
+    /** @param  callable(): mixed  $callback */
     private function assertEvidenceValidation(callable $callback): void
     {
         try {

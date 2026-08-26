@@ -2,6 +2,7 @@
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { computed, reactive, ref } from 'vue';
 
+import TransferEvidencePanel from '@/components/transfers/TransferEvidencePanel.vue';
 import ConfirmActionDialog from '@/components/ui/ConfirmActionDialog.vue';
 import { useConfirmAction } from '@/components/ui/useConfirmAction';
 import AppLayout from '@/layouts/AppLayout.vue';
@@ -273,7 +274,6 @@ function allowedTransitions(p: Participant): Readiness[] {
   };
   return map[p.readiness];
 }
-
 function saveReadiness(p: Participant): void {
   if (!props.plan?.mutable || p.withdrawnAt) return;
   router.patch(
@@ -360,15 +360,16 @@ function recordObservation(p: Participant): void {
         </p>
       </div>
       <nav :aria-label="t('kingdomP7D.overviewNavigation')" class="flex flex-wrap gap-2">
-        <Link class="ks-command-link" href="/alliance/transfers">{{ t('kingdomP7D.title') }}</Link
-        ><Link class="ks-command-link" href="/alliance/transfers/manage">{{
+        <Link class="ks-command-link" href="/alliance/transfers">{{ t('kingdomP7D.title') }}</Link>
+        <Link class="ks-command-link" href="/alliance/transfers/manage">{{
           t('kingdomP7D.manageTransfers')
-        }}</Link
-        ><Link class="ks-command-link" href="/alliance/transfers/completion">{{
+        }}</Link>
+        <Link class="ks-command-link" href="/alliance/transfers/completion">{{
           t('kingdomP7D.completion')
         }}</Link>
       </nav>
     </header>
+
     <div
       v-if="validationErrors.length"
       role="alert"
@@ -394,11 +395,12 @@ function recordObservation(p: Participant): void {
         </div>
       </div>
     </section>
+
     <section v-if="plan" class="ks-surface mt-4 p-4">
       <label class="ks-kicker" for="eligibility-filter">{{
         t('kingdomP7D.eligibilityFilter')
-      }}</label
-      ><select
+      }}</label>
+      <select
         id="eligibility-filter"
         v-model="filter"
         class="mt-2 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2 sm:max-w-sm"
@@ -517,6 +519,19 @@ function recordObservation(p: Participant): void {
           </dl>
         </div>
 
+        <TransferEvidencePanel
+          :plan-id="plan.id"
+          :participant-id="p.id"
+          :participant-name="p.name"
+          :mutable="plan.mutable && !p.withdrawnAt"
+          :target-kingdom="p.direction === 'incoming' ? plan.homeKingdom : p.destinationKingdom"
+          :current-eligibility="p.eligibility"
+          :current-observations="p.observations"
+          :current-official-group="p.officialGroup"
+          :current-target-condition="p.targetCondition"
+          :current-transfer-score="p.transferScore"
+        />
+
         <div v-if="p.eligibility" class="border-t border-[var(--ks-border)] p-5 sm:p-6">
           <h3 class="text-lg font-semibold">{{ t('kingdomP7D.eligibilityRequirements') }}</h3>
           <ul class="mt-3 grid gap-3">
@@ -526,8 +541,8 @@ function recordObservation(p: Participant): void {
               class="rounded-xl border border-[var(--ks-border)] p-4"
             >
               <div class="flex flex-wrap justify-between gap-2">
-                <strong>{{ t(`kingdomP7D.requirementKey_${r.key}`) }}</strong
-                ><span :class="['text-sm font-bold', stateTone(r.state)]">{{
+                <strong>{{ t(`kingdomP7D.requirementKey_${r.key}`) }}</strong>
+                <span :class="['text-sm font-bold', stateTone(r.state)]">{{
                   requirementStateLabel(r.state)
                 }}</span>
               </div>
@@ -564,18 +579,19 @@ function recordObservation(p: Participant): void {
               @submit.prevent="recordObservation(p)"
             >
               <label class="text-sm font-semibold"
-                >{{ t('kingdomP7D.observationKind')
-                }}<select
+                >{{ t('kingdomP7D.observationKind') }}
+                <select
                   v-model="observationDrafts[p.id]!.kind"
                   class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2"
                 >
                   <option v-for="k in observationKinds" :key="k" :value="k">
                     {{ kindLabel(k) }}
                   </option>
-                </select></label
-              ><label class="text-sm font-semibold"
-                >{{ t('kingdomP7D.observedValue')
-                }}<select
+                </select>
+              </label>
+              <label class="text-sm font-semibold"
+                >{{ t('kingdomP7D.observedValue') }}
+                <select
                   v-if="observationDrafts[p.id]!.kind === 'invitation_status'"
                   v-model="observationDrafts[p.id]!.value"
                   class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2"
@@ -590,51 +606,59 @@ function recordObservation(p: Participant): void {
                   </option>
                   <option value="special_approved">
                     {{ t('kingdomP7D.invitation_special_approved') }}
-                  </option></select
-                ><select
+                  </option>
+                </select>
+                <select
                   v-else-if="observationDrafts[p.id]!.kind === 'in_game_rules_verified'"
                   v-model="observationDrafts[p.id]!.value"
                   class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2"
                   required
                 >
                   <option value="true">{{ t('common.yes') }}</option>
-                  <option value="false">{{ t('common.no') }}</option></select
-                ><input
+                  <option value="false">{{ t('common.no') }}</option>
+                </select>
+                <input
                   v-else
                   v-model="observationDrafts[p.id]!.value"
                   class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2"
                   min="0"
                   required
-                  type="number" /></label
-              ><label class="text-sm font-semibold"
-                >{{ t('kingdomP7D.sourceType')
-                }}<select
+                  type="number"
+                />
+              </label>
+              <label class="text-sm font-semibold"
+                >{{ t('kingdomP7D.sourceType') }}
+                <select
                   v-model="observationDrafts[p.id]!.source_type"
                   class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2"
                 >
                   <option v-for="s in sourceTypes" :key="s" :value="s">{{ sourceLabel(s) }}</option>
-                </select></label
-              ><label class="text-sm font-semibold sm:col-span-2"
+                </select>
+              </label>
+              <label class="text-sm font-semibold sm:col-span-2"
                 >{{ t('kingdomP7D.sourceReference')
                 }}<input
                   v-model="observationDrafts[p.id]!.source_reference"
                   class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2"
                   maxlength="2048"
-                  required /></label
-              ><label class="text-sm font-semibold"
+                  required
+              /></label>
+              <label class="text-sm font-semibold"
                 >{{ t('kingdomP7D.observedAt')
                 }}<input
                   v-model="observationDrafts[p.id]!.observed_at"
                   class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2"
                   required
-                  type="datetime-local" /></label
-              ><label class="text-sm font-semibold"
+                  type="datetime-local"
+              /></label>
+              <label class="text-sm font-semibold"
                 >{{ t('kingdomP7D.validUntil')
                 }}<input
                   v-model="observationDrafts[p.id]!.valid_until"
                   class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2"
-                  type="datetime-local" /></label
-              ><label class="text-sm font-semibold sm:col-span-2"
+                  type="datetime-local"
+              /></label>
+              <label class="text-sm font-semibold sm:col-span-2"
                 >{{ t('kingdomP7D.details')
                 }}<textarea
                   v-model="observationDrafts[p.id]!.details"
@@ -702,8 +726,9 @@ function recordObservation(p: Participant): void {
                   type="button"
                   @click="saveReadiness(p)"
                 >
-                  {{ t('kingdomP7D.saveReadiness') }}</button
-                ><button
+                  {{ t('kingdomP7D.saveReadiness') }}
+                </button>
+                <button
                   v-if="!p.withdrawnAt"
                   :disabled="!plan.mutable"
                   class="rounded-lg border border-red-400/30 px-3 py-2 text-sm text-red-200 disabled:opacity-40"
@@ -725,13 +750,15 @@ function recordObservation(p: Participant): void {
                   :placeholder="t('kingdomP7D.blockerSummary')"
                   class="w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2"
                   required
-                /><textarea
+                />
+                <textarea
                   v-model="blockerDrafts[p.id]!.details"
                   :disabled="!plan.mutable"
                   :placeholder="t('kingdomP7D.privateDetails')"
                   class="mt-2 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2"
                   rows="2"
-                /><button
+                />
+                <button
                   :disabled="!plan.mutable"
                   class="mt-2 rounded-lg border border-[var(--ks-border)] px-3 py-2 text-sm font-semibold"
                   type="submit"
@@ -746,8 +773,8 @@ function recordObservation(p: Participant): void {
                   class="rounded-lg border border-[var(--ks-border)] p-3 text-sm"
                 >
                   <div class="flex justify-between gap-2">
-                    <strong>{{ b.summary }}</strong
-                    ><button
+                    <strong>{{ b.summary }}</strong>
+                    <button
                       v-if="b.state === 'active' && plan.mutable"
                       class="text-[var(--ks-gold-bright)]"
                       type="button"

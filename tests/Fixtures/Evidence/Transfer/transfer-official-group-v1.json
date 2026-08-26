@@ -1,0 +1,35 @@
+{
+  "schema_version": "transfer-official-group/1",
+  "fixture_policy": "Synthetic redacted OCR projection; no user evidence.",
+  "positive": [
+    {"name":"canonical","lines":["Transfer Group A","Kingdom #101","Kingdom #202","Kingdom #303"],"fields":{"official_group_identifier":"A","kingdom_numbers":[101,202,303]}},
+    {"name":"deduplicated_membership","lines":["Transfer Group B","Kingdom #303","Kingdom #101","Kingdom #303","Kingdom #202"],"fields":{"official_group_identifier":"B","kingdom_numbers":[101,202,303]}}
+  ],
+  "negative": [
+    {"name":"partial_without_identifier","lines":["Kingdom #101","Kingdom #202"],"must_not_commit_complete_membership":true},
+    {"name":"hidden_membership_not_inferred","lines":["Transfer Group A","Kingdom #101","Kingdom #202"],"fields":{"kingdom_numbers":[101,202]},"must_not_infer":[303]}
+  ],
+  "ambiguity": [
+    {"name":"planning_group_not_official","lines":["Alliance Planning Group A","Kingdom #101"],"classified":"unknown"}
+  ],
+  "semantic_duplicate": [
+    {"name":"same_group_membership","official_group_identifier":"A","kingdom_numbers":[101,202,303],"observed_at":"2026-08-26T01:00:00Z"}
+  ],
+  "semantic_newer": [
+    {"name":"newer_membership","official_group_identifier":"A","kingdom_numbers":[101,202,303,404],"observed_at":"2026-08-26T03:00:00Z"}
+  ],
+  "coverage_cases": [
+    {"category":"canonical","name":"canonical_supported","lines":["Transfer Group A","Kingdom #101","Kingdom #202","Kingdom #303"],"expected_kind":"transfer_official_group","fields":{"official_group_identifier":"A","kingdom_numbers":[101,202,303]}},
+    {"category":"alternate_resolution","name":"alternate_resolution_supported","representation":{"width":1440,"height":2560},"lines":["Transfer Group B","Kingdom #101","Kingdom #202","Kingdom #303"],"expected_kind":"transfer_official_group","fields":{"official_group_identifier":"B","kingdom_numbers":[101,202,303]}},
+    {"category":"safe_crop","name":"complete_membership_crop_supported","representation":{"crop":"official_group_panel"},"lines":["Transfer Group A","Kingdom #101","Kingdom #202"],"expected_kind":"transfer_official_group","fields":{"official_group_identifier":"A","kingdom_numbers":[101,202]}},
+    {"category":"numeric_grouping","name":"explicit_kingdom_numbers_supported","lines":["Transfer Group 7","Kingdom #101","Kingdom #202"],"expected_kind":"transfer_official_group","fields":{"official_group_identifier":"7","kingdom_numbers":[101,202]}},
+    {"category":"low_confidence","name":"blurred_group_reviewable","ocr_confidence":0.42,"lines":["Transfer Group A","Kingdom #101","Kingdom #202"],"expected_kind":"transfer_official_group","fields":{"official_group_identifier":"A","kingdom_numbers":[101,202]},"expect_below_field_threshold":true},
+    {"category":"adjacent_unrelated_numbers","name":"alliance_rank_is_not_membership","lines":["Transfer Group A","Kingdom #101","Kingdom #202","Alliance Rank 303"],"expected_kind":"transfer_official_group","fields":{"official_group_identifier":"A","kingdom_numbers":[101,202]},"forbidden_kingdom_numbers":[303]},
+    {"category":"missing_required_field","name":"group_identifier_missing","lines":["Kingdom #101","Kingdom #202"],"expected_kind":"unknown","fields":{"kingdom_numbers":[101,202]}},
+    {"category":"unsupported_ui_variant","name":"planning_group_not_official","lines":["Alliance Planning Group A","Kingdom #101"],"expected_kind":"unknown","fields":{"kingdom_numbers":[101]}},
+    {"category":"wrong_screenshot_class","name":"rules_screen_is_not_group","lines":["Kingdom #654","Power Cap 90,000,000","Ordinary Kingdom"],"expected_kind":"transfer_target_kingdom_rules","fields":{}},
+    {"category":"visual_duplicate_recompressed","name":"recompressed_same_visual_meaning","representation":{"compression":"reencoded"},"lines":["Transfer Group A","Kingdom #101","Kingdom #202","Kingdom #303"],"expected_kind":"transfer_official_group","fields":{"official_group_identifier":"A","kingdom_numbers":[101,202,303]},"visual_duplicate_of":"canonical_supported"},
+    {"category":"semantic_equal","name":"same_reviewed_meaning","lines":["Transfer Group A","Kingdom #101","Kingdom #202","Kingdom #303"],"expected_kind":"transfer_official_group","fields":{"official_group_identifier":"A","kingdom_numbers":[101,202,303]},"semantic":{"observed_at":"2026-08-26T01:00:00Z"}},
+    {"category":"semantic_newer","name":"newer_reviewed_meaning","lines":["Transfer Group A","Kingdom #101","Kingdom #202","Kingdom #303","Kingdom #404"],"expected_kind":"transfer_official_group","fields":{"official_group_identifier":"A","kingdom_numbers":[101,202,303,404]},"semantic":{"observed_at":"2026-08-26T03:00:00Z"}}
+  ]
+}

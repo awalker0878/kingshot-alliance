@@ -158,7 +158,7 @@ final readonly class TransferSelfEligibilityQuery
         $conditionFact = $this->conditionFact($conditions);
         $classification = $condition instanceof TransferKingdomConditionObservation
             && $condition->source_type->isAuthoritative()
-                ? $condition->classification
+                ? ($condition->classification ?? TransferKingdomClassification::Unknown)
                 : TransferKingdomClassification::Unknown;
 
         $input = new TransferEligibilityInput(
