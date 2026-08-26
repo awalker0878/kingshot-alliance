@@ -339,9 +339,12 @@ final readonly class SaveTransferEvidenceReview
         return $status;
     }
 
-    private function classification(?string $classification): string
+    private function classification(?string $classification): ?string
     {
-        $classification = $classification === null || trim($classification) === '' ? 'unknown' : trim($classification);
+        $classification = $classification === null ? '' : trim($classification);
+        if ($classification === '') {
+            return null;
+        }
         if (TransferKingdomClassification::tryFrom($classification) === null) {
             throw ValidationException::withMessages(['kingdom_classification' => 'Kingdom classification is invalid.']);
         }
