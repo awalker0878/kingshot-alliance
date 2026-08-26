@@ -13,9 +13,7 @@ use InvalidArgumentException;
 
 final readonly class GovernorProgressionEvidenceExtractor implements EvidenceExtractor
 {
-    public function __construct(private GovernorProgressionEvidenceSchemaRegistry $schemas)
-    {
-    }
+    public function __construct(private GovernorProgressionEvidenceSchemaRegistry $schemas) {}
 
     public function key(EvidenceKind $kind): string
     {
@@ -55,7 +53,7 @@ final readonly class GovernorProgressionEvidenceExtractor implements EvidenceExt
         };
 
         foreach ($fields as $field) {
-            if (! in_array($field->fieldKey, $schema->supportedFields, true)) {
+            if (!in_array($field->fieldKey, $schema->supportedFields, true)) {
                 throw new InvalidArgumentException('Governor Progression extractor emitted a field outside its registered schema.');
             }
         }
@@ -118,7 +116,7 @@ final readonly class GovernorProgressionEvidenceExtractor implements EvidenceExt
         $nameFound = false;
         foreach ($document->lines() as $line) {
             $text = $this->lineText($line);
-            if (! $nameFound && preg_match('/\b(?:hero|hero\s+name|name)\s*[:\-]\s*([\pL\pN][\pL\pN ._\-]{1,79})/iu', $text, $match) === 1) {
+            if (!$nameFound && preg_match('/\b(?:hero|hero\s+name|name)\s*[:\-]\s*([\pL\pN][\pL\pN ._\-]{1,79})/iu', $text, $match) === 1) {
                 $fields[] = $this->candidate('hero_name', 0, $line, trim($match[1]), 'string');
                 $nameFound = true;
             }
@@ -136,7 +134,7 @@ final readonly class GovernorProgressionEvidenceExtractor implements EvidenceExt
         $ordinal = 0;
         foreach ($document->lines() as $line) {
             $text = $this->lineText($line);
-            if (! $heroFound && preg_match('/\b(?:hero|hero\s+name)\s*[:\-]\s*([\pL\pN][\pL\pN ._\-]{1,79})/iu', $text, $match) === 1) {
+            if (!$heroFound && preg_match('/\b(?:hero|hero\s+name)\s*[:\-]\s*([\pL\pN][\pL\pN ._\-]{1,79})/iu', $text, $match) === 1) {
                 $fields[] = $this->candidate('hero_name', 0, $line, trim($match[1]), 'string');
                 $heroFound = true;
             }
