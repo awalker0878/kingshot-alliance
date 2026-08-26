@@ -337,7 +337,7 @@ The Assistant never silently submits the action and never receives a privileged 
 
 ## Event readiness before an Event
 
-Program state: **Selected extension**.
+Program state: **Current complete capability**.
 
 ```text
 Open Event Command for an authorized occurrence
@@ -358,7 +358,7 @@ There is no persisted `event_ready` boolean. Missing/unknown owner state cannot 
 
 ## Event closeout after an Event
 
-Program state: **Selected extension**.
+Program state: **Current complete capability**.
 
 ```text
 Event ends

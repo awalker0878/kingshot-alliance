@@ -1,6 +1,6 @@
 # Event Command — Readiness & Closeout
 
-Status: Selected extension — implementation complete, release verification in progress
+Status: Current complete capability — verified 2026-08-25
 
 Date: 2026-08-25
 
@@ -364,8 +364,8 @@ No row may be marked complete based on scaffolding or backend-only implementatio
 | 9 | Complete | Debrief availability | Bounded EventAnalysis availability is integrated without duplicated analysis rules. |
 | 10 | Complete | Event Command UX | Card, occurrence switcher, lifecycle states, stable deep links, responsive/accessibility/localization behavior and deterministic desktop/mobile visual fixtures are implemented. |
 | 11 | Complete | Performance + observability + architecture | query budget, safe diagnostics, isolation and boundary enforcement are implemented. |
-| 12 | Verification in progress | Verification + reconciliation | all release gates must be green on one immutable candidate; product/global ledgers must then be promoted to Current complete capability with no incomplete Event Readiness/Closeout rows. |
+| 12 | Complete | Verification + reconciliation | CI, Architecture V3, Visual Regression, CodeQL, Dependency Review and Intelligence Verification are green on immutable candidate `b912e9c8f2a09da8876317bc07fcefeacacfb4cc`; product/global ledgers are reconciled with no incomplete Event Readiness/Closeout rows. |
 
 ## Definition of Done
 
-Event Readiness & Closeout becomes a current complete capability only when every ledger row is complete on one immutable candidate and `ER-*`, `EC-*` and applicable program-wide `PX-*` criteria are satisfied. A missing owner query, failing test, architecture violation, inaccessible handoff, incomplete mobile/accessibility state, stale documentation or failed release gate is implementation work, not a reason to declare the capability complete.
+Event Readiness & Closeout is a **Current complete capability**. Every ledger row is complete and `ER-*`, `EC-*` and applicable program-wide `PX-*` criteria are satisfied on immutable candidate `b912e9c8f2a09da8876317bc07fcefeacacfb4cc`. A missing owner query, failing test, architecture violation, inaccessible handoff, incomplete mobile/accessibility state, stale documentation or failed release gate is implementation work, not a reason to declare the capability complete.
