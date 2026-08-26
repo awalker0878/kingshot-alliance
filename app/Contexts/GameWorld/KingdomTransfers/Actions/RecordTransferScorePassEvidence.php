@@ -7,6 +7,7 @@ namespace App\Contexts\GameWorld\KingdomTransfers\Actions;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferObservationKind;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferSourceType;
 use App\Contexts\GameWorld\KingdomTransfers\Services\TransferEvidenceDestinationSupport;
+use App\Contexts\GameWorld\KingdomTransfers\Services\TransferObservationWriter;
 use App\Contexts\GameWorld\KingdomTransfers\ValueObjects\TransferEvidenceDestinationReceipt;
 use Illuminate\Support\Facades\DB;
 
@@ -14,7 +15,7 @@ final readonly class RecordTransferScorePassEvidence
 {
     public function __construct(
         private TransferEvidenceDestinationSupport $support,
-        private RecordTransferObservation $observations,
+        private TransferObservationWriter $observations,
     ) {}
 
     public function handle(
@@ -42,9 +43,9 @@ final readonly class RecordTransferScorePassEvidence
             }
             $target = $this->support->lockScope($allianceId, $planId, $participantId, $expectedWindowId, $expectedTargetKingdomId, true);
             $sourceReference = 'Screenshot Intake review '.$reviewId;
-            $scoreId = $this->observations->handle(
+            $scoreId = $this->observations->append(
+                $context,
                 $allianceId,
-                $actorPlayerId,
                 $planId,
                 $participantId,
                 TransferObservationKind::TransferScore,
@@ -55,9 +56,9 @@ final readonly class RecordTransferScorePassEvidence
                 $validUntil,
                 evidenceId: $evidenceId,
             );
-            $availableId = $this->observations->handle(
+            $availableId = $this->observations->append(
+                $context,
                 $allianceId,
-                $actorPlayerId,
                 $planId,
                 $participantId,
                 TransferObservationKind::TransferPassesAvailable,
@@ -68,9 +69,9 @@ final readonly class RecordTransferScorePassEvidence
                 $validUntil,
                 evidenceId: $evidenceId,
             );
-            $requiredId = $this->observations->handle(
+            $requiredId = $this->observations->append(
+                $context,
                 $allianceId,
-                $actorPlayerId,
                 $planId,
                 $participantId,
                 TransferObservationKind::TransferPassesRequired,
