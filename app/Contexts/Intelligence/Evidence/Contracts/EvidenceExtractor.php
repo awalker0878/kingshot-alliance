@@ -10,14 +10,14 @@ use App\Contexts\Intelligence\Evidence\ValueObjects\OcrDocument;
 
 interface EvidenceExtractor
 {
-    public function key(): string;
+    public function key(EvidenceKind $kind): string;
 
-    public function version(): string;
+    public function version(EvidenceKind $kind): string;
 
-    public function schemaVersion(): string;
+    public function schemaVersion(EvidenceKind $kind): string;
 
     public function supports(EvidenceKind $kind): bool;
 
     /** @return list<ExtractedFieldCandidate> */
-    public function extract(OcrDocument $document): array;
+    public function extract(EvidenceKind $kind, OcrDocument $document): array;
 }
