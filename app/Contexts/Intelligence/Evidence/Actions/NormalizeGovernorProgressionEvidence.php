@@ -6,6 +6,7 @@ namespace App\Contexts\Intelligence\Evidence\Actions;
 
 use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Contexts\GameWorld\Progression\Queries\ProgressionDatasetQuery;
+use App\Contexts\GameWorld\Progression\ValueObjects\ProgressionDataset;
 use App\Contexts\Intelligence\Evidence\Enums\EvidenceAttemptStatus;
 use App\Contexts\Intelligence\Evidence\Enums\EvidenceKind;
 use App\Contexts\Intelligence\Evidence\Enums\EvidenceLifecycleStatus;
@@ -34,7 +35,7 @@ final readonly class NormalizeGovernorProgressionEvidence
 
     public function handle(string $evidenceId, string $extractionAttemptId): void
     {
-        $dataset = $this->progression->latest();
+        $dataset = $this->datasetForEvidence($evidenceId);
         $attemptId = DB::transaction(function () use ($evidenceId, $extractionAttemptId, $dataset): string {
             $evidence = GameEvidence::query()->whereKey($evidenceId)->lockForUpdate()->firstOrFail();
             $kind = EvidenceKind::from((string) $evidence->getRawOriginal('kind'));
@@ -192,5 +193,22 @@ final readonly class NormalizeGovernorProgressionEvidence
             });
             throw $exception;
         }
+    }
+
+    private function datasetForEvidence(string $evidenceId): ProgressionDataset
+    {
+        $pin = ProgressionNormalizationAttempt::query()
+            ->where('evidence_id', $evidenceId)
+            ->orderBy('created_at')
+            ->orderBy('id')
+            ->first(['progression_dataset_id', 'progression_dataset_checksum']);
+        if ($pin instanceof ProgressionNormalizationAttempt) {
+            return $this->progression->require(
+                (string) $pin->progression_dataset_id,
+                (string) $pin->progression_dataset_checksum,
+            );
+        }
+
+        return $this->progression->latest();
     }
 }
