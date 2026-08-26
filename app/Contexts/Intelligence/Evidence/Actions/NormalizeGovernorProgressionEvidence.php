@@ -93,6 +93,8 @@ final readonly class NormalizeGovernorProgressionEvidence
         }
 
         try {
+            $evidence = GameEvidence::query()->findOrFail($evidenceId);
+            $kind = EvidenceKind::from((string) $evidence->getRawOriginal('kind'));
             $fields = EvidenceExtractedField::query()
                 ->where('extraction_attempt_id', $extractionAttemptId)
                 ->orderBy('row_ordinal')
