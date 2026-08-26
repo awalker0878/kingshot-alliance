@@ -9,6 +9,10 @@ use App\Contexts\Intelligence\Evidence\Enums\EvidenceKind;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property EvidenceAttemptStatus $status
+ * @property EvidenceKind $classified_kind
+ */
 final class EvidenceClassificationAttempt extends Model
 {
     use HasUlids;
