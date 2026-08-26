@@ -1,0 +1,17 @@
+{
+  "schema_version": "governor-hero-roster/1",
+  "coverage_cases": [
+    {"name":"canonical","category":"canonical","expected_kind":"governor_hero_roster","ocr_confidence":0.98,"lines":["Hero Roster","Amadeus Level 80 Stars 5 Widget 6","Helga Level 79 Stars 4 Widget 3"],"fields":{"hero_names":["Amadeus","Helga"]}},
+    {"name":"alternate","category":"alternate_resolution","expected_kind":"governor_hero_roster","ocr_confidence":0.93,"lines":["My Heroes","Amadeus Lv. 80 Star 5 Widget 6","Helga Lv. 79 Star 4 Widget 3"],"fields":{"hero_names":["Amadeus","Helga"]}},
+    {"name":"crop","category":"safe_crop","expected_kind":"governor_hero_roster","ocr_confidence":0.96,"lines":["Hero Roster","Amadeus Level 80"],"fields":{"hero_names":["Amadeus"]}},
+    {"name":"numeric","category":"numeric_grouping","expected_kind":"governor_hero_roster","ocr_confidence":0.96,"lines":["Hero Roster","Amadeus Level 80 Stars 5 Widget 6"],"fields":{"hero_names":["Amadeus"]}},
+    {"name":"low","category":"low_confidence","expected_kind":"governor_hero_roster","ocr_confidence":0.35,"lines":["Hero Roster","Amadeus Level 80"],"fields":{"hero_names":["Amadeus"]},"expect_below_field_threshold":true},
+    {"name":"adjacent","category":"adjacent_unrelated_numbers","expected_kind":"governor_hero_roster","ocr_confidence":0.96,"lines":["Hero Roster","Amadeus Level 80","Power 99999999","Rank 7"],"fields":{"hero_names":["Amadeus"]},"forbidden_fields":["power","rank"]},
+    {"name":"missing","category":"missing_required_field","expected_kind":"governor_hero_roster","ocr_confidence":0.96,"lines":["Hero Roster","Level 80"],"fields":{"hero_names":[]}},
+    {"name":"unsupported","category":"unsupported_ui_variant","expected_kind":"unknown","ocr_confidence":0.96,"lines":["Heroes","Collection","Power 1000"],"fields":{}},
+    {"name":"wrong","category":"wrong_screenshot_class","expected_kind":"governor_charms","ocr_confidence":0.96,"lines":["Governor Charms","Charm Guide","Charm Level 8"],"fields":{}},
+    {"name":"visual","category":"visual_duplicate_recompressed","expected_kind":"governor_hero_roster","ocr_confidence":0.88,"lines":["Hero Roster","Amadeus Level 80 Stars 5 Widget 6","Helga Level 79 Stars 4 Widget 3"],"fields":{"hero_names":["Amadeus","Helga"]},"visual_duplicate_of":"canonical"},
+    {"name":"equal","category":"semantic_equal","expected_kind":"governor_hero_roster","ocr_confidence":0.98,"lines":["Hero Roster","Amadeus Level 80"],"fields":{"hero_names":["Amadeus"]},"semantic":{"observed_at":"2026-08-26T12:00:00Z"}},
+    {"name":"newer","category":"semantic_newer","expected_kind":"governor_hero_roster","ocr_confidence":0.98,"lines":["Hero Roster","Amadeus Level 80","Helga Level 79"],"fields":{"hero_names":["Amadeus","Helga"]},"semantic":{"observed_at":"2026-08-27T12:00:00Z"}}
+  ]
+}
