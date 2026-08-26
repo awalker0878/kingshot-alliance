@@ -17,7 +17,7 @@ final class GovernorProgressionEvidenceSummaryQuery
     /** @return list<array<string,mixed>> */
     public function forRosterEntry(string $allianceId, string $rosterEntryId): array
     {
-        return GameEvidence::query()
+        $summaries = GameEvidence::query()
             ->where('alliance_id', $allianceId)
             ->where('roster_entry_id', $rosterEntryId)
             ->whereNull('occurrence_id')
@@ -29,6 +29,8 @@ final class GovernorProgressionEvidenceSummaryQuery
             ->map(fn (GameEvidence $evidence): array => $this->summary($evidence))
             ->values()
             ->all();
+
+        return array_values($summaries);
     }
 
     /** @return array<string,mixed> */
@@ -76,6 +78,7 @@ final class GovernorProgressionEvidenceSummaryQuery
 
         return [
             'id' => (string) $evidence->id,
+            'originalName' => (string) $evidence->original_name,
             'expectedKind' => $evidence->expected_kind->value,
             'detectedKind' => $evidence->kind->value,
             'lifecycleStatus' => $evidence->lifecycle_status->value,
