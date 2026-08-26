@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Contexts\Intelligence\Evidence\Queries;
 
 use App\Contexts\Intelligence\Evidence\Contracts\EvidenceReferenceLookup;
+use App\Contexts\Intelligence\Evidence\Contracts\GovernorProgressionEvidenceReferenceLookup;
 use App\Contexts\Intelligence\Evidence\Enums\EvidenceKind;
 use App\Contexts\Intelligence\Evidence\Enums\EvidenceLifecycleStatus;
 use App\Contexts\Intelligence\Evidence\Enums\EvidenceReviewStatus;
@@ -13,7 +14,7 @@ use App\Contexts\Intelligence\Evidence\Models\GameEvidence;
 use App\Contexts\Intelligence\Evidence\Models\GovernorProgressionEvidenceReview;
 use App\Contexts\Intelligence\Evidence\Models\TransferEvidenceReview;
 
-final class EvidenceReferenceQuery implements EvidenceReferenceLookup
+final class EvidenceReferenceQuery implements EvidenceReferenceLookup, GovernorProgressionEvidenceReferenceLookup
 {
     public function belongsToAlliance(string $evidenceId, string $allianceId): bool
     {
