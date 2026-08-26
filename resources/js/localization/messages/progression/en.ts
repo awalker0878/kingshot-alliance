@@ -161,7 +161,7 @@ const messages = {
     quality: 'Quality',
     masteryLevel: 'Mastery level',
     charmSlot: 'Charm slot',
-    charmIdentity: 'Charm identity',
+    observedCharmName: 'Observed Charm name',
     addGearSlot: 'Add Gear slot',
     addCharmSlot: 'Add Charm slot',
     removeRow: 'Remove row',

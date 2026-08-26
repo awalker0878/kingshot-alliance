@@ -165,19 +165,16 @@ final readonly class GovernorProgressionObservationValidator
             if (! is_array($row)) {
                 throw ValidationException::withMessages(["payload.charms.$index" => 'A reviewed Charm row must be an object.']);
             }
-            $this->closedKeys($row, ['slot_id', 'charm_id', 'level'], "payload.charms.$index");
+            $this->closedKeys($row, ['slot_id', 'level'], "payload.charms.$index");
             $slotId = $this->identifier($row['slot_id'] ?? null, 64, "payload.charms.$index.slot_id");
             if (isset($seen[$slotId])) {
                 throw ValidationException::withMessages(["payload.charms.$index.slot_id" => 'A Charm slot may appear only once in one observation.']);
             }
             $seen[$slotId] = true;
             $item = ['slot_id' => $slotId];
-            if (array_key_exists('charm_id', $row) && $row['charm_id'] !== null && $row['charm_id'] !== '') {
-                $item['charm_id'] = $this->identifier($row['charm_id'], 80, "payload.charms.$index.charm_id");
-            }
             $this->optionalInteger($item, 'level', $row, 0, $maxLevel, "payload.charms.$index.level");
             if (count($item) === 1) {
-                throw ValidationException::withMessages(["payload.charms.$index" => 'A Charm slot must contain a reviewed identity or level.']);
+                throw ValidationException::withMessages(["payload.charms.$index" => 'A Charm slot must contain a reviewed level.']);
             }
             $rows[] = $item;
         }

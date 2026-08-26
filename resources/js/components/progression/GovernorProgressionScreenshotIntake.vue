@@ -33,7 +33,6 @@ type ReviewGearRow = {
 
 type ReviewCharmRow = {
   slot_id: string;
-  charm_id: string;
   level: string;
 };
 
@@ -119,8 +118,7 @@ const factLabels = computed<Record<string, string>>(() => ({
   gear_star: t('progression.star'),
   mastery_level: t('progression.masteryLevel'),
   charm_slot: t('progression.charmSlot'),
-  charm_name: t('progression.charmIdentity'),
-  charm_id: t('progression.charmIdentity'),
+  charm_name: t('progression.observedCharmName'),
   charm_level: t('progression.level'),
   complete_roster_capture: t('progression.completeRosterCapture'),
 }));
@@ -293,9 +291,6 @@ function startReview(item: GovernorProgressionEvidenceSummary): void {
   } else if (item.detectedKind === 'governor_charms') {
     draft.charms = ordinals(item, 'charm_slot').map((ordinal) => ({
       slot_id: value(item, 'charm_slot', ordinal),
-      charm_id: value(item, 'charm_name', ordinal)
-        .toLocaleLowerCase()
-        .replace(/[^a-z0-9._-]+/g, '-'),
       level: value(item, 'charm_level', ordinal),
     }));
   }
@@ -400,7 +395,6 @@ function reviewPayload(): ReviewPayload {
   return {
     charms: draft.charms.map((charm) => {
       const row: ReviewPayload = { slot_id: charm.slot_id };
-      if (charm.charm_id.trim()) row.charm_id = charm.charm_id.trim();
       const level = optionalNumber(charm.level);
       if (level !== undefined) row.level = level;
       return row;
@@ -510,7 +504,7 @@ function addGearRow(): void {
 }
 
 function addCharmRow(): void {
-  reviewDraft.value.charms.push({ slot_id: '', charm_id: '', level: '' });
+  reviewDraft.value.charms.push({ slot_id: '', level: '' });
 }
 
 function confidenceLabel(confidence: number): string {
@@ -990,7 +984,7 @@ function evidenceStatus(item: GovernorProgressionEvidenceSummary): string {
                 <div
                   v-for="(hero, index) in reviewDraft.heroes"
                   :key="index"
-                  class="grid gap-2 rounded border border-[var(--ks-border)] p-3 sm:grid-cols-4"
+                  class="grid gap-2 rounded border border-[var(--ks-border)] p-3 sm:grid-cols-3"
                 >
                   <label class="text-xs text-[var(--ks-muted)]">
                     <span>{{ t('progression.hero') }}</span>
@@ -1244,13 +1238,6 @@ function evidenceStatus(item: GovernorProgressionEvidenceSummary): string {
                     <input
                       v-model="charm.slot_id"
                       required
-                      class="mt-1 min-h-11 w-full rounded border border-[var(--ks-border)] bg-black/20 px-2 text-sm"
-                    />
-                  </label>
-                  <label class="text-xs text-[var(--ks-muted)]">
-                    <span>{{ t('progression.charmIdentity') }}</span>
-                    <input
-                      v-model="charm.charm_id"
                       class="mt-1 min-h-11 w-full rounded border border-[var(--ks-border)] bg-black/20 px-2 text-sm"
                     />
                   </label>
