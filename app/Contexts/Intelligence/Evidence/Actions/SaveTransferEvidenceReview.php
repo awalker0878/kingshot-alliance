@@ -280,7 +280,7 @@ final readonly class SaveTransferEvidenceReview
         return $value;
     }
 
-    private function noTargetWithValidity(?CarbonImmutable $validUntil): ?string
+    private function noTargetWithValidity(?CarbonImmutable $validUntil): null
     {
         $this->requireValidity($validUntil);
 
