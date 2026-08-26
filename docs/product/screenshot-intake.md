@@ -1,6 +1,6 @@
 # Screenshot Intake
 
-Status: Current product contract — Bear Hunt family complete; Transfer Evidence family in release verification (2026-08-26)
+Status: Current product contract — Bear Hunt complete; Transfer Evidence in release verification; Governor Progression active delivery (2026-08-26)
 
 Screenshot Intake turns user-provided KingShot screenshots into reviewed domain commands without transferring ownership of the resulting game data to the intake pipeline. It is one `Intelligence/Evidence` capability with explicit, versioned evidence families rather than a generic OCR/domain-ingestion framework.
 
@@ -8,10 +8,16 @@ The supported families are:
 
 1. **Bear Hunt battle report** — Event-occurrence-scoped Evidence committed to `Operations/Results`.
 2. **Transfer Evidence** — Transfer-Plan/participant-scoped Evidence committed to `GameWorld/KingdomTransfers` through five explicit screenshot schemas.
+3. **Governor Progression Evidence** — Alliance-roster-entry-scoped Evidence normalized against an immutable `GameWorld/Progression` dataset and committed to `Intelligence/Roster` through six explicit screenshot schemas.
 
-The complete Transfer Evidence contract is [Screenshot Intake: Transfer Evidence](./screenshot-intake-transfer-evidence.md). That extension document is the implementation source of truth for its schema-specific fields, normalization, confidence thresholds, fixture corpora, review rules, semantic fingerprints, destination Actions, freshness behavior, preview behavior and delivery ledger.
+The complete extension contracts are:
 
-There is no Transfer OCR bounded context, generic `transfer_ocr` schema, unconstrained bag-of-fields extraction model or generic polymorphic evidence-target framework.
+- [Screenshot Intake: Transfer Evidence](./screenshot-intake-transfer-evidence.md);
+- [Screenshot Intake: Governor Progression](./screenshot-intake-governor-progression.md).
+
+Those extension documents are the implementation sources of truth for their schema-specific fields, normalization, confidence thresholds, fixture corpora, review rules, duplicate semantics, destination Actions, preview behavior and delivery ledgers.
+
+There is no Transfer OCR or Governor OCR bounded context, generic OCR schema, unconstrained bag-of-fields destination model or generic polymorphic evidence-target framework.
 
 ## Product outcome
 
@@ -28,6 +34,7 @@ The original screenshot, machine attempts, normalized candidates, human correcti
 - OCR/provider attempts;
 - classification attempts and expected-versus-detected class decisions;
 - extraction attempts, schema/extractor/provider versions and field candidates;
+- normalization attempts where a family requires them, including pinned factual-dataset provenance;
 - raw observation, normalized candidate, field confidence, bounding regions and warnings;
 - review revisions, manual corrections/exclusions and schema-scoped reviewed meaning;
 - exact, visual and semantic duplicate Evidence decisions;
@@ -41,12 +48,16 @@ Evidence does **not** own:
 - Event/EventOccurrence lifecycle;
 - Bear Hunt result ledgers or result aggregates;
 - Transfer Plans, participants, Transfer Windows, official Transfer Groups or target-Kingdom conditions;
-- Transfer observations, freshness/validity/conflict semantics or eligibility decisions.
+- Transfer observations, freshness/validity/conflict semantics or eligibility decisions;
+- canonical Hero/Gear/Charm/Progression identities or factual progression tables;
+- accepted Governor progression observations/current-state projection.
 
 Destination ownership remains explicit:
 
 - `Operations/Results` owns accepted Bear Hunt battle reports, report entries and derived Event result state.
 - `GameWorld/KingdomTransfers` owns accepted Transfer observations, target conditions, official Transfer Groups, freshness/validity/conflict semantics and eligibility.
+- `Intelligence/Roster` owns accepted append-only Governor progression observations and their current-state projection.
+- `GameWorld/Progression` remains immutable factual catalogue truth and is a read-only dependency of Governor Progression normalization/validation.
 
 Cross-context writes use scalar IDs/value objects through destination-owner Actions. No foreign Eloquent model crosses the boundary.
 
@@ -54,16 +65,19 @@ Cross-context writes use scalar IDs/value objects through destination-owner Acti
 
 Persistence supports only the explicit product scopes now required:
 
-- **Bear Hunt:** `occurrence_id` present; Transfer Plan/participant references absent.
-- **Transfer participant:** `occurrence_id` absent; `transfer_plan_id` and `transfer_participant_id` present together.
+- **Bear Hunt:** `occurrence_id` present; Transfer and Governor/Roster references absent.
+- **Transfer participant:** `occurrence_id` absent; `transfer_plan_id` and `transfer_participant_id` present together; Governor/Roster reference absent.
+- **Governor Progression:** `occurrence_id`, Transfer Plan and Transfer participant references absent; `roster_entry_id` present with the owning Alliance scope.
 
-Application validation and database constraints enforce those combinations. Adding another family does not justify a generic `target_type` / `target_id` abstraction.
+Application validation and database constraints enforce those combinations. Adding a family does not justify a generic `target_type` / `target_id` abstraction.
 
 ## Shared lifecycle
 
 Persisted Evidence lifecycle states remain explicit:
 
 `uploaded → classifying → classified → extracting → needs_review → approved → committing → committed`
+
+Families may insert an explicit machine-owned normalization step between extraction and review where their contract requires it. Governor Progression does so in order to pin canonical interpretation to one immutable Progression dataset release.
 
 Exceptional states are `unsupported`, `failed` and `deleted`. Machine retries append immutable attempts rather than overwriting historical output. Human corrections append reviewed meaning and never rewrite machine output or confidence.
 
@@ -73,7 +87,7 @@ All currently supported screenshot classes require human review. Automatic commi
 
 The user-selected expected screenshot class is a hint, not truth. Classification independently verifies the actual supported class. A mismatch is surfaced as unsupported/needs user correction and must never be routed blindly through the selected extractor.
 
-Every extractor is schema-bound and may emit only fields proven by that schema's fixture corpus. A field not fixture-proven for that schema cannot be extracted, reviewed into a commit command or committed by the destination.
+Every extractor is schema-bound and may emit only fields proven by that schema's executable fixture corpus. A field not fixture-proven for that schema cannot be extracted, reviewed into a commit command or committed by the destination.
 
 ### Bear Hunt family
 
@@ -91,28 +105,42 @@ The five explicit v1 classes are:
 - `transfer_target_kingdom_rules`;
 - `transfer_official_group`.
 
-Their complete independent contracts live in [Screenshot Intake: Transfer Evidence](./screenshot-intake-transfer-evidence.md). Important cross-family invariants are:
+Their complete independent contract lives in [Screenshot Intake: Transfer Evidence](./screenshot-intake-transfer-evidence.md). Required Transfer Passes remain observed facts, generic Transfer screenshots never prove `in_game_rules_verified=true`, official-group membership is schema-bound, and freshness/eligibility remain KingdomTransfers-owned.
 
-- required Transfer Passes are observed game facts and are never calculated from Transfer Score;
-- generic Transfer screenshots never prove `in_game_rules_verified=true`;
-- only the official-group schema may provide complete visible Transfer Group membership;
-- only target-rules Evidence may provide target Power Cap/classification under its fixture-proven schema;
-- mutable Governor/score/pass/invitation observations require reviewer-confirmed observation time and owner-defined validity; Evidence has no hidden global TTL.
+### Governor Progression family
+
+The six explicit v1 classes are:
+
+- `governor_profile`;
+- `governor_hero_roster`;
+- `governor_hero_detail`;
+- `governor_hero_gear`;
+- `governor_gear`;
+- `governor_charms`.
+
+Pets and Masters are not implied by these schemas and remain unsupported until later explicit fixture-backed schema releases.
+
+Governor Progression normalization uses `GameWorld/Progression` only as immutable factual reference. Each normalization attempt pins the dataset ID/checksum and normalizer version. Canonical identities are candidates until human review accepts the concrete reviewed meaning. A new Progression release never silently reinterprets an old machine attempt or accepted Roster observation.
+
+Missing means unknown/not observed. Only the Hero Roster schema may assert complete roster capture, and only when the screenshot/reviewer establishes that completeness. A partial Hero, Gear or Charm screenshot never erases unshown facts.
 
 ## Review and confidence
 
-Confidence is retained per extracted field together with raw observation and normalized candidate. The review surface must make machine output understandable before approval and must identify manual corrections without changing historical machine confidence.
+Confidence is retained per extracted field together with raw observation and normalized candidate. The review surface makes machine output understandable before approval and identifies manual corrections without changing historical machine confidence.
 
-For Transfer Evidence, the surface additionally shows:
+Transfer review additionally exposes owner freshness/eligibility semantics. Governor Progression review additionally exposes:
 
+- target Governor/roster entry;
 - expected versus detected class and classification confidence;
-- schema version and fixture corpus;
-- raw versus normalized fields and field confidence/warnings;
-- reviewer-confirmed `observed_at` and required validity where applicable;
-- current owner-domain facts and eligibility state;
-- visual/semantic duplicate warnings;
-- before/after destination preview using the KingdomTransfers evaluator;
-- the scalar destination receipt after commit.
+- schema version and executable fixture corpus;
+- raw OCR versus normalized fields, confidence, bounding regions and warnings;
+- pinned Progression dataset ID/version/checksum;
+- canonical identity candidates and identity confidence;
+- reviewer-confirmed `captured_at`;
+- complete-roster meaning where applicable;
+- exact/visual/semantic duplicate state;
+- before/after Roster projection preview;
+- scalar destination receipt after commit.
 
 ## Duplicate contract
 
@@ -125,13 +153,13 @@ Duplicate controls solve different problems:
 
 A genuinely newer observation remains importable and appends destination-owner history.
 
-## Bear Hunt destination contract
+## Destination contracts
 
-`Operations/Results` receives scalar reviewed Bear Hunt meaning and must reacquire authority, validate occurrence/player scope, enforce idempotency/database uniqueness, append the accepted report ledger, preserve pre-import baselines, recompute owned aggregates deterministically and return a scalar receipt.
+### Bear Hunt
 
-Evidence cannot directly write `EventPlayerResult` or any Operations model.
+`Operations/Results` receives scalar reviewed Bear Hunt meaning and reacquires authority, validates occurrence/player scope, enforces idempotency/database uniqueness, appends the accepted report ledger, recomputes owned aggregates deterministically and returns a scalar receipt. Evidence cannot directly write Operations result models.
 
-## Transfer destination contract
+### Transfer Evidence
 
 Transfer Evidence commits through five dedicated `GameWorld/KingdomTransfers` Actions:
 
@@ -141,9 +169,20 @@ Transfer Evidence commits through five dedicated `GameWorld/KingdomTransfers` Ac
 - `RecordTransferKingdomRulesEvidence`;
 - `RecordOfficialTransferGroupEvidence`.
 
-Those Actions reacquire current Alliance authority, verify the immutable approved review's Plan/participant/window/target scope, validate Evidence provenance, enforce typed values and owner invariants, and return scalar receipts. They delegate persistence/invariant logic to owner-internal `TransferObservationWriter`, `TransferKingdomConditionWriter` and `TransferGroupWriter`; normal KingdomTransfers writes use those same writers after their own authorization boundary.
+Those Actions reacquire current Alliance authority, verify approved review provenance/scope, enforce typed owner invariants and return scalar receipts.
 
-Score/pass Evidence appends Transfer Score, passes available and passes required in one owner transaction so all three observations and the destination receipt commit together or none do.
+### Governor Progression Evidence
+
+Governor Progression commits through six dedicated `Intelligence/Roster` Actions:
+
+- `RecordGovernorProfileEvidence`;
+- `RecordHeroRosterEvidence`;
+- `RecordHeroDetailEvidence`;
+- `RecordHeroGearEvidence`;
+- `RecordGovernorGearEvidence`;
+- `RecordGovernorCharmsEvidence`.
+
+Those Actions reacquire current Roster authority, validate the exact approved review provenance and dataset pin, validate a closed typed payload against `GameWorld/Progression`, append immutable Roster-owned history, enforce destination idempotency and return scalar receipts. Evidence never writes Roster tables directly.
 
 ## Cross-context commit recovery
 
@@ -151,11 +190,11 @@ Evidence coordinates a commit handshake; it does not own destination persistence
 
 If the destination commits and the caller exits before Evidence records acknowledgement, retry uses the same destination key. The destination returns the existing authorized receipt without appending duplicate owner history, after which Evidence records the recovered acknowledgement. Failed Evidence acknowledgement/attempt history is not repaired by editing owner tables.
 
-## Freshness and derived truth
+## Freshness, observation time and derived truth
 
-Evidence distinguishes upload time, trustworthy source metadata time, fixture-proven visible in-game timestamps, reviewer-confirmed observation time and destination-owner validity.
+Evidence distinguishes upload time, trustworthy source metadata time, fixture-proven visible in-game timestamps, reviewer-confirmed observation time and owner-specific validity/current-state semantics.
 
-Evidence does not own a global freshness TTL. `GameWorld/KingdomTransfers` remains solely responsible for stale/missing/conflicting/non-authoritative Transfer facts and for the `needs_verification`/requirement states they produce. Transfer Evidence preview calls the same owner evaluator against an in-memory substitution and never persists hypothetical eligibility or changes `in_game_rules_verified`.
+Evidence does not own a global freshness TTL. KingdomTransfers owns Transfer freshness/eligibility. Intelligence/Roster owns the append-only Governor observation history and current-state projection; the projection resolves latest observed values per fact and preserves provenance rather than treating the newest partial screenshot as a full replacement.
 
 ## Deletion and retention
 
@@ -179,12 +218,13 @@ Screenshot Intake is embedded in the owning workflow rather than exposed as a ge
 
 - Bear Hunt Evidence starts from the Bear Hunt occurrence/results workflow.
 - Transfer Evidence starts from a Transfer participant via **Add in-game evidence**.
+- Governor Progression Evidence starts from the authorized Governor Progression/Roster workflow via **Update from screenshot**.
 
-Supported UX must provide upload/progress/failure/retry, accessible retained-image access, expected-versus-detected class, raw/normalized/confidence presentation, human correction, duplicate messaging, before/after owner preview, explicit commit, destination receipt, responsive layout, keyboard operation, non-colour-only confidence/error semantics, accessible destructive confirmation and localized player-facing labels.
+Supported UX provides upload/progress/failure/retry, accessible retained-image access, expected-versus-detected class, raw/normalized/confidence presentation, human correction, duplicate messaging, before/after owner preview, explicit commit, destination receipt, responsive layout, keyboard operation, non-colour-only confidence/error semantics, accessible destructive confirmation and localized player-facing labels.
 
 ## Observability
 
-Audit/outbox/diagnostics cover material lifecycle transitions: upload accepted/rejected, classify/extract attempted/failed, review approved, duplicate blocked/resolved, commit started/succeeded/failed/recovered, destination deduplication, Evidence deletion/redaction/purge and retention failures. Diagnostics remain privacy-safe.
+Audit/outbox/diagnostics cover material lifecycle transitions: upload accepted/rejected, classify/extract/normalize attempted/failed, review approved, duplicate blocked/resolved, commit started/succeeded/failed/recovered, destination deduplication, Evidence deletion/redaction/purge and retention failures. Diagnostics remain privacy-safe.
 
 ## Family delivery status
 
@@ -194,8 +234,9 @@ A family is `Complete` only when its behavior, authorization, persistence, UX, a
 | --- | --- | --- |
 | Bear Hunt battle report | Complete | This document plus Operations/Results architecture/reference/runbooks |
 | Transfer Evidence | In release verification | [Screenshot Intake: Transfer Evidence](./screenshot-intake-transfer-evidence.md) |
+| Governor Progression Evidence | Active delivery | [Screenshot Intake: Governor Progression](./screenshot-intake-governor-progression.md) |
 
-The original Bear Hunt Screenshot Intake program remains complete. The umbrella Screenshot Intake capability is **not** declared fully closed while the Transfer Evidence delivery ledger or release verification has an incomplete/failed item.
+The umbrella Screenshot Intake capability is not declared fully closed while any active family delivery ledger or release verification has an incomplete/failed item.
 
 ## Cross-family invariants
 
@@ -207,28 +248,13 @@ The original Bear Hunt Screenshot Intake program remains complete. The umbrella 
 6. Classification verifies the expected class rather than trusting it.
 7. Exact/visual/semantic duplicate semantics remain distinct from destination idempotency.
 8. Evidence deletion never silently rewrites accepted owner history.
-9. Extractor/provider concerns remain behind versioned provenance contracts.
+9. Extractor/provider/normalizer concerns remain behind versioned provenance contracts.
 10. Vue/controllers do not own extraction rules, normalization formulas, retention policy or destination-domain validation.
-11. No compatibility shim, generic Transfer OCR schema or unconstrained target polymorphism is introduced.
+11. No compatibility shim, generic OCR family or unconstrained target polymorphism is introduced.
+12. Governor Progression Evidence cannot create, modify, correct or infer `GameWorld/Progression` truth.
 
-## Definition of done for the current two-family capability
+## Definition of done
 
-Transfer Evidence may be marked complete only when:
+Each extension may be marked complete only when its own delivery ledger and acceptance criteria are complete and one immutable candidate passes all applicable clean PostgreSQL, PHP behavior, Pint, PHPStan, frontend lint/format/type/build, architecture, accessibility/visual regression, CodeQL, dependency/security and repository-wide release gates.
 
-- all five schema versions and fixture corpora execute as allowlist proofs;
-- expected-class mismatch, low-confidence, missing-required-field and adjacent-number negatives fail safely;
-- Transfer Score never implies required passes;
-- no v1 Transfer Evidence path can set `in_game_rules_verified`;
-- review corrections preserve machine provenance;
-- scope drift after review forces rejection/re-review rather than silent retargeting;
-- exact duplicates are tenant-safe, visual duplicates remain reviewable, semantic duplicates require explicit resolution and newer observations remain importable;
-- all five dedicated KingdomTransfers destination Actions use shared owner-internal writers and return scalar receipts;
-- score/pass commit is atomic;
-- destination idempotency recovers the owner-success/Evidence-acknowledgement crash window without duplicate observations;
-- owner freshness/conflict rules continue to produce `needs_verification` where evidence is missing/stale/conflicting/non-authoritative;
-- deleting/redacting Evidence cannot cascade into committed KingdomTransfers history;
-- participant UX is responsive, accessible, localized and visually regression-tested in review/preview/receipt states;
-- product/architecture/reference/operations current-truth documents agree;
-- clean PostgreSQL install, PHP tests, Pint, PHPStan, frontend lint/format/type/build, architecture/contracts, accessibility/visual regression, CodeQL, dependency review and all other applicable repository-wide release gates pass on one immutable candidate.
-
-Until those conditions are verified on one candidate, the Transfer Evidence family and the umbrella Screenshot Intake extension remain open.
+Governor Progression additionally requires all six executable fixture corpora, dataset-pinned normalization, scope-drift protection, human review, tenant-safe duplicate handling, six Roster destination Actions, destination recovery/idempotency, partial/complete observation semantics, current-state provenance projection, owning-workflow UX and product/architecture/reference/operations reconciliation.
