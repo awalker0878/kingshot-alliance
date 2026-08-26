@@ -1,0 +1,22 @@
+{
+  "schema_version": "transfer-invitation/1",
+  "fixture_policy": "Synthetic redacted OCR projection; no user evidence.",
+  "positive": [
+    {"name":"special_approved","lines":["Special Invite Approved","Kingdom #321"],"fields":{"invitation_status":"special_approved","target_kingdom_number":321}},
+    {"name":"ordinary_received","lines":["Ordinary Invitation Received","Kingdom 321"],"fields":{"invitation_status":"ordinary_received","target_kingdom_number":321}},
+    {"name":"no_invitation","lines":["No Invitation","Kingdom #321"],"fields":{"invitation_status":"none","target_kingdom_number":321}}
+  ],
+  "negative": [
+    {"name":"novel_wording","lines":["Invitation Might Be Available","Kingdom #321"],"must_not_coerce":["invitation_status"]},
+    {"name":"nearby_score","lines":["Special Invite Pending","Transfer Score 9000000"],"must_not_extract":["transfer_score"]}
+  ],
+  "ambiguity": [
+    {"name":"generic_invitation_heading","lines":["Invitation","Transfer Event"],"classified":"unknown"}
+  ],
+  "semantic_duplicate": [
+    {"name":"same_invitation_state","target_kingdom_number":321,"invitation_status":"special_approved","observed_at":"2026-08-26T01:00:00Z"}
+  ],
+  "semantic_newer": [
+    {"name":"newer_invitation_state","target_kingdom_number":321,"invitation_status":"special_approved","observed_at":"2026-08-26T03:00:00Z"}
+  ]
+}

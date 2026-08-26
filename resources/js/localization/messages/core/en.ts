@@ -209,6 +209,7 @@ const messages = {
     'transfer-cohort-archived': 'Transfer cohort archived.',
     'transfer-cohort-created': 'Transfer cohort created.',
     'transfer-cohort-updated': 'Transfer cohort updated.',
+    'transfer-evidence-updated': 'Transfer evidence updated.',
     'transfer-participant-completed': 'Governor transfer outcome recorded.',
     'transfer-participant-created': 'Governor added to the Kingdom Transfer plan.',
     'transfer-participant-cohort-updated': 'Governor transfer cohort updated.',

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\v3\Contexts\Intelligence\Evidence;
 
+use App\Contexts\Intelligence\Evidence\Enums\EvidenceKind;
 use App\Contexts\Intelligence\Evidence\Services\BearHuntBattleReportExtractor;
 use App\Contexts\Intelligence\Evidence\ValueObjects\OcrDocument;
 use App\Contexts\Intelligence\Evidence\ValueObjects\OcrToken;
@@ -29,7 +30,10 @@ final class BearHuntBattleReportExtractorV3Test extends TestCase
             ],
         );
 
-        $fields = (new BearHuntBattleReportExtractor)->extract($document);
+        $fields = (new BearHuntBattleReportExtractor)->extract(
+            EvidenceKind::BearHuntBattleReport,
+            $document,
+        );
         $byKey = [];
         foreach ($fields as $field) {
             $byKey[$field->rowOrdinal][$field->fieldKey] = $field;

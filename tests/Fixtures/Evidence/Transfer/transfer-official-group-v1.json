@@ -1,0 +1,21 @@
+{
+  "schema_version": "transfer-official-group/1",
+  "fixture_policy": "Synthetic redacted OCR projection; no user evidence.",
+  "positive": [
+    {"name":"canonical","lines":["Transfer Group A","Kingdom #101","Kingdom #202","Kingdom #303"],"fields":{"official_group_identifier":"A","kingdom_numbers":[101,202,303]}},
+    {"name":"deduplicated_membership","lines":["Transfer Group B","Kingdom #303","Kingdom #101","Kingdom #303","Kingdom #202"],"fields":{"official_group_identifier":"B","kingdom_numbers":[101,202,303]}}
+  ],
+  "negative": [
+    {"name":"partial_without_identifier","lines":["Kingdom #101","Kingdom #202"],"must_not_commit_complete_membership":true},
+    {"name":"hidden_membership_not_inferred","lines":["Transfer Group A","Kingdom #101","Kingdom #202"],"fields":{"kingdom_numbers":[101,202]},"must_not_infer":[303]}
+  ],
+  "ambiguity": [
+    {"name":"planning_group_not_official","lines":["Alliance Planning Group A","Kingdom #101"],"classified":"unknown"}
+  ],
+  "semantic_duplicate": [
+    {"name":"same_group_membership","official_group_identifier":"A","kingdom_numbers":[101,202,303],"observed_at":"2026-08-26T01:00:00Z"}
+  ],
+  "semantic_newer": [
+    {"name":"newer_membership","official_group_identifier":"A","kingdom_numbers":[101,202,303,404],"observed_at":"2026-08-26T03:00:00Z"}
+  ]
+}

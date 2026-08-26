@@ -54,6 +54,7 @@ final readonly class ClassifyGameEvidence
                 'classification_attempt_id' => (string) $attempt->id,
                 'classifier_key' => $this->classifier->key(),
                 'classifier_version' => $this->classifier->version(),
+                'expected_kind' => EvidenceKind::from((string) $evidence->getRawOriginal('expected_kind'))->value,
             ];
             $this->audit->record('evidence.classification_started', $actor, $evidence, (string) $evidence->alliance_id, $metadata);
             $this->outbox->record('evidence.classification_started', (string) $evidence->alliance_id, $evidence, $metadata);
@@ -69,8 +70,9 @@ final readonly class ClassifyGameEvidence
             $document = $this->ocr->recognize($evidence);
             $expected = EvidenceKind::from((string) $evidence->getRawOriginal('expected_kind'));
             $decision = $this->classifier->classify($expected, $document);
+            $mismatch = $decision->kind !== EvidenceKind::Unknown && $decision->kind !== $expected;
 
-            DB::transaction(function () use ($evidenceId, $attemptId, $document, $decision): void {
+            DB::transaction(function () use ($evidenceId, $attemptId, $document, $decision, $expected, $mismatch): void {
                 $evidence = GameEvidence::query()->whereKey($evidenceId)->lockForUpdate()->firstOrFail();
                 $attempt = EvidenceClassificationAttempt::query()->whereKey($attemptId)->lockForUpdate()->firstOrFail();
                 if ($attempt->getRawOriginal('status') !== EvidenceAttemptStatus::Running->value) {
@@ -85,12 +87,14 @@ final readonly class ClassifyGameEvidence
                     'raw_text' => $document->text(),
                     'classified_kind' => $decision->kind,
                     'confidence' => $decision->confidence,
-                    'reason' => $decision->reason,
+                    'reason' => $mismatch
+                        ? sprintf('Expected %s but independently classified %s. %s', $expected->value, $decision->kind->value, $decision->reason)
+                        : $decision->reason,
                     'completed_at' => now(),
                 ])->save();
                 $evidence->forceFill([
                     'kind' => $decision->kind,
-                    'lifecycle_status' => $decision->kind === EvidenceKind::Unknown
+                    'lifecycle_status' => ($decision->kind === EvidenceKind::Unknown || $mismatch)
                         ? EvidenceLifecycleStatus::Unsupported
                         : EvidenceLifecycleStatus::Classified,
                 ])->save();
@@ -98,18 +102,21 @@ final readonly class ClassifyGameEvidence
                 $metadata = [
                     'evidence_id' => (string) $evidence->id,
                     'classification_attempt_id' => (string) $attempt->id,
+                    'expected_kind' => $expected->value,
                     'kind' => $decision->kind->value,
                     'confidence' => $decision->confidence,
+                    'expected_mismatch' => $mismatch,
                     'classifier_key' => $this->classifier->key(),
                     'classifier_version' => $this->classifier->version(),
                     'ocr_engine' => $document->engine,
                     'ocr_version' => $document->engineVersion,
                 ];
-                $this->audit->record('evidence.classified', $actor, $evidence, (string) $evidence->alliance_id, $metadata);
-                $this->outbox->record('evidence.classified', (string) $evidence->alliance_id, $evidence, $metadata);
+                $event = $mismatch ? 'evidence.classification_mismatch' : 'evidence.classified';
+                $this->audit->record($event, $actor, $evidence, (string) $evidence->alliance_id, $metadata);
+                $this->outbox->record($event, (string) $evidence->alliance_id, $evidence, $metadata);
             });
 
-            if ($decision->kind !== EvidenceKind::Unknown) {
+            if ($decision->kind !== EvidenceKind::Unknown && ! $mismatch) {
                 ExtractGameEvidenceJob::dispatch($evidenceId, $attemptId);
             }
         } catch (Throwable $exception) {

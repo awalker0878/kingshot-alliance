@@ -1,0 +1,21 @@
+{
+  "schema_version": "transfer-governor-status/1",
+  "fixture_policy": "Synthetic redacted OCR projection; no user evidence.",
+  "positive": [
+    {"name":"canonical","lines":["Transfer Governor Status","Governor Power 72,345,678"],"fields":{"governor_power":72345678}},
+    {"name":"grouped_digits","lines":["Governor Power 12,345,678"],"fields":{"governor_power":12345678}}
+  ],
+  "negative": [
+    {"name":"power_cap_not_governor_power","lines":["Power Cap 80,000,000"],"fields":{}},
+    {"name":"unsupported_abbreviation","lines":["Governor Power 72.3M"],"fields":{}}
+  ],
+  "ambiguity": [
+    {"name":"generic_transfer","lines":["Kingdom Transfer","Governor information"],"classified":"unknown"}
+  ],
+  "semantic_duplicate": [
+    {"name":"same_state_recompressed","governor_power":72345678,"observed_at":"2026-08-26T01:00:00Z"}
+  ],
+  "semantic_newer": [
+    {"name":"newer_power_observation","governor_power":73000000,"observed_at":"2026-08-26T03:00:00Z"}
+  ]
+}

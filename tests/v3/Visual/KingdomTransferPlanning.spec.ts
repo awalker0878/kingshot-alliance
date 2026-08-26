@@ -3,8 +3,8 @@ import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
 
 const transferVisualFingerprints: Record<string, string> = {
-  desktop: 'ad027ec6de46567071153ca25d978b7214a1f00f67c188b46d12841f7dcd009a',
-  mobile: '5cf3892a79b12d876fdfd10fe99a31bb315a4663dc670eab345a981516e754b5',
+  desktop: 'TRANSFER_EVIDENCE_DESKTOP_PENDING',
+  mobile: 'TRANSFER_EVIDENCE_MOBILE_PENDING',
 };
 
 async function openTransferPlanning(page: Page): Promise<void> {
@@ -32,7 +32,7 @@ async function openTransferPlanning(page: Page): Promise<void> {
   await page.waitForLoadState('networkidle');
 }
 
-test('Kingdom Transfer Planning keeps eligibility, verification, and readiness distinct', async ({
+test('Kingdom Transfer Planning keeps eligibility, verification, readiness, and reviewed evidence distinct', async ({
   page,
 }, testInfo) => {
   await openTransferPlanning(page);
@@ -70,6 +70,39 @@ test('Kingdom Transfer Planning keeps eligibility, verification, and readiness d
   await expect(filter).toHaveValue('all');
   await expect(emberCard).toBeVisible();
 
+  const evidenceDetails = northstarCard.locator('details').filter({ hasText: 'Add in-game evidence' });
+  await evidenceDetails.locator('summary').click();
+  await expect(evidenceDetails.getByText('Upload and classify', { exact: true })).toBeVisible();
+  await expect(evidenceDetails.getByText('Transfer Governor status', { exact: true }).first()).toBeVisible();
+  await expect(evidenceDetails.getByText('Transfer Score / Passes', { exact: true }).first()).toBeVisible();
+  await expect(evidenceDetails.getByText('Transfer invitation', { exact: true }).first()).toBeVisible();
+  await expect(evidenceDetails.getByText('Possible visual duplicate', { exact: true })).toBeVisible();
+  await expect(
+    evidenceDetails.getByText('Below the schema confidence requirement — verify carefully.', {
+      exact: true,
+    }).first(),
+  ).toBeVisible();
+  await expect(evidenceDetails.getByText('Raw observation', { exact: true }).first()).toBeVisible();
+  await expect(evidenceDetails.getByText('Normalized candidate', { exact: true }).first()).toBeVisible();
+
+  const scoreEvidence = evidenceDetails
+    .locator('article')
+    .filter({ has: page.getByRole('heading', { name: 'Transfer Score / Passes' }) });
+  await expect(scoreEvidence.getByText('Approved', { exact: true }).first()).toBeVisible();
+  await scoreEvidence
+    .getByRole('button', { name: 'Preview destination facts and eligibility impact' })
+    .click();
+  await expect(scoreEvidence.getByText('Before commit', { exact: true })).toBeVisible();
+  await expect(scoreEvidence.getByText('After reviewed facts', { exact: true })).toBeVisible();
+  await expect(scoreEvidence.getByText('Facts this screenshot would add', { exact: true })).toBeVisible();
+  await expect(scoreEvidence).not.toContainText('in_game_rules_verified');
+
+  const committedInvitation = evidenceDetails
+    .locator('article')
+    .filter({ has: page.getByRole('heading', { name: 'Transfer invitation' }) });
+  await expect(committedInvitation.getByText('Succeeded', { exact: true })).toBeVisible();
+  await expect(committedInvitation).toContainText('Destination receipt');
+
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
   );
@@ -80,6 +113,11 @@ test('Kingdom Transfer Planning keeps eligibility, verification, and readiness d
     .filter({ hasText: /^Evaluated/ })
     .evaluateAll((elements) =>
       elements.forEach((element) => (element.textContent = 'Evaluated at fixture time')),
+    );
+  await page
+    .getByText(/Destination receipt/)
+    .evaluateAll((elements) =>
+      elements.forEach((element) => (element.textContent = 'Succeeded · Destination receipt fixture')),
     );
 
   const screenshot = await page.screenshot({

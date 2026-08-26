@@ -8,6 +8,7 @@ use App\Contexts\Intelligence\Evidence\Enums\EvidenceAttemptStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 
+/** @property EvidenceAttemptStatus $status */
 final class EvidenceExtractionAttempt extends Model
 {
     use HasUlids;

@@ -1,0 +1,21 @@
+{
+  "schema_version": "transfer-score-passes/1",
+  "fixture_policy": "Synthetic redacted OCR projection; no user evidence.",
+  "positive": [
+    {"name":"canonical","lines":["Transfer Score 9,000,000","Passes Available 7","Passes Required 12"],"fields":{"transfer_score":9000000,"transfer_passes_available":7,"transfer_passes_required":12}},
+    {"name":"alternate_labels","lines":["Transfer Score 1,234,567","Available Passes 5","Required Passes 6"],"fields":{"transfer_score":1234567,"transfer_passes_available":5,"transfer_passes_required":6}}
+  ],
+  "negative": [
+    {"name":"required_passes_missing","lines":["Transfer Score 9,000,000","Passes Available 7"],"fields":{"transfer_score":9000000,"transfer_passes_available":7},"must_not_infer":["transfer_passes_required"]},
+    {"name":"adjacent_unrelated_number","lines":["Transfer Score 9,000,000","Passes Available 7","Alliance Rank 12"],"must_not_infer":["transfer_passes_required"]}
+  ],
+  "ambiguity": [
+    {"name":"score_only","lines":["Transfer Score 9,000,000"],"classified":"unknown"}
+  ],
+  "semantic_duplicate": [
+    {"name":"same_score_pass_state","transfer_score":9000000,"passes_available":7,"passes_required":12,"observed_at":"2026-08-26T01:00:00Z"}
+  ],
+  "semantic_newer": [
+    {"name":"newer_pass_state","transfer_score":9100000,"passes_available":9,"passes_required":12,"observed_at":"2026-08-26T03:00:00Z"}
+  ]
+}

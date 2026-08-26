@@ -89,6 +89,9 @@ jobs:
           php artisan migrate:fresh --force
           php artisan migrate:status --no-interaction
 
+      - name: Diagnose Transfer Evidence Pint delta
+        run: vendor/bin/pint tests/v3/Contexts/Intelligence/Evidence/TransferEvidenceReviewV3Test.php --test --diff || true
+
       - name: Run full PHP checks
         run: composer check
 
