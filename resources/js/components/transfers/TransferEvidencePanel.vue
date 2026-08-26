@@ -259,6 +259,7 @@ function ensureDraft(item: EvidenceItem): void {
         .join(', '),
   };
 }
+
 function localDateTime(value: string): string {
   const date = new Date(value);
   date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
@@ -473,7 +474,10 @@ function fieldCorrected(item: EvidenceItem, field: ExtractedField): boolean {
 </script>
 
 <template>
-  <section class="border-t border-[var(--ks-border)] p-5 sm:p-6" aria-label="Transfer Evidence">
+  <section
+    class="border-t border-[var(--ks-border)] p-5 sm:p-6"
+    :aria-label="t('kingdomP7D.transferEvidenceTitle')"
+  >
     <details @toggle="loadEvidence()">
       <summary class="cursor-pointer list-none">
         <div class="flex flex-wrap items-center justify-between gap-3">
@@ -639,7 +643,7 @@ function fieldCorrected(item: EvidenceItem, field: ExtractedField): boolean {
               <table class="w-full min-w-[620px] text-left text-sm">
                 <thead class="text-xs text-[var(--ks-muted)]">
                   <tr>
-                    <th class="pr-3 pb-2">Field</th>
+                    <th class="pr-3 pb-2">{{ t('kingdomP7D.evidenceField') }}</th>
                     <th class="pr-3 pb-2">{{ t('kingdomP7D.rawObservation') }}</th>
                     <th class="pr-3 pb-2">{{ t('kingdomP7D.normalizedValue') }}</th>
                     <th class="pb-2">{{ t('kingdomP7D.fieldConfidence') }}</th>
@@ -658,7 +662,7 @@ function fieldCorrected(item: EvidenceItem, field: ExtractedField): boolean {
                       <span
                         v-if="fieldCorrected(item, field)"
                         class="ml-1 text-xs font-semibold text-amber-200"
-                        >· corrected</span
+                        >· {{ t('kingdomP7D.evidenceCorrected') }}</span
                       >
                     </td>
                     <td class="py-2">
