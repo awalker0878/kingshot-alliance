@@ -218,7 +218,9 @@ final class TransferEvidenceController extends Controller
             invitationStatus: isset($validated['invitation_status']) ? (string) $validated['invitation_status'] : null,
             targetKingdomNumber: isset($validated['target_kingdom_number']) ? (int) $validated['target_kingdom_number'] : null,
             targetPowerCap: isset($validated['target_power_cap']) ? (int) $validated['target_power_cap'] : null,
-            kingdomClassification: isset($validated['kingdom_classification']) ? (string) $validated['kingdom_classification'] : null,
+            kingdomClassification: isset($validated['kingdom_classification']) && $validated['kingdom_classification'] !== TransferKingdomClassification::Unknown->value
+                ? (string) $validated['kingdom_classification']
+                : null,
             officialGroupIdentifier: isset($validated['official_group_identifier']) ? (string) $validated['official_group_identifier'] : null,
             officialGroupKingdomNumbers: array_values(array_map('intval', $validated['kingdom_numbers'] ?? [])),
         );
