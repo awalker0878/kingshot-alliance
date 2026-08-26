@@ -59,12 +59,9 @@ async function eventsCatalogue(
   return mergeCatalogue(base, eventCommandLabels(locale));
 }
 
-async function transfersCatalogue(
-  base: MessageCatalogue,
-  locale: LocaleCode,
-): Promise<MessageCatalogue> {
+async function transfersCatalogue(base: MessageCatalogue): Promise<MessageCatalogue> {
   const { transferEvidenceLabels } = await import('./transfer-evidence-labels');
-  return mergeCatalogue(base, transferEvidenceLabels(locale));
+  return mergeCatalogue(base, transferEvidenceLabels());
 }
 
 async function loadOne(domain: LocalizationDomain, locale: LocaleCode): Promise<MessageCatalogue> {
@@ -79,7 +76,7 @@ async function loadOne(domain: LocalizationDomain, locale: LocaleCode): Promise<
     let catalogue = module.default;
     if (domain === 'assistant') catalogue = await assistantCatalogue(catalogue, locale);
     if (domain === 'events') catalogue = await eventsCatalogue(catalogue, locale);
-    if (domain === 'transfers') catalogue = await transfersCatalogue(catalogue, locale);
+    if (domain === 'transfers') catalogue = await transfersCatalogue(catalogue);
     catalogues.set(key, catalogue);
     pending.delete(key);
     return catalogue;
