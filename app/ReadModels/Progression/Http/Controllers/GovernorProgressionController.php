@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace App\ReadModels\Progression\Http\Controllers;
 
-use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
-use App\Contexts\Alliance\Membership\Models\AllianceMembership;
-use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
+use App\Contexts\Alliance\Membership\Queries\ActiveAllianceScopeQuery;
+use App\Contexts\Alliance\Membership\Queries\RosterEntryQuery;
 use App\Contexts\GameWorld\Players\Services\PlayerContext;
 use App\Contexts\GameWorld\Progression\Queries\ProgressionDatasetQuery;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
@@ -28,6 +27,8 @@ final class GovernorProgressionController extends Controller
         Request $request,
         PlayerContext $context,
         ProgressionDatasetQuery $datasets,
+        ActiveAllianceScopeQuery $allianceScopes,
+        RosterEntryQuery $rosterEntries,
         AllianceIntelligenceAuthorization $intelligence,
         GovernorProgressionObservationQuery $progressionObservations,
         GovernorProgressionEvidenceSummaryQuery $evidenceSummaries,
@@ -35,28 +36,20 @@ final class GovernorProgressionController extends Controller
     ): Response {
         $player = $context->player();
         $dataset = $datasets->latest();
-
-        $membership = AllianceMembership::query()
-            ->where('player_id', $player->playerId)
-            ->where('status', MembershipStatus::Active->value)
-            ->first();
-
-        $allianceId = $membership?->getAttribute('alliance_id');
-        $allianceId = is_string($allianceId) ? $allianceId : null;
+        $scope = $allianceScopes->findForPlayer($player->playerId, $player->kingdomId);
+        $allianceId = $scope?->allianceId;
         $canViewObservations = $allianceId !== null
             && $intelligence->allows($player->playerId, $allianceId, IntelligencePermission::View);
         $canManageObservations = $allianceId !== null
             && $intelligence->allows($player->playerId, $allianceId, IntelligencePermission::KingdomManage);
 
-        $entry = $canViewObservations
-            ? AllianceRosterEntry::query()
-                ->where('alliance_id', $allianceId)
-                ->where('player_id', $player->playerId)
-                ->orderByDesc('created_at')
-                ->first()
-            : null;
+        $entry = null;
+        if ($allianceId !== null && $canViewObservations) {
+            $entries = $rosterEntries->forPlayer($allianceId, $player->playerId, 1);
+            $entry = $entries[0] ?? null;
+        }
 
-        $snapshots = $entry instanceof AllianceRosterEntry
+        $snapshots = $entry !== null
             ? PlayerSnapshot::query()
                 ->where('alliance_id', $allianceId)
                 ->where('player_id', $player->playerId)
@@ -65,10 +58,10 @@ final class GovernorProgressionController extends Controller
                 ->get()
             : collect();
 
-        $progressionObservationState = $entry instanceof AllianceRosterEntry && $canViewObservations
-            ? $progressionObservations->forRosterEntry((string) $allianceId, (string) $entry->id)
+        $progressionObservationState = $entry !== null && $canViewObservations
+            ? $progressionObservations->forRosterEntry((string) $allianceId, $entry->rosterEntryId)
             : ['history' => [], 'current' => ['profile' => [], 'heroes' => [], 'governorGear' => [], 'charms' => [], 'completeRosterCapture' => null], 'last_updated_at' => null];
-        $evidenceWorkspace = $entry instanceof AllianceRosterEntry && $canManageObservations
+        $evidenceWorkspace = $entry !== null && $canManageObservations
             ? [
                 'schemas' => array_map(static function (EvidenceKind $kind) use ($evidenceSchemas): array {
                     $schema = $evidenceSchemas->require($kind);
@@ -84,7 +77,7 @@ final class GovernorProgressionController extends Controller
                         'destinationAction' => $schema->destinationAction,
                     ];
                 }, EvidenceKind::governorProgressionCases()),
-                'evidence' => $evidenceSummaries->forRosterEntry((string) $allianceId, (string) $entry->id),
+                'evidence' => $evidenceSummaries->forRosterEntry((string) $allianceId, $entry->rosterEntryId),
             ]
             : ['schemas' => [], 'evidence' => []];
 
@@ -104,7 +97,7 @@ final class GovernorProgressionController extends Controller
                 'gamePlayerId' => $player->gamePlayerId,
                 'kingdomNumber' => $player->kingdomNumber,
                 'allianceId' => $allianceId,
-                'rosterEntryId' => $entry instanceof AllianceRosterEntry ? (string) $entry->id : null,
+                'rosterEntryId' => $entry?->rosterEntryId,
             ],
             'dataset' => [
                 'id' => $dataset->id,
