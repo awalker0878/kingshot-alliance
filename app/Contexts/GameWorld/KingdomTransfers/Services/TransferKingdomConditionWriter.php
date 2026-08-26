@@ -31,7 +31,7 @@ final readonly class TransferKingdomConditionWriter
         string $windowId,
         int|string $kingdomNumber,
         ?int $powerCap,
-        TransferKingdomClassification $classification,
+        ?TransferKingdomClassification $classification,
         TransferSourceType $sourceType,
         string $sourceReference,
         string $observedAt,
@@ -87,7 +87,7 @@ final readonly class TransferKingdomConditionWriter
             $windowId,
             $kingdom->kingdomId,
             (string) $powerCap,
-            $classification->value,
+            $classification?->value ?? '',
             $sourceType->value,
             $sourceReference,
             $observed->toIso8601String(),
@@ -120,6 +120,7 @@ final readonly class TransferKingdomConditionWriter
             'condition_observation_id' => (string) $row->id,
             'source_type' => $sourceType->value,
             'is_correction' => $isCorrection,
+            'classification_observed' => $classification !== null,
         ];
         $this->audit->record('kingdoms.transfer_kingdom_condition_recorded', $context->actor, $row, null, $metadata);
         $this->outbox->record('kingdoms.transfer_kingdom_condition_recorded', $allianceId, $row, $metadata);
