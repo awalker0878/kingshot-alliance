@@ -21,6 +21,7 @@ use App\Contexts\Intelligence\Evidence\Models\GameEvidence;
 use App\Contexts\Intelligence\Evidence\Models\TransferEvidenceReview;
 use App\Contexts\Intelligence\Evidence\Models\TransferEvidenceReviewKingdom;
 use App\Contexts\Intelligence\Evidence\Queries\TransferEvidenceSummaryQuery;
+use App\Contexts\Intelligence\Evidence\Services\TransferEvidenceSchemaRegistry;
 use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -36,6 +37,7 @@ final class TransferEvidenceController extends Controller
         AllianceContext $context,
         TransferEvidenceTargetQuery $targets,
         TransferEvidenceSummaryQuery $summaries,
+        TransferEvidenceSchemaRegistry $schemas,
         string $plan,
         string $participant,
     ): JsonResponse {
@@ -45,10 +47,20 @@ final class TransferEvidenceController extends Controller
 
         return response()->json([
             'evidence' => $byParticipant[$participant] ?? [],
-            'supportedKinds' => array_map(
-                static fn (EvidenceKind $kind): string => $kind->value,
-                EvidenceKind::transferCases(),
-            ),
+            'schemas' => array_map(static function (EvidenceKind $kind) use ($schemas): array {
+                $schema = $schemas->require($kind);
+
+                return [
+                    'kind' => $kind->value,
+                    'version' => $schema->version,
+                    'supportedFields' => $schema->supportedFields,
+                    'requiredFields' => $schema->requiredFields,
+                    'minimumClassificationConfidence' => $schema->minimumClassificationConfidence,
+                    'minimumFieldConfidence' => $schema->minimumFieldConfidence,
+                    'fixtureCorpus' => $schema->fixtureCorpus,
+                    'destinationAction' => $schema->destinationAction,
+                ];
+            }, EvidenceKind::transferCases()),
         ]);
     }
 
