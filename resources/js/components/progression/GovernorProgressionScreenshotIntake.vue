@@ -2,6 +2,8 @@
 import { router, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 
+import ConfirmActionDialog from '@/components/ui/ConfirmActionDialog.vue';
+import { useConfirmAction } from '@/components/ui/useConfirmAction';
 import { useLocale } from '@/localization';
 
 import type {
@@ -75,6 +77,7 @@ const props = defineProps<{
 }>();
 
 const { t, formatDate } = useLocale();
+const { dialog, requestConfirmation, cancelConfirmation, confirmAction } = useConfirmAction();
 const heroById = computed(() => new Map(props.heroes.map((hero) => [hero.id, hero])));
 const activeEvidenceId = ref<string | null>(null);
 const duplicateResolution = ref('');
@@ -428,10 +431,19 @@ function retry(item: GovernorProgressionEvidenceSummary): void {
 }
 
 function removeEvidence(item: GovernorProgressionEvidenceSummary): void {
-  if (!props.canManage || !window.confirm(t('progression.deleteEvidenceConfirm'))) return;
+  if (!props.canManage) return;
 
-  router.delete(`/progression/governor/${props.rosterEntryId}/evidence/${item.id}`, {
-    preserveScroll: true,
+  requestConfirmation({
+    id: `governor-progression-evidence-delete-${item.id}`,
+    title: t('progression.deleteEvidence'),
+    description: t('progression.deleteEvidenceConfirm'),
+    confirmLabel: t('progression.deleteEvidence'),
+    cancelLabel: t('common.cancel'),
+    perform: (finish) =>
+      router.delete(`/progression/governor/${props.rosterEntryId}/evidence/${item.id}`, {
+        preserveScroll: true,
+        onFinish: finish,
+      }),
   });
 }
 
@@ -1340,5 +1352,6 @@ function evidenceStatus(item: GovernorProgressionEvidenceSummary): string {
         </article>
       </div>
     </section>
+    <ConfirmActionDialog v-bind="dialog" @confirm="confirmAction" @cancel="cancelConfirmation" />
   </div>
 </template>
