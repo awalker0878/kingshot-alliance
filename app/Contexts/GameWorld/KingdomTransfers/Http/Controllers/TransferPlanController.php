@@ -148,7 +148,7 @@ final class TransferPlanController extends Controller
     /** @return array<string,mixed> */
     private function condition(TransferKingdomConditionObservation $c): array
     {
-        return ['id' => (string) $c->id, 'kingdom' => (string) $c->kingdom->number, 'powerCap' => $c->power_cap, 'classification' => $c->classification->value, 'sourceType' => $c->source_type->value, 'sourceReference' => $c->source_reference, 'observedAt' => $c->observed_at->toIso8601String(), 'isCorrection' => $c->is_correction];
+        return ['id' => (string) $c->id, 'kingdom' => (string) $c->kingdom->number, 'powerCap' => $c->power_cap, 'classification' => $c->classification?->value, 'sourceType' => $c->source_type->value, 'sourceReference' => $c->source_reference, 'observedAt' => $c->observed_at->toIso8601String(), 'isCorrection' => $c->is_correction];
     }
 
     /** @return array<string,mixed> */
