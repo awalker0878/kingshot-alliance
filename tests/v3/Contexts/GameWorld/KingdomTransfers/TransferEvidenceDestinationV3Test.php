@@ -118,13 +118,15 @@ final class TransferEvidenceDestinationV3Test extends TestCase
         self::assertSame($first->receiptId, $repeat->receiptId);
         self::assertSame(3, TransferObservation::query()->count());
         self::assertSame(1, TransferEvidenceReceipt::query()->count());
+        $expectedKinds = [
+            TransferObservationKind::TransferScore->value,
+            TransferObservationKind::TransferPassesAvailable->value,
+            TransferObservationKind::TransferPassesRequired->value,
+        ];
+        sort($expectedKinds);
         self::assertSame(
-            [
-                TransferObservationKind::TransferScore->value,
-                TransferObservationKind::TransferPassesAvailable->value,
-                TransferObservationKind::TransferPassesRequired->value,
-            ],
-            TransferObservation::query()->orderBy('kind')->pluck('kind')->map(
+            $expectedKinds,
+            TransferObservation::query()->pluck('kind')->map(
                 static fn ($kind): string => is_object($kind) && property_exists($kind, 'value') ? (string) $kind->value : (string) $kind,
             )->sort()->values()->all(),
         );
