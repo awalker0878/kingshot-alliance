@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Evidence\Http\Controllers;
 
-use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
-use App\Contexts\Alliance\Membership\Models\AllianceMembership;
+use App\Contexts\Alliance\Membership\Queries\ActiveAllianceScopeQuery;
 use App\Contexts\Alliance\Membership\Queries\RosterEntryQuery;
 use App\Contexts\GameWorld\Players\Services\PlayerContext;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
@@ -34,6 +33,8 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 final class GovernorProgressionEvidenceController extends Controller
 {
+    public function __construct(private readonly ActiveAllianceScopeQuery $allianceScopes) {}
+
     public function index(
         PlayerContext $context,
         AllianceIntelligenceAuthorization $authorization,
@@ -244,13 +245,10 @@ final class GovernorProgressionEvidenceController extends Controller
     private function scope(PlayerContext $context): array
     {
         $player = $context->player();
-        $membership = AllianceMembership::query()
-            ->where('player_id', $player->playerId)
-            ->where('status', MembershipStatus::Active->value)
-            ->first();
-        abort_unless($membership instanceof AllianceMembership, 403, 'An active Alliance membership is required.');
+        $scope = $this->allianceScopes->findForPlayer($player->playerId, $player->kingdomId);
+        abort_if($scope === null, 403, 'An active Alliance membership is required.');
 
-        return [$player->playerId, (string) $membership->alliance_id];
+        return [$player->playerId, $scope->allianceId];
     }
 
     private function authorizeManage(
