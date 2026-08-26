@@ -1,0 +1,106 @@
+{
+  "schema_version": "governor-profile/1",
+  "coverage_cases": [
+    {
+      "name": "canonical-profile",
+      "category": "canonical",
+      "expected_kind": "governor_profile",
+      "ocr_confidence": 0.98,
+      "lines": ["Governor Profile", "Governor: Adam", "Governor Power: 45,000,000", "Town Center: 30", "Alliance: KSA", "Kingdom #123"],
+      "fields": {"observed_name": "Adam", "power": "45000000", "progression_level": "30", "observed_alliance_tag": "KSA", "kingdom_number": "123"}
+    },
+    {
+      "name": "alternate-resolution",
+      "category": "alternate_resolution",
+      "expected_kind": "governor_profile",
+      "ocr_confidence": 0.94,
+      "lines": ["Governor Info", "Name: Adam Walker", "Power 45 000 000", "TC: 30", "Kingdom 123"],
+      "fields": {"observed_name": "Adam Walker", "power": "45000000", "progression_level": "30", "kingdom_number": "123"}
+    },
+    {
+      "name": "safe-crop",
+      "category": "safe_crop",
+      "expected_kind": "governor_profile",
+      "ocr_confidence": 0.96,
+      "lines": ["Governor Profile", "Power: 45,000,000"],
+      "fields": {"power": "45000000"}
+    },
+    {
+      "name": "numeric-grouping",
+      "category": "numeric_grouping",
+      "expected_kind": "governor_profile",
+      "ocr_confidence": 0.96,
+      "lines": ["Governor Profile", "Power: 45 000 000", "Kingdom #123"],
+      "fields": {"power": "45000000", "kingdom_number": "123"}
+    },
+    {
+      "name": "low-confidence",
+      "category": "low_confidence",
+      "expected_kind": "governor_profile",
+      "ocr_confidence": 0.35,
+      "lines": ["Governor Profile", "Power: 45,000,000"],
+      "fields": {"power": "45000000"},
+      "expect_below_field_threshold": true
+    },
+    {
+      "name": "adjacent-number-negative",
+      "category": "adjacent_unrelated_numbers",
+      "expected_kind": "governor_profile",
+      "ocr_confidence": 0.96,
+      "lines": ["Governor Profile", "Power: 45,000,000", "VIP 12", "Rank 77"],
+      "fields": {"power": "45000000"},
+      "forbidden_fields": ["vip", "rank"]
+    },
+    {
+      "name": "missing-optional-field",
+      "category": "missing_required_field",
+      "expected_kind": "governor_profile",
+      "ocr_confidence": 0.96,
+      "lines": ["Governor Profile"],
+      "fields": {}
+    },
+    {
+      "name": "unsupported-ui-variant",
+      "category": "unsupported_ui_variant",
+      "expected_kind": "unknown",
+      "ocr_confidence": 0.96,
+      "lines": ["Governor Overview", "Statistics", "Score 45,000,000"],
+      "fields": {}
+    },
+    {
+      "name": "wrong-screenshot-class",
+      "category": "wrong_screenshot_class",
+      "expected_kind": "governor_gear",
+      "ocr_confidence": 0.96,
+      "lines": ["Governor Gear", "Gear Power 1,000,000"],
+      "fields": {}
+    },
+    {
+      "name": "visual-duplicate-recompressed",
+      "category": "visual_duplicate_recompressed",
+      "expected_kind": "governor_profile",
+      "ocr_confidence": 0.89,
+      "lines": ["Governor Profile", "Governor: Adam", "Governor Power: 45,000,000", "Kingdom #123"],
+      "fields": {"observed_name": "Adam", "power": "45000000", "kingdom_number": "123"},
+      "visual_duplicate_of": "canonical-profile"
+    },
+    {
+      "name": "semantic-equal",
+      "category": "semantic_equal",
+      "expected_kind": "governor_profile",
+      "ocr_confidence": 0.98,
+      "lines": ["Governor Profile", "Governor: Adam", "Governor Power: 45,000,000", "Kingdom #123"],
+      "fields": {"observed_name": "Adam", "power": "45000000", "kingdom_number": "123"},
+      "semantic": {"observed_at": "2026-08-26T12:00:00Z"}
+    },
+    {
+      "name": "semantic-newer",
+      "category": "semantic_newer",
+      "expected_kind": "governor_profile",
+      "ocr_confidence": 0.98,
+      "lines": ["Governor Profile", "Governor: Adam", "Governor Power: 46,000,000", "Kingdom #123"],
+      "fields": {"observed_name": "Adam", "power": "46000000", "kingdom_number": "123"},
+      "semantic": {"observed_at": "2026-08-27T12:00:00Z"}
+    }
+  ]
+}
