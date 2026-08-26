@@ -250,8 +250,7 @@ function ensureDraft(item: EvidenceItem): void {
     targetKingdomNumber: normalizedText(item, 'target_kingdom_number') || props.targetKingdom || '',
     targetPowerCap: item.review?.targetPowerCap?.toString() ?? normalizedText(item, 'power_cap'),
     kingdomClassification:
-      (item.review?.kingdomClassification ?? normalizedText(item, 'kingdom_classification')) ||
-      'unknown',
+      item.review?.kingdomClassification ?? normalizedText(item, 'kingdom_classification'),
     officialGroupIdentifier:
       item.review?.officialGroupIdentifier ?? normalizedText(item, 'official_group_identifier'),
     officialGroupKingdoms:
@@ -362,7 +361,7 @@ function review(item: EvidenceItem): void {
   } else if (item.expectedKind === 'transfer_target_kingdom_rules') {
     payload.target_kingdom_number = numeric(draft.targetKingdomNumber);
     payload.target_power_cap = numeric(draft.targetPowerCap);
-    payload.kingdom_classification = draft.kingdomClassification || 'unknown';
+    payload.kingdom_classification = draft.kingdomClassification || null;
   } else if (item.expectedKind === 'transfer_official_group') {
     payload.official_group_identifier = draft.officialGroupIdentifier || null;
     payload.kingdom_numbers = parseKingdoms(draft.officialGroupKingdoms);
@@ -651,8 +650,54 @@ function fieldCorrected(item: EvidenceItem, field: ExtractedField): boolean {
                 >{{ t('kingdomP7D.schemaVersion') }} {{ item.extraction.schemaVersion }}</span
               >
             </div>
-            <div class="mt-3 overflow-x-auto">
-              <table class="w-full min-w-[620px] text-left text-sm">
+            <div class="mt-3 grid gap-3 md:hidden">
+              <article
+                v-for="field in item.extraction.fields"
+                :key="`mobile-${field.key}-${field.ordinal}`"
+                class="rounded-lg border border-[var(--ks-border)] p-3 text-sm"
+              >
+                <p class="break-all font-semibold">{{ field.key }}</p>
+                <dl class="mt-3 grid gap-3">
+                  <div>
+                    <dt class="ks-kicker">{{ t('kingdomP7D.rawObservation') }}</dt>
+                    <dd class="mt-1 break-words">{{ field.raw }}</dd>
+                  </div>
+                  <div>
+                    <dt class="ks-kicker">{{ t('kingdomP7D.normalizedValue') }}</dt>
+                    <dd class="mt-1">
+                      {{ displayValue(field.value) }}
+                      <span
+                        v-if="fieldCorrected(item, field)"
+                        class="ml-1 text-xs font-semibold text-amber-200"
+                        >· {{ t('kingdomP7D.evidenceCorrected') }}</span
+                      >
+                    </dd>
+                  </div>
+                  <div>
+                    <dt class="ks-kicker">{{ t('kingdomP7D.fieldConfidence') }}</dt>
+                    <dd class="mt-1">{{ percent(field.confidence) }}</dd>
+                  </div>
+                </dl>
+                <p
+                  v-if="
+                    schemaFor(item.expectedKind) &&
+                    field.confidence < schemaFor(item.expectedKind)!.minimumFieldConfidence
+                  "
+                  class="mt-3 text-xs text-amber-200"
+                >
+                  {{ t('kingdomP7D.belowSchemaConfidence') }}
+                </p>
+                <p
+                  v-for="warning in field.warnings"
+                  :key="warning"
+                  class="mt-2 text-xs text-amber-200"
+                >
+                  {{ warning }}
+                </p>
+              </article>
+            </div>
+            <div class="mt-3 hidden overflow-x-auto md:block">
+              <table class="w-full text-left text-sm">
                 <thead class="text-xs text-[var(--ks-muted)]">
                   <tr>
                     <th class="pr-3 pb-2">{{ t('kingdomP7D.evidenceField') }}</th>
@@ -848,7 +893,7 @@ function fieldCorrected(item: EvidenceItem, field: ExtractedField): boolean {
                     v-model="drafts[item.id]!.kingdomClassification"
                     class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2"
                   >
-                    <option value="unknown">{{ t('kingdomP7D.classification_unknown') }}</option>
+                    <option value="">{{ t('kingdomP7D.classificationNotProved') }}</option>
                     <option value="ordinary">{{ t('kingdomP7D.classification_ordinary') }}</option>
                     <option value="leading">{{ t('kingdomP7D.classification_leading') }}</option>
                   </select>
