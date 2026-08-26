@@ -750,7 +750,10 @@ function evidenceStatus(item: GovernorProgressionEvidenceSummary): string {
                 <h3 class="font-semibold">{{ labelForClass(item.detectedKind) }}</h3>
                 <span class="ks-chip">{{ evidenceStatus(item) }}</span>
               </div>
-              <p class="mt-2 text-xs text-[var(--ks-muted)]">
+              <p class="mt-2 text-xs break-all text-[var(--ks-muted)]">
+                {{ item.originalName }}
+              </p>
+              <p class="mt-1 text-xs text-[var(--ks-muted)]">
                 {{ t('progression.expectedClass') }}: {{ labelForClass(item.expectedKind) }} ·
                 {{ t('progression.detectedClass') }}: {{ labelForClass(item.detectedKind) }}
               </p>
