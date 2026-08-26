@@ -8,6 +8,7 @@ use App\Contexts\GameWorld\Kingdoms\Queries\KingdomReferenceQuery;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferKingdomClassification;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferSourceType;
 use App\Contexts\GameWorld\KingdomTransfers\Services\TransferEvidenceDestinationSupport;
+use App\Contexts\GameWorld\KingdomTransfers\Services\TransferKingdomConditionWriter;
 use App\Contexts\GameWorld\KingdomTransfers\ValueObjects\TransferEvidenceDestinationReceipt;
 use Illuminate\Support\Facades\DB;
 
@@ -16,7 +17,7 @@ final readonly class RecordTransferKingdomRulesEvidence
     public function __construct(
         private TransferEvidenceDestinationSupport $support,
         private KingdomReferenceQuery $kingdoms,
-        private RecordTransferKingdomCondition $conditions,
+        private TransferKingdomConditionWriter $conditions,
     ) {}
 
     public function handle(
@@ -42,18 +43,18 @@ final readonly class RecordTransferKingdomRulesEvidence
             }
             $target = $this->support->lockScope($allianceId, $planId, $participantId, $expectedWindowId, $expectedTargetKingdomId, true);
             $kingdom = $this->kingdoms->require($expectedTargetKingdomId);
-            $conditionId = $this->conditions->handle(
-                allianceId: $allianceId,
-                actorPlayerId: $actorPlayerId,
-                windowId: $expectedWindowId,
-                kingdomNumber: $kingdom->number,
-                powerCap: $powerCap,
-                classification: $classification,
-                sourceType: TransferSourceType::Evidence,
-                sourceReference: 'Screenshot Intake review '.$reviewId,
-                observedAt: $observedAt,
-                isCorrection: false,
-                evidenceId: $evidenceId,
+            $conditionId = $this->conditions->append(
+                $context,
+                $allianceId,
+                $expectedWindowId,
+                $kingdom->number,
+                $powerCap,
+                $classification,
+                TransferSourceType::Evidence,
+                'Screenshot Intake review '.$reviewId,
+                $observedAt,
+                false,
+                $evidenceId,
             );
 
             return $this->support->complete(
