@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\v3\Contexts\Intelligence\Evidence;
 
+use App\Contexts\Intelligence\Evidence\Contracts\EvidenceExtractor;
 use App\Contexts\Intelligence\Evidence\Enums\EvidenceKind;
 use App\Contexts\Intelligence\Evidence\Services\TransferEvidenceClassifier;
 use App\Contexts\Intelligence\Evidence\Services\TransferEvidenceSchemaRegistry;
@@ -15,6 +16,7 @@ use App\Contexts\Intelligence\Evidence\Services\TransferTargetKingdomRulesExtrac
 use App\Contexts\Intelligence\Evidence\ValueObjects\ExtractedFieldCandidate;
 use App\Contexts\Intelligence\Evidence\ValueObjects\OcrDocument;
 use App\Contexts\Intelligence\Evidence\ValueObjects\OcrToken;
+use App\Contexts\Intelligence\Evidence\ValueObjects\TransferEvidenceSchema;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -193,24 +195,99 @@ final class TransferEvidenceSchemasV3Test extends TestCase
         }
     }
 
-    public function test_fixture_corpus_manifest_exists_for_every_registered_schema(): void
+    public function test_fixture_corpus_is_executed_and_is_the_allowlist_proof_for_every_registered_field(): void
     {
         $registry = new TransferEvidenceSchemaRegistry;
+        $classifier = new TransferEvidenceClassifier;
+
         foreach (EvidenceKind::transferCases() as $kind) {
             $schema = $registry->require($kind);
-            $path = dirname(__DIR__, 4).'/Fixtures/Evidence/Transfer/'.$schema->fixtureCorpus.'.json';
-            self::assertFileExists($path, $schema->fixtureCorpus);
-            $fixture = json_decode((string) file_get_contents($path), true, flags: JSON_THROW_ON_ERROR);
-            self::assertSame($schema->version, $fixture['schema_version'] ?? null);
-            self::assertNotEmpty($fixture['positive'] ?? []);
-            self::assertNotEmpty($fixture['negative'] ?? []);
-            self::assertNotEmpty($fixture['ambiguity'] ?? []);
-            self::assertNotEmpty($fixture['semantic_duplicate'] ?? []);
-            self::assertNotEmpty($fixture['semantic_newer'] ?? []);
+            $fixture = $this->fixture($schema);
+            $extractor = $this->extractor($kind);
+            $provenFields = [];
+
+            foreach ($fixture['positive'] as $case) {
+                $document = $this->fixtureDocument($case['lines']);
+                $decision = $classifier->classify($kind, $document);
+                self::assertSame($kind, $decision->kind, $schema->fixtureCorpus.':'.$case['name']);
+                self::assertGreaterThanOrEqual(
+                    $schema->minimumClassificationConfidence,
+                    $decision->confidence,
+                    $schema->fixtureCorpus.':'.$case['name'],
+                );
+
+                $fields = $extractor->extract($kind, $document);
+                $this->assertFixtureFields($case['fields'], $fields, $schema->fixtureCorpus.':'.$case['name']);
+                foreach (array_keys($case['fields']) as $field) {
+                    $provenFields[] = $field === 'kingdom_numbers' ? 'kingdom_number' : $field;
+                }
+                foreach ($fields as $field) {
+                    self::assertContains($field->fieldKey, $schema->supportedFields);
+                    self::assertGreaterThanOrEqual(
+                        $schema->minimumFieldConfidence,
+                        $field->confidence,
+                        $schema->fixtureCorpus.':'.$case['name'].':'.$field->fieldKey,
+                    );
+                }
+            }
+
+            foreach ($schema->supportedFields as $supportedField) {
+                self::assertContains(
+                    $supportedField,
+                    array_values(array_unique($provenFields)),
+                    $schema->fixtureCorpus.' does not fixture-prove '.$supportedField,
+                );
+            }
+
+            foreach ($fixture['negative'] as $case) {
+                $fields = $extractor->extract($kind, $this->fixtureDocument($case['lines']));
+                if (isset($case['fields'])) {
+                    $this->assertFixtureFields($case['fields'], $fields, $schema->fixtureCorpus.':'.$case['name']);
+                }
+                foreach (array_merge($case['must_not_extract'] ?? [], $case['must_not_infer'] ?? [], $case['must_not_coerce'] ?? []) as $forbidden) {
+                    if (is_int($forbidden)) {
+                        $kingdoms = array_map(
+                            static fn (ExtractedFieldCandidate $field): int => (int) $field->normalizedValue,
+                            array_values(array_filter(
+                                $fields,
+                                static fn (ExtractedFieldCandidate $field): bool => $field->fieldKey === 'kingdom_number',
+                            )),
+                        );
+                        self::assertNotContains($forbidden, $kingdoms, $schema->fixtureCorpus.':'.$case['name']);
+
+                        continue;
+                    }
+                    self::assertNotContains(
+                        $forbidden,
+                        array_map(static fn (ExtractedFieldCandidate $field): string => $field->fieldKey, $fields),
+                        $schema->fixtureCorpus.':'.$case['name'],
+                    );
+                }
+                if (($case['must_not_commit_complete_membership'] ?? false) === true) {
+                    $keys = array_map(static fn (ExtractedFieldCandidate $field): string => $field->fieldKey, $fields);
+                    self::assertFalse(
+                        count(array_diff($schema->requiredFields, $keys)) === 0,
+                        $schema->fixtureCorpus.':'.$case['name'],
+                    );
+                }
+            }
+
+            foreach ($fixture['ambiguity'] as $case) {
+                $decision = $classifier->classify($kind, $this->fixtureDocument($case['lines']));
+                self::assertSame(EvidenceKind::Unknown, $decision->kind, $schema->fixtureCorpus.':'.$case['name']);
+            }
+
+            self::assertNotEmpty($fixture['semantic_duplicate']);
+            self::assertNotEmpty($fixture['semantic_newer']);
+            self::assertNotSame(
+                $fixture['semantic_duplicate'][0]['observed_at'] ?? null,
+                $fixture['semantic_newer'][0]['observed_at'] ?? null,
+                $schema->fixtureCorpus.' must prove that a genuinely newer observation is distinguishable',
+            );
         }
     }
 
-    /** @return list<array{0:EvidenceKind,1:object}> */
+    /** @return list<array{0:EvidenceKind,1:EvidenceExtractor}> */
     private function extractors(): array
     {
         return [
@@ -222,7 +299,76 @@ final class TransferEvidenceSchemasV3Test extends TestCase
         ];
     }
 
-    /** @param list<ExtractedFieldCandidate> $fields @return array<string,ExtractedFieldCandidate> */
+    private function extractor(EvidenceKind $kind): EvidenceExtractor
+    {
+        return match ($kind) {
+            EvidenceKind::TransferGovernorStatus => new TransferGovernorStatusExtractor,
+            EvidenceKind::TransferScorePasses => new TransferScorePassesExtractor,
+            EvidenceKind::TransferInvitation => new TransferInvitationExtractor,
+            EvidenceKind::TransferTargetKingdomRules => new TransferTargetKingdomRulesExtractor,
+            EvidenceKind::TransferOfficialGroup => new TransferOfficialGroupExtractor,
+            default => self::fail('Unsupported Transfer Evidence fixture kind.'),
+        };
+    }
+
+    /**
+     * @return array{
+     *   schema_version:string,
+     *   fixture_policy:string,
+     *   positive:list<array{name:string,lines:list<string>,fields:array<string,mixed>}>,
+     *   negative:list<array<string,mixed>>,
+     *   ambiguity:list<array{name:string,lines:list<string>,classified:string}>,
+     *   semantic_duplicate:list<array<string,mixed>>,
+     *   semantic_newer:list<array<string,mixed>>
+     * }
+     */
+    private function fixture(TransferEvidenceSchema $schema): array
+    {
+        $path = dirname(__DIR__, 4).'/Fixtures/Evidence/Transfer/'.$schema->fixtureCorpus.'.json';
+        self::assertFileExists($path, $schema->fixtureCorpus);
+        $fixture = json_decode((string) file_get_contents($path), true, flags: JSON_THROW_ON_ERROR);
+        self::assertIsArray($fixture);
+        self::assertSame($schema->version, $fixture['schema_version'] ?? null);
+        self::assertNotEmpty($fixture['fixture_policy'] ?? null);
+        self::assertNotEmpty($fixture['positive'] ?? []);
+        self::assertNotEmpty($fixture['negative'] ?? []);
+        self::assertNotEmpty($fixture['ambiguity'] ?? []);
+        self::assertNotEmpty($fixture['semantic_duplicate'] ?? []);
+        self::assertNotEmpty($fixture['semantic_newer'] ?? []);
+
+        return $fixture;
+    }
+
+    /**
+     * @param array<string,mixed> $expected
+     * @param list<ExtractedFieldCandidate> $fields
+     */
+    private function assertFixtureFields(array $expected, array $fields, string $case): void
+    {
+        $byKey = $this->byKey($fields);
+        foreach ($expected as $key => $value) {
+            if ($key === 'kingdom_numbers') {
+                $actual = array_map(
+                    static fn (ExtractedFieldCandidate $field): int => (int) $field->normalizedValue,
+                    array_values(array_filter(
+                        $fields,
+                        static fn (ExtractedFieldCandidate $field): bool => $field->fieldKey === 'kingdom_number',
+                    )),
+                );
+                sort($actual);
+                $expectedKingdoms = array_map('intval', is_array($value) ? $value : []);
+                sort($expectedKingdoms);
+                self::assertSame($expectedKingdoms, $actual, $case.':kingdom_numbers');
+
+                continue;
+            }
+
+            self::assertArrayHasKey($key, $byKey, $case.':'.$key);
+            self::assertSame((string) $value, $byKey[$key]->normalizedValue, $case.':'.$key);
+        }
+    }
+
+    /** @return array<string,ExtractedFieldCandidate> */
     private function byKey(array $fields): array
     {
         $result = [];
@@ -231,6 +377,18 @@ final class TransferEvidenceSchemasV3Test extends TestCase
         }
 
         return $result;
+    }
+
+    /** @param list<string> $lines */
+    private function fixtureDocument(array $lines): OcrDocument
+    {
+        return $this->document(array_map(
+            static fn (string $line): array => array_values(array_filter(
+                preg_split('/\s+/', trim($line)) ?: [],
+                static fn (string $word): bool => $word !== '',
+            )),
+            $lines,
+        ));
     }
 
     /** @param list<list<string>> $lines */
