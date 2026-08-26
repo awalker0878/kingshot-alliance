@@ -13,7 +13,10 @@ final readonly class GovernorProgressionObservationValidator
 {
     public function __construct(private ProgressionDatasetQuery $progression) {}
 
-    /** @param array<string,mixed> $payload @return array<string,mixed> */
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
     public function validate(
         EvidenceKind $kind,
         array $payload,
@@ -36,7 +39,10 @@ final readonly class GovernorProgressionObservationValidator
         };
     }
 
-    /** @param array<string,mixed> $payload @return array<string,mixed> */
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
     private function profile(array $payload): array
     {
         $this->closedKeys($payload, ['observed_name', 'power', 'progression_level', 'observed_alliance_tag', 'kingdom_number'], 'payload');
@@ -63,7 +69,10 @@ final readonly class GovernorProgressionObservationValidator
         return $result;
     }
 
-    /** @param array<string,mixed> $payload @return array<string,mixed> */
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
     private function heroRoster(array $payload, ProgressionDataset $dataset): array
     {
         $this->closedKeys($payload, ['heroes', 'complete_roster_capture'], 'payload');
@@ -96,7 +105,10 @@ final readonly class GovernorProgressionObservationValidator
         ];
     }
 
-    /** @param array<string,mixed> $payload @return array<string,mixed> */
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
     private function heroDetail(array $payload, ProgressionDataset $dataset): array
     {
         $this->closedKeys($payload, ['hero_id', 'level', 'star', 'substar', 'widget_level'], 'payload');
@@ -112,7 +124,10 @@ final readonly class GovernorProgressionObservationValidator
         return $result;
     }
 
-    /** @param array<string,mixed> $payload @return array<string,mixed> */
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
     private function heroGear(array $payload, ProgressionDataset $dataset): array
     {
         $this->closedKeys($payload, ['hero_id', 'gear'], 'payload');
@@ -122,7 +137,10 @@ final readonly class GovernorProgressionObservationValidator
         return ['hero_id' => $heroId, 'gear' => $gear];
     }
 
-    /** @param array<string,mixed> $payload @return array<string,mixed> */
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
     private function governorGear(array $payload): array
     {
         $this->closedKeys($payload, ['gear'], 'payload');
@@ -130,7 +148,10 @@ final readonly class GovernorProgressionObservationValidator
         return ['gear' => $this->gearRows($payload['gear'] ?? null, false, 'payload.gear')];
     }
 
-    /** @param array<string,mixed> $payload @return array<string,mixed> */
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
     private function charms(array $payload, ProgressionDataset $dataset): array
     {
         $this->closedKeys($payload, ['charms'], 'payload');
@@ -218,7 +239,14 @@ final readonly class GovernorProgressionObservationValidator
     private function maximumCharmLevel(ProgressionDataset $dataset): int
     {
         $catalogue = $dataset->catalogue('governor_charms');
-        $levels = is_array($catalogue['data']['charmLevels'] ?? null) ? $catalogue['data']['charmLevels'] : [];
+        if (! is_array($catalogue)) {
+            return 1;
+        }
+        $data = $catalogue['data'] ?? null;
+        if (! is_array($data)) {
+            return 1;
+        }
+        $levels = is_array($data['charmLevels'] ?? null) ? $data['charmLevels'] : [];
         $max = 0;
         foreach ($levels as $row) {
             if (is_array($row) && is_int($row['level'] ?? null)) {
@@ -229,7 +257,10 @@ final readonly class GovernorProgressionObservationValidator
         return max(1, $max);
     }
 
-    /** @param array<string,mixed> $value @param list<string> $allowed */
+    /**
+     * @param  array<string, mixed>  $value
+     * @param  list<string>  $allowed
+     */
     private function closedKeys(array $value, array $allowed, string $field): void
     {
         $unknown = array_values(array_diff(array_keys($value), $allowed));
@@ -238,7 +269,10 @@ final readonly class GovernorProgressionObservationValidator
         }
     }
 
-    /** @param array<string,mixed> $target @param array<string,mixed> $source */
+    /**
+     * @param  array<string, mixed>  $target
+     * @param  array<string, mixed>  $source
+     */
     private function optionalInteger(array &$target, string $key, array $source, int $min, int $max, string $field): void
     {
         if (! array_key_exists($key, $source) || $source[$key] === null || $source[$key] === '') {
