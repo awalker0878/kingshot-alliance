@@ -134,6 +134,37 @@ final class TransferEvidenceReviewV3Test extends TestCase
         self::assertEqualsWithDelta(0.71, (float) $source->confidence, 0.001);
     }
 
+    public function test_target_rules_review_preserves_classification_as_not_proved_when_fixture_did_not_extract_it(): void
+    {
+        $scenario = $this->outgoingScenario(7731, 7732);
+        [$evidence, $extraction] = $this->evidence(
+            $scenario,
+            EvidenceKind::TransferTargetKingdomRules,
+            'transfer-target-kingdom-rules/1',
+            [
+                ['target_kingdom_number', 'Kingdom #7732', '7732', 'integer', 0.96],
+                ['power_cap', 'Power Cap 80,000,000', '80000000', 'integer', 0.94],
+            ],
+        );
+
+        $reviewId = app(SaveTransferEvidenceReview::class)->handle(
+            actorPlayerId: $scenario->actor->playerId,
+            allianceId: $scenario->alliance->allianceId,
+            planId: (string) $scenario->plan->id,
+            participantId: (string) $scenario->participant->id,
+            evidenceId: (string) $evidence->id,
+            extractionAttemptId: (string) $extraction->id,
+            observedAt: $this->now->subMinutes(10)->toIso8601String(),
+            targetKingdomNumber: 7732,
+            targetPowerCap: 80_000_000,
+            kingdomClassification: null,
+        );
+
+        $review = TransferEvidenceReview::query()->findOrFail($reviewId);
+        self::assertSame(80_000_000, (int) $review->target_power_cap);
+        self::assertNull($review->kingdom_classification);
+    }
+
     /**
      * @param  list<array{string, string, string, string, float}>  $fields
      * @return array{GameEvidence, EvidenceExtractionAttempt}
