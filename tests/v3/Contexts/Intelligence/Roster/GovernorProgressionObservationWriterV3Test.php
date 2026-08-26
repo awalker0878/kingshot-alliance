@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\v3\Contexts\Intelligence\Roster;
 
 use App\Contexts\GameWorld\Progression\Queries\ProgressionDatasetQuery;
-use App\Contexts\Intelligence\Evidence\Contracts\EvidenceReferenceLookup;
+use App\Contexts\Intelligence\Evidence\Contracts\GovernorProgressionEvidenceReferenceLookup;
 use App\Contexts\Intelligence\Evidence\Enums\EvidenceKind;
 use App\Contexts\Intelligence\Roster\Models\GovernorProgressionEvidenceReceipt;
 use App\Contexts\Intelligence\Roster\Models\GovernorProgressionObservation;
@@ -31,18 +31,8 @@ final class GovernorProgressionObservationWriterV3Test extends TestCase
         $reviewId = 'review-governor-profile';
         $idempotencyKey = hash('sha256', 'governor-profile-review');
 
-        $this->app->instance(EvidenceReferenceLookup::class, new class implements EvidenceReferenceLookup
+        $this->app->instance(GovernorProgressionEvidenceReferenceLookup::class, new class implements GovernorProgressionEvidenceReferenceLookup
         {
-            public function belongsToAlliance(string $evidenceId, string $allianceId): bool
-            {
-                return true;
-            }
-
-            public function isApprovedForAlliance(string $evidenceId, string $allianceId): bool
-            {
-                return true;
-            }
-
             public function isApprovedGovernorProgressionReview(
                 string $evidenceId,
                 string $reviewId,
@@ -94,18 +84,8 @@ final class GovernorProgressionObservationWriterV3Test extends TestCase
         $entry = $scenario->roster($actor, $alliance);
         $dataset = app(ProgressionDatasetQuery::class)->latest();
 
-        $this->app->instance(EvidenceReferenceLookup::class, new class implements EvidenceReferenceLookup
+        $this->app->instance(GovernorProgressionEvidenceReferenceLookup::class, new class implements GovernorProgressionEvidenceReferenceLookup
         {
-            public function belongsToAlliance(string $evidenceId, string $allianceId): bool
-            {
-                return true;
-            }
-
-            public function isApprovedForAlliance(string $evidenceId, string $allianceId): bool
-            {
-                return false;
-            }
-
             public function isApprovedGovernorProgressionReview(
                 string $evidenceId,
                 string $reviewId,
