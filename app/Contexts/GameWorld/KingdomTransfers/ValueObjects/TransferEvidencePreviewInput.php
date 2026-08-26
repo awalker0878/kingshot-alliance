@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\KingdomTransfers\ValueObjects;
 
-use App\Contexts\Intelligence\Evidence\Enums\EvidenceKind;
+use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferEvidencePreviewKind;
 
 final readonly class TransferEvidencePreviewInput
 {
     /** @param list<int> $officialGroupKingdomNumbers */
     public function __construct(
-        public EvidenceKind $kind,
+        public TransferEvidencePreviewKind $kind,
         public string $observedAt,
         public ?string $validUntil = null,
         public ?int $governorPower = null,
