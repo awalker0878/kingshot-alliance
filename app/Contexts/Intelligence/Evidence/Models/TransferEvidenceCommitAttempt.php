@@ -8,6 +8,7 @@ use App\Contexts\Intelligence\Evidence\Enums\EvidenceCommitStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 
+/** @property EvidenceCommitStatus $status */
 final class TransferEvidenceCommitAttempt extends Model
 {
     use HasUlids;
