@@ -82,12 +82,15 @@ final readonly class TransferKingdomConditionWriter
             }
         }
 
+        $classificationValue = $classification instanceof TransferKingdomClassification
+            ? $classification->value
+            : '';
         $fingerprint = hash('sha256', implode('|', [
             $allianceId,
             $windowId,
             $kingdom->kingdomId,
             (string) $powerCap,
-            $classification?->value ?? '',
+            $classificationValue,
             $sourceType->value,
             $sourceReference,
             $observed->toIso8601String(),
