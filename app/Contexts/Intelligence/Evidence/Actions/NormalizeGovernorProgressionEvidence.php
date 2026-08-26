@@ -22,6 +22,7 @@ use Throwable;
 final readonly class NormalizeGovernorProgressionEvidence
 {
     private const NORMALIZER_KEY = 'governor-progression-catalogue-normalizer';
+
     private const NORMALIZER_VERSION = '1.0.0';
 
     public function __construct(
@@ -29,7 +30,8 @@ final readonly class NormalizeGovernorProgressionEvidence
         private PlayerReferenceQuery $players,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
-    ) {}
+    ) {
+    }
 
     public function handle(string $evidenceId, string $extractionAttemptId): void
     {
