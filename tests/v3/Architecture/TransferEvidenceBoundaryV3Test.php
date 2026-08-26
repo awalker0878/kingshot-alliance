@@ -56,6 +56,35 @@ final class TransferEvidenceBoundaryV3Test extends TestCase
         }
     }
 
+    public function test_evidence_destination_actions_use_owner_internal_writers_instead_of_chaining_public_actions(): void
+    {
+        $expectations = [
+            'RecordGovernorStatusEvidence.php' => 'TransferObservationWriter',
+            'RecordTransferScorePassEvidence.php' => 'TransferObservationWriter',
+            'RecordTransferInvitationEvidence.php' => 'TransferObservationWriter',
+            'RecordTransferKingdomRulesEvidence.php' => 'TransferKingdomConditionWriter',
+            'RecordOfficialTransferGroupEvidence.php' => 'TransferGroupWriter',
+        ];
+
+        foreach ($expectations as $file => $writer) {
+            $source = (string) file_get_contents(base_path('app/Contexts/GameWorld/KingdomTransfers/Actions/'.$file));
+            self::assertStringContainsString($writer, $source, $file);
+            self::assertStringNotContainsString('private RecordTransferObservation ', $source, $file);
+            self::assertStringNotContainsString('private RecordTransferKingdomCondition ', $source, $file);
+            self::assertStringNotContainsString('private SaveTransferGroup ', $source, $file);
+        }
+
+        $publicWriters = [
+            'RecordTransferObservation.php' => 'TransferObservationWriter',
+            'RecordTransferKingdomCondition.php' => 'TransferKingdomConditionWriter',
+            'SaveTransferGroup.php' => 'TransferGroupWriter',
+        ];
+        foreach ($publicWriters as $file => $writer) {
+            $source = (string) file_get_contents(base_path('app/Contexts/GameWorld/KingdomTransfers/Actions/'.$file));
+            self::assertStringContainsString($writer, $source, $file);
+        }
+    }
+
     public function test_v1_transfer_schemas_cannot_emit_in_game_rules_verified(): void
     {
         foreach ([
