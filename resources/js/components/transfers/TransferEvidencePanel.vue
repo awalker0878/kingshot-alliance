@@ -656,7 +656,7 @@ function fieldCorrected(item: EvidenceItem, field: ExtractedField): boolean {
                 :key="`mobile-${field.key}-${field.ordinal}`"
                 class="rounded-lg border border-[var(--ks-border)] p-3 text-sm"
               >
-                <p class="break-all font-semibold">{{ field.key }}</p>
+                <p class="font-semibold break-all">{{ field.key }}</p>
                 <dl class="mt-3 grid gap-3">
                   <div>
                     <dt class="ks-kicker">{{ t('kingdomP7D.rawObservation') }}</dt>

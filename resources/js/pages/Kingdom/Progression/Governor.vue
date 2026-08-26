@@ -108,10 +108,7 @@ const loadoutForm = useForm({
 });
 
 const loadoutTotal = computed(
-  () =>
-    loadoutForm.infantry_percent +
-    loadoutForm.cavalry_percent +
-    loadoutForm.archer_percent,
+  () => loadoutForm.infantry_percent + loadoutForm.cavalry_percent + loadoutForm.archer_percent,
 );
 
 function addObservationHero(): void {
@@ -554,7 +551,7 @@ function formatCaptured(value: string): string {
               <input v-model="loadoutForm.is_default" type="checkbox" />
               <span>{{ t('progression.defaultLoadout') }}</span>
             </label>
-            <p class="mt-2 break-all text-[0.68rem] text-[var(--ks-muted)]">
+            <p class="mt-2 text-[0.68rem] break-all text-[var(--ks-muted)]">
               {{ t('progression.pinnedTo') }} {{ dataset.version }} · {{ dataset.checksum }}
             </p>
             <p

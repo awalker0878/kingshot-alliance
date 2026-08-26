@@ -136,7 +136,9 @@ function upload(): void {
   });
 }
 
-function machineFields(item: GovernorProgressionEvidenceSummary): GovernorProgressionMachineField[] {
+function machineFields(
+  item: GovernorProgressionEvidenceSummary,
+): GovernorProgressionMachineField[] {
   const normalized = item.normalization?.payload?.fields;
   if (Array.isArray(normalized)) return normalized;
 
@@ -555,10 +557,7 @@ function evidenceStatus(item: GovernorProgressionEvidenceSummary): string {
     <section class="ks-surface overflow-hidden" aria-labelledby="current-screenshot-state-heading">
       <div class="border-b border-[var(--ks-border)] p-5 sm:p-6">
         <p class="ks-kicker">{{ t('progression.observedFacts') }}</p>
-        <h2
-          id="current-screenshot-state-heading"
-          class="ks-display mt-1 text-2xl font-semibold"
-        >
+        <h2 id="current-screenshot-state-heading" class="ks-display mt-1 text-2xl font-semibold">
           {{ t('progression.currentObservedState') }}
         </h2>
         <p class="mt-2 text-sm leading-6 text-[var(--ks-text-secondary)]">
@@ -592,7 +591,7 @@ function evidenceStatus(item: GovernorProgressionEvidenceSummary): string {
             :key="key"
             class="rounded border border-[var(--ks-border)] p-4"
           >
-            <p class="text-xs font-semibold uppercase tracking-wide text-[var(--ks-muted)]">
+            <p class="text-xs font-semibold tracking-wide text-[var(--ks-muted)] uppercase">
               {{ String(key).replaceAll('_', ' ') }}
             </p>
             <p class="mt-1 text-lg font-semibold">{{ factValue(fact) }}</p>
@@ -633,7 +632,7 @@ function evidenceStatus(item: GovernorProgressionEvidenceSummary): string {
               </template>
             </dl>
             <div v-if="Object.keys(hero.gear).length" class="mt-4 space-y-2">
-              <p class="text-xs font-semibold uppercase tracking-wide text-[var(--ks-muted)]">
+              <p class="text-xs font-semibold tracking-wide text-[var(--ks-muted)] uppercase">
                 {{ t('progression.gear') }}
               </p>
               <div
@@ -696,7 +695,10 @@ function evidenceStatus(item: GovernorProgressionEvidenceSummary): string {
           </article>
         </div>
 
-        <details v-if="progressionState.history.length" class="rounded border border-[var(--ks-border)]">
+        <details
+          v-if="progressionState.history.length"
+          class="rounded border border-[var(--ks-border)]"
+        >
           <summary class="min-h-11 cursor-pointer px-4 py-3 text-sm font-semibold">
             {{ t('progression.governorObservations') }} · {{ progressionState.history.length }}
           </summary>
@@ -757,7 +759,7 @@ function evidenceStatus(item: GovernorProgressionEvidenceSummary): string {
                 {{ confidenceLabel(item.classification.confidence) }}
                 <span v-if="item.classification.reason"> · {{ item.classification.reason }}</span>
               </p>
-              <p v-if="item.normalization" class="mt-1 break-all text-xs text-[var(--ks-muted)]">
+              <p v-if="item.normalization" class="mt-1 text-xs break-all text-[var(--ks-muted)]">
                 {{ t('progression.normalizationDataset') }}: {{ item.normalization.datasetId }} ·
                 {{ item.normalization.datasetChecksum }}
               </p>
@@ -821,10 +823,17 @@ function evidenceStatus(item: GovernorProgressionEvidenceSummary): string {
                 <p class="mt-1">
                   {{ t('progression.normalizedCandidate') }}: {{ candidate(machineField) || '—' }}
                 </p>
-                <p v-if="isLowConfidence(item, machineField)" class="mt-2 font-semibold" role="status">
+                <p
+                  v-if="isLowConfidence(item, machineField)"
+                  class="mt-2 font-semibold"
+                  role="status"
+                >
                   {{ t('progression.lowConfidence') }}
                 </p>
-                <ul v-if="machineField.warnings.length" class="mt-2 list-disc ps-4 text-[var(--ks-muted)]">
+                <ul
+                  v-if="machineField.warnings.length"
+                  class="mt-2 list-disc ps-4 text-[var(--ks-muted)]"
+                >
                   <li v-for="warning in machineField.warnings" :key="warning">{{ warning }}</li>
                 </ul>
               </div>
@@ -866,10 +875,7 @@ function evidenceStatus(item: GovernorProgressionEvidenceSummary): string {
                 />
               </label>
 
-              <div
-                v-if="reviewDraft.kind === 'governor_profile'"
-                class="grid gap-3 sm:grid-cols-2"
-              >
+              <div v-if="reviewDraft.kind === 'governor_profile'" class="grid gap-3 sm:grid-cols-2">
                 <label class="text-xs text-[var(--ks-muted)]">
                   <span>Observed name</span>
                   <input
@@ -924,7 +930,11 @@ function evidenceStatus(item: GovernorProgressionEvidenceSummary): string {
                       class="mt-1 min-h-11 w-full rounded border border-[var(--ks-border)] bg-[#091313] px-2 text-sm"
                     >
                       <option value="">{{ t('progression.selectHero') }}</option>
-                      <option v-for="heroOption in heroes" :key="heroOption.id" :value="heroOption.id">
+                      <option
+                        v-for="heroOption in heroes"
+                        :key="heroOption.id"
+                        :value="heroOption.id"
+                      >
                         {{ heroOption.name }}
                       </option>
                     </select>
@@ -977,7 +987,9 @@ function evidenceStatus(item: GovernorProgressionEvidenceSummary): string {
                 >
                   + {{ t('progression.addHero') }}
                 </button>
-                <label class="flex min-h-11 items-start gap-3 rounded border border-[var(--ks-border)] p-3 text-sm">
+                <label
+                  class="flex min-h-11 items-start gap-3 rounded border border-[var(--ks-border)] p-3 text-sm"
+                >
                   <input v-model="reviewDraft.completeRosterCapture" type="checkbox" class="mt-1" />
                   <span>
                     {{ t('progression.completeRosterCapture') }}
@@ -1000,7 +1012,11 @@ function evidenceStatus(item: GovernorProgressionEvidenceSummary): string {
                     class="mt-1 min-h-11 w-full rounded border border-[var(--ks-border)] bg-[#091313] px-2 text-sm"
                   >
                     <option value="">{{ t('progression.selectHero') }}</option>
-                    <option v-for="heroOption in heroes" :key="heroOption.id" :value="heroOption.id">
+                    <option
+                      v-for="heroOption in heroes"
+                      :key="heroOption.id"
+                      :value="heroOption.id"
+                    >
                       {{ heroOption.name }}
                     </option>
                   </select>
@@ -1049,8 +1065,7 @@ function evidenceStatus(item: GovernorProgressionEvidenceSummary): string {
 
               <fieldset
                 v-else-if="
-                  reviewDraft.kind === 'governor_hero_gear' ||
-                  reviewDraft.kind === 'governor_gear'
+                  reviewDraft.kind === 'governor_hero_gear' || reviewDraft.kind === 'governor_gear'
                 "
                 class="space-y-3"
               >
@@ -1066,7 +1081,11 @@ function evidenceStatus(item: GovernorProgressionEvidenceSummary): string {
                     class="mt-1 min-h-11 w-full rounded border border-[var(--ks-border)] bg-[#091313] px-2 text-sm"
                   >
                     <option value="">{{ t('progression.selectHero') }}</option>
-                    <option v-for="heroOption in heroes" :key="heroOption.id" :value="heroOption.id">
+                    <option
+                      v-for="heroOption in heroes"
+                      :key="heroOption.id"
+                      :value="heroOption.id"
+                    >
                       {{ heroOption.name }}
                     </option>
                   </select>
@@ -1142,7 +1161,9 @@ function evidenceStatus(item: GovernorProgressionEvidenceSummary): string {
               </fieldset>
 
               <fieldset v-else-if="reviewDraft.kind === 'governor_charms'" class="space-y-3">
-                <legend class="font-semibold">{{ t('progression.governorCharmsScreenshot') }}</legend>
+                <legend class="font-semibold">
+                  {{ t('progression.governorCharmsScreenshot') }}
+                </legend>
                 <div
                   v-for="(charm, index) in reviewDraft.charms"
                   :key="index"
@@ -1212,7 +1233,7 @@ function evidenceStatus(item: GovernorProgressionEvidenceSummary): string {
             <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
               <div>
                 <h4 class="font-semibold">Approved review #{{ item.review.revisionNumber }}</h4>
-                <p class="mt-1 break-all text-xs text-[var(--ks-muted)]">
+                <p class="mt-1 text-xs break-all text-[var(--ks-muted)]">
                   {{ item.review.datasetId }} · {{ item.review.datasetChecksum }}
                 </p>
                 <p class="mt-1 text-xs text-[var(--ks-muted)]">
@@ -1239,7 +1260,8 @@ function evidenceStatus(item: GovernorProgressionEvidenceSummary): string {
                   type="button"
                   class="min-h-11 rounded bg-[var(--ks-teal)] px-3 text-sm font-semibold"
                   :disabled="
-                    Boolean(item.review.semanticDuplicateReviewId) && !item.review.duplicateResolution
+                    Boolean(item.review.semanticDuplicateReviewId) &&
+                    !item.review.duplicateResolution
                   "
                   @click="commit(item.review)"
                 >
@@ -1248,7 +1270,10 @@ function evidenceStatus(item: GovernorProgressionEvidenceSummary): string {
               </div>
             </div>
 
-            <div v-if="item.review.semanticDuplicateReviewId && !item.review.duplicateResolution" class="mt-4">
+            <div
+              v-if="item.review.semanticDuplicateReviewId && !item.review.duplicateResolution"
+              class="mt-4"
+            >
               <p class="text-sm font-semibold" role="alert">
                 {{ t('progression.semanticDuplicate') }}
               </p>
@@ -1273,13 +1298,13 @@ function evidenceStatus(item: GovernorProgressionEvidenceSummary): string {
             <div v-if="preview" class="mt-4 grid gap-3 lg:grid-cols-2" aria-live="polite">
               <div class="rounded border border-[var(--ks-border)] p-3">
                 <p class="text-xs font-semibold">{{ t('progression.beforePreview') }}</p>
-                <pre class="mt-2 max-h-72 overflow-auto whitespace-pre-wrap text-xs">{{
+                <pre class="mt-2 max-h-72 overflow-auto text-xs whitespace-pre-wrap">{{
                   JSON.stringify(preview.before, null, 2)
                 }}</pre>
               </div>
               <div class="rounded border border-[var(--ks-border)] p-3">
                 <p class="text-xs font-semibold">{{ t('progression.afterPreview') }}</p>
-                <pre class="mt-2 max-h-72 overflow-auto whitespace-pre-wrap text-xs">{{
+                <pre class="mt-2 max-h-72 overflow-auto text-xs whitespace-pre-wrap">{{
                   JSON.stringify(preview.after, null, 2)
                 }}</pre>
               </div>
@@ -1287,7 +1312,7 @@ function evidenceStatus(item: GovernorProgressionEvidenceSummary): string {
 
             <div v-if="item.commit?.status === 'completed'" class="mt-4 text-sm" role="status">
               <p class="font-semibold">{{ t('progression.destinationReceipt') }}</p>
-              <p class="mt-1 break-all text-xs text-[var(--ks-muted)]">
+              <p class="mt-1 text-xs break-all text-[var(--ks-muted)]">
                 {{ item.commit.destinationReceiptId }}
                 <template v-if="item.commit.destinationReceipt?.observation_id">
                   · {{ item.commit.destinationReceipt.observation_id }}
