@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\v3\Contexts\Intelligence\Roster;
 
+use App\Contexts\Alliance\Lifecycle\ValueObjects\AllianceReference;
+use App\Contexts\Alliance\Membership\ValueObjects\RosterEntryReference;
+use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\GameWorld\Progression\Queries\ProgressionDatasetQuery;
 use App\Contexts\Intelligence\Evidence\Enums\EvidenceKind;
 use App\Contexts\Intelligence\Roster\Models\GovernorProgressionObservation;
@@ -150,7 +153,7 @@ final class GovernorProgressionObservationQueryV3Test extends TestCase
         self::assertSame($beforeCount, GovernorProgressionObservation::query()->count());
     }
 
-    /** @return array{0:object,1:object,2:object} */
+    /** @return array{0:PlayerReference,1:AllianceReference,2:RosterEntryReference} */
     private function scope(int $gamePlayerId): array
     {
         $scenario = new ScenarioFactory;
