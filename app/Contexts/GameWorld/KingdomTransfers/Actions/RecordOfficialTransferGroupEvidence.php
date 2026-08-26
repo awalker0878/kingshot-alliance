@@ -6,6 +6,7 @@ namespace App\Contexts\GameWorld\KingdomTransfers\Actions;
 
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferSourceType;
 use App\Contexts\GameWorld\KingdomTransfers\Services\TransferEvidenceDestinationSupport;
+use App\Contexts\GameWorld\KingdomTransfers\Services\TransferGroupWriter;
 use App\Contexts\GameWorld\KingdomTransfers\ValueObjects\TransferEvidenceDestinationReceipt;
 use Illuminate\Support\Facades\DB;
 
@@ -13,7 +14,7 @@ final readonly class RecordOfficialTransferGroupEvidence
 {
     public function __construct(
         private TransferEvidenceDestinationSupport $support,
-        private SaveTransferGroup $groups,
+        private TransferGroupWriter $groups,
     ) {}
 
     /** @param list<int> $kingdomNumbers */
@@ -38,14 +39,17 @@ final readonly class RecordOfficialTransferGroupEvidence
                 return $existing;
             }
             $target = $this->support->lockScope($allianceId, $planId, $participantId, $expectedWindowId, null, false);
-            $groupId = $this->groups->handle($allianceId, $actorPlayerId, $expectedWindowId, [
-                'official_label' => $officialGroupIdentifier,
-                'kingdom_numbers' => $kingdomNumbers,
-                'source_type' => TransferSourceType::Evidence,
-                'source_reference' => 'Screenshot Intake review '.$reviewId,
-                'observed_at' => $observedAt,
-                'evidence_id' => $evidenceId,
-            ]);
+            $groupId = $this->groups->save(
+                $context,
+                $allianceId,
+                $expectedWindowId,
+                $officialGroupIdentifier,
+                $kingdomNumbers,
+                TransferSourceType::Evidence,
+                'Screenshot Intake review '.$reviewId,
+                $observedAt,
+                $evidenceId,
+            );
 
             return $this->support->complete(
                 $context,
