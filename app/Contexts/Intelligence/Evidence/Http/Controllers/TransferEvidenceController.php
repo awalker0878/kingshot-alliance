@@ -300,7 +300,7 @@ final class TransferEvidenceController extends Controller
         return $this->back(['evidenceId' => $evidence]);
     }
 
-    /** @param array<string,int|string> $parameters */
+    /** @param array<string, int|string> $parameters */
     private function back(array $parameters): RedirectResponse
     {
         return redirect()->route('alliance.transfers.readiness')
