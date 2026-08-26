@@ -162,6 +162,33 @@ final class TransferEvidenceDestinationV3Test extends TestCase
         }
     }
 
+    public function test_target_rules_without_fixture_proven_classification_persist_no_classification_fact(): void
+    {
+        $scenario = $this->outgoingScenario(7614, 7615);
+
+        $receipt = app(RecordTransferKingdomRulesEvidence::class)->handle(
+            allianceId: $scenario['alliance']->allianceId,
+            actorPlayerId: $scenario['actor']->playerId,
+            planId: (string) $scenario['plan']->id,
+            participantId: (string) $scenario['participant']->id,
+            expectedWindowId: (string) $scenario['plan']->transfer_window_id,
+            expectedTargetKingdomId: (string) $scenario['participant']->destination_kingdom_id,
+            evidenceId: 'approved-evidence-rules-no-classification',
+            reviewId: 'review-rules-no-classification',
+            schemaVersion: 'transfer-target-kingdom-rules/1',
+            idempotencyKey: hash('sha256', 'rules-no-classification'),
+            powerCap: 81_000_000,
+            classification: null,
+            observedAt: $this->now->subMinutes(8)->toIso8601String(),
+        );
+
+        $condition = TransferKingdomConditionObservation::query()->sole();
+        self::assertSame(81_000_000, (int) $condition->power_cap);
+        self::assertNull($condition->classification);
+        self::assertSame(1, TransferEvidenceReceipt::query()->count());
+        self::assertSame($receipt->receiptId, (string) TransferEvidenceReceipt::query()->sole()->id);
+    }
+
     public function test_each_schema_uses_a_dedicated_owner_action_and_none_creates_in_game_rules_verified(): void
     {
         $scenario = $this->outgoingScenario(7621, 7622);
