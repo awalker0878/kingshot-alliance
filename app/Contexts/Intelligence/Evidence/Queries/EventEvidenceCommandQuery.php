@@ -24,6 +24,7 @@ final readonly class EventEvidenceCommandQuery
      * The target query reauthorizes the concrete occurrence before any private Evidence is read.
      *
      * @return array{
+     *     coverageComplete:bool,
      *     evidenceCount:int,
      *     processingCount:int,
      *     awaitingReviewCount:int,
@@ -37,13 +38,30 @@ final readonly class EventEvidenceCommandQuery
     public function forBearHuntOccurrence(string $actorPlayerId, string $occurrenceId): array
     {
         $target = $this->targets->authorizeManage($actorPlayerId, $occurrenceId);
-        $evidence = GameEvidence::query()
+        $candidates = GameEvidence::query()
             ->where('alliance_id', $target->allianceId)
             ->where('occurrence_id', $target->occurrenceId)
             ->where('lifecycle_status', '!=', EvidenceLifecycleStatus::Deleted->value)
             ->orderByDesc('created_at')
-            ->limit(self::MAX_EVIDENCE)
+            ->limit(self::MAX_EVIDENCE + 1)
             ->get(['id', 'lifecycle_status']);
+        $coverageComplete = $candidates->count() <= self::MAX_EVIDENCE;
+        $evidence = $candidates->take(self::MAX_EVIDENCE)->values();
+
+        if (! $coverageComplete) {
+            return [
+                'coverageComplete' => false,
+                'evidenceCount' => $evidence->count(),
+                'processingCount' => 0,
+                'awaitingReviewCount' => 0,
+                'unmatchedGovernorCount' => 0,
+                'commitPendingCount' => 0,
+                'commitFailedCount' => 0,
+                'processingFailedCount' => 0,
+                'committedCount' => 0,
+            ];
+        }
+
         $evidenceIds = $evidence
             ->pluck('id')
             ->map(static fn ($id): string => (string) $id)
@@ -91,6 +109,7 @@ final readonly class EventEvidenceCommandQuery
         )->count();
 
         return [
+            'coverageComplete' => true,
             'evidenceCount' => $evidence->count(),
             'processingCount' => $evidence->filter(
                 static fn (GameEvidence $item): bool => in_array(
