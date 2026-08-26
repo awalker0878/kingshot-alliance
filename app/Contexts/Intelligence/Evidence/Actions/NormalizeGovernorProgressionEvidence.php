@@ -30,8 +30,7 @@ final readonly class NormalizeGovernorProgressionEvidence
         private PlayerReferenceQuery $players,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
-    ) {
-    }
+    ) {}
 
     public function handle(string $evidenceId, string $extractionAttemptId): void
     {
@@ -39,7 +38,7 @@ final readonly class NormalizeGovernorProgressionEvidence
         $attemptId = DB::transaction(function () use ($evidenceId, $extractionAttemptId, $dataset): string {
             $evidence = GameEvidence::query()->whereKey($evidenceId)->lockForUpdate()->firstOrFail();
             $kind = EvidenceKind::from((string) $evidence->getRawOriginal('kind'));
-            if (! $kind->isGovernorProgression()) {
+            if (!$kind->isGovernorProgression()) {
                 throw new RuntimeException('Only Governor Progression Evidence can be normalized against Progression.');
             }
             $extraction = EvidenceExtractionAttempt::query()
