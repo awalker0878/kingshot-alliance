@@ -74,7 +74,10 @@ abstract class AbstractTransferEvidenceExtractor
         return null;
     }
 
-    /** @param non-empty-list<OcrToken> $tokens */
+    /**
+     * @param non-empty-list<OcrToken> $tokens
+     * @param list<string> $warnings
+     */
     protected function candidate(string $key, int $ordinal, array $tokens, string $normalized, string $type, array $warnings = []): ExtractedFieldCandidate
     {
         $confidenceTotal = 0.0;
