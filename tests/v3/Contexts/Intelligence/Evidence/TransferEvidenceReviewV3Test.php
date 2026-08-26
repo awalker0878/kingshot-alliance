@@ -136,16 +136,16 @@ final class TransferEvidenceReviewV3Test extends TestCase
 
     /**
      * @param  array{
-     *   actor:PlayerReference,
-     *   alliance:AllianceReference,
-     *   roster:RosterEntryReference,
-     *   plan:TransferPlan,
-     *   participant:TransferParticipant,
-     *   targetNumber:int
+     *   actor: PlayerReference,
+     *   alliance: AllianceReference,
+     *   roster: RosterEntryReference,
+     *   plan: TransferPlan,
+     *   participant: TransferParticipant,
+     *   targetNumber: int
      * }  $scenario
-     * @param  list<array{0:string,1:string,2:string,3:string,4:float}>  $fields
+     * @param  list<array{string, string, string, string, float}>  $fields
      *
-     * @return array{0:GameEvidence,1:EvidenceExtractionAttempt}
+     * @return array{GameEvidence, EvidenceExtractionAttempt}
      */
     private function evidence(array $scenario, EvidenceKind $kind, string $schemaVersion, array $fields): array
     {
@@ -210,12 +210,12 @@ final class TransferEvidenceReviewV3Test extends TestCase
 
     /**
      * @return array{
-     *   actor:PlayerReference,
-     *   alliance:AllianceReference,
-     *   roster:RosterEntryReference,
-     *   plan:TransferPlan,
-     *   participant:TransferParticipant,
-     *   targetNumber:int
+     *   actor: PlayerReference,
+     *   alliance: AllianceReference,
+     *   roster: RosterEntryReference,
+     *   plan: TransferPlan,
+     *   participant: TransferParticipant,
+     *   targetNumber: int
      * }
      */
     private function outgoingScenario(int $homeNumber, int $targetNumber): array
