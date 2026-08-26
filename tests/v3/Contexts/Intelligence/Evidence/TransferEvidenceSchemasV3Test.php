@@ -340,8 +340,8 @@ final class TransferEvidenceSchemasV3Test extends TestCase
     }
 
     /**
-     * @param array<string,mixed> $expected
-     * @param list<ExtractedFieldCandidate> $fields
+     * @param  array<string,mixed>  $expected
+     * @param  list<ExtractedFieldCandidate>  $fields
      */
     private function assertFixtureFields(array $expected, array $fields, string $case): void
     {
