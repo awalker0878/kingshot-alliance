@@ -1,0 +1,17 @@
+{
+  "schema_version": "governor-hero-detail/1",
+  "coverage_cases": [
+    {"name":"canonical","category":"canonical","expected_kind":"governor_hero_detail","ocr_confidence":0.98,"lines":["Hero Detail","Hero: Amadeus","Level 80","Stars 5","Substar 2","Widget 6"],"fields":{"hero_name":"Amadeus","level":"80","star":"5","substar":"2","widget_level":"6"}},
+    {"name":"alternate","category":"alternate_resolution","expected_kind":"governor_hero_detail","ocr_confidence":0.93,"lines":["Hero Details","Name: Amadeus","Lv. 80","Star 5","Widget 6"],"fields":{"hero_name":"Amadeus","level":"80","star":"5","widget_level":"6"}},
+    {"name":"crop","category":"safe_crop","expected_kind":"governor_hero_detail","ocr_confidence":0.96,"lines":["Hero Detail","Hero: Amadeus","Level 80"],"fields":{"hero_name":"Amadeus","level":"80"}},
+    {"name":"numeric","category":"numeric_grouping","expected_kind":"governor_hero_detail","ocr_confidence":0.96,"lines":["Hero Detail","Hero: Amadeus","Level 80","Widget 06"],"fields":{"hero_name":"Amadeus","level":"80","widget_level":"6"}},
+    {"name":"low","category":"low_confidence","expected_kind":"governor_hero_detail","ocr_confidence":0.35,"lines":["Hero Detail","Hero: Amadeus","Level 80"],"fields":{"hero_name":"Amadeus","level":"80"},"expect_below_field_threshold":true},
+    {"name":"adjacent","category":"adjacent_unrelated_numbers","expected_kind":"governor_hero_detail","ocr_confidence":0.96,"lines":["Hero Detail","Hero: Amadeus","Level 80","Power 99999999","Rank 7"],"fields":{"hero_name":"Amadeus","level":"80"},"forbidden_fields":["power","rank"]},
+    {"name":"missing","category":"missing_required_field","expected_kind":"governor_hero_detail","ocr_confidence":0.96,"lines":["Hero Detail","Level 80"],"fields":{"level":"80"}},
+    {"name":"unsupported","category":"unsupported_ui_variant","expected_kind":"unknown","ocr_confidence":0.96,"lines":["Hero","Statistics","Power 1000"],"fields":{}},
+    {"name":"wrong","category":"wrong_screenshot_class","expected_kind":"governor_gear","ocr_confidence":0.96,"lines":["Governor Gear","Gear Power 1,000,000"],"fields":{}},
+    {"name":"visual","category":"visual_duplicate_recompressed","expected_kind":"governor_hero_detail","ocr_confidence":0.88,"lines":["Hero Detail","Hero: Amadeus","Level 80","Stars 5","Substar 2","Widget 6"],"fields":{"hero_name":"Amadeus","level":"80","star":"5","substar":"2","widget_level":"6"},"visual_duplicate_of":"canonical"},
+    {"name":"equal","category":"semantic_equal","expected_kind":"governor_hero_detail","ocr_confidence":0.98,"lines":["Hero Detail","Hero: Amadeus","Level 80","Stars 5"],"fields":{"hero_name":"Amadeus","level":"80","star":"5"},"semantic":{"observed_at":"2026-08-26T12:00:00Z"}},
+    {"name":"newer","category":"semantic_newer","expected_kind":"governor_hero_detail","ocr_confidence":0.98,"lines":["Hero Detail","Hero: Amadeus","Level 80","Stars 5","Widget 7"],"fields":{"hero_name":"Amadeus","level":"80","star":"5","widget_level":"7"},"semantic":{"observed_at":"2026-08-27T12:00:00Z"}}
+  ]
+}
