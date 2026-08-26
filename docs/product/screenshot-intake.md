@@ -59,7 +59,7 @@ Destination ownership remains explicit:
 - `Intelligence/Roster` owns accepted append-only Governor progression observations and their current-state projection.
 - `GameWorld/Progression` remains immutable factual catalogue truth and is a read-only dependency of Governor Progression normalization/validation.
 
-Cross-context writes use scalar IDs/value objects through destination-owner Actions. No foreign Eloquent model crosses the boundary.
+Cross-context writes use scalar IDs/value objects through destination-owner Actions. No foreign Eloquent model crosses the boundary. Shared Evidence reference contracts remain family-neutral; a family-specific destination provenance check uses an explicit Evidence-owned family contract rather than adding family-specific methods to a shared lookup used by other screenshot families.
 
 ## Narrow Evidence scopes
 
@@ -86,6 +86,8 @@ All currently supported screenshot classes require human review. Automatic commi
 ## Classification and extraction contract
 
 The user-selected expected screenshot class is a hint, not truth. Classification independently verifies the actual supported class. A mismatch is surfaced as unsupported/needs user correction and must never be routed blindly through the selected extractor.
+
+A fixture-proven explicit class header may independently satisfy a schema's classification threshold for a supported safe crop when the fixture corpus proves that header is unambiguous. Classification behavior is versioned provenance: changing scoring/threshold behavior requires a classifier-version change so historical attempts remain explainable.
 
 Every extractor is schema-bound and may emit only fields proven by that schema's executable fixture corpus. A field not fixture-proven for that schema cannot be extracted, reviewed into a commit command or committed by the destination.
 
@@ -182,7 +184,7 @@ Governor Progression commits through six dedicated `Intelligence/Roster` Actions
 - `RecordGovernorGearEvidence`;
 - `RecordGovernorCharmsEvidence`.
 
-Those Actions reacquire current Roster authority, validate the exact approved review provenance and dataset pin, validate a closed typed payload against `GameWorld/Progression`, append immutable Roster-owned history, enforce destination idempotency and return scalar receipts. Evidence never writes Roster tables directly.
+Those Actions reacquire current Roster authority, validate the exact approved review provenance and dataset pin through the Governor-specific Evidence provenance contract, validate a closed typed payload against `GameWorld/Progression`, append immutable Roster-owned history, enforce destination idempotency and return scalar receipts. Evidence never writes Roster tables directly.
 
 ## Cross-context commit recovery
 
@@ -248,10 +250,11 @@ The umbrella Screenshot Intake capability is not declared fully closed while any
 6. Classification verifies the expected class rather than trusting it.
 7. Exact/visual/semantic duplicate semantics remain distinct from destination idempotency.
 8. Evidence deletion never silently rewrites accepted owner history.
-9. Extractor/provider/normalizer concerns remain behind versioned provenance contracts.
+9. Extractor/provider/normalizer/classifier concerns remain behind versioned provenance contracts.
 10. Vue/controllers do not own extraction rules, normalization formulas, retention policy or destination-domain validation.
 11. No compatibility shim, generic OCR family or unconstrained target polymorphism is introduced.
 12. Governor Progression Evidence cannot create, modify, correct or infer `GameWorld/Progression` truth.
+13. Shared Evidence reference contracts cannot acquire family-specific provenance methods; family-specific validation uses an explicit family-owned contract so one screenshot family cannot break another family's boundary.
 
 ## Definition of done
 
