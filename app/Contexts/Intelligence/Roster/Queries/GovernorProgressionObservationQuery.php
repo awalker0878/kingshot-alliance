@@ -13,6 +13,60 @@ final class GovernorProgressionObservationQuery
     /** @return array{history:list<array<string,mixed>>,current:array<string,mixed>,last_updated_at:?string} */
     public function forRosterEntry(string $allianceId, string $rosterEntryId): array
     {
+        $observations = $this->observations($allianceId, $rosterEntryId);
+
+        return [
+            'history' => $observations->reverse()->values()->map(fn (GovernorProgressionObservation $observation): array => $this->historyRow($observation))->all(),
+            'current' => $this->project($observations),
+            'last_updated_at' => $observations->isEmpty() ? null : $observations->last()?->captured_at->toIso8601String(),
+        ];
+    }
+
+    /**
+     * @param array<string,mixed> $payload
+     * @return array{before:array<string,mixed>,after:array<string,mixed>}
+     */
+    public function preview(
+        string $allianceId,
+        string $rosterEntryId,
+        EvidenceKind $kind,
+        array $payload,
+        string $capturedAt,
+        string $progressionDatasetId,
+        string $progressionDatasetChecksum,
+        string $evidenceId,
+        string $reviewId,
+    ): array {
+        $observations = $this->observations($allianceId, $rosterEntryId);
+        $before = $this->project($observations);
+        $synthetic = new GovernorProgressionObservation;
+        $synthetic->forceFill([
+            'id' => 'preview-'.$reviewId,
+            'alliance_id' => $allianceId,
+            'roster_entry_id' => $rosterEntryId,
+            'player_id' => 'preview',
+            'kind' => $kind,
+            'payload' => $payload,
+            'captured_at' => $capturedAt,
+            'progression_dataset_id' => $progressionDatasetId,
+            'progression_dataset_checksum' => $progressionDatasetChecksum,
+            'source' => 'screenshot_evidence',
+            'evidence_id' => $evidenceId,
+            'evidence_review_id' => $reviewId,
+            'destination_idempotency_key' => str_repeat('0', 64),
+            'accepted_by_player_id' => 'preview',
+            'accepted_at' => now(),
+        ]);
+        $withPreview = $observations->push($synthetic)
+            ->sortBy(static fn (GovernorProgressionObservation $observation): string => $observation->captured_at->format('Y-m-d\TH:i:s.u\Z').'|'.(string) $observation->id)
+            ->values();
+
+        return ['before' => $before, 'after' => $this->project($withPreview)];
+    }
+
+    /** @return Collection<int,GovernorProgressionObservation> */
+    private function observations(string $allianceId, string $rosterEntryId): Collection
+    {
         /** @var Collection<int,GovernorProgressionObservation> $observations */
         $observations = GovernorProgressionObservation::query()
             ->where('alliance_id', $allianceId)
@@ -20,6 +74,13 @@ final class GovernorProgressionObservationQuery
             ->orderBy('captured_at')
             ->orderBy('id')
             ->get();
+
+        return $observations;
+    }
+
+    /** @param Collection<int,GovernorProgressionObservation> $observations @return array<string,mixed> */
+    private function project(Collection $observations): array
+    {
         $current = [
             'profile' => [],
             'heroes' => [],
@@ -32,14 +93,20 @@ final class GovernorProgressionObservationQuery
             $this->apply($current, $observation, $payload);
         }
         ksort($current['heroes']);
+        foreach ($current['heroes'] as &$hero) {
+            if (is_array($hero['facts'] ?? null)) {
+                ksort($hero['facts']);
+            }
+            if (is_array($hero['gear'] ?? null)) {
+                ksort($hero['gear']);
+            }
+        }
+        unset($hero);
         ksort($current['governorGear']);
         ksort($current['charms']);
+        ksort($current['profile']);
 
-        return [
-            'history' => $observations->reverse()->values()->map(fn (GovernorProgressionObservation $observation): array => $this->historyRow($observation))->all(),
-            'current' => $current,
-            'last_updated_at' => $observations->isEmpty() ? null : $observations->last()?->captured_at->toIso8601String(),
-        ];
+        return $current;
     }
 
     /** @param array<string,mixed> $current @param array<string,mixed> $payload */
