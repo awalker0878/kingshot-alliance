@@ -63,10 +63,10 @@ final class TransferEvidenceReviewV3Test extends TestCase
 
         $this->expectException(ValidationException::class);
         app(SaveTransferEvidenceReview::class)->handle(
-            actorPlayerId: $scenario['actor']->playerId,
-            allianceId: $scenario['alliance']->allianceId,
-            planId: (string) $scenario['plan']->id,
-            participantId: (string) $scenario['participant']->id,
+            actorPlayerId: $scenario->actor->playerId,
+            allianceId: $scenario->alliance->allianceId,
+            planId: (string) $scenario->plan->id,
+            participantId: (string) $scenario->participant->id,
             evidenceId: (string) $evidence->id,
             extractionAttemptId: (string) $extraction->id,
             observedAt: $this->now->subMinutes(10)->toIso8601String(),
@@ -91,10 +91,10 @@ final class TransferEvidenceReviewV3Test extends TestCase
 
         $this->expectException(ValidationException::class);
         app(SaveTransferEvidenceReview::class)->handle(
-            actorPlayerId: $scenario['actor']->playerId,
-            allianceId: $scenario['alliance']->allianceId,
-            planId: (string) $scenario['plan']->id,
-            participantId: (string) $scenario['participant']->id,
+            actorPlayerId: $scenario->actor->playerId,
+            allianceId: $scenario->alliance->allianceId,
+            planId: (string) $scenario->plan->id,
+            participantId: (string) $scenario->participant->id,
             evidenceId: (string) $evidence->id,
             extractionAttemptId: (string) $extraction->id,
             observedAt: $this->now->subMinutes(10)->toIso8601String(),
@@ -117,10 +117,10 @@ final class TransferEvidenceReviewV3Test extends TestCase
         $source = EvidenceExtractedField::query()->where('extraction_attempt_id', $extraction->id)->firstOrFail();
 
         $reviewId = app(SaveTransferEvidenceReview::class)->handle(
-            actorPlayerId: $scenario['actor']->playerId,
-            allianceId: $scenario['alliance']->allianceId,
-            planId: (string) $scenario['plan']->id,
-            participantId: (string) $scenario['participant']->id,
+            actorPlayerId: $scenario->actor->playerId,
+            allianceId: $scenario->alliance->allianceId,
+            planId: (string) $scenario->plan->id,
+            participantId: (string) $scenario->participant->id,
             evidenceId: (string) $evidence->id,
             extractionAttemptId: (string) $extraction->id,
             observedAt: $this->now->subMinutes(10)->toIso8601String(),
@@ -135,26 +135,17 @@ final class TransferEvidenceReviewV3Test extends TestCase
     }
 
     /**
-     * @param  array{
-     *     actor: PlayerReference,
-     *     alliance: AllianceReference,
-     *     roster: RosterEntryReference,
-     *     plan: TransferPlan,
-     *     participant: TransferParticipant,
-     *     targetNumber: int
-     * }  $scenario
      * @param  list<array{string, string, string, string, float}>  $fields
-     *
      * @return array{GameEvidence, EvidenceExtractionAttempt}
      */
-    private function evidence(array $scenario, EvidenceKind $kind, string $schemaVersion, array $fields): array
+    private function evidence(TransferEvidenceReviewScenario $scenario, EvidenceKind $kind, string $schemaVersion, array $fields): array
     {
-        $hash = hash('sha256', $kind->value.'-'.count($fields).'-'.$scenario['participant']->id);
+        $hash = hash('sha256', $kind->value.'-'.count($fields).'-'.$scenario->participant->id);
         $evidence = GameEvidence::query()->create([
-            'alliance_id' => $scenario['alliance']->allianceId,
+            'alliance_id' => $scenario->alliance->allianceId,
             'occurrence_id' => null,
-            'transfer_plan_id' => $scenario['plan']->id,
-            'transfer_participant_id' => $scenario['participant']->id,
+            'transfer_plan_id' => $scenario->plan->id,
+            'transfer_participant_id' => $scenario->participant->id,
             'expected_kind' => $kind,
             'kind' => $kind,
             'lifecycle_status' => EvidenceLifecycleStatus::NeedsReview,
@@ -166,7 +157,7 @@ final class TransferEvidenceReviewV3Test extends TestCase
             'width' => 1080,
             'height' => 1920,
             'sha256' => $hash,
-            'uploaded_by_player_id' => $scenario['actor']->playerId,
+            'uploaded_by_player_id' => $scenario->actor->playerId,
             'scanned_at' => now(),
         ]);
         $classification = EvidenceClassificationAttempt::query()->create([
@@ -208,17 +199,7 @@ final class TransferEvidenceReviewV3Test extends TestCase
         return [$evidence, $extraction];
     }
 
-    /**
-     * @return array{
-     *     actor: PlayerReference,
-     *     alliance: AllianceReference,
-     *     roster: RosterEntryReference,
-     *     plan: TransferPlan,
-     *     participant: TransferParticipant,
-     *     targetNumber: int
-     * }
-     */
-    private function outgoingScenario(int $homeNumber, int $targetNumber): array
+    private function outgoingScenario(int $homeNumber, int $targetNumber): TransferEvidenceReviewScenario
     {
         $scenarios = app(ScenarioFactory::class);
         $account = $scenarios->account();
@@ -259,6 +240,23 @@ final class TransferEvidenceReviewV3Test extends TestCase
         );
         $participant = TransferParticipant::query()->where('transfer_plan_id', $plan->id)->firstOrFail();
 
-        return compact('actor', 'alliance', 'roster', 'plan', 'participant', 'targetNumber');
+        return new TransferEvidenceReviewScenario(
+            actor: $actor,
+            alliance: $alliance,
+            roster: $roster,
+            plan: $plan,
+            participant: $participant,
+        );
     }
+}
+
+final readonly class TransferEvidenceReviewScenario
+{
+    public function __construct(
+        public PlayerReference $actor,
+        public AllianceReference $alliance,
+        public RosterEntryReference $roster,
+        public TransferPlan $plan,
+        public TransferParticipant $participant,
+    ) {}
 }
