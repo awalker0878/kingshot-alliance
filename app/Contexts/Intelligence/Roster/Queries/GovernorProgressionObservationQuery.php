@@ -14,11 +14,18 @@ final class GovernorProgressionObservationQuery
     public function forRosterEntry(string $allianceId, string $rosterEntryId): array
     {
         $observations = $this->observations($allianceId, $rosterEntryId);
+        $history = $observations
+            ->reverse()
+            ->values()
+            ->map(fn (GovernorProgressionObservation $observation): array => $this->historyRow($observation))
+            ->all();
 
         return [
-            'history' => $observations->reverse()->values()->map(fn (GovernorProgressionObservation $observation): array => $this->historyRow($observation))->all(),
+            'history' => array_values($history),
             'current' => $this->project($observations),
-            'last_updated_at' => $observations->isEmpty() ? null : $observations->last()?->captured_at->toIso8601String(),
+            'last_updated_at' => $observations->isEmpty()
+                ? null
+                : $observations->last()->captured_at->toIso8601String(),
         ];
     }
 
