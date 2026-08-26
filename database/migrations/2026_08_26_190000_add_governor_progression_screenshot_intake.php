@@ -166,14 +166,23 @@ return new class extends Migration
 
     private function addScopeConstraint(bool $includeGovernor): void
     {
-        $bear = '(occurrence_id IS NOT NULL AND roster_entry_id IS NULL AND transfer_plan_id IS NULL AND transfer_participant_id IS NULL)';
-        $transfer = '(occurrence_id IS NULL AND roster_entry_id IS NULL AND transfer_plan_id IS NOT NULL AND transfer_participant_id IS NOT NULL)';
-        $governor = '(occurrence_id IS NULL AND roster_entry_id IS NOT NULL AND transfer_plan_id IS NULL AND transfer_participant_id IS NULL)';
-        $valid = $includeGovernor ? "({$bear} OR {$transfer} OR {$governor})" : "({$bear} OR {$transfer})";
+        if ($includeGovernor) {
+            $bear = '(occurrence_id IS NOT NULL AND roster_entry_id IS NULL AND transfer_plan_id IS NULL AND transfer_participant_id IS NULL)';
+            $transfer = '(occurrence_id IS NULL AND roster_entry_id IS NULL AND transfer_plan_id IS NOT NULL AND transfer_participant_id IS NOT NULL)';
+            $governor = '(occurrence_id IS NULL AND roster_entry_id IS NOT NULL AND transfer_plan_id IS NULL AND transfer_participant_id IS NULL)';
+            $valid = "({$bear} OR {$transfer} OR {$governor})";
+            $updateColumns = 'occurrence_id, roster_entry_id, transfer_plan_id, transfer_participant_id';
+        } else {
+            $bear = '(occurrence_id IS NOT NULL AND transfer_plan_id IS NULL AND transfer_participant_id IS NULL)';
+            $transfer = '(occurrence_id IS NULL AND transfer_plan_id IS NOT NULL AND transfer_participant_id IS NOT NULL)';
+            $valid = "({$bear} OR {$transfer})";
+            $updateColumns = 'occurrence_id, transfer_plan_id, transfer_participant_id';
+        }
+
         $driver = DB::getDriverName();
         if ($driver === 'sqlite') {
             DB::statement("CREATE TRIGGER game_evidence_scope_insert BEFORE INSERT ON game_evidence WHEN NOT {$valid} BEGIN SELECT RAISE(ABORT, 'invalid game evidence scope'); END");
-            DB::statement("CREATE TRIGGER game_evidence_scope_update BEFORE UPDATE OF occurrence_id, roster_entry_id, transfer_plan_id, transfer_participant_id ON game_evidence WHEN NOT {$valid} BEGIN SELECT RAISE(ABORT, 'invalid game evidence scope'); END");
+            DB::statement("CREATE TRIGGER game_evidence_scope_update BEFORE UPDATE OF {$updateColumns} ON game_evidence WHEN NOT {$valid} BEGIN SELECT RAISE(ABORT, 'invalid game evidence scope'); END");
 
             return;
         }
