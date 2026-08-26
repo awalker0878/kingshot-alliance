@@ -69,6 +69,7 @@ final class GovernorProgressionEvidenceFixtureCorpusV3Test extends TestCase
                         $schema->fixtureCorpus.':'.$case['name'].':forbidden',
                     );
                 }
+
                 if (($case['expect_below_field_threshold'] ?? false) === true) {
                     self::assertNotEmpty($fields, $schema->fixtureCorpus.':'.$case['name'].':low-confidence candidate');
                     self::assertLessThan(
@@ -76,6 +77,7 @@ final class GovernorProgressionEvidenceFixtureCorpusV3Test extends TestCase
                         min(array_map(static fn (ExtractedFieldCandidate $field): float => $field->confidence, $fields)),
                     );
                 }
+
                 $this->assertExpectedFields($case['fields'] ?? [], $fields, $schema->fixtureCorpus.':'.$case['name']);
             }
 
