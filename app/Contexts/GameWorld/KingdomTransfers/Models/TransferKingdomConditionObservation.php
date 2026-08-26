@@ -18,7 +18,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $transfer_window_id
  * @property string $kingdom_id
  * @property int|null $power_cap
- * @property TransferKingdomClassification $classification
+ * @property TransferKingdomClassification|null $classification
  * @property TransferSourceType $source_type
  * @property string $source_reference
  * @property CarbonImmutable $observed_at
