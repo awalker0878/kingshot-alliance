@@ -99,6 +99,32 @@ const classLabels = computed<Record<string, string>>(() => ({
   governor_charms: t('progression.governorCharmsScreenshot'),
 }));
 
+const factLabels = computed<Record<string, string>>(() => ({
+  observed_name: t('progression.observedName'),
+  power: t('progression.observedPower'),
+  progression_level: t('progression.progressionLevel'),
+  observed_alliance_tag: t('progression.observedAllianceTag'),
+  kingdom_number: t('progression.kingdomNumber'),
+  hero_name: t('progression.hero'),
+  hero_id: t('progression.hero'),
+  level: t('progression.level'),
+  star: t('progression.star'),
+  substar: t('progression.substar'),
+  widget_level: t('progression.widgetLevel'),
+  gear_slot: t('progression.gearSlot'),
+  slot_id: t('progression.gearSlot'),
+  gear_quality: t('progression.quality'),
+  quality: t('progression.quality'),
+  gear_level: t('progression.level'),
+  gear_star: t('progression.star'),
+  mastery_level: t('progression.masteryLevel'),
+  charm_slot: t('progression.charmSlot'),
+  charm_name: t('progression.charmIdentity'),
+  charm_id: t('progression.charmIdentity'),
+  charm_level: t('progression.level'),
+  complete_roster_capture: t('progression.completeRosterCapture'),
+}));
+
 function localDateTimeValue(date = new Date()): string {
   const local = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
   return local.toISOString().slice(0, 16);
@@ -127,6 +153,10 @@ function emptyDraft(kind: string): ReviewDraft {
 
 function labelForClass(kind: string): string {
   return classLabels.value[kind] ?? kind;
+}
+
+function labelForFact(key: string): string {
+  return factLabels.value[key] ?? key.replaceAll('_', ' ');
 }
 
 function schemaFor(kind: string): GovernorProgressionSchema | undefined {
@@ -501,7 +531,9 @@ function heroName(heroIdValue: string): string {
 
 function factValue(fact: GovernorProgressionFact | undefined): string {
   if (!fact) return '—';
-  if (typeof fact.value === 'boolean') return fact.value ? 'Yes' : 'No';
+  if (typeof fact.value === 'boolean') {
+    return fact.value ? t('progression.yes') : t('progression.no');
+  }
   return String(fact.value ?? '—');
 }
 
@@ -510,13 +542,15 @@ function factDate(fact: GovernorProgressionFact | undefined): string {
 }
 
 function evidenceStatus(item: GovernorProgressionEvidenceSummary): string {
-  if (item.commit?.status === 'completed') return t('progression.screenshotCommitted');
+  if (item.commit?.status === 'succeeded') return t('progression.screenshotCommitted');
   if (item.lifecycleStatus === 'deleted') return t('progression.screenshotDeleted');
   if (item.lifecycleStatus === 'failed') return t('progression.screenshotProcessingFailed');
-  if (['uploaded', 'classifying', 'classified', 'extracting'].includes(item.lifecycleStatus)) {
-    return t('progression.processingScreenshot');
-  }
-  return item.lifecycleStatus.replaceAll('_', ' ');
+  if (item.lifecycleStatus === 'unsupported') return t('progression.screenshotUnsupported');
+  if (item.lifecycleStatus === 'needs_review') return t('progression.screenshotNeedsReview');
+  if (item.lifecycleStatus === 'approved') return t('progression.screenshotApproved');
+  if (item.lifecycleStatus === 'committing') return t('progression.screenshotCommitting');
+  if (item.lifecycleStatus === 'committed') return t('progression.screenshotCommitted');
+  return t('progression.processingScreenshot');
 }
 </script>
 
@@ -615,7 +649,7 @@ function evidenceStatus(item: GovernorProgressionEvidenceSummary): string {
             class="rounded border border-[var(--ks-border)] p-4"
           >
             <p class="text-xs font-semibold tracking-wide text-[var(--ks-muted)] uppercase">
-              {{ String(key).replaceAll('_', ' ') }}
+              {{ labelForFact(String(key)) }}
             </p>
             <p class="mt-1 text-lg font-semibold">{{ factValue(fact) }}</p>
             <p class="mt-1 text-xs text-[var(--ks-muted)]">
@@ -645,7 +679,7 @@ function evidenceStatus(item: GovernorProgressionEvidenceSummary): string {
             </div>
             <dl class="mt-3 grid grid-cols-2 gap-2 text-sm">
               <template v-for="(fact, key) in hero.facts" :key="key">
-                <dt class="text-[var(--ks-muted)]">{{ String(key).replaceAll('_', ' ') }}</dt>
+                <dt class="text-[var(--ks-muted)]">{{ labelForFact(String(key)) }}</dt>
                 <dd class="text-end">
                   {{ factValue(fact) }}
                   <span class="block text-[0.68rem] text-[var(--ks-muted)]">
@@ -666,7 +700,7 @@ function evidenceStatus(item: GovernorProgressionEvidenceSummary): string {
                 <p class="font-semibold">{{ slot }}</p>
                 <p class="mt-1 text-[var(--ks-muted)]">
                   <span v-for="(fact, key) in gearFacts" :key="key" class="me-2">
-                    {{ key }}: {{ factValue(fact) }}
+                    {{ labelForFact(String(key)) }}: {{ factValue(fact) }}
                   </span>
                 </p>
               </div>
@@ -692,7 +726,7 @@ function evidenceStatus(item: GovernorProgressionEvidenceSummary): string {
                 <p class="font-semibold">{{ slot }}</p>
                 <p class="mt-1 text-[var(--ks-muted)]">
                   <span v-for="(fact, key) in facts" :key="key" class="me-2">
-                    {{ key }}: {{ factValue(fact) }}
+                    {{ labelForFact(String(key)) }}: {{ factValue(fact) }}
                   </span>
                 </p>
               </div>
@@ -710,7 +744,7 @@ function evidenceStatus(item: GovernorProgressionEvidenceSummary): string {
                 <p class="font-semibold">{{ slot }}</p>
                 <p class="mt-1 text-[var(--ks-muted)]">
                   <span v-for="(fact, key) in facts" :key="key" class="me-2">
-                    {{ key }}: {{ factValue(fact) }}
+                    {{ labelForFact(String(key)) }}: {{ factValue(fact) }}
                   </span>
                 </p>
               </div>
@@ -731,7 +765,13 @@ function evidenceStatus(item: GovernorProgressionEvidenceSummary): string {
               :key="String(observation.id ?? observation.evidenceId ?? observation.capturedAt)"
               class="border-b border-[var(--ks-border)] px-4 py-3 text-xs last:border-b-0"
             >
-              <span class="font-semibold">{{ observation.kind ?? 'observation' }}</span>
+              <span class="font-semibold">
+                {{
+                  observation.kind
+                    ? labelForClass(String(observation.kind))
+                    : t('progression.observationLabel')
+                }}
+              </span>
               <span v-if="observation.capturedAt" class="ms-2 text-[var(--ks-muted)]">
                 {{
                   formatDate(String(observation.capturedAt), {
@@ -790,14 +830,18 @@ function evidenceStatus(item: GovernorProgressionEvidenceSummary): string {
                 {{ item.normalization.datasetChecksum }}
               </p>
               <p v-if="item.visualDuplicate" class="mt-2 text-sm" role="status">
-                Visual duplicate warning · distance {{ item.visualDuplicate.distance ?? 'unknown' }}
+                {{
+                  t('progression.visualDuplicateWarning', {
+                    distance: item.visualDuplicate.distance ?? t('progression.unknown'),
+                  })
+                }}
               </p>
               <p
                 v-if="item.expectedKind !== item.detectedKind && item.detectedKind !== 'unknown'"
                 class="mt-2 text-sm font-semibold"
                 role="alert"
               >
-                Expected/detected class mismatch — review the detected class before approval.
+                {{ t('progression.screenshotClassMismatch') }}
               </p>
             </div>
 
@@ -840,7 +884,7 @@ function evidenceStatus(item: GovernorProgressionEvidenceSummary): string {
                 class="rounded border border-[var(--ks-border)] p-3 text-xs"
               >
                 <div class="flex items-start justify-between gap-2">
-                  <span class="font-semibold">{{ fieldKey(machineField) }}</span>
+                  <span class="font-semibold">{{ labelForFact(fieldKey(machineField)) }}</span>
                   <span>{{ confidenceLabel(machineField.confidence) }}</span>
                 </div>
                 <p class="mt-2 text-[var(--ks-muted)]">
@@ -903,7 +947,7 @@ function evidenceStatus(item: GovernorProgressionEvidenceSummary): string {
 
               <div v-if="reviewDraft.kind === 'governor_profile'" class="grid gap-3 sm:grid-cols-2">
                 <label class="text-xs text-[var(--ks-muted)]">
-                  <span>Observed name</span>
+                  <span>{{ t('progression.observedName') }}</span>
                   <input
                     v-model="reviewDraft.observed_name"
                     class="mt-1 min-h-11 w-full rounded border border-[var(--ks-border)] bg-black/20 px-3 text-sm"
@@ -925,14 +969,14 @@ function evidenceStatus(item: GovernorProgressionEvidenceSummary): string {
                   />
                 </label>
                 <label class="text-xs text-[var(--ks-muted)]">
-                  <span>Alliance tag</span>
+                  <span>{{ t('progression.observedAllianceTag') }}</span>
                   <input
                     v-model="reviewDraft.observed_alliance_tag"
                     class="mt-1 min-h-11 w-full rounded border border-[var(--ks-border)] bg-black/20 px-3 text-sm"
                   />
                 </label>
                 <label class="text-xs text-[var(--ks-muted)]">
-                  <span>Kingdom number</span>
+                  <span>{{ t('progression.kingdomNumber') }}</span>
                   <input
                     v-model="reviewDraft.kingdom_number"
                     inputmode="numeric"
@@ -1068,7 +1112,7 @@ function evidenceStatus(item: GovernorProgressionEvidenceSummary): string {
                   />
                 </label>
                 <label class="text-xs text-[var(--ks-muted)]">
-                  <span>Substar</span>
+                  <span>{{ t('progression.substar') }}</span>
                   <input
                     v-model="reviewDraft.substar"
                     type="number"
@@ -1258,7 +1302,9 @@ function evidenceStatus(item: GovernorProgressionEvidenceSummary): string {
           <div v-if="item.review" class="mt-5 rounded border border-[var(--ks-border)] p-4">
             <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
               <div>
-                <h4 class="font-semibold">Approved review #{{ item.review.revisionNumber }}</h4>
+                <h4 class="font-semibold">
+                  {{ t('progression.approvedReview', { revision: item.review.revisionNumber }) }}
+                </h4>
                 <p class="mt-1 text-xs break-all text-[var(--ks-muted)]">
                   {{ item.review.datasetId }} · {{ item.review.datasetChecksum }}
                 </p>
@@ -1282,7 +1328,7 @@ function evidenceStatus(item: GovernorProgressionEvidenceSummary): string {
                   {{ t('progression.destinationPreview') }}
                 </button>
                 <button
-                  v-if="!item.commit || item.commit.status !== 'completed'"
+                  v-if="!item.commit || item.commit.status !== 'succeeded'"
                   type="button"
                   class="min-h-11 rounded bg-[var(--ks-teal)] px-3 text-sm font-semibold"
                   :disabled="
@@ -1336,7 +1382,7 @@ function evidenceStatus(item: GovernorProgressionEvidenceSummary): string {
               </div>
             </div>
 
-            <div v-if="item.commit?.status === 'completed'" class="mt-4 text-sm" role="status">
+            <div v-if="item.commit?.status === 'succeeded'" class="mt-4 text-sm" role="status">
               <p class="font-semibold">{{ t('progression.destinationReceipt') }}</p>
               <p class="mt-1 text-xs break-all text-[var(--ks-muted)]">
                 {{ item.commit.destinationReceiptId }}
