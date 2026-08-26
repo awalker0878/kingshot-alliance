@@ -35,6 +35,17 @@ type ReviewCharmRow = {
   level: string;
 };
 
+type ReviewPayloadValue =
+  | string
+  | number
+  | boolean
+  | null
+  | undefined
+  | ReviewPayloadValue[]
+  | { [key: string]: ReviewPayloadValue };
+
+type ReviewPayload = Record<string, ReviewPayloadValue>;
+
 type ReviewDraft = {
   kind: string;
   capturedAt: string;
@@ -274,11 +285,11 @@ function optionalNumber(valueToParse: string): number | undefined {
   return Number.isFinite(parsed) ? parsed : undefined;
 }
 
-function reviewPayload(): Record<string, unknown> {
+function reviewPayload(): ReviewPayload {
   const draft = reviewDraft.value;
 
   if (draft.kind === 'governor_profile') {
-    const payload: Record<string, unknown> = {};
+    const payload: ReviewPayload = {};
     if (draft.observed_name.trim()) payload.observed_name = draft.observed_name.trim();
     if (draft.power.trim()) payload.power = draft.power.trim();
     if (draft.progression_level.trim()) {
@@ -297,7 +308,7 @@ function reviewPayload(): Record<string, unknown> {
       heroes: draft.heroes
         .filter((hero) => hero.hero_id !== '')
         .map((hero) => {
-          const row: Record<string, unknown> = { hero_id: hero.hero_id };
+          const row: ReviewPayload = { hero_id: hero.hero_id };
           const level = optionalNumber(hero.level);
           const star = optionalNumber(hero.star);
           const widget = optionalNumber(hero.widget_level);
@@ -311,7 +322,7 @@ function reviewPayload(): Record<string, unknown> {
   }
 
   if (draft.kind === 'governor_hero_detail') {
-    const payload: Record<string, unknown> = { hero_id: draft.hero_id };
+    const payload: ReviewPayload = { hero_id: draft.hero_id };
     for (const [key, raw] of [
       ['level', draft.level],
       ['star', draft.star],
@@ -328,7 +339,7 @@ function reviewPayload(): Record<string, unknown> {
     return {
       hero_id: draft.hero_id,
       gear: draft.gear.map((gear) => {
-        const row: Record<string, unknown> = { slot_id: gear.slot_id };
+        const row: ReviewPayload = { slot_id: gear.slot_id };
         if (gear.quality.trim()) row.quality = gear.quality.trim();
         const level = optionalNumber(gear.level);
         const mastery = optionalNumber(gear.mastery_level);
@@ -342,7 +353,7 @@ function reviewPayload(): Record<string, unknown> {
   if (draft.kind === 'governor_gear') {
     return {
       gear: draft.gear.map((gear) => {
-        const row: Record<string, unknown> = { slot_id: gear.slot_id };
+        const row: ReviewPayload = { slot_id: gear.slot_id };
         if (gear.quality.trim()) row.quality = gear.quality.trim();
         const level = optionalNumber(gear.level);
         const star = optionalNumber(gear.star);
@@ -355,7 +366,7 @@ function reviewPayload(): Record<string, unknown> {
 
   return {
     charms: draft.charms.map((charm) => {
-      const row: Record<string, unknown> = { slot_id: charm.slot_id };
+      const row: ReviewPayload = { slot_id: charm.slot_id };
       if (charm.charm_id.trim()) row.charm_id = charm.charm_id.trim();
       const level = optionalNumber(charm.level);
       if (level !== undefined) row.level = level;

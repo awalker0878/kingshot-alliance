@@ -117,14 +117,17 @@ final class GovernorProgressionEvidenceFixtureCorpusV3Test extends TestCase
         foreach ($expected as $key => $value) {
             if ($key === 'hero_names') {
                 self::assertSame($value, $byKey['hero_name'] ?? [], $case.':hero_names');
+
                 continue;
             }
             if ($key === 'gear_slots') {
                 self::assertSame($value, $byKey['gear_slot'] ?? [], $case.':gear_slots');
+
                 continue;
             }
             if ($key === 'charm_slots') {
                 self::assertSame($value, $byKey['charm_slot'] ?? [], $case.':charm_slots');
+
                 continue;
             }
             self::assertArrayHasKey($key, $byKey, $case.':'.$key);
