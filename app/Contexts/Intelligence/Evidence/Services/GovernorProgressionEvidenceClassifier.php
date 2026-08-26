@@ -18,7 +18,7 @@ final class GovernorProgressionEvidenceClassifier implements EvidenceClassifier
 
     public function version(): string
     {
-        return '1.0.0';
+        return '1.0.1';
     }
 
     public function classify(EvidenceKind $expectedKind, OcrDocument $document): ClassificationDecision
@@ -64,7 +64,7 @@ final class GovernorProgressionEvidenceClassifier implements EvidenceClassifier
     {
         $score = 0.0;
         if (str_contains($text, 'governor profile') || str_contains($text, 'governor info')) {
-            $score += 0.58;
+            $score += 0.62;
         }
         if (str_contains($text, 'governor power') || preg_match('/\bpower\s*[:#]?\s*[\d,]+/i', $text) === 1) {
             $score += 0.20;
