@@ -136,12 +136,12 @@ final class TransferEvidenceReviewV3Test extends TestCase
 
     /**
      * @param  array{
-     *   actor: PlayerReference,
-     *   alliance: AllianceReference,
-     *   roster: RosterEntryReference,
-     *   plan: TransferPlan,
-     *   participant: TransferParticipant,
-     *   targetNumber: int
+     *     actor: PlayerReference,
+     *     alliance: AllianceReference,
+     *     roster: RosterEntryReference,
+     *     plan: TransferPlan,
+     *     participant: TransferParticipant,
+     *     targetNumber: int
      * }  $scenario
      * @param  list<array{string, string, string, string, float}>  $fields
      *
@@ -210,12 +210,12 @@ final class TransferEvidenceReviewV3Test extends TestCase
 
     /**
      * @return array{
-     *   actor: PlayerReference,
-     *   alliance: AllianceReference,
-     *   roster: RosterEntryReference,
-     *   plan: TransferPlan,
-     *   participant: TransferParticipant,
-     *   targetNumber: int
+     *     actor: PlayerReference,
+     *     alliance: AllianceReference,
+     *     roster: RosterEntryReference,
+     *     plan: TransferPlan,
+     *     participant: TransferParticipant,
+     *     targetNumber: int
      * }
      */
     private function outgoingScenario(int $homeNumber, int $targetNumber): array
