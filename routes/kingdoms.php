@@ -11,6 +11,7 @@ use App\Contexts\GameWorld\KingdomTransfers\Http\Controllers\TransferPlanningCon
 use App\Contexts\GameWorld\KingdomTransfers\Http\Controllers\TransferReadinessController;
 use App\Contexts\Intelligence\Diplomacy\Http\Controllers\KingdomAllianceDiplomacyContactController;
 use App\Contexts\Intelligence\Diplomacy\Http\Controllers\KingdomAllianceDiplomacyController;
+use App\Contexts\Intelligence\Evidence\Http\Controllers\TransferEvidenceController;
 use App\Contexts\Intelligence\Ingestion\Http\Controllers\KingdomIngestionController;
 use App\Contexts\Intelligence\Observations\Http\Controllers\KingdomAllianceController;
 use App\Contexts\Intelligence\Observations\Http\Controllers\KingdomAllianceObservationController;
@@ -50,6 +51,10 @@ Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->gro
     Route::get('/alliance/transfers/manage', [TransferPlanController::class, 'manage'])->name('alliance.transfers.manage');
     Route::get('/alliance/transfers/readiness', [TransferReadinessController::class, 'index'])->name('alliance.transfers.readiness');
     Route::get('/alliance/transfers/completion', [TransferCompletionController::class, 'index'])->name('alliance.transfers.completion');
+    Route::get('/alliance/transfers/{plan}/participants/{participant}/evidence', [TransferEvidenceController::class, 'index'])->name('alliance.transfers.participants.evidence.index');
+    Route::get('/alliance/transfers/{plan}/participants/{participant}/evidence/{evidence}/image', [TransferEvidenceController::class, 'image'])->name('alliance.transfers.participants.evidence.image');
+    Route::get('/alliance/transfers/{plan}/participants/{participant}/evidence/reviews/{review}/preview', [TransferEvidenceController::class, 'preview'])->name('alliance.transfers.participants.evidence.preview');
+
     Route::middleware('password.confirm')->group(function (): void {
         Route::post('/alliance/settings/kingdom/roles', [KingdomRoleController::class, 'store'])->name('alliance.kingdom.roles.store');
         Route::delete('/alliance/settings/kingdom/roles/{assignment}', [KingdomRoleController::class, 'destroy'])->name('alliance.kingdom.roles.destroy');
@@ -100,5 +105,12 @@ Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->gro
         Route::post('/alliance/transfers/{plan}/participants/{participant}/blockers/{blocker}/resolve', [TransferReadinessController::class, 'resolveBlocker'])->name('alliance.transfers.participants.blockers.resolve');
         Route::post('/alliance/transfers/{plan}/participants/{participant}/withdraw', [TransferParticipantController::class, 'withdraw'])->name('alliance.transfers.participants.withdraw');
         Route::post('/alliance/transfers/{plan}/participants/{participant}/complete', [TransferCompletionController::class, 'store'])->name('alliance.transfers.participants.complete');
+
+        Route::post('/alliance/transfers/{plan}/participants/{participant}/evidence', [TransferEvidenceController::class, 'store'])->name('alliance.transfers.participants.evidence.store');
+        Route::post('/alliance/transfers/{plan}/participants/{participant}/evidence/{evidence}/review', [TransferEvidenceController::class, 'review'])->name('alliance.transfers.participants.evidence.review');
+        Route::post('/alliance/transfers/{plan}/participants/{participant}/evidence/reviews/{review}/resolve-duplicate', [TransferEvidenceController::class, 'resolveDuplicate'])->name('alliance.transfers.participants.evidence.resolve-duplicate');
+        Route::post('/alliance/transfers/{plan}/participants/{participant}/evidence/reviews/{review}/commit', [TransferEvidenceController::class, 'commit'])->name('alliance.transfers.participants.evidence.commit');
+        Route::post('/alliance/transfers/{plan}/participants/{participant}/evidence/{evidence}/retry', [TransferEvidenceController::class, 'retry'])->name('alliance.transfers.participants.evidence.retry');
+        Route::delete('/alliance/transfers/{plan}/participants/{participant}/evidence/{evidence}', [TransferEvidenceController::class, 'destroy'])->name('alliance.transfers.participants.evidence.destroy');
     });
 });
