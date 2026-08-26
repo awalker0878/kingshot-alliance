@@ -18,6 +18,7 @@ final readonly class RoutedEvidenceExtractor implements EvidenceExtractor
         private TransferInvitationExtractor $invitation,
         private TransferTargetKingdomRulesExtractor $targetRules,
         private TransferOfficialGroupExtractor $officialGroup,
+        private GovernorProgressionEvidenceExtractor $governorProgression,
     ) {}
 
     public function key(EvidenceKind $kind): string
@@ -64,6 +65,12 @@ final readonly class RoutedEvidenceExtractor implements EvidenceExtractor
             EvidenceKind::TransferInvitation => $this->invitation,
             EvidenceKind::TransferTargetKingdomRules => $this->targetRules,
             EvidenceKind::TransferOfficialGroup => $this->officialGroup,
+            EvidenceKind::GovernorProfile,
+            EvidenceKind::GovernorHeroRoster,
+            EvidenceKind::GovernorHeroDetail,
+            EvidenceKind::GovernorHeroGear,
+            EvidenceKind::GovernorGear,
+            EvidenceKind::GovernorCharms => $this->governorProgression,
             EvidenceKind::Unknown => null,
         };
     }
