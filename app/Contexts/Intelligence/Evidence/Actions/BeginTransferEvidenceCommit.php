@@ -121,11 +121,13 @@ final readonly class BeginTransferEvidenceCommit
                 $this->outbox->record('evidence.transfer_commit_started', $allianceId, $evidence, $metadata);
             }
 
+            /** @var list<int> $kingdomNumbers */
             $kingdomNumbers = TransferEvidenceReviewKingdom::query()
                 ->where('review_id', $review->id)
                 ->orderBy('ordinal')
                 ->pluck('kingdom_number')
                 ->map(static fn ($number): int => (int) $number)
+                ->values()
                 ->all();
 
             return new ReviewedTransferEvidenceCommitCommand(
