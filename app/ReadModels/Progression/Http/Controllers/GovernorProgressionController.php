@@ -11,7 +11,11 @@ use App\Contexts\GameWorld\Players\Services\PlayerContext;
 use App\Contexts\GameWorld\Progression\Queries\ProgressionDatasetQuery;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
+use App\Contexts\Intelligence\Evidence\Enums\EvidenceKind;
+use App\Contexts\Intelligence\Evidence\Queries\GovernorProgressionEvidenceSummaryQuery;
+use App\Contexts\Intelligence\Evidence\Services\GovernorProgressionEvidenceSchemaRegistry;
 use App\Contexts\Intelligence\Roster\Models\PlayerSnapshot;
+use App\Contexts\Intelligence\Roster\Queries\GovernorProgressionObservationQuery;
 use App\Contexts\Operations\Rallies\Models\PlayerFormation;
 use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Http\Request;
@@ -25,6 +29,9 @@ final class GovernorProgressionController extends Controller
         PlayerContext $context,
         ProgressionDatasetQuery $datasets,
         AllianceIntelligenceAuthorization $intelligence,
+        GovernorProgressionObservationQuery $progressionObservations,
+        GovernorProgressionEvidenceSummaryQuery $evidenceSummaries,
+        GovernorProgressionEvidenceSchemaRegistry $evidenceSchemas,
     ): Response {
         $player = $context->player();
         $dataset = $datasets->latest();
@@ -57,6 +64,29 @@ final class GovernorProgressionController extends Controller
                 ->limit(50)
                 ->get()
             : collect();
+
+        $progressionObservationState = $entry instanceof AllianceRosterEntry && $canViewObservations
+            ? $progressionObservations->forRosterEntry((string) $allianceId, (string) $entry->id)
+            : ['history' => [], 'current' => ['profile' => [], 'heroes' => [], 'governorGear' => [], 'charms' => [], 'completeRosterCapture' => null], 'last_updated_at' => null];
+        $evidenceWorkspace = $entry instanceof AllianceRosterEntry && $canManageObservations
+            ? [
+                'schemas' => array_map(static function (EvidenceKind $kind) use ($evidenceSchemas): array {
+                    $schema = $evidenceSchemas->require($kind);
+
+                    return [
+                        'kind' => $kind->value,
+                        'version' => $schema->version,
+                        'supportedFields' => $schema->supportedFields,
+                        'requiredFields' => $schema->requiredFields,
+                        'minimumClassificationConfidence' => $schema->minimumClassificationConfidence,
+                        'minimumFieldConfidence' => $schema->minimumFieldConfidence,
+                        'fixtureCorpus' => $schema->fixtureCorpus,
+                        'destinationAction' => $schema->destinationAction,
+                    ];
+                }, EvidenceKind::governorProgressionCases()),
+                'evidence' => $evidenceSummaries->forRosterEntry((string) $allianceId, (string) $entry->id),
+            ]
+            : ['schemas' => [], 'evidence' => []];
 
         $formations = PlayerFormation::query()
             ->where('player_id', $player->playerId)
@@ -102,6 +132,8 @@ final class GovernorProgressionController extends Controller
                 'datasetChecksum' => $snapshot->progression_dataset_checksum,
                 'heroObservations' => is_array($snapshot->hero_observations) ? $snapshot->hero_observations : [],
             ])->values()->all(),
+            'progressionObservationState' => $progressionObservationState,
+            'evidenceWorkspace' => $evidenceWorkspace,
             'loadouts' => $formations->map(static fn (PlayerFormation $formation): array => [
                 'id' => (string) $formation->id,
                 'name' => (string) $formation->name,
