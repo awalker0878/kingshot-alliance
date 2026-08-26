@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Contexts\Intelligence\Evidence\Http\Controllers;
 
 use App\Contexts\Alliance\Lifecycle\Services\AllianceContext;
+use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferEvidencePreviewKind;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferInvitationStatus;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferKingdomClassification;
 use App\Contexts\GameWorld\KingdomTransfers\Queries\TransferEvidencePreviewQuery;
@@ -112,11 +113,13 @@ final class TransferEvidenceController extends Controller
             ->where('transfer_plan_id', $plan)
             ->where('transfer_participant_id', $participant)
             ->firstOrFail();
+        /** @var list<int> $kingdomNumbers */
         $kingdomNumbers = TransferEvidenceReviewKingdom::query()
             ->where('review_id', $item->id)
             ->orderBy('ordinal')
             ->pluck('kingdom_number')
             ->map(static fn ($number): int => (int) $number)
+            ->values()
             ->all();
         $result = $preview->preview(
             $scope->playerId,
@@ -124,7 +127,7 @@ final class TransferEvidenceController extends Controller
             $plan,
             $participant,
             new TransferEvidencePreviewInput(
-                kind: $item->evidence_kind,
+                kind: TransferEvidencePreviewKind::from($item->evidence_kind->value),
                 observedAt: $item->observed_at->toIso8601String(),
                 validUntil: $item->valid_until?->toIso8601String(),
                 governorPower: $item->governor_power,
