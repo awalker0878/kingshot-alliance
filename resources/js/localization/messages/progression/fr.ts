@@ -42,7 +42,8 @@ const messages = {
     widgetLevel: 'Niveau du Widget',
     removeHero: 'Retirer l’observation du héros',
     recordObservation: 'Enregistrer l’observation',
-    noHeroObservations: 'Aucun fait structuré sur les héros n’a été enregistré dans cette observation.',
+    noHeroObservations:
+      'Aucun fait structuré sur les héros n’a été enregistré dans cette observation.',
     noObservations: 'Aucune observation de progression du gouverneur n’a été enregistrée.',
     screenshotIntake: 'Mettre à jour à partir d’une capture d’écran',
     screenshotIntakeHelp:
@@ -87,7 +88,8 @@ const messages = {
     currentObservedStateHelp:
       'Chaque fait provient de sa plus récente observation acceptée applicable. Les captures partielles n’effacent pas les faits plus anciens qui n’ont pas été observés de nouveau.',
     lastRosterUpdate: 'Dernière mise à jour du Roster par capture',
-    noCurrentScreenshotFacts: 'Aucun fait de progression issu d’une capture n’a encore été accepté.',
+    noCurrentScreenshotFacts:
+      'Aucun fait de progression issu d’une capture n’a encore été accepté.',
     observedPresent: 'Présence observée',
     observedAbsent: 'Absence observée dans une capture complète de la liste',
     factCaptured: 'Capturé le {date}',
