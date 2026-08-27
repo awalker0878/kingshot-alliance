@@ -18,7 +18,7 @@ final class GovernorProgressionEvidenceClassifier implements EvidenceClassifier
 
     public function version(): string
     {
-        return '1.0.1';
+        return '1.0.2';
     }
 
     public function classify(EvidenceKind $expectedKind, OcrDocument $document): ClassificationDecision
@@ -144,7 +144,7 @@ final class GovernorProgressionEvidenceClassifier implements EvidenceClassifier
     private function charmsScore(string $text): float
     {
         $score = 0.0;
-        if (str_contains($text, 'governor charm') || str_contains($text, 'chief charm') || str_contains($text, 'charms')) {
+        if (str_contains($text, 'governor charm') || str_contains($text, 'chief charm')) {
             $score += 0.72;
         }
         if (str_contains($text, 'charm guide') || str_contains($text, 'charm design')) {
