@@ -90,7 +90,13 @@ const props = defineProps<{
   governor: { id: string; name: string; allianceId: string | null; rosterEntryId: string | null };
   observationAccess: { canView: boolean };
   planner: {
-    dataset: { id: string; version: string; checksum: string; observedAt: string; reviewStatus: string };
+    dataset: {
+      id: string;
+      version: string;
+      checksum: string;
+      observedAt: string;
+      reviewStatus: string;
+    };
     families: Family[];
     selectedFamily: Family | null;
     subjects: Subject[];
@@ -110,7 +116,9 @@ const { t, formatDate, formatNumber } = useLocale();
 const family = ref(props.planner.selectedFamily?.id ?? '');
 const subject = ref(props.planner.selectedSubject?.id ?? '');
 const target = ref(props.planner.target?.id ?? '');
-const sourceById = computed(() => new Map(props.planner.sources.map((source) => [source.id, source])));
+const sourceById = computed(
+  () => new Map(props.planner.sources.map((source) => [source.id, source])),
+);
 const canCalculate = computed(
   () =>
     props.planner.calculator?.status === 'calculator_ready' &&
@@ -122,12 +130,14 @@ function valueOrUndefined(value: string): string | undefined {
   return value === '' ? undefined : value;
 }
 
-function navigate(options: {
-  family?: string;
-  subject?: string;
-  target?: string;
-  calculate?: boolean;
-} = {}): void {
+function navigate(
+  options: {
+    family?: string;
+    subject?: string;
+    target?: string;
+    calculate?: boolean;
+  } = {},
+): void {
   const nextFamily = options.family !== undefined ? options.family : family.value;
   const nextSubject = options.subject !== undefined ? options.subject : subject.value;
   const nextTarget = options.target !== undefined ? options.target : target.value;
@@ -177,12 +187,17 @@ function shortChecksum(value: string): string {
 <template>
   <Head :title="t('progression.goalPlanner')" />
   <AppLayout :user="user">
-    <main id="main-content" class="mx-auto w-full max-w-[100rem] space-y-6 px-4 py-6 sm:px-6 lg:px-8">
+    <main
+      id="main-content"
+      class="mx-auto w-full max-w-[100rem] space-y-6 px-4 py-6 sm:px-6 lg:px-8"
+    >
       <section class="ks-surface-gold p-5 sm:p-6" data-testid="progression-goal-planner-hero">
         <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <p class="ks-kicker">{{ t('progression.planningIntent') }}</p>
-            <h1 class="ks-display mt-1 text-3xl font-semibold">{{ t('progression.goalPlanner') }}</h1>
+            <h1 class="ks-display mt-1 text-3xl font-semibold">
+              {{ t('progression.goalPlanner') }}
+            </h1>
             <p class="mt-3 max-w-4xl text-sm leading-6 text-[var(--ks-text-secondary)]">
               {{ t('progression.goalPlannerHelp') }}
             </p>
@@ -207,7 +222,7 @@ function shortChecksum(value: string): string {
           </div>
           <div class="rounded border border-[var(--ks-border)] p-3 sm:col-span-2">
             <dt class="text-[var(--ks-muted)]">{{ t('progression.datasetChecksum') }}</dt>
-            <dd class="mt-1 break-all font-mono">{{ planner.dataset.checksum }}</dd>
+            <dd class="mt-1 font-mono break-all">{{ planner.dataset.checksum }}</dd>
           </div>
         </dl>
       </section>
@@ -227,7 +242,9 @@ function shortChecksum(value: string): string {
               @change="changeFamily"
             >
               <option value="">{{ t('progression.selectGoalFamily') }}</option>
-              <option v-for="item in planner.families" :key="item.id" :value="item.id">{{ item.label }}</option>
+              <option v-for="item in planner.families" :key="item.id" :value="item.id">
+                {{ item.label }}
+              </option>
             </select>
           </label>
           <label class="text-xs text-[var(--ks-muted)]">
@@ -240,7 +257,9 @@ function shortChecksum(value: string): string {
               @change="changeSubject"
             >
               <option value="">{{ t('progression.selectGoalSubject') }}</option>
-              <option v-for="item in planner.subjects" :key="item.id" :value="item.id">{{ item.label }}</option>
+              <option v-for="item in planner.subjects" :key="item.id" :value="item.id">
+                {{ item.label }}
+              </option>
             </select>
           </label>
           <label class="text-xs text-[var(--ks-muted)]">
@@ -253,7 +272,9 @@ function shortChecksum(value: string): string {
               @change="changeTarget"
             >
               <option value="">{{ t('progression.selectTargetState') }}</option>
-              <option v-for="state in planner.states" :key="state.id" :value="state.id">{{ state.label }}</option>
+              <option v-for="state in planner.states" :key="state.id" :value="state.id">
+                {{ state.label }}
+              </option>
             </select>
           </label>
         </div>
@@ -269,24 +290,42 @@ function shortChecksum(value: string): string {
       <section v-if="planner.selectedSubject" class="grid gap-6 xl:grid-cols-2">
         <article class="ks-surface p-5 sm:p-6" data-testid="planner-current-state">
           <p class="ks-kicker">{{ t('progression.currentObservedState') }}</p>
-          <h2 class="ks-display mt-1 text-2xl font-semibold">{{ planner.selectedSubject.label }}</h2>
+          <h2 class="ks-display mt-1 text-2xl font-semibold">
+            {{ planner.selectedSubject.label }}
+          </h2>
           <template v-if="planner.current.status === 'observed' && planner.current.state">
-            <p class="mt-5 text-3xl font-semibold text-[var(--ks-gold-bright)]">{{ planner.current.state.label }}</p>
-            <p v-if="planner.current.capturedAt" class="mt-2 text-sm text-[var(--ks-text-secondary)]">
+            <p class="mt-5 text-3xl font-semibold text-[var(--ks-gold-bright)]">
+              {{ planner.current.state.label }}
+            </p>
+            <p
+              v-if="planner.current.capturedAt"
+              class="mt-2 text-sm text-[var(--ks-text-secondary)]"
+            >
               {{
                 t('progression.factCaptured', {
-                  date: formatDate(planner.current.capturedAt, { dateStyle: 'medium', timeStyle: 'short' }),
+                  date: formatDate(planner.current.capturedAt, {
+                    dateStyle: 'medium',
+                    timeStyle: 'short',
+                  }),
                 })
               }}
             </p>
             <dl class="mt-4 space-y-2 text-xs text-[var(--ks-muted)]">
-              <div v-if="planner.current.observationDatasetId" class="flex flex-wrap justify-between gap-2">
+              <div
+                v-if="planner.current.observationDatasetId"
+                class="flex flex-wrap justify-between gap-2"
+              >
                 <dt>{{ t('progression.observationDataset') }}</dt>
                 <dd>{{ planner.current.observationDatasetId }}</dd>
               </div>
-              <div v-if="planner.current.observationDatasetChecksum" class="flex flex-wrap justify-between gap-2">
+              <div
+                v-if="planner.current.observationDatasetChecksum"
+                class="flex flex-wrap justify-between gap-2"
+              >
                 <dt>{{ t('progression.datasetChecksum') }}</dt>
-                <dd class="font-mono">{{ shortChecksum(planner.current.observationDatasetChecksum) }}</dd>
+                <dd class="font-mono">
+                  {{ shortChecksum(planner.current.observationDatasetChecksum) }}
+                </dd>
               </div>
             </dl>
             <p
@@ -298,10 +337,17 @@ function shortChecksum(value: string): string {
               {{ t('progression.datasetMismatchHelp') }}
             </p>
           </template>
-          <div v-else class="mt-5 rounded border border-dashed border-[var(--ks-border)] p-4 text-sm text-[var(--ks-muted)]">
-            <strong class="block text-[var(--ks-text)]">{{ t('progression.currentStateUnknown') }}</strong>
+          <div
+            v-else
+            class="mt-5 rounded border border-dashed border-[var(--ks-border)] p-4 text-sm text-[var(--ks-muted)]"
+          >
+            <strong class="block text-[var(--ks-text)]">{{
+              t('progression.currentStateUnknown')
+            }}</strong>
             <span>{{ planner.current.reason }}</span>
-            <p v-if="!observationAccess.canView" class="mt-2">{{ t('progression.observationUnavailable') }}</p>
+            <p v-if="!observationAccess.canView" class="mt-2">
+              {{ t('progression.observationUnavailable') }}
+            </p>
           </div>
         </article>
 
@@ -314,12 +360,30 @@ function shortChecksum(value: string): string {
             </p>
             <template v-if="planner.comparison?.status === 'comparable'">
               <p class="mt-5 text-lg font-semibold">
-                {{ t('progression.stepsRemaining', { count: planner.comparison.remainingTransitions ?? 0 }) }}
+                {{
+                  t('progression.stepsRemaining', {
+                    count: planner.comparison.remainingTransitions ?? 0,
+                  })
+                }}
               </p>
-              <ol class="mt-4 flex flex-wrap items-center gap-2" :aria-label="t('progression.progressionPath')">
-                <li v-for="(state, index) in planner.comparison.path" :key="state.id" class="flex items-center gap-2">
-                  <span class="rounded border border-[var(--ks-border)] px-3 py-2 text-sm">{{ state.label }}</span>
-                  <span v-if="index < planner.comparison.path.length - 1" aria-hidden="true" class="text-[var(--ks-muted)]">→</span>
+              <ol
+                class="mt-4 flex flex-wrap items-center gap-2"
+                :aria-label="t('progression.progressionPath')"
+              >
+                <li
+                  v-for="(state, index) in planner.comparison.path"
+                  :key="state.id"
+                  class="flex items-center gap-2"
+                >
+                  <span class="rounded border border-[var(--ks-border)] px-3 py-2 text-sm">{{
+                    state.label
+                  }}</span>
+                  <span
+                    v-if="index < planner.comparison.path.length - 1"
+                    aria-hidden="true"
+                    class="text-[var(--ks-muted)]"
+                    >→</span
+                  >
                 </li>
               </ol>
             </template>
@@ -331,7 +395,9 @@ function shortChecksum(value: string): string {
               {{ planner.comparison.reason }}
             </p>
           </template>
-          <p v-else class="mt-5 text-sm text-[var(--ks-muted)]">{{ t('progression.chooseTargetHelp') }}</p>
+          <p v-else class="mt-5 text-sm text-[var(--ks-muted)]">
+            {{ t('progression.chooseTargetHelp') }}
+          </p>
         </article>
       </section>
 
@@ -345,38 +411,78 @@ function shortChecksum(value: string): string {
           {{ t('progression.sourcedPrerequisites') }}
         </h2>
         <ul class="mt-4 space-y-2">
-          <li v-for="item in planner.prerequisites" :key="item.label" class="rounded border border-[var(--ks-border)] p-3 text-sm">
+          <li
+            v-for="item in planner.prerequisites"
+            :key="item.label"
+            class="rounded border border-[var(--ks-border)] p-3 text-sm"
+          >
             <span class="font-semibold">{{ item.label }}</span>
-            <span class="ml-2 text-[var(--ks-muted)]">— {{ t('progression.prerequisiteUnknown') }}</span>
+            <span class="ml-2 text-[var(--ks-muted)]"
+              >— {{ t('progression.prerequisiteUnknown') }}</span
+            >
           </li>
         </ul>
       </section>
 
-      <section v-if="planner.selectedFamily" class="ks-surface p-5 sm:p-6" aria-labelledby="calculator-heading" data-testid="planner-calculator-gate">
+      <section
+        v-if="planner.selectedFamily"
+        class="ks-surface p-5 sm:p-6"
+        aria-labelledby="calculator-heading"
+        data-testid="planner-calculator-gate"
+      >
         <p class="ks-kicker">{{ t('progression.calculatorEvidence') }}</p>
-        <h2 id="calculator-heading" class="ks-display mt-1 text-2xl font-semibold">{{ t('progression.calculatorStatus') }}</h2>
-        <div v-if="planner.calculator" class="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
+        <h2 id="calculator-heading" class="ks-display mt-1 text-2xl font-semibold">
+          {{ t('progression.calculatorStatus') }}
+        </h2>
+        <div
+          v-if="planner.calculator"
+          class="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start"
+        >
           <div>
-            <p class="text-lg font-semibold">{{ t(`progression.calculatorState.${planner.calculator.status}`) }}</p>
-            <p class="mt-2 max-w-4xl text-sm leading-6 text-[var(--ks-text-secondary)]">{{ planner.calculator.reason }}</p>
+            <p class="text-lg font-semibold">
+              {{ t(`progression.calculatorState.${planner.calculator.status}`) }}
+            </p>
+            <p class="mt-2 max-w-4xl text-sm leading-6 text-[var(--ks-text-secondary)]">
+              {{ planner.calculator.reason }}
+            </p>
             <p
-              v-if="planner.current.datasetStatus === 'dataset_mismatch' && planner.calculator.status === 'calculator_ready'"
+              v-if="
+                planner.current.datasetStatus === 'dataset_mismatch' &&
+                planner.calculator.status === 'calculator_ready'
+              "
               class="mt-3 text-sm text-amber-100"
             >
               {{ t('progression.calculationBlockedDatasetMismatch') }}
             </p>
-            <ul v-if="planner.calculator.blockers.length > 0" class="mt-3 space-y-1 text-xs text-[var(--ks-muted)]">
+            <ul
+              v-if="planner.calculator.blockers.length > 0"
+              class="mt-3 space-y-1 text-xs text-[var(--ks-muted)]"
+            >
               <li v-for="blocker in planner.calculator.blockers" :key="blocker">{{ blocker }}</li>
             </ul>
             <div v-if="planner.calculator.sourceIds.length > 0" class="mt-4 flex flex-wrap gap-2">
-              <span v-for="sourceId in planner.calculator.sourceIds" :key="sourceId" class="ks-chip">{{ sourceLabel(sourceId) }}</span>
+              <span
+                v-for="sourceId in planner.calculator.sourceIds"
+                :key="sourceId"
+                class="ks-chip"
+                >{{ sourceLabel(sourceId) }}</span
+              >
             </div>
           </div>
-          <button v-if="canCalculate" type="button" class="ks-command-link" data-testid="planner-calculate" @click="calculate">
+          <button
+            v-if="canCalculate"
+            type="button"
+            class="ks-command-link"
+            data-testid="planner-calculate"
+            @click="calculate"
+          >
             {{ t('progression.calculateResources') }}
           </button>
         </div>
-        <p v-else class="mt-4 rounded border border-dashed border-[var(--ks-border)] p-4 text-sm text-[var(--ks-muted)]">
+        <p
+          v-else
+          class="mt-4 rounded border border-dashed border-[var(--ks-border)] p-4 text-sm text-[var(--ks-muted)]"
+        >
           {{ t('progression.noCalculatorProgram') }}
         </p>
       </section>
@@ -390,22 +496,47 @@ function shortChecksum(value: string): string {
       >
         <p class="ks-kicker">{{ t('progression.calculationResult') }}</p>
         <h2 id="calculation-heading" class="ks-display mt-1 text-2xl font-semibold">
-          {{ planner.calculation.status === 'calculated' ? t('progression.resourceRequirements') : t('progression.calculationUnavailable') }}
+          {{
+            planner.calculation.status === 'calculated'
+              ? t('progression.resourceRequirements')
+              : t('progression.calculationUnavailable')
+          }}
         </h2>
         <template v-if="planner.calculation.status === 'calculated'">
           <dl class="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            <div v-for="resource in planner.calculation.resources" :key="resource.label" class="rounded border border-[var(--ks-border)] bg-black/15 p-4">
+            <div
+              v-for="resource in planner.calculation.resources"
+              :key="resource.label"
+              class="rounded border border-[var(--ks-border)] bg-black/15 p-4"
+            >
               <dt class="text-xs text-[var(--ks-muted)]">{{ resource.label }}</dt>
               <dd class="mt-1 text-2xl font-semibold">{{ formatNumber(resource.quantity) }}</dd>
             </div>
           </dl>
           <div class="mt-5 grid gap-3 text-xs text-[var(--ks-muted)] lg:grid-cols-3">
-            <p>{{ t('progression.datasetVersion') }}: <strong class="text-[var(--ks-text)]">{{ planner.calculation.datasetVersion }}</strong></p>
-            <p>{{ t('progression.calculationVersion') }}: <strong class="text-[var(--ks-text)]">{{ planner.calculation.calculationVersion }}</strong></p>
-            <p>{{ t('progression.transitionsIncluded') }}: <strong class="text-[var(--ks-text)]">{{ planner.calculation.transitionIds.length }}</strong></p>
+            <p>
+              {{ t('progression.datasetVersion') }}:
+              <strong class="text-[var(--ks-text)]">{{
+                planner.calculation.datasetVersion
+              }}</strong>
+            </p>
+            <p>
+              {{ t('progression.calculationVersion') }}:
+              <strong class="text-[var(--ks-text)]">{{
+                planner.calculation.calculationVersion
+              }}</strong>
+            </p>
+            <p>
+              {{ t('progression.transitionsIncluded') }}:
+              <strong class="text-[var(--ks-text)]">{{
+                planner.calculation.transitionIds.length
+              }}</strong>
+            </p>
           </div>
           <ul class="mt-4 space-y-1 text-xs text-[var(--ks-muted)]">
-            <li v-for="assumption in planner.calculation.assumptions" :key="assumption">{{ assumption }}</li>
+            <li v-for="assumption in planner.calculation.assumptions" :key="assumption">
+              {{ assumption }}
+            </li>
           </ul>
         </template>
         <p v-else class="mt-4 text-sm text-amber-100">{{ planner.calculation.reason }}</p>

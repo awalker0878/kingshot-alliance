@@ -18,7 +18,7 @@ final class ProgressionPlannerQuery
     ) {}
 
     /**
-     * @param array<string,mixed> $observationState
+     * @param  array<string,mixed>  $observationState
      * @return array<string,mixed>
      */
     public function compose(
@@ -117,7 +117,7 @@ final class ProgressionPlannerQuery
     }
 
     /**
-     * @param list<array<string,mixed>> $families
+     * @param  list<array<string,mixed>>  $families
      * @return array<string,mixed>
      */
     private function emptySelection(ProgressionDataset $dataset, array $families): array
@@ -161,7 +161,7 @@ final class ProgressionPlannerQuery
     }
 
     /**
-     * @param array<string,mixed> $observationState
+     * @param  array<string,mixed>  $observationState
      * @return list<array{id:string,label:string,context:array<string,mixed>}>
      */
     private function subjects(ProgressionDataset $dataset, array $observationState, string $family): array
@@ -193,7 +193,7 @@ final class ProgressionPlannerQuery
     }
 
     /**
-     * @param array<string,mixed> $current
+     * @param  array<string,mixed>  $current
      * @return list<array{id:string,label:string,context:array<string,mixed>}>
      */
     private function observedHeroGearSubjects(ProgressionDataset $dataset, array $current, string $family): array
@@ -241,9 +241,9 @@ final class ProgressionPlannerQuery
     }
 
     /**
-     * @param array<string,mixed> $observationState
-     * @param array<string,mixed> $subject
-     * @param list<array<string,mixed>> $states
+     * @param  array<string,mixed>  $observationState
+     * @param  array<string,mixed>  $subject
+     * @param  list<array<string,mixed>>  $states
      * @return array<string,mixed>
      */
     private function currentState(
@@ -400,7 +400,7 @@ final class ProgressionPlannerQuery
     }
 
     /**
-     * @param list<array<string,mixed>> $items
+     * @param  list<array<string,mixed>>  $items
      * @return array<string,mixed>|null
      */
     private function findById(array $items, ?string $id): ?array

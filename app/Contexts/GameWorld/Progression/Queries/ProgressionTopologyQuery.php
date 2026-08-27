@@ -60,7 +60,7 @@ final class ProgressionTopologyQuery
     }
 
     /**
-     * @param array<string,mixed> $context
+     * @param  array<string,mixed>  $context
      * @return list<array{id:string,label:string,ordinal:int,sourceIds:list<string>,evidenceStatus:string,prerequisites:list<string>,attributes:array<string,mixed>}>
      */
     public function states(ProgressionDataset $dataset, string $family, string $subjectId, array $context = []): array
@@ -79,7 +79,7 @@ final class ProgressionTopologyQuery
     }
 
     /**
-     * @param list<array{id:string,label:string,ordinal:int,sourceIds:list<string>,evidenceStatus:string,prerequisites:list<string>,attributes:array<string,mixed>}> $states
+     * @param  list<array{id:string,label:string,ordinal:int,sourceIds:list<string>,evidenceStatus:string,prerequisites:list<string>,attributes:array<string,mixed>}>  $states
      * @return array{status:string,current:?array<string,mixed>,target:?array<string,mixed>,path:list<array<string,mixed>>,remainingTransitions:?int,reason:?string}
      */
     public function compare(array $states, ?string $currentStateId, string $targetStateId): array
@@ -173,7 +173,7 @@ final class ProgressionTopologyQuery
     }
 
     /**
-     * @param list<string> $sourceIds
+     * @param  list<string>  $sourceIds
      * @return list<array{id:string,label:string,ordinal:int,sourceIds:list<string>,evidenceStatus:string,prerequisites:list<string>,attributes:array<string,mixed>}>
      */
     private function levelStates(int $maxLevel, array $sourceIds): array

@@ -245,10 +245,10 @@ final class ProgressionCalculator
     }
 
     /**
-     * @param list<string> $transitionIds
-     * @param array<string,array{label:string,quantity:int|float,unit:string}> $resources
-     * @param list<string> $sourceIds
-     * @param list<string> $assumptions
+     * @param  list<string>  $transitionIds
+     * @param  array<string,array{label:string,quantity:int|float,unit:string}>  $resources
+     * @param  list<string>  $sourceIds
+     * @param  list<string>  $assumptions
      */
     private function result(
         ProgressionCalculationStatus $status,
