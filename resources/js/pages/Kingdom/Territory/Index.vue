@@ -101,6 +101,13 @@ function submit(): void {
                 {{ t('territory.editorTitle') }}
               </Link>
               <Link
+                :href="`/territory/${plan.id}/reconciliation`"
+                class="ks-command-link"
+                data-variant="secondary"
+              >
+                {{ t('territory.reconciliationTitle') }}
+              </Link>
+              <Link
                 v-if="plan.scope === 'kingdom'"
                 :href="`/territory/${plan.id}/alliances`"
                 class="ks-command-link"
