@@ -1,0 +1,191 @@
+name: Progression Program Applicator
+
+on:
+  push:
+    branches:
+      - feature/progression-program-completion-20260827-1604b
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/progression-program-completion-20260827-1604b
+          fetch-depth: 0
+
+      - name: Apply surgical integration changes
+        shell: python
+        run: |
+          from pathlib import Path
+
+          def replace_once(path: str, old: str, new: str) -> None:
+              file = Path(path)
+              text = file.read_text()
+              if old not in text:
+                  raise SystemExit(f"Expected integration marker not found in {path}: {old[:120]!r}")
+              file.write_text(text.replace(old, new, 1))
+
+          # Dataset absence is a product state; corruption remains a hard integrity error.
+          replace_once(
+              'app/Contexts/GameWorld/Progression/Queries/ProgressionDatasetQuery.php',
+              'namespace App\\Contexts\\GameWorld\\Progression\\Queries;\n\nuse App\\Contexts\\GameWorld\\Progression\\ValueObjects\\ProgressionDataset;',
+              'namespace App\\Contexts\\GameWorld\\Progression\\Queries;\n\nuse App\\Contexts\\GameWorld\\Progression\\Exceptions\\NoProgressionDatasetPublished;\nuse App\\Contexts\\GameWorld\\Progression\\ValueObjects\\ProgressionDataset;',
+          )
+          replace_once(
+              'app/Contexts/GameWorld/Progression/Queries/ProgressionDatasetQuery.php',
+              "            throw new RuntimeException('No factual progression dataset is published.');",
+              '            throw new NoProgressionDatasetPublished();',
+          )
+
+          # Wire the read-only planner into the existing authorized Governor page.
+          replace_once(
+              'resources/js/pages/Kingdom/Progression/Governor.vue',
+              "import GovernorProgressionScreenshotIntake from '@/components/progression/GovernorProgressionScreenshotIntake.vue';\n",
+              "import GovernorProgressionScreenshotIntake from '@/components/progression/GovernorProgressionScreenshotIntake.vue';\nimport ProgressionGoalPlanner from '@/components/progression/ProgressionGoalPlanner.vue';\n",
+          )
+          replace_once(
+              'resources/js/pages/Kingdom/Progression/Governor.vue',
+              "} from '@/components/progression/governorProgressionTypes';\nimport AppLayout",
+              "} from '@/components/progression/governorProgressionTypes';\nimport type {\n  CalculatorQualificationReport,\n  ProgressionGoalPlanner as ProgressionGoalPlannerPayload,\n} from '@/components/progression/progressionGoalPlannerTypes';\nimport AppLayout",
+          )
+          replace_once(
+              'resources/js/pages/Kingdom/Progression/Governor.vue',
+              "  evidenceWorkspace: GovernorProgressionEvidenceWorkspace;\n  loadouts: Loadout[];",
+              "  evidenceWorkspace: GovernorProgressionEvidenceWorkspace;\n  planner: ProgressionGoalPlannerPayload;\n  calculatorEligibility: CalculatorQualificationReport[];\n  loadouts: Loadout[];",
+          )
+          replace_once(
+              'resources/js/pages/Kingdom/Progression/Governor.vue',
+              "      </section>\n\n      <GovernorProgressionScreenshotIntake",
+              "      </section>\n\n      <ProgressionGoalPlanner\n        :planner=\"planner\"\n        :calculator-eligibility=\"calculatorEligibility\"\n        :can-view-observations=\"observationAccess.canView\"\n      />\n\n      <GovernorProgressionScreenshotIntake",
+          )
+
+          en_keys = """    goalPlanner: 'Progression Goal Planner',
+    goalPlannerHelp:
+      'Choose a factual target and compare it with authorized observed state. Paths and prerequisites come from one pinned dataset; resource and time totals stay unavailable until that family passes its evidence gate.',
+    goalFamily: 'Progression family',
+    goalSubject: 'Subject',
+    goalTarget: 'Target',
+    selectGoalFamily: 'Select a family',
+    selectGoalSubject: 'Select a subject',
+    selectGoalTarget: 'Select a target',
+    currentState: 'Current state',
+    factualPath: 'Factual path',
+    transitionsRemaining: '{count} transitions remaining',
+    prerequisites: 'Prerequisites',
+    calculatorStatus: 'Calculator evidence status',
+    calculatorUnavailableHelp:
+      'Planning remains available, but this family is not qualified for resource or time totals. No formula is inferred from progression distance.',
+    evidenceGateDetails: 'Evidence gate details',
+    reviewedAt: 'Reviewed',
+    noCalculatorFamily: 'This planner family does not use one of the current calculator evidence programs.',
+    noPlannerObservation: 'No authorized current observation is available for this subject.',
+    noTargetSelected: 'No target selected',
+    plannerTopologyUnavailable: 'This family has no topology that can be represented safely from the current dataset and observations.',
+    plannerTargetUnavailable: 'No factual target ladder is available for this subject. Source gaps remain explicit.',
+    plannerConflictHelp: 'Source conflicts remain visible and are never averaged or hidden to enable a calculation.',
+    plannerStatus: {
+      known: 'Observed',
+      comparable: 'Comparable',
+      same_state: 'Already at target',
+      not_observed: 'Not observed',
+      unknown_current: 'Current state unresolved',
+      unknown_target: 'Target unresolved',
+      conflicting: 'Conflicting evidence',
+      not_applicable: 'Not applicable',
+      unsupported_topology: 'Topology unavailable',
+      unsupported_direction: 'Reverse direction unsupported',
+      permission_unavailable: 'Observation access unavailable',
+      calculator_ready: 'Calculator ready',
+      evidence_incomplete: 'Evidence incomplete',
+      source_gap: 'Source gap',
+      evidence_conflict: 'Evidence conflict',
+      evidence_review: 'Evidence review',
+      disabled: 'Disabled',
+      satisfied: 'Satisfied',
+      unsatisfied: 'Unsatisfied',
+      unknown: 'Unknown',
+    },
+"""
+          replace_once(
+              'resources/js/localization/messages/progression/en.ts',
+              "    observationLabel: 'Observation',\n    planningIntent: 'User planning intent',",
+              "    observationLabel: 'Observation',\n" + en_keys + "    planningIntent: 'User planning intent',",
+          )
+
+          fr_keys = """    goalPlanner: 'Planificateur d’objectifs de progression',
+    goalPlannerHelp:
+      'Choisissez une cible factuelle et comparez-la à l’état observé autorisé. Les parcours et prérequis proviennent d’un jeu de données épinglé; les totaux de ressources et de temps restent indisponibles jusqu’à la qualification des preuves de cette famille.',
+    goalFamily: 'Famille de progression',
+    goalSubject: 'Sujet',
+    goalTarget: 'Cible',
+    selectGoalFamily: 'Sélectionner une famille',
+    selectGoalSubject: 'Sélectionner un sujet',
+    selectGoalTarget: 'Sélectionner une cible',
+    currentState: 'État actuel',
+    factualPath: 'Parcours factuel',
+    transitionsRemaining: '{count} transitions restantes',
+    prerequisites: 'Prérequis',
+    calculatorStatus: 'État des preuves du calculateur',
+    calculatorUnavailableHelp:
+      'La planification demeure disponible, mais cette famille n’est pas qualifiée pour les totaux de ressources ou de temps. Aucune formule n’est déduite de la distance de progression.',
+    evidenceGateDetails: 'Détails du contrôle des preuves',
+    reviewedAt: 'Révisé',
+    noCalculatorFamily: 'Cette famille de planification ne fait pas partie des programmes actuels de preuves des calculateurs.',
+    noPlannerObservation: 'Aucune observation actuelle autorisée n’est disponible pour ce sujet.',
+    noTargetSelected: 'Aucune cible sélectionnée',
+    plannerTopologyUnavailable: 'Cette famille ne possède pas de topologie pouvant être représentée de façon sûre à partir des données et observations actuelles.',
+    plannerTargetUnavailable: 'Aucune échelle de cible factuelle n’est disponible pour ce sujet. Les lacunes de source demeurent explicites.',
+    plannerConflictHelp: 'Les conflits de sources restent visibles et ne sont jamais moyennés ou masqués pour activer un calcul.',
+    plannerStatus: {
+      ...en.progression.plannerStatus,
+      known: 'Observé',
+      comparable: 'Comparable',
+      same_state: 'Cible déjà atteinte',
+      not_observed: 'Non observé',
+      unknown_current: 'État actuel non résolu',
+      unknown_target: 'Cible non résolue',
+      conflicting: 'Preuves contradictoires',
+      not_applicable: 'Sans objet',
+      unsupported_topology: 'Topologie indisponible',
+      unsupported_direction: 'Direction inverse non prise en charge',
+      permission_unavailable: 'Accès aux observations indisponible',
+      calculator_ready: 'Calculateur prêt',
+      evidence_incomplete: 'Preuves incomplètes',
+      source_gap: 'Lacune de source',
+      evidence_conflict: 'Conflit de preuves',
+      evidence_review: 'Révision des preuves',
+      disabled: 'Désactivé',
+      satisfied: 'Satisfait',
+      unsatisfied: 'Non satisfait',
+      unknown: 'Inconnu',
+    },
+"""
+          replace_once(
+              'resources/js/localization/messages/progression/fr.ts',
+              "    recoveredRosterUpdate: 'Mise à jour précédente du Roster récupérée',\n    yes: 'Oui',",
+              "    recoveredRosterUpdate: 'Mise à jour précédente du Roster récupérée',\n" + fr_keys + "    yes: 'Oui',",
+          )
+
+      - name: Validate patch structure
+        run: |
+          php -l app/Contexts/GameWorld/Progression/Queries/ProgressionDatasetQuery.php
+          git diff --check
+          grep -q "ProgressionGoalPlanner" resources/js/pages/Kingdom/Progression/Governor.vue
+          grep -q "NoProgressionDatasetPublished" app/Contexts/GameWorld/Progression/Queries/ProgressionDatasetQuery.php
+
+      - name: Commit integration patch and remove applicator
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/progression-program-applicator.yml
+          git add app/Contexts/GameWorld/Progression/Queries/ProgressionDatasetQuery.php \
+                  resources/js/pages/Kingdom/Progression/Governor.vue \
+                  resources/js/localization/messages/progression/en.ts \
+                  resources/js/localization/messages/progression/fr.ts
+          git commit -m "feat: integrate progression planner and evidence states [progression-applicator]"
+          git push origin HEAD:feature/progression-program-completion-20260827-1604b
