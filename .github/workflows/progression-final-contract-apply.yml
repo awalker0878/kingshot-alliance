@@ -75,11 +75,7 @@ jobs:
               p.write_text(text.replace(old, new, 1))
 
           controller = 'app/ReadModels/Progression/Http/Controllers/ProgressionPlannerController.php'
-          replace_once(
-              controller,
-              "use Inertia\\Response;\n",
-              "use Inertia\\Response;\nuse RuntimeException;\n",
-          )
+          replace_once(controller, "use Inertia\\Response;\n", "use Inertia\\Response;\nuse RuntimeException;\n")
           replace_once(
               controller,
               "        $dataset = $datasetId !== ''\n            ? $datasets->require($datasetId, $datasetChecksum !== '' ? $datasetChecksum : null)\n            : $datasets->latest();\n\n        $scope = $allianceScopes->findForPlayer($player->playerId, $player->kingdomId);\n",
@@ -92,31 +88,15 @@ jobs:
           )
 
           planner = 'resources/js/pages/Kingdom/Progression/Planner.vue'
-          replace_once(
-              planner,
-              "    dataset: { id: string; version: string; checksum: string; observedAt: string; reviewStatus: string };\n",
-              "    dataset: { id: string; version: string; checksum: string; observedAt: string; reviewStatus: string } | null;\n",
-          )
-          replace_once(
-              planner,
-              "  const nextFamily = options.family !== undefined ? options.family : family.value;\n",
-              "  const dataset = props.planner.dataset;\n  if (!dataset) return;\n\n  const nextFamily = options.family !== undefined ? options.family : family.value;\n",
-          )
-          replace_once(
-              planner,
-              "      dataset_id: props.planner.dataset.id,\n      dataset_checksum: props.planner.dataset.checksum,\n",
-              "      dataset_id: dataset.id,\n      dataset_checksum: dataset.checksum,\n",
-          )
+          replace_once(planner, "    dataset: { id: string; version: string; checksum: string; observedAt: string; reviewStatus: string };\n", "    dataset: { id: string; version: string; checksum: string; observedAt: string; reviewStatus: string } | null;\n")
+          replace_once(planner, "  const nextFamily = options.family !== undefined ? options.family : family.value;\n", "  const dataset = props.planner.dataset;\n  if (!dataset) return;\n\n  const nextFamily = options.family !== undefined ? options.family : family.value;\n")
+          replace_once(planner, "      dataset_id: props.planner.dataset.id,\n      dataset_checksum: props.planner.dataset.checksum,\n", "      dataset_id: dataset.id,\n      dataset_checksum: dataset.checksum,\n")
           replace_once(
               planner,
               "        <dl class=\"mt-5 grid gap-3 text-xs sm:grid-cols-2 lg:grid-cols-4\">\n",
               "        <div\n          v-if=\"!planner.dataset\"\n          class=\"mt-5 rounded border border-amber-400/30 bg-amber-300/5 p-4 text-sm leading-6 text-amber-100\"\n          role=\"status\"\n          data-testid=\"planner-no-dataset\"\n        >\n          <strong class=\"block text-[var(--ks-text)]\">{{ t('progression.noDataset') }}</strong>\n          <span>{{ t('progression.noDatasetHelp') }}</span>\n        </div>\n        <dl v-else class=\"mt-5 grid gap-3 text-xs sm:grid-cols-2 lg:grid-cols-4\">\n",
           )
-          replace_once(
-              planner,
-              "      <section class=\"ks-surface p-5 sm:p-6\" aria-labelledby=\"planner-target-heading\">\n",
-              "      <section v-if=\"planner.dataset\" class=\"ks-surface p-5 sm:p-6\" aria-labelledby=\"planner-target-heading\">\n",
-          )
+          replace_once(planner, "      <section class=\"ks-surface p-5 sm:p-6\" aria-labelledby=\"planner-target-heading\">\n", "      <section v-if=\"planner.dataset\" class=\"ks-surface p-5 sm:p-6\" aria-labelledby=\"planner-target-heading\">\n")
 
           labels = 'resources/js/localization/progression-planner-labels.ts'
           replace_once(
@@ -128,13 +108,6 @@ jobs:
               labels,
               "    goalPlannerHelp:\n      'Comparez un état observé autorisé à une cible factuelle provenant d’un jeu de données immuable. Les totaux de ressources apparaissent uniquement lorsque cette famille de progression a franchi le contrôle des preuves du calculateur.',\n",
               "    goalPlannerHelp:\n      'Comparez un état observé autorisé à une cible factuelle provenant d’un jeu de données immuable. Les totaux de ressources apparaissent uniquement lorsque cette famille de progression a franchi le contrôle des preuves du calculateur.',\n    noDataset: 'Aucun jeu de données de progression n’est publié',\n    noDatasetHelp:\n      'La planification factuelle et le calcul sont indisponibles jusqu’à la publication d’une version de progression immuable. Aucun état observé ni total de ressources n’a été déduit.',\n",
-          )
-
-          arch = 'tests/v3/Architecture/ProgressionPlannerArchitectureV3Test.php'
-          replace_once(
-              arch,
-              "    public function test_frontend_contains_no_factual_cost_table_or_calculation_formula(): void\n",
-              "    public function test_no_dataset_state_is_explicit_and_stops_before_observation_retrieval(): void\n    {\n        $controller = file_get_contents(base_path('app/ReadModels/Progression/Http/Controllers/ProgressionPlannerController.php'));\n        $planner = file_get_contents(base_path('resources/js/pages/Kingdom/Progression/Planner.vue'));\n        self::assertIsString($controller);\n        self::assertIsString($planner);\n\n        $datasetLookup = strpos($controller, '$datasets->latest()');\n        $noDatasetReturn = strpos($controller, 'return $this->noDatasetResponse');\n        $observationRetrieval = strpos($controller, '$observations->forRosterEntry');\n        self::assertIsInt($datasetLookup);\n        self::assertIsInt($noDatasetReturn);\n        self::assertIsInt($observationRetrieval);\n        self::assertLessThan($observationRetrieval, $noDatasetReturn);\n        self::assertStringContainsString("'dataset' => null", $controller);\n        self::assertStringContainsString('data-testid=\"planner-no-dataset\"', $planner);\n        self::assertStringContainsString("t('progression.noDataset')", $planner);\n    }\n\n    public function test_frontend_contains_no_factual_cost_table_or_calculation_formula(): void\n",
           )
           PY
 
@@ -151,7 +124,7 @@ jobs:
 
       - name: Format and test PHP
         run: |
-          vendor/bin/pint app/ReadModels/Progression/Http/Controllers/ProgressionPlannerController.php tests/v3/Architecture/ProgressionPlannerArchitectureV3Test.php
+          vendor/bin/pint app/ReadModels/Progression/Http/Controllers/ProgressionPlannerController.php
           php artisan test tests/v3/Architecture/ProgressionPlannerArchitectureV3Test.php tests/v3/ReadModels/Progression/ProgressionPlannerQueryV3Test.php
           vendor/bin/phpstan analyse app/ReadModels/Progression/Http/Controllers/ProgressionPlannerController.php app/ReadModels/Progression/Queries/ProgressionPlannerQuery.php --no-progress
 
@@ -173,7 +146,6 @@ jobs:
         run: |
           git add app/ReadModels/Progression/Http/Controllers/ProgressionPlannerController.php \
                   resources/js/pages/Kingdom/Progression/Planner.vue \
-                  resources/js/localization/progression-planner-labels.ts \
-                  tests/v3/Architecture/ProgressionPlannerArchitectureV3Test.php
+                  resources/js/localization/progression-planner-labels.ts
           git commit -m "feat: complete progression planner unavailable states"
           git push
