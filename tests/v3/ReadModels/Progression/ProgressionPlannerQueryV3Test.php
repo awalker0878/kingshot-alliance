@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\v3\ReadModels\Progression;
 
 use App\Contexts\GameWorld\Progression\Queries\ProgressionDatasetQuery;
+use App\Contexts\GameWorld\Progression\Queries\ProgressionTopologyQuery;
 use App\ReadModels\Progression\Queries\ProgressionPlannerQuery;
 use Tests\v3\TestCase;
 
@@ -71,23 +72,43 @@ final class ProgressionPlannerQueryV3Test extends TestCase
     public function test_research_goal_remains_useful_with_unknown_current_and_source_gated_calculator(): void
     {
         $dataset = app(ProgressionDatasetQuery::class)->latest();
+        $topology = app(ProgressionTopologyQuery::class);
+        $subject = null;
+        $targetState = null;
+
+        foreach ($topology->subjects($dataset, 'academy_research') as $candidate) {
+            foreach ($topology->states($dataset, 'academy_research', $candidate['id']) as $state) {
+                if ($state['prerequisites'] !== []) {
+                    $subject = $candidate;
+                    $targetState = $state;
+                    break 2;
+                }
+            }
+        }
+
+        self::assertIsArray($subject);
+        self::assertIsArray($targetState);
+
         $model = app(ProgressionPlannerQuery::class)->compose(
             $dataset,
             $this->observationState([]),
             'academy_research',
-            'development-bandaging-i',
-            'level:1',
+            $subject['id'],
+            $targetState['id'],
             false,
         );
 
         self::assertSame('unknown', $model['current']['status']);
         self::assertSame('unknown_current', $model['comparison']['status']);
         self::assertSame('source_gap', $model['calculator']['status']);
-        self::assertSame('Level 1', $model['target']['label']);
-        self::assertSame([
-            ['label' => 'Academy Lv.2', 'status' => 'unknown'],
-            ['label' => 'Tool Enhancement I Lv.1', 'status' => 'unknown'],
-        ], $model['prerequisites']);
+        self::assertSame($targetState['label'], $model['target']['label']);
+        self::assertSame(
+            array_map(
+                static fn (string $label): array => ['label' => $label, 'status' => 'unknown'],
+                $targetState['prerequisites'],
+            ),
+            $model['prerequisites'],
+        );
         self::assertNull($model['calculation']);
     }
 
