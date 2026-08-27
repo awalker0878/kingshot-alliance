@@ -6,30 +6,26 @@ namespace App\Contexts\Intelligence\Evidence\Queries;
 
 use App\Contexts\Intelligence\Evidence\Contracts\EvidenceReferenceLookup;
 use App\Contexts\Intelligence\Evidence\Contracts\GovernorProgressionEvidenceReferenceLookup;
+use App\Contexts\Intelligence\Evidence\Contracts\SpatialEvidenceReferenceLookup;
 use App\Contexts\Intelligence\Evidence\Enums\EvidenceKind;
 use App\Contexts\Intelligence\Evidence\Enums\EvidenceLifecycleStatus;
 use App\Contexts\Intelligence\Evidence\Enums\EvidenceReviewStatus;
 use App\Contexts\Intelligence\Evidence\Models\EvidenceReview;
 use App\Contexts\Intelligence\Evidence\Models\GameEvidence;
 use App\Contexts\Intelligence\Evidence\Models\GovernorProgressionEvidenceReview;
+use App\Contexts\Intelligence\Evidence\Models\SpatialEvidenceReview;
 use App\Contexts\Intelligence\Evidence\Models\TransferEvidenceReview;
 
-final class EvidenceReferenceQuery implements EvidenceReferenceLookup, GovernorProgressionEvidenceReferenceLookup
+final class EvidenceReferenceQuery implements EvidenceReferenceLookup, GovernorProgressionEvidenceReferenceLookup, SpatialEvidenceReferenceLookup
 {
     public function belongsToAlliance(string $evidenceId, string $allianceId): bool
     {
-        return GameEvidence::query()
-            ->whereKey($evidenceId)
-            ->where('alliance_id', $allianceId)
-            ->exists();
+        return GameEvidence::query()->whereKey($evidenceId)->where('alliance_id', $allianceId)->exists();
     }
 
     public function isApprovedForAlliance(string $evidenceId, string $allianceId): bool
     {
-        $evidence = GameEvidence::query()
-            ->whereKey($evidenceId)
-            ->where('alliance_id', $allianceId)
-            ->first();
+        $evidence = GameEvidence::query()->whereKey($evidenceId)->where('alliance_id', $allianceId)->first();
         if (! $evidence instanceof GameEvidence
             || $evidence->lifecycle_status === EvidenceLifecycleStatus::Deleted
             || $evidence->kind === EvidenceKind::Unknown
@@ -38,37 +34,20 @@ final class EvidenceReferenceQuery implements EvidenceReferenceLookup, GovernorP
         }
 
         if ($evidence->kind->isTransfer()) {
-            $latest = TransferEvidenceReview::query()
-                ->where('evidence_id', $evidenceId)
-                ->where('alliance_id', $allianceId)
-                ->orderByDesc('revision_number')
-                ->orderByDesc('id')
-                ->first(['status']);
-
-            return $latest instanceof TransferEvidenceReview
-                && $latest->status === EvidenceReviewStatus::Approved;
+            $latest = TransferEvidenceReview::query()->where('evidence_id', $evidenceId)->where('alliance_id', $allianceId)->orderByDesc('revision_number')->orderByDesc('id')->first(['status']);
+            return $latest instanceof TransferEvidenceReview && $latest->status === EvidenceReviewStatus::Approved;
         }
         if ($evidence->kind->isGovernorProgression()) {
-            $latest = GovernorProgressionEvidenceReview::query()
-                ->where('evidence_id', $evidenceId)
-                ->where('alliance_id', $allianceId)
-                ->orderByDesc('revision_number')
-                ->orderByDesc('id')
-                ->first(['status']);
-
-            return $latest instanceof GovernorProgressionEvidenceReview
-                && $latest->status === EvidenceReviewStatus::Approved;
+            $latest = GovernorProgressionEvidenceReview::query()->where('evidence_id', $evidenceId)->where('alliance_id', $allianceId)->orderByDesc('revision_number')->orderByDesc('id')->first(['status']);
+            return $latest instanceof GovernorProgressionEvidenceReview && $latest->status === EvidenceReviewStatus::Approved;
+        }
+        if ($evidence->kind->isTerritorySpatial()) {
+            $latest = SpatialEvidenceReview::query()->where('evidence_id', $evidenceId)->where('alliance_id', $allianceId)->orderByDesc('revision_number')->orderByDesc('id')->first(['status']);
+            return $latest instanceof SpatialEvidenceReview && $latest->status === EvidenceReviewStatus::Approved;
         }
 
-        $latest = EvidenceReview::query()
-            ->where('evidence_id', $evidenceId)
-            ->where('alliance_id', $allianceId)
-            ->orderByDesc('revision_number')
-            ->orderByDesc('id')
-            ->first(['status']);
-
-        return $latest instanceof EvidenceReview
-            && $latest->status === EvidenceReviewStatus::Approved;
+        $latest = EvidenceReview::query()->where('evidence_id', $evidenceId)->where('alliance_id', $allianceId)->orderByDesc('revision_number')->orderByDesc('id')->first(['status']);
+        return $latest instanceof EvidenceReview && $latest->status === EvidenceReviewStatus::Approved;
     }
 
     public function isApprovedGovernorProgressionReview(
@@ -92,14 +71,12 @@ final class EvidenceReferenceQuery implements EvidenceReferenceLookup, GovernorP
             ->whereNull('occurrence_id')
             ->whereNull('transfer_plan_id')
             ->whereNull('transfer_participant_id')
+            ->whereNull('kingdom_id')
             ->first();
-        if (! $evidence instanceof GameEvidence
-            || $evidence->lifecycle_status === EvidenceLifecycleStatus::Deleted
-            || $evidence->kind !== $kind
-            || $evidence->expected_kind !== $kind) {
+        if (! $evidence instanceof GameEvidence || $evidence->lifecycle_status === EvidenceLifecycleStatus::Deleted || $evidence->kind !== $kind || $evidence->expected_kind !== $kind) {
             return false;
         }
-        $latest = GovernorProgressionEvidenceReview::query()
+        $review = GovernorProgressionEvidenceReview::query()
             ->whereKey($reviewId)
             ->where('evidence_id', $evidenceId)
             ->where('alliance_id', $allianceId)
@@ -111,15 +88,53 @@ final class EvidenceReferenceQuery implements EvidenceReferenceLookup, GovernorP
             ->where('progression_dataset_checksum', $progressionDatasetChecksum)
             ->where('status', EvidenceReviewStatus::Approved->value)
             ->first();
-        if (! $latest instanceof GovernorProgressionEvidenceReview) {
+        if (! $review instanceof GovernorProgressionEvidenceReview) {
             return false;
         }
-        $latestId = GovernorProgressionEvidenceReview::query()
-            ->where('evidence_id', $evidenceId)
-            ->orderByDesc('revision_number')
-            ->orderByDesc('id')
-            ->value('id');
+        $latestId = GovernorProgressionEvidenceReview::query()->where('evidence_id', $evidenceId)->orderByDesc('revision_number')->orderByDesc('id')->value('id');
+        return (string) $latestId === (string) $review->id;
+    }
 
-        return (string) $latestId === (string) $latest->id;
+    public function isApprovedSpatialReview(
+        string $evidenceId,
+        string $reviewId,
+        string $allianceId,
+        string $kingdomId,
+        string $schemaVersion,
+        string $mapDatasetId,
+        string $mapDatasetChecksum,
+    ): bool {
+        $evidence = GameEvidence::query()
+            ->whereKey($evidenceId)
+            ->where('alliance_id', $allianceId)
+            ->where('kingdom_id', $kingdomId)
+            ->whereNull('occurrence_id')
+            ->whereNull('roster_entry_id')
+            ->whereNull('transfer_plan_id')
+            ->whereNull('transfer_participant_id')
+            ->where('map_dataset_id', $mapDatasetId)
+            ->where('map_dataset_checksum', $mapDatasetChecksum)
+            ->first();
+        if (! $evidence instanceof GameEvidence
+            || $evidence->lifecycle_status === EvidenceLifecycleStatus::Deleted
+            || $evidence->kind !== EvidenceKind::TerritoryMapObservation
+            || $evidence->expected_kind !== EvidenceKind::TerritoryMapObservation) {
+            return false;
+        }
+        $review = SpatialEvidenceReview::query()
+            ->whereKey($reviewId)
+            ->where('evidence_id', $evidenceId)
+            ->where('alliance_id', $allianceId)
+            ->where('kingdom_id', $kingdomId)
+            ->where('schema_version', $schemaVersion)
+            ->where('map_dataset_id', $mapDatasetId)
+            ->where('map_dataset_checksum', $mapDatasetChecksum)
+            ->where('status', EvidenceReviewStatus::Approved->value)
+            ->first();
+        if (! $review instanceof SpatialEvidenceReview) {
+            return false;
+        }
+        $latestId = SpatialEvidenceReview::query()->where('evidence_id', $evidenceId)->orderByDesc('revision_number')->orderByDesc('id')->value('id');
+        return (string) $latestId === (string) $review->id;
     }
 }

@@ -26,10 +26,13 @@ final class GameEvidence extends Model
 
     protected $fillable = [
         'alliance_id',
+        'kingdom_id',
         'occurrence_id',
         'roster_entry_id',
         'transfer_plan_id',
         'transfer_participant_id',
+        'map_dataset_id',
+        'map_dataset_checksum',
         'expected_kind',
         'kind',
         'lifecycle_status',

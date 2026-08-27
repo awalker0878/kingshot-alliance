@@ -10,6 +10,7 @@ use App\Contexts\Intelligence\Evidence\Contracts\EvidenceExtractor;
 use App\Contexts\Intelligence\Evidence\Contracts\EvidenceReferenceLookup;
 use App\Contexts\Intelligence\Evidence\Contracts\GovernorProgressionEvidenceReferenceLookup;
 use App\Contexts\Intelligence\Evidence\Contracts\OcrEngine;
+use App\Contexts\Intelligence\Evidence\Contracts\SpatialEvidenceReferenceLookup;
 use App\Contexts\Intelligence\Evidence\Queries\EvidenceReferenceQuery;
 use App\Contexts\Intelligence\Evidence\Services\EvidenceClassifierRouter;
 use App\Contexts\Intelligence\Evidence\Services\RoutedEvidenceExtractor;
@@ -25,6 +26,7 @@ final class EvidenceServiceProvider extends ServiceProvider
         $this->app->bind(EvidenceExtractor::class, RoutedEvidenceExtractor::class);
         $this->app->bind(EvidenceReferenceLookup::class, EvidenceReferenceQuery::class);
         $this->app->bind(GovernorProgressionEvidenceReferenceLookup::class, EvidenceReferenceQuery::class);
+        $this->app->bind(SpatialEvidenceReferenceLookup::class, EvidenceReferenceQuery::class);
     }
 
     public function boot(): void
