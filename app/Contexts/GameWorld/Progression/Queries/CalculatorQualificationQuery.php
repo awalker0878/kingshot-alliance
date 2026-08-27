@@ -91,6 +91,7 @@ final class CalculatorQualificationQuery
             }
 
             $normalizedGates = [];
+            $hasFailingGate = false;
             foreach (self::GATES as $gate) {
                 $value = $gates[$gate] ?? null;
                 if (! is_array($value)
@@ -103,10 +104,10 @@ final class CalculatorQualificationQuery
                     'status' => $value['status'],
                     'reason' => $value['reason'],
                 ];
+                $hasFailingGate = $hasFailingGate || $value['status'] !== 'pass';
             }
 
-            if ($status === CalculatorEligibilityStatus::CalculatorReady->value
-                && array_any($normalizedGates, static fn (array $gate): bool => $gate['status'] !== 'pass')) {
+            if ($status === CalculatorEligibilityStatus::CalculatorReady->value && $hasFailingGate) {
                 throw new RuntimeException('A calculator family cannot be ready while a qualification gate is failing.');
             }
 
