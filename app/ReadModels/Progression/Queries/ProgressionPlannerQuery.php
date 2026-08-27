@@ -62,7 +62,11 @@ final class ProgressionPlannerQuery
         $current = $this->currentState($dataset, $observationState, $family ?? '', $selectedSubject, $states);
         $target = $this->findById($states, $targetStateId);
         $comparison = $target !== null
-            ? $this->topology->compare($states, is_string($current['stateId'] ?? null) ? $current['stateId'] : null, (string) $target['id'])
+            ? $this->topology->compare(
+                $states,
+                is_string($current['stateId'] ?? null) ? $current['stateId'] : null,
+                (string) $target['id'],
+            )
             : null;
 
         $prerequisites = [];
@@ -80,11 +84,13 @@ final class ProgressionPlannerQuery
             : null;
         $calculation = null;
         $datasetCompatible = ($current['datasetStatus'] ?? null) !== 'dataset_mismatch';
-        if ($calculate
+        if (
+            $calculate
             && $datasetCompatible
             && $calculatorFamily !== null
             && $target !== null
-            && is_string($current['stateId'] ?? null)) {
+            && is_string($current['stateId'] ?? null)
+        ) {
             $calculation = $this->calculator->calculate(
                 $dataset,
                 $calculatorFamily,
@@ -110,7 +116,10 @@ final class ProgressionPlannerQuery
         ];
     }
 
-    /** @return array<string,mixed> */
+    /**
+     * @param list<array<string,mixed>> $families
+     * @return array<string,mixed>
+     */
     private function emptySelection(ProgressionDataset $dataset, array $families): array
     {
         return [
@@ -145,11 +154,16 @@ final class ProgressionPlannerQuery
             'version' => $dataset->datasetVersion,
             'checksum' => $dataset->checksum,
             'observedAt' => $dataset->observedAt,
-            'reviewStatus' => is_string($dataset->release['review_status'] ?? null) ? $dataset->release['review_status'] : 'unknown',
+            'reviewStatus' => is_string($dataset->release['review_status'] ?? null)
+                ? $dataset->release['review_status']
+                : 'unknown',
         ];
     }
 
-    /** @return list<array{id:string,label:string,context:array<string,mixed>}> */
+    /**
+     * @param array<string,mixed> $observationState
+     * @return list<array{id:string,label:string,context:array<string,mixed>}>
+     */
     private function subjects(ProgressionDataset $dataset, array $observationState, string $family): array
     {
         $current = is_array($observationState['current'] ?? null) ? $observationState['current'] : [];
@@ -178,7 +192,10 @@ final class ProgressionPlannerQuery
         return $this->topology->subjects($dataset, $family);
     }
 
-    /** @return list<array{id:string,label:string,context:array<string,mixed>}> */
+    /**
+     * @param array<string,mixed> $current
+     * @return list<array{id:string,label:string,context:array<string,mixed>}>
+     */
     private function observedHeroGearSubjects(ProgressionDataset $dataset, array $current, string $family): array
     {
         $heroes = is_array($current['heroes'] ?? null) ? $current['heroes'] : [];
@@ -224,18 +241,26 @@ final class ProgressionPlannerQuery
     }
 
     /**
-     * @param array{id:string,label:string,context:array<string,mixed>} $subject
+     * @param array<string,mixed> $observationState
+     * @param array<string,mixed> $subject
      * @param list<array<string,mixed>> $states
      * @return array<string,mixed>
      */
-    private function currentState(ProgressionDataset $dataset, array $observationState, string $family, array $subject, array $states): array
-    {
+    private function currentState(
+        ProgressionDataset $dataset,
+        array $observationState,
+        string $family,
+        array $subject,
+        array $states,
+    ): array {
         $current = is_array($observationState['current'] ?? null) ? $observationState['current'] : [];
         $facts = [];
         $stateId = null;
 
         if ($family === 'governor_gear') {
-            $slot = is_array($current['governorGear'][$subject['id']] ?? null) ? $current['governorGear'][$subject['id']] : [];
+            $slot = is_array($current['governorGear'][$subject['id']] ?? null)
+                ? $current['governorGear'][$subject['id']]
+                : [];
             $facts = $slot;
             $quality = $this->factValue($slot['quality'] ?? null);
             $star = $this->factValue($slot['star'] ?? null);
@@ -243,10 +268,12 @@ final class ProgressionPlannerQuery
                 foreach ($states as $state) {
                     $tier = $state['attributes']['tier'] ?? null;
                     $stars = $state['attributes']['stars'] ?? null;
-                    if (is_string($tier)
+                    if (
+                        is_string($tier)
                         && mb_strtolower(trim($tier)) === mb_strtolower(trim($quality))
                         && is_int($stars)
-                        && $stars === (int) ($star ?? 0)) {
+                        && $stars === (int) ($star ?? 0)
+                    ) {
                         $stateId = (string) $state['id'];
                         break;
                     }
@@ -270,7 +297,9 @@ final class ProgressionPlannerQuery
         } elseif (in_array($family, ['hero_gear_level', 'hero_mastery'], true)) {
             $heroId = $subject['context']['heroId'] ?? null;
             $slotId = $subject['context']['slotId'] ?? null;
-            $slot = is_string($heroId) && is_string($slotId) && is_array($current['heroes'][$heroId]['gear'][$slotId] ?? null)
+            $slot = is_string($heroId)
+                && is_string($slotId)
+                && is_array($current['heroes'][$heroId]['gear'][$slotId] ?? null)
                 ? $current['heroes'][$heroId]['gear'][$slotId]
                 : [];
             $facts = $slot;
@@ -323,8 +352,11 @@ final class ProgressionPlannerQuery
         ];
     }
 
-    private function datasetStatus(ProgressionDataset $dataset, ?string $observationDatasetId, ?string $observationDatasetChecksum): string
-    {
+    private function datasetStatus(
+        ProgressionDataset $dataset,
+        ?string $observationDatasetId,
+        ?string $observationDatasetChecksum,
+    ): string {
         if ($observationDatasetId === null && $observationDatasetChecksum === null) {
             return 'unlabelled';
         }
@@ -341,6 +373,7 @@ final class ProgressionPlannerQuery
         return is_array($fact) && array_key_exists('value', $fact) ? $fact['value'] : null;
     }
 
+    /** @param array<string,mixed> $facts */
     private function latestCapturedAt(array $facts): ?string
     {
         $values = [];
@@ -354,6 +387,7 @@ final class ProgressionPlannerQuery
         return $values[0] ?? null;
     }
 
+    /** @param array<string,mixed> $facts */
     private function firstFactString(array $facts, string $key): ?string
     {
         foreach ($facts as $fact) {
@@ -365,7 +399,10 @@ final class ProgressionPlannerQuery
         return null;
     }
 
-    /** @param list<array<string,mixed>> $items */
+    /**
+     * @param list<array<string,mixed>> $items
+     * @return array<string,mixed>|null
+     */
     private function findById(array $items, ?string $id): ?array
     {
         if ($id === null || $id === '') {

@@ -103,7 +103,10 @@ final class ProgressionTopologyQuery
             return ['status' => 'invalid_reverse', 'current' => $current, 'target' => $target, 'path' => [], 'remainingTransitions' => null, 'reason' => 'The selected target is behind the observed current state.'];
         }
 
-        $path = array_values(array_filter($states, static fn (array $state): bool => $state['ordinal'] >= $current['ordinal'] && $state['ordinal'] <= $target['ordinal']));
+        $path = array_values(array_filter(
+            $states,
+            static fn (array $state): bool => $state['ordinal'] >= $current['ordinal'] && $state['ordinal'] <= $target['ordinal'],
+        ));
 
         return [
             'status' => 'comparable',
@@ -119,7 +122,8 @@ final class ProgressionTopologyQuery
     private function governorGearStates(ProgressionDataset $dataset): array
     {
         $document = $dataset->catalogue('governor_gear');
-        $rows = is_array($document['data']['upgradeSteps'] ?? null) ? $document['data']['upgradeSteps'] : [];
+        $data = is_array($document) && is_array($document['data'] ?? null) ? $document['data'] : [];
+        $rows = is_array($data['upgradeSteps'] ?? null) ? $data['upgradeSteps'] : [];
         $states = [];
         foreach ($rows as $index => $row) {
             if (! is_array($row) || ! is_string($row['tier'] ?? null) || ! is_int($row['stars'] ?? null)) {
@@ -143,7 +147,8 @@ final class ProgressionTopologyQuery
     private function governorCharmStates(ProgressionDataset $dataset): array
     {
         $document = $dataset->catalogue('governor_charms');
-        $rows = is_array($document['data']['charmLevels'] ?? null) ? $document['data']['charmLevels'] : [];
+        $data = is_array($document) && is_array($document['data'] ?? null) ? $document['data'] : [];
+        $rows = is_array($data['charmLevels'] ?? null) ? $data['charmLevels'] : [];
         $states = [[
             'id' => 'level:0', 'label' => 'Level 0', 'ordinal' => 0, 'sourceIds' => [],
             'evidenceStatus' => 'explicit_unupgraded_boundary', 'prerequisites' => [], 'attributes' => ['level' => 0],
@@ -167,7 +172,10 @@ final class ProgressionTopologyQuery
         return $states;
     }
 
-    /** @return list<array{id:string,label:string,ordinal:int,sourceIds:list<string>,evidenceStatus:string,prerequisites:list<string>,attributes:array<string,mixed>}> */
+    /**
+     * @param list<string> $sourceIds
+     * @return list<array{id:string,label:string,ordinal:int,sourceIds:list<string>,evidenceStatus:string,prerequisites:list<string>,attributes:array<string,mixed>}>
+     */
     private function levelStates(int $maxLevel, array $sourceIds): array
     {
         $states = [];
@@ -233,8 +241,11 @@ final class ProgressionTopologyQuery
     private function academySubjects(ProgressionDataset $dataset): array
     {
         $document = $dataset->catalogue('academy_research');
+        $technologies = is_array($document) && is_array($document['technologies'] ?? null)
+            ? $document['technologies']
+            : [];
         $subjects = [];
-        foreach (is_array($document['technologies'] ?? null) ? $document['technologies'] : [] as $row) {
+        foreach ($technologies as $row) {
             if (is_array($row) && is_string($row['id'] ?? null) && is_string($row['name'] ?? null)) {
                 $subjects[] = ['id' => $row['id'], 'label' => $row['name'], 'context' => ['tree' => $row['tree'] ?? null]];
             }
@@ -247,7 +258,10 @@ final class ProgressionTopologyQuery
     private function academyStates(ProgressionDataset $dataset, string $subjectId): array
     {
         $document = $dataset->catalogue('academy_research');
-        foreach (is_array($document['technologies'] ?? null) ? $document['technologies'] : [] as $technology) {
+        $technologies = is_array($document) && is_array($document['technologies'] ?? null)
+            ? $document['technologies']
+            : [];
+        foreach ($technologies as $technology) {
             if (! is_array($technology) || ($technology['id'] ?? null) !== $subjectId) {
                 continue;
             }
@@ -281,8 +295,9 @@ final class ProgressionTopologyQuery
     private function warAcademySubjects(ProgressionDataset $dataset): array
     {
         $document = $dataset->catalogue('war_academy');
+        $data = is_array($document) && is_array($document['data'] ?? null) ? $document['data'] : [];
         $subjects = [];
-        foreach (is_array($document['data']['technologies'] ?? null) ? $document['data']['technologies'] : [] as $row) {
+        foreach (is_array($data['technologies'] ?? null) ? $data['technologies'] : [] as $row) {
             if (is_array($row) && is_string($row['id'] ?? null) && is_string($row['name'] ?? null)) {
                 $subjects[] = ['id' => $row['id'], 'label' => $row['name'], 'context' => ['category' => $row['category'] ?? null]];
             }
@@ -295,8 +310,9 @@ final class ProgressionTopologyQuery
     private function warAcademyStates(ProgressionDataset $dataset, string $subjectId): array
     {
         $document = $dataset->catalogue('war_academy');
-        $sourceId = is_string($document['source_id'] ?? null) ? $document['source_id'] : null;
-        foreach (is_array($document['data']['technologies'] ?? null) ? $document['data']['technologies'] : [] as $technology) {
+        $data = is_array($document) && is_array($document['data'] ?? null) ? $document['data'] : [];
+        $sourceId = is_array($document) && is_string($document['source_id'] ?? null) ? $document['source_id'] : null;
+        foreach (is_array($data['technologies'] ?? null) ? $data['technologies'] : [] as $technology) {
             if (! is_array($technology) || ($technology['id'] ?? null) !== $subjectId) {
                 continue;
             }
@@ -323,8 +339,9 @@ final class ProgressionTopologyQuery
     private function buildingSubjects(ProgressionDataset $dataset): array
     {
         $document = $dataset->catalogue('buildings_core');
+        $data = is_array($document) && is_array($document['data'] ?? null) ? $document['data'] : [];
         $subjects = [];
-        foreach (is_array($document['data']['buildings'] ?? null) ? $document['data']['buildings'] : [] as $row) {
+        foreach (is_array($data['buildings'] ?? null) ? $data['buildings'] : [] as $row) {
             if (is_array($row) && is_string($row['key'] ?? null) && is_string($row['name'] ?? null)) {
                 $subjects[] = ['id' => $row['key'], 'label' => $row['name'], 'context' => []];
             }
@@ -337,8 +354,9 @@ final class ProgressionTopologyQuery
     private function buildingStates(ProgressionDataset $dataset, string $subjectId): array
     {
         $document = $dataset->catalogue('buildings_core');
-        $sourceId = is_string($document['source_id'] ?? null) ? $document['source_id'] : null;
-        foreach (is_array($document['data']['buildings'] ?? null) ? $document['data']['buildings'] : [] as $building) {
+        $data = is_array($document) && is_array($document['data'] ?? null) ? $document['data'] : [];
+        $sourceId = is_array($document) && is_string($document['source_id'] ?? null) ? $document['source_id'] : null;
+        foreach (is_array($data['buildings'] ?? null) ? $data['buildings'] : [] as $building) {
             if (! is_array($building) || ($building['key'] ?? null) !== $subjectId || ! is_int($building['maxLevel'] ?? null)) {
                 continue;
             }

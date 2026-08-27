@@ -60,18 +60,35 @@ final class ProgressionCalculator
         };
     }
 
-    private function governorGear(ProgressionDataset $dataset, string $currentStateId, string $targetStateId, ?string $version): ProgressionCalculationResult
-    {
+    private function governorGear(
+        ProgressionDataset $dataset,
+        string $currentStateId,
+        string $targetStateId,
+        ?string $version,
+    ): ProgressionCalculationResult {
         $states = $this->topology->states($dataset, 'governor_gear', 'gear');
         $comparison = $this->topology->compare($states, $currentStateId, $targetStateId);
         if ($comparison['status'] !== 'comparable') {
-            return $this->result(ProgressionCalculationStatus::Invalid, $dataset, 'governor_gear', $currentStateId, $targetStateId, [], [], $version, [], [], (string) ($comparison['reason'] ?? 'Invalid progression range.'));
+            return $this->result(
+                ProgressionCalculationStatus::Invalid,
+                $dataset,
+                'governor_gear',
+                $currentStateId,
+                $targetStateId,
+                [],
+                [],
+                $version,
+                [],
+                [],
+                (string) ($comparison['reason'] ?? 'Invalid progression range.'),
+            );
         }
 
         $currentOrdinal = (int) ($comparison['current']['ordinal'] ?? -1);
         $targetOrdinal = (int) ($comparison['target']['ordinal'] ?? -1);
         $document = $dataset->catalogue('governor_gear');
-        $rows = is_array($document['data']['upgradeSteps'] ?? null) ? $document['data']['upgradeSteps'] : [];
+        $data = is_array($document) && is_array($document['data'] ?? null) ? $document['data'] : [];
+        $rows = is_array($data['upgradeSteps'] ?? null) ? $data['upgradeSteps'] : [];
         $totals = ['satin' => 0, 'gilded_threads' => 0, 'artisans_vision' => 0];
         $sourceIds = [];
         $transitionIds = [];
@@ -80,11 +97,35 @@ final class ProgressionCalculator
             $row = $rows[$index] ?? null;
             $materials = is_array($row) && is_array($row['materials'] ?? null) ? $row['materials'] : null;
             if ($materials === null) {
-                return $this->result(ProgressionCalculationStatus::Unavailable, $dataset, 'governor_gear', $currentStateId, $targetStateId, $transitionIds, [], $version, array_values(array_keys($sourceIds)), [], 'A required canonical Governor Gear transition row is unavailable.');
+                return $this->result(
+                    ProgressionCalculationStatus::Unavailable,
+                    $dataset,
+                    'governor_gear',
+                    $currentStateId,
+                    $targetStateId,
+                    $transitionIds,
+                    [],
+                    $version,
+                    array_keys($sourceIds),
+                    [],
+                    'A required canonical Governor Gear transition row is unavailable.',
+                );
             }
             foreach (array_keys($totals) as $resource) {
                 if (! is_int($materials[$resource] ?? null)) {
-                    return $this->result(ProgressionCalculationStatus::Unavailable, $dataset, 'governor_gear', $currentStateId, $targetStateId, $transitionIds, [], $version, array_values(array_keys($sourceIds)), [], 'A required Governor Gear resource value is unknown.');
+                    return $this->result(
+                        ProgressionCalculationStatus::Unavailable,
+                        $dataset,
+                        'governor_gear',
+                        $currentStateId,
+                        $targetStateId,
+                        $transitionIds,
+                        [],
+                        $version,
+                        array_keys($sourceIds),
+                        [],
+                        'A required Governor Gear resource value is unknown.',
+                    );
                 }
                 $totals[$resource] += $materials[$resource];
             }
@@ -109,23 +150,43 @@ final class ProgressionCalculator
                 'artisans_vision' => ['label' => "Artisan's Vision", 'quantity' => $totals['artisans_vision'], 'unit' => 'item'],
             ],
             $version,
-            array_values(array_keys($sourceIds)),
-            ['Each canonical upgradeSteps row is the cost to enter that state from the immediately preceding state.', 'Cumulative stat and power fields are not treated as resource costs.'],
+            array_keys($sourceIds),
+            [
+                'Each canonical upgradeSteps row is the cost to enter that state from the immediately preceding state.',
+                'Cumulative stat and power fields are not treated as resource costs.',
+            ],
         );
     }
 
-    private function governorCharms(ProgressionDataset $dataset, string $currentStateId, string $targetStateId, ?string $version): ProgressionCalculationResult
-    {
+    private function governorCharms(
+        ProgressionDataset $dataset,
+        string $currentStateId,
+        string $targetStateId,
+        ?string $version,
+    ): ProgressionCalculationResult {
         $states = $this->topology->states($dataset, 'governor_charms', 'charm');
         $comparison = $this->topology->compare($states, $currentStateId, $targetStateId);
         if ($comparison['status'] !== 'comparable') {
-            return $this->result(ProgressionCalculationStatus::Invalid, $dataset, 'governor_charms', $currentStateId, $targetStateId, [], [], $version, [], [], (string) ($comparison['reason'] ?? 'Invalid progression range.'));
+            return $this->result(
+                ProgressionCalculationStatus::Invalid,
+                $dataset,
+                'governor_charms',
+                $currentStateId,
+                $targetStateId,
+                [],
+                [],
+                $version,
+                [],
+                [],
+                (string) ($comparison['reason'] ?? 'Invalid progression range.'),
+            );
         }
 
         $currentLevel = (int) ($comparison['current']['attributes']['level'] ?? -1);
         $targetLevel = (int) ($comparison['target']['attributes']['level'] ?? -1);
         $document = $dataset->catalogue('governor_charms');
-        $rows = is_array($document['data']['charmLevels'] ?? null) ? $document['data']['charmLevels'] : [];
+        $data = is_array($document) && is_array($document['data'] ?? null) ? $document['data'] : [];
+        $rows = is_array($data['charmLevels'] ?? null) ? $data['charmLevels'] : [];
         $byLevel = [];
         foreach ($rows as $row) {
             if (is_array($row) && is_int($row['level'] ?? null)) {
@@ -139,7 +200,19 @@ final class ProgressionCalculator
         for ($level = $currentLevel + 1; $level <= $targetLevel; $level++) {
             $row = $byLevel[$level] ?? null;
             if (! is_array($row) || ! is_int($row['charmGuides'] ?? null) || ! is_int($row['charmDesigns'] ?? null)) {
-                return $this->result(ProgressionCalculationStatus::Unavailable, $dataset, 'governor_charms', $currentStateId, $targetStateId, $transitionIds, [], $version, array_values(array_keys($sourceIds)), [], 'A required Governor Charm transition row is unavailable.');
+                return $this->result(
+                    ProgressionCalculationStatus::Unavailable,
+                    $dataset,
+                    'governor_charms',
+                    $currentStateId,
+                    $targetStateId,
+                    $transitionIds,
+                    [],
+                    $version,
+                    array_keys($sourceIds),
+                    [],
+                    'A required Governor Charm transition row is unavailable.',
+                );
             }
             $guides += $row['charmGuides'];
             $designs += $row['charmDesigns'];
@@ -163,8 +236,11 @@ final class ProgressionCalculator
                 'charm_designs' => ['label' => 'Charm Designs', 'quantity' => $designs, 'unit' => 'item'],
             ],
             $version,
-            array_values(array_keys($sourceIds)),
-            ['Each canonical charmLevels row is the cost to enter that level from the immediately preceding level.', 'Level 0 is an explicit unupgraded planning boundary and is never inferred from missing observation data.'],
+            array_keys($sourceIds),
+            [
+                'Each canonical charmLevels row is the cost to enter that level from the immediately preceding level.',
+                'Level 0 is an explicit unupgraded planning boundary and is never inferred from missing observation data.',
+            ],
         );
     }
 
