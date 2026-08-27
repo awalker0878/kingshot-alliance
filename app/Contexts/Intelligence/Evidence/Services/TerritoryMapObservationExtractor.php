@@ -16,18 +16,21 @@ final class TerritoryMapObservationExtractor implements EvidenceExtractor
     public function key(EvidenceKind $kind): string
     {
         $this->assertKind($kind);
+
         return 'territory-map-observation-v1';
     }
 
     public function version(EvidenceKind $kind): string
     {
         $this->assertKind($kind);
+
         return '1.0.0';
     }
 
     public function schemaVersion(EvidenceKind $kind): string
     {
         $this->assertKind($kind);
+
         return 'territory-map-observation/1';
     }
 
@@ -80,10 +83,11 @@ final class TerritoryMapObservationExtractor implements EvidenceExtractor
     {
         $label = preg_replace('/\bx\s*[:=]?\s*\d{1,4}\b.*$/i', '', $raw);
         $label = is_string($label) ? trim($label, " \t:-") : '';
+
         return $label === '' ? null : mb_substr($label, 0, 191);
     }
 
-    /** @param non-empty-list<OcrToken> $tokens */
+    /** @param  non-empty-list<OcrToken>  $tokens */
     private function candidate(string $key, int $ordinal, array $tokens, string $normalized): ExtractedFieldCandidate
     {
         $confidence = 0.0;
@@ -98,6 +102,7 @@ final class TerritoryMapObservationExtractor implements EvidenceExtractor
             $right = max($right, $token->left + $token->width);
             $bottom = max($bottom, $token->top + $token->height);
         }
+
         return new ExtractedFieldCandidate(
             fieldKey: $key,
             rowOrdinal: $ordinal,
