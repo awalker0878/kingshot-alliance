@@ -112,11 +112,11 @@ final class ProgressionPlannerArchitectureV3Test extends TestCase
             );
         }
 
-        self::assertStringContainsString("planner.calculation.resources", $source);
+        self::assertStringContainsString('planner.calculation.resources', $source);
         self::assertStringContainsString("planner.calculator.status === 'calculator_ready'", $source);
     }
 
-    /** @return array<string,string> */
+    /** @return array<string, string> */
     private function phpSources(string $directory): array
     {
         $sources = [];
