@@ -104,13 +104,22 @@ return new class extends Migration
             $table->char('destination_idempotency_key', 64)->unique();
             $table->foreignUlid('accepted_by_player_id')->constrained('players')->restrictOnDelete();
             $table->timestamp('accepted_at');
-            $table->foreignUlid('corrects_observation_id')->nullable()->constrained('spatial_observations')->restrictOnDelete();
+            // Define the self-reference column inside CREATE TABLE, then add the FK only
+            // after PostgreSQL has committed the table's primary-key definition.
+            $table->ulid('corrects_observation_id')->nullable();
             $table->timestamp('invalidated_at')->nullable();
             $table->foreignUlid('invalidated_by_player_id')->nullable()->constrained('players')->restrictOnDelete();
             $table->text('invalidation_reason')->nullable();
             $table->timestamps();
             $table->index(['alliance_id', 'kingdom_id', 'captured_at'], 'spatial_observation_scope_time_idx');
             $table->index(['alliance_id', 'kingdom_id', 'invalidated_at', 'captured_at'], 'spatial_observation_current_idx');
+        });
+
+        Schema::table('spatial_observations', function (Blueprint $table): void {
+            $table->foreign('corrects_observation_id', 'spatial_observations_corrects_observation_id_foreign')
+                ->references('id')
+                ->on('spatial_observations')
+                ->restrictOnDelete();
         });
 
         Schema::create('spatial_observed_objects', function (Blueprint $table): void {
