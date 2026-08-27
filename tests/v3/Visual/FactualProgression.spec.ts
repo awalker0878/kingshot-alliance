@@ -51,7 +51,7 @@ async function fingerprint(surface: Locator): Promise<string> {
   return createHash('sha256').update(screenshot).digest('hex');
 }
 
-test('Factual Progression library and Governor view remain complete on desktop and mobile', async (
+test('Factual Progression library, Governor view, and Goal Planner remain complete on desktop and mobile', async (
   { page },
   testInfo,
 ) => {
@@ -90,4 +90,15 @@ test('Factual Progression library and Governor view remain complete on desktop a
     await fingerprint(page.locator('main')),
     `Update Governor progression fingerprint for ${testInfo.project.name}`,
   ).toBe(expected.governor);
+
+  await page.goto('/progression/governor/planner?family=governor_gear&subject=hood&target=step%3A3');
+  await page.waitForLoadState('networkidle');
+  await page.evaluate(() => document.fonts.ready);
+
+  await expect(page.getByRole('heading', { name: 'Progression Goal Planner', level: 1 })).toBeVisible();
+  await expect(page.getByTestId('planner-current-state')).toContainText('Current state is unknown');
+  await expect(page.getByTestId('planner-target-state')).toContainText('Green ★3');
+  await expect(page.getByTestId('planner-calculator-gate')).toContainText('Calculator ready');
+  await expect(page.getByTestId('planner-calculate')).toHaveCount(0);
+  await expectNoHorizontalOverflow(page);
 });
