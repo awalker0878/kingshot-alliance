@@ -1,10 +1,12 @@
 # Progression Goal Planner and Calculator Evidence Program — Delivery Ledger
 
-Status: Verification reopened after Visual Regression failure — 2026-08-27
+Status: Complete when the exact containing commit is green across all required repository workflows — 2026-08-27
 
 Source of truth: [Progression Goal Planner and Calculator Evidence Program](progression-goal-planner-calculators.md), with verification-specific reconciliation in [Progression Goal Planner and Calculator Evidence Program — Verification Reconciliation Amendment](progression-goal-planner-calculators-verification-amendment.md).
 
 This ledger records implementation state separately from the contract-start snapshot retained in the source-of-truth document. A family whose evidence gate fails is complete only when the failed/incomplete disposition is inspectable, machine-readable, tested, and impossible to bypass. Any required workflow failure on the commit containing this ledger reopens the affected delivery item and PG-08 until resolved.
+
+The immediately preceding implementation candidate `5a637377925c1fc3e4aaa95f2acca8e909641c45` passed CI, Architecture V3 Verification, Intelligence Verification, CodeQL, Visual Regression and Dependency Review after the verification amendments and reviewed visual fingerprints were committed. The exact commit containing this reconciled ledger must pass those same six workflows; when it does, PG-08 and this ledger are complete without another content change. If any required workflow fails, PG-08 is reopened and this document must be reconciled before implementation changes.
 
 | Item | Required outcome | Current status | Evidence |
 | --- | --- | --- | --- |
@@ -17,7 +19,7 @@ This ledger records implementation state separately from the contract-start snap
 | PG-05B | Observed current state exposes configured stale/fresh presentation semantics without changing factual truth | Complete | `ProgressionPlannerQuery` derives freshness from `capturedAt` using `config/intelligence.php`; boundary tests prove staleness is presentation-only |
 | PG-05C | No-dataset and prerequisite-boundary UX are explicit and non-speculative | Complete | Planner has an explicit read-only `no_dataset` surface; direct source-text prerequisites remain `unknown` unless canonical identities support deterministic resolution |
 | PG-05D | Dataset absence is distinguished from dataset integrity failure | Complete | `NoProgressionDatasetPublished` is the only absence signal handled as `no_dataset`; schema/read/required-file failures remain hard failures; permanent architecture test covers the boundary |
-| PG-06 | Planner acceptance/localization/accessibility/visual tests | Reopened — visual fixture reconciliation in progress | First containing commit proved target assertion/baseline drift; amendment requires pinned-dataset-consistent target assertion and reviewed Governor fingerprints before closeout |
+| PG-06 | Planner acceptance/localization/accessibility/visual tests | Complete | Pinned-dataset factual target assertion, reviewed Governor fingerprints, semantic Transfer evidence-card assertions, reviewed Transfer desktop/mobile fingerprints, responsive/overflow coverage, query/unit/architecture coverage |
 | CE-GEAR | Governor Gear evidence qualification report + machine-readable eligibility | Complete — qualified | Tier-A Century Games/KingShot Official Wiki canonical 58-row table; superseded community conflict retained; report `2026.08.23.2.json` |
 | CE-CHARM | Governor Charm evidence qualification report + machine-readable eligibility | Complete — qualified | Tier-A official 22-level table + maintained independent corroboration; historical max-level conflict retained |
 | CE-HERO-GEAR | Hero Gear/Mastery evidence qualification report | Complete — evidence incomplete | Missing complete independent calculator evidence/transition semantics; calculator disabled |
@@ -30,8 +32,8 @@ This ledger records implementation state separately from the contract-start snap
 | CI-TROOPS | Troop calculator | Correctly unavailable | Evidence gate failed; no runtime calculator implementation or UI action is exposed |
 | CI-RESEARCH | Research calculator | Correctly unavailable | Source gap/evidence gate failed; no runtime calculator implementation or UI action is exposed |
 | CI-BUILDINGS | Building calculator | Correctly unavailable | Evidence conflict/evidence gate failed; no runtime calculator implementation or UI action is exposed |
-| PG-07 | Documentation/implementation reconciliation | Reopened for verification blockers | Visual fixture truth and repository-wide integration requirements are now documented in the verification amendment before test changes |
-| PG-08 | Full repository verification and immutable closeout candidate | Reopened — Visual Regression failed on `b5026f58…` | CI, Architecture V3 Verification, Intelligence Verification, CodeQL and Dependency Review passed on `b5026f58…`; Visual Regression failed and must be corrected. All six workflows must be green on one later exact ledger-containing SHA |
+| PG-07 | Documentation/implementation reconciliation | Complete | Entry-point, freshness, prerequisite identity, no-dataset/integrity, pinned visual truth and repository-wide visual integration requirements were documented before their corresponding fixes and are represented in the source-of-truth set |
+| PG-08 | Full repository verification and immutable closeout candidate | Complete when the exact containing SHA has all six required workflows green | Pre-closeout candidate `5a637377925c1fc3e4aaa95f2acca8e909641c45` passed all six. This containing commit must independently pass CI, Architecture V3 Verification, Intelligence Verification, CodeQL, Visual Regression and Dependency Review; a failure automatically reopens this row |
 
 ## Reconciliation requirements discovered during verification
 
@@ -62,11 +64,16 @@ The read model renders `no_dataset` only when no factual progression release exi
 
 ### PG-06A — pinned-dataset visual truth
 
-The first full visual run exposed a stale test assertion rather than a product defect: `target=step:3` resolves to `Blue ★1` in immutable release `2026.08.23.2`, while the test asserted nonexistent `Green ★3`. Visual fixtures must assert the factual state returned by the pinned dataset. The same run confirmed the intentional Governor Progression visual change created by the canonical Goal Planner entry point; only reviewed desktop/mobile fingerprints may replace the old baselines.
+The first full visual run exposed a stale test assertion rather than a product defect: `target=step:3` resolves to `Blue ★1` in immutable release `2026.08.23.2`, while the test asserted nonexistent `Green ★3`. Visual fixtures now assert the factual state returned by the pinned dataset. The same reconciliation reviewed and locked the intentional Governor Progression visual change created by the canonical Goal Planner entry point.
 
 ### PG-08A — repository-wide visual integration
 
-The final Visual Regression gate also exercises Kingdom Transfer. The exact `main` merge base contains Screenshot Intake evolution that legitimately adds nested review articles inside `Add in-game evidence`; therefore a generic count of every descendant `<article>` no longer represents the three intended evidence scenarios. The test must scope the scenarios semantically, and its pending visual fingerprint placeholders must be replaced with reviewed captured fingerprints before PG-08 can close. No Kingdom Transfer product behavior is changed by this verification repair.
+The final Visual Regression gate also exercises Kingdom Transfer. Screenshot Intake evolution on the exact `main` merge base legitimately added nested review content, so generic descendant `<article>` counting and cross-card first-match selectors were replaced with semantic nearest-card assertions. The Score/Passes preview is asserted by its complete factual payload rather than an assumed standalone text prefix. The rendered desktop/mobile surfaces were reviewed and locked to:
+
+- desktop `bc54da5d6100313fbfd6b82ab547cdf4f97fb845c6a52679fcc315ef7d62f4fc`;
+- mobile `1698876e5bd830fd5ef221ef2990664c7f70794c424edfe2cbd2ca9fb3dce12c`.
+
+No Kingdom Transfer product behavior or calculator evidence status was changed by this verification repair.
 
 ## Evidence-gate disposition
 
@@ -87,4 +94,4 @@ Historical `kingshot-2026-08-23-v1` remains usable for factual planning. Because
 
 ## Closeout condition
 
-This ledger is complete only while the exact commit containing it has all required repository workflows green and the PR diff remains reconciled to the product/architecture contract. A workflow failure, product mismatch or newly discovered requirement reopens the affected item and PG-08, requires documentation-first reconciliation, and must be resolved before the capability is considered complete.
+The ledger is complete only while the exact commit containing it has CI, Architecture V3 Verification, Intelligence Verification, CodeQL, Visual Regression and Dependency Review green and the PR diff remains reconciled to the product/architecture contract. A workflow failure, product mismatch or newly discovered requirement automatically reopens the affected item and PG-08, requires documentation-first reconciliation, and must be resolved before the capability is considered complete.
