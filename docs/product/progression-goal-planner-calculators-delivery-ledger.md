@@ -16,6 +16,7 @@ This ledger records implementation state separately from the contract-start snap
 | PG-05A | Governor Progression exposes the canonical Goal Planner entry point | In progress | The canonical link must originate from `Kingdom/Progression/Governor.vue`, use localized product language and be covered by visual/contract tests |
 | PG-05B | Observed current state exposes configured stale/fresh presentation semantics without changing factual truth | In progress | Planner must derive freshness from `capturedAt` against a configured threshold, retain the observed state/provenance, and expose `stale_observation` as presentation metadata only |
 | PG-05C | No-dataset and prerequisite-boundary UX are explicit and non-speculative | In progress | No dataset renders a read-only `no_dataset` state without observation retrieval; direct source-text prerequisites remain `unknown` unless canonical identities support deterministic resolution |
+| PG-05D | Dataset absence is distinguished from dataset integrity failure | In progress | `no_dataset` is emitted only for true release absence; invalid/corrupt published releases remain hard failures and are covered by permanent architecture tests |
 | PG-06 | Planner acceptance/localization/accessibility/visual tests | Implemented — repository verification pending | Query/unit tests, English/French domain labels with normal locale fallback, semantic form labels/ARIA, Playwright desktop/mobile coverage |
 | CE-GEAR | Governor Gear evidence qualification report + machine-readable eligibility | Complete — qualified | Tier-A Century Games/KingShot Official Wiki canonical 58-row table; superseded community conflict retained; report `2026.08.23.2.json` |
 | CE-CHARM | Governor Charm evidence qualification report + machine-readable eligibility | Complete — qualified | Tier-A official 22-level table + maintained independent corroboration; historical max-level conflict retained |
@@ -54,6 +55,10 @@ The default presentation threshold is **30 days**, configurable through `config/
 ### PG-05C — no dataset and prerequisite identity boundary
 
 If no factual progression release is published, the Planner renders an explicit no-dataset state and stops before Alliance/Roster observation retrieval or calculation. It does not synthesize an empty release. Research prerequisites in the current release are source text rather than canonical edge identities; the Planner therefore displays those direct facts and keeps observed satisfaction `unknown`. Transitive prerequisite traversal is not inferred from names/prose and becomes eligible only when a future immutable dataset publishes canonical prerequisite identities/edges.
+
+### PG-05D — dataset absence versus integrity failure
+
+The read model may render `no_dataset` only when no factual progression release exists. A published release that cannot be read or validated is an integrity failure, not an empty catalogue: invalid JSON, unsupported schema, missing required files, checksum mismatches and other release-validation failures remain hard failures. This prevents corruption from being presented as ordinary product unavailability.
 
 ## Evidence-gate disposition
 

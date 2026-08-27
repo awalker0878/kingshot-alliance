@@ -1,6 +1,6 @@
 # Progression Goal Planner and Calculator Evidence Program
 
-Status: Implementation contract — 2026-08-26
+Status: Implementation contract — 2026-08-27
 
 This document is the implementation source of truth for the Progression Goal Planner, calculator evidence qualification and evidence-backed progression calculators. It refines the Goal Planner (`GP-*`), calculator evidence (`CE-*`) and calculator implementation (`CI-*`) acceptance criteria in the Capability Extension Program without weakening them.
 
@@ -296,7 +296,7 @@ Prerequisite behavior is evidence-bounded. A dataset row may expose direct prere
 4. **Calculator status** — per-family eligibility and reason. Planning remains usable while calculation is unavailable.
 5. **Calculation result** — only when `calculator_ready`, including resource totals, transition count, provenance and calculation version.
 
-Required states include loading, no dataset, no observation, stale observation, no supported targets, invalid/reverse target, unknown prerequisite, conflict, dataset mismatch, calculator unavailable/review/source-gap/conflict, calculated result, validation failure, permission denied and responsive/mobile presentation. When no factual progression release is published, the Planner renders an explicit read-only `no_dataset` state, performs no observation retrieval or calculation, and never fabricates an empty factual dataset. Material meaning is not color-only. Controls are keyboard/screen-reader usable and strings are localized.
+Required states include loading, no dataset, no observation, stale observation, no supported targets, invalid/reverse target, unknown prerequisite, conflict, dataset mismatch, calculator unavailable/review/source-gap/conflict, calculated result, validation failure, permission denied and responsive/mobile presentation. When no factual progression release is published, the Planner renders an explicit read-only `no_dataset` state, performs no observation retrieval or calculation, and never fabricates an empty factual dataset. The `no_dataset` state is reserved for true absence of a published release. Invalid JSON, unsupported schema, unreadable or missing required release files, checksum/integrity failures, or other published-dataset validation errors remain hard failures and must not be relabelled as dataset absence. Material meaning is not color-only. Controls are keyboard/screen-reader usable and strings are localized.
 
 Observation freshness is presentation metadata only. The default stale threshold is 30 days and is configurable under `config/intelligence.php`; an observation older than the configured threshold is presented as `stale_observation` while retaining its original factual value, captured date, evidence provenance and dataset pin. Staleness alone must never enable or disable a calculator.
 
