@@ -1,17 +1,17 @@
 {
   "schema_version": "governor-gear/1",
   "coverage_cases": [
-    {"name":"canonical","category":"canonical","expected_kind":"governor_gear","ocr_confidence":0.98,"lines":["Governor Gear","Helmet Quality Mythic Level 20 Stars 3","Boots Quality Legendary Level 18 Stars 2"],"fields":{"gear_slots":["helmet","boots"]}},
-    {"name":"alternate","category":"alternate_resolution","expected_kind":"governor_gear","ocr_confidence":0.93,"lines":["Chief Gear","Helm Tier Mythic Lv. 20 Star 3"],"fields":{"gear_slots":["helmet"]}},
-    {"name":"crop","category":"safe_crop","expected_kind":"governor_gear","ocr_confidence":0.96,"lines":["Governor Gear","Helmet Level 20"],"fields":{"gear_slots":["helmet"]}},
-    {"name":"numeric","category":"numeric_grouping","expected_kind":"governor_gear","ocr_confidence":0.96,"lines":["Governor Gear","Helmet Level 020 Stars 03"],"fields":{"gear_slots":["helmet"]}},
-    {"name":"low","category":"low_confidence","expected_kind":"governor_gear","ocr_confidence":0.35,"lines":["Governor Gear","Helmet Level 20"],"fields":{"gear_slots":["helmet"]},"expect_below_field_threshold":true},
-    {"name":"adjacent","category":"adjacent_unrelated_numbers","expected_kind":"governor_gear","ocr_confidence":0.96,"lines":["Governor Gear","Helmet Level 20","Power 99999999","Rank 7"],"fields":{"gear_slots":["helmet"]},"forbidden_fields":["power","rank"]},
-    {"name":"missing","category":"missing_required_field","expected_kind":"governor_gear","ocr_confidence":0.96,"lines":["Governor Gear","Quality Mythic Level 20"],"fields":{"gear_slots":[]}},
+    {"name":"canonical","category":"canonical","expected_kind":"governor_gear","ocr_confidence":0.98,"lines":["Governor Gear","Helmet Quality Gold T2 Level 20 Stars 3","Boots Quality Purple T1 Level 18 Stars 2"],"fields":{"gear_slots":["helmet","boots"],"gear_quality":"Gold T2","gear_level":"20","gear_star":"3"}},
+    {"name":"alternate","category":"alternate_resolution","expected_kind":"governor_gear","ocr_confidence":0.93,"lines":["Chief Gear","Helm Tier Gold T1 Lv. 20 Star 3"],"fields":{"gear_slots":["helmet"],"gear_quality":"Gold T1","gear_level":"20","gear_star":"3"}},
+    {"name":"crop","category":"safe_crop","expected_kind":"governor_gear","ocr_confidence":0.96,"lines":["Governor Gear","Helmet Level 20"],"fields":{"gear_slots":["helmet"],"gear_level":"20"}},
+    {"name":"numeric","category":"numeric_grouping","expected_kind":"governor_gear","ocr_confidence":0.96,"lines":["Governor Gear","Helmet Level 020 Stars 03"],"fields":{"gear_slots":["helmet"],"gear_level":"20","gear_star":"3"}},
+    {"name":"low","category":"low_confidence","expected_kind":"governor_gear","ocr_confidence":0.35,"lines":["Governor Gear","Helmet Level 20"],"fields":{"gear_slots":["helmet"],"gear_level":"20"},"expect_below_field_threshold":true},
+    {"name":"adjacent","category":"adjacent_unrelated_numbers","expected_kind":"governor_gear","ocr_confidence":0.96,"lines":["Governor Gear","Helmet Level 20","Power 99999999","Rank 7"],"fields":{"gear_slots":["helmet"],"gear_level":"20"},"forbidden_fields":["power","rank"]},
+    {"name":"missing","category":"missing_required_field","expected_kind":"governor_gear","ocr_confidence":0.96,"lines":["Governor Gear","Quality Gold T2 Level 20"],"fields":{"gear_slots":[]}},
     {"name":"unsupported","category":"unsupported_ui_variant","expected_kind":"unknown","ocr_confidence":0.96,"lines":["Equipment","Statistics","Power 1000"],"fields":{}},
     {"name":"wrong","category":"wrong_screenshot_class","expected_kind":"governor_hero_detail","ocr_confidence":0.96,"lines":["Hero Detail","Hero: Amadeus","Widget 6"],"fields":{}},
-    {"name":"visual","category":"visual_duplicate_recompressed","expected_kind":"governor_gear","ocr_confidence":0.88,"lines":["Governor Gear","Helmet Quality Mythic Level 20 Stars 3","Boots Quality Legendary Level 18 Stars 2"],"fields":{"gear_slots":["helmet","boots"]},"visual_duplicate_of":"canonical"},
-    {"name":"equal","category":"semantic_equal","expected_kind":"governor_gear","ocr_confidence":0.98,"lines":["Governor Gear","Helmet Level 20 Stars 3"],"fields":{"gear_slots":["helmet"]},"semantic":{"observed_at":"2026-08-26T12:00:00Z"}},
-    {"name":"newer","category":"semantic_newer","expected_kind":"governor_gear","ocr_confidence":0.98,"lines":["Governor Gear","Helmet Level 21 Stars 3"],"fields":{"gear_slots":["helmet"]},"semantic":{"observed_at":"2026-08-27T12:00:00Z"}}
+    {"name":"visual","category":"visual_duplicate_recompressed","expected_kind":"governor_gear","ocr_confidence":0.88,"lines":["Governor Gear","Helmet Quality Gold T2 Level 20 Stars 3","Boots Quality Purple T1 Level 18 Stars 2"],"fields":{"gear_slots":["helmet","boots"],"gear_quality":"Gold T2","gear_level":"20","gear_star":"3"},"visual_duplicate_of":"canonical"},
+    {"name":"equal","category":"semantic_equal","expected_kind":"governor_gear","ocr_confidence":0.98,"lines":["Governor Gear","Helmet Quality Gold T2 Level 20 Stars 3"],"fields":{"gear_slots":["helmet"],"gear_quality":"Gold T2","gear_level":"20","gear_star":"3"},"semantic":{"observed_at":"2026-08-26T12:00:00Z"}},
+    {"name":"newer","category":"semantic_newer","expected_kind":"governor_gear","ocr_confidence":0.98,"lines":["Governor Gear","Helmet Quality Gold T2 Level 21 Stars 3"],"fields":{"gear_slots":["helmet"],"gear_quality":"Gold T2","gear_level":"21","gear_star":"3"},"semantic":{"observed_at":"2026-08-27T12:00:00Z"}}
   ]
 }
