@@ -31,6 +31,7 @@ final class EvidenceServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        $this->loadRoutesFrom(base_path('routes/territory-observations.php'));
         if ($this->app->runningInConsole()) {
             $this->commands([EvidenceDiagnosticsCommand::class]);
         }
