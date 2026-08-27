@@ -48,6 +48,7 @@ type CurrentState = {
   capturedAt?: string | null;
   observationDatasetId?: string | null;
   observationDatasetChecksum?: string | null;
+  datasetStatus?: 'matched' | 'dataset_mismatch' | 'unlabelled';
   reason: string | null;
 };
 
@@ -111,7 +112,10 @@ const subject = ref(props.planner.selectedSubject?.id ?? '');
 const target = ref(props.planner.target?.id ?? '');
 const sourceById = computed(() => new Map(props.planner.sources.map((source) => [source.id, source])));
 const canCalculate = computed(
-  () => props.planner.calculator?.status === 'calculator_ready' && props.planner.comparison?.status === 'comparable',
+  () =>
+    props.planner.calculator?.status === 'calculator_ready' &&
+    props.planner.comparison?.status === 'comparable' &&
+    props.planner.current.datasetStatus !== 'dataset_mismatch',
 );
 
 function valueOrUndefined(value: string): string | undefined {
@@ -285,6 +289,14 @@ function shortChecksum(value: string): string {
                 <dd class="font-mono">{{ shortChecksum(planner.current.observationDatasetChecksum) }}</dd>
               </div>
             </dl>
+            <p
+              v-if="planner.current.datasetStatus === 'dataset_mismatch'"
+              class="mt-4 rounded border border-amber-400/30 bg-amber-300/5 p-3 text-sm leading-6 text-amber-100"
+              role="status"
+              data-testid="planner-dataset-mismatch"
+            >
+              {{ t('progression.datasetMismatchHelp') }}
+            </p>
           </template>
           <div v-else class="mt-5 rounded border border-dashed border-[var(--ks-border)] p-4 text-sm text-[var(--ks-muted)]">
             <strong class="block text-[var(--ks-text)]">{{ t('progression.currentStateUnknown') }}</strong>
@@ -347,6 +359,12 @@ function shortChecksum(value: string): string {
           <div>
             <p class="text-lg font-semibold">{{ t(`progression.calculatorState.${planner.calculator.status}`) }}</p>
             <p class="mt-2 max-w-4xl text-sm leading-6 text-[var(--ks-text-secondary)]">{{ planner.calculator.reason }}</p>
+            <p
+              v-if="planner.current.datasetStatus === 'dataset_mismatch' && planner.calculator.status === 'calculator_ready'"
+              class="mt-3 text-sm text-amber-100"
+            >
+              {{ t('progression.calculationBlockedDatasetMismatch') }}
+            </p>
             <ul v-if="planner.calculator.blockers.length > 0" class="mt-3 space-y-1 text-xs text-[var(--ks-muted)]">
               <li v-for="blocker in planner.calculator.blockers" :key="blocker">{{ blocker }}</li>
             </ul>
