@@ -1,6 +1,6 @@
 # Progression Goal Planner and Calculator Evidence Program — Delivery Ledger
 
-Status: Active reconciliation — 2026-08-26
+Status: Active reconciliation — 2026-08-27
 
 Source of truth: [Progression Goal Planner and Calculator Evidence Program](progression-goal-planner-calculators.md).
 
@@ -12,7 +12,9 @@ This ledger records implementation state separately from the contract-start snap
 | PG-02 | Dataset-pinned progression topology/state query | Complete | `ProgressionTopologyQuery`; factual-only comparison tests |
 | PG-03 | Authorized observed-current composition | Complete | `ProgressionPlannerController`; `ProgressionPlannerQuery`; architecture authorization-order test |
 | PG-04 | Target/path/prerequisite planner response | Complete for sourced deterministic topology | Targets/path are dataset-backed; Academy source gaps produce no synthesized states; prerequisite strings remain sourced and unknown when satisfaction cannot be observed |
-| PG-05 | Planner UX and required states | Complete | `Kingdom/Progression/Planner.vue`; unknown, unresolved, invalid/reverse, evidence status, dataset mismatch, calculation result states |
+| PG-05 | Planner UX and required states | Reconciliation in progress | Core planner UX exists; PG-05A and PG-05B below close the Governor entry-point and stale-observation presentation requirements discovered during verification |
+| PG-05A | Governor Progression exposes the canonical Goal Planner entry point | In progress | The canonical link must originate from `Kingdom/Progression/Governor.vue`, use localized product language and be covered by visual/contract tests |
+| PG-05B | Observed current state exposes configured stale/fresh presentation semantics without changing factual truth | In progress | Planner must derive freshness from `capturedAt` against a configured threshold, retain the observed state/provenance, and expose `stale_observation` as presentation metadata only |
 | PG-06 | Planner acceptance/localization/accessibility/visual tests | Implemented — repository verification pending | Query/unit tests, English/French domain labels with normal locale fallback, semantic form labels/ARIA, Playwright desktop/mobile coverage |
 | CE-GEAR | Governor Gear evidence qualification report + machine-readable eligibility | Complete — qualified | Tier-A Century Games/KingShot Official Wiki canonical 58-row table; superseded community conflict retained; report `2026.08.23.2.json` |
 | CE-CHARM | Governor Charm evidence qualification report + machine-readable eligibility | Complete — qualified | Tier-A official 22-level table + maintained independent corroboration; historical max-level conflict retained |
@@ -26,8 +28,27 @@ This ledger records implementation state separately from the contract-start snap
 | CI-TROOPS | Troop calculator | Correctly unavailable | Evidence gate failed; no runtime calculator implementation or UI action is exposed |
 | CI-RESEARCH | Research calculator | Correctly unavailable | Source gap/evidence gate failed; no runtime calculator implementation or UI action is exposed |
 | CI-BUILDINGS | Building calculator | Correctly unavailable | Evidence conflict/evidence gate failed; no runtime calculator implementation or UI action is exposed |
-| PG-07 | Documentation/implementation reconciliation | Complete for current candidate | Product contract, current ledger and architecture context map agree with implementation |
+| PG-07 | Documentation/implementation reconciliation | In progress | Verification found PG-05A/PG-05B; documentation was updated before implementation and will be reconciled again after tests |
 | PG-08 | Full repository verification and immutable closeout candidate | In progress | Draft PR #129; CI/Architecture/Intelligence/CodeQL/Visual/Dependency workflows run on every candidate SHA |
+
+## Reconciliation requirements discovered during verification
+
+### PG-05A — canonical Governor entry point
+
+The Goal Planner is part of the Governor Progression experience, not an isolated URL. `Kingdom/Progression/Governor.vue` must expose a localized, keyboard-accessible `Goal planner` action to `/progression/governor/planner`. The planner continues to provide a return path to Governor Progression. Navigation must not imply that opening the planner writes or changes observed state.
+
+### PG-05B — observation freshness presentation
+
+The product contract already requires `stale_observation`; verification found that the planner preserved `capturedAt` but did not yet derive freshness. Add a configured presentation threshold under application configuration. For an observed current state:
+
+- `fresh` means the newest applicable fact capture is within the configured threshold;
+- `stale_observation` means it is older than the threshold;
+- stale observations remain factual observations and retain their original source/date/dataset pins;
+- stale status never changes GameWorld truth, never fabricates a newer value, and never by itself enables or disables a calculator;
+- the planner UX must visibly disclose stale status and capture date;
+- the threshold must be tested at the boundary and must not be embedded in Vue.
+
+The default presentation threshold is **30 days**, configurable through `config/intelligence.php`. This is an informational freshness policy, not an evidence-retention or authorization policy.
 
 ## Evidence-gate disposition
 
