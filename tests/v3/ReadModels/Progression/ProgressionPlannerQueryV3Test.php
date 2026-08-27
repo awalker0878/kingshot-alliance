@@ -27,6 +27,7 @@ final class ProgressionPlannerQueryV3Test extends TestCase
         $model = $planner->compose($dataset, $observation, 'governor_gear', 'hood', 'step:3', true);
 
         self::assertSame('observed', $model['current']['status']);
+        self::assertSame('matched', $model['current']['datasetStatus']);
         self::assertSame('step:0', $model['current']['stateId']);
         self::assertSame($dataset->id, $model['current']['observationDatasetId']);
         self::assertSame($dataset->checksum, $model['current']['observationDatasetChecksum']);
@@ -36,6 +37,30 @@ final class ProgressionPlannerQueryV3Test extends TestCase
         self::assertSame('calculated', $model['calculation']['status']);
         self::assertSame(20500, $model['calculation']['resources']['satin']['quantity']);
         self::assertSame(205, $model['calculation']['resources']['gilded_threads']['quantity']);
+    }
+
+    public function test_dataset_mismatch_preserves_observed_state_but_blocks_resource_recalculation(): void
+    {
+        $dataset = app(ProgressionDatasetQuery::class)->latest();
+        $planner = app(ProgressionPlannerQuery::class);
+        $observation = $this->observationState([
+            'governorGear' => [
+                'hood' => [
+                    'quality' => $this->fact('Green', 'historical-dataset', str_repeat('a', 64)),
+                    'star' => $this->fact(0, 'historical-dataset', str_repeat('a', 64)),
+                ],
+            ],
+        ]);
+
+        $model = $planner->compose($dataset, $observation, 'governor_gear', 'hood', 'step:3', true);
+
+        self::assertSame('observed', $model['current']['status']);
+        self::assertSame('dataset_mismatch', $model['current']['datasetStatus']);
+        self::assertSame('historical-dataset', $model['current']['observationDatasetId']);
+        self::assertSame('step:0', $model['current']['stateId']);
+        self::assertSame('comparable', $model['comparison']['status']);
+        self::assertSame('calculator_ready', $model['calculator']['status']);
+        self::assertNull($model['calculation']);
     }
 
     public function test_governor_charm_plan_never_treats_missing_level_as_level_zero(): void
