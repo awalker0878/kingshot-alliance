@@ -1,10 +1,10 @@
 # Intelligence / Evidence — Governor Progression Screenshots
 
-Status: Active delivery — 2026-08-26
+Status: Active delivery — final immutable-candidate verification pending
 
 ## Responsibility
 
-Governor Progression screenshot intake is an explicit `Intelligence/Evidence` family. Evidence owns the private screenshot, security-scan result, OCR/classification/extraction attempts, dataset-pinned normalization attempts, immutable human review revisions, duplicate decisions, commit attempts, retry/recovery state and the destination receipt.
+Governor Progression screenshot intake is an explicit `Intelligence/Evidence` family. Evidence owns the private screenshot, security-scan result, OCR/classification/extraction attempts, dataset-pinned normalization attempts, immutable human review revisions, duplicate decisions, commit attempts, retry/recovery state and destination receipt.
 
 Evidence does not own accepted Governor progression state and never owns or mutates canonical KingShot progression truth.
 
@@ -19,17 +19,30 @@ private screenshot
   -> append-only Roster observation + scalar receipt
 ```
 
+## Context boundaries
+
+- `Intelligence/Evidence` owns source Evidence, machine/review provenance and commit coordination.
+- `GameWorld/Progression` is a read-only factual catalogue dependency used for pinned normalization and destination validation.
+- `Intelligence/Roster` owns accepted append-only Governor progression observations and current-state/history composition.
+- No Governor OCR bounded context, generic OCR ingestion framework, generic `target_type`/`target_id` abstraction or unconstrained field-bag destination exists.
+
+Cross-context calls carry scalar IDs/value objects only. Evidence never imports foreign-context persistence models.
+
+## Evidence interface segregation
+
+Governor Progression review provenance is exposed through a dedicated Evidence-owned `GovernorProgressionEvidenceReferenceLookup` contract. The existing family-neutral Evidence reference interface used by Transfer and other consumers remains unchanged by Governor concepts.
+
+The Governor-specific contract validates the exact approved review, Evidence ID, Alliance, roster entry, Player, Evidence kind, schema version and Progression dataset ID/checksum before Roster accepts a destination write. This preserves strict provenance without coupling other Evidence families to Governor semantics.
+
 ## Explicit scope
 
-Governor Progression Evidence is scoped by `alliance_id` + `roster_entry_id`. Bear Hunt occurrence references and Transfer Plan/participant references are absent. Application validation and database constraints enforce the mutually exclusive scope shape.
+Governor Progression Evidence is scoped by `alliance_id` + `roster_entry_id`. Bear Hunt occurrence and Transfer Plan/participant references are absent. Application validation and database constraints enforce the mutually exclusive scope shape.
 
-This is not a generic target framework. No `target_type`/`target_id`, arbitrary domain class, generic Governor OCR bounded context or unconstrained extracted-field destination exists.
-
-Every protected upload/review/duplicate/commit/retry/delete operation re-resolves the active Alliance scope and target roster entry. A material target change after review invalidates the reviewed handoff; Evidence never silently retargets approved meaning.
+Every protected upload/review/duplicate/commit/retry/delete operation re-resolves active Alliance scope and target roster entry. Material target drift after review invalidates the handoff; Evidence never silently retargets approved meaning.
 
 ## Supported v1 schemas
 
-The only Governor Progression screenshot classes currently supported are:
+The only supported classes are:
 
 - `governor_profile` — `governor-profile/1`;
 - `governor_hero_roster` — `governor-hero-roster/1`;
@@ -38,37 +51,43 @@ The only Governor Progression screenshot classes currently supported are:
 - `governor_gear` — `governor-gear/1`;
 - `governor_charms` — `governor-charms/1`.
 
-Pets and Masters are not implicitly accepted by these schemas. They require future explicit schemas and fixture corpora.
+Pets, Masters and other panels require future explicit schemas/fixtures.
 
-The user-selected expected class is a hint. `GovernorProgressionEvidenceClassifier` independently selects a supported class or `unknown`. A mismatch is surfaced and cannot be routed blindly into the selected extractor.
+The user-selected expected class is a hint. `GovernorProgressionEvidenceClassifier` independently selects a supported class or `unknown`. Generic Charm inventory/collection wording does not classify as Governor Charms without explicit Governor/Chief structure. Mismatches fail closed rather than blindly routing to the expected extractor.
 
-`GovernorProgressionEvidenceExtractor` is schema-bound. It may emit only fields allowlisted by the registered schema. Fixture corpora under `tests/Fixtures/Evidence/GovernorProgression` are executable allowlist proofs rather than documentation-only names.
+`GovernorProgressionEvidenceExtractor` is schema-bound and fixture-proven. Adjacent Gear quality/level/mastery/star and Charm name/level values are split into separate candidates while the complete raw OCR line remains provenance.
 
-## Progression normalization boundary
+## Progression normalization and retry pinning
 
-`GameWorld/Progression` is a read-only dependency of normalization and destination validation. Each normalization attempt pins:
+Each normalization attempt records Progression dataset ID/checksum, normalizer key/version, normalized candidates, canonical identity candidate/confidence and warnings.
 
-- Progression dataset ID;
-- immutable dataset checksum;
-- normalizer key/version;
-- normalized field candidate;
-- canonical identity candidate when available;
-- identity confidence;
-- warnings.
+The first normalization attempt establishes the automatic-processing dataset pin even when it fails. Subsequent processing retry, queue redelivery or process restart reuses the earliest attempt's dataset ID/checksum and must load that exact immutable release. Automatic retry never falls forward to `latest()` after normalization history exists.
 
-Machine OCR/extraction values remain immutable attempt output. Human corrections create reviewed meaning; they do not rewrite the machine attempt or its confidence.
+Moving Evidence to a newer dataset would be a distinct explicit re-normalization action; v1 does not provide one. Existing attempts and accepted Roster observations remain pinned to their original release.
 
-If the latest Progression release changes after normalization, existing Evidence is not silently reinterpreted. Re-normalization is a new explicit attempt against another immutable release. Accepted Roster observations retain their original dataset ID/checksum.
+Machine OCR/extraction output is immutable attempt history. Human corrections create new reviewed meaning and never rewrite machine output/confidence.
 
-Screenshot Intake cannot create, rename, merge, correct or infer canonical Progression entities or facts.
+## Catalogue validation versus structural observation
+
+Destination validation uses the pinned Progression release only where that release exposes canonical meaning:
+
+- Hero identities must exist in the pinned Hero catalogue.
+- Hero progression values obey closed bounds.
+- Hero Gear enhancement and Mastery maxima are derived from pinned published tables.
+- Governor Gear tier/star values reconcile to pinned Governor Gear steps when those fields are present together.
+- Charm level is bounded by the pinned Governor Charm ladder.
+- Hero Gear, Governor Gear and Charm `slot_id` values are closed screen-local structural keys, not invented Progression entity identities.
+- OCR-visible Charm names remain Evidence provenance in v1; a synthetic `charm_id` cannot cross into Roster.
+
+Screenshot Intake cannot create, rename, merge, correct or infer canonical Progression entities/facts.
 
 ## Review and handoff
 
-All six v1 classes require human review. The review surface exposes the screenshot, expected/detected class, classification confidence, schema/fixture version, raw OCR, normalized candidates, field confidence/warnings, canonical identity match, pinned dataset, captured time, completeness semantics, duplicate state and destination preview.
+All six v1 classes require human review. The review surface exposes expected/detected class/confidence, schema/fixture version, raw OCR, normalized candidates, field confidence/warnings, canonical Hero match, pinned dataset, captured time, completeness semantics, duplicate state and destination preview.
 
-Approved meaning is a closed typed union for the selected schema. Unknown keys are rejected. Missing fields remain unobserved; they are not converted to zero or inferred from neighbouring numbers.
+Approved meaning is a closed typed union. Unknown keys are rejected. Missing fields remain unobserved.
 
-The six public destination Actions are:
+The six destination Actions are:
 
 - `RecordGovernorProfileEvidence`;
 - `RecordHeroRosterEvidence`;
@@ -77,25 +96,23 @@ The six public destination Actions are:
 - `RecordGovernorGearEvidence`;
 - `RecordGovernorCharmsEvidence`.
 
-The Actions reacquire current Roster authority and delegate owner persistence/invariants to the Roster observation writer. Cross-context contracts contain scalar IDs/value objects only.
+Each action reacquires current Roster authority, validates exact Evidence/review provenance and pinned dataset, and delegates owner persistence/idempotency to the Roster writer.
 
 ## Duplicate and idempotency semantics
 
-Four different controls remain separate:
+Four controls stay distinct:
 
-1. exact Evidence duplicate — binary identity inside the authorized Governor/Roster scope;
+1. exact Evidence duplicate — binary identity inside authorized Governor/Roster scope;
 2. visual duplicate — advisory similarity warning, still reviewable;
-3. semantic duplicate — equivalent reviewed meaning in the same owner scope, requiring explicit supported resolution;
-4. destination idempotency — one immutable approved review maps to one Roster receipt and can be safely replayed.
+3. semantic duplicate — equivalent reviewed meaning requiring explicit supported resolution;
+4. destination idempotency — one immutable approved review maps to one Roster receipt and safely replays.
 
-A genuinely newer observation remains importable. Destination success followed by Evidence acknowledgement failure is recovered by replaying the same destination idempotency key and recording the already-created receipt.
+A genuinely newer observation remains importable. Destination success followed by Evidence acknowledgement failure recovers by replaying the same destination key and recording the already-created receipt.
 
-## Deletion and retention
+## Deletion, retention and consumers
 
-Deleting/redacting Evidence never deletes an accepted Roster observation. Evidence retention may remove binary/OCR/raw sensitive material while retaining the minimum review/commit/receipt provenance needed to explain the handoff. Roster correction/removal is a separate explicit owner operation.
+Deleting/redacting Evidence never deletes accepted Roster observations. Evidence retention may remove binary/OCR/raw sensitive material while retaining minimum handoff provenance. Roster correction/removal is a separate explicit owner operation.
 
-## Consumer rule
-
-Downstream product surfaces consume authorized `Intelligence/Roster` queries/read models, not Evidence tables. `GameWorld/Progression` supplies catalogue interpretation only. This keeps observed current state, factual catalogue truth and planning/strategy intent separate.
+Downstream product surfaces consume authorized `Intelligence/Roster` queries/read models, never Evidence candidate tables. `GameWorld/Progression` supplies catalogue interpretation only.
 
 The complete product and acceptance contract is `docs/product/screenshot-intake-governor-progression.md`.
