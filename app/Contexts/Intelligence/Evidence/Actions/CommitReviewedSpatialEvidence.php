@@ -28,8 +28,7 @@ final readonly class CommitReviewedSpatialEvidence
         private RecordSpatialObservationEvidence $destination,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
-    ) {
-    }
+    ) {}
 
     public function handle(
         string $actorPlayerId,
