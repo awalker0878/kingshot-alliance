@@ -16,6 +16,7 @@ use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use RuntimeException;
 
 final class ProgressionPlannerController extends Controller
 {
@@ -32,9 +33,15 @@ final class ProgressionPlannerController extends Controller
         $player = $context->player();
         $datasetId = trim((string) $request->query('dataset_id', ''));
         $datasetChecksum = trim((string) $request->query('dataset_checksum', ''));
-        $dataset = $datasetId !== ''
-            ? $datasets->require($datasetId, $datasetChecksum !== '' ? $datasetChecksum : null)
-            : $datasets->latest();
+        if ($datasetId !== '') {
+            $dataset = $datasets->require($datasetId, $datasetChecksum !== '' ? $datasetChecksum : null);
+        } else {
+            try {
+                $dataset = $datasets->latest();
+            } catch (RuntimeException) {
+                return $this->noDatasetResponse($request, $player->playerId, $player->currentName);
+            }
+        }
 
         $scope = $allianceScopes->findForPlayer($player->playerId, $player->kingdomId);
         $allianceId = $scope?->allianceId;
@@ -79,6 +86,45 @@ final class ProgressionPlannerController extends Controller
             ],
             'observationAccess' => ['canView' => $canViewObservations],
             'planner' => $model,
+        ]);
+    }
+
+    private function noDatasetResponse(Request $request, string $playerId, string $playerName): Response
+    {
+        $user = $request->user();
+
+        return Inertia::render('Kingdom/Progression/Planner', [
+            'user' => ['name' => (string) $user?->name, 'email' => (string) $user?->email],
+            'governor' => [
+                'id' => $playerId,
+                'name' => $playerName,
+                'allianceId' => null,
+                'rosterEntryId' => null,
+            ],
+            'observationAccess' => ['canView' => false],
+            'planner' => [
+                'dataset' => null,
+                'families' => [],
+                'selectedFamily' => null,
+                'subjects' => [],
+                'selectedSubject' => null,
+                'states' => [],
+                'current' => [
+                    'status' => 'unknown',
+                    'stateId' => null,
+                    'state' => null,
+                    'facts' => [],
+                    'datasetStatus' => 'unlabelled',
+                    'freshnessStatus' => 'unknown',
+                    'reason' => 'No factual progression dataset is published.',
+                ],
+                'target' => null,
+                'comparison' => null,
+                'prerequisites' => [],
+                'calculator' => null,
+                'calculation' => null,
+                'sources' => [],
+            ],
         ]);
     }
 }

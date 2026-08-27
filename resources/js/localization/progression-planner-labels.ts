@@ -6,6 +6,9 @@ const english = {
     goalPlanner: 'Progression Goal Planner',
     goalPlannerHelp:
       'Compare an authorized observed state with a factual target from one immutable dataset. Resource totals appear only when that progression family has passed its calculator evidence gate.',
+    noDataset: 'No progression dataset is published',
+    noDatasetHelp:
+      'Factual planning and calculation are unavailable until an immutable progression release is published. No observed state or resource total has been inferred.',
     selectGoal: 'Choose a factual goal',
     currentToTarget: 'Current observed state → target',
     goalFamily: 'Progression family',
@@ -59,6 +62,9 @@ const french = {
     goalPlanner: 'Planificateur d’objectifs de progression',
     goalPlannerHelp:
       'Comparez un état observé autorisé à une cible factuelle provenant d’un jeu de données immuable. Les totaux de ressources apparaissent uniquement lorsque cette famille de progression a franchi le contrôle des preuves du calculateur.',
+    noDataset: 'Aucun jeu de données de progression n’est publié',
+    noDatasetHelp:
+      'La planification factuelle et le calcul sont indisponibles jusqu’à la publication d’une version de progression immuable. Aucun état observé ni total de ressources n’a été déduit.',
     selectGoal: 'Choisir un objectif factuel',
     currentToTarget: 'État observé actuel → cible',
     goalFamily: 'Famille de progression',

@@ -98,7 +98,7 @@ const props = defineProps<{
       checksum: string;
       observedAt: string;
       reviewStatus: string;
-    };
+    } | null;
     families: Family[];
     selectedFamily: Family | null;
     subjects: Subject[];
@@ -140,6 +140,9 @@ function navigate(
     calculate?: boolean;
   } = {},
 ): void {
+  const dataset = props.planner.dataset;
+  if (!dataset) return;
+
   const nextFamily = options.family !== undefined ? options.family : family.value;
   const nextSubject = options.subject !== undefined ? options.subject : subject.value;
   const nextTarget = options.target !== undefined ? options.target : target.value;
@@ -147,8 +150,8 @@ function navigate(
   router.get(
     '/progression/governor/planner',
     {
-      dataset_id: props.planner.dataset.id,
-      dataset_checksum: props.planner.dataset.checksum,
+      dataset_id: dataset.id,
+      dataset_checksum: dataset.checksum,
       family: valueOrUndefined(nextFamily),
       subject: valueOrUndefined(nextSubject),
       target: valueOrUndefined(nextTarget),
@@ -213,7 +216,16 @@ function shortChecksum(value: string): string {
             </Link>
           </nav>
         </div>
-        <dl class="mt-5 grid gap-3 text-xs sm:grid-cols-2 lg:grid-cols-4">
+        <div
+          v-if="!planner.dataset"
+          class="mt-5 rounded border border-amber-400/30 bg-amber-300/5 p-4 text-sm leading-6 text-amber-100"
+          role="status"
+          data-testid="planner-no-dataset"
+        >
+          <strong class="block text-[var(--ks-text)]">{{ t('progression.noDataset') }}</strong>
+          <span>{{ t('progression.noDatasetHelp') }}</span>
+        </div>
+        <dl v-else class="mt-5 grid gap-3 text-xs sm:grid-cols-2 lg:grid-cols-4">
           <div class="rounded border border-[var(--ks-border)] p-3">
             <dt class="text-[var(--ks-muted)]">{{ t('progression.datasetVersion') }}</dt>
             <dd class="mt-1 font-semibold">{{ planner.dataset.version }}</dd>
@@ -229,7 +241,11 @@ function shortChecksum(value: string): string {
         </dl>
       </section>
 
-      <section class="ks-surface p-5 sm:p-6" aria-labelledby="planner-target-heading">
+      <section
+        v-if="planner.dataset"
+        class="ks-surface p-5 sm:p-6"
+        aria-labelledby="planner-target-heading"
+      >
         <p class="ks-kicker">{{ t('progression.selectGoal') }}</p>
         <h2 id="planner-target-heading" class="ks-display mt-1 text-2xl font-semibold">
           {{ t('progression.currentToTarget') }}
@@ -370,7 +386,7 @@ function shortChecksum(value: string): string {
           <template v-if="planner.target">
             <h2 class="ks-display mt-1 text-2xl font-semibold">{{ planner.target.label }}</h2>
             <p class="mt-2 text-sm text-[var(--ks-text-secondary)]">
-              {{ t('progression.targetPinnedHelp', { version: planner.dataset.version }) }}
+              {{ t('progression.targetPinnedHelp', { version: planner.dataset?.version ?? '' }) }}
             </p>
             <template v-if="planner.comparison?.status === 'comparable'">
               <p class="mt-5 text-lg font-semibold">
