@@ -105,9 +105,11 @@ test('Kingdom Transfer Planning keeps eligibility, verification, readiness, and 
 
   await expect(governorStatusEvidence.getByText('Possible visual duplicate', { exact: true })).toBeVisible();
   await expect(
-    governorStatusEvidence.locator('p:visible', {
-      hasText: /^Below the schema confidence requirement — verify carefully\.$/,
-    }),
+    governorStatusEvidence
+      .locator('p:visible', {
+        hasText: /^Below the schema confidence requirement — verify carefully\.$/,
+      })
+      .first(),
   ).toBeVisible();
   await expect(governorStatusEvidence.getByText('Raw observation', { exact: true }).first()).toBeVisible();
   await expect(
