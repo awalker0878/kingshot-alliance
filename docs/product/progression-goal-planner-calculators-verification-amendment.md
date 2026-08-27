@@ -35,13 +35,15 @@ The Kingdom Transfer visual suite currently counts every descendant `<article>` 
 
 A subsequent diagnostic run showed that heading-based filtering can still match ancestor and nested article trees and can therefore select hidden duplicate content. The stable verification boundary is the **nearest evidence-card article containing each level-4 evidence-class heading**. Assertions must bind to that nearest card: `Transfer Governor status` owns duplicate/confidence-review presentation, `Transfer Score / Passes` owns approved score/pass evidence and preview behavior, and `Transfer invitation` owns committed destination-receipt behavior. Tests must not select a warning/status by taking the first matching descendant across the entire details region.
 
+The Score/Passes preview renders the affected destination facts as one semantic sentence, for example `Facts this screenshot would add: transfer_score, transfer_passes_available, transfer_passes_required`. Visual verification must assert that complete factual preview payload (or an equivalent semantic container/test ID) and must not assume that the label prefix is emitted as a standalone text node. This preserves the actual preview contract while avoiding DOM-text-fragment coupling.
+
 The same suite also contains `*_PENDING` visual fingerprint placeholders. Those placeholders are not an acceptable green closeout state. After the semantic selector is repaired and the actual rendered page is reviewed, the captured desktop/mobile fingerprints must replace the placeholders and remain protected by the normal visual workflow.
 
 ## Verification sequence
 
 1. Reconcile this amendment before test changes.
 2. Correct the Progression visual target assertion to match the pinned dataset and update only reviewed intentional Governor fingerprints.
-3. Repair the Kingdom Transfer visual selector to assert the intended evidence scenarios semantically and bind card-specific assertions to each nearest evidence-card article.
+3. Repair the Kingdom Transfer visual selector to assert the intended evidence scenarios semantically, bind card-specific assertions to each nearest evidence-card article, and verify the complete Score/Passes preview payload without depending on text-node splitting.
 4. Run Visual Regression to obtain/review the now-reachable Kingdom Transfer final fingerprints and replace any pending placeholders.
 5. Run the repository-required workflows against one immutable final SHA containing the implementation, this reconciliation, final visual assertions/fingerprints and the reconciled delivery ledger.
 6. PG-08 may return to `Complete` only when CI, Architecture V3 Verification, Intelligence Verification, CodeQL, Visual Regression and Dependency Review are all green on that same SHA.
