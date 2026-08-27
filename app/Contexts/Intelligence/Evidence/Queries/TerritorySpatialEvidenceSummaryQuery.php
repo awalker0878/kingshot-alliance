@@ -16,14 +16,21 @@ use Illuminate\Auth\Access\AuthorizationException;
 
 final readonly class TerritorySpatialEvidenceSummaryQuery
 {
-    public function __construct(private AllianceIntelligenceAuthorization $authorization) {}
-
-    /** @return list<array<string,mixed>> */
-    public function forScope(string $actorPlayerId, string $allianceId, string $kingdomId, int $limit = 50): array
+    public function __construct(private AllianceIntelligenceAuthorization $authorization)
     {
+    }
+
+    /** @return list<array<string, mixed>> */
+    public function forScope(
+        string $actorPlayerId,
+        string $allianceId,
+        string $kingdomId,
+        int $limit = 50,
+    ): array {
         if (! $this->authorization->allows($actorPlayerId, $allianceId, IntelligencePermission::KingdomManage)) {
             throw new AuthorizationException;
         }
+
         $evidence = GameEvidence::query()
             ->where('alliance_id', $allianceId)
             ->where('kingdom_id', $kingdomId)
@@ -34,8 +41,14 @@ final readonly class TerritorySpatialEvidenceSummaryQuery
         if ($evidence->isEmpty()) {
             return [];
         }
+
         $ids = $evidence->pluck('id')->map(static fn ($id): string => (string) $id)->all();
-        $extractions = EvidenceExtractionAttempt::query()->whereIn('evidence_id', $ids)->orderByDesc('completed_at')->orderByDesc('id')->get()->groupBy('evidence_id');
+        $extractions = EvidenceExtractionAttempt::query()
+            ->whereIn('evidence_id', $ids)
+            ->orderByDesc('completed_at')
+            ->orderByDesc('id')
+            ->get()
+            ->groupBy('evidence_id');
         $extractionIds = [];
         foreach ($extractions as $attempts) {
             $first = $attempts->first();
@@ -43,8 +56,18 @@ final readonly class TerritorySpatialEvidenceSummaryQuery
                 $extractionIds[] = (string) $first->id;
             }
         }
-        $fields = EvidenceExtractedField::query()->whereIn('extraction_attempt_id', $extractionIds)->orderBy('row_ordinal')->get()->groupBy('extraction_attempt_id');
-        $reviews = SpatialEvidenceReview::query()->whereIn('evidence_id', $ids)->orderByDesc('revision_number')->orderByDesc('id')->get()->groupBy('evidence_id');
+
+        $fields = EvidenceExtractedField::query()
+            ->whereIn('extraction_attempt_id', $extractionIds)
+            ->orderBy('row_ordinal')
+            ->get()
+            ->groupBy('extraction_attempt_id');
+        $reviews = SpatialEvidenceReview::query()
+            ->whereIn('evidence_id', $ids)
+            ->orderByDesc('revision_number')
+            ->orderByDesc('id')
+            ->get()
+            ->groupBy('evidence_id');
         $reviewIds = [];
         foreach ($reviews as $items) {
             $first = $items->first();
@@ -52,7 +75,12 @@ final readonly class TerritorySpatialEvidenceSummaryQuery
                 $reviewIds[] = (string) $first->id;
             }
         }
-        $attempts = SpatialEvidenceCommitAttempt::query()->whereIn('spatial_review_id', $reviewIds)->orderByDesc('created_at')->get()->groupBy('spatial_review_id');
+
+        $attempts = SpatialEvidenceCommitAttempt::query()
+            ->whereIn('spatial_review_id', $reviewIds)
+            ->orderByDesc('created_at')
+            ->get()
+            ->groupBy('spatial_review_id');
 
         $result = [];
         foreach ($evidence as $item) {
@@ -75,7 +103,10 @@ final readonly class TerritorySpatialEvidenceSummaryQuery
                     ];
                 }
             }
-            $commit = $latestReview instanceof SpatialEvidenceReview ? $attempts[(string) $latestReview->id]?->first() : null;
+
+            $commit = $latestReview instanceof SpatialEvidenceReview
+                ? $attempts[(string) $latestReview->id]?->first()
+                : null;
             $result[] = [
                 'id' => (string) $item->id,
                 'status' => $item->lifecycle_status->value,
@@ -106,6 +137,7 @@ final readonly class TerritorySpatialEvidenceSummaryQuery
                 ] : null,
             ];
         }
+
         return $result;
     }
 }
