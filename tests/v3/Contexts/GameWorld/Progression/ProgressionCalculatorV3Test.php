@@ -38,6 +38,21 @@ final class ProgressionCalculatorV3Test extends TestCase
         self::assertFalse($research->gates['source_version_unit_complete']);
     }
 
+    public function test_historical_dataset_without_calculator_report_remains_plannable_but_not_calculable(): void
+    {
+        $dataset = app(ProgressionDatasetQuery::class)->require('kingshot-2026-08-23-v1');
+        $eligibility = app(CalculatorEligibilityQuery::class)->forFamily($dataset, 'governor_gear');
+
+        self::assertSame(CalculatorEligibilityStatus::EvidenceReview, $eligibility->status);
+        self::assertSame('not_reviewed', $eligibility->qualificationStatus);
+        self::assertContains('qualification_report_missing', $eligibility->blockers);
+        self::assertSame($dataset->checksum, $eligibility->datasetChecksum);
+
+        $result = app(ProgressionCalculator::class)->calculate($dataset, 'governor_gear', 'step:0', 'step:1');
+        self::assertSame(ProgressionCalculationStatus::Unavailable, $result->status);
+        self::assertSame([], $result->resources);
+    }
+
     public function test_governor_gear_golden_calculation_fixtures_are_exact(): void
     {
         $dataset = app(ProgressionDatasetQuery::class)->latest();
