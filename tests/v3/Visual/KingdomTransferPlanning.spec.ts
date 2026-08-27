@@ -120,7 +120,9 @@ test('Kingdom Transfer Planning keeps eligibility, verification, readiness, and 
     .click();
   await expect(scoreEvidence.getByText('Before commit', { exact: true })).toBeVisible();
   await expect(scoreEvidence.getByText('After reviewed facts', { exact: true })).toBeVisible();
-  await expect(scoreEvidence.getByText('Facts this screenshot would add', { exact: true })).toBeVisible();
+  await expect(scoreEvidence).toContainText(
+    'Facts this screenshot would add: transfer_score, transfer_passes_available, transfer_passes_required',
+  );
   await expect(scoreEvidence).not.toContainText('in_game_rules_verified');
 
   await expect(committedInvitation.getByText('Succeeded', { exact: true })).toBeVisible();
