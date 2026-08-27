@@ -9,10 +9,10 @@ use App\Contexts\GameWorld\Progression\Enums\ProgressionCalculationStatus;
 final readonly class ProgressionCalculationResult
 {
     /**
-     * @param list<string> $transitionIds
-     * @param array<string,array{label:string,quantity:int|float,unit:string}> $resources
-     * @param list<string> $sourceIds
-     * @param list<string> $assumptions
+     * @param  list<string>  $transitionIds
+     * @param  array<string, array{label: string, quantity: int|float, unit: string}>  $resources
+     * @param  list<string>  $sourceIds
+     * @param  list<string>  $assumptions
      */
     public function __construct(
         public ProgressionCalculationStatus $status,
@@ -28,9 +28,11 @@ final readonly class ProgressionCalculationResult
         public array $sourceIds,
         public array $assumptions,
         public ?string $reason = null,
-    ) {}
+    ) {
+        // Immutable value object.
+    }
 
-    /** @return array<string,mixed> */
+    /** @return array<string, mixed> */
     public function toArray(): array
     {
         return [
