@@ -26,6 +26,7 @@ Screenshot Intake must never create, modify, correct, infer or publish canonical
 8. Partial screenshots never imply complete roster state. Completeness is an explicit reviewed fact supported only by Hero Roster.
 9. A newer Progression dataset never rewrites or silently re-normalizes historical Evidence attempts, review revisions or Roster observations.
 10. Evidence deletion/redaction never cascades into accepted Roster history.
+11. Shared Evidence reference contracts remain family-neutral; Governor-specific provenance validation uses a dedicated Evidence-owned contract.
 
 ## Capability ownership
 
@@ -34,6 +35,8 @@ Screenshot Intake must never create, modify, correct, infer or publish canonical
 Owns private screenshot binaries, source metadata/checksum, upload validation, expected class, independent classification, OCR/provider attempts, raw OCR, schema/extractor/normalizer versions, extracted candidates/bounds/confidence, pinned normalization attempts, review revisions/corrections/exclusions, exact/visual/semantic duplicate decisions, commit attempts, stable destination idempotency key, retry/recovery state, destination receipt and Evidence retention/deletion lifecycle.
 
 Evidence retains only the narrow Alliance, roster-entry and Player scalar scope needed to authorize and explain the handoff.
+
+Evidence also owns the Governor-specific provenance lookup contract used by Roster to validate an approved review. The pre-existing general Evidence reference interface remains family-neutral and is not extended with Governor/Roster/dataset-specific methods.
 
 ### `GameWorld/Progression`
 
@@ -53,6 +56,24 @@ Owns accepted append-only Governor progression observations, closed typed payloa
 - Scope drift after review fails closed and requires new review; Evidence is never silently retargeted.
 - Duplicate checks are tenant/scope constrained and never disclose cross-Alliance Evidence.
 - Any future self-service exception requires an explicit product authorization rule; no accidental bypass is allowed.
+
+## Cross-context provenance interface boundary
+
+Governor Progression review provenance validation is exposed through a dedicated Evidence-owned contract. The shared/family-neutral Evidence reference contract used by Transfer and other consumers must not gain Governor-specific methods.
+
+The dedicated Governor provenance contract must allow Roster to validate before every destination write that the referenced approved review matches the exact:
+
+- Evidence record;
+- Alliance;
+- Roster entry;
+- Governor/Player;
+- Governor Progression Evidence kind;
+- schema version;
+- Progression dataset ID;
+- Progression dataset checksum; and
+- approved review identifier.
+
+Existing Transfer Evidence consumers must remain compilable/testable without implementing Governor-specific operations. Interface segregation must not weaken destination authorization, provenance, dataset pinning, duplicate handling or idempotency.
 
 ## Explicit Evidence scope
 
@@ -132,6 +153,17 @@ Fixtures assert semantic separation rather than accidental regex spans.
 Normalization is a separate append-only auditable attempt after extraction. Every attempt pins `progression_dataset_id`, `progression_dataset_checksum`, normalizer key/version, normalized canonical/value candidates, match confidence and warnings.
 
 Canonical identity resolution uses `GameWorld/Progression` query contracts against the exact pinned release. Normalization may match identities/aliases exposed by that release but cannot create identities or aliases. Low/ambiguous matches remain review-required. Historical attempts do not silently change when newer releases publish. Re-normalization, if supported, appends a new attempt/revision. Destination commit requires the exact pinned dataset ID/checksum to remain loadable and fails closed on mismatch.
+
+### Automatic retry pinning
+
+The first normalization attempt establishes the automatic-processing Progression pin for that Evidence record, including when the first attempt fails.
+
+- If no prior normalization attempt exists, the first attempt may select the current latest published Progression dataset.
+- If any prior normalization attempt exists, every automatic processing retry, queue redelivery, extraction retry or process restart must reuse the dataset ID/checksum from the earliest normalization attempt.
+- Retry must load that exact release through the Progression query contract and fail closed if the release is unavailable or checksum mismatches.
+- Automatic retry must never fall forward to `latest()` once an Evidence record has a normalization history.
+- Migrating an existing Evidence record to a newer dataset is a distinct explicit re-normalization product action. V1 does not provide that action.
+- Normalization attempts remain append-only and retain normalizer version plus dataset pin.
 
 ## Catalogue-backed validation versus screen-local structure
 
@@ -283,28 +315,31 @@ The family is complete only when all are true:
 2. Independent classification rejects mismatches/unsupported UI safely, including generic Charm screens.
 3. Extraction emits only allowlisted fixture-proven fields, preserves provenance and respects compound-field boundaries.
 4. Normalization pins immutable Progression dataset ID/checksum and preserves match provenance.
-5. Newer datasets cannot silently alter historical meaning.
-6. Review cannot create canonical Progression identities/facts and preserves machine output when corrected.
-7. Application/database enforce explicit Governor/Roster Evidence scope without generic polymorphism.
-8. Six destination actions reacquire authority and validate scope, provenance and exact pinned dataset.
-9. Accepted observations are append-only, closed/typed and owner-idempotent.
-10. Hero identity and catalogue-backed facts/bounds validate against the pinned release; screen-local slots remain non-canonical structure.
-11. Partial observations do not erase unobserved state; complete roster semantics are explicit and Hero-Roster-only.
-12. Exact, visual, semantic duplicate controls and destination idempotency remain distinct and tenant-safe.
-13. Owner-success/Evidence-acknowledgement crash recovery cannot duplicate Roster history.
-14. Evidence deletion/redaction cannot cascade into accepted Roster history.
-15. Governor Progression exposes accessible/mobile-first upload-review-preview-commit-receipt UX with localization.
-16. Current-state/history composition exposes provenance/captured dates and is mounted in Governor Progression.
-17. Authorized downstream consumers use Roster reads rather than Evidence candidate tables or Progression mutation.
-18. Product/architecture/reference/operations current-truth documentation agrees with implementation.
-19. Clean PostgreSQL install plus applicable PHP, frontend, architecture, accessibility/visual, security and repository-wide gates pass on one immutable candidate.
+5. Automatic retry reuses the earliest normalization pin and never silently falls forward to a newer dataset.
+6. Newer datasets cannot silently alter historical meaning.
+7. Review cannot create canonical Progression identities/facts and preserves machine output when corrected.
+8. Application/database enforce explicit Governor/Roster Evidence scope without generic polymorphism.
+9. Governor review provenance uses a dedicated Evidence-owned contract; shared Evidence contracts remain family-neutral.
+10. Six destination actions reacquire authority and validate scope, provenance and exact pinned dataset.
+11. Accepted observations are append-only, closed/typed and owner-idempotent.
+12. Hero identity and catalogue-backed facts/bounds validate against the pinned release; screen-local slots remain non-canonical structure.
+13. Partial observations do not erase unobserved state; complete roster semantics are explicit and Hero-Roster-only.
+14. Exact, visual, semantic duplicate controls and destination idempotency remain distinct and tenant-safe.
+15. Owner-success/Evidence-acknowledgement crash recovery cannot duplicate Roster history.
+16. Evidence deletion/redaction cannot cascade into accepted Roster history.
+17. Governor Progression exposes accessible/mobile-first upload-review-preview-commit-receipt UX with localization.
+18. Current-state/history composition exposes provenance/captured dates and is mounted in Governor Progression.
+19. Authorized downstream consumers use Roster reads rather than Evidence candidate tables or Progression mutation.
+20. Product/architecture/reference/operations current-truth documentation agrees with implementation.
+21. Clean PostgreSQL install plus applicable PHP, frontend, architecture, accessibility/visual, security and repository-wide gates pass on one immutable candidate.
 
 ## Verification requirements
 
 The release candidate must pass on the same immutable SHA, as applicable:
 
 - clean PostgreSQL `migrate:fresh`;
-- Governor fixture/schema/classification/extraction/catalogue-bound/authorization/provenance/duplicate/idempotency/projection/destination tests;
+- Governor fixture/schema/classification/extraction/dataset-retry/catalogue-bound/authorization/provenance/interface-boundary/duplicate/idempotency/projection/destination tests;
+- pre-existing Transfer Evidence boundary regression tests;
 - full PHP test suite;
 - Pint;
 - Larastan/PHPStan;
@@ -326,21 +361,22 @@ Status values: `Planned`, `In progress`, `Complete`, `Blocked`. `Complete` requi
 | GP-03 | Executable fixture corpora for all six v1 schemas | In progress |
 | GP-04 | Independent fail-closed classification support | In progress |
 | GP-05 | Schema-bound extraction + compound-field boundaries | In progress |
-| GP-06 | Dataset-pinned normalization + canonical identity matching | In progress |
+| GP-06 | Dataset-pinned normalization + automatic retry pin preservation | In progress |
 | GP-07 | Explicit Governor/Roster Evidence persistence scope | In progress |
-| GP-08 | Immutable typed Governor review revisions | In progress |
-| GP-09 | Exact/visual/semantic duplicate semantics | In progress |
-| GP-10 | Roster append-only Governor progression observation ledger | In progress |
-| GP-11 | Six Roster destination actions + owner writer | In progress |
-| GP-12 | Pinned catalogue-bound destination validation | In progress |
-| GP-13 | Destination receipt/idempotency + crash recovery | In progress |
-| GP-14 | Roster current-state/history query/projection | In progress |
-| GP-15 | Governor Progression upload/review/preview/commit UX | In progress |
-| GP-16 | Responsive/accessibility/localization/visual coverage | In progress |
-| GP-17 | Audit/outbox/privacy-safe diagnostics/retention | In progress |
-| GP-18 | Downstream authorized-read integration hooks | In progress |
-| GP-19 | Architecture/reference/operations/current-truth reconciliation | In progress |
-| GP-20 | Unit/feature/fixture/authorization/idempotency/catalogue-bound tests | In progress |
-| GP-21 | Repository-wide release verification on one immutable candidate | In progress |
+| GP-08 | Dedicated Governor provenance interface + shared-contract isolation | In progress |
+| GP-09 | Immutable typed Governor review revisions | In progress |
+| GP-10 | Exact/visual/semantic duplicate semantics | In progress |
+| GP-11 | Roster append-only Governor progression observation ledger | In progress |
+| GP-12 | Six Roster destination actions + owner writer | In progress |
+| GP-13 | Pinned catalogue-bound destination validation | In progress |
+| GP-14 | Destination receipt/idempotency + crash recovery | In progress |
+| GP-15 | Roster current-state/history query/projection | In progress |
+| GP-16 | Governor Progression upload/review/preview/commit UX | In progress |
+| GP-17 | Responsive/accessibility/localization/visual coverage | In progress |
+| GP-18 | Audit/outbox/privacy-safe diagnostics/retention | In progress |
+| GP-19 | Downstream authorized-read integration hooks | In progress |
+| GP-20 | Architecture/reference/operations/current-truth reconciliation | In progress |
+| GP-21 | Unit/feature/fixture/authorization/idempotency/interface/catalogue-bound tests | In progress |
+| GP-22 | Repository-wide release verification on one immutable candidate | In progress |
 
 The family remains **Active delivery** until every ledger row is `Complete` and the final documentation-only completion commit also passes required repository gates.
