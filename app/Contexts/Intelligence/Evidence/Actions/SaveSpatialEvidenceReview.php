@@ -36,8 +36,7 @@ final readonly class SaveSpatialEvidenceReview
         private TerritoryEvidenceSchemaRegistry $schemas,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
-    ) {
-    }
+    ) {}
 
     /**
      * @param  array{x:int,y:int,width:int,height:int}|null  $coverageBounds
