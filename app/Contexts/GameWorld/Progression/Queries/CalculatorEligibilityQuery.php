@@ -23,6 +23,10 @@ final class CalculatorEligibilityQuery
     /** @return array<string,CalculatorEligibility> */
     public function all(ProgressionDataset $dataset): array
     {
+        if (! $this->hasReport($dataset)) {
+            return [];
+        }
+
         [$report, $checksum] = $this->report($dataset);
         $result = [];
 
@@ -41,6 +45,24 @@ final class CalculatorEligibilityQuery
 
     public function forFamily(ProgressionDataset $dataset, string $family): CalculatorEligibility
     {
+        if (! $this->hasReport($dataset)) {
+            return new CalculatorEligibility(
+                family: $family,
+                status: CalculatorEligibilityStatus::EvidenceReview,
+                reason: 'No calculator evidence qualification report exists for this pinned progression dataset. Historical factual planning remains available, but calculation is unavailable.',
+                datasetId: $dataset->id,
+                datasetVersion: $dataset->datasetVersion,
+                datasetChecksum: $dataset->checksum,
+                qualificationReportChecksum: '',
+                qualificationStatus: 'not_reviewed',
+                calculationVersion: null,
+                sourceIds: [],
+                units: [],
+                gates: [],
+                blockers: ['qualification_report_missing'],
+            );
+        }
+
         $all = $this->all($dataset);
         if (isset($all[$family])) {
             return $all[$family];
@@ -63,11 +85,20 @@ final class CalculatorEligibilityQuery
         );
     }
 
+    private function hasReport(ProgressionDataset $dataset): bool
+    {
+        return is_file($this->reportPath($dataset));
+    }
+
+    private function reportPath(ProgressionDataset $dataset): string
+    {
+        return base_path(self::DIRECTORY.'/'.$dataset->datasetVersion.'.json');
+    }
+
     /** @return array{0:array<string,mixed>,1:string} */
     private function report(ProgressionDataset $dataset): array
     {
-        $path = base_path(self::DIRECTORY.'/'.$dataset->datasetVersion.'.json');
-        $raw = file_get_contents($path);
+        $raw = file_get_contents($this->reportPath($dataset));
         if (! is_string($raw)) {
             throw new RuntimeException('Calculator qualification report is unavailable for progression dataset '.$dataset->datasetVersion.'.');
         }
@@ -122,7 +153,7 @@ final class CalculatorEligibilityQuery
             }
         }
 
-        foreach (['governor_gear','governor_charms','hero_gear_mastery','troop_training_promotion','research','buildings_truegold'] as $family) {
+        foreach (['governor_gear', 'governor_charms', 'hero_gear_mastery', 'troop_training_promotion', 'research', 'buildings_truegold'] as $family) {
             if (! isset($seen[$family])) {
                 throw new RuntimeException('Calculator qualification report omitted required family: '.$family);
             }
