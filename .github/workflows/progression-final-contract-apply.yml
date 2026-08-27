@@ -1,0 +1,121 @@
+name: Progression Final Contract Apply
+
+on:
+  push:
+    branches:
+      - feature/progression-goal-planner-calculators-main
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+
+      - name: Update product contract first
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def patch(path, old, new):
+              p = Path(path); text = p.read_text()
+              if new in text: return
+              if old not in text: raise SystemExit(f'missing docs anchor: {old[:80]}')
+              p.write_text(text.replace(old, new, 1))
+
+          c='docs/product/progression-goal-planner-calculators.md'
+          patch(c,
+            '3. **Path** — factual steps and prerequisites, with unknown/conflict markers.\n',
+            '3. **Path** — factual steps and prerequisites, with unknown/conflict markers.\n\nPrerequisite behavior is evidence-bounded. A dataset row may expose direct prerequisite text exactly as sourced. The planner may classify satisfaction only when the prerequisite has a canonical identity that can be matched deterministically to an authorized observation. It must not resolve prerequisite names by fuzzy/name matching, infer transitive dependencies from prose, or turn absence into `unsatisfied`. Transitive prerequisite traversal is enabled only for datasets that publish canonical prerequisite identities/edges; otherwise the direct sourced facts remain visible with satisfaction `unknown`.\n')
+          patch(c,
+            'Required states include loading, no dataset, no observation, stale observation, no supported targets, invalid/reverse target, unknown prerequisite, conflict, dataset mismatch, calculator unavailable/review/source-gap/conflict, calculated result, validation failure, permission denied and responsive/mobile presentation.',
+            'Required states include loading, no dataset, no observation, stale observation, no supported targets, invalid/reverse target, unknown prerequisite, conflict, dataset mismatch, calculator unavailable/review/source-gap/conflict, calculated result, validation failure, permission denied and responsive/mobile presentation. When no factual progression release is published, the Planner renders an explicit read-only `no_dataset` state, performs no observation retrieval or calculation, and never fabricates an empty factual dataset.')
+
+          l='docs/product/progression-goal-planner-calculators-delivery-ledger.md'
+          patch(l,
+            '| PG-05B | Observed current state exposes configured stale/fresh presentation semantics without changing factual truth | In progress | Planner must derive freshness from `capturedAt` against a configured threshold, retain the observed state/provenance, and expose `stale_observation` as presentation metadata only |\n',
+            '| PG-05B | Observed current state exposes configured stale/fresh presentation semantics without changing factual truth | In progress | Planner must derive freshness from `capturedAt` against a configured threshold, retain the observed state/provenance, and expose `stale_observation` as presentation metadata only |\n| PG-05C | No-dataset and prerequisite-boundary UX are explicit and non-speculative | In progress | No dataset renders a read-only `no_dataset` state without observation retrieval; direct source-text prerequisites remain `unknown` unless canonical identities support deterministic resolution |\n')
+          patch(l,
+            'The default presentation threshold is **30 days**, configurable through `config/intelligence.php`. This is an informational freshness policy, not an evidence-retention or authorization policy.\n',
+            'The default presentation threshold is **30 days**, configurable through `config/intelligence.php`. This is an informational freshness policy, not an evidence-retention or authorization policy.\n\n### PG-05C — no dataset and prerequisite identity boundary\n\nIf no factual progression release is published, the Planner renders an explicit no-dataset state and stops before Alliance/Roster observation retrieval or calculation. It does not synthesize an empty release. Research prerequisites in the current release are source text rather than canonical edge identities; the Planner therefore displays those direct facts and keeps observed satisfaction `unknown`. Transitive prerequisite traversal is not inferred from names/prose and becomes eligible only when a future immutable dataset publishes canonical prerequisite identities/edges.\n')
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/product/progression-goal-planner-calculators.md docs/product/progression-goal-planner-calculators-delivery-ledger.md
+          git commit -m 'docs: define final progression planner boundaries'
+
+      - name: Implement no-dataset state
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def patch(path, old, new):
+              p = Path(path); text = p.read_text()
+              if new in text: return
+              if old not in text: raise SystemExit(f'missing code anchor in {path}: {old[:80]}')
+              p.write_text(text.replace(old, new, 1))
+
+          c='app/ReadModels/Progression/Http/Controllers/ProgressionPlannerController.php'
+          patch(c, 'use Inertia\\Response;\n', 'use Inertia\\Response;\nuse RuntimeException;\n')
+          patch(c,
+            "        $dataset = $datasetId !== ''\n            ? $datasets->require($datasetId, $datasetChecksum !== '' ? $datasetChecksum : null)\n            : $datasets->latest();\n\n        $scope = $allianceScopes->findForPlayer($player->playerId, $player->kingdomId);\n",
+            "        if ($datasetId !== '') {\n            $dataset = $datasets->require($datasetId, $datasetChecksum !== '' ? $datasetChecksum : null);\n        } else {\n            try {\n                $dataset = $datasets->latest();\n            } catch (RuntimeException) {\n                return $this->noDatasetResponse($request, $player->playerId, $player->currentName);\n            }\n        }\n\n        $scope = $allianceScopes->findForPlayer($player->playerId, $player->kingdomId);\n")
+          patch(c,
+            "    }\n}\n",
+            "    }\n\n    private function noDatasetResponse(Request $request, string $playerId, string $playerName): Response\n    {\n        $user = $request->user();\n\n        return Inertia::render('Kingdom/Progression/Planner', [\n            'user' => ['name' => (string) $user?->name, 'email' => (string) $user?->email],\n            'governor' => [\n                'id' => $playerId,\n                'name' => $playerName,\n                'allianceId' => null,\n                'rosterEntryId' => null,\n            ],\n            'observationAccess' => ['canView' => false],\n            'planner' => [\n                'dataset' => null,\n                'families' => [],\n                'selectedFamily' => null,\n                'subjects' => [],\n                'selectedSubject' => null,\n                'states' => [],\n                'current' => [\n                    'status' => 'unknown',\n                    'stateId' => null,\n                    'state' => null,\n                    'facts' => [],\n                    'datasetStatus' => 'unlabelled',\n                    'freshnessStatus' => 'unknown',\n                    'reason' => 'No factual progression dataset is published.',\n                ],\n                'target' => null,\n                'comparison' => null,\n                'prerequisites' => [],\n                'calculator' => null,\n                'calculation' => null,\n                'sources' => [],\n            ],\n        ]);\n    }\n}\n")
+
+          p='resources/js/pages/Kingdom/Progression/Planner.vue'
+          patch(p,
+            "    dataset: {\n      id: string;\n      version: string;\n      checksum: string;\n      observedAt: string;\n      reviewStatus: string;\n    };\n",
+            "    dataset: {\n      id: string;\n      version: string;\n      checksum: string;\n      observedAt: string;\n      reviewStatus: string;\n    } | null;\n")
+          patch(p,
+            '  const nextFamily = options.family !== undefined ? options.family : family.value;\n',
+            '  const dataset = props.planner.dataset;\n  if (!dataset) return;\n\n  const nextFamily = options.family !== undefined ? options.family : family.value;\n')
+          patch(p,
+            '      dataset_id: props.planner.dataset.id,\n      dataset_checksum: props.planner.dataset.checksum,\n',
+            '      dataset_id: dataset.id,\n      dataset_checksum: dataset.checksum,\n')
+          patch(p,
+            '        <dl class="mt-5 grid gap-3 text-xs sm:grid-cols-2 lg:grid-cols-4">\n',
+            '        <div\n          v-if="!planner.dataset"\n          class="mt-5 rounded border border-amber-400/30 bg-amber-300/5 p-4 text-sm leading-6 text-amber-100"\n          role="status"\n          data-testid="planner-no-dataset"\n        >\n          <strong class="block text-[var(--ks-text)]">{{ t(\'progression.noDataset\') }}</strong>\n          <span>{{ t(\'progression.noDatasetHelp\') }}</span>\n        </div>\n        <dl v-else class="mt-5 grid gap-3 text-xs sm:grid-cols-2 lg:grid-cols-4">\n')
+          patch(p,
+            '      <section class="ks-surface p-5 sm:p-6" aria-labelledby="planner-target-heading">\n',
+            '      <section v-if="planner.dataset" class="ks-surface p-5 sm:p-6" aria-labelledby="planner-target-heading">\n')
+
+          l='resources/js/localization/progression-planner-labels.ts'
+          patch(l,
+            "    selectGoal: 'Choose a factual goal',\n",
+            "    noDataset: 'No progression dataset is published',\n    noDatasetHelp:\n      'Factual planning and calculation are unavailable until an immutable progression release is published. No observed state or resource total has been inferred.',\n    selectGoal: 'Choose a factual goal',\n")
+          patch(l,
+            "    selectGoal: 'Choisir un objectif factuel',\n",
+            "    noDataset: 'Aucun jeu de données de progression n’est publié',\n    noDatasetHelp:\n      'La planification factuelle et le calcul sont indisponibles jusqu’à la publication d’une version de progression immuable. Aucun état observé ni total de ressources n’a été déduit.',\n    selectGoal: 'Choisir un objectif factuel',\n")
+          PY
+
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.5'
+          extensions: dom, intl, mbstring
+          coverage: none
+          tools: composer:v2
+      - run: composer install --no-interaction --no-progress --prefer-dist
+      - name: Verify PHP changes
+        run: |
+          vendor/bin/pint app/ReadModels/Progression/Http/Controllers/ProgressionPlannerController.php
+          php artisan test tests/v3/Architecture/ProgressionPlannerArchitectureV3Test.php tests/v3/ReadModels/Progression/ProgressionPlannerQueryV3Test.php
+          vendor/bin/phpstan analyse app/ReadModels/Progression/Http/Controllers/ProgressionPlannerController.php app/ReadModels/Progression/Queries/ProgressionPlannerQuery.php --no-progress
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Verify frontend changes
+        run: |
+          npx prettier --write resources/js/pages/Kingdom/Progression/Planner.vue resources/js/localization/progression-planner-labels.ts
+          npm run types:check
+      - name: Commit implementation after contract
+        run: |
+          git add app/ReadModels/Progression/Http/Controllers/ProgressionPlannerController.php resources/js/pages/Kingdom/Progression/Planner.vue resources/js/localization/progression-planner-labels.ts
+          git commit -m 'feat: complete progression planner unavailable states'
+          git push
