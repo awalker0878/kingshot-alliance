@@ -39,6 +39,15 @@ The Score/Passes preview renders the affected destination facts as one semantic 
 
 The same suite also contains `*_PENDING` visual fingerprint placeholders. Those placeholders are not an acceptable green closeout state. After the semantic selector is repaired and the actual rendered page is reviewed, the captured desktop/mobile fingerprints must replace the placeholders and remain protected by the normal visual workflow.
 
+### Reviewed Kingdom Transfer fingerprints
+
+After the semantic card and preview assertions passed, Visual Regression captured the complete Transfer Planning surface on both supported projects. The desktop and mobile retries reproduced the same hashes, and the rendered evidence was reviewed for the intended eligibility states, three evidence scenarios, preview impact, committed destination receipt, responsive presentation and horizontal-overflow protection. The reviewed baselines are:
+
+- desktop: `bc54da5d6100313fbfd6b82ab547cdf4f97fb845c6a52679fcc315ef7d62f4fc`;
+- mobile: `1698876e5bd830fd5ef221ef2990664c7f70794c424edfe2cbd2ca9fb3dce12c`.
+
+These hashes protect the reviewed rendering only; they do not create or alter Kingdom Transfer product facts and must not be changed to make an unrelated visual failure pass without another rendered-evidence review.
+
 ## Verification sequence
 
 1. Reconcile this amendment before test changes.
