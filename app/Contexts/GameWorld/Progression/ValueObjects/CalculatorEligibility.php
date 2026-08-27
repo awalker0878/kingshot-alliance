@@ -9,10 +9,10 @@ use App\Contexts\GameWorld\Progression\Enums\CalculatorEligibilityStatus;
 final readonly class CalculatorEligibility
 {
     /**
-     * @param list<string> $sourceIds
-     * @param array<string,string> $units
-     * @param array<string,bool> $gates
-     * @param list<string> $blockers
+     * @param  list<string>  $sourceIds
+     * @param  array<string, string>  $units
+     * @param  array<string, bool>  $gates
+     * @param  list<string>  $blockers
      */
     public function __construct(
         public string $family,
@@ -28,9 +28,11 @@ final readonly class CalculatorEligibility
         public array $units,
         public array $gates,
         public array $blockers,
-    ) {}
+    ) {
+        // Immutable value object.
+    }
 
-    /** @return array<string,mixed> */
+    /** @return array<string, mixed> */
     public function toArray(): array
     {
         return [
