@@ -3,8 +3,8 @@ import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
 
 const transferVisualFingerprints: Record<string, string> = {
-  desktop: 'TRANSFER_EVIDENCE_DESKTOP_PENDING',
-  mobile: 'TRANSFER_EVIDENCE_MOBILE_PENDING',
+  desktop: 'bc54da5d6100313fbfd6b82ab547cdf4f97fb845c6a52679fcc315ef7d62f4fc',
+  mobile: '1698876e5bd830fd5ef221ef2990664c7f70794c424edfe2cbd2ca9fb3dce12c',
 };
 
 async function openTransferPlanning(page: Page): Promise<void> {
@@ -73,11 +73,24 @@ test('Kingdom Transfer Planning keeps eligibility, verification, readiness, and 
   const evidenceDetails = northstarCard.locator('details').filter({ hasText: 'Add in-game evidence' });
   await evidenceDetails.locator('summary').click();
   await expect(evidenceDetails.getByText('Upload and classify', { exact: true })).toBeVisible();
-  await expect(evidenceDetails.locator('article')).toHaveCount(3);
   if (!(await evidenceDetails.evaluate((element) => (element as HTMLDetailsElement).open))) {
     await evidenceDetails.locator('summary').click();
   }
   await expect(evidenceDetails).toHaveAttribute('open', '');
+
+  const governorStatusEvidence = evidenceDetails
+    .getByRole('heading', { name: 'Transfer Governor status', exact: true, level: 4 })
+    .locator('xpath=ancestor::article[1]');
+  const scoreEvidence = evidenceDetails
+    .getByRole('heading', { name: 'Transfer Score / Passes', exact: true, level: 4 })
+    .locator('xpath=ancestor::article[1]');
+  const committedInvitation = evidenceDetails
+    .getByRole('heading', { name: 'Transfer invitation', exact: true, level: 4 })
+    .locator('xpath=ancestor::article[1]');
+
+  await expect(governorStatusEvidence).toBeVisible();
+  await expect(scoreEvidence).toBeVisible();
+  await expect(committedInvitation).toBeVisible();
 
   const screenshotClass = evidenceDetails.getByRole('combobox', { name: 'Screenshot class' });
   await expect(screenshotClass).toBeVisible();
@@ -90,30 +103,28 @@ test('Kingdom Transfer Planning keeps eligibility, verification, readiness, and 
     'Official Transfer Group',
   ]);
 
-  await expect(evidenceDetails.getByText('Possible visual duplicate', { exact: true })).toBeVisible();
+  await expect(governorStatusEvidence.getByText('Possible visual duplicate', { exact: true })).toBeVisible();
   await expect(
-    evidenceDetails.getByText('Below the schema confidence requirement — verify carefully.', {
-      exact: true,
-    }).first(),
+    governorStatusEvidence
+      .locator('p:visible', {
+        hasText: /^Below the schema confidence requirement — verify carefully\.$/,
+      })
+      .first(),
   ).toBeVisible();
-  await expect(evidenceDetails.getByText('Raw observation', { exact: true }).first()).toBeVisible();
-  await expect(evidenceDetails.getByText('Normalized candidate', { exact: true }).first()).toBeVisible();
+  await expect(governorStatusEvidence).toContainText('Raw observation');
+  await expect(governorStatusEvidence).toContainText('Normalized candidate');
 
-  const scoreEvidence = evidenceDetails
-    .locator('article')
-    .filter({ has: page.getByRole('heading', { name: 'Transfer Score / Passes' }) });
-  await expect(scoreEvidence.getByText('Approved', { exact: true }).first()).toBeVisible();
+  await expect(scoreEvidence).toContainText('Evidence status: Approved');
   await scoreEvidence
     .getByRole('button', { name: 'Preview destination facts and eligibility impact' })
     .click();
   await expect(scoreEvidence.getByText('Before commit', { exact: true })).toBeVisible();
   await expect(scoreEvidence.getByText('After reviewed facts', { exact: true })).toBeVisible();
-  await expect(scoreEvidence.getByText('Facts this screenshot would add', { exact: true })).toBeVisible();
+  await expect(scoreEvidence).toContainText(
+    'Facts this screenshot would add: transfer_score, transfer_passes_available, transfer_passes_required',
+  );
   await expect(scoreEvidence).not.toContainText('in_game_rules_verified');
 
-  const committedInvitation = evidenceDetails
-    .locator('article')
-    .filter({ has: page.getByRole('heading', { name: 'Transfer invitation' }) });
   await expect(committedInvitation.getByText('Succeeded', { exact: true })).toBeVisible();
   await expect(committedInvitation).toContainText('Destination receipt');
 

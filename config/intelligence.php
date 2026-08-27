@@ -35,6 +35,15 @@ return [
     ],
 
     /*
+     * Progression observation freshness is presentation metadata only. An
+     * observation older than this threshold remains an immutable factual
+     * observation with its original provenance and dataset pin.
+     */
+    'progression' => [
+        'observation_stale_after_days' => 30,
+    ],
+
+    /*
      * KINGDOMS-005 invitation tokens bootstrap two-party human consent only.
      * They are one-time secrets, hash-only while pending, and do not grant data
      * access until a manager accepts under a valid same-Kingdom context.

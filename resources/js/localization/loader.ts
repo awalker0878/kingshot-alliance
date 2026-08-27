@@ -64,6 +64,14 @@ async function transfersCatalogue(base: MessageCatalogue): Promise<MessageCatalo
   return mergeCatalogue(base, transferEvidenceLabels());
 }
 
+async function progressionCatalogue(
+  base: MessageCatalogue,
+  locale: LocaleCode,
+): Promise<MessageCatalogue> {
+  const { progressionPlannerLabels } = await import('./progression-planner-labels');
+  return mergeCatalogue(base, progressionPlannerLabels(locale));
+}
+
 async function loadOne(domain: LocalizationDomain, locale: LocaleCode): Promise<MessageCatalogue> {
   const key = cacheKey(domain, locale);
   const cached = catalogues.get(key);
@@ -77,6 +85,7 @@ async function loadOne(domain: LocalizationDomain, locale: LocaleCode): Promise<
     if (domain === 'assistant') catalogue = await assistantCatalogue(catalogue, locale);
     if (domain === 'events') catalogue = await eventsCatalogue(catalogue, locale);
     if (domain === 'transfers') catalogue = await transfersCatalogue(catalogue);
+    if (domain === 'progression') catalogue = await progressionCatalogue(catalogue, locale);
     catalogues.set(key, catalogue);
     pending.delete(key);
     return catalogue;

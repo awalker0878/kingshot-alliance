@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Contexts\GameWorld\Progression\Http\Controllers\ProgressionLibraryController;
 use App\Contexts\Intelligence\Evidence\Http\Controllers\GovernorProgressionEvidenceController;
 use App\ReadModels\Progression\Http\Controllers\GovernorProgressionController;
+use App\ReadModels\Progression\Http\Controllers\ProgressionPlannerController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'auth.session', 'verified'])->group(function (): void {
@@ -12,6 +13,8 @@ Route::middleware(['auth', 'auth.session', 'verified'])->group(function (): void
         ->name('progression.index');
     Route::get('/progression/governor', GovernorProgressionController::class)
         ->name('progression.governor');
+    Route::get('/progression/governor/planner', ProgressionPlannerController::class)
+        ->name('progression.governor.planner');
     Route::get('/progression/governor/{entry}/evidence', [GovernorProgressionEvidenceController::class, 'index'])
         ->name('progression.governor.evidence.index');
     Route::get('/progression/governor/{entry}/evidence/{evidence}/image', [GovernorProgressionEvidenceController::class, 'image'])

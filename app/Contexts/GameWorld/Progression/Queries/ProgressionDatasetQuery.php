@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\Progression\Queries;
 
+use App\Contexts\GameWorld\Progression\Exceptions\NoProgressionDatasetPublished;
 use App\Contexts\GameWorld\Progression\ValueObjects\ProgressionDataset;
 use Illuminate\Validation\ValidationException;
 use JsonException;
@@ -99,7 +100,7 @@ final class ProgressionDatasetQuery
     {
         $datasets = $this->all();
         if ($datasets === []) {
-            throw new RuntimeException('No factual progression dataset is published.');
+            throw new NoProgressionDatasetPublished('No factual progression dataset is published.');
         }
 
         usort(

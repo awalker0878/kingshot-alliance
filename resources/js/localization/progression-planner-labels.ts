@@ -1,0 +1,118 @@
+import type { LocaleCode } from './locales';
+import type { MessageCatalogue } from './types';
+
+const english = {
+  progression: {
+    goalPlanner: 'Progression Goal Planner',
+    goalPlannerHelp:
+      'Compare an authorized observed state with a factual target from one immutable dataset. Resource totals appear only when that progression family has passed its calculator evidence gate.',
+    noDataset: 'No progression dataset is published',
+    noDatasetHelp:
+      'Factual planning and calculation are unavailable until an immutable progression release is published. No observed state or resource total has been inferred.',
+    selectGoal: 'Choose a factual goal',
+    currentToTarget: 'Current observed state → target',
+    goalFamily: 'Progression family',
+    selectGoalFamily: 'Select a progression family',
+    goalSubject: 'Subject',
+    selectGoalSubject: 'Select a subject',
+    targetState: 'Target factual state',
+    selectTargetState: 'Select a target',
+    noDeterministicStates:
+      'This subject does not have a deterministic state ladder in the pinned dataset. No progression distance or calculation will be inferred.',
+    observationDataset: 'Observation normalized with',
+    currentStateUnknown: 'Current state is unknown',
+    staleObservationHelp:
+      'This observed state is older than the {days}-day freshness threshold. Its factual value and provenance are preserved; capture a newer observation when current-state confidence matters.',
+    datasetMismatchHelp:
+      'This observation was normalized with a different progression dataset. The historical observation is preserved, but resource calculation is disabled until current state is re-observed or explicitly reconciled to this pinned release.',
+    calculationBlockedDatasetMismatch:
+      'Calculator evidence is ready for this family, but this scenario cannot be calculated because the observed current state is pinned to a different dataset.',
+    factualTarget: 'Factual target',
+    targetPinnedHelp: 'Target resolved from immutable dataset {version}.',
+    stepsRemaining: '{count} progression transitions remaining',
+    progressionPath: 'Factual progression path',
+    chooseTargetHelp: 'Choose a factual target to compare it with the observed current state.',
+    prerequisites: 'Prerequisites',
+    sourcedPrerequisites: 'Sourced prerequisite facts',
+    prerequisiteUnknown: 'observed satisfaction unknown',
+    calculatorEvidence: 'Calculator evidence gate',
+    calculatorStatus: 'Resource calculation status',
+    noCalculatorProgram:
+      'This planning family has no approved calculator program. Factual goal planning remains available.',
+    calculateResources: 'Calculate resource delta',
+    calculationResult: 'Evidence-backed calculation',
+    resourceRequirements: 'Resource requirements',
+    calculationUnavailable: 'Calculation unavailable',
+    calculationVersion: 'Calculation version',
+    transitionsIncluded: 'Transitions included',
+    calculatorState: {
+      calculator_ready: 'Calculator ready',
+      qualified_pending_implementation: 'Evidence qualified — implementation pending',
+      evidence_review: 'Evidence under review',
+      evidence_incomplete: 'Evidence incomplete',
+      source_gap: 'Source gap',
+      evidence_conflict: 'Evidence conflict',
+      unsupported: 'Calculator unsupported',
+    },
+  },
+} satisfies MessageCatalogue;
+
+const french = {
+  progression: {
+    goalPlanner: 'Planificateur d’objectifs de progression',
+    goalPlannerHelp:
+      'Comparez un état observé autorisé à une cible factuelle provenant d’un jeu de données immuable. Les totaux de ressources apparaissent uniquement lorsque cette famille de progression a franchi le contrôle des preuves du calculateur.',
+    noDataset: 'Aucun jeu de données de progression n’est publié',
+    noDatasetHelp:
+      'La planification factuelle et le calcul sont indisponibles jusqu’à la publication d’une version de progression immuable. Aucun état observé ni total de ressources n’a été déduit.',
+    selectGoal: 'Choisir un objectif factuel',
+    currentToTarget: 'État observé actuel → cible',
+    goalFamily: 'Famille de progression',
+    selectGoalFamily: 'Sélectionner une famille de progression',
+    goalSubject: 'Sujet',
+    selectGoalSubject: 'Sélectionner un sujet',
+    targetState: 'État factuel cible',
+    selectTargetState: 'Sélectionner une cible',
+    noDeterministicStates:
+      'Ce sujet ne possède pas d’échelle d’états déterministe dans le jeu de données épinglé. Aucune distance de progression ni aucun calcul ne sera déduit.',
+    observationDataset: 'Observation normalisée avec',
+    currentStateUnknown: 'État actuel inconnu',
+    staleObservationHelp:
+      'Cet état observé dépasse le seuil de fraîcheur de {days} jours. Sa valeur factuelle et sa provenance sont conservées; capturez une observation plus récente lorsque la confiance dans l’état actuel est importante.',
+    datasetMismatchHelp:
+      'Cette observation a été normalisée avec un autre jeu de données de progression. L’observation historique est conservée, mais le calcul des ressources est désactivé jusqu’à ce que l’état actuel soit observé de nouveau ou explicitement réconcilié avec cette version épinglée.',
+    calculationBlockedDatasetMismatch:
+      'Les preuves du calculateur sont prêtes pour cette famille, mais ce scénario ne peut pas être calculé parce que l’état actuel observé est épinglé à un autre jeu de données.',
+    factualTarget: 'Cible factuelle',
+    targetPinnedHelp: 'Cible résolue à partir du jeu de données immuable {version}.',
+    stepsRemaining: '{count} transitions de progression restantes',
+    progressionPath: 'Chemin de progression factuel',
+    chooseTargetHelp: 'Choisissez une cible factuelle à comparer à l’état observé actuel.',
+    prerequisites: 'Prérequis',
+    sourcedPrerequisites: 'Prérequis factuels sourcés',
+    prerequisiteUnknown: 'satisfaction observée inconnue',
+    calculatorEvidence: 'Contrôle des preuves du calculateur',
+    calculatorStatus: 'État du calcul des ressources',
+    noCalculatorProgram:
+      'Cette famille de planification ne possède aucun calculateur approuvé. La planification factuelle demeure disponible.',
+    calculateResources: 'Calculer l’écart de ressources',
+    calculationResult: 'Calcul fondé sur des preuves',
+    resourceRequirements: 'Ressources requises',
+    calculationUnavailable: 'Calcul indisponible',
+    calculationVersion: 'Version du calcul',
+    transitionsIncluded: 'Transitions incluses',
+    calculatorState: {
+      calculator_ready: 'Calculateur prêt',
+      qualified_pending_implementation: 'Preuves qualifiées — implémentation en attente',
+      evidence_review: 'Preuves en révision',
+      evidence_incomplete: 'Preuves incomplètes',
+      source_gap: 'Lacune de source',
+      evidence_conflict: 'Conflit de preuves',
+      unsupported: 'Calculateur non pris en charge',
+    },
+  },
+} satisfies MessageCatalogue;
+
+export function progressionPlannerLabels(locale: LocaleCode): MessageCatalogue {
+  return locale === 'fr' ? french : english;
+}

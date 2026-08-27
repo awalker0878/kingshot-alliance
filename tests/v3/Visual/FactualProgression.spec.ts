@@ -8,11 +8,11 @@ const factualProgressionVisualFingerprints: Record<
 > = {
   desktop: {
     library: 'f3a8c27a39e1c641e6cb570cc82f86d2b26fd08a33f5227a0d6c2b386be9573d',
-    governor: '570917ef26d8f21efcbd219f57236df271682f5a49bd2df96ee736bf5c60cd83',
+    governor: '2e02000083aa6d49387129b41bda4222253e583d9d0b9ecfe90252cdacf4e97d',
   },
   mobile: {
     library: 'c549584809471cfad5b8cb751be4d30c06518149d9846d0700f2cf1979de39e1',
-    governor: 'ebda8baf3fec8fa73c099f4dab29dc10a95134d9dd707254b7f427a3ce5e7f5b',
+    governor: 'd1b26470c9fb5167b6fbee520caaff114b87e148d1adb2a178189afc4fe941f1',
   },
 };
 
@@ -51,7 +51,7 @@ async function fingerprint(surface: Locator): Promise<string> {
   return createHash('sha256').update(screenshot).digest('hex');
 }
 
-test('Factual Progression library and Governor view remain complete on desktop and mobile', async (
+test('Factual Progression library, Governor view, and Goal Planner remain complete on desktop and mobile', async (
   { page },
   testInfo,
 ) => {
@@ -90,4 +90,15 @@ test('Factual Progression library and Governor view remain complete on desktop a
     await fingerprint(page.locator('main')),
     `Update Governor progression fingerprint for ${testInfo.project.name}`,
   ).toBe(expected.governor);
+
+  await page.goto('/progression/governor/planner?family=governor_gear&subject=hood&target=step%3A3');
+  await page.waitForLoadState('networkidle');
+  await page.evaluate(() => document.fonts.ready);
+
+  await expect(page.getByRole('heading', { name: 'Progression Goal Planner', level: 1 })).toBeVisible();
+  await expect(page.getByTestId('planner-current-state')).toContainText('Current state is unknown');
+  await expect(page.getByTestId('planner-target-state')).toContainText('Blue ★1');
+  await expect(page.getByTestId('planner-calculator-gate')).toContainText('Calculator ready');
+  await expect(page.getByTestId('planner-calculate')).toHaveCount(0);
+  await expectNoHorizontalOverflow(page);
 });
