@@ -35,8 +35,7 @@ final readonly class UploadTerritorySpatialEvidence
         private ImagePerceptualHasher $hasher,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
-    ) {
-    }
+    ) {}
 
     public function handle(
         string $actorPlayerId,
