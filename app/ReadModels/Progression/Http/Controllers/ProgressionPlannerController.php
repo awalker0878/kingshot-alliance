@@ -7,6 +7,7 @@ namespace App\ReadModels\Progression\Http\Controllers;
 use App\Contexts\Alliance\Membership\Queries\ActiveAllianceScopeQuery;
 use App\Contexts\Alliance\Membership\Queries\RosterEntryQuery;
 use App\Contexts\GameWorld\Players\Services\PlayerContext;
+use App\Contexts\GameWorld\Progression\Exceptions\NoProgressionDatasetPublished;
 use App\Contexts\GameWorld\Progression\Queries\ProgressionDatasetQuery;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
@@ -16,7 +17,6 @@ use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use RuntimeException;
 
 final class ProgressionPlannerController extends Controller
 {
@@ -38,7 +38,7 @@ final class ProgressionPlannerController extends Controller
         } else {
             try {
                 $dataset = $datasets->latest();
-            } catch (RuntimeException) {
+            } catch (NoProgressionDatasetPublished) {
                 return $this->noDatasetResponse($request, $player->playerId, $player->currentName);
             }
         }
