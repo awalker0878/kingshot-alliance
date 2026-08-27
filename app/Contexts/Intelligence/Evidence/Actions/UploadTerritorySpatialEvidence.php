@@ -35,7 +35,8 @@ final readonly class UploadTerritorySpatialEvidence
         private ImagePerceptualHasher $hasher,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
-    ) {}
+    ) {
+    }
 
     public function handle(
         string $actorPlayerId,
@@ -48,36 +49,63 @@ final readonly class UploadTerritorySpatialEvidence
         if (! $this->authorization->allows($actorPlayerId, $allianceId, IntelligencePermission::KingdomManage)) {
             throw new AuthorizationException;
         }
+
         $this->datasets->require($mapDatasetId, $mapDatasetChecksum);
         $disk = (string) config('evidence.disk', 'local');
         if ($disk === 'public') {
-            throw ValidationException::withMessages(['evidence' => 'Game evidence must use a private storage disk.']);
+            throw ValidationException::withMessages([
+                'evidence' => 'Game evidence must use a private storage disk.',
+            ]);
         }
+
         $size = $file->getSize();
         $mimeType = (string) $file->getMimeType();
         $allowedMimes = array_values(array_filter((array) config('evidence.mime_types', []), 'is_string'));
         $maxBytes = max(1, (int) config('evidence.max_kilobytes', 12288)) * 1024;
-        if (! is_int($size) || $size < 1 || $size > $maxBytes || ! in_array($mimeType, $allowedMimes, true)) {
-            throw ValidationException::withMessages(['evidence' => 'The screenshot type or size is not permitted.']);
+        if (! is_int($size)
+            || $size < 1
+            || $size > $maxBytes
+            || ! in_array($mimeType, $allowedMimes, true)) {
+            throw ValidationException::withMessages([
+                'evidence' => 'The screenshot type or size is not permitted.',
+            ]);
         }
+
         $imageInfo = @getimagesize($file->getPathname());
-        if ($imageInfo === false || (string) $imageInfo['mime'] !== $mimeType || (int) $imageInfo[0] < 1 || (int) $imageInfo[1] < 1) {
-            throw ValidationException::withMessages(['evidence' => 'The uploaded file is not a valid supported image.']);
+        if ($imageInfo === false
+            || (string) $imageInfo['mime'] !== $mimeType
+            || (int) $imageInfo[0] < 1
+            || (int) $imageInfo[1] < 1) {
+            throw ValidationException::withMessages([
+                'evidence' => 'The uploaded file is not a valid supported image.',
+            ]);
         }
+
         $scan = $this->scanner->scan($file);
         if (! $scan->clean) {
-            throw ValidationException::withMessages(['evidence' => $scan->reason ?? 'The screenshot failed security screening.']);
+            throw ValidationException::withMessages([
+                'evidence' => $scan->reason ?? 'The screenshot failed security screening.',
+            ]);
         }
+
         $sha256 = hash_file('sha256', $file->getPathname());
         if (! is_string($sha256)) {
-            throw ValidationException::withMessages(['evidence' => 'The screenshot could not be checksummed.']);
+            throw ValidationException::withMessages([
+                'evidence' => 'The screenshot could not be checksummed.',
+            ]);
         }
+
         $existing = $this->exactDuplicate($allianceId, $kingdomId, $sha256);
         if ($existing instanceof GameEvidence) {
             return new EvidenceUploadResult((string) $existing->id, true);
         }
+
         $perceptualHash = $this->hasher->hashFile($file->getPathname());
-        [$visualDuplicateId, $visualDistance] = $this->visualDuplicate($allianceId, $kingdomId, $perceptualHash);
+        [$visualDuplicateId, $visualDistance] = $this->visualDuplicate(
+            $allianceId,
+            $kingdomId,
+            $perceptualHash,
+        );
         $extension = match ($mimeType) {
             'image/jpeg' => 'jpg',
             'image/png' => 'png',
@@ -86,20 +114,30 @@ final readonly class UploadTerritorySpatialEvidence
         };
         $path = 'evidence/'.$allianceId.'/territory/'.$kingdomId.'/'.Str::ulid().'.'.$extension;
         if (Storage::disk($disk)->putFileAs(dirname($path), $file, basename($path)) === false) {
-            throw ValidationException::withMessages(['evidence' => 'The screenshot could not be stored.']);
+            throw ValidationException::withMessages([
+                'evidence' => 'The screenshot could not be stored.',
+            ]);
         }
 
         try {
             $result = DB::transaction(function () use ($actorPlayerId, $allianceId, $kingdomId, $mapDatasetId, $mapDatasetChecksum, $file, $disk, $path, $mimeType, $size, $sha256, $imageInfo, $perceptualHash, $visualDuplicateId, $visualDistance): EvidenceUploadResult {
-                [$scope, $actor] = $this->writeState->authorize($actorPlayerId, $allianceId, IntelligencePermission::KingdomManage);
+                [$scope, $actor] = $this->writeState->authorize(
+                    $actorPlayerId,
+                    $allianceId,
+                    IntelligencePermission::KingdomManage,
+                );
                 if ($scope->kingdomId !== $kingdomId) {
-                    throw ValidationException::withMessages(['kingdom_id' => 'The Territory screenshot does not match the active Alliance Kingdom.']);
+                    throw ValidationException::withMessages([
+                        'kingdom_id' => 'The Territory screenshot does not match the active Alliance Kingdom.',
+                    ]);
                 }
+
                 $this->datasets->require($mapDatasetId, $mapDatasetChecksum);
                 $duplicate = $this->exactDuplicate($allianceId, $kingdomId, $sha256, true);
                 if ($duplicate instanceof GameEvidence) {
                     return new EvidenceUploadResult((string) $duplicate->id, true);
                 }
+
                 $evidence = GameEvidence::query()->create([
                     'alliance_id' => $allianceId,
                     'kingdom_id' => $kingdomId,
@@ -134,8 +172,20 @@ final readonly class UploadTerritorySpatialEvidence
                     'map_dataset_checksum' => $mapDatasetChecksum,
                     'has_visual_duplicate' => $visualDuplicateId !== null,
                 ];
-                $this->audit->record('evidence.territory_spatial_uploaded', $actor, $evidence, $allianceId, $metadata);
-                $this->outbox->record('evidence.territory_spatial_uploaded', $allianceId, $evidence, $metadata);
+                $this->audit->record(
+                    'evidence.territory_spatial_uploaded',
+                    $actor,
+                    $evidence,
+                    $allianceId,
+                    $metadata,
+                );
+                $this->outbox->record(
+                    'evidence.territory_spatial_uploaded',
+                    $allianceId,
+                    $evidence,
+                    $metadata,
+                );
+
                 return new EvidenceUploadResult((string) $evidence->id, false);
             });
             if ($result->duplicate) {
@@ -143,15 +193,21 @@ final readonly class UploadTerritorySpatialEvidence
             } else {
                 ClassifyGameEvidenceJob::dispatch($result->evidenceId);
             }
+
             return $result;
         } catch (Throwable $exception) {
             Storage::disk($disk)->delete($path);
+
             throw $exception;
         }
     }
 
-    private function exactDuplicate(string $allianceId, string $kingdomId, string $sha256, bool $lock = false): ?GameEvidence
-    {
+    private function exactDuplicate(
+        string $allianceId,
+        string $kingdomId,
+        string $sha256,
+        bool $lock = false,
+    ): ?GameEvidence {
         $query = GameEvidence::query()
             ->where('alliance_id', $allianceId)
             ->where('kingdom_id', $kingdomId)
@@ -161,6 +217,7 @@ final readonly class UploadTerritorySpatialEvidence
             $query->lockForUpdate();
         }
         $evidence = $query->first();
+
         return $evidence instanceof GameEvidence ? $evidence : null;
     }
 
@@ -170,6 +227,7 @@ final readonly class UploadTerritorySpatialEvidence
         if ($hash === null) {
             return [null, null];
         }
+
         $threshold = max(0, min(64, (int) config('evidence.visual_duplicate_distance', 8)));
         $bestId = null;
         $bestDistance = null;
@@ -182,11 +240,14 @@ final readonly class UploadTerritorySpatialEvidence
             ->get();
         foreach ($candidates as $candidate) {
             $distance = $this->hasher->distance($hash, (string) $candidate->perceptual_hash);
-            if ($distance !== null && $distance <= $threshold && ($bestDistance === null || $distance < $bestDistance)) {
+            if ($distance !== null
+                && $distance <= $threshold
+                && ($bestDistance === null || $distance < $bestDistance)) {
                 $bestId = (string) $candidate->id;
                 $bestDistance = $distance;
             }
         }
+
         return [$bestId, $bestDistance];
     }
 }
