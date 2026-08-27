@@ -33,8 +33,8 @@ jobs:
           contract = 'docs/product/progression-goal-planner-calculators.md'
           replace_once(
               contract,
-              "4. **Path** — factual steps and prerequisites, with unknown/conflict markers.\n",
-              "4. **Path** — factual steps and prerequisites, with unknown/conflict markers.\n\nPrerequisite behavior is evidence-bounded. A dataset row may expose direct prerequisite text exactly as sourced. The planner may classify satisfaction only when the prerequisite has a canonical identity that can be matched deterministically to an authorized observation. It must not resolve prerequisite names by fuzzy/name matching, infer transitive dependencies from prose, or turn absence into `unsatisfied`. Transitive prerequisite traversal is enabled only for datasets that publish canonical prerequisite identities/edges; otherwise the direct sourced facts remain visible with satisfaction `unknown`.\n",
+              "3. **Path** — factual steps and prerequisites, with unknown/conflict markers.\n",
+              "3. **Path** — factual steps and prerequisites, with unknown/conflict markers.\n\nPrerequisite behavior is evidence-bounded. A dataset row may expose direct prerequisite text exactly as sourced. The planner may classify satisfaction only when the prerequisite has a canonical identity that can be matched deterministically to an authorized observation. It must not resolve prerequisite names by fuzzy/name matching, infer transitive dependencies from prose, or turn absence into `unsatisfied`. Transitive prerequisite traversal is enabled only for datasets that publish canonical prerequisite identities/edges; otherwise the direct sourced facts remain visible with satisfaction `unknown`.\n",
           )
           replace_once(
               contract,
