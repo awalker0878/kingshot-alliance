@@ -19,8 +19,7 @@ final readonly class DeleteTerritorySpatialEvidence
     public function __construct(
         private AllianceIntelligenceWriteState $writeState,
         private AuditRecorder $audit,
-    ) {
-    }
+    ) {}
 
     public function handle(
         string $actorPlayerId,
