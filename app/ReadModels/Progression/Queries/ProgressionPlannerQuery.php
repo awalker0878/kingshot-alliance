@@ -79,7 +79,12 @@ final class ProgressionPlannerQuery
             ? $this->eligibility->forFamily($dataset, $calculatorFamily)->toArray()
             : null;
         $calculation = null;
-        if ($calculate && $calculatorFamily !== null && $target !== null && is_string($current['stateId'] ?? null)) {
+        $datasetCompatible = ($current['datasetStatus'] ?? null) !== 'dataset_mismatch';
+        if ($calculate
+            && $datasetCompatible
+            && $calculatorFamily !== null
+            && $target !== null
+            && is_string($current['stateId'] ?? null)) {
             $calculation = $this->calculator->calculate(
                 $dataset,
                 $calculatorFamily,
@@ -115,7 +120,14 @@ final class ProgressionPlannerQuery
             'subjects' => [],
             'selectedSubject' => null,
             'states' => [],
-            'current' => ['status' => 'unknown', 'stateId' => null, 'state' => null, 'facts' => [], 'reason' => 'Select a factual progression family and subject.'],
+            'current' => [
+                'status' => 'unknown',
+                'stateId' => null,
+                'state' => null,
+                'facts' => [],
+                'datasetStatus' => 'unlabelled',
+                'reason' => 'Select a factual progression family and subject.',
+            ],
             'target' => null,
             'comparison' => null,
             'prerequisites' => [],
@@ -199,7 +211,11 @@ final class ProgressionPlannerQuery
                 $subjects[] = [
                     'id' => $heroId.'::'.$slotId,
                     'label' => ($heroNames[$heroId] ?? $heroId).' · '.$this->humanize($slotId),
-                    'context' => ['heroId' => $heroId, 'slotId' => $slotId, 'quality' => is_string($quality) ? mb_strtolower($quality) : null],
+                    'context' => [
+                        'heroId' => $heroId,
+                        'slotId' => $slotId,
+                        'quality' => is_string($quality) ? mb_strtolower($quality) : null,
+                    ],
                 ];
             }
         }
@@ -265,12 +281,33 @@ final class ProgressionPlannerQuery
         }
 
         if ($facts === []) {
-            return ['status' => 'unknown', 'stateId' => null, 'state' => null, 'facts' => [], 'reason' => 'No authorized observed current state is available for this subject.'];
+            return [
+                'status' => 'unknown',
+                'stateId' => null,
+                'state' => null,
+                'facts' => [],
+                'datasetStatus' => 'unlabelled',
+                'reason' => 'No authorized observed current state is available for this subject.',
+            ];
         }
+
+        $observationDatasetId = $this->firstFactString($facts, 'datasetId');
+        $observationDatasetChecksum = $this->firstFactString($facts, 'datasetChecksum');
+        $datasetStatus = $this->datasetStatus($dataset, $observationDatasetId, $observationDatasetChecksum);
 
         $state = $this->findById($states, $stateId);
         if ($state === null) {
-            return ['status' => 'observed_unresolved', 'stateId' => null, 'state' => null, 'facts' => $facts, 'reason' => 'An observation exists, but it cannot be mapped exactly to a state in this pinned factual release.'];
+            return [
+                'status' => 'observed_unresolved',
+                'stateId' => null,
+                'state' => null,
+                'facts' => $facts,
+                'capturedAt' => $this->latestCapturedAt($facts),
+                'observationDatasetId' => $observationDatasetId,
+                'observationDatasetChecksum' => $observationDatasetChecksum,
+                'datasetStatus' => $datasetStatus,
+                'reason' => 'An observation exists, but it cannot be mapped exactly to a state in this pinned factual release.',
+            ];
         }
 
         return [
@@ -279,10 +316,24 @@ final class ProgressionPlannerQuery
             'state' => $state,
             'facts' => $facts,
             'capturedAt' => $this->latestCapturedAt($facts),
-            'observationDatasetId' => $this->firstFactString($facts, 'datasetId'),
-            'observationDatasetChecksum' => $this->firstFactString($facts, 'datasetChecksum'),
+            'observationDatasetId' => $observationDatasetId,
+            'observationDatasetChecksum' => $observationDatasetChecksum,
+            'datasetStatus' => $datasetStatus,
             'reason' => null,
         ];
+    }
+
+    private function datasetStatus(ProgressionDataset $dataset, ?string $observationDatasetId, ?string $observationDatasetChecksum): string
+    {
+        if ($observationDatasetId === null && $observationDatasetChecksum === null) {
+            return 'unlabelled';
+        }
+
+        if ($observationDatasetId === $dataset->id && $observationDatasetChecksum === $dataset->checksum) {
+            return 'matched';
+        }
+
+        return 'dataset_mismatch';
     }
 
     private function factValue(mixed $fact): mixed
