@@ -111,12 +111,10 @@ test('Kingdom Transfer Planning keeps eligibility, verification, readiness, and 
       })
       .first(),
   ).toBeVisible();
-  await expect(governorStatusEvidence.getByText('Raw observation', { exact: true }).first()).toBeVisible();
-  await expect(
-    governorStatusEvidence.getByText('Normalized candidate', { exact: true }).first(),
-  ).toBeVisible();
+  await expect(governorStatusEvidence).toContainText('Raw observation');
+  await expect(governorStatusEvidence).toContainText('Normalized candidate');
 
-  await expect(scoreEvidence.getByText('Approved', { exact: true }).first()).toBeVisible();
+  await expect(scoreEvidence).toContainText('Evidence status: Approved');
   await scoreEvidence
     .getByRole('button', { name: 'Preview destination facts and eligibility impact' })
     .click();
