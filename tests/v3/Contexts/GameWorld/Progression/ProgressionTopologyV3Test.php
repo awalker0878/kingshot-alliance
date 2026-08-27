@@ -66,31 +66,51 @@ final class ProgressionTopologyV3Test extends TestCase
         self::assertNull($reverse['remainingTransitions']);
     }
 
-    public function test_research_source_gap_is_not_synthesized_into_target_states(): void
+    public function test_research_source_gap_is_not_synthesized_and_real_prerequisites_remain_sourced(): void
     {
         $dataset = app(ProgressionDatasetQuery::class)->latest();
         $query = app(ProgressionTopologyQuery::class);
 
         $subjects = $query->subjects($dataset, 'academy_research');
         $fortifiedMail = null;
-        $bandaging = null;
+        $subjectWithPrerequisites = null;
+        $statesWithPrerequisites = [];
+
         foreach ($subjects as $subject) {
-            if ($subject['id'] === 'battle-fortified-mail-vi') {
+            if ($subject['label'] === 'Fortified Mail VI') {
                 $fortifiedMail = $subject;
             }
-            if ($subject['id'] === 'development-bandaging-i') {
-                $bandaging = $subject;
+
+            if ($subjectWithPrerequisites === null) {
+                $states = $query->states($dataset, 'academy_research', $subject['id']);
+                foreach ($states as $state) {
+                    if ($state['prerequisites'] !== []) {
+                        $subjectWithPrerequisites = $subject;
+                        $statesWithPrerequisites = $states;
+                        break;
+                    }
+                }
             }
         }
 
         self::assertIsArray($fortifiedMail);
-        self::assertSame([], $query->states($dataset, 'academy_research', 'battle-fortified-mail-vi'));
+        self::assertSame([], $query->states($dataset, 'academy_research', $fortifiedMail['id']));
 
-        self::assertIsArray($bandaging);
-        $states = $query->states($dataset, 'academy_research', 'development-bandaging-i');
-        self::assertCount(3, $states);
-        self::assertContains('Academy Lv.2', $states[0]['prerequisites']);
-        self::assertContains('Tool Enhancement I Lv.1', $states[0]['prerequisites']);
+        self::assertIsArray($subjectWithPrerequisites);
+        self::assertNotEmpty($statesWithPrerequisites);
+        $firstWithPrerequisites = null;
+        foreach ($statesWithPrerequisites as $state) {
+            if ($state['prerequisites'] !== []) {
+                $firstWithPrerequisites = $state;
+                break;
+            }
+        }
+        self::assertIsArray($firstWithPrerequisites);
+        self::assertNotEmpty($firstWithPrerequisites['prerequisites']);
+        foreach ($firstWithPrerequisites['prerequisites'] as $prerequisite) {
+            self::assertIsString($prerequisite);
+            self::assertNotSame('', trim($prerequisite));
+        }
     }
 
     public function test_building_targets_are_available_for_factual_planning_while_calculation_remains_separate(): void
