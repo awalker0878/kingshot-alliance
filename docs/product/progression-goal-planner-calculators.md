@@ -291,10 +291,12 @@ The canonical entry point is a localized, keyboard-accessible `Goal planner` act
 1. **Current state** — observed value, source/captured date, dataset pin, and explicit unknown/stale state.
 2. **Target** — selectable only from deterministic factual states in the pinned release.
 3. **Path** — factual steps and prerequisites, with unknown/conflict markers.
+
+Prerequisite behavior is evidence-bounded. A dataset row may expose direct prerequisite text exactly as sourced. The planner may classify satisfaction only when the prerequisite has a canonical identity that can be matched deterministically to an authorized observation. It must not resolve prerequisite names by fuzzy/name matching, infer transitive dependencies from prose, or turn absence into `unsatisfied`. Transitive prerequisite traversal is enabled only for datasets that publish canonical prerequisite identities/edges; otherwise the direct sourced facts remain visible with satisfaction `unknown`.
 4. **Calculator status** — per-family eligibility and reason. Planning remains usable while calculation is unavailable.
 5. **Calculation result** — only when `calculator_ready`, including resource totals, transition count, provenance and calculation version.
 
-Required states include loading, no dataset, no observation, stale observation, no supported targets, invalid/reverse target, unknown prerequisite, conflict, dataset mismatch, calculator unavailable/review/source-gap/conflict, calculated result, validation failure, permission denied and responsive/mobile presentation. Material meaning is not color-only. Controls are keyboard/screen-reader usable and strings are localized.
+Required states include loading, no dataset, no observation, stale observation, no supported targets, invalid/reverse target, unknown prerequisite, conflict, dataset mismatch, calculator unavailable/review/source-gap/conflict, calculated result, validation failure, permission denied and responsive/mobile presentation. When no factual progression release is published, the Planner renders an explicit read-only `no_dataset` state, performs no observation retrieval or calculation, and never fabricates an empty factual dataset. Material meaning is not color-only. Controls are keyboard/screen-reader usable and strings are localized.
 
 Observation freshness is presentation metadata only. The default stale threshold is 30 days and is configurable under `config/intelligence.php`; an observation older than the configured threshold is presented as `stale_observation` while retaining its original factual value, captured date, evidence provenance and dataset pin. Staleness alone must never enable or disable a calculator.
 
