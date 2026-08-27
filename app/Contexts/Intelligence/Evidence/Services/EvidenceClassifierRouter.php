@@ -14,6 +14,7 @@ final readonly class EvidenceClassifierRouter implements EvidenceClassifier
     public function __construct(
         private BearHuntEvidenceClassifier $bearHunt,
         private TransferEvidenceClassifier $transfer,
+        private GovernorProgressionEvidenceClassifier $governorProgression,
     ) {}
 
     public function key(): string
@@ -23,28 +24,38 @@ final readonly class EvidenceClassifierRouter implements EvidenceClassifier
 
     public function version(): string
     {
-        return '2.0.0';
+        return '3.0.0';
     }
 
     public function classify(EvidenceKind $expectedKind, OcrDocument $document): ClassificationDecision
     {
-        $bear = $this->bearHunt->classify($expectedKind, $document);
-        $transfer = $this->transfer->classify($expectedKind, $document);
+        $decisions = [
+            $this->bearHunt->classify($expectedKind, $document),
+            $this->transfer->classify($expectedKind, $document),
+            $this->governorProgression->classify($expectedKind, $document),
+        ];
+        $matches = array_values(array_filter(
+            $decisions,
+            static fn (ClassificationDecision $decision): bool => $decision->kind !== EvidenceKind::Unknown,
+        ));
+        if ($matches === []) {
+            $confidence = max(array_map(static fn (ClassificationDecision $decision): float => $decision->confidence, $decisions));
 
-        if ($bear->kind === EvidenceKind::Unknown) {
-            return $transfer;
-        }
-        if ($transfer->kind === EvidenceKind::Unknown) {
-            return $bear;
-        }
-        if (abs($bear->confidence - $transfer->confidence) < 0.10) {
             return new ClassificationDecision(
                 EvidenceKind::Unknown,
-                max($bear->confidence, $transfer->confidence),
+                $confidence,
+                'The screenshot did not safely match a supported Evidence family.',
+            );
+        }
+        usort($matches, static fn (ClassificationDecision $a, ClassificationDecision $b): int => $b->confidence <=> $a->confidence);
+        if (isset($matches[1]) && abs($matches[0]->confidence - $matches[1]->confidence) < 0.10) {
+            return new ClassificationDecision(
+                EvidenceKind::Unknown,
+                $matches[0]->confidence,
                 'The screenshot matched multiple Evidence families too closely for safe extraction.',
             );
         }
 
-        return $bear->confidence > $transfer->confidence ? $bear : $transfer;
+        return $matches[0];
     }
 }

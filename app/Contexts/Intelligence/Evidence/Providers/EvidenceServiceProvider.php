@@ -8,6 +8,7 @@ use App\Contexts\Intelligence\Evidence\Console\Commands\EvidenceDiagnosticsComma
 use App\Contexts\Intelligence\Evidence\Contracts\EvidenceClassifier;
 use App\Contexts\Intelligence\Evidence\Contracts\EvidenceExtractor;
 use App\Contexts\Intelligence\Evidence\Contracts\EvidenceReferenceLookup;
+use App\Contexts\Intelligence\Evidence\Contracts\GovernorProgressionEvidenceReferenceLookup;
 use App\Contexts\Intelligence\Evidence\Contracts\OcrEngine;
 use App\Contexts\Intelligence\Evidence\Queries\EvidenceReferenceQuery;
 use App\Contexts\Intelligence\Evidence\Services\EvidenceClassifierRouter;
@@ -23,6 +24,7 @@ final class EvidenceServiceProvider extends ServiceProvider
         $this->app->bind(EvidenceClassifier::class, EvidenceClassifierRouter::class);
         $this->app->bind(EvidenceExtractor::class, RoutedEvidenceExtractor::class);
         $this->app->bind(EvidenceReferenceLookup::class, EvidenceReferenceQuery::class);
+        $this->app->bind(GovernorProgressionEvidenceReferenceLookup::class, EvidenceReferenceQuery::class);
     }
 
     public function boot(): void

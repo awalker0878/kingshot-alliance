@@ -9,6 +9,7 @@ use App\Contexts\Intelligence\Evidence\Contracts\EvidenceExtractor;
 use App\Contexts\Intelligence\Evidence\Enums\EvidenceAttemptStatus;
 use App\Contexts\Intelligence\Evidence\Enums\EvidenceKind;
 use App\Contexts\Intelligence\Evidence\Enums\EvidenceLifecycleStatus;
+use App\Contexts\Intelligence\Evidence\Jobs\NormalizeGovernorProgressionEvidenceJob;
 use App\Contexts\Intelligence\Evidence\Models\EvidenceClassificationAttempt;
 use App\Contexts\Intelligence\Evidence\Models\EvidenceExtractedField;
 use App\Contexts\Intelligence\Evidence\Models\EvidenceExtractionAttempt;
@@ -89,7 +90,7 @@ final readonly class ExtractGameEvidence
             $fields = $this->extractor->extract($kind, $document);
             $overall = $fields === [] ? 0.0 : array_sum(array_map(static fn ($field): float => $field->confidence, $fields)) / count($fields);
 
-            DB::transaction(function () use ($evidenceId, $attemptId, $fields, $overall, $kind): void {
+            $needsNormalization = DB::transaction(function () use ($evidenceId, $attemptId, $fields, $overall, $kind): bool {
                 $evidence = GameEvidence::query()->whereKey($evidenceId)->lockForUpdate()->firstOrFail();
                 $attempt = EvidenceExtractionAttempt::query()->whereKey($attemptId)->lockForUpdate()->firstOrFail();
                 if ($attempt->getRawOriginal('status') !== EvidenceAttemptStatus::Running->value) {
@@ -114,7 +115,9 @@ final readonly class ExtractGameEvidence
                     'field_count' => count($fields),
                     'completed_at' => now(),
                 ])->save();
-                $evidence->forceFill(['lifecycle_status' => EvidenceLifecycleStatus::NeedsReview])->save();
+                if (! $kind->isGovernorProgression()) {
+                    $evidence->forceFill(['lifecycle_status' => EvidenceLifecycleStatus::NeedsReview])->save();
+                }
                 $actor = $this->players->find((string) $evidence->uploaded_by_player_id);
                 $metadata = [
                     'evidence_id' => (string) $evidence->id,
@@ -125,10 +128,16 @@ final readonly class ExtractGameEvidence
                     'schema_version' => $this->extractor->schemaVersion($kind),
                     'field_count' => count($fields),
                     'overall_confidence' => $overall,
+                    'normalization_required' => $kind->isGovernorProgression(),
                 ];
                 $this->audit->record('evidence.extracted', $actor, $evidence, (string) $evidence->alliance_id, $metadata);
                 $this->outbox->record('evidence.extracted', (string) $evidence->alliance_id, $evidence, $metadata);
+
+                return $kind->isGovernorProgression();
             });
+            if ($needsNormalization) {
+                NormalizeGovernorProgressionEvidenceJob::dispatch($evidenceId, $attemptId);
+            }
         } catch (Throwable $exception) {
             DB::transaction(function () use ($evidenceId, $attemptId, $exception): void {
                 $evidence = GameEvidence::query()->whereKey($evidenceId)->lockForUpdate()->first();

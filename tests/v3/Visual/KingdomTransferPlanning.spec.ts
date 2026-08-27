@@ -73,6 +73,11 @@ test('Kingdom Transfer Planning keeps eligibility, verification, readiness, and 
   const evidenceDetails = northstarCard.locator('details').filter({ hasText: 'Add in-game evidence' });
   await evidenceDetails.locator('summary').click();
   await expect(evidenceDetails.getByText('Upload and classify', { exact: true })).toBeVisible();
+  await expect(evidenceDetails.locator('article')).toHaveCount(3);
+  if (!(await evidenceDetails.evaluate((element) => (element as HTMLDetailsElement).open))) {
+    await evidenceDetails.locator('summary').click();
+  }
+  await expect(evidenceDetails).toHaveAttribute('open', '');
 
   const screenshotClass = evidenceDetails.getByRole('combobox', { name: 'Screenshot class' });
   await expect(screenshotClass).toBeVisible();

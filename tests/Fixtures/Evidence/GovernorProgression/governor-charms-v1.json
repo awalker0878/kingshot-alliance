@@ -1,0 +1,17 @@
+{
+  "schema_version": "governor-charms/1",
+  "coverage_cases": [
+    {"name":"canonical","category":"canonical","expected_kind":"governor_charms","ocr_confidence":0.98,"lines":["Governor Charms","Infantry Charm Slot 1 Charm: Valor Level 8","Cavalry Charm Slot 2 Charm: Charge Level 7"],"fields":{"charm_slots":["infantry-1","cavalry-2"],"charm_name":"Valor","charm_level":"8"}},
+    {"name":"alternate","category":"alternate_resolution","expected_kind":"governor_charms","ocr_confidence":0.93,"lines":["Chief Charm","Infantry Charm 1 Charm: Valor Lv. 8","Charm Guide"],"fields":{"charm_slots":["infantry-1"],"charm_name":"Valor","charm_level":"8"}},
+    {"name":"crop","category":"safe_crop","expected_kind":"governor_charms","ocr_confidence":0.96,"lines":["Governor Charms","Infantry Charm Slot 1 Level 8"],"fields":{"charm_slots":["infantry-1"],"charm_level":"8"}},
+    {"name":"numeric","category":"numeric_grouping","expected_kind":"governor_charms","ocr_confidence":0.96,"lines":["Governor Charms","Infantry Charm Slot 1 Level 08"],"fields":{"charm_slots":["infantry-1"],"charm_level":"8"}},
+    {"name":"low","category":"low_confidence","expected_kind":"governor_charms","ocr_confidence":0.35,"lines":["Governor Charms","Infantry Charm Slot 1 Level 8"],"fields":{"charm_slots":["infantry-1"],"charm_level":"8"},"expect_below_field_threshold":true},
+    {"name":"adjacent","category":"adjacent_unrelated_numbers","expected_kind":"governor_charms","ocr_confidence":0.96,"lines":["Governor Charms","Infantry Charm Slot 1 Level 8","Power 99999999","Rank 7"],"fields":{"charm_slots":["infantry-1"],"charm_level":"8"},"forbidden_fields":["power","rank"]},
+    {"name":"missing","category":"missing_required_field","expected_kind":"governor_charms","ocr_confidence":0.96,"lines":["Governor Charms","Charm Level 8"],"fields":{"charm_slots":[]}},
+    {"name":"unsupported","category":"unsupported_ui_variant","expected_kind":"unknown","ocr_confidence":0.96,"lines":["Charms Collection","Statistics","Power 1000"],"fields":{}},
+    {"name":"wrong","category":"wrong_screenshot_class","expected_kind":"governor_gear","ocr_confidence":0.96,"lines":["Governor Gear","Gear Power 1,000,000"],"fields":{}},
+    {"name":"visual","category":"visual_duplicate_recompressed","expected_kind":"governor_charms","ocr_confidence":0.88,"lines":["Governor Charms","Infantry Charm Slot 1 Charm: Valor Level 8","Cavalry Charm Slot 2 Charm: Charge Level 7"],"fields":{"charm_slots":["infantry-1","cavalry-2"],"charm_name":"Valor","charm_level":"8"},"visual_duplicate_of":"canonical"},
+    {"name":"equal","category":"semantic_equal","expected_kind":"governor_charms","ocr_confidence":0.98,"lines":["Governor Charms","Infantry Charm Slot 1 Level 8"],"fields":{"charm_slots":["infantry-1"],"charm_level":"8"},"semantic":{"observed_at":"2026-08-26T12:00:00Z"}},
+    {"name":"newer","category":"semantic_newer","expected_kind":"governor_charms","ocr_confidence":0.98,"lines":["Governor Charms","Infantry Charm Slot 1 Level 9"],"fields":{"charm_slots":["infantry-1"],"charm_level":"9"},"semantic":{"observed_at":"2026-08-27T12:00:00Z"}}
+  ]
+}

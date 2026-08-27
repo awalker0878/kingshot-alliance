@@ -2,10 +2,15 @@
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 
+import GovernorProgressionScreenshotIntake from '@/components/progression/GovernorProgressionScreenshotIntake.vue';
+import type {
+  GovernorProgressionEvidenceWorkspace,
+  GovernorProgressionHero,
+  GovernorProgressionState,
+} from '@/components/progression/governorProgressionTypes';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
-type Hero = { id: string; name: string; generation: number; rarity: string; troopClass: string };
 type HeroObservation = {
   hero_id: string;
   level: number | null;
@@ -13,6 +18,7 @@ type HeroObservation = {
   widget_level: number | null;
   complete_roster_capture?: boolean;
 };
+
 type Observation = {
   id: string;
   capturedAt: string;
@@ -23,6 +29,7 @@ type Observation = {
   datasetChecksum: string | null;
   heroObservations: HeroObservation[];
 };
+
 type Loadout = {
   id: string;
   name: string;
@@ -35,6 +42,7 @@ type Loadout = {
   datasetId: string | null;
   datasetChecksum: string | null;
 };
+
 type ObservationDraft = {
   hero_id: string;
   level: string;
@@ -52,9 +60,16 @@ const props = defineProps<{
     allianceId: string | null;
     rosterEntryId: string | null;
   };
-  dataset: { id: string; version: string; checksum: string; heroes: Hero[] };
+  dataset: {
+    id: string;
+    version: string;
+    checksum: string;
+    heroes: GovernorProgressionHero[];
+  };
   observationAccess: { canView: boolean; canManage: boolean };
   observations: Observation[];
+  progressionObservationState: GovernorProgressionState;
+  evidenceWorkspace: GovernorProgressionEvidenceWorkspace;
   loadouts: Loadout[];
 }>();
 
@@ -113,6 +128,7 @@ function numberOrNull(value: string): number | null {
 
 function recordObservation(): void {
   if (!props.governor.rosterEntryId) return;
+
   observationForm.hero_observations = observationRows.value
     .filter((row) => row.hero_id !== '')
     .map((row) => ({
@@ -147,14 +163,17 @@ function toggleLoadoutHero(heroId: string): void {
 
 function saveLoadout(): void {
   if (loadoutTotal.value !== 100) return;
+
   const options = {
     preserveScroll: true,
     onSuccess: () => resetLoadout(),
   };
+
   if (editingLoadoutId.value) {
     loadoutForm.patch(`/player/formations/${editingLoadoutId.value}`, options);
     return;
   }
+
   loadoutForm.post('/player/formations', options);
 }
 
@@ -220,6 +239,16 @@ function formatCaptured(value: string): string {
           {{ t('progression.separationHelp') }}
         </p>
       </section>
+
+      <GovernorProgressionScreenshotIntake
+        v-if="observationAccess.canView && governor.rosterEntryId"
+        :roster-entry-id="governor.rosterEntryId"
+        :heroes="dataset.heroes"
+        :schemas="evidenceWorkspace.schemas"
+        :evidence="evidenceWorkspace.evidence"
+        :progression-state="progressionObservationState"
+        :can-manage="observationAccess.canManage"
+      />
 
       <div class="grid gap-6 2xl:grid-cols-2">
         <section class="ks-surface overflow-hidden" aria-labelledby="observations-heading">
@@ -403,8 +432,8 @@ function formatCaptured(value: string): string {
                 >
                   {{ heroName(hero.hero_id) }}
                   <template v-if="hero.level !== null">
-                    · {{ t('progression.levelShort', { value: hero.level }) }}</template
-                  >
+                    · {{ t('progression.levelShort', { value: hero.level }) }}
+                  </template>
                   <template v-if="hero.star !== null"> · ★{{ hero.star }}</template>
                   <template v-if="hero.widget_level !== null"> · W{{ hero.widget_level }}</template>
                 </span>
@@ -440,35 +469,40 @@ function formatCaptured(value: string): string {
                 class="mt-1 min-h-11 w-full rounded border border-[var(--ks-border)] bg-black/20 px-3 text-sm"
               />
             </label>
+
             <div class="mt-4 grid grid-cols-3 gap-2">
-              <label class="text-xs text-[var(--ks-muted)]"
-                ><span>{{ t('progression.infantry') }} %</span
-                ><input
+              <label class="text-xs text-[var(--ks-muted)]">
+                <span>{{ t('progression.infantry') }} %</span>
+                <input
                   v-model.number="loadoutForm.infantry_percent"
                   type="number"
                   min="0"
                   max="100"
                   class="mt-1 min-h-11 w-full rounded border border-[var(--ks-border)] bg-black/20 px-2 text-sm"
-              /></label>
-              <label class="text-xs text-[var(--ks-muted)]"
-                ><span>{{ t('progression.cavalry') }} %</span
-                ><input
+                />
+              </label>
+              <label class="text-xs text-[var(--ks-muted)]">
+                <span>{{ t('progression.cavalry') }} %</span>
+                <input
                   v-model.number="loadoutForm.cavalry_percent"
                   type="number"
                   min="0"
                   max="100"
                   class="mt-1 min-h-11 w-full rounded border border-[var(--ks-border)] bg-black/20 px-2 text-sm"
-              /></label>
-              <label class="text-xs text-[var(--ks-muted)]"
-                ><span>{{ t('progression.archer') }} %</span
-                ><input
+                />
+              </label>
+              <label class="text-xs text-[var(--ks-muted)]">
+                <span>{{ t('progression.archer') }} %</span>
+                <input
                   v-model.number="loadoutForm.archer_percent"
                   type="number"
                   min="0"
                   max="100"
                   class="mt-1 min-h-11 w-full rounded border border-[var(--ks-border)] bg-black/20 px-2 text-sm"
-              /></label>
+                />
+              </label>
             </div>
+
             <p
               class="mt-2 text-xs"
               :class="loadoutTotal === 100 ? 'text-green-300' : 'text-red-300'"
@@ -496,10 +530,10 @@ function formatCaptured(value: string): string {
                     "
                     @change="toggleLoadoutHero(hero.id)"
                   />
-                  <span
-                    >{{ hero.name }}
-                    <small class="text-[var(--ks-muted)]">G{{ hero.generation }}</small></span
-                  >
+                  <span>
+                    {{ hero.name }}
+                    <small class="text-[var(--ks-muted)]">G{{ hero.generation }}</small>
+                  </span>
                 </label>
               </div>
             </fieldset>
@@ -562,14 +596,14 @@ function formatCaptured(value: string): string {
                     {{ loadout.datasetId ?? t('progression.unpinnedLegacyLoadout') }}
                   </p>
                 </div>
-                <span v-if="loadout.isDefault" class="ks-chip">{{
-                  t('progression.defaultLoadout')
-                }}</span>
+                <span v-if="loadout.isDefault" class="ks-chip">
+                  {{ t('progression.defaultLoadout') }}
+                </span>
               </div>
               <div v-if="loadout.heroes.length" class="mt-3 flex flex-wrap gap-2">
-                <span v-for="heroId in loadout.heroes" :key="heroId" class="ks-chip">{{
-                  heroName(heroId)
-                }}</span>
+                <span v-for="heroId in loadout.heroes" :key="heroId" class="ks-chip">
+                  {{ heroName(heroId) }}
+                </span>
               </div>
               <p
                 v-if="loadout.notes"

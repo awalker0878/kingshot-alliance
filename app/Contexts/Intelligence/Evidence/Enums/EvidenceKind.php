@@ -13,16 +13,21 @@ enum EvidenceKind: string
     case TransferInvitation = 'transfer_invitation';
     case TransferTargetKingdomRules = 'transfer_target_kingdom_rules';
     case TransferOfficialGroup = 'transfer_official_group';
+    case GovernorProfile = 'governor_profile';
+    case GovernorHeroRoster = 'governor_hero_roster';
+    case GovernorHeroDetail = 'governor_hero_detail';
+    case GovernorHeroGear = 'governor_hero_gear';
+    case GovernorGear = 'governor_gear';
+    case GovernorCharms = 'governor_charms';
 
     public function isTransfer(): bool
     {
-        return in_array($this, [
-            self::TransferGovernorStatus,
-            self::TransferScorePasses,
-            self::TransferInvitation,
-            self::TransferTargetKingdomRules,
-            self::TransferOfficialGroup,
-        ], true);
+        return in_array($this, self::transferCases(), true);
+    }
+
+    public function isGovernorProgression(): bool
+    {
+        return in_array($this, self::governorProgressionCases(), true);
     }
 
     /** @return list<self> */
@@ -34,6 +39,19 @@ enum EvidenceKind: string
             self::TransferInvitation,
             self::TransferTargetKingdomRules,
             self::TransferOfficialGroup,
+        ];
+    }
+
+    /** @return list<self> */
+    public static function governorProgressionCases(): array
+    {
+        return [
+            self::GovernorProfile,
+            self::GovernorHeroRoster,
+            self::GovernorHeroDetail,
+            self::GovernorHeroGear,
+            self::GovernorGear,
+            self::GovernorCharms,
         ];
     }
 }

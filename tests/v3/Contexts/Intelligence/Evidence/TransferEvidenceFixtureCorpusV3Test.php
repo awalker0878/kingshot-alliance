@@ -118,9 +118,7 @@ final class TransferEvidenceFixtureCorpusV3Test extends TestCase
         }
     }
 
-    /**
-     * @return array{coverage_cases:list<array<string,mixed>>}
-     */
+    /** @return array{coverage_cases:list<array<string,mixed>>} */
     private function fixture(TransferEvidenceSchema $schema): array
     {
         $path = dirname(__DIR__, 4).'/Fixtures/Evidence/Transfer/'.$schema->fixtureCorpus.'.json';
@@ -134,7 +132,10 @@ final class TransferEvidenceFixtureCorpusV3Test extends TestCase
         return $fixture;
     }
 
-    /** @param list<array<string,mixed>> $cases */
+    /**
+     * @param  list<array<string,mixed>>  $cases
+     * @return array<string,mixed>
+     */
     private function caseByCategory(array $cases, string $category): array
     {
         foreach ($cases as $case) {
@@ -159,8 +160,8 @@ final class TransferEvidenceFixtureCorpusV3Test extends TestCase
     }
 
     /**
-     * @param array<string,mixed> $expected
-     * @param list<ExtractedFieldCandidate> $fields
+     * @param  array<string,mixed>  $expected
+     * @param  list<ExtractedFieldCandidate>  $fields
      */
     private function assertFields(array $expected, array $fields, string $case): void
     {
@@ -183,7 +184,10 @@ final class TransferEvidenceFixtureCorpusV3Test extends TestCase
         }
     }
 
-    /** @param list<ExtractedFieldCandidate> $fields @return list<int> */
+    /**
+     * @param  list<ExtractedFieldCandidate>  $fields
+     * @return list<int>
+     */
     private function kingdomNumbers(array $fields): array
     {
         $numbers = array_map(
@@ -198,7 +202,7 @@ final class TransferEvidenceFixtureCorpusV3Test extends TestCase
         return $numbers;
     }
 
-    /** @param list<string> $lines */
+    /** @param  list<string>  $lines */
     private function document(array $lines, float $confidence): OcrDocument
     {
         $tokens = [];
