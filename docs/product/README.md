@@ -6,13 +6,14 @@ This area explains **what Kingshot Alliance provides to users**. It does not def
 
 Alliance Assistant is delivered as the constrained, authorization-aware read/composition capability defined in [Alliance Assistant](alliance-assistant.md); its completed release evidence is recorded in the [capability delivery ledger](capability-delivery-ledger.md).
 
-The next cross-capability work is governed by the [Capability Extension Program](capability-extension-program.md). That contract distinguishes already-complete product capability from selected extensions and evidence-gated extensions, and defines ownership/provenance before application implementation begins.
+The next cross-capability work is governed by the [Capability Extension Program](capability-extension-program.md). That contract distinguishes already-complete product capability from selected extensions and evidence-gated extensions, and defines ownership/provenance before application implementation begins. Progression planning and calculator qualification are further governed by the [Progression Goal Planner and Calculator Evidence Program](progression-goal-planner-calculators.md), which is the implementation source of truth for `GP-*`, `CE-*` and `CI-*` work.
 
 - [Product overview](product-overview.md)
 - [Capability catalogue](capability-catalogue.md)
 - [Capability completeness plan](capability-gap-analysis.md)
 - [Capability delivery ledger](capability-delivery-ledger.md)
 - [Capability Extension Program](capability-extension-program.md)
+- [Progression Goal Planner and Calculator Evidence Program](progression-goal-planner-calculators.md)
 - [Event Command — Readiness & Closeout](event-readiness-closeout.md)
 - [Alliance Assistant](alliance-assistant.md)
 - [Factual Governor Progression](factual-governor-progression.md)
