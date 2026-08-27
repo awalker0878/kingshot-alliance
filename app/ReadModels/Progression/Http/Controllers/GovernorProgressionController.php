@@ -7,7 +7,9 @@ namespace App\ReadModels\Progression\Http\Controllers;
 use App\Contexts\Alliance\Membership\Queries\ActiveAllianceScopeQuery;
 use App\Contexts\Alliance\Membership\Queries\RosterEntryQuery;
 use App\Contexts\GameWorld\Players\Services\PlayerContext;
+use App\Contexts\GameWorld\Progression\Queries\CalculatorQualificationQuery;
 use App\Contexts\GameWorld\Progression\Queries\ProgressionDatasetQuery;
+use App\Contexts\GameWorld\Progression\Queries\ProgressionGoalPlannerQuery;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
 use App\Contexts\Intelligence\Evidence\Enums\EvidenceKind;
@@ -27,6 +29,8 @@ final class GovernorProgressionController extends Controller
         Request $request,
         PlayerContext $context,
         ProgressionDatasetQuery $datasets,
+        ProgressionGoalPlannerQuery $goalPlanner,
+        CalculatorQualificationQuery $calculatorQualifications,
         ActiveAllianceScopeQuery $allianceScopes,
         RosterEntryQuery $rosterEntries,
         AllianceIntelligenceAuthorization $intelligence,
@@ -81,6 +85,21 @@ final class GovernorProgressionController extends Controller
             ]
             : ['schemas' => [], 'evidence' => []];
 
+        $plannerFamily = trim((string) $request->query('planner_family', ''));
+        $plannerSubject = trim((string) $request->query('planner_subject', ''));
+        $plannerTarget = trim((string) $request->query('planner_target', ''));
+        $observedCurrent = is_array($progressionObservationState['current'] ?? null)
+            ? $progressionObservationState['current']
+            : [];
+        $planner = $goalPlanner->plan(
+            $dataset,
+            $observedCurrent,
+            $plannerFamily === '' ? null : $plannerFamily,
+            $plannerSubject === '' ? null : $plannerSubject,
+            $plannerTarget === '' ? null : $plannerTarget,
+        );
+        $calculatorEligibility = $calculatorQualifications->all($dataset);
+
         $formations = PlayerFormation::query()
             ->where('player_id', $player->playerId)
             ->orderByDesc('is_default')
@@ -127,6 +146,8 @@ final class GovernorProgressionController extends Controller
             ])->values()->all(),
             'progressionObservationState' => $progressionObservationState,
             'evidenceWorkspace' => $evidenceWorkspace,
+            'planner' => $planner,
+            'calculatorEligibility' => $calculatorEligibility,
             'loadouts' => $formations->map(static fn (PlayerFormation $formation): array => [
                 'id' => (string) $formation->id,
                 'name' => (string) $formation->name,
