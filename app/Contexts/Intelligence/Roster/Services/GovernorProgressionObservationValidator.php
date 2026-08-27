@@ -33,7 +33,7 @@ final readonly class GovernorProgressionObservationValidator
             EvidenceKind::GovernorHeroRoster => $this->heroRoster($payload, $dataset),
             EvidenceKind::GovernorHeroDetail => $this->heroDetail($payload, $dataset),
             EvidenceKind::GovernorHeroGear => $this->heroGear($payload, $dataset),
-            EvidenceKind::GovernorGear => $this->governorGear($payload),
+            EvidenceKind::GovernorGear => $this->governorGear($payload, $dataset),
             EvidenceKind::GovernorCharms => $this->charms($payload, $dataset),
             default => throw ValidationException::withMessages(['kind' => 'Unsupported Governor Progression observation kind.']),
         };
@@ -132,7 +132,13 @@ final readonly class GovernorProgressionObservationValidator
     {
         $this->closedKeys($payload, ['hero_id', 'gear'], 'payload');
         $heroId = $this->heroId($payload['hero_id'] ?? null, $dataset, 'payload.hero_id');
-        $gear = $this->gearRows($payload['gear'] ?? null, true, 'payload.gear');
+        $gear = $this->gearRows(
+            $payload['gear'] ?? null,
+            true,
+            'payload.gear',
+            $this->publishedDatabaseMaximum($dataset, 'hero-gear-enhancement-chart'),
+            $this->publishedDatabaseMaximum($dataset, 'mastery-forging'),
+        );
 
         return ['hero_id' => $heroId, 'gear' => $gear];
     }
@@ -141,11 +147,18 @@ final readonly class GovernorProgressionObservationValidator
      * @param  array<string, mixed>  $payload
      * @return array<string, mixed>
      */
-    private function governorGear(array $payload): array
+    private function governorGear(array $payload, ProgressionDataset $dataset): array
     {
         $this->closedKeys($payload, ['gear'], 'payload');
+        $steps = $this->governorGearSteps($dataset);
+        $maxStar = 0;
+        foreach ($steps as $step) {
+            if (is_int($step['stars'] ?? null)) {
+                $maxStar = max($maxStar, $step['stars']);
+            }
+        }
 
-        return ['gear' => $this->gearRows($payload['gear'] ?? null, false, 'payload.gear')];
+        return ['gear' => $this->gearRows($payload['gear'] ?? null, false, 'payload.gear', null, $maxStar > 0 ? $maxStar : null, $dataset)];
     }
 
     /**
@@ -184,8 +197,14 @@ final readonly class GovernorProgressionObservationValidator
     }
 
     /** @return list<array<string,mixed>> */
-    private function gearRows(mixed $value, bool $allowMastery, string $field): array
-    {
+    private function gearRows(
+        mixed $value,
+        bool $allowMastery,
+        string $field,
+        ?int $maxLevel = null,
+        ?int $maxSecondary = null,
+        ?ProgressionDataset $dataset = null,
+    ): array {
         if (! is_array($value) || $value === [] || count($value) > 12) {
             throw ValidationException::withMessages([$field => 'A Gear observation must contain 1-12 reviewed slots.']);
         }
@@ -206,13 +225,23 @@ final readonly class GovernorProgressionObservationValidator
             $seen[$slotId] = true;
             $item = ['slot_id' => $slotId];
             if (array_key_exists('quality', $row) && $row['quality'] !== null && $row['quality'] !== '') {
-                $item['quality'] = $this->line($row['quality'], 48, "$field.$index.quality");
+                $quality = $this->line($row['quality'], 48, "$field.$index.quality");
+                $item['quality'] = ! $allowMastery && $dataset !== null
+                    ? $this->canonicalGovernorGearTier($quality, $dataset, "$field.$index.quality")
+                    : $quality;
             }
-            $this->optionalInteger($item, 'level', $row, 0, 1000, "$field.$index.level");
+            if (array_key_exists('level', $row) && $row['level'] !== null && $row['level'] !== '') {
+                $item['level'] = $this->boundedByPinnedMaximum($row['level'], $maxLevel, "$field.$index.level", $allowMastery);
+            }
             if ($allowMastery) {
-                $this->optionalInteger($item, 'mastery_level', $row, 0, 1000, "$field.$index.mastery_level");
-            } else {
-                $this->optionalInteger($item, 'star', $row, 0, 20, "$field.$index.star");
+                if (array_key_exists('mastery_level', $row) && $row['mastery_level'] !== null && $row['mastery_level'] !== '') {
+                    $item['mastery_level'] = $this->boundedByPinnedMaximum($row['mastery_level'], $maxSecondary, "$field.$index.mastery_level", true);
+                }
+            } elseif (array_key_exists('star', $row) && $row['star'] !== null && $row['star'] !== '') {
+                $item['star'] = $this->boundedByPinnedMaximum($row['star'], $maxSecondary, "$field.$index.star", true);
+            }
+            if (! $allowMastery && $dataset !== null && isset($item['quality'], $item['star'])) {
+                $this->assertGovernorGearStep($dataset, (string) $item['quality'], (int) $item['star'], "$field.$index");
             }
             if (count($item) === 1) {
                 throw ValidationException::withMessages(["$field.$index" => 'A Gear slot must contain at least one reviewed progression fact.']);
@@ -222,6 +251,19 @@ final readonly class GovernorProgressionObservationValidator
         usort($rows, static fn (array $a, array $b): int => strcmp((string) $a['slot_id'], (string) $b['slot_id']));
 
         return $rows;
+    }
+
+    private function boundedByPinnedMaximum(mixed $value, ?int $max, string $field, bool $requirePinnedBound): int
+    {
+        if ($max === null || $max < 1) {
+            if ($requirePinnedBound) {
+                throw ValidationException::withMessages([$field => 'The pinned Progression dataset does not expose a factual bound for this reviewed field.']);
+            }
+
+            return $this->integer($value, 0, 1000, $field);
+        }
+
+        return $this->integer($value, 0, $max, $field);
     }
 
     private function heroId(mixed $value, ProgressionDataset $dataset, string $field): string
@@ -237,21 +279,88 @@ final readonly class GovernorProgressionObservationValidator
     {
         $catalogue = $dataset->catalogue('governor_charms');
         if (! is_array($catalogue)) {
-            return 1;
+            throw ValidationException::withMessages(['payload.charms' => 'The pinned Progression dataset does not expose the Governor Charm level ladder.']);
         }
         $data = $catalogue['data'] ?? null;
-        if (! is_array($data)) {
-            return 1;
-        }
-        $levels = is_array($data['charmLevels'] ?? null) ? $data['charmLevels'] : [];
+        $levels = is_array($data) && is_array($data['charmLevels'] ?? null) ? $data['charmLevels'] : [];
         $max = 0;
         foreach ($levels as $row) {
             if (is_array($row) && is_int($row['level'] ?? null)) {
                 $max = max($max, $row['level']);
             }
         }
+        if ($max < 1) {
+            throw ValidationException::withMessages(['payload.charms' => 'The pinned Progression dataset does not expose the Governor Charm level ladder.']);
+        }
 
-        return max(1, $max);
+        return $max;
+    }
+
+    private function publishedDatabaseMaximum(ProgressionDataset $dataset, string $pageId): ?int
+    {
+        $catalogue = $dataset->catalogue('database_tables');
+        if (! is_array($catalogue) || ! is_array($catalogue['pages'] ?? null)) {
+            return null;
+        }
+        foreach ($catalogue['pages'] as $page) {
+            if (! is_array($page) || ($page['id'] ?? null) !== $pageId || ! is_array($page['tables'] ?? null)) {
+                continue;
+            }
+            $max = 0;
+            foreach ($page['tables'] as $table) {
+                if (! is_array($table) || ! is_array($table['rows'] ?? null)) {
+                    continue;
+                }
+                foreach ($table['rows'] as $row) {
+                    if (! is_array($row)) {
+                        continue;
+                    }
+                    $raw = $row['Level'] ?? null;
+                    $parsed = is_int($raw) ? $raw : (is_string($raw) && ctype_digit($raw) ? (int) $raw : null);
+                    if ($parsed !== null) {
+                        $max = max($max, $parsed);
+                    }
+                }
+            }
+
+            return $max > 0 ? $max : null;
+        }
+
+        return null;
+    }
+
+    /** @return list<array<string,mixed>> */
+    private function governorGearSteps(ProgressionDataset $dataset): array
+    {
+        $catalogue = $dataset->catalogue('governor_gear');
+        $data = is_array($catalogue) ? ($catalogue['data'] ?? null) : null;
+        $steps = is_array($data) && is_array($data['upgradeSteps'] ?? null) ? $data['upgradeSteps'] : [];
+
+        return array_values(array_filter($steps, 'is_array'));
+    }
+
+    private function canonicalGovernorGearTier(string $value, ProgressionDataset $dataset, string $field): string
+    {
+        $needle = mb_strtolower(trim($value));
+        foreach ($this->governorGearSteps($dataset) as $step) {
+            $tier = $step['tier'] ?? null;
+            if (is_string($tier) && mb_strtolower($tier) === $needle) {
+                return $tier;
+            }
+        }
+
+        throw ValidationException::withMessages([$field => 'Governor Gear tier/quality must exist in the pinned factual Progression dataset.']);
+    }
+
+    private function assertGovernorGearStep(ProgressionDataset $dataset, string $tier, int $star, string $field): void
+    {
+        foreach ($this->governorGearSteps($dataset) as $step) {
+            if (($step['tier'] ?? null) === $tier && ($step['stars'] ?? null) === $star) {
+                return;
+            }
+        }
+
+        throw ValidationException::withMessages([$field => 'Governor Gear tier/star state must exist in the pinned factual Progression dataset.']);
     }
 
     /**
