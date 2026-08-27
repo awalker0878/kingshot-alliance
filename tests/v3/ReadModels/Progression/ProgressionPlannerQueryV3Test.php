@@ -7,6 +7,7 @@ namespace Tests\v3\ReadModels\Progression;
 use App\Contexts\GameWorld\Progression\Queries\ProgressionDatasetQuery;
 use App\Contexts\GameWorld\Progression\Queries\ProgressionTopologyQuery;
 use App\ReadModels\Progression\Queries\ProgressionPlannerQuery;
+use Carbon\CarbonImmutable;
 use Tests\v3\TestCase;
 
 final class ProgressionPlannerQueryV3Test extends TestCase
@@ -137,6 +138,48 @@ final class ProgressionPlannerQueryV3Test extends TestCase
         self::assertNull($model['calculation']);
     }
 
+    public function test_observation_freshness_is_presentation_only_and_honours_the_configured_boundary(): void
+    {
+        $dataset = app(ProgressionDatasetQuery::class)->latest();
+        $planner = app(ProgressionPlannerQuery::class);
+        config()->set('intelligence.progression.observation_stale_after_days', 30);
+        CarbonImmutable::setTestNow('2026-09-25T12:00:00+00:00');
+
+        try {
+            $boundaryObservation = $this->observationState([
+                'governorGear' => [
+                    'hood' => [
+                        'quality' => $this->fact('Green', $dataset->id, $dataset->checksum, '2026-08-26T12:00:00+00:00'),
+                        'star' => $this->fact(0, $dataset->id, $dataset->checksum, '2026-08-26T12:00:00+00:00'),
+                    ],
+                ],
+            ]);
+            $boundary = $planner->compose($dataset, $boundaryObservation, 'governor_gear', 'hood', 'step:1', true);
+
+            self::assertSame('fresh', $boundary['current']['freshnessStatus']);
+            self::assertSame(30, $boundary['current']['staleAfterDays']);
+            self::assertSame('calculated', $boundary['calculation']['status']);
+
+            $staleObservation = $this->observationState([
+                'governorGear' => [
+                    'hood' => [
+                        'quality' => $this->fact('Green', $dataset->id, $dataset->checksum, '2026-08-26T11:59:59+00:00'),
+                        'star' => $this->fact(0, $dataset->id, $dataset->checksum, '2026-08-26T11:59:59+00:00'),
+                    ],
+                ],
+            ]);
+            $stale = $planner->compose($dataset, $staleObservation, 'governor_gear', 'hood', 'step:1', true);
+
+            self::assertSame('stale_observation', $stale['current']['freshnessStatus']);
+            self::assertSame('observed', $stale['current']['status']);
+            self::assertSame('matched', $stale['current']['datasetStatus']);
+            self::assertSame('calculator_ready', $stale['calculator']['status']);
+            self::assertSame('calculated', $stale['calculation']['status']);
+        } finally {
+            CarbonImmutable::setTestNow();
+        }
+    }
+
     public function test_no_target_is_auto_selected_or_recommended(): void
     {
         $dataset = app(ProgressionDatasetQuery::class)->latest();
@@ -172,11 +215,15 @@ final class ProgressionPlannerQueryV3Test extends TestCase
     }
 
     /** @return array<string,mixed> */
-    private function fact(mixed $value, string $datasetId, string $checksum): array
-    {
+    private function fact(
+        mixed $value,
+        string $datasetId,
+        string $checksum,
+        ?string $capturedAt = null,
+    ): array {
         return [
             'value' => $value,
-            'capturedAt' => '2026-08-26T12:00:00+00:00',
+            'capturedAt' => $capturedAt ?? '2026-08-26T12:00:00+00:00',
             'observationId' => 'observation-1',
             'evidenceId' => 'evidence-1',
             'reviewId' => 'review-1',

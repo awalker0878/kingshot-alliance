@@ -49,6 +49,8 @@ type CurrentState = {
   observationDatasetId?: string | null;
   observationDatasetChecksum?: string | null;
   datasetStatus?: 'matched' | 'dataset_mismatch' | 'unlabelled';
+  freshnessStatus?: 'fresh' | 'stale_observation' | 'unknown';
+  staleAfterDays?: number;
   reason: string | null;
 };
 
@@ -307,6 +309,18 @@ function shortChecksum(value: string): string {
                     dateStyle: 'medium',
                     timeStyle: 'short',
                   }),
+                })
+              }}
+            </p>
+            <p
+              v-if="planner.current.freshnessStatus === 'stale_observation'"
+              class="mt-4 rounded border border-amber-400/30 bg-amber-300/5 p-3 text-sm leading-6 text-amber-100"
+              role="status"
+              data-testid="planner-stale-observation"
+            >
+              {{
+                t('progression.staleObservationHelp', {
+                  days: planner.current.staleAfterDays ?? 30,
                 })
               }}
             </p>

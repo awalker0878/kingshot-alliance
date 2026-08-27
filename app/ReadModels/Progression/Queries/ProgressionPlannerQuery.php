@@ -8,6 +8,7 @@ use App\Contexts\GameWorld\Progression\Queries\CalculatorEligibilityQuery;
 use App\Contexts\GameWorld\Progression\Queries\ProgressionTopologyQuery;
 use App\Contexts\GameWorld\Progression\Services\ProgressionCalculator;
 use App\Contexts\GameWorld\Progression\ValueObjects\ProgressionDataset;
+use Carbon\CarbonImmutable;
 
 final class ProgressionPlannerQuery
 {
@@ -135,6 +136,8 @@ final class ProgressionPlannerQuery
                 'state' => null,
                 'facts' => [],
                 'datasetStatus' => 'unlabelled',
+                'freshnessStatus' => 'unknown',
+                'staleAfterDays' => $this->observationStaleAfterDays(),
                 'reason' => 'Select a factual progression family and subject.',
             ],
             'target' => null,
@@ -316,6 +319,8 @@ final class ProgressionPlannerQuery
                 'state' => null,
                 'facts' => [],
                 'datasetStatus' => 'unlabelled',
+                'freshnessStatus' => 'unknown',
+                'staleAfterDays' => $this->observationStaleAfterDays(),
                 'reason' => 'No authorized observed current state is available for this subject.',
             ];
         }
@@ -323,6 +328,8 @@ final class ProgressionPlannerQuery
         $observationDatasetId = $this->firstFactString($facts, 'datasetId');
         $observationDatasetChecksum = $this->firstFactString($facts, 'datasetChecksum');
         $datasetStatus = $this->datasetStatus($dataset, $observationDatasetId, $observationDatasetChecksum);
+        $capturedAt = $this->latestCapturedAt($facts);
+        $freshness = $this->observationFreshness($capturedAt);
 
         $state = $this->findById($states, $stateId);
         if ($state === null) {
@@ -331,7 +338,8 @@ final class ProgressionPlannerQuery
                 'stateId' => null,
                 'state' => null,
                 'facts' => $facts,
-                'capturedAt' => $this->latestCapturedAt($facts),
+                'capturedAt' => $capturedAt,
+                ...$freshness,
                 'observationDatasetId' => $observationDatasetId,
                 'observationDatasetChecksum' => $observationDatasetChecksum,
                 'datasetStatus' => $datasetStatus,
@@ -344,12 +352,37 @@ final class ProgressionPlannerQuery
             'stateId' => $stateId,
             'state' => $state,
             'facts' => $facts,
-            'capturedAt' => $this->latestCapturedAt($facts),
+            'capturedAt' => $capturedAt,
+            ...$freshness,
             'observationDatasetId' => $observationDatasetId,
             'observationDatasetChecksum' => $observationDatasetChecksum,
             'datasetStatus' => $datasetStatus,
             'reason' => null,
         ];
+    }
+
+    /** @return array{freshnessStatus:string,staleAfterDays:int} */
+    private function observationFreshness(?string $capturedAt): array
+    {
+        $staleAfterDays = $this->observationStaleAfterDays();
+        if ($capturedAt === null) {
+            return ['freshnessStatus' => 'unknown', 'staleAfterDays' => $staleAfterDays];
+        }
+
+        $captured = CarbonImmutable::parse($capturedAt)->utc();
+        $cutoff = CarbonImmutable::now('UTC')->subDays($staleAfterDays);
+
+        return [
+            'freshnessStatus' => $captured->lt($cutoff) ? 'stale_observation' : 'fresh',
+            'staleAfterDays' => $staleAfterDays,
+        ];
+    }
+
+    private function observationStaleAfterDays(): int
+    {
+        $configured = config('intelligence.progression.observation_stale_after_days', 30);
+
+        return is_int($configured) && $configured > 0 ? $configured : 30;
     }
 
     private function datasetStatus(

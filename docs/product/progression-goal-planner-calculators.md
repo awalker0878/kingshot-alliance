@@ -286,6 +286,8 @@ The saved record does not duplicate source tables. It references immutable relea
 
 The Governor Progression experience exposes a `Goal planner` surface with:
 
+The canonical entry point is a localized, keyboard-accessible `Goal planner` action on the Governor Progression page that navigates to `/progression/governor/planner`. Opening the planner is read-only and must not mutate observations or planning intent.
+
 1. **Current state** — observed value, source/captured date, dataset pin, and explicit unknown/stale state.
 2. **Target** — selectable only from deterministic factual states in the pinned release.
 3. **Path** — factual steps and prerequisites, with unknown/conflict markers.
@@ -293,6 +295,8 @@ The Governor Progression experience exposes a `Goal planner` surface with:
 5. **Calculation result** — only when `calculator_ready`, including resource totals, transition count, provenance and calculation version.
 
 Required states include loading, no dataset, no observation, stale observation, no supported targets, invalid/reverse target, unknown prerequisite, conflict, dataset mismatch, calculator unavailable/review/source-gap/conflict, calculated result, validation failure, permission denied and responsive/mobile presentation. Material meaning is not color-only. Controls are keyboard/screen-reader usable and strings are localized.
+
+Observation freshness is presentation metadata only. The default stale threshold is 30 days and is configurable under `config/intelligence.php`; an observation older than the configured threshold is presented as `stale_observation` while retaining its original factual value, captured date, evidence provenance and dataset pin. Staleness alone must never enable or disable a calculator.
 
 ## API/application boundaries
 

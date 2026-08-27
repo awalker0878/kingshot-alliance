@@ -92,6 +92,19 @@ final class ProgressionPlannerArchitectureV3Test extends TestCase
         self::assertLessThan($observationRetrieval, $authorization, 'Alliance Intelligence authorization must occur before observation retrieval.');
     }
 
+    public function test_governor_progression_exposes_planner_entry_and_planner_exposes_stale_state(): void
+    {
+        $governor = file_get_contents(base_path('resources/js/pages/Kingdom/Progression/Governor.vue'));
+        $planner = file_get_contents(base_path('resources/js/pages/Kingdom/Progression/Planner.vue'));
+        self::assertIsString($governor);
+        self::assertIsString($planner);
+
+        self::assertStringContainsString('href="/progression/governor/planner"', $governor);
+        self::assertStringContainsString("t('progression.goalPlanner')", $governor);
+        self::assertStringContainsString("freshnessStatus === 'stale_observation'", $planner);
+        self::assertStringContainsString('data-testid="planner-stale-observation"', $planner);
+    }
+
     public function test_frontend_contains_no_factual_cost_table_or_calculation_formula(): void
     {
         $source = file_get_contents(base_path('resources/js/pages/Kingdom/Progression/Planner.vue'));

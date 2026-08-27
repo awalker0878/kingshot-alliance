@@ -18,6 +18,8 @@ const english = {
       'This subject does not have a deterministic state ladder in the pinned dataset. No progression distance or calculation will be inferred.',
     observationDataset: 'Observation normalized with',
     currentStateUnknown: 'Current state is unknown',
+    staleObservationHelp:
+      'This observed state is older than the {days}-day freshness threshold. Its factual value and provenance are preserved; capture a newer observation when current-state confidence matters.',
     datasetMismatchHelp:
       'This observation was normalized with a different progression dataset. The historical observation is preserved, but resource calculation is disabled until current state is re-observed or explicitly reconciled to this pinned release.',
     calculationBlockedDatasetMismatch:
@@ -69,6 +71,8 @@ const french = {
       'Ce sujet ne possède pas d’échelle d’états déterministe dans le jeu de données épinglé. Aucune distance de progression ni aucun calcul ne sera déduit.',
     observationDataset: 'Observation normalisée avec',
     currentStateUnknown: 'État actuel inconnu',
+    staleObservationHelp:
+      'Cet état observé dépasse le seuil de fraîcheur de {days} jours. Sa valeur factuelle et sa provenance sont conservées; capturez une observation plus récente lorsque la confiance dans l’état actuel est importante.',
     datasetMismatchHelp:
       'Cette observation a été normalisée avec un autre jeu de données de progression. L’observation historique est conservée, mais le calcul des ressources est désactivé jusqu’à ce que l’état actuel soit observé de nouveau ou explicitement réconcilié avec cette version épinglée.',
     calculationBlockedDatasetMismatch:

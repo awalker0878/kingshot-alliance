@@ -229,6 +229,13 @@ function formatCaptured(value: string): string {
             </p>
           </div>
           <div class="flex flex-wrap gap-2">
+            <Link
+              href="/progression/governor/planner"
+              class="ks-command-link"
+              data-testid="progression-goal-planner-link"
+            >
+              {{ t('progression.goalPlanner') }}
+            </Link>
             <Link href="/progression" class="ks-command-link" data-variant="secondary">
               {{ t('progression.backToLibrary') }}
             </Link>
