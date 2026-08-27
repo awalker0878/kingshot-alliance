@@ -18,6 +18,10 @@ const english = {
       'This subject does not have a deterministic state ladder in the pinned dataset. No progression distance or calculation will be inferred.',
     observationDataset: 'Observation normalized with',
     currentStateUnknown: 'Current state is unknown',
+    datasetMismatchHelp:
+      'This observation was normalized with a different progression dataset. The historical observation is preserved, but resource calculation is disabled until current state is re-observed or explicitly reconciled to this pinned release.',
+    calculationBlockedDatasetMismatch:
+      'Calculator evidence is ready for this family, but this scenario cannot be calculated because the observed current state is pinned to a different dataset.',
     factualTarget: 'Factual target',
     targetPinnedHelp: 'Target resolved from immutable dataset {version}.',
     stepsRemaining: '{count} progression transitions remaining',
@@ -65,6 +69,10 @@ const french = {
       'Ce sujet ne possède pas d’échelle d’états déterministe dans le jeu de données épinglé. Aucune distance de progression ni aucun calcul ne sera déduit.',
     observationDataset: 'Observation normalisée avec',
     currentStateUnknown: 'État actuel inconnu',
+    datasetMismatchHelp:
+      'Cette observation a été normalisée avec un autre jeu de données de progression. L’observation historique est conservée, mais le calcul des ressources est désactivé jusqu’à ce que l’état actuel soit observé de nouveau ou explicitement réconcilié avec cette version épinglée.',
+    calculationBlockedDatasetMismatch:
+      'Les preuves du calculateur sont prêtes pour cette famille, mais ce scénario ne peut pas être calculé parce que l’état actuel observé est épinglé à un autre jeu de données.',
     factualTarget: 'Cible factuelle',
     targetPinnedHelp: 'Cible résolue à partir du jeu de données immuable {version}.',
     stepsRemaining: '{count} transitions de progression restantes',
