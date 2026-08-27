@@ -18,3 +18,15 @@ For `governor_hero_gear` and `governor_gear`, a single OCR line may contain seve
 Fixture expectations must assert the separated semantic values (for example `Mythic`, `100`, `10`) rather than encoding an accidental regex span such as `Mythic Level 100 Mastery 10` as one quality fact.
 
 This rule applies symmetrically to Hero Gear and Governor Gear extraction and does not add any new supported screenshot field.
+
+## Charm field separation
+
+For `governor_charms`, an observed Charm label/name remains Evidence provenance only in v1, but it still must be extracted accurately.
+
+- `charm_name` contains only the visible name following the fixture-backed `Charm:`/`Charm Name:` label.
+- A Charm-name candidate terminates before a following `Level`/`Lv` label or end-of-line boundary.
+- `charm_level` contains only the visible numeric level.
+- Raw OCR provenance retains the complete source line, so separating normalized candidates never discards the original evidence.
+- The observed name is not converted into `charm_id` and is not committed as canonical `GameWorld/Progression` identity.
+
+Fixture expectations must prove the separated observed name and level for compound rows such as `Charm: Valor Level 8`.
