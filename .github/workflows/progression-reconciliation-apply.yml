@@ -1,0 +1,185 @@
+name: Progression Reconciliation Apply
+
+on:
+  push:
+    branches:
+      - feature/progression-goal-planner-calculators-main
+
+permissions:
+  contents: write
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+
+      - name: Apply documented reconciliation
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path: str, old: str, new: str) -> None:
+              p = Path(path)
+              text = p.read_text()
+              if new in text:
+                  return
+              if old not in text:
+                  raise SystemExit(f"Expected text not found in {path}: {old[:100]!r}")
+              p.write_text(text.replace(old, new, 1))
+
+          # Product source of truth: make the Governor entry point and freshness
+          # presentation policy explicit before the implementation change.
+          replace_once(
+              'docs/product/progression-goal-planner-calculators.md',
+              "The Governor Progression experience exposes a `Goal planner` surface with:\n",
+              "The Governor Progression experience exposes a `Goal planner` surface with:\n\nThe canonical entry point is a localized, keyboard-accessible `Goal planner` action on the Governor Progression page that navigates to `/progression/governor/planner`. Opening the planner is read-only and must not mutate observations or planning intent.\n",
+          )
+          replace_once(
+              'docs/product/progression-goal-planner-calculators.md',
+              "Required states include loading, no dataset, no observation, stale observation, no supported targets, invalid/reverse target, unknown prerequisite, conflict, dataset mismatch, calculator unavailable/review/source-gap/conflict, calculated result, validation failure, permission denied and responsive/mobile presentation. Material meaning is not color-only. Controls are keyboard/screen-reader usable and strings are localized.\n",
+              "Required states include loading, no dataset, no observation, stale observation, no supported targets, invalid/reverse target, unknown prerequisite, conflict, dataset mismatch, calculator unavailable/review/source-gap/conflict, calculated result, validation failure, permission denied and responsive/mobile presentation. Material meaning is not color-only. Controls are keyboard/screen-reader usable and strings are localized.\n\nObservation freshness is presentation metadata only. The default stale threshold is 30 days and is configurable under `config/intelligence.php`; an observation older than the configured threshold is presented as `stale_observation` while retaining its original factual value, captured date, evidence provenance and dataset pin. Staleness alone must never enable or disable a calculator.\n",
+          )
+
+          # Read-model freshness semantics. Keep current-state truth unchanged and
+          # add presentation metadata derived from capturedAt/configuration.
+          replace_once(
+              'app/ReadModels/Progression/Queries/ProgressionPlannerQuery.php',
+              "use App\\Contexts\\GameWorld\\Progression\\ValueObjects\\ProgressionDataset;\n",
+              "use App\\Contexts\\GameWorld\\Progression\\ValueObjects\\ProgressionDataset;\nuse Carbon\\CarbonImmutable;\n",
+          )
+          replace_once(
+              'app/ReadModels/Progression/Queries/ProgressionPlannerQuery.php',
+              "                'datasetStatus' => 'unlabelled',\n                'reason' => 'Select a factual progression family and subject.',\n",
+              "                'datasetStatus' => 'unlabelled',\n                'freshnessStatus' => 'unknown',\n                'staleAfterDays' => $this->observationStaleAfterDays(),\n                'reason' => 'Select a factual progression family and subject.',\n",
+          )
+          replace_once(
+              'app/ReadModels/Progression/Queries/ProgressionPlannerQuery.php',
+              "                'datasetStatus' => 'unlabelled',\n                'reason' => 'No authorized observed current state is available for this subject.',\n",
+              "                'datasetStatus' => 'unlabelled',\n                'freshnessStatus' => 'unknown',\n                'staleAfterDays' => $this->observationStaleAfterDays(),\n                'reason' => 'No authorized observed current state is available for this subject.',\n",
+          )
+          replace_once(
+              'app/ReadModels/Progression/Queries/ProgressionPlannerQuery.php',
+              "        $datasetStatus = $this->datasetStatus($dataset, $observationDatasetId, $observationDatasetChecksum);\n\n        $state = $this->findById($states, $stateId);\n",
+              "        $datasetStatus = $this->datasetStatus($dataset, $observationDatasetId, $observationDatasetChecksum);\n        $capturedAt = $this->latestCapturedAt($facts);\n        $freshness = $this->observationFreshness($capturedAt);\n\n        $state = $this->findById($states, $stateId);\n",
+          )
+          replace_once(
+              'app/ReadModels/Progression/Queries/ProgressionPlannerQuery.php',
+              "                'capturedAt' => $this->latestCapturedAt($facts),\n                'observationDatasetId' => $observationDatasetId,\n",
+              "                'capturedAt' => $capturedAt,\n                ...$freshness,\n                'observationDatasetId' => $observationDatasetId,\n",
+          )
+          replace_once(
+              'app/ReadModels/Progression/Queries/ProgressionPlannerQuery.php',
+              "            'capturedAt' => $this->latestCapturedAt($facts),\n            'observationDatasetId' => $observationDatasetId,\n",
+              "            'capturedAt' => $capturedAt,\n            ...$freshness,\n            'observationDatasetId' => $observationDatasetId,\n",
+          )
+          replace_once(
+              'app/ReadModels/Progression/Queries/ProgressionPlannerQuery.php',
+              "    private function datasetStatus(\n",
+              "    /** @return array{freshnessStatus:string,staleAfterDays:int} */\n    private function observationFreshness(?string $capturedAt): array\n    {\n        $staleAfterDays = $this->observationStaleAfterDays();\n        if ($capturedAt === null) {\n            return ['freshnessStatus' => 'unknown', 'staleAfterDays' => $staleAfterDays];\n        }\n\n        $captured = CarbonImmutable::parse($capturedAt)->utc();\n        $cutoff = CarbonImmutable::now('UTC')->subDays($staleAfterDays);\n\n        return [\n            'freshnessStatus' => $captured->lt($cutoff) ? 'stale_observation' : 'fresh',\n            'staleAfterDays' => $staleAfterDays,\n        ];\n    }\n\n    private function observationStaleAfterDays(): int\n    {\n        $configured = config('intelligence.progression.observation_stale_after_days', 30);\n\n        return is_int($configured) && $configured > 0 ? $configured : 30;\n    }\n\n    private function datasetStatus(\n",
+          )
+
+          # Canonical Governor Progression entry point.
+          replace_once(
+              'resources/js/pages/Kingdom/Progression/Governor.vue',
+              "          <div class=\"flex flex-wrap gap-2\">\n            <Link href=\"/progression\" class=\"ks-command-link\" data-variant=\"secondary\">\n",
+              "          <div class=\"flex flex-wrap gap-2\">\n            <Link\n              href=\"/progression/governor/planner\"\n              class=\"ks-command-link\"\n              data-testid=\"progression-goal-planner-link\"\n            >\n              {{ t('progression.goalPlanner') }}\n            </Link>\n            <Link href=\"/progression\" class=\"ks-command-link\" data-variant=\"secondary\">\n",
+          )
+
+          # Planner response typing and stale-observation disclosure.
+          replace_once(
+              'resources/js/pages/Kingdom/Progression/Planner.vue',
+              "  datasetStatus?: 'matched' | 'dataset_mismatch' | 'unlabelled';\n  reason: string | null;\n",
+              "  datasetStatus?: 'matched' | 'dataset_mismatch' | 'unlabelled';\n  freshnessStatus?: 'fresh' | 'stale_observation' | 'unknown';\n  staleAfterDays?: number;\n  reason: string | null;\n",
+          )
+          replace_once(
+              'resources/js/pages/Kingdom/Progression/Planner.vue',
+              "            </p>\n            <dl class=\"mt-4 space-y-2 text-xs text-[var(--ks-muted)]\">\n",
+              "            </p>\n            <p\n              v-if=\"planner.current.freshnessStatus === 'stale_observation'\"\n              class=\"mt-4 rounded border border-amber-400/30 bg-amber-300/5 p-3 text-sm leading-6 text-amber-100\"\n              role=\"status\"\n              data-testid=\"planner-stale-observation\"\n            >\n              {{ t('progression.staleObservationHelp', { days: planner.current.staleAfterDays ?? 30 }) }}\n            </p>\n            <dl class=\"mt-4 space-y-2 text-xs text-[var(--ks-muted)]\">\n",
+          )
+
+          # Localized stale-state copy.
+          replace_once(
+              'resources/js/localization/progression-planner-labels.ts',
+              "    currentStateUnknown: 'Current state is unknown',\n",
+              "    currentStateUnknown: 'Current state is unknown',\n    staleObservationHelp:\n      'This observed state is older than the {days}-day freshness threshold. Its factual value and provenance are preserved; capture a newer observation when current-state confidence matters.',\n",
+          )
+          replace_once(
+              'resources/js/localization/progression-planner-labels.ts',
+              "    currentStateUnknown: 'État actuel inconnu',\n",
+              "    currentStateUnknown: 'État actuel inconnu',\n    staleObservationHelp:\n      'Cet état observé dépasse le seuil de fraîcheur de {days} jours. Sa valeur factuelle et sa provenance sont conservées; capturez une observation plus récente lorsque la confiance dans l’état actuel est importante.',\n",
+          )
+
+          # Query boundary tests: exact threshold is fresh; older is stale; stale
+          # presentation does not disable an otherwise qualified calculator.
+          replace_once(
+              'tests/v3/ReadModels/Progression/ProgressionPlannerQueryV3Test.php',
+              "use App\\ReadModels\\Progression\\Queries\\ProgressionPlannerQuery;\nuse Tests\\v3\\TestCase;\n",
+              "use App\\ReadModels\\Progression\\Queries\\ProgressionPlannerQuery;\nuse Carbon\\CarbonImmutable;\nuse Tests\\v3\\TestCase;\n",
+          )
+          replace_once(
+              'tests/v3/ReadModels/Progression/ProgressionPlannerQueryV3Test.php',
+              "    public function test_no_target_is_auto_selected_or_recommended(): void\n",
+              "    public function test_observation_freshness_is_presentation_only_and_honours_the_configured_boundary(): void\n    {\n        $dataset = app(ProgressionDatasetQuery::class)->latest();\n        $planner = app(ProgressionPlannerQuery::class);\n        config()->set('intelligence.progression.observation_stale_after_days', 30);\n        CarbonImmutable::setTestNow('2026-09-25T12:00:00+00:00');\n\n        try {\n            $boundaryObservation = $this->observationState([\n                'governorGear' => [\n                    'hood' => [\n                        'quality' => $this->fact('Green', $dataset->id, $dataset->checksum, '2026-08-26T12:00:00+00:00'),\n                        'star' => $this->fact(0, $dataset->id, $dataset->checksum, '2026-08-26T12:00:00+00:00'),\n                    ],\n                ],\n            ]);\n            $boundary = $planner->compose($dataset, $boundaryObservation, 'governor_gear', 'hood', 'step:1', true);\n\n            self::assertSame('fresh', $boundary['current']['freshnessStatus']);\n            self::assertSame(30, $boundary['current']['staleAfterDays']);\n            self::assertSame('calculated', $boundary['calculation']['status']);\n\n            $staleObservation = $this->observationState([\n                'governorGear' => [\n                    'hood' => [\n                        'quality' => $this->fact('Green', $dataset->id, $dataset->checksum, '2026-08-26T11:59:59+00:00'),\n                        'star' => $this->fact(0, $dataset->id, $dataset->checksum, '2026-08-26T11:59:59+00:00'),\n                    ],\n                ],\n            ]);\n            $stale = $planner->compose($dataset, $staleObservation, 'governor_gear', 'hood', 'step:1', true);\n\n            self::assertSame('stale_observation', $stale['current']['freshnessStatus']);\n            self::assertSame('observed', $stale['current']['status']);\n            self::assertSame('matched', $stale['current']['datasetStatus']);\n            self::assertSame('calculator_ready', $stale['calculator']['status']);\n            self::assertSame('calculated', $stale['calculation']['status']);\n        } finally {\n            CarbonImmutable::setTestNow();\n        }\n    }\n\n    public function test_no_target_is_auto_selected_or_recommended(): void\n",
+          )
+          replace_once(
+              'tests/v3/ReadModels/Progression/ProgressionPlannerQueryV3Test.php',
+              "    private function fact(mixed $value, string $datasetId, string $checksum): array\n    {\n        return [\n            'value' => $value,\n            'capturedAt' => '2026-08-26T12:00:00+00:00',\n",
+              "    private function fact(\n        mixed $value,\n        string $datasetId,\n        string $checksum,\n        ?string $capturedAt = null,\n    ): array {\n        return [\n            'value' => $value,\n            'capturedAt' => $capturedAt ?? '2026-08-26T12:00:00+00:00',\n",
+          )
+
+          # Architecture/UI contract test for canonical entry point and stale UX.
+          replace_once(
+              'tests/v3/Architecture/ProgressionPlannerArchitectureV3Test.php',
+              "    public function test_frontend_contains_no_factual_cost_table_or_calculation_formula(): void\n",
+              "    public function test_governor_progression_exposes_planner_entry_and_planner_exposes_stale_state(): void\n    {\n        $governor = file_get_contents(base_path('resources/js/pages/Kingdom/Progression/Governor.vue'));\n        $planner = file_get_contents(base_path('resources/js/pages/Kingdom/Progression/Planner.vue'));\n        self::assertIsString($governor);\n        self::assertIsString($planner);\n\n        self::assertStringContainsString('href=\"/progression/governor/planner\"', $governor);\n        self::assertStringContainsString(\"t('progression.goalPlanner')\", $governor);\n        self::assertStringContainsString(\"freshnessStatus === 'stale_observation'\", $planner);\n        self::assertStringContainsString('data-testid=\"planner-stale-observation\"', $planner);\n    }\n\n    public function test_frontend_contains_no_factual_cost_table_or_calculation_formula(): void\n",
+          )
+          PY
+
+      - name: Configure PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.5'
+          extensions: dom, intl, mbstring
+          coverage: none
+          tools: composer:v2
+
+      - name: Install locked PHP dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Format PHP
+        run: vendor/bin/pint app/ReadModels/Progression/Queries/ProgressionPlannerQuery.php tests/v3/ReadModels/Progression/ProgressionPlannerQueryV3Test.php tests/v3/Architecture/ProgressionPlannerArchitectureV3Test.php
+
+      - name: Configure Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install locked frontend dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Format frontend
+        run: npx prettier --write resources/js/pages/Kingdom/Progression/Governor.vue resources/js/pages/Kingdom/Progression/Planner.vue resources/js/localization/progression-planner-labels.ts
+
+      - name: Run targeted progression tests
+        run: php artisan test tests/v3/ReadModels/Progression/ProgressionPlannerQueryV3Test.php tests/v3/Architecture/ProgressionPlannerArchitectureV3Test.php
+
+      - name: Commit reconciliation
+        run: |
+          if git diff --quiet; then
+            echo "No reconciliation changes."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/product/progression-goal-planner-calculators.md \
+                  app/ReadModels/Progression/Queries/ProgressionPlannerQuery.php \
+                  resources/js/pages/Kingdom/Progression/Governor.vue \
+                  resources/js/pages/Kingdom/Progression/Planner.vue \
+                  resources/js/localization/progression-planner-labels.ts \
+                  tests/v3/ReadModels/Progression/ProgressionPlannerQueryV3Test.php \
+                  tests/v3/Architecture/ProgressionPlannerArchitectureV3Test.php
+          git commit -m "feat: reconcile progression planner UX contract"
+          git push
