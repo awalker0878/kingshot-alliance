@@ -36,9 +36,13 @@ final readonly class SaveSpatialEvidenceReview
         private TerritoryEvidenceSchemaRegistry $schemas,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
-    ) {}
+    ) {
+    }
 
-    /** @param array{x:int,y:int,width:int,height:int}|null $coverageBounds @param list<array<string,mixed>> $objects */
+    /**
+     * @param  array{x:int,y:int,width:int,height:int}|null  $coverageBounds
+     * @param  list<array<string,mixed>>  $objects
+     */
     public function handle(
         string $actorPlayerId,
         string $allianceId,
@@ -53,17 +57,28 @@ final readonly class SaveSpatialEvidenceReview
         try {
             $captured = CarbonImmutable::parse($capturedAt)->utc();
         } catch (Throwable) {
-            throw ValidationException::withMessages(['captured_at' => 'The screenshot capture time is invalid.']);
+            throw ValidationException::withMessages([
+                'captured_at' => 'The screenshot capture time is invalid.',
+            ]);
         }
         if ($captured->gt(CarbonImmutable::now('UTC')->addMinutes(5))) {
-            throw ValidationException::withMessages(['captured_at' => 'The screenshot capture time cannot be more than five minutes in the future.']);
+            throw ValidationException::withMessages([
+                'captured_at' => 'The screenshot capture time cannot be more than five minutes in the future.',
+            ]);
         }
 
         return DB::transaction(function () use ($actorPlayerId, $allianceId, $kingdomId, $evidenceId, $captured, $coverageKind, $completeness, $coverageBounds, $objects): string {
-            [$scope, $actor] = $this->writeState->authorize($actorPlayerId, $allianceId, IntelligencePermission::KingdomManage);
+            [$scope, $actor] = $this->writeState->authorize(
+                $actorPlayerId,
+                $allianceId,
+                IntelligencePermission::KingdomManage,
+            );
             if ($scope->kingdomId !== $kingdomId) {
-                throw ValidationException::withMessages(['kingdom_id' => 'The reviewed Territory screenshot belongs to historical Kingdom context.']);
+                throw ValidationException::withMessages([
+                    'kingdom_id' => 'The reviewed Territory screenshot belongs to historical Kingdom context.',
+                ]);
             }
+
             $evidence = GameEvidence::query()
                 ->whereKey($evidenceId)
                 ->where('alliance_id', $allianceId)
@@ -74,9 +89,13 @@ final readonly class SaveSpatialEvidenceReview
                 ->whereNull('transfer_participant_id')
                 ->lockForUpdate()
                 ->firstOrFail();
-            if ($evidence->kind !== EvidenceKind::TerritoryMapObservation || $evidence->expected_kind !== EvidenceKind::TerritoryMapObservation) {
-                throw ValidationException::withMessages(['evidence' => 'The screenshot class has not been safely verified as a Territory map observation.']);
+            if ($evidence->kind !== EvidenceKind::TerritoryMapObservation
+                || $evidence->expected_kind !== EvidenceKind::TerritoryMapObservation) {
+                throw ValidationException::withMessages([
+                    'evidence' => 'The screenshot class has not been safely verified as a Territory map observation.',
+                ]);
             }
+
             $schema = $this->schemas->require(EvidenceKind::TerritoryMapObservation);
             $extraction = EvidenceExtractionAttempt::query()
                 ->where('evidence_id', $evidenceId)
@@ -93,24 +112,50 @@ final readonly class SaveSpatialEvidenceReview
                 ->sharedLock()
                 ->firstOrFail();
             if ((float) $classification->confidence < $schema->minimumClassificationConfidence) {
-                throw ValidationException::withMessages(['evidence' => 'Classification confidence is below the supported Territory schema threshold.']);
+                throw ValidationException::withMessages([
+                    'evidence' => 'Classification confidence is below the supported Territory schema threshold.',
+                ]);
             }
+
             $datasetId = (string) $evidence->map_dataset_id;
             $datasetChecksum = (string) $evidence->map_dataset_checksum;
             $this->datasets->require($datasetId, $datasetChecksum);
             $payload = ['objects' => $this->reviewedObjects($objects)];
-            $this->validateCoverage($coverageKind, $completeness, $coverageBounds, count($payload['objects']));
-            $fingerprint = $this->fingerprint($allianceId, $kingdomId, $schema->version, $datasetId, $datasetChecksum, $captured, $coverageKind, $completeness, $coverageBounds, $payload);
+            $this->validateCoverage(
+                $coverageKind,
+                $completeness,
+                $coverageBounds,
+                count($payload['objects']),
+            );
+            $fingerprint = $this->fingerprint(
+                $allianceId,
+                $kingdomId,
+                $schema->version,
+                $datasetId,
+                $datasetChecksum,
+                $captured,
+                $coverageKind,
+                $completeness,
+                $coverageBounds,
+                $payload,
+            );
             $duplicate = SpatialEvidenceReview::query()
                 ->where('alliance_id', $allianceId)
                 ->where('kingdom_id', $kingdomId)
                 ->where('semantic_fingerprint', $fingerprint)
                 ->where('evidence_id', '!=', $evidenceId)
-                ->whereIn('status', [EvidenceReviewStatus::Approved->value, EvidenceReviewStatus::DuplicateBlocked->value])
+                ->whereIn('status', [
+                    EvidenceReviewStatus::Approved->value,
+                    EvidenceReviewStatus::DuplicateBlocked->value,
+                ])
                 ->orderBy('reviewed_at')
                 ->first();
-            $revision = ((int) SpatialEvidenceReview::query()->where('evidence_id', $evidenceId)->max('revision_number')) + 1;
-            $status = $duplicate instanceof SpatialEvidenceReview ? EvidenceReviewStatus::DuplicateBlocked : EvidenceReviewStatus::Approved;
+            $revision = ((int) SpatialEvidenceReview::query()
+                ->where('evidence_id', $evidenceId)
+                ->max('revision_number')) + 1;
+            $status = $duplicate instanceof SpatialEvidenceReview
+                ? EvidenceReviewStatus::DuplicateBlocked
+                : EvidenceReviewStatus::Approved;
             $review = SpatialEvidenceReview::query()->create([
                 'evidence_id' => $evidenceId,
                 'alliance_id' => $allianceId,
@@ -130,7 +175,11 @@ final readonly class SaveSpatialEvidenceReview
                 'reviewed_by_player_id' => $actorPlayerId,
                 'reviewed_at' => now(),
             ]);
-            $evidence->forceFill(['lifecycle_status' => $status === EvidenceReviewStatus::Approved ? EvidenceLifecycleStatus::Approved : EvidenceLifecycleStatus::NeedsReview])->save();
+            $evidence->forceFill([
+                'lifecycle_status' => $status === EvidenceReviewStatus::Approved
+                    ? EvidenceLifecycleStatus::Approved
+                    : EvidenceLifecycleStatus::NeedsReview,
+            ])->save();
             $metadata = [
                 'evidence_id' => $evidenceId,
                 'review_id' => (string) $review->id,
@@ -140,64 +189,124 @@ final readonly class SaveSpatialEvidenceReview
                 'object_count' => count($payload['objects']),
                 'semantic_duplicate' => $duplicate instanceof SpatialEvidenceReview,
             ];
-            $event = $duplicate instanceof SpatialEvidenceReview ? 'evidence.semantic_duplicate_detected' : 'evidence.territory_spatial_review_approved';
+            $event = $duplicate instanceof SpatialEvidenceReview
+                ? 'evidence.semantic_duplicate_detected'
+                : 'evidence.territory_spatial_review_approved';
             $this->audit->record($event, $actor, $evidence, $allianceId, $metadata);
             $this->outbox->record($event, $allianceId, $evidence, $metadata);
+
             return (string) $review->id;
         });
     }
 
-    /** @param list<array<string,mixed>> $objects @return list<array<string,mixed>> */
+    /**
+     * @param  list<array<string,mixed>>  $objects
+     * @return list<array<string,mixed>>
+     */
     private function reviewedObjects(array $objects): array
     {
         if (count($objects) > 5000) {
-            throw ValidationException::withMessages(['objects' => 'A review may contain at most 5,000 supported spatial objects.']);
+            throw ValidationException::withMessages([
+                'objects' => 'A review may contain at most 5,000 supported spatial objects.',
+            ]);
         }
+
         $result = [];
         $keys = [];
         foreach ($objects as $index => $object) {
             if (! is_array($object)) {
-                throw ValidationException::withMessages(["objects.{$index}" => 'Each reviewed object must be structured data.']);
+                throw ValidationException::withMessages([
+                    "objects.{$index}" => 'Each reviewed object must be structured data.',
+                ]);
             }
+
             $key = trim((string) ($object['key'] ?? ''));
             $type = SpatialObservedObjectType::tryFrom((string) ($object['type'] ?? ''));
-            $identity = SpatialObservedIdentityState::tryFrom((string) ($object['identity_state'] ?? SpatialObservedIdentityState::Unresolved->value));
-            if ($key === '' || mb_strlen($key) > 120 || isset($keys[$key]) || ! $type instanceof SpatialObservedObjectType || ! $identity instanceof SpatialObservedIdentityState || ! is_int($object['x'] ?? null) || ! is_int($object['y'] ?? null)) {
-                throw ValidationException::withMessages(["objects.{$index}" => 'The reviewed spatial object is invalid or unsupported.']);
+            $identity = SpatialObservedIdentityState::tryFrom(
+                (string) ($object['identity_state'] ?? SpatialObservedIdentityState::Unresolved->value),
+            );
+            if ($key === ''
+                || mb_strlen($key) > 120
+                || isset($keys[$key])
+                || ! $type instanceof SpatialObservedObjectType
+                || ! $identity instanceof SpatialObservedIdentityState
+                || ! is_int($object['x'] ?? null)
+                || ! is_int($object['y'] ?? null)) {
+                throw ValidationException::withMessages([
+                    "objects.{$index}" => 'The reviewed spatial object is invalid or unsupported.',
+                ]);
             }
+
             $keys[$key] = true;
             $result[] = [
                 'key' => $key,
                 'type' => $type->value,
                 'x' => (int) $object['x'],
                 'y' => (int) $object['y'],
-                'player_id' => is_string($object['player_id'] ?? null) && trim($object['player_id']) !== '' ? trim($object['player_id']) : null,
-                'plan_local_identity' => is_string($object['plan_local_identity'] ?? null) && trim($object['plan_local_identity']) !== '' ? trim($object['plan_local_identity']) : null,
-                'observed_label' => is_string($object['observed_label'] ?? null) && trim($object['observed_label']) !== '' ? mb_substr(trim($object['observed_label']), 0, 191) : null,
+                'player_id' => is_string($object['player_id'] ?? null)
+                    && trim($object['player_id']) !== ''
+                        ? trim($object['player_id'])
+                        : null,
+                'plan_local_identity' => is_string($object['plan_local_identity'] ?? null)
+                    && trim($object['plan_local_identity']) !== ''
+                        ? trim($object['plan_local_identity'])
+                        : null,
+                'observed_label' => is_string($object['observed_label'] ?? null)
+                    && trim($object['observed_label']) !== ''
+                        ? mb_substr(trim($object['observed_label']), 0, 191)
+                        : null,
                 'identity_state' => $identity->value,
-                'confidence' => isset($object['confidence']) ? max(0.0, min(1.0, (float) $object['confidence'])) : null,
-                'source_metadata' => is_array($object['source_metadata'] ?? null) ? $object['source_metadata'] : null,
+                'confidence' => isset($object['confidence'])
+                    ? max(0.0, min(1.0, (float) $object['confidence']))
+                    : null,
+                'source_metadata' => is_array($object['source_metadata'] ?? null)
+                    ? $object['source_metadata']
+                    : null,
             ];
         }
+
         return $result;
     }
 
-    private function validateCoverage(SpatialObservationCoverageKind $kind, SpatialObservationCompleteness $completeness, ?array $bounds, int $objectCount): void
-    {
-        if (in_array($kind, [SpatialObservationCoverageKind::CompleteHive, SpatialObservationCoverageKind::CompleteVisibleRegion], true) && $completeness !== SpatialObservationCompleteness::Complete) {
-            throw ValidationException::withMessages(['completeness' => 'A complete-hive or complete-visible-region observation must be explicitly complete.']);
+    private function validateCoverage(
+        SpatialObservationCoverageKind $kind,
+        SpatialObservationCompleteness $completeness,
+        ?array $bounds,
+        int $objectCount,
+    ): void {
+        if (in_array($kind, [
+            SpatialObservationCoverageKind::CompleteHive,
+            SpatialObservationCoverageKind::CompleteVisibleRegion,
+        ], true) && $completeness !== SpatialObservationCompleteness::Complete) {
+            throw ValidationException::withMessages([
+                'completeness' => 'A complete-hive or complete-visible-region observation must be explicitly complete.',
+            ]);
         }
         if ($kind === SpatialObservationCoverageKind::CompleteVisibleRegion && $bounds === null) {
-            throw ValidationException::withMessages(['coverage_bounds' => 'Complete visible-region observations require explicit bounds.']);
+            throw ValidationException::withMessages([
+                'coverage_bounds' => 'Complete visible-region observations require explicit bounds.',
+            ]);
         }
         if ($kind === SpatialObservationCoverageKind::SingleObject && $objectCount !== 1) {
-            throw ValidationException::withMessages(['objects' => 'Single-object coverage requires exactly one reviewed object.']);
+            throw ValidationException::withMessages([
+                'objects' => 'Single-object coverage requires exactly one reviewed object.',
+            ]);
         }
     }
 
-    /** @param array<string,mixed> $payload */
-    private function fingerprint(string $allianceId, string $kingdomId, string $schema, string $datasetId, string $checksum, CarbonImmutable $captured, SpatialObservationCoverageKind $coverage, SpatialObservationCompleteness $completeness, ?array $bounds, array $payload): string
-    {
+    /** @param  array<string,mixed>  $payload */
+    private function fingerprint(
+        string $allianceId,
+        string $kingdomId,
+        string $schema,
+        string $datasetId,
+        string $checksum,
+        CarbonImmutable $captured,
+        SpatialObservationCoverageKind $coverage,
+        SpatialObservationCompleteness $completeness,
+        ?array $bounds,
+        array $payload,
+    ): string {
         try {
             return hash('sha256', json_encode([
                 'alliance_id' => $allianceId,
@@ -212,7 +321,9 @@ final readonly class SaveSpatialEvidenceReview
                 'payload' => $payload,
             ], JSON_THROW_ON_ERROR));
         } catch (JsonException) {
-            throw ValidationException::withMessages(['payload' => 'The reviewed Territory observation could not be fingerprinted.']);
+            throw ValidationException::withMessages([
+                'payload' => 'The reviewed Territory observation could not be fingerprinted.',
+            ]);
         }
     }
 }
