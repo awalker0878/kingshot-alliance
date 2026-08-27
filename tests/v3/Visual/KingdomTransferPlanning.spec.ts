@@ -73,19 +73,24 @@ test('Kingdom Transfer Planning keeps eligibility, verification, readiness, and 
   const evidenceDetails = northstarCard.locator('details').filter({ hasText: 'Add in-game evidence' });
   await evidenceDetails.locator('summary').click();
   await expect(evidenceDetails.getByText('Upload and classify', { exact: true })).toBeVisible();
-  await expect(
-    evidenceDetails.getByRole('heading', { name: 'Transfer Governor status', exact: true }),
-  ).toBeVisible();
-  await expect(
-    evidenceDetails.getByRole('heading', { name: 'Transfer Score / Passes', exact: true }),
-  ).toBeVisible();
-  await expect(
-    evidenceDetails.getByRole('heading', { name: 'Transfer invitation', exact: true }),
-  ).toBeVisible();
   if (!(await evidenceDetails.evaluate((element) => (element as HTMLDetailsElement).open))) {
     await evidenceDetails.locator('summary').click();
   }
   await expect(evidenceDetails).toHaveAttribute('open', '');
+
+  const governorStatusEvidence = evidenceDetails
+    .getByRole('heading', { name: 'Transfer Governor status', exact: true, level: 4 })
+    .locator('xpath=ancestor::article[1]');
+  const scoreEvidence = evidenceDetails
+    .getByRole('heading', { name: 'Transfer Score / Passes', exact: true, level: 4 })
+    .locator('xpath=ancestor::article[1]');
+  const committedInvitation = evidenceDetails
+    .getByRole('heading', { name: 'Transfer invitation', exact: true, level: 4 })
+    .locator('xpath=ancestor::article[1]');
+
+  await expect(governorStatusEvidence).toBeVisible();
+  await expect(scoreEvidence).toBeVisible();
+  await expect(committedInvitation).toBeVisible();
 
   const screenshotClass = evidenceDetails.getByRole('combobox', { name: 'Screenshot class' });
   await expect(screenshotClass).toBeVisible();
@@ -98,18 +103,17 @@ test('Kingdom Transfer Planning keeps eligibility, verification, readiness, and 
     'Official Transfer Group',
   ]);
 
-  await expect(evidenceDetails.getByText('Possible visual duplicate', { exact: true })).toBeVisible();
+  await expect(governorStatusEvidence.getByText('Possible visual duplicate', { exact: true })).toBeVisible();
   await expect(
-    evidenceDetails.getByText('Below the schema confidence requirement — verify carefully.', {
-      exact: true,
-    }).first(),
+    governorStatusEvidence.locator('p:visible', {
+      hasText: /^Below the schema confidence requirement — verify carefully\.$/,
+    }),
   ).toBeVisible();
-  await expect(evidenceDetails.getByText('Raw observation', { exact: true }).first()).toBeVisible();
-  await expect(evidenceDetails.getByText('Normalized candidate', { exact: true }).first()).toBeVisible();
+  await expect(governorStatusEvidence.getByText('Raw observation', { exact: true }).first()).toBeVisible();
+  await expect(
+    governorStatusEvidence.getByText('Normalized candidate', { exact: true }).first(),
+  ).toBeVisible();
 
-  const scoreEvidence = evidenceDetails
-    .locator('article')
-    .filter({ has: page.getByRole('heading', { name: 'Transfer Score / Passes' }) });
   await expect(scoreEvidence.getByText('Approved', { exact: true }).first()).toBeVisible();
   await scoreEvidence
     .getByRole('button', { name: 'Preview destination facts and eligibility impact' })
@@ -119,9 +123,6 @@ test('Kingdom Transfer Planning keeps eligibility, verification, readiness, and 
   await expect(scoreEvidence.getByText('Facts this screenshot would add', { exact: true })).toBeVisible();
   await expect(scoreEvidence).not.toContainText('in_game_rules_verified');
 
-  const committedInvitation = evidenceDetails
-    .locator('article')
-    .filter({ has: page.getByRole('heading', { name: 'Transfer invitation' }) });
   await expect(committedInvitation.getByText('Succeeded', { exact: true })).toBeVisible();
   await expect(committedInvitation).toContainText('Destination receipt');
 
