@@ -26,7 +26,7 @@ final readonly class GovernorProgressionEvidenceExtractor implements EvidenceExt
     {
         $this->schemas->require($kind);
 
-        return '1.0.1';
+        return '1.0.2';
     }
 
     public function schemaVersion(EvidenceKind $kind): string
@@ -197,7 +197,7 @@ final readonly class GovernorProgressionEvidenceExtractor implements EvidenceExt
                 continue;
             }
             $fields[] = $this->candidate('charm_slot', $ordinal, $line, $slot, 'string');
-            if (preg_match('/\b(?:charm\s+name|charm|name)\s*[:\-]\s*([\pL\pN][\pL\pN ._\-]{1,48})/iu', $text, $match) === 1) {
+            if (preg_match('/\b(?:charm\s+name|charm|name)\s*[:\-]\s*([\pL\pN][\pL\pN ._\-]{1,48}?)(?=\s+(?:(?:charm\s+)?(?:level|lv\.?))\b|$)/iu', $text, $match) === 1) {
                 $fields[] = $this->candidate('charm_name', $ordinal, $line, trim($match[1]), 'string');
             }
             if (preg_match('/\b(?:charm\s+)?(?:level|lv\.?)\s*[:\-]?\s*(\d{1,2})\b/i', $text, $match) === 1) {
