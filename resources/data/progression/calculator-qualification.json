@@ -1,0 +1,117 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-08-27",
+  "evaluated_dataset_id": "kingshot-2026-08-23-v2",
+  "evaluated_dataset_version": "2026.08.23.2",
+  "dataset_checksum_binding": "runtime_release_checksum",
+  "reports": [
+    {
+      "family": "governor_gear",
+      "status": "evidence_review",
+      "reason": "The 58-step official Governor Gear ladder is canonicalized and prior community disagreements are preserved as superseded claims, but no immutable calculator-specific release, pure ranged calculation implementation, provenance result contract, or golden calculation fixture set has passed review.",
+      "source_ids": ["kingshot-official-wiki", "kingshotpro-open-data"],
+      "gates": {
+        "source_coverage": {"status": "pass", "reason": "All 58 canonical rows retain inspectable source provenance and material units."},
+        "authority_corroboration": {"status": "pass", "reason": "Current canonical rows are corroborated by the Century Games official wiki."},
+        "boundary_clarity": {"status": "pass", "reason": "The released ladder and superseded claims are version-scoped in the immutable factual release."},
+        "conflict_closure": {"status": "pass", "reason": "Material row disagreements are retained and resolved by Tier-A official evidence rather than averaging."},
+        "immutable_release": {"status": "fail", "reason": "No calculator-specific immutable normalized release has been reviewed."},
+        "pure_typed_calculation": {"status": "fail", "reason": "No qualified ranged calculation implementation exists."},
+        "golden_fixtures": {"status": "fail", "reason": "Calculator golden fixtures have not passed review."},
+        "provenance_result": {"status": "fail", "reason": "No qualified calculator result contract exists to expose calculation version and assumptions."},
+        "historical_stability": {"status": "pass", "reason": "No calculator persistence path exists; future persistence is contractually required to pin immutable releases."},
+        "independent_unlock": {"status": "pass", "reason": "Eligibility is evaluated independently for this family."}
+      }
+    },
+    {
+      "family": "governor_charms",
+      "status": "evidence_review",
+      "reason": "All 22 current Charm levels are reconciled against official/current maintained sources with the older 21-level claim retained as superseded history, but calculator-specific release, calculation code and golden fixtures are not qualified.",
+      "source_ids": ["kingshot-official-wiki", "kingshotdata-kr", "kingshotpro-open-data"],
+      "gates": {
+        "source_coverage": {"status": "pass", "reason": "All 22 canonical levels retain source provenance and explicit material/stat units."},
+        "authority_corroboration": {"status": "pass", "reason": "The 22-level ladder is corroborated by official and maintained structured sources."},
+        "boundary_clarity": {"status": "pass", "reason": "The current 22-level boundary and superseded historical claim are explicit."},
+        "conflict_closure": {"status": "pass", "reason": "The historical 21-versus-22 conflict is preserved and resolved by current official evidence."},
+        "immutable_release": {"status": "fail", "reason": "No calculator-specific immutable normalized release has been reviewed."},
+        "pure_typed_calculation": {"status": "fail", "reason": "No qualified ranged calculation implementation exists."},
+        "golden_fixtures": {"status": "fail", "reason": "Calculator golden fixtures have not passed review."},
+        "provenance_result": {"status": "fail", "reason": "No qualified calculator result contract exists."},
+        "historical_stability": {"status": "pass", "reason": "No calculator persistence path exists; future persistence must pin releases."},
+        "independent_unlock": {"status": "pass", "reason": "Eligibility is evaluated independently for this family."}
+      }
+    },
+    {
+      "family": "hero_gear",
+      "status": "evidence_incomplete",
+      "reason": "Hero Gear quality caps and Mastery facts exist, but a calculator package has not proven complete row coverage, cross-quality transition semantics, applicability boundaries, immutable calculator data or golden fixtures.",
+      "source_ids": ["kingshotdata", "kingshotdata-kr"],
+      "gates": {
+        "source_coverage": {"status": "fail", "reason": "Calculator-grade transition coverage across quality, level, red-gear and Mastery boundaries is incomplete."},
+        "authority_corroboration": {"status": "fail", "reason": "The complete calculator row set has not been independently qualified."},
+        "boundary_clarity": {"status": "fail", "reason": "Cross-quality and Mastery applicability boundaries are not complete enough for ranged arithmetic."},
+        "conflict_closure": {"status": "pass", "reason": "No unresolved conflict is being hidden to qualify the family."},
+        "immutable_release": {"status": "fail", "reason": "No calculator-specific immutable release exists."},
+        "pure_typed_calculation": {"status": "fail", "reason": "No qualified calculation implementation exists."},
+        "golden_fixtures": {"status": "fail", "reason": "Calculator golden fixtures do not exist."},
+        "provenance_result": {"status": "fail", "reason": "No qualified calculator result contract exists."},
+        "historical_stability": {"status": "pass", "reason": "No calculator persistence path exists."},
+        "independent_unlock": {"status": "pass", "reason": "Eligibility is evaluated independently for this family."}
+      }
+    },
+    {
+      "family": "troop_training_promotion",
+      "status": "source_gap",
+      "reason": "Tier cost/time rows exist, but fresh-training versus promotion semantics, modifier applicability and promotion-specific evidence are not proven as a complete calculator source program.",
+      "source_ids": ["kingshotpro-open-data"],
+      "gates": {
+        "source_coverage": {"status": "fail", "reason": "Promotion-specific input/output rows are not fully sourced."},
+        "authority_corroboration": {"status": "fail", "reason": "Promotion semantics do not have sufficient independent reviewed evidence."},
+        "boundary_clarity": {"status": "fail", "reason": "Fresh training, promotion and bonus/modifier boundaries are incomplete."},
+        "conflict_closure": {"status": "pass", "reason": "No conflicting values are being averaged or hidden."},
+        "immutable_release": {"status": "fail", "reason": "No calculator-specific immutable release exists."},
+        "pure_typed_calculation": {"status": "fail", "reason": "No qualified calculation implementation exists."},
+        "golden_fixtures": {"status": "fail", "reason": "Fresh-training and promotion golden fixtures do not exist."},
+        "provenance_result": {"status": "fail", "reason": "No qualified calculator result contract exists."},
+        "historical_stability": {"status": "pass", "reason": "No calculator persistence path exists."},
+        "independent_unlock": {"status": "pass", "reason": "Eligibility is evaluated independently for this family."}
+      }
+    },
+    {
+      "family": "research",
+      "status": "source_gap",
+      "reason": "Academy and War Academy coverage is broad, but Fortified Mail VI has an explicit six-row source-table gap and calculator modifier/rounding assumptions have not been qualified.",
+      "source_ids": ["kingshotdata", "kingshotpro-open-data"],
+      "gates": {
+        "source_coverage": {"status": "fail", "reason": "Fortified Mail VI has six explicitly unknown level rows."},
+        "authority_corroboration": {"status": "fail", "reason": "The complete calculator row and modifier set has not been independently qualified."},
+        "boundary_clarity": {"status": "fail", "reason": "Research-speed, help, temporary-event and related modifier boundaries are not qualified."},
+        "conflict_closure": {"status": "pass", "reason": "The known source gap remains explicit instead of being synthesized."},
+        "immutable_release": {"status": "fail", "reason": "No calculator-specific immutable release exists."},
+        "pure_typed_calculation": {"status": "fail", "reason": "No qualified calculation implementation exists."},
+        "golden_fixtures": {"status": "fail", "reason": "Research calculation and modifier golden fixtures do not exist."},
+        "provenance_result": {"status": "fail", "reason": "No qualified calculator result contract exists."},
+        "historical_stability": {"status": "pass", "reason": "No calculator persistence path exists."},
+        "independent_unlock": {"status": "pass", "reason": "Eligibility is evaluated independently for this family."}
+      }
+    },
+    {
+      "family": "buildings",
+      "status": "evidence_review",
+      "reason": "Building and Truegold tables are retained, but early Range/Stable prerequisite inconsistencies remain excluded and calculator-specific normalization, calculation code and golden fixtures are not qualified.",
+      "source_ids": ["kingshotpro-open-data", "kingshotdata"],
+      "gates": {
+        "source_coverage": {"status": "pass", "reason": "Core building level rows are retained with source provenance."},
+        "authority_corroboration": {"status": "fail", "reason": "The complete calculator row set has not passed independent qualification."},
+        "boundary_clarity": {"status": "fail", "reason": "Early prerequisite applicability inconsistencies remain excluded pending evidence."},
+        "conflict_closure": {"status": "fail", "reason": "Documented Range/Stable prerequisite inconsistencies remain unresolved for affected calculator paths."},
+        "immutable_release": {"status": "fail", "reason": "No calculator-specific immutable release exists."},
+        "pure_typed_calculation": {"status": "fail", "reason": "No qualified calculation implementation exists."},
+        "golden_fixtures": {"status": "fail", "reason": "Building/Truegold calculation golden fixtures do not exist."},
+        "provenance_result": {"status": "fail", "reason": "No qualified calculator result contract exists."},
+        "historical_stability": {"status": "pass", "reason": "No calculator persistence path exists."},
+        "independent_unlock": {"status": "pass", "reason": "Eligibility is evaluated independently for this family."}
+      }
+    }
+  ]
+}
