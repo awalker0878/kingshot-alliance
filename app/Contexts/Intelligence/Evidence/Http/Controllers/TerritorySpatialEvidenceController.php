@@ -32,7 +32,9 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 final class TerritorySpatialEvidenceController extends Controller
 {
-    public function __construct(private readonly ActiveAllianceScopeQuery $allianceScopes) {}
+    public function __construct(private readonly ActiveAllianceScopeQuery $allianceScopes)
+    {
+    }
 
     public function image(
         PlayerContext $context,
@@ -51,6 +53,7 @@ final class TerritorySpatialEvidenceController extends Controller
         $disk = Storage::disk((string) $item->disk);
         $stream = $disk->readStream((string) $item->path);
         abort_unless(is_resource($stream), 404);
+
         return response()->stream(static function () use ($stream): void {
             fpassthru($stream);
             fclose($stream);
@@ -62,8 +65,11 @@ final class TerritorySpatialEvidenceController extends Controller
         ]);
     }
 
-    public function store(Request $request, PlayerContext $context, UploadTerritorySpatialEvidence $upload): RedirectResponse
-    {
+    public function store(
+        Request $request,
+        PlayerContext $context,
+        UploadTerritorySpatialEvidence $upload,
+    ): RedirectResponse {
         $validated = $request->validate([
             'kingdom_id' => ['required', 'ulid'],
             'map_dataset_id' => ['required', 'string', 'max:120'],
@@ -81,11 +87,19 @@ final class TerritorySpatialEvidenceController extends Controller
             mapDatasetChecksum: (string) $validated['map_dataset_checksum'],
             file: $file,
         );
-        return back()->with('actionReceipt', $this->receipt('completed', ['evidenceId' => $result->evidenceId, 'duplicate' => $result->duplicate ? 1 : 0]));
+
+        return back()->with('actionReceipt', $this->receipt('completed', [
+            'evidenceId' => $result->evidenceId,
+            'duplicate' => $result->duplicate ? 1 : 0,
+        ]));
     }
 
-    public function review(Request $request, PlayerContext $context, SaveSpatialEvidenceReview $save, string $evidence): RedirectResponse
-    {
+    public function review(
+        Request $request,
+        PlayerContext $context,
+        SaveSpatialEvidenceReview $save,
+        string $evidence,
+    ): RedirectResponse {
         $validated = $request->validate([
             'captured_at' => ['required', 'date'],
             'coverage_kind' => ['required', Rule::enum(SpatialObservationCoverageKind::class)],
@@ -116,47 +130,105 @@ final class TerritorySpatialEvidenceController extends Controller
             capturedAt: (string) $validated['captured_at'],
             coverageKind: SpatialObservationCoverageKind::from((string) $validated['coverage_kind']),
             completeness: SpatialObservationCompleteness::from((string) $validated['completeness']),
-            coverageBounds: is_array($validated['coverage_bounds'] ?? null) ? $validated['coverage_bounds'] : null,
+            coverageBounds: is_array($validated['coverage_bounds'] ?? null)
+                ? $validated['coverage_bounds']
+                : null,
             objects: $validated['objects'],
         );
-        return back()->with('actionReceipt', $this->receipt('completed', ['evidenceId' => $evidence, 'reviewId' => $reviewId]));
+
+        return back()->with('actionReceipt', $this->receipt('completed', [
+            'evidenceId' => $evidence,
+            'reviewId' => $reviewId,
+        ]));
     }
 
-    public function resolveDuplicate(Request $request, PlayerContext $context, ResolveSpatialSemanticDuplicate $resolve, string $review): RedirectResponse
-    {
-        $validated = $request->validate(['justification' => ['required', 'string', 'min:8', 'max:1000']]);
+    public function resolveDuplicate(
+        Request $request,
+        PlayerContext $context,
+        ResolveSpatialSemanticDuplicate $resolve,
+        string $review,
+    ): RedirectResponse {
+        $validated = $request->validate([
+            'justification' => ['required', 'string', 'min:8', 'max:1000'],
+        ]);
         [$actorPlayerId, $allianceId, $kingdomId] = $this->scope($context);
-        $resolve->handle($actorPlayerId, $allianceId, $kingdomId, $review, (string) $validated['justification']);
+        $resolve->handle(
+            $actorPlayerId,
+            $allianceId,
+            $kingdomId,
+            $review,
+            (string) $validated['justification'],
+        );
+
         return back()->with('actionReceipt', $this->receipt('completed', ['reviewId' => $review]));
     }
 
-    public function commit(PlayerContext $context, CommitReviewedSpatialEvidence $commit, string $review): RedirectResponse
-    {
+    public function commit(
+        PlayerContext $context,
+        CommitReviewedSpatialEvidence $commit,
+        string $review,
+    ): RedirectResponse {
         [$actorPlayerId, $allianceId, $kingdomId] = $this->scope($context);
         $receipt = $commit->handle($actorPlayerId, $allianceId, $kingdomId, $review);
-        return back()->with('actionReceipt', $this->receipt('completed', ['reviewId' => $review, 'destinationReceiptId' => $receipt->receiptId, 'destinationObservationId' => $receipt->observationId, 'replayed' => $receipt->idempotentReplay ? 1 : 0]));
+
+        return back()->with('actionReceipt', $this->receipt('completed', [
+            'reviewId' => $review,
+            'destinationReceiptId' => $receipt->receiptId,
+            'destinationObservationId' => $receipt->observationId,
+            'replayed' => $receipt->idempotentReplay ? 1 : 0,
+        ]));
     }
 
-    public function retry(PlayerContext $context, RetryTerritorySpatialEvidenceProcessing $retry, string $evidence): RedirectResponse
-    {
+    public function retry(
+        PlayerContext $context,
+        RetryTerritorySpatialEvidenceProcessing $retry,
+        string $evidence,
+    ): RedirectResponse {
         [$actorPlayerId, $allianceId, $kingdomId] = $this->scope($context);
         $retry->handle($actorPlayerId, $allianceId, $kingdomId, $evidence);
+
         return back()->with('actionReceipt', $this->receipt('completed', ['evidenceId' => $evidence]));
     }
 
-    public function destroy(Request $request, PlayerContext $context, DeleteTerritorySpatialEvidence $delete, string $evidence): RedirectResponse
-    {
+    public function destroy(
+        Request $request,
+        PlayerContext $context,
+        DeleteTerritorySpatialEvidence $delete,
+        string $evidence,
+    ): RedirectResponse {
         [$actorPlayerId, $allianceId, $kingdomId] = $this->scope($context);
-        $delete->handle($actorPlayerId, $allianceId, $kingdomId, $evidence, (string) $request->input('reason', 'user_requested'));
+        $delete->handle(
+            $actorPlayerId,
+            $allianceId,
+            $kingdomId,
+            $evidence,
+            (string) $request->input('reason', 'user_requested'),
+        );
+
         return back()->with('actionReceipt', $this->receipt('completed', ['evidenceId' => $evidence]));
     }
 
-    public function invalidate(Request $request, PlayerContext $context, InvalidateSpatialObservation $invalidate, string $observation): RedirectResponse
-    {
-        $validated = $request->validate(['reason' => ['required', 'string', 'min:8', 'max:1000']]);
+    public function invalidate(
+        Request $request,
+        PlayerContext $context,
+        InvalidateSpatialObservation $invalidate,
+        string $observation,
+    ): RedirectResponse {
+        $validated = $request->validate([
+            'reason' => ['required', 'string', 'min:8', 'max:1000'],
+        ]);
         [$actorPlayerId, $allianceId, $kingdomId] = $this->scope($context);
-        $invalidate->handle($actorPlayerId, $allianceId, $kingdomId, $observation, (string) $validated['reason']);
-        return back()->with('actionReceipt', $this->receipt('completed', ['observationId' => $observation]));
+        $invalidate->handle(
+            $actorPlayerId,
+            $allianceId,
+            $kingdomId,
+            $observation,
+            (string) $validated['reason'],
+        );
+
+        return back()->with('actionReceipt', $this->receipt('completed', [
+            'observationId' => $observation,
+        ]));
     }
 
     /** @return array{0:string,1:string,2:string} */
@@ -165,11 +237,15 @@ final class TerritorySpatialEvidenceController extends Controller
         $player = $context->player();
         $scope = $this->allianceScopes->findForPlayer($player->playerId, $player->kingdomId);
         abort_if($scope === null, 403, 'An active Alliance membership is required.');
+
         return [$player->playerId, $scope->allianceId, $scope->kingdomId];
     }
 
-    private function authorizeManage(AllianceIntelligenceAuthorization $authorization, string $actorPlayerId, string $allianceId): void
-    {
+    private function authorizeManage(
+        AllianceIntelligenceAuthorization $authorization,
+        string $actorPlayerId,
+        string $allianceId,
+    ): void {
         if (! $authorization->allows($actorPlayerId, $allianceId, IntelligencePermission::KingdomManage)) {
             throw new AuthorizationException;
         }
