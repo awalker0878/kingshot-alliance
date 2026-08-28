@@ -12,6 +12,7 @@ use App\Contexts\GameWorld\Kingdoms\Queries\KingdomReferenceQuery;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
 use App\Contexts\Intelligence\Diplomacy\Enums\KingdomAllianceDiplomacyState;
+use App\ReadModels\IntelligenceSignals\Queries\IntelligenceSignalQuery;
 use App\ReadModels\KingdomIntelligence\KingdomAllianceIntelligence;
 use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -33,6 +34,7 @@ final class KingdomAllianceIntelligenceController extends Controller
         AllianceContext $context,
         AllianceIntelligenceAuthorization $authorization,
         KingdomAllianceIntelligence $intelligence,
+        IntelligenceSignalQuery $signals,
     ): Response {
         $scope = $context->scope();
         if (! $authorization->allows($scope->playerId, $scope->allianceId, IntelligencePermission::View)) {
@@ -57,6 +59,7 @@ final class KingdomAllianceIntelligenceController extends Controller
             ],
             'canManage' => $canManage,
             'intelligence' => $intelligence->forAlliance($alliance, $canManage, $this->filters($request)),
+            'signals' => $signals->recentForAlliance($alliance->allianceId, $scope->playerId, 12),
         ]);
     }
 
