@@ -33,6 +33,7 @@ final readonly class IntelligenceSignalFactory
         }
 
         $signals = [];
+
         if ($current->power !== null && $previous->power !== null) {
             $delta = $this->powerMath->difference((string) $current->power, (string) $previous->power);
             $percent = $previous->power === 0
@@ -52,7 +53,9 @@ final readonly class IntelligenceSignalFactory
                         $current->observed_name,
                         number_format($current->power),
                         $current->captured_at->toDateString(),
-                        str_starts_with($delta, '-') ? 'down '.number_format((int) ltrim($delta, '-')) : 'up '.number_format((int) $delta),
+                        str_starts_with($delta, '-')
+                            ? 'down '.number_format((int) ltrim($delta, '-'))
+                            : 'up '.number_format((int) $delta),
                         number_format($previous->power),
                         $previous->captured_at->toDateString(),
                     ),
@@ -112,8 +115,10 @@ final readonly class IntelligenceSignalFactory
         return $signals;
     }
 
-    public function staleAllianceObservation(KingdomAllianceObservation $latest, CarbonInterface $asOf): ?IntelligenceSignal
-    {
+    public function staleAllianceObservation(
+        KingdomAllianceObservation $latest,
+        CarbonInterface $asOf,
+    ): ?IntelligenceSignal {
         if ($latest->captured_at->gte($asOf->copy()->subDays($this->rules->allianceObservationStaleDays()))) {
             return null;
         }
@@ -188,12 +193,17 @@ final readonly class IntelligenceSignalFactory
             ]))),
             datasetId: (string) $current->progression_dataset_id,
             datasetChecksum: (string) $current->progression_dataset_checksum,
-            metadata: ['changedPaths' => $paths, 'reviewId' => (string) $current->evidence_review_id],
+            metadata: [
+                'changedPaths' => $paths,
+                'reviewId' => (string) $current->evidence_review_id,
+            ],
         );
     }
 
-    public function staleProgressionObservation(GovernorProgressionObservation $latest, CarbonInterface $asOf): ?IntelligenceSignal
-    {
+    public function staleProgressionObservation(
+        GovernorProgressionObservation $latest,
+        CarbonInterface $asOf,
+    ): ?IntelligenceSignal {
         if ($latest->captured_at->gte($asOf->copy()->subDays($this->rules->progressionObservationStaleDays()))) {
             return null;
         }
@@ -224,8 +234,10 @@ final readonly class IntelligenceSignalFactory
         );
     }
 
-    public function transferExpiry(TransferObservation $observation, CarbonInterface $asOf): ?IntelligenceSignal
-    {
+    public function transferExpiry(
+        TransferObservation $observation,
+        CarbonInterface $asOf,
+    ): ?IntelligenceSignal {
         if ($observation->valid_until === null) {
             return null;
         }
@@ -268,8 +280,10 @@ final readonly class IntelligenceSignalFactory
         );
     }
 
-    public function recruitmentChange(RecruitmentStageHistory $history, CarbonInterface $asOf): IntelligenceSignal
-    {
+    public function recruitmentChange(
+        RecruitmentStageHistory $history,
+        CarbonInterface $asOf,
+    ): IntelligenceSignal {
         $from = $history->fromStage()?->value;
         $to = $history->toStage()->value;
 
@@ -310,6 +324,7 @@ final readonly class IntelligenceSignalFactory
         CarbonInterface $asOf,
     ): ?IntelligenceSignal {
         $minimum = $this->rules->bearHuntMinimumRuns();
+
         if (count($runs) < $minimum) {
             return null;
         }
@@ -319,6 +334,7 @@ final readonly class IntelligenceSignalFactory
 
         for ($index = 1; $index < count($runs); $index++) {
             $delta = $runs[$index]['value'] <=> $runs[$index - 1]['value'];
+
             if ($delta === 0) {
                 return null;
             }
@@ -392,7 +408,10 @@ final readonly class IntelligenceSignalFactory
             subjectType: 'tracked_alliance',
             subjectId: $subjectId,
             metric: 'presence',
-            summary: sprintf('Tracked Alliance was observed as %s in a complete source capture.', $state),
+            summary: sprintf(
+                'Tracked Alliance was observed as %s in a complete source capture.',
+                $state,
+            ),
             asOf: $asOf,
             observedAt: $currentObservedAt,
             baselineObservedAt: $previousObservedAt,
@@ -411,11 +430,14 @@ final readonly class IntelligenceSignalFactory
     private function comparableProgressionPayload(GovernorProgressionObservation $observation): array
     {
         $payload = is_array($observation->payload) ? $observation->payload : [];
-        if ($observation->kind !== EvidenceKind::GovernorHeroRoster || ($payload['complete_roster_capture'] ?? false) === true) {
+
+        if (
+            $observation->kind !== EvidenceKind::GovernorHeroRoster
+            || ($payload['complete_roster_capture'] ?? false) === true
+        ) {
             return $payload;
         }
 
-        // Partial Hero captures can prove changed/present facts but never absence.
         unset($payload['complete_roster_capture']);
 
         return $payload;
