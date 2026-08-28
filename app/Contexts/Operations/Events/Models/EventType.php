@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
 /**
  * @property string $slug
@@ -23,7 +24,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property EventProfileState $profile_state
  * @property string|null $source_label
  * @property string|null $source_reference
- * @property \Illuminate\Support\Carbon|null $source_observed_at
+ * @property Carbon|null $source_observed_at
  * @property string|null $game_version_boundary
  * @property string|null $icon_key
  * @property bool $is_system
