@@ -232,6 +232,8 @@ Consume missing/incomplete summary/player results and explicit correction state 
 
 Consume only typed occurrence evidence workflows. The currently implemented typed Event Evidence destination contract is Bear Hunt; other Event types do not invent evidence requirements. For supported evidence, represent processing, awaiting review, unmatched Governor, destination commit pending, processing/commit failure and committed terminal state. Evidence remains provenance/workflow state and never substitutes for accepted Results/Rally/Participation truth.
 
+Evidence retrieval is intentionally bounded, but the bound must never create false completion. The owner projection must explicitly report whether its reviewed Evidence window covers the complete applicable occurrence set. If the bound is exceeded, Event Command represents Evidence coverage as `unknown` with blocking severity and keeps the occurrence in `closeout_required` until complete coverage can be established. Truncated Evidence must never be interpreted as zero, clear or complete.
+
 ### Debrief — `ReadModels/EventAnalysis`
 
 Consume bounded Debrief availability. Availability is informational: closeout does not require a coordinator to open the Debrief. If analysis cannot be produced because owner data is incomplete, report that explicitly without duplicating analysis rules.
@@ -299,6 +301,8 @@ The composition avoids per-Governor/per-delivery/per-artifact N+1 behavior and p
 
 The selected-occurrence Event Command has a query-budget regression test proving query count does not grow with Governor population and remains within the reviewed ceiling. Default unresolved-closeout selection is additionally bounded to the 12 most recent ended non-cancelled occurrences so a recurring Event cannot trigger unbounded historical cross-context composition. Explicit selection remains available for older authorized occurrences.
 
+Owner-specific result bounds must expose coverage completeness. EventManagement may consume bounded summaries, but when an applicable owner cannot prove that its bound covers the complete relevant set, the composed requirement is `unknown` and blocking rather than inferred complete. Bounds are a performance mechanism, never a permission to hide unresolved work.
+
 Expensive cross-context data not required by the Event Command card is not loaded merely because it exists elsewhere on Event Management.
 
 ## Observability
@@ -322,7 +326,7 @@ The program-level `ER-01`–`ER-12` criteria remain mandatory. This contract exp
 - **EC-03 Derived only:** no readiness/complete/lifecycle/count persistence or write endpoint exists.
 - **EC-04 Lifecycle:** `planning|needs_attention|ready|active|closeout_required|complete` follows documented precedence; cancellation remains Event truth.
 - **EC-05 Capability awareness:** a disabled/non-applicable capability never creates a blocker.
-- **EC-06 Explicit uncertainty:** missing/unavailable owner state is unknown, not zero/complete; applicable blocking unknowns block readiness/closeout.
+- **EC-06 Explicit uncertainty:** missing/unavailable owner state or incomplete bounded coverage is unknown, not zero/complete; applicable blocking unknowns block readiness/closeout.
 - **EC-07 Owner provenance:** every item carries a canonical owner and appropriate classification/source identity.
 - **EC-08 Handoffs:** actionable items navigate only to canonical owner workflows and never mutate from Event Command.
 - **EC-09 Schedule:** occurrence/timezone/cancellation validity is derived from Events.
@@ -335,12 +339,12 @@ The program-level `ER-01`–`ER-12` criteria remain mandatory. This contract exp
 - **EC-16 Communications:** reminder policy and Communications delivery health remain separate owner truths; queued is not delivered; failure recovery deep-links to owner workflow.
 - **EC-17 Rallies:** plan readiness and actual participation remain distinct owner projections and are capability-aware.
 - **EC-18 Results:** missing/incomplete/correction state comes from Results and zero values are not treated as missing.
-- **EC-19 Evidence:** typed Evidence processing/review/matching/commit failure state is occurrence-scoped and cannot replace accepted destination truth.
+- **EC-19 Evidence:** typed Evidence processing/review/matching/commit failure state is occurrence-scoped, cannot replace accepted destination truth, and bounded Evidence retrieval explicitly fails closed as `unknown` when complete coverage cannot be proven.
 - **EC-20 Debrief:** EventAnalysis availability is composed without requiring a user to open the Debrief before closeout can complete.
 - **EC-21 UX:** desktop/mobile/keyboard/screen-reader UX exposes primary blockers/actions without wide-table dependence or color-only meaning.
 - **EC-22 Localization:** all visible Event Command copy and action/owner labels use supported locale messages.
 - **EC-23 Isolation:** forged Event/occurrence/Alliance/Kingdom/Player identities cannot cause unauthorized owner retrieval or source leakage.
-- **EC-24 Performance:** query-budget tests prove bounded owner retrieval, no per-member query growth and bounded recurring-history automatic closeout selection.
+- **EC-24 Performance:** query-budget tests prove bounded owner retrieval, no per-member query growth, bounded recurring-history automatic closeout selection and fail-closed coverage semantics for owner result bounds.
 - **EC-25 Observability:** failures and derived state are diagnosable without logging private source contents.
 - **EC-26 Reuse:** the projection is a bounded server contract that Command Overview/Alliance Assistant may consume later without copying business rules/state.
 - **EC-27 Architecture:** owner contexts do not import EventManagement; no new readiness/closeout bounded context exists; architecture tests enforce the boundary.
@@ -360,12 +364,12 @@ No row may be marked complete based on scaffolding or backend-only implementatio
 | 5 | Complete | Reminders + Communications | Reminder configuration plus occurrence delivery health/failure semantics and recovery handoffs are implemented. |
 | 6 | Complete | Rally readiness | Capability-aware Rally planning projection is implemented. |
 | 7 | Complete | Closeout Participation + Rallies | Attendance and actual Rally participation closeout composition is implemented. |
-| 8 | Complete | Results + Evidence | Results completeness/correction semantics and typed Evidence processing/review/match/commit failure composition are implemented. |
+| 8 | Complete | Results + Evidence | Results semantics and bounded Evidence coverage are implemented; Evidence explicitly fails closed as blocking `unknown` when the 200-artifact review window cannot prove complete coverage. |
 | 9 | Complete | Debrief availability | Bounded EventAnalysis availability is integrated without duplicated analysis rules. |
 | 10 | Complete | Event Command UX | Card, occurrence switcher, lifecycle states, stable deep links, responsive/accessibility/localization behavior and deterministic desktop/mobile visual fixtures are implemented. |
 | 11 | Complete | Performance + observability + architecture | query budget, safe diagnostics, isolation and boundary enforcement are implemented. |
-| 12 | Complete | Verification + reconciliation | CI, Architecture V3, Visual Regression, CodeQL, Dependency Review and Intelligence Verification are green on immutable candidate `b912e9c8f2a09da8876317bc07fcefeacacfb4cc`; product/global ledgers are reconciled with no incomplete Event Readiness/Closeout rows. |
+| 12 | Complete | Verification + reconciliation | PR #124 hardening candidate `c9d5a09b48e132f811df896eef7d8721f8d35c66` passed CI, PHP/Pint/PHPStan, frontend checks/build, Architecture V3, Visual Regression, CodeQL, Dependency Review, Intelligence Verification, production image, ephemeral staging, backup/restore and image scan; final documentation reconciliation follows on a docs-only verified head. |
 
 ## Definition of Done
 
-Event Readiness & Closeout is a **Current complete capability**. Every ledger row is complete and `ER-*`, `EC-*` and applicable program-wide `PX-*` criteria are satisfied on immutable candidate `b912e9c8f2a09da8876317bc07fcefeacacfb4cc`. A missing owner query, failing test, architecture violation, inaccessible handoff, incomplete mobile/accessibility state, stale documentation or failed release gate is implementation work, not a reason to declare the capability complete.
+Event Readiness & Closeout is a **Current complete capability**. The occurrence-scoped Event Command composition, pre-Event readiness and post-Event closeout flows, bounded owner projections, fail-closed Evidence coverage, authorization/isolation including forged-occurrence HTTP rejection, canonical navigation-only handoffs, responsive/accessibility/localization UX, observability, query-budget coverage, automated/architecture/contract/visual tests, static/security gates, production image, ephemeral staging, backup/restore and documentation reconciliation are complete. The delivery ledger contains no incomplete Event Readiness or Event Closeout items, and no derived Event Command truth is persisted.

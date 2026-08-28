@@ -58,17 +58,18 @@ A defect or material change that invalidates a completed capability's canonical 
 
 Canonical contract: [Event Command — Readiness & Closeout](event-readiness-closeout.md).
 
-PR #123 implements the occurrence-scoped Event Command projection and owner-query integrations. Functional, architecture, static/security, visual, release/staging, backup/restore and documentation gates are green on immutable candidate `b912e9c8f2a09da8876317bc07fcefeacacfb4cc`. Event Readiness and Event Closeout are **Current complete capability** behavior.
+PR #123 delivered the occurrence-scoped Event Command projection and owner-query integrations. A final contract audit then found that the 200-artifact Bear Hunt Evidence review bound did not prove complete coverage. PR #124 hardens that owner boundary so more than 200 applicable Evidence artifacts produce a blocking `unknown` state instead of possible false completion, and adds a real Manage-route forged-occurrence isolation regression. Functional, architecture, static/security, visual, release/staging, backup/restore and image-scan gates are green on immutable hardening candidate `c9d5a09b48e132f811df896eef7d8721f8d35c66`. Event Readiness and Event Closeout are **Current complete capability** behavior.
 
-The release candidate preserves these non-negotiable boundaries:
+The verified capability preserves these non-negotiable boundaries:
 
 1. `ReadModels/EventManagement` authorizes and composes; it does not own Event, Participation, Poll, Roster, BattlePlan, Rally, Result, Territory, Content, Communications, Evidence or EventAnalysis facts.
 2. No `event_ready`, `event_complete`, readiness lifecycle or blocker count is persisted.
 3. Readiness and closeout are occurrence-scoped, including recurring Events and explicit occurrence switching.
 4. Cancellation remains Event-owned truth and is presented as not applicable rather than synthetic completion.
-5. Missing/unavailable blocking owner state is `unknown` and never silently satisfies readiness or closeout.
+5. Missing/unavailable blocking owner state and incomplete bounded owner coverage are `unknown` and never silently satisfy readiness or closeout.
 6. Every actionable item exposes its canonical owner and a navigation-only handoff; the destination owner reauthorizes and performs the mutation.
 7. Alliance-authored guidance remains labelled Alliance strategy; Communications queued state is not delivery success; Evidence remains provenance/review state rather than destination truth.
+8. Bear Hunt Evidence reads one row beyond its 200-artifact review window only to prove coverage; overflow fails closed and keeps closeout required.
 
 ## Screenshot Intake — Bear Hunt reconciliation
 
@@ -106,7 +107,8 @@ The previous global ledger contained stale status labels for phases 3, 4, 7, 11 
 6. Exact/perceptual/semantic duplicate handling cannot disclose another Alliance's evidence.
 7. Destination retries are idempotent; a recovered receipt cannot duplicate domain meaning.
 8. Evidence deletion/redaction never silently removes accepted destination truth.
-9. No compatibility shims, legacy routes, dual reads/writes or placeholder ownership survive closeout.
+9. Bounded Evidence summaries must prove complete coverage or fail closed as unknown; a row limit cannot hide unresolved closeout work.
+10. No compatibility shims, legacy routes, dual reads/writes or placeholder ownership survive closeout.
 
 Transfer and Governor Progression Screenshot Intake are separate selected extensions below. They reuse these Evidence invariants but have their own typed schemas, destination owner Actions and acceptance criteria.
 
@@ -122,7 +124,7 @@ Phase 0 is documentation-only. No application code, migration, route, frontend c
 | 1 | Current complete capability | Complete | Alliance Assistant `game_fact` | `AE-01`–`AE-03`, `AE-07`, `AE-09`–`AE-12`, plus `PX-*`: source-backed Progression query, immutable dataset/source/confidence citations, unknown/conflict semantics, authorization-before-retrieval, bounded UX/tests/release evidence. |
 | 2 | Current complete capability | Complete | Assistant operational-self intents and safe handoffs | `AE-04`–`AE-12`, plus `PX-*`: Participation/BattlePlan/Transfer/Territory self reads are authorized/bounded; write-like requests perform zero mutation and only navigate to canonical owner workflows. |
 | 3 | Current complete capability | Complete | Event Readiness | `ER-01`–`ER-12`, `EC-01`–`EC-28`, plus `PX-*`: occurrence-scoped capability-aware pre-Event readiness composed from bounded owner projections with explicit blockers/source/action links, query-budget coverage and no persisted readiness state machine. |
-| 4 | Current complete capability | Complete | Event Closeout | `ER-01`–`ER-12`, `EC-01`–`EC-28`, plus `PX-*`: occurrence-scoped post-Event attendance/Rally/Results/Evidence/review/Debrief completion composed with explicit missing semantics, owner correction links and no Event Command write path. |
+| 4 | Current complete capability | Complete | Event Closeout | `ER-01`–`ER-12`, `EC-01`–`EC-28`, plus `PX-*`: occurrence-scoped post-Event attendance/Rally/Results/Evidence/review/Debrief completion composed with explicit missing and incomplete-coverage semantics, owner correction links and no Event Command write path. |
 | 5 | Selected extension | Not started | Kingdom Transfer Screenshot Intake | `TE-01`–`TE-12`, plus `PX-*`: typed fixture-proven extraction/review, tenant-safe duplicate/retry, scalar owner commit, freshness/source semantics and eligibility reevaluation without invented rules. |
 | 6 | Selected extension | Not started | Governor Progression Screenshot Intake | `GE-01`–`GE-12`, plus `PX-*`: typed extraction/review, canonical identity normalization pinned to immutable Progression release, append-only Roster owner commit, tenant-safe retry/retention. |
 | 7 | Selected extension | Not started | Progression Goal Planner | `GP-01`–`GP-10`, plus `PX-*`: authorized observed current state + pinned factual target/prerequisites, explicit unknown/conflict/freshness, no recommendation semantics or unqualified totals. |
@@ -158,7 +160,7 @@ These apply to every open delivery row and cannot be deferred:
 3. **Authorization before retrieval.** Unauthorized data never enters a candidate/evidence/readiness/signal/comparison set and is not filtered only after retrieval.
 4. **Write ownership.** Cross-context writes use scalar IDs/value objects through owner Actions; no foreign Eloquent model mutation.
 5. **Immutable source boundaries.** GameWorld datasets/releases and published Territory revisions retain version/checksum/source identity; later source changes never rewrite historical meaning.
-6. **Explicit uncertainty.** Missing, stale, unknown, unsupported and conflicting states cannot silently satisfy readiness, eligibility, calculation or reconciliation.
+6. **Explicit uncertainty.** Missing, stale, unknown, unsupported, conflicting and incompletely covered states cannot silently satisfy readiness, eligibility, calculation or reconciliation.
 7. **Classification discipline.** Game data, operational fact, Alliance strategy, observation, evidence and planning intent remain distinct end to end.
 8. **No parallel domains for composition.** Do not create AssistantKnowledge, EventReadiness/EventCloseout, TransferOCR/ProgressionOCR, Calculator or TerritoryReality top-level contexts merely to compose existing owners.
 9. **No hidden formulas/policy in presentation.** Normalization, calculation, tolerance, thresholds and business rules live in typed domain/services/configuration with tests, never controllers/jobs/bots/Vue.

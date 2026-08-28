@@ -271,6 +271,21 @@ final readonly class EventCommandCloseoutQuery
             'href' => $href,
             'labelKey' => 'events.command.actions.reviewEvidence',
         ];
+        if (! (bool) $summary['coverageComplete']) {
+            return Items::section('evidence', 'events.command.sections.evidence', 'closeout', [
+                Items::make(
+                    'closeout.evidence_coverage_unknown',
+                    'closeout',
+                    Status::Unknown,
+                    Severity::Blocking,
+                    'intelligence.evidence',
+                    'events.command.items.evidenceCoverageIncomplete',
+                    classification: 'evidence',
+                    handoff: $handoff,
+                ),
+            ]);
+        }
+
         $items = [];
         $this->appendEvidenceItem(
             $items,

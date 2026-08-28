@@ -96,6 +96,8 @@ Counts are response values only and are never persisted.
 
 Missing owner state must be represented as `unknown` when an applicable requirement cannot be established. `not_applicable` is used only when capability/lifecycle semantics establish that the dimension does not apply.
 
+Bounded owner reads must also expose whether they cover the full applicable set when truncation could hide unresolved work. The Bear Hunt Evidence owner summary reads at most 201 non-deleted artifacts to establish whether its 200-artifact review window is complete. When more than 200 applicable artifacts exist, Event Command emits `closeout.evidence_coverage_unknown` with `status=unknown`, `severity=blocking`, owner `intelligence.evidence`, and a Screenshot Intake handoff. It does not summarize the first 200 as clear or complete.
+
 ## Occurrence selection precedence
 
 With no explicit selector, Event Command chooses:

@@ -40,6 +40,8 @@ If one applicable owner projection is unavailable:
 4. the normal owner handoff remains the recovery destination when it can be safely constructed;
 5. reloading Event Management re-runs the read composition after owner recovery.
 
+Bounded retrieval has the same fail-closed rule. For Bear Hunt Evidence, Event Command reviews at most 200 artifacts and reads one additional row only to detect overflow. More than 200 applicable non-deleted artifacts produces a blocking `unknown` Evidence-coverage item and a Screenshot Intake handoff. Operators must not interpret that state as a processing failure or manually mark closeout complete; use the Evidence workflow to reduce/resolve the applicable set or extend the reviewed bound through a documented product change.
+
 There is no Event Command replay queue because Event Command owns no durable process.
 
 ## Diagnosing an unexpected state
@@ -48,8 +50,9 @@ There is no Event Command replay queue because Event Command owns no durable pro
 2. Confirm underlying `Operations/Events` occurrence schedule/status and cancellation truth.
 3. Inspect `event_command.rendered` for state and blocker/warning counts.
 4. Inspect any `event_command.owner_projection_unavailable` event and identify the owner key.
-5. Use the canonical owner workflow/query diagnostics for that owner; do not patch Event Command-derived state in the database.
-6. Re-read Event Management after the owner issue is corrected.
+5. If Evidence reports incomplete coverage, inspect Screenshot Intake for the occurrence and confirm the non-deleted artifact population before changing any review bound.
+6. Use the canonical owner workflow/query diagnostics for that owner; do not patch Event Command-derived state in the database.
+7. Re-read Event Management after the owner issue is corrected.
 
 If an owner fact is correct but Event Command classification is wrong, treat that as a composition defect. Update the `/docs/product/event-readiness-closeout.md` rule first if the intended behavior is missing or ambiguous, then change the composition and tests.
 
@@ -57,7 +60,7 @@ If an owner fact is correct but Event Command classification is wrong, treat tha
 
 `tests/v3/ReadModels/EventManagement/EventCommandQueryBudgetV3Test.php` protects the selected-occurrence composition from query-count growth as eligible Governor population increases. A regression should be resolved by adding/batching a bounded owner projection, not by caching/persisting derived Event Command truth.
 
-Owner summaries must avoid per-Governor, per-Evidence and per-delivery retrieval loops. Query payload row counts may naturally grow; query count must remain bounded.
+Owner summaries must avoid per-Governor, per-Evidence and per-delivery retrieval loops. Query payload row counts may naturally grow; query count must remain bounded. When a row bound can hide unresolved owner state, the owner summary must expose incomplete coverage and Event Command must fail closed instead of inferring completion.
 
 ## Visual/accessibility verification
 
@@ -102,7 +105,7 @@ Do not mark the product delivery ledger complete from an individual green job. R
 | Territory validation | TerritoryPlanning using the referenced published revision |
 | stale/missing Alliance strategy | Alliance/Content |
 | missing Results | Results |
-| Evidence review/match/commit failure | Screenshot Intake / Intelligence/Evidence |
+| Evidence review/match/commit failure or incomplete bounded coverage | Screenshot Intake / Intelligence/Evidence |
 | Debrief availability | EventAnalysis read path after required owner facts exist |
 
 Operators must not create database fixes for Event Command lifecycle or counts because those values do not exist as authoritative persistence.
