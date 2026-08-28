@@ -99,7 +99,9 @@ const intelligenceSignals = computed<IntelligenceSignal[]>(() => {
   return [];
 });
 const showIntelligenceSignals = computed(() =>
-  ['Dashboard/Home', 'Intelligence/KingdomWatch/AllianceDossier'].includes(page.component),
+  page.component === 'Dashboard/Home'
+    ? props.hasPlayerAlliance
+    : page.component === 'Intelligence/KingdomWatch/AllianceDossier',
 );
 
 const playerContext = computed<SharedPlayerContext>(
