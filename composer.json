@@ -62,9 +62,7 @@
             "pint --parallel"
         ],
         "lint:check": [
-            "pint app/ReadModels/IntelligenceSignals/Services/IntelligenceSignalFactory.php",
-            "git diff -- app/ReadModels/IntelligenceSignals/Services/IntelligenceSignalFactory.php",
-            "@php -r \"exit(1);\""
+            "pint --parallel --test"
         ],
         "types:check": [
             "phpstan analyse --memory-limit=1G"
