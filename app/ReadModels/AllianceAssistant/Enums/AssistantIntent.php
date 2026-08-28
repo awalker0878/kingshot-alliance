@@ -16,6 +16,7 @@ enum AssistantIntent: string
     case TerritoryPlan = 'territory_plan';
     case AllianceContent = 'alliance_content';
     case AllianceObservation = 'alliance_observation';
+    case IntelligenceChanges = 'intelligence_changes';
     case ActionHandoff = 'action_handoff';
     case Unsupported = 'unsupported';
 }
