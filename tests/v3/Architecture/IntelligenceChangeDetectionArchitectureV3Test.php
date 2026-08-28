@@ -72,7 +72,7 @@ final class IntelligenceChangeDetectionArchitectureV3Test extends TestCase
         self::assertStringContainsString('complete_roster_capture', $query);
     }
 
-    public function test_frontend_signal_feed_is_navigation_only_and_semantically_accessible(): void
+    public function test_frontend_signal_feed_is_navigation_only_semantically_accessible_and_scope_gated(): void
     {
         $source = file_get_contents(base_path('resources/js/components/intelligence/IntelligenceSignalFeed.vue'));
         self::assertIsString($source);
@@ -84,6 +84,12 @@ final class IntelligenceChangeDetectionArchitectureV3Test extends TestCase
         self::assertStringContainsString('aria-labelledby=', $source);
         self::assertStringContainsString('signal.sourceOwner', $source);
         self::assertStringContainsString('signal.canonicalUrl', $source);
+
+        $layout = file_get_contents(base_path('resources/js/layouts/AppLayout.vue'));
+        self::assertIsString($layout);
+        self::assertStringContainsString("page.component === 'Dashboard/Home'", $layout);
+        self::assertStringContainsString('? props.hasPlayerAlliance', $layout);
+        self::assertStringContainsString("page.component === 'Intelligence/KingdomWatch/AllianceDossier'", $layout);
     }
 
     /** @return array<string,string> */
