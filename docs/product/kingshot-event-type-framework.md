@@ -18,7 +18,9 @@ The pre-Phase-13 `Operations/Events` catalog mixes workflow applicability with h
 
 The pre-Phase-13 `Operations/Results` metric catalogue also assigns event-specific score/metric schemas to event identities whose profiles are not verified. That is an indirect specialized-behavior path and is prohibited by the same gate. A candidate/profile-disabled event cannot receive a seeded result schema, scoring assumption, inferred metric, aggregation rule or `higher_is_better` assertion merely because its slug appears in a catalogue.
 
-Where the repository cannot establish a mechanic or result field through the canonical owning evidence/product contract, the value is removed and remains unknown/unsupported. Phase 13 does not relocate unsupported mechanics into another generic configuration or metric object.
+The pre-Phase-13 `KingPerkEventCapabilityCatalog` also maps the separate current-complete King Perks capability to the `kingdom-of-power` event type through a generic `king_perks` event-capability flag. The repository establishes King Perks as an Operations capability, but that hard-coded association is not sufficient evidence that Kingdom of Power canonically enables King Perks. Phase 13 therefore removes the association from Event profile truth. King Perks remains independently owned and functional; any future event-specific King Perks composition requires an explicit product/evidence contract rather than reuse of the deleted generic capability flag.
+
+Where the repository cannot establish a mechanic, result field or cross-capability event relationship through the canonical owning evidence/product contract, the value is removed and remains unknown/unsupported. Phase 13 does not relocate unsupported mechanics into another generic configuration, metric object or workflow dimension.
 
 ## Ownership
 
@@ -32,6 +34,7 @@ Other owners retain their facts and writes:
 - `Operations/Rallies` owns Rally planning and recorded participation;
 - `Operations/Results` owns Event results and accepted Bear Hunt reports;
 - `Operations/TerritoryPlanning` owns desired territory-planning intent/revisions;
+- `Operations/KingPerks` owns King Perk/King Skill planning independently of Event profile truth unless a separately evidenced event relationship is established;
 - `Intelligence/Evidence` owns evidence artifacts, extraction/review and commit provenance;
 - `ReadModels/EventManagement` composes authorized readiness/closeout state without domain writes;
 - GameWorld owners remain the only place for source-backed Kingshot rules/mechanics when such facts are actually qualified.
@@ -80,7 +83,7 @@ The profile is a closed server-owned vocabulary of application workflow dimensio
 - `debrief` — supported event-analysis/debrief composition applies;
 - `readiness_closeout` — Event Management may evaluate occurrence readiness/closeout using only applicable owner dimensions.
 
-This vocabulary describes application composition only. It cannot be extended by arbitrary persisted strings or frontend configuration.
+This vocabulary describes application composition only. It cannot be extended by arbitrary persisted strings or frontend configuration. Legacy generic capabilities outside this vocabulary, including `king_perks`, are not auto-mapped to a workflow dimension. A capability may remain independently usable without being an Event profile dimension.
 
 ## Results schema boundary
 
@@ -128,11 +131,12 @@ Phase 13 must:
 4. retain other historical canonical keys only as candidate/profile-disabled identities unless evidence qualifies them;
 5. remove hard-coded game mechanics and per-event default mechanic configuration from the catalog/profile path;
 6. remove event-specific metric seeding for candidate/profile-disabled identities and preserve only separately supported Results schemas;
-7. prevent inactive/disabled profiles from surfacing specialized workflow controls;
-8. preserve existing Event/occurrence foreign keys and historical owner data;
-9. migrate only deterministic canonical identities; ambiguous free-text labels must not be guessed;
-10. migrate first-party consumers from display-name/category/capability heuristics to the typed resolved profile contract;
-11. remove superseded profile mechanics/configuration paths rather than maintain dual reads or compatibility shims.
+7. remove legacy cross-capability registrations, including the unverified `kingdom-of-power` → `king_perks` mapping, unless separately evidenced;
+8. prevent inactive/disabled profiles from surfacing specialized workflow controls;
+9. preserve existing Event/occurrence foreign keys and historical owner data;
+10. migrate only deterministic canonical identities; ambiguous free-text labels must not be guessed;
+11. migrate first-party consumers from display-name/category/capability heuristics to the typed resolved profile contract;
+12. remove superseded profile mechanics/configuration paths rather than maintain dual reads or compatibility shims.
 
 Because the application is not deployed, the final clean-database schema is authoritative. Existing migrations may be reconciled when necessary rather than preserving obsolete schema solely for compatibility.
 
@@ -165,7 +169,7 @@ Read models and APIs must distinguish `profile_disabled` from `enabled_with_dime
 
 ## Acceptance criteria
 
-Phase 13 is complete only when arbitrary event names cannot activate specialized behavior; an unverified event cannot have an enabled profile; Bear Hunt resolves to one stable verified identity; Bear Hunt exposes only repository-supported workflow dimensions; candidate events remain disabled; profile-disabled is distinguishable from dimension-absent; no workflow or result schema is inherited by name/category/similarity; one dimension never activates another; runtime profile resolution is deterministic; ordinary Event authority cannot establish profile truth; owner boundaries are unchanged; all hard-coded generic profile mechanics and unverified event-specific metric seeds are removed from the profile path; first-party consumers use the canonical contract; existing Bear Hunt workflows regress cleanly; architecture/auth/isolation tests cover these rules; and `/docs/product` matches the implementation.
+Phase 13 is complete only when arbitrary event names cannot activate specialized behavior; an unverified event cannot have an enabled profile; Bear Hunt resolves to one stable verified identity; Bear Hunt exposes only repository-supported workflow dimensions; candidate events remain disabled; profile-disabled is distinguishable from dimension-absent; no workflow, result schema or unrelated capability relationship is inherited by name/category/similarity; one dimension never activates another; runtime profile resolution is deterministic; ordinary Event authority cannot establish profile truth; owner boundaries are unchanged; all hard-coded generic profile mechanics, unverified event-specific metric seeds and unverified legacy cross-capability registrations are removed from the profile path; first-party consumers use the canonical contract; existing Bear Hunt workflows regress cleanly; architecture/auth/isolation tests cover these rules; and `/docs/product` matches the implementation.
 
 ## Phase 13 delivery ledger
 
@@ -176,7 +180,7 @@ Phase 13 is complete only when arbitrary event names cannot activate specialized
 | P13-03 | Canonical event identity + verification/profile state | In progress |
 | P13-04 | Provenance contract and Bear Hunt verified source | In progress |
 | P13-05 | Closed workflow-dimension vocabulary | In progress |
-| P13-06 | Remove unsupported mechanic/result-schema assumptions | In progress |
+| P13-06 | Remove unsupported mechanic/result/cross-capability assumptions | In progress |
 | P13-07 | Bear Hunt canonical enabled workflow profile | In progress |
 | P13-08 | Candidate/new-event disabled behavior | In progress |
 | P13-09 | Existing occurrence/data-preserving migration | In progress |
