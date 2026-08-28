@@ -44,6 +44,25 @@ return [
     ],
 
     /*
+     * Intelligence Change Detection derives read-side signals from owner
+     * histories. These are presentation/materiality rules only: they never
+     * rewrite source observations, create strategic intent, or establish a new
+     * signal truth store. Bump rule_version when derivation semantics change.
+     */
+    'change_detection' => [
+        'rule_version' => '1',
+        'alliance_power_absolute' => 100_000_000,
+        'alliance_power_percent' => 5.0,
+        'member_count_absolute' => 3,
+        'alliance_observation_stale_days' => 30,
+        'progression_observation_stale_days' => 30,
+        'transfer_expiring_days' => 7,
+        'bear_hunt_minimum_runs' => 3,
+        'recent_days' => 45,
+        'max_signals' => 20,
+    ],
+
+    /*
      * KINGDOMS-005 invitation tokens bootstrap two-party human consent only.
      * They are one-time secrets, hash-only while pending, and do not grant data
      * access until a manager accepts under a valid same-Kingdom context.
