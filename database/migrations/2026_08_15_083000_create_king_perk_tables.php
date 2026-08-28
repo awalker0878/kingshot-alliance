@@ -2,12 +2,10 @@
 
 declare(strict_types=1);
 
-use App\Contexts\Operations\KingPerks\Catalog\KingPerkEventCapabilityCatalog;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Str;
 
 return new class extends Migration
 {
@@ -108,7 +106,6 @@ return new class extends Migration
         });
 
         $this->createTemporalGuards();
-        $this->registerKingPerksCapability();
     }
 
     private function createTemporalGuards(): void
@@ -138,57 +135,8 @@ return new class extends Migration
         }
     }
 
-    private function registerKingPerksCapability(): void
-    {
-        $scopeId = DB::table('event_type_scopes')
-            ->join('event_types', 'event_types.id', '=', 'event_type_scopes.event_type_id')
-            ->where('event_types.slug', KingPerkEventCapabilityCatalog::eventTypeSlug())
-            ->where('event_type_scopes.scope', KingPerkEventCapabilityCatalog::scope()->value)
-            ->value('event_type_scopes.id');
-
-        if ($scopeId === null) {
-            return;
-        }
-
-        $configuration = json_encode(KingPerkEventCapabilityCatalog::configuration(), JSON_THROW_ON_ERROR);
-        $capability = KingPerkEventCapabilityCatalog::capability()->value;
-        $exists = DB::table('event_type_capabilities')
-            ->where('event_type_scope_id', $scopeId)
-            ->where('capability', $capability)
-            ->exists();
-
-        if ($exists) {
-            DB::table('event_type_capabilities')
-                ->where('event_type_scope_id', $scopeId)
-                ->where('capability', $capability)
-                ->update(['configuration' => $configuration]);
-
-            return;
-        }
-
-        DB::table('event_type_capabilities')->insert([
-            'id' => (string) Str::ulid(),
-            'event_type_scope_id' => $scopeId,
-            'capability' => $capability,
-            'configuration' => $configuration,
-        ]);
-    }
-
     public function down(): void
     {
-        $scopeId = DB::table('event_type_scopes')
-            ->join('event_types', 'event_types.id', '=', 'event_type_scopes.event_type_id')
-            ->where('event_types.slug', KingPerkEventCapabilityCatalog::eventTypeSlug())
-            ->where('event_type_scopes.scope', KingPerkEventCapabilityCatalog::scope()->value)
-            ->value('event_type_scopes.id');
-
-        if ($scopeId !== null) {
-            DB::table('event_type_capabilities')
-                ->where('event_type_scope_id', $scopeId)
-                ->where('capability', KingPerkEventCapabilityCatalog::capability()->value)
-                ->delete();
-        }
-
         Schema::dropIfExists('king_skill_plans');
         Schema::dropIfExists('king_perk_requests');
         Schema::dropIfExists('king_perk_position_blocks');
