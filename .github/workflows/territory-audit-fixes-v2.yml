@@ -1,0 +1,123 @@
+name: Territory Audit Fix Applicator V2
+
+on:
+  push:
+    branches:
+      - territory-plan-observed-reality-main
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: territory-plan-observed-reality-main
+
+      - name: Apply contract-backed audit fixes
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace(path: str, old: str, new: str) -> None:
+              p = Path(path)
+              text = p.read_text()
+              if old not in text:
+                  raise SystemExit(f'Missing replacement needle in {path}: {old[:120]!r}')
+              p.write_text(text.replace(old, new, 1))
+
+          query = 'app/ReadModels/TerritoryPlanning/Queries/TerritoryReconciliationQuery.php'
+          replace(query, 'use Carbon\\CarbonImmutable;\n', 'use Carbon\\CarbonImmutable;\nuse RuntimeException;\n')
+          replace(
+              query,
+              "        $observedDataset = $this->datasets->require(\n            (string) $observation['map_dataset_id'],\n            (string) $observation['map_dataset_checksum'],\n        );\n",
+              "        $mapGeometry = $this->mapGeometry($planDataset->data);\n        $observedDataset = $this->datasets->require(\n            (string) $observation['map_dataset_id'],\n            (string) $observation['map_dataset_checksum'],\n        );\n",
+          )
+          replace(
+              query,
+              "                'compatibility' => $compatibility,\n            ];\n        }\n\n        $plannedObjects = [];",
+              "                'compatibility' => $compatibility,\n                'map_geometry' => $mapGeometry,\n            ];\n        }\n\n        $plannedObjects = [];",
+          )
+          replace(
+              query,
+              "            'compatibility' => $compatibility,\n            'summary' => $this->summary($governors, $structures, $unexpected),",
+              "            'compatibility' => $compatibility,\n            'map_geometry' => $mapGeometry,\n            'summary' => $this->summary($governors, $structures, $unexpected),",
+          )
+          replace(
+              query,
+              "    /** @return list<array<string, mixed>> */\n    private function typedRows(mixed $value): array\n",
+              "    /**\n     * @param  array<string, mixed>  $dataset\n     * @return array{bounds:array{x:float,y:float,width:float,height:float},coordinate_system:array{name:string,origin:string,tile_size:float},render:array{y_axis:'up'|'down'}}\n     */\n    private function mapGeometry(array $dataset): array\n    {\n        $bounds = $dataset['bounds'] ?? null;\n        $coordinateSystem = $dataset['coordinate_system'] ?? null;\n        if (! is_array($bounds) || ! is_array($coordinateSystem)) {\n            throw new RuntimeException('The pinned Kingdom map dataset is missing renderable geometry metadata.');\n        }\n\n        foreach (['x', 'y', 'width', 'height'] as $field) {\n            if (! is_int($bounds[$field] ?? null) && ! is_float($bounds[$field] ?? null)) {\n                throw new RuntimeException('The pinned Kingdom map dataset has invalid map bounds.');\n            }\n        }\n        if ((float) $bounds['width'] <= 0 || (float) $bounds['height'] <= 0) {\n            throw new RuntimeException('The pinned Kingdom map dataset has non-positive map bounds.');\n        }\n\n        $name = $coordinateSystem['name'] ?? null;\n        $origin = $coordinateSystem['origin'] ?? null;\n        $tileSize = $coordinateSystem['tile_size'] ?? null;\n        if (! is_string($name)\n            || ! is_string($origin)\n            || (! is_int($tileSize) && ! is_float($tileSize))\n            || (float) $tileSize <= 0) {\n            throw new RuntimeException('The pinned Kingdom map dataset has invalid coordinate-system metadata.');\n        }\n\n        $yAxis = match ($origin) {\n            'south_west_game_coordinates' => 'up',\n            default => throw new RuntimeException('The pinned Kingdom map coordinate origin is not supported for reconciliation rendering.'),\n        };\n\n        return [\n            'bounds' => [\n                'x' => (float) $bounds['x'],\n                'y' => (float) $bounds['y'],\n                'width' => (float) $bounds['width'],\n                'height' => (float) $bounds['height'],\n            ],\n            'coordinate_system' => [\n                'name' => $name,\n                'origin' => $origin,\n                'tile_size' => (float) $tileSize,\n            ],\n            'render' => ['y_axis' => $yAxis],\n        ];\n    }\n\n    /** @return list<array<string, mixed>> */\n    private function typedRows(mixed $value): array\n",
+          )
+
+          vue = 'resources/js/pages/Kingdom/Territory/Reconciliation.vue'
+          replace(
+              vue,
+              "type Observation = {\n  id: string;\n  captured_at: string;\n  coverage_kind: string;\n  completeness: string;\n  map_dataset_id: string;\n  map_dataset_checksum: string;\n  source_evidence_id?: string | null;\n};\n",
+              "type Observation = {\n  id: string;\n  captured_at: string;\n  coverage_kind: string;\n  completeness: string;\n  map_dataset_id: string;\n  map_dataset_checksum: string;\n  source_evidence_id?: string | null;\n  invalidated_at?: string | null;\n};\ntype MapGeometry = {\n  bounds: { x: number; y: number; width: number; height: number };\n  coordinate_system: { name: string; origin: string; tile_size: number };\n  render: { y_axis: 'up' | 'down' };\n};\n",
+          )
+          replace(vue, "  compatibility?: string;\n  summary?: Summary;\n", "  compatibility?: string;\n  map_geometry?: MapGeometry;\n  summary?: Summary;\n")
+          replace(
+              vue,
+              "const observationIsStale = computed(() => props.reconciliation.freshness?.state === 'stale');\n",
+              "const observationIsStale = computed(() => props.reconciliation.freshness?.state === 'stale');\nconst selectedObservationIsInvalidated = computed(\n  () => Boolean(props.reconciliation.observation?.invalidated_at),\n);\nconst mapViewBox = computed(() => {\n  const geometry = props.reconciliation.map_geometry;\n  if (!geometry) return undefined;\n  const { x, y, width, height } = geometry.bounds;\n  return `${x} ${y} ${width} ${height}`;\n});\n\nfunction mapY(y: number): number | undefined {\n  const geometry = props.reconciliation.map_geometry;\n  if (!geometry) return undefined;\n  if (geometry.render.y_axis === 'up') {\n    return geometry.bounds.y + geometry.bounds.height - (y - geometry.bounds.y);\n  }\n  return y;\n}\n\nfunction observationOptionLabel(observation: Observation): string {\n  const base = `${formatDate(observation.captured_at)} · ${observation.coverage_kind}`;\n  return observation.invalidated_at\n    ? `${base} · ${t('territory.historicalInvalidated')}`\n    : base;\n}\n",
+          )
+          replace(vue, "              {{ formatDate(observation.captured_at) }} · {{ observation.coverage_kind }}\n", "              {{ observationOptionLabel(observation) }}\n")
+          replace(
+              vue,
+              "        <p\n          v-if=\"reconciliation.freshness?.state === 'stale'\"\n          class=\"mt-3 rounded-lg border p-3 text-sm\"\n          role=\"alert\"\n        >\n          {{ t('territory.freshnessStale') }}\n        </p>\n",
+              "        <p\n          v-if=\"selectedObservationIsInvalidated\"\n          class=\"mt-3 rounded-lg border p-3 text-sm\"\n          role=\"alert\"\n        >\n          <strong>{{ t('territory.historicalInvalidated') }}</strong>\n          · {{ t('territory.historicalInvalidatedHelp') }}\n        </p>\n        <p\n          v-if=\"reconciliation.freshness?.state === 'stale'\"\n          class=\"mt-3 rounded-lg border p-3 text-sm\"\n          role=\"alert\"\n        >\n          {{ t('territory.freshnessStale') }}\n        </p>\n",
+          )
+          replace(vue, "          <svg\n            viewBox=\"0 0 1200 1200\"\n", "          <svg\n            v-if=\"reconciliation.map_geometry\"\n            :viewBox=\"mapViewBox\"\n")
+          for old, new in [
+              (':y1="1200 - row.planned.y"', ':y1="mapY(row.planned.y)"'),
+              (':y2="1200 - row.observed.y"', ':y2="mapY(row.observed.y)"'),
+              (':cy="1200 - row.planned.y"', ':cy="mapY(row.planned.y)"'),
+              (':cy="1200 - row.observed.y"', ':cy="mapY(row.observed.y)"'),
+          ]:
+              replace(vue, old, new)
+
+          labels = 'resources/js/localization/territory-reconciliation-labels.ts'
+          replace(
+              labels,
+              "    freshnessStale: 'Stale observation',\n",
+              "    freshnessStale: 'Stale observation',\n    historicalInvalidated: 'Historical · invalidated',\n    historicalInvalidatedHelp:\n      'This preserved observation was invalidated or corrected and is shown only because you selected it explicitly. It is not the current observed reality.',\n",
+          )
+
+          test = 'tests/v3/ReadModels/TerritoryPlanning/TerritoryReconciliationBoundariesV3Test.php'
+          replace(
+              test,
+              "    public function test_reconciliation_query_budget_does_not_scale_with_observed_object_count(): void\n",
+              "    public function test_ready_projection_exposes_pinned_map_geometry_without_frontend_world_constants(): void\n    {\n        [$actor, $alliance, $planId, $revisionId] = $this->publishedPlan(62105);\n        $observationId = $this->recordObservation(\n            $alliance->allianceId,\n            $actor->kingdomId,\n            $actor->playerId,\n            2,\n        );\n\n        $result = app(TerritoryReconciliationQuery::class)->build(\n            actorPlayerId: $actor->playerId,\n            planId: $planId,\n            revisionId: $revisionId,\n            allianceId: $alliance->allianceId,\n            observationId: $observationId,\n        );\n        $dataset = app(KingdomMapDatasetQuery::class)->require(self::DATASET_ID);\n\n        self::assertSame('ready', $result['state']);\n        self::assertSame(\n            [\n                'x' => (float) $dataset->data['bounds']['x'],\n                'y' => (float) $dataset->data['bounds']['y'],\n                'width' => (float) $dataset->data['bounds']['width'],\n                'height' => (float) $dataset->data['bounds']['height'],\n            ],\n            $result['map_geometry']['bounds'],\n        );\n        self::assertSame($dataset->data['coordinate_system']['name'], $result['map_geometry']['coordinate_system']['name']);\n        self::assertSame($dataset->data['coordinate_system']['origin'], $result['map_geometry']['coordinate_system']['origin']);\n        self::assertSame('up', $result['map_geometry']['render']['y_axis']);\n\n        $frontend = file_get_contents(base_path('resources/js/pages/Kingdom/Territory/Reconciliation.vue'));\n        self::assertIsString($frontend);\n        self::assertStringNotContainsString('viewBox=\"0 0 1200 1200\"', $frontend);\n        self::assertStringNotContainsString('1200 - row.', $frontend);\n        self::assertStringContainsString(':viewBox=\"mapViewBox\"', $frontend);\n        self::assertStringContainsString('historicalInvalidatedHelp', $frontend);\n    }\n\n    public function test_reconciliation_query_budget_does_not_scale_with_observed_object_count(): void\n",
+          )
+          PY
+
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.5'
+          coverage: none
+          tools: composer:v2
+      - run: composer install --no-interaction --no-progress --prefer-dist
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - name: Format and verify focused slice
+        shell: bash
+        run: |
+          vendor/bin/pint app/ReadModels/TerritoryPlanning/Queries/TerritoryReconciliationQuery.php tests/v3/ReadModels/TerritoryPlanning/TerritoryReconciliationBoundariesV3Test.php
+          npx prettier --write resources/js/pages/Kingdom/Territory/Reconciliation.vue resources/js/localization/territory-reconciliation-labels.ts
+          php artisan test tests/v3/Contexts/Intelligence/Observations/SpatialObservationEvidenceV3Test.php tests/v3/ReadModels/TerritoryPlanning/TerritoryPlanObservedRealityV3Test.php tests/v3/ReadModels/TerritoryPlanning/TerritoryReconciliationBoundariesV3Test.php
+          npm run type-check
+          git diff --check
+      - name: Commit fixes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/ReadModels/TerritoryPlanning/Queries/TerritoryReconciliationQuery.php resources/js/pages/Kingdom/Territory/Reconciliation.vue resources/js/localization/territory-reconciliation-labels.ts tests/v3/ReadModels/TerritoryPlanning/TerritoryReconciliationBoundariesV3Test.php
+          git commit -m "Enforce Territory historical and dataset geometry semantics"
+          git push origin HEAD:territory-plan-observed-reality-main
