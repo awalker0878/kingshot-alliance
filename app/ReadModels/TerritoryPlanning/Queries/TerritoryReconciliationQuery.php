@@ -19,8 +19,7 @@ final readonly class TerritoryReconciliationQuery
         private SpatialObservationQuery $observations,
         private KingdomMapDatasetQuery $datasets,
         private TerritoryCoverageAnalyzer $coverage,
-    ) {
-    }
+    ) {}
 
     /** @return array<string, mixed> */
     public function build(
@@ -230,10 +229,7 @@ final readonly class TerritoryReconciliationQuery
         ];
     }
 
-    /**
-     * @param  mixed  $value
-     * @return list<array<string, mixed>>
-     */
+    /** @return list<array<string, mixed>> */
     private function typedRows(mixed $value): array
     {
         if (! is_array($value)) {
@@ -250,10 +246,7 @@ final readonly class TerritoryReconciliationQuery
         return $rows;
     }
 
-    /**
-     * @param  mixed  $value
-     * @return list<array{id:string,key:string,name:string}>
-     */
+    /** @return list<array{id:string,key:string,name:string}> */
     private function allianceOptions(mixed $value): array
     {
         $options = [];
@@ -310,12 +303,11 @@ final readonly class TerritoryReconciliationQuery
 
         $planCoordinate = $planDataset['coordinate_system'] ?? null;
         $observedCoordinate = $observedDataset['coordinate_system'] ?? null;
-
-        return is_array($planCoordinate)
+        $compatible = is_array($planCoordinate)
             && is_array($observedCoordinate)
-            && $planCoordinate === $observedCoordinate
-                ? 'compatible_release'
-                : 'dataset_incompatible';
+            && $planCoordinate === $observedCoordinate;
+
+        return $compatible ? 'compatible_release' : 'dataset_incompatible';
     }
 
     /** @return array{age_seconds:int,state:string,fresh_seconds:int,aging_seconds:int} */
