@@ -267,7 +267,7 @@ final readonly class SaveSpatialEvidenceReview
         return $result;
     }
 
-    /** @param array{x:int,y:int,width:int,height:int}|null $bounds */
+    /** @param  array{x:int,y:int,width:int,height:int}|null  $bounds */
     private function validateCoverage(
         SpatialObservationCoverageKind $kind,
         SpatialObservationCompleteness $completeness,
@@ -295,8 +295,8 @@ final readonly class SaveSpatialEvidenceReview
     }
 
     /**
-     * @param array{x:int,y:int,width:int,height:int}|null $bounds
-     * @param array<string,mixed> $payload
+     * @param  array{x:int,y:int,width:int,height:int}|null  $bounds
+     * @param  array<string,mixed>  $payload
      */
     private function fingerprint(
         string $allianceId,
