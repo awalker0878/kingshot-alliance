@@ -149,7 +149,7 @@ final readonly class IntelligenceSignalQuery
             /** @var Collection<int,GovernorProgressionObservation> $history */
             $current = $history->first();
             $previous = $history->skip(1)->first();
-            if (! $current instanceof GovernorProgressionObservation || ! $previous instanceof GovernorProgressionObservation) {
+            if (! $previous instanceof GovernorProgressionObservation) {
                 continue;
             }
 
@@ -210,10 +210,9 @@ final readonly class IntelligenceSignalQuery
             ->limit(100)
             ->get();
 
-        return $history
+        return array_values($history
             ->map(fn (RecruitmentStageHistory $change): IntelligenceSignal => $this->factory->recruitmentChange($change, $asOf))
-            ->values()
-            ->all();
+            ->all());
     }
 
     /** @return list<IntelligenceSignal> */
