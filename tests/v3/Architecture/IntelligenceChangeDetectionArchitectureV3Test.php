@@ -68,7 +68,7 @@ final class IntelligenceChangeDetectionArchitectureV3Test extends TestCase
 
         $query = file_get_contents(base_path('app/ReadModels/IntelligenceSignals/Queries/IntelligenceSignalQuery.php'));
         self::assertIsString($query);
-        self::assertStringContainsString("->where('alliance_id', $allianceId)", $query);
+        self::assertStringContainsString("->where('alliance_id', \$allianceId)", $query);
         self::assertStringContainsString('complete_roster_capture', $query);
     }
 
