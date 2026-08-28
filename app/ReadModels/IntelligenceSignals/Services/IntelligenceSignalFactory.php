@@ -12,6 +12,7 @@ use App\Contexts\Intelligence\Roster\Models\GovernorProgressionObservation;
 use App\Contexts\Intelligence\Roster\Services\PowerMath;
 use App\ReadModels\IntelligenceSignals\Enums\IntelligenceSignalType;
 use App\ReadModels\IntelligenceSignals\ValueObjects\IntelligenceSignal;
+use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
 
 final readonly class IntelligenceSignalFactory
@@ -25,7 +26,7 @@ final readonly class IntelligenceSignalFactory
     public function allianceObservationChanges(
         KingdomAllianceObservation $current,
         KingdomAllianceObservation $previous,
-        Carbon $asOf,
+        CarbonInterface $asOf,
     ): array {
         if (! $current->captured_at->gt($previous->captured_at)) {
             return [];
@@ -39,6 +40,7 @@ final readonly class IntelligenceSignalFactory
                 : round((($current->power - $previous->power) / $previous->power) * 100, 2);
             $material = abs((float) $delta) >= $this->rules->alliancePowerAbsolute()
                 || ($percent !== null && abs($percent) >= $this->rules->alliancePowerPercent());
+
             if ($material && $delta !== '0') {
                 $signals[] = $this->signal(
                     type: IntelligenceSignalType::ObservationChange,
@@ -72,6 +74,7 @@ final readonly class IntelligenceSignalFactory
 
         if ($current->member_count !== null && $previous->member_count !== null) {
             $delta = $current->member_count - $previous->member_count;
+
             if ($delta !== 0 && abs($delta) >= $this->rules->memberCountAbsolute()) {
                 $signals[] = $this->signal(
                     type: IntelligenceSignalType::ObservationChange,
@@ -109,7 +112,7 @@ final readonly class IntelligenceSignalFactory
         return $signals;
     }
 
-    public function staleAllianceObservation(KingdomAllianceObservation $latest, Carbon $asOf): ?IntelligenceSignal
+    public function staleAllianceObservation(KingdomAllianceObservation $latest, CarbonInterface $asOf): ?IntelligenceSignal
     {
         if ($latest->captured_at->gte($asOf->copy()->subDays($this->rules->allianceObservationStaleDays()))) {
             return null;
@@ -143,7 +146,7 @@ final readonly class IntelligenceSignalFactory
     public function progressionChange(
         GovernorProgressionObservation $current,
         GovernorProgressionObservation $previous,
-        Carbon $asOf,
+        CarbonInterface $asOf,
     ): ?IntelligenceSignal {
         if ($current->kind !== $previous->kind || ! $current->captured_at->gt($previous->captured_at)) {
             return null;
@@ -152,6 +155,7 @@ final readonly class IntelligenceSignalFactory
         $before = $this->comparableProgressionPayload($previous);
         $after = $this->comparableProgressionPayload($current);
         $paths = $this->changedPaths($before, $after);
+
         if ($paths === []) {
             return null;
         }
@@ -188,7 +192,7 @@ final readonly class IntelligenceSignalFactory
         );
     }
 
-    public function staleProgressionObservation(GovernorProgressionObservation $latest, Carbon $asOf): ?IntelligenceSignal
+    public function staleProgressionObservation(GovernorProgressionObservation $latest, CarbonInterface $asOf): ?IntelligenceSignal
     {
         if ($latest->captured_at->gte($asOf->copy()->subDays($this->rules->progressionObservationStaleDays()))) {
             return null;
@@ -199,7 +203,10 @@ final readonly class IntelligenceSignalFactory
             subjectType: 'governor',
             subjectId: (string) $latest->player_id,
             metric: 'governor_progression',
-            summary: sprintf('The latest Governor progression observation is from %s and is stale.', $latest->captured_at->toDateString()),
+            summary: sprintf(
+                'The latest Governor progression observation is from %s and is stale.',
+                $latest->captured_at->toDateString(),
+            ),
             asOf: $asOf,
             observedAt: $latest->captured_at,
             baselineObservedAt: null,
@@ -217,7 +224,7 @@ final readonly class IntelligenceSignalFactory
         );
     }
 
-    public function transferExpiry(TransferObservation $observation, Carbon $asOf): ?IntelligenceSignal
+    public function transferExpiry(TransferObservation $observation, CarbonInterface $asOf): ?IntelligenceSignal
     {
         if ($observation->valid_until === null) {
             return null;
@@ -254,11 +261,14 @@ final readonly class IntelligenceSignalFactory
             sourceOwner: 'GameWorld/KingdomTransfers',
             sourceRecordIds: [(string) $observation->id],
             evidenceIds: $observation->evidence_id === null ? [] : [(string) $observation->evidence_id],
-            metadata: ['sourceType' => $observation->source_type->value, 'sourceReference' => (string) $observation->source_reference],
+            metadata: [
+                'sourceType' => $observation->source_type->value,
+                'sourceReference' => (string) $observation->source_reference,
+            ],
         );
     }
 
-    public function recruitmentChange(RecruitmentStageHistory $history, Carbon $asOf): IntelligenceSignal
+    public function recruitmentChange(RecruitmentStageHistory $history, CarbonInterface $asOf): IntelligenceSignal
     {
         $from = $history->fromStage()?->value;
         $to = $history->toStage()->value;
@@ -290,32 +300,37 @@ final readonly class IntelligenceSignalFactory
     }
 
     /**
-     * @param  list<array{recordId:string,observedAt:string,value:int|float}>  $runs chronological oldest-to-newest
+     * @param  list<array{recordId: string, observedAt: string, value: int|float}>  $runs chronological oldest-to-newest
      */
     public function bearHuntTrend(
         string $subjectType,
         string $subjectId,
         string $metric,
         array $runs,
-        Carbon $asOf,
+        CarbonInterface $asOf,
     ): ?IntelligenceSignal {
         $minimum = $this->rules->bearHuntMinimumRuns();
         if (count($runs) < $minimum) {
             return null;
         }
+
         $runs = array_slice($runs, -$minimum);
         $direction = null;
+
         for ($index = 1; $index < count($runs); $index++) {
             $delta = $runs[$index]['value'] <=> $runs[$index - 1]['value'];
             if ($delta === 0) {
                 return null;
             }
+
             $currentDirection = $delta > 0 ? 'increased' : 'decreased';
             if ($direction !== null && $direction !== $currentDirection) {
                 return null;
             }
+
             $direction = $currentDirection;
         }
+
         if ($direction === null) {
             return null;
         }
@@ -340,12 +355,17 @@ final readonly class IntelligenceSignalFactory
             currentValue: $last['value'],
             previousValue: $first['value'],
             delta: $last['value'] - $first['value'],
-            percentChange: $first['value'] == 0 ? null : round((($last['value'] - $first['value']) / $first['value']) * 100, 2),
+            percentChange: $first['value'] == 0
+                ? null
+                : round((($last['value'] - $first['value']) / $first['value']) * 100, 2),
             state: $direction,
             materiality: 'material',
             sourceClassification: 'operational_fact',
             sourceOwner: 'Operations/Results',
-            sourceRecordIds: array_values(array_map(static fn (array $run): string => $run['recordId'], $runs)),
+            sourceRecordIds: array_values(array_map(
+                static fn (array $run): string => $run['recordId'],
+                $runs,
+            )),
             metadata: ['runCount' => count($runs)],
         );
     }
@@ -357,9 +377,9 @@ final readonly class IntelligenceSignalFactory
         bool $completeSource,
         string $previousRecordId,
         string $currentRecordId,
-        Carbon $previousObservedAt,
-        Carbon $currentObservedAt,
-        Carbon $asOf,
+        CarbonInterface $previousObservedAt,
+        CarbonInterface $currentObservedAt,
+        CarbonInterface $asOf,
     ): ?IntelligenceSignal {
         if (! $completeSource || $previousPresent === $currentPresent) {
             return null;
@@ -387,7 +407,7 @@ final readonly class IntelligenceSignalFactory
         );
     }
 
-    /** @return array<string,mixed> */
+    /** @return array<string, mixed> */
     private function comparableProgressionPayload(GovernorProgressionObservation $observation): array
     {
         $payload = is_array($observation->payload) ? $observation->payload : [];
@@ -402,8 +422,8 @@ final readonly class IntelligenceSignalFactory
     }
 
     /**
-     * @param  array<string,mixed>  $before
-     * @param  array<string,mixed>  $after
+     * @param  array<string, mixed>  $before
+     * @param  array<string, mixed>  $after
      * @return list<string>
      */
     private function changedPaths(array $before, array $after, string $prefix = ''): array
@@ -411,18 +431,24 @@ final readonly class IntelligenceSignalFactory
         $paths = [];
         $keys = array_values(array_unique([...array_keys($before), ...array_keys($after)]));
         sort($keys);
+
         foreach ($keys as $key) {
             $path = $prefix === '' ? (string) $key : $prefix.'.'.$key;
             $hasBefore = array_key_exists($key, $before);
             $hasAfter = array_key_exists($key, $after);
+
             if (! $hasBefore || ! $hasAfter) {
                 $paths[] = $path;
+
                 continue;
             }
+
             if (is_array($before[$key]) && is_array($after[$key])) {
                 $paths = [...$paths, ...$this->changedPaths($before[$key], $after[$key], $path)];
+
                 continue;
             }
+
             if ($before[$key] !== $after[$key]) {
                 $paths[] = $path;
             }
@@ -434,7 +460,7 @@ final readonly class IntelligenceSignalFactory
     /**
      * @param  list<string>  $sourceRecordIds
      * @param  list<string>  $evidenceIds
-     * @param  array<string,mixed>  $metadata
+     * @param  array<string, mixed>  $metadata
      */
     private function signal(
         IntelligenceSignalType $type,
@@ -442,9 +468,9 @@ final readonly class IntelligenceSignalFactory
         string $subjectId,
         ?string $metric,
         string $summary,
-        Carbon $asOf,
-        Carbon $observedAt,
-        ?Carbon $baselineObservedAt,
+        CarbonInterface $asOf,
+        CarbonInterface $observedAt,
+        ?CarbonInterface $baselineObservedAt,
         mixed $currentValue,
         mixed $previousValue,
         string|int|float|null $delta,
