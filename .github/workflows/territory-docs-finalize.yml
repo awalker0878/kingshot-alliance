@@ -19,173 +19,33 @@ jobs:
         with:
           ref: territory-closeout-prep
           fetch-depth: 0
-      - name: Reconcile Territory product state
+      - name: Repair global Territory ledger row
         shell: bash
         run: |
           python - <<'PY'
           from pathlib import Path
-          import re
 
-          def read(path):
-              return Path(path).read_text()
-
-          def write(path, text):
-              Path(path).write_text(text)
-
-          # Capability catalogue.
-          path = 'docs/product/capability-catalogue.md'
-          text = read(path)
-          text = text.replace(
-              '| Territory plan vs observed state | Selected extension |',
-              '| Territory plan vs observed state | Current complete capability |',
-          )
-          text = text.replace(
-              'The selected observed-state reconciliation extension does not alter this ownership.',
-              'The current plan-versus-observed capability does not alter this ownership.',
-          )
-          write(path, text)
-
-          # Gap analysis: Territory is no longer an open selected-extension gap.
-          path = 'docs/product/capability-gap-analysis.md'
-          text = read(path)
-          text = text.replace('selected observed-state reconciliation extension', 'current plan-versus-observed capability')
-          text = re.sub(r'^\| Territory Planner: Plan vs Observed Reality \| .*\n', '', text, flags=re.MULTILINE)
-          lines = text.splitlines()
-          for i, line in enumerate(lines):
-              if line.startswith('| Phase 10 — Territory Plan vs Observed Reality |'):
-                  parts = line.split('|')
-                  if len(parts) >= 5:
-                      parts[2] = ' Current complete capability '
-                      parts[3] = ' Complete '
-                      lines[i] = '|'.join(parts).replace('TR-01 – TR-08', 'TR-01 – TR-34').replace('TR-01–TR-08', 'TR-01–TR-34')
-              elif line.startswith('| 10 |') and 'Territory' in line:
-                  parts = line.split('|')
-                  if len(parts) >= 6:
-                      parts[2] = ' Current complete capability '
-                      parts[3] = ' Complete '
-                      lines[i] = '|'.join(parts).replace('TR-01 – TR-08', 'TR-01 – TR-34').replace('TR-01–TR-08', 'TR-01–TR-34')
-          write(path, '\n'.join(lines) + ('\n' if text.endswith('\n') else ''))
-
-          # Extension program.
-          path = 'docs/product/capability-extension-program.md'
-          text = read(path)
-          text = text.replace(
-              'Status: Active extension program — phases 0–4 complete — 2026-08-25',
-              'Status: Active extension program — phases 0–4 and 10 complete — 2026-08-28',
-          )
-          text = text.replace(
-              'Alliance Assistant Game Data and bounded operational-self queries plus Event Readiness & Closeout are now **Current complete capabilities**; the remaining items retain the Selected extension or Evidence-gated extension state recorded in the delivery ledger:',
-              'Alliance Assistant Game Data and bounded operational-self queries, Event Readiness & Closeout, and Territory plan versus observed-state reconciliation are now **Current complete capabilities**; the remaining items retain the Selected extension or Evidence-gated extension state recorded in the delivery ledger:',
-          )
-          text = text.replace(
-              '## Selected extension 8 — Territory Plan versus observed state',
-              '## Current complete capability — Territory Plan versus observed state',
-          )
-          lines = text.splitlines()
-          for i, line in enumerate(lines):
-              if line.startswith('| Phase 10 — Territory Plan vs Observed Reality |'):
-                  parts = line.split('|')
-                  if len(parts) >= 5:
-                      parts[2] = ' Current complete capability '
-                      parts[3] = ' Complete '
-                      lines[i] = '|'.join(parts).replace('TR-01 – TR-08', 'TR-01 – TR-34').replace('TR-01–TR-08', 'TR-01–TR-34')
-              elif line.startswith('| 10 |') and 'Territory' in line:
-                  parts = line.split('|')
-                  if len(parts) >= 6:
-                      parts[2] = ' Current complete capability '
-                      parts[3] = ' Complete '
-                      lines[i] = '|'.join(parts).replace('TR-01 – TR-08', 'TR-01 – TR-34').replace('TR-01–TR-08', 'TR-01–TR-34')
-          write(path, '\n'.join(lines) + ('\n' if text.endswith('\n') else ''))
-
-          # Global delivery ledger.
-          path = 'docs/product/capability-delivery-ledger.md'
-          text = read(path)
-          text = text.replace('Status: Current as of 2026-08-25', 'Status: Current as of 2026-08-28')
-          current_row = '| Territory Planner — Plan vs Observed Reality | Complete | [Territory plan versus observed reality](territory-plan-observed-reality.md) |'
-          if current_row not in text:
-              anchor = '| Alliance Territory & Hive Planner | Complete | [Capability catalogue](capability-catalogue.md), [Capability completeness plan](capability-gap-analysis.md), [user journeys](experience/user-journeys.md), and architecture/ADR docs |'
-              addition = anchor + '\n' + current_row + ' Published Territory revisions remain immutable desired state; Evidence owns reviewed source provenance; Observations owns append-only accepted spatial facts; KingdomMaps owns geometry; ReadModels composes authorized comparison without plan mutation. |'
-              if anchor not in text:
-                  raise SystemExit('Could not locate Territory Planner current-capability anchor in global ledger.')
-              text = text.replace(anchor, addition, 1)
-          lines = text.splitlines()
-          for i, line in enumerate(lines):
-              if line.startswith('| Phase 10 — Territory Plan vs Observed Reality |'):
-                  parts = line.split('|')
-                  if len(parts) >= 5:
-                      parts[2] = ' Current complete capability '
-                      parts[3] = ' Complete '
-                      lines[i] = '|'.join(parts).replace('TR-01 – TR-08', 'TR-01 – TR-34').replace('TR-01–TR-08', 'TR-01–TR-34')
-              elif line.startswith('| 10 |') and 'Territory' in line:
-                  parts = line.split('|')
-                  if len(parts) >= 6:
-                      parts[2] = ' Current complete capability '
-                      parts[3] = ' Complete '
-                      lines[i] = '|'.join(parts).replace('TR-01 – TR-08', 'TR-01 – TR-34').replace('TR-01–TR-08', 'TR-01–TR-34')
-          write(path, '\n'.join(lines) + ('\n' if text.endswith('\n') else ''))
-
-          # User journey program state.
-          path = 'docs/product/experience/user-journeys.md'
-          text = read(path)
-          journey_match = re.search(r'(## Compare Territory plan with observed state\n.*?)(?=\n## |\Z)', text, flags=re.DOTALL)
-          if not journey_match:
-              raise SystemExit('Missing Territory observed-state user journey.')
-          section = journey_match.group(1)
-          section = section.replace('Program state: **Selected extension**.', 'Program state: **Current complete capability**.')
-          text = text[:journey_match.start(1)] + section + text[journey_match.end(1):]
-          write(path, text)
-
-          # Canonical Territory contract and delivery ledger.
-          path = 'docs/product/territory-plan-observed-reality.md'
-          text = read(path)
-          text = text.replace('Status: Implementation contract — 2026-08-27', 'Status: Current complete capability — 2026-08-28')
-          marker = '## Delivery ledger\n'
-          if marker not in text:
-              raise SystemExit('Missing canonical Territory delivery ledger.')
-          before, ledger = text.split(marker, 1)
-          lines = ledger.splitlines()
-          changed = 0
-          for i, line in enumerate(lines):
-              phase_match = re.match(r'^\|\s*(\d{1,2})\s*\|', line)
-              if not phase_match:
-                  continue
-              phase = int(phase_match.group(1))
-              if 0 <= phase <= 14:
-                  parts = line.split('|')
-                  if len(parts) >= 5:
-                      parts[3] = ' Complete '
-                      lines[i] = '|'.join(parts)
-                      changed += 1
-          if changed != 15:
-              raise SystemExit(f'Expected 15 canonical Territory phases, updated {changed}.')
-          text = before + marker + '\n'.join(lines) + ('\n' if ledger.endswith('\n') else '')
-          write(path, text)
-
-          # Closeout assertions.
-          catalogue = read('docs/product/capability-catalogue.md')
-          canonical = read('docs/product/territory-plan-observed-reality.md')
-          global_ledger = read('docs/product/capability-delivery-ledger.md')
-          journeys = read('docs/product/experience/user-journeys.md')
-          if '| Territory plan vs observed state | Current complete capability |' not in catalogue:
-              raise SystemExit('Territory catalogue state was not promoted.')
-          if 'Status: Current complete capability — 2026-08-28' not in canonical:
-              raise SystemExit('Canonical Territory status was not promoted.')
-          if current_row not in global_ledger:
-              raise SystemExit('Global current-capability ledger row was not added.')
-          if 'Program state: **Current complete capability**.' not in journeys:
-              raise SystemExit('Territory journey state was not promoted.')
+          path = Path('docs/product/capability-delivery-ledger.md')
+          text = path.read_text()
+          malformed = '| Territory Planner — Plan vs Observed Reality | Complete | [Territory plan versus observed reality](territory-plan-observed-reality.md) | Published Territory revisions remain immutable desired state; Evidence owns reviewed source provenance; Observations owns append-only accepted spatial facts; KingdomMaps owns geometry; ReadModels composes authorized comparison without plan mutation. |'
+          corrected = '| Territory Planner — Plan vs Observed Reality | Complete | [Territory plan versus observed reality](territory-plan-observed-reality.md). Published Territory revisions remain immutable desired state; Evidence owns reviewed source provenance; Observations owns append-only accepted spatial facts; KingdomMaps owns geometry; ReadModels composes authorized comparison without plan mutation. |'
+          if malformed in text:
+              text = text.replace(malformed, corrected, 1)
+          elif corrected not in text:
+              raise SystemExit('Could not locate Territory global-ledger row to repair.')
+          path.write_text(text)
           PY
           git diff --check
-          git diff -- docs/product
-      - name: Commit reconciled product documentation
+          git diff -- docs/product/capability-delivery-ledger.md
+      - name: Commit repaired product documentation
         shell: bash
         run: |
           if git diff --quiet -- docs/product; then
-            echo 'Product documentation already reconciled.'
+            echo 'Global Territory ledger row already repaired.'
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add docs/product
-          git commit -m "docs: close Territory plan-observed delivery ledger"
+          git commit -m "docs: repair Territory global ledger row"
           git push origin HEAD:territory-closeout-prep
