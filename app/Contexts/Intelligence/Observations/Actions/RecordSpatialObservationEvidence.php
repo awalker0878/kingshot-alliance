@@ -35,8 +35,7 @@ final readonly class RecordSpatialObservationEvidence
         private PlayerReferenceQuery $players,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
-    ) {
-    }
+    ) {}
 
     /**
      * @param  array{x:int,y:int,width:int,height:int}|null  $coverageBounds
@@ -314,8 +313,8 @@ final readonly class RecordSpatialObservationEvidence
         $mapHeight = (int) ($map['height'] ?? 0);
         if ($bounds['x'] < $mapX
             || $bounds['y'] < $mapY
-            || $bounds['x'] + $bounds['width'] > $mapX + $mapWidth
-            || $bounds['y'] + $bounds['height'] > $mapY + $mapHeight) {
+            || $mapX + $mapWidth < $bounds['x'] + $bounds['width']
+            || $mapY + $mapHeight < $bounds['y'] + $bounds['height']) {
             throw ValidationException::withMessages([
                 'coverage_bounds' => 'Coverage bounds must stay inside the pinned Kingdom map.',
             ]);
