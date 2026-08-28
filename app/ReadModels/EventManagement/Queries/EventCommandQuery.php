@@ -7,11 +7,10 @@ namespace App\ReadModels\EventManagement\Queries;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Operations\Events\Enums\EventOccurrenceStatus;
 use App\Contexts\Operations\Events\Enums\EventStatus;
+use App\Contexts\Operations\Events\Enums\EventWorkflowDimension;
 use App\Contexts\Operations\Events\Models\Event;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
-use App\Contexts\Operations\Events\Models\EventTypeCapability;
-use App\ReadModels\EventManagement\Enums\EventCommandItemStatus as Status;
-use App\ReadModels\EventManagement\Enums\EventCommandSeverity as Severity;
+use App\Contexts\Operations\Events\Services\EventTypeProfileResolver;
 use App\ReadModels\EventManagement\Enums\EventCommandState;
 use App\ReadModels\EventManagement\Support\EventCommandItems as Items;
 use Carbon\CarbonImmutable;
@@ -28,20 +27,24 @@ final readonly class EventCommandQuery
         private EventCommandOperationalReadinessQuery $operationalReadiness,
         private EventCommandContextReadinessQuery $contextReadiness,
         private EventCommandCloseoutQuery $closeout,
+        private EventTypeProfileResolver $profiles,
     ) {}
 
     /** @return array<string, mixed> */
     public function forEvent(PlayerReference $actor, Event $event, ?string $requestedOccurrenceId = null): array
     {
         $startedAt = hrtime(true);
-        $event->loadMissing(['eventType', 'typeScope.capabilities', 'occurrences']);
-        $capabilities = $this->capabilities($event);
+        $event->loadMissing(['eventType.workflowDimensions', 'occurrences']);
+        $profile = $this->profiles->resolve($event->eventType);
+        $dimensions = $profile['profile_enabled'] === true ? $profile['workflow_dimensions'] : [];
+        $commandDimensions = $this->has($dimensions, EventWorkflowDimension::ReadinessCloseout) ? $dimensions : [];
         $now = CarbonImmutable::now('UTC');
-        $occurrence = $this->selectOccurrence($actor, $event, $capabilities, $requestedOccurrenceId, $now);
+        $occurrence = $this->selectOccurrence($actor, $event, $commandDimensions, $requestedOccurrenceId, $now);
 
         if (! $occurrence instanceof EventOccurrence) {
             return $this->record($event, null, [
                 'eventId' => (string) $event->id,
+                'eventProfile' => $profile,
                 'selectedOccurrenceId' => null,
                 'occurrences' => [],
                 'state' => null,
@@ -63,10 +66,10 @@ final readonly class EventCommandQuery
         /** @var list<array<string, mixed>> $sections */
         $sections = match (true) {
             $cancelled => [$this->cancelledSection($event, $occurrence)],
-            $ended => $this->closeout->forOccurrence($actor, $event, $occurrence, $capabilities),
+            $ended => $this->closeout->forOccurrence($actor, $event, $occurrence, $commandDimensions),
             default => array_values(array_merge(
-                $this->operationalReadiness->forOccurrence($event, $occurrence, $capabilities, $now),
-                $this->contextReadiness->forOccurrence($actor, $event, $occurrence),
+                $this->operationalReadiness->forOccurrence($event, $occurrence, $commandDimensions, $now),
+                $this->contextReadiness->forOccurrence($actor, $event, $occurrence, $commandDimensions),
             )),
         };
         $items = Items::flatten($sections);
@@ -88,6 +91,7 @@ final readonly class EventCommandQuery
 
         return $this->record($event, $occurrence, [
             'eventId' => (string) $event->id,
+            'eventProfile' => $profile,
             'selectedOccurrenceId' => (string) $occurrence->id,
             'occurrences' => array_values($occurrences),
             'state' => $state?->value,
@@ -102,50 +106,40 @@ final readonly class EventCommandQuery
         ], $startedAt);
     }
 
-    /** @param  list<string>  $capabilities */
+    /** @param list<string> $dimensions */
     private function selectOccurrence(
         PlayerReference $actor,
         Event $event,
-        array $capabilities,
+        array $dimensions,
         ?string $requestedOccurrenceId,
         CarbonImmutable $now,
     ): ?EventOccurrence {
         $requestedOccurrenceId = trim((string) $requestedOccurrenceId);
         if ($requestedOccurrenceId !== '') {
-            $requested = EventOccurrence::query()
-                ->where('event_id', $event->id)
-                ->whereKey($requestedOccurrenceId)
-                ->first();
+            $requested = EventOccurrence::query()->where('event_id', $event->id)->whereKey($requestedOccurrenceId)->first();
             if (! $requested instanceof EventOccurrence) {
-                throw ValidationException::withMessages([
-                    'occurrence' => 'The selected Event occurrence is not available for this Event.',
-                ]);
+                throw ValidationException::withMessages(['occurrence' => 'The selected Event occurrence is not available for this Event.']);
             }
 
             return $requested;
         }
 
-        $occurrences = $event->occurrences
-            ->filter(static fn ($item): bool => $item instanceof EventOccurrence)
-            ->values();
+        $occurrences = $event->occurrences->filter(static fn ($item): bool => $item instanceof EventOccurrence)->values();
         $active = $occurrences
             ->filter(fn (EventOccurrence $item): bool => ! $this->cancelled($event, $item) && $this->active($item, $now))
-            ->sortBy('starts_at')
-            ->first();
+            ->sortBy('starts_at')->first();
         if ($active instanceof EventOccurrence) {
             return $active;
         }
 
         $ended = $occurrences
             ->filter(fn (EventOccurrence $item): bool => ! $this->cancelled($event, $item) && $this->ended($item, $now))
-            ->sortByDesc('ends_at')
-            ->take(self::CLOSEOUT_SELECTION_LIMIT);
+            ->sortByDesc('ends_at')->take(self::CLOSEOUT_SELECTION_LIMIT);
         foreach ($ended as $item) {
             if (! $item instanceof EventOccurrence) {
                 continue;
             }
-
-            $sections = $this->closeout->forOccurrence($actor, $event, $item, $capabilities);
+            $sections = $this->closeout->forOccurrence($actor, $event, $item, $dimensions);
             if (Items::blockers(Items::flatten($sections)) > 0) {
                 return $item;
             }
@@ -153,8 +147,7 @@ final readonly class EventCommandQuery
 
         $upcoming = $occurrences
             ->filter(fn (EventOccurrence $item): bool => ! $this->cancelled($event, $item) && $item->starts_at->greaterThan($now))
-            ->sortBy('starts_at')
-            ->first();
+            ->sortBy('starts_at')->first();
         if ($upcoming instanceof EventOccurrence) {
             return $upcoming;
         }
@@ -168,25 +161,12 @@ final readonly class EventCommandQuery
     private function cancelledSection(Event $event, EventOccurrence $occurrence): array
     {
         return Items::section('schedule', 'events.command.sections.schedule', 'readiness', [
-            Items::make(
-                'schedule.cancelled',
-                'readiness',
-                Status::NotApplicable,
-                Severity::Informational,
-                'operations.events',
-                'events.command.items.cancelled',
-                handoff: Items::handoff($event, $occurrence, 'schedule', 'events.command.actions.reviewSchedule'),
-            ),
+            Items::make('schedule.cancelled', 'readiness', \App\ReadModels\EventManagement\Enums\EventCommandItemStatus::NotApplicable, \App\ReadModels\EventManagement\Enums\EventCommandSeverity::Informational, 'operations.events', 'events.command.items.cancelled', handoff: Items::handoff($event, $occurrence, 'schedule', 'events.command.actions.reviewSchedule')),
         ]);
     }
 
-    private function state(
-        EventOccurrence $occurrence,
-        bool $active,
-        bool $ended,
-        int $blockers,
-        CarbonImmutable $now,
-    ): EventCommandState {
+    private function state(EventOccurrence $occurrence, bool $active, bool $ended, int $blockers, CarbonImmutable $now): EventCommandState
+    {
         if ($active) {
             return EventCommandState::Active;
         }
@@ -204,8 +184,7 @@ final readonly class EventCommandQuery
 
     private function cancelled(Event $event, EventOccurrence $occurrence): bool
     {
-        return $event->status === EventStatus::Cancelled
-            || $occurrence->status === EventOccurrenceStatus::Cancelled;
+        return $event->status === EventStatus::Cancelled || $occurrence->status === EventOccurrenceStatus::Cancelled;
     }
 
     private function active(EventOccurrence $occurrence, CarbonImmutable $now): bool
@@ -218,26 +197,16 @@ final readonly class EventCommandQuery
 
     private function ended(EventOccurrence $occurrence, CarbonImmutable $now): bool
     {
-        return $occurrence->status === EventOccurrenceStatus::Completed
-            || $occurrence->ends_at->lessThanOrEqualTo($now);
+        return $occurrence->status === EventOccurrenceStatus::Completed || $occurrence->ends_at->lessThanOrEqualTo($now);
     }
 
-    /** @return list<string> */
-    private function capabilities(Event $event): array
+    /** @param list<string> $dimensions */
+    private function has(array $dimensions, EventWorkflowDimension $dimension): bool
     {
-        $capabilities = $event->typeScope->capabilities
-            ->map(static fn (EventTypeCapability $capability): string => $capability->capabilityEnum()->value)
-            ->unique()
-            ->values()
-            ->all();
-
-        return array_values($capabilities);
+        return in_array($dimension->value, $dimensions, true);
     }
 
-    /**
-     * @param  array<string, mixed>  $payload
-     * @return array<string, mixed>
-     */
+    /** @param array<string, mixed> $payload */
     private function record(Event $event, ?EventOccurrence $occurrence, array $payload, int $startedAt): array
     {
         Log::debug('event_command.rendered', [
