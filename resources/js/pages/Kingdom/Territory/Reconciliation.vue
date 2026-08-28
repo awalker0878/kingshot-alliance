@@ -540,7 +540,7 @@ function freshnessLabel(): string {
     >
       <section
         class="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
-        aria-label="Reconciliation summary"
+        :aria-label="t('territory.reconciliationSummaryAria')"
       >
         <article class="ks-surface p-4">
           <p class="text-xs text-[var(--ks-muted)]">{{ t('territory.inPosition') }}</p>
@@ -657,7 +657,7 @@ function freshnessLabel(): string {
           <select
             v-model="filter"
             class="ks-input min-w-52"
-            aria-label="Filter reconciliation rows"
+            :aria-label="t('territory.filterRowsAria')"
           >
             <option value="all">{{ t('territory.filterAll') }}</option>
             <option value="out">{{ t('territory.filterOutOfPosition') }}</option>
