@@ -1,0 +1,133 @@
+name: Territory Final Technical Trigger
+
+on:
+  push:
+    branches:
+      - territory-plan-observed-reality-main
+
+permissions:
+  contents: write
+
+jobs:
+  verify-and-commit:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: kingshot_test
+          POSTGRES_USER: kingshot
+          POSTGRES_PASSWORD: kingshot
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U kingshot -d kingshot_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      APP_ENV: testing
+      APP_KEY: base64:Wb1PHh03m1vXbmyRxlI+Y96TqgK7Vyt8H/lkQ8o1SP0=
+      APP_DEBUG: false
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_DATABASE: kingshot_test
+      DB_USERNAME: kingshot
+      DB_PASSWORD: kingshot
+      CACHE_STORE: array
+      QUEUE_CONNECTION: sync
+      SESSION_DRIVER: array
+      PULSE_ENABLED: false
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: territory-plan-observed-reality-main
+
+      - name: Add explicit invalidated-selection regression
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('tests/v3/ReadModels/TerritoryPlanning/TerritoryReconciliationBoundariesV3Test.php')
+          text = path.read_text()
+          needle = "    public function test_reconciliation_query_budget_does_not_scale_with_observed_object_count(): void\n"
+          method = r'''    public function test_latest_ignores_invalidated_observation_but_explicit_historical_selection_remains_available(): void
+    {
+        [$actor, $alliance, $planId, $revisionId] = $this->publishedPlan(62106);
+        $currentObservationId = $this->recordObservation(
+            $alliance->allianceId,
+            $actor->kingdomId,
+            $actor->playerId,
+            4,
+        );
+        $invalidatedObservationId = $this->recordObservation(
+            $alliance->allianceId,
+            $actor->kingdomId,
+            $actor->playerId,
+            1,
+        );
+        $invalidated = SpatialObservation::query()->findOrFail($invalidatedObservationId);
+        $invalidated->forceFill([
+            'invalidated_at' => now(),
+            'invalidated_by_player_id' => $actor->playerId,
+            'invalidation_reason' => 'Superseded after reviewer correction.',
+        ])->save();
+
+        $latest = app(TerritoryReconciliationQuery::class)->build(
+            actorPlayerId: $actor->playerId,
+            planId: $planId,
+            revisionId: $revisionId,
+            allianceId: $alliance->allianceId,
+        );
+        self::assertSame('ready', $latest['state']);
+        self::assertSame($currentObservationId, $latest['observation']['id']);
+        self::assertNull($latest['observation']['invalidated_at']);
+        self::assertContains(
+            $invalidatedObservationId,
+            array_column($latest['observations'], 'id'),
+        );
+
+        $historical = app(TerritoryReconciliationQuery::class)->build(
+            actorPlayerId: $actor->playerId,
+            planId: $planId,
+            revisionId: $revisionId,
+            allianceId: $alliance->allianceId,
+            observationId: $invalidatedObservationId,
+        );
+        self::assertSame('ready', $historical['state']);
+        self::assertSame($invalidatedObservationId, $historical['observation']['id']);
+        self::assertNotNull($historical['observation']['invalidated_at']);
+    }
+
+'''
+          if needle not in text:
+              raise SystemExit('Unable to locate Territory query-budget test insertion point.')
+          path.write_text(text.replace(needle, method + needle, 1))
+          PY
+
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.5'
+          extensions: dom, gd, intl, mbstring, pdo_pgsql, simplexml, xml, xmlwriter, zip
+          coverage: none
+          tools: composer:v2
+      - run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Verify regression
+        shell: bash
+        run: |
+          vendor/bin/pint tests/v3/ReadModels/TerritoryPlanning/TerritoryReconciliationBoundariesV3Test.php
+          php artisan test tests/v3/ReadModels/TerritoryPlanning/TerritoryReconciliationBoundariesV3Test.php
+          git diff --check
+
+      - name: Commit clean technical head
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/territory-final-technical-trigger.yml
+          git add tests/v3/ReadModels/TerritoryPlanning/TerritoryReconciliationBoundariesV3Test.php
+          git commit -m "Cover invalidated Territory observation selection"
+          git push origin HEAD:territory-plan-observed-reality-main
