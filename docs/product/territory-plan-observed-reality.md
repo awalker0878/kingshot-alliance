@@ -312,6 +312,8 @@ A correction creates a new observation that references the corrected observation
 
 Invalidation records actor/time/reason and never deletes historical provenance.
 
+Authorized observation history preserves current, corrected and invalidated historical records for explicit selection. Latest-current discovery excludes invalidated observations, but an authorized user may deliberately select an invalidated historical observation to inspect what was previously accepted. The projection exposes invalidation metadata, and the UX must label the selected record as historical/invalidated so it cannot be mistaken for current observed reality.
+
 Deleting/redacting Evidence does not delete a committed spatial observation. Observation correction/removal uses the Observations owner workflow.
 
 ## Dataset compatibility
@@ -417,8 +419,9 @@ The reconciliation projection returns at minimum:
 - unmatched observed objects;
 - coverage deltas;
 - provenance links/IDs safe for the actor;
-- available authorized observation history for selection;
-- available immutable revision history for selection.
+- available authorized observation history for selection, including invalidated/corrected historical records with their invalidation metadata;
+- available immutable revision history for selection;
+- pinned KingdomMap coordinate-system identity and exact map bounds required to render the comparison without presentation-owned world constants.
 
 The projection is bounded and query-budget tested.
 
@@ -458,7 +461,7 @@ Support:
 
 ### Map overlay
 
-Compare mode may render planned objects as the desired layer and observed objects as the observed layer, with connector/delta treatment for resolved moved objects.
+Compare mode may render planned objects as the desired layer and observed objects as the observed layer, with connector/delta treatment for resolved moved objects. The read model supplies the exact bounds and coordinate-system identity from the pinned KingdomMaps dataset. Vue derives the SVG/canvas view box and coordinate transform from those values; it must not hard-code map width, height, origin or Y-axis inversion constants.
 
 The map/canvas is never the sole information surface. A synchronized semantic list/table exposes exact coordinates, status, distance, identity and provenance without color dependency.
 
@@ -516,7 +519,7 @@ Operational diagnostics expose processing failures without leaking private scree
 - **TR-19** raw OCR/extraction cannot directly create a spatial observation.
 - **TR-20** exact/visual/semantic duplicates and destination idempotency remain distinct and tenant-safe.
 - **TR-21** interrupted Evidence acknowledgement after successful destination commit recovers the existing receipt without duplicate observation rows.
-- **TR-22** correction/invalidation preserves historical observation provenance.
+- **TR-22** correction/invalidation preserves historical observation provenance, keeps invalidated records in authorized history for explicit selection, excludes them from latest-current discovery and visibly labels an explicitly selected invalidated observation as historical/invalidated.
 - **TR-23** deleting/redacting Evidence does not silently delete accepted observation history.
 - **TR-24** authorization occurs before plan revision, observation history or Evidence enters comparison/review candidate sets.
 - **TR-25** cross-context owner Actions accept scalars/value objects and no foreign Eloquent model crosses the authority boundary.
@@ -528,6 +531,7 @@ Operational diagnostics expose processing failures without leaking private scree
 - **TR-31** no screenshot-to-plan overwrite/sync action exists.
 - **TR-32** product/architecture/reference/operations docs and the global delivery ledger are reconciled before closeout.
 - **TR-33** PHP tests, Pint, PHPStan, frontend lint/format/type/build, architecture tests, accessibility/visual regression and applicable repository release gates pass before the capability is marked complete.
+- **TR-34** the comparison projection exposes pinned KingdomMap bounds/coordinate-system metadata and every map overlay derives its view box/coordinate transform from that data; no frontend world-size/origin constant duplicates KingdomMaps truth.
 
 ## Delivery ledger
 
@@ -541,9 +545,9 @@ Operational diagnostics expose processing failures without leaking private scree
 | 5 | Evidence → Observations idempotent commit/recovery/duplicate semantics | Not started |
 | 6 | Published-revision and authorized observation owner projections | Not started |
 | 7 | Deterministic identity/object matching, distance/tolerance and dataset compatibility | Not started |
-| 8 | Planned-vs-observed coverage comparison using existing geometry | Not started |
+| 8 | Planned-vs-observed coverage comparison and dataset-driven rendering geometry using existing KingdomMaps contracts | Not started |
 | 9 | `ReadModels/TerritoryPlanning` reconciliation projection/query budgets | Not started |
-| 10 | Territory Planner Plan/Observed/Compare UX, filters, semantic discrepancy list and provenance | Not started |
+| 10 | Territory Planner Plan/Observed/Compare UX, filters, semantic discrepancy list, provenance and explicit invalidated-history presentation | Not started |
 | 11 | Evidence intake/review integration from Territory Planner | Not started |
 | 12 | Localization, accessibility, responsive behavior and deterministic visual regression | Not started |
 | 13 | Unit/feature/architecture/integration/idempotency/authorization tests | Not started |
