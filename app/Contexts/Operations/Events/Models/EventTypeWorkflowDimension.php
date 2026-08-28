@@ -14,6 +14,7 @@ final class EventTypeWorkflowDimension extends Model
     use HasUlids;
 
     public $incrementing = false;
+
     public $timestamps = false;
 
     protected $keyType = 'string';
