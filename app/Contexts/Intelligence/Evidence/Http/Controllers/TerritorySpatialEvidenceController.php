@@ -32,9 +32,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 final class TerritorySpatialEvidenceController extends Controller
 {
-    public function __construct(private readonly ActiveAllianceScopeQuery $allianceScopes)
-    {
-    }
+    public function __construct(private readonly ActiveAllianceScopeQuery $allianceScopes) {}
 
     public function image(
         PlayerContext $context,
