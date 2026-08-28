@@ -1,6 +1,6 @@
 # Capability Extension Program
 
-Status: Active extension program — phases 0–4 complete — 2026-08-25
+Status: Active extension program — phases 0–4 and 10 complete — 2026-08-28
 
 Date: 2026-08-24
 
@@ -14,7 +14,7 @@ A delivery item is complete only when its domain/application behavior, persisten
 
 Use the strong owner capabilities already delivered in GameWorld, Operations, Alliance, Intelligence, Communications, Platform and ReadModels to make the product more connected and useful without duplicating state or weakening provenance.
 
-The program extensions are listed below. Alliance Assistant Game Data and bounded operational-self queries plus Event Readiness & Closeout are now **Current complete capabilities**; the remaining items retain the Selected extension or Evidence-gated extension state recorded in the delivery ledger:
+The program extensions are listed below. Alliance Assistant Game Data and bounded operational-self queries, Event Readiness & Closeout, and Territory plan versus observed-state reconciliation are now **Current complete capabilities**; the remaining items retain the Selected extension or Evidence-gated extension state recorded in the delivery ledger:
 
 1. Alliance Assistant Game Data and bounded operational-self queries;
 2. Event Readiness and Event Closeout composition;

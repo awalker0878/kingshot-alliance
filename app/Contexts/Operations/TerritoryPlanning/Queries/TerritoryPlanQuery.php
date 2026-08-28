@@ -167,6 +167,12 @@ final readonly class TerritoryPlanQuery
         ];
     }
 
+    public function authorizeView(string $actorPlayerId, string $planId): void
+    {
+        $plan = TerritoryPlan::query()->findOrFail($planId);
+        abort_unless($this->canView($actorPlayerId, $plan), 403);
+    }
+
     private function canView(string $actorPlayerId, TerritoryPlan $plan): bool
     {
         return $plan->scope === TerritoryPlanScope::Alliance

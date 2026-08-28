@@ -45,7 +45,7 @@ Program states are defined by the [Capability Extension Program](capability-exte
 | Progression Goal Planner | Selected extension | Compare current observed Governor progression with a user-selected factual target/prerequisite path without inventing recommendation or unqualified cost formulas. | ReadModels composes GameWorld/Progression + Intelligence/Roster; any saved planning intent stays with an existing appropriate Operations owner |
 | Calculator evidence qualification | Evidence-gated extension | Qualify numeric progression families independently using source/version/unit/reconciliation/checksum and golden-fixture requirements before calculation is allowed. | GameWorld/Progression owns factual/calculation datasets and qualification reports |
 | Evidence-backed calculators | Evidence-gated extension | For qualified families only, calculate factual current-to-target resource/time/requirement deltas against an immutable dataset/calculation release with visible provenance. | GameWorld/Progression typed calculation services; ReadModels/UI present results; saved scenarios remain planning intent |
-| Territory plan vs observed state | Selected extension | Compare an immutable published Territory revision with dated observed spatial evidence without rewriting either desired state or observed state. | Operations/TerritoryPlanning owns plans; Intelligence/Evidence/observations own observed evidence; GameWorld/KingdomMaps owns map facts/rules; ReadModels composes comparison |
+| Territory plan vs observed state | Current complete capability | Compare an immutable published Territory revision with dated observed spatial evidence without rewriting either desired state or observed state. | Operations/TerritoryPlanning owns plans; Intelligence/Evidence/observations own observed evidence; GameWorld/KingdomMaps owns map facts/rules; ReadModels composes comparison |
 | Intelligence change signals | Selected extension | Derive bounded, source-cited change signals from authorized observation histories for Command Overview, Kingdom Intelligence, Communications and Assistant without inventing strategic conclusions. | Applicable Intelligence owners retain observations; ReadModels derives signals; Communications owns delivery when used |
 
 This catalogue changes when a real product outcome or approved implementation contract changes, not for internal class/file movement.
@@ -150,7 +150,7 @@ The delivered capability is one complete product, not disconnected map widgets. 
 - keyboard/mobile/accessibility parity through synchronized DOM controls rather than a canvas-only workflow;
 - integration with applicable Event workflows through immutable plan-revision references rather than moving spatial state into BattlePlans.
 
-Community projects are discovery evidence, not authoritative KingShot truth. A community-derived coordinate, footprint, placement rule or march constant cannot silently become product logic; it must carry the provenance/confidence contract defined by GameWorld/KingdomMaps. The selected observed-state reconciliation extension does not alter this ownership.
+Community projects are discovery evidence, not authoritative KingShot truth. A community-derived coordinate, footprint, placement rule or march constant cannot silently become product logic; it must carry the provenance/confidence contract defined by GameWorld/KingdomMaps. The current plan-versus-observed capability does not alter this ownership.
 
 ## Alliance Assistant product contract
 

@@ -15,6 +15,7 @@ final readonly class EvidenceClassifierRouter implements EvidenceClassifier
         private BearHuntEvidenceClassifier $bearHunt,
         private TransferEvidenceClassifier $transfer,
         private GovernorProgressionEvidenceClassifier $governorProgression,
+        private TerritoryMapObservationEvidenceClassifier $territorySpatial,
     ) {}
 
     public function key(): string
@@ -24,7 +25,7 @@ final readonly class EvidenceClassifierRouter implements EvidenceClassifier
 
     public function version(): string
     {
-        return '3.0.0';
+        return '4.0.0';
     }
 
     public function classify(EvidenceKind $expectedKind, OcrDocument $document): ClassificationDecision
@@ -33,6 +34,7 @@ final readonly class EvidenceClassifierRouter implements EvidenceClassifier
             $this->bearHunt->classify($expectedKind, $document),
             $this->transfer->classify($expectedKind, $document),
             $this->governorProgression->classify($expectedKind, $document),
+            $this->territorySpatial->classify($expectedKind, $document),
         ];
         $matches = array_values(array_filter(
             $decisions,

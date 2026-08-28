@@ -19,6 +19,7 @@ final readonly class RoutedEvidenceExtractor implements EvidenceExtractor
         private TransferTargetKingdomRulesExtractor $targetRules,
         private TransferOfficialGroupExtractor $officialGroup,
         private GovernorProgressionEvidenceExtractor $governorProgression,
+        private TerritoryMapObservationExtractor $territorySpatial,
     ) {}
 
     public function key(EvidenceKind $kind): string
@@ -71,6 +72,7 @@ final readonly class RoutedEvidenceExtractor implements EvidenceExtractor
             EvidenceKind::GovernorHeroGear,
             EvidenceKind::GovernorGear,
             EvidenceKind::GovernorCharms => $this->governorProgression,
+            EvidenceKind::TerritoryMapObservation => $this->territorySpatial,
             EvidenceKind::Unknown => null,
         };
     }

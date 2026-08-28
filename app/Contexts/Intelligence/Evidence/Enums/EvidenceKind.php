@@ -19,6 +19,7 @@ enum EvidenceKind: string
     case GovernorHeroGear = 'governor_hero_gear';
     case GovernorGear = 'governor_gear';
     case GovernorCharms = 'governor_charms';
+    case TerritoryMapObservation = 'territory_map_observation';
 
     public function isTransfer(): bool
     {
@@ -28,6 +29,11 @@ enum EvidenceKind: string
     public function isGovernorProgression(): bool
     {
         return in_array($this, self::governorProgressionCases(), true);
+    }
+
+    public function isTerritorySpatial(): bool
+    {
+        return $this === self::TerritoryMapObservation;
     }
 
     /** @return list<self> */
@@ -53,5 +59,11 @@ enum EvidenceKind: string
             self::GovernorGear,
             self::GovernorCharms,
         ];
+    }
+
+    /** @return list<self> */
+    public static function territorySpatialCases(): array
+    {
+        return [self::TerritoryMapObservation];
     }
 }
