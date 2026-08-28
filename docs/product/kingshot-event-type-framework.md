@@ -85,6 +85,8 @@ The profile is a closed server-owned vocabulary of application workflow dimensio
 
 This vocabulary describes application composition only. It cannot be extended by arbitrary persisted strings or frontend configuration. Legacy generic capabilities outside this vocabulary, including `king_perks`, are not auto-mapped to a workflow dimension. A capability may remain independently usable without being an Event profile dimension.
 
+A specialized action or read model that composes multiple dimensions must require every dimension it actually consumes. One enabled dimension never stands in for another. In particular, the Bear Hunt reviewed-screenshot commit path consumes both `screenshot_evidence` and `results`; it is available only when the resolved profile enables both dimensions. This composition rule does not grant either owning context authority over the other.
+
 ## Results schema boundary
 
 `results` means the Results workflow may participate; it does not itself define a scoring system or metric catalogue. Result fields remain `Operations/Results`-owned and must be backed by the supported destination/evidence contract for that event.
@@ -169,7 +171,7 @@ Read models and APIs must distinguish `profile_disabled` from `enabled_with_dime
 
 ## Acceptance criteria
 
-Phase 13 is complete only when arbitrary event names cannot activate specialized behavior; an unverified event cannot have an enabled profile; Bear Hunt resolves to one stable verified identity; Bear Hunt exposes only repository-supported workflow dimensions; candidate events remain disabled; profile-disabled is distinguishable from dimension-absent; no workflow, result schema or unrelated capability relationship is inherited by name/category/similarity; one dimension never activates another; runtime profile resolution is deterministic; ordinary Event authority cannot establish profile truth; owner boundaries are unchanged; all hard-coded generic profile mechanics, unverified event-specific metric seeds and unverified legacy cross-capability registrations are removed from the profile path; first-party consumers use the canonical contract; existing Bear Hunt workflows regress cleanly; architecture/auth/isolation tests cover these rules; and `/docs/product` matches the implementation.
+Phase 13 is complete only when arbitrary event names cannot activate specialized behavior; an unverified event cannot have an enabled profile; Bear Hunt resolves to one stable verified identity; Bear Hunt exposes only repository-supported workflow dimensions; candidate events remain disabled; profile-disabled is distinguishable from dimension-absent; no workflow, result schema or unrelated capability relationship is inherited by name/category/similarity; one dimension never activates another; multi-dimension consumers require every dimension they consume; runtime profile resolution is deterministic; ordinary Event authority cannot establish profile truth; owner boundaries are unchanged; all hard-coded generic profile mechanics, unverified event-specific metric seeds and unverified legacy cross-capability registrations are removed from the profile path; first-party consumers use the canonical contract; existing Bear Hunt workflows regress cleanly; architecture/auth/isolation tests cover these rules; and `/docs/product` matches the implementation.
 
 ## Phase 13 delivery ledger
 
