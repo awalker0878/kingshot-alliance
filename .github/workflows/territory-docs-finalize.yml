@@ -127,12 +127,12 @@ jobs:
           # User journey program state.
           path = 'docs/product/experience/user-journeys.md'
           text = read(path)
-          match = re.search(r'(## Compare Territory plan with observed state\n.*?)(?=\n## |\Z)', text, flags=re.DOTALL)
-          if not match:
+          journey_match = re.search(r'(## Compare Territory plan with observed state\n.*?)(?=\n## |\Z)', text, flags=re.DOTALL)
+          if not journey_match:
               raise SystemExit('Missing Territory observed-state user journey.')
-          section = match.group(1)
+          section = journey_match.group(1)
           section = section.replace('Program state: **Selected extension**.', 'Program state: **Current complete capability**.')
-          text = text[:match.start(1)] + section + text[match.end(1):]
+          text = text[:journey_match.start(1)] + section + text[journey_match.end(1):]
           write(path, text)
 
           # Canonical Territory contract and delivery ledger.
@@ -146,10 +146,10 @@ jobs:
           lines = ledger.splitlines()
           changed = 0
           for i, line in enumerate(lines):
-              match = re.match(r'^\|\s*(\d{1,2})\s*\|', line)
-              if not match:
+              phase_match = re.match(r'^\|\s*(\d{1,2})\s*\|', line)
+              if not phase_match:
                   continue
-              phase = int(match.group(1))
+              phase = int(phase_match.group(1))
               if 0 <= phase <= 14:
                   parts = line.split('|')
                   if len(parts) >= 5:
@@ -172,8 +172,6 @@ jobs:
               raise SystemExit('Canonical Territory status was not promoted.')
           if current_row not in global_ledger:
               raise SystemExit('Global current-capability ledger row was not added.')
-          if 'Program state: **Selected extension**.' in match.group(1):
-              pass
           if 'Program state: **Current complete capability**.' not in journeys:
               raise SystemExit('Territory journey state was not promoted.')
           PY
