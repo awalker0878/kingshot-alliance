@@ -9,8 +9,8 @@ use App\Contexts\GameWorld\KingdomMaps\ValueObjects\KingdomMapDataset;
 final class TerritoryCoverageAnalyzer
 {
     /**
-     * @param list<array{key:string,type:string,x:int,y:int,alliance_key:string}> $objects
-     * @return array<string,bool>
+     * @param  list<array{key:string,type:string,x:int,y:int,alliance_key:string}>  $objects
+     * @return array<string, bool>
      */
     public function byGovernorCity(KingdomMapDataset $dataset, array $objects): array
     {
@@ -18,6 +18,7 @@ final class TerritoryCoverageAnalyzer
         foreach ($objects as $object) {
             $byAlliance[$object['alliance_key']][] = $object;
         }
+
         $result = [];
         foreach ($byAlliance as $allianceObjects) {
             $sources = [];
@@ -39,7 +40,8 @@ final class TerritoryCoverageAnalyzer
                     $cities[] = $object;
                 }
             }
-            $citySize = (float) (($dataset->data['object_types']['governor_city']['size'] ?? 2));
+
+            $citySize = (float) ($dataset->data['object_types']['governor_city']['size'] ?? 2);
             foreach ($cities as $city) {
                 $covered = true;
                 foreach ([
@@ -56,10 +58,11 @@ final class TerritoryCoverageAnalyzer
                 $result[$city['key']] = $covered;
             }
         }
+
         return $result;
     }
 
-    /** @param list<array{x:float,y:float,coverage:float}> $sources */
+    /** @param  list<array{x:float,y:float,coverage:float}>  $sources */
     private function pointCovered(float $x, float $y, array $sources): bool
     {
         foreach ($sources as $source) {
@@ -67,6 +70,7 @@ final class TerritoryCoverageAnalyzer
                 return true;
             }
         }
+
         return false;
     }
 }
