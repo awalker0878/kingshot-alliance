@@ -176,6 +176,7 @@ function statusLabel(status: string): string {
     missing: 'territory.statusMissing',
     not_observed: 'territory.statusNotObserved',
     unexpected: 'territory.statusUnexpected',
+    ambiguous: 'territory.statusAmbiguous',
     identity_ambiguous: 'territory.statusIdentityAmbiguous',
     identity_unresolved: 'territory.statusIdentityUnresolved',
     unchanged: 'territory.statusUnchanged',
@@ -198,25 +199,54 @@ function governorName(object: SpatialObject): string {
   );
 }
 
+const observationIsStale = computed(() => props.reconciliation.freshness?.state === 'stale');
+
 const visibleGovernors = computed(() =>
   (props.reconciliation.governors ?? []).filter((row) => {
     if (filter.value === 'all') return true;
     if (filter.value === 'out') return row.status === 'out_of_position';
     if (filter.value === 'missing') return row.status === 'missing';
     if (filter.value === 'not_observed') return row.status === 'not_observed';
+    if (filter.value === 'unexpected') {
+      return ['identity_ambiguous', 'identity_unresolved'].includes(row.status);
+    }
     if (filter.value === 'coverage') {
       return row.coverage_delta === 'lost_coverage' || row.coverage_delta === 'gained_coverage';
     }
-    return true;
+    if (filter.value === 'uncertain') {
+      return (
+        observationIsStale.value ||
+        ['identity_ambiguous', 'identity_unresolved', 'not_observed'].includes(row.status)
+      );
+    }
+    return false;
   }),
 );
 
 const visibleStructures = computed(() =>
-  (props.reconciliation.structures ?? []).filter(
-    (row) =>
-      filter.value === 'all' ||
-      (filter.value === 'structures' && ['moved', 'missing'].includes(row.status)),
-  ),
+  (props.reconciliation.structures ?? []).filter((row) => {
+    if (filter.value === 'all') return true;
+    if (filter.value === 'structures') return row.status !== 'unchanged';
+    if (filter.value === 'missing') return row.status === 'missing';
+    if (filter.value === 'not_observed') return row.status === 'not_observed';
+    if (filter.value === 'uncertain') {
+      return observationIsStale.value || ['ambiguous', 'not_observed'].includes(row.status);
+    }
+    return false;
+  }),
+);
+
+const visibleUnexpected = computed(() =>
+  (props.reconciliation.unexpected ?? []).filter((object) => {
+    if (filter.value === 'all' || filter.value === 'unexpected') return true;
+    if (filter.value === 'uncertain') {
+      return (
+        observationIsStale.value ||
+        ['identity_ambiguous', 'identity_unresolved'].includes(object.status)
+      );
+    }
+    return false;
+  }),
 );
 
 const plannedGovernorOptions = computed(() =>
@@ -535,12 +565,15 @@ function freshnessLabel(): string {
           </div>
           <span class="ks-badge">{{ reconciliation.compatibility }}</span>
         </div>
+        <p class="mt-3 rounded-lg border p-3 text-sm" role="status">
+          {{ t('territory.exactPlanRemains') }}
+        </p>
         <p
           v-if="reconciliation.freshness?.state === 'stale'"
           class="mt-3 rounded-lg border p-3 text-sm"
           role="alert"
         >
-          {{ t('territory.freshnessStale') }} — {{ t('territory.exactPlanRemains') }}
+          {{ t('territory.freshnessStale') }}
         </p>
       </section>
 
@@ -600,8 +633,10 @@ function freshnessLabel(): string {
             <option value="out">{{ t('territory.filterOutOfPosition') }}</option>
             <option value="missing">{{ t('territory.filterMissing') }}</option>
             <option value="not_observed">{{ t('territory.filterNotObserved') }}</option>
+            <option value="unexpected">{{ t('territory.filterUnexpected') }}</option>
             <option value="coverage">{{ t('territory.filterCoverage') }}</option>
             <option value="structures">{{ t('territory.filterStructures') }}</option>
+            <option value="uncertain">{{ t('territory.filterUncertain') }}</option>
           </select>
         </div>
         <div class="mt-4 overflow-x-auto">
@@ -648,9 +683,9 @@ function freshnessLabel(): string {
             </tbody>
           </table>
         </div>
-        <div v-if="(reconciliation.unexpected?.length ?? 0) > 0" class="mt-5 grid gap-2 md:grid-cols-2">
+        <div v-if="visibleUnexpected.length > 0" class="mt-5 grid gap-2 md:grid-cols-2">
           <article
-            v-for="object in reconciliation.unexpected"
+            v-for="object in visibleUnexpected"
             :key="object.key"
             class="rounded-lg border p-3"
           >
