@@ -9,9 +9,14 @@ use App\Contexts\Accounts\Identity\ValueObjects\AccountIdentity;
 use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
 use App\Contexts\Alliance\Lifecycle\Services\AllianceContext;
 use App\Contexts\GameWorld\Kingdoms\Queries\KingdomReferenceQuery;
+use App\Contexts\GameWorld\KingdomTransfers\Access\Enums\TransferPermission;
+use App\Contexts\GameWorld\KingdomTransfers\Access\Services\TransferAuthorization;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
 use App\Contexts\Intelligence\Diplomacy\Enums\KingdomAllianceDiplomacyState;
+use App\Contexts\Operations\Access\Enums\OperationsPermission;
+use App\Contexts\Operations\Events\Enums\EventScope;
+use App\Contexts\Operations\Events\Services\EventAuthorization;
 use App\ReadModels\IntelligenceSignals\Queries\IntelligenceSignalQuery;
 use App\ReadModels\KingdomIntelligence\KingdomAllianceIntelligence;
 use App\Shared\Infrastructure\Http\Controller;
@@ -33,6 +38,8 @@ final class KingdomAllianceIntelligenceController extends Controller
         Request $request,
         AllianceContext $context,
         AllianceIntelligenceAuthorization $authorization,
+        TransferAuthorization $transferAuthorization,
+        EventAuthorization $eventAuthorization,
         KingdomAllianceIntelligence $intelligence,
         IntelligenceSignalQuery $signals,
     ): Response {
@@ -49,6 +56,17 @@ final class KingdomAllianceIntelligenceController extends Controller
             $scope->allianceId,
             IntelligencePermission::KingdomManage,
         );
+        $canViewTransfer = $transferAuthorization->allows(
+            $scope->playerId,
+            $scope->allianceId,
+            TransferPermission::View,
+        );
+        $canViewBearHunt = $eventAuthorization->allows(
+            $scope->playerId,
+            EventScope::Alliance,
+            $scope->allianceId,
+            OperationsPermission::EventAllianceView,
+        );
 
         return Inertia::render('Intelligence/KingdomWatch/AllianceDossier', [
             'user' => ['name' => $account->name, 'email' => $account->email],
@@ -59,7 +77,13 @@ final class KingdomAllianceIntelligenceController extends Controller
             ],
             'canManage' => $canManage,
             'intelligence' => $intelligence->forAlliance($alliance, $canManage, $this->filters($request)),
-            'signals' => $signals->recentForAlliance($alliance->allianceId, $scope->playerId, 12),
+            'signals' => $signals->recentForAlliance(
+                allianceId: $alliance->allianceId,
+                actorPlayerId: $scope->playerId,
+                limit: 12,
+                includeTransfer: $canViewTransfer,
+                includeBearHunt: $canViewBearHunt,
+            ),
         ]);
     }
 
