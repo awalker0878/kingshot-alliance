@@ -114,7 +114,9 @@ final readonly class IntelligenceChangeAssistantQuery
             $sourceRecordIds = is_array($signal['sourceRecordIds'] ?? null)
                 ? array_values(array_filter($signal['sourceRecordIds'], 'is_string'))
                 : [];
-            $sourceId = $sourceRecordIds[array_key_last($sourceRecordIds)] ?? (string) $signal['fingerprint'];
+            $sourceId = $sourceRecordIds === []
+                ? (string) $signal['fingerprint']
+                : $sourceRecordIds[count($sourceRecordIds) - 1];
             $title = $this->title($signal);
             $evidence[] = new AssistantEvidence(
                 'intelligence-signal-'.(string) $signal['fingerprint'],
