@@ -34,6 +34,7 @@ const english: MessageCatalogue = {
     statusMissing: 'Missing from complete observation',
     statusNotObserved: 'Not observed — absence not proven',
     statusUnexpected: 'Unexpected observed object',
+    statusAmbiguous: 'Ambiguous structure match',
     statusIdentityAmbiguous: 'Identity ambiguous',
     statusIdentityUnresolved: 'Identity unresolved',
     statusUnchanged: 'Unchanged',
