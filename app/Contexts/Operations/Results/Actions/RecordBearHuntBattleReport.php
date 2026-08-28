@@ -69,8 +69,8 @@ final readonly class RecordBearHuntBattleReport
             if ($eventType->slug !== 'bear-hunt') {
                 throw ValidationException::withMessages(['event' => 'This occurrence is not a Bear Hunt Event.']);
             }
-            if (! $eventType->supportsWorkflow(EventWorkflowDimension::ScreenshotEvidence)
-                || ! $eventType->supportsWorkflow(EventWorkflowDimension::Results)) {
+            if ($eventType->supportsWorkflow(EventWorkflowDimension::ScreenshotEvidence) === false
+                || $eventType->supportsWorkflow(EventWorkflowDimension::Results) === false) {
                 throw ValidationException::withMessages(['event' => 'This Bear Hunt profile does not support the reviewed screenshot-to-results workflow.']);
             }
             $occurrence = EventOccurrence::query()->whereKey($occurrenceId)->where('event_id', $context->event->id)->lockForUpdate()->firstOrFail();
