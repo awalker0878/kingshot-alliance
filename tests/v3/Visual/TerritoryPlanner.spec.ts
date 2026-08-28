@@ -93,9 +93,10 @@ test('Plan vs observed renders deterministic drift, uncertainty and provenance s
   await page.evaluate(() => document.fonts.ready);
 
   await expect(page.getByRole('heading', { name: 'Plan vs observed' })).toBeVisible();
-  await expect(page.getByRole('region', { name: 'Reconciliation summary' })).toBeVisible();
+  const reconciliationSummary = page.getByRole('region', { name: 'Reconciliation summary' });
+  await expect(reconciliationSummary).toBeVisible();
+  await expect(reconciliationSummary.getByText('Out of position', { exact: true })).toBeVisible();
   await expect(page.getByText('North Star')).toBeVisible();
-  await expect(page.getByText('Out of position')).toBeVisible();
   await expect(page.getByText('Unknown Governor')).toBeVisible();
   await expect(page.getByText('Unexpected observed object')).toBeVisible();
   await expect(page.getByText('Published plan remains unchanged')).toBeVisible();
