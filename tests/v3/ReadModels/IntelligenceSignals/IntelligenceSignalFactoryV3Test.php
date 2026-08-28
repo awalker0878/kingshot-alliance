@@ -120,7 +120,7 @@ final class IntelligenceSignalFactoryV3Test extends TestCase
             'id' => 'transfer-observation-1',
             'transfer_participant_id' => 'participant-1',
             'kind' => TransferObservationKind::GovernorPower,
-            'source_type' => TransferSourceType::Screenshot,
+            'source_type' => TransferSourceType::Evidence,
             'source_reference' => 'evidence:123',
             'observed_at' => Carbon::parse('2026-08-20T00:00:00Z'),
             'valid_until' => Carbon::parse('2026-09-03T00:00:00Z'),
