@@ -1,0 +1,35 @@
+name: Territory Prettier Diagnostic
+
+on:
+  pull_request:
+    paths:
+      - 'resources/js/pages/Kingdom/Territory/Reconciliation.vue'
+      - 'resources/js/localization/loader.ts'
+      - 'resources/js/localization/territory-reconciliation-labels.ts'
+      - '.github/workflows/territory-prettier-diagnostic.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  diff:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Print exact Prettier diff
+        shell: bash
+        run: |
+          npx prettier --write \
+            resources/js/pages/Kingdom/Territory/Reconciliation.vue \
+            resources/js/localization/loader.ts \
+            resources/js/localization/territory-reconciliation-labels.ts
+          git diff -- \
+            resources/js/pages/Kingdom/Territory/Reconciliation.vue \
+            resources/js/localization/loader.ts \
+            resources/js/localization/territory-reconciliation-labels.ts
+          test -z "$(git status --short -- resources/js/pages/Kingdom/Territory/Reconciliation.vue resources/js/localization/loader.ts resources/js/localization/territory-reconciliation-labels.ts)"
