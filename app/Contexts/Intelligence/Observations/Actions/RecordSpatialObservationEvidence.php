@@ -253,7 +253,11 @@ final readonly class RecordSpatialObservationEvidence
         });
     }
 
-    /** @param  array<string,mixed>  $dataset */
+    /**
+     * @param  array<string,mixed>  $dataset
+     * @param  array{x:int,y:int,width:int,height:int}|null  $bounds
+     * @return array{x:int,y:int,width:int,height:int}|null
+     */
     private function validateCoverage(
         array $dataset,
         SpatialObservationCoverageKind $kind,
@@ -326,7 +330,7 @@ final readonly class RecordSpatialObservationEvidence
     /**
      * @param  array<string,mixed>  $dataset
      * @param  list<array<string,mixed>>  $objects
-     * @return list<array{key:string,type:SpatialObservedObjectType,x:int,y:int,player_id:?string,plan_local_identity:?string,observed_label:?string,identity_state:SpatialObservedIdentityState,confidence:?float,source_metadata:?array}>
+     * @return list<array{key:string,type:SpatialObservedObjectType,x:int,y:int,player_id:?string,plan_local_identity:?string,observed_label:?string,identity_state:SpatialObservedIdentityState,confidence:?float,source_metadata:?array<string,mixed>}>
      */
     private function validateObjects(array $dataset, string $kingdomId, array $objects): array
     {
