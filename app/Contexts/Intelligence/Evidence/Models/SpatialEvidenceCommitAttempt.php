@@ -5,9 +5,16 @@ declare(strict_types=1);
 namespace App\Contexts\Intelligence\Evidence\Models;
 
 use App\Contexts\Intelligence\Evidence\Enums\EvidenceCommitStatus;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property EvidenceCommitStatus $status
+ * @property array<string,mixed>|null $destination_receipt
+ * @property CarbonImmutable|null $started_at
+ * @property CarbonImmutable|null $completed_at
+ */
 final class SpatialEvidenceCommitAttempt extends Model
 {
     use HasUlids;
