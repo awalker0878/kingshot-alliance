@@ -147,11 +147,14 @@ final readonly class IntelligenceSignalQuery
 
         foreach ($observations->groupBy(static fn (GovernorProgressionObservation $observation): string => $observation->kind->value) as $history) {
             /** @var Collection<int,GovernorProgressionObservation> $history */
-            $current = $history->first();
-            $previous = $history->skip(1)->first();
-            if (! $previous instanceof GovernorProgressionObservation) {
+            /** @var list<GovernorProgressionObservation> $items */
+            $items = array_values($history->all());
+            if (count($items) < 2) {
                 continue;
             }
+
+            $current = $items[0];
+            $previous = $items[1];
 
             // A partial Hero-roster capture can prove facts that are present, but
             // cannot prove that a previously observed Hero disappeared. Until a
