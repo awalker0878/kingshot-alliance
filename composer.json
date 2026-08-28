@@ -62,7 +62,7 @@
             "pint --parallel"
         ],
         "lint:check": [
-            "pint --parallel --test"
+            "pint --parallel --test --diff"
         ],
         "types:check": [
             "phpstan analyse --memory-limit=1G"
