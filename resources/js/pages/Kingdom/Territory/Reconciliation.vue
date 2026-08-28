@@ -321,6 +321,10 @@ const reviewDrafts = reactive<Record<string, ReviewDraft>>(
   Object.fromEntries(props.evidence.map((item) => [item.id, draftFromEvidence(item)])),
 );
 
+function reviewDraft(item: EvidenceItem): ReviewDraft {
+  return reviewDrafts[item.id] ?? draftFromEvidence(item);
+}
+
 function applyIdentity(object: SpatialObject & { identity_choice: string }): void {
   object.player_id = null;
   object.plan_local_identity = null;
@@ -820,7 +824,7 @@ function freshnessLabel(): string {
         </div>
 
         <form
-          v-if="reviewDrafts[item.id] && !['committed', 'deleted'].includes(item.status)"
+          v-if="!['committed', 'deleted'].includes(item.status)"
           class="mt-5 space-y-4"
           @submit.prevent="submitReview(item)"
         >
@@ -829,7 +833,7 @@ function freshnessLabel(): string {
             <label class="text-sm font-semibold">
               {{ t('territory.capturedAt') }}
               <input
-                v-model="reviewDrafts[item.id].captured_at"
+                v-model="reviewDraft(item).captured_at"
                 type="datetime-local"
                 class="ks-input mt-2 w-full"
                 required
@@ -837,7 +841,7 @@ function freshnessLabel(): string {
             </label>
             <label class="text-sm font-semibold">
               {{ t('territory.coverageKind') }}
-              <select v-model="reviewDrafts[item.id].coverage_kind" class="ks-input mt-2 w-full">
+              <select v-model="reviewDraft(item).coverage_kind" class="ks-input mt-2 w-full">
                 <option value="complete_hive">{{ t('territory.coverageCompleteHive') }}</option>
                 <option value="complete_visible_region">
                   {{ t('territory.coverageCompleteVisibleRegion') }}
@@ -849,7 +853,7 @@ function freshnessLabel(): string {
             </label>
             <label class="text-sm font-semibold">
               {{ t('territory.completeness') }}
-              <select v-model="reviewDrafts[item.id].completeness" class="ks-input mt-2 w-full">
+              <select v-model="reviewDraft(item).completeness" class="ks-input mt-2 w-full">
                 <option value="complete">{{ t('territory.completenessComplete') }}</option>
                 <option value="partial">{{ t('territory.completenessPartial') }}</option>
                 <option value="unknown">{{ t('territory.completenessUnknown') }}</option>
@@ -857,7 +861,7 @@ function freshnessLabel(): string {
             </label>
           </div>
           <div
-            v-if="reviewDrafts[item.id].coverage_kind === 'complete_visible_region'"
+            v-if="reviewDraft(item).coverage_kind === 'complete_visible_region'"
             class="grid gap-3 sm:grid-cols-4"
           >
             <label
@@ -871,7 +875,7 @@ function freshnessLabel(): string {
                 )
               }}
               <input
-                v-model.number="reviewDrafts[item.id].bounds[field as keyof ReviewDraft['bounds']]"
+                v-model.number="reviewDraft(item).bounds[field as keyof ReviewDraft['bounds']]"
                 type="number"
                 class="ks-input mt-2 w-full"
               />
@@ -888,11 +892,7 @@ function freshnessLabel(): string {
                 </tr>
               </thead>
               <tbody>
-                <tr
-                  v-for="object in reviewDrafts[item.id].objects"
-                  :key="object.key"
-                  class="border-b"
-                >
+                <tr v-for="object in reviewDraft(item).objects" :key="object.key" class="border-b">
                   <td class="p-2">
                     <span class="font-semibold">{{ t(`territory.types.${object.type}`) }}</span>
                     <input
