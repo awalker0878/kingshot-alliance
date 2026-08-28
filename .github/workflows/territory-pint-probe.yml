@@ -1,0 +1,32 @@
+name: Territory Pint Probe
+
+on:
+  push:
+    branches:
+      - territory-plan-observed-reality-main
+
+permissions:
+  contents: read
+
+jobs:
+  pint-diff:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+
+      - name: Configure PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.5'
+          coverage: none
+          tools: composer:v2
+
+      - name: Install locked PHP dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Print exact Pint diff
+        shell: bash
+        run: |
+          vendor/bin/pint app/ReadModels/TerritoryPlanning/Queries/TerritoryReconciliationQuery.php
+          git diff -- app/ReadModels/TerritoryPlanning/Queries/TerritoryReconciliationQuery.php
