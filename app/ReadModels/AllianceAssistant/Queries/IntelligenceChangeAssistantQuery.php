@@ -16,6 +16,7 @@ use App\ReadModels\AllianceAssistant\Enums\EvidenceSourceType;
 use App\ReadModels\AllianceAssistant\ValueObjects\AssistantEvidence;
 use App\ReadModels\AllianceAssistant\ValueObjects\AssistantResult;
 use App\ReadModels\IntelligenceSignals\Queries\IntelligenceSignalQuery;
+use Illuminate\Auth\Access\AuthorizationException;
 
 final readonly class IntelligenceChangeAssistantQuery
 {
@@ -54,11 +55,13 @@ final readonly class IntelligenceChangeAssistantQuery
         AllianceScopeReference $scope,
         string $question,
     ): AssistantResult {
-        $this->authorization->authorize(
+        if (! $this->authorization->allows(
             $actor->playerId,
             $scope->allianceId,
             IntelligencePermission::View,
-        );
+        )) {
+            throw new AuthorizationException;
+        }
 
         $signals = $this->signals->recentForAlliance(
             $scope->allianceId,
