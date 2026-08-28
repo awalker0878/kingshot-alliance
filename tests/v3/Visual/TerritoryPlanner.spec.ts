@@ -8,8 +8,8 @@ const territoryVisualFingerprints: Record<string, string> = {
 };
 
 const territoryReconciliationFingerprints: Record<string, string> = {
-  desktop: 'pending',
-  mobile: 'pending',
+  desktop: '3828d78c9b81eca2452c061e084f652766b00c72d255b96831a2d8e8a095e608',
+  mobile: 'dcee6153e29c36a1bc47ba84252557660839453f7b0e29c1749d38230f27e2f6',
 };
 
 async function activateVisualGovernor(
