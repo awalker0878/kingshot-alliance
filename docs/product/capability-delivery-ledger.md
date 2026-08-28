@@ -51,6 +51,7 @@ Later capability delivery is represented by the current canonical contracts belo
 | Alliance Assistant — initial bounded intents | Complete | [Alliance Assistant](alliance-assistant.md) |
 | Alliance Assistant — GameWorld and operational-self extension | Complete | [Alliance Assistant GameWorld extension](alliance-assistant-gameworld-extension.md) |
 | Event Command Readiness & Closeout | Complete | [Event Command — Readiness & Closeout](event-readiness-closeout.md) |
+| Intelligence Change Detection | Complete | [Intelligence Change Detection](intelligence-change-detection.md) and [delivery ledger](intelligence-change-detection-delivery-ledger.md) |
 
 A defect or material change that invalidates a completed capability's canonical acceptance/Definition-of-Done contract reopens that capability as a regression. A new extension does not make the prior delivered capability incomplete.
 
@@ -69,6 +70,22 @@ The release candidate preserves these non-negotiable boundaries:
 5. Missing/unavailable blocking owner state is `unknown` and never silently satisfies readiness or closeout.
 6. Every actionable item exposes its canonical owner and a navigation-only handoff; the destination owner reauthorizes and performs the mutation.
 7. Alliance-authored guidance remains labelled Alliance strategy; Communications queued state is not delivery success; Evidence remains provenance/review state rather than destination truth.
+
+## Current complete capability — Intelligence Change Detection
+
+Canonical contract: [Intelligence Change Detection](intelligence-change-detection.md). Detailed evidence: [Intelligence Change Detection — Delivery Ledger](intelligence-change-detection-delivery-ledger.md).
+
+Phase 11 implements deterministic source-cited change signals over existing owner histories without a new bounded context, signal table or second Intelligence truth store. Implementation candidate `e5c492f9391431ab68e1b2ca215038f448e5539d` is green across CI, Intelligence Verification, Architecture V3 Verification, Visual Regression, CodeQL and Dependency Review, including production image/staging, backup/restore and scan gates.
+
+The delivered capability preserves these non-negotiable boundaries:
+
+1. Owner contexts retain facts and writes; `ReadModels/IntelligenceSignals` derives recomputable values only.
+2. Authorization and concrete Alliance/Governor scope are established before owner data enters signal composition.
+3. Missing, stale, unsupported and conflicting states remain explicit; missing is not zero or disappearance.
+4. Ordinary Alliance history does not emit disappearance/reappearance because current source history does not prove exhaustive absence.
+5. Governor Hero absence requires a complete-roster capture; Transfer expiry comes from canonical Transfer observation validity; Bear Hunt missing metrics are never zero-filled; Recruitment history is not fabricated from `updated_at`.
+6. Assistant uses typed signals and source citations without strategic inference; Communications owns delivery/idempotency only.
+7. Command Overview renders its Intelligence feed only for a concrete active Alliance scope, so unscoped state is not presented as an empty factual result.
 
 ## Screenshot Intake — Bear Hunt reconciliation
 
@@ -129,10 +146,12 @@ Phase 0 is documentation-only. No application code, migration, route, frontend c
 | 8 | Evidence-gated extension | Gate not executed | Calculator evidence qualification per family | `CE-01`–`CE-06` and the ten qualification conditions: independent family reports, explicit source/version/unit/conflict coverage, immutable datasets, typed calculation contract/golden fixtures; no runtime calculator unlock. |
 | 9 | Evidence-gated extension | Blocked pending qualification | Evidence-backed calculators | `CI-01`–`CI-08`, plus `PX-*`; implement only for a family whose Phase 8 qualification report is `qualified`. Unqualified families remain unavailable. |
 | 10 | Current complete capability | Complete | Territory plan vs observed state | `TR-01`–`TR-08`, plus `PX-*`: immutable desired plan versus dated observed evidence, typed coordinate tolerance, explicit stale/missing semantics, no plan/map rewrite from observation. |
-| 11 | Selected extension | Not started | Intelligence change signals | `IS-01`–`IS-08`, plus `PX-*`: deterministic source-cited signals over authorized histories, typed thresholds/windows, no inferred strategic intent, privacy-safe telemetry. |
-| 12 | Selected extension | Not started | Full reconciliation and release closeout | `PX-01`–`PX-15`: spec→code, code→spec, UX→backend, authorization, provenance/data ownership, missing-data, performance, accessibility/localization, observability/recovery and complete repository release gates are green on one immutable candidate. |
+| 11 | Current complete capability | Complete | Intelligence change signals | `IS-01`–`IS-08`, `ICD-01`–`ICD-30`, plus `PX-*`: deterministic source-cited signals over authorized histories, typed thresholds/windows, explicit unsupported complete-source absence, no inferred strategic intent, privacy-safe telemetry, scoped consumer UX and green release evidence. |
+| 12 | Selected extension | Not started | Full reconciliation and release closeout | `PX-01`–`PX-15`: spec→code, code→spec, UX→backend, authorization, provenance/data ownership, missing-data, performance, accessibility/localization, observability/recovery and complete repository release gates are green on one immutable candidate for the whole remaining program. |
 
 `Verification in progress` means implementation exists but the extension still remains a Selected extension until its required release evidence and documentation reconciliation are complete. `Not started` means the approved product contract exists but the implementation outcome must not be described in present tense. `Blocked pending qualification` is intentional evidence gating, not an implementation defect.
+
+Phase 12 remains open because phases 5–9 are not complete; Phase 11 completion does not imply global program closeout.
 
 ## Calculator evidence qualification ledger
 
@@ -160,7 +179,7 @@ These apply to every open delivery row and cannot be deferred:
 5. **Immutable source boundaries.** GameWorld datasets/releases and published Territory revisions retain version/checksum/source identity; later source changes never rewrite historical meaning.
 6. **Explicit uncertainty.** Missing, stale, unknown, unsupported and conflicting states cannot silently satisfy readiness, eligibility, calculation or reconciliation.
 7. **Classification discipline.** Game data, operational fact, Alliance strategy, observation, evidence and planning intent remain distinct end to end.
-8. **No parallel domains for composition.** Do not create AssistantKnowledge, EventReadiness/EventCloseout, TransferOCR/ProgressionOCR, Calculator or TerritoryReality top-level contexts merely to compose existing owners.
+8. **No parallel domains for composition.** Do not create AssistantKnowledge, EventReadiness/EventCloseout, TransferOCR/ProgressionOCR, Calculator, TerritoryReality, IntelligenceChange/ChangeDetection/Signals top-level contexts merely to compose existing owners.
 9. **No hidden formulas/policy in presentation.** Normalization, calculation, tolerance, thresholds and business rules live in typed domain/services/configuration with tests, never controllers/jobs/bots/Vue.
 10. **Recovery and privacy.** Retry/replay is bounded/idempotent and diagnostics never expose raw screenshots/OCR/private Assistant questions/sensitive provider payloads or unauthorized identity data.
 11. **No compatibility debt.** Because the application is not deployed, do not retain shims, deprecated aliases, dual schemas, dual reads/writes or legacy routes.

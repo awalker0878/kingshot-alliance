@@ -1,6 +1,6 @@
 # Capability Extension Program
 
-Status: Active extension program — phases 0–4 and 10 complete — 2026-08-28
+Status: Active extension program — phases 0–4 and 10–11 complete — 2026-08-28
 
 Date: 2026-08-24
 
@@ -14,7 +14,7 @@ A delivery item is complete only when its domain/application behavior, persisten
 
 Use the strong owner capabilities already delivered in GameWorld, Operations, Alliance, Intelligence, Communications, Platform and ReadModels to make the product more connected and useful without duplicating state or weakening provenance.
 
-The program extensions are listed below. Alliance Assistant Game Data and bounded operational-self queries, Event Readiness & Closeout, and Territory plan versus observed-state reconciliation are now **Current complete capabilities**; the remaining items retain the Selected extension or Evidence-gated extension state recorded in the delivery ledger:
+The program extensions are listed below. Alliance Assistant Game Data and bounded operational-self queries, Event Readiness & Closeout, Territory plan versus observed-state reconciliation, and deterministic Intelligence change signals are now **Current complete capabilities**; the remaining items retain the Selected extension or Evidence-gated extension state recorded in the delivery ledger:
 
 1. Alliance Assistant Game Data and bounded operational-self queries;
 2. Event Readiness and Event Closeout composition;
@@ -56,7 +56,7 @@ Do not use `planned`, `partial`, `MVP`, or vague future-enhancement language as 
 | uploaded binaries, OCR/extraction attempts, confidence, human review, duplicate decisions and commit receipts | `Intelligence/Evidence` | expands to typed Transfer and Governor-progression evidence; never owns destination facts |
 | observed Governor progression history | `Intelligence/Roster` | reviewed progression evidence appends observations pinned to a Progression release |
 | Alliance/Kingdom observations and historical intelligence | `Intelligence/Observations` and applicable Intelligence owners | change signals derive from owner history; no copied intelligence store |
-| delivery preferences, provider delivery and retry state | `Communications` | Event readiness can display delivery state but does not own it |
+| delivery preferences, provider delivery and retry state | `Communications` | Event readiness can display delivery state and Intelligence signals can request delivery, but neither becomes delivery owner |
 | cross-context user-facing composition | `app/ReadModels/*` | composition only; never a write owner |
 | Alliance Assistant interpretation/evidence composition | `app/ReadModels/AllianceAssistant` | bounded intents only; still zero direct domain writes |
 
@@ -101,7 +101,7 @@ Every material write must reacquire current authority inside the destination own
 
 ### No new top-level context for composition
 
-Do not create top-level bounded contexts named `EventReadiness`, `EventCloseout`, `AssistantKnowledge`, `TransferOCR`, `ProgressionOCR`, `Calculator`, `TerritoryReality`, or similar when the behavior is composition or an extension of an existing owner.
+Do not create top-level bounded contexts named `EventReadiness`, `EventCloseout`, `AssistantKnowledge`, `TransferOCR`, `ProgressionOCR`, `Calculator`, `TerritoryReality`, `IntelligenceChange`, `ChangeDetection`, `Signals`, or similar when the behavior is composition or an extension of an existing owner.
 
 A new owner context is justified only if implementation proves a genuinely new source of business truth that cannot belong to the owners above; that architectural change requires `/docs/architecture` and an ADR before implementation proceeds.
 
@@ -407,7 +407,9 @@ For a qualified family, a Governor can calculate the factual resource/time/requi
 - **CI-07** calculators do not become recommendations; they answer the user's selected scenario only.
 - **CI-08** localization/accessibility/mobile/visual coverage includes long numeric values, unknown/conflicting states and source disclosure.
 
-## Selected extension 8 — Territory plan versus observed state
+## Current complete capability — Territory plan versus observed state
+
+Program delivery: **Complete — phase 10**. The canonical delivered contract lives in [Territory plan versus observed reality](territory-plan-observed-reality.md).
 
 ### Outcome
 
@@ -435,21 +437,27 @@ Required comparison can report:
 - **TR-07** correction follows the observation/Evidence owner workflow; correcting a plan requires a new editable head/revision workflow.
 - **TR-08** accessible text equivalents expose every material comparison result shown spatially.
 
-## Selected extension 9 — Intelligence change signals
+## Current complete capability — Intelligence change signals
+
+Program delivery: **Complete — phase 11**. The canonical delivered contract and detailed completion ledger live in [Intelligence Change Detection](intelligence-change-detection.md) and [Intelligence Change Detection — Delivery Ledger](intelligence-change-detection-delivery-ledger.md).
 
 ### Outcome
 
-The product derives bounded, deterministic change signals from existing authorized observation histories so Command Overview, Kingdom Intelligence, Communications and Alliance Assistant can surface meaningful changes without inventing strategic conclusions.
+The product derives bounded, deterministic change signals from existing authorized owner histories so Command Overview, Kingdom Intelligence, Communications and Alliance Assistant can surface meaningful changes without inventing strategic conclusions.
 
-Candidate signals include:
+Delivered signal families include:
 
-- tracked Alliance power/member-count change;
-- observed Governor progression changed;
-- observation became stale;
-- Transfer evidence approaching/at expiry;
-- factual operational trend changes where an existing owner provides the history.
+- tracked Alliance power/member-count change and staleness;
+- observed Governor progression changes and staleness;
+- canonical Transfer observation expiry/expiring-soon state;
+- Bear Hunt performance trends over comparable completed runs;
+- Recruitment workflow changes proven by explicit owner history.
 
-A signal is a read-side derivation with source observation identifiers/timestamps. It is not a new source of truth and must not infer intent such as `preparing to attack` from a numeric change.
+A signal is a read-side derivation with source record identifiers/timestamps, typed provenance and deterministic fingerprint. It is not a new source of truth and must not infer intent such as `preparing to attack` from a numeric change.
+
+Tracked-Alliance disappearance/reappearance remains explicitly unsupported from ordinary observation history because the current source model does not prove exhaustive absence. The typed primitive may only be used when a source contract explicitly proves complete-source presence/absence.
+
+Command Overview exposes the feed only after a concrete active Alliance scope and applicable Intelligence read authority exist; an unscoped dashboard is not presented as a zero-signal factual state.
 
 ### Acceptance criteria — Intelligence signals
 
@@ -458,9 +466,11 @@ A signal is a read-side derivation with source observation identifiers/timestamp
 - **IS-03** stale/missing/conflicting source state produces an explicit non-conclusive signal state or no signal according to the documented rule.
 - **IS-04** signals are authorization-filtered before cross-context composition.
 - **IS-05** signals never mutate the source observation history or become automatic strategy recommendations.
-- **IS-06** notifications, if enabled later in the same slice, use Communications owner preferences/idempotency and do not duplicate delivery state.
+- **IS-06** notifications use Communications owner preferences/idempotency and do not duplicate delivery state or persist signal truth.
 - **IS-07** Assistant presentation labels derived observation changes as Observation, not Game data.
 - **IS-08** privacy-safe telemetry records signal type/count/latency without sensitive source values or raw evidence.
+
+Phase 11 implementation candidate `e5c492f9391431ab68e1b2ca215038f448e5539d` passed CI, Intelligence Verification, Architecture V3 Verification, Visual Regression, CodeQL and Dependency Review, including production image/staging, backup/restore and image scanning.
 
 ## Delivery order
 
@@ -471,18 +481,20 @@ The program is implemented continuously in this order unless a documented depend
 | 0 | Current complete capability | Reconcile `/docs/product`, provenance/ownership and delivery ledger |
 | 1 | Current complete capability | Alliance Assistant `game_fact` |
 | 2 | Current complete capability | Assistant operational-self intents and safe owner-workflow handoffs |
-| 3 | Selected extension | Event Readiness |
-| 4 | Selected extension | Event Closeout |
+| 3 | Current complete capability | Event Readiness |
+| 4 | Current complete capability | Event Closeout |
 | 5 | Selected extension | Kingdom Transfer Screenshot Intake |
 | 6 | Selected extension | Governor Progression Screenshot Intake |
 | 7 | Selected extension | Progression Goal Planner |
 | 8 | Evidence-gated extension | Calculator evidence qualification per family |
 | 9 | Evidence-gated extension | Calculators for qualified families only |
-| 10 | Selected extension | Territory observed-state reconciliation |
-| 11 | Selected extension | Intelligence change signals |
+| 10 | Current complete capability | Territory observed-state reconciliation |
+| 11 | Current complete capability | Intelligence change signals |
 | 12 | Selected extension | Full spec/code/UX/authorization/provenance reconciliation and release closeout |
 
 No phase is considered complete merely because backend classes or a frontend page exist. Complete means its acceptance criteria and repository Definition of Done are satisfied on one immutable candidate.
+
+Phase 12 remains open. Completing Phase 11 does not imply that the unrelated Transfer/Progression screenshot, Goal Planner or calculator qualification/implementation phases are complete.
 
 ## Program-wide acceptance criteria
 

@@ -1,6 +1,6 @@
 # Intelligence Change Detection
 
-Status: Selected extension — implementation source of truth
+Status: Current complete capability
 
 Date: 2026-08-28
 
@@ -18,9 +18,15 @@ The capability must not transform that evidence into unsupported conclusions suc
 
 ## Delivery rule
 
-This document and the related `/docs/product` ledger are the implementation source of truth. Delivery is not complete until every documented requirement, acceptance criterion, consumer integration, UX state, test obligation and delivery-ledger item is implemented, reconciled and verified.
+This document and the related `/docs/product` ledger are the implementation source of truth. Delivery is complete only when every documented requirement, acceptance criterion, consumer integration, UX state, test obligation and delivery-ledger item is implemented, reconciled and verified.
 
-Implementation must continuously reconcile documentation and code. If implementation reveals a missing rule, authorization boundary, provenance requirement, source-history edge case, UX state, integration dependency or better deterministic behavior, update this contract first and then implement the change.
+Implementation must continuously reconcile documentation and code. If a later change reveals a missing rule, authorization boundary, provenance requirement, source-history edge case, UX state, integration dependency or better deterministic behavior, update this contract and implementation together; a material regression reopens the capability.
+
+## Delivery result
+
+Phase 11 is complete. Implementation candidate `e5c492f9391431ab68e1b2ca215038f448e5539d` passed repository CI, Intelligence Verification, Architecture V3 Verification, Visual Regression, CodeQL and Dependency Review, including production image/staging, backup/restore and scan gates. Final documentation reconciliation promotes Intelligence Change Detection to **Current complete capability** without changing the global state of unrelated selected or evidence-gated extensions.
+
+The final visual defect found during verification was a scope-state error: an unscoped dashboard rendered the signal feed's empty state before a concrete active Alliance existed. The delivered UI now renders Command Overview signals only with a concrete active Alliance scope; an authorized scoped feed with zero signals still presents the legitimate empty state.
 
 ## Architectural ownership
 
@@ -168,7 +174,7 @@ Absence in a partial scrape, incomplete import, failed ingestion run or otherwis
 
 A valid disappearance requires an explicit complete-enough source/capture semantic proving the tracked entity was observed absent. Reappearance requires a later comparable complete-enough observation proving presence again.
 
-If no current owner history proves these complete-source semantics, the disappearance/reappearance subtype remains `unsupported`; the implementation must not invent a completeness flag from ordinary tracking state.
+No current ordinary Alliance observation history proves these complete-source semantics, so disappearance/reappearance remains `unsupported` at runtime for that source. The implementation exposes the typed derivation primitive only for a future source that explicitly proves complete-source presence/absence; it does not invent a completeness flag from ordinary tracking state.
 
 ## Governor progression signals
 
@@ -246,9 +252,9 @@ The composition query:
 
 ## Command Overview integration
 
-Command Overview exposes a bounded `Recent intelligence changes` section with a small result limit.
+Command Overview exposes a bounded `Recent intelligence changes` section with a small result limit only after a concrete active Alliance scope exists and Intelligence view authority is proven. An unscoped dashboard does not render a synthetic empty feed.
 
-The section distinguishes informational changes from actionable attention. A factual change must not automatically inflate the global action count. Only a state explicitly defined by the product contract as requiring attention may contribute to an attention count.
+Within an authorized scope, the section distinguishes informational changes from actionable attention. A factual change must not automatically inflate the global action count. Only a state explicitly defined by the product contract as requiring attention may contribute to an attention count.
 
 Each item exposes a neutral description, observed/baseline timestamps, source classification and canonical destination link.
 
@@ -286,13 +292,13 @@ Material consumer surfaces support:
 
 - loading;
 - populated;
-- empty/no material changes;
+- empty/no material changes for an authorized concrete scope;
 - stale;
 - missing/unknown;
 - unsupported;
 - error/retry;
 - filtered-empty;
-- permission-safe unavailable state.
+- permission-safe unavailable/unscoped state.
 
 Signals use neutral language (`increased`, `decreased`, `changed`, `became stale`, `expires soon`, `reappeared`) rather than positive/negative strategic coloring. Meaning must not depend on color alone.
 
@@ -323,13 +329,13 @@ Do not log Evidence payloads, private extracted text, arbitrary free-form recrui
 - **ICD-15** Bear Hunt trends require the configured minimum comparable completed runs; missing/unrecorded is never converted to zero.
 - **ICD-16** Recruitment changes use explicit owner history; `updated_at` alone never fabricates a prior value.
 - **ICD-17** Signal sorting/deduplication is deterministic and bounded by query/result budgets.
-- **ICD-18** Command Overview shows a bounded recent-change feed without treating every factual change as an action.
+- **ICD-18** Command Overview shows a bounded recent-change feed without treating every factual change as an action, and does not render the feed before a concrete active Alliance scope exists.
 - **ICD-19** Kingdom Intelligence exposes typed change signals with underlying source links/provenance.
 - **ICD-20** Alliance Assistant `intelligence_changes` answers consume typed authorized signals, use server-built citations and perform zero mutation.
 - **ICD-21** Assistant output states observation differences without unsupported causation, threat or strategy conclusions.
 - **ICD-22** Communications notification delivery, when enabled for a signal policy, uses the signal fingerprint for idempotent delivery without becoming signal owner.
 - **ICD-23** Backend configuration/services own thresholds/freshness/trend rules; Vue/controllers contain no hidden business thresholds.
-- **ICD-24** Empty/loading/stale/missing/unsupported/error/filtered-empty states are explicit and localized.
+- **ICD-24** Empty/loading/stale/missing/unsupported/error/filtered-empty/unscoped states are explicit and localized.
 - **ICD-25** Command Overview and Kingdom Intelligence signal UX is responsive, keyboard/screen-reader usable and covered by applicable visual regression.
 - **ICD-26** Privacy-safe diagnostics and query budgets are tested.
 - **ICD-27** Architecture tests prevent owner contexts from importing `ReadModels/IntelligenceSignals` and prevent a new signal persistence owner.
@@ -341,25 +347,25 @@ Do not log Evidence payloads, private extracted text, arbitrary free-form recrui
 
 | Phase | Delivery item | State |
 | --- | --- | --- |
-| ICD-0 | Product contract, ownership/provenance, taxonomy, UX states and release criteria | In progress |
-| ICD-1 | Typed signal enums/value object, deterministic fingerprint and rule configuration | Not started |
-| ICD-2 | Alliance power/member/freshness derivation | Not started |
-| ICD-3 | Complete-source disappearance/reappearance semantics or explicit unsupported disposition | Not started |
-| ICD-4 | Governor progression change/staleness derivation with dataset/Evidence provenance | Not started |
-| ICD-5 | Transfer validity/expiry derivation | Not started |
-| ICD-6 | Bear Hunt comparable-run trend derivation | Not started |
-| ICD-7 | Recruitment owner-history change derivation | Not started |
-| ICD-8 | Unified authorized signal composition, dedupe/sort/query budgets | Not started |
-| ICD-9 | Kingdom Intelligence integration and UX | Not started |
-| ICD-10 | Command Overview integration and UX | Not started |
-| ICD-11 | Alliance Assistant bounded change intent/citations | Not started |
-| ICD-12 | Communications idempotent delivery integration/preferences where supported | Not started |
-| ICD-13 | Localization, accessibility, responsive behavior, visual regression, privacy diagnostics | Not started |
-| ICD-14 | Architecture/behavior/query-budget/security/release verification | Not started |
-| ICD-15 | Final `/docs/product` reconciliation and capability-status promotion | Not started |
+| ICD-0 | Product contract, ownership/provenance, taxonomy, UX states and release criteria | Complete |
+| ICD-1 | Typed signal enums/value object, deterministic fingerprint and rule configuration | Complete |
+| ICD-2 | Alliance power/member/freshness derivation | Complete |
+| ICD-3 | Complete-source disappearance/reappearance semantics or explicit unsupported disposition | Complete |
+| ICD-4 | Governor progression change/staleness derivation with dataset/Evidence provenance | Complete |
+| ICD-5 | Transfer validity/expiry derivation | Complete |
+| ICD-6 | Bear Hunt comparable-run trend derivation | Complete |
+| ICD-7 | Recruitment owner-history change derivation | Complete |
+| ICD-8 | Unified authorized signal composition, dedupe/sort/query budgets | Complete |
+| ICD-9 | Kingdom Intelligence integration and UX | Complete |
+| ICD-10 | Command Overview integration and UX | Complete |
+| ICD-11 | Alliance Assistant bounded change intent/citations | Complete |
+| ICD-12 | Communications idempotent delivery integration/preferences where supported | Complete |
+| ICD-13 | Localization, accessibility, responsive behavior, visual regression, privacy diagnostics | Complete |
+| ICD-14 | Architecture/behavior/query-budget/security/release verification | Complete |
+| ICD-15 | Final `/docs/product` reconciliation and capability-status promotion | Complete |
 
 ## Completion rule
 
-A failing test, incomplete UX state, missing source projection, authorization gap, provenance problem, query-budget failure, architecture violation, documentation mismatch or integration defect is work to resolve, not a completion condition.
+A failing test, incomplete UX state, missing source projection, authorization gap, provenance problem, query-budget failure, architecture violation, documentation mismatch or integration defect reopens the applicable delivery item; it is not ignored because the capability was previously closed.
 
-The capability is not complete because one signal family or consumer works. Completion requires every applicable acceptance criterion and delivery-ledger item to be implemented and verified. Unsupported/evidence-gated behavior must be reported explicitly rather than guessed or silently marked complete.
+Intelligence Change Detection is complete because every applicable acceptance criterion and delivery-ledger item has been implemented and verified. Unsupported behavior remains explicitly unsupported rather than guessed: ordinary Alliance observation history still does not emit disappearance/reappearance until an owner/source contract proves complete-enough presence/absence semantics.

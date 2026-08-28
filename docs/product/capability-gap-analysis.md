@@ -1,6 +1,6 @@
 # Capability completeness plan
 
-Status: Current — 2026-08-24
+Status: Current — 2026-08-28
 
 This document identifies what is already complete, what has been selected for the next implementation program, and what remains evidence-gated. It is not permission to describe selected work as shipped.
 
@@ -30,7 +30,7 @@ External projects may not silently supply a progression formula, transfer rule, 
 
 ## Current complete capabilities
 
-The product already has governed workflows across account security, Player context, Alliance membership/leadership, recruitment, Alliance Content, Kingdom governance, Events, Participation, rosters, polls, BattlePlans, Rallies, King Perks, Results, Intelligence, Communications, platform administration, integrations, Gift Codes, Territory & Hive planning, Kingdom Transfer Planning, Factual Governor Progression, Screenshot Intake for Bear Hunt, Bear Hunt Debrief, Alliance Assistant and Event Readiness & Closeout.
+The product already has governed workflows across account security, Player context, Alliance membership/leadership, recruitment, Alliance Content, Kingdom governance, Events, Participation, rosters, polls, BattlePlans, Rallies, King Perks, Results, Intelligence, Communications, platform administration, integrations, Gift Codes, Territory & Hive planning, Kingdom Transfer Planning, Factual Governor Progression, Screenshot Intake for Bear Hunt, Bear Hunt Debrief, Alliance Assistant, Event Readiness & Closeout, Territory plan versus observed state and Intelligence Change Detection.
 
 ### Alliance Assistant — current complete
 
@@ -58,7 +58,7 @@ The delivered `EventAnalysis` composition uses existing Events, Results, Partici
 
 The delivered planner provides versioned/checksummed map datasets, shared geometry parity, saved Alliance/Kingdom plans, accessible editing, server-authoritative validation, coverage, hive generators, march/layout analysis, multi-Alliance planning, immutable revisions/comparison, JSON/PNG/SVG interchange and immutable Event positioning references.
 
-The selected observed-state reconciliation work is an extension that compares desired plan state with dated observations; it does not make the planner incomplete.
+The delivered observed-state reconciliation extension compares desired plan state with dated observations without making either source mutable.
 
 ### Screenshot Intake — Bear Hunt current complete
 
@@ -70,6 +70,14 @@ Any global ledger row still showing phases 3, 4, 7, 11 or 12 as `In progress` wa
 
 The delivered Event Command is an occurrence-scoped `ReadModels/EventManagement` composition over existing owners. It derives `planning | needs_attention | ready | active | closeout_required | complete`, preserves cancellation and explicit unknown/not-applicable semantics, exposes canonical owner provenance/handoffs, performs no domain writes, and is verified through query-budget, authorization/isolation, accessibility/localization and deterministic desktop/mobile visual coverage.
 
+### Intelligence Change Detection — current complete
+
+The delivered [Intelligence Change Detection](intelligence-change-detection.md) capability derives typed, deterministic, source-cited change/staleness/expiry/trend signals from authorized owner histories without creating another intelligence database or persisted signal truth. Command Overview, Kingdom Intelligence, Alliance Assistant and Communications consume the same recomputable signal contract while the underlying Intelligence, GameWorld, Operations and Alliance owners retain their facts.
+
+Signals preserve factual discipline: differences between observations do not become strategic intent, threat or quality judgments. Ordinary Alliance observation history does not emit disappearance/reappearance because the current source model does not prove exhaustive absence; that subtype remains explicitly unsupported until a complete-source presence/absence contract exists. The dashboard feed also requires a concrete active Alliance scope, so unscoped state is not presented as an empty factual result.
+
+Implementation candidate `e5c492f9391431ab68e1b2ca215038f448e5539d` passed CI, Intelligence Verification, Architecture V3 Verification, Visual Regression, CodeQL and Dependency Review, including staging, backup/restore and production-image scanning.
+
 ## Selected extensions
 
 | Priority/order | Selected extension | User outcome | Canonical owners | Primary guardrail |
@@ -77,8 +85,6 @@ The delivered Event Command is an occurrence-scoped `ReadModels/EventManagement`
 | 5 | Kingdom Transfer Screenshot Intake | Review supported in-game Transfer screenshots and commit approved observations exactly once. | Intelligence/Evidence + GameWorld/KingdomTransfers | Evidence owns provenance; KingdomTransfers owns observations/eligibility. |
 | 6 | Governor Progression Screenshot Intake | Review profile/progression screenshots, normalize against a pinned Progression release and append Governor observations. | Intelligence/Evidence + Intelligence/Roster + GameWorld/Progression | OCR cannot create identity or alter catalogue truth. |
 | 7 | Progression Goal Planner | Compare authorized observed current state with a user-selected factual target/prerequisite path. | ReadModels composing Intelligence/Roster + GameWorld/Progression | No recommendation semantics or unqualified resource totals. |
-| 10 | Current complete capability | Complete | Operations/TerritoryPlanning + Intelligence/Evidence/observations + GameWorld/KingdomMaps + ReadModels | Observation does not rewrite plan/map truth; plan does not rewrite observation. |
-| 11 | Intelligence change signals | Derive source-cited deterministic change signals from existing observation histories. | Applicable Intelligence owners + ReadModels; Communications only for delivery | No inferred strategic intent; signals remain observation-derived. |
 
 All selected extensions use the detailed acceptance criteria in [Capability Extension Program](capability-extension-program.md). A selected extension remains unimplemented until its global delivery-ledger row is complete.
 
@@ -166,8 +172,8 @@ Evidence cannot silently become game truth. Planning intent cannot silently beco
 | 7 | Selected extension | Progression Goal Planner |
 | 8 | Evidence-gated extension | Calculator evidence qualification per family |
 | 9 | Evidence-gated extension | Calculators for qualified families only |
-| 10 | Selected extension | Territory observed-state reconciliation |
-| 11 | Selected extension | Intelligence change signals |
+| 10 | Complete | Territory observed-state reconciliation |
+| 11 | Complete | Intelligence change signals |
 | 12 | Selected extension | Full reconciliation and release closeout |
 
 ## Engineering standards for every selected extension

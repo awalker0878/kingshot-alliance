@@ -1,6 +1,6 @@
 # FRONTEND-V3 Capability Map
 
-This document defines the Governor-facing screen map from application capabilities. It includes the active Territory & Hive Planner delivery contract so implementation cannot ship UI without its backing owner capabilities.
+This document defines the Governor-facing screen map from application capabilities. It includes the active Territory & Hive Planner and Intelligence Change Detection delivery contracts so implementation cannot ship UI without its backing owner capabilities.
 
 ## Presentation rule
 
@@ -42,6 +42,7 @@ Active Governor
       │   ├── Scout History / CSV Import
       │   ├── Kingdom Alliances
       │   ├── Alliance Observations
+      │   ├── Recent Intelligence Changes
       │   ├── Diplomacy / Contacts
       │   ├── Shared Kingdom Intelligence
       │   └── Glory Ledger
@@ -57,7 +58,9 @@ Active Governor
 
 ## Command Overview
 
-Backed by current Governor membership/rank/specialist roles, Alliance notices/content, upcoming Events and permission-aware entry points. Territory Command may appear as an entry point only when the current Player has an eligible planning scope.
+Backed by current Governor membership/rank/specialist roles, Alliance notices/content, upcoming Events, permission-aware entry points and bounded Intelligence Change Detection composition. Territory Command may appear as an entry point only when the current Player has an eligible planning scope.
+
+When the active Governor has a concrete active Alliance and applicable Intelligence view authority, Command Overview may show a compact **Recent intelligence changes** feed. The feed is informational and does not automatically increase the global action count. An authorized scoped feed may show its localized empty state when no signals exist. Before a concrete active Alliance scope exists, the feed is not rendered; unscoped state must not be presented as “no changes.”
 
 Do not show unsupported donation totals, leaderboard rank, Alliance Gift Level or arbitrary Alliance power merely because the game has those concepts.
 
@@ -158,7 +161,9 @@ Backed by Alliance roster and Intelligence snapshots: observed Governor identity
 
 ## Intel Room — Kingdom Alliances
 
-Backed by Intelligence Observations/Diplomacy/Sharing/Ingestion: tracked Alliances, timestamped/invalidation state, diplomacy, contacts/channels, shared Kingdom intelligence and officer ingestion tooling.
+Backed by Intelligence Observations/Diplomacy/Sharing/Ingestion plus `ReadModels/IntelligenceSignals`: tracked Alliances, timestamped/invalidation state, diplomacy, contacts/channels, shared Kingdom intelligence and officer ingestion tooling.
+
+Kingdom Intelligence may show typed recent changes and stale-intelligence signals alongside the underlying latest/prior/7-day/30-day observation comparisons. Every signal retains neutral wording, source record/timestamp provenance and a canonical source link. Missing is not zero, stale is not missing, and ordinary source absence is not disappearance unless a complete-source contract explicitly proves it. The read model never turns power/member changes into strategic intent.
 
 ## Glory Ledger
 
@@ -166,11 +171,7 @@ Backed by Intelligence Contributions: categories, self/officer reports, approval
 
 ## Kingdom Transfer
 
-Backed by GameWorld KingdomTransfers: cycles/states, incoming/outgoing/staying Governors, groups/coordinators, readiness/blockers and actual completion. The UI must not invent transfer eligibility rules.
-
-## Kingdom Roles
-
-Backed by GameWorld Governance application roles. They must not be misrepresented as official Kingshot royal appointments.
+Backed by GameWorld KingdomTransfers: cycles/states, incoming/outgoing/staying Governors, groups/coordinators, readiness/blockers and actual completion. The UI must not invent transfer eligibility rules. Intelligence change presentation may surface that an accepted Transfer observation is expiring/expired based on its canonical `valid_until`; that signal does not independently decide eligibility.
 
 ## Gift Codes
 
@@ -178,7 +179,11 @@ Backed by GameWorld GiftCodes: normalized sourced catalogue, per-Governor/Kingdo
 
 ## Notification Center
 
-Backed by Communications Delivery: in-app inbox, Governor-scoped Discord/Telegram endpoints, preferences, provider acknowledgement/health/retries and Event/KingPerk fan-out. Provider credentials remain encrypted and undisclosed after save.
+Backed by Communications Delivery: in-app inbox, Governor-scoped Discord/Telegram endpoints, preferences, provider acknowledgement/health/retries and Event/KingPerk fan-out. Provider credentials remain encrypted and undisclosed after save. When a subscribed Intelligence signal is delivered, Communications owns recipient/channel/idempotency state; the signal itself remains recomputable read-side state rather than a persisted notification-owned fact.
+
+## Kingdom Roles
+
+Backed by GameWorld Governance application roles. They must not be misrepresented as official Kingshot royal appointments.
 
 ## Explicitly excluded from the primary UI baseline
 
