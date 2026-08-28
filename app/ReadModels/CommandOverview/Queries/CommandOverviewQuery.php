@@ -11,12 +11,17 @@ use App\Contexts\Communications\Delivery\Enums\DeliveryStatus;
 use App\Contexts\Communications\Delivery\Models\NotificationDelivery;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeRedemption;
 use App\Contexts\GameWorld\GiftCodes\Queries\GiftCodeCatalogQuery;
+use App\Contexts\GameWorld\KingdomTransfers\Access\Enums\TransferPermission;
+use App\Contexts\GameWorld\KingdomTransfers\Access\Services\TransferAuthorization;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
+use App\Contexts\Operations\Access\Enums\OperationsPermission;
+use App\Contexts\Operations\Events\Enums\EventScope;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Events\Queries\EventAttentionQuery;
 use App\Contexts\Operations\Events\Queries\EventCalendarQuery;
+use App\Contexts\Operations\Events\Services\EventAuthorization;
 use App\ReadModels\IntelligenceSignals\Queries\IntelligenceSignalQuery;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -27,6 +32,8 @@ final readonly class CommandOverviewQuery
         private EventAttentionQuery $attention,
         private GiftCodeCatalogQuery $giftCodes,
         private AllianceIntelligenceAuthorization $intelligenceAuthorization,
+        private TransferAuthorization $transferAuthorization,
+        private EventAuthorization $eventAuthorization,
         private IntelligenceSignalQuery $intelligenceSignals,
     ) {}
 
@@ -54,14 +61,33 @@ final readonly class CommandOverviewQuery
         $recruitment = $allianceId !== null && $canManageRecruitment
             ? $this->recruitment($allianceId)
             : null;
-        $intelligenceSignals = $allianceId !== null
+        $intelligenceSignals = [];
+        if ($allianceId !== null
             && $this->intelligenceAuthorization->allows(
                 $player->playerId,
                 $allianceId,
                 IntelligencePermission::View,
-            )
-                ? $this->intelligenceSignals->recentForAlliance($allianceId, $player->playerId, 4)
-                : [];
+            )) {
+            $canViewTransfer = $this->transferAuthorization->allows(
+                $player->playerId,
+                $allianceId,
+                TransferPermission::View,
+            );
+            $canViewBearHunt = $this->eventAuthorization->allows(
+                $player->playerId,
+                EventScope::Alliance,
+                $allianceId,
+                OperationsPermission::EventAllianceView,
+            );
+            $intelligenceSignals = $this->intelligenceSignals->recentForAlliance(
+                allianceId: $allianceId,
+                actorPlayerId: $player->playerId,
+                limit: 4,
+                includeTransfer: $canViewTransfer,
+                includeRecruitment: $canManageRecruitment,
+                includeBearHunt: $canViewBearHunt,
+            );
+        }
 
         return [
             'unreadNotifications' => $unreadNotifications,
