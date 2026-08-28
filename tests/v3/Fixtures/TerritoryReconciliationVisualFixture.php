@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Tests\v3\Fixtures;
 
 use App\Contexts\Accounts\Identity\Models\User;
+use App\Contexts\Alliance\Lifecycle\Actions\CreateAlliance;
 use App\Contexts\GameWorld\KingdomMaps\Queries\KingdomMapDatasetQuery;
+use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
 use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Intelligence\Observations\Enums\SpatialObservationCompleteness;
 use App\Contexts\Intelligence\Observations\Enums\SpatialObservationCoverageKind;
@@ -13,26 +15,79 @@ use App\Contexts\Intelligence\Observations\Enums\SpatialObservedIdentityState;
 use App\Contexts\Intelligence\Observations\Enums\SpatialObservedObjectType;
 use App\Contexts\Intelligence\Observations\Models\SpatialObservation;
 use App\Contexts\Intelligence\Observations\Models\SpatialObservedObject;
+use App\Contexts\Operations\TerritoryPlanning\Actions\CreateTerritoryPlan;
 use App\Contexts\Operations\TerritoryPlanning\Actions\PublishTerritoryPlan;
-use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryPlan;
+use App\Contexts\Operations\TerritoryPlanning\Actions\SaveTerritoryPlan;
+use App\Contexts\Operations\TerritoryPlanning\Enums\TerritoryPlanScope;
 use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryPlanRevision;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\Hash;
 
 final class TerritoryReconciliationVisualFixture
 {
     public static function seed(): void
     {
-        $user = User::query()->where('email', 'territory-visual@example.test')->firstOrFail();
-        $player = Player::query()->where('user_id', $user->id)->firstOrFail();
-        $plan = TerritoryPlan::query()
-            ->where('name', 'Bear Hive Alpha')
-            ->where('kingdom_id', $player->current_kingdom_id)
-            ->firstOrFail();
-        $allianceId = (string) $plan->owner_alliance_id;
+        $user = User::factory()->create([
+            'name' => 'Territory Reconciliation Visual',
+            'email' => 'territory-reconciliation-visual@example.test',
+            'password' => Hash::make('password'),
+            'timezone' => 'UTC',
+        ]);
+        $kingdom = Kingdom::query()->create(['number' => 1337, 'status' => 'active']);
+        $player = Player::query()->create([
+            'user_id' => $user->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'GOV-TERRITORY-RECON',
+            'current_name' => 'Hive Marshal',
+        ]);
+        $allianceId = app(CreateAlliance::class)->handle(
+            (string) $player->id,
+            'Dawn Recon',
+            'dawn-recon',
+            'en',
+            'UTC',
+        );
+        $plan = app(CreateTerritoryPlan::class)->handle(
+            (string) $player->id,
+            TerritoryPlanScope::Alliance,
+            (string) $kingdom->id,
+            $allianceId,
+            'Observed Hive Alpha',
+            'kingshot-community-observed-2026-08-21-v1',
+        );
+        app(SaveTerritoryPlan::class)->handle(
+            (string) $player->id,
+            $plan->planId,
+            $plan->revision,
+            [[
+                'key' => 'owner',
+                'alliance_id' => $allianceId,
+                'external_name' => null,
+                'external_tag' => null,
+                'display_name' => 'Dawn Recon',
+                'presentation_color' => '#4da3ff',
+                'sort_order' => 0,
+                'visible' => true,
+                'locked' => false,
+            ]],
+            [['key' => 'hive', 'label' => 'Primary Hive']],
+            [
+                ['key' => 'hq', 'alliance_key' => 'owner', 'group_key' => null, 'type' => 'headquarters', 'player_id' => null, 'external_player_name' => null, 'label' => 'HQ', 'x' => 100, 'y' => 100, 'rotation' => 0, 'sort_order' => 0, 'metadata' => []],
+                ['key' => 'banner', 'alliance_key' => 'owner', 'group_key' => null, 'type' => 'banner', 'player_id' => null, 'external_player_name' => null, 'label' => 'Banner', 'x' => 110, 'y' => 100, 'rotation' => 0, 'sort_order' => 1, 'metadata' => []],
+                ['key' => 'city', 'alliance_key' => 'owner', 'group_key' => 'hive', 'type' => 'governor_city', 'player_id' => null, 'external_player_name' => 'North Star', 'label' => 'North Star', 'x' => 112, 'y' => 112, 'rotation' => 0, 'sort_order' => 2, 'metadata' => []],
+                ['key' => 'trap-one', 'alliance_key' => 'owner', 'group_key' => 'hive', 'type' => 'bear_trap', 'player_id' => null, 'external_player_name' => null, 'label' => 'Bear Trap 1', 'x' => 120, 'y' => 120, 'rotation' => 0, 'sort_order' => 3, 'metadata' => []],
+            ],
+            [
+                'preferred_bear_radius_tiles' => 40,
+                'march_seconds_per_tile' => 2,
+                'selected_bear_trap_by_alliance' => ['owner' => 'trap-one'],
+            ],
+        );
+        $savedPlan = \App\Contexts\Operations\TerritoryPlanning\Models\TerritoryPlan::query()->findOrFail($plan->planId);
         $published = app(PublishTerritoryPlan::class)->handle(
             (string) $player->id,
-            (string) $plan->id,
-            (int) $plan->revision,
+            $plan->planId,
+            (int) $savedPlan->revision,
         );
         if ($published->publishedRevisionId !== null) {
             TerritoryPlanRevision::query()->whereKey($published->publishedRevisionId)->update([
@@ -45,7 +100,7 @@ final class TerritoryReconciliationVisualFixture
         );
         $observation = SpatialObservation::query()->create([
             'alliance_id' => $allianceId,
-            'kingdom_id' => (string) $player->current_kingdom_id,
+            'kingdom_id' => (string) $kingdom->id,
             'captured_at' => CarbonImmutable::parse('2026-08-27T17:40:00Z'),
             'coverage_kind' => SpatialObservationCoverageKind::CompleteHive,
             'completeness' => SpatialObservationCompleteness::Complete,
