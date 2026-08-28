@@ -3,6 +3,9 @@ import { Link, router, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 
 import AllianceCrest from '@/components/game/AllianceCrest.vue';
+import IntelligenceSignalFeed, {
+  type IntelligenceSignal,
+} from '@/components/intelligence/IntelligenceSignalFeed.vue';
 import IdentitySwitcher from '@/components/navigation/IdentitySwitcher.vue';
 import LocaleSwitcher from '@/components/navigation/LocaleSwitcher.vue';
 import NavIcon from '@/components/navigation/NavIcon.vue';
@@ -83,6 +86,23 @@ const actionReceiptMessage = computed(() => {
   const message = t(key, actionReceipt.value.parameters);
   return message === key ? t('receipts.completed') : message;
 });
+const intelligenceSignals = computed<IntelligenceSignal[]>(() => {
+  const pageProps = page.props as Record<string, unknown>;
+  if (page.component === 'Dashboard/Home') {
+    const overview = pageProps.overview as { intelligenceSignals?: IntelligenceSignal[] } | null;
+    return Array.isArray(overview?.intelligenceSignals) ? overview.intelligenceSignals : [];
+  }
+  if (page.component === 'Intelligence/KingdomWatch/AllianceDossier') {
+    return Array.isArray(pageProps.signals) ? (pageProps.signals as IntelligenceSignal[]) : [];
+  }
+
+  return [];
+});
+const showIntelligenceSignals = computed(() =>
+  page.component === 'Dashboard/Home'
+    ? props.hasPlayerAlliance
+    : page.component === 'Intelligence/KingdomWatch/AllianceDossier',
+);
 
 const playerContext = computed<SharedPlayerContext>(
   () =>
@@ -446,6 +466,12 @@ function logout(): void {
             class="mb-4"
             :message="actionReceiptMessage"
             :tone="actionReceipt?.tone ?? 'success'"
+          />
+          <IntelligenceSignalFeed
+            v-if="showIntelligenceSignals"
+            class="mb-5"
+            :signals="intelligenceSignals"
+            :compact="page.component === 'Dashboard/Home'"
           />
           <slot />
         </div>

@@ -46,9 +46,15 @@ Program states are defined by the [Capability Extension Program](capability-exte
 | Calculator evidence qualification | Evidence-gated extension | Qualify numeric progression families independently using source/version/unit/reconciliation/checksum and golden-fixture requirements before calculation is allowed. | GameWorld/Progression owns factual/calculation datasets and qualification reports |
 | Evidence-backed calculators | Evidence-gated extension | For qualified families only, calculate factual current-to-target resource/time/requirement deltas against an immutable dataset/calculation release with visible provenance. | GameWorld/Progression typed calculation services; ReadModels/UI present results; saved scenarios remain planning intent |
 | Territory plan vs observed state | Current complete capability | Compare an immutable published Territory revision with dated observed spatial evidence without rewriting either desired state or observed state. | Operations/TerritoryPlanning owns plans; Intelligence/Evidence/observations own observed evidence; GameWorld/KingdomMaps owns map facts/rules; ReadModels composes comparison |
-| Intelligence change signals | Selected extension | Derive bounded, source-cited change signals from authorized observation histories for Command Overview, Kingdom Intelligence, Communications and Assistant without inventing strategic conclusions. | Applicable Intelligence owners retain observations; ReadModels derives signals; Communications owns delivery when used |
+| Intelligence change signals | Current complete capability | Derive bounded, deterministic, source-cited change/staleness/expiry/trend signals from authorized owner histories for Command Overview, Kingdom Intelligence, Communications and Assistant without inventing strategic conclusions. | Applicable Intelligence/GameWorld/Operations/Alliance owners retain facts; ReadModels derives signals; Communications owns delivery when used |
 
 This catalogue changes when a real product outcome or approved implementation contract changes, not for internal class/file movement.
+
+## Intelligence Change Detection product contract
+
+The delivered [Intelligence Change Detection](intelligence-change-detection.md) capability is read-side composition over existing owner histories. It provides typed deterministic signals for material Alliance observation changes, staleness, Governor progression changes, Transfer observation expiry, Bear Hunt trends and explicit Recruitment history while preserving source records, timestamps, Evidence/dataset provenance where available and stable fingerprints for idempotent consumption.
+
+The capability does not persist a second Intelligence truth store and does not infer strategy, intent, threat or quality from factual differences. Ordinary Alliance history does not emit disappearance/reappearance because current ingestion does not prove exhaustive absence; that subtype remains explicitly unsupported until a source contract proves complete-source presence/absence. Command Overview renders the feed only with a concrete active Alliance scope, Kingdom Intelligence retains underlying observation access, Assistant consumes authorized typed signals, and Communications owns notification delivery only.
 
 ## Factual Governor Progression product contract
 

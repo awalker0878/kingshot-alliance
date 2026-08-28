@@ -71,6 +71,14 @@ async function territoryCatalogue(base: MessageCatalogue): Promise<MessageCatalo
   return mergeCatalogue(base, territoryReconciliationLabels());
 }
 
+async function intelligenceChangeCatalogue(
+  base: MessageCatalogue,
+  locale: LocaleCode,
+): Promise<MessageCatalogue> {
+  const { intelligenceChangeLabels } = await import('./intelligence-change-labels');
+  return mergeCatalogue(base, intelligenceChangeLabels(locale));
+}
+
 async function loadOne(domain: LocalizationDomain, locale: LocaleCode): Promise<MessageCatalogue> {
   const key = cacheKey(domain, locale);
   const cached = catalogues.get(key);
@@ -84,6 +92,9 @@ async function loadOne(domain: LocalizationDomain, locale: LocaleCode): Promise<
     if (domain === 'transfers') catalogue = await transfersCatalogue(catalogue);
     if (domain === 'progression') catalogue = await progressionCatalogue(catalogue, locale);
     if (domain === 'territory') catalogue = await territoryCatalogue(catalogue);
+    if (['alliance', 'assistant', 'kingdom'].includes(domain)) {
+      catalogue = await intelligenceChangeCatalogue(catalogue, locale);
+    }
     catalogues.set(key, catalogue);
     pending.delete(key);
     return catalogue;

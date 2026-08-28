@@ -20,10 +20,11 @@ Register/sign in
 Select active Player
  -> compose unread notifications, actionable Gift Codes, Event actions and upcoming Events
  -> include recruitment follow-up only when the Player has recruitment authority
+ -> with a concrete active Alliance and Intelligence view authority, include bounded recent factual Intelligence changes
  -> link to owner-context rooms for every write
 ```
 
-The command overview is a read-model composition surface. It does not own or copy the underlying business state.
+The command overview is a read-model composition surface. It does not own or copy the underlying business state. Intelligence changes are informational unless their specific state is explicitly defined as attention-worthy, and they do not automatically inflate the global action count. Before a concrete active Alliance scope exists, the dashboard does not render a synthetic “no intelligence changes” result.
 
 ## Alliance Territory & Hive Planner
 
@@ -272,14 +273,14 @@ Authenticate + select active Governor with an active Alliance
  -> open Ask your Alliance
  -> choose one of nine localized bounded suggestions or enter a supported question
  -> owner capabilities authorize before returning any private candidate data
- -> resolve a bounded Event/content/observation/Game Data/self-state target or return a neutral missing/ambiguity/unsupported state
+ -> resolve a bounded Event/content/observation/Game Data/self-state/intelligence-change target or return a neutral missing/ambiguity/unsupported state
  -> query only the minimum authorized owner projection
  -> compose typed evidence and server-created citations
  -> show operational fact / Game data / Alliance strategy / Observation provenance
  -> ask another question or open the canonical source/owner workflow
 ```
 
-The canonical first-use example is **“What time is Swordland and am I rostered?”**. The answer combines the authorized Event occurrence and only the active Governor's own roster assignment. The delivered extension also supports bounded source-backed Progression facts, self Participation/BattlePlan state, authorized self transfer assessment and immutable Event-attached published Territory revisions. Alliance-authored guidance and territory plans are labelled **Alliance strategy**; recorded intelligence is labelled **Observation**; source-backed Progression is labelled **Game data**. A question such as **“Put me on the Swordland roster”** performs no mutation and may offer a navigation-only handoff to the normal owner workflow. Unsupported general KingShot questions are not answered from model memory.
+The canonical first-use example is **“What time is Swordland and am I rostered?”**. The answer combines the authorized Event occurrence and only the active Governor's own roster assignment. The delivered extensions also support bounded source-backed Progression facts, self Participation/BattlePlan state, authorized self transfer assessment, immutable Event-attached published Territory revisions and typed authorized Intelligence change signals. Alliance-authored guidance and territory plans are labelled **Alliance strategy**; recorded intelligence and derived changes over observations are labelled **Observation**; source-backed Progression is labelled **Game data**. A question such as **“Put me on the Swordland roster”** performs no mutation and may offer a navigation-only handoff to the normal owner workflow. Unsupported general KingShot questions are not answered from model memory, and a factual signal is never converted into an unsupported strategic conclusion.
 
 # Capability Extension Program — journey contracts
 
@@ -487,18 +488,21 @@ Observed coordinates never rewrite a published plan or GameWorld map dataset. A 
 
 ## Review Intelligence change signals
 
-Program state: **Selected extension**.
+Program state: **Current complete capability**.
 
 ```text
 Authorized owner history changes
- -> derive bounded deterministic signal from explicit source observations
- -> retain source observation IDs/timestamps and typed threshold/window
+ -> authorize concrete Alliance/Governor/source scope before retrieval
+ -> derive bounded deterministic signal from explicit source observations/facts
+ -> retain source record IDs/timestamps, provenance and typed threshold/window/rule version
  -> expose signal in an authorized ReadModel surface
- -> optionally compose it into Command Overview / Kingdom Intelligence / Assistant
- -> if notification is part of the delivered slice, send through Communications preferences/idempotency
+ -> compose it into scoped Command Overview / Kingdom Intelligence / Assistant as applicable
+ -> when subscribed, deliver through Communications preferences and fingerprint-based idempotency
 ```
 
-Examples may include tracked Alliance power/member-count change, Governor progression change, stale observation or expiring Transfer evidence. A numeric change never becomes an inferred conclusion such as "preparing to attack" unless an explicit future product contract/source supports that separate claim.
+Delivered examples include tracked Alliance power/member-count change, Governor progression change/staleness, expiring Transfer observation validity, Bear Hunt trends and Recruitment workflow changes backed by explicit history. Missing data is never converted to zero. Ordinary Alliance history does not emit disappearance merely because a tracked Alliance was not seen; complete-source absence must be proven by the source contract. A numeric change never becomes an inferred conclusion such as "preparing to attack".
+
+On Command Overview, the feed is shown only after a concrete active Alliance scope exists. A scoped feed with no signals may show the localized empty state; an unscoped dashboard does not claim that there are no changes.
 
 ## Extension-program recovery rule
 

@@ -73,6 +73,7 @@ final readonly class AllianceAssistantQuery
             AssistantIntent::AllianceContent => $this->contentAnswer($actor, $scope, $parsed),
             AssistantIntent::AllianceObservation => $this->observationAnswer($scope, $parsed),
             AssistantIntent::ActionHandoff => $this->actionHandoff($actor, $parsed),
+            AssistantIntent::IntelligenceChanges,
             AssistantIntent::Unsupported => $this->unsupported(),
         };
     }
