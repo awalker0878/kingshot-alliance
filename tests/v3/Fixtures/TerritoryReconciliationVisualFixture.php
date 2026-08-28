@@ -19,6 +19,7 @@ use App\Contexts\Operations\TerritoryPlanning\Actions\CreateTerritoryPlan;
 use App\Contexts\Operations\TerritoryPlanning\Actions\PublishTerritoryPlan;
 use App\Contexts\Operations\TerritoryPlanning\Actions\SaveTerritoryPlan;
 use App\Contexts\Operations\TerritoryPlanning\Enums\TerritoryPlanScope;
+use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryPlan;
 use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryPlanRevision;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Hash;
@@ -83,16 +84,19 @@ final class TerritoryReconciliationVisualFixture
                 'selected_bear_trap_by_alliance' => ['owner' => 'trap-one'],
             ],
         );
-        $savedPlan = \App\Contexts\Operations\TerritoryPlanning\Models\TerritoryPlan::query()->findOrFail($plan->planId);
+        $savedPlan = TerritoryPlan::query()
+            ->findOrFail($plan->planId);
         $published = app(PublishTerritoryPlan::class)->handle(
             (string) $player->id,
             $plan->planId,
             (int) $savedPlan->revision,
         );
         if ($published->publishedRevisionId !== null) {
-            TerritoryPlanRevision::query()->whereKey($published->publishedRevisionId)->update([
-                'published_at' => CarbonImmutable::parse('2026-08-27T18:00:00Z'),
-            ]);
+            TerritoryPlanRevision::query()
+                ->whereKey($published->publishedRevisionId)
+                ->update([
+                    'published_at' => CarbonImmutable::parse('2026-08-27T18:00:00Z'),
+                ]);
         }
 
         $dataset = app(KingdomMapDatasetQuery::class)->require(
