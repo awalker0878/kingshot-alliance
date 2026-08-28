@@ -9,7 +9,8 @@ const english: MessageCatalogue = {
     observedSnapshotLabel: 'Observed snapshot',
     chooseAllianceObservation: 'Alliance to reconcile',
     latestObservation: 'Latest authorized observation',
-    noPublishedRevision: 'Publish a Territory revision before comparing planned and observed positions.',
+    noPublishedRevision:
+      'Publish a Territory revision before comparing planned and observed positions.',
     noObservation: 'No accepted spatial observation is available for this Alliance and Kingdom yet.',
     allianceRequired: 'Choose an Alliance layer before loading observed reality.',
     datasetIncompatible:
