@@ -12,6 +12,7 @@ use App\Contexts\Intelligence\Observations\Enums\SpatialObservationCoverageKind;
 use App\Contexts\Intelligence\Observations\Enums\SpatialObservedIdentityState;
 use App\Contexts\Intelligence\Observations\Models\SpatialObservation;
 use App\Contexts\Intelligence\Observations\Models\SpatialObservationEvidenceReceipt;
+use App\Contexts\Intelligence\Observations\Queries\SpatialObservationQuery;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\v3\Support\ScenarioFactory;
 use Tests\v3\TestCase;
@@ -146,6 +147,23 @@ final class SpatialObservationEvidenceV3Test extends TestCase
         self::assertSame(
             $original->observationId,
             (string) $replacementRow->corrects_observation_id,
+        );
+
+        $query = app(SpatialObservationQuery::class);
+        $history = $query->history(
+            $actor->playerId,
+            $alliance->allianceId,
+            $actor->kingdomId,
+        );
+        self::assertCount(2, $history);
+        self::assertContains($original->observationId, array_column($history, 'id'));
+        self::assertContains($replacement->observationId, array_column($history, 'id'));
+        $historicalOriginal = collect($history)->firstWhere('id', $original->observationId);
+        self::assertIsArray($historicalOriginal);
+        self::assertNotNull($historicalOriginal['invalidated_at']);
+        self::assertSame(
+            $replacement->observationId,
+            $query->latest($actor->playerId, $alliance->allianceId, $actor->kingdomId)['id'],
         );
     }
 
