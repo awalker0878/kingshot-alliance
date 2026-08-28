@@ -1,8 +1,4 @@
-<script setup lang="ts">
-import { Link } from '@inertiajs/vue3';
-
-import { useLocale } from '@/localization';
-
+<script lang="ts">
 export type IntelligenceSignal = {
   type: string;
   subjectType: string;
@@ -25,6 +21,12 @@ export type IntelligenceSignal = {
   fingerprint: string;
   ruleVersion: string;
 };
+</script>
+
+<script setup lang="ts">
+import { Link } from '@inertiajs/vue3';
+
+import { useLocale } from '@/localization';
 
 withDefaults(
   defineProps<{
