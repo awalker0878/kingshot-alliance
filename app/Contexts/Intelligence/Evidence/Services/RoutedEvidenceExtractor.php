@@ -20,8 +20,7 @@ final readonly class RoutedEvidenceExtractor implements EvidenceExtractor
         private TransferOfficialGroupExtractor $officialGroup,
         private GovernorProgressionEvidenceExtractor $governorProgression,
         private TerritoryMapObservationExtractor $territorySpatial,
-    ) {
-    }
+    ) {}
 
     public function key(EvidenceKind $kind): string
     {
@@ -51,7 +50,7 @@ final readonly class RoutedEvidenceExtractor implements EvidenceExtractor
     private function extractor(EvidenceKind $kind): EvidenceExtractor
     {
         $extractor = $this->extractorOrNull($kind);
-        if (! ($extractor instanceof EvidenceExtractor)) {
+        if (! $extractor instanceof EvidenceExtractor) {
             throw new RuntimeException('No extractor supports the classified Evidence kind.');
         }
 
