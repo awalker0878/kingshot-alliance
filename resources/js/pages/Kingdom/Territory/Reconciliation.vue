@@ -392,7 +392,11 @@ function resolveDuplicate(item: EvidenceItem): void {
 
 function commit(item: EvidenceItem): void {
   if (!item.review) return;
-  router.post(`/territory-observations/reviews/${item.review.id}/commit`, {}, { preserveScroll: true });
+  router.post(
+    `/territory-observations/reviews/${item.review.id}/commit`,
+    {},
+    { preserveScroll: true },
+  );
 }
 
 function retry(item: EvidenceItem): void {
@@ -472,7 +476,10 @@ function freshnessLabel(): string {
           <select
             v-model="selectedAlliance"
             class="ks-input mt-2 w-full"
-            @change="selectedObservation = ''; navigate()"
+            @change="
+              selectedObservation = '';
+              navigate();
+            "
           >
             <option value="">—</option>
             <option
@@ -523,7 +530,9 @@ function freshnessLabel(): string {
     </section>
 
     <template
-      v-if="reconciliation.state === 'ready' && reconciliation.summary && reconciliation.observation"
+      v-if="
+        reconciliation.state === 'ready' && reconciliation.summary && reconciliation.observation
+      "
     >
       <section
         class="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
@@ -531,11 +540,15 @@ function freshnessLabel(): string {
       >
         <article class="ks-surface p-4">
           <p class="text-xs text-[var(--ks-muted)]">{{ t('territory.inPosition') }}</p>
-          <p class="mt-2 text-3xl font-semibold">{{ formatNumber(reconciliation.summary.in_position) }}</p>
+          <p class="mt-2 text-3xl font-semibold">
+            {{ formatNumber(reconciliation.summary.in_position) }}
+          </p>
         </article>
         <article class="ks-surface p-4">
           <p class="text-xs text-[var(--ks-muted)]">{{ t('territory.outOfPosition') }}</p>
-          <p class="mt-2 text-3xl font-semibold">{{ formatNumber(reconciliation.summary.out_of_position) }}</p>
+          <p class="mt-2 text-3xl font-semibold">
+            {{ formatNumber(reconciliation.summary.out_of_position) }}
+          </p>
         </article>
         <article class="ks-surface p-4">
           <p class="text-xs text-[var(--ks-muted)]">
@@ -548,7 +561,9 @@ function freshnessLabel(): string {
         </article>
         <article class="ks-surface p-4">
           <p class="text-xs text-[var(--ks-muted)]">{{ t('territory.lostCoverage') }}</p>
-          <p class="mt-2 text-3xl font-semibold">{{ formatNumber(reconciliation.summary.lost_coverage) }}</p>
+          <p class="mt-2 text-3xl font-semibold">
+            {{ formatNumber(reconciliation.summary.lost_coverage) }}
+          </p>
         </article>
       </section>
 
@@ -558,7 +573,11 @@ function freshnessLabel(): string {
             <p class="ks-kicker">{{ t('territory.observedSnapshotLabel') }}</p>
             <h2 class="mt-1 text-lg font-semibold">{{ freshnessLabel() }}</h2>
             <p class="text-sm text-[var(--ks-muted)]">
-              {{ t('territory.observedAt', { date: formatDate(reconciliation.observation.captured_at) }) }}
+              {{
+                t('territory.observedAt', {
+                  date: formatDate(reconciliation.observation.captured_at),
+                })
+              }}
               · {{ reconciliation.observation.coverage_kind }} ·
               {{ reconciliation.observation.completeness }}
             </p>
@@ -592,7 +611,10 @@ function freshnessLabel(): string {
             :aria-label="t('territory.observedMapOverlay')"
           >
             <g
-              v-for="row in [...(reconciliation.governors ?? []), ...(reconciliation.structures ?? [])]"
+              v-for="row in [
+                ...(reconciliation.governors ?? []),
+                ...(reconciliation.structures ?? []),
+              ]"
               :key="row.planned.key"
             >
               <line
@@ -628,7 +650,11 @@ function freshnessLabel(): string {
       <section class="ks-surface mt-5 p-5">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <h2 class="text-lg font-semibold">{{ t('territory.discrepancyList') }}</h2>
-          <select v-model="filter" class="ks-input min-w-52" aria-label="Filter reconciliation rows">
+          <select
+            v-model="filter"
+            class="ks-input min-w-52"
+            aria-label="Filter reconciliation rows"
+          >
             <option value="all">{{ t('territory.filterAll') }}</option>
             <option value="out">{{ t('territory.filterOutOfPosition') }}</option>
             <option value="missing">{{ t('territory.filterMissing') }}</option>
@@ -661,7 +687,9 @@ function freshnessLabel(): string {
                 <td class="p-2 font-mono">{{ coordinate(row.planned) }}</td>
                 <td class="p-2 font-mono">{{ coordinate(row.observed) }}</td>
                 <td class="p-2">
-                  {{ row.distance_tiles === null ? '—' : `${formatNumber(row.distance_tiles)} tiles` }}
+                  {{
+                    row.distance_tiles === null ? '—' : `${formatNumber(row.distance_tiles)} tiles`
+                  }}
                 </td>
                 <td class="p-2">{{ row.coverage_delta }}</td>
                 <td class="p-2">{{ statusLabel(row.status) }}</td>
@@ -675,7 +703,9 @@ function freshnessLabel(): string {
                 <td class="p-2 font-mono">{{ coordinate(row.planned) }}</td>
                 <td class="p-2 font-mono">{{ coordinate(row.observed) }}</td>
                 <td class="p-2">
-                  {{ row.distance_tiles === null ? '—' : `${formatNumber(row.distance_tiles)} tiles` }}
+                  {{
+                    row.distance_tiles === null ? '—' : `${formatNumber(row.distance_tiles)} tiles`
+                  }}
                 </td>
                 <td class="p-2">—</td>
                 <td class="p-2">{{ statusLabel(row.status) }}</td>
@@ -903,10 +933,7 @@ function freshnessLabel(): string {
           <AppButton type="submit">{{ t('territory.reviewAndApprove') }}</AppButton>
         </form>
 
-        <div
-          v-if="item.review?.status === 'duplicate_blocked'"
-          class="mt-4 rounded-lg border p-4"
-        >
+        <div v-if="item.review?.status === 'duplicate_blocked'" class="mt-4 rounded-lg border p-4">
           <p class="font-semibold">{{ t('territory.semanticDuplicate') }}</p>
           <div class="mt-3 flex flex-wrap gap-2">
             <input
