@@ -13,7 +13,7 @@ final readonly class TerritoryPlanRevisionQuery
     /** @return array<string, mixed> */
     public function snapshot(string $actorPlayerId, string $planId, string $revisionId): array
     {
-        $this->plans->detail($actorPlayerId, $planId);
+        $this->plans->authorizeView($actorPlayerId, $planId);
         $revision = TerritoryPlanRevision::query()
             ->where('territory_plan_id', $planId)
             ->findOrFail($revisionId);
