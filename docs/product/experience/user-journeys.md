@@ -470,7 +470,7 @@ Calculators answer the selected scenario. They are not recommendations.
 
 ## Compare Territory plan with observed state
 
-Program state: **Selected extension**.
+Program state: **Current complete capability**.
 
 ```text
 Open immutable published Territory revision

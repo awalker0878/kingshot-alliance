@@ -1,6 +1,6 @@
 # Capability delivery ledger
 
-Status: Current as of 2026-08-25
+Status: Current as of 2026-08-28
 
 This ledger records current delivered outcomes, active selected-extension work and remaining evidence gates. It is a work queue, not a speculative roadmap. Git history remains the archive for retired/completed intermediate phase detail and exact diffs/CI runs.
 
@@ -45,6 +45,7 @@ Later capability delivery is represented by the current canonical contracts belo
 | Factual Governor Progression | Complete | [Factual Governor Progression](factual-governor-progression.md) |
 | Kingdom Transfer Planning | Complete | [Kingdom Transfer Planning](kingdom-transfer-planning.md) |
 | Alliance Territory & Hive Planner | Complete | [Capability catalogue](capability-catalogue.md), [Capability completeness plan](capability-gap-analysis.md), [user journeys](experience/user-journeys.md), and architecture/ADR docs |
+| Territory Planner — Plan vs Observed Reality | Complete | [Territory plan versus observed reality](territory-plan-observed-reality.md) | Published Territory revisions remain immutable desired state; Evidence owns reviewed source provenance; Observations owns append-only accepted spatial facts; KingdomMaps owns geometry; ReadModels composes authorized comparison without plan mutation. |
 | Screenshot Intake — Bear Hunt | Complete | [Screenshot Intake](screenshot-intake.md) |
 | Bear Hunt Debrief | Complete | [Bear Hunt Debrief](bear-hunt-debrief.md) |
 | Alliance Assistant — initial bounded intents | Complete | [Alliance Assistant](alliance-assistant.md) |
@@ -127,7 +128,7 @@ Phase 0 is documentation-only. No application code, migration, route, frontend c
 | 7 | Selected extension | Not started | Progression Goal Planner | `GP-01`–`GP-10`, plus `PX-*`: authorized observed current state + pinned factual target/prerequisites, explicit unknown/conflict/freshness, no recommendation semantics or unqualified totals. |
 | 8 | Evidence-gated extension | Gate not executed | Calculator evidence qualification per family | `CE-01`–`CE-06` and the ten qualification conditions: independent family reports, explicit source/version/unit/conflict coverage, immutable datasets, typed calculation contract/golden fixtures; no runtime calculator unlock. |
 | 9 | Evidence-gated extension | Blocked pending qualification | Evidence-backed calculators | `CI-01`–`CI-08`, plus `PX-*`; implement only for a family whose Phase 8 qualification report is `qualified`. Unqualified families remain unavailable. |
-| 10 | Selected extension | Not started | Territory plan vs observed state | `TR-01`–`TR-08`, plus `PX-*`: immutable desired plan versus dated observed evidence, typed coordinate tolerance, explicit stale/missing semantics, no plan/map rewrite from observation. |
+| 10 | Current complete capability | Complete | Territory plan vs observed state | `TR-01`–`TR-08`, plus `PX-*`: immutable desired plan versus dated observed evidence, typed coordinate tolerance, explicit stale/missing semantics, no plan/map rewrite from observation. |
 | 11 | Selected extension | Not started | Intelligence change signals | `IS-01`–`IS-08`, plus `PX-*`: deterministic source-cited signals over authorized histories, typed thresholds/windows, no inferred strategic intent, privacy-safe telemetry. |
 | 12 | Selected extension | Not started | Full reconciliation and release closeout | `PX-01`–`PX-15`: spec→code, code→spec, UX→backend, authorization, provenance/data ownership, missing-data, performance, accessibility/localization, observability/recovery and complete repository release gates are green on one immutable candidate. |
 

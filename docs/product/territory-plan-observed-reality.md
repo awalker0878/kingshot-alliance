@@ -1,6 +1,6 @@
 # Territory Planner: Plan vs Observed Reality
 
-Status: Implementation contract — 2026-08-27
+Status: Current complete capability — 2026-08-28
 
 Territory Planner: Plan vs Observed Reality extends the existing Alliance Territory & Hive Planner with an authorized, evidence-backed comparison between immutable published planning intent and dated observed spatial facts. This document is the implementation source of truth.
 
@@ -537,20 +537,20 @@ Operational diagnostics expose processing failures without leaking private scree
 
 | Phase | Deliverable | State |
 | --- | --- | --- |
-| 0 | Canonical product contract, ownership boundaries, acceptance criteria and global-doc reconciliation | In progress |
-| 1 | Spatial observation persistence, enums/value objects, constraints and owner models | Not started |
-| 2 | Spatial observation authorization/write/query/correction/invalidation semantics | Not started |
-| 3 | Territory spatial Evidence scope, kind/schema, upload/classification/extraction fixtures | Not started |
-| 4 | Human review, coverage/completeness and identity-resolution workflow | Not started |
-| 5 | Evidence → Observations idempotent commit/recovery/duplicate semantics | Not started |
-| 6 | Published-revision and authorized observation owner projections | Not started |
-| 7 | Deterministic identity/object matching, distance/tolerance and dataset compatibility | Not started |
-| 8 | Planned-vs-observed coverage comparison and dataset-driven rendering geometry using existing KingdomMaps contracts | Not started |
-| 9 | `ReadModels/TerritoryPlanning` reconciliation projection/query budgets | Not started |
-| 10 | Territory Planner Plan/Observed/Compare UX, filters, semantic discrepancy list, provenance and explicit invalidated-history presentation | Not started |
-| 11 | Evidence intake/review integration from Territory Planner | Not started |
-| 12 | Localization, accessibility, responsive behavior and deterministic visual regression | Not started |
-| 13 | Unit/feature/architecture/integration/idempotency/authorization tests | Not started |
-| 14 | Documentation reconciliation, clean-database/full-release verification and ledger closeout | Not started |
+| 0 | Canonical product contract, ownership boundaries, acceptance criteria and global-doc reconciliation | Complete |
+| 1 | Spatial observation persistence, enums/value objects, constraints and owner models | Complete |
+| 2 | Spatial observation authorization/write/query/correction/invalidation semantics | Complete |
+| 3 | Territory spatial Evidence scope, kind/schema, upload/classification/extraction fixtures | Complete |
+| 4 | Human review, coverage/completeness and identity-resolution workflow | Complete |
+| 5 | Evidence → Observations idempotent commit/recovery/duplicate semantics | Complete |
+| 6 | Published-revision and authorized observation owner projections | Complete |
+| 7 | Deterministic identity/object matching, distance/tolerance and dataset compatibility | Complete |
+| 8 | Planned-vs-observed coverage comparison and dataset-driven rendering geometry using existing KingdomMaps contracts | Complete |
+| 9 | `ReadModels/TerritoryPlanning` reconciliation projection/query budgets | Complete |
+| 10 | Territory Planner Plan/Observed/Compare UX, filters, semantic discrepancy list, provenance and explicit invalidated-history presentation | Complete |
+| 11 | Evidence intake/review integration from Territory Planner | Complete |
+| 12 | Localization, accessibility, responsive behavior and deterministic visual regression | Complete |
+| 13 | Unit/feature/architecture/integration/idempotency/authorization tests | Complete |
+| 14 | Documentation reconciliation, clean-database/full-release verification and ledger closeout | Complete |
 
 The ledger is updated continuously. A phase is not complete merely because its primary class/table/page exists.
