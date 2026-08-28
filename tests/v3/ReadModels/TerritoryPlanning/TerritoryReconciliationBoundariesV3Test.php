@@ -176,6 +176,54 @@ final class TerritoryReconciliationBoundariesV3Test extends TestCase
         self::assertStringContainsString('historicalInvalidatedHelp', $frontend);
     }
 
+    public function test_latest_ignores_invalidated_observation_but_explicit_historical_selection_remains_available(): void
+    {
+        [$actor, $alliance, $planId, $revisionId] = $this->publishedPlan(62106);
+        $currentObservationId = $this->recordObservation(
+            $alliance->allianceId,
+            $actor->kingdomId,
+            $actor->playerId,
+            4,
+        );
+        $invalidatedObservationId = $this->recordObservation(
+            $alliance->allianceId,
+            $actor->kingdomId,
+            $actor->playerId,
+            1,
+        );
+        $invalidated = SpatialObservation::query()->findOrFail($invalidatedObservationId);
+        $invalidated->forceFill([
+            'invalidated_at' => now(),
+            'invalidated_by_player_id' => $actor->playerId,
+            'invalidation_reason' => 'Superseded after reviewer correction.',
+        ])->save();
+
+        $latest = app(TerritoryReconciliationQuery::class)->build(
+            actorPlayerId: $actor->playerId,
+            planId: $planId,
+            revisionId: $revisionId,
+            allianceId: $alliance->allianceId,
+        );
+        self::assertSame('ready', $latest['state']);
+        self::assertSame($currentObservationId, $latest['observation']['id']);
+        self::assertNull($latest['observation']['invalidated_at']);
+        self::assertContains(
+            $invalidatedObservationId,
+            array_column($latest['observations'], 'id'),
+        );
+
+        $historical = app(TerritoryReconciliationQuery::class)->build(
+            actorPlayerId: $actor->playerId,
+            planId: $planId,
+            revisionId: $revisionId,
+            allianceId: $alliance->allianceId,
+            observationId: $invalidatedObservationId,
+        );
+        self::assertSame('ready', $historical['state']);
+        self::assertSame($invalidatedObservationId, $historical['observation']['id']);
+        self::assertNotNull($historical['observation']['invalidated_at']);
+    }
+
     public function test_reconciliation_query_budget_does_not_scale_with_observed_object_count(): void
     {
         [$actor, $alliance, $planId, $revisionId] = $this->publishedPlan(62104);
