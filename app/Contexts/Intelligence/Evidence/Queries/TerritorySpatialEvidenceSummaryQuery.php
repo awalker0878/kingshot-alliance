@@ -16,9 +16,7 @@ use Illuminate\Auth\Access\AuthorizationException;
 
 final readonly class TerritorySpatialEvidenceSummaryQuery
 {
-    public function __construct(private AllianceIntelligenceAuthorization $authorization)
-    {
-    }
+    public function __construct(private AllianceIntelligenceAuthorization $authorization) {}
 
     /** @return list<array<string, mixed>> */
     public function forScope(
