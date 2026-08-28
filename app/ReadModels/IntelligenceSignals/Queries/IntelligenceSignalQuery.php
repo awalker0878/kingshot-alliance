@@ -138,11 +138,9 @@ final readonly class IntelligenceSignalQuery
 
         $signals = [];
         $latest = $observations->first();
-        if ($latest instanceof GovernorProgressionObservation) {
-            $stale = $this->factory->staleProgressionObservation($latest, $asOf);
-            if ($stale instanceof IntelligenceSignal) {
-                $signals[] = $stale;
-            }
+        $stale = $this->factory->staleProgressionObservation($latest, $asOf);
+        if ($stale instanceof IntelligenceSignal) {
+            $signals[] = $stale;
         }
 
         foreach ($observations->groupBy(static fn (GovernorProgressionObservation $observation): string => $observation->kind->value) as $history) {
