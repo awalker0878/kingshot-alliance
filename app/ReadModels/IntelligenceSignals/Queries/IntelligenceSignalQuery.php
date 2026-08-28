@@ -30,8 +30,9 @@ final readonly class IntelligenceSignalQuery
 
     /**
      * The caller must authorize the concrete Alliance scope before invoking this
-     * query. The required alliance ID is applied to every owner read before data
-     * enters the candidate signal set; there is no global retrieval/filter pass.
+     * query. Owner-specific histories are opt-in only after the caller separately
+     * proves that owner's read permission. The required Alliance ID is applied to
+     * every owner query before data enters the candidate signal set.
      *
      * @return list<array<string,mixed>>
      */
@@ -40,21 +41,29 @@ final readonly class IntelligenceSignalQuery
         ?string $actorPlayerId,
         int $limit = 8,
         ?Carbon $asOf = null,
+        bool $includeTransfer = false,
+        bool $includeRecruitment = false,
+        bool $includeBearHunt = false,
     ): array {
         $asOf ??= now();
         $limit = max(1, min($limit, $this->rules->maxSignals()));
-        $signals = [
-            ...$this->allianceObservationSignals($allianceId, $asOf),
-            ...$this->transferSignals($allianceId, $asOf),
-            ...$this->recruitmentSignals($allianceId, $asOf),
-        ];
+        $signals = $this->allianceObservationSignals($allianceId, $asOf);
+
+        if ($includeTransfer) {
+            $signals = [...$signals, ...$this->transferSignals($allianceId, $asOf)];
+        }
+        if ($includeRecruitment) {
+            $signals = [...$signals, ...$this->recruitmentSignals($allianceId, $asOf)];
+        }
 
         if ($actorPlayerId !== null && $actorPlayerId !== '') {
             $signals = [
                 ...$signals,
                 ...$this->progressionSignals($allianceId, $actorPlayerId, $asOf),
-                ...$this->bearHuntSignals($allianceId, $actorPlayerId, $asOf),
             ];
+            if ($includeBearHunt) {
+                $signals = [...$signals, ...$this->bearHuntSignals($allianceId, $actorPlayerId, $asOf)];
+            }
         }
 
         /** @var array<string,IntelligenceSignal> $deduped */
