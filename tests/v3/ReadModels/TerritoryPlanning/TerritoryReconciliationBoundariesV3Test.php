@@ -106,8 +106,9 @@ final class TerritoryReconciliationBoundariesV3Test extends TestCase
                     if ($datasetId !== $this->incompatible->id) {
                         return $this->delegate->require($datasetId, $expectedChecksum);
                     }
-                    if ($expectedChecksum !== null) {
-                        self::assertSame($this->incompatible->checksum, $expectedChecksum);
+                    if ($expectedChecksum !== null
+                        && ! hash_equals($this->incompatible->checksum, $expectedChecksum)) {
+                        throw new \RuntimeException('The test incompatible dataset checksum did not match.');
                     }
 
                     return $this->incompatible;
@@ -300,7 +301,7 @@ final class TerritoryReconciliationBoundariesV3Test extends TestCase
         return (string) $observation->id;
     }
 
-    /** @param callable():array<string,mixed> $callback */
+    /** @param  callable():array<string,mixed>  $callback */
     private function countQueries(callable $callback): int
     {
         DB::flushQueryLog();
