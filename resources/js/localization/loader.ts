@@ -31,15 +31,24 @@ function mergeCatalogue(base: MessageCatalogue, overlay: MessageCatalogue): Mess
   return result;
 }
 
-async function assistantCatalogue(base: MessageCatalogue, locale: LocaleCode): Promise<MessageCatalogue> {
+async function assistantCatalogue(
+  base: MessageCatalogue,
+  locale: LocaleCode,
+): Promise<MessageCatalogue> {
   const [{ assistantGameWorldExtension }, { assistantTransferLabels }] = await Promise.all([
     import('./assistant-gameworld-extension'),
     import('./assistant-transfer-labels'),
   ]);
-  return mergeCatalogue(mergeCatalogue(base, assistantGameWorldExtension(locale)), assistantTransferLabels(locale));
+  return mergeCatalogue(
+    mergeCatalogue(base, assistantGameWorldExtension(locale)),
+    assistantTransferLabels(locale),
+  );
 }
 
-async function eventsCatalogue(base: MessageCatalogue, locale: LocaleCode): Promise<MessageCatalogue> {
+async function eventsCatalogue(
+  base: MessageCatalogue,
+  locale: LocaleCode,
+): Promise<MessageCatalogue> {
   const { eventCommandLabels } = await import('./event-command-labels');
   return mergeCatalogue(base, eventCommandLabels(locale));
 }
@@ -49,7 +58,10 @@ async function transfersCatalogue(base: MessageCatalogue): Promise<MessageCatalo
   return mergeCatalogue(base, transferEvidenceLabels());
 }
 
-async function progressionCatalogue(base: MessageCatalogue, locale: LocaleCode): Promise<MessageCatalogue> {
+async function progressionCatalogue(
+  base: MessageCatalogue,
+  locale: LocaleCode,
+): Promise<MessageCatalogue> {
   const { progressionPlannerLabels } = await import('./progression-planner-labels');
   return mergeCatalogue(base, progressionPlannerLabels(locale));
 }
@@ -85,15 +97,25 @@ export async function loadDomain(locale: LocaleCode, domain: LocalizationDomain)
   if (locale !== defaultLocale) await loadOne(domain, locale);
 }
 
-export async function loadDomains(locale: LocaleCode, domains: readonly LocalizationDomain[]): Promise<void> {
+export async function loadDomains(
+  locale: LocaleCode,
+  domains: readonly LocalizationDomain[],
+): Promise<void> {
   await Promise.all([...new Set(domains)].map((domain) => loadDomain(locale, domain)));
 }
 
 export function isDomainLoaded(locale: LocaleCode, domain: LocalizationDomain): boolean {
-  return catalogues.has(cacheKey(domain, defaultLocale)) && (locale === defaultLocale || catalogues.has(cacheKey(domain, locale)));
+  return (
+    catalogues.has(cacheKey(domain, defaultLocale)) &&
+    (locale === defaultLocale || catalogues.has(cacheKey(domain, locale)))
+  );
 }
 
-export function resolveMessage(locale: LocaleCode, domains: readonly LocalizationDomain[], path: string): string | null {
+export function resolveMessage(
+  locale: LocaleCode,
+  domains: readonly LocalizationDomain[],
+  path: string,
+): string | null {
   const ordered = [...new Set(domains)];
   if (locale !== defaultLocale) {
     for (const domain of ordered) {
