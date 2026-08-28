@@ -86,7 +86,7 @@ jobs:
 
       - name: Pint Intelligence V3
         run: >-
-          vendor/bin/pint --test -v
+          vendor/bin/pint --test
           app/Contexts/Intelligence
           app/ReadModels/ContributionHistory
           app/ReadModels/EventAnalysis
