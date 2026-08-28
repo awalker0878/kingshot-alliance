@@ -61,6 +61,7 @@ final class CommandOverviewBehaviorV3Test extends TestCase
         self::assertSame(1, $overview['unreadNotifications']);
         self::assertSame(1, $overview['pendingGiftCodes']);
         self::assertSame(2, $overview['actionCount']);
+        self::assertSame([], $overview['intelligenceSignals']);
         self::assertSame('COMMAND-CENTER', $overview['giftCodes'][0]['code']);
         self::assertSame([], $overview['upcomingEvents']);
         self::assertNull($overview['recruitment']);
