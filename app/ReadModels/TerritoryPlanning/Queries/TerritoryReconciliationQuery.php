@@ -190,7 +190,7 @@ final readonly class TerritoryReconciliationQuery
                     'unresolved' => 'identity_unresolved',
                     default => 'unexpected',
                 }
-                : 'unexpected';
+            : 'unexpected';
             $unexpected[] = $object + [
                 'status' => $status,
                 'observed_covered' => $type === 'governor_city'
@@ -442,6 +442,7 @@ final readonly class TerritoryReconciliationQuery
                     'observed_covered' => null,
                     'coverage_delta' => 'unknown',
                 ];
+
                 continue;
             }
 
@@ -522,6 +523,7 @@ final readonly class TerritoryReconciliationQuery
                         'delta_y' => null,
                         'ambiguous_observed_keys' => $ambiguousKeys,
                     ];
+
                     continue;
                 }
 
@@ -536,6 +538,7 @@ final readonly class TerritoryReconciliationQuery
                         'delta_x' => null,
                         'delta_y' => null,
                     ];
+
                     continue;
                 }
 
