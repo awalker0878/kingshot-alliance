@@ -6,6 +6,7 @@ namespace App\ReadModels\IntelligenceSignals\Queries;
 
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentStageHistory;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferObservation;
+use App\Contexts\Intelligence\Evidence\Enums\EvidenceKind;
 use App\Contexts\Intelligence\Observations\Models\KingdomAllianceObservation;
 use App\Contexts\Intelligence\Roster\Models\GovernorProgressionObservation;
 use App\Contexts\Operations\Events\Enums\EventOccurrenceStatus;
@@ -142,6 +143,18 @@ final readonly class IntelligenceSignalQuery
             if (! $current instanceof GovernorProgressionObservation || ! $previous instanceof GovernorProgressionObservation) {
                 continue;
             }
+
+            // A partial Hero-roster capture can prove facts that are present, but
+            // cannot prove that a previously observed Hero disappeared. Until a
+            // field-level partial comparison is introduced, compare roster-wide
+            // snapshots only when the later capture explicitly asserts completeness.
+            if ($current->kind === EvidenceKind::GovernorHeroRoster) {
+                $payload = is_array($current->payload) ? $current->payload : [];
+                if (($payload['complete_roster_capture'] ?? false) !== true) {
+                    continue;
+                }
+            }
+
             $signal = $this->factory->progressionChange($current, $previous, $asOf);
             if ($signal instanceof IntelligenceSignal) {
                 $signals[] = $signal;
