@@ -119,6 +119,15 @@ final class TerritorySpatialEvidenceController extends Controller
             'objects.*.confidence' => ['nullable', 'numeric', 'between:0,1'],
             'objects.*.source_metadata' => ['nullable', 'array'],
         ]);
+        $coverageBounds = null;
+        if (is_array($validated['coverage_bounds'] ?? null)) {
+            $coverageBounds = [
+                'x' => (int) $validated['coverage_bounds']['x'],
+                'y' => (int) $validated['coverage_bounds']['y'],
+                'width' => (int) $validated['coverage_bounds']['width'],
+                'height' => (int) $validated['coverage_bounds']['height'],
+            ];
+        }
         [$actorPlayerId, $allianceId, $kingdomId] = $this->scope($context);
         $reviewId = $save->handle(
             actorPlayerId: $actorPlayerId,
@@ -128,9 +137,7 @@ final class TerritorySpatialEvidenceController extends Controller
             capturedAt: (string) $validated['captured_at'],
             coverageKind: SpatialObservationCoverageKind::from((string) $validated['coverage_kind']),
             completeness: SpatialObservationCompleteness::from((string) $validated['completeness']),
-            coverageBounds: is_array($validated['coverage_bounds'] ?? null)
-                ? $validated['coverage_bounds']
-                : null,
+            coverageBounds: $coverageBounds,
             objects: $validated['objects'],
         );
 
