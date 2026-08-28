@@ -7,9 +7,21 @@ namespace App\Contexts\Intelligence\Evidence\Models;
 use App\Contexts\Intelligence\Evidence\Enums\EvidenceReviewStatus;
 use App\Contexts\Intelligence\Observations\Enums\SpatialObservationCompleteness;
 use App\Contexts\Intelligence\Observations\Enums\SpatialObservationCoverageKind;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property int $revision_number
+ * @property EvidenceReviewStatus $status
+ * @property CarbonImmutable $captured_at
+ * @property SpatialObservationCoverageKind $coverage_kind
+ * @property SpatialObservationCompleteness $completeness
+ * @property array{x:int,y:int,width:int,height:int}|null $coverage_bounds
+ * @property array{objects?:list<array<string,mixed>>} $payload
+ * @property CarbonImmutable|null $reviewed_at
+ * @property CarbonImmutable|null $resolved_at
+ */
 final class SpatialEvidenceReview extends Model
 {
     use HasUlids;
