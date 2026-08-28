@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use App\Contexts\Operations\Events\Catalog\KingShotEventTypeCatalog;
-use App\Contexts\Operations\Results\Catalog\KingShotEventMetricCatalog;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -20,6 +19,12 @@ return new class extends Migration
             $table->string('name_key', 180);
             $table->string('description_key', 180)->nullable();
             $table->string('category', 48)->index();
+            $table->string('verification_state', 24)->default('candidate')->index();
+            $table->string('profile_state', 24)->default('disabled')->index();
+            $table->string('source_label', 180)->nullable();
+            $table->string('source_reference', 512)->nullable();
+            $table->timestampTz('source_observed_at')->nullable();
+            $table->string('game_version_boundary', 96)->nullable();
             $table->string('icon_key', 64)->nullable();
             $table->boolean('is_system')->default(true);
             $table->boolean('is_active')->default(true)->index();
@@ -34,20 +39,6 @@ return new class extends Migration
             $table->string('view_permission_key', 96);
             $table->string('create_permission_key', 96);
             $table->string('manage_permission_key', 96);
-            $table->unsignedInteger('default_duration_minutes')->nullable();
-            $table->unsignedInteger('default_capacity')->nullable();
-            $table->string('schedule_source', 32)->default('game_calendar');
-            $table->string('recurrence_policy', 32)->default('disabled');
-            $table->string('default_recurrence_frequency', 24)->default('none');
-            $table->unsignedInteger('default_recurrence_interval')->default(1);
-            $table->unsignedInteger('minimum_repeat_interval_minutes')->nullable();
-            $table->unsignedInteger('default_registration_opens_minutes_before')->nullable();
-            $table->unsignedInteger('default_registration_closes_minutes_before')->nullable();
-            $table->string('default_instructions_key', 180)->nullable();
-            $table->json('default_settings')->nullable();
-            $table->string('result_score_label_key', 180)->nullable();
-            $table->string('result_score_unit', 32)->nullable();
-            $table->boolean('result_score_higher_is_better')->nullable();
             $table->boolean('is_active')->default(true)->index();
             $table->unsignedInteger('sort_order')->default(0);
             $table->timestamps();
@@ -57,13 +48,12 @@ return new class extends Migration
             $table->index(['scope', 'is_active', 'sort_order']);
         });
 
-        Schema::create('event_type_capabilities', function (Blueprint $table): void {
+        Schema::create('event_type_workflow_dimensions', function (Blueprint $table): void {
             $table->ulid('id')->primary();
-            $table->foreignUlid('event_type_scope_id')->constrained('event_type_scopes')->cascadeOnDelete();
-            $table->string('capability', 48);
-            $table->json('configuration')->nullable();
+            $table->foreignUlid('event_type_id')->constrained('event_types')->cascadeOnDelete();
+            $table->string('dimension', 48);
 
-            $table->unique(['event_type_scope_id', 'capability']);
+            $table->unique(['event_type_id', 'dimension']);
         });
 
         $now = now();
@@ -75,6 +65,12 @@ return new class extends Migration
                 'name_key' => $definition['name_key'],
                 'description_key' => $definition['description_key'],
                 'category' => $definition['category']->value,
+                'verification_state' => $definition['verification_state']->value,
+                'profile_state' => $definition['profile_state']->value,
+                'source_label' => $definition['source_label'],
+                'source_reference' => $definition['source_reference'],
+                'source_observed_at' => $definition['source_observed_at'],
+                'game_version_boundary' => $definition['game_version_boundary'],
                 'icon_key' => $definition['icon_key'],
                 'is_system' => true,
                 'is_active' => true,
@@ -83,58 +79,34 @@ return new class extends Migration
                 'updated_at' => $now,
             ]);
 
-            foreach ($definition['scopes'] as $index => $scope) {
-                $scopeId = (string) Str::ulid();
-                $measurement = KingShotEventMetricCatalog::profile(
-                    $definition['slug'],
-                    $scope['scope'],
-                    $scope['capabilities'],
-                );
-                $score = $measurement['score'];
+            foreach ($definition['workflow_dimensions'] as $dimension) {
+                DB::table('event_type_workflow_dimensions')->insert([
+                    'id' => (string) Str::ulid(),
+                    'event_type_id' => $typeId,
+                    'dimension' => $dimension->value,
+                ]);
+            }
 
+            foreach ($definition['scopes'] as $index => $scope) {
                 DB::table('event_type_scopes')->insert([
-                    'id' => $scopeId,
+                    'id' => (string) Str::ulid(),
                     'event_type_id' => $typeId,
                     'scope' => $scope['scope']->value,
                     'view_permission_key' => $scope['view_permission']->value,
                     'create_permission_key' => $scope['create_permission']->value,
                     'manage_permission_key' => $scope['manage_permission']->value,
-                    'default_duration_minutes' => $scope['default_duration_minutes'],
-                    'default_capacity' => $scope['default_capacity'],
-                    'schedule_source' => $scope['schedule_source']->value,
-                    'recurrence_policy' => $scope['recurrence_policy']->value,
-                    'default_recurrence_frequency' => $scope['default_recurrence_frequency']->value,
-                    'default_recurrence_interval' => $scope['default_recurrence_interval'],
-                    'minimum_repeat_interval_minutes' => $scope['minimum_repeat_interval_minutes'],
-                    'default_registration_opens_minutes_before' => $scope['default_registration_opens_minutes_before'],
-                    'default_registration_closes_minutes_before' => $scope['default_registration_closes_minutes_before'],
-                    'default_instructions_key' => $scope['default_instructions_key'],
-                    'default_settings' => empty($scope['default_settings']) ? null : json_encode($scope['default_settings'], JSON_THROW_ON_ERROR),
-                    'result_score_label_key' => $score['label_key'] ?? null,
-                    'result_score_unit' => $score['unit'] ?? null,
-                    'result_score_higher_is_better' => $score['higher_is_better'] ?? null,
                     'is_active' => true,
                     'sort_order' => $index,
                     'created_at' => $now,
                     'updated_at' => $now,
                 ]);
-
-                foreach ($scope['capabilities'] as $capability) {
-                    $configuration = $scope['capability_configuration'][$capability->value] ?? null;
-                    DB::table('event_type_capabilities')->insert([
-                        'id' => (string) Str::ulid(),
-                        'event_type_scope_id' => $scopeId,
-                        'capability' => $capability->value,
-                        'configuration' => $configuration === null ? null : json_encode($configuration, JSON_THROW_ON_ERROR),
-                    ]);
-                }
             }
         }
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('event_type_capabilities');
+        Schema::dropIfExists('event_type_workflow_dimensions');
         Schema::dropIfExists('event_type_scopes');
         Schema::dropIfExists('event_types');
     }
