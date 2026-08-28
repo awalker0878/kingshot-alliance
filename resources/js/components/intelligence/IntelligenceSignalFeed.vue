@@ -59,14 +59,23 @@ function tone(signal: IntelligenceSignal): string {
 </script>
 
 <template>
-  <section class="ks-surface p-5 sm:p-6" aria-labelledby="intelligence-change-heading">
+  <section
+    class="ks-surface p-5 sm:p-6"
+    aria-labelledby="intelligence-change-heading"
+  >
     <div class="flex flex-wrap items-start justify-between gap-3">
       <div class="max-w-3xl">
         <p class="ks-kicker">{{ t('intelligenceChange.title') }}</p>
-        <h2 id="intelligence-change-heading" class="ks-display mt-1 text-xl font-semibold sm:text-2xl">
+        <h2
+          id="intelligence-change-heading"
+          class="ks-display mt-1 text-xl font-semibold sm:text-2xl"
+        >
           {{ t('intelligenceChange.title') }}
         </h2>
-        <p v-if="!compact" class="mt-2 text-sm leading-6 text-[var(--ks-text-secondary)]">
+        <p
+          v-if="!compact"
+          class="mt-2 text-sm leading-6 text-[var(--ks-text-secondary)]"
+        >
           {{ t('intelligenceChange.subtitle') }}
         </p>
       </div>
@@ -88,7 +97,9 @@ function tone(signal: IntelligenceSignal): string {
             <p class="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--ks-muted)]">
               {{ displayMetric(signal) }}
             </p>
-            <p class="mt-2 text-sm leading-6 text-[var(--ks-ivory)]">{{ signal.summary }}</p>
+            <p class="mt-2 text-sm leading-6 text-[var(--ks-ivory)]">
+              {{ signal.summary }}
+            </p>
           </div>
           <span class="ks-status" :data-tone="tone(signal)">
             {{
@@ -102,7 +113,9 @@ function tone(signal: IntelligenceSignal): string {
         <dl class="mt-3 grid gap-x-4 gap-y-2 text-xs sm:grid-cols-2">
           <div>
             <dt class="text-[var(--ks-muted)]">{{ t('intelligenceChange.observed') }}</dt>
-            <dd class="mt-0.5 text-[var(--ks-text-secondary)]">{{ formatDate(signal.observedAt) }}</dd>
+            <dd class="mt-0.5 text-[var(--ks-text-secondary)]">
+              {{ formatDate(signal.observedAt) }}
+            </dd>
           </div>
           <div v-if="signal.baselineObservedAt">
             <dt class="text-[var(--ks-muted)]">{{ t('intelligenceChange.baseline') }}</dt>
@@ -124,7 +137,9 @@ function tone(signal: IntelligenceSignal): string {
           </div>
         </dl>
 
-        <div class="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-[var(--ks-border)] pt-3 text-xs">
+        <div
+          class="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-[var(--ks-border)] pt-3 text-xs"
+        >
           <span class="text-[var(--ks-muted)]">
             {{ t('intelligenceChange.source') }}: {{ signal.sourceOwner }}
           </span>
