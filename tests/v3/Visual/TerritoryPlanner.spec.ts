@@ -7,9 +7,17 @@ const territoryVisualFingerprints: Record<string, string> = {
   mobile: '0fa34fb492a3d8ec368f41db1908a19264334b439c047b07fcbd3ed3826d403c',
 };
 
-async function activateVisualGovernor(page: Page): Promise<void> {
+const territoryReconciliationFingerprints: Record<string, string> = {
+  desktop: 'pending',
+  mobile: 'pending',
+};
+
+async function activateVisualGovernor(
+  page: Page,
+  email = 'territory-visual@example.test',
+): Promise<void> {
   await page.goto('/login');
-  await page.locator('#email').fill('territory-visual@example.test');
+  await page.locator('#email').fill(email);
   await page.locator('#password').fill('password');
   await page.locator('button[type="submit"]').click();
   await page.waitForURL('**/dashboard');
@@ -65,6 +73,49 @@ test('Territory Command renders the saved hive without horizontal page overflow'
     caret: 'hide',
     fullPage: true,
     path: testInfo.outputPath('territory-planner.png'),
+    scale: 'css',
+  });
+  const actualFingerprint = createHash('sha256').update(screenshot).digest('hex');
+
+  expect(actualFingerprint).toBe(expectedFingerprint);
+});
+
+test('Plan vs observed renders deterministic drift, uncertainty and provenance states', async (
+  { page },
+  testInfo,
+) => {
+  await activateVisualGovernor(page, 'territory-reconciliation-visual@example.test');
+  await page.goto('/territory');
+  await page.waitForLoadState('networkidle');
+  await expect(page.getByText('Observed Hive Alpha')).toBeVisible();
+  await page.getByRole('link', { name: 'Plan vs observed' }).click();
+  await page.waitForLoadState('networkidle');
+  await page.evaluate(() => document.fonts.ready);
+
+  await expect(page.getByRole('heading', { name: 'Plan vs observed' })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Reconciliation summary' })).toBeVisible();
+  await expect(page.getByText('North Star')).toBeVisible();
+  await expect(page.getByText('Out of position')).toBeVisible();
+  await expect(page.getByText('Unknown Governor')).toBeVisible();
+  await expect(page.getByText('Unexpected observed object')).toBeVisible();
+  await expect(page.getByText('Published plan remains unchanged')).toBeVisible();
+
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
+  );
+  expect(overflow).toBeFalsy();
+
+  const expectedFingerprint = territoryReconciliationFingerprints[testInfo.project.name];
+  expect(
+    expectedFingerprint,
+    `Missing Territory reconciliation visual fingerprint for ${testInfo.project.name}`,
+  ).toBeDefined();
+
+  const screenshot = await page.screenshot({
+    animations: 'disabled',
+    caret: 'hide',
+    fullPage: true,
+    path: testInfo.outputPath('territory-reconciliation.png'),
     scale: 'css',
   });
   const actualFingerprint = createHash('sha256').update(screenshot).digest('hex');
