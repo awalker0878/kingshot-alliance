@@ -9,6 +9,14 @@ use App\Contexts\Intelligence\Observations\Enums\SpatialObservedObjectType;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property SpatialObservedObjectType $object_type
+ * @property SpatialObservedIdentityState $identity_state
+ * @property int $coordinate_x
+ * @property int $coordinate_y
+ * @property float|null $confidence
+ * @property array<string,mixed>|null $source_metadata
+ */
 final class SpatialObservedObject extends Model
 {
     use HasUlids;
