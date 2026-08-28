@@ -45,7 +45,7 @@ Later capability delivery is represented by the current canonical contracts belo
 | Factual Governor Progression | Complete | [Factual Governor Progression](factual-governor-progression.md) |
 | Kingdom Transfer Planning | Complete | [Kingdom Transfer Planning](kingdom-transfer-planning.md) |
 | Alliance Territory & Hive Planner | Complete | [Capability catalogue](capability-catalogue.md), [Capability completeness plan](capability-gap-analysis.md), [user journeys](experience/user-journeys.md), and architecture/ADR docs |
-| Territory Planner — Plan vs Observed Reality | Complete | [Territory plan versus observed reality](territory-plan-observed-reality.md) | Published Territory revisions remain immutable desired state; Evidence owns reviewed source provenance; Observations owns append-only accepted spatial facts; KingdomMaps owns geometry; ReadModels composes authorized comparison without plan mutation. |
+| Territory Planner — Plan vs Observed Reality | Complete | [Territory plan versus observed reality](territory-plan-observed-reality.md). Published Territory revisions remain immutable desired state; Evidence owns reviewed source provenance; Observations owns append-only accepted spatial facts; KingdomMaps owns geometry; ReadModels composes authorized comparison without plan mutation. |
 | Screenshot Intake — Bear Hunt | Complete | [Screenshot Intake](screenshot-intake.md) |
 | Bear Hunt Debrief | Complete | [Bear Hunt Debrief](bear-hunt-debrief.md) |
 | Alliance Assistant — initial bounded intents | Complete | [Alliance Assistant](alliance-assistant.md) |
