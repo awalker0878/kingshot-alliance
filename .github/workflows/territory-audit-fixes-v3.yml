@@ -96,7 +96,7 @@ jobs:
           vendor/bin/pint app/ReadModels/TerritoryPlanning/Queries/TerritoryReconciliationQuery.php tests/v3/ReadModels/TerritoryPlanning/TerritoryReconciliationBoundariesV3Test.php
           npx prettier --write resources/js/pages/Kingdom/Territory/Reconciliation.vue resources/js/localization/territory-reconciliation-labels.ts
           php artisan test tests/v3/Contexts/Intelligence/Observations/SpatialObservationEvidenceV3Test.php tests/v3/ReadModels/TerritoryPlanning/TerritoryPlanObservedRealityV3Test.php tests/v3/ReadModels/TerritoryPlanning/TerritoryReconciliationBoundariesV3Test.php
-          npm run type-check
+          npm run types:check
           git diff --check
 
       - name: Commit verified audit fixes
