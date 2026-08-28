@@ -124,7 +124,7 @@ final class EventType extends Model
 
     public function supportsWorkflow(EventWorkflowDimension $dimension): bool
     {
-        if (! $this->profileEnabled()) {
+        if ($this->profileEnabled() === false) {
             return false;
         }
 
