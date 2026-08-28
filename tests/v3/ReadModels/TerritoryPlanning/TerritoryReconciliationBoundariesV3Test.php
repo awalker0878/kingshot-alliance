@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tests\v3\ReadModels\TerritoryPlanning;
 
 use App\Contexts\GameWorld\KingdomMaps\Queries\KingdomMapDatasetQuery;
-use App\Contexts\GameWorld\KingdomMaps\ValueObjects\KingdomMapDataset;
 use App\Contexts\Intelligence\Observations\Enums\SpatialObservationCompleteness;
 use App\Contexts\Intelligence\Observations\Enums\SpatialObservationCoverageKind;
 use App\Contexts\Intelligence\Observations\Enums\SpatialObservedIdentityState;
@@ -20,6 +19,7 @@ use App\ReadModels\TerritoryPlanning\Queries\TerritoryReconciliationQuery;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use RuntimeException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\v3\Support\ScenarioFactory;
 use Tests\v3\TestCase;
@@ -72,79 +72,67 @@ final class TerritoryReconciliationBoundariesV3Test extends TestCase
     public function test_incompatible_observation_coordinate_system_fails_closed(): void
     {
         [$actor, $alliance, $planId, $revisionId] = $this->publishedPlan(62103);
-        $realDatasets = app(KingdomMapDatasetQuery::class);
-        $baseDataset = $realDatasets->require(self::DATASET_ID);
         $incompatibleId = 'test-incompatible-coordinate-system';
-        $incompatibleChecksum = str_repeat('a', 64);
-        $data = $baseDataset->data;
+        $incompatiblePath = base_path('resources/data/kingdom-maps/'.$incompatibleId.'.json');
+        $sourcePath = base_path('resources/data/kingdom-maps/'.self::DATASET_ID.'.json');
+        $raw = file_get_contents($sourcePath);
+        if (! is_string($raw)) {
+            throw new RuntimeException('Unable to prepare the incompatible Kingdom map test fixture.');
+        }
+        $data = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
+        if (! is_array($data)) {
+            throw new RuntimeException('The source Kingdom map test fixture is invalid.');
+        }
+        $data['id'] = $incompatibleId;
+        $data['source_label'] = 'Test incompatible coordinate system';
+        $data['source_uri'] = null;
         $data['coordinate_system'] = [
-            'origin' => 'test-opposite-origin',
-            'axis_x' => 'test-reversed-x',
-            'axis_y' => 'test-reversed-y',
+            'name' => 'test_incompatible_xy',
+            'origin' => 'north_east_test_coordinates',
+            'tile_size' => 1,
         ];
-        $incompatible = new KingdomMapDataset(
-            id: $incompatibleId,
-            schemaVersion: $baseDataset->schemaVersion,
-            observedAt: $baseDataset->observedAt,
-            sourceLabel: 'Test incompatible coordinate system',
-            sourceUri: null,
-            confidence: $baseDataset->confidence,
-            checksum: $incompatibleChecksum,
-            data: $data,
-        );
-        $this->app->instance(
-            KingdomMapDatasetQuery::class,
-            new class($realDatasets, $incompatible) extends KingdomMapDatasetQuery
-            {
-                public function __construct(
-                    private readonly KingdomMapDatasetQuery $delegate,
-                    private readonly KingdomMapDataset $incompatible,
-                ) {}
-
-                public function require(string $datasetId, ?string $expectedChecksum = null): KingdomMapDataset
-                {
-                    if ($datasetId !== $this->incompatible->id) {
-                        return $this->delegate->require($datasetId, $expectedChecksum);
-                    }
-                    if ($expectedChecksum !== null
-                        && ! hash_equals($this->incompatible->checksum, $expectedChecksum)) {
-                        throw new \RuntimeException('The test incompatible dataset checksum did not match.');
-                    }
-
-                    return $this->incompatible;
-                }
-            },
-        );
-        $observation = SpatialObservation::query()->create([
-            'alliance_id' => $alliance->allianceId,
-            'kingdom_id' => $actor->kingdomId,
-            'captured_at' => CarbonImmutable::now('UTC')->subMinutes(5),
-            'coverage_kind' => SpatialObservationCoverageKind::CompleteHive,
-            'completeness' => SpatialObservationCompleteness::Complete,
-            'coverage_bounds' => null,
-            'map_dataset_id' => $incompatibleId,
-            'map_dataset_checksum' => $incompatibleChecksum,
-            'source' => 'screenshot_evidence',
-            'source_evidence_id' => null,
-            'source_review_id' => null,
-            'destination_idempotency_key' => hash('sha256', 'incompatible-observation'),
-            'accepted_by_player_id' => $actor->playerId,
-            'accepted_at' => now(),
-        ]);
-
-        $result = app(TerritoryReconciliationQuery::class)->build(
-            actorPlayerId: $actor->playerId,
-            planId: $planId,
-            revisionId: $revisionId,
-            allianceId: $alliance->allianceId,
-            observationId: (string) $observation->id,
+        file_put_contents(
+            $incompatiblePath,
+            json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR).PHP_EOL,
         );
 
-        self::assertSame('dataset_incompatible', $result['state']);
-        self::assertSame('dataset_incompatible', $result['compatibility']);
-        self::assertArrayNotHasKey('governors', $result);
-        self::assertArrayNotHasKey('structures', $result);
-        self::assertArrayNotHasKey('summary', $result);
+        try {
+            $incompatible = app(KingdomMapDatasetQuery::class)->require($incompatibleId);
+            $observation = SpatialObservation::query()->create([
+                'alliance_id' => $alliance->allianceId,
+                'kingdom_id' => $actor->kingdomId,
+                'captured_at' => CarbonImmutable::now('UTC')->subMinutes(5),
+                'coverage_kind' => SpatialObservationCoverageKind::CompleteHive,
+                'completeness' => SpatialObservationCompleteness::Complete,
+                'coverage_bounds' => null,
+                'map_dataset_id' => $incompatible->id,
+                'map_dataset_checksum' => $incompatible->checksum,
+                'source' => 'screenshot_evidence',
+                'source_evidence_id' => null,
+                'source_review_id' => null,
+                'destination_idempotency_key' => hash('sha256', 'incompatible-observation'),
+                'accepted_by_player_id' => $actor->playerId,
+                'accepted_at' => now(),
+            ]);
+
+            $result = app(TerritoryReconciliationQuery::class)->build(
+                actorPlayerId: $actor->playerId,
+                planId: $planId,
+                revisionId: $revisionId,
+                allianceId: $alliance->allianceId,
+                observationId: (string) $observation->id,
+            );
+
+            self::assertSame('dataset_incompatible', $result['state']);
+            self::assertSame('dataset_incompatible', $result['compatibility']);
+            self::assertArrayNotHasKey('governors', $result);
+            self::assertArrayNotHasKey('structures', $result);
+            self::assertArrayNotHasKey('summary', $result);
+        } finally {
+            if (is_file($incompatiblePath)) {
+                unlink($incompatiblePath);
+            }
+        }
     }
 
     public function test_reconciliation_query_budget_does_not_scale_with_observed_object_count(): void
