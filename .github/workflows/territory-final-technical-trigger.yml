@@ -50,58 +50,12 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
+          import base64
           path = Path('tests/v3/ReadModels/TerritoryPlanning/TerritoryReconciliationBoundariesV3Test.php')
           text = path.read_text()
           needle = "    public function test_reconciliation_query_budget_does_not_scale_with_observed_object_count(): void\n"
-          method = r'''    public function test_latest_ignores_invalidated_observation_but_explicit_historical_selection_remains_available(): void
-    {
-        [$actor, $alliance, $planId, $revisionId] = $this->publishedPlan(62106);
-        $currentObservationId = $this->recordObservation(
-            $alliance->allianceId,
-            $actor->kingdomId,
-            $actor->playerId,
-            4,
-        );
-        $invalidatedObservationId = $this->recordObservation(
-            $alliance->allianceId,
-            $actor->kingdomId,
-            $actor->playerId,
-            1,
-        );
-        $invalidated = SpatialObservation::query()->findOrFail($invalidatedObservationId);
-        $invalidated->forceFill([
-            'invalidated_at' => now(),
-            'invalidated_by_player_id' => $actor->playerId,
-            'invalidation_reason' => 'Superseded after reviewer correction.',
-        ])->save();
-
-        $latest = app(TerritoryReconciliationQuery::class)->build(
-            actorPlayerId: $actor->playerId,
-            planId: $planId,
-            revisionId: $revisionId,
-            allianceId: $alliance->allianceId,
-        );
-        self::assertSame('ready', $latest['state']);
-        self::assertSame($currentObservationId, $latest['observation']['id']);
-        self::assertNull($latest['observation']['invalidated_at']);
-        self::assertContains(
-            $invalidatedObservationId,
-            array_column($latest['observations'], 'id'),
-        );
-
-        $historical = app(TerritoryReconciliationQuery::class)->build(
-            actorPlayerId: $actor->playerId,
-            planId: $planId,
-            revisionId: $revisionId,
-            allianceId: $alliance->allianceId,
-            observationId: $invalidatedObservationId,
-        );
-        self::assertSame('ready', $historical['state']);
-        self::assertSame($invalidatedObservationId, $historical['observation']['id']);
-        self::assertNotNull($historical['observation']['invalidated_at']);
-    }
-
-'''
+          encoded = "ICAgIHB1YmxpYyBmdW5jdGlvbiB0ZXN0X2xhdGVzdF9pZ25vcmVzX2ludmFsaWRhdGVkX29ic2VydmF0aW9uX2J1dF9leHBsaWNpdF9oaXN0b3JpY2FsX3NlbGVjdGlvbl9yZW1haW5zX2F2YWlsYWJsZSgpOiB2b2lkCiAgICB7CiAgICAgICAgWyRhY3RvciwgJGFsbGlhbmNlLCAkcGxhbklkLCAkcmV2aXNpb25JZF0gPSAkdGhpcy0+cHVibGlzaGVkUGxhbig2MjEwNik7CiAgICAgICAgJGN1cnJlbnRPYnNlcnZhdGlvbklkID0gJHRoaXMtPnJlY29yZE9ic2VydmF0aW9uKAogICAgICAgICAgICAkYWxsaWFuY2UtPmFsbGlhbmNlSWQsCiAgICAgICAgICAgICRhY3Rvci0+a2luZ2RvbUlkLAogICAgICAgICAgICAkYWN0b3ItPnBsYXllcklkLAogICAgICAgICAgICA0LAogICAgICAgICk7CiAgICAgICAgJGludmFsaWRhdGVkT2JzZXJ2YXRpb25JZCA9ICR0aGlzLT5yZWNvcmRPYnNlcnZhdGlvbigKICAgICAgICAgICAgJGFsbGlhbmNlLT5hbGxpYW5jZUlkLAogICAgICAgICAgICAkYWN0b3ItPmtpbmdkb21JZCwKICAgICAgICAgICAgJGFjdG9yLT5wbGF5ZXJJZCwKICAgICAgICAgICAgMSwKICAgICAgICApOwogICAgICAgICRpbnZhbGlkYXRlZCA9IFNwYXRpYWxPYnNlcnZhdGlvbjo6cXVlcnkoKS0+ZmluZE9yRmFpbCgkaW52YWxpZGF0ZWRPYnNlcnZhdGlvbklkKTsKICAgICAgICAkaW52YWxpZGF0ZWQtPmZvcmNlRmlsbChbCiAgICAgICAgICAgICdpbnZhbGlkYXRlZF9hdCcgPT4gbm93KCksCiAgICAgICAgICAgICdpbnZhbGlkYXRlZF9ieV9wbGF5ZXJfaWQnID0+ICRhY3Rvci0+cGxheWVySWQsCiAgICAgICAgICAgICdpbnZhbGlkYXRpb25fcmVhc29uJyA9PiAnU3VwZXJzZWRlZCBhZnRlciByZXZpZXdlciBjb3JyZWN0aW9uLicsCiAgICAgICAgXSktPnNhdmUoKTsKCiAgICAgICAgJGxhdGVzdCA9IGFwcChUZXJyaXRvcnlSZWNvbmNpbGlhdGlvblF1ZXJ5OjpjbGFzcyktPmJ1aWxkKAogICAgICAgICAgICBhY3RvclBsYXllcklkOiAkYWN0b3ItPnBsYXllcklkLAogICAgICAgICAgICBwbGFuSWQ6ICRwbGFuSWQsCiAgICAgICAgICAgIHJldmlzaW9uSWQ6ICRyZXZpc2lvbklkLAogICAgICAgICAgICBhbGxpYW5jZUlkOiAkYWxsaWFuY2UtPmFsbGlhbmNlSWQsCiAgICAgICAgKTsKICAgICAgICBzZWxmOjphc3NlcnRTYW1lKCdyZWFkeScsICRsYXRlc3RbJ3N0YXRlJ10pOwogICAgICAgIHNlbGY6OmFzc2VydFNhbWUoJGN1cnJlbnRPYnNlcnZhdGlvbklkLCAkbGF0ZXN0WydvYnNlcnZhdGlvbiddWydpZCddKTsKICAgICAgICBzZWxmOjphc3NlcnROdWxsKCRsYXRlc3RbJ29ic2VydmF0aW9uJ11bJ2ludmFsaWRhdGVkX2F0J10pOwogICAgICAgIHNlbGY6OmFzc2VydENvbnRhaW5zKAogICAgICAgICAgICAkaW52YWxpZGF0ZWRPYnNlcnZhdGlvbklkLAogICAgICAgICAgICBhcnJheV9jb2x1bW4oJGxhdGVzdFsnb2JzZXJ2YXRpb25zJ10sICdpZCcpLAogICAgICAgICk7CgogICAgICAgICRoaXN0b3JpY2FsID0gYXBwKFRlcnJpdG9yeVJlY29uY2lsaWF0aW9uUXVlcnk6OmNsYXNzKS0+YnVpbGQoCiAgICAgICAgICAgIGFjdG9yUGxheWVySWQ6ICRhY3Rvci0+cGxheWVySWQsCiAgICAgICAgICAgIHBsYW5JZDogJHBsYW5JZCwKICAgICAgICAgICAgcmV2aXNpb25JZDogJHJldmlzaW9uSWQsCiAgICAgICAgICAgIGFsbGlhbmNlSWQ6ICRhbGxpYW5jZS0+YWxsaWFuY2VJZCwKICAgICAgICAgICAgb2JzZXJ2YXRpb25JZDogJGludmFsaWRhdGVkT2JzZXJ2YXRpb25JZCwKICAgICAgICApOwogICAgICAgIHNlbGY6OmFzc2VydFNhbWUoJ3JlYWR5JywgJGhpc3RvcmljYWxbJ3N0YXRlJ10pOwogICAgICAgIHNlbGY6OmFzc2VydFNhbWUoJGludmFsaWRhdGVkT2JzZXJ2YXRpb25JZCwgJGhpc3RvcmljYWxbJ29ic2VydmF0aW9uJ11bJ2lkJ10pOwogICAgICAgIHNlbGY6OmFzc2VydE5vdE51bGwoJGhpc3RvcmljYWxbJ29ic2VydmF0aW9uJ11bJ2ludmFsaWRhdGVkX2F0J10pOwogICAgfQoK"
+          method = base64.b64decode(encoded).decode('utf-8')
           if needle not in text:
               raise SystemExit('Unable to locate Territory query-budget test insertion point.')
           path.write_text(text.replace(needle, method + needle, 1))
