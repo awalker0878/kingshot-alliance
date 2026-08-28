@@ -13,6 +13,7 @@ use App\ReadModels\AllianceAssistant\Enums\AssistantIntent;
 use App\ReadModels\AllianceAssistant\Enums\AssistantPrompt;
 use App\ReadModels\AllianceAssistant\Enums\AssistantStatus;
 use App\ReadModels\AllianceAssistant\Queries\AllianceAssistantQuery;
+use App\ReadModels\AllianceAssistant\Queries\IntelligenceChangeAssistantQuery;
 use App\ReadModels\AllianceAssistant\ValueObjects\AssistantResult;
 use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -48,6 +49,7 @@ final class AllianceAssistantController extends Controller
         Request $request,
         AllianceContext $context,
         AllianceAssistantQuery $assistant,
+        IntelligenceChangeAssistantQuery $intelligenceChanges,
     ): JsonResponse {
         $user = $request->user();
         abort_unless($user instanceof AuthenticatedAccount, 401);
@@ -71,7 +73,9 @@ final class AllianceAssistantController extends Controller
         $startedAt = hrtime(true);
 
         try {
-            $result = $assistant->ask($actor, $scope, $question, $prompt);
+            $result = $intelligenceChanges->supports($question, $prompt)
+                ? $intelligenceChanges->ask($actor, $scope, $question)
+                : $assistant->ask($actor, $scope, $question, $prompt);
         } catch (AuthorizationException $exception) {
             throw $exception;
         } catch (Throwable $exception) {
