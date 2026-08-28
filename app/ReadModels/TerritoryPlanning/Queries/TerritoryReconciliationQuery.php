@@ -22,7 +22,7 @@ final readonly class TerritoryReconciliationQuery
     ) {
     }
 
-    /** @return array<string,mixed> */
+    /** @return array<string, mixed> */
     public function build(
         string $actorPlayerId,
         string $planId,
@@ -32,12 +32,13 @@ final readonly class TerritoryReconciliationQuery
     ): array {
         $detail = $this->plans->detail($actorPlayerId, $planId);
         $plan = is_array($detail['plan'] ?? null) ? $detail['plan'] : [];
-        $revisionOptions = is_array($detail['revisions'] ?? null) ? $detail['revisions'] : [];
+        $revisionOptions = $this->typedRows($detail['revisions'] ?? null);
         usort(
             $revisionOptions,
             static fn (array $a, array $b): int => ((int) ($b['revision_number'] ?? 0))
                 <=> ((int) ($a['revision_number'] ?? 0)),
         );
+
         if ($revisionOptions === []) {
             return ['state' => 'no_published_revision', 'plan' => $plan, 'revisions' => []];
         }
@@ -56,21 +57,7 @@ final readonly class TerritoryReconciliationQuery
         $revision = $this->revisions->snapshot($actorPlayerId, $planId, $revisionId);
         $snapshot = is_array($revision['snapshot'] ?? null) ? $revision['snapshot'] : [];
         $snapshotPlan = is_array($snapshot['plan'] ?? null) ? $snapshot['plan'] : [];
-        $layers = is_array($snapshot['alliances'] ?? null) ? $snapshot['alliances'] : [];
-        $allianceOptions = [];
-        foreach ($layers as $layer) {
-            if (is_array($layer) && is_string($layer['alliance_id'] ?? null)) {
-                $allianceOptions[] = [
-                    'id' => $layer['alliance_id'],
-                    'key' => (string) ($layer['key'] ?? ''),
-                    'name' => (string) ($layer['display_name'] ?? $layer['alliance_id']),
-                ];
-            }
-        }
-        $allianceOptions = array_values(array_filter(
-            $allianceOptions,
-            static fn (array $row): bool => $row['key'] !== '',
-        ));
+        $allianceOptions = $this->allianceOptions($snapshot['alliances'] ?? null);
 
         if (($snapshotPlan['scope'] ?? null) === 'alliance') {
             $allianceId = is_string($snapshotPlan['owner_alliance_id'] ?? null)
@@ -79,6 +66,7 @@ final readonly class TerritoryReconciliationQuery
         } elseif ($allianceId === null && count($allianceOptions) === 1) {
             $allianceId = $allianceOptions[0]['id'];
         }
+
         if ($allianceId === null || ! in_array($allianceId, array_column($allianceOptions, 'id'), true)) {
             return [
                 'state' => 'alliance_required',
@@ -89,13 +77,17 @@ final readonly class TerritoryReconciliationQuery
             ];
         }
 
-        $layer = null;
-        foreach ($allianceOptions as $option) {
-            if ($option['id'] === $allianceId) {
-                $layer = $option;
-                break;
-            }
+        $layer = $this->findAlliance($allianceOptions, $allianceId);
+        if ($layer === null) {
+            return [
+                'state' => 'alliance_required',
+                'plan' => $plan,
+                'revision' => $revision,
+                'revisions' => $revisionOptions,
+                'alliance_options' => $allianceOptions,
+            ];
         }
+
         $kingdomId = (string) ($snapshotPlan['kingdom_id'] ?? $plan['kingdom_id'] ?? '');
         $history = $this->observations->history($actorPlayerId, $allianceId, $kingdomId, 50);
         $observation = $observationId === null
@@ -106,6 +98,7 @@ final readonly class TerritoryReconciliationQuery
                 $kingdomId,
                 $observationId,
             );
+
         if ($observation === null) {
             return [
                 'state' => 'no_observation',
@@ -135,6 +128,7 @@ final readonly class TerritoryReconciliationQuery
             $observedDataset->checksum,
         );
         $freshness = $this->freshness((string) $observation['captured_at']);
+
         if ($compatibility === 'dataset_incompatible') {
             return [
                 'state' => 'dataset_incompatible',
@@ -150,21 +144,20 @@ final readonly class TerritoryReconciliationQuery
             ];
         }
 
-        $plannedObjects = array_values(array_filter(
-            is_array($snapshot['objects'] ?? null) ? $snapshot['objects'] : [],
-            static fn ($object): bool => is_array($object)
-                && ($object['alliance_key'] ?? null) === ($layer['key'] ?? null),
-        ));
-        $observedObjects = is_array($observation['objects'] ?? null)
-            ? $observation['objects']
-            : [];
+        $plannedObjects = [];
+        foreach ($this->typedRows($snapshot['objects'] ?? null) as $object) {
+            if (($object['alliance_key'] ?? null) === $layer['key']) {
+                $plannedObjects[] = $object;
+            }
+        }
+        $observedObjects = $this->typedRows($observation['objects'] ?? null);
         $plannedCoverage = $this->coverage->byGovernorCity(
             $planDataset,
-            $this->coverageObjects($plannedObjects, (string) $layer['key']),
+            $this->coverageObjects($plannedObjects, $layer['key']),
         );
         $observedCoverage = $this->coverage->byGovernorCity(
             $observedDataset,
-            $this->coverageObjects($observedObjects, (string) $layer['key']),
+            $this->coverageObjects($observedObjects, $layer['key']),
         );
         $observedCoverage = $this->trustedObservedCoverage($observation, $observedCoverage);
 
@@ -182,16 +175,15 @@ final readonly class TerritoryReconciliationQuery
             $observation,
             $planDataset->data,
         );
+
         $unexpected = [];
         foreach ($observedObjects as $object) {
-            if (! is_array($object)) {
-                continue;
-            }
             $key = (string) ($object['key'] ?? '');
             if (in_array($key, $usedObservedGovernorKeys, true)
                 || in_array($key, $usedObservedStructureKeys, true)) {
                 continue;
             }
+
             $type = (string) ($object['type'] ?? '');
             $status = $type === 'governor_city'
                 ? match ((string) ($object['identity_state'] ?? 'unresolved')) {
@@ -239,8 +231,70 @@ final readonly class TerritoryReconciliationQuery
     }
 
     /**
-     * @param  array<string,mixed>  $planDataset
-     * @param  array<string,mixed>  $observedDataset
+     * @param  mixed  $value
+     * @return list<array<string, mixed>>
+     */
+    private function typedRows(mixed $value): array
+    {
+        if (! is_array($value)) {
+            return [];
+        }
+
+        $rows = [];
+        foreach ($value as $row) {
+            if (is_array($row)) {
+                $rows[] = $row;
+            }
+        }
+
+        return $rows;
+    }
+
+    /**
+     * @param  mixed  $value
+     * @return list<array{id:string,key:string,name:string}>
+     */
+    private function allianceOptions(mixed $value): array
+    {
+        $options = [];
+        foreach ($this->typedRows($value) as $layer) {
+            if (! is_string($layer['alliance_id'] ?? null)) {
+                continue;
+            }
+
+            $key = (string) ($layer['key'] ?? '');
+            if ($key === '') {
+                continue;
+            }
+
+            $options[] = [
+                'id' => $layer['alliance_id'],
+                'key' => $key,
+                'name' => (string) ($layer['display_name'] ?? $layer['alliance_id']),
+            ];
+        }
+
+        return $options;
+    }
+
+    /**
+     * @param  list<array{id:string,key:string,name:string}>  $options
+     * @return array{id:string,key:string,name:string}|null
+     */
+    private function findAlliance(array $options, string $allianceId): ?array
+    {
+        foreach ($options as $option) {
+            if ($option['id'] === $allianceId) {
+                return $option;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param  array<string, mixed>  $planDataset
+     * @param  array<string, mixed>  $observedDataset
      */
     private function compatibility(
         array $planDataset,
@@ -268,7 +322,7 @@ final readonly class TerritoryReconciliationQuery
     private function freshness(string $capturedAt): array
     {
         $captured = CarbonImmutable::parse($capturedAt)->utc();
-        $age = max(0, $captured->diffInSeconds(CarbonImmutable::now('UTC')));
+        $age = max(0, (int) $captured->diffInSeconds(CarbonImmutable::now('UTC')));
         $fresh = max(1, (int) config('territory_reconciliation.fresh_seconds', 3600));
         $aging = max($fresh, (int) config('territory_reconciliation.aging_seconds', 21600));
 
@@ -285,9 +339,9 @@ final readonly class TerritoryReconciliationQuery
      * observation. Negative coverage requires a complete-hive observation;
      * otherwise an unseen off-screen Banner could still cover the city.
      *
-     * @param  array<string,mixed>  $observation
-     * @param  array<string,bool>  $coverage
-     * @return array<string,bool|null>
+     * @param  array<string, mixed>  $observation
+     * @param  array<string, bool>  $coverage
+     * @return array<string, bool|null>
      */
     private function trustedObservedCoverage(array $observation, array $coverage): array
     {
@@ -302,20 +356,20 @@ final readonly class TerritoryReconciliationQuery
     }
 
     /**
-     * @param  list<array<string,mixed>>  $objects
+     * @param  list<array<string, mixed>>  $objects
      * @return list<array{key:string,type:string,x:int,y:int,alliance_key:string}>
      */
     private function coverageObjects(array $objects, string $allianceKey): array
     {
         $result = [];
         foreach ($objects as $object) {
-            if (! is_array($object)
-                || ! is_string($object['key'] ?? null)
+            if (! is_string($object['key'] ?? null)
                 || ! is_string($object['type'] ?? null)
                 || ! is_int($object['x'] ?? null)
                 || ! is_int($object['y'] ?? null)) {
                 continue;
             }
+
             $result[] = [
                 'key' => $object['key'],
                 'type' => $object['type'],
@@ -328,7 +382,15 @@ final readonly class TerritoryReconciliationQuery
         return $result;
     }
 
-    /** @return array{0:list<array<string,mixed>>,1:list<string>} */
+    /**
+     * @param  list<array<string, mixed>>  $planned
+     * @param  list<array<string, mixed>>  $observed
+     * @param  array<string, mixed>  $observation
+     * @param  array<string, mixed>  $dataset
+     * @param  array<string, bool>  $plannedCoverage
+     * @param  array<string, bool|null>  $observedCoverage
+     * @return array{0:list<array<string,mixed>>,1:list<string>}
+     */
     private function governors(
         array $planned,
         array $observed,
@@ -337,28 +399,22 @@ final readonly class TerritoryReconciliationQuery
         array $plannedCoverage,
         array $observedCoverage,
     ): array {
-        $plannedCities = array_values(array_filter(
-            $planned,
-            static fn ($object): bool => is_array($object)
-                && ($object['type'] ?? null) === 'governor_city',
-        ));
-        $observedCities = array_values(array_filter(
-            $observed,
-            static fn ($object): bool => is_array($object)
-                && ($object['type'] ?? null) === 'governor_city',
-        ));
+        $plannedCities = $this->objectsOfType($planned, 'governor_city');
+        $observedCities = $this->objectsOfType($observed, 'governor_city');
         $used = [];
         $rows = [];
         $tolerance = max(
             0.0,
             (float) config('territory_reconciliation.position_tolerance_tiles', 1.0),
         );
+
         foreach ($plannedCities as $plannedCity) {
             $match = null;
             foreach ($observedCities as $observedCity) {
                 if (in_array((string) ($observedCity['key'] ?? ''), $used, true)) {
                     continue;
                 }
+
                 if (is_string($plannedCity['player_id'] ?? null)
                     && ($observedCity['identity_state'] ?? null) === 'resolved_player'
                     && ($observedCity['player_id'] ?? null) === $plannedCity['player_id']) {
@@ -435,7 +491,13 @@ final readonly class TerritoryReconciliationQuery
         return 'unchanged';
     }
 
-    /** @return array{0:list<array<string,mixed>>,1:list<string>} */
+    /**
+     * @param  list<array<string, mixed>>  $planned
+     * @param  list<array<string, mixed>>  $observed
+     * @param  array<string, mixed>  $observation
+     * @param  array<string, mixed>  $dataset
+     * @return array{0:list<array<string,mixed>>,1:list<string>}
+     */
     private function structures(
         array $planned,
         array $observed,
@@ -446,16 +508,8 @@ final readonly class TerritoryReconciliationQuery
         $rows = [];
         $used = [];
         foreach ($types as $type) {
-            $plannedRows = array_values(array_filter(
-                $planned,
-                static fn ($object): bool => is_array($object)
-                    && ($object['type'] ?? null) === $type,
-            ));
-            $observedRows = array_values(array_filter(
-                $observed,
-                static fn ($object): bool => is_array($object)
-                    && ($object['type'] ?? null) === $type,
-            ));
+            $plannedRows = $this->objectsOfType($planned, $type);
+            $observedRows = $this->objectsOfType($observed, $type);
             foreach ($plannedRows as $plannedObject) {
                 [$match, $ambiguousKeys] = $this->nearest(
                     $plannedObject,
@@ -478,6 +532,7 @@ final readonly class TerritoryReconciliationQuery
                     ];
                     continue;
                 }
+
                 if ($match === null) {
                     $rows[] = [
                         'planned' => $plannedObject,
@@ -512,7 +567,20 @@ final readonly class TerritoryReconciliationQuery
     }
 
     /**
-     * @param  list<array<string,mixed>>  $candidates
+     * @param  list<array<string, mixed>>  $objects
+     * @return list<array<string, mixed>>
+     */
+    private function objectsOfType(array $objects, string $type): array
+    {
+        return array_values(array_filter(
+            $objects,
+            static fn (array $object): bool => ($object['type'] ?? null) === $type,
+        ));
+    }
+
+    /**
+     * @param  array<string, mixed>  $planned
+     * @param  list<array<string, mixed>>  $candidates
      * @param  list<string>  $used
      * @return array{0:?array<string,mixed>,1:list<string>}
      */
@@ -526,6 +594,7 @@ final readonly class TerritoryReconciliationQuery
             if ($key === '' || in_array($key, $used, true)) {
                 continue;
             }
+
             $distance = hypot(
                 (int) $candidate['x'] - (int) $planned['x'],
                 (int) $candidate['y'] - (int) $planned['y'],
@@ -533,6 +602,7 @@ final readonly class TerritoryReconciliationQuery
             if ($distance > $max) {
                 continue;
             }
+
             if ($bestDistance === null || $distance < $bestDistance - 0.000001) {
                 $best = $candidate;
                 $bestDistance = $distance;
@@ -541,6 +611,7 @@ final readonly class TerritoryReconciliationQuery
                 $nearestKeys[] = $key;
             }
         }
+
         if (count($nearestKeys) > 1) {
             return [null, $nearestKeys];
         }
@@ -549,9 +620,9 @@ final readonly class TerritoryReconciliationQuery
     }
 
     /**
-     * @param  array<string,mixed>  $planned
-     * @param  array<string,mixed>  $observation
-     * @param  array<string,mixed>  $dataset
+     * @param  array<string, mixed>  $planned
+     * @param  array<string, mixed>  $observation
+     * @param  array<string, mixed>  $dataset
      */
     private function absenceProven(array $planned, array $observation, array $dataset): bool
     {
@@ -578,7 +649,12 @@ final readonly class TerritoryReconciliationQuery
             && (int) $planned['y'] + $size <= (int) $bounds['y'] + (int) $bounds['height'];
     }
 
-    /** @return array<string,int> */
+    /**
+     * @param  list<array<string, mixed>>  $governors
+     * @param  list<array<string, mixed>>  $structures
+     * @param  list<array<string, mixed>>  $unexpected
+     * @return array<string, int>
+     */
     private function summary(array $governors, array $structures, array $unexpected): array
     {
         $summary = [
