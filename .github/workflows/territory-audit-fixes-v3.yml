@@ -1,0 +1,109 @@
+name: Territory Audit Fix Applicator V3
+
+on:
+  push:
+    branches:
+      - territory-plan-observed-reality-main
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: kingshot_test
+          POSTGRES_USER: kingshot
+          POSTGRES_PASSWORD: kingshot
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U kingshot -d kingshot_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:8.8-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      APP_ENV: testing
+      APP_KEY: base64:Wb1PHh03m1vXbmyRxlI+Y96TqgK7Vyt8H/lkQ8o1SP0=
+      APP_DEBUG: false
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_DATABASE: kingshot_test
+      DB_USERNAME: kingshot
+      DB_PASSWORD: kingshot
+      CACHE_STORE: redis
+      QUEUE_CONNECTION: redis
+      SESSION_DRIVER: array
+      REDIS_HOST: 127.0.0.1
+      PULSE_ENABLED: false
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: territory-plan-observed-reality-main
+
+      - name: Reuse exact reviewed patch script
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          source = Path('.github/workflows/territory-audit-fixes-v2.yml').read_text().splitlines()
+          collecting = False
+          body = []
+          for line in source:
+              if line.strip() == "python - <<'PY'":
+                  collecting = True
+                  continue
+              if collecting and line.strip() == 'PY':
+                  break
+              if collecting:
+                  body.append(line[10:] if line.startswith('          ') else line)
+          if not body:
+              raise SystemExit('Unable to extract reviewed Territory patch script.')
+          Path('/tmp/territory-audit-fixes.py').write_text('\n'.join(body) + '\n')
+          PY
+          python /tmp/territory-audit-fixes.py
+
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.5'
+          extensions: dom, gd, intl, mbstring, pcntl, pdo_pgsql, posix, redis, simplexml, xml, xmlwriter, zip
+          coverage: none
+          tools: composer:v2
+      - run: composer install --no-interaction --no-progress --prefer-dist
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+
+      - name: Format and verify focused Territory slice
+        shell: bash
+        run: |
+          vendor/bin/pint app/ReadModels/TerritoryPlanning/Queries/TerritoryReconciliationQuery.php tests/v3/ReadModels/TerritoryPlanning/TerritoryReconciliationBoundariesV3Test.php
+          npx prettier --write resources/js/pages/Kingdom/Territory/Reconciliation.vue resources/js/localization/territory-reconciliation-labels.ts
+          php artisan test tests/v3/Contexts/Intelligence/Observations/SpatialObservationEvidenceV3Test.php tests/v3/ReadModels/TerritoryPlanning/TerritoryPlanObservedRealityV3Test.php tests/v3/ReadModels/TerritoryPlanning/TerritoryReconciliationBoundariesV3Test.php
+          npm run type-check
+          git diff --check
+
+      - name: Commit verified audit fixes
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/ReadModels/TerritoryPlanning/Queries/TerritoryReconciliationQuery.php resources/js/pages/Kingdom/Territory/Reconciliation.vue resources/js/localization/territory-reconciliation-labels.ts tests/v3/ReadModels/TerritoryPlanning/TerritoryReconciliationBoundariesV3Test.php
+          git commit -m "Enforce Territory historical and dataset geometry semantics"
+          git push origin HEAD:territory-plan-observed-reality-main
