@@ -22,7 +22,6 @@ final readonly class SpatialObservationQuery
         return array_values(SpatialObservation::query()
             ->where('alliance_id', $allianceId)
             ->where('kingdom_id', $kingdomId)
-            ->whereNull('invalidated_at')
             ->orderByDesc('captured_at')
             ->orderByDesc('id')
             ->limit(max(1, min(100, $limit)))
