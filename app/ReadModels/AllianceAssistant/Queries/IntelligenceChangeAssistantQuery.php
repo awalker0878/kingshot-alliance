@@ -4,10 +4,17 @@ declare(strict_types=1);
 
 namespace App\ReadModels\AllianceAssistant\Queries;
 
+use App\Contexts\Alliance\Access\Enums\AlliancePermission;
+use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Membership\ValueObjects\AllianceScopeReference;
+use App\Contexts\GameWorld\KingdomTransfers\Access\Enums\TransferPermission;
+use App\Contexts\GameWorld\KingdomTransfers\Access\Services\TransferAuthorization;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
+use App\Contexts\Operations\Access\Enums\OperationsPermission;
+use App\Contexts\Operations\Events\Enums\EventScope;
+use App\Contexts\Operations\Events\Services\EventAuthorization;
 use App\ReadModels\AllianceAssistant\Enums\AssistantIntent;
 use App\ReadModels\AllianceAssistant\Enums\AssistantPrompt;
 use App\ReadModels\AllianceAssistant\Enums\AssistantStatus;
@@ -22,6 +29,9 @@ final readonly class IntelligenceChangeAssistantQuery
 {
     public function __construct(
         private AllianceIntelligenceAuthorization $authorization,
+        private AllianceAuthorization $allianceAuthorization,
+        private TransferAuthorization $transferAuthorization,
+        private EventAuthorization $eventAuthorization,
         private IntelligenceSignalQuery $signals,
     ) {}
 
@@ -63,10 +73,30 @@ final readonly class IntelligenceChangeAssistantQuery
             throw new AuthorizationException;
         }
 
-        $signals = $this->signals->recentForAlliance(
-            $scope->allianceId,
+        $canViewTransfer = $this->transferAuthorization->allows(
             $actor->playerId,
-            max(1, min(8, (int) config('assistant.intelligence_change_result_limit', 5))),
+            $scope->allianceId,
+            TransferPermission::View,
+        );
+        $canViewBearHunt = $this->eventAuthorization->allows(
+            $actor->playerId,
+            EventScope::Alliance,
+            $scope->allianceId,
+            OperationsPermission::EventAllianceView,
+        );
+        $canManageRecruitment = $this->allianceAuthorization->allows(
+            $actor->playerId,
+            $scope->allianceId,
+            AlliancePermission::RecruitmentManage,
+        );
+
+        $signals = $this->signals->recentForAlliance(
+            allianceId: $scope->allianceId,
+            actorPlayerId: $actor->playerId,
+            limit: max(1, min(8, (int) config('assistant.intelligence_change_result_limit', 5))),
+            includeTransfer: $canViewTransfer,
+            includeRecruitment: $canManageRecruitment,
+            includeBearHunt: $canViewBearHunt,
         );
         $signals = $this->filterForQuestion($signals, $question);
 
