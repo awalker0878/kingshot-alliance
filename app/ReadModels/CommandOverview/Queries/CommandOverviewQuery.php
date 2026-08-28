@@ -12,9 +12,12 @@ use App\Contexts\Communications\Delivery\Models\NotificationDelivery;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeRedemption;
 use App\Contexts\GameWorld\GiftCodes\Queries\GiftCodeCatalogQuery;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
+use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
+use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Events\Queries\EventAttentionQuery;
 use App\Contexts\Operations\Events\Queries\EventCalendarQuery;
+use App\ReadModels\IntelligenceSignals\Queries\IntelligenceSignalQuery;
 use Illuminate\Database\Eloquent\Builder;
 
 final readonly class CommandOverviewQuery
@@ -23,6 +26,8 @@ final readonly class CommandOverviewQuery
         private EventCalendarQuery $calendar,
         private EventAttentionQuery $attention,
         private GiftCodeCatalogQuery $giftCodes,
+        private AllianceIntelligenceAuthorization $intelligenceAuthorization,
+        private IntelligenceSignalQuery $intelligenceSignals,
     ) {}
 
     /**
@@ -33,6 +38,7 @@ final readonly class CommandOverviewQuery
      *   eventActions:list<array<string,mixed>>,
      *   giftCodes:list<array<string,mixed>>,
      *   recruitment:?array{pending:int,overdue:int},
+     *   intelligenceSignals:list<array<string,mixed>>,
      *   actionCount:int
      * }
      */
@@ -48,6 +54,14 @@ final readonly class CommandOverviewQuery
         $recruitment = $allianceId !== null && $canManageRecruitment
             ? $this->recruitment($allianceId)
             : null;
+        $intelligenceSignals = $allianceId !== null
+            && $this->intelligenceAuthorization->allows(
+                $player->playerId,
+                $allianceId,
+                IntelligencePermission::View,
+            )
+                ? $this->intelligenceSignals->recentForAlliance($allianceId, $player->playerId, 4)
+                : [];
 
         return [
             'unreadNotifications' => $unreadNotifications,
@@ -56,6 +70,8 @@ final readonly class CommandOverviewQuery
             'eventActions' => $eventActions,
             'giftCodes' => $giftCodes,
             'recruitment' => $recruitment,
+            // Informational intelligence changes do not inflate actionCount.
+            'intelligenceSignals' => $intelligenceSignals,
             'actionCount' => $unreadNotifications
                 + $pendingGiftCodes
                 + count($eventActions)
