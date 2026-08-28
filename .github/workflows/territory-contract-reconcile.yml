@@ -1,0 +1,61 @@
+name: Territory Contract Reconciliation
+
+on:
+  push:
+    branches:
+      - territory-plan-observed-reality-main
+
+permissions:
+  contents: write
+
+jobs:
+  reconcile-contract:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: territory-plan-observed-reality-main
+
+      - name: Reconcile canonical Territory contract
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('docs/product/territory-plan-observed-reality.md')
+          text = path.read_text()
+
+          replacements = {
+              "Invalidation records actor/time/reason and never deletes historical provenance.\n\nDeleting/redacting Evidence does not delete a committed spatial observation.":
+                  "Invalidation records actor/time/reason and never deletes historical provenance.\n\nAuthorized observation history preserves current, corrected and invalidated historical records for explicit selection. Latest-current discovery excludes invalidated observations, but an authorized user may deliberately select an invalidated historical observation to inspect what was previously accepted. The projection exposes invalidation metadata, and the UX must label the selected record as historical/invalidated so it cannot be mistaken for current observed reality.\n\nDeleting/redacting Evidence does not delete a committed spatial observation.",
+              "- available authorized observation history for selection;\n- available immutable revision history for selection.":
+                  "- available authorized observation history for selection, including invalidated/corrected historical records with their invalidation metadata;\n- available immutable revision history for selection;\n- pinned KingdomMap coordinate-system identity and exact map bounds required to render the comparison without presentation-owned world constants.",
+              "Compare mode may render planned objects as the desired layer and observed objects as the observed layer, with connector/delta treatment for resolved moved objects.\n\nThe map/canvas is never the sole information surface.":
+                  "Compare mode may render planned objects as the desired layer and observed objects as the observed layer, with connector/delta treatment for resolved moved objects. The read model supplies the exact bounds and coordinate-system identity from the pinned KingdomMaps dataset. Vue derives the SVG/canvas view box and coordinate transform from those values; it must not hard-code map width, height, origin or Y-axis inversion constants.\n\nThe map/canvas is never the sole information surface.",
+              "- **TR-22** correction/invalidation preserves historical observation provenance.":
+                  "- **TR-22** correction/invalidation preserves historical observation provenance, keeps invalidated records in authorized history for explicit selection, excludes them from latest-current discovery and visibly labels an explicitly selected invalidated observation as historical/invalidated.",
+              "- **TR-33** PHP tests, Pint, PHPStan, frontend lint/format/type/build, architecture tests, accessibility/visual regression and applicable repository release gates pass before the capability is marked complete.":
+                  "- **TR-33** PHP tests, Pint, PHPStan, frontend lint/format/type/build, architecture tests, accessibility/visual regression and applicable repository release gates pass before the capability is marked complete.\n- **TR-34** the comparison projection exposes pinned KingdomMap bounds/coordinate-system metadata and every map overlay derives its view box/coordinate transform from that data; no frontend world-size/origin constant duplicates KingdomMaps truth.",
+              "| 8 | Planned-vs-observed coverage comparison using existing geometry | Not started |":
+                  "| 8 | Planned-vs-observed coverage comparison and dataset-driven rendering geometry using existing KingdomMaps contracts | Not started |",
+              "| 10 | Territory Planner Plan/Observed/Compare UX, filters, semantic discrepancy list and provenance | Not started |":
+                  "| 10 | Territory Planner Plan/Observed/Compare UX, filters, semantic discrepancy list, provenance and explicit invalidated-history presentation | Not started |",
+          }
+
+          for old, new in replacements.items():
+              if old not in text:
+                  raise SystemExit(f'Contract reconciliation needle missing: {old[:90]!r}')
+              text = text.replace(old, new, 1)
+
+          path.write_text(text)
+          PY
+
+          git diff --check
+          git diff -- docs/product/territory-plan-observed-reality.md
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/product/territory-plan-observed-reality.md
+          git commit -m "Reconcile Territory history and map geometry contract"
+          git push origin HEAD:territory-plan-observed-reality-main
