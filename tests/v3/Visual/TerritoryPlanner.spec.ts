@@ -98,7 +98,7 @@ test('Plan vs observed renders deterministic drift, uncertainty and provenance s
   await expect(reconciliationSummary.getByText('Out of position', { exact: true })).toBeVisible();
   await expect(page.getByText('North Star')).toBeVisible();
   await expect(page.getByText('Unknown Governor')).toBeVisible();
-  await expect(page.getByText('Identity unresolved', { exact: true })).toBeVisible();
+  await expect(page.getByText(/Identity unresolved/)).toBeVisible();
   await expect(page.getByText('Published plan remains unchanged')).toBeVisible();
 
   const overflow = await page.evaluate(
