@@ -5,6 +5,8 @@ const english: MessageCatalogue = {
     reconciliationTitle: 'Plan vs observed',
     reconciliationSubtitle:
       'Compare an immutable published hive plan with what was actually observed in game. Observations never overwrite the plan.',
+    reconciliationSummaryAria: 'Reconciliation summary',
+    filterRowsAria: 'Filter reconciliation rows',
     publishedRevisionLabel: 'Published plan revision',
     observedSnapshotLabel: 'Observed snapshot',
     chooseAllianceObservation: 'Alliance to reconcile',
