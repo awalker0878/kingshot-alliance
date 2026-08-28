@@ -3,6 +3,9 @@
 declare(strict_types=1);
 
 use App\Contexts\Operations\Events\Catalog\KingShotEventTypeCatalog;
+use App\Contexts\Operations\Events\Enums\EventProfileState;
+use App\Contexts\Operations\Events\Enums\EventTypeVerificationState;
+use App\Contexts\Operations\Events\Enums\EventWorkflowDimension;
 use App\Contexts\Operations\Results\Catalog\KingShotEventMetricCatalog;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
@@ -15,6 +18,12 @@ return new class extends Migration
         $now = now();
 
         foreach (KingShotEventTypeCatalog::definitions() as $definition) {
+            if ($definition['verification_state'] !== EventTypeVerificationState::Verified
+                || $definition['profile_state'] !== EventProfileState::Enabled
+                || ! in_array(EventWorkflowDimension::Results, $definition['workflow_dimensions'], true)) {
+                continue;
+            }
+
             $typeId = DB::table('event_types')
                 ->where('slug', $definition['slug'])
                 ->value('id');
@@ -36,7 +45,6 @@ return new class extends Migration
                 $profile = KingShotEventMetricCatalog::profile(
                     $definition['slug'],
                     $scope['scope'],
-                    $scope['capabilities'],
                 );
 
                 foreach ($profile['metrics'] as $metric) {
