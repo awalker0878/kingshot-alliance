@@ -27,8 +27,7 @@ final readonly class IntelligenceSignalFactory
         KingdomAllianceObservation $current,
         KingdomAllianceObservation $previous,
         CarbonInterface $asOf,
-    ): array
-    {
+    ): array {
         if (! $current->captured_at->gt($previous->captured_at)) {
             return [];
         }
@@ -119,8 +118,7 @@ final readonly class IntelligenceSignalFactory
     public function staleAllianceObservation(
         KingdomAllianceObservation $latest,
         CarbonInterface $asOf,
-    ): ?IntelligenceSignal
-    {
+    ): ?IntelligenceSignal {
         if ($latest->captured_at->gte($asOf->copy()->subDays($this->rules->allianceObservationStaleDays()))) {
             return null;
         }
@@ -154,8 +152,7 @@ final readonly class IntelligenceSignalFactory
         GovernorProgressionObservation $current,
         GovernorProgressionObservation $previous,
         CarbonInterface $asOf,
-    ): ?IntelligenceSignal
-    {
+    ): ?IntelligenceSignal {
         if ($current->kind !== $previous->kind || ! $current->captured_at->gt($previous->captured_at)) {
             return null;
         }
@@ -206,8 +203,7 @@ final readonly class IntelligenceSignalFactory
     public function staleProgressionObservation(
         GovernorProgressionObservation $latest,
         CarbonInterface $asOf,
-    ): ?IntelligenceSignal
-    {
+    ): ?IntelligenceSignal {
         if ($latest->captured_at->gte($asOf->copy()->subDays($this->rules->progressionObservationStaleDays()))) {
             return null;
         }
@@ -241,8 +237,7 @@ final readonly class IntelligenceSignalFactory
     public function transferExpiry(
         TransferObservation $observation,
         CarbonInterface $asOf,
-    ): ?IntelligenceSignal
-    {
+    ): ?IntelligenceSignal {
         if ($observation->valid_until === null) {
             return null;
         }
@@ -288,8 +283,7 @@ final readonly class IntelligenceSignalFactory
     public function recruitmentChange(
         RecruitmentStageHistory $history,
         CarbonInterface $asOf,
-    ): IntelligenceSignal
-    {
+    ): IntelligenceSignal {
         $from = $history->fromStage()?->value;
         $to = $history->toStage()->value;
 
@@ -330,8 +324,7 @@ final readonly class IntelligenceSignalFactory
         string $metric,
         array $runs,
         CarbonInterface $asOf,
-    ): ?IntelligenceSignal
-    {
+    ): ?IntelligenceSignal {
         $minimum = $this->rules->bearHuntMinimumRuns();
 
         if (count($runs) < $minimum) {
@@ -405,8 +398,7 @@ final readonly class IntelligenceSignalFactory
         CarbonInterface $previousObservedAt,
         CarbonInterface $currentObservedAt,
         CarbonInterface $asOf,
-    ): ?IntelligenceSignal
-    {
+    ): ?IntelligenceSignal {
         if (! $completeSource || $previousPresent === $currentPresent) {
             return null;
         }
@@ -517,8 +509,7 @@ final readonly class IntelligenceSignalFactory
         ?string $datasetChecksum = null,
         ?string $canonicalUrl = null,
         array $metadata = [],
-    ): IntelligenceSignal
-    {
+    ): IntelligenceSignal {
         $ruleVersion = $this->rules->ruleVersion();
         $identity = implode('|', [
             $type->value,
