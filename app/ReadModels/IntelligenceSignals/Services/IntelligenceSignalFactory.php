@@ -20,7 +20,8 @@ final readonly class IntelligenceSignalFactory
     public function __construct(
         private IntelligenceSignalRules $rules,
         private PowerMath $powerMath,
-    ) {}
+    ) {
+    }
 
     /** @return list<IntelligenceSignal> */
     public function allianceObservationChanges(
@@ -300,7 +301,7 @@ final readonly class IntelligenceSignalFactory
     }
 
     /**
-     * @param  list<array{recordId: string, observedAt: string, value: int|float}>  $runs chronological oldest-to-newest
+     * @param  list<array{recordId: string, observedAt: string, value: int|float}>  $runs  chronological oldest-to-newest
      */
     public function bearHuntTrend(
         string $subjectType,
@@ -458,8 +459,8 @@ final readonly class IntelligenceSignalFactory
     }
 
     /**
-     * @param  list<string>  $sourceRecordIds
-     * @param  list<string>  $evidenceIds
+     * @param  list<string>          $sourceRecordIds
+     * @param  list<string>          $evidenceIds
      * @param  array<string, mixed>  $metadata
      */
     private function signal(
