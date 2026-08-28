@@ -54,6 +54,12 @@ type Observation = {
   map_dataset_id: string;
   map_dataset_checksum: string;
   source_evidence_id?: string | null;
+  invalidated_at?: string | null;
+};
+type MapGeometry = {
+  bounds: { x: number; y: number; width: number; height: number };
+  coordinate_system: { name: string; origin: string; tile_size: number };
+  render: { y_axis: 'up' | 'down' };
 };
 type Summary = {
   governors_total: number;
@@ -76,6 +82,7 @@ type Reconciliation = {
   observations?: Observation[];
   freshness?: { age_seconds: number; state: string };
   compatibility?: string;
+  map_geometry?: MapGeometry;
   summary?: Summary;
   governors?: GovernorRow[];
   structures?: StructureRow[];
@@ -200,6 +207,29 @@ function governorName(object: SpatialObject): string {
 }
 
 const observationIsStale = computed(() => props.reconciliation.freshness?.state === 'stale');
+const selectedObservationIsInvalidated = computed(() =>
+  Boolean(props.reconciliation.observation?.invalidated_at),
+);
+const mapViewBox = computed(() => {
+  const geometry = props.reconciliation.map_geometry;
+  if (!geometry) return undefined;
+  const { x, y, width, height } = geometry.bounds;
+  return `${x} ${y} ${width} ${height}`;
+});
+
+function mapY(y: number): number | undefined {
+  const geometry = props.reconciliation.map_geometry;
+  if (!geometry) return undefined;
+  if (geometry.render.y_axis === 'up') {
+    return geometry.bounds.y + geometry.bounds.height - (y - geometry.bounds.y);
+  }
+  return y;
+}
+
+function observationOptionLabel(observation: Observation): string {
+  const base = `${formatDate(observation.captured_at)} · ${observation.coverage_kind}`;
+  return observation.invalidated_at ? `${base} · ${t('territory.historicalInvalidated')}` : base;
+}
 
 const visibleGovernors = computed(() =>
   (props.reconciliation.governors ?? []).filter((row) => {
@@ -504,7 +534,7 @@ function freshnessLabel(): string {
               :key="observation.id"
               :value="observation.id"
             >
-              {{ formatDate(observation.captured_at) }} · {{ observation.coverage_kind }}
+              {{ observationOptionLabel(observation) }}
             </option>
           </select>
         </label>
@@ -592,6 +622,14 @@ function freshnessLabel(): string {
           {{ t('territory.exactPlanRemains') }}
         </p>
         <p
+          v-if="selectedObservationIsInvalidated"
+          class="mt-3 rounded-lg border p-3 text-sm"
+          role="alert"
+        >
+          <strong>{{ t('territory.historicalInvalidated') }}</strong>
+          · {{ t('territory.historicalInvalidatedHelp') }}
+        </p>
+        <p
           v-if="reconciliation.freshness?.state === 'stale'"
           class="mt-3 rounded-lg border p-3 text-sm"
           role="alert"
@@ -609,7 +647,8 @@ function freshnessLabel(): string {
         </div>
         <div class="mt-4 overflow-hidden rounded-xl border bg-[var(--ks-panel)]">
           <svg
-            viewBox="0 0 1200 1200"
+            v-if="reconciliation.map_geometry"
+            :viewBox="mapViewBox"
             class="aspect-square max-h-[560px] w-full"
             role="img"
             :aria-label="t('territory.observedMapOverlay')"
@@ -624,16 +663,16 @@ function freshnessLabel(): string {
               <line
                 v-if="row.observed"
                 :x1="row.planned.x"
-                :y1="1200 - row.planned.y"
+                :y1="mapY(row.planned.y)"
                 :x2="row.observed.x"
-                :y2="1200 - row.observed.y"
+                :y2="mapY(row.observed.y)"
                 stroke="currentColor"
                 stroke-width="1"
                 opacity="0.3"
               />
               <circle
                 :cx="row.planned.x"
-                :cy="1200 - row.planned.y"
+                :cy="mapY(row.planned.y)"
                 r="7"
                 fill="none"
                 stroke="currentColor"
@@ -642,7 +681,7 @@ function freshnessLabel(): string {
               <circle
                 v-if="row.observed"
                 :cx="row.observed.x"
-                :cy="1200 - row.observed.y"
+                :cy="mapY(row.observed.y)"
                 r="4"
                 fill="currentColor"
               />

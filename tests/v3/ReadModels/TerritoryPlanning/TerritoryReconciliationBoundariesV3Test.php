@@ -135,6 +135,47 @@ final class TerritoryReconciliationBoundariesV3Test extends TestCase
         }
     }
 
+    public function test_ready_projection_exposes_pinned_map_geometry_without_frontend_world_constants(): void
+    {
+        [$actor, $alliance, $planId, $revisionId] = $this->publishedPlan(62105);
+        $observationId = $this->recordObservation(
+            $alliance->allianceId,
+            $actor->kingdomId,
+            $actor->playerId,
+            2,
+        );
+
+        $result = app(TerritoryReconciliationQuery::class)->build(
+            actorPlayerId: $actor->playerId,
+            planId: $planId,
+            revisionId: $revisionId,
+            allianceId: $alliance->allianceId,
+            observationId: $observationId,
+        );
+        $dataset = app(KingdomMapDatasetQuery::class)->require(self::DATASET_ID);
+
+        self::assertSame('ready', $result['state']);
+        self::assertSame(
+            [
+                'x' => (float) $dataset->data['bounds']['x'],
+                'y' => (float) $dataset->data['bounds']['y'],
+                'width' => (float) $dataset->data['bounds']['width'],
+                'height' => (float) $dataset->data['bounds']['height'],
+            ],
+            $result['map_geometry']['bounds'],
+        );
+        self::assertSame($dataset->data['coordinate_system']['name'], $result['map_geometry']['coordinate_system']['name']);
+        self::assertSame($dataset->data['coordinate_system']['origin'], $result['map_geometry']['coordinate_system']['origin']);
+        self::assertSame('up', $result['map_geometry']['render']['y_axis']);
+
+        $frontend = file_get_contents(base_path('resources/js/pages/Kingdom/Territory/Reconciliation.vue'));
+        self::assertIsString($frontend);
+        self::assertStringNotContainsString('viewBox="0 0 1200 1200"', $frontend);
+        self::assertStringNotContainsString('1200 - row.', $frontend);
+        self::assertStringContainsString(':viewBox="mapViewBox"', $frontend);
+        self::assertStringContainsString('historicalInvalidatedHelp', $frontend);
+    }
+
     public function test_reconciliation_query_budget_does_not_scale_with_observed_object_count(): void
     {
         [$actor, $alliance, $planId, $revisionId] = $this->publishedPlan(62104);

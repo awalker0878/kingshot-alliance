@@ -10,6 +10,7 @@ use App\Contexts\Operations\TerritoryPlanning\Queries\TerritoryPlanQuery;
 use App\Contexts\Operations\TerritoryPlanning\Queries\TerritoryPlanRevisionQuery;
 use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryCoverageAnalyzer;
 use Carbon\CarbonImmutable;
+use RuntimeException;
 
 final readonly class TerritoryReconciliationQuery
 {
@@ -114,6 +115,7 @@ final readonly class TerritoryReconciliationQuery
             (string) $revision['map_dataset_id'],
             (string) $revision['map_dataset_checksum'],
         );
+        $mapGeometry = $this->mapGeometry($planDataset->data);
         $observedDataset = $this->datasets->require(
             (string) $observation['map_dataset_id'],
             (string) $observation['map_dataset_checksum'],
@@ -140,6 +142,7 @@ final readonly class TerritoryReconciliationQuery
                 'observations' => $history,
                 'freshness' => $freshness,
                 'compatibility' => $compatibility,
+                'map_geometry' => $mapGeometry,
             ];
         }
 
@@ -210,6 +213,7 @@ final readonly class TerritoryReconciliationQuery
             'observations' => $history,
             'freshness' => $freshness,
             'compatibility' => $compatibility,
+            'map_geometry' => $mapGeometry,
             'summary' => $this->summary($governors, $structures, $unexpected),
             'governors' => $governors,
             'structures' => $structures,
@@ -226,6 +230,58 @@ final readonly class TerritoryReconciliationQuery
                     25.0,
                 ),
             ],
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $dataset
+     * @return array{bounds:array{x:float,y:float,width:float,height:float},coordinate_system:array{name:string,origin:string,tile_size:float},render:array{y_axis:'up'|'down'}}
+     */
+    private function mapGeometry(array $dataset): array
+    {
+        $bounds = $dataset['bounds'] ?? null;
+        $coordinateSystem = $dataset['coordinate_system'] ?? null;
+        if (! is_array($bounds) || ! is_array($coordinateSystem)) {
+            throw new RuntimeException('The pinned Kingdom map dataset is missing renderable geometry metadata.');
+        }
+
+        foreach (['x', 'y', 'width', 'height'] as $field) {
+            if (! is_int($bounds[$field] ?? null) && ! is_float($bounds[$field] ?? null)) {
+                throw new RuntimeException('The pinned Kingdom map dataset has invalid map bounds.');
+            }
+        }
+        if ((float) $bounds['width'] <= 0 || (float) $bounds['height'] <= 0) {
+            throw new RuntimeException('The pinned Kingdom map dataset has non-positive map bounds.');
+        }
+
+        $name = $coordinateSystem['name'] ?? null;
+        $origin = $coordinateSystem['origin'] ?? null;
+        $tileSize = $coordinateSystem['tile_size'] ?? null;
+        if (! is_string($name)
+            || ! is_string($origin)
+            || (! is_int($tileSize) && ! is_float($tileSize))
+            || (float) $tileSize <= 0) {
+            throw new RuntimeException('The pinned Kingdom map dataset has invalid coordinate-system metadata.');
+        }
+
+        $yAxis = match ($origin) {
+            'south_west_game_coordinates' => 'up',
+            default => throw new RuntimeException('The pinned Kingdom map coordinate origin is not supported for reconciliation rendering.'),
+        };
+
+        return [
+            'bounds' => [
+                'x' => (float) $bounds['x'],
+                'y' => (float) $bounds['y'],
+                'width' => (float) $bounds['width'],
+                'height' => (float) $bounds['height'],
+            ],
+            'coordinate_system' => [
+                'name' => $name,
+                'origin' => $origin,
+                'tile_size' => (float) $tileSize,
+            ],
+            'render' => ['y_axis' => $yAxis],
         ];
     }
 

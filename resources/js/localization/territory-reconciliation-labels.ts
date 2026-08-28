@@ -21,6 +21,9 @@ const english: MessageCatalogue = {
     freshnessFresh: 'Fresh observation',
     freshnessAging: 'Observation is aging',
     freshnessStale: 'Stale observation',
+    historicalInvalidated: 'Historical · invalidated',
+    historicalInvalidatedHelp:
+      'This preserved observation was invalidated or corrected and is shown only because you selected it explicitly. It is not the current observed reality.',
     observedAt: 'Observed {date}',
     observationAge: '{minutes} minutes old',
     planLayer: 'Plan',
