@@ -11,7 +11,6 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use RuntimeException;
 
 return new class extends Migration
 {
@@ -32,7 +31,7 @@ return new class extends Migration
 
             $typeId = DB::table('event_types')->where('slug', $definition['slug'])->value('id');
             if (! is_string($typeId)) {
-                throw new RuntimeException('Missing persisted Event Type '.$definition['slug'].'.');
+                throw new \RuntimeException('Missing persisted Event Type '.$definition['slug'].'.');
             }
 
             foreach ($definition['scopes'] as $scope) {
