@@ -271,9 +271,9 @@ final class NotificationQueueDeliveryV3Test extends TestCase
 
         self::assertStringContainsString('notifications:queue-officer-briefs {--group=all} {--limit=1000} {--after=} {--cycle}', $source);
         self::assertStringContainsString('notifications:queue-intelligence-changes {--limit=1000} {--after=} {--cycle}', $source);
-        self::assertStringContainsString("notifications:queue-officer-briefs --group=daily --limit=1000 --cycle", $source);
-        self::assertStringContainsString("notifications:queue-officer-briefs --group=event --limit=1000 --cycle", $source);
-        self::assertStringContainsString("notifications:queue-intelligence-changes --limit=1000 --cycle", $source);
+        self::assertStringContainsString('notifications:queue-officer-briefs --group=daily --limit=1000 --cycle', $source);
+        self::assertStringContainsString('notifications:queue-officer-briefs --group=event --limit=1000 --cycle', $source);
+        self::assertStringContainsString('notifications:queue-intelligence-changes --limit=1000 --cycle', $source);
         self::assertStringContainsString('->everyFifteenMinutes()', $source);
     }
 

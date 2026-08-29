@@ -11,6 +11,8 @@ use App\Contexts\Operations\Events\Enums\EventWorkflowDimension;
 use App\Contexts\Operations\Events\Models\Event;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Events\Services\EventTypeProfileResolver;
+use App\ReadModels\EventManagement\Enums\EventCommandItemStatus;
+use App\ReadModels\EventManagement\Enums\EventCommandSeverity;
 use App\ReadModels\EventManagement\Enums\EventCommandState;
 use App\ReadModels\EventManagement\Support\EventCommandItems as Items;
 use Carbon\CarbonImmutable;
@@ -161,7 +163,7 @@ final readonly class EventCommandQuery
     private function cancelledSection(Event $event, EventOccurrence $occurrence): array
     {
         return Items::section('schedule', 'events.command.sections.schedule', 'readiness', [
-            Items::make('schedule.cancelled', 'readiness', \App\ReadModels\EventManagement\Enums\EventCommandItemStatus::NotApplicable, \App\ReadModels\EventManagement\Enums\EventCommandSeverity::Informational, 'operations.events', 'events.command.items.cancelled', handoff: Items::handoff($event, $occurrence, 'schedule', 'events.command.actions.reviewSchedule')),
+            Items::make('schedule.cancelled', 'readiness', EventCommandItemStatus::NotApplicable, EventCommandSeverity::Informational, 'operations.events', 'events.command.items.cancelled', handoff: Items::handoff($event, $occurrence, 'schedule', 'events.command.actions.reviewSchedule')),
         ]);
     }
 
