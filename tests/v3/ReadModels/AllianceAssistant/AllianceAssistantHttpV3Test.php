@@ -15,7 +15,7 @@ use App\Contexts\Operations\Events\Actions\CreateEvent;
 use App\Contexts\Operations\Events\Enums\EventScope;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Events\Models\EventTypeScope;
-use App\Contexts\Operations\Rosters\Actions\AssignEventRosterPlayer;
+use App\Contexts\Operations\Rosters\Enums\EventRosterType;
 use App\Contexts\Operations\Rosters\Models\EventRoster;
 use App\Contexts\Operations\Rosters\Models\EventRosterMember;
 use Carbon\CarbonImmutable;
@@ -36,14 +36,15 @@ final class AllianceAssistantHttpV3Test extends TestCase
         $occurrence = $this->swordland($actor, $alliance, 'Swordland');
         $roster = EventRoster::query()->where('occurrence_id', $occurrence->id)->where('key', 'combatants')->firstOrFail();
 
-        app(AssignEventRosterPlayer::class)->handle(
-            actorPlayerId: $actor->playerId,
-            occurrenceId: (string) $occurrence->id,
-            rosterId: (string) $roster->id,
-            playerId: $actor->playerId,
-            role: 'Rally Lead',
-            slotNumber: 7,
-        );
+        EventRosterMember::query()->create([
+            'roster_id' => (string) $roster->id,
+            'player_id' => $actor->playerId,
+            'alliance_id' => $alliance->allianceId,
+            'role' => 'Rally Lead',
+            'slot_number' => 7,
+            'assigned_by_player_id' => $actor->playerId,
+            'assigned_at' => now(),
+        ]);
 
         $response = $this->assistantRequest($user, $actor, 'What time is Swordland and am I rostered?');
 
@@ -73,14 +74,15 @@ final class AllianceAssistantHttpV3Test extends TestCase
 
         $occurrence = $this->swordland($actor, $alliance, 'Swordland');
         $roster = EventRoster::query()->where('occurrence_id', $occurrence->id)->where('key', 'combatants')->firstOrFail();
-        app(AssignEventRosterPlayer::class)->handle(
-            actorPlayerId: $actor->playerId,
-            occurrenceId: (string) $occurrence->id,
-            rosterId: (string) $roster->id,
-            playerId: $other->playerId,
-            role: 'Hidden role',
-            slotNumber: 3,
-        );
+        EventRosterMember::query()->create([
+            'roster_id' => (string) $roster->id,
+            'player_id' => $other->playerId,
+            'alliance_id' => $alliance->allianceId,
+            'role' => 'Hidden role',
+            'slot_number' => 3,
+            'assigned_by_player_id' => $actor->playerId,
+            'assigned_at' => now(),
+        ]);
 
         $response = $this->assistantRequest($user, $actor, 'What time is Swordland and am I rostered?');
 
@@ -237,7 +239,19 @@ final class AllianceAssistantHttpV3Test extends TestCase
         );
         self::assertNotNull($created->firstOccurrenceId);
 
-        return EventOccurrence::query()->findOrFail($created->firstOccurrenceId);
+        $occurrence = EventOccurrence::query()->findOrFail($created->firstOccurrenceId);
+        EventRoster::query()->create([
+            'occurrence_id' => (string) $occurrence->id,
+            'key' => 'combatants',
+            'name' => 'Combatants',
+            'roster_type' => EventRosterType::Combatants,
+            'assignment_group' => 'primary',
+            'settings' => ['source' => 'acceptance-fixture'],
+            'created_by_player_id' => $actor->playerId,
+            'updated_by_player_id' => $actor->playerId,
+        ]);
+
+        return $occurrence;
     }
 
     private function assistantRequest(User $user, PlayerReference $actor, string $question): TestResponse

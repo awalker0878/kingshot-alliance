@@ -66,32 +66,4 @@ final class KingShotEventMetricCatalog
             'higher_is_better' => $higherIsBetter,
         ];
     }
-
-    /** @return MetricProfile */
-    private static function metric(
-        EventMetricSubject $subject,
-        string $key,
-        ?string $unit,
-        EventMetricValueType $valueType,
-        EventMetricAggregation $aggregation,
-        ?bool $higherIsBetter,
-        int $sortOrder,
-        ?string $dimensionKind = null,
-        bool $isPrimary = false,
-        bool $isContributionMetric = true,
-    ): array {
-        return [
-            'subject' => $subject,
-            'key' => $key,
-            'label_key' => 'events.metrics.'.$key,
-            'unit' => $unit,
-            'value_type' => $valueType,
-            'aggregation' => $aggregation,
-            'dimension_kind' => $dimensionKind,
-            'is_primary' => $isPrimary,
-            'is_contribution_metric' => $isContributionMetric,
-            'higher_is_better' => $higherIsBetter,
-            'sort_order' => $sortOrder,
-        ];
-    }
 }

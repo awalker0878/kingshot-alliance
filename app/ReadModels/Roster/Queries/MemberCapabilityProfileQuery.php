@@ -21,6 +21,7 @@ use App\Contexts\Operations\Access\Enums\OperationsPermission;
 use App\Contexts\Operations\Events\Enums\EventScope;
 use App\Contexts\Operations\Events\Services\EventAuthorization;
 use App\ReadModels\EventAnalysis\Queries\EventPlayerHistoryQuery;
+use App\ReadModels\Support\ReadModelTelemetry;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
@@ -51,6 +52,7 @@ final readonly class MemberCapabilityProfileQuery
         AllianceRosterEntry $entry,
         PlayerReference $player,
     ): array {
+        $startedAt = hrtime(true);
         if (! $this->intelligenceAuthorization->allows(
             $actorPlayerId,
             $allianceId,
@@ -99,7 +101,7 @@ final readonly class MemberCapabilityProfileQuery
                 'latestAt' => null,
             ];
 
-        return [
+        $projection = [
             'eventAccess' => $canViewEvents ? 'available' : 'unavailable',
             'events' => $this->eventSummary($events),
             'bearHunt' => $this->bearHuntSummary($events),
@@ -112,9 +114,29 @@ final readonly class MemberCapabilityProfileQuery
             'transfer' => $this->transfer($actorPlayerId, $allianceId, $player->playerId),
             'evidence' => $evidence,
         ];
+        ReadModelTelemetry::record('member_capability.rendered', $startedAt, [
+            'actor_player_id' => $actorPlayerId,
+            'target_player_id' => $player->playerId,
+            'alliance_id' => $allianceId,
+            'roster_entry_id' => (string) $entry->id,
+        ], [
+            'event_count' => count($events),
+            'rally_count' => count($projection['rallies']),
+            'battle_assignment_count' => count($projection['battleAssignments']),
+            'evidence_count' => (int) ($evidence['total'] ?? 0),
+        ], [
+            $projection['eventAccess'],
+            (string) ($projection['transfer']['access'] ?? 'unavailable'),
+            (string) ($evidence['access'] ?? 'unavailable'),
+        ]);
+
+        return $projection;
     }
 
-    /** @param list<array<string,mixed>> $events */
+    /**
+     * @param  list<array<string,mixed>>  $events
+     * @return array<string,mixed>
+     */
     private function eventSummary(array $events): array
     {
         $completed = 0;
@@ -148,7 +170,10 @@ final readonly class MemberCapabilityProfileQuery
         ];
     }
 
-    /** @param list<array<string,mixed>> $events */
+    /**
+     * @param  list<array<string,mixed>>  $events
+     * @return array<string,mixed>
+     */
     private function bearHuntSummary(array $events): array
     {
         $runs = array_values(array_filter($events, static fn (array $event): bool => ($event['eventType']['slug'] ?? null) === 'bear-hunt'));
@@ -167,7 +192,10 @@ final readonly class MemberCapabilityProfileQuery
         ];
     }
 
-    /** @param list<string> $occurrenceIds @return list<array<string,mixed>> */
+    /**
+     * @param  list<string>  $occurrenceIds
+     * @return list<array<string,mixed>>
+     */
     private function rallyHistory(string $allianceId, string $playerId, array $occurrenceIds): array
     {
         if ($occurrenceIds === []) {
@@ -208,7 +236,10 @@ final readonly class MemberCapabilityProfileQuery
             ->all();
     }
 
-    /** @param list<string> $occurrenceIds @return list<array<string,mixed>> */
+    /**
+     * @param  list<string>  $occurrenceIds
+     * @return list<array<string,mixed>>
+     */
     private function battleAssignmentHistory(string $allianceId, string $playerId, array $occurrenceIds): array
     {
         if ($occurrenceIds === []) {

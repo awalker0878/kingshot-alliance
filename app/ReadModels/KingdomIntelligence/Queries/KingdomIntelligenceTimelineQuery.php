@@ -9,6 +9,7 @@ use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
 use App\Contexts\Intelligence\Diplomacy\Models\KingdomAllianceDiplomacyTransition;
 use App\Contexts\Intelligence\Observations\Models\KingdomAllianceObservation;
 use App\ReadModels\IntelligenceSignals\Services\IntelligenceSignalFactory;
+use App\ReadModels\Support\ReadModelTelemetry;
 use Illuminate\Auth\Access\AuthorizationException;
 
 /**
@@ -30,6 +31,7 @@ final readonly class KingdomIntelligenceTimelineQuery
         string $allianceId,
         string $trackingId,
     ): array {
+        $startedAt = hrtime(true);
         if (! $this->authorization->allows(
             $actorPlayerId,
             $allianceId,
@@ -163,6 +165,20 @@ final readonly class KingdomIntelligenceTimelineQuery
             return $date !== 0 ? $date : strcmp((string) $left['id'], (string) $right['id']);
         });
 
-        return array_slice($items, 0, 200);
+        $projection = array_slice($items, 0, 200);
+        ReadModelTelemetry::record('intelligence_timeline.rendered', $startedAt, [
+            'actor_player_id' => $actorPlayerId,
+            'alliance_id' => $allianceId,
+            'tracking_id' => $trackingId,
+        ], [
+            'observation_count' => $observations->count(),
+            'transition_count' => $transitions->count(),
+            'item_count' => count($projection),
+        ], array_values(array_unique(array_map(
+            static fn (array $item): string => (string) $item['kind'],
+            $projection,
+        ))));
+
+        return $projection;
     }
 }

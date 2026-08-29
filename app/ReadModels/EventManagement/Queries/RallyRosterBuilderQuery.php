@@ -10,6 +10,7 @@ use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
 use App\Contexts\Operations\Events\Enums\EventScope;
 use App\Contexts\Operations\Events\Models\Event;
 use App\ReadModels\Roster\Queries\PlayerSnapshotQuery;
+use App\ReadModels\Support\ReadModelTelemetry;
 use Carbon\CarbonImmutable;
 
 /**
@@ -39,12 +40,13 @@ final readonly class RallyRosterBuilderQuery
         array $participants,
         array $rosterOperations,
     ): array {
+        $startedAt = hrtime(true);
         $playerIds = $this->playerIds($rallyOperations, $participants, $rosterOperations);
         $observations = $this->observationStates($actorPlayerId, $event, $playerIds);
         $participantsByOccurrence = collect($participants)->groupBy('occurrenceId');
         $rostersByOccurrence = collect($rosterOperations)->keyBy('occurrenceId');
 
-        return array_values(array_map(function (array $operation) use (
+        $projection = array_values(array_map(function (array $operation) use (
             $participantsByOccurrence,
             $rostersByOccurrence,
             $observations,
@@ -55,11 +57,33 @@ final readonly class RallyRosterBuilderQuery
 
             return $this->occurrence(
                 $operation,
-                $participantRows->filter('is_array')->values()->all(),
+                $participantRows
+                    ->filter(static fn (mixed $row): bool => is_array($row))
+                    ->values()
+                    ->all(),
                 is_array($rosterRow) ? $rosterRow : [],
                 $observations,
             );
         }, $rallyOperations));
+        $reasonCodes = [];
+        $issueCount = 0;
+        foreach ($projection as $occurrence) {
+            foreach ($occurrence['issues'] as $issue) {
+                $reasonCodes[] = (string) $issue['code'];
+                $issueCount++;
+            }
+        }
+        ReadModelTelemetry::record('rally_builder.rendered', $startedAt, [
+            'event_id' => (string) $event->id,
+            'actor_player_id' => $actorPlayerId,
+            'alliance_id' => is_string($event->alliance_id) ? $event->alliance_id : null,
+        ], [
+            'occurrence_count' => count($projection),
+            'player_count' => count($playerIds),
+            'issue_count' => $issueCount,
+        ], $reasonCodes);
+
+        return $projection;
     }
 
     /**
@@ -69,6 +93,7 @@ final readonly class RallyRosterBuilderQuery
      * @return array<string,mixed>
      */
     private function occurrence(
+        /** @var array<string,mixed> */
         array $operation,
         array $participants,
         array $rosterOperation,
@@ -207,7 +232,9 @@ final readonly class RallyRosterBuilderQuery
         string $code,
         string $severity,
         int $count,
+        /** @var list<string> */
         array $playerIds = [],
+        /** @var list<string> */
         array $groupIds = [],
     ): array {
         return [

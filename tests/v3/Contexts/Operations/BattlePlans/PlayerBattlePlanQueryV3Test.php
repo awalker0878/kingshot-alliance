@@ -14,8 +14,9 @@ use App\Contexts\Operations\Events\Actions\CreateEvent;
 use App\Contexts\Operations\Events\Enums\EventScope;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Events\Models\EventTypeScope;
-use App\Contexts\Operations\Rosters\Actions\AssignEventRosterPlayer;
+use App\Contexts\Operations\Rosters\Enums\EventRosterType;
 use App\Contexts\Operations\Rosters\Models\EventRoster;
+use App\Contexts\Operations\Rosters\Models\EventRosterMember;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\v3\Support\ScenarioFactory;
@@ -42,14 +43,15 @@ final class PlayerBattlePlanQueryV3Test extends TestCase
             ->where('occurrence_id', $occurrence->id)
             ->where('key', 'combatants')
             ->firstOrFail();
-        app(AssignEventRosterPlayer::class)->handle(
-            actorPlayerId: $actor->playerId,
-            occurrenceId: (string) $occurrence->id,
-            rosterId: (string) $roster->id,
-            playerId: $actor->playerId,
-            role: 'Joiner',
-            slotNumber: 4,
-        );
+        EventRosterMember::query()->create([
+            'roster_id' => (string) $roster->id,
+            'player_id' => $actor->playerId,
+            'alliance_id' => $alliance->allianceId,
+            'role' => 'Joiner',
+            'slot_number' => 4,
+            'assigned_by_player_id' => $actor->playerId,
+            'assigned_at' => now(),
+        ]);
 
         $direct = $this->objective($occurrence, $actor, 'Direct objective');
         $team = $this->objective($occurrence, $actor, 'Team objective');
@@ -130,6 +132,18 @@ final class PlayerBattlePlanQueryV3Test extends TestCase
         );
         self::assertNotNull($created->firstOccurrenceId);
 
-        return EventOccurrence::query()->findOrFail($created->firstOccurrenceId);
+        $occurrence = EventOccurrence::query()->findOrFail($created->firstOccurrenceId);
+        EventRoster::query()->create([
+            'occurrence_id' => (string) $occurrence->id,
+            'key' => 'combatants',
+            'name' => 'Combatants',
+            'roster_type' => EventRosterType::Combatants,
+            'assignment_group' => 'primary',
+            'settings' => ['source' => 'acceptance-fixture'],
+            'created_by_player_id' => $actor->playerId,
+            'updated_by_player_id' => $actor->playerId,
+        ]);
+
+        return $occurrence;
     }
 }

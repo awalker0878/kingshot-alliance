@@ -95,5 +95,7 @@ final class EventCommandVisualFixture
             'created_by_player_id' => (string) $player->id,
             'updated_by_player_id' => (string) $player->id,
         ]);
+
+        CapabilityAcceptanceVisualFixture::seed();
     }
 }

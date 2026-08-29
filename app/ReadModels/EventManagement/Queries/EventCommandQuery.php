@@ -208,7 +208,10 @@ final readonly class EventCommandQuery
         return in_array($dimension->value, $dimensions, true);
     }
 
-    /** @param array<string, mixed> $payload */
+    /**
+     * @param  array<string,mixed>  $payload
+     * @return array<string,mixed>
+     */
     private function record(Event $event, ?EventOccurrence $occurrence, array $payload, int $startedAt): array
     {
         Log::debug('event_command.rendered', [

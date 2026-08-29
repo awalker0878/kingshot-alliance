@@ -9,6 +9,7 @@ use App\Contexts\Operations\Events\Enums\EventWorkflowDimension;
 use App\Contexts\Operations\Events\Models\Event;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Participation\Queries\EventParticipationQuery;
+use App\Contexts\Operations\Polls\Queries\EventPhasePollQuery;
 use App\Contexts\Operations\Rallies\Queries\EventRallyCommandQuery;
 use App\Contexts\Operations\Rosters\Queries\EventRosterQuery;
 use App\ReadModels\EventManagement\Enums\EventCommandItemStatus as Status;
@@ -22,6 +23,7 @@ final readonly class EventCommandOperationalReadinessQuery
 {
     public function __construct(
         private EventParticipationQuery $participation,
+        private EventPhasePollQuery $polls,
         private EventRosterQuery $rosters,
         private EventBattlePlanCommandQuery $battlePlans,
         private EventRallyCommandQuery $rallies,
@@ -38,6 +40,10 @@ final readonly class EventCommandOperationalReadinessQuery
 
         if ($this->has($dimensions, EventWorkflowDimension::Participation)) {
             $sections[] = $this->participation($event, $occurrence, $now);
+            $polls = $this->polls($event, $occurrence);
+            if ($polls !== null) {
+                $sections[] = $polls;
+            }
         }
         if ($this->has($dimensions, EventWorkflowDimension::Roster)) {
             $sections[] = $this->rosters($event, $occurrence);
@@ -50,6 +56,43 @@ final readonly class EventCommandOperationalReadinessQuery
         }
 
         return $sections;
+    }
+
+    /** @return array<string, mixed>|null */
+    private function polls(Event $event, EventOccurrence $occurrence): ?array
+    {
+        $summary = $this->owners->read(
+            'operations.polls',
+            $event,
+            $occurrence,
+            fn (): array => $this->polls->commandSummary($occurrence),
+        );
+        if ($summary === null) {
+            return Items::section('polls', 'events.command.sections.polls', 'readiness', [
+                $this->unknown($event, $occurrence, 'polls.unavailable', 'operations.polls', 'events.command.items.pollsUnavailable', 'polls'),
+            ]);
+        }
+
+        $count = (int) $summary['pollCount'];
+        if ($count === 0) {
+            return null;
+        }
+
+        $unresolved = (int) $summary['unresolvedCount'];
+
+        return Items::section('polls', 'events.command.sections.polls', 'readiness', [
+            Items::make(
+                'polls.unresolved',
+                'readiness',
+                $unresolved > 0 ? Status::Warning : Status::Complete,
+                $unresolved > 0 ? Severity::Warning : Severity::Informational,
+                'operations.polls',
+                $unresolved > 0 ? 'events.command.items.pollsUnresolved' : 'events.command.items.pollsResolved',
+                ['count' => $unresolved, 'pollCount' => $count],
+                $unresolved,
+                handoff: Items::handoff($event, $occurrence, 'polls', 'events.command.actions.reviewPolls'),
+            ),
+        ]);
     }
 
     /** @return array<string, mixed> */

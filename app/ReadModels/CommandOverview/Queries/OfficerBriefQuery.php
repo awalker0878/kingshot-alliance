@@ -17,6 +17,7 @@ use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Events\Services\EventAuthorization;
 use App\Contexts\Operations\Events\Services\EventTypeProfileResolver;
 use App\ReadModels\EventManagement\Queries\EventCommandQuery;
+use App\ReadModels\Support\ReadModelTelemetry;
 use Illuminate\Database\Eloquent\Builder;
 
 /** Read-only, deterministic presentation groups for officer brief delivery. */
@@ -42,11 +43,17 @@ final readonly class OfficerBriefQuery
         string $allianceId,
         ?array $allianceCommand,
     ): array {
+        $startedAt = hrtime(true);
         if ($allianceCommand === null || ! $this->allianceAuthorization->allows(
             $actor->playerId,
             $allianceId,
             AlliancePermission::MembershipManage,
         )) {
+            ReadModelTelemetry::record('officer_briefs.rendered', $startedAt, [
+                'actor_player_id' => $actor->playerId,
+                'alliance_id' => $allianceId,
+            ], ['brief_count' => 0], ['permission_denied']);
+
             return [];
         }
 
@@ -58,11 +65,23 @@ final readonly class OfficerBriefQuery
             }
         }
 
-        return [
+        $briefs = [
             $this->daily($allianceCommand),
             $this->upcomingEvent($nextEvent),
             $this->postEvent($actor, $allianceId),
         ];
+        ReadModelTelemetry::record('officer_briefs.rendered', $startedAt, [
+            'actor_player_id' => $actor->playerId,
+            'alliance_id' => $allianceId,
+        ], [
+            'brief_count' => count($briefs),
+            'action_count' => (int) $allianceCommand['actionCount'],
+        ], array_values(array_map(
+            static fn (array $brief): string => (string) $brief['state'],
+            $briefs,
+        )));
+
+        return $briefs;
     }
 
     /**

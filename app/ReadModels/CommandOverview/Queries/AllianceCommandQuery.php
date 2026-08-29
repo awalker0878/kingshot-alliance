@@ -33,6 +33,7 @@ use App\Contexts\Operations\TerritoryPlanning\Enums\TerritoryPlanStatus;
 use App\Contexts\Operations\TerritoryPlanning\Queries\TerritoryPlanQuery;
 use App\ReadModels\EventManagement\Queries\EventCommandQuery;
 use App\ReadModels\Roster\Services\RosterIntelligence;
+use App\ReadModels\Support\ReadModelTelemetry;
 use App\ReadModels\TerritoryPlanning\Queries\TerritoryReconciliationQuery;
 use Illuminate\Database\Eloquent\Builder;
 use RuntimeException;
@@ -70,11 +71,18 @@ final readonly class AllianceCommandQuery
         string $allianceId,
         array $authorizedIntelligenceSignals = [],
     ): ?array {
+        $startedAt = hrtime(true);
         if ($actor->userId !== $userId || ! $this->allianceAuthorization->allows(
             $actor->playerId,
             $allianceId,
             AlliancePermission::MembershipManage,
         )) {
+            ReadModelTelemetry::record('alliance_command.rendered', $startedAt, [
+                'user_id' => $userId,
+                'actor_player_id' => $actor->playerId,
+                'alliance_id' => $allianceId,
+            ], ['item_count' => 0, 'action_count' => 0], ['permission_denied']);
+
             return null;
         }
 
@@ -148,7 +156,7 @@ final readonly class AllianceCommandQuery
             return $count !== 0 ? $count : strcmp((string) $left['code'], (string) $right['code']);
         });
 
-        return [
+        $projection = [
             'asOf' => now()->toIso8601String(),
             'actionCount' => array_sum(array_map(
                 static fn (array $item): int => ($item['actionable'] ?? false) === true
@@ -156,8 +164,21 @@ final readonly class AllianceCommandQuery
                     : 0,
                 $items,
             )),
-            'items' => array_values($items),
+            'items' => $items,
         ];
+        ReadModelTelemetry::record('alliance_command.rendered', $startedAt, [
+            'user_id' => $userId,
+            'actor_player_id' => $actor->playerId,
+            'alliance_id' => $allianceId,
+        ], [
+            'item_count' => count($items),
+            'action_count' => $projection['actionCount'],
+        ], array_map(
+            static fn (array $item): string => (string) ($item['code'] ?? ''),
+            $items,
+        ));
+
+        return $projection;
     }
 
     /** @return array<string,mixed>|null */

@@ -19,6 +19,7 @@ use App\Contexts\GameWorld\KingdomTransfers\ValueObjects\TransferEligibilityAsse
 use App\Contexts\GameWorld\KingdomTransfers\ValueObjects\TransferRequirement;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\Collection;
+use App\ReadModels\Support\ReadModelTelemetry;
 
 /**
  * Authorized cross-owner projection for one recruitment-to-transfer journey.
@@ -38,6 +39,7 @@ final readonly class TransferCampaignWorkspaceQuery
         string $allianceId,
         RecruitmentCandidate $candidate,
     ): array {
+        $startedAt = hrtime(true);
         if (! $this->alliance->allows(
             $actorPlayerId,
             $allianceId,
@@ -68,7 +70,7 @@ final readonly class TransferCampaignWorkspaceQuery
         ];
 
         if ($candidate->player_id === null) {
-            return $base;
+            return $this->record($startedAt, $actorPlayerId, $allianceId, $candidate, $base);
         }
 
         if ($this->alliance->allows($actorPlayerId, $allianceId, AlliancePermission::View)) {
@@ -92,7 +94,11 @@ final readonly class TransferCampaignWorkspaceQuery
         }
 
         if (! $this->transfers->allows($actorPlayerId, $allianceId, TransferPermission::View)) {
-            return [...$base, 'available' => false, 'unavailableReason' => 'transfer_not_authorized'];
+            return $this->record($startedAt, $actorPlayerId, $allianceId, $candidate, [
+                ...$base,
+                'available' => false,
+                'unavailableReason' => 'transfer_not_authorized',
+            ]);
         }
 
         $participant = TransferParticipant::query()
@@ -110,7 +116,7 @@ final readonly class TransferCampaignWorkspaceQuery
             ->orderByDesc('created_at')
             ->first();
         if (! $participant instanceof TransferParticipant) {
-            return $base;
+            return $this->record($startedAt, $actorPlayerId, $allianceId, $candidate, $base);
         }
 
         $plan = $participant->plan;
@@ -182,7 +188,44 @@ final readonly class TransferCampaignWorkspaceQuery
             'withdrawnAt' => $participant->withdrawn_at?->toIso8601String(),
         ];
 
-        return $base;
+        return $this->record($startedAt, $actorPlayerId, $allianceId, $candidate, $base);
+    }
+
+    /**
+     * @param  array<string,mixed>  $projection
+     * @return array<string,mixed>
+     */
+    private function record(
+        int $startedAt,
+        string $actorPlayerId,
+        string $allianceId,
+        RecruitmentCandidate $candidate,
+        array $projection,
+    ): array {
+        $transfer = is_array($projection['transfer'] ?? null) ? $projection['transfer'] : [];
+        $communications = is_array($projection['communications'] ?? null) ? $projection['communications'] : [];
+        ReadModelTelemetry::record('transfer_campaign.rendered', $startedAt, [
+            'actor_player_id' => $actorPlayerId,
+            'alliance_id' => $allianceId,
+            'candidate_id' => (string) $candidate->id,
+            'target_player_id' => is_string($candidate->player_id) ? $candidate->player_id : null,
+            'participant_id' => is_string($transfer['participantId'] ?? null) ? $transfer['participantId'] : null,
+        ], [
+            'communication_count' => (int) ($communications['total'] ?? 0),
+            'blocker_count' => is_array($transfer['activeBlockers'] ?? null)
+                ? count($transfer['activeBlockers'])
+                : 0,
+            'evidence_count' => is_array($transfer['evidence'] ?? null)
+                ? count($transfer['evidence'])
+                : 0,
+        ], array_values(array_filter([
+            (string) ($projection['playerLink'] ?? ''),
+            ($projection['available'] ?? false) === true ? 'available' : 'unavailable',
+            is_string($projection['unavailableReason'] ?? null) ? $projection['unavailableReason'] : null,
+            is_string($transfer['readiness'] ?? null) ? $transfer['readiness'] : null,
+        ], static fn (?string $code): bool => is_string($code) && $code !== '')));
+
+        return $projection;
     }
 
     /** @return array{total:int,latestStatus:?string,latestAt:?string} */
