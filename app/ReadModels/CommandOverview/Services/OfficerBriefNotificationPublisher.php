@@ -60,7 +60,6 @@ final readonly class OfficerBriefNotificationPublisher
             'daily_officer' => 'Daily Officer Brief',
             'upcoming_event' => 'Upcoming Event Brief',
             'post_event_closeout' => 'Post-Event Closeout Brief',
-            default => throw new InvalidArgumentException('Unsupported officer brief group.'),
         };
         $body = sprintf(
             '%d factual owner item(s); state: %s; owner: %s.',

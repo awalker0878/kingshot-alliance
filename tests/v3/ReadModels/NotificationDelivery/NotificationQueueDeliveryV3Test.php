@@ -9,7 +9,6 @@ use App\Contexts\Alliance\Membership\Enums\AllianceRank;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\Communications\Delivery\Actions\ProcessNotificationDeliveries;
-use App\Contexts\Communications\Delivery\Actions\SaveNotificationEndpoint;
 use App\Contexts\Communications\Delivery\Actions\SetNotificationPreference;
 use App\Contexts\Communications\Delivery\Enums\DeliveryChannel;
 use App\Contexts\Communications\Delivery\Enums\DeliveryStatus;
@@ -223,13 +222,14 @@ final class NotificationQueueDeliveryV3Test extends TestCase
         $account = $scenario->account();
         $actor = $scenario->player($account->userId, 78204);
         $alliance = $scenario->alliance($actor);
-        app(SaveNotificationEndpoint::class)->handle(
-            $account->userId,
-            $actor->playerId,
-            DeliveryChannel::Discord,
-            'Officer alerts',
-            ['webhook_url' => 'https://discord.com/api/webhooks/123456789/secret-token_value'],
-        );
+        NotificationEndpoint::query()->create([
+            'recipient_user_id' => $account->userId,
+            'player_id' => $actor->playerId,
+            'channel' => DeliveryChannel::Discord->value,
+            'label' => 'Officer alerts',
+            'configuration' => ['webhook_url' => 'https://example.invalid/discord-webhook'],
+            'enabled' => true,
+        ]);
 
         app(OfficerBriefNotificationPublisher::class)->publish(
             $account->userId,
@@ -244,7 +244,13 @@ final class NotificationQueueDeliveryV3Test extends TestCase
             $this->signal('retry-signal'),
         );
 
-        Http::fake(['discord.com/*' => Http::response(['message' => 'rate limited'], 429)]);
+        Http::fake([
+            'example.invalid/*' => Http::sequence()
+                ->push(['message' => 'rate limited'], 429)
+                ->push(['message' => 'rate limited'], 429)
+                ->push(null, 204)
+                ->push(null, 204),
+        ]);
         self::assertSame(2, app(ProcessNotificationDeliveries::class)->handle());
         self::assertSame(2, NotificationDelivery::query()
             ->where('channel', DeliveryChannel::Discord->value)
@@ -255,7 +261,6 @@ final class NotificationQueueDeliveryV3Test extends TestCase
         self::assertNotNull(NotificationEndpoint::query()->firstOrFail()->last_error);
 
         Carbon::setTestNow('2026-08-29T14:10:00Z');
-        Http::fake(['discord.com/*' => Http::response(null, 204)]);
         self::assertSame(2, app(ProcessNotificationDeliveries::class)->handle());
         self::assertSame(2, NotificationDelivery::query()
             ->where('channel', DeliveryChannel::Discord->value)

@@ -65,7 +65,10 @@ final readonly class OfficerBriefQuery
         ];
     }
 
-    /** @param array{asOf:string,actionCount:int,items:list<array<string,mixed>>} $command */
+    /**
+     * @param  array{asOf:string,actionCount:int,items:list<array<string,mixed>>}  $command
+     * @return array<string,mixed>
+     */
     private function daily(array $command): array
     {
         $facts = array_map(
@@ -90,7 +93,10 @@ final readonly class OfficerBriefQuery
         );
     }
 
-    /** @param array<string,mixed>|null $event */
+    /**
+     * @param  array<string,mixed>|null  $event
+     * @return array<string,mixed>
+     */
     private function upcomingEvent(?array $event): array
     {
         if ($event === null) {
@@ -120,6 +126,7 @@ final readonly class OfficerBriefQuery
         );
     }
 
+    /** @return array<string,mixed> */
     private function postEvent(PlayerReference $actor, string $allianceId): array
     {
         if (! $this->eventAuthorization->allows(

@@ -231,13 +231,15 @@ Artisan::command('notifications:deliver {--limit=100}', function (ProcessNotific
 Artisan::command(
     'notifications:queue-officer-briefs {--group=all} {--limit=1000} {--after=} {--cycle}',
     function (QueueOfficerBriefNotifications $queue): int {
-        $group = trim((string) $this->option('group'));
+        $groupOption = $this->option('group');
+        $group = is_string($groupOption) ? trim($groupOption) : '';
         if (! in_array($group, QueueOfficerBriefNotifications::GROUP_OPTIONS, true)) {
             $this->error('Choose --group=all, --group=daily or --group=event.');
 
             return 1;
         }
-        $afterOption = trim((string) $this->option('after'));
+        $afterValue = $this->option('after');
+        $afterOption = is_string($afterValue) ? trim($afterValue) : '';
         $cursorKey = 'notification-delivery:officer-brief:'.$group;
         $cycle = (bool) $this->option('cycle') && $afterOption === '';
         $storedCursor = $cycle ? Cache::get($cursorKey) : null;
@@ -265,7 +267,8 @@ Artisan::command(
 Artisan::command(
     'notifications:queue-intelligence-changes {--limit=1000} {--after=} {--cycle}',
     function (QueueIntelligenceChangeNotifications $queue): int {
-        $afterOption = trim((string) $this->option('after'));
+        $afterValue = $this->option('after');
+        $afterOption = is_string($afterValue) ? trim($afterValue) : '';
         $cursorKey = 'notification-delivery:intelligence-change';
         $cycle = (bool) $this->option('cycle') && $afterOption === '';
         $storedCursor = $cycle ? Cache::get($cursorKey) : null;
