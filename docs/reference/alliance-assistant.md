@@ -1,6 +1,6 @@
 # Alliance Assistant HTTP contract
 
-Status: Active delivery — GameWorld extension — 2026-08-24
+Status: Kingshot expansion implemented; containing-candidate verification pending — 2026-08-29
 
 The Alliance Assistant HTTP surface is an authenticated, Alliance-scoped read/composition contract. It does not expose an unconstrained chat API and does not create a second application write path.
 
@@ -47,6 +47,14 @@ Closed `prompt` identifiers:
 - `battle_assignment`;
 - `transfer_status`;
 - `territory_plan`.
+- `alliance_command`;
+- `event_readiness`;
+- `rally_gaps`;
+- `bear_hunt_history`;
+- `progression_freshness`;
+- `transfer_verification`;
+- `intelligence_changes`;
+- `territory_comparison`.
 
 Prompt identifiers select only predeclared intents and grant no authority. Write-attempt detection is evaluated before prompt override.
 
@@ -62,6 +70,14 @@ Prompt identifiers select only predeclared intents and grant no authority. Write
 - `territory_plan`;
 - `alliance_content`;
 - `alliance_observation`;
+- `intelligence_changes`;
+- `alliance_command_attention`;
+- `event_readiness`;
+- `rally_gaps`;
+- `bear_hunt_history`;
+- `progression_freshness`;
+- `transfer_verification`;
+- `territory_comparison`;
 - `action_handoff`;
 - `unsupported`.
 
@@ -119,6 +135,12 @@ Evidence source types include:
 - `alliance_content`;
 - `observation`;
 - `game_fact`.
+- `alliance_command`;
+- `event_readiness`;
+- `bear_hunt_run`;
+- `roster_freshness`;
+- `transfer_verification`;
+- `territory_comparison`.
 
 Classifications remain:
 
@@ -168,7 +190,7 @@ A recognized write request may return:
 
 This is a normal GET navigation target only. The Assistant does not call a roster Action, submit a hidden form, attach a privileged authorization token, or automatically POST after navigation. The destination performs normal authorization/current-context checks.
 
-Unknown writes remain `unsupported`.
+Recognized Event, Roster, Rally, Transfer, Evidence and Territory writes remain navigation-only. If no authorized source evidence exists, the result remains `not_found`; the Assistant does not synthesize an evidence-free handoff. Unknown writes remain `unsupported`.
 
 ## Owner-specific response rules
 
@@ -177,3 +199,6 @@ Unknown writes remain `unsupported`.
 - `battle_plan_self` returns only direct or active-roster-derived assignments for the active Governor.
 - `transfer_status_self` returns no assessment unless the active Governor has legitimate visible participant scope. A requested Kingdom number constrains the existing participant target and never grants scope.
 - `territory_plan` returns only immutable published revisions attached to the Event occurrence; mutable plan heads are never an Assistant source.
+- `alliance_command_attention`, `event_readiness`, `rally_gaps`, `progression_freshness`, `transfer_verification` and `territory_comparison` reuse the authorized Alliance Command projection and do not persist a task or score.
+- `bear_hunt_history` requires Alliance Event view authority, the canonical verified `bear-hunt` identity and a bounded existing Debrief history.
+- `intelligence_changes` uses only authorized typed change signals and retains their owner/source citations.

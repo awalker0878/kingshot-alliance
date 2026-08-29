@@ -34,7 +34,7 @@ final class BearHuntDebriefReadModelV3Test extends TestCase
         $alliance = $scenario->alliance($actor);
         $scenario->roster($actor, $alliance);
         $occurrence = $this->occurrence($actor, $alliance, CarbonImmutable::now('UTC'));
-        $occurrence->load(['event.eventType', 'event.typeScope.capabilities']);
+        $occurrence->load(['event.eventType.workflowDimensions', 'event.typeScope']);
 
         $debrief = app(BearHuntDebriefQuery::class)->forOccurrence($occurrence, $actor, false);
 
@@ -64,7 +64,7 @@ final class BearHuntDebriefReadModelV3Test extends TestCase
             'recorded_by_player_id' => $actor->playerId,
             'recorded_at' => now(),
         ]);
-        $occurrence->load(['event.eventType', 'event.typeScope.capabilities']);
+        $occurrence->load(['event.eventType.workflowDimensions', 'event.typeScope']);
 
         $debrief = app(BearHuntDebriefQuery::class)->forOccurrence($occurrence, $actor, false);
 
@@ -86,7 +86,7 @@ final class BearHuntDebriefReadModelV3Test extends TestCase
         $scenario->roster($actor, $alliance);
         $occurrence = $this->occurrence($actor, $alliance, CarbonImmutable::now('UTC'));
         $this->recordResult((string) $occurrence->id, $actor->playerId, $actor->playerId, 750, 1);
-        $occurrence->load(['event.eventType', 'event.typeScope.capabilities']);
+        $occurrence->load(['event.eventType.workflowDimensions', 'event.typeScope']);
 
         $debrief = app(BearHuntDebriefQuery::class)->forOccurrence($occurrence, $actor, false);
 
@@ -112,7 +112,7 @@ final class BearHuntDebriefReadModelV3Test extends TestCase
         $small = $this->occurrence($actor, $alliance, CarbonImmutable::now('UTC')->subDay());
         $small->forceFill(['status' => EventOccurrenceStatus::Completed])->save();
         $this->recordResult((string) $small->id, $actor->playerId, $actor->playerId, 100, 1);
-        $small->load(['event.eventType', 'event.typeScope.capabilities']);
+        $small->load(['event.eventType.workflowDimensions', 'event.typeScope']);
 
         DB::enableQueryLog();
         DB::flushQueryLog();
@@ -135,7 +135,7 @@ final class BearHuntDebriefReadModelV3Test extends TestCase
                 $index,
             );
         }
-        $large->load(['event.eventType', 'event.typeScope.capabilities']);
+        $large->load(['event.eventType.workflowDimensions', 'event.typeScope']);
 
         DB::flushQueryLog();
         $debrief = app(BearHuntDebriefQuery::class)->forOccurrence($large, $actor, false);

@@ -504,6 +504,161 @@ Delivered examples include tracked Alliance power/member-count change, Governor 
 
 On Command Overview, the feed is shown only after a concrete active Alliance scope exists. A scoped feed with no signals may show the localized empty state; an unscoped dashboard does not claim that there are no changes.
 
+## Operate a verified Kingshot Event profile
+
+Program state: **Selected extension — implementation verification in progress**.
+
+```text
+Choose a canonical Event type
+ -> inspect verification/profile/provenance state
+ -> schedule an application occurrence
+ -> resolve the closed typed workflow dimensions
+ -> show only supported specialized owner workflows
+ -> keep candidate/conflicting/unsupported profiles disabled
+```
+
+Scheduling is baseline Events behavior. A name or category never activates a Rally, result schema, Evidence intake, Debrief or other specialized path.
+
+## Build a factual Rally roster
+
+Program state: **Selected extension**.
+
+```text
+Open verified Event management
+ -> select occurrence
+ -> review registered/rostered Governors
+ -> create Rally groups in Operations/Rallies
+ -> assign leads, joiners and standbys
+ -> review unassigned, duplicate, declined, missing-lead and freshness reason codes
+ -> correct through Participation/Rosters/Rallies owner controls
+ -> use the existing Event plan as the published operational handoff
+```
+
+The builder does not score Governors, optimize lineups or predict performance.
+
+## Review one Governor capability profile
+
+Program state: **Selected extension**.
+
+```text
+Authorize active Alliance and Intelligence scope
+ -> open one Alliance Roster entry
+ -> inspect latest/prior progression observations and provenance
+ -> inspect authorized Event, Bear Hunt, Rally and BattlePlan history
+ -> inspect authorized Transfer assessment and Evidence state
+ -> follow owner links for correction or additional evidence
+```
+
+Unavailable sections do not leak counts. No aggregate member strength or quality score is calculated.
+
+## Review Bear Hunt performance
+
+Program state: **Selected extension — delivered Debrief foundation**.
+
+```text
+Open verified Bear Hunt occurrence
+ -> load accepted Alliance/Governor results
+ -> load attendance and recorded Rally actuals
+ -> load Evidence review/unmatched state
+ -> compare with the bounded previous accepted runs
+ -> inspect deterministic difference/trend states
+ -> hand unresolved Evidence back to its review workflow
+```
+
+Missing results are not zero and comparisons do not imply causes or recommended formations.
+
+## Onboard an additional Kingshot Event
+
+Program state: **Selected extension process**.
+
+```text
+Identify named Event
+ -> establish acceptable Kingshot source provenance
+ -> review canonical identity and supported owner workflows
+ -> list unsupported/evidence-gated mechanics
+ -> add server-owned candidate/profile record
+ -> enable only after the identity/evidence gate passes
+ -> add typed readiness/closeout and UX coverage
+```
+
+KvK remains blocked at the first step in the current product snapshot.
+
+## Coordinate a Transfer campaign
+
+Program state: **Selected extension**.
+
+```text
+Open Recruitment candidate
+ -> review candidate state/history
+ -> review Governor Evidence and Transfer observations
+ -> inspect KingdomTransfers eligibility for target/window
+ -> coordinate through Communications owner handoff
+ -> record expected arrival as planning/coordination context
+ -> observe transferred/active Alliance membership from its owner
+```
+
+The workspace does not copy candidate, eligibility, delivery or membership truth into a campaign table.
+
+## Follow a Kingdom or Governor Intelligence timeline
+
+Program state: **Selected extension — delivered history foundation**.
+
+```text
+Authorize concrete Intelligence scope
+ -> select Alliance or Governor
+ -> compose bounded owner history chronologically
+ -> show owner, observed time, source/Evidence, confidence and scope
+ -> link derived signals to their before/after facts
+ -> open the canonical owner history when more context is needed
+```
+
+Observed change is never converted into intent, threat or strategy.
+
+## Resolve Territory and hive execution differences
+
+Program state: **Current complete foundation; program reconciliation selected**.
+
+```text
+Open immutable published Territory revision
+ -> attach/use it for an operation
+ -> collect reviewed dated observations
+ -> compare desired and observed state with typed tolerance
+ -> resolve observation issues in Evidence/Observations
+ -> create a replacement plan revision when desired state changes
+```
+
+Published revisions and observations remain immutable and separate.
+
+## Review Alliance Command and officer briefs
+
+Program state: **Selected extension — delivered Command/Communications foundation**.
+
+```text
+Authorize concrete Alliance officer scope
+ -> derive current Event/Rally/BattlePlan/Roster/Transfer/Intelligence/Territory/Evidence attention
+ -> order deterministic factual reason codes
+ -> follow navigation-only owner handoffs
+ -> optionally receive idempotent Daily / Upcoming Event / Post-Event briefs
+ -> inspect delivery/retry state in Communications
+```
+
+Alliance Command stores no generic tasks. Queued delivery is not reported as delivered.
+
+## Ask the expanded Alliance Assistant
+
+Program state: **Selected extension — delivered Assistant foundation**.
+
+```text
+Ask a supported Kingshot operational question
+ -> interpret one typed bounded intent
+ -> authorize the exact owner projection
+ -> answer with owner/source/provenance Evidence
+ -> preserve missing/stale/conflicting/unsupported state
+ -> for write-like language, return a context-preserving owner-workflow link only
+```
+
+The Assistant never mutates owner state or invents a free-form Kingshot answer.
+
 ## Extension-program recovery rule
 
 For every implementation-contract journey:
@@ -516,4 +671,4 @@ failure / stale authority / duplicate / conflict / unavailable source
  -> retry/review/correct only through documented owner recovery path
 ```
 
-The canonical acceptance criteria, ownership/provenance rules and delivery order for these journeys live in [Capability Extension Program](../capability-extension-program.md) and the [Capability delivery ledger](../capability-delivery-ledger.md).
+The canonical acceptance criteria, ownership/provenance rules and delivery order for these journeys live in [Capability Extension Program](../capability-extension-program.md), [Kingshot Capability Expansion Program](../kingshot-capability-expansion-program.md) and the [Capability delivery ledger](../capability-delivery-ledger.md).

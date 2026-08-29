@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Rosters\Actions;
 
-use App\Contexts\Operations\Events\Enums\EventCapability;
+use App\Contexts\Operations\Events\Enums\EventWorkflowDimension;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Events\Services\EventAuthorization;
-use App\Contexts\Operations\Events\Services\EventCapabilityGuard;
+use App\Contexts\Operations\Events\Services\EventWorkflowGuard;
 use App\Contexts\Operations\Events\Services\EventWriteState;
 use App\Contexts\Operations\Rosters\Enums\EventRosterMemberStatus;
 use App\Contexts\Operations\Rosters\Enums\EventRosterType;
@@ -22,7 +22,7 @@ final readonly class SaveEventRoster
     public function __construct(
         private EventWriteState $eventWriteState,
         private EventAuthorization $mutations,
-        private EventCapabilityGuard $capabilities,
+        private EventWorkflowGuard $workflows,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -64,7 +64,7 @@ final readonly class SaveEventRoster
             $route = EventOccurrence::query()->select(['id', 'event_id'])->whereKey($occurrenceId)->firstOrFail();
             $context = $this->eventWriteState->lockEventScope($actorPlayerId, (string) $route->event_id);
             $this->mutations->authorizeManager($context);
-            $this->capabilities->require($context->event, EventCapability::Rosters);
+            $this->workflows->require($context->event, EventWorkflowDimension::Roster);
 
             $occurrence = EventOccurrence::query()
                 ->whereKey($occurrenceId)

@@ -1,6 +1,6 @@
 # Alliance Assistant operations
 
-Status: Active delivery — GameWorld extension — 2026-08-24
+Status: Kingshot expansion implemented; containing-candidate verification pending — 2026-08-29
 
 Alliance Assistant remains a synchronous, read-only composition surface. It uses deterministic bounded intent parsing and owner queries only. It has no external LLM/model-provider dependency, no Assistant database tables, no queue, no persisted conversation history, and no Assistant mutation worker.
 
@@ -16,6 +16,8 @@ Alliance Assistant remains a synchronous, read-only composition surface. It uses
 - `rate_limit_per_minute` — named Assistant request limit; default 30 per authenticated account.
 
 Weekly participation questions use a seven-day past/future authorized Event window and then filter to the current UTC week. The owner batch projection accepts at most 500 already-authorized occurrence IDs and reads only the active Player's participation records.
+
+The Kingshot expansion adds closed operational intents for officer attention, verified Event readiness, Rally gaps, Bear Hunt history, Governor-observation freshness, Transfer verification, Intelligence changes and Territory comparison. These intents reuse exact authorized owner/ReadModel projections; they do not run broad searches or create Assistant-owned facts. A missing owner projection returns `not_found` rather than an evidence-free answer or handoff.
 
 ## Provider posture
 
@@ -69,7 +71,13 @@ The Assistant reads only immutable published revisions attached to the Event occ
 
 ### Handoff
 
-A handoff is a normal GET link only. There is no handoff retry, worker, or Action. The destination remains authoritative for authorization, stale authority-context handling, validation and mutation.
+A handoff is a normal GET link only. There is no handoff retry, worker, or Action. The destination remains authoritative for authorization, stale authority-context handling, validation and mutation. Event, Roster, Rally, Transfer, Evidence and Territory write-like requests receive a handoff only when the Assistant has first obtained an authorized source item to cite.
+
+### Officer briefs
+
+The Command Overview composes Daily Officer, Upcoming Event and Post-Event Closeout briefs from current owner facts. A semantic fingerprint excludes generation time so the same meaning produces the same delivery identity. Before queueing `officer.brief`, the publisher re-resolves the recipient Player/account and current R4/R5 `MembershipManage` authority. Communications then owns channel preferences, idempotency, attempts, retries and receipts; queued is never reported as delivered.
+
+There is no Officer Brief table, scheduler-specific truth store or generic task store. Recovery starts by rebuilding the authorized brief, checking the current semantic fingerprint and inspecting Communications delivery state.
 
 ## Recovery
 
@@ -102,7 +110,7 @@ Operational verification includes:
 - limiter tests;
 - response-citation validation;
 - architecture tests proving the ReadModel has no persistence/write Action dependency and no broad management projection dependency;
-- exact nine-prompt default discovery coverage;
+- exact nine-prompt baseline discovery coverage plus typed Kingshot expansion prompts;
 - typed native extension locale-map coverage;
 - dynamic Assistant-domain localization imports and repository performance budgets.
 

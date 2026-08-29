@@ -4,13 +4,11 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Events\Actions;
 
-use App\Contexts\Operations\Events\Enums\EventCapability;
 use App\Contexts\Operations\Events\Enums\EventPhaseStatus;
 use App\Contexts\Operations\Events\Enums\EventPhaseType;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Events\Models\EventPhase;
 use App\Contexts\Operations\Events\Services\EventAuthorization;
-use App\Contexts\Operations\Events\Services\EventCapabilityGuard;
 use App\Contexts\Operations\Events\Services\EventWriteState;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
@@ -23,7 +21,6 @@ final readonly class SaveEventPhase
     public function __construct(
         private EventWriteState $eventWriteState,
         private EventAuthorization $mutations,
-        private EventCapabilityGuard $capabilities,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -73,8 +70,6 @@ final readonly class SaveEventPhase
             $occurrence = EventOccurrence::query()->whereKey($occurrenceId)->sharedLock()->firstOrFail();
             $context = $this->eventWriteState->lockEventScope($actorPlayerId, (string) $occurrence->event_id);
             $this->mutations->authorizeManager($context);
-            $this->capabilities->require($context->event, EventCapability::Phases);
-
             $lockedOccurrence = EventOccurrence::query()
                 ->whereKey($occurrenceId)
                 ->where('event_id', $context->event->id)

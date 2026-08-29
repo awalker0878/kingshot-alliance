@@ -35,6 +35,8 @@ final readonly class CommandOverviewQuery
         private TransferAuthorization $transferAuthorization,
         private EventAuthorization $eventAuthorization,
         private IntelligenceSignalQuery $intelligenceSignals,
+        private AllianceCommandQuery $allianceCommand,
+        private OfficerBriefQuery $officerBriefs,
     ) {}
 
     /**
@@ -46,6 +48,8 @@ final readonly class CommandOverviewQuery
      *   giftCodes:list<array<string,mixed>>,
      *   recruitment:?array{pending:int,overdue:int},
      *   intelligenceSignals:list<array<string,mixed>>,
+     *   allianceCommand:?array<string,mixed>,
+     *   officerBriefs:list<array<string,mixed>>,
      *   actionCount:int
      * }
      */
@@ -89,6 +93,13 @@ final readonly class CommandOverviewQuery
             );
         }
 
+        $allianceCommand = $allianceId === null ? null : $this->allianceCommand->for(
+            $userId,
+            $player,
+            $allianceId,
+            $intelligenceSignals,
+        );
+
         return [
             'unreadNotifications' => $unreadNotifications,
             'pendingGiftCodes' => $pendingGiftCodes,
@@ -98,6 +109,10 @@ final readonly class CommandOverviewQuery
             'recruitment' => $recruitment,
             // Informational intelligence changes do not inflate actionCount.
             'intelligenceSignals' => $intelligenceSignals,
+            'allianceCommand' => $allianceCommand,
+            'officerBriefs' => $allianceId === null
+                ? []
+                : $this->officerBriefs->for($player, $allianceId, $allianceCommand),
             'actionCount' => $unreadNotifications
                 + $pendingGiftCodes
                 + count($eventActions)

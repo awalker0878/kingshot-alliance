@@ -63,6 +63,7 @@ final class KingShotEventTypeCatalog
             sourceLabel: 'Repository-supported Bear Hunt product contracts',
             sourceReference: 'docs/product/screenshot-intake.md',
             sourceObservedAt: '2026-08-28T00:00:00+00:00',
+            descriptionKey: 'events.profile.bear_hunt_description',
             workflowDimensions: [
                 EventWorkflowDimension::Participation,
                 EventWorkflowDimension::Roster,
@@ -91,6 +92,7 @@ final class KingShotEventTypeCatalog
             scopes: $scopes,
             verificationState: EventTypeVerificationState::Candidate,
             profileState: EventProfileState::Disabled,
+            descriptionKey: null,
         );
     }
 
@@ -105,6 +107,7 @@ final class KingShotEventTypeCatalog
             scopes: [EventScope::Player, EventScope::Alliance, EventScope::Kingdom],
             verificationState: EventTypeVerificationState::Unsupported,
             profileState: EventProfileState::Disabled,
+            descriptionKey: null,
         );
     }
 
@@ -124,6 +127,7 @@ final class KingShotEventTypeCatalog
         ?string $sourceReference = null,
         ?string $sourceObservedAt = null,
         ?string $gameVersionBoundary = null,
+        ?string $descriptionKey = null,
         array $workflowDimensions = [],
     ): array {
         $key = str_replace('-', '_', $slug);
@@ -131,7 +135,7 @@ final class KingShotEventTypeCatalog
         return [
             'slug' => $slug,
             'name_key' => "events.types.{$key}.name",
-            'description_key' => "events.types.{$key}.description",
+            'description_key' => $descriptionKey,
             'category' => $category,
             'icon_key' => $icon,
             'sort_order' => $sortOrder,

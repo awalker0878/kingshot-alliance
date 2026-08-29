@@ -57,7 +57,7 @@ final class BearHuntDebriefReportRemovalV3Test extends TestCase
             ]],
         );
 
-        $occurrence->load(['event.eventType', 'event.typeScope.capabilities']);
+        $occurrence->load(['event.eventType.workflowDimensions', 'event.typeScope']);
         $withReport = app(BearHuntDebriefQuery::class)->forOccurrence($occurrence, $actor, false);
         self::assertSame(575, $withReport['summary']['totalDamage']);
         self::assertSame(1, $withReport['summary']['acceptedReportCount']);

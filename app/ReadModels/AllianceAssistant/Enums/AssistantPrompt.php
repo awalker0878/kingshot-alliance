@@ -15,4 +15,12 @@ enum AssistantPrompt: string
     case BattleAssignment = 'battle_assignment';
     case TransferStatus = 'transfer_status';
     case TerritoryPlan = 'territory_plan';
+    case AllianceCommand = 'alliance_command';
+    case EventReadiness = 'event_readiness';
+    case RallyGaps = 'rally_gaps';
+    case BearHuntHistory = 'bear_hunt_history';
+    case ProgressionFreshness = 'progression_freshness';
+    case TransferVerification = 'transfer_verification';
+    case IntelligenceChanges = 'intelligence_changes';
+    case TerritoryComparison = 'territory_comparison';
 }

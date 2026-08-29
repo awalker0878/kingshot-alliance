@@ -1,6 +1,6 @@
 # Capability delivery ledger
 
-Status: Current as of 2026-08-28
+Status: Current as of 2026-08-29
 
 This ledger records current delivered outcomes, active selected-extension work and remaining evidence gates. It is a work queue, not a speculative roadmap. Git history remains the archive for retired/completed intermediate phase detail and exact diffs/CI runs.
 
@@ -87,6 +87,23 @@ The delivered capability preserves these non-negotiable boundaries:
 6. Assistant uses typed signals and source citations without strategic inference; Communications owns delivery/idempotency only.
 7. Command Overview renders its Intelligence feed only for a concrete active Alliance scope, so unscoped state is not presented as an empty factual result.
 
+## Kingshot capability expansion — phases 13–25
+
+Canonical contract and row-level ledger: [Kingshot Capability Expansion Program](kingshot-capability-expansion-program.md).
+
+Phases 13–16 and 18–24 have implementation and focused regression coverage on the current branch. Phase 21 reconciles the existing Territory execution implementation. The local frontend, documentation, localization, product-language, build and performance gates are green; PHP tests, Pint, PHPStan and the immutable containing-candidate CI/staging evidence cannot be claimed from this workspace and remain Phase 25 work. These rows therefore remain selected extensions rather than current complete capabilities.
+
+Phase 17 remains blocked at `P17-01`: no verified canonical KvK identity/evidence and supported workflow profile exists. No KvK specialization was implemented.
+
+| Phase range | Current delivery state | Remaining release evidence |
+| --- | --- | --- |
+| 13–16 | Implementation present | PHP tests, Pint, PHPStan and immutable-candidate gates |
+| 17 | Blocked by identity/evidence gate | Canonical identity, provenance and reviewed workflow dimensions before code |
+| 18–20 | Implementation present | PHP tests, Pint, PHPStan and immutable-candidate gates |
+| 21 | Existing implementation reconciled | Immutable containing-candidate verification |
+| 22–24 | Implementation present | PHP tests, Pint, PHPStan and immutable-candidate gates |
+| 25 | Verification in progress | CI/security, visual, production-image, clean-database/staging and recovery evidence on one SHA |
+
 ## Screenshot Intake — Bear Hunt reconciliation
 
 Target: a complete Bear Hunt Screenshot Intake workflow from private upload through reviewed, exactly-once Operations result commit.
@@ -140,18 +157,18 @@ Phase 0 is documentation-only. No application code, migration, route, frontend c
 | 2 | Current complete capability | Complete | Assistant operational-self intents and safe handoffs | `AE-04`–`AE-12`, plus `PX-*`: Participation/BattlePlan/Transfer/Territory self reads are authorized/bounded; write-like requests perform zero mutation and only navigate to canonical owner workflows. |
 | 3 | Current complete capability | Complete | Event Readiness | `ER-01`–`ER-12`, `EC-01`–`EC-28`, plus `PX-*`: occurrence-scoped capability-aware pre-Event readiness composed from bounded owner projections with explicit blockers/source/action links, query-budget coverage and no persisted readiness state machine. |
 | 4 | Current complete capability | Complete | Event Closeout | `ER-01`–`ER-12`, `EC-01`–`EC-28`, plus `PX-*`: occurrence-scoped post-Event attendance/Rally/Results/Evidence/review/Debrief completion composed with explicit missing semantics, owner correction links and no Event Command write path. |
-| 5 | Selected extension | Not started | Kingdom Transfer Screenshot Intake | `TE-01`–`TE-12`, plus `PX-*`: typed fixture-proven extraction/review, tenant-safe duplicate/retry, scalar owner commit, freshness/source semantics and eligibility reevaluation without invented rules. |
-| 6 | Selected extension | Not started | Governor Progression Screenshot Intake | `GE-01`–`GE-12`, plus `PX-*`: typed extraction/review, canonical identity normalization pinned to immutable Progression release, append-only Roster owner commit, tenant-safe retry/retention. |
-| 7 | Selected extension | Not started | Progression Goal Planner | `GP-01`–`GP-10`, plus `PX-*`: authorized observed current state + pinned factual target/prerequisites, explicit unknown/conflict/freshness, no recommendation semantics or unqualified totals. |
-| 8 | Evidence-gated extension | Gate not executed | Calculator evidence qualification per family | `CE-01`–`CE-06` and the ten qualification conditions: independent family reports, explicit source/version/unit/conflict coverage, immutable datasets, typed calculation contract/golden fixtures; no runtime calculator unlock. |
-| 9 | Evidence-gated extension | Blocked pending qualification | Evidence-backed calculators | `CI-01`–`CI-08`, plus `PX-*`; implement only for a family whose Phase 8 qualification report is `qualified`. Unqualified families remain unavailable. |
+| 5 | Selected extension | Verification in progress | Kingdom Transfer Screenshot Intake | Implementation and typed tests exist for `TE-01`–`TE-12`; immutable containing-candidate release evidence remains required. |
+| 6 | Selected extension | Verification in progress | Governor Progression Screenshot Intake | Implementation and typed tests exist for `GE-01`–`GE-12`; immutable containing-candidate release evidence remains required. |
+| 7 | Current complete capability | Complete subject to containing-SHA evidence | Progression Goal Planner | `GP-*` implementation and reconciled UX/tests exist; the calculator delivery ledger remains the exact verification authority. |
+| 8 | Evidence-gated extension | Complete family dispositions | Calculator evidence qualification per family | Governor Gear and Governor Charms are qualified; Hero Gear/Mastery and Troops are evidence-incomplete, Research has a source gap, and Buildings/Truegold has an evidence conflict. |
+| 9 | Evidence-gated extension | Qualified families implemented; others correctly unavailable | Evidence-backed calculators | Governor Gear and Governor Charms calculators consume their pinned qualified release. No other family is exposed. |
 | 10 | Current complete capability | Complete | Territory plan vs observed state | `TR-01`–`TR-08`, plus `PX-*`: immutable desired plan versus dated observed evidence, typed coordinate tolerance, explicit stale/missing semantics, no plan/map rewrite from observation. |
 | 11 | Current complete capability | Complete | Intelligence change signals | `IS-01`–`IS-08`, `ICD-01`–`ICD-30`, plus `PX-*`: deterministic source-cited signals over authorized histories, typed thresholds/windows, explicit unsupported complete-source absence, no inferred strategic intent, privacy-safe telemetry, scoped consumer UX and green release evidence. |
-| 12 | Selected extension | Not started | Full reconciliation and release closeout | `PX-01`–`PX-15`: spec→code, code→spec, UX→backend, authorization, provenance/data ownership, missing-data, performance, accessibility/localization, observability/recovery and complete repository release gates are green on one immutable candidate for the whole remaining program. |
+| 12 | Selected extension | Active | Full reconciliation and release closeout | `PX-01`–`PX-15`: containing-candidate verification remains open for selected Evidence extensions and current branch reconciliation. |
 
 `Verification in progress` means implementation exists but the extension still remains a Selected extension until its required release evidence and documentation reconciliation are complete. `Not started` means the approved product contract exists but the implementation outcome must not be described in present tense. `Blocked pending qualification` is intentional evidence gating, not an implementation defect.
 
-Phase 12 remains open because phases 5–9 are not complete; Phase 11 completion does not imply global program closeout.
+Phase 12 remains open because phases 5 and 6 still require immutable-candidate evidence and current branch reconciliation; evidence-gated families intentionally retain their explicit dispositions. Phase 11 completion does not imply global program closeout. Phases 13–25 are separately governed by [Kingshot Capability Expansion Program](kingshot-capability-expansion-program.md).
 
 ## Calculator evidence qualification ledger
 
@@ -159,12 +176,12 @@ Qualification is independent by family. Current factual-reference completeness d
 
 | Family | Qualification state | Runtime calculator state | Required next evidence work |
 | --- | --- | --- | --- |
-| Governor Gear | Gate not executed | Disabled | Produce `CE-*` qualification report against immutable source rows and calculation fixtures. |
-| Governor Charms | Gate not executed | Disabled | Produce `CE-*` qualification report against immutable source rows and calculation fixtures. |
-| Hero Gear / Mastery | Gate not executed | Disabled | Produce `CE-*` qualification report against immutable source rows and calculation fixtures. |
-| Troop training / promotion | Gate not executed | Disabled | Produce `CE-*` qualification report against immutable source rows and calculation fixtures. |
-| Academy / War Academy research | Gate not executed | Disabled | Produce `CE-*` qualification report; explicit source gaps/conflicts remain blockers where calculations depend on them. |
-| Buildings / Truegold progression | Gate not executed | Disabled | Produce `CE-*` qualification report against immutable source rows and calculation fixtures. |
+| Governor Gear | Qualified | Enabled for pinned qualified release | Preserve report/release/checksum/golden-fixture boundary. |
+| Governor Charms | Qualified | Enabled for pinned qualified release | Preserve explicit level-zero boundary and golden fixtures. |
+| Hero Gear / Mastery | Evidence incomplete | Disabled | Complete independent evidence and transition semantics before implementation. |
+| Troop training / promotion | Evidence incomplete | Disabled | Establish training/promotion/modifier boundaries and independent evidence. |
+| Academy / War Academy research | Source gap | Disabled | Resolve the documented table and calculation-unit/source gaps. |
+| Buildings / Truegold progression | Evidence conflict | Disabled | Resolve prerequisite conflict and independent calculator evidence. |
 
 No family can transition to `qualified` by documentation assertion alone. The evidence package, immutable data release, reconciliation result and golden calculation fixtures must exist and pass review/tests. Qualifying one row has no effect on another family.
 

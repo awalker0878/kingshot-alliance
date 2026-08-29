@@ -55,12 +55,14 @@ const props = defineProps<{
 
 const { t } = useLocale();
 
-const verifiedCount = computed(() =>
-  props.eventTypes.filter((type) => type.profile.verification_state === 'verified').length,
+const verifiedCount = computed(
+  () => props.eventTypes.filter((type) => type.profile.verification_state === 'verified').length,
 );
-const enabledCount = computed(() => props.eventTypes.filter((type) => type.profile.profile_enabled).length);
-const candidateCount = computed(() =>
-  props.eventTypes.filter((type) => type.profile.verification_state === 'candidate').length,
+const enabledCount = computed(
+  () => props.eventTypes.filter((type) => type.profile.profile_enabled).length,
+);
+const candidateCount = computed(
+  () => props.eventTypes.filter((type) => type.profile.verification_state === 'candidate').length,
 );
 
 function scopeLabel(scope: string): string {
@@ -68,7 +70,7 @@ function scopeLabel(scope: string): string {
 }
 
 function readable(value: string): string {
-  return value.replaceAll('_', ' ');
+  return t(`events.profile.values.${value}`);
 }
 </script>
 
@@ -89,11 +91,24 @@ function readable(value: string): string {
       </template>
     </RoomBanner>
 
-    <section class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4" :aria-label="t('events.catalogue.title')">
+    <section
+      class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4"
+      :aria-label="t('events.catalogue.title')"
+    >
       <StatSeal :label="t('events.catalogue.title')" :value="props.eventTypes.length" icon="✦" />
-      <StatSeal label="Verified identities" :value="verifiedCount" icon="✓" tone="teal" />
-      <StatSeal label="Enabled profiles" :value="enabledCount" icon="◆" tone="stone" />
-      <StatSeal label="Candidate identities" :value="candidateCount" icon="?" />
+      <StatSeal
+        :label="t('events.profile.verifiedIdentities')"
+        :value="verifiedCount"
+        icon="✓"
+        tone="teal"
+      />
+      <StatSeal
+        :label="t('events.profile.enabledProfiles')"
+        :value="enabledCount"
+        icon="◆"
+        tone="stone"
+      />
+      <StatSeal :label="t('events.profile.candidateIdentities')" :value="candidateCount" icon="?" />
     </section>
 
     <div class="mt-5 space-y-5">
@@ -106,50 +121,99 @@ function readable(value: string): string {
               <span class="ks-chip">{{ readable(type.profile.verification_state) }}</span>
               <span class="ks-chip">{{ readable(type.profile.profile_state) }}</span>
             </div>
-            <p v-if="type.descriptionKey" class="mt-2 max-w-3xl text-sm text-[var(--ks-text-muted)]">
+            <p
+              v-if="type.descriptionKey"
+              class="mt-2 max-w-3xl text-sm text-[var(--ks-text-muted)]"
+            >
               {{ t(type.descriptionKey) }}
             </p>
-            <p v-if="!type.profile.profile_enabled" class="mt-3 text-sm text-[var(--ks-text-muted)]" role="status">
-              Specialized workflows are unavailable until this Kingshot identity is verified with provenance and its profile is explicitly enabled.
+            <p
+              v-if="!type.profile.profile_enabled"
+              class="mt-3 text-sm text-[var(--ks-text-muted)]"
+              role="status"
+            >
+              {{ t('events.profile.disabledExplanation') }}
             </p>
           </div>
           <code class="text-xs text-[var(--ks-text-muted)]">{{ type.slug }}</code>
         </div>
 
-        <div v-if="type.profile.source" class="mt-4 ks-surface p-4 text-sm">
-          <div class="font-semibold">Source provenance</div>
+        <div v-if="type.profile.source" class="ks-surface mt-4 p-4 text-sm">
+          <div class="font-semibold">{{ t('events.profile.sourceProvenance') }}</div>
           <dl class="mt-2 grid gap-2 sm:grid-cols-2">
-            <div><dt class="text-xs text-[var(--ks-text-muted)]">Source</dt><dd>{{ type.profile.source.label }}</dd></div>
-            <div><dt class="text-xs text-[var(--ks-text-muted)]">Reference</dt><dd class="break-all">{{ type.profile.source.reference }}</dd></div>
-            <div><dt class="text-xs text-[var(--ks-text-muted)]">Observed</dt><dd>{{ type.profile.source.observed_at ?? 'Unknown' }}</dd></div>
-            <div><dt class="text-xs text-[var(--ks-text-muted)]">Game/version boundary</dt><dd>{{ type.profile.source.game_version_boundary ?? 'Unknown' }}</dd></div>
+            <div>
+              <dt class="text-xs text-[var(--ks-text-muted)]">{{ t('events.profile.source') }}</dt>
+              <dd>{{ type.profile.source.label }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs text-[var(--ks-text-muted)]">
+                {{ t('events.profile.reference') }}
+              </dt>
+              <dd class="break-all">{{ type.profile.source.reference }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs text-[var(--ks-text-muted)]">
+                {{ t('events.profile.observed') }}
+              </dt>
+              <dd>{{ type.profile.source.observed_at ?? t('events.profile.values.unknown') }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs text-[var(--ks-text-muted)]">
+                {{ t('events.profile.gameVersionBoundary') }}
+              </dt>
+              <dd>
+                {{
+                  type.profile.source.game_version_boundary ?? t('events.profile.values.unknown')
+                }}
+              </dd>
+            </div>
           </dl>
         </div>
 
-        <section class="mt-4" aria-label="Workflow dimensions">
-          <h3 class="text-sm font-semibold">Workflow dimensions</h3>
+        <section class="mt-4" :aria-label="t('events.profile.workflowDimensions')">
+          <h3 class="text-sm font-semibold">{{ t('events.profile.workflowDimensions') }}</h3>
           <div v-if="type.profile.workflow_dimensions.length" class="mt-2 flex flex-wrap gap-2">
-            <span v-for="dimension in type.profile.workflow_dimensions" :key="dimension" class="ks-chip">
+            <span
+              v-for="dimension in type.profile.workflow_dimensions"
+              :key="dimension"
+              class="ks-chip"
+            >
               {{ readable(dimension) }}
             </span>
           </div>
           <p v-else class="mt-2 text-sm text-[var(--ks-text-muted)]">
-            No specialized workflow dimensions are enabled.
+            {{ t('events.profile.noWorkflowDimensions') }}
           </p>
         </section>
 
-        <section class="mt-4" :aria-label="`${t(type.nameKey)} scopes`">
-          <h3 class="text-sm font-semibold">Application scopes</h3>
+        <section
+          class="mt-4"
+          :aria-label="t('events.profile.scopesFor', { event: t(type.nameKey) })"
+        >
+          <h3 class="text-sm font-semibold">{{ t('events.profile.applicationScopes') }}</h3>
           <div class="mt-2 grid gap-3 lg:grid-cols-3">
             <div v-for="scope in type.scopes" :key="scope.id" class="ks-surface p-3 text-sm">
               <div class="flex items-center justify-between gap-2">
                 <strong>{{ scopeLabel(scope.scope) }}</strong>
-                <span class="ks-chip">{{ scope.active ? 'active' : 'inactive' }}</span>
+                <span class="ks-chip">{{
+                  scope.active
+                    ? t('events.profile.values.active')
+                    : t('events.profile.values.inactive')
+                }}</span>
               </div>
               <dl class="mt-2 space-y-1 text-xs text-[var(--ks-text-muted)]">
-                <div><dt class="inline font-semibold">View: </dt><dd class="inline break-all">{{ scope.viewPermission }}</dd></div>
-                <div><dt class="inline font-semibold">Create: </dt><dd class="inline break-all">{{ scope.createPermission }}</dd></div>
-                <div><dt class="inline font-semibold">Manage: </dt><dd class="inline break-all">{{ scope.managePermission }}</dd></div>
+                <div>
+                  <dt class="inline font-semibold">{{ t('events.profile.view') }}:</dt>
+                  <dd class="inline break-all">{{ scope.viewPermission }}</dd>
+                </div>
+                <div>
+                  <dt class="inline font-semibold">{{ t('events.profile.create') }}:</dt>
+                  <dd class="inline break-all">{{ scope.createPermission }}</dd>
+                </div>
+                <div>
+                  <dt class="inline font-semibold">{{ t('events.profile.manage') }}:</dt>
+                  <dd class="inline break-all">{{ scope.managePermission }}</dd>
+                </div>
               </dl>
             </div>
           </div>

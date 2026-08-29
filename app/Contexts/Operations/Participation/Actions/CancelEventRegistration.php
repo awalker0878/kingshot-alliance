@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Participation\Actions;
 
-use App\Contexts\Operations\Events\Enums\EventCapability;
+use App\Contexts\Operations\Events\Enums\EventWorkflowDimension;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Events\Services\EventAuthorization;
-use App\Contexts\Operations\Events\Services\EventCapabilityGuard;
+use App\Contexts\Operations\Events\Services\EventWorkflowGuard;
 use App\Contexts\Operations\Events\Services\EventWriteState;
 use App\Contexts\Operations\Participation\Enums\EventRegistrationStatus;
 use App\Contexts\Operations\Participation\Models\EventRegistration;
@@ -21,7 +21,7 @@ final readonly class CancelEventRegistration
     public function __construct(
         private EventWriteState $eventWriteState,
         private EventAuthorization $authorization,
-        private EventCapabilityGuard $capabilities,
+        private EventWorkflowGuard $workflows,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -32,7 +32,7 @@ final readonly class CancelEventRegistration
             $route = EventOccurrence::query()->select(['id', 'event_id'])->whereKey($occurrenceId)->firstOrFail();
             $context = $this->eventWriteState->lockSelfScope($actorPlayerId, (string) $route->event_id, $actorPlayerId);
             $this->authorization->authorizeSelf($context, $actorPlayerId);
-            $this->capabilities->require($context->event, EventCapability::Registration);
+            $this->workflows->require($context->event, EventWorkflowDimension::Participation);
 
             $occurrence = EventOccurrence::query()
                 ->whereKey($occurrenceId)

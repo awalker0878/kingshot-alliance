@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Results\Actions;
 
-use App\Contexts\Operations\Events\Enums\EventCapability;
+use App\Contexts\Operations\Events\Enums\EventScope;
+use App\Contexts\Operations\Events\Enums\EventWorkflowDimension;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Events\Services\EventAuthorization;
-use App\Contexts\Operations\Events\Services\EventCapabilityGuard;
+use App\Contexts\Operations\Events\Services\EventWorkflowGuard;
 use App\Contexts\Operations\Events\Services\EventWriteState;
 use App\Contexts\Operations\Results\Enums\BearHuntBattleReportStatus;
 use App\Contexts\Operations\Results\Models\BearHuntBattleReport;
@@ -22,7 +23,7 @@ final readonly class RemoveBearHuntBattleReport
     public function __construct(
         private EventWriteState $eventWriteState,
         private EventAuthorization $authorization,
-        private EventCapabilityGuard $capabilities,
+        private EventWorkflowGuard $workflows,
         private BearHuntResultProjector $projector,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
@@ -40,7 +41,14 @@ final readonly class RemoveBearHuntBattleReport
             $occurrenceRoute = EventOccurrence::query()->select(['id', 'event_id'])->whereKey($route->occurrence_id)->firstOrFail();
             $context = $this->eventWriteState->lockEventScope($actorPlayerId, (string) $occurrenceRoute->event_id);
             $this->authorization->authorizeManager($context);
-            $this->capabilities->require($context->event, EventCapability::Results);
+            if ($context->event->scopeEnum() !== EventScope::Alliance
+                || $context->event->eventType->slug !== 'bear-hunt') {
+                throw ValidationException::withMessages(['event' => 'This occurrence is not an Alliance Bear Hunt Event.']);
+            }
+            $this->workflows->requireAll($context->event, [
+                EventWorkflowDimension::Results,
+                EventWorkflowDimension::ScreenshotEvidence,
+            ]);
             $report = BearHuntBattleReport::query()->whereKey($reportId)->where('occurrence_id', $occurrenceRoute->id)->lockForUpdate()->firstOrFail();
             if ($report->getRawOriginal('status') === BearHuntBattleReportStatus::Removed->value) {
                 return;

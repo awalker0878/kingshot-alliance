@@ -40,6 +40,13 @@ final class AssistantQuestionInterpreterV3Test extends TestCase
         yield 'weekly RSVP' => ['What did I RSVP for this week?', AssistantIntent::EventParticipationSelf, null, false, false];
         yield 'assignment' => ['What is my Swordland assignment?', AssistantIntent::BattlePlanSelf, 'swordland', false, false];
         yield 'territory' => ['Which hive layout are we using for Bear Hunt?', AssistantIntent::TerritoryPlan, 'bear hunt', false, false];
+        yield 'alliance command' => ['What needs attention in Alliance Command?', AssistantIntent::AllianceCommandAttention, null, false, false];
+        yield 'event readiness' => ['Is our next Event ready?', AssistantIntent::EventReadiness, 'next', false, false];
+        yield 'rally gaps' => ['What Rally gaps remain?', AssistantIntent::RallyGaps, null, false, false];
+        yield 'bear history' => ['Show our Bear Hunt performance history', AssistantIntent::BearHuntHistory, 'Bear Hunt', false, false];
+        yield 'progression freshness' => ['Which Governor observations are stale?', AssistantIntent::ProgressionFreshness, null, false, false];
+        yield 'transfer verification' => ['Which Transfer participants need verification?', AssistantIntent::TransferVerification, null, false, false];
+        yield 'territory comparison' => ['How does observed Territory compare with the plan?', AssistantIntent::TerritoryComparison, null, false, false];
     }
 
     #[DataProvider('localizedPromptCases')]
@@ -66,6 +73,14 @@ final class AssistantQuestionInterpreterV3Test extends TestCase
         yield 'battle assignment' => [AssistantPrompt::BattleAssignment, AssistantIntent::BattlePlanSelf, 'Swordland'];
         yield 'transfer' => [AssistantPrompt::TransferStatus, AssistantIntent::TransferStatusSelf, null];
         yield 'territory' => [AssistantPrompt::TerritoryPlan, AssistantIntent::TerritoryPlan, 'Bear Hunt'];
+        yield 'alliance command' => [AssistantPrompt::AllianceCommand, AssistantIntent::AllianceCommandAttention, null];
+        yield 'event readiness' => [AssistantPrompt::EventReadiness, AssistantIntent::EventReadiness, null];
+        yield 'rally gaps' => [AssistantPrompt::RallyGaps, AssistantIntent::RallyGaps, null];
+        yield 'bear history' => [AssistantPrompt::BearHuntHistory, AssistantIntent::BearHuntHistory, 'Bear Hunt'];
+        yield 'progression freshness' => [AssistantPrompt::ProgressionFreshness, AssistantIntent::ProgressionFreshness, null];
+        yield 'transfer verification' => [AssistantPrompt::TransferVerification, AssistantIntent::TransferVerification, null];
+        yield 'intelligence changes' => [AssistantPrompt::IntelligenceChanges, AssistantIntent::IntelligenceChanges, null];
+        yield 'territory comparison' => [AssistantPrompt::TerritoryComparison, AssistantIntent::TerritoryComparison, null];
     }
 
     public function test_recognized_roster_write_becomes_navigation_handoff_before_prompt_override(): void
@@ -78,6 +93,17 @@ final class AssistantQuestionInterpreterV3Test extends TestCase
         self::assertSame(AssistantIntent::ActionHandoff, $parsed->intent);
         self::assertSame('roster', $parsed->writeAction);
         self::assertSame('swordland', $parsed->subject);
+    }
+
+    public function test_recognized_rally_write_preserves_the_bounded_event_subject(): void
+    {
+        $parsed = app(AssistantQuestionInterpreter::class)->interpret(
+            'Assign John to Rally 2 for Bear Hunt',
+        );
+
+        self::assertSame(AssistantIntent::ActionHandoff, $parsed->intent);
+        self::assertSame('rally', $parsed->writeAction);
+        self::assertSame('bear hunt', $parsed->subject);
     }
 
     public function test_unknown_write_remains_unsupported(): void

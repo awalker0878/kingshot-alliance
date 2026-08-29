@@ -34,6 +34,12 @@ const messages = {
     classifications: {
       operational_fact: 'Operational fact',
       game_fact: 'Game data',
+      alliance_command: 'Officer overview',
+      event_readiness: 'Event readiness',
+      bear_hunt_run: 'Bear Hunt run',
+      roster_freshness: 'Governor observation freshness',
+      transfer_verification: 'Transfer verification',
+      territory_comparison: 'Territory comparison',
       alliance_strategy: 'Alliance strategy',
       observation: 'Observation',
     },
@@ -47,6 +53,12 @@ const messages = {
       alliance_content: 'Alliance guide',
       observation: 'Observation',
       game_fact: 'Game data',
+      alliance_command: 'Officer overview',
+      event_readiness: 'Event readiness',
+      bear_hunt_run: 'Bear Hunt run',
+      roster_freshness: 'Governor observation freshness',
+      transfer_verification: 'Transfer verification',
+      territory_comparison: 'Territory comparison',
     },
     prompts: {
       swordland: 'What time is Swordland and am I rostered?',
@@ -58,9 +70,18 @@ const messages = {
       battleAssignment: 'What is my Swordland assignment?',
       transferStatus: 'What am I missing for transfer?',
       territoryPlan: 'Which hive layout are we using for Bear Hunt?',
+      allianceCommand: 'What needs officer attention?',
+      eventReadiness: 'Is our next verified Event ready?',
+      rallyGaps: 'What Rally gaps remain for the next Event?',
+      bearHuntHistory: 'Show our recent Bear Hunt performance history.',
+      progressionFreshness: 'Which Governor observations are stale or missing?',
+      transferVerification: 'Which Transfer participants need verification?',
+      intelligenceChanges: 'What material Intelligence changed recently?',
+      territoryComparison: 'How does observed Territory compare with the published plan?',
     },
     handoffs: {
       openRoster: 'Open Event roster',
+      openOwnerWorkflow: 'Open owner workflow',
     },
     answers: {
       help: 'I can answer from authorized Events, your roster and RSVPs, your assignments, Alliance guides and observations, published territory plans, source-backed Game data, and your transfer readiness when you are in scope. I do not use unsourced KingShot knowledge.',
@@ -109,12 +130,44 @@ const messages = {
       territoryPlanFound: '{event} is using {planName}, revision {revisionNumber}, for {purpose}.',
       rosterWriteHandoff:
         'I cannot change the roster from here. Open the normal {event} workflow to make the change.',
+      ownerEventWriteHandoff:
+        'I cannot make this change from the Assistant. Open the normal {event} owner workflow to continue.',
+      ownerWriteHandoff:
+        'I cannot change {owner} state from the Assistant. The current authorized facts are shown below; open the owner workflow to continue.',
       contentSubjectMissing: 'Name the Event or topic whose Alliance guide you want me to check.',
       contentNotFound: 'I could not find published Alliance content matching “{subject}”.',
       contentFound: 'Alliance strategy — {title}: {excerpt}',
       observationSubjectMissing: 'Name the Alliance or observation subject you want me to check.',
       observationNotFound: 'I could not find an authorized observation matching “{subject}”.',
       observationFound: 'Observation — {title}: {observation}',
+      allianceCommandAttention:
+        'The officer overview has {count} factual item(s) needing attention. The authorized sources are shown below.',
+      allianceCommandAttentionNotAvailable:
+        'There are no authorized officer-overview facts available for this Alliance.',
+      eventReadiness:
+        'The next verified Event has {count} blocking readiness item(s). Its owner projection is shown below.',
+      eventReadinessNotAvailable:
+        'I could not find matching verified Event readiness in your authorized officer overview.',
+      rallyGaps:
+        'The next verified Event has {count} Rally readiness gap(s). The Rally-owned facts are shown below.',
+      rallyGapsNotAvailable:
+        'I could not find Rally readiness facts for a matching verified Event.',
+      bearHuntHistory:
+        'I found {count} recent authorized Bear Hunt run record(s). Recorded and accepted-evidence states remain explicit below.',
+      bearHuntHistoryNotAvailable:
+        'I could not find an authorized completed Bear Hunt run with supported history.',
+      progressionFreshness:
+        '{count} Governor observation(s) are stale or missing in the authorized roster-freshness projection.',
+      progressionFreshnessNotAvailable:
+        'Governor observation freshness is not available in your authorized officer overview.',
+      transferVerification:
+        '{count} Transfer participant(s) need verification or are blocked in the owner assessment.',
+      transferVerificationNotAvailable:
+        'There is no current authorized Transfer verification projection.',
+      territoryComparison:
+        'The authorized Territory comparison contains {count} observed difference(s). Missing and incompatible observations remain explicit below.',
+      territoryComparisonNotAvailable:
+        'There is no authorized published Territory comparison available.',
     },
   },
 } satisfies MessageCatalogue;

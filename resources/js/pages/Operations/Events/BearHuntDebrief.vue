@@ -142,6 +142,15 @@ type Debrief = {
     personalAttendance: AttendanceComparison;
     personalRallies: Delta;
   } | null;
+  signals: {
+    allianceDamage: 'unknown' | 'increased' | 'decreased' | 'unchanged';
+    personalDamage: 'unknown' | 'increased' | 'decreased' | 'unchanged';
+    personalRallies: 'unknown' | 'increased' | 'decreased' | 'unchanged';
+    newPersonalBest: boolean;
+    acceptedResult: boolean;
+    evidenceStatus: 'accepted' | 'recorded_without_accepted_evidence' | 'unavailable';
+    reviewPending: boolean;
+  };
   personalTrend: TrendPoint[];
   allianceTrend: TrendPoint[];
   runs: HistoryRun[];
@@ -237,6 +246,9 @@ function attendanceComparisonText(): string {
 function barWidth(value: number | null | undefined, max: number): string {
   if (value === null || value === undefined) return '0%';
   return `${Math.max(3, Math.round((value / max) * 100))}%`;
+}
+function direction(value: Debrief['signals']['personalDamage']): string {
+  return t(`debrief.signals.directions.${value}`);
 }
 </script>
 
@@ -356,6 +368,40 @@ function barWidth(value: number | null | undefined, max: number): string {
               </p>
               <p class="mt-1 text-xs text-[var(--ks-muted)]">
                 {{ deltaText(debrief.comparison?.personalRallies) }}
+              </p>
+            </div>
+          </div>
+          <div class="mt-4 grid gap-3 sm:grid-cols-2">
+            <div class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] p-4">
+              <p class="text-xs tracking-wide text-[var(--ks-muted)] uppercase">
+                {{ t('debrief.signals.evidence') }}
+              </p>
+              <p class="mt-1 font-semibold">
+                {{ t(`debrief.signals.evidenceStates.${debrief.signals.evidenceStatus}`) }}
+              </p>
+              <p v-if="debrief.signals.reviewPending" class="mt-1 text-xs text-[var(--ks-muted)]">
+                {{ t('debrief.signals.reviewPending') }}
+              </p>
+            </div>
+            <div class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] p-4">
+              <p class="text-xs tracking-wide text-[var(--ks-muted)] uppercase">
+                {{ t('debrief.signals.factualSignals') }}
+              </p>
+              <p v-if="debrief.signals.newPersonalBest" class="mt-1 font-semibold">
+                {{ t('debrief.signals.newPersonalBest') }}
+              </p>
+              <p class="mt-1 text-sm text-[var(--ks-muted)]">
+                {{
+                  t('debrief.signals.damageDirection', {
+                    direction: direction(debrief.signals.personalDamage),
+                  })
+                }}
+                ·
+                {{
+                  t('debrief.signals.rallyDirection', {
+                    direction: direction(debrief.signals.personalRallies),
+                  })
+                }}
               </p>
             </div>
           </div>

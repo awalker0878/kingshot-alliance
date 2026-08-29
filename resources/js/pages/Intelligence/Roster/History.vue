@@ -25,6 +25,84 @@ type Snapshot = {
   change: SnapshotChange | null;
   actorName?: string;
 };
+type CapabilityProfile = {
+  eventAccess: 'available' | 'unavailable';
+  events: {
+    count: number;
+    completed: number;
+    absent: number;
+    excused: number;
+    unresolved: number;
+    recent: Array<{
+      occurrenceId: string;
+      nameKey: string;
+      slug: string;
+      startsAt: string | null;
+      outcome: string | null;
+      score: number | null;
+      rank: number | null;
+      recordedAt: string | null;
+    }>;
+  };
+  bearHunt: {
+    runCount: number;
+    recordedResultCount: number;
+    latestRecorded: {
+      occurrenceId: string;
+      startsAt: string | null;
+      damage: number | null;
+      rank: number | null;
+      recordedAt: string | null;
+    } | null;
+  };
+  rallies: Array<{
+    id: string;
+    occurrenceId: string;
+    startsAt: string;
+    groupName: string;
+    role: string;
+    status: string;
+    respondedAt: string | null;
+    recordedAt: string | null;
+  }>;
+  battleAssignments: Array<{
+    id: string;
+    occurrenceId: string;
+    startsAt: string;
+    objectiveName: string;
+    objectiveType: string;
+    status: string;
+    assignedAt: string | null;
+  }>;
+  transfer: {
+    access: 'available' | 'unavailable';
+    assessment: {
+      participantId: string;
+      planId: string;
+      direction: string;
+      readinessState: string;
+      outcome: string;
+      evaluatedAt: string;
+      primaryAction: string | null;
+      requirements: Array<{
+        key: string;
+        state: string;
+        sourceReference: string | null;
+        observedAt: string | null;
+        validUntil: string | null;
+      }>;
+    } | null;
+  };
+  evidence: {
+    access: 'available' | 'unavailable';
+    total: number;
+    pending: number;
+    needsReview: number;
+    committed: number;
+    failed: number;
+    latestAt: string | null;
+  };
+};
 
 const props = defineProps<{
   user: { name: string; email: string };
@@ -42,6 +120,7 @@ const props = defineProps<{
   snapshots: Snapshot[];
   hasMoreSnapshots: boolean;
   staleAfterDays: number;
+  capabilityProfile: CapabilityProfile;
 }>();
 
 const { locale, t, formatDate, formatNumber } = useLocale();
@@ -218,6 +297,217 @@ function recordSnapshot(): void {
     <p class="mt-3 text-xs leading-5 text-[var(--ks-text-muted)]">
       {{ t('rosterHistory.currentHelp', { days: staleAfterDays }) }}
     </p>
+
+    <section class="ks-surface-gold mt-6 p-5 sm:p-6" :aria-labelledby="'member-capability-profile'">
+      <p class="ks-kicker">{{ t('rosterHistory.capability.eyebrow') }}</p>
+      <h2 id="member-capability-profile" class="mt-1 text-xl font-semibold">
+        {{ t('rosterHistory.capability.title') }}
+      </h2>
+      <p class="mt-2 max-w-4xl text-sm leading-6 text-[var(--ks-text-muted)]">
+        {{ t('rosterHistory.capability.help') }}
+      </p>
+
+      <div class="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <article class="ks-surface p-4">
+          <div class="flex items-center justify-between gap-2">
+            <h3 class="font-semibold">{{ t('rosterHistory.capability.events') }}</h3>
+            <Link
+              :href="`/alliances/${alliance.id}/events/history`"
+              class="text-xs font-semibold text-[var(--ks-gold)]"
+            >
+              {{ t('rosterHistory.capability.openOwner') }}
+            </Link>
+          </div>
+          <p
+            v-if="capabilityProfile.eventAccess === 'unavailable'"
+            class="mt-3 text-sm text-[var(--ks-text-muted)]"
+          >
+            {{ t('rosterHistory.capability.unavailable') }}
+          </p>
+          <template v-else>
+            <p class="ks-display mt-3 text-3xl font-semibold">
+              {{ capabilityProfile.events.count }}
+            </p>
+            <p class="mt-1 text-xs text-[var(--ks-text-muted)]">
+              {{
+                t('rosterHistory.capability.eventSummary', {
+                  completed: capabilityProfile.events.completed,
+                  absent: capabilityProfile.events.absent,
+                  unresolved: capabilityProfile.events.unresolved,
+                })
+              }}
+            </p>
+            <ul v-if="capabilityProfile.events.recent.length" class="mt-3 space-y-2 text-sm">
+              <li
+                v-for="event in capabilityProfile.events.recent.slice(0, 3)"
+                :key="event.occurrenceId"
+              >
+                <Link
+                  :href="`/events/${event.occurrenceId}`"
+                  class="font-semibold text-[var(--ks-gold)]"
+                >
+                  {{ t(event.nameKey) }}
+                </Link>
+                <span v-if="event.startsAt" class="ms-2 text-xs text-[var(--ks-text-muted)]">{{
+                  formatCaptured(event.startsAt)
+                }}</span>
+              </li>
+            </ul>
+            <p v-else class="mt-3 text-sm text-[var(--ks-text-muted)]">
+              {{ t('rosterHistory.capability.noEvents') }}
+            </p>
+          </template>
+        </article>
+
+        <article class="ks-surface p-4">
+          <h3 class="font-semibold">{{ t('rosterHistory.capability.bearHunt') }}</h3>
+          <p class="ks-display mt-3 text-3xl font-semibold">
+            {{ capabilityProfile.bearHunt.recordedResultCount }}
+          </p>
+          <p class="mt-1 text-xs text-[var(--ks-text-muted)]">
+            {{
+              t('rosterHistory.capability.recordedRuns', {
+                count: capabilityProfile.bearHunt.recordedResultCount,
+              })
+            }}
+          </p>
+          <template v-if="capabilityProfile.bearHunt.latestRecorded">
+            <p class="mt-3 text-sm">
+              {{ t('rosterHistory.capability.latestDamage') }}:
+              <strong>{{
+                capabilityProfile.bearHunt.latestRecorded.damage === null
+                  ? '—'
+                  : formatPower(String(capabilityProfile.bearHunt.latestRecorded.damage))
+              }}</strong>
+            </p>
+            <Link
+              :href="`/events/${capabilityProfile.bearHunt.latestRecorded.occurrenceId}/debrief`"
+              class="mt-2 inline-flex text-xs font-semibold text-[var(--ks-gold)]"
+            >
+              {{ t('rosterHistory.capability.openDebrief') }}
+            </Link>
+          </template>
+          <p v-else class="mt-3 text-sm text-[var(--ks-text-muted)]">
+            {{ t('rosterHistory.capability.noRecordedRuns') }}
+          </p>
+        </article>
+
+        <article class="ks-surface p-4">
+          <h3 class="font-semibold">{{ t('rosterHistory.capability.rallies') }}</h3>
+          <p class="ks-display mt-3 text-3xl font-semibold">
+            {{ capabilityProfile.rallies.length }}
+          </p>
+          <ul v-if="capabilityProfile.rallies.length" class="mt-3 space-y-2 text-sm">
+            <li v-for="rally in capabilityProfile.rallies.slice(0, 3)" :key="rally.id">
+              <Link
+                :href="`/events/${rally.occurrenceId}`"
+                class="font-semibold text-[var(--ks-gold)]"
+                >{{ rally.groupName }}</Link
+              >
+              <span class="ms-2 text-xs text-[var(--ks-text-muted)]"
+                >{{ stateLabel(rally.role) }} · {{ stateLabel(rally.status) }}</span
+              >
+            </li>
+          </ul>
+          <p v-else class="mt-3 text-sm text-[var(--ks-text-muted)]">
+            {{ t('rosterHistory.capability.noRallies') }}
+          </p>
+        </article>
+
+        <article class="ks-surface p-4">
+          <h3 class="font-semibold">{{ t('rosterHistory.capability.battlePlans') }}</h3>
+          <p class="ks-display mt-3 text-3xl font-semibold">
+            {{ capabilityProfile.battleAssignments.length }}
+          </p>
+          <ul v-if="capabilityProfile.battleAssignments.length" class="mt-3 space-y-2 text-sm">
+            <li
+              v-for="assignment in capabilityProfile.battleAssignments.slice(0, 3)"
+              :key="assignment.id"
+            >
+              <Link
+                :href="`/events/${assignment.occurrenceId}`"
+                class="font-semibold text-[var(--ks-gold)]"
+                >{{ assignment.objectiveName }}</Link
+              >
+              <span class="ms-2 text-xs text-[var(--ks-text-muted)]">{{
+                stateLabel(assignment.status)
+              }}</span>
+            </li>
+          </ul>
+          <p v-else class="mt-3 text-sm text-[var(--ks-text-muted)]">
+            {{ t('rosterHistory.capability.noBattlePlans') }}
+          </p>
+        </article>
+
+        <article class="ks-surface p-4">
+          <div class="flex items-center justify-between gap-2">
+            <h3 class="font-semibold">{{ t('rosterHistory.capability.transfer') }}</h3>
+            <Link
+              href="/alliance/transfers/readiness"
+              class="text-xs font-semibold text-[var(--ks-gold)]"
+              >{{ t('rosterHistory.capability.openOwner') }}</Link
+            >
+          </div>
+          <p
+            v-if="capabilityProfile.transfer.access === 'unavailable'"
+            class="mt-3 text-sm text-[var(--ks-text-muted)]"
+          >
+            {{ t('rosterHistory.capability.unavailable') }}
+          </p>
+          <template v-else-if="capabilityProfile.transfer.assessment">
+            <p class="ks-display mt-3 text-2xl font-semibold">
+              {{ stateLabel(capabilityProfile.transfer.assessment.outcome) }}
+            </p>
+            <p class="mt-1 text-xs text-[var(--ks-text-muted)]">
+              {{ stateLabel(capabilityProfile.transfer.assessment.readinessState) }} ·
+              {{ formatCaptured(capabilityProfile.transfer.assessment.evaluatedAt) }}
+            </p>
+          </template>
+          <p v-else class="mt-3 text-sm text-[var(--ks-text-muted)]">
+            {{ t('rosterHistory.capability.noTransfer') }}
+          </p>
+        </article>
+
+        <article class="ks-surface p-4">
+          <h3 class="font-semibold">{{ t('rosterHistory.capability.evidence') }}</h3>
+          <p
+            v-if="capabilityProfile.evidence.access === 'unavailable'"
+            class="mt-3 text-sm text-[var(--ks-text-muted)]"
+          >
+            {{ t('rosterHistory.capability.unavailable') }}
+          </p>
+          <p v-else class="ks-display mt-3 text-3xl font-semibold">
+            {{ capabilityProfile.evidence.total }}
+          </p>
+          <p
+            v-if="capabilityProfile.evidence.access === 'available'"
+            class="mt-1 text-xs text-[var(--ks-text-muted)]"
+          >
+            {{
+              t('rosterHistory.capability.evidenceSummary', {
+                review: capabilityProfile.evidence.needsReview,
+                pending: capabilityProfile.evidence.pending,
+                committed: capabilityProfile.evidence.committed,
+                failed: capabilityProfile.evidence.failed,
+              })
+            }}
+          </p>
+          <p
+            v-if="
+              capabilityProfile.evidence.access === 'available' &&
+              capabilityProfile.evidence.latestAt
+            "
+            class="mt-3 text-xs text-[var(--ks-text-muted)]"
+          >
+            {{
+              t('rosterHistory.capability.latestEvidence', {
+                date: formatCaptured(capabilityProfile.evidence.latestAt),
+              })
+            }}
+          </p>
+        </article>
+      </div>
+    </section>
 
     <div class="mt-6 grid gap-5 xl:grid-cols-3">
       <section

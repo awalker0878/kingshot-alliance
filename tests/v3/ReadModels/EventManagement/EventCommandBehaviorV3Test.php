@@ -262,7 +262,7 @@ final class EventCommandBehaviorV3Test extends TestCase
             ->where('scope', EventScope::Alliance->value)
             ->whereHas(
                 'eventType',
-                static fn ($query) => $query->where('slug', 'alliance-mobilization'),
+                static fn ($query) => $query->where('slug', 'bear-hunt'),
             )
             ->firstOrFail();
         $created = app(CreateEvent::class)->handle(
@@ -301,7 +301,7 @@ final class EventCommandBehaviorV3Test extends TestCase
     private function reloadEvent(Event $event): Event
     {
         return Event::query()
-            ->with(['eventType', 'typeScope.capabilities', 'occurrences'])
+            ->with(['eventType.workflowDimensions', 'typeScope', 'occurrences'])
             ->findOrFail($event->id);
     }
 }

@@ -11,8 +11,8 @@ use App\Contexts\GameWorld\Players\Services\PlayerContext;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Operations\Access\Enums\OperationsPermission;
 use App\Contexts\Operations\BattlePlans\Queries\EventObjectiveQuery;
-use App\Contexts\Operations\Events\Enums\EventCapability;
 use App\Contexts\Operations\Events\Enums\EventScope;
+use App\Contexts\Operations\Events\Enums\EventWorkflowDimension;
 use App\Contexts\Operations\Events\Models\Event;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Events\Queries\EventAttentionQuery;
@@ -20,6 +20,7 @@ use App\Contexts\Operations\Events\Queries\EventCalendarQuery;
 use App\Contexts\Operations\Events\Services\EventAuthorization;
 use App\Contexts\Operations\Events\Services\EventCreationContextResolver;
 use App\Contexts\Operations\Events\Services\EventTargetResolver;
+use App\Contexts\Operations\Events\Services\EventTypeProfileResolver;
 use App\Contexts\Operations\Events\Services\EventVisibilityResolver;
 use App\Contexts\Operations\Participation\Queries\EventParticipationQuery;
 use App\Contexts\Operations\Participation\Services\EventParticipantAuthorization;
@@ -40,7 +41,10 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 final class EventCalendarController extends Controller
 {
-    public function __construct(private readonly PlayerContext $playerContext) {}
+    public function __construct(
+        private readonly PlayerContext $playerContext,
+        private readonly EventTypeProfileResolver $profiles,
+    ) {}
 
     public function index(
         Request $request,
@@ -99,6 +103,10 @@ final class EventCalendarController extends Controller
         }
 
         $target = $targets->forEvent($event);
+        $profile = $this->profiles->resolve($event->eventType);
+        $workflowDimensions = $profile['profile_enabled'] === true
+            ? $profile['workflow_dimensions']
+            : [];
         $canManage = $authorization->allows(
             $actor->playerId,
             $event->scopeEnum(),
@@ -116,7 +124,8 @@ final class EventCalendarController extends Controller
             ? $actor
             : null;
         $playerParticipation = null;
-        if ($eligibleActivePlayer instanceof PlayerReference) {
+        if ($eligibleActivePlayer instanceof PlayerReference
+            && $this->supports($workflowDimensions, EventWorkflowDimension::Participation)) {
             $window = $registrationWindow->for($event, $eventOccurrence);
             $playerParticipation = [
                 'playerId' => $eligibleActivePlayer->playerId,
@@ -146,11 +155,30 @@ final class EventCalendarController extends Controller
                 'canManage' => $canManage,
                 'participation' => $playerParticipation,
                 'operations' => $phasePolls->forOccurrence($eventOccurrence, $eligibleActivePlayer),
-                'battlePlan' => $objectives->forOccurrence($eventOccurrence, $eligibleActivePlayer),
-                'results' => $results->forOccurrence($eventOccurrence, $eligibleActivePlayer),
-                'playerIntelligence' => $eligibleActivePlayer instanceof PlayerReference ? $intelligence->forPlayer($event, $eligibleActivePlayer) : null,
-                'rosters' => $eligibleActivePlayer instanceof PlayerReference ? $rosters->forPlayer($eventOccurrence, $eligibleActivePlayer) : [],
-                'rallies' => $rallies->forOccurrence($eventOccurrence, $eligibleActivePlayer),
+                'battlePlan' => $this->supports($workflowDimensions, EventWorkflowDimension::BattleAssignments)
+                    ? $objectives->forOccurrence($eventOccurrence, $eligibleActivePlayer)
+                    : ['objectives' => [], 'myAssignmentIds' => []],
+                'results' => $this->supports($workflowDimensions, EventWorkflowDimension::Results)
+                    ? $results->forOccurrence($eventOccurrence, $eligibleActivePlayer)
+                    : ['summary' => null, 'player' => null],
+                'playerIntelligence' => $eligibleActivePlayer instanceof PlayerReference
+                    && $this->supports($workflowDimensions, EventWorkflowDimension::Debrief)
+                        ? $intelligence->forPlayer($event, $eligibleActivePlayer)
+                        : null,
+                'rosters' => $eligibleActivePlayer instanceof PlayerReference
+                    && $this->supports($workflowDimensions, EventWorkflowDimension::Roster)
+                        ? $rosters->forPlayer($eventOccurrence, $eligibleActivePlayer)
+                        : [],
+                'rallies' => $this->supports($workflowDimensions, EventWorkflowDimension::Rallies)
+                    ? $rallies->forOccurrence($eventOccurrence, $eligibleActivePlayer)
+                    : [
+                        'savedFormations' => [],
+                        'alliances' => [],
+                        'guidance' => [],
+                        'recommendations' => [],
+                        'groups' => [],
+                        'myAssignments' => [],
+                    ],
                 'knowledge' => $contextualKnowledge,
             ],
         ]);
@@ -254,14 +282,22 @@ final class EventCalendarController extends Controller
             'endsAt' => $occurrence->ends_at->toIso8601String(),
             'timezone' => (string) $event->timezone,
             'status' => $occurrence->status->value,
-            'capabilities' => $event->typeScope->capabilities
-                ->pluck('capability')
-                ->map(static fn (EventCapability $capability): string => $capability->value)
-                ->sort()
-                ->values()
-                ->all(),
+            'profile' => $this->profiles->resolve($event->eventType),
+            'workflowDimensions' => $event->eventType->profileEnabled()
+                ? $event->eventType->workflowDimensions
+                    ->map(static fn ($row): string => $row->dimensionEnum()->value)
+                    ->sort()
+                    ->values()
+                    ->all()
+                : [],
             'canManage' => $canManage,
         ];
+    }
+
+    /** @param list<string> $dimensions */
+    private function supports(array $dimensions, EventWorkflowDimension $dimension): bool
+    {
+        return in_array($dimension->value, $dimensions, true);
     }
 
     /** @param array{alliance:list<string>,player:list<string>,kingdom:list<string>} $manageableTargets */

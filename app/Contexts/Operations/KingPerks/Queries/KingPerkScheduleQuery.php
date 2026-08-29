@@ -7,12 +7,10 @@ namespace App\Contexts\Operations\KingPerks\Queries;
 use App\Contexts\GameWorld\Kingdoms\Queries\KingdomReferenceQuery;
 use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
-use App\Contexts\Operations\Events\Enums\EventCapability;
 use App\Contexts\Operations\Events\Models\Event;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Events\Models\EventType;
 use App\Contexts\Operations\Events\Queries\EventCalendarQuery;
-use App\Contexts\Operations\Events\Services\EventCapabilityGuard;
 use App\Contexts\Operations\KingPerks\Enums\KingAppointmentType;
 use App\Contexts\Operations\KingPerks\Enums\KingPerkAppointmentStatus;
 use App\Contexts\Operations\KingPerks\Enums\KingPerkPlanStatus;
@@ -33,7 +31,6 @@ final readonly class KingPerkScheduleQuery
         private KingdomReferenceQuery $kingdoms,
         private PlayerReferenceQuery $players,
         private EventCalendarQuery $events,
-        private EventCapabilityGuard $capabilities,
         private KingPerkPreparationPresetCatalog $presets,
     ) {}
 
@@ -41,7 +38,6 @@ final readonly class KingPerkScheduleQuery
     public function management(PlayerReference $actor, string $eventId, ?string $occurrenceId = null): array
     {
         $event = $this->events->eventForManage($actor, $eventId);
-        $this->capabilities->require($event, EventCapability::KingPerks);
         $occurrence = $this->selectOccurrence($event, $occurrenceId);
         $plan = $this->loadPlan($occurrence, management: true);
 
@@ -70,8 +66,6 @@ final readonly class KingPerkScheduleQuery
         $occurrence = $this->selectOccurrence($route, $occurrenceId);
         $authorized = $this->events->occurrence($actor, (string) $occurrence->id);
         $event = $authorized->event;
-        $this->capabilities->require($event, EventCapability::KingPerks);
-
         $plan = KingPerkPlan::query()
             ->where('occurrence_id', $authorized->id)
             ->whereIn('status', [KingPerkPlanStatus::Published->value, KingPerkPlanStatus::Active->value])

@@ -24,6 +24,7 @@ final class BearHuntRunHistoryQuery
      *   governorCount:int,
      *   personalDamage:?int,
      *   personalRank:?int,
+     *   personalAccepted:bool,
      *   attendance:array{available:bool,total:int,present:int,absent:int,excused:int,unknown:int,ratePercent:?float,personalStatus:?string},
      *   rallies:array{available:bool,participated:int,led:int,joined:int,personalParticipated:?int,personalLed:?int,personalJoined:?int}
      * }>
@@ -39,7 +40,7 @@ final class BearHuntRunHistoryQuery
             return [];
         }
 
-        /** @var array<string,array{totalDamage:?int,governorCount:int,personalDamage:?int,personalRank:?int}> $scores */
+        /** @var array<string,array{totalDamage:?int,governorCount:int,personalDamage:?int,personalRank:?int,personalAccepted:bool}> $scores */
         $scores = [];
         /** @var array<string,array{available:bool,total:int,present:int,absent:int,excused:int,unknown:int,ratePercent:?float,personalStatus:?string}> $attendance */
         $attendance = [];
@@ -52,6 +53,7 @@ final class BearHuntRunHistoryQuery
                 'governorCount' => 0,
                 'personalDamage' => null,
                 'personalRank' => null,
+                'personalAccepted' => false,
             ];
             $attendance[$occurrenceId] = [
                 'available' => false,
@@ -92,6 +94,23 @@ final class BearHuntRunHistoryQuery
             $summary['totalDamage'] = (int) $row->total_damage;
             $summary['governorCount'] = (int) $row->governor_count;
             $scores[$occurrenceId] = $summary;
+        }
+
+        foreach (DB::table('bear_hunt_battle_report_entries as entry')
+            ->join('bear_hunt_battle_reports as report', 'report.id', '=', 'entry.report_id')
+            ->whereIn('report.occurrence_id', $ids)
+            ->where('report.status', 'accepted')
+            ->where('entry.player_id', $actorPlayerId)
+            ->distinct()
+            ->pluck('report.occurrence_id') as $occurrenceId) {
+            $id = (string) $occurrenceId;
+            if (! isset($scores[$id])) {
+                continue;
+            }
+
+            $summary = $scores[$id];
+            $summary['personalAccepted'] = true;
+            $scores[$id] = $summary;
         }
 
         foreach (DB::table('event_player_results')
@@ -186,7 +205,7 @@ final class BearHuntRunHistoryQuery
             $rallies[$occurrenceId] = $summary;
         }
 
-        /** @var array<string,array{totalDamage:?int,governorCount:int,personalDamage:?int,personalRank:?int,attendance:array{available:bool,total:int,present:int,absent:int,excused:int,unknown:int,ratePercent:?float,personalStatus:?string},rallies:array{available:bool,participated:int,led:int,joined:int,personalParticipated:?int,personalLed:?int,personalJoined:?int}}> $result */
+        /** @var array<string,array{totalDamage:?int,governorCount:int,personalDamage:?int,personalRank:?int,personalAccepted:bool,attendance:array{available:bool,total:int,present:int,absent:int,excused:int,unknown:int,ratePercent:?float,personalStatus:?string},rallies:array{available:bool,participated:int,led:int,joined:int,personalParticipated:?int,personalLed:?int,personalJoined:?int}}> $result */
         $result = [];
         foreach ($ids as $occurrenceId) {
             $score = $scores[$occurrenceId];
@@ -195,6 +214,7 @@ final class BearHuntRunHistoryQuery
                 'governorCount' => $score['governorCount'],
                 'personalDamage' => $score['personalDamage'],
                 'personalRank' => $score['personalRank'],
+                'personalAccepted' => $score['personalAccepted'],
                 'attendance' => $attendance[$occurrenceId],
                 'rallies' => $rallies[$occurrenceId],
             ];

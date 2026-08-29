@@ -59,7 +59,7 @@ final class EventCommandVisualFixture
             ->where('scope', EventScope::Alliance->value)
             ->whereHas(
                 'eventType',
-                static fn ($query) => $query->where('slug', 'alliance-mobilization'),
+                static fn ($query) => $query->where('slug', 'bear-hunt'),
             )
             ->firstOrFail();
         $created = app(CreateEvent::class)->handle(

@@ -9,13 +9,10 @@ use App\Contexts\Operations\Events\Enums\RecurrenceFrequency;
 use App\Contexts\Operations\Events\Models\Event;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Events\Services\EventAuthorization;
-use App\Contexts\Operations\Events\Services\EventPhaseService;
 use App\Contexts\Operations\Events\Services\EventSchedulePolicyResolver;
 use App\Contexts\Operations\Events\Services\EventWriteState;
 use App\Contexts\Operations\Events\Services\RecurrenceCalculator;
 use App\Contexts\Operations\Participation\Models\EventRegistration;
-use App\Contexts\Operations\Polls\Services\EventPollTemplateMaterializer;
-use App\Contexts\Operations\Rosters\Services\EventRosterService;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Carbon\CarbonImmutable;
@@ -29,9 +26,6 @@ final class UpdateEvent
         private EventAuthorization $mutations,
         private EventSchedulePolicyResolver $schedulePolicy,
         private RecurrenceCalculator $recurrence,
-        private EventPhaseService $phases,
-        private EventPollTemplateMaterializer $polls,
-        private EventRosterService $rosters,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -164,7 +158,7 @@ final class UpdateEvent
             ])->save();
 
             if ($scheduleChanged) {
-                $this->reconcileFutureOccurrences($locked, $occurrenceStarts, $duration, $currentActor->playerId);
+                $this->reconcileFutureOccurrences($locked, $occurrenceStarts, $duration);
             }
 
             $metadata = [
@@ -198,7 +192,6 @@ final class UpdateEvent
         Event $event,
         array $occurrenceStarts,
         int $durationMinutes,
-        string $actorPlayerId,
     ): void {
         $now = CarbonImmutable::now('UTC');
         $desiredStarts = collect($occurrenceStarts)
@@ -239,15 +232,12 @@ final class UpdateEvent
                 continue;
             }
 
-            $replacement = EventOccurrence::query()->create([
+            EventOccurrence::query()->create([
                 'event_id' => $event->id,
                 'starts_at' => $start,
                 'ends_at' => $start->addMinutes($durationMinutes),
                 'status' => EventOccurrenceStatus::Scheduled,
             ]);
-            $this->phases->materializeDefaults($replacement, $actorPlayerId);
-            $this->polls->materializeDefaults($replacement, $actorPlayerId);
-            $this->rosters->materializeDefaults($replacement, $actorPlayerId);
         }
     }
 

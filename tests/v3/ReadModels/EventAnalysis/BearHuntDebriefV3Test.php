@@ -132,6 +132,12 @@ final class BearHuntDebriefV3Test extends TestCase
         self::assertSame(1, $rallies['led']);
         self::assertSame(0, $rallies['joined']);
         self::assertArrayNotHasKey($other->playerId, $rallies['players']);
+
+        $occurrence->load(['event.eventType.workflowDimensions', 'event.typeScope']);
+        $debrief = app(BearHuntDebriefQuery::class)->forOccurrence($occurrence, $actor, false);
+        self::assertTrue($debrief['signals']['acceptedResult']);
+        self::assertTrue($debrief['signals']['newPersonalBest']);
+        self::assertSame('accepted', $debrief['signals']['evidenceStatus']);
     }
 
     public function test_recorded_absence_means_rally_data_is_available_with_zero_participation(): void
@@ -199,7 +205,7 @@ final class BearHuntDebriefV3Test extends TestCase
         $current = $this->bearHuntOccurrence($actor, $alliance, CarbonImmutable::now('UTC'));
         $this->recordPlayerResult($current, $actor, 150, 2);
 
-        $current->load(['event.eventType', 'event.typeScope.capabilities']);
+        $current->load(['event.eventType.workflowDimensions', 'event.typeScope']);
         $debrief = app(BearHuntDebriefQuery::class)->forOccurrence($current, $actor, false);
 
         self::assertSame((string) $previous->id, $debrief['previousRun']['occurrenceId']);
@@ -226,7 +232,7 @@ final class BearHuntDebriefV3Test extends TestCase
 
         $current = $this->bearHuntOccurrence($actor, $alliance, CarbonImmutable::now('UTC'));
         $this->recordPlayerResult($current, $actor, 50, 1);
-        $current->load(['event.eventType', 'event.typeScope.capabilities']);
+        $current->load(['event.eventType.workflowDimensions', 'event.typeScope']);
 
         $debrief = app(BearHuntDebriefQuery::class)->forOccurrence($current, $actor, false);
 
@@ -308,7 +314,7 @@ final class BearHuntDebriefV3Test extends TestCase
             $current = $run;
         }
         self::assertInstanceOf(EventOccurrence::class, $current);
-        $current->load(['event.eventType', 'event.typeScope.capabilities']);
+        $current->load(['event.eventType.workflowDimensions', 'event.typeScope']);
 
         $debrief = app(BearHuntDebriefQuery::class)->forOccurrence($current, $actor, false);
 
@@ -326,7 +332,7 @@ final class BearHuntDebriefV3Test extends TestCase
         $alliance = $scenario->alliance($owner);
         $scenario->roster($owner, $alliance);
         $occurrence = $this->bearHuntOccurrence($owner, $alliance, CarbonImmutable::now('UTC'));
-        $occurrence->load(['event.eventType', 'event.typeScope.capabilities']);
+        $occurrence->load(['event.eventType.workflowDimensions', 'event.typeScope']);
 
         $outsiderAccount = $scenario->authUser();
         $outsider = $scenario->player((int) $outsiderAccount->id, 61109);

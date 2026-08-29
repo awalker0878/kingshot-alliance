@@ -9,6 +9,7 @@ use App\Contexts\Intelligence\Evidence\Queries\BearHuntUnmatchedGovernorQuery;
 use App\Contexts\Operations\Access\Enums\OperationsPermission;
 use App\Contexts\Operations\Events\Enums\EventOccurrenceStatus;
 use App\Contexts\Operations\Events\Enums\EventScope;
+use App\Contexts\Operations\Events\Enums\EventWorkflowDimension;
 use App\Contexts\Operations\Events\Models\Event;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Events\Services\EventAuthorization;
@@ -42,8 +43,14 @@ final readonly class BearHuntDebriefQuery
         if (! $event instanceof Event) {
             throw new LogicException('Bear Hunt debrief occurrence must reference an Event.');
         }
-        $event->loadMissing('eventType');
-        if ($event->eventType?->slug !== 'bear-hunt' || $event->scopeEnum() !== EventScope::Alliance || ! is_string($event->alliance_id)) {
+        $event->loadMissing('eventType.workflowDimensions');
+        if ($event->eventType?->slug !== 'bear-hunt'
+            || $event->scopeEnum() !== EventScope::Alliance
+            || ! is_string($event->alliance_id)
+            || ! $event->eventType->supportsWorkflow(EventWorkflowDimension::Participation)
+            || ! $event->eventType->supportsWorkflow(EventWorkflowDimension::Rallies)
+            || ! $event->eventType->supportsWorkflow(EventWorkflowDimension::Results)
+            || ! $event->eventType->supportsWorkflow(EventWorkflowDimension::Debrief)) {
             throw ValidationException::withMessages([
                 'event' => 'Bear Hunt Debrief is available only for Alliance Bear Hunt occurrences.',
             ]);
@@ -93,7 +100,7 @@ final readonly class BearHuntDebriefQuery
             ->whereHas('event', static fn (Builder $query) => $query
                 ->where('scope', EventScope::Alliance->value)
                 ->where('alliance_id', $event->alliance_id)
-                ->whereHas('eventType', static fn (Builder $type) => $type->where('slug', 'bear-hunt')))
+                ->where('event_type_id', $event->event_type_id))
             ->orderByDesc('starts_at')
             ->orderByDesc('id')
             ->limit(self::HISTORY_LIMIT)
@@ -167,6 +174,19 @@ final readonly class BearHuntDebriefQuery
                 'ralliesAvailable' => $run['rallies']['available'],
             ];
         }
+        $comparison = $this->comparison($currentHistory, $previous);
+        $currentPersonalDamage = is_array($currentHistory) && is_int($currentHistory['personalDamage'] ?? null)
+            ? $currentHistory['personalDamage']
+            : null;
+        $currentPersonalAccepted = (bool) ($currentHistory['personalAccepted'] ?? false);
+        $previousPersonalDamage = array_values(array_filter(array_map(
+            static fn (array $run): ?int => $run['occurrenceId'] !== (string) $occurrence->id
+                && ($run['personalAccepted'] ?? false) === true
+                && is_int($run['personalDamage'] ?? null)
+                    ? $run['personalDamage']
+                    : null,
+            $runs,
+        ), static fn (?int $damage): bool => $damage !== null));
 
         return [
             'run' => [
@@ -217,7 +237,20 @@ final readonly class BearHuntDebriefQuery
             'unmatchedGovernors' => $unmatched,
             'canReviewEvidence' => $canManage,
             'previousRun' => $previous,
-            'comparison' => $this->comparison($currentHistory, $previous),
+            'comparison' => $comparison,
+            'signals' => [
+                'allianceDamage' => $this->direction($comparison['allianceDamage'] ?? null),
+                'personalDamage' => $this->direction($comparison['personalDamage'] ?? null),
+                'personalRallies' => $this->direction($comparison['personalRallies'] ?? null),
+                'newPersonalBest' => $currentPersonalAccepted
+                    && $currentPersonalDamage !== null
+                    && ($previousPersonalDamage === [] || $currentPersonalDamage > max($previousPersonalDamage)),
+                'acceptedResult' => $currentPersonalAccepted,
+                'evidenceStatus' => $currentPersonalAccepted
+                    ? 'accepted'
+                    : ($currentPersonalDamage !== null ? 'recorded_without_accepted_evidence' : 'unavailable'),
+                'reviewPending' => $unmatched !== [],
+            ],
             'personalTrend' => $personalTrend,
             'allianceTrend' => $allianceTrend,
             'runs' => $runs,
@@ -308,5 +341,22 @@ final readonly class BearHuntDebriefQuery
                 : round(($difference / $previous) * 100, 2),
             'state' => $previous == 0 ? 'previous_zero' : 'available',
         ];
+    }
+
+    /** @param array<string,mixed>|null $comparison */
+    private function direction(?array $comparison): string
+    {
+        $delta = $comparison['delta'] ?? null;
+        if (! is_int($delta) && ! is_float($delta)) {
+            return 'unknown';
+        }
+        if ($delta > 0) {
+            return 'increased';
+        }
+        if ($delta < 0) {
+            return 'decreased';
+        }
+
+        return 'unchanged';
     }
 }

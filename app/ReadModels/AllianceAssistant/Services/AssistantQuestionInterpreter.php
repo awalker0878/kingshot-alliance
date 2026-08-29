@@ -25,6 +25,34 @@ final class AssistantQuestionInterpreter
                 );
             }
 
+            if (preg_match('/\b(rally|rallies)\b/u', $normalized) === 1) {
+                return new ParsedQuestion(
+                    AssistantIntent::ActionHandoff,
+                    $this->operationalEventSubject($normalized),
+                    writeAction: 'rally',
+                );
+            }
+
+            if (preg_match('/\btransfer\b/u', $normalized) === 1) {
+                return new ParsedQuestion(AssistantIntent::ActionHandoff, writeAction: 'transfer');
+            }
+
+            if (preg_match('/\b(territory|hive)\b/u', $normalized) === 1) {
+                return new ParsedQuestion(AssistantIntent::ActionHandoff, writeAction: 'territory');
+            }
+
+            if (preg_match('/\b(evidence|screenshot)\b/u', $normalized) === 1) {
+                return new ParsedQuestion(AssistantIntent::ActionHandoff, writeAction: 'evidence');
+            }
+
+            if (preg_match('/\bevent\b/u', $normalized) === 1 && ! str_contains($normalized, 'delete')) {
+                return new ParsedQuestion(
+                    AssistantIntent::ActionHandoff,
+                    $this->operationalEventSubject($normalized),
+                    writeAction: 'event',
+                );
+            }
+
             return new ParsedQuestion(AssistantIntent::Unsupported);
         }
 
@@ -34,6 +62,40 @@ final class AssistantQuestionInterpreter
 
         if ($normalized === '' || preg_match('/^(help|what can you (answer|do)|how can you help)$/u', $normalized) === 1) {
             return new ParsedQuestion(AssistantIntent::Help);
+        }
+
+        if (preg_match('/\b(alliance command|officer attention|needs? attention|what needs attention)\b/u', $normalized) === 1) {
+            return new ParsedQuestion(AssistantIntent::AllianceCommandAttention);
+        }
+
+        if (preg_match('/\b(rally|rallies)\b/u', $normalized) === 1
+            && preg_match('/\b(gaps?|missing|unassigned|lead|ready|readiness)\b/u', $normalized) === 1) {
+            return new ParsedQuestion(AssistantIntent::RallyGaps, $this->operationalEventSubject($normalized));
+        }
+
+        if (str_contains($normalized, 'bear hunt')
+            && preg_match('/\b(history|performance|runs?|results?|last)\b/u', $normalized) === 1) {
+            return new ParsedQuestion(AssistantIntent::BearHuntHistory, 'Bear Hunt');
+        }
+
+        if (preg_match('/\b(progression|governor observations?|roster observations?)\b/u', $normalized) === 1
+            && preg_match('/\b(fresh|freshness|stale|missing|current)\b/u', $normalized) === 1) {
+            return new ParsedQuestion(AssistantIntent::ProgressionFreshness);
+        }
+
+        if (preg_match('/\btransfer\b/u', $normalized) === 1
+            && preg_match('/\b(verification|verify|blocked|blockers?|needs? action|participants?)\b/u', $normalized) === 1) {
+            return new ParsedQuestion(AssistantIntent::TransferVerification);
+        }
+
+        if (preg_match('/\b(territory|hive)\b/u', $normalized) === 1
+            && preg_match('/\b(compare|comparison|difference|differences|match|aligned|reconciliation)\b/u', $normalized) === 1) {
+            return new ParsedQuestion(AssistantIntent::TerritoryComparison);
+        }
+
+        if (preg_match('/\b(event|bear hunt|swordland)\b/u', $normalized) === 1
+            && preg_match('/\b(ready|readiness|blockers?|gaps?)\b/u', $normalized) === 1) {
+            return new ParsedQuestion(AssistantIntent::EventReadiness, $this->operationalEventSubject($normalized));
         }
 
         $gameFact = $this->gameFact($normalized);
@@ -141,7 +203,30 @@ final class AssistantQuestionInterpreter
             AssistantPrompt::BattleAssignment => new ParsedQuestion(AssistantIntent::BattlePlanSelf, 'Swordland'),
             AssistantPrompt::TransferStatus => new ParsedQuestion(AssistantIntent::TransferStatusSelf),
             AssistantPrompt::TerritoryPlan => new ParsedQuestion(AssistantIntent::TerritoryPlan, 'Bear Hunt'),
+            AssistantPrompt::AllianceCommand => new ParsedQuestion(AssistantIntent::AllianceCommandAttention),
+            AssistantPrompt::EventReadiness => new ParsedQuestion(AssistantIntent::EventReadiness),
+            AssistantPrompt::RallyGaps => new ParsedQuestion(AssistantIntent::RallyGaps),
+            AssistantPrompt::BearHuntHistory => new ParsedQuestion(AssistantIntent::BearHuntHistory, 'Bear Hunt'),
+            AssistantPrompt::ProgressionFreshness => new ParsedQuestion(AssistantIntent::ProgressionFreshness),
+            AssistantPrompt::TransferVerification => new ParsedQuestion(AssistantIntent::TransferVerification),
+            AssistantPrompt::IntelligenceChanges => new ParsedQuestion(AssistantIntent::IntelligenceChanges),
+            AssistantPrompt::TerritoryComparison => new ParsedQuestion(AssistantIntent::TerritoryComparison),
         };
+    }
+
+    private function operationalEventSubject(string $question): ?string
+    {
+        if (preg_match('/\bfor\s+(.+?)(?:\?|$)/u', $question, $matches) === 1) {
+            return $this->cleanSubject($matches[1]);
+        }
+
+        $subject = preg_replace(
+            '/\b(what|which|are|is|the|our|event|ready|readiness|blockers?|gaps?|rally|rallies|groups?|missing|unassigned|lead|for|do|we|have|remain|remaining|incomplete|assign|assigned|add|remove|create|edit|schedule|to|\d+)\b/u',
+            ' ',
+            $question,
+        );
+
+        return $this->cleanSubject($subject);
     }
 
     private function gameFact(string $question): ?ProgressionFactRequest
@@ -198,7 +283,7 @@ final class AssistantQuestionInterpreter
     private function looksLikeWrite(string $question): bool
     {
         return preg_match(
-            '/\b(put me|add me|assign me|remove me|roster me|sign me up|register me|cancel my|change my|update my|create|delete|archive|publish|send|post)\b/u',
+            '/\b(put me|add me|assign me|remove me|roster me|sign me up|register me|cancel my|change my|update my|assign|add|remove|create|edit|schedule|delete|archive|publish|send|post|approve|reject|retry)\b/u',
             $question,
         ) === 1;
     }

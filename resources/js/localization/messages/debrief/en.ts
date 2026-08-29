@@ -44,6 +44,25 @@ const messages = {
       'A comparison appears after an earlier completed Bear Hunt exists for this Alliance.',
     history: 'History',
     runHistory: 'Bear Hunt run history',
+    signals: {
+      evidence: 'Evidence status',
+      factualSignals: 'Recorded comparison',
+      reviewPending: 'One or more imported Governor rows still need identity review.',
+      newPersonalBest: 'New personal best from accepted results',
+      damageDirection: 'Damage {direction}',
+      rallyDirection: 'Rally participation {direction}',
+      evidenceStates: {
+        accepted: 'Accepted screenshot result',
+        recorded_without_accepted_evidence: 'Recorded result without accepted screenshot evidence',
+        unavailable: 'No recorded result',
+      },
+      directions: {
+        unknown: 'not comparable',
+        increased: 'increased',
+        decreased: 'decreased',
+        unchanged: 'unchanged',
+      },
+    },
   },
 } satisfies MessageCatalogue;
 

@@ -18,6 +18,7 @@ final readonly class SetNotificationPreference
         'event.reminder',
         'gift_code.expiring',
         'king_perks.reminder',
+        'officer.brief',
     ];
 
     public function __construct(private PlayerReferenceQuery $players) {}

@@ -38,7 +38,7 @@ final readonly class IntelligenceChangeAssistantQuery
     public function supports(string $question, ?AssistantPrompt $prompt): bool
     {
         if ($prompt instanceof AssistantPrompt) {
-            return false;
+            return $prompt === AssistantPrompt::IntelligenceChanges;
         }
 
         $normalized = mb_strtolower(trim($question));

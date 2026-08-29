@@ -6,11 +6,11 @@ namespace App\Contexts\Operations\Rosters\Actions;
 
 use App\Contexts\Alliance\Membership\Queries\RosterEntryQuery;
 use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
-use App\Contexts\Operations\Events\Enums\EventCapability;
 use App\Contexts\Operations\Events\Enums\EventScope;
+use App\Contexts\Operations\Events\Enums\EventWorkflowDimension;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Events\Services\EventAuthorization;
-use App\Contexts\Operations\Events\Services\EventCapabilityGuard;
+use App\Contexts\Operations\Events\Services\EventWorkflowGuard;
 use App\Contexts\Operations\Events\Services\EventWriteState;
 use App\Contexts\Operations\Participation\Models\EventPlayerContext;
 use App\Contexts\Operations\Participation\Services\EventParticipantAuthorization;
@@ -29,7 +29,7 @@ final readonly class RecordEventRosterParticipation
         private EventWriteState $eventWriteState,
         private EventAuthorization $mutations,
         private EventParticipantAuthorization $participants,
-        private EventCapabilityGuard $capabilities,
+        private EventWorkflowGuard $workflows,
         private EventPlayerContextFreezer $contexts,
         private PlayerReferenceQuery $players,
         private RosterEntryQuery $rosterEntries,
@@ -51,7 +51,7 @@ final readonly class RecordEventRosterParticipation
             $route = EventOccurrence::query()->select(['id', 'event_id'])->whereKey($occurrenceId)->firstOrFail();
             $context = $this->eventWriteState->lockEventScope($actorPlayerId, (string) $route->event_id);
             $this->mutations->authorizeManager($context);
-            $this->capabilities->require($context->event, EventCapability::Rosters);
+            $this->workflows->require($context->event, EventWorkflowDimension::Roster);
 
             $occurrence = EventOccurrence::query()->whereKey($occurrenceId)->where('event_id', $context->event->id)->lockForUpdate()->firstOrFail();
             $member = EventRosterMember::query()->whereKey($memberId)->lockForUpdate()->firstOrFail();

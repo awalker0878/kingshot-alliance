@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use App\Contexts\Platform\Administration\Http\Controllers\PlatformAdministrationController;
-use App\Contexts\Platform\EventAdministration\Http\Controllers\EventTypeAdministrationController;
 use App\ReadModels\EventTypeAdministration\Http\Controllers\EventTypeAdministrationReadController;
 use App\ReadModels\PlatformAdministration\Http\Controllers\PlatformAdministrationReadController;
 use Illuminate\Support\Facades\Route;
@@ -16,10 +15,6 @@ Route::middleware(['auth', 'auth.session', 'verified', 'platform.admin', 'passwo
             ->name('administration.index');
         Route::get('/event-types', EventTypeAdministrationReadController::class)
             ->name('event-types.index');
-        Route::patch('/event-types/{eventType}/scopes/{scope}', [EventTypeAdministrationController::class, 'update'])
-            ->whereUlid('eventType')
-            ->whereIn('scope', ['player', 'alliance', 'kingdom'])
-            ->name('event-types.scopes.update');
         Route::post('/administrators', [PlatformAdministrationController::class, 'grantAdministrator'])
             ->name('administrators.store');
         Route::delete('/administrators/{administrator}', [PlatformAdministrationController::class, 'revokeAdministrator'])

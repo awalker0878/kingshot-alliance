@@ -184,6 +184,27 @@ type RallyOccurrence = {
   groups: RallyGroup[];
   candidatesByAlliance: Record<string, RallyCandidate[]>;
 };
+type RallyBuilderIssue = {
+  code: string;
+  severity: 'blocking' | 'warning';
+  count: number;
+  playerIds: string[];
+  groupIds: string[];
+};
+type RallyBuilderOccurrence = {
+  occurrenceId: string;
+  startsAt: string;
+  state: 'empty' | 'needs_attention' | 'ready';
+  groupCount: number;
+  assignmentCount: number;
+  leadCount: number;
+  joinerCount: number;
+  standbyCount: number;
+  blockingCount: number;
+  warningCount: number;
+  observationState: 'available' | 'unavailable';
+  issues: RallyBuilderIssue[];
+};
 
 type ObjectiveAssignment = {
   id: string;
@@ -314,7 +335,7 @@ const props = defineProps<{
     recurrenceInterval: number;
     recurrenceUntilLocal: string | null;
     settings: Record<string, EventSettingValue>;
-    capabilities: string[];
+    workflowDimensions: string[];
     createdByPlayerId: string | null;
     updatedByPlayerId: string | null;
     occurrences: Array<{ id: string; startsAt: string; endsAt: string; status: string }>;
@@ -332,6 +353,7 @@ const props = defineProps<{
   operations: OccurrenceOperations[];
   rosterOperations: RosterOccurrence[];
   rallyOperations: RallyOccurrence[];
+  rallyBuilder: RallyBuilderOccurrence[];
   battlePlan: BattlePlanOccurrence[];
   resultOperations: ResultOccurrence[];
   playerIntelligence: PlayerIntelligence[];
@@ -999,43 +1021,32 @@ function cancel(): void {
         />
         <StatSeal
           :label="t('events.calendar.viewOptions')"
-          :value="event.capabilities.length"
+          :value="event.workflowDimensions.length"
           icon="✦"
         />
       </section>
 
       <nav class="ks-tab-strip mt-4" :aria-label="t('events.manage.eyebrow')">
         <a href="#schedule" class="ks-tab">{{ t('events.manage.title') }}</a>
-        <a v-if="event.capabilities.includes('phases')" href="#phases" class="ks-tab">{{
-          t('events.phases.manageTitle')
-        }}</a>
-        <a v-if="event.capabilities.includes('polls')" href="#polls" class="ks-tab">{{
-          t('events.polls.manageTitle')
-        }}</a>
-        <a v-if="event.capabilities.includes('rosters')" href="#rosters" class="ks-tab">{{
+        <a href="#phases" class="ks-tab">{{ t('events.phases.manageTitle') }}</a>
+        <a href="#polls" class="ks-tab">{{ t('events.polls.manageTitle') }}</a>
+        <a v-if="event.workflowDimensions.includes('roster')" href="#rosters" class="ks-tab">{{
           t('events.rosters.manageTitle')
         }}</a>
-        <a
-          v-if="
-            event.capabilities.includes('rally_guidance') ||
-            event.capabilities.includes('formations')
-          "
-          href="#rallies"
-          class="ks-tab"
-          >{{ t('events.rallies.manageTitle') }}</a
-        >
-        <a v-if="event.capabilities.includes('objectives')" href="#battle-plan" class="ks-tab">{{
-          t('events.objectives.manageTitle')
+        <a v-if="event.workflowDimensions.includes('rallies')" href="#rallies" class="ks-tab">{{
+          t('events.rallies.manageTitle')
         }}</a>
-        <a v-if="event.capabilities.includes('results')" href="#results" class="ks-tab">{{
+        <a
+          v-if="event.workflowDimensions.includes('battle_assignments')"
+          href="#battle-plan"
+          class="ks-tab"
+          >{{ t('events.objectives.manageTitle') }}</a
+        >
+        <a v-if="event.workflowDimensions.includes('results')" href="#results" class="ks-tab">{{
           t('events.results.manageTitle')
         }}</a>
         <a
-          v-if="
-            event.capabilities.includes('responses') ||
-            event.capabilities.includes('registration') ||
-            event.capabilities.includes('attendance')
-          "
+          v-if="event.workflowDimensions.includes('participation')"
           href="#participants"
           class="ks-tab"
           >{{ t('events.manage.participants') }}</a
@@ -1207,11 +1218,7 @@ function cancel(): void {
         </aside>
       </div>
 
-      <section
-        v-if="event.capabilities.includes('phases')"
-        id="phases"
-        class="ks-surface mt-5 scroll-mt-28 p-5"
-      >
+      <section id="phases" class="ks-surface mt-5 scroll-mt-28 p-5">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p class="ks-kicker">
@@ -1330,11 +1337,7 @@ function cancel(): void {
         </div>
       </section>
 
-      <section
-        v-if="event.capabilities.includes('polls')"
-        id="polls"
-        class="ks-surface mt-5 scroll-mt-28 p-5"
-      >
+      <section id="polls" class="ks-surface mt-5 scroll-mt-28 p-5">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p class="ks-kicker">
@@ -1472,7 +1475,7 @@ function cancel(): void {
       </section>
 
       <section
-        v-if="event.capabilities.includes('rosters')"
+        v-if="event.workflowDimensions.includes('roster')"
         id="rosters"
         class="ks-surface mt-5 scroll-mt-28 p-5"
       >
@@ -1741,9 +1744,7 @@ function cancel(): void {
       </section>
 
       <section
-        v-if="
-          event.capabilities.includes('rally_guidance') || event.capabilities.includes('formations')
-        "
+        v-if="event.workflowDimensions.includes('rallies')"
         id="rallies"
         class="ks-surface mt-5 scroll-mt-28 p-5"
       >
@@ -1751,9 +1752,86 @@ function cancel(): void {
           {{ t('events.rallies.manageEyebrow') }}
         </p>
         <h2 class="mt-1 text-lg font-semibold">{{ t('events.rallies.manageTitle') }}</h2>
+        <section
+          v-if="rallyBuilder.length"
+          class="mt-4"
+          :aria-label="t('events.rallies.builder.title')"
+        >
+          <div>
+            <h3 class="font-semibold">{{ t('events.rallies.builder.title') }}</h3>
+            <p class="mt-1 max-w-3xl text-sm text-[var(--ks-text-muted)]">
+              {{ t('events.rallies.builder.help') }}
+            </p>
+          </div>
+          <div class="mt-3 grid gap-3 xl:grid-cols-2">
+            <article
+              v-for="builder in rallyBuilder"
+              :key="builder.occurrenceId"
+              class="ks-surface p-4"
+            >
+              <div class="flex flex-wrap items-start justify-between gap-2">
+                <div>
+                  <p class="font-semibold">
+                    {{
+                      formatDate(new Date(builder.startsAt), {
+                        month: 'short',
+                        day: 'numeric',
+                        hour: 'numeric',
+                        minute: '2-digit',
+                      })
+                    }}
+                  </p>
+                  <p class="mt-1 text-xs text-[var(--ks-text-muted)]">
+                    {{
+                      t('events.rallies.builder.summary', {
+                        groups: builder.groupCount,
+                        leads: builder.leadCount,
+                        joiners: builder.joinerCount,
+                        standbys: builder.standbyCount,
+                      })
+                    }}
+                  </p>
+                </div>
+                <span class="ks-chip">{{
+                  t(`events.rallies.builder.states.${builder.state}`)
+                }}</span>
+              </div>
+              <p
+                v-if="builder.state === 'empty'"
+                class="mt-3 text-sm text-[var(--ks-text-muted)]"
+                role="status"
+              >
+                {{ t('events.rallies.builder.empty') }}
+              </p>
+              <ul v-else-if="builder.issues.length" class="mt-3 space-y-2">
+                <li
+                  v-for="issue in builder.issues"
+                  :key="issue.code"
+                  class="rounded border px-3 py-2 text-sm"
+                  :class="
+                    issue.severity === 'blocking'
+                      ? 'border-red-400/30 bg-red-500/10 text-red-100'
+                      : 'border-amber-400/30 bg-amber-500/10 text-amber-100'
+                  "
+                >
+                  {{ t(`events.rallies.builder.issues.${issue.code}`, { count: issue.count }) }}
+                </li>
+              </ul>
+              <p v-else class="mt-3 text-sm text-emerald-200" role="status">
+                {{ t('events.rallies.builder.ready') }}
+              </p>
+              <p
+                v-if="builder.observationState === 'unavailable'"
+                class="mt-3 text-xs text-[var(--ks-text-muted)]"
+              >
+                {{ t('events.rallies.builder.observationsUnavailable') }}
+              </p>
+            </article>
+          </div>
+        </section>
         <div class="mt-5 grid gap-5 xl:grid-cols-2">
           <form
-            v-if="event.capabilities.includes('rally_guidance')"
+            v-if="event.workflowDimensions.includes('rallies')"
             class="ks-surface space-y-3 p-4"
             @submit.prevent="saveGuidance"
           >
@@ -1841,7 +1919,7 @@ function cancel(): void {
             </button>
           </form>
           <form
-            v-if="event.capabilities.includes('formations')"
+            v-if="event.workflowDimensions.includes('rallies')"
             class="ks-surface space-y-3 p-4"
             @submit.prevent="saveRallyFormation"
           >
@@ -1949,7 +2027,7 @@ function cancel(): void {
           </form>
         </div>
         <div
-          v-if="event.capabilities.includes('rally_guidance')"
+          v-if="event.workflowDimensions.includes('rallies')"
           class="mt-5 grid gap-5 xl:grid-cols-2"
         >
           <form class="ks-surface space-y-3 p-4" @submit.prevent="saveRallyGroup">
@@ -2218,7 +2296,7 @@ function cancel(): void {
       </section>
 
       <section
-        v-if="event.capabilities.includes('objectives')"
+        v-if="event.workflowDimensions.includes('battle_assignments')"
         id="battle-plan"
         class="ks-surface mt-5 scroll-mt-28 p-5"
       >
@@ -2482,7 +2560,7 @@ function cancel(): void {
       </section>
 
       <section
-        v-if="event.capabilities.includes('results')"
+        v-if="event.workflowDimensions.includes('results')"
         id="results"
         class="ks-surface mt-5 scroll-mt-28 p-5"
       >
@@ -2652,11 +2730,7 @@ function cancel(): void {
       </section>
 
       <section
-        v-if="
-          event.capabilities.includes('responses') ||
-          event.capabilities.includes('registration') ||
-          event.capabilities.includes('attendance')
-        "
+        v-if="event.workflowDimensions.includes('participation')"
         id="participants"
         class="ks-surface mt-5 scroll-mt-28 p-5"
       >
@@ -2711,7 +2785,7 @@ function cancel(): void {
                 </td>
                 <td class="py-3">
                   <div
-                    v-if="event.capabilities.includes('attendance')"
+                    v-if="event.workflowDimensions.includes('participation')"
                     class="flex flex-wrap gap-1"
                   >
                     <button

@@ -20,6 +20,42 @@ type Observation = {
   invalidationReason?: string | null;
 };
 
+type TimelineItem = {
+  id: string;
+  kind: string;
+  owner: string;
+  observedAt: string;
+  source: {
+    type: string;
+    reference: string | null;
+    adapter: string | null;
+    adapterVersion: string | null;
+  };
+  evidenceIds: string[];
+  confidence: number | null;
+  scope: {
+    type: string;
+    allianceId: string;
+    trackingId: string;
+    kingdomAllianceId: string | null;
+  };
+  summary: {
+    name?: string;
+    tag?: string | null;
+    power?: string | null;
+    memberCount?: number | null;
+    from?: string;
+    to?: string;
+    text?: string;
+    metric?: string | null;
+    currentValue?: unknown;
+    previousValue?: unknown;
+    delta?: string | number | null;
+  };
+  canonicalUrl: string | null;
+  derived: boolean;
+};
+
 const props = defineProps<{
   user: { name: string; email: string };
   alliance: {
@@ -40,6 +76,7 @@ const props = defineProps<{
   freshDays: number;
   latest: Observation | null;
   history: Observation[];
+  timeline: TimelineItem[];
 }>();
 
 function localDateTimeNow(): string {
@@ -137,6 +174,39 @@ function invalidateObservation(): void {
     },
   );
 }
+function timelineHeading(item: TimelineItem): string {
+  if (item.kind === 'alliance_observation') {
+    return t('kingdomP7B.timelineObservation', { name: item.summary.name ?? props.tracking.name });
+  }
+  if (item.kind === 'diplomacy_transition') {
+    return t('kingdomP7B.timelineDiplomacy', {
+      from: item.summary.from ?? t('kingdomP7B.unknown'),
+      to: item.summary.to ?? t('kingdomP7B.unknown'),
+    });
+  }
+  return t('kingdomP7B.timelineChange', {
+    metric: (item.summary.metric ?? t('kingdomP7B.unknown')).replaceAll('_', ' '),
+  });
+}
+function timelineDetail(item: TimelineItem): string {
+  if (item.kind === 'alliance_observation') {
+    return t('kingdomP7B.timelineObservationFacts', {
+      power: item.summary.power ?? t('kingdomP7B.missing'),
+      members:
+        item.summary.memberCount === null || item.summary.memberCount === undefined
+          ? t('kingdomP7B.missing')
+          : formatNumber(item.summary.memberCount),
+    });
+  }
+  if (item.kind === 'diplomacy_transition') {
+    return t('kingdomP7B.timelineOfficerRecorded');
+  }
+  return t('kingdomP7B.timelineDerivedFacts', {
+    previous: String(item.summary.previousValue ?? t('kingdomP7B.missing')),
+    current: String(item.summary.currentValue ?? t('kingdomP7B.missing')),
+    delta: String(item.summary.delta ?? t('kingdomP7B.missing')),
+  });
+}
 </script>
 
 <template>
@@ -197,6 +267,83 @@ function invalidateObservation(): void {
           {{ t('kingdomP7B.captured', { date: formatDate(latest.capturedAt) }) }}
         </p>
       </div>
+    </section>
+
+    <section class="ks-surface mt-8 p-6" aria-labelledby="intelligence-timeline-heading">
+      <p class="text-sm font-semibold tracking-[0.2em] text-[var(--ks-gold)] uppercase">
+        {{ t('kingdomP7B.timelineEyebrow') }}
+      </p>
+      <h2 id="intelligence-timeline-heading" class="mt-2 text-xl font-semibold">
+        {{ t('kingdomP7B.timelineTitle') }}
+      </h2>
+      <p class="mt-1 max-w-4xl text-sm leading-6 text-[var(--ks-text-secondary)]">
+        {{ t('kingdomP7B.timelineHelp') }}
+      </p>
+      <ol v-if="timeline.length" class="mt-6 space-y-4">
+        <li
+          v-for="item in timeline"
+          :key="item.id"
+          class="relative border-s border-[var(--ks-border-strong)] ps-5"
+        >
+          <span
+            class="absolute -start-1.5 top-1 h-3 w-3 rounded-full border border-[var(--ks-gold-dark)] bg-[var(--ks-teal)]"
+            aria-hidden="true"
+          />
+          <div class="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h3 class="font-semibold">{{ timelineHeading(item) }}</h3>
+              <p class="mt-1 text-sm text-[var(--ks-text-secondary)]">
+                {{ timelineDetail(item) }}
+              </p>
+            </div>
+            <span class="ks-status" :data-tone="item.derived ? 'info' : 'success'">
+              {{
+                item.derived ? t('kingdomP7B.timelineDerived') : t('kingdomP7B.timelineOwnerFact')
+              }}
+            </span>
+          </div>
+          <dl
+            class="mt-3 grid gap-2 text-xs text-[var(--ks-text-muted)] sm:grid-cols-2 xl:grid-cols-4"
+          >
+            <div>
+              <dt>{{ t('kingdomP7B.timelineObservedAt') }}</dt>
+              <dd class="mt-1 text-[var(--ks-text-secondary)]">
+                {{ formatDate(item.observedAt) }}
+              </dd>
+            </div>
+            <div>
+              <dt>{{ t('kingdomP7B.timelineOwner') }}</dt>
+              <dd class="mt-1 text-[var(--ks-text-secondary)]">{{ item.owner }}</dd>
+            </div>
+            <div>
+              <dt>{{ t('kingdomP7B.timelineSource') }}</dt>
+              <dd class="mt-1 break-words text-[var(--ks-text-secondary)]">
+                {{ item.source.type
+                }}{{ item.source.reference ? ` · ${item.source.reference}` : '' }}
+              </dd>
+            </div>
+            <div>
+              <dt>{{ t('kingdomP7B.timelineEvidenceConfidence') }}</dt>
+              <dd class="mt-1 text-[var(--ks-text-secondary)]">
+                {{ t('kingdomP7B.timelineEvidenceCount', { count: item.evidenceIds.length }) }} ·
+                {{
+                  item.confidence === null
+                    ? t('kingdomP7B.timelineConfidenceMissing')
+                    : item.confidence
+                }}
+              </dd>
+            </div>
+          </dl>
+          <Link
+            v-if="item.canonicalUrl"
+            :href="item.canonicalUrl"
+            class="mt-3 inline-block text-xs underline"
+          >
+            {{ t('kingdomP7B.timelineOpenOwner') }}
+          </Link>
+        </li>
+      </ol>
+      <p v-else class="ks-fantasy-empty mt-5">{{ t('kingdomP7B.timelineEmpty') }}</p>
     </section>
 
     <section v-if="canManage" class="ks-surface mt-8 p-6">

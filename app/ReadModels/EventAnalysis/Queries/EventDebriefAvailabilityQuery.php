@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\ReadModels\EventAnalysis\Queries;
 
 use App\Contexts\Operations\Events\Enums\EventScope;
+use App\Contexts\Operations\Events\Enums\EventWorkflowDimension;
 use App\Contexts\Operations\Events\Models\Event;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Results\Queries\BearHuntDebriefResultQuery;
@@ -16,12 +17,14 @@ final readonly class EventDebriefAvailabilityQuery
     /** @return array{supported:bool,available:bool,href:?string} */
     public function forOccurrence(EventOccurrence $occurrence): array
     {
-        $occurrence->loadMissing('event.eventType');
+        $occurrence->loadMissing('event.eventType.workflowDimensions');
         $event = $occurrence->event;
         if (
             ! $event instanceof Event
             || $event->scopeEnum() !== EventScope::Alliance
             || $event->eventType?->slug !== 'bear-hunt'
+            || ! $event->eventType->supportsWorkflow(EventWorkflowDimension::Results)
+            || ! $event->eventType->supportsWorkflow(EventWorkflowDimension::Debrief)
         ) {
             return [
                 'supported' => false,

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Rallies\Actions;
 
-use App\Contexts\Operations\Events\Enums\EventCapability;
+use App\Contexts\Operations\Events\Enums\EventWorkflowDimension;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Events\Services\EventAuthorization;
-use App\Contexts\Operations\Events\Services\EventCapabilityGuard;
+use App\Contexts\Operations\Events\Services\EventWorkflowGuard;
 use App\Contexts\Operations\Events\Services\EventWriteState;
 use App\Contexts\Operations\Rallies\Enums\RallyAssignmentRole;
 use App\Contexts\Operations\Rallies\Models\EventRecommendedFormation;
@@ -25,7 +25,7 @@ final readonly class SaveEventRecommendedFormation
     public function __construct(
         private EventWriteState $eventWriteState,
         private EventAuthorization $eventAuthority,
-        private EventCapabilityGuard $capabilities,
+        private EventWorkflowGuard $workflows,
         private RallyWriteState $rallyWriteState,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
@@ -63,7 +63,7 @@ final readonly class SaveEventRecommendedFormation
             $route = EventOccurrence::query()->select(['id', 'event_id'])->whereKey($occurrenceId)->firstOrFail();
             $context = $this->eventWriteState->lockEventScope($actorPlayerId, (string) $route->event_id);
             $this->eventAuthority->authorizeManager($context);
-            $this->capabilities->require($context->event, EventCapability::Formations);
+            $this->workflows->require($context->event, EventWorkflowDimension::Rallies);
 
             $occurrence = EventOccurrence::query()
                 ->whereKey($occurrenceId)

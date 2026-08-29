@@ -14,6 +14,35 @@ use App\Contexts\Intelligence\Evidence\Models\ProgressionNormalizationAttempt;
 
 final class GovernorProgressionEvidenceSummaryQuery
 {
+    /**
+     * Bounded factual status projection for an authorized Governor profile.
+     *
+     * @return array{total:int,pending:int,needsReview:int,committed:int,failed:int,latestAt:?string}
+     */
+    public function profileSummary(string $allianceId, string $rosterEntryId): array
+    {
+        $rows = GameEvidence::query()
+            ->where('alliance_id', $allianceId)
+            ->where('roster_entry_id', $rosterEntryId)
+            ->whereNull('occurrence_id')
+            ->whereNull('transfer_plan_id')
+            ->whereNull('transfer_participant_id')
+            ->orderByDesc('created_at')
+            ->limit(100)
+            ->get(['lifecycle_status', 'created_at']);
+        $statuses = $rows->groupBy(static fn (GameEvidence $evidence): string => $evidence->lifecycle_status->value);
+        $pending = ['uploaded', 'classifying', 'classified', 'extracting', 'approved', 'committing'];
+
+        return [
+            'total' => $rows->count(),
+            'pending' => $statuses->only($pending)->sum(static fn ($items): int => $items->count()),
+            'needsReview' => $statuses->get('needs_review', collect())->count(),
+            'committed' => $statuses->get('committed', collect())->count(),
+            'failed' => $statuses->get('failed', collect())->count(),
+            'latestAt' => $rows->first()?->created_at?->toIso8601String(),
+        ];
+    }
+
     /** @return list<array<string,mixed>> */
     public function forRosterEntry(string $allianceId, string $rosterEntryId): array
     {

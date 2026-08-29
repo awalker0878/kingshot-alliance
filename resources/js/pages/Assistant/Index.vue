@@ -15,7 +15,13 @@ type SourceType =
   | 'territory_plan_revision'
   | 'alliance_content'
   | 'observation'
-  | 'game_fact';
+  | 'game_fact'
+  | 'alliance_command'
+  | 'event_readiness'
+  | 'bear_hunt_run'
+  | 'roster_freshness'
+  | 'transfer_verification'
+  | 'territory_comparison';
 type AssistantStatus =
   'answered' | 'ambiguous' | 'not_found' | 'unsupported' | 'validation_error' | 'unavailable';
 type AssistantPrompt =
@@ -27,7 +33,15 @@ type AssistantPrompt =
   | 'rsvp_week'
   | 'battle_assignment'
   | 'transfer_status'
-  | 'territory_plan';
+  | 'territory_plan'
+  | 'alliance_command'
+  | 'event_readiness'
+  | 'rally_gaps'
+  | 'bear_hunt_history'
+  | 'progression_freshness'
+  | 'transfer_verification'
+  | 'intelligence_changes'
+  | 'territory_comparison';
 type PromptOption = { id: AssistantPrompt; label: string };
 
 type Evidence = {
@@ -75,8 +89,16 @@ const requestError = ref<string | null>(null);
 let turnId = 0;
 
 const defaultPromptIds: AssistantPrompt[] = [
-  'swordland_roster',
+  'alliance_command',
+  'event_readiness',
+  'rally_gaps',
+  'bear_hunt_history',
+  'progression_freshness',
+  'transfer_verification',
+  'intelligence_changes',
+  'territory_comparison',
   'next_event',
+  'swordland_roster',
   'bear_hunt_guide',
   'observation',
   'hero_fact',
@@ -118,6 +140,14 @@ function promptLabel(prompt: AssistantPrompt): string {
     battle_assignment: 'assistant.prompts.battleAssignment',
     transfer_status: 'assistant.prompts.transferStatus',
     territory_plan: 'assistant.prompts.territoryPlan',
+    alliance_command: 'assistant.prompts.allianceCommand',
+    event_readiness: 'assistant.prompts.eventReadiness',
+    rally_gaps: 'assistant.prompts.rallyGaps',
+    bear_hunt_history: 'assistant.prompts.bearHuntHistory',
+    progression_freshness: 'assistant.prompts.progressionFreshness',
+    transfer_verification: 'assistant.prompts.transferVerification',
+    intelligence_changes: 'assistant.prompts.intelligenceChanges',
+    territory_comparison: 'assistant.prompts.territoryComparison',
   };
 
   return t(key[prompt]);

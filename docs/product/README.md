@@ -8,11 +8,14 @@ Alliance Assistant is delivered as the constrained, authorization-aware read/com
 
 The cross-capability work is governed by the [Capability Extension Program](capability-extension-program.md). That contract distinguishes already-complete product capability from selected extensions and evidence-gated extensions, and defines ownership/provenance before application implementation begins. Intelligence Change Detection is now a current complete Phase 11 capability governed by [Intelligence Change Detection](intelligence-change-detection.md) with verification evidence in its [delivery ledger](intelligence-change-detection-delivery-ledger.md). Progression planning and calculator qualification are further governed by the [Progression Goal Planner and Calculator Evidence Program](progression-goal-planner-calculators.md), which is the implementation source of truth for `GP-*`, `CE-*` and `CI-*` work. Its live implementation reconciliation is recorded in the [Progression Goal Planner and Calculator delivery ledger](progression-goal-planner-calculators-delivery-ledger.md), with verification-discovered closeout requirements captured in the [Progression Goal Planner and Calculator verification amendment](progression-goal-planner-calculators-verification-amendment.md).
 
+Phases 13–25 are governed by the [Kingshot Capability Expansion Program](kingshot-capability-expansion-program.md). It establishes the mandatory named-Event identity/evidence gate, preserves existing capability ownership, records the KvK gate as blocked, and defines the Rally, factual member, Bear Hunt, Transfer, Intelligence, Territory, Command, Brief and Assistant compositions through final closeout.
+
 - [Product overview](product-overview.md)
 - [Capability catalogue](capability-catalogue.md)
 - [Capability completeness plan](capability-gap-analysis.md)
 - [Capability delivery ledger](capability-delivery-ledger.md)
 - [Capability Extension Program](capability-extension-program.md)
+- [Kingshot Capability Expansion Program](kingshot-capability-expansion-program.md)
 - [Intelligence Change Detection](intelligence-change-detection.md)
 - [Intelligence Change Detection delivery ledger](intelligence-change-detection-delivery-ledger.md)
 - [Progression Goal Planner and Calculator Evidence Program](progression-goal-planner-calculators.md)

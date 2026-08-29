@@ -24,7 +24,7 @@ type EventRow = {
   endsAt: string;
   timezone: string;
   status: string;
-  capabilities: string[];
+  workflowDimensions: string[];
   canManage: boolean;
 };
 

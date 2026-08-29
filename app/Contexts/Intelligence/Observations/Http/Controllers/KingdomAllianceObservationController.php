@@ -17,6 +17,7 @@ use App\Contexts\Intelligence\Observations\Actions\InvalidateKingdomAllianceObse
 use App\Contexts\Intelligence\Observations\Actions\RecordKingdomAllianceObservation;
 use App\Contexts\Intelligence\Observations\Models\KingdomAllianceObservation;
 use App\Contexts\Intelligence\Observations\Queries\KingdomAllianceObservationQuery;
+use App\ReadModels\KingdomIntelligence\Queries\KingdomIntelligenceTimelineQuery;
 use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\RedirectResponse;
@@ -36,6 +37,7 @@ final class KingdomAllianceObservationController extends Controller
         KingdomAllianceReferenceQuery $kingdomAlliances,
         PlayerReferenceQuery $players,
         AccountIdentityQuery $accounts,
+        KingdomIntelligenceTimelineQuery $timeline,
         string $tracking,
     ): Response {
         $scope = $context->scope();
@@ -78,6 +80,11 @@ final class KingdomAllianceObservationController extends Controller
             'freshDays' => KingdomAllianceObservationQuery::FRESH_DAYS,
             'latest' => $latest === null ? null : $this->observationRow($latest, false, $actorRefs),
             'history' => $history->map(fn (KingdomAllianceObservation $observation): array => $this->observationRow($observation, $canManage, $actorRefs))->values(),
+            'timeline' => $timeline->forTrackedAlliance(
+                $scope->playerId,
+                $scope->allianceId,
+                $tracking,
+            ),
         ]);
     }
 

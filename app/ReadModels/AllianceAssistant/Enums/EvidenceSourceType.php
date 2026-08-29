@@ -15,4 +15,10 @@ enum EvidenceSourceType: string
     case AllianceContent = 'alliance_content';
     case Observation = 'observation';
     case GameFact = 'game_fact';
+    case AllianceCommand = 'alliance_command';
+    case EventReadiness = 'event_readiness';
+    case BearHuntRun = 'bear_hunt_run';
+    case RosterFreshness = 'roster_freshness';
+    case TransferVerification = 'transfer_verification';
+    case TerritoryComparison = 'territory_comparison';
 }

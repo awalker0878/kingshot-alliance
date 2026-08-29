@@ -1,6 +1,6 @@
 # Screenshot Intake: Transfer Evidence
 
-Status: Implementation contract — 2026-08-26
+Status: Active delivery — implementation present; final immutable-candidate verification pending — 2026-08-28
 
 Screenshot Intake: Transfer Evidence is the second supported `Intelligence/Evidence` evidence family after Bear Hunt battle reports. It extends the existing Evidence capability with five explicit, versioned Transfer screenshot schemas and a reviewed handoff into `GameWorld/KingdomTransfers`.
 

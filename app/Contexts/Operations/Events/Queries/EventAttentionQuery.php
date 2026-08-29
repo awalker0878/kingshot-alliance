@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace App\Contexts\Operations\Events\Queries;
 
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
-use App\Contexts\Operations\Events\Enums\EventCapability;
 use App\Contexts\Operations\Events\Enums\EventOccurrenceStatus;
 use App\Contexts\Operations\Events\Enums\EventScope;
+use App\Contexts\Operations\Events\Enums\EventWorkflowDimension;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Events\Services\ActivePlayerEventVisibilityResolver;
-use App\Contexts\Operations\Events\Services\EventCapabilityResolver;
+use App\Contexts\Operations\Events\Services\EventWorkflowGuard;
 use App\Contexts\Operations\Participation\Enums\EventRegistrationStatus;
 use App\Contexts\Operations\Participation\Models\EventRegistration;
 use App\Contexts\Operations\Participation\Models\EventResponse;
@@ -29,7 +29,7 @@ final readonly class EventAttentionQuery
 {
     public function __construct(
         private ActivePlayerEventVisibilityResolver $visibility,
-        private EventCapabilityResolver $capabilities,
+        private EventWorkflowGuard $workflows,
         private EventRegistrationWindow $window,
     ) {}
 
@@ -50,7 +50,7 @@ final readonly class EventAttentionQuery
                     $this->applyTargetScope($scopeQuery, $eligibleTargets);
                 });
             })
-            ->with(['event.eventType', 'event.typeScope.capabilities'])
+            ->with(['event.eventType.workflowDimensions'])
             ->orderBy('starts_at')
             ->limit(100)
             ->get();
@@ -65,29 +65,27 @@ final readonly class EventAttentionQuery
         $items = [];
         foreach ($occurrences as $occurrence) {
             $event = $occurrence->event;
-            $configuration = $event->typeScope;
             $occurrenceId = (string) $occurrence->id;
+            $participationEnabled = $this->workflows->supports($event, EventWorkflowDimension::Participation);
 
-            if ($this->capabilities->supports($configuration, EventCapability::Responses)
+            if ($participationEnabled
                 && ! isset($facts['responses'][$occurrenceId])) {
                 $items[] = $this->item($occurrence, $player, 'response');
             }
 
-            if ($this->capabilities->supports($configuration, EventCapability::Registration)
+            if ($participationEnabled
                 && $this->window->for($event, $occurrence)['is_open']
                 && ! isset($facts['registrations'][$occurrenceId])) {
                 $items[] = $this->item($occurrence, $player, 'registration');
             }
 
-            if ($this->capabilities->supports($configuration, EventCapability::Polls)) {
-                foreach ($facts['polls'][$occurrenceId] ?? [] as $pollId) {
-                    if (! isset($facts['votes'][$pollId])) {
-                        $items[] = $this->item($occurrence, $player, 'vote', $pollId);
-                    }
+            foreach ($facts['polls'][$occurrenceId] ?? [] as $pollId) {
+                if (! isset($facts['votes'][$pollId])) {
+                    $items[] = $this->item($occurrence, $player, 'vote', $pollId);
                 }
             }
 
-            if ($this->capabilities->supports($configuration, EventCapability::Rosters)
+            if ($this->workflows->supports($event, EventWorkflowDimension::Roster)
                 && isset($facts['roster_assignments'][$occurrenceId])) {
                 $items[] = $this->item(
                     $occurrence,

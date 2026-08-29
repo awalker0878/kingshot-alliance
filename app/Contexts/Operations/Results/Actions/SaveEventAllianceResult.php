@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace App\Contexts\Operations\Results\Actions;
 
 use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
-use App\Contexts\Operations\Events\Enums\EventCapability;
 use App\Contexts\Operations\Events\Enums\EventScope;
+use App\Contexts\Operations\Events\Enums\EventWorkflowDimension;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Events\Services\EventAuthorization;
-use App\Contexts\Operations\Events\Services\EventCapabilityGuard;
+use App\Contexts\Operations\Events\Services\EventWorkflowGuard;
 use App\Contexts\Operations\Events\Services\EventWriteState;
 use App\Contexts\Operations\Results\Enums\EventMetricSource;
 use App\Contexts\Operations\Results\Models\EventAllianceResult;
@@ -24,7 +24,7 @@ final readonly class SaveEventAllianceResult
     public function __construct(
         private EventWriteState $eventWriteState,
         private EventAuthorization $mutations,
-        private EventCapabilityGuard $capabilities,
+        private EventWorkflowGuard $workflows,
         private AllianceReferenceQuery $alliances,
         private EventMetricCapture $metrics,
         private AuditRecorder $audit,
@@ -48,7 +48,7 @@ final readonly class SaveEventAllianceResult
             $route = EventOccurrence::query()->select(['id', 'event_id'])->whereKey($occurrenceId)->firstOrFail();
             $context = $this->eventWriteState->lockEventScope($actorPlayerId, (string) $route->event_id);
             $this->mutations->authorizeManager($context);
-            $this->capabilities->require($context->event, EventCapability::Results);
+            $this->workflows->require($context->event, EventWorkflowDimension::Results);
             if ($context->event->scopeEnum() !== EventScope::Kingdom || $context->target->kingdomId === null) {
                 throw ValidationException::withMessages(['alliance' => 'Alliance result rows are supported only inside Kingdom Events.']);
             }

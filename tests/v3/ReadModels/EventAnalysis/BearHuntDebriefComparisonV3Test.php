@@ -52,7 +52,7 @@ final class BearHuntDebriefComparisonV3Test extends TestCase
         $this->attendance($current, $other, EventAttendanceStatus::Present, $actor);
         $this->rally($current, $alliance, $actor, $actor, 'Current Rally 1');
         $this->rally($current, $alliance, $actor, $actor, 'Current Rally 2');
-        $current->load(['event.eventType', 'event.typeScope.capabilities']);
+        $current->load(['event.eventType.workflowDimensions', 'event.typeScope']);
 
         $debrief = app(BearHuntDebriefQuery::class)->forOccurrence($current, $actor, false);
         $comparison = $debrief['comparison'];
@@ -68,6 +68,12 @@ final class BearHuntDebriefComparisonV3Test extends TestCase
         self::assertSame('absent', $comparison['personalAttendance']['previous']);
         self::assertSame('available', $comparison['personalAttendance']['state']);
         self::assertSame(1, $comparison['personalRallies']['delta']);
+        self::assertSame('increased', $debrief['signals']['allianceDamage']);
+        self::assertSame('increased', $debrief['signals']['personalDamage']);
+        self::assertSame('increased', $debrief['signals']['personalRallies']);
+        self::assertFalse($debrief['signals']['acceptedResult']);
+        self::assertFalse($debrief['signals']['newPersonalBest']);
+        self::assertSame('recorded_without_accepted_evidence', $debrief['signals']['evidenceStatus']);
     }
 
     public function test_personal_comparisons_remain_unavailable_when_facts_were_not_recorded(): void
@@ -84,7 +90,7 @@ final class BearHuntDebriefComparisonV3Test extends TestCase
 
         $current = $this->occurrence($actor, $alliance, CarbonImmutable::now('UTC'));
         $this->recordPlayerResult($current, $actor, 120, 1);
-        $current->load(['event.eventType', 'event.typeScope.capabilities']);
+        $current->load(['event.eventType.workflowDimensions', 'event.typeScope']);
 
         $debrief = app(BearHuntDebriefQuery::class)->forOccurrence($current, $actor, false);
         $comparison = $debrief['comparison'];

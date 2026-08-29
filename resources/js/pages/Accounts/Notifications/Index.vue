@@ -144,6 +144,7 @@ function typeLabel(type: string): string {
     'event.reminder': t('notifications.types.eventReminder'),
     'gift_code.expiring': t('notifications.types.giftCodeExpiring'),
     'king_perks.reminder': t('notifications.types.kingPerkReminder'),
+    'officer.brief': t('notifications.types.officerBrief'),
   };
   return labels[type] ?? type;
 }

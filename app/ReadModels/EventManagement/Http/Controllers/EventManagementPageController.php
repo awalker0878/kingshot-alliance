@@ -8,11 +8,11 @@ use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\GameWorld\Players\Services\PlayerContext;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Operations\BattlePlans\Queries\EventObjectiveQuery;
-use App\Contexts\Operations\Events\Enums\EventCapability;
 use App\Contexts\Operations\Events\Enums\EventScope;
+use App\Contexts\Operations\Events\Enums\EventWorkflowDimension;
 use App\Contexts\Operations\Events\Models\Event;
 use App\Contexts\Operations\Events\Queries\EventCalendarQuery;
-use App\Contexts\Operations\Events\Services\EventCapabilityResolver;
+use App\Contexts\Operations\Events\Services\EventTypeProfileResolver;
 use App\Contexts\Operations\Participation\Queries\EventParticipationQuery;
 use App\Contexts\Operations\Participation\Reminders\Enums\EventReminderAudience;
 use App\Contexts\Operations\Participation\Reminders\Models\EventReminderRule;
@@ -23,6 +23,7 @@ use App\Contexts\Operations\Rosters\Queries\EventRosterQuery;
 use App\Contexts\Operations\TerritoryPlanning\Queries\EventTerritoryPlanningQuery;
 use App\ReadModels\EventAnalysis\Queries\EventPlayerIntelligenceQuery;
 use App\ReadModels\EventManagement\Queries\EventCommandQuery;
+use App\ReadModels\EventManagement\Queries\RallyRosterBuilderQuery;
 use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -43,45 +44,78 @@ final class EventManagementPageController extends Controller
         EventPlayerIntelligenceQuery $intelligence,
         EventRosterQuery $rosters,
         EventRallyQuery $rallies,
-        EventCapabilityResolver $capabilities,
+        EventTypeProfileResolver $profiles,
         EventTerritoryPlanningQuery $territoryPlanning,
         EventCommandQuery $eventCommand,
+        RallyRosterBuilderQuery $rallyRosterBuilder,
     ): Response {
         $user = $this->user($request);
         $actor = $this->player();
         $record = $query->eventForManage($actor, $event);
-        $capabilityKeys = $capabilities->keys($record->typeScope);
+        $profile = $profiles->resolve($record->eventType);
+        $workflowDimensions = $profile['profile_enabled'] === true
+            ? $profile['workflow_dimensions']
+            : [];
         $reminderAudiences = [EventReminderAudience::AllScopePlayers->value];
 
         if ($record->scope === EventScope::Player) {
             $reminderAudiences[] = EventReminderAudience::Target->value;
         }
-        if (in_array(EventCapability::Responses->value, $capabilityKeys, true)) {
+        if (in_array(EventWorkflowDimension::Participation->value, $workflowDimensions, true)) {
             $reminderAudiences[] = EventReminderAudience::Responded->value;
-        }
-        if (in_array(EventCapability::Registration->value, $capabilityKeys, true)) {
             $reminderAudiences[] = EventReminderAudience::Registered->value;
         }
-        if (in_array(EventCapability::Rosters->value, $capabilityKeys, true)) {
+        if (in_array(EventWorkflowDimension::Roster->value, $workflowDimensions, true)) {
             $reminderAudiences[] = EventReminderAudience::Rostered->value;
         }
+        $participantOperations = $this->supports($workflowDimensions, EventWorkflowDimension::Participation)
+            ? $participation->management($record)
+            : [];
+        $rosterOperations = $this->supports($workflowDimensions, EventWorkflowDimension::Roster)
+            ? $rosters->management($record)
+            : [];
+        $rallyOperations = $this->supports($workflowDimensions, EventWorkflowDimension::Rallies)
+            ? $rallies->management($record)
+            : [];
+        $rallyBuilder = $this->supportsAll($workflowDimensions, [
+            EventWorkflowDimension::Participation,
+            EventWorkflowDimension::Roster,
+            EventWorkflowDimension::Rallies,
+        ])
+            ? $rallyRosterBuilder->forEvent(
+                $actor->playerId,
+                $record,
+                $rallyOperations,
+                $participantOperations,
+                $rosterOperations,
+            )
+            : [];
 
         return Inertia::render('Operations/Events/Manage', [
             'user' => $this->identity($user),
-            'event' => $this->managementPayload($record),
+            'event' => $this->managementPayload($record, $profile),
             'eventCommand' => $eventCommand->forEvent(
                 $actor,
                 $record,
                 $request->string('occurrence')->toString(),
             ),
-            'participants' => $participation->management($record),
+            'participants' => $participantOperations,
             'operations' => $phasePolls->management($record),
-            'battlePlan' => $objectives->management($record),
-            'resultOperations' => $results->management($record),
-            'playerIntelligence' => $intelligence->forEvent($record),
-            'rosterOperations' => $rosters->management($record),
-            'rallyOperations' => $rallies->management($record),
-            'territoryPlanning' => $territoryPlanning->management($actor->playerId, $record),
+            'battlePlan' => $this->supports($workflowDimensions, EventWorkflowDimension::BattleAssignments)
+                ? $objectives->management($record)
+                : [],
+            'resultOperations' => $this->supports($workflowDimensions, EventWorkflowDimension::Results)
+                ? $results->management($record)
+                : [],
+            'playerIntelligence' => $this->supports($workflowDimensions, EventWorkflowDimension::Debrief)
+                ? $intelligence->forEvent($record)
+                : [],
+            'rosterOperations' => $rosterOperations,
+            'rallyOperations' => $rallyOperations,
+            'rallyBuilder' => $rallyBuilder,
+            'territoryPlanning' => $this->supports($workflowDimensions, EventWorkflowDimension::TerritoryPlan)
+                ? $territoryPlanning->management($actor->playerId, $record)
+                : ['supported' => false, 'availableRevisions' => [], 'attachments' => []],
             'reminderAudiences' => array_values(array_unique($reminderAudiences)),
             'reminderRules' => EventReminderRule::query()
                 ->where('event_id', $record->id)
@@ -101,7 +135,7 @@ final class EventManagementPageController extends Controller
     }
 
     /** @return array<string, mixed> */
-    private function managementPayload(Event $event): array
+    private function managementPayload(Event $event, array $profile): array
     {
         return [
             'id' => (string) $event->id,
@@ -130,12 +164,10 @@ final class EventManagementPageController extends Controller
                 ?->setTimezone($event->timezone)
                 ->format('Y-m-d\TH:i'),
             'settings' => $event->settings ?? [],
-            'capabilities' => $event->typeScope->capabilities
-                ->pluck('capability')
-                ->map(static fn (EventCapability $capability): string => $capability->value)
-                ->sort()
-                ->values()
-                ->all(),
+            'profile' => $profile,
+            'workflowDimensions' => $profile['profile_enabled'] === true
+                ? $profile['workflow_dimensions']
+                : [],
             'createdByPlayerId' => $event->created_by_player_id,
             'updatedByPlayerId' => $event->updated_by_player_id,
             'occurrences' => $event->occurrences
@@ -149,6 +181,27 @@ final class EventManagementPageController extends Controller
                 ->values()
                 ->all(),
         ];
+    }
+
+    /** @param list<string> $dimensions */
+    private function supports(array $dimensions, EventWorkflowDimension $dimension): bool
+    {
+        return in_array($dimension->value, $dimensions, true);
+    }
+
+    /**
+     * @param  list<string>  $dimensions
+     * @param  list<EventWorkflowDimension>  $required
+     */
+    private function supportsAll(array $dimensions, array $required): bool
+    {
+        foreach ($required as $dimension) {
+            if (! $this->supports($dimensions, $dimension)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /** @return array{name:string,email:string} */

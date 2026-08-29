@@ -40,6 +40,31 @@ type DashboardOverview = {
     expiresAt: string | null;
   }>;
   recruitment: { pending: number; overdue: number } | null;
+  allianceCommand: {
+    asOf: string;
+    actionCount: number;
+    items: Array<{
+      code: string;
+      owner: string;
+      state: string;
+      reasonKey: string;
+      count: number;
+      observedAt: string | null;
+      actionable: boolean;
+      affectedIds: string[];
+      handoff: { href: string };
+      metadata: Record<string, unknown>;
+    }>;
+  } | null;
+  officerBriefs: Array<{
+    group: string;
+    state: string;
+    count: number;
+    owner: string;
+    canonicalUrl: string;
+    fingerprint: string;
+    facts: Array<Record<string, unknown>>;
+  }>;
   actionCount: number;
 };
 
@@ -223,6 +248,113 @@ function eventActionLabel(action: string): string {
 
     <div v-if="membership" class="mt-5 grid gap-5 2xl:grid-cols-[1.35fr_.65fr]">
       <div class="space-y-5">
+        <section
+          v-if="overview?.allianceCommand"
+          class="ks-surface-gold p-5 sm:p-6"
+          aria-labelledby="alliance-command-heading"
+        >
+          <div class="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p class="ks-kicker">{{ t('application.dashboard.allianceCommandEyebrow') }}</p>
+              <h2 id="alliance-command-heading" class="ks-display mt-1 text-2xl font-semibold">
+                {{ t('application.dashboard.allianceCommand') }}
+              </h2>
+              <p class="mt-2 max-w-3xl text-sm text-[var(--ks-text-secondary)]">
+                {{ t('application.dashboard.allianceCommandHelp') }}
+              </p>
+            </div>
+            <span
+              class="ks-status"
+              :data-tone="overview.allianceCommand.actionCount ? 'warning' : 'success'"
+            >
+              {{
+                overview.allianceCommand.actionCount
+                  ? t('application.dashboard.commandActionCount', {
+                      count: overview.allianceCommand.actionCount,
+                    })
+                  : t('application.dashboard.commandClear')
+              }}
+            </span>
+          </div>
+
+          <div v-if="overview.allianceCommand.items.length" class="mt-5 grid gap-3 md:grid-cols-2">
+            <Link
+              v-for="item in overview.allianceCommand.items"
+              :key="item.code"
+              :href="item.handoff.href"
+              class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-4 transition hover:border-[var(--ks-border-strong)]"
+            >
+              <div class="flex items-start justify-between gap-3">
+                <div>
+                  <p class="ks-kicker">
+                    {{ t(`application.dashboard.commandOwners.${item.owner}`) }}
+                  </p>
+                  <strong class="mt-2 block text-base text-[var(--ks-ivory)]">
+                    {{ t(item.reasonKey, { count: item.count }) }}
+                  </strong>
+                </div>
+                <span
+                  class="ks-status shrink-0"
+                  :data-tone="item.actionable ? 'warning' : 'success'"
+                >
+                  {{
+                    item.count
+                      ? t('application.dashboard.commandItemCount', { count: item.count })
+                      : t(`application.dashboard.commandStates.${item.state}`)
+                  }}
+                </span>
+              </div>
+              <span v-if="item.observedAt" class="mt-3 block text-xs text-[var(--ks-muted)]">
+                {{
+                  t('application.dashboard.commandObservedAt', {
+                    date: formatDate(item.observedAt),
+                  })
+                }}
+              </span>
+            </Link>
+          </div>
+          <div v-else class="ks-fantasy-empty mt-4">
+            {{ t('application.dashboard.commandNoAuthorizedItems') }}
+          </div>
+
+          <div
+            v-if="overview.officerBriefs.length"
+            class="mt-5 border-t border-[var(--ks-border)] pt-5"
+          >
+            <div class="flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <p class="ks-kicker">{{ t('application.dashboard.officerBriefsEyebrow') }}</p>
+                <h3 class="ks-display mt-1 text-xl font-semibold">
+                  {{ t('application.dashboard.officerBriefs') }}
+                </h3>
+              </div>
+              <span class="text-xs text-[var(--ks-muted)]">
+                {{ t('application.dashboard.officerBriefsDeliveryHelp') }}
+              </span>
+            </div>
+            <div class="mt-3 grid gap-3 lg:grid-cols-3">
+              <Link
+                v-for="brief in overview.officerBriefs"
+                :key="brief.group"
+                :href="brief.canonicalUrl"
+                class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-4 transition hover:border-[var(--ks-border-strong)]"
+              >
+                <p class="ks-kicker">
+                  {{ t(`application.dashboard.officerBriefGroups.${brief.group}`) }}
+                </p>
+                <strong class="mt-2 block text-sm text-[var(--ks-ivory)]">
+                  {{ t(`application.dashboard.commandStates.${brief.state}`) }}
+                </strong>
+                <span class="mt-2 block text-xs text-[var(--ks-muted)]">
+                  {{
+                    t('application.dashboard.officerBriefFactCount', { count: brief.facts.length })
+                  }}
+                </span>
+              </Link>
+            </div>
+          </div>
+        </section>
+
         <section class="ks-surface-gold p-5 sm:p-6" aria-labelledby="alliance-overview-heading">
           <div class="flex flex-wrap items-start justify-between gap-4">
             <div class="max-w-3xl">

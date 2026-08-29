@@ -34,10 +34,15 @@ ReadModel HTTP adapters may validate filters, authorize a view, invoke the proje
 Examples of V3 cross-context composition include:
 
 - `ReadModels/EventAnalysis` for Event history, evidence, trends and Player/Alliance/Kingdom analytical views;
+- `ReadModels/EventManagement` for occurrence readiness/closeout and factual Rally roster gaps over Operations owners;
+- `ReadModels/CommandOverview` for recomputable R4/R5 owner attention plus deterministic Officer Brief projections;
 - `ReadModels/ContributionHistory` for contribution-history presentation over Intelligence-owned contribution facts;
-- `ReadModels/RecruitmentManagement` for the filterable, cursor-paginated recruitment pipeline over Recruitment, Membership, Player, and Alliance facts;
-- `ReadModels/Roster` for roster/history/intelligence presentation over Alliance, GameWorld and Intelligence facts;
-- `ReadModels/KingdomIntelligence` and `ReadModels/SharedKingdomIntelligence` for composed intelligence screens;
+- `ReadModels/RecruitmentManagement` for the filterable, cursor-paginated recruitment pipeline and authorized Transfer Campaign workspace over Recruitment, Membership, Transfer, Evidence and Communications facts;
+- `ReadModels/Roster` for roster/history/intelligence presentation and the factual Member Capability Profile over Alliance, GameWorld, Operations and Intelligence facts;
+- `ReadModels/KingdomIntelligence` and `ReadModels/SharedKingdomIntelligence` for composed intelligence screens, including the bounded owner-linked Kingdom Intelligence Timeline;
+- `ReadModels/AllianceAssistant` for closed, source-backed questions over exact authorized owner projections and navigation-only write handoffs;
 - Platform administration and launch-readiness projections that read across tenant/context ownership.
+
+Officer Brief fingerprints are semantic values derived from the composed facts. Communications may persist delivery preference/attempt/receipt state, but neither briefs nor Alliance attention are persisted as generic tasks or parallel domain truth.
 
 Moving a query into a ReadModel does not transfer write ownership. Source facts remain owned by their business contexts.

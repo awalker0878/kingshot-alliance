@@ -71,6 +71,66 @@ const props = defineProps<{
   stageOptions: string[];
   onboardingStatusOptions: string[];
   issuedMembershipInvitationLink: string | null;
+  transferCampaign: {
+    available: boolean;
+    unavailableReason?: 'transfer_not_authorized';
+    recruitment: { stage: string; submittedAt: string; nextActionAt: string | null };
+    playerLink: 'linked' | 'unlinked';
+    communications: { total: number; latestStatus: string | null; latestAt: string | null };
+    membership: {
+      status: string | null;
+      rank: string | null;
+      joinedAt: string | null;
+      rosterState: string | null;
+      rosterObservedAt: string | null;
+    } | null;
+    transfer: {
+      participantId: string;
+      planId: string;
+      planLabel: string;
+      planState: string;
+      direction: string;
+      readiness: string;
+      sourceKingdom: number | null;
+      destinationKingdom: number | null;
+      window: {
+        label: string;
+        phase: string;
+        endsAt: string;
+        sourceType: string;
+        sourceReference: string;
+        observedAt: string;
+        evidenceId: string | null;
+      };
+      eligibility: {
+        outcome: string;
+        evaluatedAt: string;
+        primaryAction: string | null;
+        requirements: Array<{
+          key: string;
+          state: string;
+          explanation: string;
+          sourceType: string | null;
+          sourceReference: string | null;
+          observedAt: string | null;
+          validUntil: string | null;
+        }>;
+      } | null;
+      evidence: Array<{
+        id: string;
+        kind: string;
+        sourceType: string;
+        sourceReference: string;
+        observedAt: string;
+        validUntil: string | null;
+        evidenceId: string | null;
+      }>;
+      activeBlockers: Array<{ id: string; summary: string }>;
+      completion: { completedAt: string; rosterEntryId: string | null } | null;
+      withdrawnAt: string | null;
+    } | null;
+    ownerHrefs: { recruitment: string; transfer: string; roster: string };
+  };
 }>();
 
 const { t, formatDate, formatNumber } = useLocale();
@@ -166,6 +226,14 @@ function onboardingTone(status: string): 'success' | 'warning' | 'danger' | 'inf
   if (status === 'blocked') return 'danger';
   if (status === 'in_progress') return 'info';
   return 'warning';
+}
+function campaignTone(status: string | null): 'success' | 'warning' | 'danger' | 'info' {
+  if (status === 'eligible_now' || status === 'completed' || status === 'active') return 'success';
+  if (status === 'blocked' || status === 'failed' || status === 'withdrawn') return 'danger';
+  if (status === 'needs_verification' || status === 'stale' || status === 'conflicting') {
+    return 'warning';
+  }
+  return 'info';
 }
 function humanize(value: string): string {
   return value.replaceAll('_', ' ');
@@ -333,6 +401,158 @@ function humanize(value: string): string {
       </aside>
 
       <div class="min-w-0 space-y-5">
+        <section class="ks-surface-gold p-5 sm:p-6" aria-labelledby="transfer-campaign-heading">
+          <div class="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p class="ks-kicker">{{ t('recruitment.transferCampaign.eyebrow') }}</p>
+              <h2 id="transfer-campaign-heading" class="ks-display mt-1 text-2xl font-semibold">
+                {{ t('recruitment.transferCampaign.title') }}
+              </h2>
+            </div>
+            <Link :href="transferCampaign.ownerHrefs.transfer" class="ks-command-link">
+              {{ t('recruitment.transferCampaign.openTransfer') }}
+            </Link>
+          </div>
+          <p class="mt-2 text-sm leading-6 text-[var(--ks-muted)]">
+            {{ t('recruitment.transferCampaign.help') }}
+          </p>
+
+          <div class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <div class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] p-4">
+              <p class="text-xs text-[var(--ks-muted)]">
+                {{ t('recruitment.transferCampaign.recruitment') }}
+              </p>
+              <strong class="mt-1 block">{{ humanize(transferCampaign.recruitment.stage) }}</strong>
+              <span class="mt-1 block text-xs text-[var(--ks-muted)]">
+                {{ date(transferCampaign.recruitment.nextActionAt) }}
+              </span>
+            </div>
+            <div class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] p-4">
+              <p class="text-xs text-[var(--ks-muted)]">
+                {{ t('recruitment.transferCampaign.governor') }}
+              </p>
+              <strong class="mt-1 block">{{
+                t(`recruitment.transferCampaign.player.${transferCampaign.playerLink}`)
+              }}</strong>
+            </div>
+            <div class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] p-4">
+              <p class="text-xs text-[var(--ks-muted)]">
+                {{ t('recruitment.transferCampaign.eligibility') }}
+              </p>
+              <strong class="mt-1 block">
+                {{
+                  transferCampaign.transfer?.eligibility
+                    ? humanize(transferCampaign.transfer.eligibility.outcome)
+                    : t('recruitment.transferCampaign.notAssessed')
+                }}
+              </strong>
+            </div>
+            <div class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] p-4">
+              <p class="text-xs text-[var(--ks-muted)]">
+                {{ t('recruitment.transferCampaign.arrival') }}
+              </p>
+              <strong class="mt-1 block">
+                {{
+                  transferCampaign.membership?.status
+                    ? humanize(transferCampaign.membership.status)
+                    : t('recruitment.transferCampaign.notRecorded')
+                }}
+              </strong>
+              <span class="mt-1 block text-xs text-[var(--ks-muted)]">
+                {{
+                  transferCampaign.membership?.rosterObservedAt
+                    ? date(transferCampaign.membership.rosterObservedAt)
+                    : t('recruitment.transferCampaign.noRosterObservation')
+                }}
+              </span>
+            </div>
+          </div>
+
+          <div v-if="transferCampaign.transfer" class="mt-4 grid gap-4 lg:grid-cols-2">
+            <article class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] p-4">
+              <div class="flex items-start justify-between gap-3">
+                <div>
+                  <p class="ks-kicker">{{ transferCampaign.transfer.planLabel }}</p>
+                  <h3 class="mt-1 font-semibold">{{ transferCampaign.transfer.window.label }}</h3>
+                </div>
+                <span
+                  class="ks-status"
+                  :data-tone="campaignTone(transferCampaign.transfer.eligibility?.outcome ?? null)"
+                >
+                  {{ humanize(transferCampaign.transfer.readiness) }}
+                </span>
+              </div>
+              <dl class="mt-3 grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <dt class="text-xs text-[var(--ks-muted)]">
+                    {{ t('recruitment.transferCampaign.kingdoms') }}
+                  </dt>
+                  <dd class="mt-1">
+                    {{ transferCampaign.transfer.sourceKingdom ?? '—' }} →
+                    {{ transferCampaign.transfer.destinationKingdom ?? '—' }}
+                  </dd>
+                </div>
+                <div>
+                  <dt class="text-xs text-[var(--ks-muted)]">
+                    {{ t('recruitment.transferCampaign.windowPhase') }}
+                  </dt>
+                  <dd class="mt-1">{{ humanize(transferCampaign.transfer.window.phase) }}</dd>
+                </div>
+              </dl>
+              <p class="mt-3 text-xs leading-5 text-[var(--ks-muted)]">
+                {{
+                  t('recruitment.transferCampaign.provenance', {
+                    source: transferCampaign.transfer.window.sourceType,
+                    observedAt: date(transferCampaign.transfer.window.observedAt),
+                  })
+                }}
+              </p>
+            </article>
+            <article class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] p-4">
+              <p class="ks-kicker">{{ t('recruitment.transferCampaign.ownerFacts') }}</p>
+              <ul class="mt-3 space-y-2 text-sm">
+                <li>
+                  {{
+                    t('recruitment.transferCampaign.evidenceCount', {
+                      count: formatNumber(transferCampaign.transfer.evidence.length),
+                    })
+                  }}
+                </li>
+                <li>
+                  {{
+                    t('recruitment.transferCampaign.blockerCount', {
+                      count: formatNumber(transferCampaign.transfer.activeBlockers.length),
+                    })
+                  }}
+                </li>
+                <li>
+                  {{
+                    t('recruitment.transferCampaign.communicationCount', {
+                      count: formatNumber(transferCampaign.communications.total),
+                    })
+                  }}
+                </li>
+                <li>
+                  {{
+                    transferCampaign.transfer.completion
+                      ? t('recruitment.transferCampaign.completedAt', {
+                          date: date(transferCampaign.transfer.completion.completedAt),
+                        })
+                      : t('recruitment.transferCampaign.notCompleted')
+                  }}
+                </li>
+              </ul>
+            </article>
+          </div>
+          <div v-else class="ks-fantasy-empty mt-4">
+            {{
+              transferCampaign.playerLink === 'unlinked'
+                ? t('recruitment.transferCampaign.linkGovernorHelp')
+                : t('recruitment.transferCampaign.noParticipant')
+            }}
+          </div>
+        </section>
+
         <section class="ks-surface p-5 sm:p-6" aria-labelledby="answers-heading">
           <div class="flex items-end justify-between gap-3">
             <div>

@@ -17,6 +17,13 @@ enum AssistantIntent: string
     case AllianceContent = 'alliance_content';
     case AllianceObservation = 'alliance_observation';
     case IntelligenceChanges = 'intelligence_changes';
+    case AllianceCommandAttention = 'alliance_command_attention';
+    case EventReadiness = 'event_readiness';
+    case RallyGaps = 'rally_gaps';
+    case BearHuntHistory = 'bear_hunt_history';
+    case ProgressionFreshness = 'progression_freshness';
+    case TransferVerification = 'transfer_verification';
+    case TerritoryComparison = 'territory_comparison';
     case ActionHandoff = 'action_handoff';
     case Unsupported = 'unsupported';
 }

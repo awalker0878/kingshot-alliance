@@ -51,6 +51,7 @@ final readonly class AllianceAssistantQuery
         private ContentQuery $content,
         private ContentPresenter $contentPresenter,
         private AssistantObservationQuery $observations,
+        private AllianceOperationalAssistantQuery $operational,
     ) {}
 
     public function ask(
@@ -72,7 +73,14 @@ final readonly class AllianceAssistantQuery
             AssistantIntent::TerritoryPlan => $this->territoryPlanAnswer($actor, $parsed),
             AssistantIntent::AllianceContent => $this->contentAnswer($actor, $scope, $parsed),
             AssistantIntent::AllianceObservation => $this->observationAnswer($scope, $parsed),
-            AssistantIntent::ActionHandoff => $this->actionHandoff($actor, $parsed),
+            AssistantIntent::AllianceCommandAttention,
+            AssistantIntent::EventReadiness,
+            AssistantIntent::RallyGaps,
+            AssistantIntent::BearHuntHistory,
+            AssistantIntent::ProgressionFreshness,
+            AssistantIntent::TransferVerification,
+            AssistantIntent::TerritoryComparison => $this->operational->ask($actor, $scope, $parsed),
+            AssistantIntent::ActionHandoff => $this->actionHandoff($actor, $scope, $parsed),
             AssistantIntent::IntelligenceChanges,
             AssistantIntent::Unsupported => $this->unsupported(),
         };
@@ -543,9 +551,40 @@ final readonly class AllianceAssistantQuery
         );
     }
 
-    private function actionHandoff(PlayerReference $actor, ParsedQuestion $parsed): AssistantResult
+    private function actionHandoff(
+        PlayerReference $actor,
+        AllianceScopeReference $scope,
+        ParsedQuestion $parsed,
+    ): AssistantResult
     {
-        if ($parsed->writeAction !== 'roster') {
+        if (in_array($parsed->writeAction, ['transfer', 'territory', 'evidence'], true)) {
+            $intent = match ($parsed->writeAction) {
+                'transfer' => AssistantIntent::TransferVerification,
+                'territory' => AssistantIntent::TerritoryComparison,
+                default => AssistantIntent::ProgressionFreshness,
+            };
+            $source = $this->operational->ask($actor, $scope, new ParsedQuestion($intent));
+            if ($source->status !== AssistantStatus::Answered || $source->evidence === []) {
+                return $source;
+            }
+
+            $href = match ($parsed->writeAction) {
+                'transfer' => '/alliance/transfers/manage',
+                'territory' => '/territory',
+                default => '/alliance/roster/intelligence',
+            };
+
+            return new AssistantResult(
+                AssistantIntent::ActionHandoff,
+                AssistantStatus::Answered,
+                'assistant.answers.ownerWriteHandoff',
+                ['owner' => $parsed->writeAction],
+                $source->evidence,
+                handoff: new AssistantNavigationHandoff('assistant.handoffs.openOwnerWorkflow', $href),
+            );
+        }
+
+        if (! in_array($parsed->writeAction, ['roster', 'rally', 'event'], true)) {
             return $this->unsupported();
         }
 
@@ -557,12 +596,18 @@ final readonly class AllianceAssistantQuery
         return new AssistantResult(
             AssistantIntent::ActionHandoff,
             AssistantStatus::Answered,
-            'assistant.answers.rosterWriteHandoff',
+            $parsed->writeAction === 'roster'
+                ? 'assistant.answers.rosterWriteHandoff'
+                : 'assistant.answers.ownerEventWriteHandoff',
             ['event' => $this->eventTitle($resolved)],
             [$this->eventEvidence($resolved)],
             handoff: new AssistantNavigationHandoff(
-                'assistant.handoffs.openRoster',
-                route('events.show', ['occurrence' => (string) $resolved->id], false),
+                $parsed->writeAction === 'roster'
+                    ? 'assistant.handoffs.openRoster'
+                    : 'assistant.handoffs.openOwnerWorkflow',
+                $parsed->writeAction === 'roster'
+                    ? route('events.show', ['occurrence' => (string) $resolved->id], false)
+                    : '/events/'.(string) $resolved->event_id.'/manage?occurrence='.(string) $resolved->id,
             ),
         );
     }

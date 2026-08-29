@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Contexts\Operations\Rosters\Services;
 
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
-use App\Contexts\Operations\Events\Enums\EventCapability;
+use App\Contexts\Operations\Events\Enums\EventWorkflowDimension;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
-use App\Contexts\Operations\Events\Services\EventCapabilityResolver;
+use App\Contexts\Operations\Events\Services\EventWorkflowGuard;
 use App\Contexts\Operations\Participation\Enums\EventRegistrationStatus;
 use App\Contexts\Operations\Participation\Enums\EventResponseChoice;
 use App\Contexts\Operations\Participation\Models\EventRegistration;
@@ -16,12 +16,16 @@ use Carbon\CarbonImmutable;
 
 final readonly class EventRosterAvailabilityService
 {
-    public function __construct(private EventCapabilityResolver $capabilities) {}
+    public function __construct(private EventWorkflowGuard $workflows) {}
 
     /** @return list<string> */
     public function warnings(EventOccurrence $occurrence, PlayerReference $player): array
     {
-        $occurrence->loadMissing('event.typeScope');
+        $occurrence->loadMissing('event.eventType.workflowDimensions');
+        $participationEnabled = $this->workflows->supports(
+            $occurrence->event,
+            EventWorkflowDimension::Participation,
+        );
         $warnings = [];
         $response = EventResponse::query()
             ->where('occurrence_id', $occurrence->id)
@@ -29,7 +33,7 @@ final readonly class EventRosterAvailabilityService
             ->first();
 
         if (! $response instanceof EventResponse) {
-            if ($this->capabilities->supports($occurrence->event->typeScope, EventCapability::Responses)) {
+            if ($participationEnabled) {
                 $warnings[] = 'no_response';
             }
         } else {
@@ -47,7 +51,7 @@ final readonly class EventRosterAvailabilityService
             }
         }
 
-        if ($this->capabilities->supports($occurrence->event->typeScope, EventCapability::Registration)) {
+        if ($participationEnabled) {
             $registration = EventRegistration::query()
                 ->where('occurrence_id', $occurrence->id)
                 ->where('player_id', $player->playerId)

@@ -38,7 +38,7 @@ final class EventCommandQueryBudgetV3Test extends TestCase
         $actor = $scenario->player((int) $user->id, 76002);
         $alliance = $scenario->alliance($actor);
         $scenario->roster($actor, $alliance);
-        $event = $this->swordland($actor, $alliance);
+        $event = $this->bearHunt($actor, $alliance);
 
         $small = $this->queryCount($actor, $event);
 
@@ -58,13 +58,13 @@ final class EventCommandQueryBudgetV3Test extends TestCase
         self::assertLessThanOrEqual(50, $large, 'Event Command selected-occurrence query budget regressed.');
     }
 
-    private function swordland(PlayerReference $actor, AllianceReference $alliance): Event
+    private function bearHunt(PlayerReference $actor, AllianceReference $alliance): Event
     {
         $configuration = EventTypeScope::query()
             ->where('scope', EventScope::Alliance->value)
             ->whereHas(
                 'eventType',
-                static fn ($query) => $query->where('slug', 'swordland-showdown'),
+                static fn ($query) => $query->where('slug', 'bear-hunt'),
             )
             ->firstOrFail();
         $created = app(CreateEvent::class)->handle(
@@ -94,7 +94,7 @@ final class EventCommandQueryBudgetV3Test extends TestCase
     private function queryCount(PlayerReference $actor, Event $event): int
     {
         $loaded = Event::query()
-            ->with(['eventType', 'typeScope.capabilities', 'occurrences'])
+            ->with(['eventType.workflowDimensions', 'typeScope', 'occurrences'])
             ->findOrFail($event->id);
 
         DB::flushQueryLog();

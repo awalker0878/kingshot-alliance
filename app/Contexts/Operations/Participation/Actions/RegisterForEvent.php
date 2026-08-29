@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Participation\Actions;
 
-use App\Contexts\Operations\Events\Enums\EventCapability;
+use App\Contexts\Operations\Events\Enums\EventWorkflowDimension;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Events\Services\EventAuthorization;
-use App\Contexts\Operations\Events\Services\EventCapabilityGuard;
-use App\Contexts\Operations\Events\Services\EventCapabilityResolver;
+use App\Contexts\Operations\Events\Services\EventWorkflowGuard;
 use App\Contexts\Operations\Events\Services\EventWriteState;
 use App\Contexts\Operations\Participation\Enums\EventRegistrationStatus;
 use App\Contexts\Operations\Participation\Models\EventRegistration;
@@ -24,8 +23,7 @@ final readonly class RegisterForEvent
     public function __construct(
         private EventWriteState $eventWriteState,
         private EventAuthorization $authorization,
-        private EventCapabilityGuard $capabilities,
-        private EventCapabilityResolver $capabilityResolver,
+        private EventWorkflowGuard $workflows,
         private EventRegistrationWindow $window,
         private EventPlayerContextFreezer $contexts,
         private AuditRecorder $audit,
@@ -38,7 +36,7 @@ final readonly class RegisterForEvent
             $route = EventOccurrence::query()->select(['id', 'event_id'])->whereKey($occurrenceId)->firstOrFail();
             $context = $this->eventWriteState->lockSelfScope($actorPlayerId, (string) $route->event_id, $actorPlayerId);
             $this->authorization->authorizeSelf($context, $actorPlayerId);
-            $this->capabilities->require($context->event, EventCapability::Registration);
+            $this->workflows->require($context->event, EventWorkflowDimension::Participation);
 
             $occurrence = EventOccurrence::query()
                 ->whereKey($occurrenceId)
@@ -76,10 +74,6 @@ final readonly class RegisterForEvent
             $waitlistPosition = null;
 
             if (! $hasSeat) {
-                if (! $this->capabilityResolver->supports($context->typeScope, EventCapability::Waitlist)) {
-                    throw ValidationException::withMessages(['registration' => 'This occurrence is full.']);
-                }
-
                 $status = EventRegistrationStatus::Waitlisted;
                 $waitlistPosition = ((int) EventRegistration::query()
                     ->where('occurrence_id', $occurrence->id)

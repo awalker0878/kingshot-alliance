@@ -105,7 +105,12 @@ const props = defineProps<{
     endsAt: string;
     timezone: string;
     status: string;
-    capabilities: string[];
+    profile: {
+      verification_state: 'candidate' | 'verified' | 'conflicting' | 'unsupported';
+      profile_state: 'disabled' | 'enabled';
+      profile_enabled: boolean;
+    };
+    workflowDimensions: string[];
     instructions: string | null;
     capacity: number | null;
     recurrenceFrequency: string;
@@ -261,7 +266,7 @@ function statusTone(value: string): 'success' | 'warning' | 'danger' | 'info' {
           {{ t('events.show.manage') }}
         </Link>
         <Link
-          v-if="event.eventTypeSlug === 'bear-hunt' && event.capabilities.includes('results')"
+          v-if="event.eventTypeSlug === 'bear-hunt' && event.workflowDimensions.includes('debrief')"
           :href="`/events/${event.id}/debrief`"
           class="ks-command-link"
           data-variant="secondary"
@@ -272,7 +277,8 @@ function statusTone(value: string): 'success' | 'warning' | 'danger' | 'info' {
           v-if="
             event.canManage &&
             event.eventTypeSlug === 'bear-hunt' &&
-            event.capabilities.includes('results')
+            event.workflowDimensions.includes('results') &&
+            event.workflowDimensions.includes('screenshot_evidence')
           "
           :href="`/events/${event.id}/screenshot-intake`"
           class="ks-command-link"
@@ -304,7 +310,7 @@ function statusTone(value: string): 'success' | 'warning' | 'danger' | 'info' {
       />
       <StatSeal
         :label="t('events.show.modules')"
-        :value="formatNumber(event.capabilities.length)"
+        :value="formatNumber(event.workflowDimensions.length)"
         icon="▤"
       />
     </section>
@@ -346,7 +352,7 @@ function statusTone(value: string): 'success' | 'warning' | 'danger' | 'info' {
             </AppButton>
           </form>
           <div
-            v-if="event.capabilities.includes('registration')"
+            v-if="event.workflowDimensions.includes('participation')"
             class="mt-5 border-t border-[var(--ks-border)] pt-4"
           >
             <div class="flex flex-wrap items-center gap-3">
@@ -667,8 +673,8 @@ function statusTone(value: string): 'success' | 'warning' | 'danger' | 'info' {
           <div class="ks-divider my-5" />
           <p class="ks-kicker">{{ t('events.show.modules') }}</p>
           <div class="mt-3 flex flex-wrap gap-1.5">
-            <span v-for="capability in event.capabilities" :key="capability" class="ks-chip">{{
-              t(`events.capabilities.${capability}`)
+            <span v-for="dimension in event.workflowDimensions" :key="dimension" class="ks-chip">{{
+              humanize(dimension)
             }}</span>
           </div>
         </section>

@@ -21,7 +21,7 @@ Do not use `planned`, `MVP`, `partial`, or `future enhancement` to obscure these
 Community/open-source projects remain discovery evidence only. They can reveal useful product workflows but do not become authoritative game truth by being implemented elsewhere.
 
 - [Bleezy-D/Alliance-Layout-Planner](https://github.com/Bleezy-D/Alliance-Layout-Planner) — multi-Alliance layout planning, HQs, Banners, Governor cities, Bear Traps, territory coverage, map structures/no-build zones, march times, hive presets, grouping/rotation, saved layouts and image export. Existing Territory data/rules remain provenance-gated.
-- [Gercekefsane/kingshot-bot](https://github.com/Gercekefsane/kingshot-bot) — alliance member monitoring, transfer planning, Crazy Joe guidance, Bear Hunt timers, calculators, recruitment, and multi-channel notifications.
+- [Gercekefsane/kingshot-bot](https://github.com/Gercekefsane/kingshot-bot) — community workflow discovery for Alliance monitoring, transfer planning, timers, calculators, recruitment and multi-channel notifications; it is not evidence for a Kingshot event identity or mechanic.
 - [adroiteck/discord-kingshot-bot](https://github.com/adroiteck/discord-kingshot-bot) — event guides, player profiles, rally calls, timers, announcements, and moderation workflows.
 - [whiteout-project/Whiteout-Survival-Discord-Bot](https://github.com/whiteout-project/Whiteout-Survival-Discord-Bot) — related player management, scheduled notifications, calculators, queues, and backup operations.
 - [justncodes/ks-giftcode](https://github.com/justncodes/ks-giftcode) and the official Century Games Gift Code Center — gift-code workflow discovery and official redemption boundary.
@@ -64,7 +64,7 @@ The delivered observed-state reconciliation extension compares desired plan stat
 
 The canonical [Screenshot Intake](screenshot-intake.md) contract closes all 15 Bear Hunt phases: secure upload, classification, extraction, field confidence/history, review, exact/visual/semantic duplicate handling, commit preview, scalar cross-context commit, Operations report ledger/recomputation, crash-safe retry/receipt recovery, deletion/redaction/retention, observability, accessibility/localization/visual regression and final audit.
 
-Any global ledger row still showing phases 3, 4, 7, 11 or 12 as `In progress` was stale documentation and is reconciled to `Complete` in Phase 0. The new Transfer and Governor Progression evidence work is represented as separate **Selected extensions** rather than reopening the Bear Hunt delivery program.
+Any global ledger row still showing phases 3, 4, 7, 11 or 12 as `In progress` was stale documentation and is reconciled to `Complete` in Phase 0. Transfer and Governor Progression Evidence implementations now exist but remain **Selected extensions** until their containing immutable candidate passes the required gates.
 
 ### Event Readiness & Closeout — current complete
 
@@ -82,11 +82,11 @@ Implementation candidate `e5c492f9391431ab68e1b2ca215038f448e5539d` passed CI, I
 
 | Priority/order | Selected extension | User outcome | Canonical owners | Primary guardrail |
 | --- | --- | --- | --- | --- |
-| 5 | Kingdom Transfer Screenshot Intake | Review supported in-game Transfer screenshots and commit approved observations exactly once. | Intelligence/Evidence + GameWorld/KingdomTransfers | Evidence owns provenance; KingdomTransfers owns observations/eligibility. |
-| 6 | Governor Progression Screenshot Intake | Review profile/progression screenshots, normalize against a pinned Progression release and append Governor observations. | Intelligence/Evidence + Intelligence/Roster + GameWorld/Progression | OCR cannot create identity or alter catalogue truth. |
-| 7 | Progression Goal Planner | Compare authorized observed current state with a user-selected factual target/prerequisite path. | ReadModels composing Intelligence/Roster + GameWorld/Progression | No recommendation semantics or unqualified resource totals. |
+| 5 | Kingdom Transfer Screenshot Intake — verification | Verify the implemented supported-screenshot review and exactly-once destination workflow on one immutable candidate. | Intelligence/Evidence + GameWorld/KingdomTransfers | Evidence owns provenance; KingdomTransfers owns observations/eligibility. |
+| 6 | Governor Progression Screenshot Intake — verification | Verify the implemented pinned-release normalization and append-only Governor observation workflow. | Intelligence/Evidence + Intelligence/Roster + GameWorld/Progression | OCR cannot create identity or alter catalogue truth. |
+| 13–25 | Kingshot Capability Expansion Program | Complete the Event profile, Rally, factual member, Bear Hunt, Transfer, Intelligence, Territory, Command, Brief and Assistant compositions through release closeout. | Existing owners + ReadModels composition | Mandatory named-Event identity/evidence gate; no parallel composition domains or unsupported mechanics. |
 
-All selected extensions use the detailed acceptance criteria in [Capability Extension Program](capability-extension-program.md). A selected extension remains unimplemented until its global delivery-ledger row is complete.
+Phases 5–12 use the detailed acceptance criteria in [Capability Extension Program](capability-extension-program.md). Phases 13–25 use [Kingshot Capability Expansion Program](kingshot-capability-expansion-program.md). A selected extension is not promoted to current complete until its global delivery-ledger row and containing-candidate evidence are reconciled.
 
 ## Evidence-gated extensions
 
@@ -167,14 +167,15 @@ Evidence cannot silently become game truth. Planning intent cannot silently beco
 | 2 | Complete | Assistant operational-self intents and safe owner-workflow handoffs |
 | 3 | Complete | Event Readiness |
 | 4 | Complete | Event Closeout |
-| 5 | Selected extension | Kingdom Transfer Screenshot Intake |
-| 6 | Selected extension | Governor Progression Screenshot Intake |
-| 7 | Selected extension | Progression Goal Planner |
-| 8 | Evidence-gated extension | Calculator evidence qualification per family |
-| 9 | Evidence-gated extension | Calculators for qualified families only |
+| 5 | Verification in progress | Kingdom Transfer Screenshot Intake implementation exists; immutable-candidate verification remains |
+| 6 | Verification in progress | Governor Progression Screenshot Intake implementation exists; immutable-candidate verification remains |
+| 7 | Complete subject to containing-SHA evidence | Progression Goal Planner |
+| 8 | Complete family dispositions | Governor Gear/Charms qualified; remaining families explicitly incomplete/gap/conflict |
+| 9 | Partially enabled by independent family gate | Governor Gear/Charms calculators only; remaining families unavailable |
 | 10 | Complete | Territory observed-state reconciliation |
 | 11 | Complete | Intelligence change signals |
 | 12 | Selected extension | Full reconciliation and release closeout |
+| 13–25 | Active selected/evidence-gated program | [Kingshot Capability Expansion Program](kingshot-capability-expansion-program.md) |
 
 ## Engineering standards for every selected extension
 

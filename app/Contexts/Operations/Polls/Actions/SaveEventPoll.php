@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Polls\Actions;
 
-use App\Contexts\Operations\Events\Enums\EventCapability;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Events\Services\EventAuthorization;
-use App\Contexts\Operations\Events\Services\EventCapabilityGuard;
 use App\Contexts\Operations\Events\Services\EventWriteState;
 use App\Contexts\Operations\Polls\Enums\EventPollStatus;
 use App\Contexts\Operations\Polls\Enums\EventPollType;
@@ -24,7 +22,6 @@ final readonly class SaveEventPoll
     public function __construct(
         private EventWriteState $eventWriteState,
         private EventAuthorization $authorization,
-        private EventCapabilityGuard $capabilities,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -68,8 +65,6 @@ final readonly class SaveEventPoll
             $route = EventOccurrence::query()->select(['id', 'event_id'])->whereKey($occurrenceId)->firstOrFail();
             $context = $this->eventWriteState->lockEventScope($actorPlayerId, (string) $route->event_id);
             $this->authorization->authorizeManager($context);
-            $this->capabilities->require($context->event, EventCapability::Polls);
-
             $occurrence = EventOccurrence::query()
                 ->whereKey($occurrenceId)
                 ->where('event_id', $context->event->id)

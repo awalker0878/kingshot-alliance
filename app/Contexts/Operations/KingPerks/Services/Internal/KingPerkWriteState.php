@@ -5,11 +5,9 @@ declare(strict_types=1);
 namespace App\Contexts\Operations\KingPerks\Services\Internal;
 
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
-use App\Contexts\Operations\Events\Enums\EventCapability;
 use App\Contexts\Operations\Events\Enums\EventScope;
 use App\Contexts\Operations\Events\Models\Event;
 use App\Contexts\Operations\Events\Services\EventAuthorization;
-use App\Contexts\Operations\Events\Services\EventCapabilityGuard;
 use App\Contexts\Operations\Events\Services\EventWriteState;
 use App\Contexts\Operations\Events\ValueObjects\EventMutationContext;
 use App\Contexts\Operations\KingPerks\Models\KingPerkAppointment;
@@ -30,15 +28,12 @@ final readonly class KingPerkWriteState
     public function __construct(
         private EventWriteState $events,
         private EventAuthorization $authorization,
-        private EventCapabilityGuard $capabilities,
     ) {}
 
     public function managerEvent(string $actorPlayerId, string $eventId): EventMutationContext
     {
         $context = $this->events->lockEventScope($actorPlayerId, $eventId);
         $this->authorization->authorizeManager($context);
-        $this->capabilities->require($context->event, EventCapability::KingPerks);
-
         if ($context->target->scope !== EventScope::Kingdom || $context->target->kingdomId === null) {
             throw new AuthorizationException('King Perks require a Kingdom Event target.');
         }
@@ -56,7 +51,6 @@ final readonly class KingPerkWriteState
 
         $context = $this->events->lockEventScope($actorPlayerId, (string) $route->event_id);
         $this->authorization->authorizeManager($context);
-        $this->capabilities->require($context->event, EventCapability::KingPerks);
         $this->assertKingdomTarget($context->target->scope, $context->target->kingdomId, (string) $route->kingdom_id);
 
         $plan = KingPerkPlan::query()
@@ -79,7 +73,6 @@ final readonly class KingPerkWriteState
 
         $context = $this->events->lockSelfScope($actorPlayerId, (string) $route->event_id, $actorPlayerId);
         $this->authorization->authorizeSelf($context, $actorPlayerId);
-        $this->capabilities->require($context->event, EventCapability::KingPerks);
         $this->assertKingdomTarget($context->target->scope, $context->target->kingdomId, (string) $route->kingdom_id);
 
         if ($context->actor->kingdomId !== (string) $route->kingdom_id) {

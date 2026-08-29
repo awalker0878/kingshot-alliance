@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Participation\Reminders\Actions;
 
-use App\Contexts\Operations\Events\Enums\EventCapability;
 use App\Contexts\Operations\Events\Enums\EventScope;
+use App\Contexts\Operations\Events\Enums\EventWorkflowDimension;
 use App\Contexts\Operations\Events\Services\EventAuthorization;
-use App\Contexts\Operations\Events\Services\EventCapabilityResolver;
+use App\Contexts\Operations\Events\Services\EventWorkflowGuard;
 use App\Contexts\Operations\Events\Services\EventWriteState;
 use App\Contexts\Operations\Participation\Reminders\Enums\EventReminderAudience;
 use App\Contexts\Operations\Participation\Reminders\Enums\EventReminderTrigger;
@@ -23,7 +23,7 @@ final readonly class CreateEventReminderRule
     public function __construct(
         private EventWriteState $eventWriteState,
         private EventAuthorization $authorization,
-        private EventCapabilityResolver $capabilities,
+        private EventWorkflowGuard $workflows,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -53,15 +53,15 @@ final readonly class CreateEventReminderRule
                 throw ValidationException::withMessages(['audience' => 'Target reminders are available only for Player-scoped Events.']);
             }
             if ($audience === EventReminderAudience::Responded
-                && ! $this->capabilities->supports($context->typeScope, EventCapability::Responses)) {
+                && ! $this->workflows->supports($event, EventWorkflowDimension::Participation)) {
                 throw ValidationException::withMessages(['audience' => 'This Event does not collect responses.']);
             }
             if ($audience === EventReminderAudience::Registered
-                && ! $this->capabilities->supports($context->typeScope, EventCapability::Registration)) {
+                && ! $this->workflows->supports($event, EventWorkflowDimension::Participation)) {
                 throw ValidationException::withMessages(['audience' => 'This Event does not use registration.']);
             }
             if ($audience === EventReminderAudience::Rostered
-                && ! $this->capabilities->supports($context->typeScope, EventCapability::Rosters)) {
+                && ! $this->workflows->supports($event, EventWorkflowDimension::Roster)) {
                 throw ValidationException::withMessages(['audience' => 'This Event does not use rosters.']);
             }
 

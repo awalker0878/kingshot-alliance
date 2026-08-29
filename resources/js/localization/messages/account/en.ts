@@ -45,6 +45,7 @@ const messages = {
       eventReminder: 'Event reminders',
       giftCodeExpiring: 'Gift Code expiry reminders',
       kingPerkReminder: 'Position Perk reminders',
+      officerBrief: 'Officer briefs',
     },
     bulk: {
       selectVisible: 'Select up to 50',

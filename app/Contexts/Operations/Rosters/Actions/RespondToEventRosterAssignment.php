@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Rosters\Actions;
 
-use App\Contexts\Operations\Events\Enums\EventCapability;
+use App\Contexts\Operations\Events\Enums\EventWorkflowDimension;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Events\Services\EventAuthorization;
-use App\Contexts\Operations\Events\Services\EventCapabilityGuard;
+use App\Contexts\Operations\Events\Services\EventWorkflowGuard;
 use App\Contexts\Operations\Events\Services\EventWriteState;
 use App\Contexts\Operations\Participation\Services\EventPlayerContextFreezer;
 use App\Contexts\Operations\Rosters\Enums\EventRosterMemberStatus;
@@ -24,7 +24,7 @@ final readonly class RespondToEventRosterAssignment
     public function __construct(
         private EventWriteState $eventWriteState,
         private EventAuthorization $mutations,
-        private EventCapabilityGuard $capabilities,
+        private EventWorkflowGuard $workflows,
         private EventPlayerContextFreezer $contexts,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
@@ -44,7 +44,7 @@ final readonly class RespondToEventRosterAssignment
             $route = EventOccurrence::query()->select(['id', 'event_id'])->whereKey($occurrenceId)->firstOrFail();
             $context = $this->eventWriteState->lockSelfScope($actorPlayerId, (string) $route->event_id, $actorPlayerId);
             $this->mutations->authorizeSelf($context, $actorPlayerId);
-            $this->capabilities->require($context->event, EventCapability::Rosters);
+            $this->workflows->require($context->event, EventWorkflowDimension::Roster);
 
             $occurrence = EventOccurrence::query()->whereKey($occurrenceId)->where('event_id', $context->event->id)->lockForUpdate()->firstOrFail();
             $member = EventRosterMember::query()->whereKey($memberId)->where('player_id', $actorPlayerId)->lockForUpdate()->firstOrFail();

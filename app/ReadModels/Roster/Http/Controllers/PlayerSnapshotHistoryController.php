@@ -16,6 +16,7 @@ use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
 use App\Contexts\Intelligence\Roster\Models\PlayerSnapshot;
+use App\ReadModels\Roster\Queries\MemberCapabilityProfileQuery;
 use App\ReadModels\Roster\Queries\PlayerSnapshotQuery;
 use App\ReadModels\Roster\Services\PlayerProgressionTimeline;
 use App\Shared\Infrastructure\Http\Controller;
@@ -36,6 +37,7 @@ final class PlayerSnapshotHistoryController extends Controller
         PlayerReferenceQuery $players,
         PlayerSnapshotQuery $snapshots,
         PlayerProgressionTimeline $timeline,
+        MemberCapabilityProfileQuery $capabilityProfile,
         string $entry,
     ): Response {
         $scope = $context->scope();
@@ -88,6 +90,12 @@ final class PlayerSnapshotHistoryController extends Controller
             ))->values()->all(),
             'hasMoreSnapshots' => $history->count() > $visibleHistory->count(),
             'staleAfterDays' => PlayerSnapshotQuery::STALE_AFTER_DAYS,
+            'capabilityProfile' => $capabilityProfile->forPlayer(
+                $scope->playerId,
+                $alliance->allianceId,
+                $rosterEntry,
+                $player,
+            ),
         ]);
     }
 

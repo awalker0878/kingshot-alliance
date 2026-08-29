@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Results\Queries;
 
-use App\Contexts\Operations\Events\Enums\EventCapability;
 use App\Contexts\Operations\Events\Enums\EventScope;
+use App\Contexts\Operations\Events\Enums\EventWorkflowDimension;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Events\Models\EventType;
 use App\Contexts\Operations\Events\Services\EventAuthorization;
-use App\Contexts\Operations\Events\Services\EventCapabilityGuard;
+use App\Contexts\Operations\Events\Services\EventWorkflowGuard;
 use App\Contexts\Operations\Events\Services\EventWriteState;
 use App\Contexts\Operations\Results\ValueObjects\BearHuntEvidenceTarget;
 use Illuminate\Support\Facades\DB;
@@ -20,7 +20,7 @@ final readonly class BearHuntEvidenceTargetQuery
     public function __construct(
         private EventWriteState $eventWriteState,
         private EventAuthorization $authorization,
-        private EventCapabilityGuard $capabilities,
+        private EventWorkflowGuard $workflows,
     ) {}
 
     public function authorizeManage(string $actorPlayerId, string $occurrenceId): BearHuntEvidenceTarget
@@ -29,7 +29,10 @@ final readonly class BearHuntEvidenceTargetQuery
             $route = EventOccurrence::query()->select(['id', 'event_id'])->whereKey($occurrenceId)->firstOrFail();
             $context = $this->eventWriteState->lockEventScope($actorPlayerId, (string) $route->event_id);
             $this->authorization->authorizeManager($context);
-            $this->capabilities->require($context->event, EventCapability::Results);
+            $this->workflows->requireAll($context->event, [
+                EventWorkflowDimension::Results,
+                EventWorkflowDimension::ScreenshotEvidence,
+            ]);
 
             if ($context->event->scopeEnum() !== EventScope::Alliance || ! is_string($context->event->alliance_id)) {
                 throw ValidationException::withMessages(['event' => 'Screenshot Intake currently supports Alliance Bear Hunt Events only.']);

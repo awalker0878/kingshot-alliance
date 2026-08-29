@@ -6,10 +6,10 @@ namespace App\Contexts\Operations\BattlePlans\Actions;
 
 use App\Contexts\Operations\BattlePlans\Enums\EventObjectiveStatus;
 use App\Contexts\Operations\BattlePlans\Models\EventObjective;
-use App\Contexts\Operations\Events\Enums\EventCapability;
+use App\Contexts\Operations\Events\Enums\EventWorkflowDimension;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Events\Services\EventAuthorization;
-use App\Contexts\Operations\Events\Services\EventCapabilityGuard;
+use App\Contexts\Operations\Events\Services\EventWorkflowGuard;
 use App\Contexts\Operations\Events\Services\EventWriteState;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
@@ -22,7 +22,7 @@ final readonly class SaveEventObjective
     public function __construct(
         private EventWriteState $eventWriteState,
         private EventAuthorization $authorization,
-        private EventCapabilityGuard $capabilities,
+        private EventWorkflowGuard $workflows,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -68,7 +68,7 @@ final readonly class SaveEventObjective
             $route = EventOccurrence::query()->select(['id', 'event_id'])->whereKey($occurrenceId)->firstOrFail();
             $context = $this->eventWriteState->lockEventScope($actorPlayerId, (string) $route->event_id);
             $this->authorization->authorizeManager($context);
-            $this->capabilities->require($context->event, EventCapability::Objectives);
+            $this->workflows->require($context->event, EventWorkflowDimension::BattleAssignments);
 
             $occurrence = EventOccurrence::query()
                 ->whereKey($occurrenceId)

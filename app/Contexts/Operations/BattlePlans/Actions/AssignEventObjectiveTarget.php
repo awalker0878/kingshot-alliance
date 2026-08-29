@@ -8,11 +8,11 @@ use App\Contexts\Alliance\Membership\Queries\RosterEntryQuery;
 use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Contexts\Operations\BattlePlans\Models\EventObjective;
 use App\Contexts\Operations\BattlePlans\Models\EventObjectiveAssignment;
-use App\Contexts\Operations\Events\Enums\EventCapability;
 use App\Contexts\Operations\Events\Enums\EventScope;
+use App\Contexts\Operations\Events\Enums\EventWorkflowDimension;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Events\Services\EventAuthorization;
-use App\Contexts\Operations\Events\Services\EventCapabilityGuard;
+use App\Contexts\Operations\Events\Services\EventWorkflowGuard;
 use App\Contexts\Operations\Events\Services\EventWriteState;
 use App\Contexts\Operations\Participation\Services\EventParticipantAuthorization;
 use App\Contexts\Operations\Rosters\Models\EventRoster;
@@ -27,7 +27,7 @@ final readonly class AssignEventObjectiveTarget
         private EventWriteState $eventWriteState,
         private EventAuthorization $authorization,
         private EventParticipantAuthorization $participants,
-        private EventCapabilityGuard $capabilities,
+        private EventWorkflowGuard $workflows,
         private PlayerReferenceQuery $players,
         private RosterEntryQuery $roster,
         private AuditRecorder $audit,
@@ -53,7 +53,7 @@ final readonly class AssignEventObjectiveTarget
             $route = EventOccurrence::query()->select(['id', 'event_id'])->whereKey($occurrenceId)->firstOrFail();
             $context = $this->eventWriteState->lockEventScope($actorPlayerId, (string) $route->event_id);
             $this->authorization->authorizeManager($context);
-            $this->capabilities->require($context->event, EventCapability::Objectives);
+            $this->workflows->require($context->event, EventWorkflowDimension::BattleAssignments);
 
             $occurrence = EventOccurrence::query()->whereKey($occurrenceId)->where('event_id', $context->event->id)->sharedLock()->firstOrFail();
             $objective = EventObjective::query()->whereKey($objectiveId)->where('occurrence_id', $occurrence->id)->lockForUpdate()->firstOrFail();

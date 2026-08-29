@@ -81,7 +81,7 @@ final readonly class EventCalendarQuery
                     }
                 });
             })
-            ->with(['event.eventType', 'event.typeScope.capabilities'])
+            ->with(['event.eventType.workflowDimensions', 'event.typeScope'])
             ->orderBy('starts_at')
             ->limit(500)
             ->get();
@@ -91,7 +91,7 @@ final readonly class EventCalendarQuery
     {
         $occurrence = EventOccurrence::query()
             ->whereKey($occurrenceId)
-            ->with(['event.eventType', 'event.typeScope.capabilities'])
+            ->with(['event.eventType.workflowDimensions', 'event.typeScope'])
             ->firstOrFail();
         $event = $occurrence->event;
         if (! $event instanceof Event) {
@@ -107,7 +107,7 @@ final readonly class EventCalendarQuery
     {
         $event = Event::query()
             ->whereKey($eventId)
-            ->with(['eventType', 'typeScope.capabilities', 'occurrences'])
+            ->with(['eventType.workflowDimensions', 'typeScope', 'occurrences'])
             ->firstOrFail();
         $this->authorize($actor, $event, (string) $event->typeScope->manage_permission_key);
 
