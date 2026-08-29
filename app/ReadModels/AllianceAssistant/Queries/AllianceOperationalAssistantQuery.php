@@ -201,7 +201,7 @@ final readonly class AllianceOperationalAssistantQuery
     }
 
     /**
-     * @param array{asOf:string,actionCount:int,items:list<array<string,mixed>>} $projection
+     * @param  array{asOf:string,actionCount:int,items:list<array<string,mixed>>}  $projection
      */
     private function singleItem(
         array $projection,
@@ -302,7 +302,7 @@ final readonly class AllianceOperationalAssistantQuery
     }
 
     /** @param array{asOf:string,actionCount:int,items:list<array<string,mixed>>} $projection
-     *  @return array<string,mixed>|null
+     * @return array<string,mixed>|null
      */
     private function findItem(array $projection, string $code): ?array
     {

@@ -29,7 +29,7 @@ final readonly class EventCommandOperationalReadinessQuery
     ) {}
 
     /**
-     * @param list<string> $dimensions
+     * @param  list<string>  $dimensions
      * @return list<array<string, mixed>>
      */
     public function forOccurrence(Event $event, EventOccurrence $occurrence, array $dimensions, CarbonImmutable $now): array
@@ -118,7 +118,7 @@ final readonly class EventCommandOperationalReadinessQuery
     }
 
     /**
-     * @param array<string, mixed> $summary
+     * @param  array<string, mixed>  $summary
      * @return array<string, mixed>
      */
     private function registration(Event $event, EventOccurrence $occurrence, array $summary, CarbonImmutable $now): array

@@ -29,7 +29,7 @@ final readonly class OfficerBriefNotificationPublisher
      * Queues delivery from an already-built brief only after rechecking current
      * account and Alliance authority. It never retrieves protected owner facts.
      *
-     * @param array<string,mixed> $brief
+     * @param  array<string,mixed>  $brief
      */
     public function publish(
         int $recipientUserId,

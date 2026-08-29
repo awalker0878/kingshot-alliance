@@ -73,7 +73,7 @@ final class EventType extends Model
 
     protected static function booted(): void
     {
-        static::saving(static function (EventType $type): void {
+        self::saving(static function (EventType $type): void {
             if ($type->profileStateEnum() !== EventProfileState::Enabled) {
                 return;
             }

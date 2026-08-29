@@ -112,8 +112,8 @@ final class KingShotEventTypeCatalog
     }
 
     /**
-     * @param list<EventScope> $scopes
-     * @param list<EventWorkflowDimension> $workflowDimensions
+     * @param  list<EventScope>  $scopes
+     * @param  list<EventWorkflowDimension>  $workflowDimensions
      */
     private static function type(
         string $slug,

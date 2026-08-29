@@ -29,7 +29,7 @@ final readonly class EventCommandContextReadinessQuery
     ) {}
 
     /**
-     * @param list<string> $dimensions
+     * @param  list<string>  $dimensions
      * @return list<array<string, mixed>>
      */
     public function forOccurrence(PlayerReference $actor, Event $event, EventOccurrence $occurrence, array $dimensions): array

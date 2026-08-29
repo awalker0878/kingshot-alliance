@@ -202,7 +202,7 @@ final readonly class OfficerBriefQuery
     }
 
     /**
-     * @param list<array<string,mixed>> $facts
+     * @param  list<array<string,mixed>>  $facts
      * @return array<string,mixed>
      */
     private function brief(

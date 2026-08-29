@@ -461,7 +461,7 @@ final readonly class AllianceCommandQuery
     }
 
     /** @param array<string,mixed> $command
-     *  @return list<array<string,mixed>>
+     * @return list<array<string,mixed>>
      */
     private function eventFacts(array $command): array
     {

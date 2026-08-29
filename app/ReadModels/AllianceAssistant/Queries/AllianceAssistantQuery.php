@@ -555,8 +555,7 @@ final readonly class AllianceAssistantQuery
         PlayerReference $actor,
         AllianceScopeReference $scope,
         ParsedQuestion $parsed,
-    ): AssistantResult
-    {
+    ): AssistantResult {
         if (in_array($parsed->writeAction, ['transfer', 'territory', 'evidence'], true)) {
             $intent = match ($parsed->writeAction) {
                 'transfer' => AssistantIntent::TransferVerification,
