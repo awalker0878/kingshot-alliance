@@ -69,13 +69,15 @@ final readonly class OfficerBriefNotificationPublisher
             $owner,
         );
 
+        $isDailyPolicy = $group === 'daily_officer'
+            && preg_match('/^daily:\\d{4}-\\d{2}-\\d{2}$/D', $policyKey) === 1;
+        $meaningKey = $isDailyPolicy ? $policyKey : $fingerprint;
         $idempotencyKey = hash('sha256', implode('|', [
             self::NOTIFICATION_TYPE,
-            $fingerprint,
+            $meaningKey,
             (string) $recipientUserId,
             $playerId,
             $allianceId,
-            $policyKey,
         ]));
 
         return $this->delivery->queueEnabledChannelBatch(
@@ -90,6 +92,7 @@ final readonly class OfficerBriefNotificationPublisher
                 'title' => $title,
                 'body' => $body,
                 'action_url' => $canonicalUrl,
+                'alliance_id' => $allianceId,
                 'group' => $group,
                 'state' => $state,
                 'count' => $count,

@@ -41,6 +41,29 @@ final class AccountIdentityQuery
         return User::query()->whereKey($userId)->exists();
     }
 
+    /**
+     * @param  list<int>  $userIds
+     * @return array<int,AccountIdentity>
+     */
+    public function byIds(array $userIds): array
+    {
+        $ids = array_values(array_unique(array_filter(
+            array_map(static fn (int $userId): int => $userId, $userIds),
+            static fn (int $userId): bool => $userId > 0,
+        )));
+        if ($ids === []) {
+            return [];
+        }
+
+        $accounts = [];
+        foreach (User::query()->whereIn('id', $ids)->get() as $user) {
+            $identity = $this->snapshot($user);
+            $accounts[$identity->userId] = $identity;
+        }
+
+        return $accounts;
+    }
+
     private function snapshot(User $user): AccountIdentity
     {
         return new AccountIdentity(

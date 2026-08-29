@@ -77,7 +77,9 @@ A handoff is a normal GET link only. There is no handoff retry, worker, or Actio
 
 The Command Overview composes Daily Officer, Upcoming Event and Post-Event Closeout briefs from current owner facts. A semantic fingerprint excludes generation time so the same meaning produces the same delivery identity. Before queueing `officer.brief`, the publisher re-resolves the recipient Player/account and current R4/R5 `MembershipManage` authority. Communications then owns channel preferences, idempotency, attempts, retries and receipts; queued is never reported as delivered.
 
-There is no Officer Brief table, scheduler-specific truth store or generic task store. Recovery starts by rebuilding the authorized brief, checking the current semantic fingerprint and inspecting Communications delivery state.
+The scheduler runs bounded recipient sweeps every 15 minutes. Daily briefs become eligible after 09:00 in each account's configured timezone and queue once per recipient/channel/local date. Upcoming Event and Post-Event Closeout briefs queue only when the group is available and its semantic fingerprint changes. Scheduled `--cycle` runs keep only a short shared-cache membership cursor so later pages cannot starve and wrap after the final page; operators can also page a truncated manual sweep with its returned cursor. There is no Officer Brief table, scheduler-specific fact store or generic task store.
+
+Recovery starts by rebuilding the authorized brief, checking the current semantic fingerprint and inspecting Communications delivery state. External failures use the generic `notifications:deliver` retry path; a queued row is a receipt of accepted delivery work, not proof of provider delivery. Sweep logs contain counts, duration and truncation state only.
 
 ## Recovery
 

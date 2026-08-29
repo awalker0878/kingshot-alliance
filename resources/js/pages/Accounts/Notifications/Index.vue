@@ -143,6 +143,7 @@ function typeLabel(type: string): string {
     'alliance.announcement': t('notifications.types.allianceAnnouncement'),
     'event.reminder': t('notifications.types.eventReminder'),
     'gift_code.expiring': t('notifications.types.giftCodeExpiring'),
+    'intelligence.change': t('notifications.types.intelligenceChange'),
     'king_perks.reminder': t('notifications.types.kingPerkReminder'),
     'officer.brief': t('notifications.types.officerBrief'),
   };

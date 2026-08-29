@@ -6,6 +6,7 @@ namespace Tests\v3\ReadModels\IntelligenceSignals;
 
 use App\Contexts\Communications\Delivery\Models\NotificationDelivery;
 use App\ReadModels\IntelligenceSignals\Services\IntelligenceSignalNotificationPublisher;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\v3\Support\ScenarioFactory;
 use Tests\v3\TestCase;
@@ -19,6 +20,7 @@ final class IntelligenceSignalNotificationPublisherV3Test extends TestCase
         $scenarios = app(ScenarioFactory::class);
         $account = $scenarios->account();
         $player = $scenarios->player($account->userId);
+        $alliance = $scenarios->alliance($player);
         $publisher = app(IntelligenceSignalNotificationPublisher::class);
         $signal = [
             'type' => 'observation_change',
@@ -34,8 +36,20 @@ final class IntelligenceSignalNotificationPublisherV3Test extends TestCase
             'ruleVersion' => '1',
         ];
 
-        $first = $publisher->publish($account->userId, $player->playerId, $signal, 'material-alliance-change');
-        $second = $publisher->publish($account->userId, $player->playerId, $signal, 'material-alliance-change');
+        $first = $publisher->publish(
+            $account->userId,
+            $player->playerId,
+            $alliance->allianceId,
+            $signal,
+            'material-alliance-change',
+        );
+        $second = $publisher->publish(
+            $account->userId,
+            $player->playerId,
+            $alliance->allianceId,
+            $signal,
+            'material-alliance-change',
+        );
 
         self::assertSame($first->deliveryIds, $second->deliveryIds);
         self::assertSame(1, NotificationDelivery::query()
@@ -44,7 +58,32 @@ final class IntelligenceSignalNotificationPublisherV3Test extends TestCase
         $delivery = NotificationDelivery::query()
             ->where('notification_type', IntelligenceSignalNotificationPublisher::NOTIFICATION_TYPE)
             ->firstOrFail();
-        self::assertSame($signal['fingerprint'], $delivery->metadata['signalFingerprint']);
-        self::assertSame('Intelligence/Observations', $delivery->metadata['sourceOwner']);
+        $metadata = is_array($delivery->metadata) ? $delivery->metadata : [];
+        self::assertSame($signal['fingerprint'], $metadata['signalFingerprint'] ?? null);
+        self::assertSame('Intelligence/Observations', $metadata['sourceOwner'] ?? null);
+        self::assertSame($alliance->allianceId, $metadata['alliance_id'] ?? null);
+        self::assertSame($signal['summary'], $metadata['body'] ?? null);
+
+        $changed = $signal;
+        $changed['fingerprint'] = hash('sha256', 'signal-abc-power-changed');
+        $changed['summary'] = 'ABC Alliance was observed at 4.3B power.';
+        $publisher->publish(
+            $account->userId,
+            $player->playerId,
+            $alliance->allianceId,
+            $changed,
+            'material-alliance-change',
+        );
+        self::assertSame(2, NotificationDelivery::query()
+            ->where('notification_type', IntelligenceSignalNotificationPublisher::NOTIFICATION_TYPE)
+            ->count());
+
+        $this->expectException(AuthorizationException::class);
+        $publisher->publish(
+            $account->userId + 1,
+            $player->playerId,
+            $alliance->allianceId,
+            $changed,
+        );
     }
 }

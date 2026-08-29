@@ -22,7 +22,7 @@ This ledger records implementation evidence for Phase 11 of the Capability Exten
 | ICD-9 | Kingdom Intelligence integration | authorized controller supplies typed `signals`; shared `IntelligenceSignalFeed` renders source-linked feed | Complete |
 | ICD-10 | Command Overview integration | query checks Intelligence view permission before retrieval; compact feed is shown only with a concrete active Alliance scope; signals do not inflate `actionCount` | Complete |
 | ICD-11 | Alliance Assistant intent/citations | `AssistantIntent::IntelligenceChanges`, bounded `IntelligenceChangeAssistantQuery`, controller routing, existing server-built evidence/citation values | Complete |
-| ICD-12 | Communications delivery boundary | `IntelligenceSignalNotificationPublisher` uses existing preferences/channels and fingerprint-derived idempotency; no signal persistence | Complete |
+| ICD-12 | Communications delivery boundary | `QueueIntelligenceChangeNotifications` walks bounded rotating active-member pages, applies current Alliance/owner authorization before projection, and invokes the reauthorizing `IntelligenceSignalNotificationPublisher`; Communications owns preferences, fingerprint idempotency, retry/failure and receipts; no signal persistence | Complete |
 | ICD-13 | Localization/accessibility/responsive UX/privacy semantics | shared semantic list/feed, navigation-only source links, 17-locale label overlay, neutral materiality/attention semantics | Complete |
 | ICD-14 | Architecture/behavior/security/release verification | factory/Assistant/notification/architecture tests plus repository CI, Intelligence, Architecture, Visual Regression, CodeQL and Dependency Review workflows | Complete — implementation candidate `e5c492f9391431ab68e1b2ca215038f448e5539d` passed all applicable workflows |
 | ICD-15 | Final product reconciliation/status promotion | canonical contract, this ledger and global capability state reconciled after the green implementation candidate | Complete |
@@ -30,7 +30,8 @@ This ledger records implementation evidence for Phase 11 of the Capability Exten
 ## Test evidence
 
 - `IntelligenceSignalFactoryV3Test` — deterministic fingerprint, materiality, exact stale boundary, complete-source disappearance gate, progression provenance, Transfer validity, Bear Hunt minimum/trend and Recruitment history.
-- `IntelligenceSignalNotificationPublisherV3Test` — delivery idempotency by signal fingerprint/recipient/policy.
+- `IntelligenceSignalNotificationPublisherV3Test` — delivery idempotency by signal fingerprint/recipient/policy plus account/Alliance reauthorization.
+- `NotificationQueueDeliveryV3Test` — bounded cursor fan-out, changed-fingerprint replay, revoked rank/membership, cross-Alliance isolation, disabled channels and real Communications provider failure/retry diagnostics for Intelligence and Officer Brief delivery.
 - `IntelligenceChangeAssistantQueryV3Test` — bounded intent recognition that does not hijack ordinary observation, guide or eligibility questions.
 - `IntelligenceChangeDetectionArchitectureV3Test` — no new bounded context/table, no owner-context dependency on the read model, complete-source guard, navigation-only accessible feed and dashboard scope gating.
 - `CommandOverviewBehaviorV3Test` — informational signal feed remains outside action count.

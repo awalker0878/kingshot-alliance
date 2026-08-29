@@ -23,11 +23,14 @@ use App\Contexts\Platform\AllianceAdministration\Services\PlatformUsageService;
 use App\Contexts\Platform\DataGovernance\Actions\EnforcePlatformRetention;
 use App\Contexts\Platform\DataGovernance\Actions\ProcessAccountDeletionRequests;
 use App\Contexts\Platform\Integrations\Actions\QueueDueWebhookDeliveries;
+use App\ReadModels\CommandOverview\Actions\QueueOfficerBriefNotifications;
+use App\ReadModels\IntelligenceSignals\Actions\QueueIntelligenceChangeNotifications;
 use App\ReadModels\ProductionLaunch\ProductionLaunchReadiness;
 use App\Shared\Infrastructure\Messaging\Outbox\Actions\PublishOutboxBatch;
 use App\Shared\Infrastructure\Runtime\Services\RuntimeConfigurationValidator;
 use App\Workflows\KingdomGovernance\Actions\BootstrapKingdomAdministrator;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schedule;
 use Illuminate\Support\Str;
 
@@ -225,6 +228,67 @@ Artisan::command('notifications:deliver {--limit=100}', function (ProcessNotific
     return 0;
 })->purpose('Deliver due Discord and Telegram notifications with bounded retries');
 
+Artisan::command(
+    'notifications:queue-officer-briefs {--group=all} {--limit=1000} {--after=} {--cycle}',
+    function (QueueOfficerBriefNotifications $queue): int {
+        $group = trim((string) $this->option('group'));
+        if (! in_array($group, QueueOfficerBriefNotifications::GROUP_OPTIONS, true)) {
+            $this->error('Choose --group=all, --group=daily or --group=event.');
+
+            return 1;
+        }
+        $afterOption = trim((string) $this->option('after'));
+        $cursorKey = 'notification-delivery:officer-brief:'.$group;
+        $cycle = (bool) $this->option('cycle') && $afterOption === '';
+        $storedCursor = $cycle ? Cache::get($cursorKey) : null;
+        $after = $afterOption !== ''
+            ? $afterOption
+            : (is_string($storedCursor) && $storedCursor !== '' ? $storedCursor : null);
+        $result = $queue->handle(
+            group: $group,
+            limit: max(1, min(2000, (int) $this->option('limit'))),
+            afterMembershipId: $after,
+        );
+        if ($cycle) {
+            if ($result->nextCursor === null) {
+                Cache::forget($cursorKey);
+            } else {
+                Cache::forever($cursorKey, $result->nextCursor);
+            }
+        }
+        $this->line(json_encode($result->toArray(), JSON_THROW_ON_ERROR));
+
+        return 0;
+    },
+)->purpose('Queue bounded, authorized Daily or Event Officer Brief deliveries');
+
+Artisan::command(
+    'notifications:queue-intelligence-changes {--limit=1000} {--after=} {--cycle}',
+    function (QueueIntelligenceChangeNotifications $queue): int {
+        $afterOption = trim((string) $this->option('after'));
+        $cursorKey = 'notification-delivery:intelligence-change';
+        $cycle = (bool) $this->option('cycle') && $afterOption === '';
+        $storedCursor = $cycle ? Cache::get($cursorKey) : null;
+        $after = $afterOption !== ''
+            ? $afterOption
+            : (is_string($storedCursor) && $storedCursor !== '' ? $storedCursor : null);
+        $result = $queue->handle(
+            limit: max(1, min(2000, (int) $this->option('limit'))),
+            afterMembershipId: $after,
+        );
+        if ($cycle) {
+            if ($result->nextCursor === null) {
+                Cache::forget($cursorKey);
+            } else {
+                Cache::forever($cursorKey, $result->nextCursor);
+            }
+        }
+        $this->line(json_encode($result->toArray(), JSON_THROW_ON_ERROR));
+
+        return 0;
+    },
+)->purpose('Queue bounded, authorized Intelligence change deliveries');
+
 Artisan::command('gift-codes:maintain {--limit=100}', function (
     ExpireGiftCodes $expire,
     QueueGiftCodeExpiryNotifications $notifications,
@@ -272,6 +336,9 @@ Artisan::command('outbox:publish {--limit=100}', function (PublishOutboxBatch $p
 Schedule::command('content:publish-scheduled --limit=100')->everyMinute()->onOneServer()->withoutOverlapping(10);
 Schedule::command('content:queue-announcement-broadcasts --limit=25')->everyMinute()->onOneServer()->withoutOverlapping(10);
 Schedule::command('events:queue-reminders --limit=100')->everyMinute()->onOneServer()->withoutOverlapping(10);
+Schedule::command('notifications:queue-officer-briefs --group=daily --limit=1000 --cycle')->everyFifteenMinutes()->onOneServer()->withoutOverlapping(10);
+Schedule::command('notifications:queue-officer-briefs --group=event --limit=1000 --cycle')->everyFifteenMinutes()->onOneServer()->withoutOverlapping(10);
+Schedule::command('notifications:queue-intelligence-changes --limit=1000 --cycle')->everyFifteenMinutes()->onOneServer()->withoutOverlapping(10);
 Schedule::command('notifications:deliver --limit=100')->everyMinute()->onOneServer()->withoutOverlapping(10);
 Schedule::command('gift-codes:maintain --limit=500')->hourly()->onOneServer()->withoutOverlapping(30);
 Schedule::command('contributions:queue-reports --limit=50')->everyMinute()->onOneServer()->withoutOverlapping(10);

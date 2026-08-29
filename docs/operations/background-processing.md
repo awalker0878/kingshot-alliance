@@ -8,6 +8,8 @@ Hosted asynchronous processing uses Redis queues and Laravel Horizon. Durable bu
 
 Background work includes notification/reminder delivery, webhook delivery/retry, outbox publication, scheduled content/maintenance, retention work and other retryable side effects.
 
+Officer Brief and Intelligence change queue sweeps run every 15 minutes through `notifications:queue-officer-briefs` and `notifications:queue-intelligence-changes`. The sweeps are bounded and cursor-addressable, and scheduled `--cycle` runs advance a shared-cache operational cursor before wrapping after the final page. They reauthorize every recipient, store no brief/signal truth and rely on Communications idempotency before the independent `notifications:deliver` provider worker runs.
+
 `content:queue-announcement-broadcasts` handles both one-off and recurring intent. It creates at most the requested number of runs per invocation, uses row locks plus deterministic run keys, and advances recurring rules in the same transaction as materialization. `notifications:deliver` independently reports external outcomes; operators must not infer provider success from a queued run.
 
 ## Rules

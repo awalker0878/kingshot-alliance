@@ -124,7 +124,39 @@ final class AllianceCommandAndBriefV3Test extends TestCase
 
         self::assertSame('Daily Officer Brief', $metadata['title'] ?? null);
         self::assertSame('/', $metadata['action_url'] ?? null);
+        self::assertSame($alliance->allianceId, $metadata['alliance_id'] ?? null);
         self::assertStringContainsString('owner:', (string) ($metadata['body'] ?? ''));
+
+        $changedBrief = $first[0];
+        $changedBrief['fingerprint'] = hash('sha256', 'changed-daily-brief');
+        $publisher->publish(
+            $account->userId,
+            $actor->playerId,
+            $alliance->allianceId,
+            $changedBrief,
+        );
+        self::assertSame(2, NotificationDelivery::query()
+            ->where('notification_type', OfficerBriefNotificationPublisher::NOTIFICATION_TYPE)
+            ->count());
+
+        $dailyOne = $publisher->publish(
+            $account->userId,
+            $actor->playerId,
+            $alliance->allianceId,
+            $first[0],
+            'daily:2026-08-29',
+        );
+        $dailyChanged = $publisher->publish(
+            $account->userId,
+            $actor->playerId,
+            $alliance->allianceId,
+            $changedBrief,
+            'daily:2026-08-29',
+        );
+        self::assertSame($dailyOne->deliveryIds, $dailyChanged->deliveryIds);
+        self::assertSame(3, NotificationDelivery::query()
+            ->where('notification_type', OfficerBriefNotificationPublisher::NOTIFICATION_TYPE)
+            ->count());
 
         AllianceMembership::query()
             ->where('alliance_id', $alliance->allianceId)
