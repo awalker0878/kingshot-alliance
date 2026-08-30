@@ -295,7 +295,7 @@ function timelineDetail(item: TimelineItem): string {
           <div class="flex flex-wrap items-start justify-between gap-3">
             <div class="min-w-0">
               <h3 class="font-semibold">{{ timelineHeading(item) }}</h3>
-              <p class="mt-1 break-words text-sm text-[var(--ks-text-secondary)]">
+              <p class="mt-1 text-sm break-words text-[var(--ks-text-secondary)]">
                 {{ timelineDetail(item) }}
               </p>
             </div>

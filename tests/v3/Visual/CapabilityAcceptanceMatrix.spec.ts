@@ -102,6 +102,14 @@ async function normalizeDynamicText(target: Locator): Promise<void> {
 }
 
 async function screenshotHash(target: Locator): Promise<string> {
+  await target.evaluate(
+    (element) =>
+      new Promise<void>((resolve) => {
+        if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+        element.scrollIntoView({ block: 'start', inline: 'nearest' });
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+      }),
+  );
   await normalizeDynamicText(target);
   const screenshot = await target.screenshot({
     animations: 'disabled',

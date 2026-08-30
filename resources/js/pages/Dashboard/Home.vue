@@ -289,7 +289,7 @@ function eventActionLabel(action: string): string {
                   <p class="ks-kicker break-words">
                     {{ t(`application.dashboard.commandOwners.${item.owner}`) }}
                   </p>
-                  <strong class="mt-2 block break-words text-base text-[var(--ks-ivory)]">
+                  <strong class="mt-2 block text-base break-words text-[var(--ks-ivory)]">
                     {{ t(item.reasonKey, { count: item.count }) }}
                   </strong>
                 </div>
