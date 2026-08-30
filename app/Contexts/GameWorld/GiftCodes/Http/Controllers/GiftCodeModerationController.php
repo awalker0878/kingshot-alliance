@@ -368,7 +368,7 @@ final class GiftCodeModerationController extends Controller
     }
 
     /**
-     * @param array<string, mixed> $validated
+     * @param  array<string, mixed>  $validated
      * @return array<string, mixed>
      */
     private function decisionMetadata(array $validated): array

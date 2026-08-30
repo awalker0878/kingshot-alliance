@@ -302,7 +302,7 @@ final class GiftCodeTrustResolver
     }
 
     /**
-     * @param iterable<mixed> $values
+     * @param  iterable<mixed>  $values
      * @return list<string>
      */
     private function strings(iterable $values): array
@@ -316,7 +316,7 @@ final class GiftCodeTrustResolver
     }
 
     /**
-     * @param iterable<mixed> $values
+     * @param  iterable<mixed>  $values
      * @return list<string>
      */
     private function uniqueStrings(iterable $values): array
