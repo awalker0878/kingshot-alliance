@@ -5,12 +5,11 @@ declare(strict_types=1);
 namespace App\Contexts\GameWorld\GiftCodes\Http\Controllers;
 
 use App\Contexts\Accounts\Identity\Contracts\AuthenticatedAccount;
-use App\Contexts\GameWorld\GiftCodes\Actions\ConfirmGiftCodeRedemption;
 use App\Contexts\GameWorld\GiftCodes\Actions\PrepareGiftCodeRedemptions;
 use App\Contexts\GameWorld\GiftCodes\Actions\RecordObservedGiftCodeRedemptionResult;
-use App\Contexts\GameWorld\GiftCodes\Actions\ReportGiftCodeIssue;
 use App\Contexts\GameWorld\GiftCodes\Actions\SubmitGiftCode;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCode;
+use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeModerationDecision;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeProvenance;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeRedemption;
 use App\Contexts\GameWorld\GiftCodes\Queries\GiftCodeCatalogQuery;
@@ -21,6 +20,7 @@ use App\Shared\Infrastructure\AuditTrail\Contracts\AuditActor;
 use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -34,71 +34,17 @@ final class GiftCodeController extends Controller
         PlayerReferenceQuery $players,
         GiftCodeCatalogQuery $catalog,
     ): Response {
-        $account = $this->account($request);
-        $player = $this->player($playerContext);
-        $ownedPlayers = $players->ownedByUser($this->accountId($account));
-        $ownedPlayerIds = array_map(static fn (PlayerReference $owned): string => $owned->playerId, $ownedPlayers);
-        /** @var non-empty-list<string> $ownedPlayerIds */
-        $codes = $catalog->forPlayers($ownedPlayerIds);
-        $playerNames = [];
-        foreach ($ownedPlayers as $ownedPlayer) {
-            $playerNames[$ownedPlayer->playerId] = $ownedPlayer->currentName;
-        }
+        return $this->render($request, $playerContext, $players, $catalog, null);
+    }
 
-        return Inertia::render('Kingdom/GiftCodes/Index', [
-            'user' => [
-                'name' => $account->accountName(),
-                'email' => $account->accountEmail(),
-            ],
-            'player' => [
-                'id' => $player->playerId,
-                'name' => $player->currentName,
-                'gamePlayerId' => $player->gamePlayerId,
-                'kingdomNumber' => $player->kingdomNumber,
-            ],
-            'governors' => array_map(static fn (PlayerReference $owned): array => [
-                'id' => $owned->playerId,
-                'name' => $owned->currentName,
-                'gamePlayerId' => $owned->gamePlayerId,
-                'kingdomNumber' => $owned->kingdomNumber,
-            ], $ownedPlayers),
-            'officialRedemptionUrl' => (string) config('game_world.gift_code_redemption_url'),
-            'codes' => $codes->map(function (GiftCode $giftCode) use ($catalog, $player, $playerNames): array {
-                $redemption = $catalog->redemptionFor($giftCode, $player->playerId);
-
-                return [
-                    'id' => (string) $giftCode->id,
-                    'code' => $giftCode->code,
-                    'sourceType' => $giftCode->source_type->value,
-                    'sourceLabel' => $giftCode->source_label,
-                    'sourceUrl' => $giftCode->source_url,
-                    'status' => $giftCode->status->value,
-                    'statusReasonCode' => $giftCode->status_reason_code,
-                    'statusRevision' => $giftCode->status_revision,
-                    'discoveredAt' => $giftCode->discovered_at->toIso8601String(),
-                    'expiresAt' => $giftCode->expires_at?->toIso8601String(),
-                    'expiresPrecision' => $giftCode->expires_precision,
-                    'expiresRevision' => $giftCode->expires_revision,
-                    'redemption' => $this->redemption($redemption),
-                    'redemptions' => $giftCode->redemptions->map(fn (GiftCodeRedemption $item): array => [
-                        'playerId' => $item->player_id,
-                        'playerName' => $playerNames[$item->player_id] ?? $item->player_id,
-                        ...$this->redemptionData($item),
-                    ])->values()->all(),
-                    'provenances' => $giftCode->provenances->map(static fn (GiftCodeProvenance $provenance): array => [
-                        'id' => (string) $provenance->id,
-                        'sourceType' => $provenance->source_type->value,
-                        'sourceLabel' => $provenance->source_label,
-                        'sourceUrl' => $provenance->source_url,
-                        'verificationState' => $provenance->verification_state->value,
-                        'evidenceClassification' => $provenance->evidence_classification->value,
-                        'claimedExpiresAt' => $provenance->claimed_expires_at?->toIso8601String(),
-                        'observedAt' => $provenance->observed_at->toIso8601String(),
-                    ])->values()->all(),
-                ];
-            })->all(),
-            'giftCodeRedemptionResult' => $request->session()->get('giftCodeRedemptionResult'),
-        ]);
+    public function show(
+        Request $request,
+        string $giftCode,
+        PlayerContext $playerContext,
+        PlayerReferenceQuery $players,
+        GiftCodeCatalogQuery $catalog,
+    ): Response {
+        return $this->render($request, $playerContext, $players, $catalog, $giftCode);
     }
 
     public function store(Request $request, PlayerContext $playerContext, SubmitGiftCode $submit): RedirectResponse
@@ -106,19 +52,20 @@ final class GiftCodeController extends Controller
         /** @var array{code: string, source_type: string, source_label?: string|null, source_url?: string|null, expires_at?: string|null, expiry_precision?: string|null, expiry_timezone?: string|null} $validated */
         $validated = $request->validate([
             'code' => ['required', 'string', 'max:64'],
-            'source_type' => ['required', 'in:manual,community'],
+            'source_type' => ['required', Rule::in(['manual', 'community'])],
             'source_label' => ['nullable', 'string', 'max:160'],
             'source_url' => ['nullable', 'url:http,https', 'max:2048'],
             'expires_at' => ['nullable', 'date'],
-            'expiry_precision' => ['nullable', 'in:instant,minute,hour,day'],
+            'expiry_precision' => ['nullable', Rule::in(['instant', 'minute', 'hour', 'day'])],
             'expiry_timezone' => ['nullable', 'timezone'],
         ]);
 
         $result = $submit->handle($this->player($playerContext), $validated);
 
-        return back()->with('actionReceipt', $this->receipt(
-            $result->duplicateDetected ? 'gift-code-duplicate-recorded' : 'gift-code-added',
-        ));
+        return redirect('/gift-codes/'.$result->giftCode->id)
+            ->with('actionReceipt', $this->receipt(
+                $result->duplicateDetected ? 'gift-code-duplicate-recorded' : 'gift-code-added',
+            ));
     }
 
     public function redeem(
@@ -142,30 +89,13 @@ final class GiftCodeController extends Controller
             $validated['player_ids'],
         )->toArray();
 
-        return back()
+        return redirect('/gift-codes/'.$giftCode)
             ->with('giftCodeRedemptionResult', $result)
             ->with('actionReceipt', $this->receipt('gift-code-handoff-prepared', [
                 'succeeded' => $result['succeeded'],
                 'failed' => $result['failed'],
                 'skipped' => $result['skipped'],
             ]));
-    }
-
-    public function confirm(
-        Request $request,
-        string $giftCode,
-        PlayerContext $playerContext,
-        PlayerReferenceQuery $players,
-        ConfirmGiftCodeRedemption $confirm,
-    ): RedirectResponse {
-        /** @var array{player_id?: string|null} $validated */
-        $validated = $request->validate(['player_id' => ['nullable', 'string', 'ulid']]);
-        $target = $this->targetPlayer($request, $playerContext, $players, $validated['player_id'] ?? null);
-        $confirm->handle($giftCode, $target);
-
-        return back()->with('actionReceipt', $this->receipt('gift-code-confirmed', [
-            'player_id' => $target->playerId,
-        ]));
     }
 
     public function result(
@@ -178,46 +108,185 @@ final class GiftCodeController extends Controller
         /** @var array{player_id?: string|null, result: string} $validated */
         $validated = $request->validate([
             'player_id' => ['nullable', 'string', 'ulid'],
-            'result' => ['required', 'string', 'in:redeemed,already_redeemed,invalid,expired,wrong_kingdom,rate_limited,temporarily_unavailable,permanent_failure'],
+            'result' => [
+                'required',
+                'string',
+                Rule::in([
+                    'redeemed',
+                    'already_redeemed',
+                    'invalid',
+                    'expired',
+                    'wrong_kingdom',
+                    'rate_limited',
+                    'temporarily_unavailable',
+                    'permanent_failure',
+                ]),
+            ],
         ]);
         $target = $this->targetPlayer($request, $playerContext, $players, $validated['player_id'] ?? null);
         $record->handle($giftCode, $target, (string) $validated['result']);
 
-        return back()->with('actionReceipt', $this->receipt('gift-code-result-recorded', [
+        return redirect('/gift-codes/'.$giftCode)->with('actionReceipt', $this->receipt('gift-code-result-recorded', [
             'player_id' => $target->playerId,
             'result' => $validated['result'],
         ]));
     }
 
-    /** Compatibility endpoint for the original invalid/expired issue controls. */
-    public function report(
+    private function render(
         Request $request,
-        string $giftCode,
         PlayerContext $playerContext,
         PlayerReferenceQuery $players,
-        ReportGiftCodeIssue $report,
-    ): RedirectResponse {
-        /** @var array{issue: string, player_id?: string|null} $validated */
-        $validated = $request->validate([
-            'issue' => ['required', 'string', 'in:invalid,expired'],
-            'player_id' => ['nullable', 'string', 'ulid'],
-        ]);
-        $target = $this->targetPlayer($request, $playerContext, $players, $validated['player_id'] ?? null);
-        $report->handle($giftCode, $target, $validated['issue']);
+        GiftCodeCatalogQuery $catalog,
+        ?string $focusedGiftCodeId,
+    ): Response {
+        $account = $this->account($request);
+        $player = $this->player($playerContext);
+        $ownedPlayers = $players->ownedByUser($this->accountId($account));
+        $ownedPlayerIds = array_values(array_map(
+            static fn (PlayerReference $owned): string => $owned->playerId,
+            $ownedPlayers,
+        ));
+        if ($ownedPlayerIds === []) {
+            abort(409, 'At least one owned Governor is required for Gift Codes.');
+        }
 
-        return back()->with('actionReceipt', $this->receipt('gift-code-issue-reported', [
-            'player_id' => $target->playerId,
-        ]));
+        /** @var array{view: string, q?: string|null, status?: string|null, source?: string|null, expiry?: string|null, governor_result?: string|null, cursor?: string|null} $filters */
+        $filters = $request->validate([
+            'view' => ['sometimes', 'string', Rule::in(GiftCodeCatalogQuery::VIEWS)],
+            'q' => ['nullable', 'string', 'max:64'],
+            'status' => ['nullable', 'string', 'max:32'],
+            'source' => ['nullable', 'string', 'max:160'],
+            'expiry' => ['nullable', Rule::in(['none', '24h', '7d', 'expired'])],
+            'governor_result' => ['nullable', 'string', 'max:48'],
+            'cursor' => ['nullable', 'string', 'max:2048'],
+        ]);
+        $filters['view'] = $filters['view'] ?? GiftCodeCatalogQuery::VIEW_ACTIVE;
+        $page = $catalog->pageForPlayers(
+            $ownedPlayerIds,
+            $filters,
+            (int) config('game_world.gift_codes.catalog_page_size', 25),
+            $filters['cursor'] ?? null,
+        );
+        $playerNames = [];
+        foreach ($ownedPlayers as $ownedPlayer) {
+            $playerNames[$ownedPlayer->playerId] = $ownedPlayer->currentName;
+        }
+
+        $focused = $focusedGiftCodeId === null
+            ? null
+            : $catalog->detailForPlayers($focusedGiftCodeId, $ownedPlayerIds);
+
+        return Inertia::render('Kingdom/GiftCodes/Index', [
+            'user' => [
+                'name' => $account->accountName(),
+                'email' => $account->accountEmail(),
+            ],
+            'player' => [
+                'id' => $player->playerId,
+                'name' => $player->currentName,
+                'gamePlayerId' => $player->gamePlayerId,
+                'kingdomNumber' => $player->kingdomNumber,
+            ],
+            'governors' => array_map(static fn (PlayerReference $owned): array => [
+                'id' => $owned->playerId,
+                'name' => $owned->currentName,
+                'gamePlayerId' => $owned->gamePlayerId,
+                'kingdomNumber' => $owned->kingdomNumber,
+            ], $ownedPlayers),
+            'officialRedemptionUrl' => (string) config('game_world.gift_code_redemption_url'),
+            'codes' => array_values(array_map(
+                fn (GiftCode $giftCode): array => $this->catalogItem($giftCode, $player->playerId, $playerNames),
+                $page->items(),
+            )),
+            'pagination' => [
+                'nextCursor' => $page->nextCursor()?->encode(),
+                'previousCursor' => $page->previousCursor()?->encode(),
+                'perPage' => $page->perPage(),
+                'hasMore' => $page->hasMorePages(),
+            ],
+            'filters' => [
+                'view' => $filters['view'],
+                'q' => $filters['q'] ?? '',
+                'status' => $filters['status'] ?? '',
+                'source' => $filters['source'] ?? '',
+                'expiry' => $filters['expiry'] ?? '',
+                'governorResult' => $filters['governor_result'] ?? '',
+            ],
+            'focusedCode' => $focused instanceof GiftCode
+                ? $this->detailItem($focused, $player->playerId, $playerNames)
+                : null,
+            'giftCodeRedemptionResult' => $request->session()->get('giftCodeRedemptionResult'),
+        ]);
+    }
+
+    /** @param array<string, string> $playerNames */
+    private function catalogItem(GiftCode $giftCode, string $activePlayerId, array $playerNames): array
+    {
+        return [
+            'id' => (string) $giftCode->id,
+            'code' => $giftCode->code,
+            'status' => $giftCode->status->value,
+            'statusReasonCode' => $giftCode->status_reason_code,
+            'statusRevision' => $giftCode->status_revision,
+            'sourceCount' => (int) ($giftCode->getAttribute('provenances_count') ?? 0),
+            'discoveredAt' => $giftCode->discovered_at->toIso8601String(),
+            'expiresAt' => $giftCode->expires_at?->toIso8601String(),
+            'expiresPrecision' => $giftCode->expires_precision,
+            'expiresRevision' => $giftCode->expires_revision,
+            'redemption' => $this->redemption($this->redemptionForLoaded($giftCode, $activePlayerId)),
+            'redemptions' => $giftCode->redemptions->map(fn (GiftCodeRedemption $item): array => [
+                'playerId' => $item->player_id,
+                'playerName' => $playerNames[$item->player_id] ?? $item->player_id,
+                ...$this->redemptionData($item),
+            ])->values()->all(),
+        ];
+    }
+
+    /** @param array<string, string> $playerNames */
+    private function detailItem(GiftCode $giftCode, string $activePlayerId, array $playerNames): array
+    {
+        return [
+            ...$this->catalogItem($giftCode, $activePlayerId, $playerNames),
+            'statusEvidenceIds' => $giftCode->status_evidence_ids ?? [],
+            'provenances' => $giftCode->provenances->map(static fn (GiftCodeProvenance $provenance): array => [
+                'id' => (string) $provenance->id,
+                'registeredSourceId' => $provenance->registered_source_id,
+                'registeredSourceName' => $provenance->registeredSource?->name,
+                'sourceType' => $provenance->source_type->value,
+                'sourceLabel' => $provenance->source_label,
+                'sourceUrl' => $provenance->source_url,
+                'assertion' => $provenance->assertion,
+                'assertionPayload' => $provenance->assertion_payload,
+                'verificationState' => $provenance->verification_state->value,
+                'evidenceClassification' => $provenance->evidence_classification->value,
+                'claimedExpiresAt' => $provenance->claimed_expires_at?->toIso8601String(),
+                'expiryPrecision' => $provenance->expiry_precision,
+                'publishedAt' => $provenance->published_at?->toIso8601String(),
+                'observedAt' => $provenance->observed_at->toIso8601String(),
+            ])->values()->all(),
+            'moderationDecisions' => $giftCode->moderationDecisions->map(static fn (GiftCodeModerationDecision $decision): array => [
+                'id' => (string) $decision->id,
+                'action' => $decision->action->value,
+                'reason' => $decision->reason,
+                'evidenceIds' => $decision->evidence_ids ?? [],
+                'decidedAt' => $decision->decided_at->toIso8601String(),
+            ])->values()->all(),
+        ];
+    }
+
+    private function redemptionForLoaded(GiftCode $giftCode, string $playerId): ?GiftCodeRedemption
+    {
+        $redemption = $giftCode->redemptions->first(
+            static fn (GiftCodeRedemption $candidate): bool => $candidate->player_id === $playerId,
+        );
+
+        return $redemption instanceof GiftCodeRedemption ? $redemption : null;
     }
 
     /** @return array<string, mixed>|null */
     private function redemption(?GiftCodeRedemption $redemption): ?array
     {
-        if (! $redemption instanceof GiftCodeRedemption) {
-            return null;
-        }
-
-        return $this->redemptionData($redemption);
+        return $redemption instanceof GiftCodeRedemption ? $this->redemptionData($redemption) : null;
     }
 
     /** @return array<string, mixed> */
