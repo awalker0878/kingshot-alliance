@@ -284,9 +284,9 @@ The canonical first-use example is **“What time is Swordland and am I rostered
 
 # Capability Extension Program — journey contracts
 
-Status: **Mixed current complete / Selected extension / Evidence-gated extension. Each journey below states its current program state.**
+Status: **Current complete and evidence-gated journeys. Each journey below states its current product state.**
 
-These journeys are the UX contract for their corresponding delivery rows. Current-complete journeys are implemented behavior; selected/evidence-gated journeys remain contract-only until their rows close.
+These journeys are the UX contract for their corresponding delivery rows. Current-complete journeys are implemented behavior. Evidence-gated journeys remain unavailable or bounded to qualified families until their gates pass.
 
 ## Ask a source-backed Game Data question
 
@@ -379,7 +379,7 @@ Closeout remains read-side composition. Correcting attendance, Rallies, Results 
 
 ## Import Kingdom Transfer evidence
 
-Program state: **Selected extension**.
+Program state: **Current complete capability**.
 
 ```text
 Open authorized Transfer participant/window
@@ -402,7 +402,7 @@ A screenshot may record an observed required Transfer Pass count but cannot inve
 
 ## Import Governor progression evidence
 
-Program state: **Selected extension**.
+Program state: **Current complete capability**.
 
 ```text
 Open authorized Governor progression workflow
@@ -421,7 +421,7 @@ OCR names never create or rename Players or canonical Heroes. Not seeing an item
 
 ## Plan a factual progression goal
 
-Program state: **Selected extension**.
+Program state: **Current complete capability**.
 
 ```text
 Open Progression Goal Planner
@@ -506,7 +506,7 @@ On Command Overview, the feed is shown only after a concrete active Alliance sco
 
 ## Operate a verified Kingshot Event profile
 
-Program state: **Selected extension — implementation verification in progress**.
+Program state: **Current complete capability**.
 
 ```text
 Choose a canonical Event type
@@ -521,7 +521,7 @@ Scheduling is baseline Events behavior. A name or category never activates a Ral
 
 ## Build a factual Rally roster
 
-Program state: **Selected extension**.
+Program state: **Current complete capability**.
 
 ```text
 Open verified Event management
@@ -538,7 +538,7 @@ The builder does not score Governors, optimize lineups or predict performance.
 
 ## Review one Governor capability profile
 
-Program state: **Selected extension**.
+Program state: **Current complete capability**.
 
 ```text
 Authorize active Alliance and Intelligence scope
@@ -553,7 +553,7 @@ Unavailable sections do not leak counts. No aggregate member strength or quality
 
 ## Review Bear Hunt performance
 
-Program state: **Selected extension — delivered Debrief foundation**.
+Program state: **Current complete capability**.
 
 ```text
 Open verified Bear Hunt occurrence
@@ -569,7 +569,7 @@ Missing results are not zero and comparisons do not imply causes or recommended 
 
 ## Onboard an additional Kingshot Event
 
-Program state: **Selected extension process**.
+Program state: **Current complete evidence-gated onboarding process**.
 
 ```text
 Identify named Event
@@ -585,7 +585,7 @@ KvK remains blocked at the first step in the current product snapshot.
 
 ## Coordinate a Transfer campaign
 
-Program state: **Selected extension**.
+Program state: **Current complete capability**.
 
 ```text
 Open Recruitment candidate
@@ -601,7 +601,7 @@ The workspace does not copy candidate, eligibility, delivery or membership truth
 
 ## Follow a Kingdom or Governor Intelligence timeline
 
-Program state: **Selected extension — delivered history foundation**.
+Program state: **Current complete capability**.
 
 ```text
 Authorize concrete Intelligence scope
@@ -616,7 +616,7 @@ Observed change is never converted into intent, threat or strategy.
 
 ## Resolve Territory and hive execution differences
 
-Program state: **Current complete foundation; program reconciliation selected**.
+Program state: **Current complete capability**.
 
 ```text
 Open immutable published Territory revision
@@ -631,7 +631,7 @@ Published revisions and observations remain immutable and separate.
 
 ## Review Alliance Command and officer briefs
 
-Program state: **Selected extension — delivered Command/Communications foundation**.
+Program state: **Current complete capability**.
 
 ```text
 Authorize concrete Alliance officer scope
@@ -646,7 +646,7 @@ Alliance Command stores no generic tasks. Queued delivery is not reported as del
 
 ## Ask the expanded Alliance Assistant
 
-Program state: **Selected extension — delivered Assistant foundation**.
+Program state: **Current complete capability**.
 
 ```text
 Ask a supported Kingshot operational question
@@ -661,7 +661,7 @@ The Assistant never mutates owner state or invents a free-form Kingshot answer.
 
 ## Extension-program recovery rule
 
-For every implementation-contract journey:
+For every capability-extension journey:
 
 ```text
 failure / stale authority / duplicate / conflict / unavailable source

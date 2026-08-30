@@ -1,6 +1,6 @@
 # Alliance Assistant GameWorld extension — localization reconciliation
 
-Status: Normative during active delivery — 2026-08-24
+Status: Current delivered amendment — 2026-08-30
 
 This document reconciles the extension localization implementation with `docs/product/alliance-assistant-gameworld-extension.md`. The primary delivery ledger remains authoritative.
 

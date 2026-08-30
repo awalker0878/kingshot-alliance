@@ -1,6 +1,6 @@
 # Capability completeness plan
 
-Status: Current — 2026-08-28
+Status: Current — 2026-08-30
 
 This document identifies what is already complete, what has been selected for the next implementation program, and what remains evidence-gated. It is not permission to describe selected work as shipped.
 
@@ -78,13 +78,13 @@ Signals preserve factual discipline: differences between observations do not bec
 
 Implementation candidate `e5c492f9391431ab68e1b2ca215038f448e5539d` passed CI, Intelligence Verification, Architecture V3 Verification, Visual Regression, CodeQL and Dependency Review, including staging, backup/restore and production-image scanning.
 
-## Selected extensions
+## Reconciled extension outcomes
 
 | Priority/order | Selected extension | User outcome | Canonical owners | Primary guardrail |
 | --- | --- | --- | --- | --- |
-| 5 | Kingdom Transfer Screenshot Intake — verification | Verify the implemented supported-screenshot review and exactly-once destination workflow on one immutable candidate. | Intelligence/Evidence + GameWorld/KingdomTransfers | Evidence owns provenance; KingdomTransfers owns observations/eligibility. |
-| 6 | Governor Progression Screenshot Intake — verification | Verify the implemented pinned-release normalization and append-only Governor observation workflow. | Intelligence/Evidence + Intelligence/Roster + GameWorld/Progression | OCR cannot create identity or alter catalogue truth. |
-| 13–25 | Kingshot Capability Expansion Program | Complete the Event profile, Rally, factual member, Bear Hunt, Transfer, Intelligence, Territory, Command, Brief and Assistant compositions through release closeout. | Existing owners + ReadModels composition | Mandatory named-Event identity/evidence gate; no parallel composition domains or unsupported mechanics. |
+| 5 | Kingdom Transfer Screenshot Intake — current complete | Use the verified supported-screenshot review and exactly-once destination workflow. | Intelligence/Evidence + GameWorld/KingdomTransfers | Evidence owns provenance; KingdomTransfers owns observations/eligibility. |
+| 6 | Governor Progression Screenshot Intake — current complete | Use the verified pinned-release normalization and append-only Governor observation workflow. | Intelligence/Evidence + Intelligence/Roster + GameWorld/Progression | OCR cannot create identity or alter catalogue truth. |
+| 13–25 | Kingshot Capability Expansion Program — complete except evidence-gated KvK | Use the verified Event profile, Rally, factual member, Bear Hunt, Transfer, Intelligence, Territory, Command, Brief and Assistant compositions; KvK remains disabled pending evidence. | Existing owners + ReadModels composition | Mandatory named-Event identity/evidence gate; no parallel composition domains or unsupported mechanics. |
 
 Phases 5–12 use the detailed acceptance criteria in [Capability Extension Program](capability-extension-program.md). Phases 13–25 use [Kingshot Capability Expansion Program](kingshot-capability-expansion-program.md). A selected extension is not promoted to current complete until its global delivery-ledger row and containing-candidate evidence are reconciled.
 
@@ -142,7 +142,7 @@ The extension program intentionally reuses current architecture:
 - `ReadModels` — authorized cross-context composition only;
 - `ReadModels/AllianceAssistant` — bounded interpretation/evidence composition only.
 
-No selected extension establishes a new top-level bounded context merely to compose these owners.
+No delivered extension establishes a new top-level bounded context merely to compose these owners.
 
 ## Data/provenance taxonomy
 
@@ -167,15 +167,15 @@ Evidence cannot silently become game truth. Planning intent cannot silently beco
 | 2 | Complete | Assistant operational-self intents and safe owner-workflow handoffs |
 | 3 | Complete | Event Readiness |
 | 4 | Complete | Event Closeout |
-| 5 | Verification in progress | Kingdom Transfer Screenshot Intake implementation exists; immutable-candidate verification remains |
-| 6 | Verification in progress | Governor Progression Screenshot Intake implementation exists; immutable-candidate verification remains |
-| 7 | Complete subject to containing-SHA evidence | Progression Goal Planner |
+| 5 | Complete | Kingdom Transfer Screenshot Intake |
+| 6 | Complete | Governor Progression Screenshot Intake |
+| 7 | Complete | Progression Goal Planner |
 | 8 | Complete family dispositions | Governor Gear/Charms qualified; remaining families explicitly incomplete/gap/conflict |
 | 9 | Partially enabled by independent family gate | Governor Gear/Charms calculators only; remaining families unavailable |
 | 10 | Complete | Territory observed-state reconciliation |
 | 11 | Complete | Intelligence change signals |
-| 12 | Selected extension | Full reconciliation and release closeout |
-| 13–25 | Active selected/evidence-gated program | [Kingshot Capability Expansion Program](kingshot-capability-expansion-program.md) |
+| 12 | Complete | Full reconciliation and release closeout |
+| 13–25 | Complete except Phase 17 identity/evidence gate | [Kingshot Capability Expansion Program](kingshot-capability-expansion-program.md) |
 
 ## Engineering standards for every selected extension
 

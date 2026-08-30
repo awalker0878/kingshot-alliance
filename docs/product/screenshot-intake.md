@@ -1,6 +1,6 @@
 # Screenshot Intake
 
-Status: Current product contract — Bear Hunt complete; Transfer Evidence in release verification; Governor Progression active delivery (2026-08-26)
+Status: Current complete product contract — all three Screenshot Intake families complete (2026-08-30)
 
 Screenshot Intake turns user-provided KingShot screenshots into reviewed domain commands without transferring ownership of the resulting game data to the intake pipeline. It is one `Intelligence/Evidence` capability with explicit, versioned evidence families rather than a generic OCR/domain-ingestion framework.
 
@@ -235,10 +235,10 @@ A family is `Complete` only when its behavior, authorization, persistence, UX, a
 | Family | Status | Source of truth |
 | --- | --- | --- |
 | Bear Hunt battle report | Complete | This document plus Operations/Results architecture/reference/runbooks |
-| Transfer Evidence | In release verification | [Screenshot Intake: Transfer Evidence](./screenshot-intake-transfer-evidence.md) |
-| Governor Progression Evidence | Active delivery | [Screenshot Intake: Governor Progression](./screenshot-intake-governor-progression.md) |
+| Transfer Evidence | Complete | [Screenshot Intake: Transfer Evidence](./screenshot-intake-transfer-evidence.md) |
+| Governor Progression Evidence | Complete | [Screenshot Intake: Governor Progression](./screenshot-intake-governor-progression.md) |
 
-The umbrella Screenshot Intake capability is not declared fully closed while any active family delivery ledger or release verification has an incomplete/failed item.
+The umbrella Screenshot Intake capability is complete. A future family-level regression or failed required gate reopens the affected family and umbrella row.
 
 ## Cross-family invariants
 

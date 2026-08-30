@@ -1,10 +1,10 @@
 # Progression Goal Planner and Calculator Evidence Program — Verification Reconciliation Amendment
 
-Status: Implementation source-of-truth amendment — 2026-08-27
+Status: Resolved verification amendment — 2026-08-30
 
 This amendment is additive to `progression-goal-planner-calculators.md` and its delivery ledger. It records verification requirements discovered only after the complete implementation was exercised against the repository-wide pull-request gates from the exact current `main` merge base (`2716cc8911c245609131d05bb5a94c206d50b61d`). Where this amendment is more specific about verification behavior, it governs the closeout candidate.
 
-## Why PG-08 is reopened
+## Why PG-08 was reopened during verification
 
 The first immutable closeout candidate passed CI, Architecture V3 Verification, Intelligence Verification, CodeQL and Dependency Review, but failed Visual Regression. Per the delivery contract, that failure reopens PG-08 and any visual-coverage item affected by the failure. The capability is not complete again until all required workflows pass on one later immutable containing commit.
 
@@ -55,7 +55,7 @@ These hashes protect the reviewed rendering only; they do not create or alter Ki
 3. Repair the Kingdom Transfer visual selector to assert the intended evidence scenarios semantically, bind card-specific assertions to each nearest evidence-card article, and verify the complete Score/Passes preview payload without depending on text-node splitting.
 4. Run Visual Regression to obtain/review the now-reachable Kingdom Transfer final fingerprints and replace any pending placeholders.
 5. Run the repository-required workflows against one immutable final SHA containing the implementation, this reconciliation, final visual assertions/fingerprints and the reconciled delivery ledger.
-6. PG-08 may return to `Complete` only when CI, Architecture V3 Verification, Intelligence Verification, CodeQL, Visual Regression and Dependency Review are all green on that same SHA.
+6. PG-08 is `Complete` because CI, Architecture V3 Verification, Intelligence Verification, CodeQL, Visual Regression and Dependency Review are green on the final containing candidate recorded in PR #134.
 
 ## Evidence-gate invariants remain unchanged
 

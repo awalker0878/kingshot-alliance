@@ -1,6 +1,6 @@
 # Kingshot Event Type Framework
 
-Status: Phase 13 implementation source of truth — 2026-08-28
+Status: Current complete capability — verified 2026-08-30
 
 ## Purpose
 
@@ -179,23 +179,23 @@ Phase 13 is complete only when arbitrary event names cannot activate specialized
 | --- | --- | --- |
 | P13-01 | Product contract and terminology reconciliation | Complete |
 | P13-02 | Legacy generic-profile/catalog inventory | Complete |
-| P13-03 | Canonical event identity + verification/profile state | In progress |
-| P13-04 | Provenance contract and Bear Hunt verified source | In progress |
-| P13-05 | Closed workflow-dimension vocabulary | In progress |
-| P13-06 | Remove unsupported mechanic/result/cross-capability assumptions | In progress |
-| P13-07 | Bear Hunt canonical enabled workflow profile | In progress |
-| P13-08 | Candidate/new-event disabled behavior | In progress |
-| P13-09 | Existing occurrence/data-preserving migration | In progress |
-| P13-10 | Authorization/profile enablement boundary | In progress |
-| P13-11 | Event Management/read-model integration | In progress |
-| P13-12 | API/TypeScript/UI integration | In progress |
-| P13-13 | Legacy profile mechanics/config removal | In progress |
-| P13-14 | Domain/architecture/auth/migration tests | In progress |
-| P13-15 | Bear Hunt regression coverage | In progress |
-| P13-16 | Accessibility/localization/responsive states | In progress |
-| P13-17 | Product docs/catalogue/journeys/global ledger reconciliation | In progress |
-| P13-18 | Clean-database/static/build/security verification | In progress |
-| P13-19 | Final implementation-versus-documentation reconciliation | In progress |
+| P13-03 | Canonical event identity + verification/profile state | Complete |
+| P13-04 | Provenance contract and Bear Hunt verified source | Complete |
+| P13-05 | Closed workflow-dimension vocabulary | Complete |
+| P13-06 | Remove unsupported mechanic/result/cross-capability assumptions | Complete |
+| P13-07 | Bear Hunt canonical enabled workflow profile | Complete |
+| P13-08 | Candidate/new-event disabled behavior | Complete |
+| P13-09 | Existing occurrence/data-preserving migration | Complete |
+| P13-10 | Authorization/profile enablement boundary | Complete |
+| P13-11 | Event Management/read-model integration | Complete |
+| P13-12 | API/TypeScript/UI integration | Complete |
+| P13-13 | Legacy profile mechanics/config removal | Complete |
+| P13-14 | Domain/architecture/auth/migration tests | Complete |
+| P13-15 | Bear Hunt regression coverage | Complete |
+| P13-16 | Accessibility/localization/responsive states | Complete |
+| P13-17 | Product docs/catalogue/journeys/global ledger reconciliation | Complete |
+| P13-18 | Clean-database/static/build/security verification | Complete |
+| P13-19 | Final implementation-versus-documentation reconciliation | Complete |
 
 A row is not marked Complete based on intent. It closes only when implementation and verification evidence exist.
 

@@ -1,6 +1,6 @@
 # Testing
 
-Status: Current — Architecture V3
+Status: Current — Architecture V3 — 2026-08-30
 
 Architecture V3 verification must test both **source structure** and **business behavior**. A passing directory check alone is not architecture certification.
 
@@ -41,9 +41,15 @@ Important areas include:
 - generic Communications delivery idempotency/retry;
 - Platform authority isolation.
 
+The Phase 13–24 closeout matrix adds three cross-surface contracts:
+
+- `CapabilitySurfaceHttpMatrixV3Test` verifies R5/R4/R3/R1 HTTP/Inertia payloads, cross-account/Alliance/Kingdom rejection and bounded member history;
+- `CapabilityReadModelBudgetAndTelemetryV3Test` verifies reviewed query ceilings plus identifier/count/reason/duration-only diagnostics;
+- `CapabilityAcceptanceMatrix.spec.ts` verifies Rally Builder, Member Capability Profile, Transfer Campaign, Intelligence Timeline, Alliance Command, Officer Briefs and Alliance Assistant across desktop/mobile, keyboard focus, accessible names, overflow and reviewed visual fingerprints.
+
 ## Visual regression baselines
 
-Playwright visual checks run against the Chrome runtime already supplied by the GitHub-hosted runner. A baseline may be refreshed only when the rendered change is intentional and has been visually reviewed; unrelated snapshots must remain byte-for-byte unchanged.
+Playwright visual checks run against the Chrome runtime already supplied by the GitHub-hosted runner. A baseline may be refreshed only when the rendered change is intentional and has been visually reviewed; unrelated snapshots must remain byte-for-byte unchanged. Dynamic dates and database-generated UUID/ULID text are normalized only inside the captured locator so visual hashes measure the intended rendered contract while semantic assertions still verify the underlying provenance surface.
 
 ## Fresh-install verification
 
