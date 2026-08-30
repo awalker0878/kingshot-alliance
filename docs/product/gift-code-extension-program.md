@@ -273,7 +273,7 @@ Unqualified rewards render **Reward details unknown**. A single `wrong_kingdom` 
 | GCX-17 | Accessibility/mobile/visual regression | complete | localized responsive catalogue/moderation flows, static accessibility/localization gates and desktop/mobile `GiftCodes.spec.ts` |
 | GCX-18 | Query-budget and large-history verification | complete | 80-code/120-provenance constant-query fixture in `GiftCodeBehaviorV3Test`; API cursor bound test |
 | GCX-19 | Full automated gate execution | complete | Local `npm run check` passes; remote CI run `33335631761`, Architecture V3 run `33335631773`, Intelligence, King Perks, CodeQL, and dependency review pass; Gift Code desktop/mobile visual coverage passes in run `33335631755` |
-| GCX-20 | Final docs/code reconciliation and closeout | complete | Implementation commit `78fb1234a0471dd020c7f651a3e4d468f22b2c34`; documentation closeout commits `c1272f4f25198944a2847b772a0cff541a04b547` and `86c098e69ec561f34b537028cb8f2bad45881d43`; stale-path/TODO/route/scheduler/flag searches reconciled |
+| GCX-20 | Final docs/code reconciliation and closeout | complete | Implementation commit `78fb1234a0471dd020c7f651a3e4d468f22b2c34`; final branch tip and this ledger were verified through the GitHub branch/file APIs; stale-path/TODO/route/scheduler/flag searches reconciled |
 
 A row becomes `complete` only when documented behavior, integration, authorization, UX where applicable, tests, and operational behavior are present. No migration/backfill or compatibility work is intentionally retained for the previous Gift Code implementation.
 
