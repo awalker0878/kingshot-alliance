@@ -30,11 +30,15 @@ final class GiftCodeTrustResolver
 
         /** @var GiftCodeModerationDecision|null $latestModeration */
         $latestModeration = $giftCode->moderationDecisions()->first();
+        $moderatedExpiry = $this->moderatedExpiry($giftCode);
+
         if ($latestModeration?->action === GiftCodeModerationAction::Quarantine) {
             return new GiftCodeTrustDecision(
                 GiftCodeStatus::Quarantined,
                 'platform_quarantine',
                 $this->decisionEvidence($latestModeration),
+                $moderatedExpiry['at'] ?? null,
+                $moderatedExpiry['precision'] ?? null,
             );
         }
 
@@ -43,10 +47,37 @@ final class GiftCodeTrustResolver
                 GiftCodeStatus::Invalid,
                 'platform_rejected',
                 $this->decisionEvidence($latestModeration),
+                $moderatedExpiry['at'] ?? null,
+                $moderatedExpiry['precision'] ?? null,
             );
         }
 
-        $qualifiedExpiries = $this->qualifiedExpiryClaims($verified);
+        if ($latestModeration?->action === GiftCodeModerationAction::Verify) {
+            return new GiftCodeTrustDecision(
+                GiftCodeStatus::Valid,
+                'platform_verified',
+                $this->decisionEvidence($latestModeration),
+                $moderatedExpiry['at'] ?? null,
+                $moderatedExpiry['precision'] ?? null,
+            );
+        }
+
+        if ($latestModeration?->action === GiftCodeModerationAction::ResolveDispute) {
+            $resolved = GiftCodeStatus::tryFrom((string) $latestModeration->proposed_status);
+            if ($resolved instanceof GiftCodeStatus) {
+                return new GiftCodeTrustDecision(
+                    $resolved,
+                    'platform_dispute_resolved',
+                    $this->decisionEvidence($latestModeration),
+                    $moderatedExpiry['at'] ?? null,
+                    $moderatedExpiry['precision'] ?? null,
+                );
+            }
+        }
+
+        $qualifiedExpiries = $moderatedExpiry === null
+            ? $this->qualifiedExpiryClaims($verified)
+            : [$moderatedExpiry];
         if (count($qualifiedExpiries) > 1) {
             return new GiftCodeTrustDecision(
                 GiftCodeStatus::Disputed,
@@ -230,6 +261,27 @@ final class GiftCodeTrustResolver
         }
 
         return $qualified;
+    }
+
+    /** @return array{at: CarbonImmutable, precision: string|null, evidence_ids: list<string>}|null */
+    private function moderatedExpiry(GiftCode $giftCode): ?array
+    {
+        /** @var GiftCodeModerationDecision|null $decision */
+        $decision = $giftCode->moderationDecisions()
+            ->where('action', GiftCodeModerationAction::CorrectExpiry->value)
+            ->first();
+        $value = $decision?->metadata['expires_at'] ?? null;
+        if (! $decision instanceof GiftCodeModerationDecision || ! is_string($value) || trim($value) === '') {
+            return null;
+        }
+
+        return [
+            'at' => CarbonImmutable::parse($value),
+            'precision' => is_string($decision->metadata['expiry_precision'] ?? null)
+                ? (string) $decision->metadata['expiry_precision']
+                : null,
+            'evidence_ids' => $this->decisionEvidence($decision),
+        ];
     }
 
     /** @return list<string> */
