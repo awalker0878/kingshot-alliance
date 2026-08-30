@@ -22,13 +22,23 @@ use Illuminate\Support\Carbon;
  * @property string|null $source_url
  * @property string|null $created_by_player_id
  * @property GiftCodeStatus $status
+ * @property int $status_revision
+ * @property string|null $status_reason_code
+ * @property list<string>|null $status_evidence_ids
  * @property CarbonImmutable|null $status_changed_at
+ * @property CarbonImmutable|null $status_derived_at
  * @property CarbonImmutable $discovered_at
  * @property CarbonImmutable|null $expires_at
+ * @property string|null $expires_precision
+ * @property int $expires_revision
+ * @property string|null $trust_v2_shadow_status
+ * @property string|null $trust_v2_shadow_reason_code
+ * @property CarbonImmutable|null $trust_v2_compared_at
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property-read Collection<int, GiftCodeRedemption> $redemptions
  * @property-read Collection<int, GiftCodeProvenance> $provenances
+ * @property-read Collection<int, GiftCodeModerationDecision> $moderationDecisions
  */
 final class GiftCode extends Model
 {
@@ -46,9 +56,18 @@ final class GiftCode extends Model
         'source_url',
         'created_by_player_id',
         'status',
+        'status_revision',
+        'status_reason_code',
+        'status_evidence_ids',
         'status_changed_at',
+        'status_derived_at',
         'discovered_at',
         'expires_at',
+        'expires_precision',
+        'expires_revision',
+        'trust_v2_shadow_status',
+        'trust_v2_shadow_reason_code',
+        'trust_v2_compared_at',
     ];
 
     protected function casts(): array
@@ -56,9 +75,14 @@ final class GiftCode extends Model
         return [
             'source_type' => GiftCodeSource::class,
             'status' => GiftCodeStatus::class,
+            'status_revision' => 'integer',
+            'status_evidence_ids' => 'array',
             'status_changed_at' => 'immutable_datetime',
+            'status_derived_at' => 'immutable_datetime',
             'discovered_at' => 'immutable_datetime',
             'expires_at' => 'immutable_datetime',
+            'expires_revision' => 'integer',
+            'trust_v2_compared_at' => 'immutable_datetime',
         ];
     }
 
@@ -72,5 +96,11 @@ final class GiftCode extends Model
     public function provenances(): HasMany
     {
         return $this->hasMany(GiftCodeProvenance::class)->orderByDesc('observed_at');
+    }
+
+    /** @return HasMany<GiftCodeModerationDecision, $this> */
+    public function moderationDecisions(): HasMany
+    {
+        return $this->hasMany(GiftCodeModerationDecision::class)->orderByDesc('decided_at');
     }
 }
