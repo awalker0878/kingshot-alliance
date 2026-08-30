@@ -13,22 +13,22 @@ type Surface =
 
 const fingerprints: Record<string, Record<Surface, string>> = {
   desktop: {
-    rallyBuilder: 'bootstrap',
-    memberProfile: 'bootstrap',
-    transferCampaign: 'bootstrap',
-    intelligenceTimeline: 'bootstrap',
-    allianceCommand: 'bootstrap',
-    officerBriefs: 'bootstrap',
-    assistant: 'bootstrap',
+    rallyBuilder: 'cdb85d962ede7f68b9ee078625b46aa19f2f25fdcf3237db79fd60a6bb887601',
+    memberProfile: 'dda039ca90fbe8bbbaef937210a6761c2e6332aa972de3b9d65428ca6e68f9ed',
+    transferCampaign: '108d65aedb6e80d979d220b44ef2b66490b9a0b0c9ff6064bb23be75fcab7e43',
+    intelligenceTimeline: 'f72ce8075b16a0019e504e0e464614810af69eaff028056a25ef4cdd0d6201e6',
+    allianceCommand: '42620e2a16c32a352232abbea4c7668e1da6a4f4acc4ead2c887f431627eee8f',
+    officerBriefs: '986cc92f0c51d2c5dbb29441cbee5185352e55b7daf1cc628142c1f7de7a5bd1',
+    assistant: '8cc124ee1ba262b0eaf5e6ca56b4b764bb52d078eaa408cf26b5390ddd4cf163',
   },
   mobile: {
-    rallyBuilder: 'bootstrap',
-    memberProfile: 'bootstrap',
-    transferCampaign: 'bootstrap',
-    intelligenceTimeline: 'bootstrap',
-    allianceCommand: 'bootstrap',
-    officerBriefs: 'bootstrap',
-    assistant: 'bootstrap',
+    rallyBuilder: '83c0f81ab893ae413016045bd4e64144fc1e00731b58a5a84e39769f8fd67d8a',
+    memberProfile: '3274b5af5a93a70675586f333634426889b3a23a55fed781252c7f176bbc38d6',
+    transferCampaign: '2ff40faaae87d4ee51f359cdc8562fdf44b035f86a1e52296409457349edf132',
+    intelligenceTimeline: '3b77b79519110170bbede59851b9316775ca8fb638a9fab39535aaed6177be87',
+    allianceCommand: 'fdb40ff86f354dddcd5161fc243556f46f72f2a7f5ca1f0a4cbea3fec8922f7d',
+    officerBriefs: '83586dd0f4af9d907732aed86173916724bed70ec36c778d4e53779023eefead',
+    assistant: 'b7069af6767de075ff6b625732f904a08938826361e58f898f802b7c15ddcc90',
   },
 };
 
