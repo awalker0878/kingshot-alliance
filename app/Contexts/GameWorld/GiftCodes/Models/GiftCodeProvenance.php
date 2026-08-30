@@ -22,6 +22,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property GiftCodeSource $source_type
  * @property string|null $source_label
  * @property string|null $source_url
+ * @property string $assertion
+ * @property array<string, mixed>|null $assertion_payload
  * @property CarbonImmutable|null $claimed_expires_at
  * @property string|null $expiry_precision
  * @property string|null $expiry_timezone
@@ -51,6 +53,8 @@ final class GiftCodeProvenance extends Model
         'source_type',
         'source_label',
         'source_url',
+        'assertion',
+        'assertion_payload',
         'claimed_expires_at',
         'expiry_precision',
         'expiry_timezone',
@@ -70,6 +74,7 @@ final class GiftCodeProvenance extends Model
     {
         return [
             'source_type' => GiftCodeSource::class,
+            'assertion_payload' => 'array',
             'claimed_expires_at' => 'immutable_datetime',
             'published_at' => 'immutable_datetime',
             'evidence_classification' => GiftCodeEvidenceClassification::class,
