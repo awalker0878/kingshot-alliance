@@ -2,13 +2,20 @@
 
 Status: Selected extension
 Baseline: `main` at `f63896f`
+Deployment model: **fresh-schema redeployment**
 Owner context: `GameWorld/GiftCodes`
 
 ## 1. Product position
 
-The existing Gift Code capability remains **current complete** for its documented baseline behavior. This program is an additive extension named **Gift Code trust, discovery, and redemption expansion**. It does not replace the existing capability, redefine unsupported Kingshot mechanics, or automate the Century Games redemption provider.
+The existing Gift Code capability is the functional starting point, but this extension is delivered as a fresh-schema redeployment. The deployed application has one canonical Gift Code implementation only.
 
-The extension strengthens global catalogue trust, governed evidence, multi-Governor redemption, discovery/lifecycle delivery, approved-source ingestion, bounded reads, and evidence-gated game facts.
+The extension strengthens global catalogue trust, governed evidence, multi-Governor redemption, discovery/lifecycle delivery, approved-source ingestion, bounded reads, and evidence-gated game facts without automating the Century Games redemption provider or inventing unsupported Kingshot mechanics.
+
+### Fresh-schema rule
+
+The final repository must not retain Gift Code migration/backfill shims, legacy trust resolvers, shadow-comparison modes, compatibility routes, deprecated API aliases, legacy evidence classifications, or code whose only purpose is preserving the pre-extension Gift Code schema or behavior.
+
+The canonical Gift Code schema is defined directly by the create migrations. Redeployment recreates the database from those migrations; no production Gift Code data migration is required by this program.
 
 ## 2. Ownership and authority
 
@@ -26,78 +33,83 @@ A Gift Code redemption is owned by the account/owned Governor pair. The server r
 
 Governor-specific provider outcomes remain observations about that Governor's handoff. They do not automatically establish global game facts such as regional eligibility or global invalidity.
 
-## 3. Trust and evidence model
+## 3. Canonical trust and evidence model
 
-### Raw evidence
+### Gift Code projection
 
-`GiftCodeProvenance` is append-only. An observation can record:
+`gift_codes` contains catalogue identity and derived projection only:
 
-- source type and label;
-- registered source identifier when applicable;
-- source URL;
-- claimed expiry;
-- expiry precision and timezone;
-- source publication timestamp;
-- observation timestamp;
+- code and normalized code;
+- creating Governor where applicable;
+- current derived trust status;
+- monotonic `status_revision`;
+- stable status reason code;
+- supporting evidence references;
+- status changed/derived timestamps;
+- discovery timestamp;
+- canonical accepted expiry, precision, and monotonic `expires_revision`.
+
+Source labels, URLs, authority claims, reward claims, applicability claims, and raw observations are not duplicated onto `gift_codes`; they belong to evidence.
+
+### Append-only evidence
+
+`GiftCodeProvenance` is append-only. An observation records, as applicable:
+
+- registered source identifier;
+- submitting Governor for community/manual observations;
+- source label and source URL as observed metadata;
+- assertion type and structured assertion payload;
+- claimed expiry, precision, and timezone;
+- source publication timestamp and observation timestamp;
 - evidence classification;
 - verification state;
-- retrieval version;
-- parser version;
+- source/retrieval/parser versions;
 - content fingerprint/checksum;
-- immutable raw-evidence reference where applicable.
+- immutable raw-evidence reference;
+- deduplication fingerprint.
 
 Corrections never rewrite prior provenance. They append a new observation or a moderation decision referencing the evidence being corrected.
 
-Legacy provenance that was user-labelled `official` is backfilled as **unverified legacy evidence**. The migration must not promote those rows to verified official evidence.
+Ordinary submissions cannot assert official authority. They create unverified community/manual evidence and begin with global status `pending` unless independently qualified evidence already establishes another state.
 
 ### Approved source registry
 
-Approved Gift Code sources have platform-owned identity, classification, canonical domain, active/revoked state, verification method, provenance policy, ingestion eligibility, and timestamps. Ordinary submissions cannot claim the authoritative `official` classification.
+Approved Gift Code sources have platform-owned identity, classification, canonical domain, active/revoked state, verification method, provenance policy, ingestion eligibility, and timestamps. Ordinary users cannot create or impersonate registered authoritative sources.
 
-A source being registered does not by itself prove every observation; the observation must satisfy the source verification policy.
+A source being registered does not by itself prove every observation; the observation must satisfy that source's verification policy.
 
 ### Derived status
 
-Trust-v2 derives a status and explanation from accepted evidence. Runtime status is one of:
+The canonical resolver derives:
 
 - `pending` — insufficient accepted evidence;
 - `valid` — qualified positive evidence establishes credible redeemability;
 - `invalid` — qualified global negative evidence establishes invalidity;
-- `expired` — accepted expiry evidence establishes that the code has expired;
+- `expired` — accepted expiry evidence establishes expiry;
 - `disputed` — credible accepted evidence conflicts materially;
-- `quarantined` — a platform moderation decision temporarily removes the code from normal redeemable discovery while preserving its evidence.
+- `quarantined` — platform moderation temporarily removes normal redeemability while preserving evidence.
 
-Every derived state exposes:
+Every derived state exposes a stable reason code and supporting evidence references. One unverified negative Governor report cannot make a code globally invalid or unavailable. Verified authoritative evidence, or a documented independent-evidence threshold, can establish validity or invalidity. Conflicting credible evidence produces `disputed`.
 
-- stable reason code;
-- monotonic `status_revision`;
-- supporting evidence references;
-- derivation timestamp;
-- shadow/comparison result while trust-v2 is not authoritative.
+Expiry is derived from accepted evidence, not the earliest arbitrary claim. Conflicting qualified expiry evidence produces `disputed` until resolved.
 
-A community submission begins `pending`. One unverified negative Governor report cannot make a code globally invalid or unavailable. Verified official evidence, or a documented independent-evidence threshold, can establish global validity/invalidity. Conflicting credible evidence becomes `disputed`.
+### Material transitions
 
-Expiry is derived from accepted evidence, not the earliest arbitrary user claim. Precise expiry is not canonical until the evidence gate qualifies it.
+Every material trust transition increments `status_revision`. Every material canonical expiry change increments `expires_revision`. Audit/outbox idempotency uses those revisions so `valid -> disputed -> valid` emits all three material transitions while replay of an unchanged revision remains idempotent.
 
-### Transition delivery
+There is no legacy resolver, shadow mode, comparison column, or authority switch in the final implementation.
 
-Every material derived-state transition increments `status_revision`. Audit/outbox idempotency keys include the revision so a sequence such as `valid -> disputed -> valid` emits three distinct material transitions while a replay of the same revision remains idempotent.
+## 4. Feature flags
 
-## 4. Trust-v2 rollout
+Feature flags exist only for operationally independent capabilities that may be enabled after deployment:
 
-Feature flag: `gift_codes.trust_v2`.
+- `gift_codes.moderation`;
+- `gift_codes.approved_source_ingestion`;
+- `gift_codes.notification_fanout`.
 
-Modes:
-
-1. `off` — existing resolver remains authoritative.
-2. `shadow` — trust-v2 evaluates the same records, stores/records comparison diagnostics, but does not write authoritative trust state.
-3. `authoritative` — trust-v2 owns derived trust transitions.
-
-Authority may switch only after legacy evidence is classified/backfilled, migrations are complete, comparison differences are understood, acceptance tests pass, and product/architecture documentation is reconciled.
+The canonical trust resolver itself is not dual-run or selectable. It is the only Gift Code trust implementation.
 
 ## 5. Moderation workflow
-
-Feature flag: `gift_codes.moderation`.
 
 Review queues include pending, disputed, conflicting-expiry, suspicious-source, heavily-reported, ingestion-quarantined, and source-revocation cases.
 
@@ -139,6 +151,8 @@ Terminal success remains terminal. Retryable outcomes use bounded retry/backoff.
 
 Incomplete-redemption views are resumable and filterable by Governor, status, urgency, and failure state.
 
+There is one canonical outcome-recording route. The deprecated generic issue-report route/action is removed rather than retained as a compatibility alias.
+
 ## 7. Discovery and lifecycle notifications
 
 Feature flag: `gift_codes.notification_fanout`.
@@ -153,7 +167,7 @@ Delivery uses bounded cursor-based fan-out and existing Communications infrastru
 
 Rules:
 
-- availability: once per account/revision when a code becomes credibly redeemable, listing eligible owned Governors;
+- availability: once per account/status revision when a code becomes credibly redeemable, listing eligible owned Governors;
 - expiry: per incomplete Governor and qualified expiry revision;
 - trust changed: affected users who started the code when it becomes disputed, quarantined, invalid, or receives a material expiry correction;
 - recheck current ownership, channel preference, and redemption state immediately before queueing;
@@ -197,7 +211,8 @@ Command Overview distinguishes new redeemable, in-progress, retry-due, and dispu
 ## 10. API and webhook contract
 
 Canonical read endpoint: `/api/v1/gift-codes`.
-Compatibility alias: `/commands/gift-codes`.
+
+There is no deprecated `/commands/gift-codes` compatibility alias in the fresh-schema implementation.
 
 Default API result is verified active codes. Pending/disputed entries require an explicit filter and applicable authorization.
 
@@ -233,33 +248,34 @@ Unqualified rewards render **Reward details unknown**. A single `wrong_kingdom` 
 - Raw evidence remains immutable.
 - Credentials for source ingestion are platform-scoped and separate from Alliance API credentials.
 - Every bulk/scheduled operation has explicit bounds.
+- No compatibility shim may bypass the canonical authorization or evidence path.
 
 ## 13. Delivery ledger
 
 | ID | Deliverable | State | Completion evidence |
 |---|---|---|---|
-| GCX-01 | Product contract and ADR reconciliation | in progress | This document + ADR-0004 amendment |
-| GCX-02 | Approved source/evidence/moderation additive schema | pending | Migration + models/tests |
-| GCX-03 | Legacy `official` evidence safe backfill | pending | Migration/backfill tests |
-| GCX-04 | Trust-v2 resolver and monotonic status revision | pending | Resolver + transition tests |
-| GCX-05 | Shadow comparison and feature flag | pending | Config + comparison diagnostics/tests |
-| GCX-06 | Governed moderation workflow | pending | Auth/actions/queries/UI/tests |
-| GCX-07 | Guided multi-Governor redemption | pending | Actions/controllers/UI/tests |
-| GCX-08 | Availability notification fan-out | pending | Publisher/command/scheduler/tests |
-| GCX-09 | Expiry notification fan-out | pending | Publisher/command/scheduler/tests |
-| GCX-10 | Trust-change notification fan-out | pending | Publisher/outbox/command/tests |
-| GCX-11 | Approved-source ingestion | pending | Registry/adapters/command/health/tests |
-| GCX-12 | Cursor-paginated catalogue/detail reads | pending | Query/controller/UI/tests |
-| GCX-13 | Command Overview lifecycle projections | pending | Read model/tests |
-| GCX-14 | `/api/v1/gift-codes` + compatibility alias | pending | Routes/controller/tests |
-| GCX-15 | Versioned webhook payload with revision | pending | Contract/publisher/tests |
-| GCX-16 | Reward/applicability evidence gate | pending | Observation projection/tests/UI |
-| GCX-17 | Operational diagnostics and replay | pending | Counters/receipts/replay tests |
-| GCX-18 | Accessibility/mobile/visual regression | pending | Frontend/Playwright evidence |
-| GCX-19 | Query-budget and large-history verification | pending | Fixtures/tests |
-| GCX-20 | Final docs/code reconciliation and gate closeout | pending | Updated ledger + verification results |
+| GCX-01 | Product contract and ADR reconciliation | in progress | Fresh-schema contract updated; related product docs/ADR final reconciliation pending |
+| GCX-02 | Canonical approved-source/evidence/moderation schema | in progress | Canonical create migration consolidation underway |
+| GCX-03 | Remove legacy/backfill/shadow/compatibility Gift Code paths | in progress | Fresh-schema cleanup underway |
+| GCX-04 | Canonical trust resolver and monotonic status/expiry revisions | in progress | Resolver implemented; legacy/shadow removal pending verification |
+| GCX-05 | Governed moderation workflow | in progress | Grant/middleware/action/backend queue implemented; review UI/tests pending |
+| GCX-06 | Guided multi-Governor redemption | in progress | Server ownership/result path hardened; guided UI/tests pending |
+| GCX-07 | Availability notification fan-out | pending | Publisher/sweep/command/scheduler/tests required |
+| GCX-08 | Expiry notification fan-out | pending | Publisher/sweep/command/scheduler/tests required |
+| GCX-09 | Trust-change notification fan-out | pending | Publisher/sweep/outbox integration/tests required |
+| GCX-10 | Approved-source ingestion | pending | Registry adapters/command/health/tests required |
+| GCX-11 | Cursor-paginated catalogue/detail reads | pending | Query/controller/UI/tests required |
+| GCX-12 | Command Overview lifecycle projections | pending | Read model/tests required |
+| GCX-13 | Canonical `/api/v1/gift-codes` | pending | Route/controller/tests required |
+| GCX-14 | Versioned webhook payload with revision | pending | Contract/publisher/tests required |
+| GCX-15 | Reward/applicability evidence gate | pending | Observation projection/tests/UI required |
+| GCX-16 | Operational diagnostics and replay | pending | Counters/receipts/replay tests required |
+| GCX-17 | Accessibility/mobile/visual regression | pending | Frontend/Playwright evidence required |
+| GCX-18 | Query-budget and large-history verification | pending | Fixtures/tests required |
+| GCX-19 | Full automated gate execution | pending | Architecture/PHP/static/TS/localization/accessibility/Playwright results required |
+| GCX-20 | Final docs/code reconciliation and closeout | pending | Updated ledger + implementation/test references required |
 
-A row becomes `complete` only when documented behavior, integration, authorization, UX where applicable, tests, and operational behavior are present. `intentionally deferred` requires a precise dependency/reason. `not applicable` requires repository evidence.
+A row becomes `complete` only when documented behavior, integration, authorization, UX where applicable, tests, and operational behavior are present. No migration/backfill or compatibility work is intentionally retained for the previous Gift Code implementation.
 
 ## 14. Acceptance criteria
 
@@ -269,7 +285,7 @@ The extension is acceptable only when automated coverage demonstrates:
 - duplicate and conflicting provenance preservation;
 - malicious/misleading source URL rejection or quarantine;
 - a single user cannot globally invalidate a code;
-- conflicting expiry claims derive pending/disputed until qualified;
+- conflicting expiry claims remain unresolved/disputed until qualified;
 - `valid -> disputed -> valid` emits all revisions;
 - concurrent submission/moderation/redemption is safe;
 - foreign/revoked Governor ownership is rejected at mutation time;
@@ -279,23 +295,26 @@ The extension is acceptable only when automated coverage demonstrates:
 - duplicate sweeps do not duplicate unchanged delivery while changed revisions do deliver;
 - ingestion replay is idempotent;
 - parser failures and revoked sources quarantine;
-- API authorization, cursor pagination, compatibility and response bounds hold;
+- API authorization, cursor pagination and response bounds hold;
 - webhook versioning, scoping, signing, retry and replay hold;
 - Gift Code catalogue/detail/guided redemption are accessible on desktop and mobile;
 - large-history fixtures remain within documented query budgets;
+- repository search confirms no deprecated Gift Code resolver, shadow comparison field, legacy evidence classification, report-route shim, migration backfill, or compatibility API alias remains;
 - all applicable architecture, PHP, static-analysis, TypeScript, localization, accessibility, and Playwright gates pass.
 
 ## 15. Delivery sequence
 
-1. Documentation and trust-policy ADR.
-2. Additive evidence/source/moderation schema and legacy backfill.
-3. Trust resolver and transition-revision correction.
-4. Moderation workflow.
-5. Guided multi-Governor redemption.
+For the fresh-schema redeployment, implement in this order:
+
+1. Product/ADR reconciliation and removal of migration-compatibility requirements.
+2. Canonical Gift Code/source/evidence/moderation/curator schema in create migrations.
+3. Canonical trust resolver and transition revisions; delete old/shadow resolver code.
+4. Governed moderation workflow.
+5. Guided multi-Governor redemption; delete deprecated report path.
 6. Availability, expiry, and trust-change delivery.
 7. Approved-source ingestion.
-8. Paginated catalogue, dashboard, API, and webhook updates.
+8. Paginated catalogue, dashboard, canonical API, and webhook updates.
 9. Evidence-gated reward/applicability framework.
-10. Full reconciliation, operational verification, and delivery-ledger closeout.
+10. Full legacy/shim search, automated verification, product-doc reconciliation, and delivery-ledger closeout.
 
-A dependency-driven sequence adjustment must first be recorded in this document with the reason and resulting delivery order.
+A dependency-driven sequence adjustment must first be recorded here with the reason and resulting order.
