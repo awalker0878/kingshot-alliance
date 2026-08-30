@@ -187,6 +187,8 @@ test('capability acceptance surfaces remain visually and semantically stable', a
   const allianceCommand = page.locator('section[aria-labelledby="alliance-command-heading"]');
   await assertAccessibleSurface(page, allianceCommand);
   await expect(allianceCommand.getByRole('heading', { name: 'Officer overview' })).toBeVisible();
+  await expect(allianceCommand.getByText('Events', { exact: true })).toBeVisible();
+  await expect(allianceCommand).not.toContainText('application.dashboard.commandOwners.');
   actual.allianceCommand = await screenshotHash(allianceCommand);
   const officerBriefs = allianceCommand
     .getByRole('heading', { name: 'Officer briefs' })

@@ -254,7 +254,7 @@ function eventActionLabel(action: string): string {
           aria-labelledby="alliance-command-heading"
         >
           <div class="flex flex-wrap items-end justify-between gap-3">
-            <div>
+            <div class="min-w-0">
               <p class="ks-kicker">{{ t('application.dashboard.allianceCommandEyebrow') }}</p>
               <h2 id="alliance-command-heading" class="ks-display mt-1 text-2xl font-semibold">
                 {{ t('application.dashboard.allianceCommand') }}
@@ -282,14 +282,14 @@ function eventActionLabel(action: string): string {
               v-for="item in overview.allianceCommand.items"
               :key="item.code"
               :href="item.handoff.href"
-              class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-4 transition hover:border-[var(--ks-border-strong)]"
+              class="min-w-0 rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-4 transition hover:border-[var(--ks-border-strong)]"
             >
               <div class="flex items-start justify-between gap-3">
-                <div>
-                  <p class="ks-kicker">
+                <div class="min-w-0">
+                  <p class="ks-kicker break-words">
                     {{ t(`application.dashboard.commandOwners.${item.owner}`) }}
                   </p>
-                  <strong class="mt-2 block text-base text-[var(--ks-ivory)]">
+                  <strong class="mt-2 block break-words text-base text-[var(--ks-ivory)]">
                     {{ t(item.reasonKey, { count: item.count }) }}
                   </strong>
                 </div>
@@ -337,9 +337,9 @@ function eventActionLabel(action: string): string {
                 v-for="brief in overview.officerBriefs"
                 :key="brief.group"
                 :href="brief.canonicalUrl"
-                class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-4 transition hover:border-[var(--ks-border-strong)]"
+                class="min-w-0 rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-4 transition hover:border-[var(--ks-border-strong)]"
               >
-                <p class="ks-kicker">
+                <p class="ks-kicker break-words">
                   {{ t(`application.dashboard.officerBriefGroups.${brief.group}`) }}
                 </p>
                 <strong class="mt-2 block text-sm text-[var(--ks-ivory)]">

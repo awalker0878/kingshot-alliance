@@ -422,13 +422,21 @@ const messages = {
         communicationsFailed: '{count} external notification deliveries failed',
       },
       commandOwners: {
-        'operations.events': 'Events',
-        'intelligence.roster': 'Governor Intelligence',
-        'intelligence.signals': 'Kingdom Intelligence',
-        'game_world.kingdom_transfers': 'Kingdom Transfers',
-        'operations.territory_planning': 'Territory Planning',
-        'intelligence.evidence': 'Evidence Review',
-        'communications.delivery': 'Communications',
+        operations: {
+          events: 'Events',
+          territory_planning: 'Territory Planning',
+        },
+        intelligence: {
+          roster: 'Governor Intelligence',
+          signals: 'Kingdom Intelligence',
+          evidence: 'Evidence Review',
+        },
+        game_world: {
+          kingdom_transfers: 'Kingdom Transfers',
+        },
+        communications: {
+          delivery: 'Communications',
+        },
       },
       commandStates: {
         planning: 'Planning',

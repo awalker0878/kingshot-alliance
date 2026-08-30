@@ -4,12 +4,12 @@ import type { Locator, Page } from '@playwright/test';
 
 const fingerprints: Record<string, Record<'closeout' | 'ready', string>> = {
   desktop: {
-    closeout: '9d15cfa91b882d076515746130cac20381e04a48891a7dcaac3e77f7bc4eb102',
-    ready: 'd6f33230fad8cb9cca1bfc17e39fea25893a434cb5cb8f9dc01a89dfe657fd23',
+    closeout: 'b723f20dd1a1b976eb270bc05d672673ae11145173c2ecb7562faeea656b458d',
+    ready: 'fd61a9f060a3e2f91d11b3009fc9b21ab6e7debfad24781c795f212d6abc447c',
   },
   mobile: {
-    closeout: '7f2a60108b725e79536b5db7392a6b5bff42d7d6aaaea85b21f0bdfdb6cae493',
-    ready: '3e6e81efe4ea3579a07a95a66761076c51ebabf168cd4e5523f73da18a6f287d',
+    closeout: '4c76b2ad60cf989492101f7d7ef673870f932b691a6cbb79ef8d26b0c7a4668d',
+    ready: 'c6fe2044fed60b5a74e76b614ee7cee683f9654fd0b7df691613584cc55aabc7',
   },
 };
 
