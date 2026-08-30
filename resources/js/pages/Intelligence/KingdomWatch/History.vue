@@ -269,10 +269,7 @@ function timelineDetail(item: TimelineItem): string {
       </div>
     </section>
 
-    <section
-      class="ks-surface mt-8 min-w-0 p-6"
-      aria-labelledby="intelligence-timeline-heading"
-    >
+    <section class="ks-surface mt-8 min-w-0 p-6" aria-labelledby="intelligence-timeline-heading">
       <p class="text-sm font-semibold tracking-[0.2em] text-[var(--ks-gold)] uppercase">
         {{ t('kingdomP7B.timelineEyebrow') }}
       </p>

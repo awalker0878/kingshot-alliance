@@ -106,7 +106,8 @@ async function screenshotHash(target: Locator): Promise<string> {
     (element) =>
       new Promise<void>((resolve) => {
         if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
-        element.scrollIntoView({ block: 'start', inline: 'nearest' });
+        const top = element.getBoundingClientRect().top + window.scrollY;
+        window.scrollTo({ top: Math.max(0, top - 112), left: 0 });
         requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
       }),
   );
