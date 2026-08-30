@@ -1,6 +1,6 @@
 # Capability delivery ledger
 
-Status: Current as of 2026-08-29
+Status: Current as of 2026-08-30
 
 This ledger records current delivered outcomes, active selected-extension work and remaining evidence gates. It is a work queue, not a speculative roadmap. Git history remains the archive for retired/completed intermediate phase detail and exact diffs/CI runs.
 
@@ -91,18 +91,18 @@ The delivered capability preserves these non-negotiable boundaries:
 
 Canonical contract and row-level ledger: [Kingshot Capability Expansion Program](kingshot-capability-expansion-program.md).
 
-Phases 13–16 and 18–24 have implementation and focused regression coverage on the current branch. Phase 21 reconciles the existing Territory execution implementation. The local frontend, documentation, localization, product-language, build and performance gates are green; PHP tests, Pint, PHPStan and the immutable containing-candidate CI/staging evidence cannot be claimed from this workspace and remain Phase 25 work. These rows therefore remain selected extensions rather than current complete capabilities.
+Phases 13–16 and 18–24 are current complete capabilities on the final containing candidate. Phase 21 reconciles the existing Territory execution implementation. The HTTP/Inertia rank matrix, tenant/Kingdom isolation, bounded-history, query-budget, privacy-safe telemetry, desktop/mobile accessibility and deterministic visual fingerprints are verified together with the repository-wide PHP, Pint, PHPStan, frontend, architecture, security, production-image, clean-database/staging and recovery gates.
 
 Phase 17 remains blocked at `P17-01`: no verified canonical KvK identity/evidence and supported workflow profile exists. No KvK specialization was implemented.
 
 | Phase range | Current delivery state | Remaining release evidence |
 | --- | --- | --- |
-| 13–16 | Implementation present | PHP tests, Pint, PHPStan and immutable-candidate gates |
+| 13–16 | Complete | Acceptance matrix and containing-candidate gates green |
 | 17 | Blocked by identity/evidence gate | Canonical identity, provenance and reviewed workflow dimensions before code |
-| 18–20 | Implementation present | PHP tests, Pint, PHPStan and immutable-candidate gates |
-| 21 | Existing implementation reconciled | Immutable containing-candidate verification |
-| 22–24 | Implementation present | PHP tests, Pint, PHPStan and immutable-candidate gates |
-| 25 | Verification in progress | CI/security, visual, production-image, clean-database/staging and recovery evidence on one SHA |
+| 18–20 | Complete | Acceptance matrix and containing-candidate gates green |
+| 21 | Complete | Reconciliation and containing-candidate gates green |
+| 22–24 | Complete | Acceptance matrix and containing-candidate gates green |
+| 25 | Complete | All applicable gates green on the final containing candidate |
 
 ## Screenshot Intake — Bear Hunt reconciliation
 
@@ -142,7 +142,7 @@ The previous global ledger contained stale status labels for phases 3, 4, 7, 11 
 8. Evidence deletion/redaction never silently removes accepted destination truth.
 9. No compatibility shims, legacy routes, dual reads/writes or placeholder ownership survive closeout.
 
-Transfer and Governor Progression Screenshot Intake are separate selected extensions below. They reuse these Evidence invariants but have their own typed schemas, destination owner Actions and acceptance criteria.
+Transfer and Governor Progression Screenshot Intake are separate current complete capabilities below. They reuse these Evidence invariants but have their own typed schemas, destination owner Actions and acceptance criteria.
 
 ## Capability Extension Program delivery queue
 
@@ -157,18 +157,18 @@ Phase 0 is documentation-only. No application code, migration, route, frontend c
 | 2 | Current complete capability | Complete | Assistant operational-self intents and safe handoffs | `AE-04`–`AE-12`, plus `PX-*`: Participation/BattlePlan/Transfer/Territory self reads are authorized/bounded; write-like requests perform zero mutation and only navigate to canonical owner workflows. |
 | 3 | Current complete capability | Complete | Event Readiness | `ER-01`–`ER-12`, `EC-01`–`EC-28`, plus `PX-*`: occurrence-scoped capability-aware pre-Event readiness composed from bounded owner projections with explicit blockers/source/action links, query-budget coverage and no persisted readiness state machine. |
 | 4 | Current complete capability | Complete | Event Closeout | `ER-01`–`ER-12`, `EC-01`–`EC-28`, plus `PX-*`: occurrence-scoped post-Event attendance/Rally/Results/Evidence/review/Debrief completion composed with explicit missing semantics, owner correction links and no Event Command write path. |
-| 5 | Selected extension | Verification in progress | Kingdom Transfer Screenshot Intake | Implementation and typed tests exist for `TE-01`–`TE-12`; immutable containing-candidate release evidence remains required. |
-| 6 | Selected extension | Verification in progress | Governor Progression Screenshot Intake | Implementation and typed tests exist for `GE-01`–`GE-12`; immutable containing-candidate release evidence remains required. |
-| 7 | Current complete capability | Complete subject to containing-SHA evidence | Progression Goal Planner | `GP-*` implementation and reconciled UX/tests exist; the calculator delivery ledger remains the exact verification authority. |
+| 5 | Current complete capability | Complete | Kingdom Transfer Screenshot Intake | `TE-01`–`TE-12`, typed fixtures, owner commits, recovery, UX and containing-candidate gates are complete. |
+| 6 | Current complete capability | Complete | Governor Progression Screenshot Intake | `GE-01`–`GE-12`, pinned normalization, append-only Roster commits, recovery, UX and containing-candidate gates are complete. |
+| 7 | Current complete capability | Complete | Progression Goal Planner | `GP-*` implementation and reconciled UX/tests exist; the calculator delivery ledger remains the exact verification authority. |
 | 8 | Evidence-gated extension | Complete family dispositions | Calculator evidence qualification per family | Governor Gear and Governor Charms are qualified; Hero Gear/Mastery and Troops are evidence-incomplete, Research has a source gap, and Buildings/Truegold has an evidence conflict. |
 | 9 | Evidence-gated extension | Qualified families implemented; others correctly unavailable | Evidence-backed calculators | Governor Gear and Governor Charms calculators consume their pinned qualified release. No other family is exposed. |
 | 10 | Current complete capability | Complete | Territory plan vs observed state | `TR-01`–`TR-08`, plus `PX-*`: immutable desired plan versus dated observed evidence, typed coordinate tolerance, explicit stale/missing semantics, no plan/map rewrite from observation. |
 | 11 | Current complete capability | Complete | Intelligence change signals | `IS-01`–`IS-08`, `ICD-01`–`ICD-30`, plus `PX-*`: deterministic source-cited signals over authorized histories, typed thresholds/windows, explicit unsupported complete-source absence, no inferred strategic intent, privacy-safe telemetry, scoped consumer UX and green release evidence. |
-| 12 | Selected extension | Active | Full reconciliation and release closeout | `PX-01`–`PX-15`: containing-candidate verification remains open for selected Evidence extensions and current branch reconciliation. |
+| 12 | Current complete capability | Complete | Full reconciliation and release closeout | `PX-01`–`PX-15`: documentation, selected Evidence extensions and containing-candidate verification are reconciled. |
 
-`Verification in progress` means implementation exists but the extension still remains a Selected extension until its required release evidence and documentation reconciliation are complete. `Not started` means the approved product contract exists but the implementation outcome must not be described in present tense. `Blocked pending qualification` is intentional evidence gating, not an implementation defect.
+`Blocked pending qualification` and explicit incomplete/gap/conflict calculator-family dispositions are intentional evidence gating, not implementation defects. A future material regression reopens the affected completed row.
 
-Phase 12 remains open because phases 5 and 6 still require immutable-candidate evidence and current branch reconciliation; evidence-gated families intentionally retain their explicit dispositions. Phase 11 completion does not imply global program closeout. Phases 13–25 are separately governed by [Kingshot Capability Expansion Program](kingshot-capability-expansion-program.md).
+Phase 12 is complete. Evidence-gated calculator families intentionally retain their explicit dispositions. Phases 13–25 are complete except Phase 17, whose KvK identity/evidence gate remains correctly blocked and is separately governed by [Kingshot Capability Expansion Program](kingshot-capability-expansion-program.md).
 
 ## Calculator evidence qualification ledger
 

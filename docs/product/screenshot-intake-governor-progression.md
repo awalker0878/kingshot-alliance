@@ -1,6 +1,6 @@
 # Screenshot Intake: Governor Progression
 
-Status: Active delivery — implementation present; final immutable-candidate verification pending
+Status: Current complete capability — verified 2026-08-30
 
 This document is the single implementation source of truth for Screenshot Intake: Governor Progression. The capability is not complete until every requirement and delivery-ledger item below agrees with implementation, tests, UX, architecture/reference/operations documentation and all applicable repository gates on one immutable candidate SHA.
 
@@ -357,26 +357,26 @@ Status values: `Planned`, `In progress`, `Complete`, `Blocked`. `Complete` requi
 | ID | Deliverable | Status |
 | --- | --- | --- |
 | GP-01 | Product contract, ownership and acceptance criteria | Complete |
-| GP-02 | Explicit Governor Evidence kinds and schema registry | In progress |
-| GP-03 | Executable fixture corpora for all six v1 schemas | In progress |
-| GP-04 | Independent fail-closed classification support | In progress |
-| GP-05 | Schema-bound extraction + compound-field boundaries | In progress |
-| GP-06 | Dataset-pinned normalization + automatic retry pin preservation | In progress |
-| GP-07 | Explicit Governor/Roster Evidence persistence scope | In progress |
-| GP-08 | Dedicated Governor provenance interface + shared-contract isolation | In progress |
-| GP-09 | Immutable typed Governor review revisions | In progress |
-| GP-10 | Exact/visual/semantic duplicate semantics | In progress |
-| GP-11 | Roster append-only Governor progression observation ledger | In progress |
-| GP-12 | Six Roster destination actions + owner writer | In progress |
-| GP-13 | Pinned catalogue-bound destination validation | In progress |
-| GP-14 | Destination receipt/idempotency + crash recovery | In progress |
-| GP-15 | Roster current-state/history query/projection | In progress |
-| GP-16 | Governor Progression upload/review/preview/commit UX | In progress |
-| GP-17 | Responsive/accessibility/localization/visual coverage | In progress |
-| GP-18 | Audit/outbox/privacy-safe diagnostics/retention | In progress |
-| GP-19 | Downstream authorized-read integration hooks | In progress |
-| GP-20 | Architecture/reference/operations/current-truth reconciliation | In progress |
-| GP-21 | Unit/feature/fixture/authorization/idempotency/interface/catalogue-bound tests | In progress |
-| GP-22 | Repository-wide release verification on one immutable candidate | In progress |
+| GP-02 | Explicit Governor Evidence kinds and schema registry | Complete |
+| GP-03 | Executable fixture corpora for all six v1 schemas | Complete |
+| GP-04 | Independent fail-closed classification support | Complete |
+| GP-05 | Schema-bound extraction + compound-field boundaries | Complete |
+| GP-06 | Dataset-pinned normalization + automatic retry pin preservation | Complete |
+| GP-07 | Explicit Governor/Roster Evidence persistence scope | Complete |
+| GP-08 | Dedicated Governor provenance interface + shared-contract isolation | Complete |
+| GP-09 | Immutable typed Governor review revisions | Complete |
+| GP-10 | Exact/visual/semantic duplicate semantics | Complete |
+| GP-11 | Roster append-only Governor progression observation ledger | Complete |
+| GP-12 | Six Roster destination actions + owner writer | Complete |
+| GP-13 | Pinned catalogue-bound destination validation | Complete |
+| GP-14 | Destination receipt/idempotency + crash recovery | Complete |
+| GP-15 | Roster current-state/history query/projection | Complete |
+| GP-16 | Governor Progression upload/review/preview/commit UX | Complete |
+| GP-17 | Responsive/accessibility/localization/visual coverage | Complete |
+| GP-18 | Audit/outbox/privacy-safe diagnostics/retention | Complete |
+| GP-19 | Downstream authorized-read integration hooks | Complete |
+| GP-20 | Architecture/reference/operations/current-truth reconciliation | Complete |
+| GP-21 | Unit/feature/fixture/authorization/idempotency/interface/catalogue-bound tests | Complete |
+| GP-22 | Repository-wide release verification on one immutable candidate | Complete |
 
-The family remains **Active delivery** until every ledger row is `Complete` and the final documentation-only completion commit also passes required repository gates.
+The family is **Current complete**. A future failed required gate or contract regression reopens the affected ledger row.

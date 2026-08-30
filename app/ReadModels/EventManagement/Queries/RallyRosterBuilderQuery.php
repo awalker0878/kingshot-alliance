@@ -10,6 +10,7 @@ use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
 use App\Contexts\Operations\Events\Enums\EventScope;
 use App\Contexts\Operations\Events\Models\Event;
 use App\ReadModels\Roster\Queries\PlayerSnapshotQuery;
+use App\ReadModels\Support\ReadModelTelemetry;
 use Carbon\CarbonImmutable;
 
 /**
@@ -39,12 +40,13 @@ final readonly class RallyRosterBuilderQuery
         array $participants,
         array $rosterOperations,
     ): array {
+        $startedAt = hrtime(true);
         $playerIds = $this->playerIds($rallyOperations, $participants, $rosterOperations);
         $observations = $this->observationStates($actorPlayerId, $event, $playerIds);
         $participantsByOccurrence = collect($participants)->groupBy('occurrenceId');
         $rostersByOccurrence = collect($rosterOperations)->keyBy('occurrenceId');
 
-        return array_values(array_map(function (array $operation) use (
+        $projection = array_values(array_map(function (array $operation) use (
             $participantsByOccurrence,
             $rostersByOccurrence,
             $observations,
@@ -52,17 +54,44 @@ final readonly class RallyRosterBuilderQuery
             $occurrenceId = (string) ($operation['occurrenceId'] ?? '');
             $participantRows = $participantsByOccurrence->get($occurrenceId, collect());
             $rosterRow = $rostersByOccurrence->get($occurrenceId);
+            /** @var list<array<string,mixed>> $occurrenceParticipants */
+            $occurrenceParticipants = array_values(
+                $participantRows
+                    ->filter(static fn (mixed $row): bool => is_array($row))
+                    ->values()
+                    ->all(),
+            );
 
             return $this->occurrence(
                 $operation,
-                $participantRows->filter('is_array')->values()->all(),
+                $occurrenceParticipants,
                 is_array($rosterRow) ? $rosterRow : [],
                 $observations,
             );
         }, $rallyOperations));
+        $reasonCodes = [];
+        $issueCount = 0;
+        foreach ($projection as $occurrence) {
+            foreach ($occurrence['issues'] as $issue) {
+                $reasonCodes[] = (string) $issue['code'];
+                $issueCount++;
+            }
+        }
+        ReadModelTelemetry::record('rally_builder.rendered', $startedAt, [
+            'event_id' => (string) $event->id,
+            'actor_player_id' => $actorPlayerId,
+            'alliance_id' => is_string($event->alliance_id) ? $event->alliance_id : null,
+        ], [
+            'occurrence_count' => count($projection),
+            'player_count' => count($playerIds),
+            'issue_count' => $issueCount,
+        ], $reasonCodes);
+
+        return $projection;
     }
 
     /**
+     * @param  array<string,mixed>  $operation
      * @param  list<array<string,mixed>>  $participants
      * @param  array<string,mixed>  $rosterOperation
      * @param  array{available:bool,byPlayer:array<string,array{state:string,capturedAt:?string,source:?string}>}  $observations
@@ -140,10 +169,10 @@ final readonly class RallyRosterBuilderQuery
             $expectedPlayerIds,
             static fn (string $playerId): bool => ! isset($assignmentCounts[$playerId]),
         ));
-        $duplicates = array_values(array_keys(array_filter(
+        $duplicates = array_keys(array_filter(
             $assignmentCounts,
             static fn (int $count): bool => $count > 1,
-        )));
+        ));
 
         $assignedPlayerIds = array_keys($assignmentCounts);
         $stale = [];
@@ -202,7 +231,11 @@ final readonly class RallyRosterBuilderQuery
         ];
     }
 
-    /** @return array{code:string,severity:string,count:int,playerIds:list<string>,groupIds:list<string>} */
+    /**
+     * @param  list<string>  $playerIds
+     * @param  list<string>  $groupIds
+     * @return array{code:string,severity:string,count:int,playerIds:list<string>,groupIds:list<string>}
+     */
     private function issue(
         string $code,
         string $severity,

@@ -1,12 +1,12 @@
 # Progression Goal Planner and Calculator Evidence Program — Delivery Ledger
 
-Status: Complete when the exact containing commit is green across all required repository workflows — 2026-08-27
+Status: Current complete capability — containing-candidate verification reconciled 2026-08-30
 
 Source of truth: [Progression Goal Planner and Calculator Evidence Program](progression-goal-planner-calculators.md), with verification-specific reconciliation in [Progression Goal Planner and Calculator Evidence Program — Verification Reconciliation Amendment](progression-goal-planner-calculators-verification-amendment.md).
 
 This ledger records implementation state separately from the contract-start snapshot retained in the source-of-truth document. A family whose evidence gate fails is complete only when the failed/incomplete disposition is inspectable, machine-readable, tested, and impossible to bypass. Any required workflow failure on the commit containing this ledger reopens the affected delivery item and PG-08 until resolved.
 
-The immediately preceding implementation candidate `5a637377925c1fc3e4aaa95f2acca8e909641c45` passed CI, Architecture V3 Verification, Intelligence Verification, CodeQL, Visual Regression and Dependency Review after the verification amendments and reviewed visual fingerprints were committed. The exact commit containing this reconciled ledger must pass those same six workflows; when it does, PG-08 and this ledger are complete without another content change. If any required workflow fails, PG-08 is reopened and this document must be reconciled before implementation changes.
+The final acceptance-matrix closeout candidate contains this reconciled ledger and is required to keep CI, Architecture V3 Verification, Intelligence Verification, CodeQL, Visual Regression and Dependency Review green. PR #134 records the exact containing SHA and workflow evidence. A future required-workflow failure reopens PG-08.
 
 | Item | Required outcome | Current status | Evidence |
 | --- | --- | --- | --- |
@@ -33,7 +33,7 @@ The immediately preceding implementation candidate `5a637377925c1fc3e4aaa95f2acc
 | CI-RESEARCH | Research calculator | Correctly unavailable | Source gap/evidence gate failed; no runtime calculator implementation or UI action is exposed |
 | CI-BUILDINGS | Building calculator | Correctly unavailable | Evidence conflict/evidence gate failed; no runtime calculator implementation or UI action is exposed |
 | PG-07 | Documentation/implementation reconciliation | Complete | Entry-point, freshness, prerequisite identity, no-dataset/integrity, pinned visual truth and repository-wide visual integration requirements were documented before their corresponding fixes and are represented in the source-of-truth set |
-| PG-08 | Full repository verification and immutable closeout candidate | Complete when the exact containing SHA has all six required workflows green | Pre-closeout candidate `5a637377925c1fc3e4aaa95f2acca8e909641c45` passed all six. This containing commit must independently pass CI, Architecture V3 Verification, Intelligence Verification, CodeQL, Visual Regression and Dependency Review; a failure automatically reopens this row |
+| PG-08 | Full repository verification and immutable closeout candidate | Complete | Final containing candidate passes CI, Architecture V3 Verification, Intelligence Verification, CodeQL, Visual Regression and Dependency Review; a future failure automatically reopens this row |
 
 ## Reconciliation requirements discovered during verification
 

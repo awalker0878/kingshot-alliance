@@ -1,6 +1,6 @@
 # Capability Extension Program
 
-Status: Active extension program — phases 0–4 and 10–11 complete — 2026-08-28
+Status: Current complete program; calculator families retain independent evidence-gated dispositions — 2026-08-30
 
 Date: 2026-08-24
 
@@ -14,7 +14,7 @@ A delivery item is complete only when its domain/application behavior, persisten
 
 Use the strong owner capabilities already delivered in GameWorld, Operations, Alliance, Intelligence, Communications, Platform and ReadModels to make the product more connected and useful without duplicating state or weakening provenance.
 
-The program extensions are listed below. Alliance Assistant Game Data and bounded operational-self queries, Event Readiness & Closeout, Territory plan versus observed-state reconciliation, and deterministic Intelligence change signals are now **Current complete capabilities**; the remaining items retain the Selected extension or Evidence-gated extension state recorded in the delivery ledger:
+The program extensions are listed below. All non-calculator delivery rows are **Current complete capabilities**. Calculator qualification and runtime availability remain independently evidence-gated by family as recorded in the delivery ledger:
 
 1. Alliance Assistant Game Data and bounded operational-self queries;
 2. Event Readiness and Event Closeout composition;
@@ -247,7 +247,7 @@ This is not persisted as authoritative Event state. Each dimension retains its o
 - **ER-11** desktop/mobile/keyboard/screen-reader UX exposes the primary blockers without requiring a wide table or color-only coding.
 - **ER-12** owner behavior, composition, authorization, missing-data semantics, query budgets, localization and visual regression are verified.
 
-## Selected extension 3 — Kingdom Transfer Screenshot Intake
+## Current complete capability — Kingdom Transfer Screenshot Intake
 
 ### Outcome
 
@@ -283,7 +283,7 @@ Reviewed meaning may produce only existing or explicitly documented `KingdomTran
 - **TE-11** retention/deletion of Evidence does not silently delete accepted Transfer observations required for historical explanation; destination correction uses the owner workflow.
 - **TE-12** authorization, idempotency, duplicate isolation, crash recovery, eligibility reevaluation, audit/observability and visual coverage are verified.
 
-## Selected extension 4 — Governor Progression Screenshot Intake
+## Current complete capability — Governor Progression Screenshot Intake
 
 ### Outcome
 
@@ -320,7 +320,7 @@ OCR text cannot create, rename or mutate Player/Hero catalogue identity.
 - **GE-11** no screenshot-derived field is promoted to `GameWorld/Progression` catalogue truth.
 - **GE-12** authorization, history semantics, dataset pinning, duplicate isolation, recovery, audit/observability and visual coverage are verified.
 
-## Selected extension 5 — Progression Goal Planner
+## Current complete capability — Progression Goal Planner
 
 ### Outcome
 
@@ -483,18 +483,18 @@ The program is implemented continuously in this order unless a documented depend
 | 2 | Current complete capability | Assistant operational-self intents and safe owner-workflow handoffs |
 | 3 | Current complete capability | Event Readiness |
 | 4 | Current complete capability | Event Closeout |
-| 5 | Selected extension | Kingdom Transfer Screenshot Intake |
-| 6 | Selected extension | Governor Progression Screenshot Intake |
-| 7 | Selected extension | Progression Goal Planner |
+| 5 | Current complete capability | Kingdom Transfer Screenshot Intake |
+| 6 | Current complete capability | Governor Progression Screenshot Intake |
+| 7 | Current complete capability | Progression Goal Planner |
 | 8 | Evidence-gated extension | Calculator evidence qualification per family |
 | 9 | Evidence-gated extension | Calculators for qualified families only |
 | 10 | Current complete capability | Territory observed-state reconciliation |
 | 11 | Current complete capability | Intelligence change signals |
-| 12 | Selected extension | Full spec/code/UX/authorization/provenance reconciliation and release closeout |
+| 12 | Current complete capability | Full spec/code/UX/authorization/provenance reconciliation and release closeout |
 
 No phase is considered complete merely because backend classes or a frontend page exist. Complete means its acceptance criteria and repository Definition of Done are satisfied on one immutable candidate.
 
-Phase 12 remains open. Completing Phase 11 does not imply that the unrelated Transfer/Progression screenshot, Goal Planner or calculator qualification/implementation phases are complete.
+Phase 12 is complete on the final containing candidate. Transfer/Progression Screenshot Intake and the Goal Planner are current complete capabilities; calculator families retain their explicit qualified, incomplete, gap or conflict dispositions.
 
 ## Program-wide acceptance criteria
 

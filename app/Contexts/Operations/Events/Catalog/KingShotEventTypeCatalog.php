@@ -76,7 +76,10 @@ final class KingShotEventTypeCatalog
         );
     }
 
-    /** @param list<EventScope> $scopes */
+    /**
+     * @param  list<EventScope>  $scopes
+     * @return array<string,mixed>
+     */
     private static function candidate(
         string $slug,
         EventCategory $category,
@@ -114,6 +117,7 @@ final class KingShotEventTypeCatalog
     /**
      * @param  list<EventScope>  $scopes
      * @param  list<EventWorkflowDimension>  $workflowDimensions
+     * @return array<string,mixed>
      */
     private static function type(
         string $slug,

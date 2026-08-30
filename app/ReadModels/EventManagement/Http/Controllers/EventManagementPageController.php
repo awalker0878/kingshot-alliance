@@ -134,7 +134,10 @@ final class EventManagementPageController extends Controller
         ]);
     }
 
-    /** @return array<string, mixed> */
+    /**
+     * @param  array<string,mixed>  $profile
+     * @return array<string,mixed>
+     */
     private function managementPayload(Event $event, array $profile): array
     {
         return [

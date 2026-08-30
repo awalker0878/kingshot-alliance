@@ -13,10 +13,22 @@ use App\Contexts\Operations\Events\Enums\EventStatus;
 use App\Contexts\Operations\Events\Models\Event;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Events\Models\EventTypeScope;
+use App\Contexts\Operations\Participation\Enums\EventAttendanceStatus;
+use App\Contexts\Operations\Participation\Enums\EventResponseChoice;
+use App\Contexts\Operations\Participation\Enums\EventResponseSource;
+use App\Contexts\Operations\Participation\Models\EventAttendance;
+use App\Contexts\Operations\Participation\Models\EventResponse;
 use App\Contexts\Operations\Participation\Reminders\Enums\EventReminderAudience;
 use App\Contexts\Operations\Participation\Reminders\Enums\EventReminderTrigger;
 use App\Contexts\Operations\Participation\Reminders\Models\EventReminderRule;
+use App\Contexts\Operations\Rallies\Enums\RallyAssignmentRole;
+use App\Contexts\Operations\Rallies\Enums\RallyAssignmentStatus;
+use App\Contexts\Operations\Rallies\Models\RallyAssignment;
+use App\Contexts\Operations\Rallies\Models\RallyGroup;
 use App\Contexts\Operations\Results\Models\EventResult;
+use App\Contexts\Operations\Rosters\Enums\EventRosterType;
+use App\Contexts\Operations\Rosters\Models\EventRoster;
+use App\Contexts\Operations\Rosters\Models\EventRosterMember;
 use App\ReadModels\EventManagement\Queries\EventCommandQuery;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -180,6 +192,11 @@ final class EventCommandBehaviorV3Test extends TestCase
                 'status' => EventOccurrenceStatus::Completed,
                 'settings' => [],
             ]);
+            $this->recordCompleteOwnerFacts(
+                (string) $closedOccurrence->id,
+                $actor,
+                $alliance,
+            );
             EventResult::query()->create([
                 'occurrence_id' => (string) $closedOccurrence->id,
                 'outcome' => 'recorded',
@@ -275,6 +292,11 @@ final class EventCommandBehaviorV3Test extends TestCase
             durationMinutes: 60,
         );
         self::assertNotNull($created->firstOccurrenceId);
+        $this->recordCompleteOwnerFacts(
+            $created->firstOccurrenceId,
+            $actor,
+            $alliance,
+        );
 
         if ($reminder) {
             EventReminderRule::query()->create([
@@ -290,6 +312,63 @@ final class EventCommandBehaviorV3Test extends TestCase
         }
 
         return Event::query()->findOrFail($created->eventId);
+    }
+
+    private function recordCompleteOwnerFacts(
+        string $occurrenceId,
+        PlayerReference $actor,
+        AllianceReference $alliance,
+    ): void {
+        EventResponse::query()->create([
+            'occurrence_id' => $occurrenceId,
+            'player_id' => $actor->playerId,
+            'response' => EventResponseChoice::Going,
+            'source' => EventResponseSource::Self,
+            'responded_by_player_id' => $actor->playerId,
+            'responded_at' => now(),
+        ]);
+        EventAttendance::query()->create([
+            'occurrence_id' => $occurrenceId,
+            'player_id' => $actor->playerId,
+            'status' => EventAttendanceStatus::Present,
+            'recorded_by_player_id' => $actor->playerId,
+            'recorded_at' => now(),
+        ]);
+        $roster = EventRoster::query()->create([
+            'occurrence_id' => $occurrenceId,
+            'key' => 'primary',
+            'name' => 'Primary',
+            'roster_type' => EventRosterType::Roster,
+            'assignment_group' => 'primary',
+            'capacity' => 1,
+            'created_by_player_id' => $actor->playerId,
+            'updated_by_player_id' => $actor->playerId,
+        ]);
+        EventRosterMember::query()->create([
+            'roster_id' => (string) $roster->id,
+            'player_id' => $actor->playerId,
+            'alliance_id' => $alliance->allianceId,
+            'slot_number' => 1,
+            'assigned_by_player_id' => $actor->playerId,
+            'assigned_at' => now(),
+        ]);
+        $group = RallyGroup::query()->create([
+            'occurrence_id' => $occurrenceId,
+            'alliance_id' => $alliance->allianceId,
+            'name' => 'Primary Rally',
+            'created_by_player_id' => $actor->playerId,
+            'updated_by_player_id' => $actor->playerId,
+        ]);
+        RallyAssignment::query()->create([
+            'rally_group_id' => (string) $group->id,
+            'player_id' => $actor->playerId,
+            'role' => RallyAssignmentRole::Lead,
+            'status' => RallyAssignmentStatus::Participated,
+            'assigned_by_player_id' => $actor->playerId,
+            'assigned_at' => now(),
+            'recorded_by_player_id' => $actor->playerId,
+            'recorded_at' => now(),
+        ]);
     }
 
     /** @return array<string, mixed> */

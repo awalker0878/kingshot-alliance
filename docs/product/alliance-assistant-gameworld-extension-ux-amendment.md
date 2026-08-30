@@ -1,6 +1,6 @@
 # Alliance Assistant GameWorld extension — UX reconciliation amendment
 
-Status: Normative during active delivery — 2026-08-24
+Status: Current delivered amendment — 2026-08-30
 
 This file is a normative amendment to `docs/product/alliance-assistant-gameworld-extension.md` discovered during visual verification. It does not create a second delivery ledger; `AA-GW-010`, `AA-GW-011`, and `AA-GW-013` in the primary contract remain authoritative and Pending until verified.
 

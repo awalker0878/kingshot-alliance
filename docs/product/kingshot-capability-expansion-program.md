@@ -1,6 +1,6 @@
 # Kingshot Capability Expansion Program
 
-Status: Implementation complete through Phase 24; release verification open — 2026-08-29
+Status: Complete through Phase 25; Phase 17 remains correctly evidence-gated — 2026-08-30
 
 ## Outcome and non-negotiable boundaries
 
@@ -18,9 +18,9 @@ The implementation inventory on `main` supersedes stale global-ledger labels:
 
 | Extension | Reconciled state | Product truth |
 | --- | --- | --- |
-| Kingdom Transfer Screenshot Intake | Implementation present; immutable-candidate verification pending | Typed schemas, fixture corpus, review, duplicate/retry boundaries, scalar KingdomTransfers commit and destination tests exist. It remains selected until all containing-SHA gates pass. |
-| Governor Progression Screenshot Intake | Implementation present; immutable-candidate verification pending | Typed schemas, canonical dataset pinning, reviewed append-only Roster commits, retry and reference-boundary tests exist. It remains selected until all containing-SHA gates pass. |
-| Progression Goal Planner | Implemented; containing-SHA verification remains authoritative | Factual target/path comparison is present. Governor Gear and Governor Charms alone are qualified calculator families. Hero Gear/Mastery, Troops, Research and Buildings/Truegold remain unavailable with their documented incomplete/gap/conflict dispositions. |
+| Kingdom Transfer Screenshot Intake | Current complete capability | Typed schemas, fixture corpus, review, duplicate/retry boundaries, scalar KingdomTransfers commit, destination tests and containing-candidate gates are complete. |
+| Governor Progression Screenshot Intake | Current complete capability | Typed schemas, canonical dataset pinning, reviewed append-only Roster commits, retry/reference-boundary tests and containing-candidate gates are complete. |
+| Progression Goal Planner | Current complete capability | Factual target/path comparison and containing-candidate gates are complete. Governor Gear and Governor Charms alone are qualified calculator families; all other families remain unavailable with their documented dispositions. |
 
 No documentation assertion opens a calculator gate. The machine-readable qualification reports, immutable release/checksum checks and golden fixtures remain the authority.
 
@@ -161,19 +161,19 @@ No phase is promoted based on intent or a green subset. The exact immutable cand
 
 | Phase | Rows | Current state | Exit condition |
 | --- | --- | --- | --- |
-| 13 | P13-01–P13-19 | Implementation complete; local frontend/documentation gates green; PHP and immutable-candidate verification pending | Framework contract, typed consumers, legacy removal, Bear Hunt regression and full gates reconcile. |
-| 14 | P14-01 contract; P14-02 owner projection; P14-03 gaps/conflicts; P14-04 management UX; P14-05 auth/isolation; P14-06 tests/gates | Implementation complete; local frontend/documentation gates green; PHP and immutable-candidate verification pending | Every row implemented and verified without recommendation semantics. |
-| 15 | P15-01 contract; P15-02 progression; P15-03 participation/Bear; P15-04 BattlePlan/Transfer/Evidence; P15-05 UX/auth; P15-06 tests/gates | Implementation complete; local frontend/documentation gates green; PHP and immutable-candidate verification pending | Factual member profile is complete, bounded and provenance-preserving. |
-| 16 | P16-01 contract; P16-02 typed profile gate; P16-03 accepted history; P16-04 comparisons/signals; P16-05 Evidence state; P16-06 tests/gates | Implementation complete; local frontend/documentation gates green; PHP and immutable-candidate verification pending | Existing Debrief satisfies the expanded contract; containing-candidate verification remains open. |
+| 13 | P13-01–P13-19 | Complete — full acceptance and containing-candidate repository gates green | Framework contract, typed consumers, legacy removal, Bear Hunt regression and full gates reconcile. |
+| 14 | P14-01 contract; P14-02 owner projection; P14-03 gaps/conflicts; P14-04 management UX; P14-05 auth/isolation; P14-06 tests/gates | Complete — full acceptance and containing-candidate repository gates green | Every row implemented and verified without recommendation semantics. |
+| 15 | P15-01 contract; P15-02 progression; P15-03 participation/Bear; P15-04 BattlePlan/Transfer/Evidence; P15-05 UX/auth; P15-06 tests/gates | Complete — full acceptance and containing-candidate repository gates green | Factual member profile is complete, bounded and provenance-preserving. |
+| 16 | P16-01 contract; P16-02 typed profile gate; P16-03 accepted history; P16-04 comparisons/signals; P16-05 Evidence state; P16-06 tests/gates | Complete — full acceptance and containing-candidate repository gates green | Existing Debrief satisfies the expanded contract and containing-candidate verification is complete. |
 | 17 | P17-01 identity evidence; P17-02 workflow review; P17-03 profile; P17-04 composition; P17-05 UX; P17-06 tests/gates | Blocked at P17-01 | Acceptable Kingshot identity/workflow evidence exists; then all rows close. |
-| 18 | P18-01 onboarding contract; P18-02 typed extension seam; P18-03 disabled states; P18-04 architecture tests; P18-05 docs/gates | Implementation complete; local frontend/documentation gates green; PHP and immutable-candidate verification pending | New candidates cannot specialize without the documented gate. |
-| 19 | P19-01 contract; P19-02 Recruitment composition; P19-03 Transfer/Evidence; P19-04 delivery/arrival; P19-05 UX/auth; P19-06 tests/gates | Implementation complete; local frontend/documentation gates green; PHP and immutable-candidate verification pending | One authorized candidate journey spans owners without duplicated truth. |
-| 20 | P20-01 contract; P20-02 owner entry schema; P20-03 chronological composition; P20-04 provenance/links; P20-05 UX/auth; P20-06 tests/gates | Implementation complete; local frontend/documentation gates green; PHP and immutable-candidate verification pending | Authorized bounded timelines and underlying-fact links reconcile. |
-| 21 | P21-01 contract; P21-02 immutable intent; P21-03 observations; P21-04 comparison/resolution; P21-05 UX/auth; P21-06 tests/gates | Existing implementation reconciled; local frontend/documentation gates green; immutable-candidate verification pending | Existing Territory reconciliation satisfies this program contract. |
-| 22 | P22-01 contract; P22-02 attention schema; P22-03 owner composition; P22-04 handoffs; P22-05 UX/auth; P22-06 tests/gates | Implementation complete; local frontend/documentation gates green; PHP and immutable-candidate verification pending | R4/R5 surface covers the authorized Kingshot attention set without persistence. |
-| 23 | P23-01 trigger contract; P23-02 briefs; P23-03 delivery/idempotency; P23-04 handoffs; P23-05 UX/auth; P23-06 tests/gates | Implementation complete; local frontend/documentation gates green; PHP and immutable-candidate verification pending | All supported factual triggers and digest states are verified. |
-| 24 | P24-01 intent contract; P24-02 owner projections; P24-03 provenance; P24-04 safe handoffs; P24-05 UX/auth; P24-06 tests/gates | Implementation complete; local frontend/documentation gates green; PHP and immutable-candidate verification pending | Listed Kingshot questions are bounded, grounded and zero-write. |
-| 25 | P25-01 audits; P25-02 docs; P25-03 architecture; P25-04 operations; P25-05 full gates; P25-06 immutable evidence | Verification in progress; local frontend/documentation/build gates green; PHP/Pint/PHPStan/CI/staging evidence pending | No open non-evidence-blocked row remains and exact candidate is green. |
+| 18 | P18-01 onboarding contract; P18-02 typed extension seam; P18-03 disabled states; P18-04 architecture tests; P18-05 docs/gates | Complete — full acceptance and containing-candidate repository gates green | New candidates cannot specialize without the documented gate. |
+| 19 | P19-01 contract; P19-02 Recruitment composition; P19-03 Transfer/Evidence; P19-04 delivery/arrival; P19-05 UX/auth; P19-06 tests/gates | Complete — full acceptance and containing-candidate repository gates green | One authorized candidate journey spans owners without duplicated truth. |
+| 20 | P20-01 contract; P20-02 owner entry schema; P20-03 chronological composition; P20-04 provenance/links; P20-05 UX/auth; P20-06 tests/gates | Complete — full acceptance and containing-candidate repository gates green | Authorized bounded timelines and underlying-fact links reconcile. |
+| 21 | P21-01 contract; P21-02 immutable intent; P21-03 observations; P21-04 comparison/resolution; P21-05 UX/auth; P21-06 tests/gates | Complete — reconciliation and containing-candidate repository gates green | Existing Territory reconciliation satisfies this program contract. |
+| 22 | P22-01 contract; P22-02 attention schema; P22-03 owner composition; P22-04 handoffs; P22-05 UX/auth; P22-06 tests/gates | Complete — full acceptance and containing-candidate repository gates green | R4/R5 surface covers the authorized Kingshot attention set without persistence. |
+| 23 | P23-01 trigger contract; P23-02 briefs; P23-03 delivery/idempotency; P23-04 handoffs; P23-05 UX/auth; P23-06 tests/gates | Complete — full acceptance and containing-candidate repository gates green | All supported factual triggers and digest states are verified. |
+| 24 | P24-01 intent contract; P24-02 owner projections; P24-03 provenance; P24-04 safe handoffs; P24-05 UX/auth; P24-06 tests/gates | Complete — full acceptance and containing-candidate repository gates green | Listed Kingshot questions are bounded, grounded and zero-write. |
+| 25 | P25-01 audits; P25-02 docs; P25-03 architecture; P25-04 operations; P25-05 full gates; P25-06 immutable evidence | Complete — acceptance matrix, documentation reconciliation and all applicable repository gates green on the containing candidate | No open non-evidence-blocked row remains and exact candidate is green. |
 
 ## Continuous reconciliation rule
 

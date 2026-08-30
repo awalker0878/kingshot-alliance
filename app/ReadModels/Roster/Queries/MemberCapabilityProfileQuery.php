@@ -21,6 +21,7 @@ use App\Contexts\Operations\Access\Enums\OperationsPermission;
 use App\Contexts\Operations\Events\Enums\EventScope;
 use App\Contexts\Operations\Events\Services\EventAuthorization;
 use App\ReadModels\EventAnalysis\Queries\EventPlayerHistoryQuery;
+use App\ReadModels\Support\ReadModelTelemetry;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
@@ -51,6 +52,7 @@ final readonly class MemberCapabilityProfileQuery
         AllianceRosterEntry $entry,
         PlayerReference $player,
     ): array {
+        $startedAt = hrtime(true);
         if (! $this->intelligenceAuthorization->allows(
             $actorPlayerId,
             $allianceId,
@@ -99,7 +101,7 @@ final readonly class MemberCapabilityProfileQuery
                 'latestAt' => null,
             ];
 
-        return [
+        $projection = [
             'eventAccess' => $canViewEvents ? 'available' : 'unavailable',
             'events' => $this->eventSummary($events),
             'bearHunt' => $this->bearHuntSummary($events),
@@ -112,9 +114,29 @@ final readonly class MemberCapabilityProfileQuery
             'transfer' => $this->transfer($actorPlayerId, $allianceId, $player->playerId),
             'evidence' => $evidence,
         ];
+        ReadModelTelemetry::record('member_capability.rendered', $startedAt, [
+            'actor_player_id' => $actorPlayerId,
+            'target_player_id' => $player->playerId,
+            'alliance_id' => $allianceId,
+            'roster_entry_id' => (string) $entry->id,
+        ], [
+            'event_count' => count($events),
+            'rally_count' => count($projection['rallies']),
+            'battle_assignment_count' => count($projection['battleAssignments']),
+            'evidence_count' => (int) ($evidence['total'] ?? 0),
+        ], [
+            $projection['eventAccess'],
+            (string) ($projection['transfer']['access'] ?? 'unavailable'),
+            (string) ($evidence['access'] ?? 'unavailable'),
+        ]);
+
+        return $projection;
     }
 
-    /** @param list<array<string,mixed>> $events */
+    /**
+     * @param  list<array<string,mixed>>  $events
+     * @return array<string,mixed>
+     */
     private function eventSummary(array $events): array
     {
         $completed = 0;
@@ -148,7 +170,10 @@ final readonly class MemberCapabilityProfileQuery
         ];
     }
 
-    /** @param list<array<string,mixed>> $events */
+    /**
+     * @param  list<array<string,mixed>>  $events
+     * @return array<string,mixed>
+     */
     private function bearHuntSummary(array $events): array
     {
         $runs = array_values(array_filter($events, static fn (array $event): bool => ($event['eventType']['slug'] ?? null) === 'bear-hunt'));
@@ -167,14 +192,17 @@ final readonly class MemberCapabilityProfileQuery
         ];
     }
 
-    /** @param list<string> $occurrenceIds @return list<array<string,mixed>> */
+    /**
+     * @param  list<string>  $occurrenceIds
+     * @return list<array<string,mixed>>
+     */
     private function rallyHistory(string $allianceId, string $playerId, array $occurrenceIds): array
     {
         if ($occurrenceIds === []) {
             return [];
         }
 
-        return DB::table('rally_assignments as assignment')
+        return array_values(DB::table('rally_assignments as assignment')
             ->join('rally_groups as rally', 'rally.id', '=', 'assignment.rally_group_id')
             ->join('event_occurrences as occurrence', 'occurrence.id', '=', 'rally.occurrence_id')
             ->join('events as event', 'event.id', '=', 'occurrence.event_id')
@@ -205,17 +233,20 @@ final readonly class MemberCapabilityProfileQuery
                 'respondedAt' => $row->responded_at === null ? null : (string) $row->responded_at,
                 'recordedAt' => $row->recorded_at === null ? null : (string) $row->recorded_at,
             ])
-            ->all();
+            ->all());
     }
 
-    /** @param list<string> $occurrenceIds @return list<array<string,mixed>> */
+    /**
+     * @param  list<string>  $occurrenceIds
+     * @return list<array<string,mixed>>
+     */
     private function battleAssignmentHistory(string $allianceId, string $playerId, array $occurrenceIds): array
     {
         if ($occurrenceIds === []) {
             return [];
         }
 
-        return DB::table('event_objective_assignments as assignment')
+        return array_values(DB::table('event_objective_assignments as assignment')
             ->join('event_objectives as objective', 'objective.id', '=', 'assignment.objective_id')
             ->join('event_occurrences as occurrence', 'occurrence.id', '=', 'assignment.occurrence_id')
             ->join('events as event', 'event.id', '=', 'occurrence.event_id')
@@ -252,7 +283,7 @@ final readonly class MemberCapabilityProfileQuery
                 'status' => (string) $row->status,
                 'assignedAt' => $row->assigned_at === null ? null : (string) $row->assigned_at,
             ])
-            ->all();
+            ->all());
     }
 
     /** @return array<string,mixed> */

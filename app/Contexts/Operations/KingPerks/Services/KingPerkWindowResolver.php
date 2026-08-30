@@ -44,8 +44,7 @@ final class KingPerkWindowResolver
             ];
         }
 
-        $minutes = data_get($event->settings, 'preparation_phase_minutes')
-            ?? data_get($event->typeScope?->default_settings, 'preparation_phase_minutes');
+        $minutes = data_get($event->settings, 'preparation_phase_minutes');
 
         if (! is_numeric($minutes) || (int) $minutes < 1) {
             throw ValidationException::withMessages([

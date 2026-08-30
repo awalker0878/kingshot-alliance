@@ -20,6 +20,7 @@ use App\Contexts\Intelligence\Roster\Http\Controllers\RosterController;
 use App\Contexts\Intelligence\Roster\Http\Controllers\RosterCsvController;
 use App\Contexts\Intelligence\Sharing\Http\Controllers\KingdomIntelligenceSharingController;
 use App\ReadModels\KingdomIntelligence\Http\Controllers\KingdomAllianceIntelligenceController;
+use App\ReadModels\KingdomIntelligence\Http\Controllers\KingdomAllianceObservationReadController;
 use App\ReadModels\KingdomSettings\Http\Controllers\KingdomSettingsController;
 use App\ReadModels\Roster\Http\Controllers\PlayerSnapshotHistoryController;
 use App\ReadModels\Roster\Http\Controllers\RosterImportReadController;
@@ -41,7 +42,7 @@ Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->gro
     Route::get('/alliance/kingdom-alliances', [KingdomAllianceController::class, 'index'])->name('alliance.kingdom-alliances.index');
     Route::get('/alliance/kingdom-alliances/manage', [KingdomAllianceController::class, 'manage'])->name('alliance.kingdom-alliances.manage');
     Route::get('/alliance/kingdom-alliances/intelligence', [KingdomAllianceIntelligenceController::class, 'index'])->name('alliance.kingdom-alliances.intelligence');
-    Route::get('/alliance/kingdom-alliances/{tracking}/history', [KingdomAllianceObservationController::class, 'show'])->name('alliance.kingdom-alliances.history');
+    Route::get('/alliance/kingdom-alliances/{tracking}/history', KingdomAllianceObservationReadController::class)->name('alliance.kingdom-alliances.history');
     Route::get('/alliance/kingdom-alliances/{tracking}/diplomacy', [KingdomAllianceDiplomacyController::class, 'show'])->name('alliance.kingdom-alliances.diplomacy.show');
     Route::get('/alliance/kingdom-alliances/{tracking}/diplomacy/contacts', [KingdomAllianceDiplomacyContactController::class, 'show'])->name('alliance.kingdom-alliances.diplomacy.contacts.show');
     Route::get('/alliance/kingdom-ingestion/manage', [KingdomIngestionController::class, 'manage'])->name('alliance.kingdom-ingestion.manage');

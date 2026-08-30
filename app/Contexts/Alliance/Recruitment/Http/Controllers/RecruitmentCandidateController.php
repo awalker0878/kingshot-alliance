@@ -32,7 +32,6 @@ use App\Contexts\Alliance\Recruitment\Models\RecruitmentStageHistory;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentTag;
 use App\Contexts\Alliance\Recruitment\Queries\RecruitmentDuplicateFinder;
 use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
-use App\ReadModels\RecruitmentManagement\Queries\TransferCampaignWorkspaceQuery;
 use App\Shared\Infrastructure\Http\Controller;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -52,7 +51,6 @@ final class RecruitmentCandidateController extends Controller
         RecruitmentDuplicateFinder $duplicates,
         AllianceReferenceQuery $alliances,
         PlayerReferenceQuery $players,
-        TransferCampaignWorkspaceQuery $transferCampaign,
         string $candidate,
     ): Response {
         $user = $this->user($request);
@@ -294,11 +292,6 @@ final class RecruitmentCandidateController extends Controller
                 RecruitmentOnboardingStatus::cases(),
             ),
             'issuedMembershipInvitationLink' => $request->session()->pull('recruitmentMembershipInvitationLink'),
-            'transferCampaign' => $transferCampaign->forCandidate(
-                $scope->playerId,
-                $scope->allianceId,
-                $record,
-            ),
         ]);
     }
 

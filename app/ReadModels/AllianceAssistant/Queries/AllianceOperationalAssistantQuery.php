@@ -92,7 +92,6 @@ final readonly class AllianceOperationalAssistantQuery
                 'assistant.answers.territoryComparison',
                 'assistant.answers.territoryComparisonNotAvailable',
             ),
-            default => throw new AuthorizationException,
         };
     }
 

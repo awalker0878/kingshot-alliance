@@ -269,7 +269,7 @@ function timelineDetail(item: TimelineItem): string {
       </div>
     </section>
 
-    <section class="ks-surface mt-8 p-6" aria-labelledby="intelligence-timeline-heading">
+    <section class="ks-surface mt-8 min-w-0 p-6" aria-labelledby="intelligence-timeline-heading">
       <p class="text-sm font-semibold tracking-[0.2em] text-[var(--ks-gold)] uppercase">
         {{ t('kingdomP7B.timelineEyebrow') }}
       </p>
@@ -279,20 +279,20 @@ function timelineDetail(item: TimelineItem): string {
       <p class="mt-1 max-w-4xl text-sm leading-6 text-[var(--ks-text-secondary)]">
         {{ t('kingdomP7B.timelineHelp') }}
       </p>
-      <ol v-if="timeline.length" class="mt-6 space-y-4">
+      <ol v-if="timeline.length" class="mt-6 min-w-0 space-y-4">
         <li
           v-for="item in timeline"
           :key="item.id"
-          class="relative border-s border-[var(--ks-border-strong)] ps-5"
+          class="relative min-w-0 border-s border-[var(--ks-border-strong)] ps-5"
         >
           <span
             class="absolute -start-1.5 top-1 h-3 w-3 rounded-full border border-[var(--ks-gold-dark)] bg-[var(--ks-teal)]"
             aria-hidden="true"
           />
           <div class="flex flex-wrap items-start justify-between gap-3">
-            <div>
+            <div class="min-w-0">
               <h3 class="font-semibold">{{ timelineHeading(item) }}</h3>
-              <p class="mt-1 text-sm text-[var(--ks-text-secondary)]">
+              <p class="mt-1 text-sm break-words text-[var(--ks-text-secondary)]">
                 {{ timelineDetail(item) }}
               </p>
             </div>
@@ -305,26 +305,26 @@ function timelineDetail(item: TimelineItem): string {
           <dl
             class="mt-3 grid gap-2 text-xs text-[var(--ks-text-muted)] sm:grid-cols-2 xl:grid-cols-4"
           >
-            <div>
+            <div class="min-w-0">
               <dt>{{ t('kingdomP7B.timelineObservedAt') }}</dt>
               <dd class="mt-1 text-[var(--ks-text-secondary)]">
                 {{ formatDate(item.observedAt) }}
               </dd>
             </div>
-            <div>
+            <div class="min-w-0">
               <dt>{{ t('kingdomP7B.timelineOwner') }}</dt>
-              <dd class="mt-1 text-[var(--ks-text-secondary)]">{{ item.owner }}</dd>
+              <dd class="mt-1 break-all text-[var(--ks-text-secondary)]">{{ item.owner }}</dd>
             </div>
-            <div>
+            <div class="min-w-0">
               <dt>{{ t('kingdomP7B.timelineSource') }}</dt>
-              <dd class="mt-1 break-words text-[var(--ks-text-secondary)]">
+              <dd class="mt-1 break-all text-[var(--ks-text-secondary)]">
                 {{ item.source.type
                 }}{{ item.source.reference ? ` · ${item.source.reference}` : '' }}
               </dd>
             </div>
-            <div>
+            <div class="min-w-0">
               <dt>{{ t('kingdomP7B.timelineEvidenceConfidence') }}</dt>
-              <dd class="mt-1 text-[var(--ks-text-secondary)]">
+              <dd class="mt-1 break-words text-[var(--ks-text-secondary)]">
                 {{ t('kingdomP7B.timelineEvidenceCount', { count: item.evidenceIds.length }) }} ·
                 {{
                   item.confidence === null

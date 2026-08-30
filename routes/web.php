@@ -40,6 +40,7 @@ use App\ReadModels\CommandOverview\Http\Controllers\DashboardController;
 use App\ReadModels\EventCalendar\Http\Controllers\EventCalendarController;
 use App\ReadModels\EventManagement\Http\Controllers\EventManagementPageController;
 use App\ReadModels\RecruitmentDiscovery\Http\Controllers\PublicRecruitmentBoardController;
+use App\ReadModels\RecruitmentManagement\Http\Controllers\RecruitmentCandidateReadController;
 use App\ReadModels\RecruitmentManagement\Http\Controllers\RecruitmentManagementReadController;
 use App\Workflows\AccountOnboarding\Http\Controllers\InvitationAcceptanceController;
 use App\Workflows\AccountOnboarding\Http\Controllers\RegistrationController;
@@ -325,7 +326,7 @@ Route::middleware(['auth', 'auth.session'])->group(function (): void {
 
             Route::get('/alliance/recruitment', RecruitmentManagementReadController::class)
                 ->name('alliance.recruitment.index');
-            Route::get('/alliance/recruitment/{candidate}', [RecruitmentCandidateController::class, 'show'])
+            Route::get('/alliance/recruitment/{candidate}', RecruitmentCandidateReadController::class)
                 ->whereUlid('candidate')
                 ->name('alliance.recruitment.candidates.show');
 

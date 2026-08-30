@@ -15,9 +15,19 @@ use App\Contexts\Operations\Events\Enums\EventOccurrenceStatus;
 use App\Contexts\Operations\Events\Enums\EventScope;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Events\Models\EventTypeScope;
+use App\Contexts\Operations\Participation\Enums\EventResponseChoice;
+use App\Contexts\Operations\Participation\Enums\EventResponseSource;
+use App\Contexts\Operations\Participation\Models\EventResponse;
 use App\Contexts\Operations\Participation\Reminders\Enums\EventReminderAudience;
 use App\Contexts\Operations\Participation\Reminders\Enums\EventReminderTrigger;
 use App\Contexts\Operations\Participation\Reminders\Models\EventReminderRule;
+use App\Contexts\Operations\Rallies\Enums\RallyAssignmentRole;
+use App\Contexts\Operations\Rallies\Enums\RallyAssignmentStatus;
+use App\Contexts\Operations\Rallies\Models\RallyAssignment;
+use App\Contexts\Operations\Rallies\Models\RallyGroup;
+use App\Contexts\Operations\Rosters\Enums\EventRosterType;
+use App\Contexts\Operations\Rosters\Models\EventRoster;
+use App\Contexts\Operations\Rosters\Models\EventRosterMember;
 use Illuminate\Support\Facades\Hash;
 
 final class EventCommandVisualFixture
@@ -78,13 +88,18 @@ final class EventCommandVisualFixture
         EventOccurrence::query()->whereKey($created->firstOccurrenceId)->update([
             'status' => EventOccurrenceStatus::Completed->value,
         ]);
-        EventOccurrence::query()->create([
+        $upcoming = EventOccurrence::query()->create([
             'event_id' => $created->eventId,
             'starts_at' => now('UTC')->addDays(2)->startOfHour(),
             'ends_at' => now('UTC')->addDays(2)->startOfHour()->addHour(),
             'status' => EventOccurrenceStatus::Scheduled,
             'settings' => [],
         ]);
+        self::recordReadyOwnerFacts(
+            (string) $upcoming->id,
+            (string) $player->id,
+            $allianceId,
+        );
         EventReminderRule::query()->create([
             'event_id' => $created->eventId,
             'trigger_type' => EventReminderTrigger::BeforeStart,
@@ -94,6 +109,56 @@ final class EventCommandVisualFixture
             'is_enabled' => true,
             'created_by_player_id' => (string) $player->id,
             'updated_by_player_id' => (string) $player->id,
+        ]);
+
+        CapabilityAcceptanceVisualFixture::seed();
+    }
+
+    private static function recordReadyOwnerFacts(
+        string $occurrenceId,
+        string $playerId,
+        string $allianceId,
+    ): void {
+        EventResponse::query()->create([
+            'occurrence_id' => $occurrenceId,
+            'player_id' => $playerId,
+            'response' => EventResponseChoice::Going,
+            'source' => EventResponseSource::Self,
+            'responded_by_player_id' => $playerId,
+            'responded_at' => now(),
+        ]);
+        $roster = EventRoster::query()->create([
+            'occurrence_id' => $occurrenceId,
+            'key' => 'primary',
+            'name' => 'Primary',
+            'roster_type' => EventRosterType::Roster,
+            'assignment_group' => 'primary',
+            'capacity' => 1,
+            'created_by_player_id' => $playerId,
+            'updated_by_player_id' => $playerId,
+        ]);
+        EventRosterMember::query()->create([
+            'roster_id' => (string) $roster->id,
+            'player_id' => $playerId,
+            'alliance_id' => $allianceId,
+            'slot_number' => 1,
+            'assigned_by_player_id' => $playerId,
+            'assigned_at' => now(),
+        ]);
+        $group = RallyGroup::query()->create([
+            'occurrence_id' => $occurrenceId,
+            'alliance_id' => $allianceId,
+            'name' => 'Primary Rally',
+            'created_by_player_id' => $playerId,
+            'updated_by_player_id' => $playerId,
+        ]);
+        RallyAssignment::query()->create([
+            'rally_group_id' => (string) $group->id,
+            'player_id' => $playerId,
+            'role' => RallyAssignmentRole::Lead,
+            'status' => RallyAssignmentStatus::Confirmed,
+            'assigned_by_player_id' => $playerId,
+            'assigned_at' => now(),
         ]);
     }
 }

@@ -144,7 +144,8 @@ final readonly class CreateEvent
                 $localUntil,
             );
 
-            $baseSettings = $template?->settings ?? [];
+            $templateSettings = $template?->settings;
+            $baseSettings = is_array($templateSettings) ? $templateSettings : [];
             $resolvedSettings = array_replace_recursive($baseSettings, $settings);
             $resolvedInstructions = $instructions ?? $template?->instructions;
             $targetColumns = $target->targetColumns();

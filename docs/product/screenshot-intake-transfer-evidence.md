@@ -1,6 +1,6 @@
 # Screenshot Intake: Transfer Evidence
 
-Status: Active delivery — implementation present; final immutable-candidate verification pending — 2026-08-28
+Status: Current complete capability — verified 2026-08-30
 
 Screenshot Intake: Transfer Evidence is the second supported `Intelligence/Evidence` evidence family after Bear Hunt battle reports. It extends the existing Evidence capability with five explicit, versioned Transfer screenshot schemas and a reviewed handoff into `GameWorld/KingdomTransfers`.
 
@@ -556,19 +556,19 @@ Before completion, reconcile this contract with:
 
 | ID | Deliverable | Status |
 | --- | --- | --- |
-| TE-1 | Product contract and cross-doc product reconciliation | In progress |
-| TE-2 | Five explicit versioned schema registry/classifier/extractor implementations | Planned |
-| TE-3 | Narrow Transfer participant Evidence persistence + DB scope enforcement | Planned |
-| TE-4 | Human review, correction, source-time/freshness and scope-drift protections | Planned |
-| TE-5 | Exact/visual/semantic duplicate behavior and supported resolution | Planned |
-| TE-6 | Five KingdomTransfers destination Actions + shared owner writers | Planned |
-| TE-7 | Atomic score/pass commit, stable idempotency and crash recovery | Planned |
-| TE-8 | Owner-evaluated destination/eligibility preview with no manufactured facts | Planned |
-| TE-9 | Transfer participant routes/API and responsive accessible localized UX | Planned |
-| TE-10 | Retry/redaction/deletion/retention/observability/query-budget behavior | Planned |
-| TE-11 | Complete executable fixture corpora and unit/feature/architecture coverage | Planned |
-| TE-12 | Deterministic desktop/mobile visual regression | Planned |
-| TE-13 | Architecture/reference/operations reconciliation and repository-wide release gates | Planned |
+| TE-1 | Product contract and cross-doc product reconciliation | Complete |
+| TE-2 | Five explicit versioned schema registry/classifier/extractor implementations | Complete |
+| TE-3 | Narrow Transfer participant Evidence persistence + DB scope enforcement | Complete |
+| TE-4 | Human review, correction, source-time/freshness and scope-drift protections | Complete |
+| TE-5 | Exact/visual/semantic duplicate behavior and supported resolution | Complete |
+| TE-6 | Five KingdomTransfers destination Actions + shared owner writers | Complete |
+| TE-7 | Atomic score/pass commit, stable idempotency and crash recovery | Complete |
+| TE-8 | Owner-evaluated destination/eligibility preview with no manufactured facts | Complete |
+| TE-9 | Transfer participant routes/API and responsive accessible localized UX | Complete |
+| TE-10 | Retry/redaction/deletion/retention/observability/query-budget behavior | Complete |
+| TE-11 | Complete executable fixture corpora and unit/feature/architecture coverage | Complete |
+| TE-12 | Deterministic desktop/mobile visual regression | Complete |
+| TE-13 | Architecture/reference/operations reconciliation and repository-wide release gates | Complete |
 
 No ledger item may be marked Complete while any acceptance criterion, fixture family, schema field rule, destination Action, UX state, security requirement, test, documentation update or applicable gate remains partial or unverified.
 
