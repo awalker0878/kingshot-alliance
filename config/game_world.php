@@ -6,8 +6,6 @@ return [
     'active_player_session_key' => 'game_world.active_player_id',
     'gift_code_redemption_url' => env('KINGSHOT_GIFT_CODE_URL', 'https://ks-giftcode.centurygame.com/'),
     'gift_codes' => [
-        // off | shadow | authoritative
-        'trust_v2' => env('GIFT_CODES_TRUST_V2', 'shadow'),
         'moderation' => env('GIFT_CODES_MODERATION', false),
         'approved_source_ingestion' => env('GIFT_CODES_APPROVED_SOURCE_INGESTION', false),
         'notification_fanout' => env('GIFT_CODES_NOTIFICATION_FANOUT', false),
