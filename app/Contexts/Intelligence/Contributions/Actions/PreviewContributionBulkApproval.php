@@ -42,9 +42,9 @@ final readonly class PreviewContributionBulkApproval
                 ->with('category')
                 ->get()
                 ->keyBy(static fn (ContributionRecord $record): string => (string) $record->id);
-            $players = $this->players->byIds(
-                $records->pluck('player_id')->map(static fn ($id): string => (string) $id)->all(),
-            );
+            /** @var list<string> $playerIds */
+            $playerIds = array_values($records->pluck('player_id')->map(static fn ($id): string => (string) $id)->all());
+            $players = $this->players->byIds($playerIds);
             $items = [];
             $readyItemIds = [];
 

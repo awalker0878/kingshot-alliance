@@ -6,13 +6,14 @@ namespace App\Contexts\GameWorld\GiftCodes\Queries;
 
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeIngestionRun;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeSourceRegistry;
+use Illuminate\Database\Eloquent\Collection;
 
 final class GiftCodeIngestionHealthQuery
 {
     /** @return list<array<string,mixed>> */
     public function get(int $limit = 50): array
     {
-        /** @var \Illuminate\Database\Eloquent\Collection<int,GiftCodeSourceRegistry> $sources */
+        /** @var Collection<int, GiftCodeSourceRegistry> $sources */
         $sources = GiftCodeSourceRegistry::query()
             ->with(['ingestionRuns' => static fn ($query) => $query->orderByDesc('started_at')->limit(5)])
             ->orderBy('source_key')
@@ -20,7 +21,7 @@ final class GiftCodeIngestionHealthQuery
             ->get();
         $result = [];
         foreach ($sources as $source) {
-            /** @var \Illuminate\Database\Eloquent\Collection<int,GiftCodeIngestionRun> $runs */
+            /** @var Collection<int, GiftCodeIngestionRun> $runs */
             $runs = $source->ingestionRuns;
             $runRows = [];
             foreach ($runs as $run) {

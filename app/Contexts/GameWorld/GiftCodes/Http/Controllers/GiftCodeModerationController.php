@@ -22,6 +22,7 @@ use App\Contexts\GameWorld\GiftCodes\Queries\GiftCodeIngestionHealthQuery;
 use App\Contexts\GameWorld\GiftCodes\Services\GiftCodeSourceAdapterRegistry;
 use App\Contexts\Platform\Administration\Services\PlatformAuthorization;
 use App\Shared\Infrastructure\Http\Controller;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -37,7 +38,8 @@ final class GiftCodeModerationController extends Controller
         private readonly GiftCodeIngestionHealthQuery $ingestionHealth,
         private readonly GiftCodeSourceAdapterRegistry $sourceAdapters,
         private readonly PlatformAuthorization $platformAuthorization,
-    ) {}
+    ) {
+    }
 
     public function index(Request $request): Response
     {
@@ -103,7 +105,7 @@ final class GiftCodeModerationController extends Controller
         /** @var array<int,array<string,mixed>> $curators */
         $curators = [];
         if ($this->platformAuthorization->allows($actor)) {
-            /** @var \Illuminate\Database\Eloquent\Collection<int,GiftCodeCuratorGrant> $grants */
+            /** @var Collection<int, GiftCodeCuratorGrant> $grants */
             $grants = GiftCodeCuratorGrant::query()
                 ->join('users', 'users.id', '=', 'gift_code_curator_grants.user_id')
                 ->whereNull('gift_code_curator_grants.revoked_at')
