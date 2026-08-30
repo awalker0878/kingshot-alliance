@@ -68,6 +68,7 @@ final class WebhookContractBehaviorV3Test extends TestCase
         self::assertTrue(WebhookEventCatalog::isPublic('member.updated'));
         self::assertTrue(WebhookEventCatalog::isPublic('member.left'));
         self::assertTrue(WebhookEventCatalog::isPublic('gift_code.status_changed'));
+        self::assertTrue(WebhookEventCatalog::isPublic('gift_code.expiry_changed'));
         self::assertTrue(WebhookEventCatalog::isPublic('broadcast.delivery.failed'));
 
         $scenarios = app(ScenarioFactory::class);
@@ -118,7 +119,13 @@ final class WebhookContractBehaviorV3Test extends TestCase
             'gift_code',
             'gift-code-01',
             'gift-code:gift-code-01:created',
-            ['gift_code_id' => 'gift-code-01', 'code' => 'REALM2026', 'status' => 'pending'],
+            [
+                'version' => 1,
+                'gift_code_id' => 'gift-code-01',
+                'code' => 'REALM2026',
+                'status' => 'pending',
+                'status_revision' => 0,
+            ],
             now()->toIso8601String(),
         );
 

@@ -6,14 +6,21 @@ namespace App\Contexts\GameWorld\GiftCodes\Http\Controllers;
 
 use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
 use App\Contexts\Accounts\Identity\ValueObjects\AccountIdentity;
+use App\Contexts\GameWorld\GiftCodes\Actions\ManageGiftCodeCuratorGrant;
+use App\Contexts\GameWorld\GiftCodes\Actions\ManageGiftCodeSourceRegistry;
 use App\Contexts\GameWorld\GiftCodes\Actions\ModerateGiftCode;
 use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeModerationAction;
+use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeEvidenceVerificationState;
 use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeRedemptionStatus;
 use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeStatus;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCode;
+use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeCuratorGrant;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeModerationDecision;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeProvenance;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeRedemption;
+use App\Contexts\GameWorld\GiftCodes\Queries\GiftCodeIngestionHealthQuery;
+use App\Contexts\GameWorld\GiftCodes\Services\GiftCodeSourceAdapterRegistry;
+use App\Contexts\Platform\Administration\Models\PlatformAdministrator;
 use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -24,13 +31,17 @@ use Throwable;
 
 final class GiftCodeModerationController extends Controller
 {
-    public function __construct(private readonly AccountIdentityQuery $accounts) {}
+    public function __construct(
+        private readonly AccountIdentityQuery $accounts,
+        private readonly GiftCodeIngestionHealthQuery $ingestionHealth,
+        private readonly GiftCodeSourceAdapterRegistry $sourceAdapters,
+    ) {}
 
     public function index(Request $request): Response
     {
         $actor = $this->account($request);
         $queue = (string) $request->query('queue', 'pending');
-        $allowedQueues = ['pending', 'disputed', 'conflicting-expiry', 'suspicious-source', 'heavily-reported', 'quarantined'];
+        $allowedQueues = ['pending', 'disputed', 'conflicting-expiry', 'suspicious-source', 'heavily-reported', 'quarantined', 'ingestion-quarantined', 'source-revocation'];
         if (! in_array($queue, $allowedQueues, true)) {
             $queue = 'pending';
         }
@@ -50,10 +61,14 @@ final class GiftCodeModerationController extends Controller
             'disputed' => $query->where('status', GiftCodeStatus::Disputed->value),
             'conflicting-expiry' => $query->where('status_reason_code', 'credible_expiry_conflict'),
             'quarantined' => $query->where('status', GiftCodeStatus::Quarantined->value),
+            'ingestion-quarantined' => $query->whereHas('provenances', static fn ($builder) => $builder
+                ->where('verification_state', GiftCodeEvidenceVerificationState::Quarantined->value)),
             'suspicious-source' => $query->whereHas('provenances', static fn ($builder) => $builder
                 ->whereNull('registered_source_id')
                 ->whereNotNull('source_url')),
             'heavily-reported' => $query->having('negative_redemptions_count', '>=', 3),
+            'source-revocation' => $query->whereHas('provenances.registeredSource', static fn ($builder) =>
+                $builder->whereNotNull('revoked_at')),
             default => null,
         };
 
@@ -90,7 +105,95 @@ final class GiftCodeModerationController extends Controller
             'selected' => $selected instanceof GiftCode ? $this->detail($selected) : null,
             'bulkPreview' => $request->session()->get('giftCodeBulkReviewPreview'),
             'bulkResult' => $request->session()->get('giftCodeBulkReviewResult'),
+            'ingestionHealth' => $this->ingestionHealth->get(),
+            'canManagePlatformPolicy' => PlatformAdministrator::activeForUserId($actor->userId),
+            'adapterKeys' => $this->sourceAdapters->keys(),
+            'curators' => PlatformAdministrator::activeForUserId($actor->userId)
+                ? GiftCodeCuratorGrant::query()
+                    ->join('users', 'users.id', '=', 'gift_code_curator_grants.user_id')
+                    ->whereNull('gift_code_curator_grants.revoked_at')
+                    ->orderBy('users.email')
+                    ->get([
+                        'gift_code_curator_grants.id',
+                        'gift_code_curator_grants.user_id',
+                        'gift_code_curator_grants.granted_at',
+                        'users.name as user_name',
+                        'users.email as user_email',
+                    ])
+                    ->map(static fn (GiftCodeCuratorGrant $grant): array => [
+                        'id' => (string) $grant->id,
+                        'userId' => (int) $grant->user_id,
+                        'name' => (string) $grant->getAttribute('user_name'),
+                        'email' => (string) $grant->getAttribute('user_email'),
+                        'grantedAt' => $grant->granted_at->toIso8601String(),
+                    ])->values()->all()
+                : [],
         ]);
+    }
+
+    public function storeSource(Request $request, ManageGiftCodeSourceRegistry $sources): RedirectResponse
+    {
+        $adapterKeys = $this->sourceAdapters->keys();
+        /** @var array{source_key:string,name:string,classification:string,canonical_domain:string,verification_method:string,adapter_key?:string|null,auto_verify:bool,ingestion_enabled:bool} $validated */
+        $validated = $request->validate([
+            'source_key' => ['required', 'string', 'max:120', 'regex:/^[a-z0-9][a-z0-9._-]{2,119}$/'],
+            'name' => ['required', 'string', 'max:160'],
+            'classification' => ['required', Rule::in(['official', 'independent'])],
+            'canonical_domain' => ['required', 'string', 'max:255'],
+            'verification_method' => ['required', 'string', 'max:80'],
+            'adapter_key' => ['nullable', 'string', Rule::in($adapterKeys)],
+            'auto_verify' => ['required', 'boolean'],
+            'ingestion_enabled' => ['required', 'boolean'],
+        ]);
+        $sourceId = $sources->register($this->account($request), [
+            'source_key' => $validated['source_key'],
+            'name' => $validated['name'],
+            'classification' => $validated['classification'],
+            'canonical_domain' => $validated['canonical_domain'],
+            'verification_method' => $validated['verification_method'],
+            'adapter_key' => $validated['adapter_key'] ?? null,
+            'provenance_policy' => ['auto_verify' => $validated['auto_verify']],
+            'ingestion_enabled' => $validated['ingestion_enabled'],
+        ]);
+
+        return back()->with('actionReceipt', $this->receipt('gift-code-source-saved', ['source_id' => $sourceId]));
+    }
+
+    public function revokeSource(
+        Request $request,
+        string $source,
+        ManageGiftCodeSourceRegistry $sources,
+    ): RedirectResponse {
+        /** @var array{reason:string} $validated */
+        $validated = $request->validate(['reason' => ['required', 'string', 'max:1000']]);
+        $sourceId = $sources->revoke($this->account($request), $source, $validated['reason']);
+
+        return back()->with('actionReceipt', $this->receipt('gift-code-source-revoked', ['source_id' => $sourceId]));
+    }
+
+    public function grantCurator(Request $request, ManageGiftCodeCuratorGrant $grants): RedirectResponse
+    {
+        /** @var array{email:string} $validated */
+        $validated = $request->validate(['email' => ['required', 'email:rfc', 'max:254']]);
+        $targetUserId = $this->accounts->findIdByEmail($validated['email']);
+        if ($targetUserId === null) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'email' => 'No account exists with that email address.',
+            ]);
+        }
+        $grantId = $grants->grant($this->account($request), $targetUserId);
+
+        return back()->with('actionReceipt', $this->receipt('gift-code-curator-granted', ['grant_id' => $grantId]));
+    }
+
+    public function revokeCurator(
+        Request $request,
+        string $grant,
+        ManageGiftCodeCuratorGrant $grants,
+    ): RedirectResponse {
+        $grantId = $grants->revoke($this->account($request), $grant);
+
+        return back()->with('actionReceipt', $this->receipt('gift-code-curator-revoked', ['grant_id' => $grantId]));
     }
 
     public function moderate(Request $request, string $giftCode, ModerateGiftCode $moderate): RedirectResponse

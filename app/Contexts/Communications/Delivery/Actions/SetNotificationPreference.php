@@ -17,6 +17,8 @@ final readonly class SetNotificationPreference
         'alliance.announcement',
         'event.reminder',
         'gift_code.expiring',
+        'gift_code.available',
+        'gift_code.trust_changed',
         'intelligence.change',
         'king_perks.reminder',
         'officer.brief',

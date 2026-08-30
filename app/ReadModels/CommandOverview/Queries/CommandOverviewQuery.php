@@ -9,6 +9,7 @@ use App\Contexts\Alliance\Recruitment\Models\RecruitmentCandidate;
 use App\Contexts\Communications\Delivery\Enums\DeliveryChannel;
 use App\Contexts\Communications\Delivery\Enums\DeliveryStatus;
 use App\Contexts\Communications\Delivery\Models\NotificationDelivery;
+use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeRedemptionStatus;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeRedemption;
 use App\Contexts\GameWorld\GiftCodes\Queries\GiftCodeCatalogQuery;
 use App\Contexts\GameWorld\KingdomTransfers\Access\Enums\TransferPermission;
@@ -46,6 +47,7 @@ final readonly class CommandOverviewQuery
      *   upcomingEvents:list<array<string,mixed>>,
      *   eventActions:list<array<string,mixed>>,
      *   giftCodes:list<array<string,mixed>>,
+     *   giftCodeLifecycle:array{newRedeemable:int,inProgress:int,retryDue:int,disputedRetracted:int},
      *   recruitment:?array{pending:int,overdue:int},
      *   intelligenceSignals:list<array<string,mixed>>,
      *   allianceCommand:?array<string,mixed>,
@@ -61,7 +63,7 @@ final readonly class CommandOverviewQuery
     ): array {
         $unreadNotifications = $this->unreadNotifications($userId, $player->playerId);
         $eventActions = array_slice($this->attention->for($player), 0, 4);
-        [$pendingGiftCodes, $giftCodes] = $this->actionableGiftCodes($player->playerId);
+        [$pendingGiftCodes, $giftCodes, $giftCodeLifecycle] = $this->actionableGiftCodes($player->playerId);
         $recruitment = $allianceId !== null && $canManageRecruitment
             ? $this->recruitment($allianceId)
             : null;
@@ -106,6 +108,7 @@ final readonly class CommandOverviewQuery
             'upcomingEvents' => $this->upcomingEvents($player),
             'eventActions' => $eventActions,
             'giftCodes' => $giftCodes,
+            'giftCodeLifecycle' => $giftCodeLifecycle,
             'recruitment' => $recruitment,
             // Informational intelligence changes do not inflate actionCount.
             'intelligenceSignals' => $intelligenceSignals,
@@ -159,21 +162,55 @@ final readonly class CommandOverviewQuery
             ->all());
     }
 
-    /** @return array{0:int,1:list<array<string,mixed>>} */
+    /** @return array{0:int,1:list<array<string,mixed>>,2:array{newRedeemable:int,inProgress:int,retryDue:int,disputedRetracted:int}} */
     private function actionableGiftCodes(string $playerId): array
     {
         $pending = 0;
         $items = [];
+        $lifecycle = [
+            'newRedeemable' => 0,
+            'inProgress' => 0,
+            'retryDue' => 0,
+            'disputedRetracted' => 0,
+        ];
         $codes = $this->giftCodes->forPlayer($playerId, 100);
 
         foreach ($codes as $giftCode) {
-            if (! $giftCode->status->redeemable()
-                || ($giftCode->expires_at !== null && $giftCode->expires_at->isPast())) {
+            $redemption = $this->giftCodes->redemptionFor($giftCode, $playerId);
+            if (in_array($giftCode->status->value, ['disputed', 'quarantined', 'invalid', 'expired'], true)
+                && $redemption instanceof GiftCodeRedemption) {
+                $lifecycle['disputedRetracted']++;
+                $pending++;
+                if (count($items) < 4) {
+                    $items[] = [
+                        'id' => (string) $giftCode->id,
+                        'code' => (string) $giftCode->code,
+                        'status' => 'disputed_retracted',
+                        'trustStatus' => $giftCode->status->value,
+                        'expiresAt' => $giftCode->expires_at?->toIso8601String(),
+                    ];
+                }
+
                 continue;
             }
 
-            $redemption = $this->giftCodes->redemptionFor($giftCode, $playerId);
-            if ($redemption instanceof GiftCodeRedemption && $redemption->status->successful()) {
+            if ($giftCode->status->value !== 'valid'
+                || ($giftCode->expires_at !== null && $giftCode->expires_at->isPast())
+                || ($redemption instanceof GiftCodeRedemption && $redemption->status->successful())) {
+                continue;
+            }
+
+            $state = 'new_redeemable';
+            if (! $redemption instanceof GiftCodeRedemption) {
+                $lifecycle['newRedeemable']++;
+            } elseif ($redemption->status === GiftCodeRedemptionStatus::AwaitingConfirmation) {
+                $state = 'in_progress';
+                $lifecycle['inProgress']++;
+            } elseif ($redemption->status->retryable()
+                && ($redemption->next_attempt_at === null || $redemption->next_attempt_at->isPast())) {
+                $state = 'retry_due';
+                $lifecycle['retryDue']++;
+            } else {
                 continue;
             }
 
@@ -184,12 +221,13 @@ final readonly class CommandOverviewQuery
             $items[] = [
                 'id' => (string) $giftCode->id,
                 'code' => (string) $giftCode->code,
-                'status' => $redemption?->status->value ?? 'not_started',
+                'status' => $state,
+                'trustStatus' => $giftCode->status->value,
                 'expiresAt' => $giftCode->expires_at?->toIso8601String(),
             ];
         }
 
-        return [$pending, $items];
+        return [$pending, $items, $lifecycle];
     }
 
     /** @return array{pending:int,overdue:int} */

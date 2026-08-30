@@ -18,15 +18,6 @@ final class BotCommandApiController extends Controller
         return $this->response($commands->overview($this->allianceId($request)));
     }
 
-    public function giftCodes(Request $request, AllianceCommandFeedQuery $commands): JsonResponse
-    {
-        $validated = $request->validate([
-            'limit' => ['nullable', 'integer', 'min:1', 'max:50'],
-        ]);
-
-        return $this->response($commands->giftCodes((int) ($validated['limit'] ?? 20)));
-    }
-
     public function knowledge(Request $request, AllianceCommandFeedQuery $commands): JsonResponse
     {
         $validated = $request->validate([

@@ -13,5 +13,7 @@ return [
         'max_redemption_attempts' => (int) env('GIFT_CODES_MAX_REDEMPTION_ATTEMPTS', 6),
         'fanout_batch_size' => (int) env('GIFT_CODES_FANOUT_BATCH_SIZE', 200),
         'catalog_page_size' => (int) env('GIFT_CODES_CATALOG_PAGE_SIZE', 25),
+        'ingestion_batch_size' => (int) env('GIFT_CODES_INGESTION_BATCH_SIZE', 100),
+        'max_governors_per_account' => (int) env('GIFT_CODES_MAX_GOVERNORS_PER_ACCOUNT', 50),
     ],
 ];

@@ -88,6 +88,27 @@ final class PlayerReferenceQuery
             ->all());
     }
 
+    /** @return list<int> */
+    public function ownerUserIdsWhoStartedGiftCodeAfter(
+        string $giftCodeId,
+        ?int $afterUserId,
+        int $limit,
+    ): array {
+        return array_values(Player::query()
+            ->select('players.user_id')
+            ->join('gift_code_redemptions', 'gift_code_redemptions.player_id', '=', 'players.id')
+            ->where('gift_code_redemptions.gift_code_id', $giftCodeId)
+            ->whereNotNull('players.user_id')
+            ->when($afterUserId !== null, static fn ($query) => $query->where('players.user_id', '>', $afterUserId))
+            ->distinct()
+            ->orderBy('players.user_id')
+            ->limit(max(1, min(1000, $limit)))
+            ->pluck('players.user_id')
+            ->map(static fn ($id): int => (int) $id)
+            ->values()
+            ->all());
+    }
+
     /** @param array<string> $playerIds @return array<string, PlayerReference> */
     public function byIds(array $playerIds): array
     {

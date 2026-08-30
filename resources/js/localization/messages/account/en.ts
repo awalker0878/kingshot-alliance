@@ -44,6 +44,8 @@ const messages = {
       allianceAnnouncement: 'Alliance Notices',
       eventReminder: 'Event reminders',
       giftCodeExpiring: 'Gift Code expiry reminders',
+      giftCodeAvailable: 'New verified Gift Codes',
+      giftCodeTrustChanged: 'Gift Code trust changes',
       intelligenceChange: 'Intelligence changes',
       kingPerkReminder: 'Position Perk reminders',
       officerBrief: 'Officer briefs',

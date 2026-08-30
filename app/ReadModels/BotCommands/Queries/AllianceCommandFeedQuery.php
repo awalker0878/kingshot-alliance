@@ -97,20 +97,24 @@ final readonly class AllianceCommandFeedQuery
             ->get([
                 'id',
                 'code',
-                'source_type',
-                'source_label',
-                'source_url',
+                'status',
+                'status_reason_code',
+                'status_revision',
                 'discovered_at',
                 'expires_at',
+                'expires_precision',
+                'expires_revision',
             ])
             ->map(static fn (object $row): array => [
                 'id' => (string) $row->id,
                 'code' => (string) $row->code,
-                'source_type' => (string) $row->source_type,
-                'source_label' => $row->source_label === null ? null : (string) $row->source_label,
-                'source_url' => $row->source_url === null ? null : (string) $row->source_url,
+                'trust_status' => (string) $row->status,
+                'reason_code' => $row->status_reason_code === null ? null : (string) $row->status_reason_code,
+                'status_revision' => (int) $row->status_revision,
                 'discovered_at' => (string) $row->discovered_at,
                 'expires_at' => $row->expires_at === null ? null : (string) $row->expires_at,
+                'expires_precision' => $row->expires_precision === null ? null : (string) $row->expires_precision,
+                'expires_revision' => (int) $row->expires_revision,
                 'official_redemption_url' => $redemptionUrl,
             ])
             ->values()

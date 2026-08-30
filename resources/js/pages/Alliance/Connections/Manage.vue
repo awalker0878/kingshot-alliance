@@ -70,7 +70,7 @@ const retryingDelivery = ref<string | null>(null);
 const mutationError = ref<string | null>(null);
 const commandEndpoints = [
   { method: 'GET', path: '/api/v1/commands/overview', scope: 'commands:read' },
-  { method: 'GET', path: '/api/v1/commands/gift-codes', scope: 'gift-codes:read' },
+  { method: 'GET', path: '/api/v1/gift-codes', scope: 'gift-codes:read' },
   { method: 'GET', path: '/api/v1/commands/knowledge', scope: 'content:read' },
   { method: 'POST', path: '/api/v1/actor-links/claims', scope: 'actor-links:write' },
   {
@@ -109,6 +109,7 @@ const webhookEventDescriptions: Record<string, string> = {
   'gift_code.created': t('integrationExperience.eventGiftCodeCreated'),
   'gift_code.provenance_added': t('integrationExperience.eventGiftCodeProvenanceAdded'),
   'gift_code.status_changed': t('integrationExperience.eventGiftCodeStatusChanged'),
+  'gift_code.expiry_changed': t('integrationExperience.eventGiftCodeExpiryChanged'),
   'broadcast.schedule.updated': t('integrationExperience.eventBroadcastScheduleUpdated'),
   'broadcast.schedule.cancelled': t('integrationExperience.eventBroadcastScheduleCancelled'),
   'broadcast.run.queued': t('integrationExperience.eventBroadcastRunQueued'),

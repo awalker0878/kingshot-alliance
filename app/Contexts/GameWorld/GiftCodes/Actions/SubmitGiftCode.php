@@ -56,11 +56,7 @@ final readonly class SubmitGiftCode
             $sourceLabel = $this->optional($attributes['source_label'] ?? null);
             $sourceUrl = $this->optional($attributes['source_url'] ?? null);
 
-            $giftCode = GiftCode::query()->firstOrNew(['normalized_code' => $normalized]);
-            $created = ! $giftCode->exists;
-
-            if ($created) {
-                $giftCode->fill([
+            $giftCode = GiftCode::query()->firstOrCreate(['normalized_code' => $normalized], [
                     'code' => $code,
                     'normalized_code' => $normalized,
                     'created_by_player_id' => $actor->playerId,
@@ -75,8 +71,7 @@ final readonly class SubmitGiftCode
                     'expires_precision' => null,
                     'expires_revision' => 0,
                 ]);
-                $giftCode->save();
-            }
+            $created = $giftCode->wasRecentlyCreated;
 
             $fingerprint = hash('sha256', implode('|', [
                 $actor->playerId,
@@ -113,10 +108,12 @@ final readonly class SubmitGiftCode
             ]);
 
             $metadata = [
+                'version' => 1,
                 'gift_code_id' => (string) $giftCode->id,
                 'code' => (string) $giftCode->code,
                 'normalized_code' => $normalized,
                 'status' => $giftCode->status->value,
+                'status_revision' => $giftCode->status_revision,
                 'source_type' => $source->value,
                 'claimed_expires_at' => $claimedExpiry?->toIso8601String(),
                 'created' => $created,

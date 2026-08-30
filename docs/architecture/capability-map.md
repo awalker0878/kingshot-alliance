@@ -32,7 +32,7 @@ Capabilities are first-class modules inside the seven bounded contexts. This map
 - **Progression** — immutable/versioned KingShot progression catalogue releases, source registry, reconciliation/conflict metadata, factual Hero/gear/building/research/Pet/Master/system reference data and source-scoped community formation conventions.
 - **Governance** — Kingdom roles, assignments and GameWorld-owned governance authorization.
 - **KingdomTransfers** — Player/Kingdom transfer planning and transfer-domain state owned by GameWorld.
-- **GiftCodes** — normalized Gift Code catalogue, provider policy, and per-Player/per-Kingdom redemption state.
+- **GiftCodes** — normalized global catalogue, approved-source policy, append-only provenance, revisioned trust/expiry/fact projections, moderation/ingestion operations, lifecycle notification eligibility, provider handoff policy, and per-Player/per-Kingdom redemption state.
 
 `KingdomMaps` owns represented spatial world truth, not Alliance planning preferences or saved layouts. `Progression` owns game-reference catalogue truth, not a Governor's observed roster and not a saved tactical loadout.
 
@@ -78,6 +78,8 @@ Alliance policies belong to the capability that owns the rule; `Alliance/Policie
 
 Communications does not own Event, King Perk or other source-domain reminder semantics.
 
+For Gift Codes, Communications owns channel preferences, delivery attempts and inbox state. `GameWorld/GiftCodes` owns which account/Governor is eligible for an availability, expiry or trust-change campaign and supplies revision-aware idempotency inputs.
+
 ## Platform
 
 - **Administration** — Platform Administrator access and platform administrative behavior.
@@ -85,6 +87,8 @@ Communications does not own Event, King Perk or other source-domain reminder sem
 - **DataGovernance** — retention, legal hold, export and account deletion orchestration.
 - **EventAdministration** — platform Event-type administration.
 - **Integrations** — API credentials, webhooks and external integration administration.
+
+Platform Administration supplies the cross-Alliance authority used to manage approved Gift Code sources and narrowly scoped curator grants. Platform/Integrations exposes only bounded read/webhook contracts; it does not own or mutate Gift Code trust.
 
 ## Not capabilities or contexts
 

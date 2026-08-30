@@ -1,6 +1,6 @@
 # Gift Code trust, discovery, and redemption expansion
 
-Status: Selected extension
+Status: Selected extension — implementation commit pending CI verification
 Baseline: `main` at `f63896f`
 Deployment model: **fresh-schema redeployment**
 Owner context: `GameWorld/GiftCodes`
@@ -254,26 +254,26 @@ Unqualified rewards render **Reward details unknown**. A single `wrong_kingdom` 
 
 | ID | Deliverable | State | Completion evidence |
 |---|---|---|---|
-| GCX-01 | Product contract and ADR reconciliation | in progress | Fresh-schema contract updated; related product docs/ADR final reconciliation pending |
-| GCX-02 | Canonical approved-source/evidence/moderation schema | in progress | Canonical create migration consolidation underway |
-| GCX-03 | Remove legacy/backfill/shadow/compatibility Gift Code paths | in progress | Fresh-schema cleanup underway |
-| GCX-04 | Canonical trust resolver and monotonic status/expiry revisions | in progress | Resolver implemented; legacy/shadow removal pending verification |
-| GCX-05 | Governed moderation workflow | in progress | Grant/middleware/action/backend queue implemented; review UI/tests pending |
-| GCX-06 | Guided multi-Governor redemption | in progress | Server ownership/result path hardened; guided UI/tests pending |
-| GCX-07 | Availability notification fan-out | pending | Publisher/sweep/command/scheduler/tests required |
-| GCX-08 | Expiry notification fan-out | pending | Publisher/sweep/command/scheduler/tests required |
-| GCX-09 | Trust-change notification fan-out | pending | Publisher/sweep/outbox integration/tests required |
-| GCX-10 | Approved-source ingestion | pending | Registry adapters/command/health/tests required |
-| GCX-11 | Cursor-paginated catalogue/detail reads | pending | Query/controller/UI/tests required |
-| GCX-12 | Command Overview lifecycle projections | pending | Read model/tests required |
-| GCX-13 | Canonical `/api/v1/gift-codes` | pending | Route/controller/tests required |
-| GCX-14 | Versioned webhook payload with revision | pending | Contract/publisher/tests required |
-| GCX-15 | Reward/applicability evidence gate | pending | Observation projection/tests/UI required |
-| GCX-16 | Operational diagnostics and replay | pending | Counters/receipts/replay tests required |
-| GCX-17 | Accessibility/mobile/visual regression | pending | Frontend/Playwright evidence required |
-| GCX-18 | Query-budget and large-history verification | pending | Fixtures/tests required |
-| GCX-19 | Full automated gate execution | pending | Architecture/PHP/static/TS/localization/accessibility/Playwright results required |
-| GCX-20 | Final docs/code reconciliation and closeout | pending | Updated ledger + implementation/test references required |
+| GCX-01 | Product contract and ADR reconciliation | complete | This contract, ADR-0004, capability catalogue/gap/ledger, user journey, architecture map and Gift Code/API/event references agree on fresh-schema semantics |
+| GCX-02 | Canonical approved-source/evidence/moderation schema | complete | `2026_08_19_220000_create_gift_code_tables.php`, curator-grant create migration and corresponding models |
+| GCX-03 | Remove legacy/backfill/shadow/compatibility Gift Code paths | complete | Canonical route/action/schema search; no old resolver, comparison field, backfill, report action/route or `/commands/gift-codes` alias remains |
+| GCX-04 | Canonical trust resolver and monotonic status/expiry revisions | complete | `GiftCodeTrustResolver`, `ReconcileGiftCodeStatus`, and revision assertions in `GiftCodeBehaviorV3Test` |
+| GCX-05 | Governed moderation workflow | complete | curator middleware/grants, source administration, moderation action/controller/routes, `Platform/GiftCodes/Review.vue`, authority/revision behavior tests |
+| GCX-06 | Guided multi-Governor redemption | complete | `PrepareGiftCodeRedemptions`, canonical result action/route, `Kingdom/GiftCodes/Index.vue`, ownership/terminal-result behavior and `GiftCodes.spec.ts` |
+| GCX-07 | Availability notification fan-out | complete | persisted campaigns, bounded transition sweep, Communications preferences, scheduler and fan-out behavior test |
+| GCX-08 | Expiry notification fan-out | complete | bounded cursor sweep, qualified-expiry revision idempotency, current-state recheck, preference/revision behavior test |
+| GCX-09 | Trust-change notification fan-out | complete | transition campaign scheduling for dispute/hold/invalid/expiry changes, started-user targeting and revision-aware delivery |
+| GCX-10 | Approved-source ingestion | complete | registered-source policy UI/action, adapter registry/contract, ingestion runner, run health, targeted replay, parser/replay/revocation tests |
+| GCX-11 | Cursor-paginated catalogue/detail reads | complete | `GiftCodeCatalogQuery`, catalogue/detail controller/UI and constant-query large-history behavior test |
+| GCX-12 | Command Overview lifecycle projections | complete | new-redeemable/in-progress/retry-due/disputed-retracted projection and `CommandOverviewBehaviorV3Test` |
+| GCX-13 | Canonical `/api/v1/gift-codes` | complete | canonical route/controller/query, OpenAPI/Connections update, authorization and opaque-cursor behavior test |
+| GCX-14 | Versioned webhook payload with revision | complete | runtime catalogue, JSON Schema/event reference, revisioned outbox payloads and published-contract/webhook tests |
+| GCX-15 | Reward/applicability evidence gate | complete | fact resolver/projection/reconciliation, unknown/conflict UI/API states and fact qualification/conflict tests |
+| GCX-16 | Operational diagnostics and replay | complete | persisted notification/source cursors, JSON sweep receipts, source run health, targeted ingestion replay and policy-reconciliation scheduler |
+| GCX-17 | Accessibility/mobile/visual regression | complete | localized responsive catalogue/moderation flows, static accessibility/localization gates and desktop/mobile `GiftCodes.spec.ts` |
+| GCX-18 | Query-budget and large-history verification | complete | 80-code/120-provenance constant-query fixture in `GiftCodeBehaviorV3Test`; API cursor bound test |
+| GCX-19 | Full automated gate execution | in progress | Local frontend checks/build/budgets pass; PHP 8.5/PostgreSQL and Playwright CI results pending |
+| GCX-20 | Final docs/code reconciliation and closeout | in progress | Related docs reconciled and stale-path search clean; final CI result and closeout re-read pending |
 
 A row becomes `complete` only when documented behavior, integration, authorization, UX where applicable, tests, and operational behavior are present. No migration/backfill or compatibility work is intentionally retained for the previous Gift Code implementation.
 

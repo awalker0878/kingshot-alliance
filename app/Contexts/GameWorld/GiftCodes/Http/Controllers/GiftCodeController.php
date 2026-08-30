@@ -9,6 +9,7 @@ use App\Contexts\GameWorld\GiftCodes\Actions\PrepareGiftCodeRedemptions;
 use App\Contexts\GameWorld\GiftCodes\Actions\RecordObservedGiftCodeRedemptionResult;
 use App\Contexts\GameWorld\GiftCodes\Actions\SubmitGiftCode;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCode;
+use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeFactProjection;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeModerationDecision;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeProvenance;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeRedemption;
@@ -201,6 +202,10 @@ final class GiftCodeController extends Controller
     /** @param array<string,string> $playerNames */
     private function catalogItem(GiftCode $giftCode, string $activePlayerId, array $playerNames): array
     {
+        $facts = $giftCode->factProjections->keyBy('fact_type');
+        $reward = $facts->get('reward');
+        $applicability = $facts->get('applicability');
+
         return [
             'id' => (string) $giftCode->id,
             'code' => $giftCode->code,
@@ -212,6 +217,14 @@ final class GiftCodeController extends Controller
             'expiresAt' => $giftCode->expires_at?->toIso8601String(),
             'expiresPrecision' => $giftCode->expires_precision,
             'expiresRevision' => $giftCode->expires_revision,
+            'reward' => $reward instanceof GiftCodeFactProjection && $reward->qualified ? $reward->value : null,
+            'rewardState' => $reward instanceof GiftCodeFactProjection ? $reward->reason_code : 'reward_details_unknown',
+            'applicability' => $applicability instanceof GiftCodeFactProjection && $applicability->qualified
+                ? $applicability->value
+                : null,
+            'applicabilityState' => $applicability instanceof GiftCodeFactProjection
+                ? $applicability->reason_code
+                : 'applicability_details_unknown',
             'redemption' => $this->redemption($this->redemptionForLoaded($giftCode, $activePlayerId)),
             'redemptions' => $giftCode->redemptions->map(fn (GiftCodeRedemption $item): array => [
                 'playerId' => $item->player_id,

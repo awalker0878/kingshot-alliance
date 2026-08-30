@@ -10,7 +10,6 @@ use App\Contexts\Alliance\Content\Enums\ContentVisibility;
 use App\Contexts\Alliance\Content\Models\ContentItem;
 use App\Contexts\Alliance\Recruitment\Enums\RecruitmentApplicationMode;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentSetting;
-use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeSource;
 use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeStatus;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCode;
 use App\Contexts\Platform\Integrations\Actions\CreateApiCredential;
@@ -44,21 +43,45 @@ final class BotCommandApiBehaviorV3Test extends TestCase
         GiftCode::query()->create([
             'code' => 'BOT-COMMAND',
             'normalized_code' => 'BOT-COMMAND',
-            'source_type' => GiftCodeSource::Official,
-            'source_label' => 'Official notice',
-            'source_url' => 'https://www.centurygames.com/',
             'created_by_player_id' => $player->playerId,
             'status' => GiftCodeStatus::Valid,
+            'status_revision' => 1,
+            'status_reason_code' => 'qualified_positive_evidence',
+            'status_evidence_ids' => [],
+            'status_changed_at' => now(),
+            'status_derived_at' => now(),
             'discovered_at' => now()->subHour(),
             'expires_at' => now()->addDay(),
+            'expires_precision' => 'day',
+            'expires_revision' => 1,
+        ]);
+        GiftCode::query()->create([
+            'code' => 'BOT-COMMAND-LATER',
+            'normalized_code' => 'BOT-COMMAND-LATER',
+            'status' => GiftCodeStatus::Valid,
+            'status_revision' => 1,
+            'status_reason_code' => 'qualified_positive_evidence',
+            'status_evidence_ids' => [],
+            'status_changed_at' => now(),
+            'status_derived_at' => now(),
+            'discovered_at' => now()->subHours(2),
+            'expires_at' => now()->addDays(2),
+            'expires_precision' => 'day',
+            'expires_revision' => 1,
         ]);
         GiftCode::query()->create([
             'code' => 'EXPIRED-COMMAND',
             'normalized_code' => 'EXPIRED-COMMAND',
-            'source_type' => GiftCodeSource::Official,
             'status' => GiftCodeStatus::Expired,
+            'status_revision' => 1,
+            'status_reason_code' => 'accepted_expiry_elapsed',
+            'status_evidence_ids' => [],
+            'status_changed_at' => now()->subDay(),
+            'status_derived_at' => now()->subDay(),
             'discovered_at' => now()->subDays(2),
             'expires_at' => now()->subDay(),
+            'expires_precision' => 'day',
+            'expires_revision' => 1,
         ]);
 
         ContentItem::query()->create([
@@ -117,11 +140,25 @@ final class BotCommandApiBehaviorV3Test extends TestCase
             $player->playerId,
             ['gift-codes:read', 'content:read'],
         );
-        $this->withToken($readToken)
-            ->getJson(route('api.v1.commands.gift-codes', ['limit' => 1]))
+        $firstGiftCodePage = $this->withToken($readToken)
+            ->getJson(route('api.v1.gift-codes.index', ['limit' => 1]))
             ->assertOk()
             ->assertJsonCount(1, 'data')
-            ->assertJsonPath('data.0.code', 'BOT-COMMAND');
+            ->assertJsonPath('data.0.code', 'BOT-COMMAND')
+            ->assertJsonPath('data.0.trust_status', 'valid')
+            ->assertJsonPath('data.0.status_revision', 1)
+            ->assertJsonPath('meta.per_page', 1)
+            ->assertJsonPath('meta.status', 'active');
+        $nextCursor = $firstGiftCodePage->json('meta.next_cursor');
+        self::assertIsString($nextCursor);
+        $this->withToken($readToken)
+            ->getJson(route('api.v1.gift-codes.index', ['limit' => 1, 'cursor' => $nextCursor]))
+            ->assertOk()
+            ->assertJsonPath('data.0.code', 'BOT-COMMAND-LATER');
+
+        $this->withToken($readToken)
+            ->getJson(route('api.v1.gift-codes.index', ['status' => 'pending']))
+            ->assertForbidden();
 
         $this->withToken($readToken)
             ->getJson(route('api.v1.commands.knowledge', ['q' => 'bear', 'type' => 'guide']))

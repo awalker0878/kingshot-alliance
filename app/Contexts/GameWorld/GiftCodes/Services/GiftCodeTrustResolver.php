@@ -29,7 +29,15 @@ final class GiftCodeTrustResolver
             ->filter(fn (GiftCodeProvenance $evidence): bool => $this->sourceStillAuthoritative($evidence));
 
         /** @var GiftCodeModerationDecision|null $latestModeration */
-        $latestModeration = $giftCode->moderationDecisions()->first();
+        $latestModeration = $giftCode->moderationDecisions()
+            ->whereIn('action', [
+                GiftCodeModerationAction::Quarantine->value,
+                GiftCodeModerationAction::Reject->value,
+                GiftCodeModerationAction::Verify->value,
+                GiftCodeModerationAction::Restore->value,
+                GiftCodeModerationAction::ResolveDispute->value,
+            ])
+            ->first();
         $moderatedExpiry = $this->moderatedExpiry($giftCode);
 
         if ($latestModeration?->action === GiftCodeModerationAction::Quarantine) {

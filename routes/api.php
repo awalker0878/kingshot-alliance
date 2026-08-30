@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Contexts\Platform\Integrations\Http\Controllers\AllianceApiController;
 use App\ReadModels\BotCommands\Http\Controllers\BotCommandApiController;
+use App\ReadModels\BotCommands\Http\Controllers\GiftCodeApiController;
 use App\Workflows\ExternalEventParticipation\Http\Controllers\ExternalActorApiController;
 use Illuminate\Support\Facades\Route;
 
@@ -21,9 +22,9 @@ Route::prefix('v1')->middleware('throttle:api')->group(function (): void {
     Route::get('/commands/overview', [BotCommandApiController::class, 'overview'])
         ->middleware('api.credential:commands:read')
         ->name('api.v1.commands.overview');
-    Route::get('/commands/gift-codes', [BotCommandApiController::class, 'giftCodes'])
+    Route::get('/gift-codes', GiftCodeApiController::class)
         ->middleware('api.credential:gift-codes:read')
-        ->name('api.v1.commands.gift-codes');
+        ->name('api.v1.gift-codes.index');
     Route::get('/commands/knowledge', [BotCommandApiController::class, 'knowledge'])
         ->middleware('api.credential:content:read')
         ->name('api.v1.commands.knowledge');

@@ -25,7 +25,7 @@ Access keys are created in Alliance Connections. The secret is shown once; only 
 | `GET /api/v1/events` | `events:read` | Bounded Alliance Event occurrences. |
 | `GET /api/v1/contributions` | `contributions:read` | Approved contribution records. |
 | `GET /api/v1/commands/overview` | `commands:read` | Bot-ready Alliance identity, ten upcoming Events, active Gift Codes, recent knowledge, and recruitment status. |
-| `GET /api/v1/commands/gift-codes?limit=20` | `gift-codes:read` | Up to 50 active, unexpired Gift Codes with source metadata and the official redemption URL. |
+| `GET /api/v1/gift-codes?limit=25&cursor=` | `gift-codes:read` | Up to 100 verified active, unexpired Gift Codes with trust/expiry revisions, qualified-or-unknown facts, official handoff URL and opaque cursor metadata. |
 | `GET /api/v1/commands/knowledge?q=&type=&limit=20` | `content:read` | Up to 50 published Alliance knowledge excerpts with visibility and provenance. |
 | `POST /api/v1/actor-links/claims` | `actor-links:write` | Claim a ten-minute, one-time Discord/Telegram pairing code. |
 | `PUT /api/v1/me/events/{occurrence}/response` | `event-participation:write` | Record the linked Governor's Event response and preferences. |
@@ -48,6 +48,8 @@ Command endpoints return:
 ```
 
 Read payloads are bounded. The command overview does not expose Governor accounts, candidate records, application answers, recruiter notes, private notification endpoints, or credential secrets.
+
+The canonical Gift Code endpoint defaults to `status=active` and fails closed if an Alliance credential asks for pending, disputed, expired or history views. Those global review states remain available only through authorized application workflows. `meta.next_cursor` and `meta.previous_cursor` are opaque and must be returned unchanged.
 
 A recruitment application URL returned to a bot carries the visible `bot-command` source. This is ordinary application metadata, not an identity tracking token.
 

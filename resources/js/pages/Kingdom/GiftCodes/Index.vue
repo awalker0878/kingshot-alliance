@@ -6,7 +6,6 @@ import RoomBanner from '@/components/game/RoomBanner.vue';
 import StatSeal from '@/components/game/StatSeal.vue';
 import ActionNotice from '@/components/ui/ActionNotice.vue';
 import AppButton from '@/components/ui/AppButton.vue';
-import ConfirmActionDialog from '@/components/ui/ConfirmActionDialog.vue';
 import FormError from '@/components/ui/FormError.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
@@ -30,10 +29,41 @@ type Governor = {
 type GovernorRedemption = Redemption & { playerId: string; playerName: string };
 type Provenance = {
   id: string;
+  registeredSourceName: string | null;
   sourceType: string;
   sourceLabel: string | null;
   sourceUrl: string | null;
+  assertion: string;
+  verificationState: string;
+  evidenceClassification: string;
+  claimedExpiresAt: string | null;
   observedAt: string;
+};
+type GiftCode = {
+  id: string;
+  code: string;
+  status: string;
+  statusReasonCode: string | null;
+  statusRevision: number;
+  sourceCount: number;
+  discoveredAt: string;
+  expiresAt: string | null;
+  expiresPrecision: string | null;
+  expiresRevision: number;
+  reward: Record<string, unknown> | null;
+  rewardState: string;
+  applicability: Record<string, unknown> | null;
+  applicabilityState: string;
+  redemption: Redemption | null;
+  redemptions: GovernorRedemption[];
+  provenances?: Provenance[];
+  moderationDecisions?: Array<{
+    id: string;
+    action: string;
+    reason: string | null;
+    evidenceIds: string[];
+    decidedAt: string;
+  }>;
 };
 type RedemptionResult = {
   action: string;
@@ -49,61 +79,99 @@ type RedemptionResult = {
   failedItemIds: string[];
 };
 
-type GiftCode = {
-  id: string;
-  code: string;
-  sourceType: string;
-  sourceLabel: string | null;
-  sourceUrl: string | null;
-  status: string;
-  discoveredAt: string;
-  expiresAt: string | null;
-  redemption: Redemption | null;
-  redemptions: GovernorRedemption[];
-  provenances: Provenance[];
-};
-
 const props = defineProps<{
   user: { name: string; email: string };
-  player: { id: string; name: string; gamePlayerId: string | null; kingdomNumber: number | null };
+  player: Governor;
   governors: Governor[];
   officialRedemptionUrl: string;
   codes: GiftCode[];
+  pagination: {
+    nextCursor: string | null;
+    previousCursor: string | null;
+    perPage: number;
+    hasMore: boolean;
+  };
+  filters: {
+    view: string;
+    q: string;
+    status: string;
+    source: string;
+    expiry: string;
+    governorResult: string;
+  };
+  focusedCode: GiftCode | null;
   giftCodeRedemptionResult: RedemptionResult | null;
 }>();
 
 const { t, formatDate, formatNumber } = useLocale();
 const copied = ref<string | null>(null);
+const operationError = ref<string | null>(null);
+const selectedGovernorIds = ref<string[]>([]);
+const workflowGovernorIds = ref<string[]>([]);
+const workflowIndex = ref(0);
+const preparing = ref(false);
+const recording = ref(false);
+const selectedOutcome = ref('redeemed');
 const submission = useForm({
   code: '',
   source_type: 'manual',
   source_label: '',
   source_url: '',
   expires_at: '',
+  expiry_precision: 'day',
+  expiry_timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
 });
 const redemption = useForm({ player_ids: [] as string[] });
-const redemptionProcessing = ref<{ giftCodeId: string; key: 'current' | 'all' | 'failed' } | null>(
-  null,
-);
-const confirmingCode = ref<string | null>(null);
-const operationError = ref<string | null>(null);
-const reportTarget = ref<{ giftCode: GiftCode; issue: 'invalid' | 'expired' } | null>(null);
-const reportBusy = ref(false);
+const search = useForm({
+  view: props.filters.view,
+  q: props.filters.q,
+  status: props.filters.status,
+  source: props.filters.source,
+  expiry: props.filters.expiry,
+  governor_result: props.filters.governorResult,
+});
+const views = ['active', 'pending_review', 'disputed', 'expired', 'completed', 'history'];
+const outcomes = [
+  'redeemed',
+  'already_redeemed',
+  'invalid',
+  'expired',
+  'wrong_kingdom',
+  'rate_limited',
+  'temporarily_unavailable',
+  'permanent_failure',
+];
 
-const activeCodes = computed(
-  () => props.codes.filter((giftCode) => redeemable(giftCode) && !expired(giftCode)).length,
+const activeCodes = computed(() => props.codes.filter((item) => item.status === 'valid').length);
+const completedCodes = computed(
+  () => props.codes.filter((item) => item.redemption && successful(item.redemption.status)).length,
 );
-const allGovernorCount = computed(() => props.governors.length);
-const redeemedCodes = computed(
-  () => props.codes.filter((giftCode) => giftCode.redemption?.status === 'redeemed').length,
+const incompleteCodes = computed(
+  () => props.codes.filter((item) => item.redemption && !successful(item.redemption.status)).length,
 );
-const pendingCodes = computed(
+const workflowGovernor = computed(() => {
+  const id = workflowGovernorIds.value[workflowIndex.value];
+  return props.governors.find((governor) => governor.id === id) ?? null;
+});
+const workflowComplete = computed(
   () =>
-    props.codes.filter((giftCode) => giftCode.redemption?.status === 'awaiting_confirmation')
-      .length,
+    workflowGovernorIds.value.length > 0 && workflowIndex.value >= workflowGovernorIds.value.length,
 );
-function expired(giftCode: GiftCode): boolean {
-  return giftCode.expiresAt !== null && new Date(giftCode.expiresAt).getTime() < Date.now();
+
+function filterUrl(view: string, cursor?: string | null): string {
+  const params = new URLSearchParams();
+  params.set('view', view);
+  if (search.q) params.set('q', search.q);
+  if (search.status) params.set('status', search.status);
+  if (search.source) params.set('source', search.source);
+  if (search.expiry) params.set('expiry', search.expiry);
+  if (search.governor_result) params.set('governor_result', search.governor_result);
+  if (cursor) params.set('cursor', cursor);
+  return `/gift-codes?${params.toString()}`;
+}
+
+function applyFilters(): void {
+  router.get('/gift-codes', search.data(), { preserveState: true, replace: true });
 }
 
 function submit(): void {
@@ -111,171 +179,95 @@ function submit(): void {
   submission.post('/gift-codes', {
     preserveScroll: true,
     onError: captureOperationError,
-    onSuccess: () => submission.reset(),
+    onSuccess: () => submission.reset('code', 'source_label', 'source_url', 'expires_at'),
   });
 }
 
-function begin(giftCode: GiftCode, playerIds: string[], key: 'current' | 'all' | 'failed'): void {
-  if (redemptionProcessing.value !== null || playerIds.length === 0) return;
-
+function startWorkflow(giftCode: GiftCode, governorIds: string[]): void {
+  if (preparing.value || governorIds.length === 0) return;
   operationError.value = null;
-  redemptionProcessing.value = { giftCodeId: giftCode.id, key };
-  window.open(
-    giftCode.redemption?.redemptionUrl ?? props.officialRedemptionUrl,
-    '_blank',
-    'noopener',
-  );
-  redemption.player_ids = playerIds;
+  preparing.value = true;
+  workflowGovernorIds.value = [...governorIds];
+  workflowIndex.value = 0;
+  redemption.player_ids = governorIds;
   redemption.post(`/gift-codes/${giftCode.id}/redeem`, {
     preserveScroll: true,
+    preserveState: true,
     onError: captureOperationError,
-    onFinish: () => (redemptionProcessing.value = null),
+    onFinish: () => (preparing.value = false),
   });
 }
 
-function confirm(giftCode: GiftCode): void {
-  if (confirmingCode.value !== null) return;
-
-  operationError.value = null;
-  confirmingCode.value = giftCode.id;
+function recordOutcome(giftCode: GiftCode): void {
+  const governor = workflowGovernor.value;
+  if (!governor || recording.value) return;
+  recording.value = true;
   router.post(
-    `/gift-codes/${giftCode.id}/confirm`,
-    {},
+    `/gift-codes/${giftCode.id}/result`,
+    { player_id: governor.id, result: selectedOutcome.value },
     {
       preserveScroll: true,
+      preserveState: true,
       onError: captureOperationError,
-      onFinish: () => (confirmingCode.value = null),
+      onSuccess: () => (workflowIndex.value += 1),
+      onFinish: () => (recording.value = false),
     },
   );
 }
 
-async function copy(giftCode: GiftCode): Promise<void> {
-  try {
-    await navigator.clipboard.writeText(giftCode.code);
-    copied.value = giftCode.id;
-    window.setTimeout(() => {
-      if (copied.value === giftCode.id) copied.value = null;
-    }, 1800);
-  } catch {
-    operationError.value = t('giftCodes.copyFailed');
-  }
+function failedGovernorIds(giftCode: GiftCode): string[] {
+  const now = Date.now();
+  return giftCode.redemptions
+    .filter(
+      (item) =>
+        ['rate_limited', 'transient_failure', 'permanent_failure'].includes(item.status) &&
+        (!item.nextAttemptAt || new Date(item.nextAttemptAt).getTime() <= now),
+    )
+    .map((item) => item.playerId);
+}
+
+function unfinishedGovernorIds(giftCode: GiftCode): string[] {
+  const states = new Map(giftCode.redemptions.map((item) => [item.playerId, item.status]));
+  return props.governors
+    .filter((governor) => governor.gamePlayerId && !successful(states.get(governor.id) ?? ''))
+    .map((governor) => governor.id);
+}
+
+function successful(status: string): boolean {
+  return ['redeemed', 'already_redeemed'].includes(status);
+}
+
+function copyValue(key: string, value: string): void {
+  navigator.clipboard
+    .writeText(value)
+    .then(() => {
+      copied.value = key;
+      window.setTimeout(() => {
+        if (copied.value === key) copied.value = null;
+      }, 1800);
+    })
+    .catch(() => (operationError.value = t('giftCodes.copyFailed')));
 }
 
 function captureOperationError(errors: Record<string, string>): void {
   operationError.value = Object.values(errors)[0] ?? t('giftCodes.operationFailed');
 }
 
-function redemptionComplete(giftCode: GiftCode): boolean {
-  return ['redeemed', 'already_redeemed'].includes(giftCode.redemption?.status ?? '');
-}
-
-function retryBlocked(giftCode: GiftCode): boolean {
-  const redemptionState = giftCode.redemption;
-  return (
-    redemptionState !== null &&
-    ['rate_limited', 'transient_failure'].includes(redemptionState.status) &&
-    redemptionState.nextAttemptAt !== null &&
-    new Date(redemptionState.nextAttemptAt).getTime() > Date.now()
-  );
-}
-
-function redemptionBusy(giftCode: GiftCode, key: 'current' | 'all' | 'failed'): boolean {
-  return (
-    redemptionProcessing.value?.giftCodeId === giftCode.id && redemptionProcessing.value.key === key
-  );
-}
-
-function redeemable(giftCode: GiftCode): boolean {
-  return ['pending', 'valid', 'disputed'].includes(giftCode.status);
-}
-
-function failedGovernorIds(giftCode: GiftCode): string[] {
-  const now = Date.now();
-  return giftCode.redemptions
-    .filter((item) => {
-      if (!['rate_limited', 'transient_failure', 'permanent_failure'].includes(item.status)) {
-        return false;
-      }
-      return item.nextAttemptAt === null || new Date(item.nextAttemptAt).getTime() <= now;
-    })
-    .map((item) => item.playerId);
-}
-
-function codeStatusLabel(status: string): string {
-  return t(`giftCodes.trust.${status}`);
-}
-
-function codeStatusTone(status: string): 'success' | 'warning' | 'danger' | 'info' {
-  if (status === 'valid') return 'success';
-  if (status === 'pending' || status === 'disputed') return 'warning';
-  if (status === 'invalid' || status === 'expired') return 'danger';
-  return 'info';
-}
-
-function redemptionResultLabel(code: string): string {
-  return t(`giftCodes.results.${code}`);
-}
-
-function requestReport(giftCode: GiftCode, issue: 'invalid' | 'expired'): void {
-  reportTarget.value = { giftCode, issue };
-}
-
-function reportIssue(): void {
-  const target = reportTarget.value;
-  if (!target || reportBusy.value) return;
-
-  reportBusy.value = true;
-  router.post(
-    `/gift-codes/${target.giftCode.id}/report`,
-    { issue: target.issue },
-    {
-      preserveScroll: true,
-      onError: captureOperationError,
-      onFinish: () => {
-        reportBusy.value = false;
-        reportTarget.value = null;
-      },
-    },
-  );
-}
-
-function redemptionMessage(redemptionState: Redemption): string | null {
-  const keys: Record<string, string> = {
-    official_handoff_ready: 'officialHandoffReady',
-    missing_player_id: 'missingPlayerIdMessage',
-    code_unavailable: 'codeUnavailableMessage',
-    code_expired: 'codeExpiredMessage',
-  };
-  const key = redemptionState.resultCode ? keys[redemptionState.resultCode] : undefined;
-
-  return key ? t(`giftCodes.${key}`) : redemptionState.message;
-}
-
-function attemptLabel(count: number): string {
-  return t(count === 1 ? 'giftCodes.singleAttempt' : 'giftCodes.attemptCount', { count });
-}
-
-function statusLabel(status: string): string {
-  const keys: Record<string, string> = {
-    awaiting_confirmation: 'awaitingConfirmation',
-    redeemed: 'redeemed',
-    already_redeemed: 'alreadyRedeemed',
-    invalid_code: 'invalidCode',
-    expired: 'expired',
-    wrong_kingdom: 'wrongKingdom',
-    rate_limited: 'rateLimited',
-    transient_failure: 'tryAgain',
-    permanent_failure: 'needsAttention',
-  };
-  return t(`giftCodes.${keys[status] ?? 'notStarted'}`);
-}
-
 function statusTone(status: string): 'success' | 'warning' | 'danger' | 'info' {
-  if (status === 'redeemed' || status === 'already_redeemed') return 'success';
-  if (status === 'awaiting_confirmation' || status === 'rate_limited') return 'warning';
-  if (status === 'expired' || status === 'invalid_code' || status === 'permanent_failure')
+  if (['valid', 'redeemed', 'already_redeemed'].includes(status)) return 'success';
+  if (['pending', 'disputed', 'awaiting_confirmation', 'rate_limited'].includes(status))
+    return 'warning';
+  if (['invalid', 'expired', 'quarantined', 'invalid_code', 'permanent_failure'].includes(status))
     return 'danger';
   return 'info';
+}
+
+function redemptionLabel(status: string): string {
+  return t(`giftCodes.redemption.${status}`);
+}
+
+function factSummary(value: Record<string, unknown> | null, unknownKey: string): string {
+  return value ? JSON.stringify(value) : t(unknownKey);
 }
 </script>
 
@@ -300,185 +292,124 @@ function statusTone(status: string): 'success' | 'warning' | 'danger' | 'info' {
       <StatSeal :label="t('giftCodes.activeCodes')" :value="formatNumber(activeCodes)" icon="◆" />
       <StatSeal
         :label="t('giftCodes.redeemed')"
-        :value="formatNumber(redeemedCodes)"
+        :value="formatNumber(completedCodes)"
         icon="✓"
         tone="teal"
       />
       <StatSeal
-        :label="t('giftCodes.awaitingConfirmation')"
-        :value="formatNumber(pendingCodes)"
+        :label="t('giftCodes.incomplete')"
+        :value="formatNumber(incompleteCodes)"
         icon="◇"
         tone="stone"
       />
       <StatSeal
         :label="t('giftCodes.governors')"
-        :value="formatNumber(allGovernorCount)"
+        :value="formatNumber(governors.length)"
         icon="♛"
       />
     </section>
 
     <ActionNotice class="mt-5" :message="operationError" tone="danger" />
 
-    <section
-      v-if="giftCodeRedemptionResult"
-      class="ks-surface mt-5 p-5"
-      aria-labelledby="gift-code-redemption-result-title"
-    >
-      <p class="ks-kicker">{{ t('giftCodes.perGovernorResult') }}</p>
-      <h2 id="gift-code-redemption-result-title" class="mt-1 text-lg font-semibold">
-        {{
-          t('giftCodes.resultSummary', {
-            succeeded: giftCodeRedemptionResult.succeeded,
-            failed: giftCodeRedemptionResult.failed,
-            skipped: giftCodeRedemptionResult.skipped,
-          })
-        }}
-      </h2>
-      <ul class="mt-4 grid gap-2 md:grid-cols-2 xl:grid-cols-3">
-        <li
-          v-for="item in giftCodeRedemptionResult.items"
-          :key="item.itemId"
-          class="flex items-center justify-between gap-3 rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/15 px-3 py-2 text-sm"
-        >
-          <span class="truncate">{{ item.label }}</span>
-          <span
-            class="ks-status"
-            :data-tone="
-              item.outcome === 'succeeded'
-                ? 'success'
-                : item.outcome === 'skipped'
-                  ? 'warning'
-                  : 'danger'
-            "
-          >
-            {{ redemptionResultLabel(item.code) }}
-          </span>
-        </li>
-      </ul>
-    </section>
+    <nav class="mt-5 flex flex-wrap gap-2" :aria-label="t('giftCodes.catalogViews')">
+      <Link
+        v-for="view in views"
+        :key="view"
+        :href="filterUrl(view)"
+        class="ks-command-link"
+        :data-variant="view === filters.view ? undefined : 'secondary'"
+      >
+        {{ t(`giftCodes.views.${view}`) }}
+      </Link>
+    </nav>
 
-    <div class="mt-5 grid gap-5 2xl:grid-cols-[minmax(0,1.45fr)_minmax(22rem,.55fr)]">
+    <form class="ks-surface mt-4 grid gap-3 p-4 md:grid-cols-5" @submit.prevent="applyFilters">
+      <input v-model="search.q" class="ks-input" :placeholder="t('giftCodes.searchCode')" />
+      <input v-model="search.source" class="ks-input" :placeholder="t('giftCodes.searchSource')" />
+      <select v-model="search.expiry" class="ks-input">
+        <option value="">{{ t('giftCodes.anyExpiry') }}</option>
+        <option value="24h">{{ t('giftCodes.expiry24h') }}</option>
+        <option value="7d">{{ t('giftCodes.expiry7d') }}</option>
+        <option value="none">{{ t('giftCodes.noExpiry') }}</option>
+        <option value="expired">{{ t('giftCodes.expired') }}</option>
+      </select>
+      <select v-model="search.governor_result" class="ks-input">
+        <option value="">{{ t('giftCodes.anyGovernorResult') }}</option>
+        <option
+          v-for="outcome in outcomes"
+          :key="outcome"
+          :value="outcome === 'invalid' ? 'invalid_code' : outcome"
+        >
+          {{ t(`giftCodes.outcomes.${outcome}`) }}
+        </option>
+      </select>
+      <AppButton type="submit">{{ t('giftCodes.applyFilters') }}</AppButton>
+    </form>
+
+    <div class="mt-5 grid gap-5 2xl:grid-cols-[minmax(0,1.35fr)_minmax(22rem,.65fr)]">
       <section class="ks-surface overflow-hidden" aria-labelledby="gift-code-ledger-heading">
         <div class="border-b border-[var(--ks-border)] p-5 sm:p-6">
           <p class="ks-kicker">{{ t('giftCodes.sharedLedger') }}</p>
           <h2 id="gift-code-ledger-heading" class="ks-display mt-1 text-2xl font-semibold">
             {{ t('giftCodes.availableCodes') }}
           </h2>
-          <p class="mt-2 max-w-3xl text-sm leading-6 text-[var(--ks-muted)]">
-            {{ t('giftCodes.ledgerHelp') }}
-          </p>
         </div>
 
         <div v-if="codes.length" class="divide-y divide-[var(--ks-border)]">
           <article v-for="giftCode in codes" :key="giftCode.id" class="p-5 sm:p-6">
             <div class="flex flex-wrap items-start justify-between gap-4">
               <div class="min-w-0">
-                <div class="flex flex-wrap items-center gap-3">
-                  <code class="text-lg font-bold tracking-[.08em] text-[var(--ks-gold-bright)]">{{
-                    giftCode.code
-                  }}</code>
-                  <span
-                    class="ks-status"
-                    :data-tone="codeStatusTone(expired(giftCode) ? 'expired' : giftCode.status)"
+                <div class="flex flex-wrap items-center gap-2">
+                  <Link
+                    :href="`/gift-codes/${giftCode.id}`"
+                    class="font-mono text-lg font-bold tracking-[.08em] text-[var(--ks-gold-bright)]"
                   >
-                    {{ codeStatusLabel(expired(giftCode) ? 'expired' : giftCode.status) }}
+                    {{ giftCode.code }}
+                  </Link>
+                  <span class="ks-status" :data-tone="statusTone(giftCode.status)">
+                    {{ t(`giftCodes.trust.${giftCode.status}`) }}
                   </span>
                   <span
+                    v-if="giftCode.redemption"
                     class="ks-status"
-                    :data-tone="
-                      giftCode.redemption ? statusTone(giftCode.redemption.status) : 'info'
-                    "
+                    :data-tone="statusTone(giftCode.redemption.status)"
                   >
-                    {{
-                      giftCode.redemption
-                        ? statusLabel(giftCode.redemption.status)
-                        : t('giftCodes.notStarted')
-                    }}
+                    {{ redemptionLabel(giftCode.redemption.status) }}
                   </span>
                 </div>
                 <p class="mt-2 text-xs text-[var(--ks-muted)]">
-                  {{ giftCode.sourceLabel ?? t(`giftCodes.source_${giftCode.sourceType}`) }}
-                  · {{ formatDate(giftCode.discoveredAt, { dateStyle: 'medium' }) }}
+                  {{ t('giftCodes.sourceCount', { count: giftCode.sourceCount }) }} ·
+                  {{ t('giftCodes.statusRevision', { revision: giftCode.statusRevision }) }} ·
+                  {{ formatDate(giftCode.discoveredAt, { dateStyle: 'medium' }) }}
                   <template v-if="giftCode.expiresAt">
-                    · {{ t('giftCodes.expires') }}
-                    {{ formatDate(giftCode.expiresAt, { dateStyle: 'medium' }) }}
+                    · {{ t('giftCodes.expires') }} {{ formatDate(giftCode.expiresAt) }}
                   </template>
                 </p>
-                <p
-                  v-if="giftCode.redemption && redemptionMessage(giftCode.redemption)"
-                  class="mt-3 text-sm leading-6 text-[var(--ks-text-secondary)]"
-                >
-                  {{ redemptionMessage(giftCode.redemption) }}
-                </p>
-                <p
-                  v-if="giftCode.redemption?.lastAttemptAt"
-                  class="mt-2 text-xs text-[var(--ks-muted)]"
-                >
-                  {{ t('giftCodes.lastAttempt') }}:
-                  {{
-                    formatDate(giftCode.redemption.lastAttemptAt, {
-                      dateStyle: 'medium',
-                      timeStyle: 'short',
-                    })
-                  }}
-                  · {{ attemptLabel(giftCode.redemption.attempts) }}
-                </p>
-                <p
-                  v-if="retryBlocked(giftCode) && giftCode.redemption?.nextAttemptAt"
-                  class="mt-1 text-xs text-amber-200"
-                >
-                  {{ t('giftCodes.retryAfter') }}
-                  {{
-                    formatDate(giftCode.redemption.nextAttemptAt, {
-                      dateStyle: 'medium',
-                      timeStyle: 'short',
-                    })
-                  }}
-                </p>
               </div>
-
-              <button
-                type="button"
-                class="ks-command-link"
-                data-variant="secondary"
-                @click="copy(giftCode)"
-              >
-                {{ copied === giftCode.id ? t('giftCodes.copied') : t('giftCodes.copyCode') }}
-              </button>
-            </div>
-
-            <div
-              v-if="redeemable(giftCode) && !expired(giftCode)"
-              class="mt-4 flex flex-wrap gap-2"
-            >
               <AppButton
                 type="button"
-                :busy="redemptionBusy(giftCode, 'current')"
-                :busy-label="t('giftCodes.preparingHandoff')"
-                :disabled="
-                  redemptionProcessing !== null ||
-                  !player.gamePlayerId ||
-                  retryBlocked(giftCode) ||
-                  redemptionComplete(giftCode)
-                "
-                @click="begin(giftCode, [player.id], 'current')"
+                variant="secondary"
+                @click="copyValue(giftCode.id, giftCode.code)"
+              >
+                {{ copied === giftCode.id ? t('giftCodes.copied') : t('giftCodes.copyCode') }}
+              </AppButton>
+            </div>
+
+            <div v-if="giftCode.status === 'valid'" class="mt-4 flex flex-wrap gap-2">
+              <AppButton
+                type="button"
+                :busy="preparing"
+                :disabled="!player.gamePlayerId || successful(giftCode.redemption?.status ?? '')"
+                @click="startWorkflow(giftCode, [player.id])"
               >
                 {{ t('giftCodes.redeemForGovernor', { governor: player.name }) }}
               </AppButton>
               <AppButton
-                v-if="allGovernorCount > 1"
                 type="button"
                 variant="secondary"
-                :busy="redemptionBusy(giftCode, 'all')"
-                :busy-label="t('giftCodes.preparingHandoff')"
-                :disabled="redemptionProcessing !== null"
-                @click="
-                  begin(
-                    giftCode,
-                    governors.map((governor) => governor.id),
-                    'all',
-                  )
-                "
+                :busy="preparing"
+                :disabled="unfinishedGovernorIds(giftCode).length === 0"
+                @click="startWorkflow(giftCode, unfinishedGovernorIds(giftCode))"
               >
                 {{ t('giftCodes.prepareAllGovernors') }}
               </AppButton>
@@ -486,108 +417,229 @@ function statusTone(status: string): 'success' | 'warning' | 'danger' | 'info' {
                 v-if="failedGovernorIds(giftCode).length"
                 type="button"
                 variant="secondary"
-                :busy="redemptionBusy(giftCode, 'failed')"
-                :busy-label="t('giftCodes.retryingFailed')"
-                :disabled="redemptionProcessing !== null"
-                @click="begin(giftCode, failedGovernorIds(giftCode), 'failed')"
+                :busy="preparing"
+                @click="startWorkflow(giftCode, failedGovernorIds(giftCode))"
               >
                 {{
-                  t('giftCodes.retryFailedGovernors', {
-                    count: failedGovernorIds(giftCode).length,
-                  })
+                  t('giftCodes.retryFailedGovernors', { count: failedGovernorIds(giftCode).length })
                 }}
-              </AppButton>
-              <AppButton
-                v-if="giftCode.redemption?.status === 'awaiting_confirmation'"
-                variant="secondary"
-                :busy="confirmingCode === giftCode.id"
-                :busy-label="t('giftCodes.confirmingDelivered')"
-                :disabled="confirmingCode !== null && confirmingCode !== giftCode.id"
-                @click="confirm(giftCode)"
-              >
-                {{ t('giftCodes.confirmDelivered') }}
-              </AppButton>
-              <a
-                v-if="giftCode.redemption?.status === 'awaiting_confirmation'"
-                :href="giftCode.redemption.redemptionUrl ?? officialRedemptionUrl"
-                target="_blank"
-                rel="noreferrer"
-                class="ks-command-link"
-                data-variant="secondary"
-              >
-                {{ t('giftCodes.continueOfficialCenter') }}
-              </a>
-              <a
-                v-if="giftCode.sourceUrl"
-                :href="giftCode.sourceUrl"
-                target="_blank"
-                rel="noreferrer"
-                class="ks-command-link"
-                data-variant="secondary"
-              >
-                {{ t('giftCodes.viewSource') }}
-              </a>
-              <AppButton variant="ghost" @click="requestReport(giftCode, 'invalid')">
-                {{ t('giftCodes.reportInvalid') }}
-              </AppButton>
-              <AppButton variant="ghost" @click="requestReport(giftCode, 'expired')">
-                {{ t('giftCodes.reportExpired') }}
               </AppButton>
             </div>
 
-            <details v-if="giftCode.provenances.length" class="mt-4">
+            <details v-if="giftCode.redemptions.length" class="mt-4">
               <summary class="cursor-pointer text-sm font-semibold text-[var(--ks-text-secondary)]">
-                {{ t('giftCodes.sourceHistory', { count: giftCode.provenances.length }) }}
+                {{ t('giftCodes.governorReceipts') }}
               </summary>
               <ul class="mt-3 grid gap-2 md:grid-cols-2">
                 <li
-                  v-for="source in giftCode.provenances"
-                  :key="source.id"
-                  class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/15 p-3 text-xs"
+                  v-for="item in giftCode.redemptions"
+                  :key="item.playerId"
+                  class="flex items-center justify-between gap-3 rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] p-3 text-sm"
                 >
-                  <a
-                    v-if="source.sourceUrl"
-                    :href="source.sourceUrl"
-                    target="_blank"
-                    rel="noreferrer"
-                    class="font-semibold text-[var(--ks-blue-strong)]"
-                  >
-                    {{ source.sourceLabel ?? t(`giftCodes.source_${source.sourceType}`) }}
-                  </a>
-                  <strong v-else>{{
-                    source.sourceLabel ?? t(`giftCodes.source_${source.sourceType}`)
-                  }}</strong>
-                  <p class="mt-1 text-[var(--ks-muted)]">
-                    {{ formatDate(source.observedAt, { dateStyle: 'medium' }) }}
-                  </p>
+                  <span>{{ item.playerName }}</span>
+                  <span class="ks-status" :data-tone="statusTone(item.status)">{{
+                    redemptionLabel(item.status)
+                  }}</span>
                 </li>
               </ul>
             </details>
-
-            <div v-if="giftCode.redemptions.length" class="mt-4">
-              <p class="ks-kicker">{{ t('giftCodes.governorReceipts') }}</p>
-              <ul class="mt-2 grid gap-2 md:grid-cols-2">
-                <li
-                  v-for="item in giftCode.redemptions"
-                  :key="item.playerId"
-                  class="flex items-center justify-between gap-3 rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/15 px-3 py-2 text-sm"
-                >
-                  <span class="truncate">{{ item.playerName }}</span>
-                  <span class="ks-status" :data-tone="statusTone(item.status)">
-                    {{ statusLabel(item.status) }}
-                  </span>
-                </li>
-              </ul>
-            </div>
           </article>
         </div>
-        <div v-else class="p-8 text-center text-sm text-[var(--ks-muted)]">
+        <p v-else class="p-8 text-center text-sm text-[var(--ks-muted)]">
           {{ t('giftCodes.empty') }}
+        </p>
+
+        <div class="flex justify-between border-t border-[var(--ks-border)] p-4">
+          <Link
+            v-if="pagination.previousCursor"
+            :href="filterUrl(filters.view, pagination.previousCursor)"
+            class="ks-command-link"
+            data-variant="secondary"
+          >
+            {{ t('common.previous') }}
+          </Link>
+          <span v-else />
+          <Link
+            v-if="pagination.nextCursor"
+            :href="filterUrl(filters.view, pagination.nextCursor)"
+            class="ks-command-link"
+            data-variant="secondary"
+          >
+            {{ t('common.next') }}
+          </Link>
         </div>
       </section>
 
       <aside class="space-y-5">
-        <section class="ks-surface-gold p-5 sm:p-6" aria-labelledby="submit-gift-code-heading">
+        <section
+          v-if="focusedCode"
+          class="ks-surface-gold p-5 sm:p-6"
+          aria-labelledby="gift-code-detail"
+        >
+          <p class="ks-kicker">{{ t('giftCodes.codeDetail') }}</p>
+          <h2 id="gift-code-detail" class="ks-display mt-1 text-2xl font-semibold">
+            {{ focusedCode.code }}
+          </h2>
+          <p class="mt-2 text-sm text-[var(--ks-muted)]">
+            {{ focusedCode.statusReasonCode ?? t('giftCodes.noTrustReason') }}
+          </p>
+
+          <dl class="mt-4 space-y-3 text-sm">
+            <div>
+              <dt class="ks-kicker">{{ t('giftCodes.rewardDetails') }}</dt>
+              <dd class="mt-1 break-words">
+                {{ factSummary(focusedCode.reward, 'giftCodes.rewardUnknown') }}
+              </dd>
+            </div>
+            <div>
+              <dt class="ks-kicker">{{ t('giftCodes.applicability') }}</dt>
+              <dd class="mt-1 break-words">
+                {{ factSummary(focusedCode.applicability, 'giftCodes.applicabilityUnknown') }}
+              </dd>
+            </div>
+          </dl>
+
+          <div v-if="focusedCode.status === 'valid'" class="mt-5">
+            <p class="ks-kicker">{{ t('giftCodes.chooseGovernors') }}</p>
+            <div class="mt-3 space-y-2">
+              <label
+                v-for="governor in governors"
+                :key="governor.id"
+                class="flex items-center gap-3 rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] p-3 text-sm"
+              >
+                <input
+                  v-model="selectedGovernorIds"
+                  type="checkbox"
+                  :value="governor.id"
+                  :disabled="!governor.gamePlayerId"
+                />
+                <span>{{ governor.name }}</span>
+                <span class="ml-auto text-xs text-[var(--ks-muted)]">
+                  {{
+                    governor.kingdomNumber
+                      ? t('giftCodes.kingdom', { kingdom: governor.kingdomNumber })
+                      : t('common.none')
+                  }}
+                </span>
+              </label>
+            </div>
+            <AppButton
+              type="button"
+              class="mt-3 w-full"
+              :busy="preparing"
+              :disabled="selectedGovernorIds.length === 0"
+              @click="startWorkflow(focusedCode, selectedGovernorIds)"
+            >
+              {{ t('giftCodes.prepareSelectedGovernors', { count: selectedGovernorIds.length }) }}
+            </AppButton>
+          </div>
+
+          <div
+            v-if="workflowGovernor && !workflowComplete"
+            class="mt-5 border-t border-[var(--ks-border)] pt-5"
+          >
+            <p class="ks-kicker">
+              {{
+                t('giftCodes.workflowStep', {
+                  current: workflowIndex + 1,
+                  total: workflowGovernorIds.length,
+                })
+              }}
+            </p>
+            <h3 class="mt-1 text-lg font-semibold">{{ workflowGovernor.name }}</h3>
+            <p class="mt-1 text-xs text-[var(--ks-muted)]">
+              {{
+                workflowGovernor.kingdomNumber
+                  ? t('giftCodes.kingdom', { kingdom: workflowGovernor.kingdomNumber })
+                  : t('common.none')
+              }}
+              · {{ workflowGovernor.gamePlayerId ?? t('giftCodes.missingPlayerIdMessage') }}
+            </p>
+            <div class="mt-3 flex flex-wrap gap-2">
+              <AppButton
+                type="button"
+                variant="secondary"
+                @click="
+                  copyValue(`player:${workflowGovernor.id}`, workflowGovernor.gamePlayerId ?? '')
+                "
+              >
+                {{ t('giftCodes.copyPlayerId') }}
+              </AppButton>
+              <AppButton
+                type="button"
+                variant="secondary"
+                @click="copyValue(`code:${focusedCode.id}`, focusedCode.code)"
+              >
+                {{ t('giftCodes.copyCode') }}
+              </AppButton>
+              <a
+                :href="officialRedemptionUrl"
+                target="_blank"
+                rel="noreferrer"
+                class="ks-command-link"
+              >
+                {{ t('giftCodes.openOfficialCenter') }}
+              </a>
+            </div>
+            <label class="mt-4 block">
+              <span class="ks-kicker">{{ t('giftCodes.observedOutcome') }}</span>
+              <select v-model="selectedOutcome" class="ks-input mt-2 w-full">
+                <option v-for="outcome in outcomes" :key="outcome" :value="outcome">
+                  {{ t(`giftCodes.outcomes.${outcome}`) }}
+                </option>
+              </select>
+            </label>
+            <AppButton
+              type="button"
+              class="mt-3 w-full"
+              :busy="recording"
+              @click="recordOutcome(focusedCode)"
+            >
+              {{ t('giftCodes.recordAndContinue') }}
+            </AppButton>
+          </div>
+          <ActionNotice
+            v-if="workflowComplete"
+            class="mt-4"
+            :message="t('giftCodes.workflowComplete')"
+            tone="success"
+          />
+
+          <details
+            v-if="focusedCode.provenances?.length"
+            class="mt-5 border-t border-[var(--ks-border)] pt-4"
+          >
+            <summary class="cursor-pointer text-sm font-semibold">
+              {{ t('giftCodes.sourceHistory', { count: focusedCode.provenances.length }) }}
+            </summary>
+            <ul class="mt-3 space-y-2">
+              <li
+                v-for="source in focusedCode.provenances"
+                :key="source.id"
+                class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] p-3 text-xs"
+              >
+                <a
+                  v-if="source.sourceUrl"
+                  :href="source.sourceUrl"
+                  target="_blank"
+                  rel="noreferrer"
+                  class="font-semibold text-[var(--ks-blue-strong)]"
+                >
+                  {{ source.registeredSourceName ?? source.sourceLabel ?? source.sourceType }}
+                </a>
+                <strong v-else>{{
+                  source.registeredSourceName ?? source.sourceLabel ?? source.sourceType
+                }}</strong>
+                <p class="mt-1 text-[var(--ks-muted)]">
+                  {{ source.assertion }} · {{ source.verificationState }} ·
+                  {{ formatDate(source.observedAt) }}
+                </p>
+              </li>
+            </ul>
+          </details>
+        </section>
+
+        <section class="ks-surface p-5 sm:p-6" aria-labelledby="submit-gift-code-heading">
           <p class="ks-kicker">{{ t('giftCodes.communityDiscovery') }}</p>
           <h2 id="submit-gift-code-heading" class="ks-display mt-1 text-2xl font-semibold">
             {{ t('giftCodes.addCode') }}
@@ -595,7 +647,6 @@ function statusTone(status: string): 'success' | 'warning' | 'danger' | 'info' {
           <p class="mt-2 text-sm leading-6 text-[var(--ks-muted)]">
             {{ t('giftCodes.addCodeHelp') }}
           </p>
-
           <form class="mt-5 space-y-4" @submit.prevent="submit">
             <label class="block">
               <span class="ks-kicker">{{ t('giftCodes.code') }}</span>
@@ -605,26 +656,16 @@ function statusTone(status: string): 'success' | 'warning' | 'danger' | 'info' {
                 maxlength="64"
                 class="ks-input mt-2 w-full"
                 autocomplete="off"
-                :aria-invalid="submission.errors.code ? 'true' : undefined"
-                :aria-describedby="submission.errors.code ? 'gift-code-error' : undefined"
               />
-              <FormError id="gift-code-error" :message="submission.errors.code" />
+              <FormError :message="submission.errors.code" />
             </label>
             <label class="block">
               <span class="ks-kicker">{{ t('giftCodes.source') }}</span>
-              <select
-                v-model="submission.source_type"
-                class="ks-input mt-2 w-full"
-                :aria-invalid="submission.errors.source_type ? 'true' : undefined"
-                :aria-describedby="
-                  submission.errors.source_type ? 'gift-code-source-error' : undefined
-                "
-              >
+              <select v-model="submission.source_type" class="ks-input mt-2 w-full">
                 <option value="manual">{{ t('giftCodes.source_manual') }}</option>
-                <option value="official">{{ t('giftCodes.source_official') }}</option>
                 <option value="community">{{ t('giftCodes.source_community') }}</option>
               </select>
-              <FormError id="gift-code-source-error" :message="submission.errors.source_type" />
+              <FormError :message="submission.errors.source_type" />
             </label>
             <label class="block">
               <span class="ks-kicker">{{ t('giftCodes.sourceLabel') }}</span>
@@ -632,14 +673,6 @@ function statusTone(status: string): 'success' | 'warning' | 'danger' | 'info' {
                 v-model="submission.source_label"
                 maxlength="160"
                 class="ks-input mt-2 w-full"
-                :aria-invalid="submission.errors.source_label ? 'true' : undefined"
-                :aria-describedby="
-                  submission.errors.source_label ? 'gift-code-source-label-error' : undefined
-                "
-              />
-              <FormError
-                id="gift-code-source-label-error"
-                :message="submission.errors.source_label"
               />
             </label>
             <label class="block">
@@ -649,26 +682,16 @@ function statusTone(status: string): 'success' | 'warning' | 'danger' | 'info' {
                 type="url"
                 maxlength="2048"
                 class="ks-input mt-2 w-full"
-                :aria-invalid="submission.errors.source_url ? 'true' : undefined"
-                :aria-describedby="
-                  submission.errors.source_url ? 'gift-code-source-url-error' : undefined
-                "
               />
-              <FormError id="gift-code-source-url-error" :message="submission.errors.source_url" />
             </label>
             <label class="block">
-              <span class="ks-kicker">{{ t('giftCodes.expiresAt') }}</span>
-              <input
-                v-model="submission.expires_at"
-                type="date"
-                class="ks-input mt-2 w-full"
-                :aria-invalid="submission.errors.expires_at ? 'true' : undefined"
-                :aria-describedby="
-                  submission.errors.expires_at ? 'gift-code-expires-error' : undefined
-                "
-              />
-              <FormError id="gift-code-expires-error" :message="submission.errors.expires_at" />
+              <span class="ks-kicker">{{ t('giftCodes.claimedExpiry') }}</span>
+              <input v-model="submission.expires_at" type="date" class="ks-input mt-2 w-full" />
+              <FormError :message="submission.errors.expires_at" />
             </label>
+            <p class="text-xs leading-5 text-[var(--ks-muted)]">
+              {{ t('giftCodes.communityEvidenceWarning') }}
+            </p>
             <AppButton
               type="submit"
               class="w-full"
@@ -679,38 +702,7 @@ function statusTone(status: string): 'success' | 'warning' | 'danger' | 'info' {
             </AppButton>
           </form>
         </section>
-
-        <section v-if="!player.gamePlayerId" class="ks-surface p-5 sm:p-6">
-          <p class="ks-kicker">{{ t('giftCodes.playerIdRequired') }}</p>
-          <h2 class="ks-display mt-1 text-xl font-semibold">{{ t('giftCodes.addPlayerId') }}</h2>
-          <p class="mt-2 text-sm leading-6 text-[var(--ks-muted)]">
-            {{ t('giftCodes.addPlayerIdHelp') }}
-          </p>
-          <Link href="/profile" class="ks-command-link mt-4">{{ t('navigation.profile') }}</Link>
-        </section>
       </aside>
     </div>
-
-    <ConfirmActionDialog
-      id="gift-code-report-confirmation"
-      :open="reportTarget !== null"
-      :title="t('giftCodes.reportIssueTitle')"
-      :description="
-        t('giftCodes.reportIssueDescription', {
-          code: reportTarget?.giftCode.code ?? '',
-          issue:
-            reportTarget?.issue === 'expired'
-              ? t('giftCodes.expiredLower')
-              : t('giftCodes.invalidLower'),
-        })
-      "
-      :confirm-label="t('giftCodes.reportIssueConfirm')"
-      :cancel-label="t('common.cancel')"
-      :busy="reportBusy"
-      :busy-label="t('giftCodes.reportingIssue')"
-      danger
-      @confirm="reportIssue"
-      @cancel="reportTarget = null"
-    />
   </AppLayout>
 </template>

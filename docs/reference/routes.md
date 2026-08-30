@@ -9,7 +9,7 @@ Status: Current
 | `routes/console.php` | Scheduler/console commands. |
 | `routes/contributions.php` | Contribution/reporting routes. |
 | `routes/event-history.php` | Event-history/read-model routes. |
-| `routes/gift-codes.php` | Gift Code catalogue and Governor redemption routes. |
+| `routes/gift-codes.php` | Gift Code catalogue/detail and Governor redemption routes plus MFA/password-confirmed platform moderation, source-policy and curator operations. |
 | `routes/integrations.php` | Integration administration routes. |
 | `routes/king-perks.php` | King Perks routes. |
 | `routes/kingdoms.php` | Kingdom/GameWorld and related workflow routes. |

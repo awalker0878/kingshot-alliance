@@ -81,6 +81,7 @@ const messages = {
     eventGiftCodeCreated: 'A new sourced Gift Code enters the shared list.',
     eventGiftCodeProvenanceAdded: 'New source information is attached to an existing Gift Code.',
     eventGiftCodeStatusChanged: 'Gift Code status changes after expiry or Governor evidence.',
+    eventGiftCodeExpiryChanged: 'A qualified Gift Code expiry revision changes.',
     eventBroadcastScheduleUpdated: 'A recurring Alliance Notice rule is created or changed.',
     eventBroadcastScheduleCancelled: 'A recurring Alliance Notice rule is cancelled.',
     eventBroadcastRunQueued: 'A scheduled Alliance Notice is queued for its recipients.',

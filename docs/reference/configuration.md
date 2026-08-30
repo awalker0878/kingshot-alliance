@@ -17,6 +17,7 @@ Authoritative configuration sources are `.env.example`, `deploy/staging.env.exam
 | Observability | log channels/levels and operational correlation settings |
 | Proxies/TLS | trusted proxies and explicit trust-all/loopback-staging controls |
 | Workers | Horizon environment/supervisor sizing |
+| Gift Codes | `GIFT_CODES_MODERATION`, `GIFT_CODES_APPROVED_SOURCE_INGESTION`, and `GIFT_CODES_NOTIFICATION_FANOUT` default off; evidence threshold, bounded fan-out/ingestion/catalogue limits, and maximum Governors per account are configurable |
 
 ## Hosted invariants
 

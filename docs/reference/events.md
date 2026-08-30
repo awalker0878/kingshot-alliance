@@ -24,9 +24,10 @@ Source: `app/Contexts/Platform/Integrations/Contracts/WebhookEventCatalog.php`
 | `member.left` | Alliance | `member_id`, `player_id`, `source` | A member or roster entry is marked as having left. |
 | `recruitment.candidate.stage_changed` | Alliance | `candidate_id`, `from_stage`, `to_stage` | A candidate moves through the recruitment pipeline. |
 | `recruitment.candidate.joined` | Alliance | `candidate_id`, `membership_invitation_id` | An accepted candidate joins the Alliance. |
-| `gift_code.created` | Global | `gift_code_id`, `code`, `status` | A normalized Gift Code is first added. |
-| `gift_code.provenance_added` | Global | `gift_code_id`, `code`, `source_type` | A duplicate submission adds source evidence. |
-| `gift_code.status_changed` | Global | `gift_code_id`, `previous_status`, `status` | Reconciled Governor evidence changes shared status. |
+| `gift_code.created` | Global | `version`, `gift_code_id`, `code`, `status`, `status_revision` | A normalized Gift Code is first added. |
+| `gift_code.provenance_added` | Global | `version`, `gift_code_id`, `code`, `source_type`, `status_revision` | A later observation appends source evidence. |
+| `gift_code.status_changed` | Global | `version`, `gift_code_id`, `previous_status`, `status`, `status_revision` | Canonical evidence/moderation changes global trust. |
+| `gift_code.expiry_changed` | Global | `version`, `gift_code_id`, `status_revision`, `expires_revision` | Qualified evidence or moderation changes canonical expiry. |
 | `broadcast.schedule.updated` | Alliance | `schedule_id`, `content_item_id`, `timezone`, `weekdays`, `local_time`, `next_run_at` | A recurring broadcast rule is saved. |
 | `broadcast.schedule.cancelled` | Alliance | `schedule_id`, `content_item_id`, `reason` | A recurring broadcast rule is cancelled or deactivated. |
 | `broadcast.run.queued` | Alliance | `broadcast_run_id`, `content_item_id`, `recipient_count`, `delivery_count` | A one-off or recurring run is materialized. |

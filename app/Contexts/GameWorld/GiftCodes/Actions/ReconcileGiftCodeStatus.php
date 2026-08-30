@@ -19,6 +19,7 @@ final readonly class ReconcileGiftCodeStatus
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
         private GiftCodeTrustResolver $trust,
+        private ScheduleGiftCodeNotificationCampaign $notifications,
     ) {}
 
     public function handle(string $giftCodeId, ?AuditActor $actor = null): GiftCodeStatus
@@ -48,8 +49,10 @@ final readonly class ReconcileGiftCodeStatus
 
         if (! $materialTrustChanged) {
             if ($expiryChanged) {
+                $previous = $giftCode->status;
                 $giftCode->save();
                 $this->recordExpiryChange($giftCode, $actor);
+                $this->notifications->handle($giftCode, $previous, true);
             }
 
             return $decision->status;
@@ -67,6 +70,7 @@ final readonly class ReconcileGiftCodeStatus
         ])->save();
 
         $metadata = [
+            'version' => 1,
             'gift_code_id' => (string) $giftCode->id,
             'previous_status' => $previous->value,
             'status' => $decision->status->value,
@@ -90,6 +94,7 @@ final readonly class ReconcileGiftCodeStatus
         if ($expiryChanged) {
             $this->recordExpiryChange($giftCode, $actor);
         }
+        $this->notifications->handle($giftCode, $previous, $expiryChanged);
 
         return $decision->status;
     }
@@ -97,6 +102,7 @@ final readonly class ReconcileGiftCodeStatus
     private function recordExpiryChange(GiftCode $giftCode, ?AuditActor $actor): void
     {
         $metadata = [
+            'version' => 1,
             'gift_code_id' => (string) $giftCode->id,
             'expires_at' => $giftCode->expires_at?->toIso8601String(),
             'expires_precision' => $giftCode->expires_precision,

@@ -37,7 +37,7 @@ Later capability delivery is represented by the current canonical contracts belo
 
 | Capability/program | Status | Canonical current-truth contract |
 | --- | --- | --- |
-| Gift Code trust/recovery | Complete | [Capability catalogue](capability-catalogue.md) and owner/reference docs |
+| Gift Code trust, discovery and redemption expansion | Complete | [Extension closeout](gift-code-extension-program.md), [ADR-0004](../architecture/adr/0004-gift-code-trust-from-append-only-evidence.md), [owner reference](../reference/gift-codes.md) and `GiftCodeBehaviorV3Test` |
 | Notifications, recurring Alliance announcements and delivery recovery | Complete | [Capability catalogue](capability-catalogue.md), [user journeys](experience/user-journeys.md) and owner/reference docs |
 | Pagination, shared workflow UX and bounded bulk workflows | Complete | [Capability catalogue](capability-catalogue.md), [user journeys](experience/user-journeys.md) and owner tests |
 | Integration platform and bot/API participation parity | Complete | [Capability catalogue](capability-catalogue.md), [user journeys](experience/user-journeys.md) and public reference contracts |

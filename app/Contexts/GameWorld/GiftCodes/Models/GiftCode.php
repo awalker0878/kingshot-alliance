@@ -32,6 +32,8 @@ use Illuminate\Support\Carbon;
  * @property-read Collection<int, GiftCodeRedemption> $redemptions
  * @property-read Collection<int, GiftCodeProvenance> $provenances
  * @property-read Collection<int, GiftCodeModerationDecision> $moderationDecisions
+ * @property-read Collection<int, GiftCodeFactProjection> $factProjections
+ * @property-read Collection<int, GiftCodeNotificationCampaign> $notificationCampaigns
  */
 final class GiftCode extends Model
 {
@@ -87,5 +89,17 @@ final class GiftCode extends Model
     public function moderationDecisions(): HasMany
     {
         return $this->hasMany(GiftCodeModerationDecision::class)->orderByDesc('decided_at');
+    }
+
+    /** @return HasMany<GiftCodeFactProjection, $this> */
+    public function factProjections(): HasMany
+    {
+        return $this->hasMany(GiftCodeFactProjection::class);
+    }
+
+    /** @return HasMany<GiftCodeNotificationCampaign, $this> */
+    public function notificationCampaigns(): HasMany
+    {
+        return $this->hasMany(GiftCodeNotificationCampaign::class);
     }
 }

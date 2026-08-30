@@ -23,8 +23,16 @@ return new class extends Migration
             $table->string('canonical_domain', 255)->nullable()->index();
             $table->boolean('is_active')->default(true)->index();
             $table->string('verification_method', 80);
+            $table->string('adapter_key', 120)->nullable()->index();
+            $table->unsignedBigInteger('policy_revision')->default(0);
             $table->json('provenance_policy')->nullable();
             $table->boolean('ingestion_enabled')->default(false)->index();
+            $table->text('ingestion_cursor')->nullable();
+            $table->timestampTz('last_ingestion_attempt_at')->nullable()->index();
+            $table->timestampTz('last_ingestion_success_at')->nullable()->index();
+            $table->timestampTz('last_ingestion_failure_at')->nullable()->index();
+            $table->string('last_ingestion_failure_code', 120)->nullable();
+            $table->text('last_ingestion_error')->nullable();
             $table->timestampTz('revoked_at')->nullable()->index();
             $table->foreignId('created_by_user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->timestampsTz();
@@ -121,10 +129,84 @@ return new class extends Migration
 
             $table->index(['gift_code_id', 'decided_at']);
         });
+
+        Schema::create('gift_code_fact_projections', function (Blueprint $table): void {
+            $table->ulid('id')->primary();
+            $table->foreignUlid('gift_code_id')->constrained('gift_codes')->cascadeOnDelete();
+            $table->string('fact_type', 48);
+            $table->boolean('qualified')->default(false)->index();
+            $table->string('reason_code', 120)->index();
+            $table->json('value')->nullable();
+            $table->json('evidence_ids')->nullable();
+            $table->unsignedBigInteger('revision')->default(0);
+            $table->timestampTz('derived_at');
+            $table->timestampsTz();
+
+            $table->unique(['gift_code_id', 'fact_type']);
+            $table->index(['gift_code_id', 'qualified', 'fact_type']);
+        });
+
+        Schema::create('gift_code_notification_campaigns', function (Blueprint $table): void {
+            $table->ulid('id')->primary();
+            $table->foreignUlid('gift_code_id')->constrained('gift_codes')->cascadeOnDelete();
+            $table->string('notification_type', 80);
+            $table->unsignedBigInteger('status_revision');
+            $table->unsignedBigInteger('expires_revision');
+            $table->json('metadata')->nullable();
+            $table->unsignedBigInteger('cursor_user_id')->nullable();
+            $table->unsignedBigInteger('examined_count')->default(0);
+            $table->unsignedBigInteger('delivery_count')->default(0);
+            $table->unsignedBigInteger('created_delivery_count')->default(0);
+            $table->timestampTz('completed_at')->nullable()->index();
+            $table->timestampsTz();
+
+            $table->unique(
+                ['gift_code_id', 'notification_type', 'status_revision', 'expires_revision'],
+                'gift_code_notification_campaign_revision_unique',
+            );
+            $table->index(['completed_at', 'notification_type', 'id'], 'gift_code_notification_campaign_queue');
+        });
+
+        Schema::create('gift_code_ingestion_runs', function (Blueprint $table): void {
+            $table->ulid('id')->primary();
+            $table->foreignUlid('gift_code_source_id')->constrained('gift_code_sources')->cascadeOnDelete();
+            $table->string('status', 32)->index();
+            $table->text('source_cursor')->nullable();
+            $table->text('result_cursor')->nullable();
+            $table->unsignedInteger('examined_count')->default(0);
+            $table->unsignedInteger('accepted_count')->default(0);
+            $table->unsignedInteger('duplicate_count')->default(0);
+            $table->unsignedInteger('quarantined_count')->default(0);
+            $table->string('failure_code', 120)->nullable()->index();
+            $table->text('failure_message')->nullable();
+            $table->timestampTz('started_at');
+            $table->timestampTz('completed_at')->nullable()->index();
+            $table->timestampsTz();
+
+            $table->index(['gift_code_source_id', 'started_at']);
+        });
+
+        Schema::create('gift_code_source_reconciliation_jobs', function (Blueprint $table): void {
+            $table->ulid('id')->primary();
+            $table->foreignUlid('gift_code_source_id')->constrained('gift_code_sources')->cascadeOnDelete();
+            $table->unsignedBigInteger('source_revision');
+            $table->string('reason_code', 120);
+            $table->ulid('cursor_gift_code_id')->nullable();
+            $table->unsignedBigInteger('examined_count')->default(0);
+            $table->timestampTz('completed_at')->nullable()->index();
+            $table->timestampsTz();
+
+            $table->unique(['gift_code_source_id', 'source_revision']);
+            $table->index(['completed_at', 'id']);
+        });
     }
 
     public function down(): void
     {
+        Schema::dropIfExists('gift_code_source_reconciliation_jobs');
+        Schema::dropIfExists('gift_code_ingestion_runs');
+        Schema::dropIfExists('gift_code_notification_campaigns');
+        Schema::dropIfExists('gift_code_fact_projections');
         Schema::dropIfExists('gift_code_moderation_decisions');
         Schema::dropIfExists('gift_code_redemptions');
         Schema::dropIfExists('gift_code_provenances');

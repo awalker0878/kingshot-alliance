@@ -21,7 +21,7 @@ final class PublishedIntegrationContractV3Test extends TestCase
             'api.v1.events.index' => ['/api/v1/events', 'get', 'events:read'],
             'api.v1.contributions.index' => ['/api/v1/contributions', 'get', 'contributions:read'],
             'api.v1.commands.overview' => ['/api/v1/commands/overview', 'get', 'commands:read'],
-            'api.v1.commands.gift-codes' => ['/api/v1/commands/gift-codes', 'get', 'gift-codes:read'],
+            'api.v1.gift-codes.index' => ['/api/v1/gift-codes', 'get', 'gift-codes:read'],
             'api.v1.commands.knowledge' => ['/api/v1/commands/knowledge', 'get', 'content:read'],
             'api.v1.actor-links.claim' => ['/api/v1/actor-links/claims', 'post', 'actor-links:write'],
             'api.v1.me.events.response' => ['/api/v1/me/events/{occurrence}/response', 'put', 'event-participation:write'],

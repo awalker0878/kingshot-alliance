@@ -24,6 +24,7 @@ final readonly class ModerateGiftCode
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
         private ReconcileGiftCodeStatus $reconcile,
+        private ReconcileGiftCodeFacts $facts,
     ) {}
 
     /**
@@ -109,6 +110,7 @@ final readonly class ModerateGiftCode
             );
 
             $this->reconcile->handle($giftCodeId, $actor);
+            $this->facts->handle($giftCodeId, $actor);
 
             return (string) $decision->id;
         });

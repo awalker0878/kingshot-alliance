@@ -11,6 +11,7 @@ use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeRedemption;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Pagination\CursorPaginator;
+use Illuminate\Support\Collection;
 use InvalidArgumentException;
 
 final class GiftCodeCatalogQuery
@@ -51,7 +52,7 @@ final class GiftCodeCatalogQuery
         $limit = max(1, min($limit, 100));
         $query = GiftCode::query()
             ->withCount('provenances')
-            ->with(['redemptions' => static function (Relation $relation) use ($playerIds): void {
+            ->with(['factProjections', 'redemptions' => static function (Relation $relation) use ($playerIds): void {
                 $relation->getQuery()->whereIn('player_id', $playerIds)->orderBy('player_id');
             }]);
 
@@ -80,11 +81,25 @@ final class GiftCodeCatalogQuery
             ->with([
                 'provenances.registeredSource',
                 'moderationDecisions',
+                'factProjections',
                 'redemptions' => static function (Relation $relation) use ($playerIds): void {
                     $relation->getQuery()->whereIn('player_id', $playerIds)->orderBy('player_id');
                 },
             ])
             ->firstOrFail();
+    }
+
+    /** @return Collection<int,GiftCode> */
+    public function forPlayer(string $playerId, int $limit = 100): Collection
+    {
+        return GiftCode::query()
+            ->with(['redemptions' => static fn (Relation $relation) => $relation->getQuery()
+                ->where('player_id', $playerId)])
+            ->orderByRaw('CASE WHEN expires_at IS NULL THEN 1 ELSE 0 END')
+            ->orderBy('expires_at')
+            ->orderByDesc('discovered_at')
+            ->limit(max(1, min(500, $limit)))
+            ->get();
     }
 
     public function redemptionFor(GiftCode $giftCode, string $playerId): ?GiftCodeRedemption

@@ -9,6 +9,9 @@ use App\Contexts\Alliance\Recruitment\Actions\PurgeExpiredRecruitmentCandidates;
 use App\Contexts\Communications\Delivery\Actions\ProcessNotificationDeliveries;
 use App\Contexts\GameWorld\GiftCodes\Actions\ExpireGiftCodes;
 use App\Contexts\GameWorld\GiftCodes\Actions\QueueGiftCodeExpiryNotifications;
+use App\Contexts\GameWorld\GiftCodes\Actions\QueueGiftCodeTransitionNotifications;
+use App\Contexts\GameWorld\GiftCodes\Actions\ReconcileGiftCodeSourcePolicyChanges;
+use App\Contexts\GameWorld\GiftCodes\Actions\RunApprovedGiftCodeSourceIngestion;
 use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
 use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Intelligence\Contributions\Actions\QueueDueContributionReports;
@@ -292,17 +295,81 @@ Artisan::command(
     },
 )->purpose('Queue bounded, authorized Intelligence change deliveries');
 
-Artisan::command('gift-codes:maintain {--limit=100}', function (
+Artisan::command('gift-codes:maintain {--limit=100} {--after=} {--cycle}', function (
     ExpireGiftCodes $expire,
-    QueueGiftCodeExpiryNotifications $notifications,
+    QueueGiftCodeExpiryNotifications $expiryNotifications,
+    QueueGiftCodeTransitionNotifications $transitionNotifications,
 ): int {
     $limit = max(1, min(500, (int) $this->option('limit')));
+    $afterValue = $this->option('after');
+    $afterOption = is_string($afterValue) ? trim($afterValue) : '';
+    $cursorKey = 'gift-codes:expiry-notifications';
+    $cycle = (bool) $this->option('cycle') && $afterOption === '';
+    $storedCursor = $cycle ? Cache::get($cursorKey) : null;
+    $after = $afterOption !== ''
+        ? $afterOption
+        : (is_string($storedCursor) && $storedCursor !== '' ? $storedCursor : null);
     $expired = $expire->handle($limit);
-    $queued = $notifications->handle($limit);
-    $this->info(sprintf('Expired %d Gift Code(s) and queued %d expiry reminder(s).', $expired, $queued));
+    $expiry = $expiryNotifications->handle($limit, $after);
+    $transitions = $transitionNotifications->handle($limit);
+    if ($cycle) {
+        if ($expiry->nextCursor === null) {
+            Cache::forget($cursorKey);
+        } else {
+            Cache::forever($cursorKey, $expiry->nextCursor);
+        }
+    }
+    $this->line(json_encode([
+        'expired' => $expired,
+        'expiryNotifications' => $expiry->toArray(),
+        'transitionNotifications' => $transitions->toArray(),
+    ], JSON_THROW_ON_ERROR));
 
     return 0;
-})->purpose('Reconcile Gift Code expiry and queue idempotent reminders');
+})->purpose('Reconcile Gift Code lifecycle and queue bounded idempotent notifications');
+
+Artisan::command(
+    'gift-codes:ingest-approved-sources {--limit=10} {--after=} {--source=} {--cycle}',
+    function (RunApprovedGiftCodeSourceIngestion $ingestion): int {
+        $afterValue = $this->option('after');
+        $afterOption = is_string($afterValue) ? trim($afterValue) : '';
+        $sourceValue = $this->option('source');
+        $source = is_string($sourceValue) && trim($sourceValue) !== '' ? trim($sourceValue) : null;
+        $cursorKey = 'gift-codes:approved-source-ingestion';
+        $cycle = (bool) $this->option('cycle') && $afterOption === '' && $source === null;
+        $storedCursor = $cycle ? Cache::get($cursorKey) : null;
+        $after = $afterOption !== ''
+            ? $afterOption
+            : (is_string($storedCursor) && $storedCursor !== '' ? $storedCursor : null);
+        $result = $ingestion->handle(
+            max(1, min(100, (int) $this->option('limit'))),
+            $after,
+            $source,
+        );
+        if ($cycle) {
+            if ($result->nextSourceCursor === null) {
+                Cache::forget($cursorKey);
+            } else {
+                Cache::forever($cursorKey, $result->nextSourceCursor);
+            }
+        }
+        $this->line(json_encode($result->toArray(), JSON_THROW_ON_ERROR));
+
+        return $result->failedSources > 0 ? 1 : 0;
+    },
+)->purpose('Run bounded idempotent ingestion for active approved Gift Code sources');
+
+Artisan::command(
+    'gift-codes:reconcile-source-policies {--limit=200}',
+    function (ReconcileGiftCodeSourcePolicyChanges $reconcile): int {
+        $this->line(json_encode(
+            $reconcile->handle(max(1, min(1000, (int) $this->option('limit')))),
+            JSON_THROW_ON_ERROR,
+        ));
+
+        return 0;
+    },
+)->purpose('Reconcile bounded Gift Code trust and facts after approved-source policy changes');
 
 Artisan::command('events:queue-reminders {--limit=100}', function (QueueDueEventReminders $queue): int {
     $limit = max(1, min(1000, (int) $this->option('limit')));
@@ -343,7 +410,9 @@ Schedule::command('notifications:queue-officer-briefs --group=daily --limit=1000
 Schedule::command('notifications:queue-officer-briefs --group=event --limit=1000 --cycle')->everyFifteenMinutes()->onOneServer()->withoutOverlapping(10);
 Schedule::command('notifications:queue-intelligence-changes --limit=1000 --cycle')->everyFifteenMinutes()->onOneServer()->withoutOverlapping(10);
 Schedule::command('notifications:deliver --limit=100')->everyMinute()->onOneServer()->withoutOverlapping(10);
-Schedule::command('gift-codes:maintain --limit=500')->hourly()->onOneServer()->withoutOverlapping(30);
+Schedule::command('gift-codes:maintain --limit=500 --cycle')->hourly()->onOneServer()->withoutOverlapping(30);
+Schedule::command('gift-codes:ingest-approved-sources --limit=25 --cycle')->everyFifteenMinutes()->onOneServer()->withoutOverlapping(30);
+Schedule::command('gift-codes:reconcile-source-policies --limit=500')->everyFiveMinutes()->onOneServer()->withoutOverlapping(30);
 Schedule::command('contributions:queue-reports --limit=50')->everyMinute()->onOneServer()->withoutOverlapping(10);
 Schedule::command('outbox:publish --limit=100')->everyMinute()->onOneServer()->withoutOverlapping(10);
 Schedule::command('integrations:queue-webhooks --limit=100')->everyMinute()->onOneServer()->withoutOverlapping(10);

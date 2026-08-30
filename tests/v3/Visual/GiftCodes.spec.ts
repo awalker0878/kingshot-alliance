@@ -1,0 +1,82 @@
+import { expect, test } from '@playwright/test';
+import type { Page } from '@playwright/test';
+
+async function loginWithGovernor(page: Page): Promise<void> {
+  await page.goto('/login');
+  await page.locator('#email').fill('ux-p9-visual@example.test');
+  await page.locator('#password').fill('password');
+  await page.locator('button[type="submit"]').click();
+  await page.waitForURL('**/dashboard');
+
+  const identitySwitcher = page.locator('button[aria-haspopup="listbox"]:visible').first();
+  if (/select governor/i.test((await identitySwitcher.textContent()) ?? '')) {
+    await identitySwitcher.click();
+    await page
+      .getByRole('listbox', { name: 'Active Governor' })
+      .getByRole('option')
+      .first()
+      .click();
+    await page.waitForURL('**/dashboard');
+  }
+}
+
+test('Gift Code catalogue and guided Governor handoff work without desktop or mobile overflow', async ({
+  page,
+}, testInfo) => {
+  await loginWithGovernor(page);
+  await page.goto('/gift-codes');
+  await page.waitForLoadState('networkidle');
+
+  await expect(page.getByRole('heading', { name: 'Gift Codes', level: 1 })).toBeVisible();
+  await expect(page.getByRole('navigation', { name: 'Gift Code catalogue views' })).toBeVisible();
+  const code = `VISUAL-GIFT-${testInfo.project.name.toUpperCase()}`;
+  await page.getByRole('link', { name: code, exact: true }).click();
+  await page.waitForLoadState('networkidle');
+
+  const detail = page.locator('section[aria-labelledby="gift-code-detail"]');
+  await expect(detail.getByRole('heading', { name: code })).toBeVisible();
+  const governorChoices = detail.locator('input[type="checkbox"]');
+  await expect(governorChoices).toHaveCount(2);
+  await governorChoices.nth(0).check();
+  await governorChoices.nth(1).check();
+  await detail.getByRole('button', { name: 'Prepare 2 selected Governors' }).click();
+  await page.waitForLoadState('networkidle');
+
+  await expect(detail.getByText('Governor 1 of 2')).toBeVisible();
+  await expect(detail.getByRole('button', { name: 'Copy Player ID' })).toBeVisible();
+  await expect(detail.getByRole('button', { name: 'Copy code' })).toBeVisible();
+  await expect(detail.getByRole('link', { name: 'Open official Gift Code Center' })).toHaveAttribute(
+    'href',
+    /ks-giftcode\.centurygame\.com/,
+  );
+
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
+  );
+  expect(overflow).toBeFalsy();
+
+  const unnamedControls = await page
+    .locator('main button, main input, main select, main textarea, main a[href]')
+    .evaluateAll(
+      (controls) =>
+        controls.filter((control) => {
+          const element = control as HTMLElement;
+          if (element.offsetParent === null || element.getAttribute('aria-hidden') === 'true') {
+            return false;
+          }
+          const id = element.getAttribute('id');
+          const explicitLabel = id
+            ? document.querySelector(`label[for="${CSS.escape(id)}"]`)
+            : element.closest('label');
+
+          return !(
+            element.getAttribute('aria-label') ||
+            element.getAttribute('aria-labelledby') ||
+            element.getAttribute('title') ||
+            element.textContent?.trim() ||
+            explicitLabel
+          );
+        }).length,
+    );
+  expect(unnamedControls, 'Every visible Gift Code control needs an accessible name').toBe(0);
+});

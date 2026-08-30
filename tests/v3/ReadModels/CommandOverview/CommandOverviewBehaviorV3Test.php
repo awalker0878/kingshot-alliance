@@ -6,7 +6,8 @@ namespace Tests\v3\ReadModels\CommandOverview;
 
 use App\Contexts\Communications\Delivery\Enums\DeliveryChannel;
 use App\Contexts\Communications\Delivery\Services\NotificationDeliveryService;
-use App\Contexts\GameWorld\GiftCodes\Actions\SubmitGiftCode;
+use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeStatus;
+use App\Contexts\GameWorld\GiftCodes\Models\GiftCode;
 use App\ReadModels\CommandOverview\Queries\CommandOverviewQuery;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\v3\Support\ScenarioFactory;
@@ -24,9 +25,17 @@ final class CommandOverviewBehaviorV3Test extends TestCase
         $other = $scenarios->account();
         $otherPlayer = $scenarios->player($other->userId);
 
-        app(SubmitGiftCode::class)->handle($player, [
+        GiftCode::query()->create([
             'code' => 'COMMAND-CENTER',
-            'source_type' => 'official',
+            'normalized_code' => 'COMMAND-CENTER',
+            'status' => GiftCodeStatus::Valid,
+            'status_revision' => 1,
+            'status_reason_code' => 'qualified_positive_evidence',
+            'status_evidence_ids' => [],
+            'status_changed_at' => now(),
+            'status_derived_at' => now(),
+            'discovered_at' => now(),
+            'expires_revision' => 0,
         ]);
 
         $deliveries = app(NotificationDeliveryService::class);
@@ -61,6 +70,7 @@ final class CommandOverviewBehaviorV3Test extends TestCase
         self::assertSame(1, $overview['unreadNotifications']);
         self::assertSame(1, $overview['pendingGiftCodes']);
         self::assertSame(2, $overview['actionCount']);
+        self::assertSame(1, $overview['giftCodeLifecycle']['newRedeemable']);
         self::assertSame([], $overview['intelligenceSignals']);
         self::assertSame('COMMAND-CENTER', $overview['giftCodes'][0]['code']);
         self::assertSame([], $overview['upcomingEvents']);

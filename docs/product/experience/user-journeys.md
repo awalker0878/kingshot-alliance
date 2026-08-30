@@ -136,16 +136,19 @@ An importer never writes models while parsing. Invalid schema, unsupported map d
 ## Gift Code trust and redemption
 
 ```text
-Submit normalized code and source
- -> duplicate detection preserves distinct provenance
- -> shared trust begins pending
- -> choose current, all, or failed-only Governors
- -> continue at the official redemption center
- -> confirm delivery or report invalid/expired evidence
- -> inspect shared trust plus every per-Governor receipt
+Submit normalized code with manual/community context
+ -> append unverified evidence; duplicate identity never overwrites provenance
+ -> canonical trust remains pending until qualified evidence exists
+ -> filter the cursor-paginated catalogue and open bounded detail
+ -> choose current, all, failed/incomplete, or selected owned Governors
+ -> copy each Governor ID and code, then open the official redemption center
+ -> record one observed outcome and continue to the next Governor
+ -> resume incomplete/retry-due work from catalogue or Command Overview
 ```
 
-Trust and redemption state stay separate. Successful and conflicting negative evidence produces a visible dispute; a configured past expiry produces the terminal expired state. Invalid/expired reports require accessible confirmation and remain auditable. Expiry reminders are idempotent and only target owned Governors whose redemption is still in progress.
+Trust and redemption state stay separate. Registered-source evidence and platform moderation drive global trust; a single Governor result—including `wrong_kingdom`—does not invent global invalidity or applicability. Conflicting qualified evidence produces a visible dispute, and accepted expiry is revisioned. Negative outcomes require a prior official handoff, terminal success stays terminal, and retryable results have bounded backoff.
+
+Availability, expiring and trust-change notifications use the Governor's Communications preferences, recheck current ownership/redemption state, deep-link to Gift Code detail and deduplicate by trust/expiry revision. Platform moderation is verified-email/MFA/password-confirmed and separate from Alliance rank. Approved-source acquisition is source-policy controlled, idempotent and operationally health-reported; missing or undocumented provider behavior remains inactive or quarantined.
 
 The Notification Center lets a Governor select up to 50 visible inbox deliveries, preview either mark-read or dismiss against current ownership and state, confirm the eligible count, and inspect every success, failure, or skip. Dismissal uses the accessible destructive-action confirmation. Failed delivery IDs stay selected for review and selective retry; dismissed rows leave the inbox without hiding the just-completed result receipt.
 
