@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\GiftCodes\Models;
 
-use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeSource;
 use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeStatus;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Collection;
@@ -17,9 +16,6 @@ use Illuminate\Support\Carbon;
  * @property string $id
  * @property string $code
  * @property string $normalized_code
- * @property GiftCodeSource $source_type
- * @property string|null $source_label
- * @property string|null $source_url
  * @property string|null $created_by_player_id
  * @property GiftCodeStatus $status
  * @property int $status_revision
@@ -31,9 +27,6 @@ use Illuminate\Support\Carbon;
  * @property CarbonImmutable|null $expires_at
  * @property string|null $expires_precision
  * @property int $expires_revision
- * @property string|null $trust_v2_shadow_status
- * @property string|null $trust_v2_shadow_reason_code
- * @property CarbonImmutable|null $trust_v2_compared_at
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property-read Collection<int, GiftCodeRedemption> $redemptions
@@ -51,9 +44,6 @@ final class GiftCode extends Model
     protected $fillable = [
         'code',
         'normalized_code',
-        'source_type',
-        'source_label',
-        'source_url',
         'created_by_player_id',
         'status',
         'status_revision',
@@ -65,15 +55,11 @@ final class GiftCode extends Model
         'expires_at',
         'expires_precision',
         'expires_revision',
-        'trust_v2_shadow_status',
-        'trust_v2_shadow_reason_code',
-        'trust_v2_compared_at',
     ];
 
     protected function casts(): array
     {
         return [
-            'source_type' => GiftCodeSource::class,
             'status' => GiftCodeStatus::class,
             'status_revision' => 'integer',
             'status_evidence_ids' => 'array',
@@ -82,7 +68,6 @@ final class GiftCode extends Model
             'discovered_at' => 'immutable_datetime',
             'expires_at' => 'immutable_datetime',
             'expires_revision' => 'integer',
-            'trust_v2_compared_at' => 'immutable_datetime',
         ];
     }
 
