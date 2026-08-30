@@ -90,7 +90,10 @@ jobs:
           php artisan migrate:status --no-interaction
 
       - name: Run full PHP checks
-        run: composer check
+        run: |
+          composer lint
+          git diff --color=never -- app/Contexts/GameWorld/GiftCodes/Http/Controllers/GiftCodeModerationController.php app/Contexts/GameWorld/GiftCodes/Services/GiftCodeTrustResolver.php
+          exit 1
 
   frontend:
     name: Frontend quality and build
