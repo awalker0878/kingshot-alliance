@@ -11,6 +11,7 @@ enum GiftCodeStatus: string
     case Invalid = 'invalid';
     case Expired = 'expired';
     case Disputed = 'disputed';
+    case Quarantined = 'quarantined';
 
     public function redeemable(): bool
     {
