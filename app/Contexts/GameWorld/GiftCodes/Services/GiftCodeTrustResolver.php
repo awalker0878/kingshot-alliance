@@ -38,7 +38,24 @@ final class GiftCodeTrustResolver
             );
         }
 
-        $acceptedExpiry = $this->acceptedExpiry($verified);
+        if ($latestModeration?->action === GiftCodeModerationAction::Reject) {
+            return new GiftCodeTrustDecision(
+                GiftCodeStatus::Invalid,
+                'platform_rejected',
+                $this->decisionEvidence($latestModeration),
+            );
+        }
+
+        $qualifiedExpiries = $this->qualifiedExpiryClaims($verified);
+        if (count($qualifiedExpiries) > 1) {
+            return new GiftCodeTrustDecision(
+                GiftCodeStatus::Disputed,
+                'credible_expiry_conflict',
+                array_values(array_unique(array_merge(...array_column($qualifiedExpiries, 'evidence_ids')))),
+            );
+        }
+
+        $acceptedExpiry = $qualifiedExpiries[0] ?? null;
         if ($acceptedExpiry !== null && $acceptedExpiry['at']->isPast()) {
             return new GiftCodeTrustDecision(
                 GiftCodeStatus::Expired,
@@ -101,14 +118,6 @@ final class GiftCodeTrustResolver
             );
         }
 
-        if ($latestModeration?->action === GiftCodeModerationAction::Reject) {
-            return new GiftCodeTrustDecision(
-                GiftCodeStatus::Invalid,
-                'platform_rejected',
-                $this->decisionEvidence($latestModeration),
-            );
-        }
-
         return new GiftCodeTrustDecision(
             GiftCodeStatus::Pending,
             'awaiting_verified_evidence',
@@ -162,10 +171,14 @@ final class GiftCodeTrustResolver
     }
 
     /**
+     * Return every independently qualified expiry claim. More than one entry is a
+     * material trust conflict and must be resolved by moderation rather than by
+     * choosing whichever claim happened to be loaded first.
+     *
      * @param Collection<int, GiftCodeProvenance> $evidence
-     * @return array{at: CarbonImmutable, precision: string|null, evidence_ids: list<string>}|null
+     * @return list<array{at: CarbonImmutable, precision: string|null, evidence_ids: list<string>}>
      */
-    private function acceptedExpiry(Collection $evidence): ?array
+    private function qualifiedExpiryClaims(Collection $evidence): array
     {
         $claims = $evidence
             ->filter(static fn (GiftCodeProvenance $item): bool => $item->claimed_expires_at !== null)
@@ -174,30 +187,41 @@ final class GiftCodeTrustResolver
                 $item->expiry_precision ?? '',
             ]));
 
+        $qualified = [];
+        $threshold = max(2, (int) config('game_world.gift_codes.independent_evidence_threshold', 2));
+
         foreach ($claims as $group) {
             /** @var Collection<int, GiftCodeProvenance> $group */
-            $official = $group->first(
+            $official = $group->filter(
                 static fn (GiftCodeProvenance $item): bool => $item->evidence_classification === GiftCodeEvidenceClassification::OfficialPublication,
             );
-            if ($official instanceof GiftCodeProvenance && $official->claimed_expires_at !== null) {
-                return [
-                    'at' => $official->claimed_expires_at,
-                    'precision' => $official->expiry_precision,
-                    'evidence_ids' => $group->pluck('id')->map(static fn ($id): string => (string) $id)->values()->all(),
-                ];
+            if ($official->isNotEmpty()) {
+                /** @var GiftCodeProvenance $first */
+                $first = $official->first();
+                if ($first->claimed_expires_at !== null) {
+                    $qualified[] = [
+                        'at' => $first->claimed_expires_at,
+                        'precision' => $first->expiry_precision,
+                        'evidence_ids' => $official->pluck('id')->map(static fn ($id): string => (string) $id)->values()->all(),
+                    ];
+                }
+
+                continue;
             }
 
-            $threshold = max(2, (int) config('game_world.gift_codes.independent_evidence_threshold', 2));
             $independent = $group->filter(
                 static fn (GiftCodeProvenance $item): bool => $item->evidence_classification === GiftCodeEvidenceClassification::IndependentObservation,
             );
             if ($independent->map(
                 static fn (GiftCodeProvenance $item): string => $item->registered_source_id ?? $item->fingerprint,
-            )->unique()->count() >= $threshold) {
-                /** @var GiftCodeProvenance $first */
-                $first = $independent->first();
+            )->unique()->count() < $threshold) {
+                continue;
+            }
 
-                return [
+            /** @var GiftCodeProvenance $first */
+            $first = $independent->first();
+            if ($first->claimed_expires_at !== null) {
+                $qualified[] = [
                     'at' => $first->claimed_expires_at,
                     'precision' => $first->expiry_precision,
                     'evidence_ids' => $independent->pluck('id')->map(static fn ($id): string => (string) $id)->values()->all(),
@@ -205,7 +229,7 @@ final class GiftCodeTrustResolver
             }
         }
 
-        return null;
+        return $qualified;
     }
 
     /** @return list<string> */
