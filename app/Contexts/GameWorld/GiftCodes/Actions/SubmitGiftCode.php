@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\GiftCodes\Actions;
 
+use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeEvidenceClassification;
+use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeEvidenceVerificationState;
 use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeSource;
 use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeStatus;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCode;
@@ -27,7 +29,7 @@ final readonly class SubmitGiftCode
     ) {}
 
     /**
-     * @param  array{code: string, source_type?: string, source_label?: string|null, source_url?: string|null, expires_at?: string|null}  $attributes
+     * @param  array{code: string, source_type?: string, source_label?: string|null, source_url?: string|null, expires_at?: string|null, expiry_precision?: string|null, expiry_timezone?: string|null}  $attributes
      */
     public function handle(PlayerReference $actor, array $attributes): GiftCodeSubmissionResult
     {
@@ -42,13 +44,20 @@ final readonly class SubmitGiftCode
             $normalized = Str::upper($code);
             $source = GiftCodeSource::tryFrom($attributes['source_type'] ?? GiftCodeSource::Manual->value)
                 ?? GiftCodeSource::Manual;
-            $expiresAt = $this->date($attributes['expires_at'] ?? null);
+            if ($source === GiftCodeSource::Official) {
+                throw ValidationException::withMessages([
+                    'source_type' => 'Official Gift Code evidence can only be assigned through an approved platform source.',
+                ]);
+            }
+
+            $claimedExpiry = $this->date($attributes['expires_at'] ?? null);
+            $expiryPrecision = $claimedExpiry === null ? null : $this->precision($attributes['expiry_precision'] ?? null);
+            $expiryTimezone = $claimedExpiry === null ? null : $this->optional($attributes['expiry_timezone'] ?? null);
+            $sourceLabel = $this->optional($attributes['source_label'] ?? null);
+            $sourceUrl = $this->optional($attributes['source_url'] ?? null);
 
             $giftCode = GiftCode::query()->firstOrNew(['normalized_code' => $normalized]);
             $created = ! $giftCode->exists;
-
-            $sourceLabel = $this->optional($attributes['source_label'] ?? null);
-            $sourceUrl = $this->optional($attributes['source_url'] ?? null);
 
             if ($created) {
                 $giftCode->fill([
@@ -56,17 +65,19 @@ final readonly class SubmitGiftCode
                     'normalized_code' => $normalized,
                     'created_by_player_id' => $actor->playerId,
                     'status' => GiftCodeStatus::Pending,
+                    'status_revision' => 0,
+                    'status_reason_code' => 'awaiting_verified_evidence',
                     'status_changed_at' => now(),
+                    'status_derived_at' => now(),
                     'discovered_at' => now(),
                     'source_type' => $source,
                     'source_label' => $sourceLabel,
                     'source_url' => $sourceUrl,
-                    'expires_at' => $expiresAt,
+                    // Community expiry is a claim until evidence qualification accepts it.
+                    'expires_at' => null,
+                    'expires_precision' => null,
                 ]);
                 $giftCode->save();
-            } elseif ($expiresAt !== null
-                && ($giftCode->expires_at === null || $expiresAt->isBefore($giftCode->expires_at))) {
-                $giftCode->forceFill(['expires_at' => $expiresAt])->save();
             }
 
             $fingerprint = hash('sha256', implode('|', [
@@ -74,15 +85,30 @@ final readonly class SubmitGiftCode
                 $source->value,
                 mb_strtolower($sourceLabel ?? ''),
                 mb_strtolower($sourceUrl ?? ''),
+                $claimedExpiry?->toIso8601String() ?? '',
+                $expiryPrecision ?? '',
+                mb_strtolower($expiryTimezone ?? ''),
             ]));
             $provenance = GiftCodeProvenance::query()->firstOrCreate([
                 'gift_code_id' => (string) $giftCode->id,
                 'fingerprint' => $fingerprint,
             ], [
                 'submitted_by_player_id' => $actor->playerId,
+                'registered_source_id' => null,
                 'source_type' => $source,
                 'source_label' => $sourceLabel,
                 'source_url' => $sourceUrl,
+                'claimed_expires_at' => $claimedExpiry,
+                'expiry_precision' => $expiryPrecision,
+                'expiry_timezone' => $expiryTimezone,
+                'published_at' => null,
+                'evidence_classification' => GiftCodeEvidenceClassification::CommunityClaim,
+                'verification_state' => GiftCodeEvidenceVerificationState::Unverified,
+                'source_version' => null,
+                'retrieval_version' => null,
+                'parser_version' => null,
+                'content_fingerprint' => null,
+                'raw_evidence_ref' => null,
                 'observed_at' => now(),
             ]);
 
@@ -92,11 +118,12 @@ final readonly class SubmitGiftCode
                 'normalized_code' => $normalized,
                 'status' => $giftCode->status->value,
                 'source_type' => $source->value,
-                'expires_at' => $giftCode->expires_at?->toIso8601String(),
+                'claimed_expires_at' => $claimedExpiry?->toIso8601String(),
                 'created' => $created,
                 'duplicate_detected' => ! $created,
                 'provenance_added' => $provenance->wasRecentlyCreated,
                 'provenance_id' => (string) $provenance->id,
+                'verification_state' => $provenance->verification_state->value,
             ];
             $this->audit->record('game_world.gift_code_submitted', $actor, $giftCode, null, $metadata);
             $this->outbox->record(
@@ -134,5 +161,13 @@ final readonly class SubmitGiftCode
         $value = $this->optional($value);
 
         return $value === null ? null : Carbon::parse($value)->endOfDay();
+    }
+
+    private function precision(?string $value): string
+    {
+        return match ($value) {
+            'instant', 'minute', 'hour', 'day' => $value,
+            default => 'day',
+        };
     }
 }
