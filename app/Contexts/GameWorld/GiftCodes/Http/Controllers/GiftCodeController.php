@@ -28,28 +28,18 @@ use LogicException;
 
 final class GiftCodeController extends Controller
 {
-    public function index(
-        Request $request,
-        PlayerContext $playerContext,
-        PlayerReferenceQuery $players,
-        GiftCodeCatalogQuery $catalog,
-    ): Response {
-        return $this->render($request, $playerContext, $players, $catalog, null);
-    }
-
-    public function show(
-        Request $request,
-        string $giftCode,
-        PlayerContext $playerContext,
-        PlayerReferenceQuery $players,
-        GiftCodeCatalogQuery $catalog,
-    ): Response {
-        return $this->render($request, $playerContext, $players, $catalog, $giftCode);
-    }
-
-    public function store(Request $request, PlayerContext $playerContext, SubmitGiftCode $submit): RedirectResponse
+    public function index(Request $request, PlayerContext $context, PlayerReferenceQuery $players, GiftCodeCatalogQuery $catalog): Response
     {
-        /** @var array{code: string, source_type: string, source_label?: string|null, source_url?: string|null, expires_at?: string|null, expiry_precision?: string|null, expiry_timezone?: string|null} $validated */
+        return $this->render($request, $context, $players, $catalog, null);
+    }
+
+    public function show(Request $request, string $giftCode, PlayerContext $context, PlayerReferenceQuery $players, GiftCodeCatalogQuery $catalog): Response
+    {
+        return $this->render($request, $context, $players, $catalog, $giftCode);
+    }
+
+    public function store(Request $request, PlayerContext $context, SubmitGiftCode $submit): RedirectResponse
+    {
         $validated = $request->validate([
             'code' => ['required', 'string', 'max:64'],
             'source_type' => ['required', Rule::in(['manual', 'community'])],
@@ -60,28 +50,27 @@ final class GiftCodeController extends Controller
             'expiry_timezone' => ['nullable', 'timezone'],
         ]);
 
-        $result = $submit->handle($this->player($playerContext), $validated);
+        /** @var array{code:string,source_type:string,source_label?:string|null,source_url?:string|null,expires_at?:string|null,expiry_precision?:string|null,expiry_timezone?:string|null} $validated */
+        $result = $submit->handle($this->player($context), $validated);
 
-        return redirect('/gift-codes/'.$result->giftCode->id)
+        return redirect('/gift-codes/'.$result->giftCode->giftCodeId)
             ->with('actionReceipt', $this->receipt(
                 $result->duplicateDetected ? 'gift-code-duplicate-recorded' : 'gift-code-added',
             ));
     }
 
-    public function redeem(
-        Request $request,
-        string $giftCode,
-        PrepareGiftCodeRedemptions $prepare,
-    ): RedirectResponse {
-        /** @var array{player_ids: non-empty-list<string>} $validated */
+    public function redeem(Request $request, string $giftCode, PrepareGiftCodeRedemptions $prepare): RedirectResponse
+    {
         $validated = $request->validate([
             'player_ids' => ['required', 'array', 'min:1', 'max:50'],
             'player_ids.*' => ['required', 'string', 'ulid', 'distinct'],
         ]);
+        /** @var array{player_ids: non-empty-list<string>} $validated */
         $account = $this->account($request);
         if (! $account instanceof AuditActor) {
             throw new LogicException('Authenticated accounts must provide an audit identity.');
         }
+
         $result = $prepare->handle(
             $account,
             $this->accountId($account),
@@ -101,30 +90,26 @@ final class GiftCodeController extends Controller
     public function result(
         Request $request,
         string $giftCode,
-        PlayerContext $playerContext,
+        PlayerContext $context,
         PlayerReferenceQuery $players,
         RecordObservedGiftCodeRedemptionResult $record,
     ): RedirectResponse {
-        /** @var array{player_id?: string|null, result: string} $validated */
         $validated = $request->validate([
             'player_id' => ['nullable', 'string', 'ulid'],
-            'result' => [
-                'required',
-                'string',
-                Rule::in([
-                    'redeemed',
-                    'already_redeemed',
-                    'invalid',
-                    'expired',
-                    'wrong_kingdom',
-                    'rate_limited',
-                    'temporarily_unavailable',
-                    'permanent_failure',
-                ]),
-            ],
+            'result' => ['required', 'string', Rule::in([
+                'redeemed',
+                'already_redeemed',
+                'invalid',
+                'expired',
+                'wrong_kingdom',
+                'rate_limited',
+                'temporarily_unavailable',
+                'permanent_failure',
+            ])],
         ]);
-        $target = $this->targetPlayer($request, $playerContext, $players, $validated['player_id'] ?? null);
-        $record->handle($giftCode, $target, (string) $validated['result']);
+        /** @var array{player_id?:string|null,result:string} $validated */
+        $target = $this->targetPlayer($request, $context, $players, $validated['player_id'] ?? null);
+        $record->handle($giftCode, $target, $validated['result']);
 
         return redirect('/gift-codes/'.$giftCode)->with('actionReceipt', $this->receipt('gift-code-result-recorded', [
             'player_id' => $target->playerId,
@@ -134,24 +119,18 @@ final class GiftCodeController extends Controller
 
     private function render(
         Request $request,
-        PlayerContext $playerContext,
+        PlayerContext $context,
         PlayerReferenceQuery $players,
         GiftCodeCatalogQuery $catalog,
         ?string $focusedGiftCodeId,
     ): Response {
         $account = $this->account($request);
-        $player = $this->player($playerContext);
+        $activePlayer = $this->player($context);
         $ownedPlayers = $players->ownedByUser($this->accountId($account));
-        $ownedPlayerIds = array_values(array_map(
-            static fn (PlayerReference $owned): string => $owned->playerId,
-            $ownedPlayers,
-        ));
-        if ($ownedPlayerIds === []) {
-            abort(409, 'At least one owned Governor is required for Gift Codes.');
-        }
+        $ownedPlayerIds = array_values(array_map(static fn (PlayerReference $owned): string => $owned->playerId, $ownedPlayers));
+        abort_if($ownedPlayerIds === [], 409, 'At least one owned Governor is required for Gift Codes.');
 
-        /** @var array{view: string, q?: string|null, status?: string|null, source?: string|null, expiry?: string|null, governor_result?: string|null, cursor?: string|null} $filters */
-        $filters = $request->validate([
+        $validated = $request->validate([
             'view' => ['sometimes', 'string', Rule::in(GiftCodeCatalogQuery::VIEWS)],
             'q' => ['nullable', 'string', 'max:64'],
             'status' => ['nullable', 'string', 'max:32'],
@@ -160,42 +139,35 @@ final class GiftCodeController extends Controller
             'governor_result' => ['nullable', 'string', 'max:48'],
             'cursor' => ['nullable', 'string', 'max:2048'],
         ]);
-        $filters['view'] = $filters['view'] ?? GiftCodeCatalogQuery::VIEW_ACTIVE;
+        /** @var array{view?:string,q?:string|null,status?:string|null,source?:string|null,expiry?:string|null,governor_result?:string|null,cursor?:string|null} $validated */
+        $filters = [
+            'view' => $validated['view'] ?? GiftCodeCatalogQuery::VIEW_ACTIVE,
+            'q' => $validated['q'] ?? '',
+            'status' => $validated['status'] ?? '',
+            'source' => $validated['source'] ?? '',
+            'expiry' => $validated['expiry'] ?? '',
+            'governor_result' => $validated['governor_result'] ?? '',
+        ];
         $page = $catalog->pageForPlayers(
             $ownedPlayerIds,
             $filters,
             (int) config('game_world.gift_codes.catalog_page_size', 25),
-            $filters['cursor'] ?? null,
+            $validated['cursor'] ?? null,
         );
+
         $playerNames = [];
         foreach ($ownedPlayers as $ownedPlayer) {
             $playerNames[$ownedPlayer->playerId] = $ownedPlayer->currentName;
         }
-
-        $focused = $focusedGiftCodeId === null
-            ? null
-            : $catalog->detailForPlayers($focusedGiftCodeId, $ownedPlayerIds);
+        $focused = $focusedGiftCodeId === null ? null : $catalog->detailForPlayers($focusedGiftCodeId, $ownedPlayerIds);
 
         return Inertia::render('Kingdom/GiftCodes/Index', [
-            'user' => [
-                'name' => $account->accountName(),
-                'email' => $account->accountEmail(),
-            ],
-            'player' => [
-                'id' => $player->playerId,
-                'name' => $player->currentName,
-                'gamePlayerId' => $player->gamePlayerId,
-                'kingdomNumber' => $player->kingdomNumber,
-            ],
-            'governors' => array_map(static fn (PlayerReference $owned): array => [
-                'id' => $owned->playerId,
-                'name' => $owned->currentName,
-                'gamePlayerId' => $owned->gamePlayerId,
-                'kingdomNumber' => $owned->kingdomNumber,
-            ], $ownedPlayers),
+            'user' => ['name' => $account->accountName(), 'email' => $account->accountEmail()],
+            'player' => $this->governor($activePlayer),
+            'governors' => array_map(fn (PlayerReference $owned): array => $this->governor($owned), $ownedPlayers),
             'officialRedemptionUrl' => (string) config('game_world.gift_code_redemption_url'),
             'codes' => array_values(array_map(
-                fn (GiftCode $giftCode): array => $this->catalogItem($giftCode, $player->playerId, $playerNames),
+                fn (GiftCode $code): array => $this->catalogItem($code, $activePlayer->playerId, $playerNames),
                 $page->items(),
             )),
             'pagination' => [
@@ -205,21 +177,28 @@ final class GiftCodeController extends Controller
                 'hasMore' => $page->hasMorePages(),
             ],
             'filters' => [
-                'view' => $filters['view'],
-                'q' => $filters['q'] ?? '',
-                'status' => $filters['status'] ?? '',
-                'source' => $filters['source'] ?? '',
-                'expiry' => $filters['expiry'] ?? '',
-                'governorResult' => $filters['governor_result'] ?? '',
+                ...$filters,
+                'governorResult' => $filters['governor_result'],
             ],
             'focusedCode' => $focused instanceof GiftCode
-                ? $this->detailItem($focused, $player->playerId, $playerNames)
+                ? $this->detailItem($focused, $activePlayer->playerId, $playerNames)
                 : null,
             'giftCodeRedemptionResult' => $request->session()->get('giftCodeRedemptionResult'),
         ]);
     }
 
-    /** @param array<string, string> $playerNames */
+    /** @return array{id:string,name:string,gamePlayerId:string|null,kingdomNumber:int|null} */
+    private function governor(PlayerReference $player): array
+    {
+        return [
+            'id' => $player->playerId,
+            'name' => $player->currentName,
+            'gamePlayerId' => $player->gamePlayerId,
+            'kingdomNumber' => $player->kingdomNumber,
+        ];
+    }
+
+    /** @param array<string,string> $playerNames */
     private function catalogItem(GiftCode $giftCode, string $activePlayerId, array $playerNames): array
     {
         return [
@@ -242,7 +221,7 @@ final class GiftCodeController extends Controller
         ];
     }
 
-    /** @param array<string, string> $playerNames */
+    /** @param array<string,string> $playerNames */
     private function detailItem(GiftCode $giftCode, string $activePlayerId, array $playerNames): array
     {
         return [
@@ -276,20 +255,18 @@ final class GiftCodeController extends Controller
 
     private function redemptionForLoaded(GiftCode $giftCode, string $playerId): ?GiftCodeRedemption
     {
-        $redemption = $giftCode->redemptions->first(
-            static fn (GiftCodeRedemption $candidate): bool => $candidate->player_id === $playerId,
-        );
+        $redemption = $giftCode->redemptions->first(static fn (GiftCodeRedemption $candidate): bool => $candidate->player_id === $playerId);
 
         return $redemption instanceof GiftCodeRedemption ? $redemption : null;
     }
 
-    /** @return array<string, mixed>|null */
+    /** @return array<string,mixed>|null */
     private function redemption(?GiftCodeRedemption $redemption): ?array
     {
         return $redemption instanceof GiftCodeRedemption ? $this->redemptionData($redemption) : null;
     }
 
-    /** @return array<string, mixed> */
+    /** @return array<string,mixed> */
     private function redemptionData(GiftCodeRedemption $redemption): array
     {
         return [
@@ -328,21 +305,15 @@ final class GiftCodeController extends Controller
         return $player;
     }
 
-    private function targetPlayer(
-        Request $request,
-        PlayerContext $context,
-        PlayerReferenceQuery $players,
-        ?string $targetPlayerId,
-    ): PlayerReference {
+    private function targetPlayer(Request $request, PlayerContext $context, PlayerReferenceQuery $players, ?string $targetPlayerId): PlayerReference
+    {
         if ($targetPlayerId === null || $targetPlayerId === '') {
             return $this->player($context);
         }
 
         $player = $players->findOwnedByUser($this->accountId($this->account($request)), $targetPlayerId);
         if (! $player instanceof PlayerReference) {
-            throw ValidationException::withMessages([
-                'player_id' => 'That Governor is no longer owned by this account.',
-            ]);
+            throw ValidationException::withMessages(['player_id' => 'That Governor is no longer owned by this account.']);
         }
 
         return $player;
