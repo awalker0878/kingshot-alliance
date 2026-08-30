@@ -15,15 +15,8 @@ Route::middleware(['auth', 'auth.session', 'verified'])->group(function (): void
         ->whereUlid('giftCode')
         ->middleware('throttle:30,1')
         ->name('gift-codes.redeem');
-    Route::post('/gift-codes/{giftCode}/confirm', [GiftCodeController::class, 'confirm'])
-        ->whereUlid('giftCode')
-        ->name('gift-codes.confirm');
     Route::post('/gift-codes/{giftCode}/result', [GiftCodeController::class, 'result'])
         ->whereUlid('giftCode')
         ->middleware('throttle:30,1')
         ->name('gift-codes.result');
-    Route::post('/gift-codes/{giftCode}/report', [GiftCodeController::class, 'report'])
-        ->whereUlid('giftCode')
-        ->middleware('throttle:20,1')
-        ->name('gift-codes.report');
 });
