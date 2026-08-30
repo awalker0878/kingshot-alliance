@@ -95,11 +95,17 @@ async function normalizeDynamicText(target: Locator): Promise<void> {
       if (node.children.length > 0) continue;
       const text = node.textContent ?? '';
       const stableIdentifiers = text
-        .replace(/\b[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\b/gi, 'fixture-id')
+        .replace(
+          /\b[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\b/gi,
+          'fixture-id',
+        )
         .replace(/\b[0-9a-hjkmnp-tv-z]{26}\b/gi, 'fixture-id');
       if (stableIdentifiers !== text) {
         node.textContent = stableIdentifiers;
-      } else if (/\b20\d{2}\b/.test(text) || /\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b/.test(text)) {
+      } else if (
+        /\b20\d{2}\b/.test(text) ||
+        /\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b/.test(text)
+      ) {
         node.textContent = 'Fixture date';
       }
     }
