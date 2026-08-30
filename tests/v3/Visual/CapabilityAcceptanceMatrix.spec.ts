@@ -161,28 +161,37 @@ test('capability acceptance surfaces remain visually and semantically stable', a
   await openMemberProfile(page);
   const memberProfile = page.locator('section[aria-labelledby="member-capability-profile"]');
   await assertAccessibleSurface(page, memberProfile);
-  await expect(memberProfile.getByRole('heading', { name: 'Member capability profile' })).toBeVisible();
+  await expect(
+    memberProfile.getByRole('heading', { name: 'What we know about this Governor' }),
+  ).toBeVisible();
   actual.memberProfile = await screenshotHash(memberProfile);
 
   await openTransferCampaign(page);
   const transferCampaign = page.locator('section[aria-labelledby="transfer-campaign-heading"]');
   await assertAccessibleSurface(page, transferCampaign);
-  await expect(transferCampaign.getByRole('heading', { name: 'Transfer campaign' })).toBeVisible();
+  await expect(
+    transferCampaign.getByRole('heading', { name: 'Transfer campaign workspace' }),
+  ).toBeVisible();
   actual.transferCampaign = await screenshotHash(transferCampaign);
 
   await openIntelligenceTimeline(page);
   const intelligenceTimeline = page.locator('section[aria-labelledby="intelligence-timeline-heading"]');
   await assertAccessibleSurface(page, intelligenceTimeline);
-  await expect(intelligenceTimeline.getByRole('heading', { name: 'Intelligence timeline' })).toBeVisible();
+  await expect(
+    intelligenceTimeline.getByRole('heading', { name: 'Kingdom intelligence timeline' }),
+  ).toBeVisible();
   actual.intelligenceTimeline = await screenshotHash(intelligenceTimeline);
 
   await page.goto('/dashboard');
   await settle(page);
   const allianceCommand = page.locator('section[aria-labelledby="alliance-command-heading"]');
   await assertAccessibleSurface(page, allianceCommand);
-  await expect(allianceCommand.getByRole('heading', { name: 'Alliance Command' })).toBeVisible();
+  await expect(allianceCommand.getByRole('heading', { name: 'Officer overview' })).toBeVisible();
   actual.allianceCommand = await screenshotHash(allianceCommand);
-  const officerBriefs = allianceCommand.getByRole('heading', { name: 'Officer Briefs' }).locator('..').locator('..');
+  const officerBriefs = allianceCommand
+    .getByRole('heading', { name: 'Officer briefs' })
+    .locator('..')
+    .locator('..');
   await assertAccessibleSurface(page, officerBriefs);
   actual.officerBriefs = await screenshotHash(officerBriefs);
 

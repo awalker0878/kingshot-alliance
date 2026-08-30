@@ -259,6 +259,8 @@ final class CapabilitySurfaceHttpMatrixV3Test extends TestCase
 
     private function getAs(User $user, PlayerReference $player, string $uri): TestResponse
     {
+        $this->flushSession();
+
         return $this->actingAs($user)
             ->withSession([$this->sessionKey() => $player->playerId])
             ->get($uri);

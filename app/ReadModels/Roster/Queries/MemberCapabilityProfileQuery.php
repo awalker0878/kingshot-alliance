@@ -202,7 +202,7 @@ final readonly class MemberCapabilityProfileQuery
             return [];
         }
 
-        return DB::table('rally_assignments as assignment')
+        return array_values(DB::table('rally_assignments as assignment')
             ->join('rally_groups as rally', 'rally.id', '=', 'assignment.rally_group_id')
             ->join('event_occurrences as occurrence', 'occurrence.id', '=', 'rally.occurrence_id')
             ->join('events as event', 'event.id', '=', 'occurrence.event_id')
@@ -233,8 +233,7 @@ final readonly class MemberCapabilityProfileQuery
                 'respondedAt' => $row->responded_at === null ? null : (string) $row->responded_at,
                 'recordedAt' => $row->recorded_at === null ? null : (string) $row->recorded_at,
             ])
-            ->values()
-            ->all();
+            ->all());
     }
 
     /**
@@ -247,7 +246,7 @@ final readonly class MemberCapabilityProfileQuery
             return [];
         }
 
-        return DB::table('event_objective_assignments as assignment')
+        return array_values(DB::table('event_objective_assignments as assignment')
             ->join('event_objectives as objective', 'objective.id', '=', 'assignment.objective_id')
             ->join('event_occurrences as occurrence', 'occurrence.id', '=', 'assignment.occurrence_id')
             ->join('events as event', 'event.id', '=', 'occurrence.event_id')
@@ -284,8 +283,7 @@ final readonly class MemberCapabilityProfileQuery
                 'status' => (string) $row->status,
                 'assignedAt' => $row->assigned_at === null ? null : (string) $row->assigned_at,
             ])
-            ->values()
-            ->all();
+            ->all());
     }
 
     /** @return array<string,mixed> */
