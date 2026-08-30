@@ -72,12 +72,9 @@ final class GiftCodeFactResolver
 
         foreach ($groups as $group) {
             /** @var Collection<int,GiftCodeProvenance> $group */
-            $official = $group->filter(static fn (GiftCodeProvenance $item): bool =>
-                $item->evidence_classification === GiftCodeEvidenceClassification::OfficialPublication);
-            $independent = $group->filter(static fn (GiftCodeProvenance $item): bool =>
-                $item->evidence_classification === GiftCodeEvidenceClassification::IndependentObservation);
-            $independentCount = $independent->map(static fn (GiftCodeProvenance $item): string =>
-                $item->registered_source_id ?? $item->fingerprint)->unique()->count();
+            $official = $group->filter(static fn (GiftCodeProvenance $item): bool => $item->evidence_classification === GiftCodeEvidenceClassification::OfficialPublication);
+            $independent = $group->filter(static fn (GiftCodeProvenance $item): bool => $item->evidence_classification === GiftCodeEvidenceClassification::IndependentObservation);
+            $independentCount = $independent->map(static fn (GiftCodeProvenance $item): string => $item->registered_source_id ?? $item->fingerprint)->unique()->count();
 
             if ($official->isEmpty() && $independentCount < $threshold) {
                 continue;

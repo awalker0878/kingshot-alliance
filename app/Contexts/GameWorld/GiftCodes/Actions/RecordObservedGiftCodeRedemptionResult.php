@@ -7,18 +7,36 @@ namespace App\Contexts\GameWorld\GiftCodes\Actions;
 use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeRedemptionStatus;
 use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeRedemptionOutcome;
 use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeRedemptionReference;
-use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
+use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
+use App\Shared\Infrastructure\AuditTrail\Contracts\AuditActor;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 
 final readonly class RecordObservedGiftCodeRedemptionResult
 {
-    public function __construct(private RecordGiftCodeRedemptionOutcome $record) {}
+    public function __construct(
+        private PlayerReferenceQuery $players,
+        private RecordGiftCodeRedemptionOutcome $record,
+    ) {}
 
     public function handle(
+        AuditActor $actor,
         string $giftCodeId,
-        PlayerReference $player,
+        string $playerId,
         string $result,
     ): GiftCodeRedemptionReference {
+        $ownerUserId = $actor->auditUserId();
+        if ($ownerUserId === null) {
+            throw new AuthorizationException('An account-owned Governor is required to record a Gift Code result.');
+        }
+        $player = $this->players->findOwnedByUser($ownerUserId, $playerId);
+        if ($player === null) {
+            throw ValidationException::withMessages([
+                'player_id' => 'That Governor is no longer owned by this account.',
+            ]);
+        }
+
         $outcome = match ($result) {
             'redeemed' => new GiftCodeRedemptionOutcome(
                 GiftCodeRedemptionStatus::Redeemed,

@@ -31,8 +31,7 @@ final readonly class ReconcileGiftCodeSourcePolicyChanges
         $rows = GiftCodeProvenance::query()
             ->select('gift_code_id')
             ->where('registered_source_id', $job->gift_code_source_id)
-            ->when($job->cursor_gift_code_id !== null, static fn (Builder $query) =>
-                $query->where('gift_code_id', '>', $job->cursor_gift_code_id))
+            ->when($job->cursor_gift_code_id !== null, static fn (Builder $query) => $query->where('gift_code_id', '>', $job->cursor_gift_code_id))
             ->distinct()
             ->orderBy('gift_code_id')
             ->limit($limit + 1)

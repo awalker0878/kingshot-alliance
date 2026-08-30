@@ -9,8 +9,8 @@ use App\Contexts\Accounts\Identity\ValueObjects\AccountIdentity;
 use App\Contexts\GameWorld\GiftCodes\Actions\ManageGiftCodeCuratorGrant;
 use App\Contexts\GameWorld\GiftCodes\Actions\ManageGiftCodeSourceRegistry;
 use App\Contexts\GameWorld\GiftCodes\Actions\ModerateGiftCode;
-use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeModerationAction;
 use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeEvidenceVerificationState;
+use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeModerationAction;
 use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeRedemptionStatus;
 use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeStatus;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCode;
@@ -20,11 +20,12 @@ use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeProvenance;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeRedemption;
 use App\Contexts\GameWorld\GiftCodes\Queries\GiftCodeIngestionHealthQuery;
 use App\Contexts\GameWorld\GiftCodes\Services\GiftCodeSourceAdapterRegistry;
-use App\Contexts\Platform\Administration\Models\PlatformAdministrator;
+use App\Contexts\Platform\Administration\Services\PlatformAuthorization;
 use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 use Throwable;
@@ -35,6 +36,7 @@ final class GiftCodeModerationController extends Controller
         private readonly AccountIdentityQuery $accounts,
         private readonly GiftCodeIngestionHealthQuery $ingestionHealth,
         private readonly GiftCodeSourceAdapterRegistry $sourceAdapters,
+        private readonly PlatformAuthorization $platformAuthorization,
     ) {}
 
     public function index(Request $request): Response
@@ -66,9 +68,16 @@ final class GiftCodeModerationController extends Controller
             'suspicious-source' => $query->whereHas('provenances', static fn ($builder) => $builder
                 ->whereNull('registered_source_id')
                 ->whereNotNull('source_url')),
-            'heavily-reported' => $query->having('negative_redemptions_count', '>=', 3),
-            'source-revocation' => $query->whereHas('provenances.registeredSource', static fn ($builder) =>
-                $builder->whereNotNull('revoked_at')),
+            'heavily-reported' => $query->whereHas(
+                'redemptions',
+                static fn ($builder) => $builder->whereIn('status', [
+                    GiftCodeRedemptionStatus::InvalidCode->value,
+                    GiftCodeRedemptionStatus::Expired->value,
+                ]),
+                '>=',
+                3,
+            ),
+            'source-revocation' => $query->whereHas('provenances.registeredSource', static fn ($builder) => $builder->whereNotNull('revoked_at')),
             default => null,
         };
 
@@ -106,9 +115,9 @@ final class GiftCodeModerationController extends Controller
             'bulkPreview' => $request->session()->get('giftCodeBulkReviewPreview'),
             'bulkResult' => $request->session()->get('giftCodeBulkReviewResult'),
             'ingestionHealth' => $this->ingestionHealth->get(),
-            'canManagePlatformPolicy' => PlatformAdministrator::activeForUserId($actor->userId),
+            'canManagePlatformPolicy' => $this->platformAuthorization->allows($actor),
             'adapterKeys' => $this->sourceAdapters->keys(),
-            'curators' => PlatformAdministrator::activeForUserId($actor->userId)
+            'curators' => $this->platformAuthorization->allows($actor)
                 ? GiftCodeCuratorGrant::query()
                     ->join('users', 'users.id', '=', 'gift_code_curator_grants.user_id')
                     ->whereNull('gift_code_curator_grants.revoked_at')
@@ -177,7 +186,7 @@ final class GiftCodeModerationController extends Controller
         $validated = $request->validate(['email' => ['required', 'email:rfc', 'max:254']]);
         $targetUserId = $this->accounts->findIdByEmail($validated['email']);
         if ($targetUserId === null) {
-            throw \Illuminate\Validation\ValidationException::withMessages([
+            throw ValidationException::withMessages([
                 'email' => 'No account exists with that email address.',
             ]);
         }

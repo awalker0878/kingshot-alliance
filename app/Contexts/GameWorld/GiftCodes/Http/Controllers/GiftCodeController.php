@@ -74,7 +74,6 @@ final class GiftCodeController extends Controller
 
         $result = $prepare->handle(
             $account,
-            $this->accountId($account),
             $giftCode,
             $validated['player_ids'],
         )->toArray();
@@ -109,8 +108,12 @@ final class GiftCodeController extends Controller
             ])],
         ]);
         /** @var array{player_id?:string|null,result:string} $validated */
+        $account = $this->account($request);
+        if (! $account instanceof AuditActor) {
+            throw new LogicException('Authenticated accounts must provide an audit identity.');
+        }
         $target = $this->targetPlayer($request, $context, $players, $validated['player_id'] ?? null);
-        $record->handle($giftCode, $target, $validated['result']);
+        $record->handle($account, $giftCode, $target->playerId, $validated['result']);
 
         return redirect('/gift-codes/'.$giftCode)->with('actionReceipt', $this->receipt('gift-code-result-recorded', [
             'player_id' => $target->playerId,

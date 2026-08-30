@@ -326,14 +326,18 @@ function factSummary(value: Record<string, unknown> | null, unknownKey: string):
     <form class="ks-surface mt-4 grid gap-3 p-4 md:grid-cols-5" @submit.prevent="applyFilters">
       <input v-model="search.q" class="ks-input" :placeholder="t('giftCodes.searchCode')" />
       <input v-model="search.source" class="ks-input" :placeholder="t('giftCodes.searchSource')" />
-      <select v-model="search.expiry" class="ks-input">
+      <select v-model="search.expiry" class="ks-input" :aria-label="t('giftCodes.anyExpiry')">
         <option value="">{{ t('giftCodes.anyExpiry') }}</option>
         <option value="24h">{{ t('giftCodes.expiry24h') }}</option>
         <option value="7d">{{ t('giftCodes.expiry7d') }}</option>
         <option value="none">{{ t('giftCodes.noExpiry') }}</option>
         <option value="expired">{{ t('giftCodes.expired') }}</option>
       </select>
-      <select v-model="search.governor_result" class="ks-input">
+      <select
+        v-model="search.governor_result"
+        class="ks-input"
+        :aria-label="t('giftCodes.anyGovernorResult')"
+      >
         <option value="">{{ t('giftCodes.anyGovernorResult') }}</option>
         <option
           v-for="outcome in outcomes"

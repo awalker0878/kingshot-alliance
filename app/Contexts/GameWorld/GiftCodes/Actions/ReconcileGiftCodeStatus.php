@@ -52,7 +52,7 @@ final readonly class ReconcileGiftCodeStatus
                 $previous = $giftCode->status;
                 $giftCode->save();
                 $this->recordExpiryChange($giftCode, $actor);
-                $this->notifications->handle($giftCode, $previous, true);
+                $this->notifications->handle((string) $giftCode->id, $previous, true);
             }
 
             return $decision->status;
@@ -94,7 +94,7 @@ final readonly class ReconcileGiftCodeStatus
         if ($expiryChanged) {
             $this->recordExpiryChange($giftCode, $actor);
         }
-        $this->notifications->handle($giftCode, $previous, $expiryChanged);
+        $this->notifications->handle((string) $giftCode->id, $previous, $expiryChanged);
 
         return $decision->status;
     }

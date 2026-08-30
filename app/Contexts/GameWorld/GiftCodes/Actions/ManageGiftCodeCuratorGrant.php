@@ -7,7 +7,7 @@ namespace App\Contexts\GameWorld\GiftCodes\Actions;
 use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
 use App\Contexts\Accounts\Identity\ValueObjects\AccountIdentity;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeCuratorGrant;
-use App\Contexts\Platform\Administration\Models\PlatformAdministrator;
+use App\Contexts\Platform\Administration\Services\PlatformAuthorization;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
@@ -18,6 +18,7 @@ final readonly class ManageGiftCodeCuratorGrant
     public function __construct(
         private AccountIdentityQuery $accounts,
         private AuditRecorder $audit,
+        private PlatformAuthorization $platformAuthorization,
     ) {}
 
     public function grant(AccountIdentity $actor, int $targetUserId): string
@@ -75,7 +76,7 @@ final readonly class ManageGiftCodeCuratorGrant
 
     private function authorizePlatformAdministrator(AccountIdentity $actor): void
     {
-        if (! $actor->emailVerified || ! $actor->multiFactorConfirmed || ! PlatformAdministrator::activeForUserId($actor->userId)) {
+        if (! $actor->emailVerified || ! $actor->multiFactorConfirmed || ! $this->platformAuthorization->allows($actor)) {
             throw new AuthorizationException('MFA-protected platform administrator access is required.');
         }
     }

@@ -11,6 +11,7 @@ use App\Shared\Infrastructure\AuditTrail\Contracts\AuditActor;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Http\BulkActionResult;
 use App\Shared\Infrastructure\Http\BulkItemResult;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 final readonly class PrepareGiftCodeRedemptions
@@ -24,10 +25,14 @@ final readonly class PrepareGiftCodeRedemptions
     /** @param non-empty-list<string> $targetPlayerIds */
     public function handle(
         AuditActor $actor,
-        int $ownerUserId,
         string $giftCodeId,
         array $targetPlayerIds,
     ): BulkActionResult {
+        $ownerUserId = $actor->auditUserId();
+        if ($ownerUserId === null) {
+            throw new AuthorizationException('An account-owned Governor is required for Gift Code redemption.');
+        }
+
         $items = [];
 
         foreach ($targetPlayerIds as $playerId) {

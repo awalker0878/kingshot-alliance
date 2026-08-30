@@ -29,8 +29,7 @@ final readonly class QueueGiftCodeExpiryNotifications
         }
 
         $rows = GiftCodeRedemption::query()
-            ->when($afterRedemptionId !== null && $afterRedemptionId !== '', static fn (Builder $query) =>
-                $query->where('id', '>', $afterRedemptionId))
+            ->when($afterRedemptionId !== null && $afterRedemptionId !== '', static fn (Builder $query) => $query->where('id', '>', $afterRedemptionId))
             ->whereNotIn('status', [
                 GiftCodeRedemptionStatus::Redeemed->value,
                 GiftCodeRedemptionStatus::AlreadyRedeemed->value,

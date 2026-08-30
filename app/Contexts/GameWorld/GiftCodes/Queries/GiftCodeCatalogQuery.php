@@ -17,10 +17,15 @@ use InvalidArgumentException;
 final class GiftCodeCatalogQuery
 {
     public const VIEW_ACTIVE = 'active';
+
     public const VIEW_PENDING = 'pending_review';
+
     public const VIEW_DISPUTED = 'disputed';
+
     public const VIEW_EXPIRED = 'expired';
+
     public const VIEW_COMPLETED = 'completed';
+
     public const VIEW_HISTORY = 'history';
 
     /** @var list<string> */
@@ -34,8 +39,8 @@ final class GiftCodeCatalogQuery
     ];
 
     /**
-     * @param non-empty-list<string> $playerIds
-     * @param array{view?: string, q?: string|null, status?: string|null, source?: string|null, expiry?: string|null, governor_result?: string|null} $filters
+     * @param  non-empty-list<string>  $playerIds
+     * @param  array{view?: string, q?: string|null, status?: string|null, source?: string|null, expiry?: string|null, governor_result?: string|null}  $filters
      * @return CursorPaginator<GiftCode>
      */
     public function pageForPlayers(
@@ -71,7 +76,7 @@ final class GiftCodeCatalogQuery
     /**
      * Full evidence/redemption history is intentionally isolated from the index query.
      *
-     * @param non-empty-list<string> $playerIds
+     * @param  non-empty-list<string>  $playerIds
      */
     public function detailForPlayers(string $giftCodeId, array $playerIds): GiftCode
     {
@@ -141,9 +146,9 @@ final class GiftCodeCatalogQuery
     }
 
     /**
-     * @param Builder<GiftCode> $query
-     * @param array{view?: string, q?: string|null, status?: string|null, source?: string|null, expiry?: string|null, governor_result?: string|null} $filters
-     * @param non-empty-list<string> $playerIds
+     * @param  Builder<GiftCode>  $query
+     * @param  array{view?: string, q?: string|null, status?: string|null, source?: string|null, expiry?: string|null, governor_result?: string|null}  $filters
+     * @param  non-empty-list<string>  $playerIds
      */
     private function applyFilters(Builder $query, array $filters, array $playerIds): void
     {

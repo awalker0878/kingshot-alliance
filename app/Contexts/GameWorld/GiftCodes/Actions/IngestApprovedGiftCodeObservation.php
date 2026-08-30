@@ -29,9 +29,10 @@ final readonly class IngestApprovedGiftCodeObservation
     ) {}
 
     /** @return array{gift_code_id:string,provenance_id:string,accepted:bool,duplicate:bool,quarantined:bool} */
-    public function handle(GiftCodeSourceRegistry $source, GiftCodeIngestionObservation $observation): array
+    public function handle(string $sourceId, GiftCodeIngestionObservation $observation): array
     {
         abort_unless((bool) config('game_world.gift_codes.approved_source_ingestion', false), 404);
+        $source = GiftCodeSourceRegistry::query()->findOrFail($sourceId);
         if (! $source->is_active || ! $source->ingestion_enabled || $source->revoked_at !== null) {
             throw ValidationException::withMessages(['source' => 'The registered Gift Code source is not authorized for ingestion.']);
         }

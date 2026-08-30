@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Contexts\GameWorld\GiftCodes\Providers;
 
 use App\Contexts\GameWorld\GiftCodes\Contracts\GiftCodeRedemptionProvider;
-use App\Contexts\GameWorld\GiftCodes\Services\OfficialGiftCodeHandoff;
 use App\Contexts\GameWorld\GiftCodes\Services\GiftCodeSourceAdapterRegistry;
+use App\Contexts\GameWorld\GiftCodes\Services\OfficialGiftCodeHandoff;
 use Illuminate\Support\ServiceProvider;
 
 final class GiftCodesServiceProvider extends ServiceProvider

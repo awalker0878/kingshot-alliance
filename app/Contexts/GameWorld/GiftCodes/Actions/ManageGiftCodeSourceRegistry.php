@@ -8,7 +8,7 @@ use App\Contexts\Accounts\Identity\ValueObjects\AccountIdentity;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeSourceReconciliationJob;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeSourceRegistry;
 use App\Contexts\GameWorld\GiftCodes\Services\GiftCodeSourceAdapterRegistry;
-use App\Contexts\Platform\Administration\Models\PlatformAdministrator;
+use App\Contexts\Platform\Administration\Services\PlatformAuthorization;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -21,10 +21,11 @@ final readonly class ManageGiftCodeSourceRegistry
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
         private GiftCodeSourceAdapterRegistry $adapters,
+        private PlatformAuthorization $platformAuthorization,
     ) {}
 
     /**
-     * @param array{source_key:string,name:string,classification:string,canonical_domain:string,verification_method:string,adapter_key?:string|null,provenance_policy?:array<string,mixed>|null,ingestion_enabled?:bool} $attributes
+     * @param  array{source_key:string,name:string,classification:string,canonical_domain:string,verification_method:string,adapter_key?:string|null,provenance_policy?:array<string,mixed>|null,ingestion_enabled?:bool}  $attributes
      */
     public function register(AccountIdentity $actor, array $attributes): string
     {
@@ -150,7 +151,7 @@ final readonly class ManageGiftCodeSourceRegistry
     {
         if (! $actor->emailVerified
             || ! $actor->multiFactorConfirmed
-            || ! PlatformAdministrator::activeForUserId($actor->userId)) {
+            || ! $this->platformAuthorization->allows($actor)) {
             throw new AuthorizationException('MFA-protected Platform Administrator access is required.');
         }
     }

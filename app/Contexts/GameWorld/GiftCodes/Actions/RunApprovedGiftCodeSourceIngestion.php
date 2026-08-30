@@ -34,10 +34,8 @@ final readonly class RunApprovedGiftCodeSourceIngestion
             ->where('is_active', true)
             ->where('ingestion_enabled', true)
             ->whereNull('revoked_at')
-            ->when($afterSourceId !== null && $afterSourceId !== '', static fn (Builder $query) =>
-                $query->where('id', '>', $afterSourceId))
-            ->when($sourceKey !== null && $sourceKey !== '', static fn (Builder $query) =>
-                $query->where('source_key', $sourceKey))
+            ->when($afterSourceId !== null && $afterSourceId !== '', static fn (Builder $query) => $query->where('id', '>', $afterSourceId))
+            ->when($sourceKey !== null && $sourceKey !== '', static fn (Builder $query) => $query->where('source_key', $sourceKey))
             ->orderBy('id')
             ->limit($sourceLimit + 1)
             ->get();
@@ -76,7 +74,7 @@ final readonly class RunApprovedGiftCodeSourceIngestion
                 foreach ($page->observations as $observation) {
                     $runExamined++;
                     try {
-                        $result = $this->ingest->handle($source, $observation);
+                        $result = $this->ingest->handle((string) $source->id, $observation);
                         $runAccepted += $result['accepted'] ? 1 : 0;
                         $runDuplicates += $result['duplicate'] ? 1 : 0;
                         $runQuarantined += $result['quarantined'] ? 1 : 0;

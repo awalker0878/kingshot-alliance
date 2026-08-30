@@ -14,8 +14,9 @@ final class ScheduleGiftCodeNotificationCampaign
 
     public const TRUST_CHANGED = 'gift_code.trust_changed';
 
-    public function handle(GiftCode $giftCode, GiftCodeStatus $previousStatus, bool $expiryChanged): void
+    public function handle(string $giftCodeId, GiftCodeStatus $previousStatus, bool $expiryChanged): void
     {
+        $giftCode = GiftCode::query()->findOrFail($giftCodeId);
         if ($giftCode->status === GiftCodeStatus::Valid && $previousStatus !== GiftCodeStatus::Valid) {
             $this->record($giftCode, self::AVAILABLE, $previousStatus);
         }

@@ -178,7 +178,7 @@ final class GiftCodeTrustResolver
     }
 
     /**
-     * @param Collection<int, GiftCodeProvenance> $evidence
+     * @param  Collection<int, GiftCodeProvenance>  $evidence
      * @return list<string>
      */
     private function qualifiedEvidence(Collection $evidence, string $assertion): array
@@ -214,7 +214,7 @@ final class GiftCodeTrustResolver
      * material trust conflict and must be resolved by moderation rather than by
      * choosing whichever claim happened to be loaded first.
      *
-     * @param Collection<int, GiftCodeProvenance> $evidence
+     * @param  Collection<int, GiftCodeProvenance>  $evidence
      * @return list<array{at: CarbonImmutable, precision: string|null, evidence_ids: list<string>}>
      */
     private function qualifiedExpiryClaims(Collection $evidence): array

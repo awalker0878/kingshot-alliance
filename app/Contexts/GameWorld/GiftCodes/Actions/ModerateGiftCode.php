@@ -11,7 +11,7 @@ use App\Contexts\GameWorld\GiftCodes\Models\GiftCode;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeCuratorGrant;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeModerationDecision;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeProvenance;
-use App\Contexts\Platform\Administration\Models\PlatformAdministrator;
+use App\Contexts\Platform\Administration\Services\PlatformAuthorization;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -25,11 +25,12 @@ final readonly class ModerateGiftCode
         private OutboxRecorder $outbox,
         private ReconcileGiftCodeStatus $reconcile,
         private ReconcileGiftCodeFacts $facts,
+        private PlatformAuthorization $platformAuthorization,
     ) {}
 
     /**
-     * @param list<string> $evidenceIds
-     * @param array<string, mixed> $metadata
+     * @param  list<string>  $evidenceIds
+     * @param  array<string, mixed>  $metadata
      */
     public function handle(
         AccountIdentity $actor,
@@ -121,7 +122,7 @@ final readonly class ModerateGiftCode
         $authorized = $actor->emailVerified
             && $actor->multiFactorConfirmed
             && (
-                PlatformAdministrator::activeForUserId($actor->userId)
+                $this->platformAuthorization->allows($actor)
                 || GiftCodeCuratorGrant::activeForUserId($actor->userId)
             );
 

@@ -11,6 +11,7 @@ use App\Contexts\Communications\Delivery\Actions\SetNotificationPreference;
 use App\Contexts\Communications\Delivery\Enums\DeliveryChannel;
 use App\Contexts\Communications\Delivery\Models\NotificationDelivery;
 use App\Contexts\GameWorld\GiftCodes\Actions\IngestApprovedGiftCodeObservation;
+use App\Contexts\GameWorld\GiftCodes\Actions\ManageGiftCodeSourceRegistry;
 use App\Contexts\GameWorld\GiftCodes\Actions\ModerateGiftCode;
 use App\Contexts\GameWorld\GiftCodes\Actions\PrepareGiftCodeRedemptions;
 use App\Contexts\GameWorld\GiftCodes\Actions\QueueGiftCodeExpiryNotifications;
@@ -21,11 +22,11 @@ use App\Contexts\GameWorld\GiftCodes\Actions\RecordObservedGiftCodeRedemptionRes
 use App\Contexts\GameWorld\GiftCodes\Actions\RunApprovedGiftCodeSourceIngestion;
 use App\Contexts\GameWorld\GiftCodes\Actions\SubmitGiftCode;
 use App\Contexts\GameWorld\GiftCodes\Contracts\GiftCodeSourceAdapter;
-use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeModerationAction;
 use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeEvidenceClassification;
 use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeEvidenceVerificationState;
-use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeSource;
+use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeModerationAction;
 use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeRedemptionStatus;
+use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeSource;
 use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeStatus;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCode;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeFactProjection;
@@ -102,8 +103,8 @@ final class GiftCodeBehaviorV3Test extends TestCase
         $source = $this->source('official-one', 'official-one.example.test');
         $observation = $this->observation('TRUSTED-CODE', sourceUrl: 'https://official-one.example.test/gifts/1');
 
-        $first = app(IngestApprovedGiftCodeObservation::class)->handle($source, $observation);
-        $replay = app(IngestApprovedGiftCodeObservation::class)->handle($source, $observation);
+        $first = app(IngestApprovedGiftCodeObservation::class)->handle((string) $source->id, $observation);
+        $replay = app(IngestApprovedGiftCodeObservation::class)->handle((string) $source->id, $observation);
 
         self::assertTrue($first['accepted']);
         self::assertFalse($first['duplicate']);
@@ -115,7 +116,7 @@ final class GiftCodeBehaviorV3Test extends TestCase
 
         $this->expectException(ValidationException::class);
         app(IngestApprovedGiftCodeObservation::class)->handle(
-            $source,
+            (string) $source->id,
             $this->observation('EVIL-CODE', sourceUrl: 'https://lookalike.example.test/gifts/2'),
         );
     }
@@ -130,7 +131,7 @@ final class GiftCodeBehaviorV3Test extends TestCase
         $secondExpiry = now()->addDays(3)->startOfHour()->toIso8601String();
 
         $first = app(IngestApprovedGiftCodeObservation::class)->handle(
-            $firstSource,
+            (string) $firstSource->id,
             $this->observation(
                 'EXPIRY-CONFLICT',
                 sourceUrl: 'https://expiry-one.example.test/gift',
@@ -144,7 +145,7 @@ final class GiftCodeBehaviorV3Test extends TestCase
         self::assertSame(1, $giftCode->expires_revision);
 
         app(IngestApprovedGiftCodeObservation::class)->handle(
-            $secondSource,
+            (string) $secondSource->id,
             $this->observation(
                 'EXPIRY-CONFLICT',
                 sourceUrl: 'https://expiry-two.example.test/gift',
@@ -194,14 +195,13 @@ final class GiftCodeBehaviorV3Test extends TestCase
         $foreignGovernor = $scenarios->player($other->userId, 1503, 'GOV-1503-C');
         $source = $this->source('redemption-source', 'redemption.example.test');
         $ingested = app(IngestApprovedGiftCodeObservation::class)->handle(
-            $source,
+            (string) $source->id,
             $this->observation('MULTI-GOVERNOR', sourceUrl: 'https://redemption.example.test/gift'),
         );
         $actor = User::query()->findOrFail($account->userId);
 
         $prepared = app(PrepareGiftCodeRedemptions::class)->handle(
             $actor,
-            $account->userId,
             $ingested['gift_code_id'],
             [$firstGovernor->playerId, $secondGovernor->playerId, $foreignGovernor->playerId],
         )->toArray();
@@ -212,24 +212,48 @@ final class GiftCodeBehaviorV3Test extends TestCase
         self::assertSame(2, GiftCodeRedemption::query()->count());
 
         app(RecordObservedGiftCodeRedemptionResult::class)->handle(
+            $actor,
             $ingested['gift_code_id'],
-            $firstGovernor,
+            $firstGovernor->playerId,
             'wrong_kingdom',
         );
         $completed = app(RecordObservedGiftCodeRedemptionResult::class)->handle(
+            $actor,
             $ingested['gift_code_id'],
-            $secondGovernor,
+            $secondGovernor->playerId,
             'redeemed',
         );
         $terminalReplay = app(RecordObservedGiftCodeRedemptionResult::class)->handle(
+            $actor,
             $ingested['gift_code_id'],
-            $secondGovernor,
+            $secondGovernor->playerId,
             'invalid',
         );
 
         self::assertSame(GiftCodeRedemptionStatus::Redeemed, $completed->status);
         self::assertSame(GiftCodeRedemptionStatus::Redeemed, $terminalReplay->status);
         self::assertSame($completed->attempts, $terminalReplay->attempts);
+
+        DB::table('players')->where('id', $firstGovernor->playerId)->update(['user_id' => $other->userId]);
+        try {
+            app(RecordObservedGiftCodeRedemptionResult::class)->handle(
+                $actor,
+                $ingested['gift_code_id'],
+                $firstGovernor->playerId,
+                'rate_limited',
+            );
+            self::fail('Result recording must reauthorize current Governor ownership.');
+        } catch (ValidationException) {
+            self::assertSame(
+                GiftCodeRedemptionStatus::WrongKingdom,
+                GiftCodeRedemption::query()
+                    ->where('gift_code_id', $ingested['gift_code_id'])
+                    ->where('player_id', $firstGovernor->playerId)
+                    ->firstOrFail()
+                    ->status,
+            );
+        }
+
         self::assertSame(GiftCodeStatus::Valid, GiftCode::query()->findOrFail($ingested['gift_code_id'])->status);
         self::assertDatabaseMissing('gift_code_fact_projections', [
             'gift_code_id' => $ingested['gift_code_id'],
@@ -245,7 +269,7 @@ final class GiftCodeBehaviorV3Test extends TestCase
         $secondSource = $this->source('facts-two', 'facts-two.example.test');
 
         $created = app(IngestApprovedGiftCodeObservation::class)->handle(
-            $firstSource,
+            (string) $firstSource->id,
             $this->observation('FACT-CODE', sourceUrl: 'https://facts-one.example.test/gift'),
         );
         app(ReconcileGiftCodeFacts::class)->handle($created['gift_code_id']);
@@ -257,7 +281,7 @@ final class GiftCodeBehaviorV3Test extends TestCase
         self::assertSame('reward_details_unknown', $unknownReward->reason_code);
 
         app(IngestApprovedGiftCodeObservation::class)->handle(
-            $firstSource,
+            (string) $firstSource->id,
             $this->observation(
                 'FACT-CODE',
                 assertion: 'reward',
@@ -271,7 +295,7 @@ final class GiftCodeBehaviorV3Test extends TestCase
         self::assertSame('Wood', $reward?->value['items'][0]['name'] ?? null);
 
         app(IngestApprovedGiftCodeObservation::class)->handle(
-            $firstSource,
+            (string) $firstSource->id,
             $this->observation(
                 'FACT-CODE',
                 assertion: 'applicability',
@@ -281,7 +305,7 @@ final class GiftCodeBehaviorV3Test extends TestCase
             ),
         );
         app(IngestApprovedGiftCodeObservation::class)->handle(
-            $secondSource,
+            (string) $secondSource->id,
             $this->observation(
                 'FACT-CODE',
                 assertion: 'applicability',
@@ -317,7 +341,7 @@ final class GiftCodeBehaviorV3Test extends TestCase
             false,
         );
         $ingested = app(IngestApprovedGiftCodeObservation::class)->handle(
-            $source,
+            (string) $source->id,
             $this->observation(
                 'NOTIFY-CODE',
                 sourceUrl: 'https://notifications.example.test/gift',
@@ -331,7 +355,6 @@ final class GiftCodeBehaviorV3Test extends TestCase
 
         app(PrepareGiftCodeRedemptions::class)->handle(
             User::query()->findOrFail($account->userId),
-            $account->userId,
             $ingested['gift_code_id'],
             [$governor->playerId],
         );
@@ -421,13 +444,13 @@ final class GiftCodeBehaviorV3Test extends TestCase
         config()->set('game_world.gift_codes.approved_source_ingestion', true);
         $source = $this->source('revocable-source', 'revocable.example.test');
         $ingested = app(IngestApprovedGiftCodeObservation::class)->handle(
-            $source,
+            (string) $source->id,
             $this->observation('REVOKED-CODE', sourceUrl: 'https://revocable.example.test/gift'),
         );
         self::assertSame(GiftCodeStatus::Valid, GiftCode::query()->findOrFail($ingested['gift_code_id'])->status);
 
         $actor = $this->administrator();
-        app(\App\Contexts\GameWorld\GiftCodes\Actions\ManageGiftCodeSourceRegistry::class)
+        app(ManageGiftCodeSourceRegistry::class)
             ->revoke($actor, (string) $source->id, 'The source lost its platform approval.');
         self::assertSame(1, GiftCodeSourceReconciliationJob::query()->count());
 
@@ -446,7 +469,7 @@ final class GiftCodeBehaviorV3Test extends TestCase
         $identity = app(AccountIdentityQuery::class)->require($account->userId);
 
         $this->expectException(AuthorizationException::class);
-        app(\App\Contexts\GameWorld\GiftCodes\Actions\ManageGiftCodeSourceRegistry::class)->register($identity, [
+        app(ManageGiftCodeSourceRegistry::class)->register($identity, [
             'source_key' => 'alliance-claimed-source',
             'name' => 'Alliance claimed source',
             'classification' => 'official',

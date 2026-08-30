@@ -63,11 +63,11 @@ final class GiftCodeModerationDecision extends Model
 
     protected static function booted(): void
     {
-        static::updating(static function (): never {
+        self::updating(static function (): never {
             throw new \LogicException('Gift Code moderation decisions are append-only.');
         });
 
-        static::deleting(static function (): never {
+        self::deleting(static function (): never {
             throw new \LogicException('Gift Code moderation decisions are append-only.');
         });
     }

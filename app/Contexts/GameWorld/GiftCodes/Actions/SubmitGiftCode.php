@@ -29,7 +29,7 @@ final readonly class SubmitGiftCode
     ) {}
 
     /**
-     * @param array{code: string, source_type?: string, source_label?: string|null, source_url?: string|null, expires_at?: string|null, expiry_precision?: string|null, expiry_timezone?: string|null} $attributes
+     * @param  array{code: string, source_type?: string, source_label?: string|null, source_url?: string|null, expires_at?: string|null, expiry_precision?: string|null, expiry_timezone?: string|null}  $attributes
      */
     public function handle(PlayerReference $actor, array $attributes): GiftCodeSubmissionResult
     {
@@ -42,8 +42,8 @@ final readonly class SubmitGiftCode
             }
 
             $normalized = Str::upper($code);
-            $source = GiftCodeSource::tryFrom($attributes['source_type'] ?? GiftCodeSource::Manual->value)
-                ?? GiftCodeSource::Manual;
+            $sourceValue = $attributes['source_type'] ?? GiftCodeSource::Manual->value;
+            $source = GiftCodeSource::tryFrom($sourceValue);
             if (! in_array($source, [GiftCodeSource::Manual, GiftCodeSource::Community], true)) {
                 throw ValidationException::withMessages([
                     'source_type' => 'Registered Gift Code evidence can only be created through a platform-approved source.',
@@ -57,20 +57,20 @@ final readonly class SubmitGiftCode
             $sourceUrl = $this->optional($attributes['source_url'] ?? null);
 
             $giftCode = GiftCode::query()->firstOrCreate(['normalized_code' => $normalized], [
-                    'code' => $code,
-                    'normalized_code' => $normalized,
-                    'created_by_player_id' => $actor->playerId,
-                    'status' => GiftCodeStatus::Pending,
-                    'status_revision' => 0,
-                    'status_reason_code' => 'awaiting_verified_evidence',
-                    'status_evidence_ids' => [],
-                    'status_changed_at' => now(),
-                    'status_derived_at' => now(),
-                    'discovered_at' => now(),
-                    'expires_at' => null,
-                    'expires_precision' => null,
-                    'expires_revision' => 0,
-                ]);
+                'code' => $code,
+                'normalized_code' => $normalized,
+                'created_by_player_id' => $actor->playerId,
+                'status' => GiftCodeStatus::Pending,
+                'status_revision' => 0,
+                'status_reason_code' => 'awaiting_verified_evidence',
+                'status_evidence_ids' => [],
+                'status_changed_at' => now(),
+                'status_derived_at' => now(),
+                'discovered_at' => now(),
+                'expires_at' => null,
+                'expires_precision' => null,
+                'expires_revision' => 0,
+            ]);
             $created = $giftCode->wasRecentlyCreated;
 
             $fingerprint = hash('sha256', implode('|', [
