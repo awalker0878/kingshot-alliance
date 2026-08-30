@@ -1,6 +1,6 @@
 # Gift Code trust, discovery, and redemption expansion
 
-Status: Selected extension — implementation commit pending CI verification
+Status: Implementation complete — Gift Code-specific verification passed; unrelated repository visual-baseline failures remain documented below
 Baseline: `main` at `f63896f`
 Deployment model: **fresh-schema redeployment**
 Owner context: `GameWorld/GiftCodes`
@@ -272,10 +272,14 @@ Unqualified rewards render **Reward details unknown**. A single `wrong_kingdom` 
 | GCX-16 | Operational diagnostics and replay | complete | persisted notification/source cursors, JSON sweep receipts, source run health, targeted ingestion replay and policy-reconciliation scheduler |
 | GCX-17 | Accessibility/mobile/visual regression | complete | localized responsive catalogue/moderation flows, static accessibility/localization gates and desktop/mobile `GiftCodes.spec.ts` |
 | GCX-18 | Query-budget and large-history verification | complete | 80-code/120-provenance constant-query fixture in `GiftCodeBehaviorV3Test`; API cursor bound test |
-| GCX-19 | Full automated gate execution | in progress | Local frontend checks/build/budgets pass; PHP 8.5/PostgreSQL and Playwright CI results pending |
-| GCX-20 | Final docs/code reconciliation and closeout | in progress | Related docs reconciled and stale-path search clean; final CI result and closeout re-read pending |
+| GCX-19 | Full automated gate execution | complete | Local `npm run check` passes; remote CI run `33335631761`, Architecture V3 run `33335631773`, Intelligence, King Perks, CodeQL, and dependency review pass; Gift Code desktop/mobile visual coverage passes in run `33335631755` |
+| GCX-20 | Final docs/code reconciliation and closeout | complete | Final remote commit `78fb1234a0471dd020c7f651a3e4d468f22b2c34`; stale-path/TODO/route/scheduler/flag searches reconciled; documentation and delivery ledger updated |
 
 A row becomes `complete` only when documented behavior, integration, authorization, UX where applicable, tests, and operational behavior are present. No migration/backfill or compatibility work is intentionally retained for the previous Gift Code implementation.
+
+### Closeout exception
+
+The repository-wide Visual Regression workflow remains red for six pre-existing, non-Gift-Code cases: ApplicationShell desktop/mobile, CapabilityAcceptanceMatrix desktop/mobile, and ScreenshotIntake desktop/mobile. The Gift Code visual test passes on both viewports in run `33335631755`; reconciling those unrelated baselines is owned by their respective capabilities and is not a Gift Code dependency.
 
 ## 14. Acceptance criteria
 
