@@ -68,9 +68,27 @@ final class PlayerReferenceQuery
     }
 
     /**
-     * @param  array<string>  $playerIds
-     * @return array<string, PlayerReference>
+     * Return account IDs that currently own at least one Governor. The caller
+     * owns the cursor; this query intentionally exposes only scalar account IDs.
+     *
+     * @return list<int>
      */
+    public function ownerUserIdsAfter(?int $afterUserId, int $limit): array
+    {
+        return array_values(Player::query()
+            ->select('user_id')
+            ->whereNotNull('user_id')
+            ->when($afterUserId !== null, static fn ($query) => $query->where('user_id', '>', $afterUserId))
+            ->distinct()
+            ->orderBy('user_id')
+            ->limit(max(1, min(1000, $limit)))
+            ->pluck('user_id')
+            ->map(static fn ($id): int => (int) $id)
+            ->values()
+            ->all());
+    }
+
+    /** @param array<string> $playerIds @return array<string, PlayerReference> */
     public function byIds(array $playerIds): array
     {
         $ids = array_values(array_unique(array_filter(array_map(
@@ -83,10 +101,7 @@ final class PlayerReferenceQuery
         }
 
         $references = [];
-        foreach (Player::query()
-            ->whereIn('id', $ids)
-            ->with('currentKingdom:id,number')
-            ->get() as $player) {
+        foreach (Player::query()->whereIn('id', $ids)->with('currentKingdom:id,number')->get() as $player) {
             $reference = $this->snapshot($player);
             $references[$reference->playerId] = $reference;
         }
