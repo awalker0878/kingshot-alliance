@@ -110,7 +110,7 @@ final class PlayerReferenceQuery
     }
 
     /**
-     * @param list<string> $playerIds
+     * @param  array<int|string, string>  $playerIds
      * @return array<string, PlayerReference>
      */
     public function byIds(array $playerIds): array

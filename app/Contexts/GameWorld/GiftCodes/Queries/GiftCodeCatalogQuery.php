@@ -117,8 +117,8 @@ final class GiftCodeCatalogQuery
     }
 
     /**
-     * @param Builder<GiftCode> $query
-     * @param non-empty-list<string> $playerIds
+     * @param  Builder<GiftCode>  $query
+     * @param  non-empty-list<string>  $playerIds
      */
     private function applyView(Builder $query, string $view, array $playerIds): void
     {

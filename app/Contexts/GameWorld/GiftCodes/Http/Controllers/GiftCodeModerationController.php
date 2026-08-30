@@ -38,8 +38,7 @@ final class GiftCodeModerationController extends Controller
         private readonly GiftCodeIngestionHealthQuery $ingestionHealth,
         private readonly GiftCodeSourceAdapterRegistry $sourceAdapters,
         private readonly PlatformAuthorization $platformAuthorization,
-    ) {
-    }
+    ) {}
 
     public function index(Request $request): Response
     {
@@ -102,7 +101,7 @@ final class GiftCodeModerationController extends Controller
                 ->find($selectedId);
         }
 
-        /** @var array<int,array<string,mixed>> $curators */
+        /** @var array<int, array<string, mixed>> $curators */
         $curators = [];
         if ($this->platformAuthorization->allows($actor)) {
             /** @var Collection<int, GiftCodeCuratorGrant> $grants */

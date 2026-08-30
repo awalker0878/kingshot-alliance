@@ -106,7 +106,7 @@ final class GiftCodeFactResolver
             true,
             'qualified_'.$factType.'_evidence',
             $qualified[0]['value'],
-            $qualified[0]['evidence_ids'],
+            array_values($qualified[0]['evidence_ids']),
         );
     }
 }

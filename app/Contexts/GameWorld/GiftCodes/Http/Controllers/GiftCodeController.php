@@ -206,8 +206,8 @@ final class GiftCodeController extends Controller
     }
 
     /**
-     * @param array<string,string> $playerNames
-     * @return array<string,mixed>
+     * @param  array<string, string>  $playerNames
+     * @return array<string, mixed>
      */
     private function catalogItem(GiftCode $giftCode, string $activePlayerId, array $playerNames): array
     {
@@ -244,8 +244,8 @@ final class GiftCodeController extends Controller
     }
 
     /**
-     * @param array<string,string> $playerNames
-     * @return array<string,mixed>
+     * @param  array<string, string>  $playerNames
+     * @return array<string, mixed>
      */
     private function detailItem(GiftCode $giftCode, string $activePlayerId, array $playerNames): array
     {
