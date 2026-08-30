@@ -83,10 +83,6 @@ test('Event Command keeps closeout and readiness visible without responsive over
   await normalizeDynamicTimes(command);
 
   const closeoutHash = await fingerprint(command);
-  expect(
-    closeoutHash,
-    `Update Event Command closeout visual fingerprint for ${testInfo.project.name}`,
-  ).toBe(fingerprints[testInfo.project.name]?.closeout);
 
   const selector = command.getByRole('combobox', { name: 'Occurrence' });
   const optionValues = await selector
@@ -110,7 +106,7 @@ test('Event Command keeps closeout and readiness visible without responsive over
 
   const readyHash = await fingerprint(refreshed);
   expect(
-    readyHash,
-    `Update Event Command readiness visual fingerprint for ${testInfo.project.name}`,
-  ).toBe(fingerprints[testInfo.project.name]?.ready);
+    { closeout: closeoutHash, ready: readyHash },
+    `Update Event Command visual fingerprints for ${testInfo.project.name}`,
+  ).toEqual(fingerprints[testInfo.project.name]);
 });

@@ -54,13 +54,17 @@ final readonly class RallyRosterBuilderQuery
             $occurrenceId = (string) ($operation['occurrenceId'] ?? '');
             $participantRows = $participantsByOccurrence->get($occurrenceId, collect());
             $rosterRow = $rostersByOccurrence->get($occurrenceId);
-
-            return $this->occurrence(
-                $operation,
+            /** @var list<array<string,mixed>> $occurrenceParticipants */
+            $occurrenceParticipants = array_values(
                 $participantRows
                     ->filter(static fn (mixed $row): bool => is_array($row))
                     ->values()
                     ->all(),
+            );
+
+            return $this->occurrence(
+                $operation,
+                $occurrenceParticipants,
                 is_array($rosterRow) ? $rosterRow : [],
                 $observations,
             );
@@ -87,13 +91,13 @@ final readonly class RallyRosterBuilderQuery
     }
 
     /**
+     * @param  array<string,mixed>  $operation
      * @param  list<array<string,mixed>>  $participants
      * @param  array<string,mixed>  $rosterOperation
      * @param  array{available:bool,byPlayer:array<string,array{state:string,capturedAt:?string,source:?string}>}  $observations
      * @return array<string,mixed>
      */
     private function occurrence(
-        /** @var array<string,mixed> */
         array $operation,
         array $participants,
         array $rosterOperation,
@@ -165,10 +169,10 @@ final readonly class RallyRosterBuilderQuery
             $expectedPlayerIds,
             static fn (string $playerId): bool => ! isset($assignmentCounts[$playerId]),
         ));
-        $duplicates = array_values(array_keys(array_filter(
+        $duplicates = array_keys(array_filter(
             $assignmentCounts,
             static fn (int $count): bool => $count > 1,
-        )));
+        ));
 
         $assignedPlayerIds = array_keys($assignmentCounts);
         $stale = [];
@@ -227,14 +231,16 @@ final readonly class RallyRosterBuilderQuery
         ];
     }
 
-    /** @return array{code:string,severity:string,count:int,playerIds:list<string>,groupIds:list<string>} */
+    /**
+     * @param  list<string>  $playerIds
+     * @param  list<string>  $groupIds
+     * @return array{code:string,severity:string,count:int,playerIds:list<string>,groupIds:list<string>}
+     */
     private function issue(
         string $code,
         string $severity,
         int $count,
-        /** @var list<string> */
         array $playerIds = [],
-        /** @var list<string> */
         array $groupIds = [],
     ): array {
         return [

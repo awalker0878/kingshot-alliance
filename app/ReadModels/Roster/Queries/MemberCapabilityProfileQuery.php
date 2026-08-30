@@ -233,6 +233,7 @@ final readonly class MemberCapabilityProfileQuery
                 'respondedAt' => $row->responded_at === null ? null : (string) $row->responded_at,
                 'recordedAt' => $row->recorded_at === null ? null : (string) $row->recorded_at,
             ])
+            ->values()
             ->all();
     }
 
@@ -283,6 +284,7 @@ final readonly class MemberCapabilityProfileQuery
                 'status' => (string) $row->status,
                 'assignedAt' => $row->assigned_at === null ? null : (string) $row->assigned_at,
             ])
+            ->values()
             ->all();
     }
 

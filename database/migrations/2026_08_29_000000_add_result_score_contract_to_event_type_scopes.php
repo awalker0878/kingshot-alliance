@@ -31,7 +31,7 @@ return new class extends Migration
 
             $typeId = DB::table('event_types')->where('slug', $definition['slug'])->value('id');
             if (! is_string($typeId)) {
-                throw new \RuntimeException('Missing persisted Event Type '.$definition['slug'].'.');
+                throw new RuntimeException('Missing persisted Event Type '.$definition['slug'].'.');
             }
 
             foreach ($definition['scopes'] as $scope) {

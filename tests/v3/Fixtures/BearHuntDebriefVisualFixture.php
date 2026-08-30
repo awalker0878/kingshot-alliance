@@ -129,6 +129,13 @@ final class BearHuntDebriefVisualFixture
         EventOccurrence::query()->whereKey($current->firstOccurrenceId)->update([
             'status' => EventOccurrenceStatus::Completed->value,
         ]);
+        EventOccurrence::query()->create([
+            'event_id' => $current->eventId,
+            'starts_at' => CarbonImmutable::now('UTC')->addDays(2)->startOfHour(),
+            'ends_at' => CarbonImmutable::now('UTC')->addDays(2)->startOfHour()->addMinutes(30),
+            'status' => EventOccurrenceStatus::Scheduled,
+            'settings' => [],
+        ]);
 
         app(RecordBearHuntBattleReport::class)->handle(
             actorPlayerId: (string) $actor->id,

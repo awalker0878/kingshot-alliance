@@ -17,9 +17,9 @@ use App\Contexts\GameWorld\KingdomTransfers\Models\TransferParticipant;
 use App\Contexts\GameWorld\KingdomTransfers\Queries\TransferEligibilityQuery;
 use App\Contexts\GameWorld\KingdomTransfers\ValueObjects\TransferEligibilityAssessment;
 use App\Contexts\GameWorld\KingdomTransfers\ValueObjects\TransferRequirement;
+use App\ReadModels\Support\ReadModelTelemetry;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\Collection;
-use App\ReadModels\Support\ReadModelTelemetry;
 
 /**
  * Authorized cross-owner projection for one recruitment-to-transfer journey.

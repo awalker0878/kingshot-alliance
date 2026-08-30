@@ -91,15 +91,19 @@ final class CapabilitySurfaceHttpMatrixV3Test extends TestCase
                 ->where('freshness', 'missing')
                 ->has('timeline', 0));
 
-            $this->getAs($identity['user'], $identity['player'], route('dashboard'))
+            $dashboard = $this->getAs($identity['user'], $identity['player'], route('dashboard'))
                 ->assertOk()
                 ->assertInertia(static fn (Assert $page): Assert => $page
                     ->component('Dashboard/Home')
                     ->where('membership.rank', $rank)
-                    ->where('overview.allianceCommand', static fn (mixed $command): bool => $officer
-                        ? is_array($command)
-                        : $command === null)
                     ->has('overview.officerBriefs', $officer ? 3 : 0));
+            if ($officer) {
+                $dashboard->assertInertia(static fn (Assert $page): Assert => $page
+                    ->has('overview.allianceCommand.items'));
+            } else {
+                $dashboard->assertInertia(static fn (Assert $page): Assert => $page
+                    ->where('overview.allianceCommand', null));
+            }
 
             $this->getAs($identity['user'], $identity['player'], route('assistant.index'))
                 ->assertOk()
@@ -135,6 +139,7 @@ final class CapabilitySurfaceHttpMatrixV3Test extends TestCase
             ->assertNotFound();
 
         $sourceUser = $actors[AllianceRank::R5->value]['user'];
+        $this->flushSession();
         $this->actingAs($sourceUser)
             ->withSession([$this->sessionKey() => $foreign['player']->playerId])
             ->get(route('dashboard'))

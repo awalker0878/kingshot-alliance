@@ -13,14 +13,14 @@ use App\Contexts\Operations\Events\Enums\EventStatus;
 use App\Contexts\Operations\Events\Models\Event;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Events\Models\EventTypeScope;
-use App\Contexts\Operations\Participation\Reminders\Enums\EventReminderAudience;
-use App\Contexts\Operations\Participation\Reminders\Enums\EventReminderTrigger;
-use App\Contexts\Operations\Participation\Reminders\Models\EventReminderRule;
 use App\Contexts\Operations\Participation\Enums\EventAttendanceStatus;
 use App\Contexts\Operations\Participation\Enums\EventResponseChoice;
 use App\Contexts\Operations\Participation\Enums\EventResponseSource;
 use App\Contexts\Operations\Participation\Models\EventAttendance;
 use App\Contexts\Operations\Participation\Models\EventResponse;
+use App\Contexts\Operations\Participation\Reminders\Enums\EventReminderAudience;
+use App\Contexts\Operations\Participation\Reminders\Enums\EventReminderTrigger;
+use App\Contexts\Operations\Participation\Reminders\Models\EventReminderRule;
 use App\Contexts\Operations\Rallies\Enums\RallyAssignmentRole;
 use App\Contexts\Operations\Rallies\Enums\RallyAssignmentStatus;
 use App\Contexts\Operations\Rallies\Models\RallyAssignment;
@@ -192,6 +192,11 @@ final class EventCommandBehaviorV3Test extends TestCase
                 'status' => EventOccurrenceStatus::Completed,
                 'settings' => [],
             ]);
+            $this->recordCompleteOwnerFacts(
+                (string) $closedOccurrence->id,
+                $actor,
+                $alliance,
+            );
             EventResult::query()->create([
                 'occurrence_id' => (string) $closedOccurrence->id,
                 'outcome' => 'recorded',

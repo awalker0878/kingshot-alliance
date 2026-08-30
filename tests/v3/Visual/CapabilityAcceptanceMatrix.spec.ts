@@ -153,9 +153,9 @@ test('capability acceptance surfaces remain visually and semantically stable', a
   const actual = {} as Record<Surface, string>;
 
   await openEventManagement(page);
-  const rallyBuilder = page.locator('section[aria-label="Rally roster builder"]');
+  const rallyBuilder = page.locator('section[aria-label="Rally roster checks"]');
   await assertAccessibleSurface(page, rallyBuilder);
-  await expect(rallyBuilder.getByText('No Rally groups are configured for this occurrence.')).toBeVisible();
+  await expect(rallyBuilder.getByText('No Rally groups have been created for this occurrence.')).toBeVisible();
   actual.rallyBuilder = await screenshotHash(rallyBuilder);
 
   await openMemberProfile(page);
