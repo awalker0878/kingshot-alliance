@@ -8,6 +8,9 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['auth', 'auth.session', 'verified'])->group(function (): void {
     Route::get('/gift-codes', [GiftCodeController::class, 'index'])
         ->name('gift-codes.index');
+    Route::get('/gift-codes/{giftCode}', [GiftCodeController::class, 'show'])
+        ->whereUlid('giftCode')
+        ->name('gift-codes.show');
     Route::post('/gift-codes', [GiftCodeController::class, 'store'])
         ->middleware('throttle:20,1')
         ->name('gift-codes.store');
