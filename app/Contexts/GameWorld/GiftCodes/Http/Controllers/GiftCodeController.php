@@ -7,6 +7,7 @@ namespace App\Contexts\GameWorld\GiftCodes\Http\Controllers;
 use App\Contexts\Accounts\Identity\Contracts\AuthenticatedAccount;
 use App\Contexts\GameWorld\GiftCodes\Actions\ConfirmGiftCodeRedemption;
 use App\Contexts\GameWorld\GiftCodes\Actions\PrepareGiftCodeRedemptions;
+use App\Contexts\GameWorld\GiftCodes\Actions\RecordObservedGiftCodeRedemptionResult;
 use App\Contexts\GameWorld\GiftCodes\Actions\ReportGiftCodeIssue;
 use App\Contexts\GameWorld\GiftCodes\Actions\SubmitGiftCode;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCode;
@@ -20,6 +21,7 @@ use App\Shared\Infrastructure\AuditTrail\Contracts\AuditActor;
 use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 use LogicException;
@@ -71,8 +73,12 @@ final class GiftCodeController extends Controller
                     'sourceLabel' => $giftCode->source_label,
                     'sourceUrl' => $giftCode->source_url,
                     'status' => $giftCode->status->value,
+                    'statusReasonCode' => $giftCode->status_reason_code,
+                    'statusRevision' => $giftCode->status_revision,
                     'discoveredAt' => $giftCode->discovered_at->toIso8601String(),
                     'expiresAt' => $giftCode->expires_at?->toIso8601String(),
+                    'expiresPrecision' => $giftCode->expires_precision,
+                    'expiresRevision' => $giftCode->expires_revision,
                     'redemption' => $this->redemption($redemption),
                     'redemptions' => $giftCode->redemptions->map(fn (GiftCodeRedemption $item): array => [
                         'playerId' => $item->player_id,
@@ -84,6 +90,9 @@ final class GiftCodeController extends Controller
                         'sourceType' => $provenance->source_type->value,
                         'sourceLabel' => $provenance->source_label,
                         'sourceUrl' => $provenance->source_url,
+                        'verificationState' => $provenance->verification_state->value,
+                        'evidenceClassification' => $provenance->evidence_classification->value,
+                        'claimedExpiresAt' => $provenance->claimed_expires_at?->toIso8601String(),
                         'observedAt' => $provenance->observed_at->toIso8601String(),
                     ])->values()->all(),
                 ];
@@ -94,13 +103,15 @@ final class GiftCodeController extends Controller
 
     public function store(Request $request, PlayerContext $playerContext, SubmitGiftCode $submit): RedirectResponse
     {
-        /** @var array{code: string, source_type: string, source_label?: string|null, source_url?: string|null, expires_at?: string|null} $validated */
+        /** @var array{code: string, source_type: string, source_label?: string|null, source_url?: string|null, expires_at?: string|null, expiry_precision?: string|null, expiry_timezone?: string|null} $validated */
         $validated = $request->validate([
             'code' => ['required', 'string', 'max:64'],
-            'source_type' => ['required', 'in:manual,official,community'],
+            'source_type' => ['required', 'in:manual,community'],
             'source_label' => ['nullable', 'string', 'max:160'],
             'source_url' => ['nullable', 'url:http,https', 'max:2048'],
             'expires_at' => ['nullable', 'date'],
+            'expiry_precision' => ['nullable', 'in:instant,minute,hour,day'],
+            'expiry_timezone' => ['nullable', 'timezone'],
         ]);
 
         $result = $submit->handle($this->player($playerContext), $validated);
@@ -141,26 +152,62 @@ final class GiftCodeController extends Controller
     }
 
     public function confirm(
+        Request $request,
         string $giftCode,
         PlayerContext $playerContext,
+        PlayerReferenceQuery $players,
         ConfirmGiftCodeRedemption $confirm,
     ): RedirectResponse {
-        $confirm->handle($giftCode, $this->player($playerContext));
+        /** @var array{player_id?: string|null} $validated */
+        $validated = $request->validate(['player_id' => ['nullable', 'string', 'ulid']]);
+        $target = $this->targetPlayer($request, $playerContext, $players, $validated['player_id'] ?? null);
+        $confirm->handle($giftCode, $target);
 
-        return back()->with('actionReceipt', $this->receipt('gift-code-confirmed'));
+        return back()->with('actionReceipt', $this->receipt('gift-code-confirmed', [
+            'player_id' => $target->playerId,
+        ]));
     }
 
+    public function result(
+        Request $request,
+        string $giftCode,
+        PlayerContext $playerContext,
+        PlayerReferenceQuery $players,
+        RecordObservedGiftCodeRedemptionResult $record,
+    ): RedirectResponse {
+        /** @var array{player_id?: string|null, result: string} $validated */
+        $validated = $request->validate([
+            'player_id' => ['nullable', 'string', 'ulid'],
+            'result' => ['required', 'string', 'in:redeemed,already_redeemed,invalid,expired,wrong_kingdom,rate_limited,temporarily_unavailable,permanent_failure'],
+        ]);
+        $target = $this->targetPlayer($request, $playerContext, $players, $validated['player_id'] ?? null);
+        $record->handle($giftCode, $target, (string) $validated['result']);
+
+        return back()->with('actionReceipt', $this->receipt('gift-code-result-recorded', [
+            'player_id' => $target->playerId,
+            'result' => $validated['result'],
+        ]));
+    }
+
+    /** Compatibility endpoint for the original invalid/expired issue controls. */
     public function report(
         Request $request,
         string $giftCode,
         PlayerContext $playerContext,
+        PlayerReferenceQuery $players,
         ReportGiftCodeIssue $report,
     ): RedirectResponse {
-        /** @var array{issue: string} $validated */
-        $validated = $request->validate(['issue' => ['required', 'string', 'in:invalid,expired']]);
-        $report->handle($giftCode, $this->player($playerContext), $validated['issue']);
+        /** @var array{issue: string, player_id?: string|null} $validated */
+        $validated = $request->validate([
+            'issue' => ['required', 'string', 'in:invalid,expired'],
+            'player_id' => ['nullable', 'string', 'ulid'],
+        ]);
+        $target = $this->targetPlayer($request, $playerContext, $players, $validated['player_id'] ?? null);
+        $report->handle($giftCode, $target, $validated['issue']);
 
-        return back()->with('actionReceipt', $this->receipt('gift-code-issue-reported'));
+        return back()->with('actionReceipt', $this->receipt('gift-code-issue-reported', [
+            'player_id' => $target->playerId,
+        ]));
     }
 
     /** @return array<string, mixed>|null */
@@ -208,6 +255,26 @@ final class GiftCodeController extends Controller
     {
         $player = $context->playerOrNull();
         abort_unless($player instanceof PlayerReference, 409, 'Select a Governor before opening Gift Codes.');
+
+        return $player;
+    }
+
+    private function targetPlayer(
+        Request $request,
+        PlayerContext $context,
+        PlayerReferenceQuery $players,
+        ?string $targetPlayerId,
+    ): PlayerReference {
+        if ($targetPlayerId === null || $targetPlayerId === '') {
+            return $this->player($context);
+        }
+
+        $player = $players->findOwnedByUser($this->accountId($this->account($request)), $targetPlayerId);
+        if (! $player instanceof PlayerReference) {
+            throw ValidationException::withMessages([
+                'player_id' => 'That Governor is no longer owned by this account.',
+            ]);
+        }
 
         return $player;
     }
