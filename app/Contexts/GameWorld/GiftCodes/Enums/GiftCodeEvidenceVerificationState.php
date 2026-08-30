@@ -7,7 +7,6 @@ namespace App\Contexts\GameWorld\GiftCodes\Enums;
 enum GiftCodeEvidenceVerificationState: string
 {
     case Unverified = 'unverified';
-    case LegacyUnverified = 'legacy_unverified';
     case Verified = 'verified';
     case Rejected = 'rejected';
     case Quarantined = 'quarantined';
