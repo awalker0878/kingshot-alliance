@@ -41,7 +41,9 @@ return new class extends Migration
         Schema::table('gift_code_provenances', function (Blueprint $table): void {
             $table->foreignUlid('registered_source_id')->nullable()->after('submitted_by_player_id')
                 ->constrained('gift_code_sources')->nullOnDelete();
-            $table->timestampTz('claimed_expires_at')->nullable()->after('source_url');
+            $table->string('assertion', 48)->default('available')->after('source_url')->index();
+            $table->json('assertion_payload')->nullable()->after('assertion');
+            $table->timestampTz('claimed_expires_at')->nullable()->after('assertion_payload');
             $table->string('expiry_precision', 32)->nullable()->after('claimed_expires_at');
             $table->string('expiry_timezone', 80)->nullable()->after('expiry_precision');
             $table->timestampTz('published_at')->nullable()->after('expiry_timezone');
@@ -86,6 +88,8 @@ return new class extends Migration
         Schema::table('gift_code_provenances', function (Blueprint $table): void {
             $table->dropConstrainedForeignId('registered_source_id');
             $table->dropColumn([
+                'assertion',
+                'assertion_payload',
                 'claimed_expires_at',
                 'expiry_precision',
                 'expiry_timezone',
