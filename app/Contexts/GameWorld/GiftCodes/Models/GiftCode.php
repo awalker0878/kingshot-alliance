@@ -19,6 +19,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $created_by_player_id
  * @property GiftCodeStatus $status
  * @property int $status_revision
+ * @property int $negative_redemptions_count
  * @property string|null $status_reason_code
  * @property list<string>|null $status_evidence_ids
  * @property CarbonImmutable|null $status_changed_at

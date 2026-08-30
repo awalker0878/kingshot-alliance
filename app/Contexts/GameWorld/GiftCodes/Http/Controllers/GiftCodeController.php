@@ -164,16 +164,19 @@ final class GiftCodeController extends Controller
             $playerNames[$ownedPlayer->playerId] = $ownedPlayer->currentName;
         }
         $focused = $focusedGiftCodeId === null ? null : $catalog->detailForPlayers($focusedGiftCodeId, $ownedPlayerIds);
+        $codeItems = [];
+        foreach ($page->items() as $code) {
+            if ($code instanceof GiftCode) {
+                $codeItems[] = $this->catalogItem($code, $activePlayer->playerId, $playerNames);
+            }
+        }
 
         return Inertia::render('Kingdom/GiftCodes/Index', [
             'user' => ['name' => $account->accountName(), 'email' => $account->accountEmail()],
             'player' => $this->governor($activePlayer),
             'governors' => array_map(fn (PlayerReference $owned): array => $this->governor($owned), $ownedPlayers),
             'officialRedemptionUrl' => (string) config('game_world.gift_code_redemption_url'),
-            'codes' => array_values(array_map(
-                fn (GiftCode $code): array => $this->catalogItem($code, $activePlayer->playerId, $playerNames),
-                $page->items(),
-            )),
+            'codes' => $codeItems,
             'pagination' => [
                 'nextCursor' => $page->nextCursor()?->encode(),
                 'previousCursor' => $page->previousCursor()?->encode(),
@@ -202,7 +205,10 @@ final class GiftCodeController extends Controller
         ];
     }
 
-    /** @param array<string,string> $playerNames */
+    /**
+     * @param array<string,string> $playerNames
+     * @return array<string,mixed>
+     */
     private function catalogItem(GiftCode $giftCode, string $activePlayerId, array $playerNames): array
     {
         $facts = $giftCode->factProjections->keyBy('fact_type');
@@ -237,7 +243,10 @@ final class GiftCodeController extends Controller
         ];
     }
 
-    /** @param array<string,string> $playerNames */
+    /**
+     * @param array<string,string> $playerNames
+     * @return array<string,mixed>
+     */
     private function detailItem(GiftCode $giftCode, string $activePlayerId, array $playerNames): array
     {
         return [

@@ -41,7 +41,7 @@ final class GiftCodeCatalogQuery
     /**
      * @param  non-empty-list<string>  $playerIds
      * @param  array{view?: string, q?: string|null, status?: string|null, source?: string|null, expiry?: string|null, governor_result?: string|null}  $filters
-     * @return CursorPaginator<GiftCode>
+     * @return CursorPaginator<int, GiftCode>
      */
     public function pageForPlayers(
         array $playerIds,
@@ -116,7 +116,10 @@ final class GiftCodeCatalogQuery
         return $redemption instanceof GiftCodeRedemption ? $redemption : null;
     }
 
-    /** @param Builder<GiftCode> $query */
+    /**
+     * @param Builder<GiftCode> $query
+     * @param non-empty-list<string> $playerIds
+     */
     private function applyView(Builder $query, string $view, array $playerIds): void
     {
         match ($view) {

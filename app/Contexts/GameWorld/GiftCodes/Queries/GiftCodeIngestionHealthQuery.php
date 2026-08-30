@@ -12,12 +12,31 @@ final class GiftCodeIngestionHealthQuery
     /** @return list<array<string,mixed>> */
     public function get(int $limit = 50): array
     {
-        return array_values(GiftCodeSourceRegistry::query()
+        /** @var \Illuminate\Database\Eloquent\Collection<int,GiftCodeSourceRegistry> $sources */
+        $sources = GiftCodeSourceRegistry::query()
             ->with(['ingestionRuns' => static fn ($query) => $query->orderByDesc('started_at')->limit(5)])
             ->orderBy('source_key')
             ->limit(max(1, min(100, $limit)))
-            ->get()
-            ->map(static fn (GiftCodeSourceRegistry $source): array => [
+            ->get();
+        $result = [];
+        foreach ($sources as $source) {
+            /** @var \Illuminate\Database\Eloquent\Collection<int,GiftCodeIngestionRun> $runs */
+            $runs = $source->ingestionRuns;
+            $runRows = [];
+            foreach ($runs as $run) {
+                $runRows[] = [
+                    'id' => (string) $run->id,
+                    'status' => $run->status,
+                    'examined' => $run->examined_count,
+                    'accepted' => $run->accepted_count,
+                    'duplicates' => $run->duplicate_count,
+                    'quarantined' => $run->quarantined_count,
+                    'failureCode' => $run->failure_code,
+                    'startedAt' => $run->started_at->toIso8601String(),
+                    'completedAt' => $run->completed_at?->toIso8601String(),
+                ];
+            }
+            $result[] = [
                 'id' => (string) $source->id,
                 'key' => $source->source_key,
                 'name' => $source->name,
@@ -33,19 +52,10 @@ final class GiftCodeIngestionHealthQuery
                 'error' => $source->last_ingestion_error,
                 'stale' => $source->ingestion_enabled
                     && ($source->last_ingestion_success_at === null || $source->last_ingestion_success_at->lt(now()->subDay())),
-                'runs' => $source->ingestionRuns->map(static fn (GiftCodeIngestionRun $run): array => [
-                    'id' => (string) $run->id,
-                    'status' => $run->status,
-                    'examined' => $run->examined_count,
-                    'accepted' => $run->accepted_count,
-                    'duplicates' => $run->duplicate_count,
-                    'quarantined' => $run->quarantined_count,
-                    'failureCode' => $run->failure_code,
-                    'startedAt' => $run->started_at->toIso8601String(),
-                    'completedAt' => $run->completed_at?->toIso8601String(),
-                ])->values()->all(),
-            ])
-            ->values()
-            ->all());
+                'runs' => $runRows,
+            ];
+        }
+
+        return $result;
     }
 }

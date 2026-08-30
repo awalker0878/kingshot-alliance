@@ -58,17 +58,23 @@ final class GiftCodeModerationController extends Controller
                 ]),
             ]);
 
-        match ($queue) {
-            'pending' => $query->where('status', GiftCodeStatus::Pending->value),
-            'disputed' => $query->where('status', GiftCodeStatus::Disputed->value),
-            'conflicting-expiry' => $query->where('status_reason_code', 'credible_expiry_conflict'),
-            'quarantined' => $query->where('status', GiftCodeStatus::Quarantined->value),
-            'ingestion-quarantined' => $query->whereHas('provenances', static fn ($builder) => $builder
-                ->where('verification_state', GiftCodeEvidenceVerificationState::Quarantined->value)),
-            'suspicious-source' => $query->whereHas('provenances', static fn ($builder) => $builder
+        if ($queue === 'pending') {
+            $query->where('status', GiftCodeStatus::Pending->value);
+        } elseif ($queue === 'disputed') {
+            $query->where('status', GiftCodeStatus::Disputed->value);
+        } elseif ($queue === 'conflicting-expiry') {
+            $query->where('status_reason_code', 'credible_expiry_conflict');
+        } elseif ($queue === 'quarantined') {
+            $query->where('status', GiftCodeStatus::Quarantined->value);
+        } elseif ($queue === 'ingestion-quarantined') {
+            $query->whereHas('provenances', static fn ($builder) => $builder
+                ->where('verification_state', GiftCodeEvidenceVerificationState::Quarantined->value));
+        } elseif ($queue === 'suspicious-source') {
+            $query->whereHas('provenances', static fn ($builder) => $builder
                 ->whereNull('registered_source_id')
-                ->whereNotNull('source_url')),
-            'heavily-reported' => $query->whereHas(
+                ->whereNotNull('source_url'));
+        } elseif ($queue === 'heavily-reported') {
+            $query->whereHas(
                 'redemptions',
                 static fn ($builder) => $builder->whereIn('status', [
                     GiftCodeRedemptionStatus::InvalidCode->value,
@@ -76,10 +82,10 @@ final class GiftCodeModerationController extends Controller
                 ]),
                 '>=',
                 3,
-            ),
-            'source-revocation' => $query->whereHas('provenances.registeredSource', static fn ($builder) => $builder->whereNotNull('revoked_at')),
-            default => null,
-        };
+            );
+        } elseif ($queue === 'source-revocation') {
+            $query->whereHas('provenances.registeredSource', static fn ($builder) => $builder->whereNotNull('revoked_at'));
+        }
 
         $page = $query
             ->orderByDesc('status_changed_at')
@@ -94,11 +100,38 @@ final class GiftCodeModerationController extends Controller
                 ->find($selectedId);
         }
 
-        return Inertia::render('Platform/GiftCodes/Review', [
-            'user' => ['name' => $actor->name, 'email' => $actor->email],
-            'queue' => $queue,
-            'queues' => $allowedQueues,
-            'items' => collect($page->items())->map(static fn (GiftCode $giftCode): array => [
+        /** @var array<int,array<string,mixed>> $curators */
+        $curators = [];
+        if ($this->platformAuthorization->allows($actor)) {
+            /** @var \Illuminate\Database\Eloquent\Collection<int,GiftCodeCuratorGrant> $grants */
+            $grants = GiftCodeCuratorGrant::query()
+                ->join('users', 'users.id', '=', 'gift_code_curator_grants.user_id')
+                ->whereNull('gift_code_curator_grants.revoked_at')
+                ->orderBy('users.email')
+                ->get([
+                    'gift_code_curator_grants.id',
+                    'gift_code_curator_grants.user_id',
+                    'gift_code_curator_grants.granted_at',
+                    'users.name as user_name',
+                    'users.email as user_email',
+                ]);
+            foreach ($grants as $grant) {
+                $curators[] = [
+                    'id' => (string) $grant->id,
+                    'userId' => (int) $grant->user_id,
+                    'name' => (string) $grant->getAttribute('user_name'),
+                    'email' => (string) $grant->getAttribute('user_email'),
+                    'grantedAt' => $grant->granted_at->toIso8601String(),
+                ];
+            }
+        }
+
+        $items = [];
+        foreach ($page->items() as $giftCode) {
+            if (! $giftCode instanceof GiftCode) {
+                continue;
+            }
+            $items[] = [
                 'id' => (string) $giftCode->id,
                 'code' => $giftCode->code,
                 'status' => $giftCode->status->value,
@@ -107,8 +140,15 @@ final class GiftCodeModerationController extends Controller
                 'expiresAt' => $giftCode->expires_at?->toIso8601String(),
                 'provenanceCount' => (int) $giftCode->provenances_count,
                 'redemptionCount' => (int) $giftCode->redemptions_count,
-                'negativeRedemptionCount' => (int) $giftCode->negative_redemptions_count,
-            ])->values()->all(),
+                'negativeRedemptionCount' => (int) $giftCode->getAttribute('negative_redemptions_count'),
+            ];
+        }
+
+        return Inertia::render('Platform/GiftCodes/Review', [
+            'user' => ['name' => $actor->name, 'email' => $actor->email],
+            'queue' => $queue,
+            'queues' => $allowedQueues,
+            'items' => $items,
             'nextCursor' => $page->nextCursor()?->encode(),
             'previousCursor' => $page->previousCursor()?->encode(),
             'selected' => $selected instanceof GiftCode ? $this->detail($selected) : null,
@@ -117,26 +157,7 @@ final class GiftCodeModerationController extends Controller
             'ingestionHealth' => $this->ingestionHealth->get(),
             'canManagePlatformPolicy' => $this->platformAuthorization->allows($actor),
             'adapterKeys' => $this->sourceAdapters->keys(),
-            'curators' => $this->platformAuthorization->allows($actor)
-                ? GiftCodeCuratorGrant::query()
-                    ->join('users', 'users.id', '=', 'gift_code_curator_grants.user_id')
-                    ->whereNull('gift_code_curator_grants.revoked_at')
-                    ->orderBy('users.email')
-                    ->get([
-                        'gift_code_curator_grants.id',
-                        'gift_code_curator_grants.user_id',
-                        'gift_code_curator_grants.granted_at',
-                        'users.name as user_name',
-                        'users.email as user_email',
-                    ])
-                    ->map(static fn (GiftCodeCuratorGrant $grant): array => [
-                        'id' => (string) $grant->id,
-                        'userId' => (int) $grant->user_id,
-                        'name' => (string) $grant->getAttribute('user_name'),
-                        'email' => (string) $grant->getAttribute('user_email'),
-                        'grantedAt' => $grant->granted_at->toIso8601String(),
-                    ])->values()->all()
-                : [],
+            'curators' => $curators,
         ]);
     }
 
@@ -345,7 +366,10 @@ final class GiftCodeModerationController extends Controller
         ]);
     }
 
-    /** @param array<string, mixed> $validated @return array<string, mixed> */
+    /**
+     * @param array<string, mixed> $validated
+     * @return array<string, mixed>
+     */
     private function decisionMetadata(array $validated): array
     {
         $metadata = [];

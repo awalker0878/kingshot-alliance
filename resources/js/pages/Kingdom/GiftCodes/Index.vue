@@ -324,8 +324,18 @@ function factSummary(value: Record<string, unknown> | null, unknownKey: string):
     </nav>
 
     <form class="ks-surface mt-4 grid gap-3 p-4 md:grid-cols-5" @submit.prevent="applyFilters">
-      <input v-model="search.q" class="ks-input" :placeholder="t('giftCodes.searchCode')" />
-      <input v-model="search.source" class="ks-input" :placeholder="t('giftCodes.searchSource')" />
+      <input
+        v-model="search.q"
+        class="ks-input"
+        :placeholder="t('giftCodes.searchCode')"
+        :aria-label="t('giftCodes.searchCode')"
+      />
+      <input
+        v-model="search.source"
+        class="ks-input"
+        :placeholder="t('giftCodes.searchSource')"
+        :aria-label="t('giftCodes.searchSource')"
+      />
       <select v-model="search.expiry" class="ks-input" :aria-label="t('giftCodes.anyExpiry')">
         <option value="">{{ t('giftCodes.anyExpiry') }}</option>
         <option value="24h">{{ t('giftCodes.expiry24h') }}</option>

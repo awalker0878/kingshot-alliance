@@ -15,7 +15,7 @@ final class GiftCodeApiQuery
     /** @return array{items:list<array<string,mixed>>,nextCursor:?string,previousCursor:?string,perPage:int,hasMore:bool} */
     public function page(int $limit = 25, ?string $cursor = null): array
     {
-        /** @var CursorPaginator<GiftCode> $page */
+        /** @var CursorPaginator<int, GiftCode> $page */
         $page = GiftCode::query()
             ->where('status', GiftCodeStatus::Valid->value)
             ->where(static fn (Builder $query) => $query

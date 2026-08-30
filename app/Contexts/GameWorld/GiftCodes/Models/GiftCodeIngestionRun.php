@@ -4,10 +4,26 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\GiftCodes\Models;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property string $id
+ * @property string $gift_code_source_id
+ * @property string $status
+ * @property string|null $source_cursor
+ * @property string|null $result_cursor
+ * @property int $examined_count
+ * @property int $accepted_count
+ * @property int $duplicate_count
+ * @property int $quarantined_count
+ * @property string|null $failure_code
+ * @property string|null $failure_message
+ * @property CarbonImmutable $started_at
+ * @property CarbonImmutable|null $completed_at
+ */
 final class GiftCodeIngestionRun extends Model
 {
     use HasUlids;

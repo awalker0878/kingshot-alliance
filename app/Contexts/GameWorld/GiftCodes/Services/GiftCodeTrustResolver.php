@@ -90,7 +90,7 @@ final class GiftCodeTrustResolver
             return new GiftCodeTrustDecision(
                 GiftCodeStatus::Disputed,
                 'credible_expiry_conflict',
-                array_values(array_unique(array_merge(...array_column($qualifiedExpiries, 'evidence_ids')))),
+                $this->uniqueStrings(array_merge(...array_column($qualifiedExpiries, 'evidence_ids'))),
             );
         }
 
@@ -121,17 +121,17 @@ final class GiftCodeTrustResolver
 
         $independentThreshold = max(2, (int) config('game_world.gift_codes.independent_evidence_threshold', 2));
         if ($positive === [] && $successfulRedemptions->pluck('player_id')->unique()->count() >= $independentThreshold) {
-            $positive = $successfulRedemptions->pluck('id')->map(static fn ($id): string => (string) $id)->values()->all();
+            $positive = $this->strings($successfulRedemptions->pluck('id'));
         }
         if ($negative === [] && $negativeRedemptions->pluck('player_id')->unique()->count() >= $independentThreshold) {
-            $negative = $negativeRedemptions->pluck('id')->map(static fn ($id): string => (string) $id)->values()->all();
+            $negative = $this->strings($negativeRedemptions->pluck('id'));
         }
 
         if ($positive !== [] && $negative !== []) {
             return new GiftCodeTrustDecision(
                 GiftCodeStatus::Disputed,
                 'credible_evidence_conflict',
-                array_values(array_unique([...$positive, ...$negative])),
+                $this->uniqueStrings([...$positive, ...$negative]),
                 $acceptedExpiry['at'] ?? null,
                 $acceptedExpiry['precision'] ?? null,
             );
@@ -191,7 +191,7 @@ final class GiftCodeTrustResolver
             static fn (GiftCodeProvenance $item): bool => $item->evidence_classification === GiftCodeEvidenceClassification::OfficialPublication,
         );
         if ($official->isNotEmpty()) {
-            return $official->pluck('id')->map(static fn ($id): string => (string) $id)->values()->all();
+            return $this->strings($official->pluck('id'));
         }
 
         $threshold = max(2, (int) config('game_world.gift_codes.independent_evidence_threshold', 2));
@@ -206,7 +206,7 @@ final class GiftCodeTrustResolver
             return [];
         }
 
-        return $independent->pluck('id')->map(static fn ($id): string => (string) $id)->values()->all();
+        return $this->strings($independent->pluck('id'));
     }
 
     /**
@@ -241,7 +241,7 @@ final class GiftCodeTrustResolver
                     $qualified[] = [
                         'at' => $first->claimed_expires_at,
                         'precision' => $first->expiry_precision,
-                        'evidence_ids' => $official->pluck('id')->map(static fn ($id): string => (string) $id)->values()->all(),
+                        'evidence_ids' => $this->strings($official->pluck('id')),
                     ];
                 }
 
@@ -263,7 +263,7 @@ final class GiftCodeTrustResolver
                 $qualified[] = [
                     'at' => $first->claimed_expires_at,
                     'precision' => $first->expiry_precision,
-                    'evidence_ids' => $independent->pluck('id')->map(static fn ($id): string => (string) $id)->values()->all(),
+                    'evidence_ids' => $this->strings($independent->pluck('id')),
                 ];
             }
         }
@@ -295,9 +295,40 @@ final class GiftCodeTrustResolver
     /** @return list<string> */
     private function decisionEvidence(GiftCodeModerationDecision $decision): array
     {
-        return array_values(array_unique([
+        return $this->uniqueStrings([
             (string) $decision->id,
             ...($decision->evidence_ids ?? []),
-        ]));
+        ]);
+    }
+
+    /**
+     * @param iterable<mixed> $values
+     * @return list<string>
+     */
+    private function strings(iterable $values): array
+    {
+        $result = [];
+        foreach ($values as $value) {
+            $result[] = (string) $value;
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param iterable<mixed> $values
+     * @return list<string>
+     */
+    private function uniqueStrings(iterable $values): array
+    {
+        $result = [];
+        foreach ($values as $value) {
+            $string = (string) $value;
+            if (! in_array($string, $result, true)) {
+                $result[] = $string;
+            }
+        }
+
+        return $result;
     }
 }

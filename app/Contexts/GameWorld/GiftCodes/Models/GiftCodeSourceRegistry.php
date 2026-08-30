@@ -21,6 +21,13 @@ use Illuminate\Support\Carbon;
  * @property string|null $adapter_key
  * @property array<string, mixed>|null $provenance_policy
  * @property bool $ingestion_enabled
+ * @property int $policy_revision
+ * @property string|null $ingestion_cursor
+ * @property CarbonImmutable|null $last_ingestion_attempt_at
+ * @property CarbonImmutable|null $last_ingestion_success_at
+ * @property CarbonImmutable|null $last_ingestion_failure_at
+ * @property string|null $last_ingestion_failure_code
+ * @property string|null $last_ingestion_error
  * @property CarbonImmutable|null $revoked_at
  * @property int|null $created_by_user_id
  * @property Carbon $created_at
