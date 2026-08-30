@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\GiftCodes\Actions;
 
+use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeRedemptionStatus;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCode;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeRedemption;
 use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeRedemptionOutcome;
@@ -13,6 +14,7 @@ use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 final readonly class RecordGiftCodeRedemptionOutcome
 {
@@ -36,6 +38,12 @@ final readonly class RecordGiftCodeRedemptionOutcome
                 ->lockForUpdate()
                 ->first();
 
+            if ($this->requiresPriorHandoff($provider, $outcome) && ! $this->hasOfficialHandoff($redemption)) {
+                throw ValidationException::withMessages([
+                    'result' => 'Open the official Gift Code Center for this Governor before recording its observed result.',
+                ]);
+            }
+
             if (! $redemption instanceof GiftCodeRedemption) {
                 $redemption = new GiftCodeRedemption([
                     'gift_code_id' => (string) $giftCode->id,
@@ -49,22 +57,23 @@ final readonly class RecordGiftCodeRedemptionOutcome
             }
 
             $attempts = $redemption->attempts + 1;
-            $retryAt = $outcome->retryAt;
-            if ($retryAt === null && $outcome->status->retryable()) {
+            $boundedOutcome = $this->boundedOutcome($outcome, $attempts);
+            $retryAt = $boundedOutcome->retryAt;
+            if ($retryAt === null && $boundedOutcome->status->retryable()) {
                 $retryAt = CarbonImmutable::now()->addMinutes((int) min(60, 2 ** min($attempts, 6)));
             }
 
             $redemption->fill([
                 'kingdom_id' => $player->kingdomId,
-                'status' => $outcome->status,
+                'status' => $boundedOutcome->status,
                 'provider' => $provider,
                 'attempts' => $attempts,
-                'last_result_code' => $outcome->resultCode,
-                'last_message' => $outcome->message,
-                'redemption_url' => $outcome->redemptionUrl,
+                'last_result_code' => $boundedOutcome->resultCode,
+                'last_message' => $boundedOutcome->message,
+                'redemption_url' => $boundedOutcome->redemptionUrl ?? $redemption->redemption_url,
                 'last_attempt_at' => now(),
                 'next_attempt_at' => $retryAt,
-                'redeemed_at' => $outcome->status->successful() ? now() : $redemption->redeemed_at,
+                'redeemed_at' => $boundedOutcome->status->successful() ? now() : $redemption->redeemed_at,
             ]);
             $redemption->save();
 
@@ -73,10 +82,11 @@ final readonly class RecordGiftCodeRedemptionOutcome
                 'gift_code_redemption_id' => (string) $redemption->id,
                 'player_id' => $player->playerId,
                 'kingdom_id' => $player->kingdomId,
-                'status' => $outcome->status->value,
+                'status' => $boundedOutcome->status->value,
                 'provider' => $provider,
                 'attempts' => $attempts,
-                'result_code' => $outcome->resultCode,
+                'result_code' => $boundedOutcome->resultCode,
+                'prior_handoff_required' => $this->requiresPriorHandoff($provider, $boundedOutcome),
             ];
             $this->audit->record('game_world.gift_code_redemption_recorded', $player, $redemption, null, $metadata);
             $this->outbox->record(
@@ -91,6 +101,34 @@ final readonly class RecordGiftCodeRedemptionOutcome
 
             return $this->reference($redemption);
         });
+    }
+
+    private function requiresPriorHandoff(string $provider, GiftCodeRedemptionOutcome $outcome): bool
+    {
+        return in_array($provider, ['governor_report', 'governor_observation'], true)
+            && $outcome->status !== GiftCodeRedemptionStatus::AwaitingConfirmation;
+    }
+
+    private function hasOfficialHandoff(?GiftCodeRedemption $redemption): bool
+    {
+        return $redemption instanceof GiftCodeRedemption
+            && $redemption->redemption_url !== null
+            && $redemption->attempts > 0;
+    }
+
+    private function boundedOutcome(GiftCodeRedemptionOutcome $outcome, int $attempts): GiftCodeRedemptionOutcome
+    {
+        $maxAttempts = max(1, (int) config('game_world.gift_codes.max_redemption_attempts', 6));
+        if (! $outcome->status->retryable() || $attempts < $maxAttempts) {
+            return $outcome;
+        }
+
+        return new GiftCodeRedemptionOutcome(
+            GiftCodeRedemptionStatus::PermanentFailure,
+            'retry_limit_reached',
+            'The retry limit was reached. Review this Governor before trying again.',
+            $outcome->redemptionUrl,
+        );
     }
 
     private function reference(GiftCodeRedemption $redemption): GiftCodeRedemptionReference
