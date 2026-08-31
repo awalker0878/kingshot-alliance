@@ -327,7 +327,8 @@ final class GiftCodeBehaviorV3Test extends TestCase
             'discovered_at' => now(),
             'expires_revision' => 0,
         ]);
-        $provider = new class((string) $giftCode->id) implements GiftCodeRedemptionProvider {
+        $provider = new class ((string) $giftCode->id) implements GiftCodeRedemptionProvider
+        {
             public function __construct(private readonly string $giftCodeId) {}
 
             public function name(): string
@@ -617,7 +618,8 @@ final class GiftCodeBehaviorV3Test extends TestCase
         config()->set('game_world.gift_codes.ingestion_batch_size', 10);
         $source = $this->source('adapter-source', 'adapter.example.test', 'stable-adapter');
         $observation = $this->observation('ADAPTER-CODE', sourceUrl: 'https://adapter.example.test/gift');
-        $stable = new class($observation) implements GiftCodeSourceAdapter {
+        $stable = new class ($observation) implements GiftCodeSourceAdapter
+        {
             public function __construct(private readonly GiftCodeIngestionObservation $observation) {}
 
             public function key(): string
@@ -630,7 +632,8 @@ final class GiftCodeBehaviorV3Test extends TestCase
                 return new GiftCodeIngestionPage([$this->observation], 'cursor-1');
             }
         };
-        $broken = new class implements GiftCodeSourceAdapter {
+        $broken = new class implements GiftCodeSourceAdapter
+        {
             public function key(): string
             {
                 return 'broken-adapter';
@@ -645,7 +648,8 @@ final class GiftCodeBehaviorV3Test extends TestCase
             'QUARANTINED-OBSERVATION',
             sourceUrl: 'https://misleading.example.test/gift',
         );
-        $quarantining = new class($quarantinedObservation) implements GiftCodeSourceAdapter {
+        $quarantining = new class ($quarantinedObservation) implements GiftCodeSourceAdapter
+        {
             public function __construct(private readonly GiftCodeIngestionObservation $observation) {}
 
             public function key(): string
