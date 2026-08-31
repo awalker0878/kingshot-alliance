@@ -41,6 +41,7 @@ final class GiftCodeModerationHttpV3Test extends TestCase
             'email_verified_at' => now(),
             'two_factor_confirmed_at' => now(),
         ])->save();
+        $this->flushSession();
         $this->actingAs($unprivileged)
             ->withSession(['auth.password_confirmed_at' => time()])
             ->get(route('platform.gift-codes.index'))
