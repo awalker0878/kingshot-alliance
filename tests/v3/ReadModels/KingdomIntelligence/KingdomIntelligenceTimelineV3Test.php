@@ -82,7 +82,7 @@ final class KingdomIntelligenceTimelineV3Test extends TestCase
         self::assertSame(
             ['member_count', 'power'],
             collect($timeline)
-                ->where('kind', 'alliance_metric_changed')
+                ->where('derived', true)
                 ->pluck('summary.metric')
                 ->values()
                 ->all(),
