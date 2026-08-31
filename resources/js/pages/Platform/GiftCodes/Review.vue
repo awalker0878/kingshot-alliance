@@ -61,8 +61,22 @@ type IngestionSource = {
   ingestionEnabled: boolean;
   lastAttemptAt: string | null;
   lastSuccessAt: string | null;
+  lastFailureAt: string | null;
   failureCode: string | null;
+  error: string | null;
   stale: boolean;
+  runs: Array<{
+    id: string;
+    status: string;
+    examined: number;
+    accepted: number;
+    duplicates: number;
+    quarantined: number;
+    failureCode: string | null;
+    failureMessage: string | null;
+    startedAt: string;
+    completedAt: string | null;
+  }>;
 };
 type Curator = {
   id: string;
@@ -168,6 +182,36 @@ function confirmBulk(): void {
 
 function requiresReason(action: string): boolean {
   return ['reject', 'quarantine', 'correct_expiry', 'resolve_dispute'].includes(action);
+}
+
+function ingestionRunStatus(status: string): string {
+  const key = {
+    running: 'platformGiftCodes.runRunning',
+    completed: 'platformGiftCodes.runCompleted',
+    completed_with_quarantine: 'platformGiftCodes.runCompletedWithQuarantine',
+    failed: 'platformGiftCodes.runFailed',
+  }[status];
+
+  return key ? t(key) : status;
+}
+
+function ingestionSourceHasWarning(source: IngestionSource): boolean {
+  const latestRun = source.runs[0];
+
+  return Boolean(
+    source.failureCode ||
+    source.stale ||
+    latestRun?.status === 'failed' ||
+    latestRun?.status === 'completed_with_quarantine',
+  );
+}
+
+function ingestionSourceStatus(source: IngestionSource): string {
+  if (source.failureCode) return t('platformGiftCodes.sourceFailed');
+  if (source.stale) return t('platformGiftCodes.sourceStale');
+  if (ingestionSourceHasWarning(source)) return t('platformGiftCodes.sourceQuarantined');
+
+  return t('platformGiftCodes.sourceHealthy');
 }
 
 function saveSource(): void {
@@ -438,25 +482,77 @@ function revokeCurator(grantId: string): void {
             <strong>{{ source.name }}</strong>
             <span
               class="ks-status"
-              :data-tone="source.failureCode || source.stale ? 'warning' : 'success'"
+              :data-tone="ingestionSourceHasWarning(source) ? 'warning' : 'success'"
             >
-              {{
-                source.failureCode
-                  ? t('platformGiftCodes.sourceFailed')
-                  : source.stale
-                    ? t('platformGiftCodes.sourceStale')
-                    : t('platformGiftCodes.sourceHealthy')
-              }}
+              {{ ingestionSourceStatus(source) }}
             </span>
           </div>
           <p class="mt-2 text-xs text-[var(--ks-muted)]">
-            {{ source.canonicalDomain ?? t('common.none') }} ·
-            {{
-              source.lastSuccessAt
-                ? formatDate(source.lastSuccessAt)
-                : t('platformGiftCodes.neverSucceeded')
-            }}
+            {{ source.canonicalDomain ?? t('common.none') }}
           </p>
+          <dl class="mt-3 grid gap-1 text-xs text-[var(--ks-muted)]">
+            <div class="flex justify-between gap-3">
+              <dt>{{ t('platformGiftCodes.lastAttempt') }}</dt>
+              <dd>
+                {{
+                  source.lastAttemptAt
+                    ? formatDate(source.lastAttemptAt)
+                    : t('platformGiftCodes.neverAttempted')
+                }}
+              </dd>
+            </div>
+            <div class="flex justify-between gap-3">
+              <dt>{{ t('platformGiftCodes.lastSuccess') }}</dt>
+              <dd>
+                {{
+                  source.lastSuccessAt
+                    ? formatDate(source.lastSuccessAt)
+                    : t('platformGiftCodes.neverSucceeded')
+                }}
+              </dd>
+            </div>
+            <div class="flex justify-between gap-3">
+              <dt>{{ t('platformGiftCodes.lastFailure') }}</dt>
+              <dd>
+                {{
+                  source.lastFailureAt
+                    ? formatDate(source.lastFailureAt)
+                    : t('platformGiftCodes.noFailure')
+                }}
+              </dd>
+            </div>
+          </dl>
+          <p v-if="source.error" class="mt-2 text-xs text-[var(--ks-danger)]">
+            {{ source.error }}
+          </p>
+          <div v-if="source.runs.length" class="mt-4 border-t border-[var(--ks-border)] pt-3">
+            <h3 class="ks-kicker">{{ t('platformGiftCodes.recentIngestionRuns') }}</h3>
+            <ul class="mt-2 space-y-2">
+              <li
+                v-for="run in source.runs"
+                :key="run.id"
+                class="rounded-[var(--ks-radius-sm)] bg-[var(--ks-surface-muted)] p-2 text-xs"
+              >
+                <div class="flex flex-wrap justify-between gap-2">
+                  <strong>{{ ingestionRunStatus(run.status) }}</strong>
+                  <span class="text-[var(--ks-muted)]">{{ formatDate(run.startedAt) }}</span>
+                </div>
+                <p class="mt-1 text-[var(--ks-muted)]">
+                  {{
+                    t('platformGiftCodes.runSummary', {
+                      accepted: formatNumber(run.accepted),
+                      duplicates: formatNumber(run.duplicates),
+                      quarantined: formatNumber(run.quarantined),
+                    })
+                  }}
+                </p>
+                <p v-if="run.failureMessage" class="mt-1 text-[var(--ks-danger)]">
+                  <code v-if="run.failureCode">{{ run.failureCode }}</code>
+                  {{ run.failureMessage }}
+                </p>
+              </li>
+            </ul>
+          </div>
           <AppButton
             v-if="canManagePlatformPolicy && source.active"
             type="button"

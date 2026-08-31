@@ -7,6 +7,7 @@ namespace App\Contexts\GameWorld\GiftCodes\Actions;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeIngestionRun;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeSourceRegistry;
 use App\Contexts\GameWorld\GiftCodes\Services\GiftCodeSourceAdapterRegistry;
+use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeIngestionObservation;
 use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeIngestionSweep;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Log;
@@ -71,6 +72,8 @@ final readonly class RunApprovedGiftCodeSourceIngestion
                 $runAccepted = 0;
                 $runDuplicates = 0;
                 $runQuarantined = 0;
+                $runFailureCode = null;
+                $runFailureMessage = null;
                 foreach ($page->observations as $observation) {
                     $runExamined++;
                     try {
@@ -81,6 +84,12 @@ final readonly class RunApprovedGiftCodeSourceIngestion
                     } catch (Throwable $exception) {
                         report($exception);
                         $runQuarantined++;
+                        $runFailureCode ??= $this->observationFailureCode($exception);
+                        $runFailureMessage ??= $this->observationFailureMessage(
+                            $observation,
+                            $runExamined,
+                            $exception,
+                        );
                     }
                 }
 
@@ -92,6 +101,8 @@ final readonly class RunApprovedGiftCodeSourceIngestion
                     'accepted_count' => $runAccepted,
                     'duplicate_count' => $runDuplicates,
                     'quarantined_count' => $runQuarantined,
+                    'failure_code' => $runFailureCode,
+                    'failure_message' => $runFailureMessage,
                     'completed_at' => now(),
                 ])->save();
                 $source->forceFill([
@@ -147,6 +158,30 @@ final readonly class RunApprovedGiftCodeSourceIngestion
             $exception instanceof \UnexpectedValueException => 'unsupported_source_format',
             default => 'source_retrieval_failed',
         };
+    }
+
+    private function observationFailureCode(Throwable $exception): string
+    {
+        return match (true) {
+            $exception instanceof \UnexpectedValueException => 'unsupported_observation_format',
+            $exception instanceof \Illuminate\Validation\ValidationException => 'observation_policy_rejected',
+            default => 'observation_ingestion_failed',
+        };
+    }
+
+    private function observationFailureMessage(
+        GiftCodeIngestionObservation $observation,
+        int $position,
+        Throwable $exception,
+    ): string {
+        return mb_substr(sprintf(
+            'Observation %d (%s, %s, evidence %s): %s',
+            $position,
+            trim($observation->code),
+            $observation->assertion,
+            $observation->rawEvidenceRef,
+            $exception->getMessage(),
+        ), 0, 2000);
     }
 
     private function result(

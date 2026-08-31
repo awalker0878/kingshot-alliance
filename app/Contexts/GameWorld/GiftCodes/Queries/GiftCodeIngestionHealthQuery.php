@@ -33,6 +33,7 @@ final class GiftCodeIngestionHealthQuery
                     'duplicates' => $run->duplicate_count,
                     'quarantined' => $run->quarantined_count,
                     'failureCode' => $run->failure_code,
+                    'failureMessage' => $run->failure_message,
                     'startedAt' => $run->started_at->toIso8601String(),
                     'completedAt' => $run->completed_at?->toIso8601String(),
                 ];

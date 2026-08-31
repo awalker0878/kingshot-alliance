@@ -522,8 +522,26 @@ final class GiftCodeBehaviorV3Test extends TestCase
                 throw new UnexpectedValueException('The parser rejected an unsupported source format.');
             }
         };
+        $quarantinedObservation = $this->observation(
+            'QUARANTINED-OBSERVATION',
+            sourceUrl: 'https://misleading.example.test/gift',
+        );
+        $quarantining = new class($quarantinedObservation) implements GiftCodeSourceAdapter
+        {
+            public function __construct(private readonly GiftCodeIngestionObservation $observation) {}
+
+            public function key(): string
+            {
+                return 'quarantining-adapter';
+            }
+
+            public function acquire(GiftCodeSourceRegistry $source, ?string $cursor, int $limit): GiftCodeIngestionPage
+            {
+                return new GiftCodeIngestionPage([$this->observation], null);
+            }
+        };
         $runner = new RunApprovedGiftCodeSourceIngestion(
-            new GiftCodeSourceAdapterRegistry([$stable, $broken]),
+            new GiftCodeSourceAdapterRegistry([$stable, $broken, $quarantining]),
             app(IngestApprovedGiftCodeObservation::class),
         );
 
@@ -532,6 +550,23 @@ final class GiftCodeBehaviorV3Test extends TestCase
         self::assertSame(1, $first->accepted);
         self::assertSame(1, $replay->duplicates);
         self::assertSame(1, GiftCodeProvenance::query()->count());
+
+        $quarantineSource = $this->source(
+            'quarantined-source',
+            'quarantined.example.test',
+            'quarantining-adapter',
+        );
+        $quarantine = $runner->handle(sourceKey: $quarantineSource->source_key);
+        self::assertSame(1, $quarantine->quarantined);
+        self::assertSame(0, $quarantine->failedSources);
+        $quarantineRun = GiftCodeIngestionRun::query()
+            ->where('gift_code_source_id', $quarantineSource->id)
+            ->latest('started_at')
+            ->firstOrFail();
+        self::assertSame('completed_with_quarantine', $quarantineRun->status);
+        self::assertSame('observation_policy_rejected', $quarantineRun->failure_code);
+        self::assertStringContainsString('QUARANTINED-OBSERVATION', (string) $quarantineRun->failure_message);
+        self::assertStringContainsString('evidence://gift-code/', (string) $quarantineRun->failure_message);
 
         $failedSource = $this->source('broken-source', 'broken.example.test', 'broken-adapter');
         $failure = $runner->handle(sourceKey: $failedSource->source_key);
