@@ -251,9 +251,9 @@ final class GiftCodeModerationController extends Controller
             'gift_code_ids.*' => ['required', 'string', 'ulid', 'distinct'],
             'action' => ['required', Rule::enum(GiftCodeModerationAction::class)],
             'confirmed' => ['required', 'boolean'],
-            'reason' => ['nullable', 'string', 'max:1000'],
-            'proposed_status' => ['nullable', Rule::enum(GiftCodeStatus::class)],
-            'expires_at' => ['nullable', 'date'],
+            'reason' => ['nullable', 'required_if:action,reject,quarantine,correct_expiry,resolve_dispute', 'string', 'max:1000'],
+            'proposed_status' => ['nullable', 'required_if:action,resolve_dispute', Rule::enum(GiftCodeStatus::class)],
+            'expires_at' => ['nullable', 'required_if:action,correct_expiry', 'date'],
             'expiry_precision' => ['nullable', 'in:instant,minute,hour,day'],
         ]);
 

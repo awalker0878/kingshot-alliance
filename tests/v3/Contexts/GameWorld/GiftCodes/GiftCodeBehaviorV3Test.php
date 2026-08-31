@@ -10,6 +10,7 @@ use App\Contexts\Accounts\Identity\ValueObjects\AccountIdentity;
 use App\Contexts\Communications\Delivery\Actions\SetNotificationPreference;
 use App\Contexts\Communications\Delivery\Enums\DeliveryChannel;
 use App\Contexts\Communications\Delivery\Models\NotificationDelivery;
+use App\Contexts\GameWorld\GiftCodes\Actions\BeginGiftCodeRedemption;
 use App\Contexts\GameWorld\GiftCodes\Actions\IngestApprovedGiftCodeObservation;
 use App\Contexts\GameWorld\GiftCodes\Actions\ManageGiftCodeSourceRegistry;
 use App\Contexts\GameWorld\GiftCodes\Actions\ModerateGiftCode;
@@ -18,9 +19,11 @@ use App\Contexts\GameWorld\GiftCodes\Actions\QueueGiftCodeExpiryNotifications;
 use App\Contexts\GameWorld\GiftCodes\Actions\QueueGiftCodeTransitionNotifications;
 use App\Contexts\GameWorld\GiftCodes\Actions\ReconcileGiftCodeFacts;
 use App\Contexts\GameWorld\GiftCodes\Actions\ReconcileGiftCodeSourcePolicyChanges;
+use App\Contexts\GameWorld\GiftCodes\Actions\RecordGiftCodeRedemptionOutcome;
 use App\Contexts\GameWorld\GiftCodes\Actions\RecordObservedGiftCodeRedemptionResult;
 use App\Contexts\GameWorld\GiftCodes\Actions\RunApprovedGiftCodeSourceIngestion;
 use App\Contexts\GameWorld\GiftCodes\Actions\SubmitGiftCode;
+use App\Contexts\GameWorld\GiftCodes\Contracts\GiftCodeRedemptionProvider;
 use App\Contexts\GameWorld\GiftCodes\Contracts\GiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeEvidenceClassification;
 use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeEvidenceVerificationState;
@@ -39,6 +42,9 @@ use App\Contexts\GameWorld\GiftCodes\Queries\GiftCodeCatalogQuery;
 use App\Contexts\GameWorld\GiftCodes\Services\GiftCodeSourceAdapterRegistry;
 use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeIngestionObservation;
 use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeIngestionPage;
+use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeRedemptionOutcome;
+use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeReference;
+use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Platform\Administration\Actions\ManagePlatformAdministrator;
 use App\Shared\Infrastructure\Messaging\Outbox\Models\OutboxMessage;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -259,6 +265,106 @@ final class GiftCodeBehaviorV3Test extends TestCase
             'gift_code_id' => $ingested['gift_code_id'],
             'fact_type' => 'applicability',
             'qualified' => true,
+        ]);
+    }
+
+    public function test_only_currently_valid_codes_can_start_a_governor_handoff(): void
+    {
+        $scenarios = app(ScenarioFactory::class);
+        $account = $scenarios->account();
+        $governor = $scenarios->player($account->userId, 1504, 'GOV-1504-D');
+        $actor = User::query()->findOrFail($account->userId);
+
+        foreach ([GiftCodeStatus::Pending, GiftCodeStatus::Disputed] as $status) {
+            $giftCode = GiftCode::query()->create([
+                'code' => 'UNAVAILABLE-'.$status->value,
+                'normalized_code' => 'UNAVAILABLE-'.mb_strtoupper($status->value),
+                'status' => $status,
+                'status_revision' => 1,
+                'status_reason_code' => 'test_'.$status->value,
+                'status_evidence_ids' => [],
+                'status_changed_at' => now(),
+                'status_derived_at' => now(),
+                'discovered_at' => now(),
+                'expires_revision' => 0,
+            ]);
+
+            $prepared = app(PrepareGiftCodeRedemptions::class)->handle(
+                $actor,
+                (string) $giftCode->id,
+                [$governor->playerId],
+            )->toArray();
+
+            self::assertSame(0, $prepared['succeeded']);
+            self::assertSame(1, $prepared['failed']);
+            $redemption = GiftCodeRedemption::query()
+                ->where('gift_code_id', $giftCode->id)
+                ->where('player_id', $governor->playerId)
+                ->firstOrFail();
+            self::assertSame(GiftCodeRedemptionStatus::Expired, $redemption->status);
+            self::assertSame('code_unavailable', $redemption->last_result_code);
+            self::assertNull($redemption->redemption_url);
+        }
+    }
+
+    public function test_handoff_rechecks_current_trust_state_after_the_provider_returns(): void
+    {
+        $scenarios = app(ScenarioFactory::class);
+        $account = $scenarios->account();
+        $governor = $scenarios->player($account->userId, 1505, 'GOV-1505-E');
+        $giftCode = GiftCode::query()->create([
+            'code' => 'CONCURRENT-TRUST-CHANGE',
+            'normalized_code' => 'CONCURRENT-TRUST-CHANGE',
+            'status' => GiftCodeStatus::Valid,
+            'status_revision' => 1,
+            'status_reason_code' => 'qualified_positive_evidence',
+            'status_evidence_ids' => [],
+            'status_changed_at' => now(),
+            'status_derived_at' => now(),
+            'discovered_at' => now(),
+            'expires_revision' => 0,
+        ]);
+        $provider = new class((string) $giftCode->id) implements GiftCodeRedemptionProvider
+        {
+            public function __construct(private readonly string $giftCodeId) {}
+
+            public function name(): string
+            {
+                return 'concurrency-test';
+            }
+
+            public function begin(GiftCodeReference $giftCode, PlayerReference $player): GiftCodeRedemptionOutcome
+            {
+                GiftCode::query()->whereKey($this->giftCodeId)->update([
+                    'status' => GiftCodeStatus::Invalid->value,
+                    'status_reason_code' => 'platform_rejected',
+                    'status_changed_at' => now(),
+                    'status_derived_at' => now(),
+                ]);
+
+                return new GiftCodeRedemptionOutcome(
+                    GiftCodeRedemptionStatus::AwaitingConfirmation,
+                    'official_handoff',
+                    'Continue in the official Gift Code Center.',
+                    'https://example.test/gift-center',
+                );
+            }
+        };
+        $begin = new BeginGiftCodeRedemption(
+            $provider,
+            app(RecordGiftCodeRedemptionOutcome::class),
+        );
+
+        $result = $begin->handle((string) $giftCode->id, $governor);
+
+        self::assertSame(GiftCodeRedemptionStatus::Expired, $result->status);
+        self::assertNull($result->redemptionUrl);
+        self::assertDatabaseHas('gift_code_redemptions', [
+            'gift_code_id' => (string) $giftCode->id,
+            'player_id' => $governor->playerId,
+            'status' => GiftCodeRedemptionStatus::Expired->value,
+            'last_result_code' => 'code_unavailable',
+            'redemption_url' => null,
         ]);
     }
 

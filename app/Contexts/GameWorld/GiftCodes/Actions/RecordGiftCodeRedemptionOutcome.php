@@ -52,10 +52,13 @@ final readonly class RecordGiftCodeRedemptionOutcome
                     'attempts' => 0,
                 ]);
             } elseif ($redemption->status->successful()
-                || ($redemption->status->retryable() && $redemption->next_attempt_at?->isFuture())) {
+                || ($redemption->status->retryable()
+                    && $redemption->next_attempt_at?->isFuture()
+                    && $outcome->status->retryable())) {
                 return $this->reference($redemption);
             }
 
+            $outcome = $this->boundHandoffToCurrentAvailability($giftCode, $outcome);
             $attempts = $redemption->attempts + 1;
             $boundedOutcome = $this->boundedOutcome($outcome, $attempts);
             $retryAt = $boundedOutcome->retryAt;
@@ -70,7 +73,9 @@ final readonly class RecordGiftCodeRedemptionOutcome
                 'attempts' => $attempts,
                 'last_result_code' => $boundedOutcome->resultCode,
                 'last_message' => $boundedOutcome->message,
-                'redemption_url' => $boundedOutcome->redemptionUrl ?? $redemption->redemption_url,
+                'redemption_url' => in_array($boundedOutcome->resultCode, ['code_unavailable', 'code_expired'], true)
+                    ? null
+                    : ($boundedOutcome->redemptionUrl ?? $redemption->redemption_url),
                 'last_attempt_at' => now(),
                 'next_attempt_at' => $retryAt,
                 'redeemed_at' => $boundedOutcome->status->successful() ? now() : $redemption->redeemed_at,
@@ -114,6 +119,33 @@ final readonly class RecordGiftCodeRedemptionOutcome
         return $redemption instanceof GiftCodeRedemption
             && $redemption->redemption_url !== null
             && $redemption->attempts > 0;
+    }
+
+    private function boundHandoffToCurrentAvailability(
+        GiftCode $giftCode,
+        GiftCodeRedemptionOutcome $outcome,
+    ): GiftCodeRedemptionOutcome {
+        if ($outcome->status !== GiftCodeRedemptionStatus::AwaitingConfirmation) {
+            return $outcome;
+        }
+
+        if (! $giftCode->status->redeemable()) {
+            return new GiftCodeRedemptionOutcome(
+                GiftCodeRedemptionStatus::Expired,
+                'code_unavailable',
+                'This Gift Code is no longer active.',
+            );
+        }
+
+        if ($giftCode->expires_at !== null && $giftCode->expires_at->isPast()) {
+            return new GiftCodeRedemptionOutcome(
+                GiftCodeRedemptionStatus::Expired,
+                'code_expired',
+                'This Gift Code has expired.',
+            );
+        }
+
+        return $outcome;
     }
 
     private function boundedOutcome(GiftCodeRedemptionOutcome $outcome, int $attempts): GiftCodeRedemptionOutcome

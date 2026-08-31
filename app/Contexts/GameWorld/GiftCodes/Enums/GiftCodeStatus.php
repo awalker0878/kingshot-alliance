@@ -15,6 +15,6 @@ enum GiftCodeStatus: string
 
     public function redeemable(): bool
     {
-        return $this === self::Pending || $this === self::Valid || $this === self::Disputed;
+        return $this === self::Valid;
     }
 }
