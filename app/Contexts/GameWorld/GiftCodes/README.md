@@ -25,7 +25,7 @@
 
 `ScheduleGiftCodeNotificationCampaign` persists availability/trust transitions. `QueueGiftCodeTransitionNotifications` and `QueueGiftCodeExpiryNotifications` perform bounded, idempotent fan-out through `NotificationDeliveryService` after current-state rechecks.
 
-`RunApprovedGiftCodeSourceIngestion` calls only installed, tagged `GiftCodeSourceAdapter` implementations, persists per-source run health and quarantines observation-level failures. No undocumented Century Games redemption automation belongs in this context.
+`RunApprovedGiftCodeSourceIngestion` calls only installed, tagged `GiftCodeSourceAdapter` implementations, persists bounded per-source run health and quarantines parser/unsupported-format and observation-policy failures with reviewable diagnostics. No undocumented Century Games redemption automation belongs in this context.
 
 ## Operational entry points
 

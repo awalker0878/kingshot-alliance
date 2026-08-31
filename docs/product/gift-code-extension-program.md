@@ -263,23 +263,23 @@ Unqualified rewards render **Reward details unknown**. A single `wrong_kingdom` 
 | GCX-07 | Availability notification fan-out | complete | persisted campaigns, bounded transition sweep, Communications preferences, scheduler and fan-out behavior test |
 | GCX-08 | Expiry notification fan-out | complete | bounded cursor sweep, qualified-expiry revision idempotency, current-state recheck, preference/revision behavior test |
 | GCX-09 | Trust-change notification fan-out | complete | transition campaign scheduling for dispute/hold/invalid/expiry changes, started-user targeting and revision-aware delivery |
-| GCX-10 | Approved-source ingestion | complete | registered-source policy UI/action, adapter registry/contract, ingestion runner, run health, targeted replay, parser/replay/revocation tests |
+| GCX-10 | Approved-source ingestion | complete | registered-source policy UI/action, adapter registry/contract, ingestion runner, persisted parser/observation quarantine diagnostics, bounded run-health history, targeted replay and parser/replay/revocation tests |
 | GCX-11 | Cursor-paginated catalogue/detail reads | complete | `GiftCodeCatalogQuery`, catalogue/detail controller/UI and constant-query large-history behavior test |
 | GCX-12 | Command Overview lifecycle projections | complete | new-redeemable/in-progress/retry-due/disputed-retracted projection and `CommandOverviewBehaviorV3Test` |
 | GCX-13 | Canonical `/api/v1/gift-codes` | complete | canonical route/controller/query, OpenAPI/Connections update, authorization and opaque-cursor behavior test |
 | GCX-14 | Versioned webhook payload with revision | complete | runtime catalogue, JSON Schema/event reference, revisioned outbox payloads and published-contract/webhook tests |
 | GCX-15 | Reward/applicability evidence gate | complete | fact resolver/projection/reconciliation, unknown/conflict UI/API states and fact qualification/conflict tests |
-| GCX-16 | Operational diagnostics and replay | complete | persisted notification/source cursors, JSON sweep receipts, source run health, targeted ingestion replay and policy-reconciliation scheduler |
+| GCX-16 | Operational diagnostics and replay | complete | persisted notification/source cursors, JSON sweep receipts, source attempt/success/failure timestamps, bounded run counters/failure detail, targeted ingestion replay and policy-reconciliation scheduler |
 | GCX-17 | Accessibility/mobile/visual regression | complete | localized responsive catalogue/moderation flows, static accessibility/localization gates and desktop/mobile `GiftCodes.spec.ts` |
 | GCX-18 | Query-budget and large-history verification | complete | 80-code/120-provenance constant-query fixture in `GiftCodeBehaviorV3Test`; API cursor bound test |
-| GCX-19 | Full automated gate execution | complete | Local `npm run check` passes; remote CI run `33335631761`, Architecture V3 run `33335631773`, Intelligence, King Perks, CodeQL, and dependency review pass; Gift Code desktop/mobile visual coverage passes in run `33335631755` |
-| GCX-20 | Final docs/code reconciliation and closeout | complete | Implementation commit `78fb1234a0471dd020c7f651a3e4d468f22b2c34`; final branch tip and this ledger were verified through the GitHub branch/file APIs; stale-path/TODO/route/scheduler/flag searches reconciled |
+| GCX-19 | Full automated gate execution | complete | Local `npm run check` passes; remote CI run `33393961660`, Architecture V3 run `33393961629`, Intelligence run `33393961620`, King Perks run `33393961653`, CodeQL run `33393961646`, and dependency review run `33393961643` pass; Gift Code desktop/mobile visual coverage passes in run `33393961623` |
+| GCX-20 | Final docs/code reconciliation and closeout | complete | Implementation commit `087b7413cdfdd0f2b108f100141d43512481c408`; final branch tip and this ledger were verified through the GitHub branch/file APIs; stale-path/TODO/route/scheduler/flag searches reconciled |
 
 A row becomes `complete` only when documented behavior, integration, authorization, UX where applicable, tests, and operational behavior are present. No migration/backfill or compatibility work is intentionally retained for the previous Gift Code implementation.
 
 ### Closeout exception
 
-The repository-wide Visual Regression workflow remains red for six pre-existing, non-Gift-Code cases: ApplicationShell desktop/mobile, CapabilityAcceptanceMatrix desktop/mobile, and ScreenshotIntake desktop/mobile. The Gift Code visual test passes on both viewports in run `33335631755`; reconciling those unrelated baselines is owned by their respective capabilities and is not a Gift Code dependency.
+The repository-wide Visual Regression workflow remains red for six pre-existing, non-Gift-Code cases: ApplicationShell desktop/mobile, CapabilityAcceptanceMatrix desktop/mobile, and ScreenshotIntake desktop/mobile. The Gift Code visual test passes on both viewports in run `33393961623`; reconciling those unrelated baselines is owned by their respective capabilities and is not a Gift Code dependency.
 
 ## 14. Acceptance criteria
 
