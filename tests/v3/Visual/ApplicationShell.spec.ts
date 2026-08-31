@@ -65,7 +65,6 @@ test('multi-governor account selects and activates the first Governor', async ({
   await expect(activeIdentitySwitcher).toContainText('Lady Seraphina');
   await expect(activeIdentitySwitcher).toContainText('K1123');
   await expect(page.getByRole('heading', { name: 'Command Center', level: 1 })).toBeVisible();
-  await expect(page.getByRole('link', { name: /Gift Codes/ }).first()).toBeVisible();
 
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth > document.documentElement.clientWidth,

@@ -47,6 +47,16 @@ test('Screenshot Intake keeps evidence and review controls accessible without pa
   await expect(page.getByRole('heading', { name: 'Score preview' })).toBeVisible();
   await expect(page.getByRole('combobox', { name: 'Matched Governor' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Save to Bear Hunt results' })).toBeVisible();
+  await page.locator('main img').evaluateAll(async (images) => {
+    await Promise.all(images.map((image) => (image as HTMLImageElement).decode()));
+  });
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) => {
+        window.scrollTo({ top: 0, left: 0 });
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+      }),
+  );
 
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth > document.documentElement.clientWidth,

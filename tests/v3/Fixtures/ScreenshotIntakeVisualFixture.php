@@ -92,9 +92,11 @@ final class ScreenshotIntakeVisualFixture
             'perceptual_hash' => '0f0f0f0f0f0f0f0f',
             'uploaded_by_player_id' => $player->id,
             'scanned_at' => $fixtureTimestamp,
+        ]);
+        $evidence->forceFill([
             'created_at' => $fixtureTimestamp,
             'updated_at' => $fixtureTimestamp,
-        ]);
+        ])->save();
         $classification = EvidenceClassificationAttempt::query()->create([
             'evidence_id' => $evidence->id,
             'status' => EvidenceAttemptStatus::Completed,
@@ -109,8 +111,6 @@ final class ScreenshotIntakeVisualFixture
             'reason' => 'Fixture contains the Bear Hunt battle record and ranking markers.',
             'started_at' => $fixtureTimestamp,
             'completed_at' => $fixtureTimestamp,
-            'created_at' => $fixtureTimestamp,
-            'updated_at' => $fixtureTimestamp,
         ]);
         $extraction = EvidenceExtractionAttempt::query()->create([
             'evidence_id' => $evidence->id,
@@ -124,8 +124,6 @@ final class ScreenshotIntakeVisualFixture
             'field_count' => 5,
             'started_at' => $fixtureTimestamp,
             'completed_at' => $fixtureTimestamp,
-            'created_at' => $fixtureTimestamp,
-            'updated_at' => $fixtureTimestamp,
         ]);
         $name = EvidenceExtractedField::query()->create([
             'extraction_attempt_id' => $extraction->id,
@@ -136,8 +134,6 @@ final class ScreenshotIntakeVisualFixture
             'data_type' => 'string',
             'confidence' => 0.94,
             'bounding_box' => ['left' => 120, 'top' => 760, 'width' => 360, 'height' => 54],
-            'created_at' => $fixtureTimestamp,
-            'updated_at' => $fixtureTimestamp,
         ]);
         $damage = EvidenceExtractedField::query()->create([
             'extraction_attempt_id' => $extraction->id,
@@ -148,8 +144,6 @@ final class ScreenshotIntakeVisualFixture
             'data_type' => 'integer',
             'confidence' => 0.83,
             'bounding_box' => ['left' => 540, 'top' => 760, 'width' => 270, 'height' => 54],
-            'created_at' => $fixtureTimestamp,
-            'updated_at' => $fixtureTimestamp,
         ]);
         EvidenceExtractedField::query()->create([
             'extraction_attempt_id' => $extraction->id,
@@ -159,8 +153,6 @@ final class ScreenshotIntakeVisualFixture
             'normalized_value' => '2026-08-22 13:05:23',
             'data_type' => 'datetime_text',
             'confidence' => 0.91,
-            'created_at' => $fixtureTimestamp,
-            'updated_at' => $fixtureTimestamp,
         ]);
         $review = EvidenceReview::query()->create([
             'evidence_id' => $evidence->id,
@@ -173,8 +165,6 @@ final class ScreenshotIntakeVisualFixture
             'semantic_fingerprint' => hash('sha256', 'screenshot-visual-review'),
             'reviewed_by_player_id' => $player->id,
             'reviewed_at' => $fixtureTimestamp,
-            'created_at' => $fixtureTimestamp,
-            'updated_at' => $fixtureTimestamp,
         ]);
         EvidenceReviewRow::query()->create([
             'review_id' => $review->id,
@@ -190,8 +180,6 @@ final class ScreenshotIntakeVisualFixture
             'name_corrected' => false,
             'damage_corrected' => true,
             'correction_reason' => 'Reviewer corrected the final OCR digit from the visible report.',
-            'created_at' => $fixtureTimestamp,
-            'updated_at' => $fixtureTimestamp,
         ]);
     }
 }
