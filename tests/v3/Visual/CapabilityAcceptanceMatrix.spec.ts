@@ -104,7 +104,8 @@ async function normalizeDynamicText(target: Locator): Promise<void> {
         node.textContent = stableIdentifiers;
       } else if (
         /\b20\d{2}\b/.test(text) ||
-        /\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b/.test(text)
+        /\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b/.test(text) ||
+        /\b(?:second|minute|hour|day|week|month|year)s? ago\b/i.test(text)
       ) {
         node.textContent = 'Fixture date';
       }
