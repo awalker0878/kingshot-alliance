@@ -21,6 +21,7 @@ use App\Contexts\Intelligence\Evidence\Models\GameEvidence;
 use App\Contexts\Operations\Events\Actions\CreateEvent;
 use App\Contexts\Operations\Events\Enums\EventScope;
 use App\Contexts\Operations\Events\Models\EventTypeScope;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 
@@ -28,6 +29,8 @@ final class ScreenshotIntakeVisualFixture
 {
     public static function seed(): void
     {
+        $fixtureTimestamp = CarbonImmutable::parse('2026-08-23 02:00:00', 'UTC');
+
         $user = User::factory()->create([
             'name' => 'Screenshot Visual',
             'email' => 'screenshot-visual@example.test',
@@ -88,7 +91,9 @@ final class ScreenshotIntakeVisualFixture
             'sha256' => $sha256,
             'perceptual_hash' => '0f0f0f0f0f0f0f0f',
             'uploaded_by_player_id' => $player->id,
-            'scanned_at' => now(),
+            'scanned_at' => $fixtureTimestamp,
+            'created_at' => $fixtureTimestamp,
+            'updated_at' => $fixtureTimestamp,
         ]);
         $classification = EvidenceClassificationAttempt::query()->create([
             'evidence_id' => $evidence->id,
@@ -102,8 +107,10 @@ final class ScreenshotIntakeVisualFixture
             'classified_kind' => EvidenceKind::BearHuntBattleReport,
             'confidence' => 0.96,
             'reason' => 'Fixture contains the Bear Hunt battle record and ranking markers.',
-            'started_at' => now(),
-            'completed_at' => now(),
+            'started_at' => $fixtureTimestamp,
+            'completed_at' => $fixtureTimestamp,
+            'created_at' => $fixtureTimestamp,
+            'updated_at' => $fixtureTimestamp,
         ]);
         $extraction = EvidenceExtractionAttempt::query()->create([
             'evidence_id' => $evidence->id,
@@ -115,8 +122,10 @@ final class ScreenshotIntakeVisualFixture
             'input_sha256' => $sha256,
             'overall_confidence' => 0.89,
             'field_count' => 5,
-            'started_at' => now(),
-            'completed_at' => now(),
+            'started_at' => $fixtureTimestamp,
+            'completed_at' => $fixtureTimestamp,
+            'created_at' => $fixtureTimestamp,
+            'updated_at' => $fixtureTimestamp,
         ]);
         $name = EvidenceExtractedField::query()->create([
             'extraction_attempt_id' => $extraction->id,
@@ -127,6 +136,8 @@ final class ScreenshotIntakeVisualFixture
             'data_type' => 'string',
             'confidence' => 0.94,
             'bounding_box' => ['left' => 120, 'top' => 760, 'width' => 360, 'height' => 54],
+            'created_at' => $fixtureTimestamp,
+            'updated_at' => $fixtureTimestamp,
         ]);
         $damage = EvidenceExtractedField::query()->create([
             'extraction_attempt_id' => $extraction->id,
@@ -137,6 +148,8 @@ final class ScreenshotIntakeVisualFixture
             'data_type' => 'integer',
             'confidence' => 0.83,
             'bounding_box' => ['left' => 540, 'top' => 760, 'width' => 270, 'height' => 54],
+            'created_at' => $fixtureTimestamp,
+            'updated_at' => $fixtureTimestamp,
         ]);
         EvidenceExtractedField::query()->create([
             'extraction_attempt_id' => $extraction->id,
@@ -146,6 +159,8 @@ final class ScreenshotIntakeVisualFixture
             'normalized_value' => '2026-08-22 13:05:23',
             'data_type' => 'datetime_text',
             'confidence' => 0.91,
+            'created_at' => $fixtureTimestamp,
+            'updated_at' => $fixtureTimestamp,
         ]);
         $review = EvidenceReview::query()->create([
             'evidence_id' => $evidence->id,
@@ -157,7 +172,9 @@ final class ScreenshotIntakeVisualFixture
             'report_timestamp_text' => '2026-08-22 13:05:23',
             'semantic_fingerprint' => hash('sha256', 'screenshot-visual-review'),
             'reviewed_by_player_id' => $player->id,
-            'reviewed_at' => now(),
+            'reviewed_at' => $fixtureTimestamp,
+            'created_at' => $fixtureTimestamp,
+            'updated_at' => $fixtureTimestamp,
         ]);
         EvidenceReviewRow::query()->create([
             'review_id' => $review->id,
@@ -173,6 +190,8 @@ final class ScreenshotIntakeVisualFixture
             'name_corrected' => false,
             'damage_corrected' => true,
             'correction_reason' => 'Reviewer corrected the final OCR digit from the visible report.',
+            'created_at' => $fixtureTimestamp,
+            'updated_at' => $fixtureTimestamp,
         ]);
     }
 }

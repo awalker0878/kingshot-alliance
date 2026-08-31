@@ -3,7 +3,7 @@ import type { Page } from '@playwright/test';
 
 async function loginWithGovernor(page: Page): Promise<void> {
   await page.goto('/login');
-  await page.locator('#email').fill('ux-p9-visual@example.test');
+  await page.locator('#email').fill('gift-code-catalogue-visual@example.test');
   await page.locator('#password').fill('password');
   await page.locator('button[type="submit"]').click();
   await page.waitForURL('**/dashboard');
