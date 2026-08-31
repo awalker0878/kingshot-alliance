@@ -10,7 +10,6 @@ use App\Contexts\Accounts\Identity\ValueObjects\AccountIdentity;
 use App\Contexts\Communications\Delivery\Actions\SetNotificationPreference;
 use App\Contexts\Communications\Delivery\Enums\DeliveryChannel;
 use App\Contexts\Communications\Delivery\Models\NotificationDelivery;
-use App\Contexts\GameWorld\GiftCodes\Adapters\JsonFeedGiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Actions\BeginGiftCodeRedemption;
 use App\Contexts\GameWorld\GiftCodes\Actions\IngestApprovedGiftCodeObservation;
 use App\Contexts\GameWorld\GiftCodes\Actions\ManageGiftCodeSourceRegistry;
@@ -24,6 +23,7 @@ use App\Contexts\GameWorld\GiftCodes\Actions\RecordGiftCodeRedemptionOutcome;
 use App\Contexts\GameWorld\GiftCodes\Actions\RecordObservedGiftCodeRedemptionResult;
 use App\Contexts\GameWorld\GiftCodes\Actions\RunApprovedGiftCodeSourceIngestion;
 use App\Contexts\GameWorld\GiftCodes\Actions\SubmitGiftCode;
+use App\Contexts\GameWorld\GiftCodes\Adapters\JsonFeedGiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Contracts\GiftCodeRedemptionProvider;
 use App\Contexts\GameWorld\GiftCodes\Contracts\GiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeEvidenceClassification;
@@ -327,32 +327,7 @@ final class GiftCodeBehaviorV3Test extends TestCase
             'discovered_at' => now(),
             'expires_revision' => 0,
         ]);
-        $provider = new class ((string) $giftCode->id) implements GiftCodeRedemptionProvider
-        {
-            public function __construct(private readonly string $giftCodeId) {}
-
-            public function name(): string
-            {
-                return 'concurrency-test';
-            }
-
-            public function begin(GiftCodeReference $giftCode, PlayerReference $player): GiftCodeRedemptionOutcome
-            {
-                GiftCode::query()->whereKey($this->giftCodeId)->update([
-                    'status' => GiftCodeStatus::Invalid->value,
-                    'status_reason_code' => 'platform_rejected',
-                    'status_changed_at' => now(),
-                    'status_derived_at' => now(),
-                ]);
-
-                return new GiftCodeRedemptionOutcome(
-                    GiftCodeRedemptionStatus::AwaitingConfirmation,
-                    'official_handoff',
-                    'Continue in the official Gift Code Center.',
-                    'https://example.test/gift-center',
-                );
-            }
-        };
+        $provider = new ConcurrentTrustChangeRedemptionProvider((string) $giftCode->id);
         $begin = new BeginGiftCodeRedemption(
             $provider,
             app(RecordGiftCodeRedemptionOutcome::class),
@@ -618,50 +593,13 @@ final class GiftCodeBehaviorV3Test extends TestCase
         config()->set('game_world.gift_codes.ingestion_batch_size', 10);
         $source = $this->source('adapter-source', 'adapter.example.test', 'stable-adapter');
         $observation = $this->observation('ADAPTER-CODE', sourceUrl: 'https://adapter.example.test/gift');
-        $stable = new class ($observation) implements GiftCodeSourceAdapter
-        {
-            public function __construct(private readonly GiftCodeIngestionObservation $observation) {}
-
-            public function key(): string
-            {
-                return 'stable-adapter';
-            }
-
-            public function acquire(GiftCodeSourceRegistry $source, ?string $cursor, int $limit): GiftCodeIngestionPage
-            {
-                return new GiftCodeIngestionPage([$this->observation], 'cursor-1');
-            }
-        };
-        $broken = new class implements GiftCodeSourceAdapter
-        {
-            public function key(): string
-            {
-                return 'broken-adapter';
-            }
-
-            public function acquire(GiftCodeSourceRegistry $source, ?string $cursor, int $limit): GiftCodeIngestionPage
-            {
-                throw new UnexpectedValueException('The parser rejected an unsupported source format.');
-            }
-        };
+        $stable = new StaticGiftCodeSourceAdapter('stable-adapter', $observation, 'cursor-1');
+        $broken = new RejectingGiftCodeSourceAdapter;
         $quarantinedObservation = $this->observation(
             'QUARANTINED-OBSERVATION',
             sourceUrl: 'https://misleading.example.test/gift',
         );
-        $quarantining = new class ($quarantinedObservation) implements GiftCodeSourceAdapter
-        {
-            public function __construct(private readonly GiftCodeIngestionObservation $observation) {}
-
-            public function key(): string
-            {
-                return 'quarantining-adapter';
-            }
-
-            public function acquire(GiftCodeSourceRegistry $source, ?string $cursor, int $limit): GiftCodeIngestionPage
-            {
-                return new GiftCodeIngestionPage([$this->observation], null);
-            }
-        };
+        $quarantining = new StaticGiftCodeSourceAdapter('quarantining-adapter', $quarantinedObservation, null);
         $runner = new RunApprovedGiftCodeSourceIngestion(
             new GiftCodeSourceAdapterRegistry([$stable, $broken, $quarantining]),
             app(IngestApprovedGiftCodeObservation::class),
@@ -857,5 +795,64 @@ final class GiftCodeBehaviorV3Test extends TestCase
         app(ManagePlatformAdministrator::class)->grant($account->userId);
 
         return app(AccountIdentityQuery::class)->require($account->userId);
+    }
+}
+
+final readonly class ConcurrentTrustChangeRedemptionProvider implements GiftCodeRedemptionProvider
+{
+    public function __construct(private string $giftCodeId) {}
+
+    public function name(): string
+    {
+        return 'concurrency-test';
+    }
+
+    public function begin(GiftCodeReference $giftCode, PlayerReference $player): GiftCodeRedemptionOutcome
+    {
+        GiftCode::query()->whereKey($this->giftCodeId)->update([
+            'status' => GiftCodeStatus::Invalid->value,
+            'status_reason_code' => 'platform_rejected',
+            'status_changed_at' => now(),
+            'status_derived_at' => now(),
+        ]);
+
+        return new GiftCodeRedemptionOutcome(
+            GiftCodeRedemptionStatus::AwaitingConfirmation,
+            'official_handoff',
+            'Continue in the official Gift Code Center.',
+            'https://example.test/gift-center',
+        );
+    }
+}
+
+final readonly class StaticGiftCodeSourceAdapter implements GiftCodeSourceAdapter
+{
+    public function __construct(
+        private string $adapterKey,
+        private GiftCodeIngestionObservation $observation,
+        private ?string $nextCursor,
+    ) {}
+
+    public function key(): string
+    {
+        return $this->adapterKey;
+    }
+
+    public function acquire(GiftCodeSourceRegistry $source, ?string $cursor, int $limit): GiftCodeIngestionPage
+    {
+        return new GiftCodeIngestionPage([$this->observation], $this->nextCursor);
+    }
+}
+
+final class RejectingGiftCodeSourceAdapter implements GiftCodeSourceAdapter
+{
+    public function key(): string
+    {
+        return 'broken-adapter';
+    }
+
+    public function acquire(GiftCodeSourceRegistry $source, ?string $cursor, int $limit): GiftCodeIngestionPage
+    {
+        throw new UnexpectedValueException('The parser rejected an unsupported source format.');
     }
 }

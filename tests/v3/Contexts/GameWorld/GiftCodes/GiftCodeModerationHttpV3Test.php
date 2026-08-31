@@ -32,6 +32,7 @@ final class GiftCodeModerationHttpV3Test extends TestCase
 
         config()->set('game_world.gift_codes.moderation', true);
         $this->actingAs($administrator)
+            ->withSession(['auth.password_confirmed_at' => 0])
             ->get(route('platform.gift-codes.index'))
             ->assertRedirect(route('password.confirm'));
 
