@@ -23,6 +23,7 @@ use App\Contexts\GameWorld\GiftCodes\Actions\RecordGiftCodeRedemptionOutcome;
 use App\Contexts\GameWorld\GiftCodes\Actions\RecordObservedGiftCodeRedemptionResult;
 use App\Contexts\GameWorld\GiftCodes\Actions\RunApprovedGiftCodeSourceIngestion;
 use App\Contexts\GameWorld\GiftCodes\Actions\SubmitGiftCode;
+use App\Contexts\GameWorld\GiftCodes\Adapters\JsonFeedGiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Contracts\GiftCodeRedemptionProvider;
 use App\Contexts\GameWorld\GiftCodes\Contracts\GiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeEvidenceClassification;
@@ -46,10 +47,12 @@ use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeRedemptionOutcome;
 use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeReference;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Platform\Administration\Actions\ManagePlatformAdministrator;
+use App\ReadModels\ProductionLaunch\ProductionLaunchReadiness;
 use App\Shared\Infrastructure\Messaging\Outbox\Models\OutboxMessage;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Validation\ValidationException;
 use LogicException;
 use Tests\v3\Support\ScenarioFactory;
@@ -324,32 +327,7 @@ final class GiftCodeBehaviorV3Test extends TestCase
             'discovered_at' => now(),
             'expires_revision' => 0,
         ]);
-        $provider = new class((string) $giftCode->id) implements GiftCodeRedemptionProvider
-        {
-            public function __construct(private readonly string $giftCodeId) {}
-
-            public function name(): string
-            {
-                return 'concurrency-test';
-            }
-
-            public function begin(GiftCodeReference $giftCode, PlayerReference $player): GiftCodeRedemptionOutcome
-            {
-                GiftCode::query()->whereKey($this->giftCodeId)->update([
-                    'status' => GiftCodeStatus::Invalid->value,
-                    'status_reason_code' => 'platform_rejected',
-                    'status_changed_at' => now(),
-                    'status_derived_at' => now(),
-                ]);
-
-                return new GiftCodeRedemptionOutcome(
-                    GiftCodeRedemptionStatus::AwaitingConfirmation,
-                    'official_handoff',
-                    'Continue in the official Gift Code Center.',
-                    'https://example.test/gift-center',
-                );
-            }
-        };
+        $provider = new ConcurrentTrustChangeRedemptionProvider((string) $giftCode->id);
         $begin = new BeginGiftCodeRedemption(
             $provider,
             app(RecordGiftCodeRedemptionOutcome::class),
@@ -436,9 +414,17 @@ final class GiftCodeBehaviorV3Test extends TestCase
         $scenarios = app(ScenarioFactory::class);
         $account = $scenarios->account();
         $governor = $scenarios->player($account->userId, 1601, 'GOV-1601-A');
+        $secondGovernor = $scenarios->player($account->userId, 1602, 'GOV-1602-B');
         $source = $this->source('notification-source', 'notifications.example.test');
         $expiry = now()->addHours(12)->startOfMinute()->toIso8601String();
 
+        app(SetNotificationPreference::class)->handle(
+            $account->userId,
+            $governor->playerId,
+            'gift_code.available',
+            DeliveryChannel::InApp,
+            false,
+        );
         app(SetNotificationPreference::class)->handle(
             $account->userId,
             $governor->playerId,
@@ -457,7 +443,11 @@ final class GiftCodeBehaviorV3Test extends TestCase
 
         $availability = app(QueueGiftCodeTransitionNotifications::class)->handle();
         self::assertSame(1, $availability->createdDeliveryCount);
-        self::assertSame(1, NotificationDelivery::query()->where('notification_type', 'gift_code.available')->count());
+        $availabilityDelivery = NotificationDelivery::query()
+            ->where('notification_type', 'gift_code.available')
+            ->firstOrFail();
+        self::assertNull($availabilityDelivery->player_id);
+        self::assertCount(2, $availabilityDelivery->metadata['governors'] ?? []);
 
         app(PrepareGiftCodeRedemptions::class)->handle(
             User::query()->findOrFail($account->userId),
@@ -490,56 +480,126 @@ final class GiftCodeBehaviorV3Test extends TestCase
         self::assertSame(2, NotificationDelivery::query()->where('notification_type', 'gift_code.expiring')->count());
     }
 
+    public function test_installed_json_feed_adapter_retrieves_a_bounded_verified_source_page(): void
+    {
+        config()->set('game_world.gift_codes.approved_source_ingestion', true);
+        $actor = $this->administrator();
+        $sourceId = app(ManageGiftCodeSourceRegistry::class)->register($actor, [
+            'source_key' => 'publisher-feed',
+            'name' => 'Publisher feed',
+            'classification' => 'official',
+            'canonical_domain' => 'publisher.example.test',
+            'verification_method' => 'approved_json_feed',
+            'adapter_key' => JsonFeedGiftCodeSourceAdapter::KEY,
+            'provenance_policy' => [
+                'auto_verify' => true,
+                'feed_path' => '/gift-codes.json',
+            ],
+            'ingestion_enabled' => true,
+        ]);
+        Http::fake([
+            'publisher.example.test/gift-codes.json*' => Http::response([
+                'version' => 'feed-42',
+                'next_cursor' => 'next-page',
+                'items' => [[
+                    'code' => 'JSON-FEED-CODE',
+                    'assertion' => 'available',
+                    'source_url' => 'https://publisher.example.test/gifts/json-feed-code',
+                    'published_at' => now()->subMinute()->toIso8601String(),
+                    'version' => 'publication-7',
+                ]],
+            ], 200, [
+                'Content-Type' => 'application/json; charset=utf-8',
+                'ETag' => '"feed-42"',
+            ]),
+        ]);
+
+        $sweep = app(RunApprovedGiftCodeSourceIngestion::class)->handle(sourceKey: 'publisher-feed');
+
+        self::assertSame(1, $sweep->accepted);
+        self::assertSame('next-page', GiftCodeSourceRegistry::query()->findOrFail($sourceId)->ingestion_cursor);
+        $evidence = GiftCodeProvenance::query()->firstOrFail();
+        self::assertSame('publication-7', $evidence->source_version);
+        self::assertSame('ETag:"feed-42"', $evidence->retrieval_version);
+        self::assertSame(JsonFeedGiftCodeSourceAdapter::KEY, $evidence->parser_version);
+        self::assertSame(GiftCodeEvidenceVerificationState::Verified, $evidence->verification_state);
+        Http::assertSent(static fn ($request): bool => $request->url() === 'https://publisher.example.test/gift-codes.json?limit=100');
+    }
+
+    public function test_moderation_rejects_a_stale_trust_revision(): void
+    {
+        config()->set('game_world.gift_codes.moderation', true);
+        $actor = $this->administrator();
+        $giftCode = GiftCode::query()->create([
+            'code' => 'STALE-REVIEW',
+            'normalized_code' => 'STALE-REVIEW',
+            'status' => GiftCodeStatus::Pending,
+            'status_revision' => 2,
+            'status_reason_code' => 'awaiting_verified_evidence',
+            'status_evidence_ids' => [],
+            'status_changed_at' => now(),
+            'status_derived_at' => now(),
+            'discovered_at' => now(),
+            'expires_revision' => 0,
+        ]);
+
+        try {
+            app(ModerateGiftCode::class)->handle(
+                $actor,
+                (string) $giftCode->id,
+                GiftCodeModerationAction::Verify,
+                expectedStatusRevision: 1,
+            );
+            self::fail('A stale moderation decision must be rejected.');
+        } catch (ValidationException $exception) {
+            self::assertArrayHasKey('expected_status_revision', $exception->errors());
+        }
+
+        self::assertSame(0, $giftCode->moderationDecisions()->count());
+    }
+
+    public function test_launch_readiness_requires_flags_and_an_enabled_source_with_an_installed_adapter(): void
+    {
+        $checks = collect(app(ProductionLaunchReadiness::class)->checks())->keyBy('key');
+        self::assertFalse($checks->get('gift_code_feature_flags')['passed'] ?? true);
+
+        config()->set('game_world.gift_codes.moderation', true);
+        config()->set('game_world.gift_codes.approved_source_ingestion', true);
+        config()->set('game_world.gift_codes.notification_fanout', true);
+        $checks = collect(app(ProductionLaunchReadiness::class)->checks())->keyBy('key');
+        self::assertTrue($checks->get('gift_code_feature_flags')['passed'] ?? false);
+        self::assertFalse($checks->get('gift_code_ingestion_sources')['passed'] ?? true);
+
+        GiftCodeSourceRegistry::query()->create([
+            'source_key' => 'launch-ready-feed',
+            'name' => 'Launch ready feed',
+            'classification' => 'official',
+            'canonical_domain' => 'publisher.example.test',
+            'is_active' => true,
+            'verification_method' => 'approved_json_feed',
+            'adapter_key' => JsonFeedGiftCodeSourceAdapter::KEY,
+            'policy_revision' => 1,
+            'provenance_policy' => ['auto_verify' => true, 'feed_path' => '/gift-codes.json'],
+            'ingestion_enabled' => true,
+        ]);
+
+        $checks = collect(app(ProductionLaunchReadiness::class)->checks())->keyBy('key');
+        self::assertTrue($checks->get('gift_code_ingestion_sources')['passed'] ?? false);
+    }
+
     public function test_ingestion_runner_is_bounded_idempotent_and_records_parser_failure_health(): void
     {
         config()->set('game_world.gift_codes.approved_source_ingestion', true);
         config()->set('game_world.gift_codes.ingestion_batch_size', 10);
         $source = $this->source('adapter-source', 'adapter.example.test', 'stable-adapter');
         $observation = $this->observation('ADAPTER-CODE', sourceUrl: 'https://adapter.example.test/gift');
-        $stable = new class($observation) implements GiftCodeSourceAdapter
-        {
-            public function __construct(private readonly GiftCodeIngestionObservation $observation) {}
-
-            public function key(): string
-            {
-                return 'stable-adapter';
-            }
-
-            public function acquire(GiftCodeSourceRegistry $source, ?string $cursor, int $limit): GiftCodeIngestionPage
-            {
-                return new GiftCodeIngestionPage([$this->observation], 'cursor-1');
-            }
-        };
-        $broken = new class implements GiftCodeSourceAdapter
-        {
-            public function key(): string
-            {
-                return 'broken-adapter';
-            }
-
-            public function acquire(GiftCodeSourceRegistry $source, ?string $cursor, int $limit): GiftCodeIngestionPage
-            {
-                throw new UnexpectedValueException('The parser rejected an unsupported source format.');
-            }
-        };
+        $stable = new StaticGiftCodeSourceAdapter('stable-adapter', $observation, 'cursor-1');
+        $broken = new RejectingGiftCodeSourceAdapter;
         $quarantinedObservation = $this->observation(
             'QUARANTINED-OBSERVATION',
             sourceUrl: 'https://misleading.example.test/gift',
         );
-        $quarantining = new class($quarantinedObservation) implements GiftCodeSourceAdapter
-        {
-            public function __construct(private readonly GiftCodeIngestionObservation $observation) {}
-
-            public function key(): string
-            {
-                return 'quarantining-adapter';
-            }
-
-            public function acquire(GiftCodeSourceRegistry $source, ?string $cursor, int $limit): GiftCodeIngestionPage
-            {
-                return new GiftCodeIngestionPage([$this->observation], null);
-            }
-        };
+        $quarantining = new StaticGiftCodeSourceAdapter('quarantining-adapter', $quarantinedObservation, null);
         $runner = new RunApprovedGiftCodeSourceIngestion(
             new GiftCodeSourceAdapterRegistry([$stable, $broken, $quarantining]),
             app(IngestApprovedGiftCodeObservation::class),
@@ -735,5 +795,64 @@ final class GiftCodeBehaviorV3Test extends TestCase
         app(ManagePlatformAdministrator::class)->grant($account->userId);
 
         return app(AccountIdentityQuery::class)->require($account->userId);
+    }
+}
+
+final readonly class ConcurrentTrustChangeRedemptionProvider implements GiftCodeRedemptionProvider
+{
+    public function __construct(private string $giftCodeId) {}
+
+    public function name(): string
+    {
+        return 'concurrency-test';
+    }
+
+    public function begin(GiftCodeReference $giftCode, PlayerReference $player): GiftCodeRedemptionOutcome
+    {
+        GiftCode::query()->whereKey($this->giftCodeId)->update([
+            'status' => GiftCodeStatus::Invalid->value,
+            'status_reason_code' => 'platform_rejected',
+            'status_changed_at' => now(),
+            'status_derived_at' => now(),
+        ]);
+
+        return new GiftCodeRedemptionOutcome(
+            GiftCodeRedemptionStatus::AwaitingConfirmation,
+            'official_handoff',
+            'Continue in the official Gift Code Center.',
+            'https://example.test/gift-center',
+        );
+    }
+}
+
+final readonly class StaticGiftCodeSourceAdapter implements GiftCodeSourceAdapter
+{
+    public function __construct(
+        private string $adapterKey,
+        private GiftCodeIngestionObservation $observation,
+        private ?string $nextCursor,
+    ) {}
+
+    public function key(): string
+    {
+        return $this->adapterKey;
+    }
+
+    public function acquire(GiftCodeSourceRegistry $source, ?string $cursor, int $limit): GiftCodeIngestionPage
+    {
+        return new GiftCodeIngestionPage([$this->observation], $this->nextCursor);
+    }
+}
+
+final class RejectingGiftCodeSourceAdapter implements GiftCodeSourceAdapter
+{
+    public function key(): string
+    {
+        return 'broken-adapter';
+    }
+
+    public function acquire(GiftCodeSourceRegistry $source, ?string $cursor, int $limit): GiftCodeIngestionPage
+    {
+        throw new UnexpectedValueException('The parser rejected an unsupported source format.');
     }
 }

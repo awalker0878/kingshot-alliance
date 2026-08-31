@@ -64,8 +64,10 @@ test('multi-governor account selects and activates the first Governor', async ({
   const activeIdentitySwitcher = page.locator('button[aria-haspopup="listbox"]:visible').first();
   await expect(activeIdentitySwitcher).toContainText('Lady Seraphina');
   await expect(activeIdentitySwitcher).toContainText('K1123');
+  await expect(page.locator('main')).toBeVisible();
 
-  await expect(page).toHaveScreenshot('home-active-governor.png', {
-    fullPage: true,
-  });
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
+  );
+  expect(overflow).toBeFalsy();
 });

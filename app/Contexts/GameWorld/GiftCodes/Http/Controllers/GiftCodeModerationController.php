@@ -165,7 +165,7 @@ final class GiftCodeModerationController extends Controller
     public function storeSource(Request $request, ManageGiftCodeSourceRegistry $sources): RedirectResponse
     {
         $adapterKeys = $this->sourceAdapters->keys();
-        /** @var array{source_key:string,name:string,classification:string,canonical_domain:string,verification_method:string,adapter_key?:string|null,auto_verify:bool,ingestion_enabled:bool} $validated */
+        /** @var array{source_key:string,name:string,classification:string,canonical_domain:string,verification_method:string,adapter_key?:string|null,feed_path?:string|null,auto_verify:bool,ingestion_enabled:bool} $validated */
         $validated = $request->validate([
             'source_key' => ['required', 'string', 'max:120', 'regex:/^[a-z0-9][a-z0-9._-]{2,119}$/'],
             'name' => ['required', 'string', 'max:160'],
@@ -173,6 +173,7 @@ final class GiftCodeModerationController extends Controller
             'canonical_domain' => ['required', 'string', 'max:255'],
             'verification_method' => ['required', 'string', 'max:80'],
             'adapter_key' => ['nullable', 'string', Rule::in($adapterKeys)],
+            'feed_path' => ['nullable', 'required_if:adapter_key,json-feed-v1', 'string', 'max:1024'],
             'auto_verify' => ['required', 'boolean'],
             'ingestion_enabled' => ['required', 'boolean'],
         ]);
@@ -183,7 +184,10 @@ final class GiftCodeModerationController extends Controller
             'canonical_domain' => $validated['canonical_domain'],
             'verification_method' => $validated['verification_method'],
             'adapter_key' => $validated['adapter_key'] ?? null,
-            'provenance_policy' => ['auto_verify' => $validated['auto_verify']],
+            'provenance_policy' => [
+                'auto_verify' => $validated['auto_verify'],
+                'feed_path' => isset($validated['feed_path']) ? trim((string) $validated['feed_path']) : null,
+            ],
             'ingestion_enabled' => $validated['ingestion_enabled'],
         ]);
 
@@ -238,6 +242,7 @@ final class GiftCodeModerationController extends Controller
             $validated['evidence_ids'] ?? [],
             isset($validated['proposed_status']) ? GiftCodeStatus::from((string) $validated['proposed_status']) : null,
             $this->decisionMetadata($validated),
+            (int) $validated['expected_status_revision'],
         );
 
         return back()->with('actionReceipt', $this->receipt('gift-code-moderated', ['decision_id' => $decisionId]));
@@ -245,10 +250,12 @@ final class GiftCodeModerationController extends Controller
 
     public function bulk(Request $request, ModerateGiftCode $moderate): RedirectResponse
     {
-        /** @var array{gift_code_ids: list<string>, action: string, confirmed: bool, reason?: string|null, proposed_status?: string|null, expires_at?: string|null, expiry_precision?: string|null} $validated */
+        /** @var array{gift_code_ids: list<string>, expected_status_revisions?: array<string,int>, action: string, confirmed: bool, reason?: string|null, proposed_status?: string|null, expires_at?: string|null, expiry_precision?: string|null} $validated */
         $validated = $request->validate([
             'gift_code_ids' => ['required', 'array', 'min:1', 'max:50'],
             'gift_code_ids.*' => ['required', 'string', 'ulid', 'distinct'],
+            'expected_status_revisions' => ['nullable', 'array', 'max:50'],
+            'expected_status_revisions.*' => ['required', 'integer', 'min:0'],
             'action' => ['required', Rule::enum(GiftCodeModerationAction::class)],
             'confirmed' => ['required', 'boolean'],
             'reason' => ['nullable', 'required_if:action,reject,quarantine,correct_expiry,resolve_dispute', 'string', 'max:1000'],
@@ -258,19 +265,29 @@ final class GiftCodeModerationController extends Controller
         ]);
 
         if (! $validated['confirmed']) {
-            $existingIds = GiftCode::query()
+            $existing = GiftCode::query()
                 ->whereIn('id', $validated['gift_code_ids'])
-                ->pluck('id')
-                ->map(static fn ($id): string => (string) $id)
-                ->values()
-                ->all();
+                ->get(['id', 'status_revision']);
+            $existingIds = $existing->map(static fn (GiftCode $giftCode): string => (string) $giftCode->id)->all();
 
             return back()->with('giftCodeBulkReviewPreview', [
                 'action' => $validated['action'],
                 'requested' => count($validated['gift_code_ids']),
                 'eligible' => count($existingIds),
                 'giftCodeIds' => $existingIds,
+                'statusRevisions' => $existing->mapWithKeys(static fn (GiftCode $giftCode): array => [
+                    (string) $giftCode->id => $giftCode->status_revision,
+                ])->all(),
             ]);
+        }
+
+        $expectedRevisions = $validated['expected_status_revisions'] ?? [];
+        foreach ($validated['gift_code_ids'] as $giftCodeId) {
+            if (! array_key_exists($giftCodeId, $expectedRevisions)) {
+                throw ValidationException::withMessages([
+                    'expected_status_revisions' => 'Refresh the bulk preview before confirming these decisions.',
+                ]);
+            }
         }
 
         $actor = $this->account($request);
@@ -285,6 +302,7 @@ final class GiftCodeModerationController extends Controller
                     [],
                     isset($validated['proposed_status']) ? GiftCodeStatus::from((string) $validated['proposed_status']) : null,
                     $this->decisionMetadata($validated),
+                    (int) $expectedRevisions[$giftCodeId],
                 );
                 $results[] = ['giftCodeId' => $giftCodeId, 'outcome' => 'succeeded', 'decisionId' => $decisionId];
             } catch (Throwable $exception) {
@@ -364,6 +382,7 @@ final class GiftCodeModerationController extends Controller
             'proposed_status' => ['nullable', Rule::enum(GiftCodeStatus::class)],
             'expires_at' => ['nullable', 'date'],
             'expiry_precision' => ['nullable', 'in:instant,minute,hour,day'],
+            'expected_status_revision' => ['required', 'integer', 'min:0'],
         ]);
     }
 

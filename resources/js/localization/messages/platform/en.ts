@@ -64,6 +64,8 @@ const messages = {
     canonicalDomain: 'Canonical domain',
     verificationMethod: 'Verification method',
     adapter: 'Installed ingestion adapter',
+    feedPath: 'HTTPS JSON feed path',
+    feedPathExample: '/gift-codes.json',
     autoVerify: 'Automatically verify observations that pass source policy',
     enableIngestion: 'Enable scheduled ingestion',
     saveSourcePolicy: 'Save source policy',

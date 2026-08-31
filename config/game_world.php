@@ -14,6 +14,8 @@ return [
         'fanout_batch_size' => (int) env('GIFT_CODES_FANOUT_BATCH_SIZE', 200),
         'catalog_page_size' => (int) env('GIFT_CODES_CATALOG_PAGE_SIZE', 25),
         'ingestion_batch_size' => (int) env('GIFT_CODES_INGESTION_BATCH_SIZE', 100),
+        'ingestion_timeout_seconds' => (int) env('GIFT_CODES_INGESTION_TIMEOUT_SECONDS', 10),
+        'transition_campaigns_per_run' => (int) env('GIFT_CODES_TRANSITION_CAMPAIGNS_PER_RUN', 10),
         'max_governors_per_account' => (int) env('GIFT_CODES_MAX_GOVERNORS_PER_ACCOUNT', 50),
     ],
 ];

@@ -29,7 +29,7 @@ final class ScreenshotIntakeVisualFixture
 {
     public static function seed(): void
     {
-        CarbonImmutable::setTestNow(CarbonImmutable::parse('2026-08-23 02:00:00', 'UTC'));
+        $fixtureTimestamp = CarbonImmutable::parse('2026-08-23 02:00:00', 'UTC');
 
         $user = User::factory()->create([
             'name' => 'Screenshot Visual',
@@ -60,7 +60,7 @@ final class ScreenshotIntakeVisualFixture
             configurationId: (string) $configuration->id,
             scope: EventScope::Alliance,
             targetId: $allianceId,
-            firstLocalStart: CarbonImmutable::parse('2026-08-23 13:00:00', 'UTC'),
+            firstLocalStart: now('UTC')->addHours(11)->startOfMinute()->toImmutable(),
             title: 'Bear Hunt · Visual Review',
             durationMinutes: 30,
         );
@@ -91,8 +91,12 @@ final class ScreenshotIntakeVisualFixture
             'sha256' => $sha256,
             'perceptual_hash' => '0f0f0f0f0f0f0f0f',
             'uploaded_by_player_id' => $player->id,
-            'scanned_at' => now(),
+            'scanned_at' => $fixtureTimestamp,
         ]);
+        $evidence->forceFill([
+            'created_at' => $fixtureTimestamp,
+            'updated_at' => $fixtureTimestamp,
+        ])->save();
         $classification = EvidenceClassificationAttempt::query()->create([
             'evidence_id' => $evidence->id,
             'status' => EvidenceAttemptStatus::Completed,
@@ -105,8 +109,8 @@ final class ScreenshotIntakeVisualFixture
             'classified_kind' => EvidenceKind::BearHuntBattleReport,
             'confidence' => 0.96,
             'reason' => 'Fixture contains the Bear Hunt battle record and ranking markers.',
-            'started_at' => now(),
-            'completed_at' => now(),
+            'started_at' => $fixtureTimestamp,
+            'completed_at' => $fixtureTimestamp,
         ]);
         $extraction = EvidenceExtractionAttempt::query()->create([
             'evidence_id' => $evidence->id,
@@ -118,8 +122,8 @@ final class ScreenshotIntakeVisualFixture
             'input_sha256' => $sha256,
             'overall_confidence' => 0.89,
             'field_count' => 5,
-            'started_at' => now(),
-            'completed_at' => now(),
+            'started_at' => $fixtureTimestamp,
+            'completed_at' => $fixtureTimestamp,
         ]);
         $name = EvidenceExtractedField::query()->create([
             'extraction_attempt_id' => $extraction->id,
@@ -160,7 +164,7 @@ final class ScreenshotIntakeVisualFixture
             'report_timestamp_text' => '2026-08-22 13:05:23',
             'semantic_fingerprint' => hash('sha256', 'screenshot-visual-review'),
             'reviewed_by_player_id' => $player->id,
-            'reviewed_at' => now(),
+            'reviewed_at' => $fixtureTimestamp,
         ]);
         EvidenceReviewRow::query()->create([
             'review_id' => $review->id,

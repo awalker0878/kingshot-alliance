@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Contexts\GameWorld\GiftCodes\Actions;
 
 use App\Contexts\Accounts\Identity\ValueObjects\AccountIdentity;
+use App\Contexts\GameWorld\GiftCodes\Adapters\JsonFeedGiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeSourceReconciliationJob;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeSourceRegistry;
 use App\Contexts\GameWorld\GiftCodes\Services\GiftCodeSourceAdapterRegistry;
@@ -51,6 +52,29 @@ final readonly class ManageGiftCodeSourceRegistry
         if ($ingestionEnabled && $this->adapters->find($adapterKey) === null) {
             throw ValidationException::withMessages(['adapter_key' => 'Enabled ingestion requires an installed source adapter.']);
         }
+        $policy = $attributes['provenance_policy'] ?? null;
+        if ($adapterKey === JsonFeedGiftCodeSourceAdapter::KEY) {
+            if (filter_var($domain, FILTER_VALIDATE_IP) !== false || $domain === 'localhost') {
+                throw ValidationException::withMessages([
+                    'canonical_domain' => 'The JSON feed adapter requires a public canonical hostname.',
+                ]);
+            }
+            $feedPath = is_array($policy) && is_string($policy['feed_path'] ?? null)
+                ? trim($policy['feed_path'])
+                : '';
+            $parts = $feedPath === '' ? false : parse_url($feedPath);
+            if ($feedPath === ''
+                || ! str_starts_with($feedPath, '/')
+                || str_starts_with($feedPath, '//')
+                || $parts === false
+                || ($parts['path'] ?? null) !== $feedPath
+                || str_contains('/'.$feedPath.'/', '/../')
+                || str_contains('/'.$feedPath.'/', '/./')) {
+                throw ValidationException::withMessages([
+                    'feed_path' => 'The JSON feed adapter requires an absolute path without a host, query, fragment, or traversal segment.',
+                ]);
+            }
+        }
 
         return DB::transaction(function () use (
             $actor,
@@ -60,6 +84,7 @@ final readonly class ManageGiftCodeSourceRegistry
             $classification,
             $adapterKey,
             $ingestionEnabled,
+            $policy,
         ): string {
             $source = GiftCodeSourceRegistry::query()->where('source_key', $sourceKey)->lockForUpdate()->first();
             $existing = $source instanceof GiftCodeSourceRegistry;
@@ -71,7 +96,7 @@ final readonly class ManageGiftCodeSourceRegistry
                 'is_active' => true,
                 'verification_method' => trim($attributes['verification_method']),
                 'adapter_key' => $adapterKey,
-                'provenance_policy' => $attributes['provenance_policy'] ?? null,
+                'provenance_policy' => $policy,
                 'ingestion_enabled' => $ingestionEnabled,
                 'revoked_at' => null,
                 'created_by_user_id' => $source->created_by_user_id ?? $actor->userId,

@@ -11,6 +11,7 @@ Use:
 - [Observability](observability.md)
 - [Event Command readiness and closeout](event-command-readiness-closeout.md)
 - [Alliance Assistant](alliance-assistant.md)
+- [Gift Codes](gift-codes.md)
 - [Background processing](background-processing.md)
 - [Deployment](deployment/README.md)
 - [Runbooks](runbooks/README.md)

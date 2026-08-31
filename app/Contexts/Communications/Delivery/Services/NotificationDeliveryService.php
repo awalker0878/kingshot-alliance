@@ -135,6 +135,66 @@ final class NotificationDeliveryService
         );
     }
 
+    /**
+     * Queue one account-wide delivery per enabled channel while evaluating the
+     * preferences and endpoints of every eligible Governor. In-app deliveries
+     * remain visible across Governor switches; external deliveries retain the
+     * first eligible Governor that can route the selected channel.
+     *
+     * @param  non-empty-list<string>  $eligiblePlayerIds
+     * @param  array<string, mixed>  $metadata
+     */
+    public function queueEnabledAccountChannelBatch(
+        string $notificationType,
+        int $recipientUserId,
+        array $eligiblePlayerIds,
+        DateTimeInterface $dueAt,
+        string $idempotencyKey,
+        ?string $subjectType = null,
+        ?string $subjectId = null,
+        array $metadata = [],
+        int $maxAttempts = 5,
+    ): QueuedDeliveryBatch {
+        /** @var array<string, string> $channelRoutes */
+        $channelRoutes = [];
+        foreach (array_values(array_unique($eligiblePlayerIds)) as $playerId) {
+            foreach ($this->enabledChannels($recipientUserId, $playerId, $notificationType) as $channel) {
+                $channelRoutes[$channel->value] ??= $playerId;
+            }
+        }
+
+        $deliveries = [];
+        foreach ($channelRoutes as $channel => $routePlayerId) {
+            $deliveries[] = $this->queue(
+                notificationType: $notificationType,
+                recipientUserId: $recipientUserId,
+                playerId: $channel === DeliveryChannel::InApp->value ? null : $routePlayerId,
+                channel: $channel,
+                dueAt: $dueAt,
+                idempotencyKey: hash('sha256', $idempotencyKey.':'.$channel),
+                subjectType: $subjectType,
+                subjectId: $subjectId,
+                metadata: $metadata,
+                maxAttempts: $maxAttempts,
+            );
+        }
+
+        return new QueuedDeliveryBatch(
+            array_values(array_map(
+                static fn (NotificationDelivery $delivery): string => (string) $delivery->id,
+                $deliveries,
+            )),
+            array_keys($channelRoutes),
+            array_values(array_map(
+                static fn (NotificationDelivery $delivery): string => (string) $delivery->id,
+                array_filter(
+                    $deliveries,
+                    static fn (NotificationDelivery $delivery): bool => $delivery->wasRecentlyCreated,
+                ),
+            )),
+        );
+    }
+
     /** @return list<DeliveryChannel> */
     public function enabledChannels(int $recipientUserId, ?string $playerId, string $notificationType): array
     {

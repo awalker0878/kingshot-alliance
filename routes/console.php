@@ -311,7 +311,18 @@ Artisan::command('gift-codes:maintain {--limit=100} {--after=} {--cycle}', funct
         : (is_string($storedCursor) && $storedCursor !== '' ? $storedCursor : null);
     $expired = $expire->handle($limit);
     $expiry = $expiryNotifications->handle($limit, $after);
-    $transitions = $transitionNotifications->handle($limit);
+    $transitionRuns = [];
+    $transitionCampaignLimit = max(1, min(
+        50,
+        (int) config('game_world.gift_codes.transition_campaigns_per_run', 10),
+    ));
+    for ($campaign = 0; $campaign < $transitionCampaignLimit; $campaign++) {
+        $transition = $transitionNotifications->handle($limit);
+        if ($transition->examined === 0 && $transition->skipped === 0) {
+            break;
+        }
+        $transitionRuns[] = $transition->toArray();
+    }
     if ($cycle) {
         if ($expiry->nextCursor === null) {
             Cache::forget($cursorKey);
@@ -322,7 +333,10 @@ Artisan::command('gift-codes:maintain {--limit=100} {--after=} {--cycle}', funct
     $this->line(json_encode([
         'expired' => $expired,
         'expiryNotifications' => $expiry->toArray(),
-        'transitionNotifications' => $transitions->toArray(),
+        'transitionNotifications' => [
+            'campaignsProcessed' => count($transitionRuns),
+            'runs' => $transitionRuns,
+        ],
     ], JSON_THROW_ON_ERROR));
 
     return 0;
@@ -410,7 +424,7 @@ Schedule::command('notifications:queue-officer-briefs --group=daily --limit=1000
 Schedule::command('notifications:queue-officer-briefs --group=event --limit=1000 --cycle')->everyFifteenMinutes()->onOneServer()->withoutOverlapping(10);
 Schedule::command('notifications:queue-intelligence-changes --limit=1000 --cycle')->everyFifteenMinutes()->onOneServer()->withoutOverlapping(10);
 Schedule::command('notifications:deliver --limit=100')->everyMinute()->onOneServer()->withoutOverlapping(10);
-Schedule::command('gift-codes:maintain --limit=500 --cycle')->hourly()->onOneServer()->withoutOverlapping(30);
+Schedule::command('gift-codes:maintain --limit=500 --cycle')->everyFifteenMinutes()->onOneServer()->withoutOverlapping(30);
 Schedule::command('gift-codes:ingest-approved-sources --limit=25 --cycle')->everyFifteenMinutes()->onOneServer()->withoutOverlapping(30);
 Schedule::command('gift-codes:reconcile-source-policies --limit=500')->everyFiveMinutes()->onOneServer()->withoutOverlapping(30);
 Schedule::command('contributions:queue-reports --limit=50')->everyMinute()->onOneServer()->withoutOverlapping(10);
