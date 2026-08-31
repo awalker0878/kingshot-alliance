@@ -32,3 +32,9 @@ Never commit application keys, database/Redis credentials, API tokens, webhook s
 ## Configuration changes
 
 A new environment variable is supported only when application configuration actually consumes it. Update example configuration, validation, operational documentation and recovery implications together when introducing a material runtime dependency.
+
+## Gift Code rollout
+
+Gift Code moderation, approved-source ingestion, and notification fan-out are separate rollback controls. Hosted launch configuration enables all three explicitly; production readiness reports disabled flags and missing/unavailable source adapters. Batch, timeout, catalogue, Governor, and transition-campaign bounds are defined in `.env.example` and `deploy/staging.env.example`.
+
+See [Gift Code operations](gift-codes.md) for source-feed configuration, commands, health checks, replay, and rollback.

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\GiftCodes\Providers;
 
+use App\Contexts\GameWorld\GiftCodes\Adapters\JsonFeedGiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Contracts\GiftCodeRedemptionProvider;
 use App\Contexts\GameWorld\GiftCodes\Services\GiftCodeSourceAdapterRegistry;
 use App\Contexts\GameWorld\GiftCodes\Services\OfficialGiftCodeHandoff;
@@ -13,6 +14,8 @@ final class GiftCodesServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        $this->app->singleton(JsonFeedGiftCodeSourceAdapter::class);
+        $this->app->tag([JsonFeedGiftCodeSourceAdapter::class], 'gift-code-source-adapter');
         $this->app->singleton(
             GiftCodeSourceAdapterRegistry::class,
             fn (): GiftCodeSourceAdapterRegistry => new GiftCodeSourceAdapterRegistry(

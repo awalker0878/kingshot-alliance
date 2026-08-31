@@ -40,6 +40,7 @@ final readonly class ModerateGiftCode
         array $evidenceIds = [],
         ?GiftCodeStatus $proposedStatus = null,
         array $metadata = [],
+        ?int $expectedStatusRevision = null,
     ): string {
         $this->authorize($actor);
         abort_unless((bool) config('game_world.gift_codes.moderation', false), 404);
@@ -63,8 +64,14 @@ final readonly class ModerateGiftCode
             $evidenceIds,
             $proposedStatus,
             $metadata,
+            $expectedStatusRevision,
         ): string {
             $giftCode = GiftCode::query()->whereKey($giftCodeId)->lockForUpdate()->firstOrFail();
+            if ($expectedStatusRevision !== null && $giftCode->status_revision !== $expectedStatusRevision) {
+                throw ValidationException::withMessages([
+                    'expected_status_revision' => 'Gift Code trust changed after this review loaded. Refresh and review the latest evidence before deciding.',
+                ]);
+            }
             $evidenceIds = array_values(array_unique(array_map('strval', $evidenceIds)));
             if ($evidenceIds !== []) {
                 $matched = GiftCodeProvenance::query()

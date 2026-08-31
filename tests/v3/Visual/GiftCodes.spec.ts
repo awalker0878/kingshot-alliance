@@ -20,6 +20,14 @@ async function loginWithGovernor(page: Page): Promise<void> {
   }
 }
 
+async function loginForModeration(page: Page): Promise<void> {
+  await page.goto('/login');
+  await page.locator('#email').fill('gift-code-moderation-visual@example.test');
+  await page.locator('#password').fill('password');
+  await page.locator('button[type="submit"]').click();
+  await page.waitForURL('**/dashboard');
+}
+
 test('Gift Code catalogue and guided Governor handoff work without desktop or mobile overflow', async ({
   page,
 }, testInfo) => {
@@ -79,4 +87,27 @@ test('Gift Code catalogue and guided Governor handoff work without desktop or mo
         }).length,
     );
   expect(unnamedControls, 'Every visible Gift Code control needs an accessible name').toBe(0);
+});
+
+test('Gift Code moderation exposes governed queues and installed source adapters', async ({ page }) => {
+  await loginForModeration(page);
+  await page.goto('/platform/gift-codes');
+  if (/confirm-password/.test(page.url())) {
+    await page.locator('#password').fill('password');
+    await page.locator('button[type="submit"]').click();
+    await page.waitForURL('**/platform/gift-codes');
+  }
+  await page.waitForLoadState('networkidle');
+
+  await expect(page.getByRole('heading', { name: 'Gift Code review', level: 1 })).toBeVisible();
+  await expect(page.getByRole('navigation', { name: 'Gift Code review queues' })).toBeVisible();
+  const adapter = page.getByLabel('Installed ingestion adapter');
+  await expect(adapter.getByRole('option', { name: 'json-feed-v1' })).toHaveCount(1);
+  await adapter.selectOption('json-feed-v1');
+  await expect(page.getByLabel('HTTPS JSON feed path')).toBeVisible();
+
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
+  );
+  expect(overflow).toBeFalsy();
 });

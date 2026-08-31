@@ -99,6 +99,7 @@ const props = defineProps<{
     requested: number;
     eligible: number;
     giftCodeIds: string[];
+    statusRevisions: Record<string, number>;
   } | null;
   bulkResult: { action: string; succeeded: number; failed: number } | null;
   ingestionHealth: IngestionSource[];
@@ -116,9 +117,11 @@ const decision = useForm({
   proposed_status: 'valid',
   expires_at: '',
   expiry_precision: 'day',
+  expected_status_revision: 0,
 });
 const bulk = useForm({
   gift_code_ids: [] as string[],
+  expected_status_revisions: {} as Record<string, number>,
   action: 'verify',
   confirmed: false,
   reason: '',
@@ -133,6 +136,7 @@ const sourcePolicy = useForm({
   canonical_domain: '',
   verification_method: 'manual_review',
   adapter_key: '',
+  feed_path: '',
   auto_verify: false,
   ingestion_enabled: false,
 });
@@ -158,6 +162,7 @@ function reviewUrl(options: { queue?: string; giftCode?: string; cursor?: string
 
 function submitDecision(): void {
   if (!props.selected) return;
+  decision.expected_status_revision = props.selected.statusRevision;
   decision.post(`/platform/gift-codes/${props.selected.id}`, { preserveScroll: true });
 }
 
@@ -170,6 +175,7 @@ function previewBulk(): void {
 function confirmBulk(): void {
   if (!props.bulkPreview) return;
   bulk.gift_code_ids = [...props.bulkPreview.giftCodeIds];
+  bulk.expected_status_revisions = { ...props.bulkPreview.statusRevisions };
   bulk.confirmed = true;
   bulk.post('/platform/gift-codes/bulk', {
     preserveScroll: true,
@@ -638,6 +644,17 @@ function revokeCurator(grantId: string): void {
             </option>
           </select>
           <FormError :message="sourcePolicy.errors.adapter_key" />
+        </label>
+        <label v-if="sourcePolicy.adapter_key === 'json-feed-v1'">
+          <span class="ks-kicker">{{ t('platformGiftCodes.feedPath') }}</span>
+          <input
+            v-model="sourcePolicy.feed_path"
+            required
+            maxlength="1024"
+            :placeholder="t('platformGiftCodes.feedPathExample')"
+            class="ks-input mt-2 w-full"
+          />
+          <FormError :message="sourcePolicy.errors.feed_path" />
         </label>
         <label class="flex items-center gap-2 text-sm">
           <input v-model="sourcePolicy.auto_verify" type="checkbox" />

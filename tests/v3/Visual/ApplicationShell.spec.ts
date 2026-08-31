@@ -1,4 +1,10 @@
+import { createHash } from 'node:crypto';
 import { expect, test } from '@playwright/test';
+
+const activeGovernorFingerprints: Record<string, string> = {
+  desktop: '484f0bd7e8a95a2089c570e9206f690cfb98d31560030ef8fdbb9b433961cc4c',
+  mobile: 'dea627c03e590e507e37abbc9e7276bd50520a6af7344797fe3e52d9b2ace0fe',
+};
 
 const publicSurfaces = [
   { path: '/', name: 'home' },
@@ -28,7 +34,7 @@ for (const surface of publicSurfaces) {
   });
 }
 
-test('multi-governor account selects and activates the first Governor', async ({ page }) => {
+test('multi-governor account selects and activates the first Governor', async ({ page }, testInfo) => {
   await page.goto('/login');
   await page.locator('#email').fill('ux-p9-visual@example.test');
   await page.locator('#password').fill('password');
@@ -65,7 +71,13 @@ test('multi-governor account selects and activates the first Governor', async ({
   await expect(activeIdentitySwitcher).toContainText('Lady Seraphina');
   await expect(activeIdentitySwitcher).toContainText('K1123');
 
-  await expect(page).toHaveScreenshot('home-active-governor.png', {
+  const activeGovernorScreenshot = await page.screenshot({
+    animations: 'disabled',
+    caret: 'hide',
     fullPage: true,
+    scale: 'css',
   });
+  expect(createHash('sha256').update(activeGovernorScreenshot).digest('hex')).toBe(
+    activeGovernorFingerprints[testInfo.project.name],
+  );
 });

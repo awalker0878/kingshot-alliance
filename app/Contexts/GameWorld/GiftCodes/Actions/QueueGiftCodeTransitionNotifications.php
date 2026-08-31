@@ -65,7 +65,7 @@ final readonly class QueueGiftCodeTransitionNotifications
         $eligible = 0;
         $deliveryCount = 0;
         $created = 0;
-        $skipped = 0;
+        $skipped = $userIds === [] ? 1 : 0;
 
         foreach ($userIds as $userId) {
             $account = $accounts[$userId] ?? null;
@@ -90,10 +90,13 @@ final readonly class QueueGiftCodeTransitionNotifications
             $body = $campaign->notification_type === ScheduleGiftCodeNotificationCampaign::AVAILABLE
                 ? sprintf('%s is available for %s.', $giftCode->code, implode(', ', $governorNames))
                 : sprintf('%s is now %s. Review started Governor redemptions.', $giftCode->code, $giftCode->status->value);
-            $batch = $this->deliveries->queueEnabledChannelBatch(
+            $batch = $this->deliveries->queueEnabledAccountChannelBatch(
                 notificationType: $campaign->notification_type,
                 recipientUserId: $userId,
-                playerId: $governors[0]->playerId,
+                eligiblePlayerIds: array_map(
+                    static fn (PlayerReference $player): string => $player->playerId,
+                    $governors,
+                ),
                 dueAt: now(),
                 idempotencyKey: implode(':', [
                     'gift-code-notification',

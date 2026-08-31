@@ -6,6 +6,8 @@ namespace App\ReadModels\ProductionLaunch;
 
 use App\Contexts\Alliance\Lifecycle\Enums\AllianceStatus;
 use App\Contexts\Alliance\Lifecycle\Models\Alliance;
+use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeSourceRegistry;
+use App\Contexts\GameWorld\GiftCodes\Services\GiftCodeSourceAdapterRegistry;
 use App\Contexts\Platform\Administration\Models\PlatformAdministrator;
 use App\Contexts\Platform\AllianceAdministration\Models\AlliancePlatformSetting;
 use App\Contexts\Platform\Integrations\Enums\WebhookDeliveryStatus;
@@ -16,7 +18,10 @@ use Illuminate\Support\Facades\DB;
 
 final readonly class ProductionLaunchReadiness
 {
-    public function __construct(private RuntimeConfigurationValidator $configuration) {}
+    public function __construct(
+        private RuntimeConfigurationValidator $configuration,
+        private GiftCodeSourceAdapterRegistry $giftCodeSourceAdapters,
+    ) {}
 
     /**
      * @return list<array{key: string, passed: bool, detail: string}>
@@ -52,6 +57,28 @@ final readonly class ProductionLaunchReadiness
             ->where('status', WebhookDeliveryStatus::Failed->value)
             ->where('updated_at', '>=', now()->subMinutes($webhookFailureWindowMinutes))
             ->count();
+        $giftCodeFlags = [
+            'moderation' => (bool) config('game_world.gift_codes.moderation', false),
+            'approved_source_ingestion' => (bool) config('game_world.gift_codes.approved_source_ingestion', false),
+            'notification_fanout' => (bool) config('game_world.gift_codes.notification_fanout', false),
+        ];
+        $disabledGiftCodeFlags = array_keys(array_filter(
+            $giftCodeFlags,
+            static fn (bool $enabled): bool => ! $enabled,
+        ));
+        $enabledGiftCodeSources = GiftCodeSourceRegistry::query()
+            ->where('is_active', true)
+            ->where('ingestion_enabled', true)
+            ->whereNull('revoked_at')
+            ->get(['source_key', 'adapter_key']);
+        $unavailableGiftCodeSources = $enabledGiftCodeSources
+            ->filter(fn (GiftCodeSourceRegistry $source): bool => $this->giftCodeSourceAdapters->find($source->adapter_key) === null)
+            ->pluck('source_key')
+            ->map(static fn ($key): string => (string) $key)
+            ->values()
+            ->all();
+        $giftCodeIngestionReady = ! $giftCodeFlags['approved_source_ingestion']
+            || ($enabledGiftCodeSources->isNotEmpty() && $unavailableGiftCodeSources === []);
 
         return [
             [
@@ -104,6 +131,23 @@ final readonly class ProductionLaunchReadiness
                     $webhookFailureWindowMinutes,
                     $maximumWebhookFailures,
                 ),
+            ],
+            [
+                'key' => 'gift_code_feature_flags',
+                'passed' => $disabledGiftCodeFlags === [],
+                'detail' => $disabledGiftCodeFlags === []
+                    ? 'Gift Code moderation, approved-source ingestion, and notification fan-out are enabled.'
+                    : 'Disabled Gift Code launch flag(s): '.implode(', ', $disabledGiftCodeFlags).'.',
+            ],
+            [
+                'key' => 'gift_code_ingestion_sources',
+                'passed' => $giftCodeIngestionReady,
+                'detail' => match (true) {
+                    ! $giftCodeFlags['approved_source_ingestion'] => 'Approved-source ingestion is disabled.',
+                    $enabledGiftCodeSources->isEmpty() => 'No active Gift Code source is enabled for scheduled ingestion.',
+                    $unavailableGiftCodeSources !== [] => 'Enabled Gift Code source(s) lack an installed adapter: '.implode(', ', $unavailableGiftCodeSources).'.',
+                    default => sprintf('%d active Gift Code source(s) have installed ingestion adapters.', $enabledGiftCodeSources->count()),
+                },
             ],
         ];
     }

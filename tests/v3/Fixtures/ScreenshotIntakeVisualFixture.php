@@ -21,7 +21,6 @@ use App\Contexts\Intelligence\Evidence\Models\GameEvidence;
 use App\Contexts\Operations\Events\Actions\CreateEvent;
 use App\Contexts\Operations\Events\Enums\EventScope;
 use App\Contexts\Operations\Events\Models\EventTypeScope;
-use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 
@@ -29,8 +28,6 @@ final class ScreenshotIntakeVisualFixture
 {
     public static function seed(): void
     {
-        CarbonImmutable::setTestNow(CarbonImmutable::parse('2026-08-23 02:00:00', 'UTC'));
-
         $user = User::factory()->create([
             'name' => 'Screenshot Visual',
             'email' => 'screenshot-visual@example.test',
@@ -60,7 +57,7 @@ final class ScreenshotIntakeVisualFixture
             configurationId: (string) $configuration->id,
             scope: EventScope::Alliance,
             targetId: $allianceId,
-            firstLocalStart: CarbonImmutable::parse('2026-08-23 13:00:00', 'UTC'),
+            firstLocalStart: now('UTC')->addHours(11)->startOfMinute()->toImmutable(),
             title: 'Bear Hunt · Visual Review',
             durationMinutes: 30,
         );
