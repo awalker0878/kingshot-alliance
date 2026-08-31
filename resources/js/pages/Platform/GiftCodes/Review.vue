@@ -207,9 +207,15 @@ function ingestionSourceHasWarning(source: IngestionSource): boolean {
 }
 
 function ingestionSourceStatus(source: IngestionSource): string {
-  if (source.failureCode) return t('platformGiftCodes.sourceFailed');
+  const latestRun = source.runs[0];
+
+  if (latestRun?.status === 'completed_with_quarantine') {
+    return t('platformGiftCodes.sourceQuarantined');
+  }
+  if (latestRun?.status === 'failed' || source.failureCode) {
+    return t('platformGiftCodes.sourceFailed');
+  }
   if (source.stale) return t('platformGiftCodes.sourceStale');
-  if (ingestionSourceHasWarning(source)) return t('platformGiftCodes.sourceQuarantined');
 
   return t('platformGiftCodes.sourceHealthy');
 }

@@ -570,14 +570,15 @@ final class GiftCodeBehaviorV3Test extends TestCase
 
         $failedSource = $this->source('broken-source', 'broken.example.test', 'broken-adapter');
         $failure = $runner->handle(sourceKey: $failedSource->source_key);
-        self::assertSame(1, $failure->failedSources);
-        self::assertSame(
-            'unsupported_source_format',
-            GiftCodeIngestionRun::query()
-                ->where('gift_code_source_id', $failedSource->id)
-                ->latest('started_at')
-                ->value('failure_code'),
-        );
+        self::assertSame(1, $failure->quarantined);
+        self::assertSame(0, $failure->failedSources);
+        $parserFailureRun = GiftCodeIngestionRun::query()
+            ->where('gift_code_source_id', $failedSource->id)
+            ->latest('started_at')
+            ->firstOrFail();
+        self::assertSame('completed_with_quarantine', $parserFailureRun->status);
+        self::assertSame(1, $parserFailureRun->quarantined_count);
+        self::assertSame('unsupported_source_format', $parserFailureRun->failure_code);
     }
 
     public function test_revoked_source_is_reconciled_without_rewriting_its_evidence(): void

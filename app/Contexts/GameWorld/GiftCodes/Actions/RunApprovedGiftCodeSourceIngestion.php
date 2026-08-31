@@ -118,11 +118,20 @@ final readonly class RunApprovedGiftCodeSourceIngestion
                 $quarantined += $runQuarantined;
             } catch (Throwable $exception) {
                 report($exception);
-                $failedSources++;
                 $failureCode = $this->failureCode($exception);
+                $requiresReview = in_array($failureCode, [
+                    'unsupported_source_format',
+                    'source_policy_rejected',
+                ], true);
+                if ($requiresReview) {
+                    $quarantined++;
+                } else {
+                    $failedSources++;
+                }
                 $message = mb_substr($exception->getMessage(), 0, 2000);
                 $run->forceFill([
-                    'status' => 'failed',
+                    'status' => $requiresReview ? 'completed_with_quarantine' : 'failed',
+                    'quarantined_count' => $requiresReview ? 1 : 0,
                     'failure_code' => $failureCode,
                     'failure_message' => $message,
                     'completed_at' => now(),
@@ -157,6 +166,7 @@ final readonly class RunApprovedGiftCodeSourceIngestion
         return match (true) {
             str_contains($exception->getMessage(), 'No registered adapter') => 'adapter_unavailable',
             $exception instanceof \UnexpectedValueException => 'unsupported_source_format',
+            $exception instanceof ValidationException => 'source_policy_rejected',
             default => 'source_retrieval_failed',
         };
     }
