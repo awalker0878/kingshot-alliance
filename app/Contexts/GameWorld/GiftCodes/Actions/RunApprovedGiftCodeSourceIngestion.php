@@ -11,6 +11,7 @@ use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeIngestionObservation;
 use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeIngestionSweep;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 use Throwable;
 
 final readonly class RunApprovedGiftCodeSourceIngestion
@@ -164,7 +165,7 @@ final readonly class RunApprovedGiftCodeSourceIngestion
     {
         return match (true) {
             $exception instanceof \UnexpectedValueException => 'unsupported_observation_format',
-            $exception instanceof \Illuminate\Validation\ValidationException => 'observation_policy_rejected',
+            $exception instanceof ValidationException => 'observation_policy_rejected',
             default => 'observation_ingestion_failed',
         };
     }
