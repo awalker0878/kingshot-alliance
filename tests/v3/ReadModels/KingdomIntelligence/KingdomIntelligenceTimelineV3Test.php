@@ -58,9 +58,35 @@ final class KingdomIntelligenceTimelineV3Test extends TestCase
         self::assertLessThanOrEqual(200, count($timeline));
         self::assertSame($timeline, collect($timeline)->sort(static function (array $left, array $right): int {
             $date = strcmp((string) $right['observedAt'], (string) $left['observedAt']);
+            if ($date !== 0) {
+                return $date;
+            }
 
-            return $date !== 0 ? $date : strcmp((string) $left['id'], (string) $right['id']);
+            $derived = ((int) $left['derived']) <=> ((int) $right['derived']);
+            if ($derived !== 0) {
+                return $derived;
+            }
+
+            $kind = strcmp((string) $left['kind'], (string) $right['kind']);
+            if ($kind !== 0) {
+                return $kind;
+            }
+
+            $metric = strcmp(
+                (string) ($left['summary']['metric'] ?? ''),
+                (string) ($right['summary']['metric'] ?? ''),
+            );
+
+            return $metric !== 0 ? $metric : strcmp((string) $left['id'], (string) $right['id']);
         })->values()->all());
+        self::assertSame(
+            ['member_count', 'power'],
+            collect($timeline)
+                ->where('kind', 'alliance_metric_changed')
+                ->pluck('summary.metric')
+                ->values()
+                ->all(),
+        );
 
         $newer = collect($timeline)->firstWhere('id', 'observation:'.$newerId);
         self::assertIsArray($newer);

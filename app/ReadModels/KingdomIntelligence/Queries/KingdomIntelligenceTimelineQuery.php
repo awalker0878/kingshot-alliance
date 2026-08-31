@@ -161,8 +161,26 @@ final readonly class KingdomIntelligenceTimelineQuery
 
         usort($items, static function (array $left, array $right): int {
             $date = strcmp((string) $right['observedAt'], (string) $left['observedAt']);
+            if ($date !== 0) {
+                return $date;
+            }
 
-            return $date !== 0 ? $date : strcmp((string) $left['id'], (string) $right['id']);
+            $derived = ((int) $left['derived']) <=> ((int) $right['derived']);
+            if ($derived !== 0) {
+                return $derived;
+            }
+
+            $kind = strcmp((string) $left['kind'], (string) $right['kind']);
+            if ($kind !== 0) {
+                return $kind;
+            }
+
+            $metric = strcmp(
+                (string) ($left['summary']['metric'] ?? ''),
+                (string) ($right['summary']['metric'] ?? ''),
+            );
+
+            return $metric !== 0 ? $metric : strcmp((string) $left['id'], (string) $right['id']);
         });
 
         $projection = array_slice($items, 0, 200);
