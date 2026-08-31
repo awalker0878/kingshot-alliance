@@ -22,8 +22,8 @@ final class GiftCodeVisualFixture
             'timezone' => 'UTC',
         ]);
         $kingdoms = [
-            Kingdom::query()->create(['number' => 1423, 'status' => 'active']),
-            Kingdom::query()->create(['number' => 1498, 'status' => 'active']),
+            Kingdom::query()->create(['number' => 1623, 'status' => 'active']),
+            Kingdom::query()->create(['number' => 1624, 'status' => 'active']),
         ];
         foreach ($kingdoms as $index => $kingdom) {
             Player::query()->create([
