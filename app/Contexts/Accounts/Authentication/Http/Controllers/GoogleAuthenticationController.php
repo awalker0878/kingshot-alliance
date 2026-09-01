@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Laravel\Socialite\AbstractUser;
 use Laravel\Socialite\Facades\Socialite;
 use Throwable;
 
@@ -53,7 +54,7 @@ final class GoogleAuthenticationController extends Controller
         }
 
         $email = Str::lower(trim((string) $googleUser->getEmail()));
-        $rawUser = is_array($googleUser->user) ? $googleUser->user : [];
+        $rawUser = $googleUser instanceof AbstractUser ? $googleUser->getRaw() : [];
         $emailVerified = filter_var(
             $rawUser['email_verified'] ?? $rawUser['verified_email'] ?? false,
             FILTER_VALIDATE_BOOL,
@@ -92,7 +93,7 @@ final class GoogleAuthenticationController extends Controller
             }
 
             $result = $registerAccount->handle(
-                name: $name,
+                name: Str::limit($name, 100, ''),
                 email: $email,
                 password: Str::password(40),
                 timezone: (string) config('app.timezone', 'UTC'),
@@ -121,6 +122,10 @@ final class GoogleAuthenticationController extends Controller
             }
 
             return redirect()->route('dashboard');
+        }
+
+        if ($user->email_verified_at === null) {
+            $user->forceFill(['email_verified_at' => now()])->save();
         }
 
         if ($user->two_factor_confirmed_at !== null && (string) $user->two_factor_secret !== '') {

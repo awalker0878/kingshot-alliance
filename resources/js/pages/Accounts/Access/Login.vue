@@ -79,12 +79,14 @@ function submit(): void {
           d="M12 5.96c1.47 0 2.79.51 3.83 1.5l2.87-2.88A9.63 9.63 0 0 0 12 2 10 10 0 0 0 3.04 7.5l3.35 2.59C7.18 7.72 9.39 5.96 12 5.96Z"
         />
       </svg>
-      Continue with Google
+      {{ t('authExperience.social.continueWithGoogle') }}
     </a>
 
     <div v-if="props.googleAuthEnabled" class="my-6 flex items-center gap-3" aria-hidden="true">
       <span class="h-px flex-1 bg-[var(--ks-border)]" />
-      <span class="text-xs tracking-[0.16em] text-[var(--ks-muted)] uppercase">or</span>
+      <span class="text-xs tracking-[0.16em] text-[var(--ks-muted)] uppercase">{{
+        t('authExperience.social.or')
+      }}</span>
       <span class="h-px flex-1 bg-[var(--ks-border)]" />
     </div>
 

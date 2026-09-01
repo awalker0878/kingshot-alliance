@@ -31,7 +31,7 @@ final class GoogleAuthenticationV3Test extends TestCase
     {
         $user = User::factory()->create([
             'email' => 'member@example.test',
-            'email_verified_at' => now(),
+            'email_verified_at' => null,
         ]);
 
         $this->fakeGoogleUser('member@example.test', true, 'Existing Member');
@@ -40,6 +40,7 @@ final class GoogleAuthenticationV3Test extends TestCase
 
         $response->assertRedirect(route('dashboard'));
         $this->assertAuthenticatedAs($user);
+        self::assertNotNull($user->refresh()->email_verified_at);
     }
 
     public function test_verified_google_email_creates_verified_account_when_registration_is_open(): void
@@ -82,12 +83,18 @@ final class GoogleAuthenticationV3Test extends TestCase
 
     private function fakeGoogleUser(string $email, bool $verified, string $name): void
     {
-        $socialiteUser = (new SocialiteUser)->map([
-            'id' => 'google-subject-id',
-            'name' => $name,
-            'email' => $email,
-            'email_verified' => $verified,
-        ]);
+        $socialiteUser = (new SocialiteUser)
+            ->setRaw([
+                'sub' => 'google-subject-id',
+                'name' => $name,
+                'email' => $email,
+                'email_verified' => $verified,
+            ])
+            ->map([
+                'id' => 'google-subject-id',
+                'name' => $name,
+                'email' => $email,
+            ]);
 
         $provider = Mockery::mock(Provider::class);
         $provider->shouldReceive('user')->once()->andReturn($socialiteUser);

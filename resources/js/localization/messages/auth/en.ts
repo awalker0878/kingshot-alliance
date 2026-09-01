@@ -45,6 +45,10 @@ const messages = {
     },
   },
   authExperience: {
+    social: {
+      continueWithGoogle: 'Continue with Google',
+      or: 'or',
+    },
     shell: {
       headline: 'Built for Alliance leadership.',
       intro:
