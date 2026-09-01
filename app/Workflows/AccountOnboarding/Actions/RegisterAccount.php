@@ -28,6 +28,7 @@ final readonly class RegisterAccount
         string $timezone,
         ?string $invitationToken,
         bool $emailVerified = false,
+        bool $passwordAuthenticationEnabled = true,
     ): RegistrationResult {
         $invitation = $invitationToken === null
             ? null
@@ -54,6 +55,7 @@ final readonly class RegisterAccount
             password: $password,
             timezone: $timezone,
             emailVerified: $emailVerified,
+            passwordAuthenticationEnabled: $passwordAuthenticationEnabled,
         );
 
         if ($invitation === null || $invitationToken === null) {
