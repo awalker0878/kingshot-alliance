@@ -129,10 +129,16 @@ final class BearHuntDebriefVisualFixture
         EventOccurrence::query()->whereKey($current->firstOccurrenceId)->update([
             'status' => EventOccurrenceStatus::Completed->value,
         ]);
+
+        $fixtureNow = CarbonImmutable::getTestNow();
+        CarbonImmutable::setTestNow();
+        $nextStart = CarbonImmutable::now('UTC')->addDays(2)->startOfHour();
+        CarbonImmutable::setTestNow($fixtureNow);
+
         EventOccurrence::query()->create([
             'event_id' => $current->eventId,
-            'starts_at' => CarbonImmutable::now('UTC')->addDays(2)->startOfHour(),
-            'ends_at' => CarbonImmutable::now('UTC')->addDays(2)->startOfHour()->addMinutes(30),
+            'starts_at' => $nextStart,
+            'ends_at' => $nextStart->addMinutes(30),
             'status' => EventOccurrenceStatus::Scheduled,
             'settings' => [],
         ]);
