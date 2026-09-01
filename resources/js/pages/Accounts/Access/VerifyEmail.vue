@@ -45,7 +45,13 @@ onBeforeUnmount(() => {
       class="mx-auto grid h-16 w-16 place-items-center rounded-full border border-[var(--ks-gold-dark)] bg-[var(--ks-gold-soft)] text-[var(--ks-gold-bright)]"
       aria-hidden="true"
     >
-      <svg viewBox="0 0 24 24" class="h-7 w-7" fill="none" stroke="currentColor" stroke-width="1.8">
+      <svg
+        viewBox="0 0 24 24"
+        class="h-7 w-7"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+      >
         <path d="M3.75 6.75h16.5v10.5H3.75z" />
         <path d="m4.5 7.5 7.5 5.25 7.5-5.25" />
       </svg>
@@ -58,7 +64,9 @@ onBeforeUnmount(() => {
       {{ t('authExperience.verification.description') }}
     </p>
 
-    <div class="mt-5 rounded-[var(--ks-radius-md)] border border-white/10 bg-black/20 px-4 py-3 text-center">
+    <div
+      class="mt-5 rounded-[var(--ks-radius-md)] border border-white/10 bg-black/20 px-4 py-3 text-center"
+    >
       <span class="break-all text-sm font-semibold text-[var(--ks-ivory)]">{{ props.email }}</span>
     </div>
 
@@ -75,11 +83,18 @@ onBeforeUnmount(() => {
       {{ t('authExperience.verification.sent') }}
     </p>
 
-    <div class="mt-5 rounded-[var(--ks-radius-md)] border border-white/10 bg-white/[.025] p-4 text-xs leading-5 text-[var(--ks-text-muted)]">
+    <div
+      class="mt-5 rounded-[var(--ks-radius-md)] border border-white/10 bg-white/[.025] p-4 text-xs leading-5 text-[var(--ks-text-muted)]"
+    >
       {{ t('authExperience.verification.securityNote') }}
     </div>
 
-    <AppButton class="mt-7 w-full" type="button" :disabled="resendSeconds > 0" @click="resend">
+    <AppButton
+      class="mt-7 w-full"
+      type="button"
+      :disabled="resendSeconds > 0"
+      @click="resend"
+    >
       {{
         resendSeconds > 0
           ? t('authExperience.verification.resendIn', { seconds: resendSeconds })

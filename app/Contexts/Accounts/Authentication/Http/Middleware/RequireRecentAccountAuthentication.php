@@ -18,7 +18,7 @@ final class RequireRecentAccountAuthentication
         abort_unless($user instanceof User, 401);
 
         $timeout = max(1, (int) config('auth.password_timeout', 10800));
-        $threshold = now()->timestamp - $timeout;
+        $threshold = (int) now()->timestamp - $timeout;
 
         if ($user->authentication_type === AuthenticationType::Password) {
             $confirmedAt = (int) $request->session()->get('auth.password_confirmed_at', 0);

@@ -30,9 +30,11 @@ final class ConfirmPasswordController extends Controller
         ]);
 
         $user = $request->user();
-        abort_unless($user instanceof User, 401);
+        abort_unless($user instanceof User && $user->supportsPasswordAuthentication(), 403);
 
-        if (! Hash::check((string) $validated['password'], $user->password)) {
+        $passwordHash = $user->getAuthPassword();
+
+        if (! is_string($passwordHash) || $passwordHash === '' || ! Hash::check((string) $validated['password'], $passwordHash)) {
             throw ValidationException::withMessages([
                 'password' => 'The provided password is incorrect.',
             ]);

@@ -17,10 +17,26 @@ const form = useForm({
 });
 
 const passwordRules = computed(() => [
-  { key: 'length', met: form.password.length >= 12, label: t('authExperience.password.requirementLength') },
-  { key: 'upper', met: /[A-Z]/.test(form.password), label: t('authExperience.password.requirementUpper') },
-  { key: 'lower', met: /[a-z]/.test(form.password), label: t('authExperience.password.requirementLower') },
-  { key: 'number', met: /\d/.test(form.password), label: t('authExperience.password.requirementNumber') },
+  {
+    key: 'length',
+    met: form.password.length >= 12,
+    label: t('authExperience.password.requirementLength'),
+  },
+  {
+    key: 'upper',
+    met: /[A-Z]/.test(form.password),
+    label: t('authExperience.password.requirementUpper'),
+  },
+  {
+    key: 'lower',
+    met: /[a-z]/.test(form.password),
+    label: t('authExperience.password.requirementLower'),
+  },
+  {
+    key: 'number',
+    met: /\d/.test(form.password),
+    label: t('authExperience.password.requirementNumber'),
+  },
 ]);
 
 function submit(): void {
@@ -46,7 +62,9 @@ function submit(): void {
       <p class="text-xs font-semibold uppercase tracking-[.14em] text-[var(--ks-text-muted)]">
         {{ t('authExperience.password.accountEmail') }}
       </p>
-      <p class="mt-1 break-all text-sm font-semibold text-[var(--ks-ivory)]">{{ props.email }}</p>
+      <p class="mt-1 break-all text-sm font-semibold text-[var(--ks-ivory)]">
+        {{ props.email }}
+      </p>
     </div>
 
     <p
@@ -60,9 +78,9 @@ function submit(): void {
     <form class="mt-7 space-y-5" @submit.prevent="submit">
       <div>
         <div class="flex items-center justify-between gap-3">
-          <label class="block text-sm font-semibold" for="password">{{
-            t('authExperience.password.newPassword')
-          }}</label>
+          <label class="block text-sm font-semibold" for="password">
+            {{ t('authExperience.password.newPassword') }}
+          </label>
           <button
             class="text-xs font-semibold text-[var(--ks-gold-bright)] hover:text-[var(--ks-ivory)]"
             type="button"
@@ -94,18 +112,27 @@ function submit(): void {
         </p>
         <ul class="mt-3 grid gap-2 text-sm" aria-live="polite">
           <li v-for="rule in passwordRules" :key="rule.key" class="flex items-center gap-2">
-            <span aria-hidden="true" :class="rule.met ? 'text-emerald-300' : 'text-[var(--ks-text-muted)]'">
+            <span
+              aria-hidden="true"
+              :class="rule.met ? 'text-emerald-300' : 'text-[var(--ks-text-muted)]'"
+            >
               {{ rule.met ? '✓' : '•' }}
             </span>
-            <span :class="rule.met ? 'text-[var(--ks-ivory)]' : 'text-[var(--ks-text-secondary)]'">{{ rule.label }}</span>
+            <span
+              :class="
+                rule.met ? 'text-[var(--ks-ivory)]' : 'text-[var(--ks-text-secondary)]'
+              "
+            >
+              {{ rule.label }}
+            </span>
           </li>
         </ul>
       </div>
 
       <div>
-        <label class="block text-sm font-semibold" for="password_confirmation">{{
-          t('authExperience.password.confirmNewPassword')
-        }}</label>
+        <label class="block text-sm font-semibold" for="password_confirmation">
+          {{ t('authExperience.password.confirmNewPassword') }}
+        </label>
         <input
           id="password_confirmation"
           v-model="form.password_confirmation"
