@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Accounts\Credentials\Http\Controllers;
 
+use App\Contexts\Accounts\Identity\Models\User;
 use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -27,9 +28,12 @@ final class ForgotPasswordController extends Controller
             'email' => ['required', 'email:rfc', 'max:255'],
         ]);
 
-        Password::sendResetLink([
-            'email' => Str::lower(trim((string) $validated['email'])),
-        ]);
+        $email = Str::lower(trim((string) $validated['email']));
+        $user = User::query()->where('email', $email)->first();
+
+        if ($user?->supportsPasswordAuthentication()) {
+            Password::sendResetLink(['email' => $email]);
+        }
 
         return back()->with(
             'status',
