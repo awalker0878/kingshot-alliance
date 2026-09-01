@@ -32,9 +32,7 @@ final class GoogleAuthenticationController extends Controller
             $request->session()->put('accounts.google_invitation_token', $invitationToken);
         }
 
-        return Socialite::driver('google')
-            ->scopes(['openid', 'email', 'profile'])
-            ->redirect();
+        return Socialite::driver('google')->redirect();
     }
 
     public function callback(
