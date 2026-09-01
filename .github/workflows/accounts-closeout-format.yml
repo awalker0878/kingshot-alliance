@@ -25,7 +25,7 @@ jobs:
           fetch-depth: 0
 
       - name: Configure PHP
-        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
+        uses: shivammathur/setup-php@f3e473d116dccc5834248c87452386958240 # v2.37.2
         with:
           php-version: '8.5'
           coverage: none
@@ -52,10 +52,12 @@ jobs:
           fi
 
           mapfile -t frontend_files < <(git diff --name-only --diff-filter=ACM "$base"...HEAD -- 'resources/**/*.vue' 'resources/**/*.ts' 'resources/**/*.js')
-          if [ "${#frontend_files[@]}" -gt 0 ]; then
-            npx eslint --fix "${frontend_files[@]}" || true
-            npx prettier --write "${frontend_files[@]}"
-          fi
+          frontend_files+=(
+            "resources/js/pages/Accounts/Access/ResetPassword.vue"
+            "resources/js/pages/Accounts/Access/VerifyEmail.vue"
+          )
+          npx eslint --fix "${frontend_files[@]}" || true
+          npx prettier --write "${frontend_files[@]}"
 
           git diff --check
 

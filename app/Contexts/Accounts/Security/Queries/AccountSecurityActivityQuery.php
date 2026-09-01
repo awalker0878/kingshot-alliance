@@ -6,13 +6,14 @@ namespace App\Contexts\Accounts\Security\Queries;
 
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Shared\Infrastructure\AuditTrail\Models\AuditEvent;
+use Illuminate\Support\Carbon;
 
 final class AccountSecurityActivityQuery
 {
     /** @return list<array{id:string,event:string,labelKey:string,occurredAt:string}> */
     public function forUser(int $userId, int $limit = 25): array
     {
-        return AuditEvent::query()
+        $events = AuditEvent::query()
             ->where(static function ($query) use ($userId): void {
                 $query->where('actor_user_id', $userId)
                     ->orWhere(static function ($subjectQuery) use ($userId): void {
@@ -27,15 +28,20 @@ final class AccountSecurityActivityQuery
             })
             ->latest('created_at')
             ->limit(max(1, min(100, $limit)))
-            ->get()
-            ->map(fn (AuditEvent $event): array => [
+            ->get();
+
+        $activity = [];
+        foreach ($events as $event) {
+            $eventName = (string) $event->event;
+            $activity[] = [
                 'id' => (string) $event->id,
-                'event' => (string) $event->event,
-                'labelKey' => $this->labelKey((string) $event->event),
-                'occurredAt' => $event->created_at->toIso8601String(),
-            ])
-            ->values()
-            ->all();
+                'event' => $eventName,
+                'labelKey' => $this->labelKey($eventName),
+                'occurredAt' => Carbon::parse((string) $event->getRawOriginal('created_at'))->toIso8601String(),
+            ];
+        }
+
+        return $activity;
     }
 
     private function labelKey(string $event): string
