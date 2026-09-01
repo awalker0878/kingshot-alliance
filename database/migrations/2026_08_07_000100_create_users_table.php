@@ -15,7 +15,8 @@ return new class extends Migration
             $table->string('name', 100);
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
+            $table->string('authentication_type', 16);
+            $table->string('password')->nullable();
             $table->string('timezone', 64)->default('UTC');
             $table->text('two_factor_secret')->nullable();
             $table->text('two_factor_recovery_codes')->nullable();
@@ -24,6 +25,22 @@ return new class extends Migration
             $table->timestamp('anonymized_at')->nullable();
             $table->rememberToken();
             $table->timestamps();
+        });
+
+        Schema::create('account_identities', function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+            $table->string('provider', 32);
+            $table->string('provider_subject', 255);
+            $table->string('provider_email')->nullable();
+            $table->timestamp('provider_email_verified_at')->nullable();
+            $table->timestamp('linked_at');
+            $table->timestamp('last_used_at')->nullable();
+            $table->timestamps();
+
+            $table->unique(['provider', 'provider_subject']);
+            $table->unique(['user_id', 'provider']);
+            $table->index(['provider', 'provider_email']);
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table): void {
@@ -36,6 +53,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('password_reset_tokens');
+        Schema::dropIfExists('account_identities');
         Schema::dropIfExists('users');
     }
 };

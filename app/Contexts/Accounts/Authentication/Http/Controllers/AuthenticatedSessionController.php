@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Accounts\Authentication\Http\Controllers;
 
+use App\Contexts\Accounts\Identity\Enums\AuthenticationType;
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Http\Controller;
@@ -39,7 +40,7 @@ final class AuthenticatedSessionController extends Controller
         $email = Str::lower(trim($validated['email']));
         $passwordAccount = User::query()
             ->where('email', $email)
-            ->where('password_authentication_enabled', true)
+            ->where('authentication_type', AuthenticationType::Password->value)
             ->exists();
 
         $remember = (bool) ($validated['remember'] ?? false);
@@ -57,7 +58,7 @@ final class AuthenticatedSessionController extends Controller
         $request->session()->regenerate();
 
         $user = $request->user();
-        abort_unless($user instanceof User, 500);
+        abort_unless($user instanceof User && $user->supportsPasswordAuthentication(), 403);
 
         $token = trim((string) ($validated['invitation_token'] ?? ''));
 
@@ -78,7 +79,7 @@ final class AuthenticatedSessionController extends Controller
             event: 'auth.login',
             actor: $user,
             subject: $user,
-            metadata: ['mfa_method' => null],
+            metadata: ['provider' => 'password', 'mfa_method' => null],
         );
 
         if ($token !== '') {

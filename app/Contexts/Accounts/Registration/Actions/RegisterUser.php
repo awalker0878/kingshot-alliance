@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Contexts\Accounts\Registration\Actions;
 
+use App\Contexts\Accounts\Identity\Enums\AuthenticationType;
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Accounts\Registration\Data\RegisteredAccount;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Models\OutboxMessage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use InvalidArgumentException;
 
 final readonly class RegisterUser
 {
@@ -18,24 +20,32 @@ final readonly class RegisterUser
     public function handle(
         string $name,
         string $email,
-        string $password,
+        ?string $password,
         string $timezone = 'UTC',
         bool $emailVerified = false,
-        bool $passwordAuthenticationEnabled = true,
+        AuthenticationType $authenticationType = AuthenticationType::Password,
     ): RegisteredAccount {
+        if ($authenticationType === AuthenticationType::Password && blank($password)) {
+            throw new InvalidArgumentException('Password accounts require a local password.');
+        }
+
+        if ($authenticationType === AuthenticationType::Google && $password !== null) {
+            throw new InvalidArgumentException('Google accounts cannot have a local password.');
+        }
+
         $user = DB::transaction(function () use (
             $name,
             $email,
             $password,
             $timezone,
             $emailVerified,
-            $passwordAuthenticationEnabled,
+            $authenticationType,
         ): User {
             $user = User::query()->create([
                 'name' => trim($name),
                 'email' => Str::lower(trim($email)),
+                'authentication_type' => $authenticationType,
                 'password' => $password,
-                'password_authentication_enabled' => $passwordAuthenticationEnabled,
                 'timezone' => $timezone,
             ]);
 
@@ -50,7 +60,7 @@ final readonly class RegisterUser
                 metadata: [
                     'timezone' => $user->timezone,
                     'email_verified_at_registration' => $emailVerified,
-                    'password_authentication_enabled' => $passwordAuthenticationEnabled,
+                    'authentication_type' => $authenticationType->value,
                 ],
             );
 

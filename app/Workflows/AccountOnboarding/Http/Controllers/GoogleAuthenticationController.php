@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Workflows\AccountOnboarding\Http\Controllers;
 
+use App\Contexts\Accounts\Identity\Actions\CreateAccountIdentity;
+use App\Contexts\Accounts\Identity\Actions\RecordAccountIdentityUse;
+use App\Contexts\Accounts\Identity\Enums\AuthenticationType;
+use App\Contexts\Accounts\Identity\Models\AccountIdentity;
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Alliance\Membership\Queries\FindPendingInvitation;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
@@ -39,6 +43,8 @@ final class GoogleAuthenticationController extends Controller
         Request $request,
         FindPendingInvitation $invitations,
         RegisterAccount $registerAccount,
+        CreateAccountIdentity $createIdentity,
+        RecordAccountIdentityUse $recordIdentityUse,
         AuditRecorder $audit,
     ): RedirectResponse {
         $this->ensureConfigured();
@@ -52,23 +58,50 @@ final class GoogleAuthenticationController extends Controller
         }
 
         $email = Str::lower(trim((string) $googleUser->getEmail()));
+        $subject = trim((string) $googleUser->getId());
         $rawUser = $googleUser instanceof AbstractUser ? $googleUser->getRaw() : [];
         $emailVerified = filter_var(
             $rawUser['email_verified'] ?? $rawUser['verified_email'] ?? false,
             FILTER_VALIDATE_BOOL,
         );
 
-        if ($email === '' || ! filter_var($email, FILTER_VALIDATE_EMAIL) || ! $emailVerified) {
+        if (
+            $subject === ''
+            || $email === ''
+            || ! filter_var($email, FILTER_VALIDATE_EMAIL)
+            || ! $emailVerified
+        ) {
             throw ValidationException::withMessages([
-                'google' => 'Google must provide a verified email address to sign in.',
+                'google' => 'Google must provide a stable identity and verified email address to sign in.',
             ]);
         }
 
         $invitationToken = trim((string) $request->session()->pull('accounts.google_invitation_token', ''));
         $invitation = $invitationToken === '' ? null : $invitations->byToken($invitationToken);
-        $user = User::query()->where('email', $email)->first();
 
-        if ($user === null) {
+        $identity = AccountIdentity::query()
+            ->where('provider', AuthenticationType::Google->value)
+            ->where('provider_subject', $subject)
+            ->first();
+
+        if ($identity !== null) {
+            $user = $identity->user()->firstOrFail();
+            abort_unless($user->supportsGoogleAuthentication() && $user->anonymized_at === null, 403);
+            $recordIdentityUse->handle($identity, $email, true);
+        } else {
+            if (User::query()->where('email', $email)->exists()) {
+                $audit->record(
+                    event: 'auth.google.identity_failed',
+                    actor: null,
+                    subject: null,
+                    metadata: ['reason' => 'email_collision'],
+                );
+
+                throw ValidationException::withMessages([
+                    'google' => 'That email is already registered. Sign in using the method configured for that Kingshot Alliance account.',
+                ]);
+            }
+
             $registrationMode = (string) config('accounts.registration_mode', 'open');
 
             if ($registrationMode !== 'open' && $invitation === null) {
@@ -93,14 +126,22 @@ final class GoogleAuthenticationController extends Controller
             $result = $registerAccount->handle(
                 name: Str::limit($name, 100, ''),
                 email: $email,
-                password: Str::password(40),
+                password: null,
                 timezone: (string) config('app.timezone', 'UTC'),
                 invitationToken: $invitationToken === '' ? null : $invitationToken,
                 emailVerified: true,
-                passwordAuthenticationEnabled: false,
+                authenticationType: AuthenticationType::Google,
             );
 
             $user = User::query()->findOrFail($result->userId);
+            $createIdentity->handle(
+                userId: (int) $user->id,
+                provider: AuthenticationType::Google->value,
+                providerSubject: $subject,
+                providerEmail: $email,
+                providerEmailVerified: true,
+            );
+
             Auth::login($user);
             $request->session()->regenerate();
 
@@ -123,15 +164,12 @@ final class GoogleAuthenticationController extends Controller
             return redirect()->route('dashboard');
         }
 
-        if ($user->email_verified_at === null) {
-            $user->forceFill(['email_verified_at' => now()])->save();
-        }
-
         if ($user->two_factor_confirmed_at !== null && (string) $user->two_factor_secret !== '') {
             $request->session()->put([
                 'accounts.two_factor_challenge_user_id' => $user->id,
                 'accounts.two_factor_remember' => false,
                 'accounts.two_factor_invitation_token' => $invitationToken,
+                'accounts.google_reauthenticated_at' => now()->timestamp,
             ]);
 
             Auth::guard('web')->logout();
@@ -142,6 +180,7 @@ final class GoogleAuthenticationController extends Controller
 
         Auth::login($user);
         $request->session()->regenerate();
+        $request->session()->put('accounts.google_reauthenticated_at', now()->timestamp);
 
         $audit->record(
             event: 'auth.login',

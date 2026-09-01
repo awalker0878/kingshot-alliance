@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflows\AccountOnboarding\Actions;
 
+use App\Contexts\Accounts\Identity\Enums\AuthenticationType;
 use App\Contexts\Accounts\Registration\Actions\RegisterUser;
 use App\Contexts\Alliance\Membership\Actions\AcceptInvitation;
 use App\Contexts\Alliance\Membership\Queries\FindPendingInvitation;
@@ -24,11 +25,11 @@ final readonly class RegisterAccount
     public function handle(
         string $name,
         string $email,
-        string $password,
+        ?string $password,
         string $timezone,
         ?string $invitationToken,
         bool $emailVerified = false,
-        bool $passwordAuthenticationEnabled = true,
+        AuthenticationType $authenticationType = AuthenticationType::Password,
     ): RegistrationResult {
         $invitation = $invitationToken === null
             ? null
@@ -55,7 +56,7 @@ final readonly class RegisterAccount
             password: $password,
             timezone: $timezone,
             emailVerified: $emailVerified,
-            passwordAuthenticationEnabled: $passwordAuthenticationEnabled,
+            authenticationType: $authenticationType,
         );
 
         if ($invitation === null || $invitationToken === null) {

@@ -5,19 +5,22 @@ declare(strict_types=1);
 namespace App\Contexts\Accounts\Identity\Models;
 
 use App\Contexts\Accounts\Identity\Contracts\AuthenticatedAccount;
+use App\Contexts\Accounts\Identity\Enums\AuthenticationType;
 use App\Shared\Infrastructure\AuditTrail\Contracts\AuditActor;
 use Database\Factories\UserFactory;
 use Illuminate\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
 use Laravel\Sanctum\HasApiTokens;
 
 /**
- * Global account identity. Game authority belongs to the active Player, not User.
+ * Global Kingshot Alliance account identity. Game authority belongs to the active Player, not User.
  *
- * @property bool $password_authentication_enabled
+ * @property AuthenticationType $authentication_type
+ * @property string|null $password
  * @property string|null $two_factor_secret
  * @property list<string>|null $two_factor_recovery_codes
  * @property Carbon|null $two_factor_confirmed_at
@@ -38,8 +41,8 @@ final class User extends Authenticatable implements AuditActor, AuthenticatedAcc
     protected $fillable = [
         'name',
         'email',
+        'authentication_type',
         'password',
-        'password_authentication_enabled',
         'timezone',
     ];
 
@@ -59,8 +62,8 @@ final class User extends Authenticatable implements AuditActor, AuthenticatedAcc
     {
         return [
             'email_verified_at' => 'datetime',
+            'authentication_type' => AuthenticationType::class,
             'password' => 'hashed',
-            'password_authentication_enabled' => 'boolean',
             'two_factor_secret' => 'encrypted',
             'two_factor_recovery_codes' => 'encrypted:array',
             'two_factor_confirmed_at' => 'datetime',
@@ -69,9 +72,20 @@ final class User extends Authenticatable implements AuditActor, AuthenticatedAcc
         ];
     }
 
+    /** @return HasMany<AccountIdentity, $this> */
+    public function accountIdentities(): HasMany
+    {
+        return $this->hasMany(AccountIdentity::class);
+    }
+
     public function supportsPasswordAuthentication(): bool
     {
-        return (bool) $this->password_authentication_enabled;
+        return $this->authentication_type === AuthenticationType::Password && filled($this->getRawOriginal('password'));
+    }
+
+    public function supportsGoogleAuthentication(): bool
+    {
+        return $this->authentication_type === AuthenticationType::Google && blank($this->getRawOriginal('password'));
     }
 
     public function accountName(): string
