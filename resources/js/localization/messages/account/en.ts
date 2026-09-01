@@ -117,13 +117,15 @@ const messages = {
     account: {
       eyebrow: 'Account',
       title: 'Account & security',
-      intro: 'Manage your Kingshot Alliance profile, sign-in method, security controls, sessions, and account lifecycle.',
+      intro:
+        'Manage your Kingshot Alliance profile, sign-in method, security controls, sessions, and account lifecycle.',
       passwordUpdated: 'Your password was updated and other signed-in sessions were revoked.',
       sessionsRevoked: 'Other signed-in sessions were signed out.',
       twoFactorDisabled: 'Two-factor authentication was disabled.',
       settingsNavigation: 'Account settings',
       profileTitle: 'Profile',
-      profileIntro: 'Manage the account details that are independent of your Governor game identity.',
+      profileIntro:
+        'Manage the account details that are independent of your Governor game identity.',
       securityTitle: 'Security',
       accountTitle: 'Account',
       timezone: 'Time zone',
@@ -131,8 +133,10 @@ const messages = {
       signInMethod: 'Primary sign-in method',
       passwordSignIn: 'Kingshot Alliance password',
       googleSignIn: 'Google',
-      passwordSignInIntro: 'This account signs in with its verified email and a Kingshot Alliance password.',
-      googleSignInIntro: 'This account signs in exclusively with Google. It does not have a Kingshot Alliance password.',
+      passwordSignInIntro:
+        'This account signs in with its verified email and a Kingshot Alliance password.',
+      googleSignInIntro:
+        'This account signs in exclusively with Google. It does not have a Kingshot Alliance password.',
       providerEmail: 'Verified Google email',
       emailAddress: 'Account email',
       emailVerification: 'Email verification',
@@ -140,15 +144,18 @@ const messages = {
       pending: 'Pending',
       pendingEmail: 'Pending email change',
       newEmail: 'New email address',
-      emailChangeIntro: 'Your current email stays active until you verify the new address. Recent sign-in proof is required.',
+      emailChangeIntro:
+        'Your current email stays active until you verify the new address. Recent sign-in proof is required.',
       requestEmailChange: 'Send verification to new email',
-      googleEmailManaged: 'For Google sign-in accounts, the verified Google identity controls the contact email. Manual local email changes are unavailable.',
+      googleEmailManaged:
+        'For Google sign-in accounts, the verified Google identity controls the contact email. Manual local email changes are unavailable.',
       twoFactorState: 'Two-factor authentication',
       enabled: 'Enabled',
       setupPending: 'Setup pending',
       notEnabled: 'Not enabled',
       twoFactorTitle: 'Two-factor authentication',
-      twoFactorIntro: 'Protect sign-in with an authenticator app. Recovery codes are shown only when created or regenerated.',
+      twoFactorIntro:
+        'Protect sign-in with an authenticator app. Recovery codes are shown only when created or regenerated.',
       recoveryCodesRemaining: 'Unused recovery codes',
       startSetup: 'Start setup',
       authenticatorSecret: 'Authenticator secret',
@@ -160,14 +167,16 @@ const messages = {
       regenerateRecoveryCodes: 'Regenerate recovery codes',
       disableTwoFactor: 'Disable two-factor authentication',
       passwordTitle: 'Password',
-      passwordIntro: 'Changing your password invalidates other sessions and active account access tokens.',
+      passwordIntro:
+        'Changing your password invalidates other sessions and active account access tokens.',
       currentPassword: 'Current password',
       newPassword: 'New password',
       confirmNewPassword: 'Confirm new password',
       updatePassword: 'Update password',
       sessionsTitle: 'Sessions',
       activeSessions: 'Active sessions',
-      sessionsIntro: 'Review coarse device, browser, and platform labels. Kingshot Alliance does not expose raw session identifiers or create a browser fingerprint.',
+      sessionsIntro:
+        'Review coarse device, browser, and platform labels. Kingshot Alliance does not expose raw session identifiers or create a browser fingerprint.',
       signOutOthers: 'Sign out other sessions',
       signOutSession: 'Sign out',
       currentSession: 'Current session',
@@ -177,7 +186,8 @@ const messages = {
       unknownDevice: 'Unknown device',
       securityActivity: 'Security activity',
       recentSecurityActivity: 'Recent account security activity',
-      securityActivityIntro: 'This list is projected from the existing security audit trail for this account.',
+      securityActivityIntro:
+        'This list is projected from the existing security audit trail for this account.',
       noSecurityActivity: 'No security activity has been recorded yet.',
       activityEvents: {
         signIn: 'Signed in to Kingshot Alliance',
@@ -206,7 +216,8 @@ const messages = {
     deletion: {
       eyebrow: 'Account',
       title: 'Account deletion',
-      intro: 'A seven-day cooling-off period protects against accidental deletion. Active Alliance leadership, Platform Administrator duties, or a legal hold can prevent the request from completing. Completed requests preserve required game and audit history while removing personal account details.',
+      intro:
+        'A seven-day cooling-off period protects against accidental deletion. Active Alliance leadership, Platform Administrator duties, or a legal hold can prevent the request from completing. Completed requests preserve required game and audit history while removing personal account details.',
       currentRequest: 'Current request',
       status: 'Status',
       eligibleAt: 'Eligible at',
@@ -214,9 +225,11 @@ const messages = {
       processedAt: 'Processed',
       notYet: 'Not yet',
       requestTitle: 'Request deletion',
-      requestIntro: 'Transfer ownership of any Alliance you own first. Records subject to legal hold or required for security and audit integrity are retained in pseudonymized form.',
+      requestIntro:
+        'Transfer ownership of any Alliance you own first. Records subject to legal hold or required for security and audit integrity are retained in pseudonymized form.',
       requestButton: 'Request account deletion',
-      confirm: 'Request account deletion? There is a seven-day cooling-off period and ownership/legal-hold checks apply.',
+      confirm:
+        'Request account deletion? There is a seven-day cooling-off period and ownership/legal-hold checks apply.',
       requested: 'Your account deletion request was recorded.',
       backToAccount: 'Back to account & security',
     },
