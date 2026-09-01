@@ -189,7 +189,6 @@ final class GoogleAuthenticationController extends Controller
             $audit->record(
                 event: 'auth.login',
                 actor: $account,
-                subject: $account,
                 metadata: ['provider' => 'google', 'mfa_method' => null],
             );
 
@@ -226,7 +225,6 @@ final class GoogleAuthenticationController extends Controller
         $audit->record(
             event: 'auth.login',
             actor: $account,
-            subject: $account,
             metadata: ['provider' => 'google', 'mfa_method' => null],
         );
 
@@ -268,7 +266,6 @@ final class GoogleAuthenticationController extends Controller
             $audit->record(
                 event: 'auth.google.identity_failed',
                 actor: $account,
-                subject: $account,
                 metadata: ['reason' => 'reauthentication_subject_mismatch'],
             );
 
@@ -281,7 +278,6 @@ final class GoogleAuthenticationController extends Controller
         $audit->record(
             event: 'auth.reauthenticated',
             actor: $account,
-            subject: $account,
             metadata: ['provider' => 'google'],
         );
 
