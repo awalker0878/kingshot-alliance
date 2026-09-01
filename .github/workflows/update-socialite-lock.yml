@@ -1,0 +1,42 @@
+name: Update Socialite Lock
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - composer.json
+
+permissions:
+  contents: write
+
+jobs:
+  update-lock:
+    name: Update Composer lockfile
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Configure PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
+        with:
+          php-version: '8.5'
+          extensions: dom, intl, mbstring, pdo_pgsql, redis, xml, zip
+          coverage: none
+          tools: composer:v2
+
+      - name: Update Socialite dependency lock
+        run: composer update laravel/socialite --with-dependencies --no-interaction --no-progress --prefer-dist
+
+      - name: Commit lockfile
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add composer.lock
+          if ! git diff --cached --quiet; then
+            git commit -m "Lock Laravel Socialite dependency"
+            git push
+          fi
