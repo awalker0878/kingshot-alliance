@@ -1,0 +1,37 @@
+name: Format Google Auth
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/format-google-auth.yml
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - name: Configure Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install locked frontend dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Format Google auth pages
+        run: npx prettier --write resources/js/pages/Accounts/Access/Login.vue resources/js/pages/Accounts/Access/Register.vue
+      - name: Commit formatted pages
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add resources/js/pages/Accounts/Access/Login.vue resources/js/pages/Accounts/Access/Register.vue
+          if ! git diff --cached --quiet; then
+            git commit -m "Format Google authentication pages"
+            git push
+          fi
