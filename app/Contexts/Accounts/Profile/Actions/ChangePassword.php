@@ -22,6 +22,12 @@ final readonly class ChangePassword
         DB::transaction(function () use ($userId, $currentPassword, $newPassword): void {
             $locked = User::query()->whereKey($userId)->lockForUpdate()->firstOrFail();
 
+            if (! $locked->supportsPasswordAuthentication()) {
+                throw ValidationException::withMessages([
+                    'current_password' => 'This account uses Google sign-in and does not have a local password.',
+                ]);
+            }
+
             if (! Hash::check($currentPassword, (string) $locked->password)) {
                 throw ValidationException::withMessages([
                     'current_password' => 'The password is incorrect.',
@@ -51,7 +57,6 @@ final readonly class ChangePassword
                 'available_at' => now(),
                 'attempts' => 0,
             ]);
-
         });
 
         $current = User::query()->findOrFail($userId);
