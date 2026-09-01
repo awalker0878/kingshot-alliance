@@ -17,5 +17,11 @@ final class AuthenticationServiceProvider extends ServiceProvider
         RateLimiter::for('login', static fn (Request $request): Limit => Limit::perMinute(5)->by(
             Str::lower(trim((string) $request->input('email'))).'|'.(string) $request->ip(),
         ));
+
+        RateLimiter::for('google-auth', static fn (Request $request): Limit => Limit::perMinute(10)->by(
+            (string) $request->ip(),
+        ));
+
+        $this->loadRoutesFrom(base_path('routes/auth.php'));
     }
 }
