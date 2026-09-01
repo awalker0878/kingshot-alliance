@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Contexts\Accounts\Identity\Models;
 
+use App\Contexts\Accounts\Credentials\Notifications\ResetKingshotAlliancePassword;
+use App\Contexts\Accounts\EmailVerification\Notifications\VerifyKingshotAllianceEmail;
 use App\Contexts\Accounts\Identity\Contracts\AuthenticatedAccount;
 use App\Contexts\Accounts\Identity\Enums\AuthenticationType;
 use App\Shared\Infrastructure\AuditTrail\Contracts\AuditActor;
@@ -86,6 +88,20 @@ final class User extends Authenticatable implements AuditActor, AuthenticatedAcc
     public function supportsGoogleAuthentication(): bool
     {
         return $this->authentication_type === AuthenticationType::Google && blank($this->getRawOriginal('password'));
+    }
+
+    public function sendEmailVerificationNotification(): void
+    {
+        $this->notify(new VerifyKingshotAllianceEmail);
+    }
+
+    public function sendPasswordResetNotification($token): void
+    {
+        if (! $this->supportsPasswordAuthentication()) {
+            return;
+        }
+
+        $this->notify(new ResetKingshotAlliancePassword((string) $token));
     }
 
     public function accountName(): string

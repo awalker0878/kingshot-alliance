@@ -22,15 +22,15 @@ const messages = {
       existingAccount: 'Already have an account?',
     },
     password: {
-      forgotTitle: 'Reset your password',
-      forgotDescription: 'Enter your email address and we will send you a password reset link.',
-      sendResetLink: 'Send password reset link',
-      resetTitle: 'Choose a new password',
+      forgotTitle: 'Recover your account',
+      forgotDescription: 'Enter the email associated with your Kingshot Alliance account.',
+      sendResetLink: 'Send recovery instructions',
+      resetTitle: 'Set a new password',
       resetSubmit: 'Reset password',
       confirmTitle: 'Confirm your password',
     },
     verification: {
-      title: 'Verify your email',
+      title: 'Verify your email address',
       resend: 'Resend verification email',
     },
     twoFactor: {
@@ -83,16 +83,38 @@ const messages = {
     },
     password: {
       backToSignIn: 'Back to sign in',
-      resetIntro: 'Resetting your password revokes personal access tokens.',
+      recoveryKicker: 'ACCOUNT RECOVERY',
+      recoveryNeutral:
+        'If an eligible password account exists for that email, we will send secure password-reset instructions.',
+      checkInboxKicker: 'CHECK YOUR INBOX',
+      checkInboxHeading: 'Recovery instructions requested',
+      checkInboxDescription:
+        'If an eligible password account exists for the address you entered, password-reset instructions have been sent. For security, we cannot confirm whether an account exists or how it signs in.',
+      resetKicker: 'SECURE PASSWORD RESET',
+      resetIntro: 'Choose a new Kingshot Alliance password for the account below.',
+      accountEmail: 'Account email',
+      requirements: 'Your password must include:',
+      requirementLength: 'At least 12 characters',
+      requirementUpper: 'An uppercase letter',
+      requirementLower: 'A lowercase letter',
+      requirementNumber: 'A number',
+      showPassword: 'Show password',
+      hidePassword: 'Hide password',
+      validationSummary: 'Review the highlighted fields before continuing.',
       newPassword: 'New password',
       confirmNewPassword: 'Confirm new password',
       confirmDescription:
         'This changes protected Alliance access, so confirm your password before continuing.',
     },
     verification: {
-      description:
-        'We sent a verification link to {email}. Verify the address before performing protected account actions.',
+      kicker: 'EMAIL VERIFICATION',
+      description: 'We sent a secure verification link for your Kingshot Alliance account to:',
+      instructions: 'Open the message and follow the link to finish verifying your email address.',
+      securityNote:
+        'Kingshot Alliance will never ask for your password through an email verification message.',
       sent: 'A fresh verification link has been sent.',
+      resendIn: 'You can resend in {seconds}s',
+      useAnotherAccount: 'Sign out and use another account',
     },
     twoFactor: {
       kicker: 'Account security',
