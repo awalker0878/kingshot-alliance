@@ -28,6 +28,9 @@ final class RegistrationController extends Controller
             'invitationToken' => $invitation === null ? null : $token,
             'invitedEmail' => $invitation?->email,
             'invitedAllianceName' => $invitation?->allianceName,
+            'googleAuthEnabled' => filled(config('services.google.client_id'))
+                && filled(config('services.google.client_secret'))
+                && filled(config('services.google.redirect')),
         ]);
     }
 
