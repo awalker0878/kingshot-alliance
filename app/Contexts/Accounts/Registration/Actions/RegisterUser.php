@@ -15,9 +15,14 @@ final readonly class RegisterUser
 {
     public function __construct(private AuditRecorder $audit) {}
 
-    public function handle(string $name, string $email, string $password, string $timezone = 'UTC'): RegisteredAccount
-    {
-        $user = DB::transaction(function () use ($name, $email, $password, $timezone): User {
+    public function handle(
+        string $name,
+        string $email,
+        string $password,
+        string $timezone = 'UTC',
+        bool $emailVerified = false,
+    ): RegisteredAccount {
+        $user = DB::transaction(function () use ($name, $email, $password, $timezone, $emailVerified): User {
             $user = User::query()->create([
                 'name' => trim($name),
                 'email' => Str::lower(trim($email)),
@@ -25,11 +30,18 @@ final readonly class RegisterUser
                 'timezone' => $timezone,
             ]);
 
+            if ($emailVerified) {
+                $user->forceFill(['email_verified_at' => now()])->save();
+            }
+
             $this->audit->record(
                 event: 'user.registered',
                 actor: $user,
                 subject: $user,
-                metadata: ['timezone' => $user->timezone],
+                metadata: [
+                    'timezone' => $user->timezone,
+                    'email_verified_at_registration' => $emailVerified,
+                ],
             );
 
             OutboxMessage::query()->create([
@@ -47,7 +59,9 @@ final readonly class RegisterUser
             return $user;
         });
 
-        $user->sendEmailVerificationNotification();
+        if (! $emailVerified) {
+            $user->sendEmailVerificationNotification();
+        }
 
         return new RegisteredAccount(
             userId: (int) $user->id,
