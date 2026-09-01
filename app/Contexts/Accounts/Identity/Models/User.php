@@ -17,6 +17,7 @@ use Laravel\Sanctum\HasApiTokens;
 /**
  * Global account identity. Game authority belongs to the active Player, not User.
  *
+ * @property bool $password_authentication_enabled
  * @property string|null $two_factor_secret
  * @property list<string>|null $two_factor_recovery_codes
  * @property Carbon|null $two_factor_confirmed_at
@@ -38,6 +39,7 @@ final class User extends Authenticatable implements AuditActor, AuthenticatedAcc
         'name',
         'email',
         'password',
+        'password_authentication_enabled',
         'timezone',
     ];
 
@@ -58,12 +60,18 @@ final class User extends Authenticatable implements AuditActor, AuthenticatedAcc
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'password_authentication_enabled' => 'boolean',
             'two_factor_secret' => 'encrypted',
             'two_factor_recovery_codes' => 'encrypted:array',
             'two_factor_confirmed_at' => 'datetime',
             'deletion_requested_at' => 'datetime',
             'anonymized_at' => 'datetime',
         ];
+    }
+
+    public function supportsPasswordAuthentication(): bool
+    {
+        return (bool) $this->password_authentication_enabled;
     }
 
     public function accountName(): string
