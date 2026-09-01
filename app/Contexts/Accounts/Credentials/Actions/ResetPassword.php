@@ -22,20 +22,32 @@ final readonly class ResetPassword
         string $passwordConfirmation,
         string $token,
     ): string {
+        $normalizedEmail = Str::lower(trim($email));
+        $user = User::query()->where('email', $normalizedEmail)->first();
+
+        if (! $user?->supportsPasswordAuthentication()) {
+            return Password::INVALID_USER;
+        }
+
         return Password::reset(
             [
-                'email' => Str::lower(trim($email)),
+                'email' => $normalizedEmail,
                 'password' => $password,
                 'password_confirmation' => $passwordConfirmation,
                 'token' => $token,
             ],
             function ($user, string $newPassword): void {
-                if (! $user instanceof User) {
+                if (! $user instanceof User || ! $user->supportsPasswordAuthentication()) {
                     return;
                 }
 
                 $currentUser = DB::transaction(function () use ($user, $newPassword): User {
                     $locked = User::query()->whereKey($user->id)->lockForUpdate()->firstOrFail();
+
+                    if (! $locked->supportsPasswordAuthentication()) {
+                        return $locked;
+                    }
+
                     $locked->forceFill([
                         'password' => Hash::make($newPassword),
                         'remember_token' => Str::random(60),
@@ -51,7 +63,9 @@ final readonly class ResetPassword
                     return $locked->refresh();
                 });
 
-                event(new PasswordResetEvent($currentUser));
+                if ($currentUser->supportsPasswordAuthentication()) {
+                    event(new PasswordResetEvent($currentUser));
+                }
             },
         );
     }
