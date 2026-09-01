@@ -1,0 +1,73 @@
+name: Accounts Closeout Formatter
+
+on:
+  push:
+    branches:
+      - chatgpt/accounts-security-closeout
+
+permissions:
+  contents: write
+
+concurrency:
+  group: accounts-closeout-format-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  format:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+
+      - name: Configure PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
+        with:
+          php-version: '8.5'
+          coverage: none
+          tools: composer:v2
+
+      - name: Configure Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install formatter dependencies
+        run: |
+          composer install --no-interaction --no-progress --prefer-dist
+          npm ci --no-audit --no-fund
+
+      - name: Format changed PHP and frontend files
+        shell: bash
+        run: |
+          base="$(git merge-base origin/main HEAD)"
+          mapfile -t php_files < <(git diff --name-only --diff-filter=ACM "$base"...HEAD -- '*.php')
+          if [ "${#php_files[@]}" -gt 0 ]; then
+            vendor/bin/pint "${php_files[@]}"
+          fi
+
+          mapfile -t frontend_files < <(git diff --name-only --diff-filter=ACM "$base"...HEAD -- 'resources/**/*.vue' 'resources/**/*.ts' 'resources/**/*.js')
+          if [ "${#frontend_files[@]}" -gt 0 ]; then
+            npx eslint --fix "${frontend_files[@]}" || true
+            npx prettier --write "${frontend_files[@]}"
+          fi
+
+          git diff --check
+
+      - name: Commit formatter output
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Apply account closeout formatters"
+          git push origin HEAD:chatgpt/accounts-security-closeout
