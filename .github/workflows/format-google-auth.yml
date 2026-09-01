@@ -12,6 +12,7 @@ permissions:
 
 jobs:
   format:
+    name: Format Google authentication pages
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
