@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Contexts\Accounts\Authentication\Http\Controllers\GoogleAuthenticationController;
+use App\Workflows\AccountOnboarding\Http\Controllers\GoogleAuthenticationController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['web', 'guest'])->group(function (): void {
