@@ -21,6 +21,9 @@ final class AuthenticatedSessionController extends Controller
     {
         return Inertia::render('Accounts/Access/Login', [
             'invitationToken' => trim((string) $request->query('invitation', '')) ?: null,
+            'googleAuthEnabled' => filled(config('services.google.client_id'))
+                && filled(config('services.google.client_secret'))
+                && filled(config('services.google.redirect')),
         ]);
     }
 
