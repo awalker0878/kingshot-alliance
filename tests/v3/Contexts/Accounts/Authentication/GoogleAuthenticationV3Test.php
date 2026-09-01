@@ -41,9 +41,10 @@ final class GoogleAuthenticationV3Test extends TestCase
         $response->assertRedirect(route('dashboard'));
         $this->assertAuthenticatedAs($user);
         self::assertNotNull($user->refresh()->email_verified_at);
+        self::assertTrue($user->supportsPasswordAuthentication());
     }
 
-    public function test_verified_google_email_creates_verified_account_when_registration_is_open(): void
+    public function test_verified_google_email_creates_verified_password_disabled_account_when_registration_is_open(): void
     {
         config()->set('accounts.registration_mode', 'open');
         $this->fakeGoogleUser('new.member@example.test', true, 'New Member');
@@ -56,6 +57,7 @@ final class GoogleAuthenticationV3Test extends TestCase
         $this->assertAuthenticatedAs($user);
         self::assertNotNull($user->email_verified_at);
         self::assertSame('New Member', $user->name);
+        self::assertFalse($user->supportsPasswordAuthentication());
     }
 
     public function test_google_email_must_be_verified(): void
