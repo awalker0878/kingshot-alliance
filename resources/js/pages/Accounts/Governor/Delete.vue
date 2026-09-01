@@ -25,11 +25,13 @@ const props = defineProps<{
 const { t, formatDate } = useLocale();
 const { dialog, requestConfirmation, cancelConfirmation, confirmAction } = useConfirmAction();
 
-const statusMessage = computed(() =>
-  props.status === 'account-deletion-requested'
-    ? t('accountExperience.deletion.requested')
-    : props.status,
-);
+const statusMessage = computed(() => {
+  if (props.status === 'account-deletion-requested')
+    return t('accountExperience.deletion.requested');
+  if (props.status === 'account-deletion-cancelled')
+    return t('accountExperience.deletion.cancelled');
+  return props.status;
+});
 
 function requestDeletion(): void {
   requestConfirmation({
@@ -39,6 +41,17 @@ function requestDeletion(): void {
     confirmLabel: t('accountExperience.deletion.requestButton'),
     cancelLabel: t('common.cancel'),
     perform: (finish) => router.post('/profile/delete-account', {}, { onFinish: finish }),
+  });
+}
+
+function cancelDeletion(): void {
+  requestConfirmation({
+    id: 'account-deletion-cancel-confirmation',
+    title: t('accountExperience.deletion.cancelTitle'),
+    description: t('accountExperience.deletion.cancelConfirm'),
+    confirmLabel: t('accountExperience.deletion.cancelButton'),
+    cancelLabel: t('common.cancel'),
+    perform: (finish) => router.delete('/profile/delete-account', { onFinish: finish }),
   });
 }
 
@@ -62,9 +75,9 @@ function requestTone(status: string): 'success' | 'warning' | 'danger' | 'info' 
       compact
     >
       <template #actions>
-        <Link href="/profile" class="ks-command-link">
-          {{ t('accountExperience.deletion.backToAccount') }}
-        </Link>
+        <Link href="/profile" class="ks-command-link">{{
+          t('accountExperience.deletion.backToAccount')
+        }}</Link>
       </template>
     </RoomBanner>
 
@@ -118,9 +131,9 @@ function requestTone(status: string): 'success' | 'warning' | 'danger' | 'info' 
               {{ t('accountExperience.deletion.requestIntro') }}
             </p>
           </div>
-          <span class="ks-status" :data-tone="requestTone(props.request.status)">
-            {{ props.request.status }}
-          </span>
+          <span class="ks-status" :data-tone="requestTone(props.request.status)">{{
+            props.request.status
+          }}</span>
         </div>
 
         <div
@@ -128,10 +141,18 @@ function requestTone(status: string): 'success' | 'warning' | 'danger' | 'info' 
           class="mt-6 rounded-[var(--ks-radius-md)] border border-amber-400/25 bg-amber-500/[.07] p-4"
         >
           <p class="ks-kicker text-amber-200">{{ t('accountExperience.deletion.status') }}</p>
-          <p class="mt-2 text-sm leading-6 text-amber-100/90">
-            {{ props.request.blockedReason }}
-          </p>
+          <p class="mt-2 text-sm leading-6 text-amber-100/90">{{ props.request.blockedReason }}</p>
         </div>
+
+        <AppButton
+          v-if="['pending', 'blocked'].includes(props.request.status)"
+          class="mt-6"
+          variant="ghost"
+          type="button"
+          @click="cancelDeletion"
+        >
+          {{ t('accountExperience.deletion.cancelButton') }}
+        </AppButton>
       </section>
     </template>
 
@@ -151,16 +172,15 @@ function requestTone(status: string): 'success' | 'warning' | 'danger' | 'info' 
           {{ t('accountExperience.deletion.requestIntro') }}
         </p>
       </div>
-
       <div class="grid gap-5 p-5 sm:p-6 lg:grid-cols-[1fr_auto] lg:items-center">
         <div class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-4">
           <p class="ks-kicker">{{ t('accountExperience.account.profileTitle') }}</p>
           <p class="ks-display mt-2 text-xl">{{ props.user.name }}</p>
           <p class="mt-1 text-sm text-[var(--ks-muted)]">{{ props.user.email }}</p>
         </div>
-        <AppButton variant="danger" type="button" @click="requestDeletion">
-          {{ t('accountExperience.deletion.requestButton') }}
-        </AppButton>
+        <AppButton variant="danger" type="button" @click="requestDeletion">{{
+          t('accountExperience.deletion.requestButton')
+        }}</AppButton>
       </div>
     </section>
 

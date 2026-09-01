@@ -14,6 +14,7 @@ final readonly class SetNotificationPreference
 {
     /** @var list<string> */
     public const NOTIFICATION_TYPES = [
+        'account.security',
         'alliance.announcement',
         'event.reminder',
         'gift_code.expiring',

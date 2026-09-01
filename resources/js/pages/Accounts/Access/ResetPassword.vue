@@ -59,10 +59,10 @@ function submit(): void {
     </p>
 
     <div class="mt-5 rounded-[var(--ks-radius-md)] border border-white/10 bg-black/20 p-4">
-      <p class="text-xs font-semibold uppercase tracking-[.14em] text-[var(--ks-text-muted)]">
+      <p class="text-xs font-semibold tracking-[.14em] text-[var(--ks-text-muted)] uppercase">
         {{ t('authExperience.password.accountEmail') }}
       </p>
-      <p class="mt-1 break-all text-sm font-semibold text-[var(--ks-ivory)]">
+      <p class="mt-1 text-sm font-semibold break-all text-[var(--ks-ivory)]">
         {{ props.email }}
       </p>
     </div>
@@ -107,7 +107,7 @@ function submit(): void {
       </div>
 
       <div class="rounded-[var(--ks-radius-md)] border border-white/10 bg-white/[.025] p-4">
-        <p class="text-xs font-semibold uppercase tracking-[.14em] text-[var(--ks-text-muted)]">
+        <p class="text-xs font-semibold tracking-[.14em] text-[var(--ks-text-muted)] uppercase">
           {{ t('authExperience.password.requirements') }}
         </p>
         <ul class="mt-3 grid gap-2 text-sm" aria-live="polite">
@@ -118,11 +118,7 @@ function submit(): void {
             >
               {{ rule.met ? '✓' : '•' }}
             </span>
-            <span
-              :class="
-                rule.met ? 'text-[var(--ks-ivory)]' : 'text-[var(--ks-text-secondary)]'
-              "
-            >
+            <span :class="rule.met ? 'text-[var(--ks-ivory)]' : 'text-[var(--ks-text-secondary)]'">
               {{ rule.label }}
             </span>
           </li>

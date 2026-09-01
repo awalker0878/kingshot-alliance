@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Contexts\Accounts\Profile\Actions;
 
 use App\Contexts\Accounts\Identity\Models\User;
+use App\Contexts\Accounts\Security\Services\SecurityNotificationService;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Models\OutboxMessage;
 use Illuminate\Support\Facades\Auth;
@@ -15,7 +16,10 @@ use Illuminate\Validation\ValidationException;
 
 final readonly class ChangePassword
 {
-    public function __construct(private AuditRecorder $audit) {}
+    public function __construct(
+        private AuditRecorder $audit,
+        private SecurityNotificationService $securityNotifications,
+    ) {}
 
     public function handle(int $userId, string $currentPassword, string $newPassword): void
     {
@@ -62,5 +66,12 @@ final readonly class ChangePassword
         $current = User::query()->findOrFail($userId);
         Auth::setUser($current);
         Auth::logoutOtherDevices($newPassword);
+        $this->securityNotifications->publish(
+            userId: $userId,
+            event: 'profile.password.updated',
+            title: (string) __('accounts.security.password_changed.title'),
+            body: (string) __('accounts.security.password_changed.body'),
+            idempotencyKey: 'profile.password.updated:'.$userId.':'.now()->format('Uu'),
+        );
     }
 }

@@ -15,6 +15,8 @@ return new class extends Migration
             $table->string('name', 100);
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
+            $table->string('pending_email')->nullable()->unique();
+            $table->timestamp('pending_email_requested_at')->nullable();
             $table->string('authentication_type', 16);
             $table->string('password')->nullable();
             $table->string('timezone', 64)->default('UTC');
