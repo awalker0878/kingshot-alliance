@@ -51,7 +51,7 @@ final class AccountSession extends Model
         ];
     }
 
-    /** @return BelongsTo<User, $this> */
+    /** @return BelongsTo<User, AccountSession> */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

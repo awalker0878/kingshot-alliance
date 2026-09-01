@@ -27,7 +27,7 @@ final class AccountSessionController extends Controller
         $currentHash = hash('sha256', $request->session()->getId());
         abort_if(hash_equals($record->session_id_hash, $currentHash), 422, 'The current session cannot be revoked from this action.');
 
-        $request->session()->getHandler()->destroy($record->session_id);
+        $request->session()->getHandler()->destroy((string) $record->session_id);
         $record->forceFill(['revoked_at' => now()])->save();
 
         $audit->record(
@@ -53,7 +53,7 @@ final class AccountSessionController extends Controller
             ->get();
 
         foreach ($records as $record) {
-            $request->session()->getHandler()->destroy($record->session_id);
+            $request->session()->getHandler()->destroy((string) $record->session_id);
             $record->forceFill(['revoked_at' => now()])->save();
         }
 
