@@ -39,6 +39,18 @@ final class GoogleAuthenticationController extends Controller
         return Socialite::driver('google')->redirect();
     }
 
+    public function reauthenticate(Request $request): RedirectResponse
+    {
+        $this->ensureConfigured();
+
+        $user = $request->user();
+        abort_unless($user instanceof User && $user->supportsGoogleAuthentication(), 403);
+
+        $request->session()->put('accounts.google_reauthentication_user_id', (int) $user->id);
+
+        return Socialite::driver('google')->redirect();
+    }
+
     public function callback(
         Request $request,
         FindPendingInvitation $invitations,
@@ -52,6 +64,8 @@ final class GoogleAuthenticationController extends Controller
         try {
             $googleUser = Socialite::driver('google')->user();
         } catch (Throwable) {
+            $request->session()->forget('accounts.google_reauthentication_user_id');
+
             throw ValidationException::withMessages([
                 'google' => 'Google sign-in could not be completed. Please try again.',
             ]);
@@ -71,10 +85,26 @@ final class GoogleAuthenticationController extends Controller
             || ! filter_var($email, FILTER_VALIDATE_EMAIL)
             || ! $emailVerified
         ) {
+            $request->session()->forget('accounts.google_reauthentication_user_id');
+
             throw ValidationException::withMessages([
                 'google' => 'Google must provide a stable identity and verified email address to sign in.',
             ]);
         }
+
+        $reauthenticationUserId = $request->session()->pull('accounts.google_reauthentication_user_id');
+        if ($reauthenticationUserId !== null) {
+            return $this->completeReauthentication(
+                request: $request,
+                expectedUserId: (int) $reauthenticationUserId,
+                subject: $subject,
+                email: $email,
+                recordIdentityUse: $recordIdentityUse,
+                audit: $audit,
+            );
+        }
+
+        abort_if($request->user() instanceof User, 409, 'An authenticated account cannot start a new Google sign-in.');
 
         $invitationToken = trim((string) $request->session()->pull('accounts.google_invitation_token', ''));
         $invitation = $invitationToken === '' ? null : $invitations->byToken($invitationToken);
@@ -191,6 +221,51 @@ final class GoogleAuthenticationController extends Controller
         if ($invitationToken !== '') {
             return redirect()->route('invitations.show', ['token' => $invitationToken]);
         }
+
+        return redirect()->intended(route('dashboard'));
+    }
+
+    private function completeReauthentication(
+        Request $request,
+        int $expectedUserId,
+        string $subject,
+        string $email,
+        RecordAccountIdentityUse $recordIdentityUse,
+        AuditRecorder $audit,
+    ): RedirectResponse {
+        $user = $request->user();
+        abort_unless(
+            $user instanceof User
+            && (int) $user->id === $expectedUserId
+            && $user->supportsGoogleAuthentication(),
+            403,
+        );
+
+        $identity = AccountIdentity::query()
+            ->where('user_id', $user->id)
+            ->where('provider', AuthenticationType::Google->value)
+            ->firstOrFail();
+
+        if (! hash_equals($identity->provider_subject, $subject)) {
+            $audit->record(
+                event: 'auth.google.identity_failed',
+                actor: $user,
+                subject: $user,
+                metadata: ['reason' => 'reauthentication_subject_mismatch'],
+            );
+
+            abort(403, 'Google reauthentication did not match this Kingshot Alliance account.');
+        }
+
+        $recordIdentityUse->handle($identity, $email, true);
+        $request->session()->put('accounts.google_reauthenticated_at', now()->timestamp);
+
+        $audit->record(
+            event: 'auth.reauthenticated',
+            actor: $user,
+            subject: $user,
+            metadata: ['provider' => 'google'],
+        );
 
         return redirect()->intended(route('dashboard'));
     }

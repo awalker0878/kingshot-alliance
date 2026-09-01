@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Contexts\Accounts\Authentication\Http\Middleware\RequireRecentAccountAuthentication;
 use App\Contexts\Alliance\Lifecycle\Http\Middleware\ResolveAllianceContext;
 use App\Contexts\Communications\Delivery\Actions\ProcessNotificationDeliveries;
 use App\Contexts\GameWorld\GiftCodes\Http\Middleware\RequireGiftCodeCurator;
@@ -76,6 +77,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'platform.admin' => RequirePlatformAdministrator::class,
             'gift-code.curator' => RequireGiftCodeCurator::class,
             'api.credential' => AuthenticateApiCredential::class,
+            'password.confirm' => RequireRecentAccountAuthentication::class,
         ]);
 
         $middleware->append([
