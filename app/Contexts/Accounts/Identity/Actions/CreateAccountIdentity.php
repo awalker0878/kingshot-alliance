@@ -21,7 +21,7 @@ final readonly class CreateAccountIdentity
         string $providerSubject,
         ?string $providerEmail,
         bool $providerEmailVerified,
-    ): AccountIdentity {
+    ): void {
         $provider = Str::lower(trim($provider));
         $providerSubject = trim($providerSubject);
         $providerEmail = $providerEmail === null ? null : Str::lower(trim($providerEmail));
@@ -30,16 +30,16 @@ final readonly class CreateAccountIdentity
             throw new InvalidArgumentException('Provider and provider subject are required.');
         }
 
-        return DB::transaction(function () use (
+        DB::transaction(function () use (
             $userId,
             $provider,
             $providerSubject,
             $providerEmail,
             $providerEmailVerified,
-        ): AccountIdentity {
+        ): void {
             $user = User::query()->whereKey($userId)->lockForUpdate()->firstOrFail();
 
-            $identity = AccountIdentity::query()->create([
+            AccountIdentity::query()->create([
                 'user_id' => $user->id,
                 'provider' => $provider,
                 'provider_subject' => $providerSubject,
@@ -55,8 +55,6 @@ final readonly class CreateAccountIdentity
                 subject: $user,
                 metadata: ['provider' => $provider],
             );
-
-            return $identity;
         });
     }
 }

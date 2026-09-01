@@ -13,10 +13,11 @@ final readonly class RecordAccountIdentityUse
     public function __construct(private AuditRecorder $audit) {}
 
     public function handle(
-        AccountIdentity $identity,
+        int $identityId,
         ?string $providerEmail,
         bool $providerEmailVerified,
-    ): AccountIdentity {
+    ): void {
+        $identity = AccountIdentity::query()->findOrFail($identityId);
         $user = $identity->user()->firstOrFail();
         $email = $providerEmail === null ? null : Str::lower(trim($providerEmail));
 
@@ -32,7 +33,5 @@ final readonly class RecordAccountIdentityUse
             subject: $user,
             metadata: ['provider' => $identity->provider],
         );
-
-        return $identity->refresh();
     }
 }

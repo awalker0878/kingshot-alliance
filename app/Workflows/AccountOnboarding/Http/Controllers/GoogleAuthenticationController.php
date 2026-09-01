@@ -7,12 +7,13 @@ namespace App\Workflows\AccountOnboarding\Http\Controllers;
 use App\Contexts\Accounts\Identity\Actions\CreateAccountIdentity;
 use App\Contexts\Accounts\Identity\Actions\RecordAccountIdentityUse;
 use App\Contexts\Accounts\Identity\Enums\AuthenticationType;
-use App\Contexts\Accounts\Identity\Models\AccountIdentity;
-use App\Contexts\Accounts\Identity\Models\User;
+use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
+use App\Contexts\Accounts\Identity\Queries\ProviderIdentityQuery;
 use App\Contexts\Alliance\Membership\Queries\FindPendingInvitation;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Http\Controller;
 use App\Workflows\AccountOnboarding\Actions\RegisterAccount;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -39,14 +40,17 @@ final class GoogleAuthenticationController extends Controller
         return Socialite::driver('google')->redirect();
     }
 
-    public function reauthenticate(Request $request): RedirectResponse
+    public function reauthenticate(Request $request, AccountIdentityQuery $accounts): RedirectResponse
     {
         $this->ensureConfigured();
 
-        $user = $request->user();
-        abort_unless($user instanceof User && $user->supportsGoogleAuthentication(), 403);
+        $authenticatedUser = $request->user();
+        abort_unless($authenticatedUser instanceof Authenticatable, 401);
 
-        $request->session()->put('accounts.google_reauthentication_user_id', (int) $user->id);
+        $userId = (int) $authenticatedUser->getAuthIdentifier();
+        abort_unless($accounts->supportsGoogleAuthentication($userId), 403);
+
+        $request->session()->put('accounts.google_reauthentication_user_id', $userId);
 
         return Socialite::driver('google')->redirect();
     }
@@ -55,6 +59,8 @@ final class GoogleAuthenticationController extends Controller
         Request $request,
         FindPendingInvitation $invitations,
         RegisterAccount $registerAccount,
+        AccountIdentityQuery $accounts,
+        ProviderIdentityQuery $providerIdentities,
         CreateAccountIdentity $createIdentity,
         RecordAccountIdentityUse $recordIdentityUse,
         AuditRecorder $audit,
@@ -99,27 +105,33 @@ final class GoogleAuthenticationController extends Controller
                 expectedUserId: (int) $reauthenticationUserId,
                 subject: $subject,
                 email: $email,
+                accounts: $accounts,
+                providerIdentities: $providerIdentities,
                 recordIdentityUse: $recordIdentityUse,
                 audit: $audit,
             );
         }
 
-        abort_if($request->user() instanceof User, 409, 'An authenticated account cannot start a new Google sign-in.');
+        abort_if($request->user() instanceof Authenticatable, 409, 'An authenticated account cannot start a new Google sign-in.');
 
         $invitationToken = trim((string) $request->session()->pull('accounts.google_invitation_token', ''));
         $invitation = $invitationToken === '' ? null : $invitations->byToken($invitationToken);
 
-        $identity = AccountIdentity::query()
-            ->where('provider', AuthenticationType::Google->value)
-            ->where('provider_subject', $subject)
-            ->first();
+        $providerIdentity = $providerIdentities->findByProviderSubject(
+            AuthenticationType::Google->value,
+            $subject,
+        );
 
-        if ($identity !== null) {
-            $user = $identity->user()->firstOrFail();
-            abort_unless($user->supportsGoogleAuthentication() && $user->anonymized_at === null, 403);
-            $recordIdentityUse->handle($identity, $email, true);
+        if ($providerIdentity !== null) {
+            $account = $accounts->require($providerIdentity->userId);
+            abort_unless(
+                $accounts->supportsGoogleAuthentication($account->userId) && ! $account->anonymized,
+                403,
+            );
+
+            $recordIdentityUse->handle($providerIdentity->identityId, $email, true);
         } else {
-            if (User::query()->where('email', $email)->exists()) {
+            if ($accounts->findIdByEmail($email) !== null) {
                 $audit->record(
                     event: 'auth.google.identity_failed',
                     metadata: ['reason' => 'email_collision'],
@@ -161,23 +173,23 @@ final class GoogleAuthenticationController extends Controller
                 authenticationType: AuthenticationType::Google,
             );
 
-            $user = User::query()->findOrFail($result->userId);
+            $account = $accounts->require($result->userId);
             $createIdentity->handle(
-                userId: (int) $user->id,
+                userId: $account->userId,
                 provider: AuthenticationType::Google->value,
                 providerSubject: $subject,
                 providerEmail: $email,
                 providerEmailVerified: true,
             );
 
-            Auth::login($user);
+            abort_unless(Auth::loginUsingId($account->userId) instanceof Authenticatable, 401);
             $request->session()->regenerate();
             $request->session()->put('accounts.google_reauthenticated_at', now()->timestamp);
 
             $audit->record(
                 event: 'auth.login',
-                actor: $user,
-                subject: $user,
+                actor: $account,
+                subject: $account,
                 metadata: ['provider' => 'google', 'mfa_method' => null],
             );
 
@@ -193,9 +205,9 @@ final class GoogleAuthenticationController extends Controller
             return redirect()->route('dashboard');
         }
 
-        if ($user->two_factor_confirmed_at !== null && (string) $user->two_factor_secret !== '') {
+        if ($accounts->requiresMultiFactor($account->userId)) {
             $request->session()->put([
-                'accounts.two_factor_challenge_user_id' => $user->id,
+                'accounts.two_factor_challenge_user_id' => $account->userId,
                 'accounts.two_factor_remember' => false,
                 'accounts.two_factor_invitation_token' => $invitationToken,
                 'accounts.google_reauthenticated_at' => now()->timestamp,
@@ -207,14 +219,14 @@ final class GoogleAuthenticationController extends Controller
             return redirect()->route('two-factor.login');
         }
 
-        Auth::login($user);
+        abort_unless(Auth::loginUsingId($account->userId) instanceof Authenticatable, 401);
         $request->session()->regenerate();
         $request->session()->put('accounts.google_reauthenticated_at', now()->timestamp);
 
         $audit->record(
             event: 'auth.login',
-            actor: $user,
-            subject: $user,
+            actor: $account,
+            subject: $account,
             metadata: ['provider' => 'google', 'mfa_method' => null],
         );
 
@@ -230,40 +242,46 @@ final class GoogleAuthenticationController extends Controller
         int $expectedUserId,
         string $subject,
         string $email,
+        AccountIdentityQuery $accounts,
+        ProviderIdentityQuery $providerIdentities,
         RecordAccountIdentityUse $recordIdentityUse,
         AuditRecorder $audit,
     ): RedirectResponse {
-        $user = $request->user();
+        $authenticatedUser = $request->user();
+        abort_unless($authenticatedUser instanceof Authenticatable, 401);
+
+        $userId = (int) $authenticatedUser->getAuthIdentifier();
+        $account = $accounts->require($userId);
         abort_unless(
-            $user instanceof User
-            && (int) $user->id === $expectedUserId
-            && $user->supportsGoogleAuthentication(),
+            $account->userId === $expectedUserId
+            && $accounts->supportsGoogleAuthentication($account->userId),
             403,
         );
 
-        $identity = AccountIdentity::query()
-            ->where('user_id', $user->id)
-            ->where('provider', AuthenticationType::Google->value)
-            ->firstOrFail();
+        $identity = $providerIdentities->findForUser(
+            $account->userId,
+            AuthenticationType::Google->value,
+        );
+        abort_unless($identity !== null, 403);
 
-        if (! hash_equals($identity->provider_subject, $subject)) {
+        if (! hash_equals($identity->providerSubject, $subject)) {
             $audit->record(
                 event: 'auth.google.identity_failed',
-                actor: $user,
-                subject: $user,
+                actor: $account,
+                subject: $account,
                 metadata: ['reason' => 'reauthentication_subject_mismatch'],
             );
 
             abort(403, 'Google reauthentication did not match this Kingshot Alliance account.');
         }
 
-        $recordIdentityUse->handle($identity, $email, true);
+        $recordIdentityUse->handle($identity->identityId, $email, true);
         $request->session()->put('accounts.google_reauthenticated_at', now()->timestamp);
 
         $audit->record(
             event: 'auth.reauthenticated',
-            actor: $user,
-            subject: $user,
+            actor: $account,
+            subject: $account,
             metadata: ['provider' => 'google'],
         );
 

@@ -4,82 +4,29 @@ declare(strict_types=1);
 
 namespace App\Contexts\Accounts\Authentication\Http\Middleware;
 
-use App\Contexts\Accounts\Authentication\Models\AccountSession;
+use App\Contexts\Accounts\Authentication\Actions\RecordAccountSession;
 use App\Contexts\Accounts\Identity\Models\User;
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 
-final class TrackAccountSession
+final readonly class TrackAccountSession
 {
+    public function __construct(private RecordAccountSession $recordAccountSession) {}
+
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();
         $sessionId = $request->hasSession() ? $request->session()->getId() : '';
 
         if ($user instanceof User && $sessionId !== '') {
-            $this->record($request, $user, $sessionId);
+            $this->recordAccountSession->handle(
+                userId: (int) $user->id,
+                sessionId: $sessionId,
+                userAgent: (string) $request->userAgent(),
+            );
         }
 
         return $next($request);
-    }
-
-    private function record(Request $request, User $user, string $sessionId): void
-    {
-        $hash = hash('sha256', $sessionId);
-        $userAgent = (string) $request->userAgent();
-        [$browser, $platform, $device] = $this->deviceSummary($userAgent);
-
-        $session = AccountSession::query()->firstOrNew([
-            'user_id' => $user->id,
-            'session_id_hash' => $hash,
-        ]);
-
-        if (! $session->exists) {
-            $session->forceFill([
-                'public_id' => (string) Str::uuid(),
-                'session_id' => $sessionId,
-                'first_seen_at' => now(),
-            ]);
-        }
-
-        $session->forceFill([
-            'session_id' => $sessionId,
-            'browser_family' => $browser,
-            'platform_family' => $platform,
-            'device_family' => $device,
-            'last_seen_at' => now(),
-            'revoked_at' => null,
-        ])->save();
-    }
-
-    /** @return array{0:string,1:string,2:string} */
-    private function deviceSummary(string $userAgent): array
-    {
-        $browser = match (true) {
-            str_contains($userAgent, 'Edg/') => 'Edge',
-            str_contains($userAgent, 'Chrome/') => 'Chrome',
-            str_contains($userAgent, 'Firefox/') => 'Firefox',
-            str_contains($userAgent, 'Safari/') => 'Safari',
-            default => 'Browser',
-        };
-
-        $platform = match (true) {
-            str_contains($userAgent, 'Windows') => 'Windows',
-            str_contains($userAgent, 'Android') => 'Android',
-            str_contains($userAgent, 'iPhone'), str_contains($userAgent, 'iPad') => 'iOS',
-            str_contains($userAgent, 'Macintosh') => 'macOS',
-            str_contains($userAgent, 'Linux') => 'Linux',
-            default => 'Unknown platform',
-        };
-
-        $device = match (true) {
-            str_contains($userAgent, 'iPad'), str_contains($userAgent, 'Tablet') => 'Tablet',
-            str_contains($userAgent, 'Mobile'), str_contains($userAgent, 'iPhone'), str_contains($userAgent, 'Android') => 'Mobile',
-            default => 'Desktop',
-        };
-
-        return [$browser, $platform, $device];
     }
 }
