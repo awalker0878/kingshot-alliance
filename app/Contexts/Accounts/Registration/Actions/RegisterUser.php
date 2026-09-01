@@ -21,12 +21,21 @@ final readonly class RegisterUser
         string $password,
         string $timezone = 'UTC',
         bool $emailVerified = false,
+        bool $passwordAuthenticationEnabled = true,
     ): RegisteredAccount {
-        $user = DB::transaction(function () use ($name, $email, $password, $timezone, $emailVerified): User {
+        $user = DB::transaction(function () use (
+            $name,
+            $email,
+            $password,
+            $timezone,
+            $emailVerified,
+            $passwordAuthenticationEnabled,
+        ): User {
             $user = User::query()->create([
                 'name' => trim($name),
                 'email' => Str::lower(trim($email)),
                 'password' => $password,
+                'password_authentication_enabled' => $passwordAuthenticationEnabled,
                 'timezone' => $timezone,
             ]);
 
@@ -41,6 +50,7 @@ final readonly class RegisterUser
                 metadata: [
                     'timezone' => $user->timezone,
                     'email_verified_at_registration' => $emailVerified,
+                    'password_authentication_enabled' => $passwordAuthenticationEnabled,
                 ],
             );
 
