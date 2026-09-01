@@ -234,7 +234,7 @@ function disableTwoFactor(): void {
       </form>
     </section>
 
-    <section id="security" class="mt-5 grid scroll-mt-4 gap-5 xl:grid-cols-2" aria-label="Security">
+    <section id="security" class="mt-5 grid scroll-mt-4 gap-5 xl:grid-cols-2" :aria-label="t('accountExperience.account.securityTitle')">
       <div class="ks-surface-gold p-5 sm:p-6">
         <p class="ks-kicker">{{ t('accountExperience.account.signInMethod') }}</p>
         <h2 class="ks-display mt-1 text-2xl font-semibold">{{ signInMethod }}</h2>
@@ -458,7 +458,7 @@ function disableTwoFactor(): void {
       </div>
     </section>
 
-    <section id="sessions" class="mt-5 grid scroll-mt-4 gap-5 xl:grid-cols-2" aria-label="Sessions">
+    <section id="sessions" class="mt-5 grid scroll-mt-4 gap-5 xl:grid-cols-2" :aria-label="t('accountExperience.account.sessionsTitle')">
       <div class="ks-surface p-5 sm:p-6">
         <div class="flex flex-wrap items-start justify-between gap-4">
           <div>
