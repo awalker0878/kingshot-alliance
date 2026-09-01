@@ -36,9 +36,15 @@ final class AuthenticatedSessionController extends Controller
             'invitation_token' => ['nullable', 'string', 'max:256'],
         ]);
 
+        $email = Str::lower(trim($validated['email']));
+        $passwordAccount = User::query()
+            ->where('email', $email)
+            ->where('password_authentication_enabled', true)
+            ->exists();
+
         $remember = (bool) ($validated['remember'] ?? false);
-        $authenticated = Auth::attempt([
-            'email' => Str::lower(trim($validated['email'])),
+        $authenticated = $passwordAccount && Auth::attempt([
+            'email' => $email,
             'password' => $validated['password'],
         ], $remember);
 
