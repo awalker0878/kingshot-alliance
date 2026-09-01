@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Accounts\Profile\Http\Controllers;
 
+use App\Contexts\Accounts\Authentication\Actions\RevokeOtherAccountSessions;
 use App\Contexts\Accounts\Authentication\Models\AccountSession;
 use App\Contexts\Accounts\Identity\Enums\AuthenticationType;
 use App\Contexts\Accounts\Identity\Models\User;
@@ -90,8 +91,11 @@ final class ProfileController extends Controller
         return redirect()->route('profile.show')->with('actionReceipt', $this->receipt('profile-updated'));
     }
 
-    public function updatePassword(Request $request, ChangePassword $changePassword): RedirectResponse
-    {
+    public function updatePassword(
+        Request $request,
+        ChangePassword $changePassword,
+        RevokeOtherAccountSessions $revokeOtherSessions,
+    ): RedirectResponse {
         $user = $request->user();
         abort_unless($user instanceof User, 401);
 
@@ -105,7 +109,13 @@ final class ProfileController extends Controller
             (string) $validated['current_password'],
             (string) $validated['password'],
         );
+        $revokeOtherSessions->handle((int) $user->id, $request->session()->getId());
 
         return redirect()->route('profile.show')->with('actionReceipt', $this->receipt('password-updated'));
+    }
+
+    public function destroyOtherSessions(): never
+    {
+        abort(404);
     }
 }
