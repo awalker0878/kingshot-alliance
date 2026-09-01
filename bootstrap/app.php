@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Contexts\Accounts\Authentication\Http\Middleware\RequireRecentAccountAuthentication;
+use App\Contexts\Accounts\Authentication\Http\Middleware\TrackAccountSession;
 use App\Contexts\Alliance\Lifecycle\Http\Middleware\ResolveAllianceContext;
 use App\Contexts\Communications\Delivery\Actions\ProcessNotificationDeliveries;
 use App\Contexts\GameWorld\GiftCodes\Http\Middleware\RequireGiftCodeCurator;
@@ -89,6 +90,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             ResolvePlayerContext::class,
             RequireCurrentPlayerContextVersion::class,
+            TrackAccountSession::class,
             HandleInertiaRequests::class,
         ]);
     })

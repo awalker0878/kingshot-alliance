@@ -43,6 +43,24 @@ return new class extends Migration
             $table->index(['provider', 'provider_email']);
         });
 
+        Schema::create('account_sessions', function (Blueprint $table): void {
+            $table->id();
+            $table->uuid('public_id')->unique();
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+            $table->char('session_id_hash', 64);
+            $table->text('session_id');
+            $table->string('browser_family', 64)->nullable();
+            $table->string('platform_family', 64)->nullable();
+            $table->string('device_family', 32)->nullable();
+            $table->timestamp('first_seen_at');
+            $table->timestamp('last_seen_at');
+            $table->timestamp('revoked_at')->nullable();
+            $table->timestamps();
+
+            $table->unique(['user_id', 'session_id_hash']);
+            $table->index(['user_id', 'revoked_at', 'last_seen_at']);
+        });
+
         Schema::create('password_reset_tokens', function (Blueprint $table): void {
             $table->string('email')->primary();
             $table->string('token');
@@ -53,6 +71,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('password_reset_tokens');
+        Schema::dropIfExists('account_sessions');
         Schema::dropIfExists('account_identities');
         Schema::dropIfExists('users');
     }
