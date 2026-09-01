@@ -55,5 +55,25 @@ return [
             'title' => 'Password changed',
             'body' => 'Your Kingshot Alliance password was changed. Other sessions and access tokens were invalidated.',
         ],
+        'mfa_enabled' => [
+            'title' => 'Two-factor authentication enabled',
+            'body' => 'Authenticator-based two-factor authentication is now enabled for your Kingshot Alliance account.',
+        ],
+        'mfa_disabled' => [
+            'title' => 'Two-factor authentication disabled',
+            'body' => 'Two-factor authentication was disabled for your Kingshot Alliance account.',
+        ],
+        'recovery_codes_regenerated' => [
+            'title' => 'Recovery codes regenerated',
+            'body' => 'Your previous two-factor recovery codes were replaced and can no longer be used.',
+        ],
+        'deletion_requested' => [
+            'title' => 'Account deletion requested',
+            'body' => 'A seven-day deletion cooling-off period started for your Kingshot Alliance account.',
+        ],
+        'deletion_cancelled' => [
+            'title' => 'Account deletion cancelled',
+            'body' => 'The pending deletion request for your Kingshot Alliance account was cancelled.',
+        ],
     ],
 ];
