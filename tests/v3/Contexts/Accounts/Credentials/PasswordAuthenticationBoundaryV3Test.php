@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\v3\Contexts\Accounts\Credentials;
 
+use App\Contexts\Accounts\Identity\Enums\AuthenticationType;
 use App\Contexts\Accounts\Identity\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Tests\v3\TestCase;
 
@@ -14,15 +14,12 @@ final class PasswordAuthenticationBoundaryV3Test extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_google_only_account_does_not_receive_password_reset_token(): void
+    public function test_google_account_does_not_receive_password_reset_token(): void
     {
-        User::factory()->create([
-            'email' => 'google.only@example.test',
-            'password_authentication_enabled' => false,
-        ]);
+        $user = User::factory()->google()->create(['email' => 'google.only@example.test']);
 
         $response = $this->from('/forgot-password')->post('/forgot-password', [
-            'email' => 'google.only@example.test',
+            'email' => $user->email,
         ]);
 
         $response->assertRedirect('/forgot-password');
@@ -30,19 +27,14 @@ final class PasswordAuthenticationBoundaryV3Test extends TestCase
             'status',
             'If an account exists for that email address, a password reset link has been sent.',
         );
-        $this->assertDatabaseMissing('password_reset_tokens', [
-            'email' => 'google.only@example.test',
-        ]);
+        $this->assertDatabaseMissing('password_reset_tokens', ['email' => $user->email]);
+        self::assertSame(AuthenticationType::Google, $user->authentication_type);
+        self::assertNull($user->getRawOriginal('password'));
     }
 
-    public function test_google_only_account_cannot_consume_existing_reset_token(): void
+    public function test_google_account_cannot_consume_existing_reset_token(): void
     {
-        $user = User::factory()->create([
-            'email' => 'google.only@example.test',
-            'password' => 'KnownLocalSecret123',
-            'password_authentication_enabled' => false,
-        ]);
-        $originalPasswordHash = (string) $user->password;
+        $user = User::factory()->google()->create(['email' => 'google.only@example.test']);
         $token = Password::broker()->createToken($user);
 
         $response = $this->from('/reset-password/'.$token)->post('/reset-password', [
@@ -54,20 +46,16 @@ final class PasswordAuthenticationBoundaryV3Test extends TestCase
 
         $response->assertRedirect('/reset-password/'.$token);
         $response->assertSessionHasErrors('email');
-        self::assertSame($originalPasswordHash, (string) $user->refresh()->password);
+        self::assertNull($user->refresh()->getRawOriginal('password'));
     }
 
-    public function test_google_only_account_cannot_use_password_login_even_if_internal_password_is_known(): void
+    public function test_google_account_cannot_use_password_login(): void
     {
-        $user = User::factory()->create([
-            'email' => 'google.only@example.test',
-            'password' => Hash::make('KnownLocalSecret123'),
-            'password_authentication_enabled' => false,
-        ]);
+        $user = User::factory()->google()->create(['email' => 'google.only@example.test']);
 
         $response = $this->from('/login')->post('/login', [
             'email' => $user->email,
-            'password' => 'KnownLocalSecret123',
+            'password' => 'AnyLocalSecret123',
         ]);
 
         $response->assertRedirect('/login');
@@ -77,17 +65,13 @@ final class PasswordAuthenticationBoundaryV3Test extends TestCase
 
     public function test_local_password_account_still_receives_reset_token(): void
     {
-        User::factory()->create([
-            'email' => 'local@example.test',
-            'password_authentication_enabled' => true,
-        ]);
+        $user = User::factory()->create(['email' => 'local@example.test']);
 
         $this->post('/forgot-password', [
-            'email' => 'local@example.test',
+            'email' => $user->email,
         ])->assertSessionHas('status');
 
-        $this->assertDatabaseHas('password_reset_tokens', [
-            'email' => 'local@example.test',
-        ]);
+        $this->assertDatabaseHas('password_reset_tokens', ['email' => $user->email]);
+        self::assertSame(AuthenticationType::Password, $user->authentication_type);
     }
 }

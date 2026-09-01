@@ -13,13 +13,13 @@ use App\Contexts\Alliance\Membership\Queries\FindPendingInvitation;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Http\Controller;
 use App\Workflows\AccountOnboarding\Actions\RegisterAccount;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Laravel\Socialite\AbstractUser;
 use Laravel\Socialite\Facades\Socialite;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Throwable;
 
 final class GoogleAuthenticationController extends Controller
@@ -92,8 +92,6 @@ final class GoogleAuthenticationController extends Controller
             if (User::query()->where('email', $email)->exists()) {
                 $audit->record(
                     event: 'auth.google.identity_failed',
-                    actor: null,
-                    subject: null,
                     metadata: ['reason' => 'email_collision'],
                 );
 
@@ -144,6 +142,7 @@ final class GoogleAuthenticationController extends Controller
 
             Auth::login($user);
             $request->session()->regenerate();
+            $request->session()->put('accounts.google_reauthenticated_at', now()->timestamp);
 
             $audit->record(
                 event: 'auth.login',
