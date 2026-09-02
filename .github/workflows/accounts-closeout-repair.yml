@@ -1,0 +1,63 @@
+name: Accounts Closeout Repair
+
+on:
+  push:
+    branches:
+      - chatgpt/accounts-security-closeout
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: chatgpt/accounts-security-closeout
+          fetch-depth: 0
+
+      - name: Configure PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.5'
+          extensions: dom, gd, intl, mbstring, pcntl, pdo_pgsql, posix, redis, simplexml, xml, xmlwriter, zip
+          coverage: none
+          tools: composer:v2
+
+      - name: Upgrade vulnerable CommonMark dependency
+        run: composer update league/commonmark --with-dependencies --no-interaction --no-progress
+
+      - name: Add Accounts action receipt labels
+        shell: python
+        run: |
+          from pathlib import Path
+
+          path = Path('resources/js/localization/messages/core/en.ts')
+          source = path.read_text()
+          anchor = "    'other-sessions-revoked': 'Other signed-in sessions revoked.',"
+          additions = "\n".join([
+              "    'email-change-verification-sent': 'Verification sent to the new email address.',",
+              "    'email-changed': 'Account email address changed.',",
+              "    'profile-updated': 'Account profile updated.',",
+              anchor,
+          ])
+          if "'email-change-verification-sent':" not in source:
+              if anchor not in source:
+                  raise SystemExit('Receipt catalogue anchor not found')
+              source = source.replace(anchor, additions, 1)
+              path.write_text(source)
+
+      - name: Commit generated dependency and receipt fixes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add composer.lock resources/js/localization/messages/core/en.ts
+          if git diff --cached --quiet; then
+            echo 'No generated changes required.'
+            exit 0
+          fi
+          git commit -m 'Repair account receipt and CommonMark checks'
+          git push origin HEAD:chatgpt/accounts-security-closeout
