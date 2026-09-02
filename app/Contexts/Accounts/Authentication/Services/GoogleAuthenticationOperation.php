@@ -24,7 +24,7 @@ final class GoogleAuthenticationOperation
             'intent' => $intent->value,
             'user_id' => $userId,
             'invitation_token' => $invitationToken,
-            'started_at' => now()->timestamp,
+            'started_at' => (int) now()->timestamp,
         ]);
     }
 
@@ -39,7 +39,8 @@ final class GoogleAuthenticationOperation
 
         $intent = GoogleAuthenticationIntent::tryFrom((string) ($operation['intent'] ?? ''));
         $startedAt = (int) ($operation['started_at'] ?? 0);
-        if ($intent === null || $startedAt < now()->timestamp - self::TTL_SECONDS) {
+        $expiresBefore = (int) now()->timestamp - self::TTL_SECONDS;
+        if ($intent === null || $startedAt < $expiresBefore) {
             throw $this->invalid();
         }
 

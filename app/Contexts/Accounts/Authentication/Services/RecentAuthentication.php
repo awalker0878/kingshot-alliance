@@ -17,7 +17,7 @@ final class RecentAuthentication
     public function mark(Request $request, string $method, ?string $credentialReference = null): void
     {
         $request->session()->put([
-            self::AT => now()->timestamp,
+            self::AT => (int) now()->timestamp,
             self::METHOD => $method,
             self::CREDENTIAL => $credentialReference,
         ]);
@@ -37,7 +37,7 @@ final class RecentAuthentication
     public function isSatisfied(Request $request): bool
     {
         $timeout = max(1, (int) config('auth.password_timeout', 10800));
-        $threshold = now()->timestamp - $timeout;
+        $threshold = (int) now()->timestamp - $timeout;
         $confirmedAt = (int) $request->session()->get(self::AT, 0);
 
         if ($confirmedAt >= $threshold) {
