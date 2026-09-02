@@ -17,7 +17,9 @@
                 </tr>
                 <tr>
                     <td style="padding:32px;">
-                        <div style="font-size:12px;font-weight:800;letter-spacing:.16em;color:#d8b85e;">{{ $eyebrow }}</div>
+                        @if (filled($eyebrow ?? null))
+                            <div style="font-size:12px;font-weight:800;letter-spacing:.16em;color:#d8b85e;">{{ $eyebrow }}</div>
+                        @endif
                         <h1 style="margin:10px 0 16px;font-size:30px;line-height:1.2;color:#fff9e8;">{{ $heading }}</h1>
                         <p style="margin:0 0 24px;font-size:16px;line-height:1.65;color:#c7d0cb;">{{ $intro }}</p>
                         <table role="presentation" cellpadding="0" cellspacing="0">
