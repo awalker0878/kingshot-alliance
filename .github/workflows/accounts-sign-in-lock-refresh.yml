@@ -16,12 +16,10 @@ permissions:
 
 jobs:
   refresh-locks:
-    if: ${{ !contains(github.event.head_commit.message, 'chore: refresh Accounts dependency locks') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: ${{ github.ref_name }}
           fetch-depth: 0
 
       - uses: shivammathur/setup-php@v2
@@ -50,4 +48,4 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add composer.lock package-lock.json
           git commit -m "chore: refresh Accounts dependency locks"
-          git push origin "HEAD:${GITHUB_REF_NAME}"
+          git push origin HEAD:${GITHUB_REF_NAME}
