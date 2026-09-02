@@ -37,10 +37,17 @@ final class GoogleAuthenticationController extends Controller
     public function redirect(Request $request, GoogleAuthenticationOperation $operations): RedirectResponse
     {
         $this->ensureConfigured();
-        abort_if($request->user() instanceof Authenticatable, 409, 'Use Security settings to connect Google to an existing account.');
+        abort_if(
+            $request->user() instanceof Authenticatable,
+            409,
+            'Use Security settings to connect Google to an existing account.',
+        );
 
         $intent = GoogleAuthenticationIntent::tryFrom((string) $request->query('intent', 'login'));
-        abort_unless(in_array($intent, [GoogleAuthenticationIntent::Login, GoogleAuthenticationIntent::Register], true), 422);
+        abort_unless(
+            in_array($intent, [GoogleAuthenticationIntent::Login, GoogleAuthenticationIntent::Register], true),
+            422,
+        );
 
         $invitationToken = trim((string) $request->query('invitation', ''));
         $operations->start(
@@ -77,7 +84,9 @@ final class GoogleAuthenticationController extends Controller
         abort_unless($user instanceof User, 401);
 
         if ($methods->hasGoogle($user)) {
-            throw ValidationException::withMessages(['google' => 'Google is already connected to this Kingshot Alliance account.']);
+            throw ValidationException::withMessages([
+                'google' => 'Google is already connected to this Kingshot Alliance account.',
+            ]);
         }
 
         $operations->start($request, GoogleAuthenticationIntent::Connect, (int) $user->id);
@@ -106,7 +115,10 @@ final class GoogleAuthenticationController extends Controller
             idempotencyKey: 'account.google.disconnected:'.$user->id.':'.now()->format('Uu'),
         );
 
-        return redirect()->route('profile.show')->with('actionReceipt', $this->receipt('google-disconnected'));
+        return redirect()->route('profile.show')->with(
+            'actionReceipt',
+            $this->receipt('google-disconnected'),
+        );
     }
 
     public function callback(
@@ -124,7 +136,6 @@ final class GoogleAuthenticationController extends Controller
         AuditRecorder $audit,
     ): RedirectResponse {
         $this->ensureConfigured();
-
         $operation = $operations->consume($request);
 
         try {
@@ -167,7 +178,11 @@ final class GoogleAuthenticationController extends Controller
             );
         }
 
-        abort_if($request->user() instanceof Authenticatable, 409, 'An authenticated account cannot start a new Google sign-in.');
+        abort_if(
+            $request->user() instanceof Authenticatable,
+            409,
+            'An authenticated account cannot start a new Google sign-in.',
+        );
 
         $invitationToken = $operation['invitation_token'];
         $invitation = $invitationToken === null ? null : $invitations->byToken($invitationToken);
@@ -178,11 +193,21 @@ final class GoogleAuthenticationController extends Controller
             abort_unless(! $account->anonymized, 403);
             $recordIdentityUse->handle($providerIdentity->identityId, $email, true);
 
-            return $this->completeLogin($request, $account->userId, $invitationToken, $accounts, $audit);
+            return $this->completeLogin(
+                request: $request,
+                userId: $account->userId,
+                invitationToken: $invitationToken,
+                accounts: $accounts,
+                recentAuthentication: $recentAuthentication,
+                audit: $audit,
+            );
         }
 
         if ($accounts->findIdByEmail($email) !== null) {
-            $audit->record(event: 'auth.google.identity_failed', metadata: ['reason' => 'email_collision']);
+            $audit->record(
+                event: 'auth.google.identity_failed',
+                metadata: ['reason' => 'email_collision'],
+            );
 
             throw ValidationException::withMessages([
                 'google' => 'A Kingshot Alliance account already uses this email. Sign in to that account first, then connect Google from Security settings.',
@@ -251,6 +276,12 @@ final class GoogleAuthenticationController extends Controller
         $request->session()->regenerate();
 
         $user = User::query()->findOrFail($result->userId);
+        $identity = $providerIdentities->findForUser((int) $user->id, 'google');
+        $recentAuthentication->mark(
+            $request,
+            'google',
+            $identity === null ? null : (string) $identity->identityId,
+        );
         $audit->record(
             event: 'auth.login',
             actor: $user,
@@ -259,7 +290,10 @@ final class GoogleAuthenticationController extends Controller
         );
 
         if ($result->joinedAlliance() && $result->playerId !== null) {
-            $request->session()->put((string) config('game_world.active_player_session_key'), $result->playerId);
+            $request->session()->put(
+                (string) config('game_world.active_player_session_key'),
+                $result->playerId,
+            );
 
             return redirect()->route('alliance.overview');
         }
@@ -308,7 +342,10 @@ final class GoogleAuthenticationController extends Controller
             $recordIdentityUse->handle($existing->identityId, $email, true);
             $recentAuthentication->mark($request, 'google', (string) $existing->identityId);
 
-            return redirect()->route('profile.show')->with('actionReceipt', $this->receipt('google-connected'));
+            return redirect()->route('profile.show')->with(
+                'actionReceipt',
+                $this->receipt('google-connected'),
+            );
         }
 
         try {
@@ -327,7 +364,11 @@ final class GoogleAuthenticationController extends Controller
 
         abort_unless($methods->hasGoogle($user->refresh()), 500);
         $identity = $providerIdentities->findForUser((int) $user->id, 'google');
-        $recentAuthentication->mark($request, 'google', $identity === null ? null : (string) $identity->identityId);
+        $recentAuthentication->mark(
+            $request,
+            'google',
+            $identity === null ? null : (string) $identity->identityId,
+        );
 
         $audit->record(event: 'account.google.connected', actor: $user, subject: $user);
         $securityNotifications->publish(
@@ -338,7 +379,10 @@ final class GoogleAuthenticationController extends Controller
             idempotencyKey: 'account.google.connected:'.$user->id.':'.now()->format('Uu'),
         );
 
-        return redirect()->route('profile.show')->with('actionReceipt', $this->receipt('google-connected'));
+        return redirect()->route('profile.show')->with(
+            'actionReceipt',
+            $this->receipt('google-connected'),
+        );
     }
 
     private function completeReauthentication(
@@ -369,7 +413,6 @@ final class GoogleAuthenticationController extends Controller
         }
 
         $recordIdentityUse->handle($identity->identityId, $email, true);
-        $request->session()->put('accounts.google_reauthenticated_at', now()->timestamp);
         $recentAuthentication->mark($request, 'google', (string) $identity->identityId);
 
         $audit->record(
@@ -387,6 +430,7 @@ final class GoogleAuthenticationController extends Controller
         int $userId,
         ?string $invitationToken,
         AccountIdentityQuery $accounts,
+        RecentAuthentication $recentAuthentication,
         AuditRecorder $audit,
     ): RedirectResponse {
         if ($accounts->requiresMultiFactor($userId)) {
@@ -394,6 +438,7 @@ final class GoogleAuthenticationController extends Controller
                 'accounts.two_factor_challenge_user_id' => $userId,
                 'accounts.two_factor_remember' => false,
                 'accounts.two_factor_invitation_token' => $invitationToken ?? '',
+                'accounts.two_factor_primary_method' => 'google',
             ]);
 
             return redirect()->route('two-factor.login');
@@ -402,6 +447,7 @@ final class GoogleAuthenticationController extends Controller
         abort_unless(Auth::loginUsingId($userId) instanceof Authenticatable, 401);
         $request->session()->regenerate();
         $user = User::query()->findOrFail($userId);
+        $recentAuthentication->mark($request, 'google');
 
         $audit->record(
             event: 'auth.login',
@@ -428,9 +474,14 @@ final class GoogleAuthenticationController extends Controller
             FILTER_VALIDATE_BOOL,
         );
 
-        if ($subject === '' || $email === '' || ! filter_var($email, FILTER_VALIDATE_EMAIL) || ! $emailVerified) {
+        if (
+            $subject === ''
+            || $email === ''
+            || ! filter_var($email, FILTER_VALIDATE_EMAIL)
+            || ! $emailVerified
+        ) {
             throw ValidationException::withMessages([
-                'google' => 'Google must provide a stable identity and verified email address to continue.',
+                'google' => 'Google must provide a stable identity and verified email address to sign in.',
             ]);
         }
 
