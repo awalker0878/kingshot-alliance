@@ -12,6 +12,8 @@ use Laravel\Passkeys\Passkey;
 /** @property string $public_id */
 final class AccountPasskey extends Passkey
 {
+    protected $table = 'passkeys';
+
     protected static function booted(): void
     {
         self::creating(static function (self $passkey): void {
