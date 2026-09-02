@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Accounts\Authentication\Providers;
 
+use App\Contexts\Accounts\Authentication\Http\Responses\AccountPasskeyLoginResponse;
 use App\Contexts\Accounts\Authentication\Models\AccountPasskey;
 use App\Contexts\Accounts\Authentication\Services\RecentAuthentication;
 use App\Contexts\Accounts\Identity\Models\User;
@@ -15,6 +16,7 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
+use Laravel\Passkeys\Contracts\PasskeyLoginResponse;
 use Laravel\Passkeys\Events\PasskeyDeleted;
 use Laravel\Passkeys\Events\PasskeyRegistered;
 use Laravel\Passkeys\Events\PasskeyVerified;
@@ -22,6 +24,11 @@ use Laravel\Passkeys\Passkeys;
 
 final class AuthenticationServiceProvider extends ServiceProvider
 {
+    public function register(): void
+    {
+        $this->app->singleton(PasskeyLoginResponse::class, AccountPasskeyLoginResponse::class);
+    }
+
     public function boot(): void
     {
         Passkeys::useUserModel(User::class);
@@ -88,6 +95,8 @@ final class AuthenticationServiceProvider extends ServiceProvider
             }
 
             $request = request();
+            $request->session()->put('accounts.passkey_verified_public_id', (string) $event->passkey->public_id);
+
             if ($request->user() instanceof User && (int) $request->user()->id === (int) $event->user->id) {
                 app(RecentAuthentication::class)->mark(
                     $request,

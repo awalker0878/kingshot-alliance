@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Contexts\Accounts\Authentication\Http\Controllers\AccountSessionController;
+use App\Contexts\Accounts\Authentication\Http\Controllers\PasskeySignInMethodController;
 use App\Contexts\Accounts\Credentials\Http\Controllers\PasswordSignInMethodController;
 use App\Contexts\Accounts\Profile\Http\Controllers\AccountDeletionController;
 use App\Contexts\Accounts\Profile\Http\Controllers\EmailChangeController;
@@ -39,6 +40,9 @@ Route::middleware(['auth', 'auth.session', 'verified', 'password.confirm'])->gro
             Route::delete('/password', [PasswordSignInMethodController::class, 'destroy'])
                 ->middleware('throttle:6,1')
                 ->name('password.destroy');
+            Route::patch('/passkeys/{passkey}', [PasskeySignInMethodController::class, 'update'])
+                ->middleware('throttle:passkeys')
+                ->name('passkeys.update');
             Route::delete('/sessions/{session}', [AccountSessionController::class, 'destroy'])
                 ->whereUuid('session')
                 ->name('sessions.destroy');
