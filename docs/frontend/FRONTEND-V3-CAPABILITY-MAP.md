@@ -1,6 +1,6 @@
 # FRONTEND-V3 Capability Map
 
-This document defines the Governor-facing screen map from application capabilities. It includes the active Territory & Hive Planner and Intelligence Change Detection delivery contracts so implementation cannot ship UI without its backing owner capabilities.
+This document defines the Governor-facing screen map from application capabilities. It includes the current Accounts Sign-In Methods, Territory & Hive Planner and Intelligence Change Detection delivery contracts so implementation cannot ship UI without its backing owner capabilities.
 
 ## Presentation rule
 
@@ -8,53 +8,66 @@ The frontend is organized by what a Governor or Alliance officer is doing. Backe
 
 ```text
 Governor Account
+      ├── Account Security
+      │   ├── Profile / verified account email
+      │   ├── Sign-in methods (Password / Google / Passkeys)
+      │   ├── MFA / recovery
+      │   ├── Sessions
+      │   └── Security Activity / account lifecycle
       │
-      ▼
-Active Governor
-      │
-      ├── Alliance Command
-      │   ├── Alliance Hall
-      │   ├── Recruitment Hall
-      │   ├── Noticeboard
-      │   ├── Alliance Rules
-      │   └── Alliance Connections
-      │
-      ├── Event Command
-      │   ├── Event Calendar / Agenda
-      │   ├── Responses / Registration / Attendance
-      │   ├── Phases / Polls
-      │   ├── Event Rosters / Teams / Legions / Substitutes
-      │   ├── Rally Guidance / Formations / Rally Groups
-      │   ├── Battle Objectives
-      │   ├── King's Court (Kingdom of Power only)
-      │   └── War Reports / Event History
-      │
-      ├── Territory Command
-      │   ├── Alliance Hive Plans
-      │   ├── Hive Builder
-      │   ├── Layout Analysis / Compare
-      │   ├── Multi-Alliance Kingdom Plans
-      │   └── Revisions / Import / Export
-      │
-      ├── Intel Room
-      │   ├── Alliance Roster
-      │   ├── Alliance Strength
-      │   ├── Scout History / CSV Import
-      │   ├── Kingdom Alliances
-      │   ├── Alliance Observations
-      │   ├── Recent Intelligence Changes
-      │   ├── Diplomacy / Contacts
-      │   ├── Shared Kingdom Intelligence
-      │   └── Glory Ledger
-      │
-      ├── Governor Utilities
-      │   ├── Gift Codes
-      │   └── Notification Center
-      │
-      └── Kingdom
-          ├── Kingdom Roles
-          └── Kingdom Transfer
+      └── Active Governor
+          │
+          ├── Alliance Command
+          │   ├── Alliance Hall
+          │   ├── Recruitment Hall
+          │   ├── Noticeboard
+          │   ├── Alliance Rules
+          │   └── Alliance Connections
+          │
+          ├── Event Command
+          │   ├── Event Calendar / Agenda
+          │   ├── Responses / Registration / Attendance
+          │   ├── Phases / Polls
+          │   ├── Event Rosters / Teams / Legions / Substitutes
+          │   ├── Rally Guidance / Formations / Rally Groups
+          │   ├── Battle Objectives
+          │   ├── King's Court (Kingdom of Power only)
+          │   └── War Reports / Event History
+          │
+          ├── Territory Command
+          │   ├── Alliance Hive Plans
+          │   ├── Hive Builder
+          │   ├── Layout Analysis / Compare
+          │   ├── Multi-Alliance Kingdom Plans
+          │   └── Revisions / Import / Export
+          │
+          ├── Intel Room
+          │   ├── Alliance Roster
+          │   ├── Alliance Strength
+          │   ├── Scout History / CSV Import
+          │   ├── Kingdom Alliances
+          │   ├── Alliance Observations
+          │   ├── Recent Intelligence Changes
+          │   ├── Diplomacy / Contacts
+          │   ├── Shared Kingdom Intelligence
+          │   └── Glory Ledger
+          │
+          ├── Governor Utilities
+          │   ├── Gift Codes
+          │   └── Notification Center
+          │
+          └── Kingdom
+              ├── Kingdom Roles
+              └── Kingdom Transfer
 ```
+
+## Account Security
+
+Backed by Accounts and scoped to the permanent Kingshot Alliance User rather than any active Governor. The Security Center presents real credential state instead of a primary account type: Password may be added, changed or removed; Google may be explicitly connected or disconnected by stable provider subject; and Passkeys may be registered, listed, renamed and removed. Server-side policy prevents removal of the final usable sign-in method.
+
+Sensitive mutations use one generic **Confirm it's you** boundary that may be satisfied by an allowed attached Password, Google or Passkey method. Provider email remains metadata and never silently replaces the verified Kingshot Alliance account email or links another User. User-verifying passkey authentication does not add a redundant TOTP prompt; Password and Google continue through TOTP when configured.
+
+The same account surface owns profile/account-email presentation, MFA and TOTP recovery codes, privacy-conscious session inventory/revocation, Security Activity and account-lifecycle controls. Communications remains the outbound security-notification delivery owner, while Platform/DataGovernance remains the deletion-orchestration owner.
 
 ## Command Overview
 

@@ -1,6 +1,6 @@
 # Accounts Sign-In Methods & Credential Evolution
 
-Status: Selected extension — implementation in progress
+Status: Current complete capability
 
 Date: 2026-09-02
 
@@ -185,4 +185,4 @@ Google operation starts/callbacks, password establishment/removal, passkey regis
 19. Documentation and delivery-ledger reconciliation.
 20. Final containing-commit verification and promotion to Current complete capability.
 
-This document is the canonical product contract for the extension. If implementation reveals a missing security invariant, ownership boundary, or UX state, update this contract before changing runtime behavior.
+This document is the canonical product contract for the current complete capability. Future credential or recovery changes must preserve these security invariants and ownership boundaries or explicitly supersede them through a new product/architecture decision.

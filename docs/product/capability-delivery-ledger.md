@@ -1,6 +1,6 @@
 # Capability delivery ledger
 
-Status: Current as of 2026-08-30
+Status: Current as of 2026-09-02
 
 This ledger records current delivered outcomes, active selected-extension work and remaining evidence gates. It is a work queue, not a speculative roadmap. Git history remains the archive for retired/completed intermediate phase detail and exact diffs/CI runs.
 
@@ -37,6 +37,7 @@ Later capability delivery is represented by the current canonical contracts belo
 
 | Capability/program | Status | Canonical current-truth contract |
 | --- | --- | --- |
+| Accounts Sign-In Methods & Credential Evolution | Complete | [Accounts Sign-In Methods & Credential Evolution](accounts-sign-in-methods.md), [acceptance](accounts-sign-in-methods-acceptance.md), [delivery ledger](accounts-sign-in-methods-delivery-ledger.md), [ADR-0014](../architecture/adr/0014-account-sign-in-methods.md) and Accounts V3 tests |
 | Gift Code trust, discovery and redemption expansion | Complete | [Extension closeout](gift-code-extension-program.md), [ADR-0004](../architecture/adr/0004-gift-code-trust-from-append-only-evidence.md), [owner reference](../reference/gift-codes.md) and `GiftCodeBehaviorV3Test` |
 | Notifications, recurring Alliance announcements and delivery recovery | Complete | [Capability catalogue](capability-catalogue.md), [user journeys](experience/user-journeys.md) and owner/reference docs |
 | Pagination, shared workflow UX and bounded bulk workflows | Complete | [Capability catalogue](capability-catalogue.md), [user journeys](experience/user-journeys.md) and owner tests |

@@ -1,6 +1,6 @@
 # Capability completeness plan
 
-Status: Current — 2026-08-30
+Status: Current — 2026-09-02
 
 This document identifies what is already complete, what has been selected for the next implementation program, and what remains evidence-gated. It is not permission to describe selected work as shipped.
 
@@ -33,6 +33,14 @@ External projects may not silently supply a progression formula, transfer rule, 
 The product already has governed workflows across account security, Player context, Alliance membership/leadership, recruitment, Alliance Content, Kingdom governance, Events, Participation, rosters, polls, BattlePlans, Rallies, King Perks, Results, Intelligence, Communications, platform administration, integrations, Gift Codes, Territory & Hive planning, Kingdom Transfer Planning, Factual Governor Progression, Screenshot Intake for Bear Hunt, Bear Hunt Debrief, Alliance Assistant, Event Readiness & Closeout, Territory plan versus observed state and Intelligence Change Detection.
 
 Gift Codes now use a fresh-schema canonical trust model: append-only observations, platform-approved sources, revisioned derived trust/expiry, evidence-gated reward/applicability, MFA-protected moderation, guided owned-Governor handoff, revision-aware lifecycle delivery, bounded source ingestion health, cursor catalogue/API reads and versioned webhooks. The official Century Games center remains the provider boundary; undocumented redemption automation and unsupported Kingshot reward/eligibility claims remain explicitly out of scope.
+
+### Account security — current complete
+
+Accounts now treats the Kingshot Alliance User as the permanent application identity and Password, Google and Passkeys as attached sign-in methods. The fresh canonical schema has no `authentication_type`; one Accounts-owned policy derives actual method availability and blocks removal of the final usable method.
+
+Google attachment is explicit, recent-authenticated and keyed by stable provider subject rather than email. Passwords may be added, changed or removed when policy allows. Passkeys use the maintained first-party Laravel/WebAuthn implementation with opaque user handles and required user verification. Recent authentication is method-agnostic, TOTP remains MFA rather than account identity, and user-verifying passkeys do not receive a redundant TOTP challenge. Security Center, sessions, Security Activity, account email and lifecycle invalidation remain within their existing Accounts/Communications/Platform ownership boundaries.
+
+Account merging, email-based identity consolidation, official Kingshot game authentication and game credentials remain unsupported.
 
 ### Alliance Assistant — current complete
 

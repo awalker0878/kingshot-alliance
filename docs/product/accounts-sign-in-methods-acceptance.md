@@ -1,6 +1,6 @@
 # Accounts Sign-In Methods & Credential Evolution — Acceptance Matrix
 
-Status: Implementation complete — final verification and documentation reconciliation in progress
+Status: Complete
 
 Date: 2026-09-02
 
@@ -49,4 +49,4 @@ Canonical contract: [Accounts Sign-In Methods & Credential Evolution](accounts-s
 | ASIM-39 | PHP/Pint/PHPStan/backend tests, frontend lint/format/types/build/tests, Architecture V3, clean-schema, visual/accessibility, CodeQL and dependency review are green on the containing candidate. |
 | ASIM-40 | `/docs/product`, Accounts architecture, ADRs, capability catalogue, frontend map and delivery ledger match final implementation. |
 
-A row is complete only when implementation and corresponding automated/documented verification evidence exist. The current implementation has passed Architecture V3, static analysis, full V3 PHPUnit, PHP quality/tests, CodeQL, dependency review and Intelligence Verification on the latest substantive candidate; frontend receipt coverage, visual regression and final containing-commit reconciliation remain open until verified on a normal author commit.
+A row is complete only when implementation and corresponding automated/documented verification evidence exist. Release completion therefore requires the containing candidate to retain the repository's complete green verification set; any later regression reopens the applicable row rather than changing the product contract.

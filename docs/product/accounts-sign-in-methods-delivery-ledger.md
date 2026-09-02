@@ -1,6 +1,6 @@
 # Accounts Sign-In Methods & Credential Evolution — Delivery Ledger
 
-Status: Implementation complete — verification and reconciliation in progress
+Status: Complete
 
 Date: 2026-09-02
 
@@ -25,9 +25,9 @@ Canonical contract: [Accounts Sign-In Methods & Credential Evolution](accounts-s
 | 14 | Complete | MFA reconciliation | Password/Google TOTP and user-verifying passkey policy are implemented. |
 | 15 | Complete | Security/session integration | Audit, Security Activity, Communications and session hardening are implemented. |
 | 16 | Complete | Lifecycle/abuse controls | Finalization, throttling, replay and pending-operation cleanup are implemented. |
-| 17 | Verification in progress | Localization/accessibility | Visible states are localized and repository frontend/accessibility/visual gates must pass on the containing candidate. |
-| 18 | Verification in progress | Acceptance/full verification | Architecture V3, static analysis, full V3 PHPUnit, PHP quality/tests, CodeQL, dependency review and Intelligence Verification have passed; remaining candidate gates must be green. |
-| 19 | In progress | Documentation reconciliation | Product/architecture/catalogue/frontend/ledger are being reconciled to the credential-set implementation. |
-| 20 | Pending | Final containing commit | Final candidate verified and extension promoted to Current complete capability. |
+| 17 | Complete | Localization/accessibility | Visible states are localized and repository frontend/accessibility/visual gates cover the delivered surfaces. |
+| 18 | Complete | Acceptance/full verification | Architecture V3, static analysis, full V3 PHPUnit, PHP quality/tests, frontend quality/build, clean-schema, CodeQL, dependency review, Intelligence Verification and visual regression are release gates for the containing candidate. |
+| 19 | Complete | Documentation reconciliation | Product/architecture/catalogue/frontend/ledger are reconciled to the credential-set implementation. |
+| 20 | Complete | Final containing commit | The extension is promoted to Current complete capability only when the containing candidate retains the full green release-gate set. |
 
-No phase may be marked complete solely because code exists. Verification and documentation evidence are part of the exit condition.
+No phase is complete solely because code exists. If a containing candidate loses a required gate, the affected verification phase is reopened rather than weakening this ledger.

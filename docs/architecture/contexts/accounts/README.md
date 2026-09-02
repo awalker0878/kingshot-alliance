@@ -1,6 +1,6 @@
 # Accounts context
 
-Status: Current — Architecture V3; Sign-In Methods & Credential Evolution implementation complete, verification in progress
+Status: Current — Architecture V3; Sign-In Methods & Credential Evolution current complete capability
 
 Implementation target: `app/Contexts/Accounts`
 
