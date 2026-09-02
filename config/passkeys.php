@@ -16,8 +16,8 @@ return [
     'user_handle_secret' => env('PASSKEYS_USER_HANDLE_SECRET', config('app.key')),
     'timeout' => 60000,
     'guard' => 'web',
-    'middleware' => ['web'],
+    'middleware' => ['web', 'throttle:passkeys'],
     'management_middleware' => ['auth', 'auth.session', 'verified', 'password.confirm'],
-    'throttle' => 'throttle:passkeys',
+    'throttle' => null,
     'redirect' => '/dashboard',
 ];
