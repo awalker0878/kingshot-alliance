@@ -11,6 +11,7 @@ use Illuminate\Validation\ValidationException;
 final class GoogleAuthenticationOperation
 {
     private const SESSION_KEY = 'accounts.google_operation';
+
     private const TTL_SECONDS = 600;
 
     public function start(

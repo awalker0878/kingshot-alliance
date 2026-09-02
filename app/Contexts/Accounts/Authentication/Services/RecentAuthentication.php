@@ -9,7 +9,9 @@ use Illuminate\Http\Request;
 final class RecentAuthentication
 {
     private const AT = 'accounts.recent_authentication_at';
+
     private const METHOD = 'accounts.recent_authentication_method';
+
     private const CREDENTIAL = 'accounts.recent_authentication_credential';
 
     public function mark(Request $request, string $method, ?string $credentialReference = null): void

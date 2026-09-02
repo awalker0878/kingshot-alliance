@@ -34,8 +34,7 @@ final class AuthenticationServiceProvider extends ServiceProvider
     {
         Passkeys::useUserModel(User::class);
         Passkeys::usePasskeyModel(AccountPasskey::class);
-        Passkeys::authorizeLoginUsing(static fn (Request $request, $user): bool =>
-            $user instanceof User && $user->anonymized_at === null
+        Passkeys::authorizeLoginUsing(static fn (Request $request, $user): bool => $user instanceof User && $user->anonymized_at === null
         );
 
         RateLimiter::for('login', static fn (Request $request): Limit => Limit::perMinute(5)->by(

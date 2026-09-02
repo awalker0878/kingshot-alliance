@@ -14,13 +14,13 @@ final class AccountPasskey extends Passkey
 {
     protected static function booted(): void
     {
-        static::creating(static function (self $passkey): void {
+        self::creating(static function (self $passkey): void {
             if (blank($passkey->public_id)) {
                 $passkey->public_id = (string) Str::uuid();
             }
         });
 
-        static::deleting(static function (self $passkey): void {
+        self::deleting(static function (self $passkey): void {
             if (! app(AccountSignInMethodPolicy::class)->canRemovePasskey((int) $passkey->user_id, (int) $passkey->id)) {
                 throw ValidationException::withMessages([
                     'passkey' => 'Add another sign-in method before removing this passkey.',

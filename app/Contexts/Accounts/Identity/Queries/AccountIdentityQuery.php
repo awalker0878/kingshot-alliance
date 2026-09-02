@@ -58,7 +58,7 @@ final class AccountIdentityQuery
     }
 
     /** @param list<int> $userIds
-     *  @return array<int,AccountIdentity>
+     * @return array<int,AccountIdentity>
      */
     public function byIds(array $userIds): array
     {
