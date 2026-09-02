@@ -1,18 +1,20 @@
 # Accounts Expansion — Delivery Ledger
 
-Status: Implementation complete — final verification in progress
+Status: Historical complete baseline — superseded for current credential semantics by [Accounts Sign-In Methods & Credential Evolution](accounts-sign-in-methods.md)
 
 Date: 2026-09-02
 
-Canonical contract: [Accounts Expansion Program](accounts-expansion.md). Acceptance: [Accounts Expansion Acceptance Matrix](accounts-expansion-acceptance.md).
+Canonical historical contract: [Accounts Expansion Program](accounts-expansion.md). Historical acceptance: [Accounts Expansion Acceptance Matrix](accounts-expansion-acceptance.md). Current credential delivery ledger: [Accounts Sign-In Methods Delivery Ledger](accounts-sign-in-methods-delivery-ledger.md).
+
+> Historical scope: this ledger records delivery of the first Accounts expansion and its then-current exclusive authentication-type architecture. Main commit `d757a0df172bf43dbe26f8d4a2d38cdbdf7751a2` subsequently carried the reconciled baseline with CI, Architecture V3, Intelligence Verification, Visual Regression, CodeQL and Dependency Review green. ADR-0014 and the Sign-In Methods program intentionally supersede the exclusive credential model while retaining the applicable identity, product-language, lifecycle and ownership boundaries.
 
 ## Documented delivery-order adjustment
 
-The repository already protects MFA setup and multiple sensitive application routes with the `password.confirm` middleware alias. Under the selected exclusive-authentication model, leaving authentication-type-aware recent proof until phase 17 would block Google accounts from those protected flows because they intentionally have no local password.
+The repository already protected MFA setup and multiple sensitive application routes with the `password.confirm` middleware alias. Under the selected exclusive-authentication model, leaving authentication-type-aware recent proof until phase 17 would have blocked Google accounts from those protected flows because they intentionally had no local password.
 
-Therefore the **recent-authentication foundation from phase 17 was pulled forward immediately after the primary authentication model**. The existing `password.confirm` policy boundary became authentication-type aware: password accounts continue to use password confirmation, while Google accounts use a recent successful Google reauthentication. The remaining Security Center, email-change, MFA, session and lifecycle surfaces have now been reconciled against that foundation.
+Therefore the **recent-authentication foundation from phase 17 was pulled forward immediately after the primary authentication model**. The existing `password.confirm` policy boundary became authentication-type aware: password accounts continued to use password confirmation, while Google accounts used a recent successful Google reauthentication. The remaining Security Center, email-change, MFA, session and lifecycle surfaces were reconciled against that foundation.
 
-This was an architecture dependency adjustment, not a change to the acceptance invariants or product scope.
+This was an architecture dependency adjustment for the historical program, not a change to its acceptance invariants or product scope.
 
 | Phase | Status | Slice | Exit condition |
 | --- | --- | --- | --- |
@@ -36,8 +38,8 @@ This was an architecture dependency adjustment, not a change to the acceptance i
 | 18 | Complete | MFA/recovery-code reconciliation | Both primary authentication types work with TOTP; disable/regeneration/use semantics are audited and recent-auth protected where required. |
 | 19 | Complete | Deletion/anonymization | Platform/DataGovernance lifecycle coordination and Accounts-side final credential/provider/session/token invalidation are reconciled and tested. |
 | 20 | Complete | Localization/accessibility | New visible copy is localized and authentication/security frontend checks satisfy repository accessibility/quality gates. |
-| 21 | Verification in progress | Full verification | The implementation-containing commit has cleared backend/frontend, Architecture V3, Intelligence, clean-schema, CodeQL and dependency checks; the final reconciled closeout commit must complete its applicable repository gates before merge. |
-| 22 | Complete | Documentation reconciliation | Product contract, Accounts architecture, ADR, acceptance matrix, capability catalogue and this ledger are reconciled to implemented ownership and behavior. |
-| 23 | Pending final main verification | Final main verification | Merge only after the final PR commit is green; then verify the containing `main` commit and close this ledger. |
+| 21 | Complete | Full verification | Backend/frontend, Architecture V3, Intelligence, clean-schema, CodeQL, dependency, visual and release checks cleared on the completed baseline. |
+| 22 | Complete | Documentation reconciliation | Product contract, Accounts architecture, ADR, acceptance matrix, capability catalogue and this ledger were reconciled to the baseline implementation. |
+| 23 | Complete | Final main verification | The completed baseline was verified on `main` at `d757a0df172bf43dbe26f8d4a2d38cdbdf7751a2`. |
 
-No implementation phase is intentionally deferred. The ledger remains open only for final containing-commit verification and post-merge `main` verification required by ACCT-30/31.
+No historical phase remains open. Current Password/Google/Passkey credential semantics and their release evidence are governed by the Sign-In Methods program rather than reopening or rewriting this baseline ledger.

@@ -1,8 +1,10 @@
 # Accounts Expansion Program
 
-Status: Implementation complete — final main verification pending
+Status: Historical complete baseline — credential model superseded by [Accounts Sign-In Methods & Credential Evolution](accounts-sign-in-methods.md)
 
 Date: 2026-09-02
+
+> Historical scope: this document records the completed first Accounts expansion and the exclusive `password|google` model that was current at that milestone. ADR-0014 and the Accounts Sign-In Methods & Credential Evolution contract now supersede the exclusive authentication-type, hybrid-account, password-on-Google-account, Google-attachment and passkey limitations below. Durable boundaries such as Kingshot Alliance product identity, stable Google subject identity, no email-based silent linking, no OAuth-token persistence, Accounts/GameWorld separation and fresh-schema delivery remain applicable where the current contract retains them.
 
 ## Product identity
 
@@ -128,4 +130,4 @@ This program does not implement hybrid accounts, Google linking to password acco
 20. Full security, architecture, backend, frontend and regression verification.
 21. Documentation/delivery-ledger reconciliation and final `main` verification.
 
-The implementation must keep this contract current when repository architecture requires a documented adjustment.
+This historical contract is retained to explain the first Accounts expansion. Current authentication and credential behavior is defined by [Accounts Sign-In Methods & Credential Evolution](accounts-sign-in-methods.md) and [ADR-0014](../architecture/adr/0014-account-sign-in-methods.md).

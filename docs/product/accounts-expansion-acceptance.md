@@ -1,10 +1,12 @@
 # Accounts Expansion — Acceptance Matrix
 
-Status: Implementation complete — final main verification pending
+Status: Historical complete baseline — credential-model criteria superseded by [Accounts Sign-In Methods & Credential Evolution](accounts-sign-in-methods.md)
 
 Date: 2026-09-02
 
-Canonical contract: [Accounts Expansion Program](accounts-expansion.md).
+Canonical historical contract: [Accounts Expansion Program](accounts-expansion.md). Current credential/sign-in acceptance: [Accounts Sign-In Methods Acceptance Matrix](accounts-sign-in-methods-acceptance.md).
+
+> Historical scope: ACCT criteria below record the acceptance boundary of the completed first Accounts expansion. Criteria that depended on one exclusive `password|google` primary type, type-specific recent authentication, or the absence of attachable Password/Google/Passkey methods were intentionally superseded by ADR-0014 and ASIM-01–ASIM-40. They are retained as delivery history, not current product requirements.
 
 | ID | Acceptance criterion |
 | --- | --- |
@@ -40,4 +42,4 @@ Canonical contract: [Accounts Expansion Program](accounts-expansion.md).
 | ACCT-30 | PHP/Pint/PHPStan/tests, frontend/type/lint/build/tests, architecture/security gates and clean-schema verification are green on the final containing commit. |
 | ACCT-31 | `/docs/product`, Accounts architecture, ADR, acceptance matrix, capability catalogue and delivery ledger match the final implementation. |
 
-A row is complete only with corresponding implementation and automated or documented verification evidence.
+The first Accounts expansion satisfied this historical matrix on its completed baseline. Current credential behavior is governed by the ASIM matrix; a regression against a still-retained boundary such as no email-based silent linking, product-language separation, lifecycle ownership, or security/audit behavior remains a current defect even though the exclusive account-type criteria are historical.
