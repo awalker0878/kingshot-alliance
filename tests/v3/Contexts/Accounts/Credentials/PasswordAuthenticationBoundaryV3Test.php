@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\v3\Contexts\Accounts\Credentials;
 
-use App\Contexts\Accounts\Identity\Enums\AuthenticationType;
 use App\Contexts\Accounts\Identity\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Password;
@@ -14,7 +13,7 @@ final class PasswordAuthenticationBoundaryV3Test extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_google_account_does_not_receive_password_reset_token(): void
+    public function test_user_without_password_does_not_receive_password_reset_token(): void
     {
         $user = User::factory()->google()->create(['email' => 'google.only@example.test']);
 
@@ -28,11 +27,11 @@ final class PasswordAuthenticationBoundaryV3Test extends TestCase
             'If an account exists for that email address, a password reset link has been sent.',
         );
         $this->assertDatabaseMissing('password_reset_tokens', ['email' => $user->email]);
-        self::assertSame(AuthenticationType::Google, $user->authentication_type);
-        self::assertNull($user->getRawOriginal('password'));
+        self::assertNull($user->refresh()->getRawOriginal('password'));
+        self::assertTrue($user->supportsGoogleAuthentication());
     }
 
-    public function test_google_account_cannot_consume_existing_reset_token(): void
+    public function test_user_without_password_cannot_consume_existing_reset_token(): void
     {
         $user = User::factory()->google()->create(['email' => 'google.only@example.test']);
         $token = Password::broker()->createToken($user);
@@ -49,7 +48,7 @@ final class PasswordAuthenticationBoundaryV3Test extends TestCase
         self::assertNull($user->refresh()->getRawOriginal('password'));
     }
 
-    public function test_google_account_cannot_use_password_login(): void
+    public function test_user_without_password_cannot_use_password_login(): void
     {
         $user = User::factory()->google()->create(['email' => 'google.only@example.test']);
 
@@ -63,7 +62,7 @@ final class PasswordAuthenticationBoundaryV3Test extends TestCase
         $this->assertGuest();
     }
 
-    public function test_local_password_account_still_receives_reset_token(): void
+    public function test_user_with_password_still_receives_reset_token_even_if_other_methods_exist(): void
     {
         $user = User::factory()->create(['email' => 'local@example.test']);
 
@@ -72,6 +71,6 @@ final class PasswordAuthenticationBoundaryV3Test extends TestCase
         ])->assertSessionHas('status');
 
         $this->assertDatabaseHas('password_reset_tokens', ['email' => $user->email]);
-        self::assertSame(AuthenticationType::Password, $user->authentication_type);
+        self::assertTrue($user->supportsPasswordAuthentication());
     }
 }
