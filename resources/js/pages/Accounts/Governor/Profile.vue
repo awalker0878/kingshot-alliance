@@ -371,7 +371,7 @@ function disableTwoFactor(): void {
         <article class="ks-surface p-5">
           <div class="flex items-start justify-between gap-3">
             <div>
-              <p class="ks-kicker">Google</p>
+              <p class="ks-kicker">{{ t('accountExperience.account.googleSignIn') }}</p>
               <h3 class="ks-display mt-1 text-xl font-semibold">
                 {{
                   props.user.googleAuthentication
