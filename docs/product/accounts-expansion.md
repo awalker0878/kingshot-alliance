@@ -1,8 +1,8 @@
 # Accounts Expansion Program
 
-Status: Selected extension — implementation source of truth
+Status: Implementation complete — final main verification pending
 
-Date: 2026-08-31
+Date: 2026-09-02
 
 ## Product identity
 
@@ -16,9 +16,9 @@ This program targets a fresh schema with no Accounts data. There is no account b
 
 ## Accounts ownership
 
-Accounts owns application User identity, registration, exactly-one primary authentication type, password credentials for password accounts, durable Google identity for Google accounts, email ownership/verification, password recovery, TOTP/recovery codes, sessions, recent-authentication proof, user-facing security activity, account-level security notifications/events, profile settings and deletion/anonymization.
+Accounts owns application User identity, registration, exactly-one primary authentication type, password credentials for password accounts, durable Google identity for Google accounts, email ownership/verification, password recovery, TOTP/recovery codes, sessions, recent-authentication proof, user-facing security activity, account-level security notifications/events, profile settings and the account-side credential/provider invalidation and anonymization effects required by lifecycle finalization.
 
-Accounts does not own Governor/Player game identity, Alliance membership/rank, Kingdom identity/roles, game permissions, game credentials, Intelligence evidence or external-actor reconciliation. Those capabilities retain their existing owners.
+Platform/DataGovernance retains ownership of account-deletion request, cooling-off, cancellation and finalization coordination. Accounts does not own Governor/Player game identity, Alliance membership/rank, Kingdom identity/roles, game permissions, game credentials, Intelligence evidence or external-actor reconciliation. Those capabilities retain their existing owners.
 
 ## Authentication types
 
@@ -96,7 +96,9 @@ TOTP is a Kingshot Alliance second factor available to either authentication typ
 
 ## Account lifecycle
 
-Deletion/anonymization builds on the existing Accounts capability. It requires recent authentication, clear consequences, documented request/cancel/finalization states, session/token invalidation and security audit/notification. Finalization removes the ability to authenticate: password credentials/reset tokens are invalidated for password accounts; Google provider identity is removed/invalidated for Google accounts.
+Account deletion/anonymization uses the existing Platform/DataGovernance lifecycle for request, cooling-off, cancellation and finalization coordination. Sensitive lifecycle entry points require recent authentication, clear consequences, security audit/notification and documented request/cancel/finalization state.
+
+When finalization occurs, Accounts owns the account-side invalidation effects: sessions and application tokens are invalidated; pending-email and MFA material are cleared; password credentials/reset tokens are invalidated for password accounts; Google provider identity is removed for Google accounts; and the User is anonymized so no primary authentication surface remains usable.
 
 ## Deferred/non-goals
 
