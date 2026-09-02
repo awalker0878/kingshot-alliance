@@ -67,7 +67,7 @@ final class GoogleAuthenticationV3Test extends TestCase
         ]);
     }
 
-    public function test_existing_google_subject_is_authoritative_when_provider_email_changes(): void
+    public function test_existing_google_subject_stays_authoritative_when_verified_provider_email_changes(): void
     {
         $user = User::factory()->google()->create([
             'email' => 'old@example.test',
@@ -87,8 +87,10 @@ final class GoogleAuthenticationV3Test extends TestCase
 
         $response->assertRedirect(route('dashboard'));
         $this->assertAuthenticatedAs($user);
-        self::assertSame('new@example.test', AccountIdentity::query()->firstOrFail()->provider_email);
-        self::assertSame('old@example.test', $user->refresh()->email);
+        $identity = AccountIdentity::query()->firstOrFail();
+        self::assertSame('google-subject-id', $identity->provider_subject);
+        self::assertSame('new@example.test', $identity->provider_email);
+        self::assertSame('new@example.test', $user->refresh()->email);
     }
 
     public function test_google_email_must_be_verified(): void
