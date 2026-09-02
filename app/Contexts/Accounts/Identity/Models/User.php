@@ -7,7 +7,6 @@ namespace App\Contexts\Accounts\Identity\Models;
 use App\Contexts\Accounts\Credentials\Notifications\ResetKingshotAlliancePassword;
 use App\Contexts\Accounts\EmailVerification\Notifications\VerifyKingshotAllianceEmail;
 use App\Contexts\Accounts\Identity\Contracts\AuthenticatedAccount;
-use App\Contexts\Accounts\Identity\Enums\AuthenticationType;
 use App\Shared\Infrastructure\AuditTrail\Contracts\AuditActor;
 use Database\Factories\UserFactory;
 use Illuminate\Auth\MustVerifyEmail;
@@ -21,7 +20,8 @@ use Laravel\Sanctum\HasApiTokens;
 /**
  * Global Kingshot Alliance account identity. Game authority belongs to the active Player, not User.
  *
- * @property AuthenticationType $authentication_type
+ * Sign-in methods are attached credentials; User is not classified by an authentication type.
+ *
  * @property string|null $password
  * @property string|null $pending_email
  * @property Carbon|null $pending_email_requested_at
@@ -45,7 +45,6 @@ final class User extends Authenticatable implements AuditActor, AuthenticatedAcc
     protected $fillable = [
         'name',
         'email',
-        'authentication_type',
         'password',
         'timezone',
     ];
@@ -67,7 +66,6 @@ final class User extends Authenticatable implements AuditActor, AuthenticatedAcc
         return [
             'email_verified_at' => 'datetime',
             'pending_email_requested_at' => 'datetime',
-            'authentication_type' => AuthenticationType::class,
             'password' => 'hashed',
             'two_factor_secret' => 'encrypted',
             'two_factor_recovery_codes' => 'encrypted:array',
@@ -85,12 +83,12 @@ final class User extends Authenticatable implements AuditActor, AuthenticatedAcc
 
     public function supportsPasswordAuthentication(): bool
     {
-        return $this->authentication_type === AuthenticationType::Password && filled($this->getRawOriginal('password'));
+        return filled($this->getRawOriginal('password'));
     }
 
     public function supportsGoogleAuthentication(): bool
     {
-        return $this->authentication_type === AuthenticationType::Google && blank($this->getRawOriginal('password'));
+        return $this->accountIdentities()->where('provider', 'google')->exists();
     }
 
     public function sendEmailVerificationNotification(): void

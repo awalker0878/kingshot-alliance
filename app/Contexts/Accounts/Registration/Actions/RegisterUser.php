@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Accounts\Registration\Actions;
 
-use App\Contexts\Accounts\Identity\Enums\AuthenticationType;
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Accounts\Registration\Data\RegisteredAccount;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
@@ -23,14 +22,9 @@ final readonly class RegisterUser
         ?string $password,
         string $timezone = 'UTC',
         bool $emailVerified = false,
-        AuthenticationType $authenticationType = AuthenticationType::Password,
     ): RegisteredAccount {
-        if ($authenticationType === AuthenticationType::Password && blank($password)) {
-            throw new InvalidArgumentException('Password accounts require a local password.');
-        }
-
-        if ($authenticationType === AuthenticationType::Google && $password !== null) {
-            throw new InvalidArgumentException('Google accounts cannot have a local password.');
+        if ($password !== null && blank($password)) {
+            throw new InvalidArgumentException('A configured local password cannot be blank.');
         }
 
         $user = DB::transaction(function () use (
@@ -39,12 +33,10 @@ final readonly class RegisterUser
             $password,
             $timezone,
             $emailVerified,
-            $authenticationType,
         ): User {
             $user = User::query()->create([
                 'name' => trim($name),
                 'email' => Str::lower(trim($email)),
-                'authentication_type' => $authenticationType,
                 'password' => $password,
                 'timezone' => $timezone,
             ]);
@@ -60,7 +52,7 @@ final readonly class RegisterUser
                 metadata: [
                     'timezone' => $user->timezone,
                     'email_verified_at_registration' => $emailVerified,
-                    'authentication_type' => $authenticationType->value,
+                    'password_configured' => $password !== null,
                 ],
             );
 

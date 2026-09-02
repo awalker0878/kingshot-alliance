@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Accounts\Authentication\Http\Controllers;
 
-use App\Contexts\Accounts\Identity\Enums\AuthenticationType;
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Http\Controller;
@@ -37,14 +36,14 @@ final class AuthenticatedSessionController extends Controller
             'invitation_token' => ['nullable', 'string', 'max:256'],
         ]);
 
-        $email = Str::lower(trim($validated['email']));
-        $passwordAccount = User::query()
+        $email = Str::lower(trim((string) $validated['email']));
+        $passwordConfigured = User::query()
             ->where('email', $email)
-            ->where('authentication_type', AuthenticationType::Password->value)
+            ->whereNotNull('password')
             ->exists();
 
         $remember = (bool) ($validated['remember'] ?? false);
-        $authenticated = $passwordAccount && Auth::attempt([
+        $authenticated = $passwordConfigured && Auth::attempt([
             'email' => $email,
             'password' => $validated['password'],
         ], $remember);

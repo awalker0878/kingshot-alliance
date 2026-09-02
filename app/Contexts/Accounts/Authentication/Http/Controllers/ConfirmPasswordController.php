@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Accounts\Authentication\Http\Controllers;
 
+use App\Contexts\Accounts\Authentication\Services\RecentAuthentication;
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Http\Controller;
@@ -16,7 +17,10 @@ use Inertia\Response;
 
 final class ConfirmPasswordController extends Controller
 {
-    public function __construct(private readonly AuditRecorder $audit) {}
+    public function __construct(
+        private readonly AuditRecorder $audit,
+        private readonly RecentAuthentication $recentAuthentication,
+    ) {}
 
     public function create(): Response
     {
@@ -41,6 +45,7 @@ final class ConfirmPasswordController extends Controller
         }
 
         $request->session()->put('auth.password_confirmed_at', time());
+        $this->recentAuthentication->mark($request, 'password');
 
         $this->audit->record(
             event: 'auth.password.confirmed',

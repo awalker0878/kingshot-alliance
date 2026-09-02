@@ -4,42 +4,41 @@ declare(strict_types=1);
 
 namespace App\Contexts\Accounts\Authentication\Http\Middleware;
 
-use App\Contexts\Accounts\Identity\Enums\AuthenticationType;
+use App\Contexts\Accounts\Authentication\Services\AccountSignInMethodPolicy;
+use App\Contexts\Accounts\Authentication\Services\RecentAuthentication;
 use App\Contexts\Accounts\Identity\Models\User;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-final class RequireRecentAccountAuthentication
+final readonly class RequireRecentAccountAuthentication
 {
+    public function __construct(
+        private AccountSignInMethodPolicy $methods,
+        private RecentAuthentication $recentAuthentication,
+    ) {}
+
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();
         abort_unless($user instanceof User, 401);
 
-        $timeout = max(1, (int) config('auth.password_timeout', 10800));
-        $threshold = (int) now()->timestamp - $timeout;
+        if ($this->recentAuthentication->isSatisfied($request)) {
+            return $next($request);
+        }
 
-        if ($user->authentication_type === AuthenticationType::Password) {
-            $confirmedAt = (int) $request->session()->get('auth.password_confirmed_at', 0);
-
-            if ($confirmedAt >= $threshold) {
-                return $next($request);
-            }
-
+        if ($this->methods->hasPassword($user)) {
             return redirect()->guest(route('password.confirm'));
         }
 
-        if ($user->authentication_type === AuthenticationType::Google) {
-            $confirmedAt = (int) $request->session()->get('accounts.google_reauthenticated_at', 0);
-
-            if ($confirmedAt >= $threshold) {
-                return $next($request);
-            }
-
+        if ($this->methods->hasGoogle($user)) {
             return redirect()->guest(route('auth.google.reauthenticate'));
         }
 
-        abort(403, 'The account authentication type is not supported.');
+        if ($this->methods->passkeyCount($user) > 0) {
+            return redirect()->guest(route('account.confirm'));
+        }
+
+        abort(403, 'This Kingshot Alliance account does not have a usable sign-in method.');
     }
 }

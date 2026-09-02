@@ -25,11 +25,6 @@ final readonly class RequestAccountEmailChange
         $email = Str::lower(trim($email));
         $pendingEmail = DB::transaction(function () use ($userId, $email): string {
             $user = User::query()->whereKey($userId)->lockForUpdate()->firstOrFail();
-            if (! $user->supportsPasswordAuthentication()) {
-                throw ValidationException::withMessages([
-                    'email' => 'Google sign-in accounts use the verified email supplied by Google.',
-                ]);
-            }
 
             if (hash_equals(Str::lower((string) $user->email), $email)) {
                 throw ValidationException::withMessages(['email' => 'Choose a different email address.']);
