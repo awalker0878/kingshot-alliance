@@ -1,8 +1,8 @@
 # Accounts Expansion — Acceptance Matrix
 
-Status: Selected extension
+Status: Implementation complete — final main verification pending
 
-Date: 2026-08-31
+Date: 2026-09-02
 
 Canonical contract: [Accounts Expansion Program](accounts-expansion.md).
 
