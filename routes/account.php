@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Contexts\Accounts\Authentication\Http\Controllers\AccountSessionController;
+use App\Contexts\Accounts\Credentials\Http\Controllers\PasswordSignInMethodController;
 use App\Contexts\Accounts\Profile\Http\Controllers\AccountDeletionController;
 use App\Contexts\Accounts\Profile\Http\Controllers\EmailChangeController;
 use Illuminate\Support\Facades\Route;
@@ -32,6 +33,12 @@ Route::middleware(['auth', 'auth.session', 'verified', 'password.confirm'])->gro
         ->group(function (): void {
             Route::patch('/email', [EmailChangeController::class, 'update'])
                 ->name('email.update');
+            Route::post('/password', [PasswordSignInMethodController::class, 'store'])
+                ->middleware('throttle:6,1')
+                ->name('password.store');
+            Route::delete('/password', [PasswordSignInMethodController::class, 'destroy'])
+                ->middleware('throttle:6,1')
+                ->name('password.destroy');
             Route::delete('/sessions/{session}', [AccountSessionController::class, 'destroy'])
                 ->whereUuid('session')
                 ->name('sessions.destroy');

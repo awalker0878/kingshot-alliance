@@ -51,9 +51,33 @@ return [
             'title' => 'Account email changed',
             'body' => 'Your Kingshot Alliance account email was changed after verification of the new address.',
         ],
+        'password_added' => [
+            'title' => 'Password sign-in added',
+            'body' => 'A Kingshot Alliance password was added as a sign-in method for your account.',
+        ],
         'password_changed' => [
             'title' => 'Password changed',
             'body' => 'Your Kingshot Alliance password was changed. Other sessions and access tokens were invalidated.',
+        ],
+        'password_removed' => [
+            'title' => 'Password sign-in removed',
+            'body' => 'The Kingshot Alliance password sign-in method was removed from your account.',
+        ],
+        'google_connected' => [
+            'title' => 'Google connected',
+            'body' => 'A Google account was connected as a sign-in method for your Kingshot Alliance account.',
+        ],
+        'google_disconnected' => [
+            'title' => 'Google disconnected',
+            'body' => 'The connected Google sign-in method was removed from your Kingshot Alliance account.',
+        ],
+        'passkey_added' => [
+            'title' => 'Passkey added',
+            'body' => 'A passkey was added as a sign-in method for your Kingshot Alliance account.',
+        ],
+        'passkey_removed' => [
+            'title' => 'Passkey removed',
+            'body' => 'A passkey was removed from your Kingshot Alliance account.',
         ],
         'mfa_enabled' => [
             'title' => 'Two-factor authentication enabled',
