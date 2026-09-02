@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Accounts\Authentication\Providers;
 
+use App\Contexts\Accounts\Authentication\Actions\RevokeOtherAccountSessions;
 use App\Contexts\Accounts\Authentication\Http\Responses\AccountPasskeyLoginResponse;
 use App\Contexts\Accounts\Authentication\Models\AccountPasskey;
 use App\Contexts\Accounts\Authentication\Services\RecentAuthentication;
@@ -74,6 +75,15 @@ final class AuthenticationServiceProvider extends ServiceProvider
             }
 
             $user = $event->user;
+            $request = request();
+            if ($request->user() instanceof User && (int) $request->user()->id === (int) $user->id) {
+                app(RevokeOtherAccountSessions::class)->handle(
+                    (int) $user->id,
+                    $request->session()->getId(),
+                );
+                app(RecentAuthentication::class)->clear($request);
+            }
+
             app(AuditRecorder::class)->record(
                 event: 'account.passkey.removed',
                 actor: $user,
