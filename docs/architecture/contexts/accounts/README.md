@@ -1,6 +1,6 @@
 # Accounts context
 
-Status: Current — Architecture V3; Accounts expansion selected
+Status: Current — Architecture V3; Accounts expansion implemented
 
 Implementation target: `app/Contexts/Accounts`
 
@@ -16,22 +16,26 @@ Accounts/
 ├── Credentials/
 ├── EmailVerification/
 ├── Profile/
+├── Security/
 └── MultiFactorAuthentication/
 ```
 
-The selected Accounts expansion may add capability-owned session/security-activity support while preserving these boundaries.
-
-- **Identity** owns User identity, explicit primary authentication type and durable external provider identity metadata.
+- **Identity** owns User identity, explicit primary authentication type, durable external provider identity metadata and account-side anonymization/credential invalidation.
 - **Registration** owns account creation under invitation/registration policy.
-- **Authentication** owns password/Google sign-in, sign-out, session establishment, recent-authentication proof and authentication-type routing.
+- **Authentication** owns password/Google sign-in, sign-out, privacy-conscious account-session inventory, session revocation, recent-authentication proof and authentication-type routing.
 - **Credentials** owns local password and password-recovery lifecycle for `password` accounts only.
-- **EmailVerification** owns verification flows/state and verified password-account email-change workflow.
-- **Profile** owns account profile changes and account-security presentation/orchestration that does not take ownership from other capabilities.
+- **EmailVerification** owns signed/time-limited verification notification/link behavior, including verification of a pending password-account email destination.
+- **Profile** owns profile changes and account-security presentation/orchestration, including pending password-account email-change state, without taking ownership from other capabilities.
+- **Security** owns account-scoped Security Activity projection and the meaning of account-security notification events. Communications remains the owner of outbound channel delivery, retry and preferences.
 - **MultiFactorAuthentication** owns Kingshot Alliance TOTP challenge and recovery codes as a second factor for either primary authentication type.
+
+Platform/DataGovernance retains the existing deletion request, cooling-off, cancellation and finalization coordination. Accounts supplies the account-side lifecycle effects that remove usable credentials/provider identity and invalidate authentication surfaces.
 
 ## Primary authentication invariant
 
 Every active User has exactly one explicit primary authentication type: `password` or `google`. Hybrid primary authentication is prohibited. Google accounts have no usable local password and cannot use password recovery. Password accounts cannot silently acquire Google as another credential. Google `provider + sub` is authoritative for established Google accounts.
+
+A verified Google provider-email change may refresh provider metadata and the Kingshot Alliance contact email when it does not collide with another User. It never changes the authoritative provider subject, links a password account, or changes authentication type.
 
 See [ADR-0013](../../adr/0013-exclusive-account-authentication-types.md) and the [Accounts Expansion Program](../../../product/accounts-expansion.md).
 
