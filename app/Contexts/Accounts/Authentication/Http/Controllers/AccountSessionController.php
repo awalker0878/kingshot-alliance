@@ -42,6 +42,6 @@ final class AccountSessionController extends Controller
             currentSessionId: $request->session()->getId(),
         );
 
-        return $this->receipt('other-sessions-revoked', 'Other signed-in sessions revoked.');
+        return back()->with('actionReceipt', $this->receipt('other-sessions-revoked'));
     }
 }
