@@ -15,6 +15,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
+use Laravel\Passkeys\Contracts\PasskeyUser;
+use Laravel\Passkeys\PasskeyAuthenticatable;
 use Laravel\Sanctum\HasApiTokens;
 
 /**
@@ -32,7 +34,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property Carbon|null $deletion_requested_at
  * @property Carbon|null $anonymized_at
  */
-final class User extends Authenticatable implements AuditActor, AuthenticatedAccount
+final class User extends Authenticatable implements AuditActor, AuthenticatedAccount, PasskeyUser
 {
     use HasApiTokens;
 
@@ -41,6 +43,7 @@ final class User extends Authenticatable implements AuditActor, AuthenticatedAcc
 
     use MustVerifyEmail;
     use Notifiable;
+    use PasskeyAuthenticatable;
 
     protected $fillable = [
         'name',
