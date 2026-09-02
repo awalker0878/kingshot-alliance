@@ -95,7 +95,7 @@ final class PasskeySecurityV3Test extends TestCase
 
         $response = app(AccountPasskeyLoginResponse::class)->toResponse($request);
 
-        self::assertTrue($response->isRedirect('/dashboard'));
+        self::assertStringEndsWith('/dashboard', (string) $response->headers->get('Location'));
         self::assertSame('passkey', $session->get('accounts.recent_authentication_method'));
         self::assertSame((string) $passkey->public_id, $session->get('accounts.recent_authentication_credential'));
         self::assertGreaterThan(0, (int) $session->get('accounts.recent_authentication_at'));
