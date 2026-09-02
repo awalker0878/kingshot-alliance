@@ -17,12 +17,10 @@ permissions:
 
 jobs:
   format:
-    if: ${{ !contains(github.event.head_commit.message, 'style: format Accounts sign-in PHP') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: ${{ github.ref_name }}
           fetch-depth: 0
 
       - uses: shivammathur/setup-php@v2
@@ -46,4 +44,4 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add app/Contexts/Accounts/Authentication/Models/AccountPasskey.php app/Contexts/Accounts/Authentication/Providers/AuthenticationServiceProvider.php app/Contexts/Accounts/Authentication/Services/GoogleAuthenticationOperation.php app/Contexts/Accounts/Authentication/Services/RecentAuthentication.php app/Contexts/Accounts/Identity/Queries/AccountIdentityQuery.php
           git commit -m "style: format Accounts sign-in PHP"
-          git push origin "HEAD:${GITHUB_REF_NAME}"
+          git push origin HEAD:${GITHUB_REF_NAME}
