@@ -32,6 +32,20 @@ jobs:
       - name: Install locked frontend dependencies
         run: npm ci --no-audit --no-fund
 
+      - name: Reconcile Accounts sign-in localization
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('resources/js/pages/Accounts/Governor/Profile.vue')
+          content = path.read_text()
+          content = content.replace(
+              '<p class="ks-kicker">Google</p>',
+              "<p class=\"ks-kicker\">{{ t('accountExperience.account.googleSignIn') }}</p>",
+          )
+          path.write_text(content)
+          PY
+
       - name: Format Accounts sign-in UI
         run: >-
           npx prettier --write
@@ -42,7 +56,7 @@ jobs:
           resources/js/pages/Accounts/Access/Register.vue
           resources/js/pages/Accounts/Governor/Profile.vue
 
-      - name: Commit formatted files
+      - name: Commit reconciled files
         run: |
           if git diff --quiet -- resources/js/localization/messages/account/en.ts resources/js/localization/messages/auth/en.ts resources/js/pages/Accounts/Access/ConfirmPassword.vue resources/js/pages/Accounts/Access/Login.vue resources/js/pages/Accounts/Access/Register.vue resources/js/pages/Accounts/Governor/Profile.vue; then
             exit 0
@@ -50,7 +64,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add resources/js/localization/messages/account/en.ts resources/js/localization/messages/auth/en.ts resources/js/pages/Accounts/Access/ConfirmPassword.vue resources/js/pages/Accounts/Access/Login.vue resources/js/pages/Accounts/Access/Register.vue resources/js/pages/Accounts/Governor/Profile.vue
-          git commit -m "style: format Accounts sign-in UI"
+          git commit -m "fix: localize Accounts sign-in method labels"
           git push origin HEAD:${GITHUB_REF_NAME}
 
 # Temporary implementation-only formatter. Remove before delivery closeout.
