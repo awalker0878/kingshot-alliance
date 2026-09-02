@@ -7,6 +7,7 @@ on:
     paths:
       - resources/js/localization/messages/account/en.ts
       - resources/js/localization/messages/auth/en.ts
+      - resources/js/localization/messages/core/en.ts
       - resources/js/pages/Accounts/Access/ConfirmPassword.vue
       - resources/js/pages/Accounts/Access/Login.vue
       - resources/js/pages/Accounts/Access/Register.vue
@@ -37,13 +38,27 @@ jobs:
           python - <<'PY'
           from pathlib import Path
 
-          path = Path('resources/js/pages/Accounts/Governor/Profile.vue')
-          content = path.read_text()
+          profile = Path('resources/js/pages/Accounts/Governor/Profile.vue')
+          content = profile.read_text()
           content = content.replace(
               '<p class="ks-kicker">Google</p>',
               "<p class=\"ks-kicker\">{{ t('accountExperience.account.googleSignIn') }}</p>",
           )
-          path.write_text(content)
+          profile.write_text(content)
+
+          catalogue = Path('resources/js/localization/messages/core/en.ts')
+          content = catalogue.read_text()
+          anchor = "    'password-updated': 'Password updated.',\n"
+          additions = (
+              "    'passkey-renamed': 'Passkey renamed.',\n"
+              "    'password-added': 'Password sign-in added.',\n"
+              "    'password-removed': 'Password sign-in removed.',\n"
+          )
+          if "'passkey-renamed':" not in content:
+              if anchor not in content:
+                  raise SystemExit('Receipt catalogue anchor not found')
+              content = content.replace(anchor, additions + anchor)
+          catalogue.write_text(content)
           PY
 
       - name: Format Accounts sign-in UI
@@ -51,6 +66,7 @@ jobs:
           npx prettier --write
           resources/js/localization/messages/account/en.ts
           resources/js/localization/messages/auth/en.ts
+          resources/js/localization/messages/core/en.ts
           resources/js/pages/Accounts/Access/ConfirmPassword.vue
           resources/js/pages/Accounts/Access/Login.vue
           resources/js/pages/Accounts/Access/Register.vue
@@ -58,13 +74,13 @@ jobs:
 
       - name: Commit reconciled files
         run: |
-          if git diff --quiet -- resources/js/localization/messages/account/en.ts resources/js/localization/messages/auth/en.ts resources/js/pages/Accounts/Access/ConfirmPassword.vue resources/js/pages/Accounts/Access/Login.vue resources/js/pages/Accounts/Access/Register.vue resources/js/pages/Accounts/Governor/Profile.vue; then
+          if git diff --quiet -- resources/js/localization/messages/account/en.ts resources/js/localization/messages/auth/en.ts resources/js/localization/messages/core/en.ts resources/js/pages/Accounts/Access/ConfirmPassword.vue resources/js/pages/Accounts/Access/Login.vue resources/js/pages/Accounts/Access/Register.vue resources/js/pages/Accounts/Governor/Profile.vue; then
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add resources/js/localization/messages/account/en.ts resources/js/localization/messages/auth/en.ts resources/js/pages/Accounts/Access/ConfirmPassword.vue resources/js/pages/Accounts/Access/Login.vue resources/js/pages/Accounts/Access/Register.vue resources/js/pages/Accounts/Governor/Profile.vue
-          git commit -m "fix: localize Accounts sign-in method labels"
+          git add resources/js/localization/messages/account/en.ts resources/js/localization/messages/auth/en.ts resources/js/localization/messages/core/en.ts resources/js/pages/Accounts/Access/ConfirmPassword.vue resources/js/pages/Accounts/Access/Login.vue resources/js/pages/Accounts/Access/Register.vue resources/js/pages/Accounts/Governor/Profile.vue
+          git commit -m "fix: complete Accounts action receipt localization"
           git push origin HEAD:${GITHUB_REF_NAME}
 
 # Temporary implementation-only formatter. Remove before delivery closeout.
