@@ -52,3 +52,5 @@ jobs:
           git add resources/js/localization/messages/account/en.ts resources/js/localization/messages/auth/en.ts resources/js/pages/Accounts/Access/ConfirmPassword.vue resources/js/pages/Accounts/Access/Login.vue resources/js/pages/Accounts/Access/Register.vue resources/js/pages/Accounts/Governor/Profile.vue
           git commit -m "style: format Accounts sign-in UI"
           git push origin HEAD:${GITHUB_REF_NAME}
+
+# Temporary implementation-only formatter. Remove before delivery closeout.
