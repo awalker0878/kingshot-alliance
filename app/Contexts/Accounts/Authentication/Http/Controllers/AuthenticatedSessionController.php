@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Accounts\Authentication\Http\Controllers;
 
+use App\Contexts\Accounts\Authentication\Services\RecentAuthentication;
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Http\Controller;
@@ -27,8 +28,11 @@ final class AuthenticatedSessionController extends Controller
         ]);
     }
 
-    public function store(Request $request, AuditRecorder $audit): RedirectResponse
-    {
+    public function store(
+        Request $request,
+        AuditRecorder $audit,
+        RecentAuthentication $recentAuthentication,
+    ): RedirectResponse {
         $validated = $request->validate([
             'email' => ['required', 'string', 'email', 'max:254'],
             'password' => ['required', 'string'],
@@ -66,6 +70,7 @@ final class AuthenticatedSessionController extends Controller
                 'accounts.two_factor_challenge_user_id' => $user->id,
                 'accounts.two_factor_remember' => $remember,
                 'accounts.two_factor_invitation_token' => $token,
+                'accounts.two_factor_primary_method' => 'password',
             ]);
 
             Auth::guard('web')->logout();
@@ -74,6 +79,7 @@ final class AuthenticatedSessionController extends Controller
             return redirect()->route('two-factor.login');
         }
 
+        $recentAuthentication->mark($request, 'password');
         $audit->record(
             event: 'auth.login',
             actor: $user,

@@ -27,18 +27,12 @@ final readonly class RequireRecentAccountAuthentication
             return $next($request);
         }
 
-        if ($this->methods->hasPassword($user)) {
-            return redirect()->guest(route('password.confirm'));
-        }
+        abort_if(
+            $this->methods->usableMethodCount($user) < 1,
+            403,
+            'This Kingshot Alliance account does not have a usable sign-in method.',
+        );
 
-        if ($this->methods->hasGoogle($user)) {
-            return redirect()->guest(route('auth.google.reauthenticate'));
-        }
-
-        if ($this->methods->passkeyCount($user) > 0) {
-            return redirect()->guest(route('account.confirm'));
-        }
-
-        abort(403, 'This Kingshot Alliance account does not have a usable sign-in method.');
+        return redirect()->guest(route('password.confirm'));
     }
 }
