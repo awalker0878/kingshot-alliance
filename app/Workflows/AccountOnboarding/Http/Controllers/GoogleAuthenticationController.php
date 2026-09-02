@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflows\AccountOnboarding\Http\Controllers;
 
+use App\Contexts\Accounts\Authentication\Actions\RecordAuthenticationAuditEvent;
 use App\Contexts\Accounts\Authentication\Actions\RevokeOtherAccountSessions;
 use App\Contexts\Accounts\Authentication\Enums\GoogleAuthenticationIntent;
 use App\Contexts\Accounts\Authentication\Services\AccountSignInMethodPolicy;
@@ -12,9 +13,10 @@ use App\Contexts\Accounts\Authentication\Services\RecentAuthentication;
 use App\Contexts\Accounts\Identity\Actions\CreateAccountIdentity;
 use App\Contexts\Accounts\Identity\Actions\RecordAccountIdentityUse;
 use App\Contexts\Accounts\Identity\Actions\RemoveAccountIdentity;
-use App\Contexts\Accounts\Identity\Models\User;
+use App\Contexts\Accounts\Identity\Contracts\AuthenticatedAccount;
 use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
 use App\Contexts\Accounts\Identity\Queries\ProviderIdentityQuery;
+use App\Contexts\Accounts\Registration\Data\RegistrationProviderIdentity;
 use App\Contexts\Accounts\Security\Services\SecurityNotificationService;
 use App\Contexts\Alliance\Membership\Queries\FindPendingInvitation;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
@@ -24,7 +26,6 @@ use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Laravel\Socialite\AbstractUser;
@@ -66,10 +67,11 @@ final class GoogleAuthenticationController extends Controller
     ): RedirectResponse {
         $this->ensureConfigured();
         $user = $request->user();
-        abort_unless($user instanceof User, 401);
-        abort_unless($methods->hasGoogle($user), 403);
+        abort_unless($user instanceof AuthenticatedAccount, 401);
+        $userId = (int) $user->getAuthIdentifier();
+        abort_unless($methods->hasGoogle($userId), 403);
 
-        $operations->start($request, GoogleAuthenticationIntent::Reauthenticate, (int) $user->id);
+        $operations->start($request, GoogleAuthenticationIntent::Reauthenticate, $userId);
 
         return Socialite::driver('google')->redirect();
     }
@@ -81,15 +83,16 @@ final class GoogleAuthenticationController extends Controller
     ): RedirectResponse {
         $this->ensureConfigured();
         $user = $request->user();
-        abort_unless($user instanceof User, 401);
+        abort_unless($user instanceof AuthenticatedAccount, 401);
+        $userId = (int) $user->getAuthIdentifier();
 
-        if ($methods->hasGoogle($user)) {
+        if ($methods->hasGoogle($userId)) {
             throw ValidationException::withMessages([
                 'google' => 'Google is already connected to this Kingshot Alliance account.',
             ]);
         }
 
-        $operations->start($request, GoogleAuthenticationIntent::Connect, (int) $user->id);
+        $operations->start($request, GoogleAuthenticationIntent::Connect, $userId);
 
         return Socialite::driver('google')->redirect();
     }
@@ -102,17 +105,18 @@ final class GoogleAuthenticationController extends Controller
         SecurityNotificationService $securityNotifications,
     ): RedirectResponse {
         $user = $request->user();
-        abort_unless($user instanceof User, 401);
+        abort_unless($user instanceof AuthenticatedAccount, 401);
+        $userId = (int) $user->getAuthIdentifier();
 
-        $removeIdentity->handle((int) $user->id, 'google');
-        $revokeOtherSessions->handle((int) $user->id, $request->session()->getId());
+        $removeIdentity->handle($userId, 'google');
+        $revokeOtherSessions->handle($userId, $request->session()->getId());
         $recentAuthentication->clear($request);
         $securityNotifications->publish(
-            userId: (int) $user->id,
+            userId: $userId,
             event: 'account.google.disconnected',
             title: (string) __('accounts.security.google_disconnected.title'),
             body: (string) __('accounts.security.google_disconnected.body'),
-            idempotencyKey: 'account.google.disconnected:'.$user->id.':'.now()->format('Uu'),
+            idempotencyKey: 'account.google.disconnected:'.$userId.':'.now()->format('Uu'),
         );
 
         return redirect()->route('profile.show')->with(
@@ -134,6 +138,7 @@ final class GoogleAuthenticationController extends Controller
         AccountSignInMethodPolicy $methods,
         SecurityNotificationService $securityNotifications,
         AuditRecorder $audit,
+        RecordAuthenticationAuditEvent $authenticationAudit,
     ): RedirectResponse {
         $this->ensureConfigured();
         $operation = $operations->consume($request);
@@ -161,7 +166,7 @@ final class GoogleAuthenticationController extends Controller
                 recentAuthentication: $recentAuthentication,
                 methods: $methods,
                 securityNotifications: $securityNotifications,
-                audit: $audit,
+                authenticationAudit: $authenticationAudit,
             );
         }
 
@@ -174,7 +179,7 @@ final class GoogleAuthenticationController extends Controller
                 providerIdentities: $providerIdentities,
                 recordIdentityUse: $recordIdentityUse,
                 recentAuthentication: $recentAuthentication,
-                audit: $audit,
+                authenticationAudit: $authenticationAudit,
             );
         }
 
@@ -199,7 +204,7 @@ final class GoogleAuthenticationController extends Controller
                 invitationToken: $invitationToken,
                 accounts: $accounts,
                 recentAuthentication: $recentAuthentication,
-                audit: $audit,
+                authenticationAudit: $authenticationAudit,
             );
         }
 
@@ -239,33 +244,20 @@ final class GoogleAuthenticationController extends Controller
         }
 
         try {
-            $result = DB::transaction(function () use (
-                $registerAccount,
-                $createIdentity,
-                $name,
-                $email,
-                $invitationToken,
-                $subject,
-            ) {
-                $result = $registerAccount->handle(
-                    name: Str::limit($name, 100, ''),
-                    email: $email,
-                    password: null,
-                    timezone: (string) config('app.timezone', 'UTC'),
-                    invitationToken: $invitationToken,
-                    emailVerified: true,
-                );
-
-                $createIdentity->handle(
-                    userId: $result->userId,
+            $result = $registerAccount->handle(
+                name: Str::limit($name, 100, ''),
+                email: $email,
+                password: null,
+                timezone: (string) config('app.timezone', 'UTC'),
+                invitationToken: $invitationToken,
+                emailVerified: true,
+                providerIdentity: new RegistrationProviderIdentity(
                     provider: 'google',
-                    providerSubject: $subject,
-                    providerEmail: $email,
-                    providerEmailVerified: true,
-                );
-
-                return $result;
-            });
+                    subject: $subject,
+                    email: $email,
+                    emailVerified: true,
+                ),
+            );
         } catch (QueryException) {
             throw ValidationException::withMessages([
                 'google' => 'This Google account could not be attached safely. Sign in to the existing account if one already owns it.',
@@ -275,17 +267,15 @@ final class GoogleAuthenticationController extends Controller
         abort_unless(Auth::loginUsingId($result->userId) instanceof Authenticatable, 401);
         $request->session()->regenerate();
 
-        $user = User::query()->findOrFail($result->userId);
-        $identity = $providerIdentities->findForUser((int) $user->id, 'google');
+        $identity = $providerIdentities->findForUser($result->userId, 'google');
         $recentAuthentication->mark(
             $request,
             'google',
             $identity === null ? null : (string) $identity->identityId,
         );
-        $audit->record(
+        $authenticationAudit->handle(
+            userId: $result->userId,
             event: 'auth.login',
-            actor: $user,
-            subject: $user,
             metadata: ['provider' => 'google', 'mfa_method' => null],
         );
 
@@ -312,17 +302,18 @@ final class GoogleAuthenticationController extends Controller
         RecentAuthentication $recentAuthentication,
         AccountSignInMethodPolicy $methods,
         SecurityNotificationService $securityNotifications,
-        AuditRecorder $audit,
+        RecordAuthenticationAuditEvent $authenticationAudit,
     ): RedirectResponse {
         $user = $request->user();
-        abort_unless($user instanceof User && $expectedUserId === (int) $user->id, 403);
+        abort_unless($user instanceof AuthenticatedAccount, 403);
+        $userId = (int) $user->getAuthIdentifier();
+        abort_unless($expectedUserId === $userId, 403);
 
         $ownedElsewhere = $providerIdentities->findByProviderSubject('google', $subject);
-        if ($ownedElsewhere !== null && $ownedElsewhere->userId !== (int) $user->id) {
-            $audit->record(
+        if ($ownedElsewhere !== null && $ownedElsewhere->userId !== $userId) {
+            $authenticationAudit->handle(
+                userId: $userId,
                 event: 'account.google.connection_rejected',
-                actor: $user,
-                subject: $user,
                 metadata: ['reason' => 'subject_owned_elsewhere'],
             );
 
@@ -331,7 +322,7 @@ final class GoogleAuthenticationController extends Controller
             ]);
         }
 
-        $existing = $providerIdentities->findForUser((int) $user->id, 'google');
+        $existing = $providerIdentities->findForUser($userId, 'google');
         if ($existing !== null) {
             if (! hash_equals($existing->providerSubject, $subject)) {
                 throw ValidationException::withMessages([
@@ -350,7 +341,7 @@ final class GoogleAuthenticationController extends Controller
 
         try {
             $createIdentity->handle(
-                userId: (int) $user->id,
+                userId: $userId,
                 provider: 'google',
                 providerSubject: $subject,
                 providerEmail: $email,
@@ -362,21 +353,21 @@ final class GoogleAuthenticationController extends Controller
             ]);
         }
 
-        abort_unless($methods->hasGoogle($user->refresh()), 500);
-        $identity = $providerIdentities->findForUser((int) $user->id, 'google');
+        abort_unless($methods->hasGoogle($userId), 500);
+        $identity = $providerIdentities->findForUser($userId, 'google');
         $recentAuthentication->mark(
             $request,
             'google',
             $identity === null ? null : (string) $identity->identityId,
         );
 
-        $audit->record(event: 'account.google.connected', actor: $user, subject: $user);
+        $authenticationAudit->handle(userId: $userId, event: 'account.google.connected');
         $securityNotifications->publish(
-            userId: (int) $user->id,
+            userId: $userId,
             event: 'account.google.connected',
             title: (string) __('accounts.security.google_connected.title'),
             body: (string) __('accounts.security.google_connected.body'),
-            idempotencyKey: 'account.google.connected:'.$user->id.':'.now()->format('Uu'),
+            idempotencyKey: 'account.google.connected:'.$userId.':'.now()->format('Uu'),
         );
 
         return redirect()->route('profile.show')->with(
@@ -393,19 +384,20 @@ final class GoogleAuthenticationController extends Controller
         ProviderIdentityQuery $providerIdentities,
         RecordAccountIdentityUse $recordIdentityUse,
         RecentAuthentication $recentAuthentication,
-        AuditRecorder $audit,
+        RecordAuthenticationAuditEvent $authenticationAudit,
     ): RedirectResponse {
         $user = $request->user();
-        abort_unless($user instanceof User && $expectedUserId === (int) $user->id, 403);
+        abort_unless($user instanceof AuthenticatedAccount, 403);
+        $userId = (int) $user->getAuthIdentifier();
+        abort_unless($expectedUserId === $userId, 403);
 
-        $identity = $providerIdentities->findForUser((int) $user->id, 'google');
+        $identity = $providerIdentities->findForUser($userId, 'google');
         abort_unless($identity !== null, 403);
 
         if (! hash_equals($identity->providerSubject, $subject)) {
-            $audit->record(
+            $authenticationAudit->handle(
+                userId: $userId,
                 event: 'auth.google.identity_failed',
-                actor: $user,
-                subject: $user,
                 metadata: ['reason' => 'reauthentication_subject_mismatch'],
             );
 
@@ -415,10 +407,9 @@ final class GoogleAuthenticationController extends Controller
         $recordIdentityUse->handle($identity->identityId, $email, true);
         $recentAuthentication->mark($request, 'google', (string) $identity->identityId);
 
-        $audit->record(
+        $authenticationAudit->handle(
+            userId: $userId,
             event: 'auth.reauthenticated',
-            actor: $user,
-            subject: $user,
             metadata: ['provider' => 'google'],
         );
 
@@ -431,7 +422,7 @@ final class GoogleAuthenticationController extends Controller
         ?string $invitationToken,
         AccountIdentityQuery $accounts,
         RecentAuthentication $recentAuthentication,
-        AuditRecorder $audit,
+        RecordAuthenticationAuditEvent $authenticationAudit,
     ): RedirectResponse {
         if ($accounts->requiresMultiFactor($userId)) {
             $request->session()->put([
@@ -446,13 +437,11 @@ final class GoogleAuthenticationController extends Controller
 
         abort_unless(Auth::loginUsingId($userId) instanceof Authenticatable, 401);
         $request->session()->regenerate();
-        $user = User::query()->findOrFail($userId);
         $recentAuthentication->mark($request, 'google');
 
-        $audit->record(
+        $authenticationAudit->handle(
+            userId: $userId,
             event: 'auth.login',
-            actor: $user,
-            subject: $user,
             metadata: ['provider' => 'google', 'mfa_method' => null],
         );
 

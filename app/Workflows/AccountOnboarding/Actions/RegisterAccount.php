@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Workflows\AccountOnboarding\Actions;
 
 use App\Contexts\Accounts\Registration\Actions\RegisterUser;
+use App\Contexts\Accounts\Registration\Data\RegistrationProviderIdentity;
 use App\Contexts\Alliance\Membership\Actions\AcceptInvitation;
 use App\Contexts\Alliance\Membership\Queries\FindPendingInvitation;
 use App\Contexts\GameWorld\Players\Actions\ClaimPlayerAccount;
@@ -28,6 +29,7 @@ final readonly class RegisterAccount
         string $timezone,
         ?string $invitationToken,
         bool $emailVerified = false,
+        ?RegistrationProviderIdentity $providerIdentity = null,
     ): RegistrationResult {
         $invitation = $invitationToken === null
             ? null
@@ -54,6 +56,7 @@ final readonly class RegisterAccount
             password: $password,
             timezone: $timezone,
             emailVerified: $emailVerified,
+            providerIdentity: $providerIdentity,
         );
 
         if ($invitation === null || $invitationToken === null) {
