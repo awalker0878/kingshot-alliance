@@ -32,6 +32,7 @@ final readonly class AnonymizeAccount
             AccountSession::query()->where('user_id', $userId)->delete();
             $user->tokens()->delete();
             $user->accountIdentities()->delete();
+            DB::table('passkeys')->where('user_id', $userId)->delete();
             DB::table('password_reset_tokens')->where('email', $originalEmail)->delete();
 
             $user->forceFill([
