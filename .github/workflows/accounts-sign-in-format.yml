@@ -18,12 +18,10 @@ permissions:
 
 jobs:
   format:
-    if: ${{ !contains(github.event.head_commit.message, 'style: format Accounts sign-in UI') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: ${{ github.ref_name }}
           fetch-depth: 0
 
       - uses: actions/setup-node@v5
@@ -53,4 +51,4 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add resources/js/localization/messages/account/en.ts resources/js/localization/messages/auth/en.ts resources/js/pages/Accounts/Access/ConfirmPassword.vue resources/js/pages/Accounts/Access/Login.vue resources/js/pages/Accounts/Access/Register.vue resources/js/pages/Accounts/Governor/Profile.vue
           git commit -m "style: format Accounts sign-in UI"
-          git push origin "HEAD:${GITHUB_REF_NAME}"
+          git push origin HEAD:${GITHUB_REF_NAME}
