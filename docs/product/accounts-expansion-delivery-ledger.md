@@ -1,6 +1,6 @@
 # Accounts Expansion — Delivery Ledger
 
-Status: Implementation complete — final verification in progress
+Status: Complete — merged to `main` and verified
 
 Date: 2026-09-02
 
@@ -36,8 +36,30 @@ This was an architecture dependency adjustment, not a change to the acceptance i
 | 18 | Complete | MFA/recovery-code reconciliation | Both primary authentication types work with TOTP; disable/regeneration/use semantics are audited and recent-auth protected where required. |
 | 19 | Complete | Deletion/anonymization | Platform/DataGovernance lifecycle coordination and Accounts-side final credential/provider/session/token invalidation are reconciled and tested. |
 | 20 | Complete | Localization/accessibility | New visible copy is localized and authentication/security frontend checks satisfy repository accessibility/quality gates. |
-| 21 | Verification in progress | Full verification | The implementation-containing commit has cleared backend/frontend, Architecture V3, Intelligence, clean-schema, CodeQL and dependency checks; the final reconciled closeout commit must complete its applicable repository gates before merge. |
+| 21 | Complete | Full verification | Exact PR head `d757a0df172bf43dbe26f8d4a2d38cdbdf7751a2` passed CI, Architecture V3 Verification, Intelligence Verification, Visual Regression, CodeQL and Dependency Review before merge. |
 | 22 | Complete | Documentation reconciliation | Product contract, Accounts architecture, ADR, acceptance matrix, capability catalogue and this ledger are reconciled to implemented ownership and behavior. |
-| 23 | Pending final main verification | Final main verification | Merge only after the final PR commit is green; then verify the containing `main` commit and close this ledger. |
+| 23 | Complete | Final main verification | PR #141 merged exact head `d757a0df172bf43dbe26f8d4a2d38cdbdf7751a2` into `main`; the same immutable commit passed configured `main` push CI, Architecture V3 Verification, Visual Regression and CodeQL. Intelligence Verification and Dependency Review are pull-request-only workflows and were green on that exact commit before merge. |
 
-No implementation phase is intentionally deferred. The ledger remains open only for final containing-commit verification and post-merge `main` verification required by ACCT-30/31.
+## Verification evidence
+
+PR #141 merged at 2026-09-02T13:18:46Z with merge commit equal to the exact final PR head: `d757a0df172bf43dbe26f8d4a2d38cdbdf7751a2`.
+
+Final PR-head runs on that exact commit:
+
+- CI: `33634238267` — success.
+- Architecture V3 Verification: `33634238364` — success.
+- Intelligence Verification: `33634238548` — success.
+- Visual Regression: `33634238165` — success.
+- CodeQL: `33634238345` — success.
+- Dependency Review: `33634238223` — success.
+
+Post-merge `main` push runs on that exact commit:
+
+- CI: `33634963356` — success.
+- Architecture V3 Verification: `33634963394` — success.
+- Visual Regression: `33634963354` — success.
+- CodeQL: `33634963390` — success.
+
+`Intelligence Verification` is configured for `pull_request` plus manual dispatch, and `Dependency Review` is configured for `pull_request`; neither has a `push` trigger. Their successful PR runs therefore provide the applicable exact-commit evidence for those gates.
+
+No implementation phase is deferred. The Accounts expansion selected extension is closed.
