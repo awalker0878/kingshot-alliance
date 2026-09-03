@@ -1,6 +1,6 @@
 # Accounts Expansion — Acceptance Matrix
 
-Status: Implementation complete — final main verification pending
+Status: Complete — verified on merged `main`
 
 Date: 2026-09-02
 
@@ -41,3 +41,5 @@ Canonical contract: [Accounts Expansion Program](accounts-expansion.md).
 | ACCT-31 | `/docs/product`, Accounts architecture, ADR, acceptance matrix, capability catalogue and delivery ledger match the final implementation. |
 
 A row is complete only with corresponding implementation and automated or documented verification evidence.
+
+Final verification evidence is recorded in the [Accounts Expansion Delivery Ledger](accounts-expansion-delivery-ledger.md). PR #141 merged exact head `d757a0df172bf43dbe26f8d4a2d38cdbdf7751a2` into `main`; that exact commit passed the PR-only Intelligence Verification and Dependency Review gates and the configured `main` push CI, Architecture V3, Visual Regression, and CodeQL gates.
