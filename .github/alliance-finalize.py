@@ -1,0 +1,267 @@
+from pathlib import Path
+
+
+def replace(path: str, old: str, new: str) -> None:
+    p = Path(path)
+    text = p.read_text()
+    if old not in text:
+        raise SystemExit(f"expected text not found in {path}: {old[:120]!r}")
+    p.write_text(text.replace(old, new, 1))
+
+
+replace(
+    'app/ReadModels/AllianceAssistant/Enums/AssistantIntent.php',
+    "    case TerritoryComparison = 'territory_comparison';\n    case ActionHandoff = 'action_handoff';",
+    "    case TerritoryComparison = 'territory_comparison';\n    case AllianceSettings = 'alliance_settings';\n    case AllianceGovernanceHistory = 'alliance_governance_history';\n    case AllianceRosterReconciliation = 'alliance_roster_reconciliation';\n    case ActionHandoff = 'action_handoff';",
+)
+replace(
+    'app/ReadModels/AllianceAssistant/Enums/EvidenceSourceType.php',
+    "    case TerritoryComparison = 'territory_comparison';\n}",
+    "    case TerritoryComparison = 'territory_comparison';\n    case AllianceSettings = 'alliance_settings';\n    case AllianceGovernanceHistory = 'alliance_governance_history';\n    case AllianceRosterReconciliation = 'alliance_roster_reconciliation';\n}",
+)
+replace(
+    'app/ReadModels/AllianceAssistant/Services/AssistantQuestionInterpreter.php',
+    "        if ($this->looksLikeWrite($normalized)) {\n            if (preg_match('/\\b(roster|rostered|sign me up|register me)\\b/u', $normalized) === 1) {",
+    "        if ($this->looksLikeWrite($normalized)) {\n            if (preg_match('/\\b(alliance settings|alliance name|alliance slug|alliance url|alliance language|alliance timezone|alliance time zone)\\b/u', $normalized) === 1) {\n                return new ParsedQuestion(AssistantIntent::ActionHandoff, writeAction: 'alliance_settings');\n            }\n\n            if (preg_match('/\\b(roster|rostered|sign me up|register me)\\b/u', $normalized) === 1) {",
+)
+replace(
+    'app/ReadModels/AllianceAssistant/Services/AssistantQuestionInterpreter.php',
+    "        if ($normalized === '' || preg_match('/^(help|what can you (answer|do)|how can you help)$/u', $normalized) === 1) {\n            return new ParsedQuestion(AssistantIntent::Help);\n        }\n\n        if (preg_match('/\\b(alliance command|officer attention|needs? attention|what needs attention)\\b/u', $normalized) === 1) {",
+    "        if ($normalized === '' || preg_match('/^(help|what can you (answer|do)|how can you help)$/u', $normalized) === 1) {\n            return new ParsedQuestion(AssistantIntent::Help);\n        }\n\n        if (preg_match('/\\b(alliance settings|alliance name|alliance slug|alliance url|alliance language|alliance timezone|alliance time zone)\\b/u', $normalized) === 1) {\n            return new ParsedQuestion(AssistantIntent::AllianceSettings);\n        }\n\n        if (preg_match('/\\b(alliance governance history|governance history|alliance history|what changed in alliance)\\b/u', $normalized) === 1) {\n            return new ParsedQuestion(AssistantIntent::AllianceGovernanceHistory);\n        }\n\n        if (preg_match('/\\b(roster reconciliation|reconciled roster|reconcile roster|roster differences|roster mismatches?)\\b/u', $normalized) === 1) {\n            return new ParsedQuestion(AssistantIntent::AllianceRosterReconciliation);\n        }\n\n        if (preg_match('/\\b(alliance command|officer attention|needs? attention|what needs attention)\\b/u', $normalized) === 1) {",
+)
+replace(
+    'app/ReadModels/AllianceAssistant/Queries/AllianceAssistantQuery.php',
+    "        private AssistantObservationQuery $observations,\n        private AllianceOperationalAssistantQuery $operational,\n    ) {}",
+    "        private AssistantObservationQuery $observations,\n        private AllianceOperationalAssistantQuery $operational,\n        private AllianceGovernanceAssistantQuery $governance,\n    ) {}",
+)
+replace(
+    'app/ReadModels/AllianceAssistant/Queries/AllianceAssistantQuery.php',
+    "            AssistantIntent::TransferVerification,\n            AssistantIntent::TerritoryComparison => $this->operational->ask($actor, $scope, $parsed),\n            AssistantIntent::ActionHandoff => $this->actionHandoff($actor, $scope, $parsed),",
+    "            AssistantIntent::TransferVerification,\n            AssistantIntent::TerritoryComparison => $this->operational->ask($actor, $scope, $parsed),\n            AssistantIntent::AllianceSettings,\n            AssistantIntent::AllianceGovernanceHistory,\n            AssistantIntent::AllianceRosterReconciliation => $this->governance->ask($actor, $scope, $parsed),\n            AssistantIntent::ActionHandoff => $this->actionHandoff($actor, $scope, $parsed),",
+)
+replace(
+    'app/ReadModels/AllianceAssistant/Queries/AllianceAssistantQuery.php',
+    "    ): AssistantResult {\n        if (in_array($parsed->writeAction, ['transfer', 'territory', 'evidence'], true)) {",
+    "    ): AssistantResult {\n        if ($parsed->writeAction === 'alliance_settings') {\n            $source = $this->governance->ask(\n                $actor,\n                $scope,\n                new ParsedQuestion(AssistantIntent::AllianceSettings),\n            );\n\n            return new AssistantResult(\n                AssistantIntent::ActionHandoff,\n                AssistantStatus::Answered,\n                'assistant.answers.ownerWriteHandoff',\n                ['owner' => 'alliance settings'],\n                $source->evidence,\n                handoff: new AssistantNavigationHandoff(\n                    'assistant.handoffs.openOwnerWorkflow',\n                    '/alliance/settings',\n                ),\n            );\n        }\n\n        if (in_array($parsed->writeAction, ['transfer', 'territory', 'evidence'], true)) {",
+)
+
+replace(
+    'resources/js/localization/messages/assistant/en.ts',
+    "      territory_comparison: 'Territory comparison',\n    },\n    prompts:",
+    "      territory_comparison: 'Territory comparison',\n      alliance_settings: 'Alliance settings',\n      alliance_governance_history: 'Alliance governance history',\n      alliance_roster_reconciliation: 'Alliance roster reconciliation',\n    },\n    prompts:",
+)
+replace(
+    'resources/js/localization/messages/assistant/en.ts',
+    "      territoryComparisonNotAvailable:\n        'There is no authorized published Territory comparison available.',\n    },",
+    "      territoryComparisonNotAvailable:\n        'There is no authorized published Territory comparison available.',\n      allianceSettings:\n        'The current Alliance settings are {name}, URL name {slug}, language {language}, and time zone {timezone}.',\n      allianceGovernanceHistory:\n        'I found {count} recent authorized Alliance governance event(s). These are read-only owner audit facts.',\n      allianceRosterReconciliation:\n        'The latest accepted roster observation has {needsReview} item(s) needing review and {matched} matching current membership.',\n      allianceRosterReconciliationNotAvailable:\n        'There is no accepted Alliance roster observation available to reconcile yet.',\n    },",
+)
+
+visual = 'tests/v3/Visual/CapabilityAcceptanceMatrix.spec.ts'
+replace(visual, 'dda039ca90fbe8bbbaef937210a6761c2e6332aa972de3b9d65428ca6e68f9ed', '2dedf685fd738cd117460c8b22431299f89a3a5355f466756c4b41c3e645782a')
+replace(visual, '3274b5af5a93a70675586f333634426889b3a23a55fed781252c7f176bbc38d6', '9c21deec081a27886e38d3825b309d807a3235519c786b27f3eaf01678bff76e')
+
+replace('docs/product/alliance-capability-expansion.md', 'Status: Selected extension — implementation in progress', 'Status: Implementation complete — final verification in progress')
+replace('docs/product/alliance-capability-expansion-acceptance.md', 'Status: Selected extension — implementation in progress', 'Status: Implementation complete — final verification in progress')
+
+Path('docs/product/alliance-capability-expansion-delivery-ledger.md').write_text("""# Alliance Capability Expansion — Delivery Ledger
+
+Status: Implementation complete — final verification in progress
+
+| Phase | Slice | State | Evidence |
+| --- | --- | --- | --- |
+| 0 | Documentation and acceptance contract | Complete | Canonical program, acceptance and delivery ledger define ownership, authority and exclusions. |
+| 1 | Alliance Settings | Complete | Lifecycle owner action, officer UI, authorization/validation and audit/outbox behavior tests. |
+| 2 | Specialist Role Administration | Complete | Access-owned role definition/delegation actions, system-role protections, UI and behavior tests. |
+| 3 | Membership Governance History | Complete | Audit-derived member history read model, officer surface and read-model behavior coverage. |
+| 4 | Roster Screenshot Intake & Reconciliation | Complete | Private Evidence upload/review, exactly-once Roster observation commit, factual reconciliation and dedicated behavior coverage. |
+| 5 | Bulk Rank/Role Operations | Complete | Bounded preview/commit for rank and specialist-role changes with single-owner rechecks and behavior coverage. |
+| 6 | Recruitment Re-entry Controls | Complete | Alliance-local private re-entry policy, merge/conversion enforcement, UI and behavior coverage. |
+| 7 | Alliance Governance Timeline | Complete | Scope-bound audit-derived timeline, filters/cursor and dedicated read-model coverage. |
+| 8 | Existing composition integration | Complete | Alliance Hall, Member Capability Profile, Command Overview and read-only Alliance Assistant consume owner/read-side facts. |
+| 9 | Product-document reconciliation | Complete | Catalogue, gap analysis, frontend map, user journeys, product index and architecture capability map reconciled. |
+| 10 | Verification and release closeout | In verification | Awaiting all required repository gates on the exact post-reconciliation candidate. |
+
+Phase 10 changes to Complete only when the exact final candidate passes the repository release gates. Earlier green commits do not close this ledger.
+""")
+
+replace('docs/product/capability-catalogue.md', 'Status: Current — 2026-09-02', 'Status: Current — 2026-09-04')
+replace(
+    'docs/product/capability-catalogue.md',
+    '| Alliance management | Current complete capability | Manage Alliance core/settings and tenant lifecycle. | Alliance |\n| Membership and leadership | Current complete capability | Membership, invitations and R1–R5 leadership and specialist roles. | Alliance |\n| Recruitment | Current complete capability | Intake, filter, preview/bulk-triage, review and convert recruitment candidates through controlled membership handoff. | Alliance |',
+    '| Alliance management | Current complete capability | Manage application-owned Alliance name, URL identity, language and timezone while keeping Kingdom association and platform tenant lifecycle outside officer settings. | Alliance/Lifecycle; Platform/AllianceAdministration retains platform lifecycle |\n| Membership and leadership | Current complete capability | Membership, invitations, R1–R5 leadership, factual governance history and bounded bulk rank administration. | Alliance/Membership owns truth; ReadModels/AllianceGovernance composes history |\n| Alliance roles and delegation | Current complete capability | Define Alliance-local specialist roles from the closed permission vocabulary, protect system roles, prevent self-escalation and delegate only authority the actor currently possesses. | Alliance/Access |\n| Alliance roster reconciliation | Current complete capability | Upload private roster screenshots, human-review visible rows, commit accepted observations to Intelligence/Roster exactly once and compare them factually with current Membership without automatic membership mutation. | Intelligence/Evidence + Intelligence/Roster + ReadModels/AllianceGovernance; Alliance/Membership only through explicit owner actions |\n| Alliance governance history | Current complete capability | Read bounded member and Alliance administration history from owner audit facts with deterministic filtering, source and handoff links, without a parallel truth store. | ReadModels/AllianceGovernance over owner audit facts |\n| Recruitment | Current complete capability | Intake, filter, preview/bulk-triage, review and convert recruitment candidates through controlled membership handoff, with private Alliance-local re-entry controls and no global blacklist. | Alliance/Recruitment |',
+)
+replace(
+    'docs/product/capability-catalogue.md',
+    '| Alliance Member Capability Profile | Current complete capability | Show officers what is factually known about one Governor across authorized progression, Event, Bear Hunt, Rally, BattlePlan, Transfer and Evidence histories without a strength score. | Applicable owner contexts retain truth; ReadModels/Roster composes |',
+    '| Alliance Member Capability Profile | Current complete capability | Show officers what is factually known about one Governor across authorized progression, Event, Bear Hunt, Rally, BattlePlan, Transfer, Evidence and membership-governance histories without a strength score. | Applicable owner contexts retain truth; ReadModels/Roster and AllianceGovernance compose |',
+)
+cat = Path('docs/product/capability-catalogue.md')
+text = cat.read_text()
+marker = '\n## Account security product contract\n'
+section = """
+## Alliance capability expansion product contract
+
+The delivered [Alliance Capability Expansion](alliance-capability-expansion.md) completes the officer-facing Alliance contract without creating another Alliance bounded context. Lifecycle owns application identity/settings; Access owns specialist-role definitions and delegation; Membership owns membership, R1–R5 and leadership writes; Recruitment owns Alliance-local re-entry controls; Evidence owns private roster screenshots/review; Roster owns accepted observations; and `ReadModels/AllianceGovernance` composes factual reconciliation and history.
+
+Roster evidence is human-reviewed before commit and never changes Membership automatically. A missing-member comparison is emitted only from a reviewer-confirmed complete roster. Bulk preview is not authorization: commit rechecks current Player-scoped authority and owner invariants. Alliance Assistant consumes only authorized settings, audit history and accepted reconciliation facts and remains read-only, handing writes back to owner workflows. Donation totals, Alliance Gift Level, arbitrary power ranking and other unsupported game mechanics remain excluded.
+"""
+if marker not in text:
+    raise SystemExit('capability catalogue contract marker missing')
+cat.write_text(text.replace(marker, section + marker, 1))
+
+replace('docs/product/capability-gap-analysis.md', 'Status: Current — 2026-09-02', 'Status: Current — 2026-09-04')
+gap = Path('docs/product/capability-gap-analysis.md')
+text = gap.read_text()
+marker = '\n### Alliance Assistant — current complete\n'
+section = """
+### Alliance Capability Expansion — current complete
+
+The delivered Alliance expansion closes the officer-facing settings gap and extends existing owners rather than creating a new Alliance domain. `Alliance/Lifecycle` owns application name/slug/language/timezone settings; `Alliance/Access` owns bounded specialist-role definition and delegation; `Alliance/Membership` retains membership, R1–R5 and leadership writes; `Alliance/Recruitment` owns private Alliance-local re-entry controls.
+
+Private roster screenshots remain Evidence artifacts until a human-reviewed revision is approved. Exactly-once commit appends accepted `Intelligence/Roster` observations, and `ReadModels/AllianceGovernance` derives reconciliation and audit history without changing Membership. Absence becomes a missing-member observation only when the reviewer explicitly confirms that the screenshot is a complete roster. Bulk rank/role commit rechecks current authority and single-owner invariants. Alliance Assistant exposes only authorized factual settings/history/reconciliation and returns navigation handoff for writes.
+"""
+if marker not in text:
+    raise SystemExit('gap assistant marker missing')
+gap.write_text(text.replace(marker, section + marker, 1))
+replace(
+    'docs/product/capability-gap-analysis.md',
+    '| 5 | Kingdom Transfer Screenshot Intake — current complete |',
+    '| 1–10 | Alliance Capability Expansion — implementation complete, final verification in progress | Manage application Alliance settings/roles, governance history, roster evidence/reconciliation, bulk rank/role and Recruitment re-entry through existing owners. | Alliance owners + Intelligence/Evidence/Roster + ReadModels/AllianceGovernance | Active Player authority; human-reviewed evidence never auto-mutates Membership. |\n| 5 | Kingdom Transfer Screenshot Intake — current complete |',
+)
+
+replace(
+    'docs/frontend/FRONTEND-V3-CAPABILITY-MAP.md',
+    '          │   ├── Alliance Hall\n          │   ├── Recruitment Hall\n          │   ├── Noticeboard',
+    '          │   ├── Alliance Hall\n          │   ├── Alliance Settings / Specialist Roles\n          │   ├── Governance History\n          │   ├── Roster Screenshots / Reconciliation\n          │   ├── Recruitment Hall\n          │   ├── Noticeboard',
+)
+replace(
+    'docs/frontend/FRONTEND-V3-CAPABILITY-MAP.md',
+    'Backed by Alliance Membership and Access: active memberships, R1–R5 rank, specialist roles, invitations, membership status, rank/role changes, leadership transfer and leaving the Alliance.\n\n## Recruitment Hall',
+    """Backed by Alliance Membership and Access: active memberships, R1–R5 rank, specialist-role assignments, invitations, membership status, bounded rank/role changes, leadership transfer and leaving the Alliance. Permission-aware links expose settings, role administration, factual governance history and roster reconciliation without moving their ownership into the Hall.
+
+### Alliance Settings and Specialist Roles
+
+Alliance Settings is backed by `Alliance/Lifecycle` for application-owned name, slug, language and timezone only. Kingdom association and Platform suspension/closure/retention/deletion are not officer settings. Specialist-role definition is backed by `Alliance/Access`: system roles are protected, custom role keys are stable, and an actor cannot delegate permissions they do not currently possess or use role administration for self-escalation. R1–R5 remains Membership-owned.
+
+### Alliance roster screenshots and reconciliation
+
+Roster screenshots are private `Intelligence/Evidence` artifacts. Officers review/correct every visible row and explicitly state whether the image represents a complete roster before commit. Accepted facts append exactly-once `Intelligence/Roster` observations. The reconciliation page is a read model comparing those observations with current Membership/Roster facts; it never adds, removes, promotes or demotes a member automatically. A partial screenshot cannot imply that a member left.
+
+### Alliance governance history
+
+Governance History is an officer-authorized `ReadModels/AllianceGovernance` view over existing owner audit facts. It supports bounded filtering/cursor navigation and owner-workflow links, but owns no domain truth and performs no writes.
+
+## Recruitment Hall""",
+)
+replace(
+    'docs/frontend/FRONTEND-V3-CAPABILITY-MAP.md',
+    'Backed by Alliance Recruitment: modes/questions, Governor applications, stages, assigned reviewers, notes, tags, duplicate merge, decisions, invitation conversion and onboarding items.',
+    'Backed by Alliance Recruitment: modes/questions, Governor applications, stages, assigned reviewers, notes, tags, duplicate merge, decisions, invitation conversion, onboarding items and private Alliance-local re-entry controls. Re-entry restrictions are recruiter-private and never presented as a global blacklist.',
+)
+replace(
+    'docs/frontend/FRONTEND-V3-CAPABILITY-MAP.md',
+    'Backed by Alliance roster and Intelligence snapshots: observed Governor identity, roster state, optional membership linkage, recorded power/freshness/trends, summary metrics, joins/departures, manual scout readings, CSV preview/commit/export and history. Missing observations are never estimated.',
+    'Backed by Alliance roster and Intelligence snapshots: observed Governor identity, roster state, optional membership linkage, recorded power/freshness/trends, summary metrics, joins/departures, manual scout readings, CSV preview/commit/export, accepted human-reviewed roster-screenshot observations and history. Missing observations are never estimated; screenshot absence is meaningful only when its reviewed source explicitly represents the complete roster.',
+)
+
+journeys = Path('docs/product/experience/user-journeys.md')
+text = journeys.read_text()
+old = """## Alliance member
+
+```text
+Active Player
+ -> current Alliance membership
+ -> rank/specialist authority
+ -> Alliance content / recruitment / membership / event capabilities as permitted
+```
+"""
+new = """## Alliance member
+
+```text
+Active Player
+ -> current Alliance membership
+ -> rank/specialist authority
+ -> Alliance content / recruitment / membership / event capabilities as permitted
+```
+
+## Manage Alliance settings and specialist roles
+
+```text
+Select active Player with concrete officer authority
+ -> open Alliance Settings or Specialist Roles
+ -> edit application name / URL identity / language / timezone, or one Alliance-local specialist role
+ -> owner action reacquires current Player/Alliance authority
+ -> validate reserved identity, supported locale/timezone, protected role semantics and delegated permissions
+ -> persist through Lifecycle or Access
+ -> record audit/outbox evidence and show the normal action receipt
+```
+
+Kingdom association and Platform lifecycle controls are not generic officer settings. Specialist roles do not replace R1–R5, and an actor cannot delegate authority they do not currently possess or self-escalate through role administration.
+
+## Reconcile an Alliance roster screenshot
+
+```text
+Open Roster screenshots with current R4/R5 authority
+ -> upload a private supported image
+ -> preserve checksum/security/visual-duplicate provenance
+ -> review and correct every visible Governor row
+ -> explicitly state whether the screenshot contains the complete roster
+ -> approve the reviewed revision
+ -> commit accepted observations to Intelligence/Roster exactly once
+ -> open factual roster reconciliation
+ -> use an explicit Membership workflow only if an officer decides a membership/rank change is required
+```
+
+Partial screenshots never imply a departure. Only a reviewer-confirmed complete roster can produce `membership_without_observation` / `observed_missing`. Reconciliation is observation versus current owner state, not an automatic membership command.
+
+## Review Alliance governance history
+
+```text
+Open Governance history with current officer authority
+ -> compose bounded owner audit facts for the active Alliance
+ -> optionally filter capability or actor and page by stable cursor
+ -> inspect actor, time, owner metadata and canonical handoff
+ -> navigate to the owner workflow when action is needed
+```
+
+The timeline and member-history projections are read-only and do not persist a second governance or membership state machine.
+"""
+if old not in text:
+    raise SystemExit('Alliance member journey marker missing')
+journeys.write_text(text.replace(old, new, 1))
+replace(
+    'docs/product/experience/user-journeys.md',
+    'Alliance membership administration uses the same bounded, Alliance-scoped cursor contract. Summary counts describe the complete membership set rather than only the visible page. Authorized leaders may select up to 50 concrete memberships, preview hierarchy, Kingdom, exclusivity and capacity checks, confirm only eligible status changes, inspect every result, and retry only failed memberships after correction.',
+    'Alliance membership administration uses the same bounded, Alliance-scoped cursor contract. Summary counts describe the complete membership set rather than only the visible page. Authorized leaders may select up to 50 concrete memberships and preview status, rank or specialist-role changes. Commit rechecks current hierarchy, Alliance scope, R5 leadership and role-delegation invariants through the single-owner actions; preview is never cached authorization. Failed targets remain available for selective correction/retry. R5 changes remain leadership-transfer only.',
+)
+replace(
+    'docs/product/experience/user-journeys.md',
+    ' -> open one candidate for assignment, stage history, notes, duplicate review and conversion\n```',
+    ' -> open one candidate for assignment, stage history, notes, duplicate review and conversion\n -> inspect/set any private Alliance-local re-entry control before invitation or conversion\n```',
+)
+replace(
+    'docs/product/experience/user-journeys.md',
+    'The canonical first-use example is **“What time is Swordland and am I rostered?”**.',
+    'The Assistant also supports officer-authorized factual questions about current Alliance settings, recent governance audit history and the latest accepted roster reconciliation. These answers cite owner/read-side facts only. A write-like settings request returns the canonical Alliance Settings handoff and performs no mutation.\n\nThe canonical first-use example is **“What time is Swordland and am I rostered?”**.',
+)
+
+replace('docs/product/README.md', 'Status: Current — 2026-08-30', 'Status: Current — 2026-09-04')
+replace(
+    'docs/product/README.md',
+    '- [Capability Extension Program](capability-extension-program.md)\n',
+    '- [Capability Extension Program](capability-extension-program.md)\n- [Alliance Capability Expansion](alliance-capability-expansion.md)\n- [Alliance Capability Expansion acceptance](alliance-capability-expansion-acceptance.md)\n- [Alliance Capability Expansion delivery ledger](alliance-capability-expansion-delivery-ledger.md)\n',
+)
+
+replace(
+    'docs/architecture/capability-map.md',
+    '- **Lifecycle** — Alliance creation, lifecycle and settings.\n- **Membership** — Player membership, invitations and R1–R5 leadership behavior.\n- **Access** — Alliance permission vocabulary, specialist roles and Alliance authorization interpretation.\n- **Recruitment** — applications, recruiting and review behavior.',
+    '- **Lifecycle** — Alliance creation, lifecycle and application-owned name/slug/language/timezone settings; Platform tenant lifecycle remains separate.\n- **Membership** — Player membership, invitations, R1–R5 leadership behavior and owner-side rank writes.\n- **Access** — Alliance permission vocabulary, specialist-role definitions/assignments, bounded delegation and Alliance authorization interpretation.\n- **Recruitment** — applications, recruiting, review behavior and private Alliance-local re-entry controls.',
+)
+replace(
+    'docs/architecture/capability-map.md',
+    '- **Evidence** — private uploaded game evidence, immutable classification/extraction provenance, field confidence, review/correction history, duplicate decisions, commit receipts and retention. It owns evidence of a fact, never the accepted foreign-domain fact itself.\n- **Roster** — roster intelligence/history projections and append-only Governor progression observations.',
+    '- **Evidence** — private uploaded game evidence, immutable classification/extraction provenance, field confidence, review/correction history, duplicate decisions, commit receipts and retention, including human-reviewed Alliance roster screenshots. It owns evidence of a fact, never the accepted foreign-domain fact itself.\n- **Roster** — roster intelligence/history projections, accepted Alliance roster observation batches and append-only Governor progression observations.',
+)
+
+Path('.github/workflows/alliance-format-capture.yml').unlink()
+Path('.github/alliance-finalize.py').unlink()
