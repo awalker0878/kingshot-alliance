@@ -7,7 +7,25 @@ namespace App\Contexts\Intelligence\Evidence\Models;
 use App\Contexts\Intelligence\Evidence\Enums\EvidenceReviewStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property string $id
+ * @property string $evidence_id
+ * @property string $alliance_id
+ * @property string $schema_version
+ * @property int $revision_number
+ * @property EvidenceReviewStatus $status
+ * @property Carbon $captured_at
+ * @property array<string, mixed> $payload
+ * @property string $semantic_fingerprint
+ * @property string|null $semantic_duplicate_review_id
+ * @property string|null $duplicate_resolution
+ * @property string $reviewed_by_player_id
+ * @property Carbon $reviewed_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ */
 final class AllianceRosterEvidenceReview extends Model
 {
     use HasUlids;
