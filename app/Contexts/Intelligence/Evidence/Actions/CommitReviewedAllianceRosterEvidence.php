@@ -31,8 +31,85 @@ final readonly class CommitReviewedAllianceRosterEvidence
 
     public function handle(string $actorPlayerId, string $allianceId, string $reviewId): AllianceRosterObservationBatchReceipt
     {
-        $prepared = DB::transaction(function () use ($actorPlayerId, $allianceId, $reviewId): array {
+        $prepared = $this->prepare($actorPlayerId, $allianceId, $reviewId);
+
+        if ($prepared['completed'] instanceof AllianceRosterObservationBatchReceipt) {
+            return $prepared['completed'];
+        }
+
+        $attemptId = $this->requiredString($prepared['attemptId'], 'The roster commit attempt was not prepared.');
+        $evidenceId = $this->requiredString($prepared['evidenceId'], 'The roster evidence was not prepared.');
+        $preparedReviewId = $this->requiredString($prepared['reviewId'], 'The roster review was not prepared.');
+        $schemaVersion = $this->requiredString($prepared['schemaVersion'], 'The roster schema was not prepared.');
+        $capturedAt = $this->requiredString($prepared['capturedAt'], 'The roster capture time was not prepared.');
+        $idempotencyKey = $this->requiredString($prepared['idempotencyKey'], 'The roster idempotency key was not prepared.');
+
+        try {
+            $receipt = $this->destination->handle(
+                $actorPlayerId,
+                $allianceId,
+                $evidenceId,
+                $preparedReviewId,
+                $schemaVersion,
+                $capturedAt,
+                $prepared['rows'],
+                $idempotencyKey,
+            );
+        } catch (Throwable $exception) {
+            DB::table('evidence_alliance_roster_commit_attempts')->where('id', $attemptId)->update([
+                'status' => EvidenceAttemptStatus::Failed->value,
+                'failure_code' => class_basename($exception),
+                'completed_at' => now(),
+                'updated_at' => now(),
+            ]);
+            throw $exception;
+        }
+
+        DB::transaction(function () use ($actorPlayerId, $allianceId, $attemptId, $evidenceId, $preparedReviewId, $receipt): void {
             [, $actor] = $this->writeState->authorize($actorPlayerId, $allianceId, IntelligencePermission::KingdomManage);
+            $evidence = AllianceRosterEvidence::query()
+                ->whereKey($evidenceId)
+                ->where('alliance_id', $allianceId)
+                ->lockForUpdate()
+                ->firstOrFail();
+            DB::table('evidence_alliance_roster_commit_attempts')->where('id', $attemptId)->update([
+                'status' => EvidenceAttemptStatus::Completed->value,
+                'destination_batch_id' => $receipt->batchId,
+                'destination_receipt' => json_encode($receipt->toArray(), JSON_THROW_ON_ERROR),
+                'failure_code' => null,
+                'completed_at' => now(),
+                'updated_at' => now(),
+            ]);
+            $evidence->forceFill(['lifecycle_status' => EvidenceLifecycleStatus::Committed])->save();
+            $metadata = [
+                'evidence_id' => $evidenceId,
+                'review_id' => $preparedReviewId,
+                'destination_batch_id' => $receipt->batchId,
+                'row_count' => $receipt->rowCount,
+            ];
+            $this->audit->record('evidence.alliance_roster_committed', $actor, $evidence, $allianceId, $metadata);
+            $this->outbox->record('evidence.alliance_roster_committed', $allianceId, $evidence, $metadata);
+        });
+
+        return $receipt;
+    }
+
+    /**
+     * @return array{
+     *   completed: AllianceRosterObservationBatchReceipt|null,
+     *   attemptId: string|null,
+     *   evidenceId: string|null,
+     *   reviewId: string|null,
+     *   schemaVersion: string|null,
+     *   capturedAt: string|null,
+     *   rows: list<array<string, mixed>>,
+     *   idempotencyKey: string|null
+     * }
+     */
+    private function prepare(string $actorPlayerId, string $allianceId, string $reviewId): array
+    {
+        return DB::transaction(function () use ($actorPlayerId, $allianceId, $reviewId): array {
+            $this->writeState->authorize($actorPlayerId, $allianceId, IntelligencePermission::KingdomManage);
             $review = AllianceRosterEvidenceReview::query()
                 ->whereKey($reviewId)
                 ->where('alliance_id', $allianceId)
@@ -43,7 +120,7 @@ final readonly class CommitReviewedAllianceRosterEvidence
             }
 
             $evidence = AllianceRosterEvidence::query()
-                ->whereKey((string) $review->evidence_id)
+                ->whereKey($review->evidence_id)
                 ->where('alliance_id', $allianceId)
                 ->lockForUpdate()
                 ->firstOrFail();
@@ -57,6 +134,22 @@ final readonly class CommitReviewedAllianceRosterEvidence
                 ->where('idempotency_key', $idempotencyKey)
                 ->lockForUpdate()
                 ->first();
+
+            if ($attempt !== null && (string) $attempt->status === EvidenceAttemptStatus::Completed->value && $attempt->destination_batch_id !== null) {
+                $decoded = json_decode((string) $attempt->destination_receipt, true, 512, JSON_THROW_ON_ERROR);
+                $rowCount = is_array($decoded) ? (int) ($decoded['row_count'] ?? 0) : 0;
+
+                return [
+                    'completed' => new AllianceRosterObservationBatchReceipt((string) $attempt->destination_batch_id, $rowCount),
+                    'attemptId' => null,
+                    'evidenceId' => null,
+                    'reviewId' => null,
+                    'schemaVersion' => null,
+                    'capturedAt' => null,
+                    'rows' => [],
+                    'idempotencyKey' => null,
+                ];
+            }
 
             if ($attempt === null) {
                 $attemptId = (string) Str::ulid();
@@ -79,11 +172,6 @@ final readonly class CommitReviewedAllianceRosterEvidence
                 ]);
             } else {
                 $attemptId = (string) $attempt->id;
-                if ((string) $attempt->status === EvidenceAttemptStatus::Completed->value && $attempt->destination_batch_id !== null) {
-                    $receipt = json_decode((string) $attempt->destination_receipt, true, 512, JSON_THROW_ON_ERROR);
-
-                    return ['completed' => new AllianceRosterObservationBatchReceipt((string) $attempt->destination_batch_id, (int) ($receipt['row_count'] ?? 0))];
-                }
                 DB::table('evidence_alliance_roster_commit_attempts')->where('id', $attemptId)->update([
                     'status' => EvidenceAttemptStatus::Running->value,
                     'failure_code' => null,
@@ -91,66 +179,35 @@ final readonly class CommitReviewedAllianceRosterEvidence
                 ]);
             }
 
+            $payloadRows = $review->payload['rows'] ?? [];
+            $rows = [];
+            if (is_array($payloadRows)) {
+                foreach ($payloadRows as $row) {
+                    if (is_array($row)) {
+                        $rows[] = $row;
+                    }
+                }
+            }
+
             return [
                 'completed' => null,
                 'attemptId' => $attemptId,
-                'actor' => $actor,
-                'evidenceId' => (string) $evidence->id,
-                'reviewId' => (string) $review->id,
-                'schemaVersion' => (string) $review->schema_version,
+                'evidenceId' => $evidence->id,
+                'reviewId' => $review->id,
+                'schemaVersion' => $review->schema_version,
                 'capturedAt' => $review->captured_at->toIso8601String(),
-                'rows' => (array) (($review->payload ?? [])['rows'] ?? []),
+                'rows' => $rows,
                 'idempotencyKey' => $idempotencyKey,
             ];
         });
+    }
 
-        if ($prepared['completed'] instanceof AllianceRosterObservationBatchReceipt) {
-            return $prepared['completed'];
+    private function requiredString(?string $value, string $message): string
+    {
+        if ($value === null || $value === '') {
+            throw ValidationException::withMessages(['evidence' => $message]);
         }
 
-        try {
-            $receipt = $this->destination->handle(
-                $actorPlayerId,
-                $allianceId,
-                $prepared['evidenceId'],
-                $prepared['reviewId'],
-                $prepared['schemaVersion'],
-                $prepared['capturedAt'],
-                $prepared['rows'],
-                $prepared['idempotencyKey'],
-            );
-        } catch (Throwable $exception) {
-            DB::table('evidence_alliance_roster_commit_attempts')->where('id', $prepared['attemptId'])->update([
-                'status' => EvidenceAttemptStatus::Failed->value,
-                'failure_code' => class_basename($exception),
-                'completed_at' => now(),
-                'updated_at' => now(),
-            ]);
-            throw $exception;
-        }
-
-        DB::transaction(function () use ($prepared, $receipt, $allianceId): void {
-            [, $actor] = $this->writeState->authorize((string) $prepared['actor']->playerId, $allianceId, IntelligencePermission::KingdomManage);
-            $evidence = AllianceRosterEvidence::query()->whereKey($prepared['evidenceId'])->where('alliance_id', $allianceId)->lockForUpdate()->firstOrFail();
-            DB::table('evidence_alliance_roster_commit_attempts')->where('id', $prepared['attemptId'])->update([
-                'status' => EvidenceAttemptStatus::Completed->value,
-                'destination_batch_id' => $receipt->batchId,
-                'destination_receipt' => json_encode($receipt->toArray(), JSON_THROW_ON_ERROR),
-                'failure_code' => null,
-                'completed_at' => now(),
-                'updated_at' => now(),
-            ]);
-            $evidence->forceFill(['lifecycle_status' => EvidenceLifecycleStatus::Committed])->save();
-            $metadata = [
-                'evidence_id' => $prepared['evidenceId'],
-                'review_id' => $prepared['reviewId'],
-                'destination_batch_id' => $receipt->batchId,
-                'row_count' => $receipt->rowCount,
-            ];
-            $this->audit->record('evidence.alliance_roster_committed', $actor, $evidence, $allianceId, $metadata);
-            $this->outbox->record('evidence.alliance_roster_committed', $allianceId, $evidence, $metadata);
-        });
-
-        return $receipt;
+        return $value;
     }
 }
