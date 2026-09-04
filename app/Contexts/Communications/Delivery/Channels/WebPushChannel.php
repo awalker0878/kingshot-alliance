@@ -142,7 +142,7 @@ final class WebPushChannel implements ExternalDeliveryChannel
             throw new RuntimeException('Unable to encrypt Web Push payload.');
         }
 
-        return $salt.pack('N', 4096).chr(strlen($serverPublic)).$serverPublic.$ciphertext.$tag;
+        return $salt.pack('N', 4096)."\x41".$serverPublic.$ciphertext.$tag;
     }
 
     private function vapidJwt(string $endpoint, string $privateKey, string $subject): string
@@ -187,7 +187,7 @@ final class WebPushChannel implements ExternalDeliveryChannel
         $block = '';
         $counter = 1;
         while (strlen($output) < $length) {
-            $block = hash_hmac('sha256', $block.$info.chr($counter), $prk, true);
+            $block = hash_hmac('sha256', $block.$info.pack('C', $counter), $prk, true);
             $output .= $block;
             $counter++;
         }
