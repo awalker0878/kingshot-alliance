@@ -106,6 +106,7 @@ return new class extends Migration
                 ->constrained('notification_endpoints')
                 ->nullOnDelete();
             $table->string('route_target_label', 100)->nullable();
+            $table->string('digest_cadence', 16)->default('immediate')->index();
             $table->timestampTz('due_at')->index();
             $table->string('status', 16)->default('queued')->index();
             $table->unsignedInteger('attempt_count')->default(0);
