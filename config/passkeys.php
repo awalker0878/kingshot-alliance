@@ -3,12 +3,14 @@
 declare(strict_types=1);
 
 $originList = (string) env('PASSKEY_ALLOWED_ORIGINS', (string) config('app.url'));
+$relyingPartyId = (string) env(
+    'PASSKEY_RP_ID',
+    parse_url((string) config('app.url'), PHP_URL_HOST),
+);
 
 return [
-    'relying_party_id' => env(
-        'PASSKEY_RP_ID',
-        parse_url((string) config('app.url'), PHP_URL_HOST),
-    ),
+    'enabled' => filter_var(env('PASSKEYS_ENABLED', true), FILTER_VALIDATE_BOOL),
+    'relying_party_id' => $relyingPartyId,
     'allowed_origins' => array_values(array_filter(array_map(
         static fn (string $origin): string => trim($origin),
         explode(',', $originList),
