@@ -15,7 +15,8 @@ const english: MessageCatalogue = {
     'alliance-roster-evidence-reviewed': 'Alliance roster screenshot review saved.',
     'alliance-roster-evidence-committed': '{count} reviewed roster observations committed.',
     'recruitment-reentry-updated': 'Recruitment re-entry control updated.',
-    'notification-preference-reset': 'Governor notification preference reset to the account default.',
+    'notification-preference-reset':
+      'Governor notification preference reset to the account default.',
     'notification-marked-unread': 'Notification marked as unread.',
     'notification-archived': 'Notification archived.',
     'notification-restored': 'Notification restored.',
