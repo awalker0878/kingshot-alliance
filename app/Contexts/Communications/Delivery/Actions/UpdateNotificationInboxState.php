@@ -4,27 +4,37 @@ declare(strict_types=1);
 
 namespace App\Contexts\Communications\Delivery\Actions;
 
-use App\Contexts\Communications\Delivery\Models\NotificationDelivery;
+use App\Contexts\Communications\Delivery\Models\NotificationMessage;
 
 final class UpdateNotificationInboxState
 {
-    public function markRead(string $deliveryId, int $recipientUserId, ?string $playerId): void
+    public function markRead(string $messageId, int $recipientUserId, ?string $playerId): void
     {
-        $this->ownedDelivery($deliveryId, $recipientUserId, $playerId)->update(['read_at' => now()]);
+        $this->ownedMessage($messageId, $recipientUserId, $playerId)->update(['read_at' => now()]);
     }
 
-    public function dismiss(string $deliveryId, int $recipientUserId, ?string $playerId): void
+    public function markUnread(string $messageId, int $recipientUserId, ?string $playerId): void
     {
-        $this->ownedDelivery($deliveryId, $recipientUserId, $playerId)->update([
+        $this->ownedMessage($messageId, $recipientUserId, $playerId)->update(['read_at' => null]);
+    }
+
+    public function archive(string $messageId, int $recipientUserId, ?string $playerId): void
+    {
+        $this->ownedMessage($messageId, $recipientUserId, $playerId)->update([
             'read_at' => now(),
-            'dismissed_at' => now(),
+            'archived_at' => now(),
         ]);
     }
 
-    private function ownedDelivery(string $deliveryId, int $recipientUserId, ?string $playerId): NotificationDelivery
+    public function restore(string $messageId, int $recipientUserId, ?string $playerId): void
     {
-        return NotificationDelivery::query()
-            ->whereKey($deliveryId)
+        $this->ownedMessage($messageId, $recipientUserId, $playerId)->update(['archived_at' => null]);
+    }
+
+    private function ownedMessage(string $messageId, int $recipientUserId, ?string $playerId): NotificationMessage
+    {
+        return NotificationMessage::query()
+            ->whereKey($messageId)
             ->where('recipient_user_id', $recipientUserId)
             ->where(static function ($query) use ($playerId): void {
                 $query->whereNull('player_id');
