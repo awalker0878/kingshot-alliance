@@ -1,6 +1,6 @@
 # Alliance Capability Expansion
 
-Status: Implementation complete — final verification in progress
+Status: Current complete capability
 
 Baseline: `main` at `0a71a3cd4b61fe19ffd799b45ff74b23bd4038ba`.
 
@@ -83,4 +83,4 @@ This program does not add Alliance donation totals, Alliance Gift Level, arbitra
 9. Product-document reconciliation.
 10. Verification and delivery-ledger closeout.
 
-Detailed acceptance criteria are in `alliance-capability-expansion-acceptance.md`; progress is tracked in `alliance-capability-expansion-delivery-ledger.md`.
+Detailed acceptance criteria are in `alliance-capability-expansion-acceptance.md`; completion evidence is tracked in `alliance-capability-expansion-delivery-ledger.md`.
