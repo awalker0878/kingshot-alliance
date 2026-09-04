@@ -17,6 +17,7 @@ final readonly class NotificationQueueReceipt
         public array $channels,
         public array $createdDeliveryIds,
         public bool $createdMessage,
+        public ?string $inAppDeliveryId,
     ) {}
 
     public function count(): int
