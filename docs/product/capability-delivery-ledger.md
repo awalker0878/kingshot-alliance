@@ -1,6 +1,6 @@
 # Capability delivery ledger
 
-Status: Current as of 2026-09-02
+Status: Current as of 2026-09-04
 
 This ledger records current delivered outcomes, active selected-extension work and remaining evidence gates. It is a work queue, not a speculative roadmap. Git history remains the archive for retired/completed intermediate phase detail and exact diffs/CI runs.
 
@@ -32,6 +32,14 @@ Program-state definitions and acceptance criteria for the active extension effor
 | [#97](https://github.com/awalker0878/kingshot-alliance/pull/97) | Accessibility and localization | Replaced browser prompts with the shared accessible modal contract and an AST-based enforcement gate. |
 
 Later capability delivery is represented by the current canonical contracts below and Git history rather than duplicating every retired intermediate queue in this file.
+
+## Active complete candidate awaiting release gates
+
+| Capability/program | State | Canonical candidate evidence |
+| --- | --- | --- |
+| Communications Recipient Delivery & Notification Experience | Complete candidate — PR #144 remains draft until the exact reconciled head passes every required release gate | [Product contract](communications-recipient-delivery-expansion.md), [acceptance matrix](communications-recipient-delivery-acceptance.md), [delivery ledger](communications-recipient-delivery-ledger.md), [ADR-0015](../architecture/adr/0015-separate-logical-notifications-from-delivery-routes.md), [delivery architecture](../architecture/contexts/communications/delivery.md), `CommunicationsRecipientDeliveryAcceptanceV3Test` and existing Communications/source V3 suites |
+
+The candidate preserves the already-complete Notifications baseline while extending it to one logical message, account/Governor routing policy, multiple concrete destinations, quiet hours/mute/urgency, Web Push, Accounts-owned verified email, bounded digests, endpoint lifecycle/health and privacy-safe diagnostics. This row moves into the Current complete table only after the exact containing PR head is green across CI, Architecture V3 Verification, Intelligence Verification, King Perks Verification, Visual Regression, CodeQL and Dependency Review.
 
 ## Current complete capability programs
 
