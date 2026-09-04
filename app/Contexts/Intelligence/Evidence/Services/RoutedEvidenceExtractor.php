@@ -73,6 +73,7 @@ final readonly class RoutedEvidenceExtractor implements EvidenceExtractor
             EvidenceKind::GovernorGear,
             EvidenceKind::GovernorCharms => $this->governorProgression,
             EvidenceKind::TerritoryMapObservation => $this->territorySpatial,
+            EvidenceKind::AllianceRoster,
             EvidenceKind::Unknown => null,
         };
     }
