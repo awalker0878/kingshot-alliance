@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Evidence\Actions;
 
-use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
+use App\Contexts\Alliance\Membership\Queries\RosterEntryQuery;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceWriteState;
 use App\Contexts\Intelligence\Evidence\Enums\EvidenceLifecycleStatus;
@@ -21,6 +21,7 @@ final readonly class SaveAllianceRosterEvidenceReview
 {
     public function __construct(
         private AllianceIntelligenceWriteState $writeState,
+        private RosterEntryQuery $rosterEntries,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -118,9 +119,23 @@ final readonly class SaveAllianceRosterEvidenceReview
         });
     }
 
-    /** @param list<array<string,mixed>> $rows @return list<array<string,mixed>> */
+    /**
+     * @param  list<array<string, mixed>>  $rows
+     * @return list<array<string, mixed>>
+     */
     private function normalizeRows(string $allianceId, array $rows): array
     {
+        $rosterEntryIds = [];
+        foreach ($rows as $row) {
+            $rosterEntryId = isset($row['roster_entry_id']) && $row['roster_entry_id'] !== ''
+                ? (string) $row['roster_entry_id']
+                : null;
+            if ($rosterEntryId !== null) {
+                $rosterEntryIds[] = $rosterEntryId;
+            }
+        }
+        $knownRosterEntries = $this->rosterEntries->byIds($allianceId, $rosterEntryIds);
+
         $normalized = [];
         foreach ($rows as $index => $row) {
             $name = trim((string) ($row['observed_name'] ?? ''));
@@ -136,7 +151,7 @@ final readonly class SaveAllianceRosterEvidenceReview
                 throw ValidationException::withMessages(["rows.{$index}.power" => 'Visible power must be a non-negative integer.']);
             }
             $rosterEntryId = isset($row['roster_entry_id']) && $row['roster_entry_id'] !== '' ? (string) $row['roster_entry_id'] : null;
-            if ($rosterEntryId !== null && ! AllianceRosterEntry::query()->whereKey($rosterEntryId)->where('alliance_id', $allianceId)->exists()) {
+            if ($rosterEntryId !== null && ! isset($knownRosterEntries[$rosterEntryId])) {
                 throw ValidationException::withMessages(["rows.{$index}.roster_entry_id" => 'The linked roster entry is outside this Alliance.']);
             }
             $normalized[] = [
