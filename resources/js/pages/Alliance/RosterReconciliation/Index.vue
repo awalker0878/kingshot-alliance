@@ -29,7 +29,7 @@ type Reconciliation = {
   summary: { needsReview: number; matched: number };
 };
 
-const props = defineProps<{
+defineProps<{
   user: { name: string; email: string };
   alliance: { id: string; name: string };
   reconciliation: Reconciliation;
