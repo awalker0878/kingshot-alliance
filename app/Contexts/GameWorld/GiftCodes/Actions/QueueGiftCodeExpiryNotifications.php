@@ -57,6 +57,7 @@ final readonly class QueueGiftCodeExpiryNotifications
                 || ! in_array($giftCode->status, [GiftCodeStatus::Pending, GiftCodeStatus::Valid], true)
                 || in_array($redemption->status, [GiftCodeRedemptionStatus::Redeemed, GiftCodeRedemptionStatus::AlreadyRedeemed, GiftCodeRedemptionStatus::Expired, GiftCodeRedemptionStatus::InvalidCode], true)) {
                 $skipped++;
+
                 continue;
             }
             $eligible++;
@@ -90,6 +91,7 @@ final readonly class QueueGiftCodeExpiryNotifications
         $nextCursor = $truncated && $last instanceof GiftCodeRedemption ? (string) $last->id : null;
         $result = $this->result($startedAt, $redemptions->count(), $eligible, $deliveries, $created, $skipped, $nextCursor, $truncated);
         Log::info('gift_codes.expiry_notification_sweep', $result->toArray());
+
         return $result;
     }
 
