@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Evidence\Http\Controllers;
 
-use App\Contexts\Accounts\Identity\Models\User;
+use App\Contexts\Accounts\Identity\Contracts\AuthenticatedAccount;
 use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
 use App\Contexts\Alliance\Lifecycle\Services\AllianceContext;
-use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
+use App\Contexts\Alliance\Membership\Queries\RosterEntryQuery;
+use App\Contexts\Alliance\Membership\ValueObjects\RosterEntryReference;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
 use App\Contexts\Intelligence\Evidence\Actions\CommitReviewedAllianceRosterEvidence;
@@ -29,9 +30,10 @@ final class AllianceRosterEvidenceController extends Controller
         AllianceContext $context,
         AllianceIntelligenceAuthorization $authorization,
         AllianceReferenceQuery $alliances,
+        RosterEntryQuery $rosterEntries,
     ): Response {
         $user = $request->user();
-        abort_unless($user instanceof User, 401);
+        abort_unless($user instanceof AuthenticatedAccount, 401);
         $scope = $context->scope();
         if (! $authorization->allows($scope->playerId, $scope->allianceId, IntelligencePermission::KingdomManage)) {
             throw new AuthorizationException;
@@ -58,28 +60,28 @@ final class AllianceRosterEvidenceController extends Controller
                     'review' => $review instanceof AllianceRosterEvidenceReview ? [
                         'id' => (string) $review->id,
                         'status' => $review->status->value,
-                        'capturedAt' => $review->captured_at->toIso8601String(),
+                        'capturedAt' => $review->captured_at?->toIso8601String(),
                         'completeRoster' => (bool) (($review->payload ?? [])['complete_roster'] ?? false),
                         'rows' => (array) (($review->payload ?? [])['rows'] ?? []),
                     ] : null,
                 ];
-            })->values()->all();
+            })
+            ->values()
+            ->all();
 
-        $rosterEntries = AllianceRosterEntry::query()
-            ->where('alliance_id', $scope->allianceId)
-            ->orderBy('observed_name')
-            ->limit(500)
-            ->get(['id', 'observed_name'])
-            ->map(static fn (AllianceRosterEntry $entry): array => [
-                'id' => (string) $entry->id,
-                'name' => (string) $entry->observed_name,
-            ])->values()->all();
+        $roster = array_map(
+            static fn (RosterEntryReference $entry): array => [
+                'id' => $entry->rosterEntryId,
+                'name' => $entry->observedName,
+            ],
+            array_slice($rosterEntries->all($scope->allianceId), 0, 500),
+        );
 
         return Inertia::render('Alliance/RosterEvidence/Index', [
-            'user' => ['name' => (string) $user->name, 'email' => (string) $user->email],
+            'user' => ['name' => $user->accountName(), 'email' => $user->accountEmail()],
             'alliance' => ['id' => $alliance->allianceId, 'name' => $alliance->name],
             'evidence' => $evidence,
-            'rosterEntries' => $rosterEntries,
+            'rosterEntries' => $roster,
         ]);
     }
 
@@ -118,7 +120,7 @@ final class AllianceRosterEvidenceController extends Controller
             $scope->allianceId,
             $evidence,
             (string) $validated['captured_at'],
-            (array) $validated['rows'],
+            array_values((array) $validated['rows']),
             (bool) $validated['complete_roster'],
             (bool) ($validated['allow_semantic_duplicate'] ?? false),
         );
