@@ -206,6 +206,48 @@ Active Player
  -> Alliance content / recruitment / membership / event capabilities as permitted
 ```
 
+## Manage Alliance settings and specialist roles
+
+```text
+Select active Player with concrete officer authority
+ -> open Alliance Settings or Specialist Roles
+ -> edit application name / URL identity / language / timezone, or one Alliance-local specialist role
+ -> owner action reacquires current Player/Alliance authority
+ -> validate reserved identity, supported locale/timezone, protected role semantics and delegated permissions
+ -> persist through Lifecycle or Access
+ -> record audit/outbox evidence and show the normal action receipt
+```
+
+Kingdom association and Platform lifecycle controls are not generic officer settings. Specialist roles do not replace R1–R5, and an actor cannot delegate authority they do not currently possess or self-escalate through role administration.
+
+## Reconcile an Alliance roster screenshot
+
+```text
+Open Roster screenshots with current R4/R5 authority
+ -> upload a private supported image
+ -> preserve checksum/security/visual-duplicate provenance
+ -> review and correct every visible Governor row
+ -> explicitly state whether the screenshot contains the complete roster
+ -> approve the reviewed revision
+ -> commit accepted observations to Intelligence/Roster exactly once
+ -> open factual roster reconciliation
+ -> use an explicit Membership workflow only if an officer decides a membership/rank change is required
+```
+
+Partial screenshots never imply a departure. Only a reviewer-confirmed complete roster can produce `membership_without_observation` / `observed_missing`. Reconciliation is observation versus current owner state, not an automatic membership command.
+
+## Review Alliance governance history
+
+```text
+Open Governance history with current officer authority
+ -> compose bounded owner audit facts for the active Alliance
+ -> optionally filter capability or actor and page by stable cursor
+ -> inspect actor, time, owner metadata and canonical handoff
+ -> navigate to the owner workflow when action is needed
+```
+
+The timeline and member-history projections are read-only and do not persist a second governance or membership state machine.
+
 ## Event coordinator
 
 ```text
@@ -234,11 +276,12 @@ Open Recruitment Hall with an authorized Player
  -> confirm the eligible count and inspect every success, failure or skip
  -> correct and retry only failed candidates
  -> open one candidate for assignment, stage history, notes, duplicate review and conversion
+ -> inspect/set any private Alliance-local re-entry control before invitation or conversion
 ```
 
 Candidate filters remain in the URL. A cursor belongs to one Alliance and one normalized filter set; an invalid or stale cursor returns a validation error rather than mixing candidate lists. Bulk preview never bypasses current transition rules, and the controlled `joined` handoff remains a single-candidate workflow.
 
-Alliance membership administration uses the same bounded, Alliance-scoped cursor contract. Summary counts describe the complete membership set rather than only the visible page. Authorized leaders may select up to 50 concrete memberships, preview hierarchy, Kingdom, exclusivity and capacity checks, confirm only eligible status changes, inspect every result, and retry only failed memberships after correction.
+Alliance membership administration uses the same bounded, Alliance-scoped cursor contract. Summary counts describe the complete membership set rather than only the visible page. Authorized leaders may select up to 50 concrete memberships and preview status, rank or specialist-role changes. Commit rechecks current hierarchy, Alliance scope, R5 leadership and role-delegation invariants through the single-owner actions; preview is never cached authorization. Failed targets remain available for selective correction/retry. R5 changes remain leadership-transfer only.
 
 ## King Perks coordinator
 
@@ -313,6 +356,8 @@ Authenticate + select active Governor with an active Alliance
  -> show operational fact / Game data / Alliance strategy / Observation provenance
  -> ask another question or open the canonical source/owner workflow
 ```
+
+The Assistant also supports officer-authorized factual questions about current Alliance settings, recent governance audit history and the latest accepted roster reconciliation. These answers cite owner/read-side facts only. A write-like settings request returns the canonical Alliance Settings handoff and performs no mutation.
 
 The canonical first-use example is **“What time is Swordland and am I rostered?”**. The answer combines the authorized Event occurrence and only the active Governor's own roster assignment. The delivered extensions also support bounded source-backed Progression facts, self Participation/BattlePlan state, authorized self transfer assessment, immutable Event-attached published Territory revisions and typed authorized Intelligence change signals. Alliance-authored guidance and territory plans are labelled **Alliance strategy**; recorded intelligence and derived changes over observations are labelled **Observation**; source-backed Progression is labelled **Game data**. A question such as **“Put me on the Swordland roster”** performs no mutation and may offer a navigation-only handoff to the normal owner workflow. Unsupported general KingShot questions are not answered from model memory, and a factual signal is never converted into an unsupported strategic conclusion.
 

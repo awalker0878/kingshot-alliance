@@ -17,6 +17,10 @@ final class AssistantQuestionInterpreter
         $normalized = $this->normalize($question);
 
         if ($this->looksLikeWrite($normalized)) {
+            if (preg_match('/\b(alliance settings|alliance name|alliance slug|alliance url|alliance language|alliance timezone|alliance time zone)\b/u', $normalized) === 1) {
+                return new ParsedQuestion(AssistantIntent::ActionHandoff, writeAction: 'alliance_settings');
+            }
+
             if (preg_match('/\b(roster|rostered|sign me up|register me)\b/u', $normalized) === 1) {
                 return new ParsedQuestion(
                     AssistantIntent::ActionHandoff,
@@ -62,6 +66,18 @@ final class AssistantQuestionInterpreter
 
         if ($normalized === '' || preg_match('/^(help|what can you (answer|do)|how can you help)$/u', $normalized) === 1) {
             return new ParsedQuestion(AssistantIntent::Help);
+        }
+
+        if (preg_match('/\b(alliance settings|alliance name|alliance slug|alliance url|alliance language|alliance timezone|alliance time zone)\b/u', $normalized) === 1) {
+            return new ParsedQuestion(AssistantIntent::AllianceSettings);
+        }
+
+        if (preg_match('/\b(alliance governance history|governance history|alliance history|what changed in alliance)\b/u', $normalized) === 1) {
+            return new ParsedQuestion(AssistantIntent::AllianceGovernanceHistory);
+        }
+
+        if (preg_match('/\b(roster reconciliation|reconciled roster|reconcile roster|roster differences|roster mismatches?)\b/u', $normalized) === 1) {
+            return new ParsedQuestion(AssistantIntent::AllianceRosterReconciliation);
         }
 
         if (preg_match('/\b(alliance command|officer attention|needs? attention|what needs attention)\b/u', $normalized) === 1) {

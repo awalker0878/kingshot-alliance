@@ -1,6 +1,6 @@
 # Capability completeness plan
 
-Status: Current — 2026-09-02
+Status: Current — 2026-09-04
 
 This document identifies what is already complete, what has been selected for the next implementation program, and what remains evidence-gated. It is not permission to describe selected work as shipped.
 
@@ -41,6 +41,12 @@ Accounts now treats the Kingshot Alliance User as the permanent application iden
 Google attachment is explicit, recent-authenticated and keyed by stable provider subject rather than email. Passwords may be added, changed or removed when policy allows. Passkeys use the maintained first-party Laravel/WebAuthn implementation with opaque user handles and required user verification. Recent authentication is method-agnostic, TOTP remains MFA rather than account identity, and user-verifying passkeys do not receive a redundant TOTP challenge. Security Center, sessions, Security Activity, account email and lifecycle invalidation remain within their existing Accounts/Communications/Platform ownership boundaries.
 
 Account merging, email-based identity consolidation, official Kingshot game authentication and game credentials remain unsupported.
+
+### Alliance Capability Expansion — current complete
+
+The delivered Alliance expansion closes the officer-facing settings gap and extends existing owners rather than creating a new Alliance domain. `Alliance/Lifecycle` owns application name/slug/language/timezone settings; `Alliance/Access` owns bounded specialist-role definition and delegation; `Alliance/Membership` retains membership, R1–R5 and leadership writes; `Alliance/Recruitment` owns private Alliance-local re-entry controls.
+
+Private roster screenshots remain Evidence artifacts until a human-reviewed revision is approved. Exactly-once commit appends accepted `Intelligence/Roster` observations, and `ReadModels/AllianceGovernance` derives reconciliation and audit history without changing Membership. Absence becomes a missing-member observation only when the reviewer explicitly confirms that the screenshot is a complete roster. Bulk rank/role commit rechecks current authority and single-owner invariants. Alliance Assistant exposes only authorized factual settings/history/reconciliation and returns navigation handoff for writes.
 
 ### Alliance Assistant — current complete
 
@@ -92,6 +98,7 @@ Implementation candidate `e5c492f9391431ab68e1b2ca215038f448e5539d` passed CI, I
 
 | Priority/order | Selected extension | User outcome | Canonical owners | Primary guardrail |
 | --- | --- | --- | --- | --- |
+| 1–10 | Alliance Capability Expansion — implementation complete, final verification in progress | Manage application Alliance settings/roles, governance history, roster evidence/reconciliation, bulk rank/role and Recruitment re-entry through existing owners. | Alliance owners + Intelligence/Evidence/Roster + ReadModels/AllianceGovernance | Active Player authority; human-reviewed evidence never auto-mutates Membership. |
 | 5 | Kingdom Transfer Screenshot Intake — current complete | Use the verified supported-screenshot review and exactly-once destination workflow. | Intelligence/Evidence + GameWorld/KingdomTransfers | Evidence owns provenance; KingdomTransfers owns observations/eligibility. |
 | 6 | Governor Progression Screenshot Intake — current complete | Use the verified pinned-release normalization and append-only Governor observation workflow. | Intelligence/Evidence + Intelligence/Roster + GameWorld/Progression | OCR cannot create identity or alter catalogue truth. |
 | 13–25 | Kingshot Capability Expansion Program — complete except evidence-gated KvK | Use the verified Event profile, Rally, factual member, Bear Hunt, Transfer, Intelligence, Territory, Command, Brief and Assistant compositions; KvK remains disabled pending evidence. | Existing owners + ReadModels composition | Mandatory named-Event identity/evidence gate; no parallel composition domains or unsupported mechanics. |

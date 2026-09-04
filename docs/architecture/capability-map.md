@@ -38,10 +38,10 @@ Capabilities are first-class modules inside the seven bounded contexts. This map
 
 ## Alliance
 
-- **Lifecycle** — Alliance creation, lifecycle and settings.
-- **Membership** — Player membership, invitations and R1–R5 leadership behavior.
-- **Access** — Alliance permission vocabulary, specialist roles and Alliance authorization interpretation.
-- **Recruitment** — applications, recruiting and review behavior.
+- **Lifecycle** — Alliance creation, lifecycle and application-owned name/slug/language/timezone settings; Platform tenant lifecycle remains separate.
+- **Membership** — Player membership, invitations, R1–R5 leadership behavior and owner-side rank writes.
+- **Access** — Alliance permission vocabulary, specialist-role definitions/assignments, bounded delegation and Alliance authorization interpretation.
+- **Recruitment** — applications, recruiting, review behavior and private Alliance-local re-entry controls.
 - **Content** — Alliance-owned content and media.
 
 Alliance policies belong to the capability that owns the rule; `Alliance/Policies` is not a V3 capability.
@@ -66,8 +66,8 @@ Alliance policies belong to the capability that owns the rule; `Alliance/Policie
 - **Access** — Intelligence permission vocabulary and authorization interpretation.
 - **Observations** — durable observed facts and provenance.
 - **Ingestion** — import and reconciliation of external observations.
-- **Evidence** — private uploaded game evidence, immutable classification/extraction provenance, field confidence, review/correction history, duplicate decisions, commit receipts and retention. It owns evidence of a fact, never the accepted foreign-domain fact itself.
-- **Roster** — roster intelligence/history projections and append-only Governor progression observations. A normalized Hero observation may reference `GameWorld/Progression`, but that reference does not make catalogue truth an Intelligence write.
+- **Evidence** — private uploaded game evidence, immutable classification/extraction provenance, field confidence, review/correction history, duplicate decisions, commit receipts and retention, including human-reviewed Alliance roster screenshots. It owns evidence of a fact, never the accepted foreign-domain fact itself.
+- **Roster** — roster intelligence/history projections, accepted Alliance roster observation batches and append-only Governor progression observations. A normalized Hero observation may reference `GameWorld/Progression`, but that reference does not make catalogue truth an Intelligence write.
 - **Contributions** — contribution facts, history and reporting.
 - **Diplomacy** — diplomacy intelligence.
 - **Sharing** — Intelligence grants and distribution.

@@ -21,4 +21,7 @@ enum EvidenceSourceType: string
     case RosterFreshness = 'roster_freshness';
     case TransferVerification = 'transfer_verification';
     case TerritoryComparison = 'territory_comparison';
+    case AllianceSettings = 'alliance_settings';
+    case AllianceGovernanceHistory = 'alliance_governance_history';
+    case AllianceRosterReconciliation = 'alliance_roster_reconciliation';
 }

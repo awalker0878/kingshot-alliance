@@ -1,6 +1,6 @@
 # Alliance Capability Expansion
 
-Status: Selected extension — implementation in progress
+Status: Implementation complete — final verification in progress
 
 Baseline: `main` at `0a71a3cd4b61fe19ffd799b45ff74b23bd4038ba`.
 

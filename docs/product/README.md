@@ -1,6 +1,6 @@
 # Product
 
-Status: Current — 2026-08-30
+Status: Current — 2026-09-04
 
 This area explains **what Kingshot Alliance provides to users**. It does not define code ownership or operational procedure.
 
@@ -15,6 +15,9 @@ Phases 13–25 are governed by the [Kingshot Capability Expansion Program](kings
 - [Capability completeness plan](capability-gap-analysis.md)
 - [Capability delivery ledger](capability-delivery-ledger.md)
 - [Capability Extension Program](capability-extension-program.md)
+- [Alliance Capability Expansion](alliance-capability-expansion.md)
+- [Alliance Capability Expansion acceptance](alliance-capability-expansion-acceptance.md)
+- [Alliance Capability Expansion delivery ledger](alliance-capability-expansion-delivery-ledger.md)
 - [Kingshot Capability Expansion Program](kingshot-capability-expansion-program.md)
 - [Intelligence Change Detection](intelligence-change-detection.md)
 - [Intelligence Change Detection delivery ledger](intelligence-change-detection-delivery-ledger.md)

@@ -1,6 +1,6 @@
 # Alliance Capability Expansion — Acceptance
 
-Status: Selected extension — implementation in progress
+Status: Implementation complete — final verification in progress
 
 ## ACE-01 Documentation and ownership
 

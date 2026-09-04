@@ -59,6 +59,9 @@ const messages = {
       roster_freshness: 'Governor observation freshness',
       transfer_verification: 'Transfer verification',
       territory_comparison: 'Territory comparison',
+      alliance_settings: 'Alliance settings',
+      alliance_governance_history: 'Alliance governance history',
+      alliance_roster_reconciliation: 'Alliance roster reconciliation',
     },
     prompts: {
       swordland: 'What time is Swordland and am I rostered?',
@@ -168,6 +171,14 @@ const messages = {
         'The authorized Territory comparison contains {count} observed difference(s). Missing and incompatible observations remain explicit below.',
       territoryComparisonNotAvailable:
         'There is no authorized published Territory comparison available.',
+      allianceSettings:
+        'The current Alliance settings are {name}, URL name {slug}, language {language}, and time zone {timezone}.',
+      allianceGovernanceHistory:
+        'I found {count} recent authorized Alliance governance event(s). These are read-only owner audit facts.',
+      allianceRosterReconciliation:
+        'The latest accepted roster observation has {needsReview} item(s) needing review and {matched} matching current membership.',
+      allianceRosterReconciliationNotAvailable:
+        'There is no accepted Alliance roster observation available to reconcile yet.',
     },
   },
 } satisfies MessageCatalogue;

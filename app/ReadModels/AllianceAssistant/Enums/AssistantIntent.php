@@ -24,6 +24,9 @@ enum AssistantIntent: string
     case ProgressionFreshness = 'progression_freshness';
     case TransferVerification = 'transfer_verification';
     case TerritoryComparison = 'territory_comparison';
+    case AllianceSettings = 'alliance_settings';
+    case AllianceGovernanceHistory = 'alliance_governance_history';
+    case AllianceRosterReconciliation = 'alliance_roster_reconciliation';
     case ActionHandoff = 'action_handoff';
     case Unsupported = 'unsupported';
 }
