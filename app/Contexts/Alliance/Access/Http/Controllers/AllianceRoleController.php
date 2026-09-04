@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Alliance\Access\Http\Controllers;
 
-use App\Contexts\Accounts\Identity\Models\User;
+use App\Contexts\Accounts\Identity\Contracts\AuthenticatedAccount;
 use App\Contexts\Alliance\Access\Actions\ArchiveAllianceRole;
 use App\Contexts\Alliance\Access\Actions\CreateAllianceRole;
 use App\Contexts\Alliance\Access\Actions\UpdateAllianceRole;
@@ -29,7 +29,7 @@ final class AllianceRoleController extends Controller
         AllianceReferenceQuery $alliances,
     ): Response {
         $user = $request->user();
-        abort_unless($user instanceof User, 401);
+        abort_unless($user instanceof AuthenticatedAccount, 401);
         $scope = $context->scope();
         $authorization->authorize($scope->playerId, $scope->allianceId, AlliancePermission::RoleManage);
         $alliance = $alliances->require($scope->allianceId);
@@ -54,7 +54,7 @@ final class AllianceRoleController extends Controller
             ->all();
 
         return Inertia::render('Alliance/Roles/Index', [
-            'user' => ['name' => (string) $user->name, 'email' => (string) $user->email],
+            'user' => ['name' => $user->accountName(), 'email' => $user->accountEmail()],
             'alliance' => ['id' => $alliance->allianceId, 'name' => $alliance->name],
             'roles' => $roles,
             'permissions' => array_map(static fn (AlliancePermission $permission): string => $permission->value, AlliancePermission::cases()),
