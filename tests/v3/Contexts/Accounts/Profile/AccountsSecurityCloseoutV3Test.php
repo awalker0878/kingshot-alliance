@@ -93,10 +93,19 @@ final class AccountsSecurityCloseoutV3Test extends TestCase
             idempotencyKey: 'account-security-test:'.$user->id,
         );
 
-        $this->assertDatabaseHas('notification_deliveries', [
+        $this->assertDatabaseHas('notification_messages', [
             'notification_type' => 'account.security',
             'recipient_user_id' => $user->id,
             'player_id' => null,
+            'title' => 'Security change',
+        ]);
+        $messageId = DB::table('notification_messages')
+            ->where('notification_type', 'account.security')
+            ->where('recipient_user_id', $user->id)
+            ->value('id');
+        self::assertIsString($messageId);
+        $this->assertDatabaseHas('notification_deliveries', [
+            'notification_message_id' => $messageId,
             'channel' => 'in_app',
             'status' => 'sent',
         ]);
