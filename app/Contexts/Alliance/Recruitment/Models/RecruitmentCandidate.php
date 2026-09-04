@@ -7,6 +7,7 @@ namespace App\Contexts\Alliance\Recruitment\Models;
 use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Recruitment\Enums\RecruitmentReentryControl;
 use App\Contexts\Alliance\Recruitment\Enums\RecruitmentStage;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -37,12 +38,12 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $joined_at
  * @property Carbon|null $retention_due_at
  * @property Carbon|null $anonymized_at
- * @property-read \Illuminate\Database\Eloquent\Collection<int, RecruitmentAnswer> $answers
- * @property-read \Illuminate\Database\Eloquent\Collection<int, RecruitmentNote> $notes
- * @property-read \Illuminate\Database\Eloquent\Collection<int, RecruitmentTag> $tags
- * @property-read \Illuminate\Database\Eloquent\Collection<int, RecruitmentStageHistory> $stageHistory
- * @property-read \Illuminate\Database\Eloquent\Collection<int, RecruitmentCommunication> $communications
- * @property-read \Illuminate\Database\Eloquent\Collection<int, RecruitmentCandidateOnboarding> $onboarding
+ * @property-read Collection<int, RecruitmentAnswer> $answers
+ * @property-read Collection<int, RecruitmentNote> $notes
+ * @property-read Collection<int, RecruitmentTag> $tags
+ * @property-read Collection<int, RecruitmentStageHistory> $stageHistory
+ * @property-read Collection<int, RecruitmentCommunication> $communications
+ * @property-read Collection<int, RecruitmentCandidateOnboarding> $onboarding
  */
 final class RecruitmentCandidate extends Model
 {
