@@ -25,6 +25,7 @@ final class AuthenticatedSessionController extends Controller
             'googleAuthEnabled' => filled(config('services.google.client_id'))
                 && filled(config('services.google.client_secret'))
                 && filled(config('services.google.redirect')),
+            'passkeyAuthEnabled' => $this->passkeyAuthenticationIsAvailable(),
         ]);
     }
 
@@ -111,5 +112,45 @@ final class AuthenticatedSessionController extends Controller
         $request->session()->regenerateToken();
 
         return redirect()->route('home');
+    }
+
+    private function passkeyAuthenticationIsAvailable(): bool
+    {
+        if (! (bool) config('passkeys.enabled', true)) {
+            return false;
+        }
+
+        $relyingPartyId = trim((string) config('passkeys.relying_party_id'));
+
+        if ($relyingPartyId === '' || filter_var($relyingPartyId, FILTER_VALIDATE_IP) !== false) {
+            return false;
+        }
+
+        foreach ((array) config('passkeys.allowed_origins', []) as $origin) {
+            $host = parse_url((string) $origin, PHP_URL_HOST);
+            $scheme = parse_url((string) $origin, PHP_URL_SCHEME);
+
+            if (! is_string($host) || $host === '') {
+                continue;
+            }
+
+            if ($relyingPartyId === 'localhost') {
+                if ($host === 'localhost' && in_array($scheme, ['http', 'https'], true)) {
+                    return true;
+                }
+
+                continue;
+            }
+
+            if ($scheme !== 'https') {
+                continue;
+            }
+
+            if ($host === $relyingPartyId || str_ends_with($host, '.'.$relyingPartyId)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
