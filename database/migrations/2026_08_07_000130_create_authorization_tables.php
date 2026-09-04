@@ -23,10 +23,12 @@ return new class extends Migration
             $table->string('key', 64);
             $table->string('name', 100);
             $table->boolean('is_system')->default(true);
+            $table->timestamp('archived_at')->nullable();
             $table->timestamps();
 
             $table->unique(['alliance_id', 'key']);
             $table->unique(['id', 'alliance_id']);
+            $table->index(['alliance_id', 'archived_at', 'name']);
         });
 
         Schema::create('role_permissions', function (Blueprint $table): void {

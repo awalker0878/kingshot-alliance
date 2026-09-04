@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\ReadModels\Roster\Http\Controllers;
 
 use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
+use App\Contexts\Alliance\Access\Enums\AlliancePermission;
+use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
 use App\Contexts\Alliance\Lifecycle\Services\AllianceContext;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
@@ -16,6 +18,7 @@ use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
 use App\Contexts\Intelligence\Roster\Models\PlayerSnapshot;
+use App\ReadModels\AllianceGovernance\Queries\MembershipGovernanceHistoryQuery;
 use App\ReadModels\Roster\Queries\MemberCapabilityProfileQuery;
 use App\ReadModels\Roster\Queries\PlayerSnapshotQuery;
 use App\ReadModels\Roster\Services\PlayerProgressionTimeline;
@@ -31,6 +34,7 @@ final class PlayerSnapshotHistoryController extends Controller
         Request $request,
         AllianceContext $context,
         AllianceIntelligenceAuthorization $authorization,
+        AllianceAuthorization $allianceAuthorization,
         AllianceReferenceQuery $alliances,
         KingdomReferenceQuery $kingdoms,
         AccountIdentityQuery $accounts,
@@ -38,6 +42,7 @@ final class PlayerSnapshotHistoryController extends Controller
         PlayerSnapshotQuery $snapshots,
         PlayerProgressionTimeline $timeline,
         MemberCapabilityProfileQuery $capabilityProfile,
+        MembershipGovernanceHistoryQuery $membershipGovernance,
         string $entry,
     ): Response {
         $scope = $context->scope();
@@ -56,12 +61,38 @@ final class PlayerSnapshotHistoryController extends Controller
             ->where('status', MembershipStatus::Active->value)
             ->first();
         $canManage = $authorization->allows($scope->playerId, $scope->allianceId, IntelligencePermission::KingdomManage);
+        $canViewMembershipGovernance = $allianceAuthorization->allows(
+            $scope->playerId,
+            $scope->allianceId,
+            AlliancePermission::MembershipManage,
+        ) || $allianceAuthorization->allows(
+            $scope->playerId,
+            $scope->allianceId,
+            AlliancePermission::RoleManage,
+        ) || $allianceAuthorization->allows(
+            $scope->playerId,
+            $scope->allianceId,
+            AlliancePermission::Manage,
+        );
         $history = $snapshots->historyForEntry($alliance->allianceId, $rosterEntry, 251);
         $visibleHistory = $history->take(250)->values();
         $changes = $timeline->changes($history);
         $actorIds = $visibleHistory->pluck('actor_player_id')->filter()->map(static fn ($id): string => (string) $id)->values()->all();
         $actorRefs = $players->byIds($actorIds);
         $latest = $visibleHistory->first();
+        $profile = $capabilityProfile->forPlayer(
+            $scope->playerId,
+            $alliance->allianceId,
+            $rosterEntry,
+            $player,
+        );
+        $profile['membershipGovernance'] = [
+            'access' => $canViewMembershipGovernance ? 'available' : 'unavailable',
+            'history' => $canViewMembershipGovernance
+                ? $membershipGovernance->forPlayer($alliance->allianceId, $player->playerId, 12)
+                : [],
+            'href' => '/alliance/members/'.$player->playerId.'/history',
+        ];
 
         return Inertia::render('Intelligence/Roster/History', [
             'user' => ['name' => $account->name, 'email' => $account->email],
@@ -72,6 +103,7 @@ final class PlayerSnapshotHistoryController extends Controller
             ],
             'entry' => [
                 'id' => (string) $rosterEntry->id,
+                'playerId' => $player->playerId,
                 'gamePlayerId' => $player->gamePlayerId,
                 'name' => (string) $rosterEntry->observed_name,
                 'gameRole' => $rosterEntry->game_role,
@@ -90,12 +122,7 @@ final class PlayerSnapshotHistoryController extends Controller
             ))->values()->all(),
             'hasMoreSnapshots' => $history->count() > $visibleHistory->count(),
             'staleAfterDays' => PlayerSnapshotQuery::STALE_AFTER_DAYS,
-            'capabilityProfile' => $capabilityProfile->forPlayer(
-                $scope->playerId,
-                $alliance->allianceId,
-                $rosterEntry,
-                $player,
-            ),
+            'capabilityProfile' => $profile,
         ]);
     }
 

@@ -5,7 +5,9 @@ declare(strict_types=1);
 use App\Contexts\Accounts\Authentication\Providers\AuthenticationServiceProvider;
 use App\Contexts\Accounts\MultiFactorAuthentication\Providers\MultiFactorAuthenticationServiceProvider;
 use App\Contexts\Accounts\Registration\Providers\RegistrationServiceProvider;
+use App\Contexts\Alliance\Access\Providers\AccessServiceProvider;
 use App\Contexts\Alliance\Lifecycle\Providers\LifecycleServiceProvider;
+use App\Contexts\Alliance\Membership\Providers\MembershipServiceProvider;
 use App\Contexts\Alliance\Recruitment\Providers\RecruitmentServiceProvider;
 use App\Contexts\GameWorld\GiftCodes\Providers\GiftCodesServiceProvider;
 use App\Contexts\GameWorld\Players\Providers\PlayersServiceProvider;
@@ -16,6 +18,7 @@ use App\Contexts\Operations\TerritoryPlanning\Providers\TerritoryPlanningService
 use App\Contexts\Platform\Administration\Providers\AdministrationServiceProvider;
 use App\Contexts\Platform\Integrations\Providers\IntegrationsServiceProvider;
 use App\ReadModels\AllianceAssistant\Providers\AllianceAssistantServiceProvider;
+use App\ReadModels\AllianceGovernance\Providers\AllianceGovernanceServiceProvider;
 use App\ReadModels\TerritoryPlanning\Providers\TerritoryPlanningReadModelServiceProvider;
 use App\Shared\Infrastructure\Providers\InfrastructureServiceProvider;
 
@@ -27,11 +30,14 @@ return [
     PlayersServiceProvider::class,
     GiftCodesServiceProvider::class,
     LifecycleServiceProvider::class,
+    MembershipServiceProvider::class,
+    AccessServiceProvider::class,
     RecruitmentServiceProvider::class,
     ParticipationServiceProvider::class,
     KingPerksServiceProvider::class,
     TerritoryPlanningServiceProvider::class,
     TerritoryPlanningReadModelServiceProvider::class,
+    AllianceGovernanceServiceProvider::class,
     AllianceAssistantServiceProvider::class,
     EvidenceServiceProvider::class,
     AdministrationServiceProvider::class,

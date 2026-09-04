@@ -52,6 +52,7 @@ final readonly class AllianceAssistantQuery
         private ContentPresenter $contentPresenter,
         private AssistantObservationQuery $observations,
         private AllianceOperationalAssistantQuery $operational,
+        private AllianceGovernanceAssistantQuery $governance,
     ) {}
 
     public function ask(
@@ -80,6 +81,9 @@ final readonly class AllianceAssistantQuery
             AssistantIntent::ProgressionFreshness,
             AssistantIntent::TransferVerification,
             AssistantIntent::TerritoryComparison => $this->operational->ask($actor, $scope, $parsed),
+            AssistantIntent::AllianceSettings,
+            AssistantIntent::AllianceGovernanceHistory,
+            AssistantIntent::AllianceRosterReconciliation => $this->governance->ask($actor, $scope, $parsed),
             AssistantIntent::ActionHandoff => $this->actionHandoff($actor, $scope, $parsed),
             AssistantIntent::IntelligenceChanges,
             AssistantIntent::Unsupported => $this->unsupported(),
@@ -556,6 +560,26 @@ final readonly class AllianceAssistantQuery
         AllianceScopeReference $scope,
         ParsedQuestion $parsed,
     ): AssistantResult {
+        if ($parsed->writeAction === 'alliance_settings') {
+            $source = $this->governance->ask(
+                $actor,
+                $scope,
+                new ParsedQuestion(AssistantIntent::AllianceSettings),
+            );
+
+            return new AssistantResult(
+                AssistantIntent::ActionHandoff,
+                AssistantStatus::Answered,
+                'assistant.answers.ownerWriteHandoff',
+                ['owner' => 'alliance settings'],
+                $source->evidence,
+                handoff: new AssistantNavigationHandoff(
+                    'assistant.handoffs.openOwnerWorkflow',
+                    '/alliance/settings',
+                ),
+            );
+        }
+
         if (in_array($parsed->writeAction, ['transfer', 'territory', 'evidence'], true)) {
             $intent = match ($parsed->writeAction) {
                 'transfer' => AssistantIntent::TransferVerification,

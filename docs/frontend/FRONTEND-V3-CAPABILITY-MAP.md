@@ -19,6 +19,9 @@ Governor Account
           │
           ├── Alliance Command
           │   ├── Alliance Hall
+          │   ├── Alliance Settings / Specialist Roles
+          │   ├── Governance History
+          │   ├── Roster Screenshots / Reconciliation
           │   ├── Recruitment Hall
           │   ├── Noticeboard
           │   ├── Alliance Rules
@@ -79,11 +82,23 @@ Do not show unsupported donation totals, leaderboard rank, Alliance Gift Level o
 
 ## Alliance Hall
 
-Backed by Alliance Membership and Access: active memberships, R1–R5 rank, specialist roles, invitations, membership status, rank/role changes, leadership transfer and leaving the Alliance.
+Backed by Alliance Membership and Access: active memberships, R1–R5 rank, specialist-role assignments, invitations, membership status, bounded rank/role changes, leadership transfer and leaving the Alliance. Permission-aware links expose settings, role administration, factual governance history and roster reconciliation without moving their ownership into the Hall.
+
+### Alliance Settings and Specialist Roles
+
+Alliance Settings is backed by `Alliance/Lifecycle` for application-owned name, slug, language and timezone only. Kingdom association and Platform suspension/closure/retention/deletion are not officer settings. Specialist-role definition is backed by `Alliance/Access`: system roles are protected, custom role keys are stable, and an actor cannot delegate permissions they do not currently possess or use role administration for self-escalation. R1–R5 remains Membership-owned.
+
+### Alliance roster screenshots and reconciliation
+
+Roster screenshots are private `Intelligence/Evidence` artifacts. Officers review/correct every visible row and explicitly state whether the image represents a complete roster before commit. Accepted facts append exactly-once `Intelligence/Roster` observations. The reconciliation page is a read model comparing those observations with current Membership/Roster facts; it never adds, removes, promotes or demotes a member automatically. A partial screenshot cannot imply that a member left.
+
+### Alliance governance history
+
+Governance History is an officer-authorized `ReadModels/AllianceGovernance` view over existing owner audit facts. It supports bounded filtering/cursor navigation and owner-workflow links, but owns no domain truth and performs no writes.
 
 ## Recruitment Hall
 
-Backed by Alliance Recruitment: modes/questions, Governor applications, stages, assigned reviewers, notes, tags, duplicate merge, decisions, invitation conversion and onboarding items.
+Backed by Alliance Recruitment: modes/questions, Governor applications, stages, assigned reviewers, notes, tags, duplicate merge, decisions, invitation conversion, onboarding items and private Alliance-local re-entry controls. Re-entry restrictions are recruiter-private and never presented as a global blacklist.
 
 ## Noticeboard
 
@@ -170,7 +185,7 @@ The canvas is not the only control surface. Every material object is represented
 
 ## Intel Room — Alliance Roster
 
-Backed by Alliance roster and Intelligence snapshots: observed Governor identity, roster state, optional membership linkage, recorded power/freshness/trends, summary metrics, joins/departures, manual scout readings, CSV preview/commit/export and history. Missing observations are never estimated.
+Backed by Alliance roster and Intelligence snapshots: observed Governor identity, roster state, optional membership linkage, recorded power/freshness/trends, summary metrics, joins/departures, manual scout readings, CSV preview/commit/export, accepted human-reviewed roster-screenshot observations and history. Missing observations are never estimated; screenshot absence is meaningful only when its reviewed source explicitly represents the complete roster.
 
 ## Intel Room — Kingdom Alliances
 

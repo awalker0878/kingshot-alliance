@@ -5,6 +5,10 @@ import { fileURLToPath } from 'node:url';
 
 const controllerRoot = fileURLToPath(new URL('../app/Contexts/', import.meta.url));
 const cataloguePath = new URL('../resources/js/localization/messages/core/en.ts', import.meta.url);
+const allianceExpansionCataloguePath = new URL(
+  '../resources/js/localization/alliance-capability-expansion-labels.ts',
+  import.meta.url,
+);
 
 function filesUnder(directory) {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
@@ -76,6 +80,16 @@ function firstArgument(source) {
   return source;
 }
 
+function receiptSource(source, startMarker, endMarker, filename) {
+  const receiptStart = source.indexOf(startMarker);
+  const receiptEnd = source.indexOf(endMarker, receiptStart);
+  if (receiptStart === -1 || receiptEnd === -1) {
+    throw new Error(`Unable to locate the receipt catalogue in ${filename}.`);
+  }
+
+  return source.slice(receiptStart, receiptEnd);
+}
+
 const usedCodes = new Set();
 for (const filename of filesUnder(controllerRoot).filter((file) => extname(file) === '.php')) {
   const source = readFileSync(filename, 'utf8');
@@ -87,16 +101,22 @@ for (const filename of filesUnder(controllerRoot).filter((file) => extname(file)
 }
 
 const catalogue = readFileSync(cataloguePath, 'utf8');
-const receiptStart = catalogue.indexOf('  receipts: {');
-const receiptEnd = catalogue.indexOf('\n  },\n  navigation:', receiptStart);
-if (receiptStart === -1 || receiptEnd === -1) {
-  throw new Error('Unable to locate the English receipt catalogue.');
-}
+const allianceExpansionCatalogue = readFileSync(allianceExpansionCataloguePath, 'utf8');
+const receiptSources = [
+  receiptSource(catalogue, '  receipts: {', '\n  },\n  navigation:', 'core/en.ts'),
+  receiptSource(
+    allianceExpansionCatalogue,
+    '  receipts: {',
+    '\n  },\n  allianceExpansion:',
+    'alliance-capability-expansion-labels.ts',
+  ),
+];
 
-const receiptSource = catalogue.slice(receiptStart, receiptEnd);
 const translatedCodes = new Set(['completed']);
-for (const match of receiptSource.matchAll(/\n\s+'([a-z][a-z0-9-]{2,119})':/g)) {
-  translatedCodes.add(match[1]);
+for (const source of receiptSources) {
+  for (const match of source.matchAll(/\n\s+'([a-z][a-z0-9-]{2,119})':/g)) {
+    translatedCodes.add(match[1]);
+  }
 }
 
 const missing = [...usedCodes].filter((code) => !translatedCodes.has(code)).sort();

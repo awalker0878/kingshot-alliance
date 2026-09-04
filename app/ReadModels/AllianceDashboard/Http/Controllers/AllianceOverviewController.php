@@ -22,6 +22,8 @@ use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
 use App\Contexts\Alliance\Membership\Models\Invitation;
 use App\Contexts\GameWorld\Kingdoms\Queries\KingdomReferenceQuery;
 use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
+use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
+use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
 use App\ReadModels\AllianceDashboard\AllianceDashboardCapabilitiesQuery;
 use App\ReadModels\AllianceDashboard\Queries\MembershipManagementQuery;
 use App\ReadModels\AllianceDashboard\UpcomingAllianceActivitiesQuery;
@@ -36,6 +38,7 @@ final class AllianceOverviewController extends Controller
         Request $request,
         AllianceContext $context,
         AllianceAuthorization $authorization,
+        AllianceIntelligenceAuthorization $intelligenceAuthorization,
         AllianceReferenceQuery $alliances,
         KingdomReferenceQuery $kingdoms,
         PlayerReferenceQuery $players,
@@ -68,6 +71,12 @@ final class AllianceOverviewController extends Controller
         $canManageContent = $authorization->allows($scope->playerId, $scope->allianceId, AlliancePermission::ContentManage);
         $canManageRecruitment = $authorization->allows($scope->playerId, $scope->allianceId, AlliancePermission::RecruitmentManage);
         $canManageIntegrations = $authorization->allows($scope->playerId, $scope->allianceId, AlliancePermission::Manage);
+        $canViewGovernance = $canManageMembers || $canManageRoles || $canManageIntegrations;
+        $canManageRosterEvidence = $intelligenceAuthorization->allows(
+            $scope->playerId,
+            $scope->allianceId,
+            IntelligencePermission::KingdomManage,
+        );
         $dashboardCapabilities = $capabilitiesQuery->for($scope->playerId, $scope->allianceId);
 
         $roles = $membership->roles
@@ -197,6 +206,13 @@ final class AllianceOverviewController extends Controller
                 'canManageIntegrations' => $canManageIntegrations,
                 'notices' => $notices,
                 'upcomingActivities' => $upcomingActivitiesQuery->handle($scope->allianceId),
+            ],
+            'governance' => [
+                'canManageSettings' => $canManageIntegrations,
+                'canManageRoles' => $canManageRoles,
+                'canManageMembers' => $canManageMembers,
+                'canViewHistory' => $canViewGovernance,
+                'canManageRosterEvidence' => $canManageRosterEvidence,
             ],
             'invitationManagement' => [
                 'allowed' => $canManageInvitations,

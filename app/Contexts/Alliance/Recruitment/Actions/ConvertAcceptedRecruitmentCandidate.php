@@ -14,6 +14,7 @@ use App\Contexts\Alliance\Recruitment\Enums\RecruitmentStage;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentCandidate;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentCandidateOnboarding;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentOnboardingItem;
+use App\Contexts\Alliance\Recruitment\Services\RecruitmentReentryPolicy;
 use App\Contexts\Alliance\Recruitment\ValueObjects\ConvertedRecruitmentCandidate;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
@@ -28,6 +29,7 @@ final class ConvertAcceptedRecruitmentCandidate
         private AllianceAuthorization $authority,
         private AlliancePermissionEvaluator $permissions,
         private IssueAllianceInvitation $invitationIssuer,
+        private RecruitmentReentryPolicy $reentryPolicy,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -39,18 +41,9 @@ final class ConvertAcceptedRecruitmentCandidate
         string $targetPlayerId,
     ): ConvertedRecruitmentCandidate {
         return DB::transaction(function () use ($actorPlayerId, $allianceId, $candidateId, $targetPlayerId): ConvertedRecruitmentCandidate {
-            // Conversion creates a member-capacity reservation, so acquire the
-            // Alliance-wide boundary before candidate/Player child state.
             $context = $this->allianceWriteState->lockExclusiveScope($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, AlliancePermission::RecruitmentManage);
-
-            // Conversion composes Recruitment and Memberships. Both permissions must
-            // be true on the same locked membership authority snapshot.
-            if (! $this->permissions->allows(
-                $context->membership,
-                $context->alliance,
-                AlliancePermission::InvitationManage,
-            )) {
+            if (! $this->permissions->allows($context->membership, $context->alliance, AlliancePermission::InvitationManage)) {
                 throw new AuthorizationException('Invitation management permission is required to convert a candidate.');
             }
 
@@ -63,28 +56,20 @@ final class ConvertAcceptedRecruitmentCandidate
             if ($locked->merged_into_id !== null) {
                 throw ValidationException::withMessages(['candidate' => 'A merged recruitment record cannot be converted.']);
             }
-
             if ($locked->stage !== RecruitmentStage::Accepted) {
                 throw ValidationException::withMessages(['candidate' => 'Only accepted recruitment candidates can be converted.']);
             }
+            $this->reentryPolicy->assertCanConvert($locked);
 
             if ($locked->membership_invitation_id !== null) {
                 if ($locked->player_id !== null && (string) $locked->player_id !== $targetPlayerId) {
-                    throw ValidationException::withMessages([
-                        'player_id' => 'This candidate was already converted for a different Player.',
-                    ]);
+                    throw ValidationException::withMessages(['player_id' => 'This candidate was already converted for a different Player.']);
                 }
 
-                return new ConvertedRecruitmentCandidate(
-                    (string) $locked->id,
-                    (string) $locked->membership_invitation_id,
-                    null,
-                    false,
-                );
+                return new ConvertedRecruitmentCandidate((string) $locked->id, (string) $locked->membership_invitation_id, null, false);
             }
 
             $issued = $this->invitationIssuer->handle($context, $targetPlayerId, (string) $locked->email);
-
             $locked->forceFill([
                 'player_id' => $targetPlayerId,
                 'membership_invitation_id' => $issued->invitationId,
@@ -98,38 +83,23 @@ final class ConvertAcceptedRecruitmentCandidate
                 ->orderBy('id')
                 ->sharedLock()
                 ->get();
-
             foreach ($items as $item) {
                 RecruitmentCandidateOnboarding::query()->firstOrCreate(
-                    [
-                        'candidate_id' => $locked->id,
-                        'onboarding_item_id' => $item->id,
-                    ],
-                    [
-                        'alliance_id' => $context->alliance->id,
-                        'status' => RecruitmentOnboardingStatus::Pending,
-                    ],
+                    ['candidate_id' => $locked->id, 'onboarding_item_id' => $item->id],
+                    ['alliance_id' => $context->alliance->id, 'status' => RecruitmentOnboardingStatus::Pending],
                 );
             }
 
-            $this->audit->record('recruitment.candidate.converted', $context->actor, $locked, $context->alliance, [
+            $metadata = [
+                'candidate_id' => (string) $locked->id,
                 'player_id' => $targetPlayerId,
                 'membership_invitation_id' => $issued->invitationId,
                 'onboarding_item_count' => $items->count(),
-            ]);
-            $this->outbox->record('recruitment.candidate.converted', (string) $context->alliance->id, $locked, [
-                'candidate_id' => $locked->id,
-                'player_id' => $targetPlayerId,
-                'membership_invitation_id' => $issued->invitationId,
-                'onboarding_item_count' => $items->count(),
-            ]);
+            ];
+            $this->audit->record('recruitment.candidate.converted', $context->actor, $locked, $context->alliance, $metadata);
+            $this->outbox->record('recruitment.candidate.converted', (string) $context->alliance->id, $locked, $metadata);
 
-            return new ConvertedRecruitmentCandidate(
-                (string) $locked->id,
-                $issued->invitationId,
-                $issued->token,
-                true,
-            );
+            return new ConvertedRecruitmentCandidate((string) $locked->id, $issued->invitationId, $issued->token, true);
         });
     }
 }

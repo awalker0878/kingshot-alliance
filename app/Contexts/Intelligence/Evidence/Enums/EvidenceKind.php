@@ -8,6 +8,7 @@ enum EvidenceKind: string
 {
     case Unknown = 'unknown';
     case BearHuntBattleReport = 'bear_hunt_battle_report';
+    case AllianceRoster = 'alliance_roster';
     case TransferGovernorStatus = 'transfer_governor_status';
     case TransferScorePasses = 'transfer_score_passes';
     case TransferInvitation = 'transfer_invitation';
@@ -34,6 +35,11 @@ enum EvidenceKind: string
     public function isTerritorySpatial(): bool
     {
         return $this === self::TerritoryMapObservation;
+    }
+
+    public function isAllianceRoster(): bool
+    {
+        return $this === self::AllianceRoster;
     }
 
     /** @return list<self> */
