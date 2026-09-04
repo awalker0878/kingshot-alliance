@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Alliance\Lifecycle\Http\Controllers;
 
-use App\Contexts\Accounts\Identity\Models\User;
+use App\Contexts\Accounts\Identity\Contracts\AuthenticatedAccount;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Lifecycle\Actions\UpdateAllianceSettings;
@@ -27,13 +27,13 @@ final class AllianceSettingsController extends Controller
         AllianceReferenceQuery $alliances,
     ): Response {
         $user = $request->user();
-        abort_unless($user instanceof User, 401);
+        abort_unless($user instanceof AuthenticatedAccount, 401);
         $scope = $context->scope();
         $authorization->authorize($scope->playerId, $scope->allianceId, AlliancePermission::Manage);
         $alliance = $alliances->require($scope->allianceId);
 
         return Inertia::render('Alliance/Settings/Index', [
-            'user' => ['name' => (string) $user->name, 'email' => (string) $user->email],
+            'user' => ['name' => $user->accountName(), 'email' => $user->accountEmail()],
             'alliance' => [
                 'id' => $alliance->allianceId,
                 'name' => $alliance->name,
