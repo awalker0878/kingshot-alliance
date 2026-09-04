@@ -14,7 +14,10 @@ final readonly class BulkUpdateAllianceRank
         private UpdateAllianceRank $update,
     ) {}
 
-    /** @param list<string> $membershipIds @return array<string,mixed> */
+    /**
+     * @param  list<string>  $membershipIds
+     * @return array<string, mixed>
+     */
     public function handle(string $allianceId, string $actorPlayerId, array $membershipIds, AllianceRank $rank): array
     {
         $preview = $this->preview->handle($allianceId, $actorPlayerId, $membershipIds, $rank);
