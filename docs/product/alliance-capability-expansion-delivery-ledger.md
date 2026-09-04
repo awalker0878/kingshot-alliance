@@ -1,6 +1,6 @@
 # Alliance Capability Expansion — Delivery Ledger
 
-Status: Implementation complete — final verification in progress
+Status: Current complete capability
 
 | Phase | Slice | State | Evidence |
 | --- | --- | --- | --- |
@@ -14,6 +14,6 @@ Status: Implementation complete — final verification in progress
 | 7 | Alliance Governance Timeline | Complete | Scope-bound audit-derived timeline, filters/cursor and dedicated read-model coverage. |
 | 8 | Existing composition integration | Complete | Alliance Hall, Member Capability Profile, Command Overview and read-only Alliance Assistant consume owner/read-side facts. |
 | 9 | Product-document reconciliation | Complete | Catalogue, gap analysis, frontend map, user journeys, product index and architecture capability map reconciled. |
-| 10 | Verification and release closeout | In verification | Awaiting all required repository gates on the exact post-reconciliation candidate. |
+| 10 | Verification and release closeout | Complete | Implementation candidate `faa5643fe004f6370575bdebe67c111525ec4175` passed CI #4933, Intelligence Verification #1865, Architecture V3 Verification #1938, Visual Regression #2905, CodeQL #4928 and Dependency Review #4712. The commit containing this completed ledger is documentation-only relative to that verified implementation tree and must pass the same required repository gates before merge. |
 
-Phase 10 changes to Complete only when the exact final candidate passes the repository release gates. Earlier green commits do not close this ledger.
+The capability remains closed only while the final PR head is green across all required repository workflows. Any regression reopens Phase 10 rather than weakening an acceptance gate.
