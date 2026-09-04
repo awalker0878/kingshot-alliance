@@ -68,10 +68,10 @@ final readonly class UpdateNotificationEndpoint
             $this->audit->record('notification.endpoint.updated', $actor, $endpoint, metadata: [
                 'channel' => $endpoint->channel->value,
                 'label' => $label,
-                'credentials_replaced' => array_values(array_keys(array_filter(
+                'credentials_replaced' => array_keys(array_filter(
                     $configuration,
                     static fn (string $value): bool => trim($value) !== '',
-                ))),
+                )),
             ]);
         });
     }
