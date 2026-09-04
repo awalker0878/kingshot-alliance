@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\ReadModels\AllianceGovernance\Providers;
 
+use App\ReadModels\AllianceGovernance\Http\Controllers\AllianceBulkAdministrationController;
 use App\ReadModels\AllianceGovernance\Http\Controllers\AllianceGovernanceController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -21,6 +22,8 @@ final class AllianceGovernanceServiceProvider extends ServiceProvider
                     ->name('alliance.members.history');
                 Route::get('/alliance/roster/reconciliation', [AllianceGovernanceController::class, 'reconciliation'])
                     ->name('alliance.roster.reconciliation');
+                Route::get('/alliance/members/bulk', AllianceBulkAdministrationController::class)
+                    ->name('alliance.members.bulk');
             });
     }
 }
