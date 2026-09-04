@@ -184,22 +184,34 @@ final class NotificationCenterController extends Controller
 
     public function markRead(Request $request, string $message, UpdateNotificationInboxState $state): RedirectResponse
     {
-        return $this->updateMessageState($request, $message, $state, PreviewNotificationInboxBulkAction::MARK_READ);
+        $userId = $this->userId($this->user($request));
+        $state->markRead($message, $userId, $this->ownedPlayerOrNull($userId)?->playerId);
+
+        return back()->with('actionReceipt', $this->receipt('notification-marked-read'));
     }
 
     public function markUnread(Request $request, string $message, UpdateNotificationInboxState $state): RedirectResponse
     {
-        return $this->updateMessageState($request, $message, $state, PreviewNotificationInboxBulkAction::MARK_UNREAD);
+        $userId = $this->userId($this->user($request));
+        $state->markUnread($message, $userId, $this->ownedPlayerOrNull($userId)?->playerId);
+
+        return back()->with('actionReceipt', $this->receipt('notification-marked-unread'));
     }
 
     public function archive(Request $request, string $message, UpdateNotificationInboxState $state): RedirectResponse
     {
-        return $this->updateMessageState($request, $message, $state, PreviewNotificationInboxBulkAction::ARCHIVE);
+        $userId = $this->userId($this->user($request));
+        $state->archive($message, $userId, $this->ownedPlayerOrNull($userId)?->playerId);
+
+        return back()->with('actionReceipt', $this->receipt('notification-archived'));
     }
 
     public function restore(Request $request, string $message, UpdateNotificationInboxState $state): RedirectResponse
     {
-        return $this->updateMessageState($request, $message, $state, PreviewNotificationInboxBulkAction::RESTORE);
+        $userId = $this->userId($this->user($request));
+        $state->restore($message, $userId, $this->ownedPlayerOrNull($userId)?->playerId);
+
+        return back()->with('actionReceipt', $this->receipt('notification-restored'));
     }
 
     public function previewBulkInboxUpdate(
@@ -244,53 +256,6 @@ final class NotificationCenterController extends Controller
                 'failed' => $result['failed'],
                 'skipped' => $result['skipped'],
             ]));
-    }
-
-    private function updateMessageState(
-        Request $request,
-        string $message,
-        UpdateNotificationInboxState $state,
-        string $operation,
-    ): RedirectResponse {
-        $user = $this->user($request);
-        $userId = $this->userId($user);
-        $playerId = $this->ownedPlayerOrNull($userId)?->playerId;
-        $receipt = match ($operation) {
-            PreviewNotificationInboxBulkAction::MARK_READ => $this->markReadState($state, $message, $userId, $playerId),
-            PreviewNotificationInboxBulkAction::MARK_UNREAD => $this->markUnreadState($state, $message, $userId, $playerId),
-            PreviewNotificationInboxBulkAction::ARCHIVE => $this->archiveState($state, $message, $userId, $playerId),
-            default => $this->restoreState($state, $message, $userId, $playerId),
-        };
-
-        return back()->with('actionReceipt', $this->receipt($receipt));
-    }
-
-    private function markReadState(UpdateNotificationInboxState $state, string $message, int $userId, ?string $playerId): string
-    {
-        $state->markRead($message, $userId, $playerId);
-
-        return 'notification-marked-read';
-    }
-
-    private function markUnreadState(UpdateNotificationInboxState $state, string $message, int $userId, ?string $playerId): string
-    {
-        $state->markUnread($message, $userId, $playerId);
-
-        return 'notification-marked-unread';
-    }
-
-    private function archiveState(UpdateNotificationInboxState $state, string $message, int $userId, ?string $playerId): string
-    {
-        $state->archive($message, $userId, $playerId);
-
-        return 'notification-archived';
-    }
-
-    private function restoreState(UpdateNotificationInboxState $state, string $message, int $userId, ?string $playerId): string
-    {
-        $state->restore($message, $userId, $playerId);
-
-        return 'notification-restored';
     }
 
     private function user(Request $request): AuthenticatedAccount
