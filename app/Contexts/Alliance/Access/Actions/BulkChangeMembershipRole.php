@@ -14,7 +14,10 @@ final readonly class BulkChangeMembershipRole
         private RemoveMembershipRole $remove,
     ) {}
 
-    /** @param list<string> $membershipIds @return array<string,mixed> */
+    /**
+     * @param  list<string>  $membershipIds
+     * @return array<string, mixed>
+     */
     public function handle(string $allianceId, string $actorPlayerId, array $membershipIds, string $roleId, string $operation): array
     {
         $preview = $this->preview->handle($allianceId, $actorPlayerId, $membershipIds, $roleId, $operation);
