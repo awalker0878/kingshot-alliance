@@ -43,8 +43,22 @@ final readonly class AssignMembershipRole
             $role = Role::query()
                 ->whereKey($roleId)
                 ->where('alliance_id', $context->alliance->id)
+                ->with('permissions:id,key')
                 ->sharedLock()
                 ->firstOrFail();
+
+            if ($role->archived_at !== null) {
+                throw ValidationException::withMessages(['role' => 'Archived specialist roles cannot be assigned.']);
+            }
+
+            if ((string) $membership->player_id === (string) $context->actor->playerId) {
+                foreach ($role->permissions as $permissionModel) {
+                    $permission = AlliancePermission::tryFrom((string) $permissionModel->key);
+                    if ($permission === null || ! $this->authority->allowsContext($context, $permission)) {
+                        throw ValidationException::withMessages(['role' => 'A specialist role cannot be used to increase your own authority.']);
+                    }
+                }
+            }
 
             if (! $membership->roles()->where('roles.id', $role->id)->exists()) {
                 $membership->roles()->attach($role->id, ['alliance_id' => $context->alliance->id]);
