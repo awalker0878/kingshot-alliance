@@ -91,6 +91,7 @@ final readonly class ProcessNotificationDigests
                 ->all();
             if ($memberIds === []) {
                 $dispatch->forceFill(['status' => DeliveryStatus::Cancelled, 'last_error' => 'Digest has no eligible deliveries.'])->save();
+
                 return null;
             }
 
@@ -100,12 +101,14 @@ final readonly class ProcessNotificationDigests
                 $delivery = NotificationDelivery::query()->whereKey($deliveryId)->lockForUpdate()->first();
                 if (! $delivery instanceof NotificationDelivery || $delivery->status !== DeliveryStatus::Queued) {
                     DB::table('notification_digest_members')->where('notification_delivery_id', $deliveryId)->delete();
+
                     continue;
                 }
                 $message = NotificationMessage::query()->whereKey($delivery->notification_message_id)->first();
                 if (! $message instanceof NotificationMessage) {
                     $this->cancelDelivery($delivery, 'Notification message no longer exists.');
                     DB::table('notification_digest_members')->where('notification_delivery_id', $deliveryId)->delete();
+
                     continue;
                 }
 
@@ -118,6 +121,7 @@ final readonly class ProcessNotificationDigests
                     if (! $endpoint instanceof NotificationEndpoint || ! $endpoint->enabled) {
                         $this->cancelDelivery($delivery, 'The selected notification destination is no longer enabled.');
                         DB::table('notification_digest_members')->where('notification_delivery_id', $deliveryId)->delete();
+
                         continue;
                     }
                 }
@@ -127,6 +131,7 @@ final readonly class ProcessNotificationDigests
                     && $this->players->findOwnedByUser((int) $message->recipient_user_id, $routingPlayerId) === null) {
                     $this->cancelDelivery($delivery, 'The notification Governor is no longer owned by this account.');
                     DB::table('notification_digest_members')->where('notification_delivery_id', $deliveryId)->delete();
+
                     continue;
                 }
 
@@ -156,6 +161,7 @@ final readonly class ProcessNotificationDigests
                 if ($resolved === null) {
                     $this->cancelDelivery($delivery, 'Recipient routing policy no longer permits this destination.');
                     DB::table('notification_digest_members')->where('notification_delivery_id', $deliveryId)->delete();
+
                     continue;
                 }
                 if ($resolved->digestCadence === DigestCadence::Immediate) {
@@ -165,6 +171,7 @@ final readonly class ProcessNotificationDigests
                         'routing_reason' => $resolved->reason,
                     ])->save();
                     DB::table('notification_digest_members')->where('notification_delivery_id', $deliveryId)->delete();
+
                     continue;
                 }
                 if ($resolved->dueAt->isAfter($now)) {
@@ -177,6 +184,7 @@ final readonly class ProcessNotificationDigests
                     if ($resolved->dueAt->greaterThan($latestDue)) {
                         $latestDue = $resolved->dueAt;
                     }
+
                     continue;
                 }
 
@@ -188,6 +196,7 @@ final readonly class ProcessNotificationDigests
                     'status' => DeliveryStatus::Cancelled,
                     'last_error' => 'Digest has no routes currently eligible for delivery.',
                 ])->save();
+
                 return null;
             }
 
