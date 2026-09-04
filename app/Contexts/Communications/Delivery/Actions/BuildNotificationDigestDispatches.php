@@ -47,7 +47,7 @@ final readonly class BuildNotificationDigestDispatches
             $playerId = $message->player_id;
             if ($delivery->notification_endpoint_id !== null) {
                 $endpoint = NotificationEndpoint::query()->whereKey($delivery->notification_endpoint_id)->first();
-                $playerId = $endpoint?->player_id ?? $playerId;
+                $playerId = $endpoint->player_id ?? $playerId;
             }
             $key = implode('|', [
                 (string) $message->recipient_user_id,
@@ -97,7 +97,7 @@ final readonly class BuildNotificationDigestDispatches
                     $playerId = $message->player_id;
                     if ($first->notification_endpoint_id !== null) {
                         $endpoint = NotificationEndpoint::query()->whereKey($first->notification_endpoint_id)->first();
-                        $playerId = $endpoint?->player_id ?? $playerId;
+                        $playerId = $endpoint->player_id ?? $playerId;
                     }
 
                     $dispatch = NotificationDigestDispatch::query()->firstOrCreate(
