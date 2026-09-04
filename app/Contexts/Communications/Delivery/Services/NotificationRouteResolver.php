@@ -20,7 +20,7 @@ use Carbon\CarbonImmutable;
 
 final readonly class NotificationRouteResolver
 {
-    private const ACCOUNT_SCOPE = 'account';
+    public const ACCOUNT_SCOPE = 'account';
 
     private const MAX_ENDPOINT_ROUTES = 20;
 
@@ -31,7 +31,6 @@ final readonly class NotificationRouteResolver
 
     public function resolve(NotificationIntent $intent): ResolvedDeliveryPlan
     {
-        $policy = $this->effectivePolicy($intent->recipientUserId, $intent->playerId);
         $routes = [];
 
         if ($this->isEnabled(
@@ -49,32 +48,47 @@ final readonly class NotificationRouteResolver
             );
         }
 
+        /** @var list<?string> $routingPlayerIds */
+        $routingPlayerIds = $intent->playerId !== null
+            ? [$intent->playerId]
+            : ($intent->eligiblePlayerIds !== [] ? array_values(array_unique($intent->eligiblePlayerIds)) : [null]);
+
         $storedChannels = [
             DeliveryChannel::Discord,
             DeliveryChannel::Telegram,
             DeliveryChannel::WebPush,
         ];
+        $seenEndpointIds = [];
 
         foreach ($storedChannels as $channel) {
-            if (! $this->isEnabled(
-                $intent->recipientUserId,
-                $intent->playerId,
-                $intent->notificationType,
-                $channel,
-            )) {
-                continue;
-            }
+            foreach ($routingPlayerIds as $routingPlayerId) {
+                if (! $this->isEnabled(
+                    $intent->recipientUserId,
+                    $routingPlayerId,
+                    $intent->notificationType,
+                    $channel,
+                )) {
+                    continue;
+                }
 
-            foreach ($this->endpoints($intent->recipientUserId, $intent->playerId, $channel) as $endpoint) {
-                [$dueAt, $reason, $cadence] = $this->externalSchedule($intent, $policy);
-                $routes[] = new ResolvedDeliveryRoute(
-                    channel: $channel,
-                    endpointId: (string) $endpoint->id,
-                    targetLabel: (string) $endpoint->label,
-                    dueAt: $dueAt,
-                    reason: $reason,
-                    digestCadence: $cadence,
-                );
+                $policy = $this->effectivePolicy($intent->recipientUserId, $routingPlayerId);
+                foreach ($this->endpoints($intent->recipientUserId, $routingPlayerId, $channel) as $endpoint) {
+                    $endpointId = (string) $endpoint->id;
+                    if (isset($seenEndpointIds[$endpointId])) {
+                        continue;
+                    }
+                    $seenEndpointIds[$endpointId] = true;
+
+                    [$dueAt, $reason, $cadence] = $this->externalSchedule($intent, $policy);
+                    $routes[] = new ResolvedDeliveryRoute(
+                        channel: $channel,
+                        endpointId: $endpointId,
+                        targetLabel: (string) $endpoint->label,
+                        dueAt: $dueAt,
+                        reason: $reason,
+                        digestCadence: $cadence,
+                    );
+                }
             }
         }
 
@@ -84,7 +98,10 @@ final readonly class NotificationRouteResolver
             $intent->notificationType,
             DeliveryChannel::Email,
         ) && $this->email->forUser($intent->recipientUserId) !== null) {
-            [$dueAt, $reason, $cadence] = $this->externalSchedule($intent, $policy);
+            [$dueAt, $reason, $cadence] = $this->externalSchedule(
+                $intent,
+                $this->effectivePolicy($intent->recipientUserId, $intent->playerId),
+            );
             $routes[] = new ResolvedDeliveryRoute(
                 channel: DeliveryChannel::Email,
                 endpointId: null,
@@ -129,7 +146,7 @@ final readonly class NotificationRouteResolver
         return $channel !== DeliveryChannel::Email;
     }
 
-    private function effectivePolicy(int $recipientUserId, ?string $playerId): EffectiveRoutingPolicy
+    public function effectivePolicy(int $recipientUserId, ?string $playerId): EffectiveRoutingPolicy
     {
         $policy = null;
         if ($playerId !== null) {
