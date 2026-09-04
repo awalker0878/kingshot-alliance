@@ -34,7 +34,7 @@ final readonly class AllianceRosterReconciliationQuery
         }
 
         $review = AllianceRosterEvidenceReview::query()->whereKey((string) $batch->source_review_id)->first();
-        $completeRoster = (bool) (($review?->payload ?? [])['complete_roster'] ?? false);
+        $completeRoster = (bool) (($review->payload ?? [])['complete_roster'] ?? false);
 
         $memberships = AllianceMembership::query()
             ->where('alliance_id', $allianceId)
@@ -143,7 +143,7 @@ final readonly class AllianceRosterReconciliationQuery
                 $ref = $playerRefs[$playerId] ?? null;
                 $items[] = [
                     'observationId' => null,
-                    'observedName' => $ref?->currentName ?? 'Unknown Governor',
+                    'observedName' => $ref->currentName ?? 'Unknown Governor',
                     'gamePlayerId' => $ref?->gamePlayerId,
                     'observedRank' => null,
                     'power' => null,

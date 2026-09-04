@@ -43,7 +43,7 @@ final readonly class MembershipGovernanceHistoryQuery
             ->all();
         $actorRefs = $this->players->byIds($actorIds);
 
-        return $rows->map(static function (AuditEvent $event) use ($actorRefs): array {
+        return array_values($rows->map(static function (AuditEvent $event) use ($actorRefs): array {
             $actorId = $event->actor_player_id;
             $actor = $actorId === null ? null : ($actorRefs[$actorId] ?? null);
 
@@ -58,7 +58,7 @@ final readonly class MembershipGovernanceHistoryQuery
                 'metadata' => $event->metadata,
                 'source' => 'audit',
             ];
-        })->values()->all();
+        })->all());
     }
 
     private function touchesPlayer(AuditEvent $event, string $playerId): bool

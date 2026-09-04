@@ -60,7 +60,7 @@ final readonly class AllianceGovernanceTimelineQuery
             ->all();
         $actorRefs = $this->players->byIds($actorIds);
 
-        $items = $rows->map(static function (AuditEvent $event) use ($actorRefs): array {
+        $items = array_values($rows->map(static function (AuditEvent $event) use ($actorRefs): array {
             $actorId = $event->actor_player_id;
             $actor = $actorId === null ? null : ($actorRefs[$actorId] ?? null);
 
@@ -76,7 +76,7 @@ final readonly class AllianceGovernanceTimelineQuery
                 'source' => 'audit',
                 'handoff' => self::handoff($event->event),
             ];
-        })->values()->all();
+        })->all());
 
         return [
             'items' => $items,

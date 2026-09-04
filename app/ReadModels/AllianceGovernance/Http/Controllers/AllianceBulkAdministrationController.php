@@ -48,7 +48,7 @@ final class AllianceBulkAdministrationController extends Controller
             return [
                 'membershipId' => (string) $membership->id,
                 'playerId' => (string) $membership->player_id,
-                'name' => $player?->currentName ?? 'Unknown Governor',
+                'name' => $player->currentName ?? 'Unknown Governor',
                 'rank' => $membership->rank->value,
             ];
         })->values()->all();
