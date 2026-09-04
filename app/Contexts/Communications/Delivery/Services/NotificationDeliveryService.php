@@ -41,9 +41,11 @@ final readonly class NotificationDeliveryService
             );
 
             $createdMessage = $message->wasRecentlyCreated;
-            if ($createdMessage) {
-                foreach ($this->routes->resolve($intent)->routes as $route) {
-                    $this->createRoute($message, $route, $intent->maxAttempts);
+            $createdDeliveryIds = [];
+            foreach ($this->routes->resolve($intent)->routes as $route) {
+                $delivery = $this->createRoute($message, $route, $intent->maxAttempts);
+                if ($delivery->wasRecentlyCreated) {
+                    $createdDeliveryIds[] = (string) $delivery->id;
                 }
             }
 
@@ -68,7 +70,7 @@ final readonly class NotificationDeliveryService
                 messageId: (string) $message->id,
                 deliveryIds: $deliveryIds,
                 channels: $channels,
-                createdDeliveryIds: $createdMessage ? $deliveryIds : [],
+                createdDeliveryIds: $createdDeliveryIds,
                 createdMessage: $createdMessage,
                 inAppDeliveryId: $inApp instanceof NotificationDelivery ? (string) $inApp->id : null,
             );
