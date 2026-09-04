@@ -15,7 +15,10 @@ final readonly class PreviewBulkMembershipRoleChange
 {
     public function __construct(private AllianceAuthorization $authorization) {}
 
-    /** @param list<string> $membershipIds @return array<string,mixed> */
+    /**
+     * @param  list<string>  $membershipIds
+     * @return array<string, mixed>
+     */
     public function handle(string $allianceId, string $actorPlayerId, array $membershipIds, string $roleId, string $operation): array
     {
         $membershipIds = array_values(array_unique($membershipIds));
