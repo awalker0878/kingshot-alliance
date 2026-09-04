@@ -19,6 +19,13 @@ const english: MessageCatalogue = {
     'notification-marked-unread': 'Notification marked as unread.',
     'notification-archived': 'Notification archived.',
     'notification-restored': 'Notification restored.',
+    'notification-endpoint-updated': 'Notification destination updated.',
+    'notification-endpoint-paused': 'Notification destination paused.',
+    'notification-endpoint-resumed': 'Notification destination resumed.',
+    'notification-endpoint-test-queued': 'Notification destination test queued.',
+    'notification-endpoint-reverify-queued': 'Notification destination re-verification queued.',
+    'notification-routing-policy-updated': 'Notification routing policy updated.',
+    'notification-routing-policy-reset': 'Governor routing policy reset to the account default.',
   },
   application: {
     dashboard: {
