@@ -31,7 +31,7 @@ final readonly class NotificationDeliveryService
                     'player_id' => $intent->playerId,
                     'subject_type' => $intent->subjectType,
                     'subject_id' => $intent->subjectId,
-                    'title' => $intent->title,
+                    'title' => trim($intent->title),
                     'body' => $intent->body,
                     'action_url' => $intent->actionUrl,
                     'urgency' => $intent->urgency->value,
@@ -51,6 +51,9 @@ final readonly class NotificationDeliveryService
                 ->where('notification_message_id', (string) $message->id)
                 ->orderBy('created_at')
                 ->get();
+            $inApp = $deliveries->first(
+                static fn (NotificationDelivery $delivery): bool => $delivery->channel === DeliveryChannel::InApp,
+            );
 
             return new NotificationQueueReceipt(
                 messageId: (string) $message->id,
@@ -68,6 +71,7 @@ final readonly class NotificationDeliveryService
                         ->all()
                     : [],
                 createdMessage: $createdMessage,
+                inAppDeliveryId: $inApp instanceof NotificationDelivery ? (string) $inApp->id : null,
             );
         });
     }
