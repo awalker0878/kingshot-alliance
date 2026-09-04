@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Roster\Models;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -19,7 +20,8 @@ use Illuminate\Support\Carbon;
  * @property string $destination_idempotency_key
  * @property string $accepted_by_player_id
  * @property Carbon $accepted_at
- * @property-read \Illuminate\Database\Eloquent\Collection<int, AllianceRosterObservation> $observations
+ * @property int|null $observations_count
+ * @property-read Collection<int, AllianceRosterObservation> $observations
  */
 final class AllianceRosterObservationBatch extends Model
 {
