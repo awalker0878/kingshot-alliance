@@ -47,6 +47,7 @@ final readonly class RecordAllianceRosterObservationBatch
                 if ((string) $existing->alliance_id !== $allianceId) {
                     throw ValidationException::withMessages(['evidence' => 'The destination receipt belongs to another Alliance.']);
                 }
+
                 return new AllianceRosterObservationBatchReceipt((string) $existing->id, (int) $existing->observations_count);
             }
 

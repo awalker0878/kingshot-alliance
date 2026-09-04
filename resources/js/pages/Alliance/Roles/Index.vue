@@ -115,7 +115,9 @@ function archiveRole(role: Role): void {
                   </span>
                 </div>
                 <p class="mt-1 text-sm text-[var(--ks-muted)]">
-                  {{ t('allianceExpansion.memberCount', { count: formatNumber(role.memberCount) }) }}
+                  {{
+                    t('allianceExpansion.memberCount', { count: formatNumber(role.memberCount) })
+                  }}
                 </p>
               </div>
               <code class="text-xs text-[var(--ks-muted)]">{{ role.key }}</code>
@@ -135,7 +137,9 @@ function archiveRole(role: Role): void {
               </div>
 
               <fieldset>
-                <legend class="text-sm font-semibold">{{ t('allianceExpansion.permissions') }}</legend>
+                <legend class="text-sm font-semibold">
+                  {{ t('allianceExpansion.permissions') }}
+                </legend>
                 <div class="mt-2 grid gap-2 sm:grid-cols-2">
                   <label
                     v-for="permission in permissions"

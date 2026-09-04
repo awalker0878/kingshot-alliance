@@ -114,6 +114,7 @@ final class AllianceGovernanceController extends Controller
     {
         $user = $request->user();
         abort_unless($user instanceof User, 401);
+
         return $user;
     }
 }

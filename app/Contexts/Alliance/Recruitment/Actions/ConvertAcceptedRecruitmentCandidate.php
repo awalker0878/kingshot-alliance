@@ -65,6 +65,7 @@ final class ConvertAcceptedRecruitmentCandidate
                 if ($locked->player_id !== null && (string) $locked->player_id !== $targetPlayerId) {
                     throw ValidationException::withMessages(['player_id' => 'This candidate was already converted for a different Player.']);
                 }
+
                 return new ConvertedRecruitmentCandidate((string) $locked->id, (string) $locked->membership_invitation_id, null, false);
             }
 

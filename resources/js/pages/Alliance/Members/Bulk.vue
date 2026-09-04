@@ -182,7 +182,11 @@ function memberName(item: BulkItem): string {
             <option v-for="rank in rankOptions" :key="rank" :value="rank">{{ rank }}</option>
           </select>
           <div class="mt-4 flex flex-wrap gap-2">
-            <AppButton variant="secondary" :disabled="selectedCount === 0 || rankForm.processing" @click="previewRank">
+            <AppButton
+              variant="secondary"
+              :disabled="selectedCount === 0 || rankForm.processing"
+              @click="previewRank"
+            >
               {{ t('allianceExpansion.previewRank') }}
             </AppButton>
             <AppButton :disabled="selectedCount === 0 || rankForm.processing" @click="commitRank">
@@ -212,10 +216,17 @@ function memberName(item: BulkItem): string {
             </label>
           </div>
           <div class="mt-4 flex flex-wrap gap-2">
-            <AppButton variant="secondary" :disabled="selectedCount === 0 || !roleForm.role_id || roleForm.processing" @click="previewRole">
+            <AppButton
+              variant="secondary"
+              :disabled="selectedCount === 0 || !roleForm.role_id || roleForm.processing"
+              @click="previewRole"
+            >
               {{ t('allianceExpansion.previewRole') }}
             </AppButton>
-            <AppButton :disabled="selectedCount === 0 || !roleForm.role_id || roleForm.processing" @click="commitRole">
+            <AppButton
+              :disabled="selectedCount === 0 || !roleForm.role_id || roleForm.processing"
+              @click="commitRole"
+            >
               {{ t('allianceExpansion.commitRole') }}
             </AppButton>
           </div>
@@ -233,10 +244,14 @@ function memberName(item: BulkItem): string {
             class="flex items-start justify-between gap-3 border-b border-[var(--ks-border)] py-2 text-sm last:border-0"
           >
             <span>{{ memberName(item) }}</span>
-            <span class="text-end text-[var(--ks-muted)]">{{ item.outcome }} · {{ item.code }}</span>
+            <span class="text-end text-[var(--ks-muted)]"
+              >{{ item.outcome }} · {{ item.code }}</span
+            >
           </div>
         </div>
-        <p v-else class="mt-3 text-sm text-[var(--ks-muted)]">{{ t('allianceExpansion.noPreview') }}</p>
+        <p v-else class="mt-3 text-sm text-[var(--ks-muted)]">
+          {{ t('allianceExpansion.noPreview') }}
+        </p>
       </article>
 
       <article class="ks-surface p-5">
@@ -245,7 +260,9 @@ function memberName(item: BulkItem): string {
           <div class="grid grid-cols-3 gap-2 text-center">
             <div class="ks-stat-card">
               <span class="ks-kicker">{{ t('allianceExpansion.outcomeSucceeded') }}</span>
-              <strong>{{ formatNumber((bulkRankResult ?? bulkRoleResult)?.succeeded ?? 0) }}</strong>
+              <strong>{{
+                formatNumber((bulkRankResult ?? bulkRoleResult)?.succeeded ?? 0)
+              }}</strong>
             </div>
             <div class="ks-stat-card">
               <span class="ks-kicker">{{ t('allianceExpansion.outcomeFailed') }}</span>
@@ -257,7 +274,9 @@ function memberName(item: BulkItem): string {
             </div>
           </div>
         </div>
-        <p v-else class="mt-3 text-sm text-[var(--ks-muted)]">{{ t('allianceExpansion.noPreview') }}</p>
+        <p v-else class="mt-3 text-sm text-[var(--ks-muted)]">
+          {{ t('allianceExpansion.noPreview') }}
+        </p>
       </article>
     </section>
   </AppLayout>

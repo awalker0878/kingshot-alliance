@@ -34,6 +34,7 @@ final class RecruitmentCandidate extends Model
     use HasUlids;
 
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -67,20 +68,53 @@ final class RecruitmentCandidate extends Model
     public function recruitmentStage(): RecruitmentStage
     {
         $value = $this->getAttribute('stage');
+
         return $value instanceof RecruitmentStage ? $value : RecruitmentStage::from((string) $value);
     }
 
-    public function alliance(): BelongsTo { return $this->belongsTo(Alliance::class); }
-    public function applicationInvite(): BelongsTo { return $this->belongsTo(RecruitmentApplicationInvite::class, 'application_invite_id'); }
-    public function mergedInto(): BelongsTo { return $this->belongsTo(self::class, 'merged_into_id'); }
-    public function answers(): HasMany { return $this->hasMany(RecruitmentAnswer::class, 'candidate_id'); }
-    public function notes(): HasMany { return $this->hasMany(RecruitmentNote::class, 'candidate_id'); }
+    public function alliance(): BelongsTo
+    {
+        return $this->belongsTo(Alliance::class);
+    }
+
+    public function applicationInvite(): BelongsTo
+    {
+        return $this->belongsTo(RecruitmentApplicationInvite::class, 'application_invite_id');
+    }
+
+    public function mergedInto(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'merged_into_id');
+    }
+
+    public function answers(): HasMany
+    {
+        return $this->hasMany(RecruitmentAnswer::class, 'candidate_id');
+    }
+
+    public function notes(): HasMany
+    {
+        return $this->hasMany(RecruitmentNote::class, 'candidate_id');
+    }
+
     public function tags(): BelongsToMany
     {
         return $this->belongsToMany(RecruitmentTag::class, 'recruitment_candidate_tags', 'candidate_id', 'tag_id')
             ->withPivot('alliance_id')->withTimestamps();
     }
-    public function stageHistory(): HasMany { return $this->hasMany(RecruitmentStageHistory::class, 'candidate_id'); }
-    public function communications(): HasMany { return $this->hasMany(RecruitmentCommunication::class, 'candidate_id'); }
-    public function onboarding(): HasMany { return $this->hasMany(RecruitmentCandidateOnboarding::class, 'candidate_id'); }
+
+    public function stageHistory(): HasMany
+    {
+        return $this->hasMany(RecruitmentStageHistory::class, 'candidate_id');
+    }
+
+    public function communications(): HasMany
+    {
+        return $this->hasMany(RecruitmentCommunication::class, 'candidate_id');
+    }
+
+    public function onboarding(): HasMany
+    {
+        return $this->hasMany(RecruitmentCandidateOnboarding::class, 'candidate_id');
+    }
 }

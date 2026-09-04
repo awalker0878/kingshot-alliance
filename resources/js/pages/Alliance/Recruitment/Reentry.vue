@@ -54,7 +54,11 @@ function submit(): void {
       compact
     >
       <template #actions>
-        <Link :href="`/alliance/recruitment/candidates/${candidate.id}`" class="ks-command-link" data-variant="secondary">
+        <Link
+          :href="`/alliance/recruitment/candidates/${candidate.id}`"
+          class="ks-command-link"
+          data-variant="secondary"
+        >
           {{ t('navigation.recruitment') }}
         </Link>
         <Link href="/alliance/history" class="ks-command-link" data-variant="secondary">
@@ -94,7 +98,12 @@ function submit(): void {
           <label class="text-sm font-semibold" for="reentry-review-at">
             {{ t('allianceExpansion.reviewAt') }}
           </label>
-          <input id="reentry-review-at" v-model="form.review_at" type="datetime-local" class="ks-input mt-2" />
+          <input
+            id="reentry-review-at"
+            v-model="form.review_at"
+            type="datetime-local"
+            class="ks-input mt-2"
+          />
           <FormError :message="form.errors.review_at" />
         </div>
 

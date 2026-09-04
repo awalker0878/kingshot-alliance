@@ -44,6 +44,7 @@ final class AllianceBulkAdministrationController extends Controller
         $playerRefs = $players->byIds($memberships->pluck('player_id')->map(static fn ($id): string => (string) $id)->all());
         $members = $memberships->map(static function (AllianceMembership $membership) use ($playerRefs): array {
             $player = $playerRefs[(string) $membership->player_id] ?? null;
+
             return [
                 'membershipId' => (string) $membership->id,
                 'playerId' => (string) $membership->player_id,

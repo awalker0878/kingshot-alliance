@@ -30,7 +30,14 @@ const form = useForm({
   actor_player_id: props.filters.actorPlayerId ?? '',
 });
 
-const capabilityOptions = ['alliance', 'membership', 'invitation', 'recruitment', 'content', 'integration'];
+const capabilityOptions = [
+  'alliance',
+  'membership',
+  'invitation',
+  'recruitment',
+  'content',
+  'integration',
+];
 const olderHref = computed(() => {
   if (!props.timeline.nextCursor) return null;
   const params = new URLSearchParams();
@@ -64,13 +71,20 @@ function applyFilters(): void {
         <Link href="/alliance/settings" class="ks-command-link" data-variant="secondary">
           {{ t('allianceExpansion.navSettings') }}
         </Link>
-        <Link href="/alliance/roster/reconciliation" class="ks-command-link" data-variant="secondary">
+        <Link
+          href="/alliance/roster/reconciliation"
+          class="ks-command-link"
+          data-variant="secondary"
+        >
           {{ t('allianceExpansion.navReconciliation') }}
         </Link>
       </template>
     </RoomBanner>
 
-    <form class="ks-surface mt-6 grid gap-4 p-5 md:grid-cols-[1fr_1fr_auto]" @submit.prevent="applyFilters">
+    <form
+      class="ks-surface mt-6 grid gap-4 p-5 md:grid-cols-[1fr_1fr_auto]"
+      @submit.prevent="applyFilters"
+    >
       <div>
         <label class="text-sm font-semibold" for="history-capability">
           {{ t('allianceExpansion.capability') }}
@@ -99,7 +113,9 @@ function applyFilters(): void {
     </form>
 
     <section class="mt-6" aria-labelledby="governance-timeline-title">
-      <h2 id="governance-timeline-title" class="sr-only">{{ t('allianceExpansion.historyTitle') }}</h2>
+      <h2 id="governance-timeline-title" class="sr-only">
+        {{ t('allianceExpansion.historyTitle') }}
+      </h2>
       <div v-if="timeline.items.length" class="space-y-4">
         <article v-for="item in timeline.items" :key="item.id" class="ks-surface p-5">
           <div class="flex flex-wrap items-start justify-between gap-3">
@@ -127,9 +143,9 @@ function applyFilters(): void {
             <summary class="cursor-pointer text-sm font-semibold">
               {{ t('allianceExpansion.details') }}
             </summary>
-            <pre class="mt-3 overflow-x-auto rounded-[var(--ks-radius-sm)] bg-black/20 p-3 text-xs">{{
-              JSON.stringify(item.metadata, null, 2)
-            }}</pre>
+            <pre
+              class="mt-3 overflow-x-auto rounded-[var(--ks-radius-sm)] bg-black/20 p-3 text-xs"
+              >{{ JSON.stringify(item.metadata, null, 2) }}</pre>
           </details>
 
           <div class="mt-4">

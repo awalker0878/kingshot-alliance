@@ -97,6 +97,7 @@ final readonly class UploadAllianceRosterEvidence
                     ->first();
                 if ($duplicate instanceof AllianceRosterEvidence) {
                     Storage::disk($disk)->delete($path);
+
                     return new EvidenceUploadResult((string) $duplicate->id, true);
                 }
 
@@ -140,7 +141,9 @@ final readonly class UploadAllianceRosterEvidence
     /** @return array{0:?string,1:?int} */
     private function visualDuplicate(string $allianceId, ?string $hash): array
     {
-        if ($hash === null) return [null, null];
+        if ($hash === null) {
+            return [null, null];
+        }
         $threshold = max(0, min(64, (int) config('evidence.visual_duplicate_distance', 8)));
         $bestId = null;
         $bestDistance = null;
@@ -151,6 +154,7 @@ final readonly class UploadAllianceRosterEvidence
                 $bestDistance = $distance;
             }
         }
+
         return [$bestId, $bestDistance];
     }
 }

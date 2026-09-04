@@ -54,14 +54,13 @@ const reviewDrafts = reactive(
         captured_at: item.review?.capturedAt ?? new Date().toISOString().slice(0, 16),
         complete_roster: item.review?.completeRoster ?? false,
         allow_semantic_duplicate: false,
-        rows:
-          item.review?.rows.map((row) => ({
-            observed_name: row.observed_name ?? '',
-            game_player_id: row.game_player_id ?? '',
-            observed_rank: row.observed_rank ?? '',
-            power: row.power ?? null,
-            roster_entry_id: row.roster_entry_id ?? '',
-          })) ?? [emptyRow()],
+        rows: item.review?.rows.map((row) => ({
+          observed_name: row.observed_name ?? '',
+          game_player_id: row.game_player_id ?? '',
+          observed_rank: row.observed_rank ?? '',
+          power: row.power ?? null,
+          roster_entry_id: row.roster_entry_id ?? '',
+        })) ?? [emptyRow()],
       },
     ]),
   ) as Record<
@@ -116,7 +115,11 @@ function saveReview(item: EvidenceItem): void {
 
 function commitReview(item: EvidenceItem): void {
   if (!item.review || item.review.status !== 'approved') return;
-  router.post(`/alliance/roster/evidence/reviews/${item.review.id}/commit`, {}, { preserveScroll: true });
+  router.post(
+    `/alliance/roster/evidence/reviews/${item.review.id}/commit`,
+    {},
+    { preserveScroll: true },
+  );
 }
 </script>
 
@@ -132,7 +135,11 @@ function commitReview(item: EvidenceItem): void {
       compact
     >
       <template #actions>
-        <Link href="/alliance/roster/reconciliation" class="ks-command-link" data-variant="secondary">
+        <Link
+          href="/alliance/roster/reconciliation"
+          class="ks-command-link"
+          data-variant="secondary"
+        >
           {{ t('allianceExpansion.navReconciliation') }}
         </Link>
         <Link href="/alliance/history" class="ks-command-link" data-variant="secondary">
@@ -209,10 +216,7 @@ function commitReview(item: EvidenceItem): void {
                 </span>
               </label>
               <label class="flex items-start gap-2 text-sm">
-                <input
-                  v-model="reviewDrafts[item.id]!.allow_semantic_duplicate"
-                  type="checkbox"
-                />
+                <input v-model="reviewDrafts[item.id]!.allow_semantic_duplicate" type="checkbox" />
                 <span>{{ t('allianceExpansion.allowSemanticDuplicate') }}</span>
               </label>
             </div>
@@ -227,7 +231,9 @@ function commitReview(item: EvidenceItem): void {
                   <th class="p-2">{{ t('allianceExpansion.observedRank') }}</th>
                   <th class="p-2">{{ t('allianceExpansion.power') }}</th>
                   <th class="p-2">{{ t('allianceExpansion.rosterEntry') }}</th>
-                  <th class="p-2"><span class="sr-only">{{ t('common.close') }}</span></th>
+                  <th class="p-2">
+                    <span class="sr-only">{{ t('common.close') }}</span>
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -245,7 +251,11 @@ function commitReview(item: EvidenceItem): void {
                   <td class="p-2">
                     <select v-model="row.observed_rank" class="ks-input">
                       <option value="">{{ t('common.none') }}</option>
-                      <option v-for="rank in ['r1', 'r2', 'r3', 'r4', 'r5']" :key="rank" :value="rank">
+                      <option
+                        v-for="rank in ['r1', 'r2', 'r3', 'r4', 'r5']"
+                        :key="rank"
+                        :value="rank"
+                      >
                         {{ rank }}
                       </option>
                     </select>
@@ -283,10 +293,7 @@ function commitReview(item: EvidenceItem): void {
             <AppButton variant="secondary" @click="saveReview(item)">
               {{ t('allianceExpansion.saveReview') }}
             </AppButton>
-            <AppButton
-              v-if="item.review?.status === 'approved'"
-              @click="commitReview(item)"
-            >
+            <AppButton v-if="item.review?.status === 'approved'" @click="commitReview(item)">
               {{ t('allianceExpansion.commitReview') }}
             </AppButton>
           </div>

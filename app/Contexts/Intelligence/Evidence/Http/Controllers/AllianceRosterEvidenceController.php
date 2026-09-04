@@ -48,6 +48,7 @@ final class AllianceRosterEvidenceController extends Controller
                     ->where('evidence_id', $item->id)
                     ->latest('revision_number')
                     ->first();
+
                 return [
                     'id' => (string) $item->id,
                     'name' => (string) $item->original_name,

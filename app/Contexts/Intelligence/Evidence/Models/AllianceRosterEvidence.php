@@ -13,7 +13,9 @@ final class AllianceRosterEvidence extends Model
     use HasUlids;
 
     public $incrementing = false;
+
     protected $keyType = 'string';
+
     protected $table = 'alliance_roster_evidence';
 
     protected $fillable = [

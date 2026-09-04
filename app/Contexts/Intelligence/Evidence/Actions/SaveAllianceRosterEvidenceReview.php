@@ -26,7 +26,7 @@ final readonly class SaveAllianceRosterEvidenceReview
     ) {}
 
     /**
-     * @param list<array{observed_name:string,game_player_id?:?string,observed_rank?:?string,power?:?int,roster_entry_id?:?string,source_metadata?:array<string,mixed>}> $rows
+     * @param  list<array{observed_name:string,game_player_id?:?string,observed_rank?:?string,power?:?int,roster_entry_id?:?string,source_metadata?:array<string,mixed>}>  $rows
      */
     public function handle(
         string $actorPlayerId,

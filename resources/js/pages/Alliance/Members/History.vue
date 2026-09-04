@@ -25,7 +25,9 @@ const { t, formatDate } = useLocale();
 </script>
 
 <template>
-  <Head :title="`${t('allianceExpansion.memberHistoryTitle', { name: player.name })} · ${alliance.name}`" />
+  <Head
+    :title="`${t('allianceExpansion.memberHistoryTitle', { name: player.name })} · ${alliance.name}`"
+  />
 
   <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
     <RoomBanner

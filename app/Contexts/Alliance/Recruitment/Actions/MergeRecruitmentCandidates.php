@@ -54,7 +54,9 @@ final class MergeRecruitmentCandidates
             if (! $sourceCandidate instanceof RecruitmentCandidate || ! $targetCandidate instanceof RecruitmentCandidate) {
                 throw ValidationException::withMessages(['candidate' => 'Both recruitment candidates must belong to the active Alliance.']);
             }
-            if ((string) $sourceCandidate->merged_into_id === (string) $targetCandidate->id) return (string) $targetCandidate->id;
+            if ((string) $sourceCandidate->merged_into_id === (string) $targetCandidate->id) {
+                return (string) $targetCandidate->id;
+            }
             if ($sourceCandidate->merged_into_id !== null) {
                 throw ValidationException::withMessages(['source' => 'The source candidate has already been merged.']);
             }

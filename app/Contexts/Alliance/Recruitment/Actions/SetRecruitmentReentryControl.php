@@ -65,7 +65,9 @@ final readonly class SetRecruitmentReentryControl
                 'reason' => $reason,
                 'review_at' => $review?->toIso8601String(),
             ];
-            if ($before === $after) return (string) $candidate->id;
+            if ($before === $after) {
+                return (string) $candidate->id;
+            }
 
             $candidate->forceFill([
                 'reentry_control' => $control,

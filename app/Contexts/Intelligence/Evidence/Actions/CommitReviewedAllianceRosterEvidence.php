@@ -81,6 +81,7 @@ final readonly class CommitReviewedAllianceRosterEvidence
                 $attemptId = (string) $attempt->id;
                 if ((string) $attempt->status === EvidenceAttemptStatus::Completed->value && $attempt->destination_batch_id !== null) {
                     $receipt = json_decode((string) $attempt->destination_receipt, true, 512, JSON_THROW_ON_ERROR);
+
                     return ['completed' => new AllianceRosterObservationBatchReceipt((string) $attempt->destination_batch_id, (int) ($receipt['row_count'] ?? 0))];
                 }
                 DB::table('evidence_alliance_roster_commit_attempts')->where('id', $attemptId)->update([

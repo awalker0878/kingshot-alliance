@@ -6,6 +6,7 @@ namespace App\Contexts\Alliance\Recruitment\Services;
 
 use App\Contexts\Alliance\Recruitment\Enums\RecruitmentReentryControl;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentCandidate;
+use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
 
 final class RecruitmentReentryPolicy
@@ -21,7 +22,9 @@ final class RecruitmentReentryPolicy
 
     public function assertCanConvert(RecruitmentCandidate $candidate): void
     {
-        if (! $this->isBlocking($candidate)) return;
+        if (! $this->isBlocking($candidate)) {
+            return;
+        }
 
         $message = match ($candidate->reentry_control) {
             RecruitmentReentryControl::DoNotInvite => 'This candidate is marked do not invite for this Alliance.',
@@ -35,17 +38,20 @@ final class RecruitmentReentryPolicy
         throw ValidationException::withMessages(['candidate' => $message]);
     }
 
-    /** @return array{control:RecruitmentReentryControl,reason:?string,reviewAt:?\Illuminate\Support\Carbon,setBy:?string,setAt:?\Illuminate\Support\Carbon} */
+    /** @return array{control:RecruitmentReentryControl,reason:?string,reviewAt:?Carbon,setBy:?string,setAt:?Carbon} */
     public function stricter(RecruitmentCandidate $a, RecruitmentCandidate $b): array
     {
         $candidates = [$a, $b];
         usort($candidates, function (RecruitmentCandidate $left, RecruitmentCandidate $right): int {
             $leftSeverity = $this->effectiveSeverity($left);
             $rightSeverity = $this->effectiveSeverity($right);
-            if ($leftSeverity !== $rightSeverity) return $rightSeverity <=> $leftSeverity;
+            if ($leftSeverity !== $rightSeverity) {
+                return $rightSeverity <=> $leftSeverity;
+            }
 
             $leftDate = $left->reentry_review_at?->getTimestamp() ?? PHP_INT_MAX;
             $rightDate = $right->reentry_review_at?->getTimestamp() ?? PHP_INT_MAX;
+
             return $rightDate <=> $leftDate;
         });
         $winner = $candidates[0];
@@ -69,6 +75,7 @@ final class RecruitmentReentryPolicy
             && $candidate->reentry_review_at->isPast()) {
             return 0;
         }
+
         return $candidate->reentry_control->severity();
     }
 }

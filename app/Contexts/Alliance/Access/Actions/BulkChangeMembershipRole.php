@@ -22,6 +22,7 @@ final readonly class BulkChangeMembershipRole
         foreach ($preview['items'] as $item) {
             if ($item['outcome'] !== 'ready') {
                 $items[] = [...$item, 'outcome' => 'skipped'];
+
                 continue;
             }
             try {

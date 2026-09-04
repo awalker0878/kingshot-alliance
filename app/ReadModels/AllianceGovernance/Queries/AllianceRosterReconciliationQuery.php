@@ -9,7 +9,6 @@ use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
 use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Contexts\Intelligence\Evidence\Models\AllianceRosterEvidenceReview;
-use App\Contexts\Intelligence\Roster\Models\AllianceRosterObservation;
 use App\Contexts\Intelligence\Roster\Models\AllianceRosterObservationBatch;
 use App\Contexts\Intelligence\Roster\Models\PlayerSnapshot;
 
@@ -80,7 +79,9 @@ final readonly class AllianceRosterReconciliationQuery
             }
             if ($matchedPlayerId === null && $observation->game_player_id !== null) {
                 $matchedPlayerId = $gameIdToPlayer[(string) $observation->game_player_id] ?? null;
-                if ($matchedPlayerId !== null) $identityState = 'game_id';
+                if ($matchedPlayerId !== null) {
+                    $identityState = 'game_id';
+                }
             }
             if ($matchedPlayerId === null) {
                 $matches = $nameToPlayers[mb_strtolower(trim((string) $observation->observed_name))] ?? [];
@@ -115,7 +116,9 @@ final readonly class AllianceRosterReconciliationQuery
                         $reasons[] = 'power_changed';
                     }
                 }
-                if ($reasons === []) $reasons[] = 'matches_membership';
+                if ($reasons === []) {
+                    $reasons[] = 'matches_membership';
+                }
             }
 
             $items[] = [
@@ -134,7 +137,9 @@ final readonly class AllianceRosterReconciliationQuery
         if ($completeRoster) {
             foreach ($memberships as $membership) {
                 $playerId = (string) $membership->player_id;
-                if (isset($matchedPlayers[$playerId])) continue;
+                if (isset($matchedPlayers[$playerId])) {
+                    continue;
+                }
                 $ref = $playerRefs[$playerId] ?? null;
                 $items[] = [
                     'observationId' => null,
@@ -151,6 +156,7 @@ final readonly class AllianceRosterReconciliationQuery
         }
 
         $needsReview = count(array_filter($items, static fn (array $item): bool => $item['reasons'] !== ['matches_membership']));
+
         return [
             'batch' => [
                 'id' => (string) $batch->id,

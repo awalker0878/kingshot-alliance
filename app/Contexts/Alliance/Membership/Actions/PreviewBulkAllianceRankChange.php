@@ -34,15 +34,20 @@ final readonly class PreviewBulkAllianceRankChange
             $outcome = 'ready';
             $code = 'ready';
             if (! $membership instanceof AllianceMembership) {
-                $outcome = 'blocked'; $code = 'membership_not_found';
+                $outcome = 'blocked';
+                $code = 'membership_not_found';
             } elseif ($membership->status !== MembershipStatus::Active) {
-                $outcome = 'blocked'; $code = 'membership_inactive';
+                $outcome = 'blocked';
+                $code = 'membership_inactive';
             } elseif ((string) $membership->player_id === $actorPlayerId) {
-                $outcome = 'blocked'; $code = 'self_rank_change_blocked';
+                $outcome = 'blocked';
+                $code = 'self_rank_change_blocked';
             } elseif ($membership->rank === AllianceRank::R5) {
-                $outcome = 'blocked'; $code = 'leadership_transfer_required';
+                $outcome = 'blocked';
+                $code = 'leadership_transfer_required';
             } elseif ($membership->rank === $rank) {
-                $outcome = 'skipped'; $code = 'already_set';
+                $outcome = 'skipped';
+                $code = 'already_set';
             }
             $items[] = [
                 'itemId' => $membershipId,

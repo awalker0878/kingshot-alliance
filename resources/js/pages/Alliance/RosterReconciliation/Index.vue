@@ -86,11 +86,19 @@ function identityLabel(state: string): string {
         </div>
         <div class="grid grid-cols-2 gap-3 text-center">
           <div class="ks-stat-card">
-            <span class="ks-kicker">{{ t('allianceExpansion.matched', { count: formatNumber(reconciliation.summary.matched) }) }}</span>
+            <span class="ks-kicker">{{
+              t('allianceExpansion.matched', {
+                count: formatNumber(reconciliation.summary.matched),
+              })
+            }}</span>
             <strong>{{ formatNumber(reconciliation.summary.matched) }}</strong>
           </div>
           <div class="ks-stat-card">
-            <span class="ks-kicker">{{ t('allianceExpansion.needsReview', { count: formatNumber(reconciliation.summary.needsReview) }) }}</span>
+            <span class="ks-kicker">{{
+              t('allianceExpansion.needsReview', {
+                count: formatNumber(reconciliation.summary.needsReview),
+              })
+            }}</span>
             <strong>{{ formatNumber(reconciliation.summary.needsReview) }}</strong>
           </div>
         </div>
@@ -101,11 +109,19 @@ function identityLabel(state: string): string {
       {{ t('allianceExpansion.noBatch') }}
     </div>
 
-    <section v-if="reconciliation.items.length" class="mt-6 space-y-4" aria-labelledby="reconciliation-items-title">
+    <section
+      v-if="reconciliation.items.length"
+      class="mt-6 space-y-4"
+      aria-labelledby="reconciliation-items-title"
+    >
       <h2 id="reconciliation-items-title" class="sr-only">
         {{ t('allianceExpansion.reconciliationTitle') }}
       </h2>
-      <article v-for="item in reconciliation.items" :key="item.observationId ?? `membership-${item.matchedPlayerId}`" class="ks-surface p-5">
+      <article
+        v-for="item in reconciliation.items"
+        :key="item.observationId ?? `membership-${item.matchedPlayerId}`"
+        class="ks-surface p-5"
+      >
         <div class="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h3 class="ks-display text-xl font-semibold">{{ item.observedName }}</h3>
@@ -120,21 +136,29 @@ function identityLabel(state: string): string {
 
         <dl class="mt-4 grid gap-3 sm:grid-cols-3">
           <div>
-            <dt class="text-xs text-[var(--ks-muted)]">{{ t('allianceExpansion.gamePlayerId') }}</dt>
+            <dt class="text-xs text-[var(--ks-muted)]">
+              {{ t('allianceExpansion.gamePlayerId') }}
+            </dt>
             <dd class="mt-1 text-sm">{{ item.gamePlayerId ?? t('common.none') }}</dd>
           </div>
           <div>
-            <dt class="text-xs text-[var(--ks-muted)]">{{ t('allianceExpansion.observedRank') }}</dt>
+            <dt class="text-xs text-[var(--ks-muted)]">
+              {{ t('allianceExpansion.observedRank') }}
+            </dt>
             <dd class="mt-1 text-sm">{{ item.observedRank ?? t('common.none') }}</dd>
           </div>
           <div>
             <dt class="text-xs text-[var(--ks-muted)]">{{ t('allianceExpansion.power') }}</dt>
-            <dd class="mt-1 text-sm">{{ item.power === null ? t('common.none') : formatNumber(item.power) }}</dd>
+            <dd class="mt-1 text-sm">
+              {{ item.power === null ? t('common.none') : formatNumber(item.power) }}
+            </dd>
           </div>
         </dl>
 
         <div class="mt-4">
-          <p class="text-xs font-semibold text-[var(--ks-muted)]">{{ t('allianceExpansion.reasons') }}</p>
+          <p class="text-xs font-semibold text-[var(--ks-muted)]">
+            {{ t('allianceExpansion.reasons') }}
+          </p>
           <div class="mt-2 flex flex-wrap gap-2">
             <span
               v-for="reason in item.reasons"

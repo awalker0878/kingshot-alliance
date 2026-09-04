@@ -74,9 +74,8 @@ async function territoryCatalogue(base: MessageCatalogue): Promise<MessageCatalo
 async function allianceCapabilityExpansionCatalogue(
   base: MessageCatalogue,
 ): Promise<MessageCatalogue> {
-  const { allianceCapabilityExpansionLabels } = await import(
-    './alliance-capability-expansion-labels'
-  );
+  const { allianceCapabilityExpansionLabels } =
+    await import('./alliance-capability-expansion-labels');
   return mergeCatalogue(base, allianceCapabilityExpansionLabels());
 }
 

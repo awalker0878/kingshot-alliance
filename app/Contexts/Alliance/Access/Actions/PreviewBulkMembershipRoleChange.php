@@ -45,15 +45,19 @@ final readonly class PreviewBulkMembershipRoleChange
             $outcome = 'ready';
             $code = 'ready';
             if (! $membership instanceof AllianceMembership) {
-                $outcome = 'blocked'; $code = 'membership_not_found';
+                $outcome = 'blocked';
+                $code = 'membership_not_found';
             } elseif ($membership->status !== MembershipStatus::Active) {
-                $outcome = 'blocked'; $code = 'membership_inactive';
+                $outcome = 'blocked';
+                $code = 'membership_inactive';
             } else {
                 $assigned = $membership->roles->contains(static fn (Role $assignedRole): bool => (string) $assignedRole->id === $roleId);
                 if ($operation === 'assign' && $assigned) {
-                    $outcome = 'skipped'; $code = 'already_assigned';
+                    $outcome = 'skipped';
+                    $code = 'already_assigned';
                 } elseif ($operation === 'remove' && ! $assigned) {
-                    $outcome = 'skipped'; $code = 'not_assigned';
+                    $outcome = 'skipped';
+                    $code = 'not_assigned';
                 }
             }
             $items[] = [
