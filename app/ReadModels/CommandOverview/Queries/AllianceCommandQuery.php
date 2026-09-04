@@ -6,6 +6,8 @@ namespace App\ReadModels\CommandOverview\Queries;
 
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
+use App\Contexts\Alliance\Recruitment\Enums\RecruitmentReentryControl;
+use App\Contexts\Alliance\Recruitment\Models\RecruitmentCandidate;
 use App\Contexts\Communications\Delivery\Enums\DeliveryChannel;
 use App\Contexts\Communications\Delivery\Enums\DeliveryStatus;
 use App\Contexts\Communications\Delivery\Models\NotificationDelivery;
@@ -31,6 +33,7 @@ use App\Contexts\Operations\Events\Queries\EventCalendarQuery;
 use App\Contexts\Operations\Events\Services\EventTypeProfileResolver;
 use App\Contexts\Operations\TerritoryPlanning\Enums\TerritoryPlanStatus;
 use App\Contexts\Operations\TerritoryPlanning\Queries\TerritoryPlanQuery;
+use App\ReadModels\AllianceGovernance\Queries\AllianceRosterReconciliationQuery;
 use App\ReadModels\EventManagement\Queries\EventCommandQuery;
 use App\ReadModels\Roster\Services\RosterIntelligence;
 use App\ReadModels\Support\ReadModelTelemetry;
@@ -59,6 +62,7 @@ final readonly class AllianceCommandQuery
         private TransferEligibilityQuery $transferEligibility,
         private TerritoryPlanQuery $territoryPlans,
         private TerritoryReconciliationQuery $territoryReconciliation,
+        private AllianceRosterReconciliationQuery $rosterReconciliation,
     ) {}
 
     /**
@@ -127,6 +131,11 @@ final readonly class AllianceCommandQuery
             if ($evidence !== null) {
                 $items[] = $evidence;
             }
+
+            $reconciliation = $this->rosterReconciliationAttention($allianceId);
+            if ($reconciliation !== null) {
+                $items[] = $reconciliation;
+            }
         }
 
         if ($this->transferAuthorization->allows(
@@ -137,6 +146,17 @@ final readonly class AllianceCommandQuery
             $transfer = $this->transfer($allianceId);
             if ($transfer !== null) {
                 $items[] = $transfer;
+            }
+        }
+
+        if ($this->allianceAuthorization->allows(
+            $actor->playerId,
+            $allianceId,
+            AlliancePermission::RecruitmentManage,
+        )) {
+            $recruitmentReview = $this->recruitmentReentryReview($allianceId);
+            if ($recruitmentReview !== null) {
+                $items[] = $recruitmentReview;
             }
         }
 
@@ -258,6 +278,64 @@ final readonly class AllianceCommandQuery
                 'missing' => $missing,
                 'staleAfterDays' => (int) ($quality['staleAfterDays'] ?? 0),
             ],
+        );
+    }
+
+    /** @return array<string,mixed>|null */
+    private function rosterReconciliationAttention(string $allianceId): ?array
+    {
+        $projection = $this->rosterReconciliation->forAlliance($allianceId);
+        $batch = is_array($projection['batch'] ?? null) ? $projection['batch'] : [];
+        $summary = is_array($projection['summary'] ?? null) ? $projection['summary'] : [];
+        $needsReview = (int) ($summary['needsReview'] ?? 0);
+        if ($batch === [] || $needsReview === 0) {
+            return null;
+        }
+
+        return $this->item(
+            code: 'roster_reconciliation_required',
+            owner: 'intelligence.roster',
+            state: 'needs_attention',
+            reasonKey: 'application.dashboard.commandReasons.rosterReconciliationRequired',
+            count: $needsReview,
+            href: '/alliance/roster/reconciliation',
+            observedAt: is_string($batch['capturedAt'] ?? null) ? $batch['capturedAt'] : null,
+            actionable: true,
+            metadata: [
+                'batchId' => $batch['id'] ?? null,
+                'completeRoster' => (bool) ($batch['completeRoster'] ?? false),
+                'summary' => $summary,
+            ],
+        );
+    }
+
+    /** @return array<string,mixed>|null */
+    private function recruitmentReentryReview(string $allianceId): ?array
+    {
+        $query = RecruitmentCandidate::query()
+            ->where('alliance_id', $allianceId)
+            ->whereNull('merged_into_id')
+            ->whereNull('anonymized_at')
+            ->where('reentry_control', RecruitmentReentryControl::ReviewRequired->value)
+            ->where(static fn (Builder $builder) => $builder
+                ->whereNull('reentry_review_at')
+                ->orWhere('reentry_review_at', '<=', now()));
+        $count = (clone $query)->count();
+        if ($count === 0) {
+            return null;
+        }
+
+        $latest = (clone $query)->orderByDesc('reentry_set_at')->orderByDesc('id')->first();
+
+        return $this->item(
+            code: 'recruitment_reentry_review_due',
+            owner: 'alliance.recruitment',
+            state: 'needs_attention',
+            reasonKey: 'application.dashboard.commandReasons.recruitmentReentryReviewDue',
+            count: $count,
+            href: '/alliance/recruitment',
+            observedAt: $latest?->reentry_set_at?->toIso8601String(),
+            actionable: true,
         );
     }
 
