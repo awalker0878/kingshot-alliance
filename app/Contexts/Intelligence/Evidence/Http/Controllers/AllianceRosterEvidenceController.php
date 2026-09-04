@@ -40,34 +40,46 @@ final class AllianceRosterEvidenceController extends Controller
         }
         $alliance = $alliances->require($scope->allianceId);
 
-        $evidence = AllianceRosterEvidence::query()
+        $evidence = [];
+        foreach (AllianceRosterEvidence::query()
             ->where('alliance_id', $scope->allianceId)
             ->latest('created_at')
             ->limit(25)
-            ->get()
-            ->map(function (AllianceRosterEvidence $item): array {
-                $review = AllianceRosterEvidenceReview::query()
-                    ->where('evidence_id', $item->id)
-                    ->latest('revision_number')
-                    ->first();
+            ->get() as $item) {
+            $review = AllianceRosterEvidenceReview::query()
+                ->where('evidence_id', $item->id)
+                ->latest('revision_number')
+                ->first();
 
-                return [
-                    'id' => (string) $item->id,
-                    'name' => (string) $item->original_name,
-                    'status' => $item->lifecycle_status->value,
-                    'uploadedAt' => $item->created_at?->toIso8601String(),
-                    'visualDuplicateEvidenceId' => $item->visual_duplicate_evidence_id,
-                    'review' => $review instanceof AllianceRosterEvidenceReview ? [
-                        'id' => (string) $review->id,
-                        'status' => $review->status->value,
-                        'capturedAt' => $review->captured_at?->toIso8601String(),
-                        'completeRoster' => (bool) (($review->payload ?? [])['complete_roster'] ?? false),
-                        'rows' => (array) (($review->payload ?? [])['rows'] ?? []),
-                    ] : null,
+            $reviewProjection = null;
+            if ($review instanceof AllianceRosterEvidenceReview) {
+                $payloadRows = $review->payload['rows'] ?? [];
+                $rows = [];
+                if (is_array($payloadRows)) {
+                    foreach ($payloadRows as $row) {
+                        if (is_array($row)) {
+                            $rows[] = $row;
+                        }
+                    }
+                }
+                $reviewProjection = [
+                    'id' => $review->id,
+                    'status' => $review->status->value,
+                    'capturedAt' => $review->captured_at->toIso8601String(),
+                    'completeRoster' => (bool) ($review->payload['complete_roster'] ?? false),
+                    'rows' => $rows,
                 ];
-            })
-            ->values()
-            ->all();
+            }
+
+            $evidence[] = [
+                'id' => $item->id,
+                'name' => $item->original_name,
+                'status' => $item->lifecycle_status->value,
+                'uploadedAt' => $item->created_at?->toIso8601String(),
+                'visualDuplicateEvidenceId' => $item->visual_duplicate_evidence_id,
+                'review' => $reviewProjection,
+            ];
+        }
 
         $roster = array_map(
             static fn (RosterEntryReference $entry): array => [
