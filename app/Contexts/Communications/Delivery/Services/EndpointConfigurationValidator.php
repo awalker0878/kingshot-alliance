@@ -10,7 +10,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class EndpointConfigurationValidator
 {
     /** @param array<string,string> $configuration
-     *  @return array<string,string>
+     * @return array<string,string>
      */
     public function validate(DeliveryChannel $channel, array $configuration): array
     {
@@ -25,7 +25,7 @@ final readonly class EndpointConfigurationValidator
     }
 
     /** @param array<string,string> $configuration
-     *  @return array{webhook_url:string}
+     * @return array{webhook_url:string}
      */
     private function discord(array $configuration): array
     {
@@ -50,7 +50,7 @@ final readonly class EndpointConfigurationValidator
     }
 
     /** @param array<string,string> $configuration
-     *  @return array{bot_token:string,chat_id:string}
+     * @return array{bot_token:string,chat_id:string}
      */
     private function telegram(array $configuration): array
     {
@@ -67,7 +67,7 @@ final readonly class EndpointConfigurationValidator
     }
 
     /** @param array<string,string> $configuration
-     *  @return array{endpoint:string,p256dh:string,auth:string}
+     * @return array{endpoint:string,p256dh:string,auth:string}
      */
     private function webPush(array $configuration): array
     {
