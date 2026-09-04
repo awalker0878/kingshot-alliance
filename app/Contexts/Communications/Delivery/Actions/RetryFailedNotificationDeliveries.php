@@ -6,6 +6,7 @@ namespace App\Contexts\Communications\Delivery\Actions;
 
 use App\Contexts\Communications\Delivery\Enums\DeliveryStatus;
 use App\Contexts\Communications\Delivery\Models\NotificationDelivery;
+use App\Contexts\Communications\Delivery\Models\NotificationMessage;
 use App\Shared\Infrastructure\AuditTrail\Contracts\AuditActor;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use Illuminate\Support\Facades\DB;
@@ -39,9 +40,6 @@ final readonly class RetryFailedNotificationDeliveries
         ): array {
             $deliveries = NotificationDelivery::query()
                 ->whereIn('id', array_values(array_unique($deliveryIds)))
-                ->where('notification_type', $notificationType)
-                ->where('subject_type', $subjectType)
-                ->where('subject_id', $subjectId)
                 ->orderBy('id')
                 ->lockForUpdate()
                 ->get();
@@ -49,8 +47,22 @@ final readonly class RetryFailedNotificationDeliveries
 
             foreach ($deliveries as $delivery) {
                 if ($delivery->status !== DeliveryStatus::Failed
-                    || $delivery->attempt_count >= $delivery->max_attempts
-                    || ! $this->metadataMatches($delivery->metadata, $requiredMetadata)) {
+                    || $delivery->attempt_count >= $delivery->max_attempts) {
+                    continue;
+                }
+
+                $message = NotificationMessage::query()
+                    ->whereKey($delivery->notification_message_id)
+                    ->where('notification_type', $notificationType)
+                    ->where('subject_type', $subjectType)
+                    ->where('subject_id', $subjectId)
+                    ->lockForUpdate()
+                    ->first();
+                if (! $message instanceof NotificationMessage
+                    || ! $this->metadataMatches(
+                        is_array($message->metadata) ? $message->metadata : null,
+                        $requiredMetadata,
+                    )) {
                     continue;
                 }
 
