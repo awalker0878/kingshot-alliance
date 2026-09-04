@@ -12,6 +12,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\ValidationException;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\v3\TestCase;
 
 final class PasskeySecurityV3Test extends TestCase
@@ -38,6 +39,45 @@ final class PasskeySecurityV3Test extends TestCase
                 $routeName.' must use the Accounts passkey rate limiter.',
             );
         }
+    }
+
+    public function test_login_does_not_offer_passkeys_for_an_ip_literal_relying_party(): void
+    {
+        config()->set('passkeys.enabled', true);
+        config()->set('passkeys.relying_party_id', '127.0.0.1');
+        config()->set('passkeys.allowed_origins', ['http://127.0.0.1:8000']);
+
+        $this->get('/login')
+            ->assertOk()
+            ->assertInertia(static fn (Assert $page): Assert => $page
+                ->component('Accounts/Access/Login')
+                ->where('passkeyAuthEnabled', false));
+    }
+
+    public function test_login_offers_passkeys_for_localhost_development(): void
+    {
+        config()->set('passkeys.enabled', true);
+        config()->set('passkeys.relying_party_id', 'localhost');
+        config()->set('passkeys.allowed_origins', ['http://localhost:8000']);
+
+        $this->get('/login')
+            ->assertOk()
+            ->assertInertia(static fn (Assert $page): Assert => $page
+                ->component('Accounts/Access/Login')
+                ->where('passkeyAuthEnabled', true));
+    }
+
+    public function test_login_does_not_offer_passkeys_when_the_capability_is_disabled(): void
+    {
+        config()->set('passkeys.enabled', false);
+        config()->set('passkeys.relying_party_id', 'kingshot.app');
+        config()->set('passkeys.allowed_origins', ['https://kingshot.app']);
+
+        $this->get('/login')
+            ->assertOk()
+            ->assertInertia(static fn (Assert $page): Assert => $page
+                ->component('Accounts/Access/Login')
+                ->where('passkeyAuthEnabled', false));
     }
 
     public function test_passkey_user_handle_is_stable_opaque_and_not_account_email(): void
