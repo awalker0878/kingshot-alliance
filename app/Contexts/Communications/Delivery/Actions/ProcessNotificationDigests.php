@@ -141,7 +141,7 @@ final readonly class ProcessNotificationDigests
                     notificationType: (string) $message->notification_type,
                     recipientUserId: (int) $message->recipient_user_id,
                     playerId: $routingPlayerId,
-                    availableAt: $now,
+                    availableAt: $message->available_at,
                     idempotencyKey: (string) $message->idempotency_key,
                     title: (string) $message->title,
                     body: $message->body,
