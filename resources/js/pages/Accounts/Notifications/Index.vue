@@ -407,10 +407,15 @@ function saveRoutingPolicy(scope: 'account' | 'governor'): void {
 function resetRoutingPolicy(): void {
   router.delete('/notifications/routing-policy', { preserveScroll: true });
 }
-function decodeVapidPublicKey(value: string): Uint8Array {
+function decodeVapidPublicKey(value: string): ArrayBuffer {
   const padding = '='.repeat((4 - (value.length % 4)) % 4);
   const decoded = atob((value + padding).replace(/-/g, '+').replace(/_/g, '/'));
-  return Uint8Array.from(decoded, (character) => character.charCodeAt(0));
+  const buffer = new ArrayBuffer(decoded.length);
+  const bytes = new Uint8Array(buffer);
+  for (let index = 0; index < decoded.length; index += 1) {
+    bytes[index] = decoded.charCodeAt(index);
+  }
+  return buffer;
 }
 async function enableWebPush(): Promise<void> {
   if (!canEnableWebPush.value || !props.webPushPublicKey || webPushBusy.value) return;
