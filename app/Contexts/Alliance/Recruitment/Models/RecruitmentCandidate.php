@@ -15,8 +15,17 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
+ * @property string $id
+ * @property string $alliance_id
+ * @property string|null $player_id
+ * @property string|null $merged_into_id
+ * @property string $full_name
+ * @property string $email
+ * @property string|null $contact_handle
+ * @property string|null $source
  * @property RecruitmentStage $stage
  * @property RecruitmentReentryControl $reentry_control
+ * @property string|null $reentry_reason
  * @property Carbon|null $reentry_review_at
  * @property Carbon|null $reentry_set_at
  * @property Carbon|null $next_action_at
@@ -28,6 +37,12 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $joined_at
  * @property Carbon|null $retention_due_at
  * @property Carbon|null $anonymized_at
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, RecruitmentAnswer> $answers
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, RecruitmentNote> $notes
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, RecruitmentTag> $tags
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, RecruitmentStageHistory> $stageHistory
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, RecruitmentCommunication> $communications
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, RecruitmentCandidateOnboarding> $onboarding
  */
 final class RecruitmentCandidate extends Model
 {
@@ -72,47 +87,56 @@ final class RecruitmentCandidate extends Model
         return $value instanceof RecruitmentStage ? $value : RecruitmentStage::from((string) $value);
     }
 
+    /** @return BelongsTo<Alliance, $this> */
     public function alliance(): BelongsTo
     {
         return $this->belongsTo(Alliance::class);
     }
 
+    /** @return BelongsTo<RecruitmentApplicationInvite, $this> */
     public function applicationInvite(): BelongsTo
     {
         return $this->belongsTo(RecruitmentApplicationInvite::class, 'application_invite_id');
     }
 
+    /** @return BelongsTo<RecruitmentCandidate, $this> */
     public function mergedInto(): BelongsTo
     {
         return $this->belongsTo(self::class, 'merged_into_id');
     }
 
+    /** @return HasMany<RecruitmentAnswer, $this> */
     public function answers(): HasMany
     {
         return $this->hasMany(RecruitmentAnswer::class, 'candidate_id');
     }
 
+    /** @return HasMany<RecruitmentNote, $this> */
     public function notes(): HasMany
     {
         return $this->hasMany(RecruitmentNote::class, 'candidate_id');
     }
 
+    /** @return BelongsToMany<RecruitmentTag, $this> */
     public function tags(): BelongsToMany
     {
         return $this->belongsToMany(RecruitmentTag::class, 'recruitment_candidate_tags', 'candidate_id', 'tag_id')
             ->withPivot('alliance_id')->withTimestamps();
     }
 
+    /** @return HasMany<RecruitmentStageHistory, $this> */
     public function stageHistory(): HasMany
     {
         return $this->hasMany(RecruitmentStageHistory::class, 'candidate_id');
     }
 
+    /** @return HasMany<RecruitmentCommunication, $this> */
     public function communications(): HasMany
     {
         return $this->hasMany(RecruitmentCommunication::class, 'candidate_id');
     }
 
+    /** @return HasMany<RecruitmentCandidateOnboarding, $this> */
     public function onboarding(): HasMany
     {
         return $this->hasMany(RecruitmentCandidateOnboarding::class, 'candidate_id');
