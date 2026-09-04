@@ -224,7 +224,7 @@ final class WebPushChannel implements ExternalDeliveryChannel
         if (($length & 0x80) === 0) {
             return $length;
         }
-        $bytes = $length & 0x7f;
+        $bytes = $length & 0x7F;
         if ($bytes < 1 || $bytes > 2) {
             throw new RuntimeException('VAPID DER signature length is invalid.');
         }
