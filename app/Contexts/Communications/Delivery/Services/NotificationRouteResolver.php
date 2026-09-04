@@ -142,7 +142,6 @@ final readonly class NotificationRouteResolver
             return $accountPreference->enabled;
         }
 
-        // Email is opt-in because it has no separately configured endpoint.
         return $channel !== DeliveryChannel::Email;
     }
 
@@ -188,7 +187,7 @@ final readonly class NotificationRouteResolver
     /** @return list<NotificationEndpoint> */
     private function endpoints(int $recipientUserId, ?string $playerId, DeliveryChannel $channel): array
     {
-        return NotificationEndpoint::query()
+        return array_values(NotificationEndpoint::query()
             ->where('recipient_user_id', $recipientUserId)
             ->where('channel', $channel->value)
             ->where('enabled', true)
@@ -210,7 +209,7 @@ final readonly class NotificationRouteResolver
             ->orderBy('created_at')
             ->limit(self::MAX_ENDPOINT_ROUTES)
             ->get()
-            ->all();
+            ->all());
     }
 
     /** @return array{CarbonImmutable,string,DigestCadence} */
