@@ -20,6 +20,8 @@ use Illuminate\Support\Carbon;
  * @property string $name
  * @property bool $is_system
  * @property Carbon|null $archived_at
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, Permission> $permissions
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, AllianceMembership> $memberships
  */
 final class Role extends Model
 {
@@ -45,16 +47,19 @@ final class Role extends Model
         ];
     }
 
+    /** @return BelongsTo<Alliance, $this> */
     public function alliance(): BelongsTo
     {
         return $this->belongsTo(Alliance::class);
     }
 
+    /** @return BelongsToMany<Permission, $this> */
     public function permissions(): BelongsToMany
     {
         return $this->belongsToMany(Permission::class, 'role_permissions');
     }
 
+    /** @return BelongsToMany<AllianceMembership, $this> */
     public function memberships(): BelongsToMany
     {
         return $this->belongsToMany(AllianceMembership::class, 'membership_roles', 'role_id', 'membership_id');
