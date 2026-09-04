@@ -92,11 +92,7 @@ function submit(): void {
             : t('authExperience.passkeys.signIn')
         }}
       </AppButton>
-      <p
-        v-if="passkeyAvailable && passkeyError"
-        class="text-sm text-[var(--ks-red)]"
-        role="alert"
-      >
+      <p v-if="passkeyAvailable && passkeyError" class="text-sm text-[var(--ks-red)]" role="alert">
         {{ passkeyError }}
       </p>
 
