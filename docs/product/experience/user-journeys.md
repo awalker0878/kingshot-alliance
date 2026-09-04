@@ -181,7 +181,54 @@ Trust and redemption state stay separate. Registered-source evidence and platfor
 
 Availability, expiring and trust-change notifications use the Governor's Communications preferences, recheck current ownership/redemption state, deep-link to Gift Code detail and deduplicate by trust/expiry revision. Platform moderation is verified-email/MFA/password-confirmed and separate from Alliance rank. Approved-source acquisition is source-policy controlled, idempotent and operationally health-reported; missing or undocumented provider behavior remains inactive or quarantined.
 
-The Notification Center lets a Governor select up to 50 visible inbox deliveries, preview either mark-read or dismiss against current ownership and state, confirm the eligible count, and inspect every success, failure, or skip. Dismissal uses the accessible destructive-action confirmation. Failed delivery IDs stay selected for review and selective retry; dismissed rows leave the inbox without hiding the just-completed result receipt.
+## Notification Center and recipient delivery
+
+```text
+Open Notification Center
+ -> read one logical inbox message per source notification
+ -> filter unread / all / archived, type, account/Governor scope, date or delivery status
+ -> page by bounded cursor
+ -> expand one message to inspect its concrete In App / Discord / Telegram / Web Push / Email routes
+ -> mark read/unread or archive/restore the logical message
+```
+
+Multi-channel or multi-endpoint fan-out never creates duplicate inbox messages. Read/archive state belongs to the logical message; provider queued/sent/failed/cancelled state belongs to the subordinate route. The source capability still owns what the notification means and whether its underlying business state changed.
+
+```text
+Open Delivery preferences
+ -> choose account defaults by notification type/channel
+ -> optionally choose the active Governor and override one default
+ -> configure timezone and quiet hours
+ -> choose whether urgent notifications may bypass quiet hours
+ -> optionally mute external delivery until a bounded future time
+ -> choose immediate / hourly digest / daily digest
+ -> save recipient routing policy
+```
+
+In-app delivery remains visible when an external route is deferred. A Governor override may be removed to resume the account default. Source contexts may assign generic urgency but cannot choose a recipient's quiet-hours bypass, digest cadence, endpoint or retry timing.
+
+```text
+Open Destinations
+ -> add one or more named Discord / Telegram destinations
+ -> enable Web Push for one or more supported browsers/devices
+ -> test or reverify a destination
+ -> inspect Never tested / Healthy / Degraded / Paused health
+ -> pause/resume/delete one destination without affecting another
+ -> use verified account email when email notifications are enabled
+```
+
+Credentials/subscription material is encrypted and is not redisplayed after save. Web Push rejects unsafe/private destinations and stale subscriptions fail only their concrete route. Email is not copied into a Communications endpoint; Accounts remains authoritative and Communications rechecks current verified email before send.
+
+```text
+Select up to 50 visible logical notifications
+ -> choose mark read / mark unread / archive / restore
+ -> preview current ownership/state
+ -> confirm eligible count
+ -> commit with ownership rechecked
+ -> inspect per-item success/failure/skip result
+```
+
+Provider delivery recovery is separate from inbox state. A failed provider route may retry within its bounded attempt budget without reopening, duplicating or mutating the source notification.
 
 ## Recurring Alliance announcement
 
@@ -314,9 +361,10 @@ Platform administration never substitutes for selecting a Player when performing
 ## Platform diagnostic recovery
 
 1. A password-confirmed Citadel Warden reviews aggregate queue and outbox health plus bounded recent failure cards.
-2. Error fingerprints group matching failures without displaying exception text, provider payloads or notification bodies.
+2. Error fingerprints group matching failures without displaying exception text, provider payloads, notification bodies or recipient identifiers.
 3. The Warden may search a request UUID or trace ID for the ordered, metadata-free audit timeline.
 4. Automatic outbox attempts stop at the configured limit. The Warden may release only an exhausted failed unpublished message for one fresh bounded cycle; the same message and idempotency key remain in place and the release is audited.
+5. Communications delivery diagnostics remain bounded to operational counts, queue age, channel/status/attempt timing and failure fingerprints; raw destination credentials and provider payloads are never a platform diagnostic surface.
 
 ## High-risk mutation and recovery
 
