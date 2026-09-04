@@ -61,52 +61,17 @@ final class CommunicationsRecipientDeliveryAcceptanceV3Test extends TestCase
         $preferences = app(SetNotificationPreference::class);
         $delivery = app(NotificationDeliveryService::class);
 
-        $preferences->handle(
-            $account->userId,
-            null,
-            'event.reminder',
-            DeliveryChannel::Discord,
-            false,
-        );
-        $accountDisabled = $delivery->queue($this->intent(
-            $account->userId,
-            $player->playerId,
-            'account-disabled',
-        ));
+        $preferences->handle($account->userId, null, 'event.reminder', DeliveryChannel::Discord, false);
+        $accountDisabled = $delivery->queue($this->intent($account->userId, $player->playerId, 'account-disabled'));
         self::assertSame([DeliveryChannel::InApp->value], $accountDisabled->channels);
 
-        $preferences->handle(
-            $account->userId,
-            $player->playerId,
-            'event.reminder',
-            DeliveryChannel::Discord,
-            true,
-        );
-        $governorEnabled = $delivery->queue($this->intent(
-            $account->userId,
-            $player->playerId,
-            'governor-enabled',
-        ));
+        $preferences->handle($account->userId, $player->playerId, 'event.reminder', DeliveryChannel::Discord, true);
+        $governorEnabled = $delivery->queue($this->intent($account->userId, $player->playerId, 'governor-enabled'));
         self::assertContains(DeliveryChannel::Discord->value, $governorEnabled->channels);
-        $preferences->resetGovernorOverride(
-            $account->userId,
-            $player->playerId,
-            'event.reminder',
-            DeliveryChannel::Discord,
-        );
-        $inheritedDisabled = $delivery->queue($this->intent(
-            $account->userId,
-            $player->playerId,
-            'inherited-disabled',
-        ));
+        $preferences->resetGovernorOverride($account->userId, $player->playerId, 'event.reminder', DeliveryChannel::Discord);
+        $inheritedDisabled = $delivery->queue($this->intent($account->userId, $player->playerId, 'inherited-disabled'));
         self::assertSame([DeliveryChannel::InApp->value], $inheritedDisabled->channels);
-        $preferences->handle(
-            $account->userId,
-            null,
-            'event.reminder',
-            DeliveryChannel::Discord,
-            true,
-        );
+        $preferences->handle($account->userId, null, 'event.reminder', DeliveryChannel::Discord, true);
 
         $policies = app(SetNotificationRoutingPolicy::class);
         $policies->handle(
@@ -120,19 +85,12 @@ final class CommunicationsRecipientDeliveryAcceptanceV3Test extends TestCase
             mutedUntil: null,
             digestCadence: DigestCadence::Immediate,
         );
-        $quiet = $delivery->queue($this->intent(
-            $account->userId,
-            $player->playerId,
-            'quiet-normal',
-        ));
+        $quiet = $delivery->queue($this->intent($account->userId, $player->playerId, 'quiet-normal'));
         $quietRoute = $this->route($quiet->messageId, DeliveryChannel::Discord);
         self::assertSame($endpointId, $quietRoute->notification_endpoint_id);
         self::assertSame('quiet_hours', $quietRoute->routing_reason);
         self::assertSame('2026-09-05T07:00:00+00:00', $quietRoute->due_at->toIso8601String());
-        self::assertSame(
-            DeliveryStatus::Sent,
-            $this->route($quiet->messageId, DeliveryChannel::InApp)->status,
-        );
+        self::assertSame(DeliveryStatus::Sent, $this->route($quiet->messageId, DeliveryChannel::InApp)->status);
 
         $urgentBlocked = $delivery->queue($this->intent(
             $account->userId,
@@ -140,10 +98,7 @@ final class CommunicationsRecipientDeliveryAcceptanceV3Test extends TestCase
             'urgent-blocked',
             NotificationUrgency::Urgent,
         ));
-        self::assertSame(
-            'quiet_hours',
-            $this->route($urgentBlocked->messageId, DeliveryChannel::Discord)->routing_reason,
-        );
+        self::assertSame('quiet_hours', $this->route($urgentBlocked->messageId, DeliveryChannel::Discord)->routing_reason);
 
         $policies->handle(
             recipientUserId: $account->userId,
@@ -177,25 +132,14 @@ final class CommunicationsRecipientDeliveryAcceptanceV3Test extends TestCase
             mutedUntil: Carbon::now('UTC')->addHours(2),
             digestCadence: DigestCadence::Immediate,
         );
-        $muted = $delivery->queue($this->intent(
-            $account->userId,
-            $player->playerId,
-            'governor-muted',
-        ));
+        $muted = $delivery->queue($this->intent($account->userId, $player->playerId, 'governor-muted'));
         $mutedRoute = $this->route($muted->messageId, DeliveryChannel::Discord);
         self::assertSame('temporary_mute', $mutedRoute->routing_reason);
         self::assertSame('2026-09-05T00:30:00+00:00', $mutedRoute->due_at->toIso8601String());
 
         $policies->resetGovernorOverride($account->userId, $player->playerId);
-        $inheritedQuiet = $delivery->queue($this->intent(
-            $account->userId,
-            $player->playerId,
-            'governor-reset',
-        ));
-        self::assertSame(
-            'quiet_hours',
-            $this->route($inheritedQuiet->messageId, DeliveryChannel::Discord)->routing_reason,
-        );
+        $inheritedQuiet = $delivery->queue($this->intent($account->userId, $player->playerId, 'governor-reset'));
+        self::assertSame('quiet_hours', $this->route($inheritedQuiet->messageId, DeliveryChannel::Discord)->routing_reason);
 
         try {
             $policies->handle(
@@ -235,14 +179,15 @@ final class CommunicationsRecipientDeliveryAcceptanceV3Test extends TestCase
             ->where('channel', DeliveryChannel::Discord->value)
             ->get();
         self::assertCount(2, $external);
-        self::assertEqualsCanonicalizing(
-            [$firstId, $secondId],
-            $external->pluck('notification_endpoint_id')->all(),
-        );
+        self::assertEqualsCanonicalizing([$firstId, $secondId], $external->pluck('notification_endpoint_id')->all());
 
+        Http::fake([
+            'discord.com/*' => Http::sequence()
+                ->push(null, 204)
+                ->push([], 429, ['Retry-After' => '60']),
+        ]);
         $tests = app(QueueNotificationEndpointTest::class);
         $firstTestId = $tests->handle($account->userId, $player->playerId, $firstId);
-        Http::fake(['discord.com/*' => Http::response(null, 204)]);
         self::assertSame(1, app(ProcessNotificationDeliveries::class)->handle());
         self::assertSame(DeliveryStatus::Sent, NotificationDelivery::query()->findOrFail($firstTestId)->status);
         $firstEndpoint = NotificationEndpoint::query()->findOrFail($firstId);
@@ -250,9 +195,6 @@ final class CommunicationsRecipientDeliveryAcceptanceV3Test extends TestCase
         self::assertNotNull($firstEndpoint->last_verified_at);
 
         $failedTestId = $tests->handle($account->userId, $player->playerId, $firstId);
-        Http::fake([
-            'discord.com/*' => Http::response([], 429, ['Retry-After' => '60']),
-        ]);
         self::assertSame(1, app(ProcessNotificationDeliveries::class)->handle());
         $failedTest = NotificationDelivery::query()->findOrFail($failedTestId);
         self::assertSame(DeliveryStatus::Failed, $failedTest->status);
@@ -274,10 +216,7 @@ final class CommunicationsRecipientDeliveryAcceptanceV3Test extends TestCase
         }
 
         $state->handle($account->userId, $player->playerId, $firstId, true);
-        self::assertSame(
-            EndpointHealthStatus::NeverTested,
-            NotificationEndpoint::query()->findOrFail($firstId)->health_status,
-        );
+        self::assertSame(EndpointHealthStatus::NeverTested, NotificationEndpoint::query()->findOrFail($firstId)->health_status);
         $tests->handle($account->userId, $player->playerId, $firstId);
         app(DeleteNotificationEndpoint::class)->handle($account->userId, $player->playerId, $firstId);
         self::assertNull(NotificationEndpoint::query()->find($firstId));
@@ -359,10 +298,7 @@ final class CommunicationsRecipientDeliveryAcceptanceV3Test extends TestCase
             ->where('channel', DeliveryChannel::WebPush->value)
             ->get();
         self::assertCount(2, $pushRoutes);
-        self::assertEqualsCanonicalizing(
-            [$firstId, $secondId],
-            $pushRoutes->pluck('notification_endpoint_id')->all(),
-        );
+        self::assertEqualsCanonicalizing([$firstId, $secondId], $pushRoutes->pluck('notification_endpoint_id')->all());
 
         Http::fake(['fcm.googleapis.com/*' => Http::response('', 410)]);
         self::assertSame(2, app(ProcessNotificationDeliveries::class)->handle());
@@ -521,11 +457,7 @@ final class CommunicationsRecipientDeliveryAcceptanceV3Test extends TestCase
         );
         $delivery = app(NotificationDeliveryService::class);
         for ($index = 0; $index < 21; $index++) {
-            $delivery->queue($this->intent(
-                $account->userId,
-                $player->playerId,
-                'bounded-digest-'.$index,
-            ));
+            $delivery->queue($this->intent($account->userId, $player->playerId, 'bounded-digest-'.$index));
         }
 
         Carbon::setTestNow('2026-09-04T11:01:00Z');
@@ -592,33 +524,15 @@ final class CommunicationsRecipientDeliveryAcceptanceV3Test extends TestCase
         $preferences = app(SetNotificationPreference::class);
 
         $disabledLater = $delivery->queue($this->intent($account->userId, $player->playerId, 'policy-recheck'));
-        $preferences->handle(
-            $account->userId,
-            $player->playerId,
-            'event.reminder',
-            DeliveryChannel::Discord,
-            false,
-        );
+        $preferences->handle($account->userId, $player->playerId, 'event.reminder', DeliveryChannel::Discord, false);
         self::assertSame(0, app(ProcessNotificationDeliveries::class)->handle());
-        self::assertSame(
-            DeliveryStatus::Cancelled,
-            $this->route($disabledLater->messageId, DeliveryChannel::Discord)->status,
-        );
+        self::assertSame(DeliveryStatus::Cancelled, $this->route($disabledLater->messageId, DeliveryChannel::Discord)->status);
 
-        $preferences->handle(
-            $account->userId,
-            $player->playerId,
-            'event.reminder',
-            DeliveryChannel::Discord,
-            true,
-        );
+        $preferences->handle($account->userId, $player->playerId, 'event.reminder', DeliveryChannel::Discord, true);
         $revokedOwner = $delivery->queue($this->intent($account->userId, $player->playerId, 'owner-recheck'));
         DB::table('players')->where('id', $player->playerId)->update(['user_id' => $other->userId]);
         self::assertSame(0, app(ProcessNotificationDeliveries::class)->handle());
-        self::assertSame(
-            DeliveryStatus::Cancelled,
-            $this->route($revokedOwner->messageId, DeliveryChannel::Discord)->status,
-        );
+        self::assertSame(DeliveryStatus::Cancelled, $this->route($revokedOwner->messageId, DeliveryChannel::Discord)->status);
         self::assertSame(0, app(ProcessNotificationDeliveries::class)->handle());
     }
 
@@ -687,13 +601,7 @@ final class CommunicationsRecipientDeliveryAcceptanceV3Test extends TestCase
         $checks = collect(app(ProductionLaunchReadiness::class)->checks())->keyBy('key');
         self::assertTrue($checks->get('notification_web_push_configuration')['passed'] ?? false);
 
-        app(SetNotificationPreference::class)->handle(
-            $account->userId,
-            null,
-            'event.reminder',
-            DeliveryChannel::Email,
-            true,
-        );
+        app(SetNotificationPreference::class)->handle($account->userId, null, 'event.reminder', DeliveryChannel::Email, true);
         config()->set('mail.default', 'array');
         $checks = collect(app(ProductionLaunchReadiness::class)->checks())->keyBy('key');
         self::assertFalse($checks->get('notification_email_configuration')['passed'] ?? true);
