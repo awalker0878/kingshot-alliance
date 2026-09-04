@@ -109,15 +109,18 @@ final class NotificationInboxQuery
             ->get();
         $hasMore = $messages->count() > $limit;
         $messages = $messages->take($limit)->values();
-        $deliveries = $this->deliveriesFor($messages->pluck('id')->map(static fn (mixed $id): string => (string) $id)->all());
+        $messageIds = array_values($messages
+            ->pluck('id')
+            ->map(static fn (mixed $id): string => (string) $id)
+            ->values()
+            ->all());
+        $deliveries = $this->deliveriesFor($messageIds);
 
         $items = $messages->map(function (NotificationMessage $message) use ($deliveries): array {
+            /** @var Collection<int, NotificationDelivery> $messageDeliveries */
             $messageDeliveries = $deliveries->get((string) $message->id, collect());
             $statusCounts = [];
             foreach ($messageDeliveries as $delivery) {
-                if (! $delivery instanceof NotificationDelivery) {
-                    continue;
-                }
                 $status = $delivery->status->value;
                 $statusCounts[$status] = ($statusCounts[$status] ?? 0) + 1;
             }
@@ -139,7 +142,7 @@ final class NotificationInboxQuery
                     'total' => $messageDeliveries->count(),
                     'statuses' => $statusCounts,
                 ],
-                'deliveries' => $messageDeliveries
+                'deliveries' => array_values($messageDeliveries
                     ->map(static fn (NotificationDelivery $delivery): array => [
                         'id' => (string) $delivery->id,
                         'channel' => $delivery->channel->value,
@@ -158,14 +161,14 @@ final class NotificationInboxQuery
                             : mb_substr((string) $delivery->last_error, 0, 500),
                     ])
                     ->values()
-                    ->all(),
+                    ->all()),
             ];
-        })->all();
+        })->values()->all();
 
         $last = $messages->last();
 
         return [
-            'items' => $items,
+            'items' => array_values($items),
             'nextCursor' => $hasMore && $last instanceof NotificationMessage
                 ? $this->encodeCursor($last)
                 : null,
@@ -173,6 +176,7 @@ final class NotificationInboxQuery
         ];
     }
 
+    /** @param Builder<NotificationMessage> $query */
     private function applyScope(Builder $query, ?string $playerId, string $scope): void
     {
         if ($scope === self::SCOPE_ACCOUNT || $playerId === null) {
@@ -192,18 +196,27 @@ final class NotificationInboxQuery
         });
     }
 
-    /** @param list<string> $messageIds @return Collection<string, Collection<int, NotificationDelivery>> */
+    /**
+     * @param  list<string>  $messageIds
+     * @return Collection<string, Collection<int, NotificationDelivery>>
+     */
     private function deliveriesFor(array $messageIds): Collection
     {
         if ($messageIds === []) {
-            return collect();
+            /** @var Collection<string, Collection<int, NotificationDelivery>> $empty */
+            $empty = collect();
+
+            return $empty;
         }
 
-        return NotificationDelivery::query()
+        /** @var Collection<string, Collection<int, NotificationDelivery>> $grouped */
+        $grouped = NotificationDelivery::query()
             ->whereIn('notification_message_id', $messageIds)
             ->orderBy('created_at')
             ->get()
             ->groupBy(static fn (NotificationDelivery $delivery): string => (string) $delivery->notification_message_id);
+
+        return $grouped;
     }
 
     private function date(mixed $value, bool $endOfDay): ?CarbonImmutable
