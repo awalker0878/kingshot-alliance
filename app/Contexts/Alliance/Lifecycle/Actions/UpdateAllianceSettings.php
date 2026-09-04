@@ -58,7 +58,7 @@ final readonly class UpdateAllianceSettings
 
             if (Alliance::query()
                 ->where('slug', $slug)
-                ->whereKeyNot($context->alliance->id)
+                ->where('id', '<>', (string) $context->alliance->id)
                 ->lockForUpdate()
                 ->exists()) {
                 throw ValidationException::withMessages(['slug' => 'This Alliance URL name is already in use.']);
