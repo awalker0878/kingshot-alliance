@@ -7,6 +7,7 @@ namespace App\Contexts\Alliance\Access\Models;
 use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Shared\Infrastructure\Access\Models\Permission;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -20,8 +21,8 @@ use Illuminate\Support\Carbon;
  * @property string $name
  * @property bool $is_system
  * @property Carbon|null $archived_at
- * @property-read \Illuminate\Database\Eloquent\Collection<int, Permission> $permissions
- * @property-read \Illuminate\Database\Eloquent\Collection<int, AllianceMembership> $memberships
+ * @property-read Collection<int, Permission> $permissions
+ * @property-read Collection<int, AllianceMembership> $memberships
  */
 final class Role extends Model
 {
