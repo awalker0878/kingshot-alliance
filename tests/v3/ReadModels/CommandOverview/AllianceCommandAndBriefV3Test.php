@@ -7,7 +7,7 @@ namespace Tests\v3\ReadModels\CommandOverview;
 use App\Contexts\Alliance\Membership\Enums\AllianceRank;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
-use App\Contexts\Communications\Delivery\Models\NotificationDelivery;
+use App\Contexts\Communications\Delivery\Models\NotificationMessage;
 use App\ReadModels\CommandOverview\Queries\AllianceCommandQuery;
 use App\ReadModels\CommandOverview\Queries\OfficerBriefQuery;
 use App\ReadModels\CommandOverview\Services\OfficerBriefNotificationPublisher;
@@ -113,19 +113,20 @@ final class AllianceCommandAndBriefV3Test extends TestCase
             $first[0],
         );
 
+        self::assertSame($one->messageId, $two->messageId);
         self::assertSame($one->deliveryIds, $two->deliveryIds);
-        self::assertSame(1, NotificationDelivery::query()
+        self::assertSame(1, NotificationMessage::query()
             ->where('notification_type', OfficerBriefNotificationPublisher::NOTIFICATION_TYPE)
             ->count());
-        $delivery = NotificationDelivery::query()
+        $message = NotificationMessage::query()
             ->where('notification_type', OfficerBriefNotificationPublisher::NOTIFICATION_TYPE)
             ->firstOrFail();
-        $metadata = is_array($delivery->metadata) ? $delivery->metadata : [];
+        $metadata = is_array($message->metadata) ? $message->metadata : [];
 
-        self::assertSame('Daily Officer Brief', $metadata['title'] ?? null);
-        self::assertSame('/', $metadata['action_url'] ?? null);
+        self::assertSame('Daily Officer Brief', $message->title);
+        self::assertSame('/', $message->action_url);
         self::assertSame($alliance->allianceId, $metadata['alliance_id'] ?? null);
-        self::assertStringContainsString('owner:', (string) ($metadata['body'] ?? ''));
+        self::assertStringContainsString('owner:', (string) $message->body);
 
         $changedBrief = $first[0];
         $changedBrief['fingerprint'] = hash('sha256', 'changed-daily-brief');
@@ -135,7 +136,7 @@ final class AllianceCommandAndBriefV3Test extends TestCase
             $alliance->allianceId,
             $changedBrief,
         );
-        self::assertSame(2, NotificationDelivery::query()
+        self::assertSame(2, NotificationMessage::query()
             ->where('notification_type', OfficerBriefNotificationPublisher::NOTIFICATION_TYPE)
             ->count());
 
@@ -153,8 +154,9 @@ final class AllianceCommandAndBriefV3Test extends TestCase
             $changedBrief,
             'daily:2026-08-29',
         );
+        self::assertSame($dailyOne->messageId, $dailyChanged->messageId);
         self::assertSame($dailyOne->deliveryIds, $dailyChanged->deliveryIds);
-        self::assertSame(3, NotificationDelivery::query()
+        self::assertSame(3, NotificationMessage::query()
             ->where('notification_type', OfficerBriefNotificationPublisher::NOTIFICATION_TYPE)
             ->count());
 
