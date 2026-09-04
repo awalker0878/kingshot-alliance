@@ -54,22 +54,21 @@ final readonly class NotificationDeliveryService
             $inApp = $deliveries->first(
                 static fn (NotificationDelivery $delivery): bool => $delivery->channel === DeliveryChannel::InApp,
             );
+            $deliveryIds = array_values($deliveries
+                ->map(static fn (NotificationDelivery $delivery): string => (string) $delivery->id)
+                ->values()
+                ->all());
+            $channels = array_values($deliveries
+                ->map(static fn (NotificationDelivery $delivery): string => $delivery->channel->value)
+                ->unique()
+                ->values()
+                ->all());
 
             return new NotificationQueueReceipt(
                 messageId: (string) $message->id,
-                deliveryIds: $deliveries
-                    ->map(static fn (NotificationDelivery $delivery): string => (string) $delivery->id)
-                    ->all(),
-                channels: $deliveries
-                    ->map(static fn (NotificationDelivery $delivery): string => $delivery->channel->value)
-                    ->unique()
-                    ->values()
-                    ->all(),
-                createdDeliveryIds: $createdMessage
-                    ? $deliveries
-                        ->map(static fn (NotificationDelivery $delivery): string => (string) $delivery->id)
-                        ->all()
-                    : [],
+                deliveryIds: $deliveryIds,
+                channels: $channels,
+                createdDeliveryIds: $createdMessage ? $deliveryIds : [],
                 createdMessage: $createdMessage,
                 inAppDeliveryId: $inApp instanceof NotificationDelivery ? (string) $inApp->id : null,
             );
