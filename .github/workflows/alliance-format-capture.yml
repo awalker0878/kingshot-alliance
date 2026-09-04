@@ -1,0 +1,74 @@
+name: Alliance Format Capture
+
+on:
+  push:
+    branches:
+      - alliance-capability-expansion
+
+permissions:
+  contents: read
+
+jobs:
+  format:
+    name: Capture Prettier output
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Configure Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install locked frontend dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Format Alliance expansion frontend
+        run: |
+          npx prettier --write \
+            resources/js/components/Alliance/RoleAdminPanel.vue \
+            resources/js/components/Alliance/RosterReconciliationPanel.vue \
+            resources/js/components/AllianceSettingsTabs.vue \
+            resources/js/components/Membership/BulkRankAndRolePanel.vue \
+            resources/js/pages/Alliance/History/Index.vue \
+            resources/js/pages/Alliance/Settings/Index.vue \
+            resources/js/pages/Alliance/Settings/Roles.vue \
+            resources/js/pages/Alliance/Settings/RosterReconciliation.vue \
+            resources/js/pages/Alliance/Settings/SettingsForm.vue \
+            resources/js/pages/Alliance/Settings/SettingsIdentity.vue \
+            resources/js/pages/Alliance/Settings/SettingsLocalization.vue \
+            resources/js/pages/Alliance/Settings/SettingsNavigation.vue \
+            resources/js/pages/Alliance/Settings/SettingsRoles.vue \
+            resources/js/pages/Alliance/Settings/SettingsRoster.vue \
+            resources/js/pages/Alliance/Settings/TenantControls.vue \
+            resources/js/pages/Alliance/Members/BulkManagement.vue \
+            resources/js/pages/Alliance/Members/History.vue
+
+      - name: Upload exact formatted files
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: alliance-formatted-frontend
+          path: |
+            resources/js/components/Alliance/RoleAdminPanel.vue
+            resources/js/components/Alliance/RosterReconciliationPanel.vue
+            resources/js/components/AllianceSettingsTabs.vue
+            resources/js/components/Membership/BulkRankAndRolePanel.vue
+            resources/js/pages/Alliance/History/Index.vue
+            resources/js/pages/Alliance/Settings/Index.vue
+            resources/js/pages/Alliance/Settings/Roles.vue
+            resources/js/pages/Alliance/Settings/RosterReconciliation.vue
+            resources/js/pages/Alliance/Settings/SettingsForm.vue
+            resources/js/pages/Alliance/Settings/SettingsIdentity.vue
+            resources/js/pages/Alliance/Settings/SettingsLocalization.vue
+            resources/js/pages/Alliance/Settings/SettingsNavigation.vue
+            resources/js/pages/Alliance/Settings/SettingsRoles.vue
+            resources/js/pages/Alliance/Settings/SettingsRoster.vue
+            resources/js/pages/Alliance/Settings/TenantControls.vue
+            resources/js/pages/Alliance/Members/BulkManagement.vue
+            resources/js/pages/Alliance/Members/History.vue
+          if-no-files-found: error
+          retention-days: 1
