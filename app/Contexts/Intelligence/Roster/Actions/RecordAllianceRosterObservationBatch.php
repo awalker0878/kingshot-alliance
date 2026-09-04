@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Roster\Actions;
 
-use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
+use App\Contexts\Alliance\Membership\Queries\RosterEntryQuery;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceWriteState;
 use App\Contexts\Intelligence\Roster\Models\AllianceRosterObservation;
@@ -20,11 +20,12 @@ final readonly class RecordAllianceRosterObservationBatch
 {
     public function __construct(
         private AllianceIntelligenceWriteState $writeState,
+        private RosterEntryQuery $rosterEntries,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
 
-    /** @param list<array<string,mixed>> $rows */
+    /** @param list<array<string, mixed>> $rows */
     public function handle(
         string $actorPlayerId,
         string $allianceId,
@@ -51,6 +52,15 @@ final readonly class RecordAllianceRosterObservationBatch
                 return new AllianceRosterObservationBatchReceipt((string) $existing->id, (int) $existing->observations_count);
             }
 
+            $rosterEntryIds = [];
+            foreach ($rows as $row) {
+                $rosterEntryId = $row['roster_entry_id'] ?? null;
+                if ($rosterEntryId !== null && (string) $rosterEntryId !== '') {
+                    $rosterEntryIds[] = (string) $rosterEntryId;
+                }
+            }
+            $knownRosterEntries = $this->rosterEntries->byIds($allianceId, $rosterEntryIds);
+
             $captured = Carbon::parse($capturedAt);
             $batch = AllianceRosterObservationBatch::query()->create([
                 'alliance_id' => $allianceId,
@@ -64,8 +74,10 @@ final readonly class RecordAllianceRosterObservationBatch
             ]);
 
             foreach ($rows as $index => $row) {
-                $rosterEntryId = isset($row['roster_entry_id']) && $row['roster_entry_id'] !== null ? (string) $row['roster_entry_id'] : null;
-                if ($rosterEntryId !== null && ! AllianceRosterEntry::query()->whereKey($rosterEntryId)->where('alliance_id', $allianceId)->exists()) {
+                $rosterEntryId = isset($row['roster_entry_id']) && (string) $row['roster_entry_id'] !== ''
+                    ? (string) $row['roster_entry_id']
+                    : null;
+                if ($rosterEntryId !== null && ! isset($knownRosterEntries[$rosterEntryId])) {
                     throw ValidationException::withMessages(["rows.{$index}.roster_entry_id" => 'The reviewed roster link no longer belongs to this Alliance.']);
                 }
 
