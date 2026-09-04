@@ -124,7 +124,9 @@ final readonly class ProcessNotificationDeliveries
                 }
             }
 
-            $routingPlayerId = $endpoint?->player_id ?? $message->player_id;
+            $routingPlayerId = $endpoint instanceof NotificationEndpoint
+                ? $endpoint->player_id
+                : $message->player_id;
             if ($routingPlayerId !== null
                 && $this->players->findOwnedByUser((int) $message->recipient_user_id, $routingPlayerId) === null) {
                 $this->cancel($delivery, 'The notification Governor is no longer owned by this account.');
