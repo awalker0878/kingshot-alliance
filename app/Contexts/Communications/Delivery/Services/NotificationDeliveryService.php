@@ -93,6 +93,7 @@ final readonly class NotificationDeliveryService
                 'channel' => $route->channel->value,
                 'notification_endpoint_id' => $route->endpointId,
                 'route_target_label' => $route->targetLabel,
+                'digest_cadence' => $route->digestCadence->value,
                 'due_at' => $route->dueAt,
                 'status' => $isInApp ? DeliveryStatus::Sent->value : DeliveryStatus::Queued->value,
                 'attempt_count' => 0,
