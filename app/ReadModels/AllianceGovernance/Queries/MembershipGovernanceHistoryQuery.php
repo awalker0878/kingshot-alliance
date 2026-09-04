@@ -44,26 +44,26 @@ final readonly class MembershipGovernanceHistoryQuery
         $actorRefs = $this->players->byIds($actorIds);
 
         return $rows->map(static function (AuditEvent $event) use ($actorRefs): array {
-            $actorId = $event->actor_player_id === null ? null : (string) $event->actor_player_id;
+            $actorId = $event->actor_player_id;
             $actor = $actorId === null ? null : ($actorRefs[$actorId] ?? null);
 
             return [
-                'id' => (string) $event->id,
-                'type' => (string) $event->event,
-                'occurredAt' => $event->created_at?->toIso8601String(),
+                'id' => $event->id,
+                'type' => $event->event,
+                'occurredAt' => $event->created_at->toIso8601String(),
                 'actor' => $actorId === null ? null : [
                     'playerId' => $actorId,
-                    'name' => $actor?->currentName ?? 'Unknown Governor',
+                    'name' => $actor === null ? 'Unknown Governor' : $actor->currentName,
                 ],
-                'metadata' => $event->metadata ?? [],
+                'metadata' => $event->metadata,
                 'source' => 'audit',
             ];
-        })->all();
+        })->values()->all();
     }
 
     private function touchesPlayer(AuditEvent $event, string $playerId): bool
     {
-        $metadata = $event->metadata ?? [];
+        $metadata = $event->metadata;
         foreach ([
             'player_id',
             'target_player_id',
