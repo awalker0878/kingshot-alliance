@@ -48,6 +48,7 @@ final class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'applicationName' => config('app.name'),
+            'webPushPublicKey' => config('services.webpush.public_key'),
             'actionReceipt' => fn (): mixed => $request->session()->get(ActionReceipt::SESSION_KEY),
             'playerContext' => fn (): array => $this->playerContextPayload($request),
         ];
