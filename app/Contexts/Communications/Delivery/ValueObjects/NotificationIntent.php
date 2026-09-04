@@ -11,8 +11,8 @@ use DateTimeInterface;
 final readonly class NotificationIntent
 {
     /**
-     * @param array<string,mixed> $metadata
-     * @param list<string> $eligiblePlayerIds
+     * @param  array<string,mixed>  $metadata
+     * @param  list<string>  $eligiblePlayerIds
      */
     public function __construct(
         public string $notificationType,
@@ -32,8 +32,8 @@ final readonly class NotificationIntent
     ) {}
 
     /**
-     * @param array<string,mixed> $metadata
-     * @param list<string> $eligiblePlayerIds
+     * @param  array<string,mixed>  $metadata
+     * @param  list<string>  $eligiblePlayerIds
      */
     public static function fromScalars(
         string $notificationType,
