@@ -43,6 +43,8 @@ final readonly class SaveNotificationEndpoint
         $configuration = $this->validator->validate($channel, $configuration);
 
         return DB::transaction(function () use ($recipientUserId, $playerId, $channel, $label, $configuration): string {
+            // The locked Governor row serializes endpoint mutations for this scope,
+            // so the cap check remains race-safe without applying FOR UPDATE to an aggregate.
             $actor = $this->players->lockCurrent($playerId);
             if ($actor->userId !== $recipientUserId) {
                 throw ValidationException::withMessages(['player' => 'The active Governor no longer belongs to this account.']);
@@ -51,7 +53,6 @@ final readonly class SaveNotificationEndpoint
             $endpointCount = NotificationEndpoint::query()
                 ->where('recipient_user_id', $recipientUserId)
                 ->where('player_id', $playerId)
-                ->lockForUpdate()
                 ->count();
             if ($endpointCount >= self::MAX_ENDPOINTS_PER_GOVERNOR) {
                 throw ValidationException::withMessages([
