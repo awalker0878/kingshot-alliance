@@ -7,7 +7,21 @@ namespace App\Shared\Infrastructure\AuditTrail\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property string $id
+ * @property string|null $alliance_id
+ * @property string|null $actor_user_id
+ * @property string|null $actor_player_id
+ * @property string $event
+ * @property class-string<Model>|string $subject_type
+ * @property string $subject_id
+ * @property array<string, mixed> $metadata
+ * @property string|null $request_id
+ * @property string|null $trace_id
+ * @property Carbon $created_at
+ */
 final class AuditEvent extends Model
 {
     use HasUlids;
