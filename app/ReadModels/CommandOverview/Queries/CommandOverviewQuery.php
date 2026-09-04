@@ -24,8 +24,8 @@ use App\Contexts\Operations\Events\Queries\EventAttentionQuery;
 use App\Contexts\Operations\Events\Queries\EventCalendarQuery;
 use App\Contexts\Operations\Events\Services\EventAuthorization;
 use App\ReadModels\IntelligenceSignals\Queries\IntelligenceSignalQuery;
-use Illuminate\Database\Query\Builder;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 
 final readonly class CommandOverviewQuery
 {
@@ -130,18 +130,18 @@ final readonly class CommandOverviewQuery
             ->where('recipient_user_id', $userId)
             ->whereNull('read_at')
             ->whereNull('archived_at')
-            ->where(static fn ($query) => $query
+            ->where(static fn (Builder $query) => $query
                 ->whereNull('player_id')
                 ->orWhere('player_id', $playerId))
-            ->whereExists(static function (Builder $query): void {
+            ->whereExists(static function (QueryBuilder $query): void {
                 $query->selectRaw('1')
                     ->from('notification_deliveries')
                     ->whereColumn('notification_deliveries.notification_message_id', 'notification_messages.id')
-                    ->where(static fn (Builder $delivery) => $delivery
-                        ->where(static fn (Builder $inApp) => $inApp
+                    ->where(static fn (QueryBuilder $delivery) => $delivery
+                        ->where(static fn (QueryBuilder $inApp) => $inApp
                             ->where('channel', DeliveryChannel::InApp->value)
                             ->where('status', DeliveryStatus::Sent->value))
-                        ->orWhere(static fn (Builder $failed) => $failed
+                        ->orWhere(static fn (QueryBuilder $failed) => $failed
                             ->where('channel', '!=', DeliveryChannel::InApp->value)
                             ->where('status', DeliveryStatus::Failed->value)));
             })
