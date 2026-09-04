@@ -34,6 +34,7 @@ final readonly class SaveAllianceRosterEvidenceReview
         string $evidenceId,
         string $capturedAt,
         array $rows,
+        bool $completeRoster = false,
         bool $allowSemanticDuplicate = false,
     ): string {
         if ($rows === []) {
@@ -48,10 +49,11 @@ final readonly class SaveAllianceRosterEvidenceReview
         $fingerprint = hash('sha256', json_encode([
             'schema' => 'alliance-roster-v1',
             'captured_at' => $captured->toIso8601String(),
+            'complete_roster' => $completeRoster,
             'rows' => $normalized,
         ], JSON_THROW_ON_ERROR));
 
-        return DB::transaction(function () use ($actorPlayerId, $allianceId, $evidenceId, $captured, $normalized, $fingerprint, $allowSemanticDuplicate): string {
+        return DB::transaction(function () use ($actorPlayerId, $allianceId, $evidenceId, $captured, $normalized, $completeRoster, $fingerprint, $allowSemanticDuplicate): string {
             [, $actor] = $this->writeState->authorize($actorPlayerId, $allianceId, IntelligencePermission::KingdomManage);
             $evidence = AllianceRosterEvidence::query()
                 ->whereKey($evidenceId)
@@ -83,7 +85,7 @@ final readonly class SaveAllianceRosterEvidenceReview
                 'revision_number' => $revision,
                 'status' => $status,
                 'captured_at' => $captured,
-                'payload' => ['rows' => $normalized],
+                'payload' => ['complete_roster' => $completeRoster, 'rows' => $normalized],
                 'semantic_fingerprint' => $fingerprint,
                 'semantic_duplicate_review_id' => $duplicate?->id,
                 'duplicate_resolution' => $duplicate instanceof AllianceRosterEvidenceReview && $allowSemanticDuplicate
@@ -105,6 +107,7 @@ final readonly class SaveAllianceRosterEvidenceReview
                 'revision' => $revision,
                 'status' => $status->value,
                 'row_count' => count($normalized),
+                'complete_roster' => $completeRoster,
                 'captured_at' => $captured->toIso8601String(),
                 'semantic_duplicate_review_id' => $duplicate?->id,
             ];
