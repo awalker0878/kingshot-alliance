@@ -6,17 +6,19 @@ on:
       - alliance-capability-expansion
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   format:
-    name: Capture Prettier output
+    name: Apply Prettier output
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
     steps:
       - name: Check out repository
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: alliance-capability-expansion
 
       - name: Configure Node.js
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
@@ -27,18 +29,24 @@ jobs:
       - name: Install locked frontend dependencies
         run: npm ci --no-audit --no-fund
 
-      - name: Format Alliance expansion frontend
+      - name: Format remaining Alliance expansion frontend
         run: |
           npx prettier --write \
             resources/js/pages/Alliance/Overview.vue \
             resources/js/pages/Intelligence/Roster/History.vue
 
-      - name: Upload exact formatted files
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: alliance-formatted-frontend
-          path: |
-            resources/js/pages/Alliance/Overview.vue
+      - name: Commit exact formatter output
+        run: |
+          if git diff --quiet -- \
+            resources/js/pages/Alliance/Overview.vue \
+            resources/js/pages/Intelligence/Roster/History.vue; then
+            echo "No formatting changes remain."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            resources/js/pages/Alliance/Overview.vue \
             resources/js/pages/Intelligence/Roster/History.vue
-          if-no-files-found: error
-          retention-days: 1
+          git commit -m "Fix Alliance frontend formatting"
+          git push origin HEAD:alliance-capability-expansion
