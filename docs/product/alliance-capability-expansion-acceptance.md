@@ -1,6 +1,6 @@
 # Alliance Capability Expansion — Acceptance
 
-Status: Implementation complete — final verification in progress
+Status: Current complete capability
 
 ## ACE-01 Documentation and ownership
 
@@ -83,4 +83,4 @@ Status: Implementation complete — final verification in progress
 - CodeQL and dependency review pass.
 - Clean-database/fresh-schema execution passes.
 - Relevant production image/container, staging and backup/restore gates pass where required by repository policy.
-- Delivery ledger and capability catalogue are reconciled to the exact verified candidate before promotion to current complete.
+- Delivery ledger and capability catalogue are reconciled in the final closeout candidate; the commit containing the completion status must itself pass all required repository gates before merge.
