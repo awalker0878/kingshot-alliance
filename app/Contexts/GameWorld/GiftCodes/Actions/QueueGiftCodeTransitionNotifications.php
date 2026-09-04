@@ -47,6 +47,7 @@ final readonly class QueueGiftCodeTransitionNotifications
         };
         if (! $currentRevision || ! $currentlyEligible) {
             $campaign->forceFill(['completed_at' => now()])->save();
+
             return $this->result($startedAt, skipped: 1);
         }
 
@@ -66,11 +67,13 @@ final readonly class QueueGiftCodeTransitionNotifications
             $account = $accounts[$userId] ?? null;
             if ($account === null || $account->anonymized) {
                 $skipped++;
+
                 continue;
             }
             $governors = $this->eligibleGovernors($userId, (string) $giftCode->id, $campaign->notification_type);
             if ($governors === []) {
                 $skipped++;
+
                 continue;
             }
             $eligible++;
@@ -118,6 +121,7 @@ final readonly class QueueGiftCodeTransitionNotifications
         ])->save();
         $result = $this->result($startedAt, count($userIds), $eligible, $deliveryCount, $created, $skipped, $truncated ? (string) $lastUserId : null, $truncated);
         Log::info('gift_codes.transition_notification_sweep', [...$result->toArray(), 'campaign_id' => (string) $campaign->id, 'notification_type' => $campaign->notification_type]);
+
         return $result;
     }
 
@@ -129,11 +133,13 @@ final readonly class QueueGiftCodeTransitionNotifications
             return [];
         }
         $redemptions = GiftCodeRedemption::query()->where('gift_code_id', $giftCodeId)->whereIn('player_id', array_map(static fn (PlayerReference $player): string => $player->playerId, $governors))->get()->keyBy('player_id');
+
         return array_values(array_filter($governors, static function (PlayerReference $player) use ($redemptions, $notificationType): bool {
             $redemption = $redemptions->get($player->playerId);
             if ($notificationType === ScheduleGiftCodeNotificationCampaign::TRUST_CHANGED) {
                 return $redemption instanceof GiftCodeRedemption;
             }
+
             return $player->gamePlayerId !== null && (! $redemption instanceof GiftCodeRedemption || ! in_array($redemption->status, [GiftCodeRedemptionStatus::Redeemed, GiftCodeRedemptionStatus::AlreadyRedeemed], true));
         }));
     }
