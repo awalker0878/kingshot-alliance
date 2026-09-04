@@ -157,6 +157,7 @@ const endpointForm = useForm({
   p256dh: '',
   auth: '',
 });
+const endpointRemovalForm = useForm({});
 const webPushBusy = ref(false);
 const webPushError = ref<string | null>(null);
 const endpointToRemove = ref<Endpoint | null>(null);
@@ -281,7 +282,7 @@ function reverifyEndpoint(endpoint: Endpoint): void {
 }
 function removeEndpoint(): void {
   if (!endpointToRemove.value) return;
-  router.delete(`/notifications/endpoints/${endpointToRemove.value.id}`, {
+  endpointRemovalForm.delete(`/notifications/endpoints/${endpointToRemove.value.id}`, {
     preserveScroll: true,
     onFinish: () => (endpointToRemove.value = null),
   });
@@ -1251,6 +1252,7 @@ async function enableWebPush(): Promise<void> {
       :description="endpointToRemove?.label ?? ''"
       :confirm-label="t('notifications.remove')"
       :cancel-label="t('common.cancel')"
+      :busy="endpointRemovalForm.processing"
       danger
       @confirm="removeEndpoint"
       @cancel="endpointToRemove = null"
