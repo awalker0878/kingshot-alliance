@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Contexts\Alliance\Access\Providers;
 
 use App\Contexts\Alliance\Access\Http\Controllers\AllianceRoleController;
+use App\Contexts\Alliance\Access\Http\Controllers\BulkMembershipRoleController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 
@@ -25,6 +26,10 @@ final class AccessServiceProvider extends ServiceProvider
                     Route::delete('/alliance/roles/{role}', [AllianceRoleController::class, 'destroy'])
                         ->whereUlid('role')
                         ->name('alliance.roles.destroy');
+                    Route::post('/alliance/memberships/bulk-role/preview', [BulkMembershipRoleController::class, 'preview'])
+                        ->name('alliance.memberships.bulk-role.preview');
+                    Route::post('/alliance/memberships/bulk-role', [BulkMembershipRoleController::class, 'commit'])
+                        ->name('alliance.memberships.bulk-role.commit');
                 });
             });
     }
