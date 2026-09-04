@@ -27,7 +27,7 @@ const messages = {
       sendResetLink: 'Send recovery instructions',
       resetTitle: 'Set a new password',
       resetSubmit: 'Reset password',
-      confirmTitle: 'Confirm your password',
+      confirmTitle: "Confirm it's you",
     },
     verification: {
       title: 'Verify your email address',
@@ -47,7 +47,20 @@ const messages = {
   authExperience: {
     social: {
       continueWithGoogle: 'Continue with Google',
+      createWithGoogle: 'Create Kingshot Alliance account with Google',
       or: 'or',
+    },
+    passkeys: {
+      signIn: 'Sign in with a passkey',
+      authenticating: 'Checking passkey…',
+    },
+    confirm: {
+      title: "Confirm it's you",
+      description:
+        'Use one of your attached sign-in methods before continuing with this sensitive account change.',
+      usePassword: 'Confirm with password',
+      useGoogle: 'Confirm with Google',
+      usePasskey: 'Confirm with a passkey',
     },
     shell: {
       headline: 'Built for Alliance leadership.',
@@ -85,11 +98,11 @@ const messages = {
       backToSignIn: 'Back to sign in',
       recoveryKicker: 'ACCOUNT RECOVERY',
       recoveryNeutral:
-        'If an eligible password account exists for that email, we will send secure password-reset instructions.',
+        'If an eligible password credential exists for that email, we will send secure password-reset instructions.',
       checkInboxKicker: 'CHECK YOUR INBOX',
       checkInboxHeading: 'Recovery instructions requested',
       checkInboxDescription:
-        'If an eligible password account exists for the address you entered, password-reset instructions have been sent. For security, we cannot confirm whether an account exists or how it signs in.',
+        'If an eligible password credential exists for the address you entered, password-reset instructions have been sent. For security, we cannot confirm whether an account exists or which methods it uses.',
       resetKicker: 'SECURE PASSWORD RESET',
       resetIntro: 'Choose a new Kingshot Alliance password for the account below.',
       accountEmail: 'Account email',
@@ -104,7 +117,7 @@ const messages = {
       newPassword: 'New password',
       confirmNewPassword: 'Confirm new password',
       confirmDescription:
-        'This changes protected Alliance access, so confirm your password before continuing.',
+        'This changes protected Alliance access, so confirm your identity before continuing.',
     },
     verification: {
       kicker: 'EMAIL VERIFICATION',

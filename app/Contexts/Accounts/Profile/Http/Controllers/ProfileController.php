@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace App\Contexts\Accounts\Profile\Http\Controllers;
 
 use App\Contexts\Accounts\Authentication\Actions\RevokeOtherAccountSessions;
+use App\Contexts\Accounts\Authentication\Models\AccountPasskey;
 use App\Contexts\Accounts\Authentication\Models\AccountSession;
-use App\Contexts\Accounts\Identity\Enums\AuthenticationType;
+use App\Contexts\Accounts\Authentication\Services\AccountSignInMethodPolicy;
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Accounts\Profile\Actions\ChangePassword;
 use App\Contexts\Accounts\Profile\Actions\UpdateProfile;
@@ -20,8 +21,11 @@ use Inertia\Response;
 
 final class ProfileController extends Controller
 {
-    public function show(Request $request, AccountSecurityActivityQuery $securityActivity): Response
-    {
+    public function show(
+        Request $request,
+        AccountSecurityActivityQuery $securityActivity,
+        AccountSignInMethodPolicy $signInMethods,
+    ): Response {
         $user = $request->user();
         abort_unless($user instanceof User, 401);
 
@@ -44,9 +48,22 @@ final class ProfileController extends Controller
             ->values()
             ->all();
 
-        $googleIdentity = $user->authentication_type === AuthenticationType::Google
-            ? $user->accountIdentities()->where('provider', AuthenticationType::Google->value)->first()
-            : null;
+        $methodSummary = $signInMethods->summary($user);
+        $googleIdentity = $user->accountIdentities()->where('provider', 'google')->first();
+        $passkeys = AccountPasskey::query()
+            ->where('user_id', $user->id)
+            ->latest('created_at')
+            ->get()
+            ->map(fn (AccountPasskey $passkey): array => [
+                'id' => (string) $passkey->public_id,
+                'name' => (string) $passkey->name,
+                'authenticator' => $passkey->authenticator,
+                'createdAt' => $passkey->created_at?->toIso8601String(),
+                'lastUsedAt' => $passkey->last_used_at?->toIso8601String(),
+                'canRemove' => $signInMethods->canRemovePasskey($user, (int) $passkey->id),
+            ])
+            ->values()
+            ->all();
         $recoveryCodes = $user->two_factor_recovery_codes;
 
         return Inertia::render('Accounts/Governor/Profile', [
@@ -57,14 +74,22 @@ final class ProfileController extends Controller
                 'pendingEmail' => $user->pending_email,
                 'pendingEmailRequestedAt' => $user->pending_email_requested_at?->toIso8601String(),
                 'timezone' => $user->timezone,
-                'authenticationType' => $user->authentication_type->value,
-                'passwordAuthentication' => $user->supportsPasswordAuthentication(),
-                'googleAuthentication' => $user->supportsGoogleAuthentication(),
+                'passwordAuthentication' => $methodSummary['password'],
+                'googleAuthentication' => $methodSummary['google'],
+                'passkeyAuthentication' => $methodSummary['passkeys'] > 0,
+                'passkeyCount' => $methodSummary['passkeys'],
+                'signInMethodCount' => $methodSummary['count'],
+                'canRemovePassword' => $signInMethods->canRemovePassword($user),
+                'canDisconnectGoogle' => $signInMethods->canDisconnectGoogle($user),
                 'providerEmail' => $googleIdentity?->provider_email,
                 'twoFactorEnabled' => $user->two_factor_confirmed_at !== null,
                 'twoFactorPending' => $user->two_factor_secret !== null && $user->two_factor_confirmed_at === null,
                 'recoveryCodeCount' => is_array($recoveryCodes) ? count($recoveryCodes) : 0,
             ],
+            'passkeys' => $passkeys,
+            'googleAuthEnabled' => filled(config('services.google.client_id'))
+                && filled(config('services.google.client_secret'))
+                && filled(config('services.google.redirect')),
             'sessions' => $sessions,
             'securityActivity' => $securityActivity->forUser((int) $user->id),
             'twoFactorSetup' => $request->session()->get('two_factor_setup'),

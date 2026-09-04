@@ -17,7 +17,6 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('pending_email')->nullable()->unique();
             $table->timestamp('pending_email_requested_at')->nullable();
-            $table->string('authentication_type', 16);
             $table->string('password')->nullable();
             $table->string('timezone', 64)->default('UTC');
             $table->text('two_factor_secret')->nullable();
@@ -43,6 +42,19 @@ return new class extends Migration
             $table->unique(['provider', 'provider_subject']);
             $table->unique(['user_id', 'provider']);
             $table->index(['provider', 'provider_email']);
+        });
+
+        Schema::create('passkeys', function (Blueprint $table): void {
+            $table->id();
+            $table->uuid('public_id')->unique();
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+            $table->string('name', 100);
+            $table->string('credential_id')->unique();
+            $table->json('credential');
+            $table->timestamp('last_used_at')->nullable();
+            $table->timestamps();
+
+            $table->index('user_id');
         });
 
         Schema::create('account_sessions', function (Blueprint $table): void {
@@ -74,6 +86,7 @@ return new class extends Migration
     {
         Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('account_sessions');
+        Schema::dropIfExists('passkeys');
         Schema::dropIfExists('account_identities');
         Schema::dropIfExists('users');
     }

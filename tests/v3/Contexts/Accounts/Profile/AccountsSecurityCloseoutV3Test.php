@@ -16,14 +16,13 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
-use Illuminate\Validation\ValidationException;
 use Tests\v3\TestCase;
 
 final class AccountsSecurityCloseoutV3Test extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_password_email_change_stays_pending_until_signed_verification(): void
+    public function test_account_email_change_stays_pending_until_signed_verification(): void
     {
         $user = User::factory()->create([
             'email' => 'current@example.test',
@@ -31,7 +30,7 @@ final class AccountsSecurityCloseoutV3Test extends TestCase
         ]);
 
         $this->actingAs($user)
-            ->withSession(['auth.password_confirmed_at' => now()->timestamp])
+            ->withSession(['accounts.recent_authentication_at' => now()->timestamp])
             ->patch('/profile/security/email', ['email' => 'next@example.test'])
             ->assertRedirect();
 
@@ -58,34 +57,28 @@ final class AccountsSecurityCloseoutV3Test extends TestCase
         ]);
     }
 
-    public function test_google_provider_email_updates_contact_email_without_relinking_subject(): void
+    public function test_google_provider_email_is_metadata_and_never_replaces_account_email(): void
     {
-        $user = User::factory()->google()->create(['email' => 'old-google@example.test']);
+        $user = User::factory()->withoutPassword()->create(['email' => 'account@example.test']);
         $identity = AccountIdentity::query()->create([
             'user_id' => $user->id,
             'provider' => 'google',
             'provider_subject' => 'stable-google-subject',
-            'provider_email' => 'old-google@example.test',
+            'provider_email' => 'old-provider@example.test',
             'provider_email_verified_at' => now(),
             'linked_at' => now(),
             'last_used_at' => now(),
         ]);
 
-        $action = app(RecordAccountIdentityUse::class);
-        $action->handle($identity->id, 'updated-google@example.test', true);
+        app(RecordAccountIdentityUse::class)->handle(
+            $identity->id,
+            'updated-provider@example.test',
+            true,
+        );
 
-        self::assertSame('updated-google@example.test', $user->refresh()->email);
+        self::assertSame('account@example.test', $user->refresh()->email);
         self::assertSame('stable-google-subject', $identity->refresh()->provider_subject);
-
-        User::factory()->create(['email' => 'collision@example.test']);
-
-        try {
-            $action->handle($identity->id, 'collision@example.test', true);
-            self::fail('Expected verified provider-email collision to fail safely.');
-        } catch (ValidationException) {
-            self::assertSame('updated-google@example.test', $user->refresh()->email);
-            self::assertSame('stable-google-subject', $identity->refresh()->provider_subject);
-        }
+        self::assertSame('updated-provider@example.test', $identity->provider_email);
     }
 
     public function test_account_security_alert_uses_communications_delivery(): void
@@ -134,15 +127,24 @@ final class AccountsSecurityCloseoutV3Test extends TestCase
 
     public function test_final_anonymization_invalidates_every_account_authentication_surface(): void
     {
-        $user = User::factory()->google()->create(['email' => 'delete-me@example.test']);
+        $user = User::factory()->create(['email' => 'delete-me@example.test']);
         AccountIdentity::query()->create([
             'user_id' => $user->id,
             'provider' => 'google',
             'provider_subject' => 'delete-subject',
-            'provider_email' => $user->email,
+            'provider_email' => 'provider-delete@example.test',
             'provider_email_verified_at' => now(),
             'linked_at' => now(),
             'last_used_at' => now(),
+        ]);
+        DB::table('passkeys')->insert([
+            'public_id' => (string) Str::uuid(),
+            'user_id' => $user->id,
+            'name' => 'Deletion test passkey',
+            'credential_id' => 'test-credential-id',
+            'credential' => json_encode(['publicKeyCredentialSource' => 'test'], JSON_THROW_ON_ERROR),
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
         AccountSession::query()->create([
             'public_id' => (string) Str::uuid(),
@@ -171,6 +173,7 @@ final class AccountsSecurityCloseoutV3Test extends TestCase
         self::assertNull($user->two_factor_secret);
         self::assertSame(0, $user->accountIdentities()->count());
         self::assertSame(0, $user->tokens()->count());
+        self::assertSame(0, DB::table('passkeys')->where('user_id', $user->id)->count());
         self::assertSame(0, AccountSession::query()->where('user_id', $user->id)->count());
         $this->assertDatabaseMissing('password_reset_tokens', ['email' => 'delete-me@example.test']);
     }

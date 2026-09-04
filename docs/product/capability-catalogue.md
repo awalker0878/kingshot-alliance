@@ -1,6 +1,6 @@
 # Capability catalogue
 
-Status: Current — 2026-08-30
+Status: Current — 2026-09-02
 
 This is the user/product view of implemented capability groups and explicitly selected extensions. The **Program state** column prevents approved future work from being described as already implemented.
 
@@ -12,7 +12,7 @@ Program states are defined by the [Capability Extension Program](capability-exte
 
 | Product capability | Program state | Outcome | Architectural owner |
 | --- | --- | --- | --- |
-| Account security | Current complete capability | Register, authenticate, verify email, manage profile/password/MFA/recovery. | Accounts |
+| Account security | Current complete capability | Maintain one permanent Kingshot Alliance User with attached Password, Google and Passkey sign-in methods; verify/manage account email and profile; enforce method-agnostic recent authentication and last-method lockout protection; manage TOTP/recovery, sessions, Security Activity and account-side lifecycle invalidation. | Accounts; Communications owns outbound security delivery; Platform/DataGovernance owns deletion orchestration |
 | Player context | Current complete capability | Own/claim Players and operate as one active game persona at a time. | GameWorld/Players; workflows coordinate cross-context effects |
 | Gift Codes | Current complete capability | Derive revisioned global trust/expiry/reward/applicability from append-only governed evidence; moderate and ingest approved sources under platform authority; guide current/all/failed/selected owned Governors through official handoff; deliver revision-aware lifecycle notifications; and expose bounded catalogue/API/webhook reads. | GameWorld/GiftCodes owns catalogue/source/evidence/redemption policy; Communications owns deliveries; Platform/Integrations owns external contracts; ReadModels composes overview/API reads |
 | Factual Governor Progression | Current complete capability | Browse immutable, source-labelled KingShot progression releases across Heroes, gear, formations, buildings, research, Pets, Masters and discovered system caps while keeping source conflicts/unknowns visible; normalize observed Governor Heroes and pin saved loadouts to a factual release without introducing recommendations or calculators. | GameWorld/Progression owns catalogue truth; Intelligence/Roster owns observations; Operations/Rallies owns saved loadout intent |
@@ -60,6 +60,22 @@ Program states are defined by the [Capability Extension Program](capability-exte
 | Intelligence change signals | Current complete capability | Derive bounded, deterministic, source-cited change/staleness/expiry/trend signals from authorized owner histories for Command Overview, Kingdom Intelligence, Communications and Assistant without inventing strategic conclusions. | Applicable Intelligence/GameWorld/Operations/Alliance owners retain facts; ReadModels derives signals; Communications owns delivery when used |
 
 This catalogue changes when a real product outcome or approved implementation contract changes, not for internal class/file movement.
+
+## Account security product contract
+
+The delivered [Accounts Sign-In Methods & Credential Evolution](accounts-sign-in-methods.md) capability treats the Kingshot Alliance User as the permanent application identity and Password, Google and Passkeys as attached sign-in methods rather than mutually exclusive account types. Its current contract requires:
+
+- no `authentication_type` or equivalent primary-method discriminator in the fresh canonical schema;
+- one Accounts-owned policy that derives real credential availability and blocks removal of the final usable sign-in method;
+- Google identity keyed by stable `provider + provider_subject`, with provider email retained only as metadata and never used to silently link or merge Users;
+- intentional recent-authenticated Google connection/disconnection and local Password add/change/removal without identity conversion;
+- first-party maintained WebAuthn/passkey ceremonies with opaque user handles, required user verification, bounded challenges and account-scoped management;
+- method-agnostic recent authentication, with user-verifying passkeys not followed by redundant TOTP while Password/Google continue through TOTP when configured;
+- Security Center presentation of actual Password/Google/Passkey state, MFA/recovery, sessions and Security Activity without a primary-authentication-type concept;
+- account-side lifecycle invalidation of password/reset material, provider identities, passkeys, MFA material, sessions and pending authentication state;
+- Accounts retaining authentication/security meaning, Communications retaining outbound account-security delivery, and Platform/DataGovernance retaining deletion orchestration.
+
+Account merging, email-based identity consolidation, official Kingshot game authentication and game credential ownership remain outside Accounts.
 
 ## Intelligence Change Detection product contract
 

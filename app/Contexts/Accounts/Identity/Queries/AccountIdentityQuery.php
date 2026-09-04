@@ -57,8 +57,7 @@ final class AccountIdentityQuery
             && (string) $user->two_factor_secret !== '';
     }
 
-    /**
-     * @param  list<int>  $userIds
+    /** @param list<int> $userIds
      * @return array<int,AccountIdentity>
      */
     public function byIds(array $userIds): array

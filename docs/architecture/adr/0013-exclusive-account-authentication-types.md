@@ -1,6 +1,6 @@
 # ADR-0013: Use exclusive account authentication types and durable Google subjects
 
-Status: Accepted
+Status: Superseded by [ADR-0014](0014-account-sign-in-methods.md)
 
 Date: 2026-08-31
 
@@ -26,9 +26,7 @@ The application supports local password authentication and Google OAuth authenti
 
 ## Consequences
 
-- Account type is explicit and auditable rather than inferred from password presence.
-- Provider-subject persistence prevents email changes from becoming identity changes.
-- Recovery and settings UX can cleanly omit impossible controls.
-- Account-type conversion is not part of this program; adding it later requires a separate security decision.
-- Passkeys are deferred because adding them casually as another primary credential would reopen the hybrid-authentication model.
+- This decision describes the completed first Accounts expansion and remains historical evidence for why unsafe email linking and casual hybridization were prohibited.
+- [ADR-0014](0014-account-sign-in-methods.md) supersedes the exclusive-primary-authentication portion of this decision for the selected Sign-In Methods & Credential Evolution extension.
+- The durable Google-subject, no-email-linking, no-OAuth-token-persistence, third-party product-language and fresh-schema boundaries remain in force under ADR-0014.
 - Accounts remains separate from GameWorld/Players, Alliance and Kingdom/game authority.

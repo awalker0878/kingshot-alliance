@@ -1,18 +1,20 @@
 # Accounts Expansion — Delivery Ledger
 
-Status: Complete — merged to `main` and verified
+Status: Historical complete baseline — superseded for current credential semantics by [Accounts Sign-In Methods & Credential Evolution](accounts-sign-in-methods.md)
 
 Date: 2026-09-02
 
-Canonical contract: [Accounts Expansion Program](accounts-expansion.md). Acceptance: [Accounts Expansion Acceptance Matrix](accounts-expansion-acceptance.md).
+Canonical historical contract: [Accounts Expansion Program](accounts-expansion.md). Historical acceptance: [Accounts Expansion Acceptance Matrix](accounts-expansion-acceptance.md). Current credential delivery ledger: [Accounts Sign-In Methods Delivery Ledger](accounts-sign-in-methods-delivery-ledger.md).
+
+> Historical scope: this ledger records delivery of the first Accounts expansion and its then-current exclusive authentication-type architecture. PR #141 merged exact head `d757a0df172bf43dbe26f8d4a2d38cdbdf7751a2` into `main`; that exact commit passed the PR-only Intelligence Verification and Dependency Review gates and the configured `main` push CI, Architecture V3, Visual Regression, and CodeQL gates. Main closeout commits `4202619262d8bda0de3ddd53bfa29752f33f23c1` and `413e0371626dfd937c9ed9b158c4c405f0088476` recorded that verification. ADR-0014 and the Sign-In Methods program intentionally supersede the exclusive credential model while retaining the applicable identity, product-language, lifecycle and ownership boundaries.
 
 ## Documented delivery-order adjustment
 
-The repository already protects MFA setup and multiple sensitive application routes with the `password.confirm` middleware alias. Under the selected exclusive-authentication model, leaving authentication-type-aware recent proof until phase 17 would block Google accounts from those protected flows because they intentionally have no local password.
+The repository already protected MFA setup and multiple sensitive application routes with the `password.confirm` middleware alias. Under the selected exclusive-authentication model, leaving authentication-type-aware recent proof until phase 17 would have blocked Google accounts from those protected flows because they intentionally had no local password.
 
-Therefore the **recent-authentication foundation from phase 17 was pulled forward immediately after the primary authentication model**. The existing `password.confirm` policy boundary became authentication-type aware: password accounts continue to use password confirmation, while Google accounts use a recent successful Google reauthentication. The remaining Security Center, email-change, MFA, session and lifecycle surfaces have now been reconciled against that foundation.
+Therefore the **recent-authentication foundation from phase 17 was pulled forward immediately after the primary authentication model**. The existing `password.confirm` policy boundary became authentication-type aware: password accounts continued to use password confirmation, while Google accounts used a recent successful Google reauthentication. The remaining Security Center, email-change, MFA, session and lifecycle surfaces were reconciled against that foundation.
 
-This was an architecture dependency adjustment, not a change to the acceptance invariants or product scope.
+This was an architecture dependency adjustment for the historical program, not a change to its acceptance invariants or product scope.
 
 | Phase | Status | Slice | Exit condition |
 | --- | --- | --- | --- |
@@ -36,30 +38,8 @@ This was an architecture dependency adjustment, not a change to the acceptance i
 | 18 | Complete | MFA/recovery-code reconciliation | Both primary authentication types work with TOTP; disable/regeneration/use semantics are audited and recent-auth protected where required. |
 | 19 | Complete | Deletion/anonymization | Platform/DataGovernance lifecycle coordination and Accounts-side final credential/provider/session/token invalidation are reconciled and tested. |
 | 20 | Complete | Localization/accessibility | New visible copy is localized and authentication/security frontend checks satisfy repository accessibility/quality gates. |
-| 21 | Complete | Full verification | Exact PR head `d757a0df172bf43dbe26f8d4a2d38cdbdf7751a2` passed CI, Architecture V3 Verification, Intelligence Verification, Visual Regression, CodeQL and Dependency Review before merge. |
-| 22 | Complete | Documentation reconciliation | Product contract, Accounts architecture, ADR, acceptance matrix, capability catalogue and this ledger are reconciled to implemented ownership and behavior. |
-| 23 | Complete | Final main verification | PR #141 merged exact head `d757a0df172bf43dbe26f8d4a2d38cdbdf7751a2` into `main`; the same immutable commit passed configured `main` push CI, Architecture V3 Verification, Visual Regression and CodeQL. Intelligence Verification and Dependency Review are pull-request-only workflows and were green on that exact commit before merge. |
+| 21 | Complete | Full verification | Backend/frontend, Architecture V3, Intelligence, clean-schema, CodeQL, dependency, visual and release checks cleared on the completed baseline. |
+| 22 | Complete | Documentation reconciliation | Product contract, Accounts architecture, ADR, acceptance matrix, capability catalogue and this ledger were reconciled to the baseline implementation. |
+| 23 | Complete | Final main verification | PR #141 exact head `d757a0df172bf43dbe26f8d4a2d38cdbdf7751a2` was merged to and verified on `main`; closeout was recorded by `4202619262d8bda0de3ddd53bfa29752f33f23c1` and `413e0371626dfd937c9ed9b158c4c405f0088476`. |
 
-## Verification evidence
-
-PR #141 merged at 2026-09-02T13:18:46Z with merge commit equal to the exact final PR head: `d757a0df172bf43dbe26f8d4a2d38cdbdf7751a2`.
-
-Final PR-head runs on that exact commit:
-
-- CI: `33634238267` — success.
-- Architecture V3 Verification: `33634238364` — success.
-- Intelligence Verification: `33634238548` — success.
-- Visual Regression: `33634238165` — success.
-- CodeQL: `33634238345` — success.
-- Dependency Review: `33634238223` — success.
-
-Post-merge `main` push runs on that exact commit:
-
-- CI: `33634963356` — success.
-- Architecture V3 Verification: `33634963394` — success.
-- Visual Regression: `33634963354` — success.
-- CodeQL: `33634963390` — success.
-
-`Intelligence Verification` is configured for `pull_request` plus manual dispatch, and `Dependency Review` is configured for `pull_request`; neither has a `push` trigger. Their successful PR runs therefore provide the applicable exact-commit evidence for those gates.
-
-No implementation phase is deferred. The Accounts expansion selected extension is closed.
+No historical phase remains open. Current Password/Google/Passkey credential semantics and their release evidence are governed by the Sign-In Methods program rather than reopening or rewriting this baseline ledger.

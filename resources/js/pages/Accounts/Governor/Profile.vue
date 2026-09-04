@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { usePasskeyRegister } from '@laravel/passkeys/vue';
+import { computed, ref } from 'vue';
 
 import RoomBanner from '@/components/game/RoomBanner.vue';
 import StatSeal from '@/components/game/StatSeal.vue';
@@ -16,14 +17,27 @@ const props = defineProps<{
     pendingEmail: string | null;
     pendingEmailRequestedAt: string | null;
     timezone: string;
-    authenticationType: 'password' | 'google';
     passwordAuthentication: boolean;
     googleAuthentication: boolean;
+    passkeyAuthentication: boolean;
+    passkeyCount: number;
+    signInMethodCount: number;
+    canRemovePassword: boolean;
+    canDisconnectGoogle: boolean;
     providerEmail: string | null;
     twoFactorEnabled: boolean;
     twoFactorPending: boolean;
     recoveryCodeCount: number;
   };
+  passkeys: Array<{
+    id: string;
+    name: string;
+    authenticator: string | null;
+    createdAt: string | null;
+    lastUsedAt: string | null;
+    canRemove: boolean;
+  }>;
+  googleAuthEnabled: boolean;
   sessions: Array<{
     id: string;
     browser: string | null;
@@ -44,18 +58,28 @@ const props = defineProps<{
 }>();
 
 const { t, formatDate } = useLocale();
+const passkeyName = ref('');
+const passkeyNames = ref<Record<string, string>>(
+  Object.fromEntries(props.passkeys.map((passkey) => [passkey.id, passkey.name])),
+);
 
-const profileForm = useForm({
-  name: props.user.name,
-  timezone: props.user.timezone,
-});
+const profileForm = useForm({ name: props.user.name, timezone: props.user.timezone });
 const emailForm = useForm({ email: props.user.pendingEmail ?? '' });
-const passwordForm = useForm({
-  current_password: '',
-  password: '',
-  password_confirmation: '',
-});
+const passwordForm = useForm({ current_password: '', password: '', password_confirmation: '' });
+const addPasswordForm = useForm({ password: '', password_confirmation: '' });
 const twoFactorForm = useForm({ code: '' });
+
+const {
+  register: registerPasskey,
+  isLoading: passkeyRegistering,
+  error: passkeyError,
+  isSupported: passkeySupported,
+} = usePasskeyRegister({
+  onSuccess: () => {
+    passkeyName.value = '';
+    router.reload({ only: ['user', 'passkeys', 'securityActivity'] });
+  },
+});
 
 const twoFactorState = computed(() => {
   if (props.user.twoFactorEnabled) return t('accountExperience.account.enabled');
@@ -63,44 +87,61 @@ const twoFactorState = computed(() => {
   return t('accountExperience.account.notEnabled');
 });
 
-const signInMethod = computed(() =>
-  props.user.googleAuthentication
-    ? t('accountExperience.account.googleSignIn')
-    : t('accountExperience.account.passwordSignIn'),
-);
+const signInSummary = computed(() => {
+  const methods: string[] = [];
+  if (props.user.passwordAuthentication)
+    methods.push(t('accountExperience.account.passwordSignIn'));
+  if (props.user.googleAuthentication) methods.push(t('accountExperience.account.googleSignIn'));
+  if (props.user.passkeyAuthentication) methods.push(t('accountExperience.account.passkeySignIn'));
+  return methods.join(' · ');
+});
 
 function updateProfile(): void {
   profileForm.patch('/profile');
 }
-
 function requestEmailChange(): void {
   emailForm.patch('/profile/security/email');
 }
-
 function updatePassword(): void {
   passwordForm.put('/profile/password', { onFinish: () => passwordForm.reset() });
 }
-
+function addPassword(): void {
+  addPasswordForm.post('/profile/security/password', { onFinish: () => addPasswordForm.reset() });
+}
+function removePassword(): void {
+  router.delete('/profile/security/password');
+}
+function connectGoogle(): void {
+  window.location.href = '/auth/google/connect';
+}
+function disconnectGoogle(): void {
+  router.delete('/profile/security/google');
+}
+async function addPasskey(): Promise<void> {
+  const name = passkeyName.value.trim();
+  if (name !== '') await registerPasskey(name);
+}
+function renamePasskey(id: string): void {
+  router.patch(`/profile/security/passkeys/${id}`, { name: passkeyNames.value[id] ?? '' });
+}
+function removePasskey(id: string): void {
+  router.delete(`/user/passkeys/${id}`);
+}
 function revokeSession(sessionId: string): void {
   router.delete(`/profile/security/sessions/${sessionId}`);
 }
-
 function revokeOtherSessions(): void {
   router.delete('/profile/security/sessions');
 }
-
 function beginTwoFactor(): void {
   router.post('/profile/two-factor');
 }
-
 function confirmTwoFactor(): void {
   twoFactorForm.post('/profile/two-factor/confirm', { onFinish: () => twoFactorForm.reset() });
 }
-
 function regenerateRecoveryCodes(): void {
   router.post('/profile/two-factor/recovery-codes');
 }
-
 function disableTwoFactor(): void {
   router.delete('/profile/two-factor');
 }
@@ -119,9 +160,9 @@ function disableTwoFactor(): void {
     >
       <template #actions>
         <Link href="/dashboard" class="ks-command-link">{{ t('navigation.dashboard') }}</Link>
-        <Link href="/profile/connections" class="ks-command-link" data-variant="secondary">
-          {{ t('accountExperience.connections.title') }}
-        </Link>
+        <Link href="/profile/connections" class="ks-command-link" data-variant="secondary">{{
+          t('accountExperience.connections.title')
+        }}</Link>
       </template>
     </RoomBanner>
 
@@ -131,6 +172,9 @@ function disableTwoFactor(): void {
     >
       <a class="ks-command-link" href="#profile">{{
         t('accountExperience.account.profileTitle')
+      }}</a>
+      <a class="ks-command-link" href="#sign-in-methods">{{
+        t('accountExperience.account.signInMethodsTitle')
       }}</a>
       <a class="ks-command-link" href="#security">{{
         t('accountExperience.account.securityTitle')
@@ -145,8 +189,8 @@ function disableTwoFactor(): void {
 
     <section class="mt-4 grid gap-3 sm:grid-cols-3">
       <StatSeal
-        :label="t('accountExperience.account.signInMethod')"
-        :value="signInMethod"
+        :label="t('accountExperience.account.signInMethodsTitle')"
+        :value="String(props.user.signInMethodCount)"
         icon="⛨"
         tone="teal"
       />
@@ -180,7 +224,6 @@ function disableTwoFactor(): void {
       <p class="mt-2 text-sm leading-6 text-[var(--ks-text-secondary)]">
         {{ t('accountExperience.account.profileIntro') }}
       </p>
-
       <form class="mt-6 grid gap-5 md:grid-cols-2" @submit.prevent="updateProfile">
         <div>
           <label class="block text-sm font-semibold" for="profile-name">{{
@@ -226,12 +269,257 @@ function disableTwoFactor(): void {
             {{ props.user.email }}
           </p>
         </div>
-        <div class="md:col-span-2">
-          <AppButton type="submit" :disabled="profileForm.processing">{{
-            t('accountExperience.account.saveProfile')
-          }}</AppButton>
-        </div>
+        <AppButton class="w-fit md:col-span-2" type="submit" :disabled="profileForm.processing">{{
+          t('accountExperience.account.saveProfile')
+        }}</AppButton>
       </form>
+    </section>
+
+    <section
+      id="sign-in-methods"
+      class="mt-5 scroll-mt-4"
+      aria-labelledby="sign-in-methods-heading"
+    >
+      <div class="ks-surface-gold p-5 sm:p-6">
+        <p class="ks-kicker">{{ t('accountExperience.account.securityTitle') }}</p>
+        <h2 id="sign-in-methods-heading" class="ks-display mt-1 text-2xl font-semibold">
+          {{ t('accountExperience.account.signInMethodsTitle') }}
+        </h2>
+        <p class="mt-2 text-sm leading-6 text-[var(--ks-text-secondary)]">
+          {{ t('accountExperience.account.signInMethodsIntro') }}
+        </p>
+        <p class="mt-3 text-sm font-semibold text-[var(--ks-teal-bright)]">{{ signInSummary }}</p>
+      </div>
+
+      <div class="mt-4 grid gap-4 xl:grid-cols-3">
+        <article class="ks-surface p-5">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <p class="ks-kicker">{{ t('accountExperience.account.passwordTitle') }}</p>
+              <h3 class="ks-display mt-1 text-xl font-semibold">
+                {{
+                  props.user.passwordAuthentication
+                    ? t('accountExperience.account.configured')
+                    : t('accountExperience.account.notConfigured')
+                }}
+              </h3>
+            </div>
+            <span
+              class="ks-status"
+              :data-tone="props.user.passwordAuthentication ? 'success' : 'neutral'"
+              >{{
+                props.user.passwordAuthentication
+                  ? t('accountExperience.account.available')
+                  : t('accountExperience.account.unavailable')
+              }}</span
+            >
+          </div>
+          <p class="mt-3 text-sm leading-6 text-[var(--ks-muted)]">
+            {{ t('accountExperience.account.passwordMethodIntro') }}
+          </p>
+
+          <form
+            v-if="!props.user.passwordAuthentication"
+            class="mt-5 grid gap-3"
+            @submit.prevent="addPassword"
+          >
+            <input
+              v-model="addPasswordForm.password"
+              class="ks-input"
+              type="password"
+              autocomplete="new-password"
+              :placeholder="t('accountExperience.account.newPassword')"
+              required
+            />
+            <input
+              v-model="addPasswordForm.password_confirmation"
+              class="ks-input"
+              type="password"
+              autocomplete="new-password"
+              :placeholder="t('accountExperience.account.confirmNewPassword')"
+              required
+            />
+            <p
+              v-if="addPasswordForm.errors.password"
+              class="text-sm text-[var(--ks-red)]"
+              role="alert"
+            >
+              {{ addPasswordForm.errors.password }}
+            </p>
+            <AppButton type="submit" :disabled="addPasswordForm.processing">{{
+              t('accountExperience.account.addPassword')
+            }}</AppButton>
+          </form>
+
+          <div v-else class="mt-5 grid gap-3">
+            <p class="text-xs leading-5 text-[var(--ks-muted)]">
+              {{ t('accountExperience.account.passwordConfiguredIntro') }}
+            </p>
+            <AppButton
+              v-if="props.user.canRemovePassword"
+              variant="danger"
+              type="button"
+              @click="removePassword"
+              >{{ t('accountExperience.account.removePassword') }}</AppButton
+            >
+            <p v-else class="text-xs text-[var(--ks-muted)]">
+              {{ t('accountExperience.account.finalMethodProtection') }}
+            </p>
+          </div>
+        </article>
+
+        <article class="ks-surface p-5">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <p class="ks-kicker">{{ t('accountExperience.account.googleSignIn') }}</p>
+              <h3 class="ks-display mt-1 text-xl font-semibold">
+                {{
+                  props.user.googleAuthentication
+                    ? t('accountExperience.account.connected')
+                    : t('accountExperience.account.notConnected')
+                }}
+              </h3>
+            </div>
+            <span
+              class="ks-status"
+              :data-tone="props.user.googleAuthentication ? 'success' : 'neutral'"
+              >{{
+                props.user.googleAuthentication
+                  ? t('accountExperience.account.available')
+                  : t('accountExperience.account.unavailable')
+              }}</span
+            >
+          </div>
+          <p class="mt-3 text-sm leading-6 text-[var(--ks-muted)]">
+            {{ t('accountExperience.account.googleMethodIntro') }}
+          </p>
+          <p
+            v-if="props.user.providerEmail"
+            class="mt-3 text-sm break-all text-[var(--ks-text-secondary)]"
+          >
+            {{ t('accountExperience.account.providerEmail') }}: {{ props.user.providerEmail }}
+          </p>
+          <div class="mt-5">
+            <AppButton
+              v-if="!props.user.googleAuthentication && props.googleAuthEnabled"
+              type="button"
+              @click="connectGoogle"
+              >{{ t('accountExperience.account.connectGoogle') }}</AppButton
+            >
+            <AppButton
+              v-else-if="props.user.googleAuthentication && props.user.canDisconnectGoogle"
+              variant="danger"
+              type="button"
+              @click="disconnectGoogle"
+              >{{ t('accountExperience.account.disconnectGoogle') }}</AppButton
+            >
+            <p v-else-if="props.user.googleAuthentication" class="text-xs text-[var(--ks-muted)]">
+              {{ t('accountExperience.account.finalMethodProtection') }}
+            </p>
+            <p v-else class="text-xs text-[var(--ks-muted)]">
+              {{ t('accountExperience.account.googleUnavailable') }}
+            </p>
+          </div>
+        </article>
+
+        <article class="ks-surface p-5">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <p class="ks-kicker">{{ t('accountExperience.account.passkeysTitle') }}</p>
+              <h3 class="ks-display mt-1 text-xl font-semibold">
+                {{
+                  t('accountExperience.account.passkeyCount', { count: props.user.passkeyCount })
+                }}
+              </h3>
+            </div>
+            <span
+              class="ks-status"
+              :data-tone="props.user.passkeyAuthentication ? 'success' : 'neutral'"
+              >{{
+                props.user.passkeyAuthentication
+                  ? t('accountExperience.account.available')
+                  : t('accountExperience.account.unavailable')
+              }}</span
+            >
+          </div>
+          <p class="mt-3 text-sm leading-6 text-[var(--ks-muted)]">
+            {{ t('accountExperience.account.passkeyIntro') }}
+          </p>
+          <form v-if="passkeySupported" class="mt-5 grid gap-3" @submit.prevent="addPasskey">
+            <label class="text-sm font-semibold" for="passkey-name">{{
+              t('accountExperience.account.passkeyName')
+            }}</label>
+            <input
+              id="passkey-name"
+              v-model="passkeyName"
+              class="ks-input"
+              type="text"
+              maxlength="100"
+              required
+            />
+            <p v-if="passkeyError" class="text-sm text-[var(--ks-red)]" role="alert">
+              {{ passkeyError }}
+            </p>
+            <AppButton type="submit" :disabled="passkeyRegistering || !passkeyName.trim()">{{
+              passkeyRegistering
+                ? t('accountExperience.account.addingPasskey')
+                : t('accountExperience.account.addPasskey')
+            }}</AppButton>
+          </form>
+          <p v-else class="mt-5 text-sm text-[var(--ks-muted)]">
+            {{ t('accountExperience.account.passkeyUnsupported') }}
+          </p>
+        </article>
+      </div>
+
+      <div v-if="props.passkeys.length" class="ks-surface mt-4 p-5 sm:p-6">
+        <h3 class="ks-display text-xl font-semibold">
+          {{ t('accountExperience.account.registeredPasskeys') }}
+        </h3>
+        <ul class="mt-4 grid gap-3 lg:grid-cols-2">
+          <li
+            v-for="passkey in props.passkeys"
+            :key="passkey.id"
+            class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-4"
+          >
+            <div class="grid gap-3">
+              <label
+                class="text-xs font-semibold tracking-wide uppercase"
+                :for="`passkey-${passkey.id}`"
+                >{{ t('accountExperience.account.passkeyName') }}</label
+              >
+              <input
+                :id="`passkey-${passkey.id}`"
+                v-model="passkeyNames[passkey.id]"
+                class="ks-input"
+                type="text"
+                maxlength="100"
+              />
+              <p class="text-xs text-[var(--ks-muted)]">
+                {{ passkey.authenticator ?? t('accountExperience.account.unknownAuthenticator') }}
+              </p>
+              <p v-if="passkey.lastUsedAt" class="text-xs text-[var(--ks-muted)]">
+                {{ t('accountExperience.account.lastUsed') }}: {{ formatDate(passkey.lastUsedAt) }}
+              </p>
+              <div class="flex flex-wrap gap-2">
+                <AppButton variant="ghost" type="button" @click="renamePasskey(passkey.id)">{{
+                  t('accountExperience.account.renamePasskey')
+                }}</AppButton>
+                <AppButton
+                  v-if="passkey.canRemove"
+                  variant="danger"
+                  type="button"
+                  @click="removePasskey(passkey.id)"
+                  >{{ t('accountExperience.account.removePasskey') }}</AppButton
+                >
+                <span v-else class="text-xs text-[var(--ks-muted)]">{{
+                  t('accountExperience.account.finalMethodProtection')
+                }}</span>
+              </div>
+            </div>
+          </li>
+        </ul>
+      </div>
     </section>
 
     <section
@@ -239,70 +527,51 @@ function disableTwoFactor(): void {
       class="mt-5 grid scroll-mt-4 gap-5 xl:grid-cols-2"
       :aria-label="t('accountExperience.account.securityTitle')"
     >
-      <div class="ks-surface-gold p-5 sm:p-6">
-        <p class="ks-kicker">{{ t('accountExperience.account.signInMethod') }}</p>
-        <h2 class="ks-display mt-1 text-2xl font-semibold">{{ signInMethod }}</h2>
-        <p class="mt-3 text-sm leading-6 text-[var(--ks-text-secondary)]">
-          {{
-            props.user.googleAuthentication
-              ? t('accountExperience.account.googleSignInIntro')
-              : t('accountExperience.account.passwordSignInIntro')
-          }}
+      <div class="ks-surface p-5 sm:p-6">
+        <p class="ks-kicker">{{ t('accountExperience.account.emailAddress') }}</p>
+        <h2 class="ks-display mt-1 text-xl font-semibold">{{ props.user.email }}</h2>
+        <p class="mt-2 text-sm leading-6 text-[var(--ks-muted)]">
+          {{ t('accountExperience.account.accountEmailIndependent') }}
         </p>
-        <p v-if="props.user.providerEmail" class="mt-3 text-sm break-all text-[var(--ks-muted)]">
-          {{ t('accountExperience.account.providerEmail') }}: {{ props.user.providerEmail }}
-        </p>
-
-        <div class="mt-6 border-t border-[var(--ks-border)] pt-5">
-          <p class="ks-kicker">{{ t('accountExperience.account.emailAddress') }}</p>
-          <p class="mt-2 font-semibold break-all">{{ props.user.email }}</p>
-          <div
-            v-if="props.user.pendingEmail"
-            class="mt-4 rounded-[var(--ks-radius-md)] border border-amber-400/25 bg-amber-500/[.07] p-4"
-          >
-            <p class="text-sm font-semibold text-amber-100">
-              {{ t('accountExperience.account.pendingEmail') }}
-            </p>
-            <p class="mt-1 text-sm break-all text-amber-100/80">{{ props.user.pendingEmail }}</p>
-            <p v-if="props.user.pendingEmailRequestedAt" class="mt-1 text-xs text-amber-100/65">
-              {{ formatDate(props.user.pendingEmailRequestedAt) }}
-            </p>
-          </div>
-          <form
-            v-if="props.user.passwordAuthentication"
-            class="mt-5 grid gap-3"
-            @submit.prevent="requestEmailChange"
-          >
-            <label class="text-sm font-semibold" for="new-email">{{
-              t('accountExperience.account.newEmail')
-            }}</label>
-            <input
-              id="new-email"
-              v-model="emailForm.email"
-              class="ks-input"
-              required
-              type="email"
-              autocomplete="email"
-            />
-            <p v-if="emailForm.errors.email" class="text-sm text-[var(--ks-red)]" role="alert">
-              {{ emailForm.errors.email }}
-            </p>
-            <p class="text-xs leading-5 text-[var(--ks-muted)]">
-              {{ t('accountExperience.account.emailChangeIntro') }}
-            </p>
-            <AppButton class="w-fit" type="submit" :disabled="emailForm.processing">{{
-              t('accountExperience.account.requestEmailChange')
-            }}</AppButton>
-          </form>
-          <p v-else class="mt-5 text-sm leading-6 text-[var(--ks-muted)]">
-            {{ t('accountExperience.account.googleEmailManaged') }}
+        <div
+          v-if="props.user.pendingEmail"
+          class="mt-4 rounded-[var(--ks-radius-md)] border border-amber-400/25 bg-amber-500/[.07] p-4"
+        >
+          <p class="text-sm font-semibold text-amber-100">
+            {{ t('accountExperience.account.pendingEmail') }}
+          </p>
+          <p class="mt-1 text-sm break-all text-amber-100/80">{{ props.user.pendingEmail }}</p>
+          <p v-if="props.user.pendingEmailRequestedAt" class="mt-1 text-xs text-amber-100/65">
+            {{ formatDate(props.user.pendingEmailRequestedAt) }}
           </p>
         </div>
+        <form class="mt-5 grid gap-3" @submit.prevent="requestEmailChange">
+          <label class="text-sm font-semibold" for="new-email">{{
+            t('accountExperience.account.newEmail')
+          }}</label>
+          <input
+            id="new-email"
+            v-model="emailForm.email"
+            class="ks-input"
+            required
+            type="email"
+            autocomplete="email"
+          />
+          <p v-if="emailForm.errors.email" class="text-sm text-[var(--ks-red)]" role="alert">
+            {{ emailForm.errors.email }}
+          </p>
+          <p class="text-xs leading-5 text-[var(--ks-muted)]">
+            {{ t('accountExperience.account.emailChangeIntro') }}
+          </p>
+          <AppButton class="w-fit" type="submit" :disabled="emailForm.processing">{{
+            t('accountExperience.account.requestEmailChange')
+          }}</AppButton>
+        </form>
       </div>
 
       <div class="ks-surface p-5 sm:p-6">
         <p class="ks-kicker">{{ t('accountExperience.account.twoFactorTitle') }}</p>
-        <h2 class="ks-display mt-1 text-2xl font-semibold">{{ twoFactorState }}</h2>
+        <h2 class="ks-display mt-1 text-xl font-semibold">{{ twoFactorState }}</h2>
         <p class="mt-3 text-sm leading-6 text-[var(--ks-text-secondary)]">
           {{ t('accountExperience.account.twoFactorIntro') }}
         </p>
@@ -310,16 +579,13 @@ function disableTwoFactor(): void {
           {{ t('accountExperience.account.recoveryCodesRemaining') }}:
           {{ props.user.recoveryCodeCount }}
         </p>
-
         <AppButton
           v-if="!props.user.twoFactorEnabled && !props.twoFactorSetup"
           class="mt-6"
           type="button"
           @click="beginTwoFactor"
+          >{{ t('accountExperience.account.startSetup') }}</AppButton
         >
-          {{ t('accountExperience.account.startSetup') }}
-        </AppButton>
-
         <div
           v-if="props.twoFactorSetup"
           class="mt-6 rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/20 p-4"
@@ -358,7 +624,6 @@ function disableTwoFactor(): void {
             {{ twoFactorForm.errors.code }}
           </p>
         </div>
-
         <div
           v-if="props.twoFactorRecoveryCodes"
           class="mt-6 rounded-[var(--ks-radius-md)] border border-amber-400/25 bg-amber-500/[.07] p-4"
@@ -379,7 +644,6 @@ function disableTwoFactor(): void {
             </li>
           </ul>
         </div>
-
         <div v-if="props.user.twoFactorEnabled" class="mt-6 flex flex-wrap gap-3">
           <AppButton variant="ghost" type="button" @click="regenerateRecoveryCodes">{{
             t('accountExperience.account.regenerateRecoveryCodes')
@@ -402,8 +666,8 @@ function disableTwoFactor(): void {
           <div>
             <label class="text-sm font-semibold" for="current-password">{{
               t('accountExperience.account.currentPassword')
-            }}</label>
-            <input
+            }}</label
+            ><input
               id="current-password"
               v-model="passwordForm.current_password"
               autocomplete="current-password"
@@ -422,8 +686,8 @@ function disableTwoFactor(): void {
           <div>
             <label class="text-sm font-semibold" for="new-password">{{
               t('accountExperience.account.newPassword')
-            }}</label>
-            <input
+            }}</label
+            ><input
               id="new-password"
               v-model="passwordForm.password"
               autocomplete="new-password"
@@ -442,8 +706,8 @@ function disableTwoFactor(): void {
           <div>
             <label class="text-sm font-semibold" for="new-password-confirmation">{{
               t('accountExperience.account.confirmNewPassword')
-            }}</label>
-            <input
+            }}</label
+            ><input
               id="new-password-confirmation"
               v-model="passwordForm.password_confirmation"
               autocomplete="new-password"
@@ -480,9 +744,8 @@ function disableTwoFactor(): void {
             variant="danger"
             type="button"
             @click="revokeOtherSessions"
+            >{{ t('accountExperience.account.signOutOthers') }}</AppButton
           >
-            {{ t('accountExperience.account.signOutOthers') }}
-          </AppButton>
         </div>
         <p class="mt-2 text-sm leading-6 text-[var(--ks-muted)]">
           {{ t('accountExperience.account.sessionsIntro') }}
@@ -510,8 +773,8 @@ function disableTwoFactor(): void {
               <div class="flex items-center gap-2">
                 <span v-if="session.current" class="ks-status" data-tone="success">{{
                   t('accountExperience.account.currentSession')
-                }}</span>
-                <AppButton
+                }}</span
+                ><AppButton
                   v-else
                   variant="danger"
                   type="button"

@@ -28,28 +28,24 @@ final class RecentAuthenticationV3Test extends TestCase
         ]);
     }
 
-    public function test_password_account_is_sent_to_password_confirmation_when_recent_proof_is_stale(): void
+    public function test_any_account_with_stale_recent_proof_is_sent_to_generic_confirmation(): void
     {
-        $user = User::factory()->create();
+        $passwordUser = User::factory()->create();
+        $googleUser = User::factory()->google()->create();
 
-        $this->actingAs($user)
+        $this->actingAs($passwordUser)
+            ->post('/profile/two-factor')
+            ->assertRedirect(route('password.confirm'));
+
+        $this->actingAs($googleUser)
             ->post('/profile/two-factor')
             ->assertRedirect(route('password.confirm'));
     }
 
-    public function test_google_account_is_sent_to_google_reauthentication_when_recent_proof_is_stale(): void
+    public function test_google_reauthentication_marks_generic_recent_proof_only_for_matching_subject(): void
     {
-        $user = User::factory()->google()->create();
-
-        $this->actingAs($user)
-            ->post('/profile/two-factor')
-            ->assertRedirect(route('auth.google.reauthenticate'));
-    }
-
-    public function test_google_callback_can_refresh_recent_authentication_only_for_matching_subject(): void
-    {
-        $user = User::factory()->google()->create(['email' => 'member@example.test']);
-        AccountIdentity::query()->create([
+        $user = User::factory()->withoutPassword()->create(['email' => 'member@example.test']);
+        $identity = AccountIdentity::query()->create([
             'user_id' => $user->id,
             'provider' => 'google',
             'provider_subject' => 'google-subject-id',
@@ -57,39 +53,30 @@ final class RecentAuthenticationV3Test extends TestCase
             'provider_email_verified_at' => now(),
             'linked_at' => now(),
         ]);
-
-        $socialiteUser = (new SocialiteUser)
-            ->setRaw([
-                'sub' => 'google-subject-id',
-                'name' => 'Member',
-                'email' => 'member@example.test',
-                'email_verified' => true,
-            ])
-            ->map([
-                'id' => 'google-subject-id',
-                'name' => 'Member',
-                'email' => 'member@example.test',
-            ]);
-
-        $provider = Mockery::mock(Provider::class);
-        $provider->shouldReceive('user')->once()->andReturn($socialiteUser);
-        Socialite::shouldReceive('driver')->once()->with('google')->andReturn($provider);
+        $this->fakeGoogleUser('member@example.test', 'google-subject-id');
 
         $response = $this->actingAs($user)
             ->withSession([
-                'accounts.google_reauthentication_user_id' => $user->id,
+                'accounts.google_operation' => [
+                    'intent' => 'reauthenticate',
+                    'user_id' => $user->id,
+                    'invitation_token' => null,
+                    'started_at' => now()->timestamp,
+                ],
                 'url.intended' => route('profile.show'),
             ])
             ->get('/auth/google/callback');
 
         $response->assertRedirect(route('profile.show'));
-        self::assertGreaterThan(0, (int) session('accounts.google_reauthenticated_at'));
+        self::assertSame('google', session('accounts.recent_authentication_method'));
+        self::assertSame((string) $identity->id, session('accounts.recent_authentication_credential'));
+        self::assertGreaterThan(0, (int) session('accounts.recent_authentication_at'));
         $this->assertAuthenticatedAs($user);
     }
 
-    public function test_google_reauthentication_rejects_a_different_google_subject(): void
+    public function test_google_reauthentication_rejects_a_different_subject_without_recent_proof(): void
     {
-        $user = User::factory()->google()->create(['email' => 'member@example.test']);
+        $user = User::factory()->withoutPassword()->create(['email' => 'member@example.test']);
         AccountIdentity::query()->create([
             'user_id' => $user->id,
             'provider' => 'google',
@@ -98,29 +85,40 @@ final class RecentAuthenticationV3Test extends TestCase
             'provider_email_verified_at' => now(),
             'linked_at' => now(),
         ]);
+        $this->fakeGoogleUser('member@example.test', 'other-subject');
 
+        $this->actingAs($user)
+            ->withSession([
+                'accounts.google_operation' => [
+                    'intent' => 'reauthenticate',
+                    'user_id' => $user->id,
+                    'invitation_token' => null,
+                    'started_at' => now()->timestamp,
+                ],
+            ])
+            ->get('/auth/google/callback')
+            ->assertForbidden();
+
+        self::assertSame(0, (int) session('accounts.recent_authentication_at', 0));
+    }
+
+    private function fakeGoogleUser(string $email, string $subject): void
+    {
         $socialiteUser = (new SocialiteUser)
             ->setRaw([
-                'sub' => 'other-subject',
+                'sub' => $subject,
                 'name' => 'Member',
-                'email' => 'member@example.test',
+                'email' => $email,
                 'email_verified' => true,
             ])
             ->map([
-                'id' => 'other-subject',
+                'id' => $subject,
                 'name' => 'Member',
-                'email' => 'member@example.test',
+                'email' => $email,
             ]);
 
         $provider = Mockery::mock(Provider::class);
         $provider->shouldReceive('user')->once()->andReturn($socialiteUser);
         Socialite::shouldReceive('driver')->once()->with('google')->andReturn($provider);
-
-        $this->actingAs($user)
-            ->withSession(['accounts.google_reauthentication_user_id' => $user->id])
-            ->get('/auth/google/callback')
-            ->assertForbidden();
-
-        self::assertSame(0, (int) session('accounts.google_reauthenticated_at', 0));
     }
 }

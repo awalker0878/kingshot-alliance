@@ -25,7 +25,7 @@ final readonly class PromotePendingAccountEmail
             $user = User::query()->whereKey($userId)->lockForUpdate()->firstOrFail();
             $pendingEmail = (string) $user->pending_email;
 
-            if (! $user->supportsPasswordAuthentication() || $pendingEmail === '' || ! hash_equals(sha1($pendingEmail), $hash)) {
+            if ($pendingEmail === '' || ! hash_equals(sha1($pendingEmail), $hash)) {
                 throw ValidationException::withMessages([
                     'email' => 'This email-change verification link is no longer valid.',
                 ]);

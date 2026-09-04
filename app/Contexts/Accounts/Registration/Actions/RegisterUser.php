@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Contexts\Accounts\Registration\Actions;
 
-use App\Contexts\Accounts\Identity\Enums\AuthenticationType;
+use App\Contexts\Accounts\Identity\Models\AccountIdentity;
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Accounts\Registration\Data\RegisteredAccount;
+use App\Contexts\Accounts\Registration\Data\RegistrationProviderIdentity;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Models\OutboxMessage;
 use Illuminate\Support\Facades\DB;
@@ -23,14 +24,20 @@ final readonly class RegisterUser
         ?string $password,
         string $timezone = 'UTC',
         bool $emailVerified = false,
-        AuthenticationType $authenticationType = AuthenticationType::Password,
+        ?RegistrationProviderIdentity $providerIdentity = null,
     ): RegisteredAccount {
-        if ($authenticationType === AuthenticationType::Password && blank($password)) {
-            throw new InvalidArgumentException('Password accounts require a local password.');
+        if ($password !== null && blank($password)) {
+            throw new InvalidArgumentException('A configured local password cannot be blank.');
         }
 
-        if ($authenticationType === AuthenticationType::Google && $password !== null) {
-            throw new InvalidArgumentException('Google accounts cannot have a local password.');
+        $provider = $providerIdentity === null ? null : Str::lower(trim($providerIdentity->provider));
+        $providerSubject = $providerIdentity === null ? null : trim($providerIdentity->subject);
+        $providerEmail = $providerIdentity?->email === null
+            ? null
+            : Str::lower(trim($providerIdentity->email));
+
+        if ($providerIdentity !== null && ($provider === '' || $providerSubject === '')) {
+            throw new InvalidArgumentException('Provider and provider subject are required.');
         }
 
         $user = DB::transaction(function () use (
@@ -39,18 +46,39 @@ final readonly class RegisterUser
             $password,
             $timezone,
             $emailVerified,
-            $authenticationType,
+            $providerIdentity,
+            $provider,
+            $providerSubject,
+            $providerEmail,
         ): User {
             $user = User::query()->create([
                 'name' => trim($name),
                 'email' => Str::lower(trim($email)),
-                'authentication_type' => $authenticationType,
                 'password' => $password,
                 'timezone' => $timezone,
             ]);
 
             if ($emailVerified) {
                 $user->forceFill(['email_verified_at' => now()])->save();
+            }
+
+            if ($providerIdentity !== null && $provider !== null && $providerSubject !== null) {
+                AccountIdentity::query()->create([
+                    'user_id' => $user->id,
+                    'provider' => $provider,
+                    'provider_subject' => $providerSubject,
+                    'provider_email' => $providerEmail,
+                    'provider_email_verified_at' => $providerIdentity->emailVerified ? now() : null,
+                    'linked_at' => now(),
+                    'last_used_at' => now(),
+                ]);
+
+                $this->audit->record(
+                    event: 'auth.'.$provider.'.identity_created',
+                    actor: $user,
+                    subject: $user,
+                    metadata: ['provider' => $provider],
+                );
             }
 
             $this->audit->record(
@@ -60,7 +88,7 @@ final readonly class RegisterUser
                 metadata: [
                     'timezone' => $user->timezone,
                     'email_verified_at_registration' => $emailVerified,
-                    'authentication_type' => $authenticationType->value,
+                    'password_configured' => $password !== null,
                 ],
             );
 

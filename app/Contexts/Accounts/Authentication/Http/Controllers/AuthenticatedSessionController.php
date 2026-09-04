@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Accounts\Authentication\Http\Controllers;
 
-use App\Contexts\Accounts\Identity\Enums\AuthenticationType;
+use App\Contexts\Accounts\Authentication\Services\RecentAuthentication;
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Http\Controller;
@@ -25,11 +25,15 @@ final class AuthenticatedSessionController extends Controller
             'googleAuthEnabled' => filled(config('services.google.client_id'))
                 && filled(config('services.google.client_secret'))
                 && filled(config('services.google.redirect')),
+            'passkeyAuthEnabled' => $this->passkeyAuthenticationIsAvailable(),
         ]);
     }
 
-    public function store(Request $request, AuditRecorder $audit): RedirectResponse
-    {
+    public function store(
+        Request $request,
+        AuditRecorder $audit,
+        RecentAuthentication $recentAuthentication,
+    ): RedirectResponse {
         $validated = $request->validate([
             'email' => ['required', 'string', 'email', 'max:254'],
             'password' => ['required', 'string'],
@@ -37,14 +41,14 @@ final class AuthenticatedSessionController extends Controller
             'invitation_token' => ['nullable', 'string', 'max:256'],
         ]);
 
-        $email = Str::lower(trim($validated['email']));
-        $passwordAccount = User::query()
+        $email = Str::lower(trim((string) $validated['email']));
+        $passwordConfigured = User::query()
             ->where('email', $email)
-            ->where('authentication_type', AuthenticationType::Password->value)
+            ->whereNotNull('password')
             ->exists();
 
         $remember = (bool) ($validated['remember'] ?? false);
-        $authenticated = $passwordAccount && Auth::attempt([
+        $authenticated = $passwordConfigured && Auth::attempt([
             'email' => $email,
             'password' => $validated['password'],
         ], $remember);
@@ -67,6 +71,7 @@ final class AuthenticatedSessionController extends Controller
                 'accounts.two_factor_challenge_user_id' => $user->id,
                 'accounts.two_factor_remember' => $remember,
                 'accounts.two_factor_invitation_token' => $token,
+                'accounts.two_factor_primary_method' => 'password',
             ]);
 
             Auth::guard('web')->logout();
@@ -75,6 +80,7 @@ final class AuthenticatedSessionController extends Controller
             return redirect()->route('two-factor.login');
         }
 
+        $recentAuthentication->mark($request, 'password');
         $audit->record(
             event: 'auth.login',
             actor: $user,
@@ -106,5 +112,45 @@ final class AuthenticatedSessionController extends Controller
         $request->session()->regenerateToken();
 
         return redirect()->route('home');
+    }
+
+    private function passkeyAuthenticationIsAvailable(): bool
+    {
+        if (! (bool) config('passkeys.enabled', true)) {
+            return false;
+        }
+
+        $relyingPartyId = trim((string) config('passkeys.relying_party_id'));
+
+        if ($relyingPartyId === '' || filter_var($relyingPartyId, FILTER_VALIDATE_IP) !== false) {
+            return false;
+        }
+
+        foreach ((array) config('passkeys.allowed_origins', []) as $origin) {
+            $host = parse_url((string) $origin, PHP_URL_HOST);
+            $scheme = parse_url((string) $origin, PHP_URL_SCHEME);
+
+            if (! is_string($host) || $host === '') {
+                continue;
+            }
+
+            if ($relyingPartyId === 'localhost') {
+                if ($host === 'localhost' && in_array($scheme, ['http', 'https'], true)) {
+                    return true;
+                }
+
+                continue;
+            }
+
+            if ($scheme !== 'https') {
+                continue;
+            }
+
+            if ($host === $relyingPartyId || str_ends_with($host, '.'.$relyingPartyId)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

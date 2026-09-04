@@ -4,6 +4,37 @@ Status: Current
 
 Implemented journeys are described in present tense. Journeys under **Capability Extension Program — journey contracts** carry an explicit program state; `Current complete capability` journeys are delivered, while `Selected extension` and `Evidence-gated extension` journeys remain implementation contracts until their delivery-ledger rows close.
 
+## Account sign-in and credential management
+
+```text
+Create Kingshot Alliance account
+ -> choose Password or Google registration
+ -> create one permanent Kingshot Alliance User
+ -> verify the account email where required
+ -> complete onboarding
+ -> optionally add another supported sign-in method from Security
+```
+
+```text
+Sign in to existing Kingshot Alliance User
+ -> use an attached Password, Google identity or discoverable Passkey
+ -> satisfy TOTP when required for Password/Google
+ -> user-verifying Passkey completes authentication without a redundant TOTP prompt
+ -> establish account session and generic recent-authentication proof
+```
+
+```text
+Open Account & security
+ -> inspect actual Password / Google / Passkey state
+ -> Confirm it's you with an allowed attached method for sensitive changes
+ -> add/change/remove Password, connect/disconnect Google, or add/rename/remove Passkeys
+ -> server rejects any removal that would leave zero usable sign-in methods
+ -> harden sessions / clear stale recent proof
+ -> record Security Activity and applicable account-security delivery
+```
+
+The Kingshot Alliance User remains the identity throughout. Google is keyed by stable provider subject; provider email is metadata and never silently links or merges another User or replaces the verified Kingshot Alliance account email. A Google attempt whose provider email already belongs to an unconnected User is directed to sign into that existing account and explicitly connect Google. Account merging and official Kingshot game authentication remain unsupported.
+
 ## Account to game context
 
 ```text
