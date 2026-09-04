@@ -46,7 +46,15 @@ final readonly class UpdateNotificationEndpoint
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            $validated = $this->validator->validate($endpoint->channel, $configuration);
+            $existing = is_array($endpoint->configuration) ? $endpoint->configuration : [];
+            foreach ($configuration as $key => $value) {
+                $value = trim($value);
+                if ($value !== '') {
+                    $existing[$key] = $value;
+                }
+            }
+            /** @var array<string,string> $existing */
+            $validated = $this->validator->validate($endpoint->channel, $existing);
             $endpoint->forceFill([
                 'label' => $label,
                 'configuration' => $validated,
@@ -60,6 +68,10 @@ final readonly class UpdateNotificationEndpoint
             $this->audit->record('notification.endpoint.updated', $actor, $endpoint, metadata: [
                 'channel' => $endpoint->channel->value,
                 'label' => $label,
+                'credentials_replaced' => array_values(array_keys(array_filter(
+                    $configuration,
+                    static fn (string $value): bool => trim($value) !== '',
+                ))),
             ]);
         });
     }
