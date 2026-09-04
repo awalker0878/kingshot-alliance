@@ -6,7 +6,7 @@ Date: 2026-09-02
 
 Canonical historical contract: [Accounts Expansion Program](accounts-expansion.md). Historical acceptance: [Accounts Expansion Acceptance Matrix](accounts-expansion-acceptance.md). Current credential delivery ledger: [Accounts Sign-In Methods Delivery Ledger](accounts-sign-in-methods-delivery-ledger.md).
 
-> Historical scope: this ledger records delivery of the first Accounts expansion and its then-current exclusive authentication-type architecture. Main commit `d757a0df172bf43dbe26f8d4a2d38cdbdf7751a2` subsequently carried the reconciled baseline with CI, Architecture V3, Intelligence Verification, Visual Regression, CodeQL and Dependency Review green. ADR-0014 and the Sign-In Methods program intentionally supersede the exclusive credential model while retaining the applicable identity, product-language, lifecycle and ownership boundaries.
+> Historical scope: this ledger records delivery of the first Accounts expansion and its then-current exclusive authentication-type architecture. PR #141 merged exact head `d757a0df172bf43dbe26f8d4a2d38cdbdf7751a2` into `main`; that exact commit passed the PR-only Intelligence Verification and Dependency Review gates and the configured `main` push CI, Architecture V3, Visual Regression, and CodeQL gates. Main closeout commits `4202619262d8bda0de3ddd53bfa29752f33f23c1` and `413e0371626dfd937c9ed9b158c4c405f0088476` recorded that verification. ADR-0014 and the Sign-In Methods program intentionally supersede the exclusive credential model while retaining the applicable identity, product-language, lifecycle and ownership boundaries.
 
 ## Documented delivery-order adjustment
 
@@ -40,6 +40,6 @@ This was an architecture dependency adjustment for the historical program, not a
 | 20 | Complete | Localization/accessibility | New visible copy is localized and authentication/security frontend checks satisfy repository accessibility/quality gates. |
 | 21 | Complete | Full verification | Backend/frontend, Architecture V3, Intelligence, clean-schema, CodeQL, dependency, visual and release checks cleared on the completed baseline. |
 | 22 | Complete | Documentation reconciliation | Product contract, Accounts architecture, ADR, acceptance matrix, capability catalogue and this ledger were reconciled to the baseline implementation. |
-| 23 | Complete | Final main verification | The completed baseline was verified on `main` at `d757a0df172bf43dbe26f8d4a2d38cdbdf7751a2`. |
+| 23 | Complete | Final main verification | PR #141 exact head `d757a0df172bf43dbe26f8d4a2d38cdbdf7751a2` was merged to and verified on `main`; closeout was recorded by `4202619262d8bda0de3ddd53bfa29752f33f23c1` and `413e0371626dfd937c9ed9b158c4c405f0088476`. |
 
 No historical phase remains open. Current Password/Google/Passkey credential semantics and their release evidence are governed by the Sign-In Methods program rather than reopening or rewriting this baseline ledger.
