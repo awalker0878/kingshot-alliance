@@ -9,7 +9,7 @@ use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
 use App\Contexts\Accounts\Identity\ValueObjects\AccountIdentity;
 use App\Contexts\Communications\Delivery\Actions\SetNotificationPreference;
 use App\Contexts\Communications\Delivery\Enums\DeliveryChannel;
-use App\Contexts\Communications\Delivery\Models\NotificationDelivery;
+use App\Contexts\Communications\Delivery\Models\NotificationMessage;
 use App\Contexts\GameWorld\GiftCodes\Actions\BeginGiftCodeRedemption;
 use App\Contexts\GameWorld\GiftCodes\Actions\IngestApprovedGiftCodeObservation;
 use App\Contexts\GameWorld\GiftCodes\Actions\ManageGiftCodeSourceRegistry;
@@ -297,7 +297,6 @@ final class GiftCodeBehaviorV3Test extends TestCase
                 (string) $giftCode->id,
                 [$governor->playerId],
             )->toArray();
-
             self::assertSame(0, $prepared['succeeded']);
             self::assertSame(1, $prepared['failed']);
             $redemption = GiftCodeRedemption::query()
@@ -443,11 +442,11 @@ final class GiftCodeBehaviorV3Test extends TestCase
 
         $availability = app(QueueGiftCodeTransitionNotifications::class)->handle();
         self::assertSame(1, $availability->createdDeliveryCount);
-        $availabilityDelivery = NotificationDelivery::query()
+        $availabilityMessage = NotificationMessage::query()
             ->where('notification_type', 'gift_code.available')
             ->firstOrFail();
-        self::assertNull($availabilityDelivery->player_id);
-        self::assertCount(2, $availabilityDelivery->metadata['governors'] ?? []);
+        self::assertNull($availabilityMessage->player_id);
+        self::assertCount(2, $availabilityMessage->metadata['governors'] ?? []);
 
         app(PrepareGiftCodeRedemptions::class)->handle(
             User::query()->findOrFail($account->userId),
@@ -477,7 +476,7 @@ final class GiftCodeBehaviorV3Test extends TestCase
             ['expires_at' => now()->addHours(10)->startOfMinute()->toIso8601String(), 'expiry_precision' => 'minute'],
         );
         self::assertSame(1, app(QueueGiftCodeExpiryNotifications::class)->handle()->createdDeliveryCount);
-        self::assertSame(2, NotificationDelivery::query()->where('notification_type', 'gift_code.expiring')->count());
+        self::assertSame(2, NotificationMessage::query()->where('notification_type', 'gift_code.expiring')->count());
     }
 
     public function test_installed_json_feed_adapter_retrieves_a_bounded_verified_source_page(): void
