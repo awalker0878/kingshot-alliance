@@ -14,7 +14,7 @@ type HistoryItem = {
   source: string;
 };
 
-const props = defineProps<{
+defineProps<{
   user: { name: string; email: string };
   alliance: { id: string; name: string };
   player: { id: string; name: string; gamePlayerId: string | null };
