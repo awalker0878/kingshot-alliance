@@ -11,7 +11,16 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property string $id
+ * @property string $alliance_id
+ * @property string $key
+ * @property string $name
+ * @property bool $is_system
+ * @property Carbon|null $archived_at
+ */
 final class Role extends Model
 {
     use HasUlids;
@@ -25,28 +34,27 @@ final class Role extends Model
         'key',
         'name',
         'is_system',
+        'archived_at',
     ];
 
     protected function casts(): array
     {
         return [
             'is_system' => 'boolean',
+            'archived_at' => 'datetime',
         ];
     }
 
-    /** @return BelongsTo<Alliance, $this> */
     public function alliance(): BelongsTo
     {
         return $this->belongsTo(Alliance::class);
     }
 
-    /** @return BelongsToMany<Permission, $this> */
     public function permissions(): BelongsToMany
     {
         return $this->belongsToMany(Permission::class, 'role_permissions');
     }
 
-    /** @return BelongsToMany<AllianceMembership, $this> */
     public function memberships(): BelongsToMany
     {
         return $this->belongsToMany(AllianceMembership::class, 'membership_roles', 'role_id', 'membership_id');
