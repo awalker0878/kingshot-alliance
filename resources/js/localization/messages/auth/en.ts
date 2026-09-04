@@ -68,8 +68,7 @@ const messages = {
         'Recruit Governors, prepare Events, manage your Alliance, and keep track of the Kingdom in one place.',
     },
     login: {
-      intro:
-        'Sign in with any method attached to your Kingshot Alliance account, then choose the Governor you want to use.',
+      intro: 'Sign in with your account, then choose the Governor you want to use.',
       invitationNotice:
         'Sign in with the invited account to continue accepting your Alliance invitation.',
       needAccount: 'Need an account?',
@@ -77,7 +76,7 @@ const messages = {
     },
     register: {
       intro:
-        'Create one Kingshot Alliance account. You can attach more sign-in methods later from Security settings.',
+        'One account may own several Governors. Alliance rank and Kingdom duties always follow the Governor you choose.',
       invitationNotice:
         'You were invited to {alliance} as {email}. Creating your account will also accept this invitation.',
       invitationOnly:
