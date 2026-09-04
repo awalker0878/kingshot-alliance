@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Alliance\Recruitment\Http\Controllers;
 
-use App\Contexts\Accounts\Identity\Models\User;
+use App\Contexts\Accounts\Identity\Contracts\AuthenticatedAccount;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
@@ -31,7 +31,7 @@ final class RecruitmentReentryController extends Controller
         string $candidate,
     ): Response {
         $user = $request->user();
-        abort_unless($user instanceof User, 401);
+        abort_unless($user instanceof AuthenticatedAccount, 401);
         $scope = $context->scope();
         $authorization->authorize($scope->playerId, $scope->allianceId, AlliancePermission::RecruitmentManage);
         $alliance = $alliances->require($scope->allianceId);
@@ -42,7 +42,7 @@ final class RecruitmentReentryController extends Controller
             ->firstOrFail();
 
         return Inertia::render('Alliance/Recruitment/Reentry', [
-            'user' => ['name' => (string) $user->name, 'email' => (string) $user->email],
+            'user' => ['name' => $user->accountName(), 'email' => $user->accountEmail()],
             'alliance' => ['id' => $alliance->allianceId, 'name' => $alliance->name],
             'candidate' => [
                 'id' => (string) $record->id,
