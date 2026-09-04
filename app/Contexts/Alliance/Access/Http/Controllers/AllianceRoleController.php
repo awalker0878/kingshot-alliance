@@ -97,7 +97,10 @@ final class AllianceRoleController extends Controller
         ]);
     }
 
-    /** @param list<string> $values @return list<AlliancePermission> */
+    /**
+     * @param  array<array-key, string>  $values
+     * @return list<AlliancePermission>
+     */
     private function permissions(array $values): array
     {
         return array_values(array_unique(array_map(static fn (string $value): AlliancePermission => AlliancePermission::from($value), $values), SORT_REGULAR));
