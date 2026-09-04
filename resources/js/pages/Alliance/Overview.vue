@@ -71,6 +71,13 @@ const props = defineProps<{
       allianceTimezone: string;
     }>;
   };
+  governance: {
+    canManageSettings: boolean;
+    canManageRoles: boolean;
+    canManageMembers: boolean;
+    canViewHistory: boolean;
+    canManageRosterEvidence: boolean;
+  };
   invitationManagement: {
     allowed: boolean;
     candidates: Array<{
@@ -378,6 +385,14 @@ function formatInZone(value: string, timeZone: string): string {
         >
           {{ t('navigation.recruitment') }}
         </Link>
+        <Link
+          v-if="governance.canManageSettings"
+          href="/alliance/settings"
+          class="ks-command-link"
+          data-variant="secondary"
+        >
+          {{ t('allianceExpansion.navSettings') }}
+        </Link>
       </template>
     </RoomBanner>
 
@@ -419,6 +434,46 @@ function formatInZone(value: string, timeZone: string): string {
           </Link>
           <Link href="/alliance/kingdom-alliances" class="ks-command-link" data-variant="secondary">
             {{ t('navigation.kingdom') }}
+          </Link>
+          <Link
+            v-if="governance.canManageRoles"
+            href="/alliance/roles"
+            class="ks-command-link"
+            data-variant="secondary"
+          >
+            {{ t('allianceExpansion.navRoles') }}
+          </Link>
+          <Link
+            v-if="governance.canManageMembers"
+            href="/alliance/members/bulk"
+            class="ks-command-link"
+            data-variant="secondary"
+          >
+            {{ t('allianceExpansion.navBulk') }}
+          </Link>
+          <Link
+            v-if="governance.canViewHistory"
+            href="/alliance/history"
+            class="ks-command-link"
+            data-variant="secondary"
+          >
+            {{ t('allianceExpansion.navHistory') }}
+          </Link>
+          <Link
+            v-if="governance.canManageRosterEvidence"
+            href="/alliance/roster/evidence"
+            class="ks-command-link"
+            data-variant="secondary"
+          >
+            {{ t('allianceExpansion.navRosterEvidence') }}
+          </Link>
+          <Link
+            v-if="governance.canManageRosterEvidence"
+            href="/alliance/roster/reconciliation"
+            class="ks-command-link"
+            data-variant="secondary"
+          >
+            {{ t('allianceExpansion.navReconciliation') }}
           </Link>
         </div>
       </div>

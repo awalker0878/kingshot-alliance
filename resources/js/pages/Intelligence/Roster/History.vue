@@ -102,6 +102,16 @@ type CapabilityProfile = {
     failed: number;
     latestAt: string | null;
   };
+  membershipGovernance: {
+    access: 'available' | 'unavailable';
+    href: string;
+    history: Array<{
+      id: string;
+      type: string;
+      occurredAt: string;
+      source: string;
+    }>;
+  };
 };
 
 const props = defineProps<{
@@ -505,6 +515,47 @@ function recordSnapshot(): void {
               })
             }}
           </p>
+        </article>
+
+        <article class="ks-surface p-4">
+          <div class="flex items-center justify-between gap-2">
+            <h3 class="font-semibold">{{ t('allianceExpansion.memberHistoryEyebrow') }}</h3>
+            <Link
+              v-if="capabilityProfile.membershipGovernance.access === 'available'"
+              :href="capabilityProfile.membershipGovernance.href"
+              class="text-xs font-semibold text-[var(--ks-gold)]"
+            >
+              {{ t('allianceExpansion.openOwner') }}
+            </Link>
+          </div>
+          <p
+            v-if="capabilityProfile.membershipGovernance.access === 'unavailable'"
+            class="mt-3 text-sm text-[var(--ks-text-muted)]"
+          >
+            {{ t('rosterHistory.capability.unavailable') }}
+          </p>
+          <template v-else>
+            <p class="ks-display mt-3 text-3xl font-semibold">
+              {{ capabilityProfile.membershipGovernance.history.length }}
+            </p>
+            <ul
+              v-if="capabilityProfile.membershipGovernance.history.length"
+              class="mt-3 space-y-2 text-sm"
+            >
+              <li
+                v-for="event in capabilityProfile.membershipGovernance.history.slice(0, 3)"
+                :key="event.id"
+              >
+                <p class="font-semibold">{{ event.type.replaceAll('_', ' ') }}</p>
+                <p class="text-xs text-[var(--ks-text-muted)]">
+                  {{ formatCaptured(event.occurredAt) }} · {{ event.source }}
+                </p>
+              </li>
+            </ul>
+            <p v-else class="mt-3 text-sm text-[var(--ks-text-muted)]">
+              {{ t('allianceExpansion.noHistory') }}
+            </p>
+          </template>
         </article>
       </div>
     </section>

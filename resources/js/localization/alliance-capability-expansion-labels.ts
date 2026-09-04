@@ -16,6 +16,19 @@ const english: MessageCatalogue = {
     'alliance-roster-evidence-committed': '{count} reviewed roster observations committed.',
     'recruitment-reentry-updated': 'Recruitment re-entry control updated.',
   },
+  application: {
+    dashboard: {
+      commandReasons: {
+        rosterReconciliationRequired: '{count} roster observations need officer reconciliation',
+        recruitmentReentryReviewDue: '{count} recruitment re-entry reviews are due',
+      },
+      commandOwners: {
+        alliance: {
+          recruitment: 'Recruitment',
+        },
+      },
+    },
+  },
   allianceExpansion: {
     navSettings: 'Alliance settings',
     navRoles: 'Specialist roles',

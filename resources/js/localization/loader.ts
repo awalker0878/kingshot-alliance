@@ -100,7 +100,9 @@ async function loadOne(domain: LocalizationDomain, locale: LocaleCode): Promise<
     if (domain === 'transfers') catalogue = await transfersCatalogue(catalogue);
     if (domain === 'progression') catalogue = await progressionCatalogue(catalogue, locale);
     if (domain === 'territory') catalogue = await territoryCatalogue(catalogue);
-    if (domain === 'alliance') catalogue = await allianceCapabilityExpansionCatalogue(catalogue);
+    if (domain === 'core' || domain === 'alliance') {
+      catalogue = await allianceCapabilityExpansionCatalogue(catalogue);
+    }
     if (['alliance', 'assistant', 'kingdom'].includes(domain)) {
       catalogue = await intelligenceChangeCatalogue(catalogue, locale);
     }
