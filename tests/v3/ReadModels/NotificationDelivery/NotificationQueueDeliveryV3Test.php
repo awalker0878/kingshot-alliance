@@ -14,6 +14,7 @@ use App\Contexts\Communications\Delivery\Enums\DeliveryChannel;
 use App\Contexts\Communications\Delivery\Enums\DeliveryStatus;
 use App\Contexts\Communications\Delivery\Models\NotificationDelivery;
 use App\Contexts\Communications\Delivery\Models\NotificationEndpoint;
+use App\Contexts\Communications\Delivery\Models\NotificationMessage;
 use App\Contexts\GameWorld\Kingdoms\Enums\KingdomAllianceStatus;
 use App\Contexts\GameWorld\Kingdoms\Models\KingdomAlliance;
 use App\Contexts\Intelligence\Observations\Enums\TrackedKingdomAllianceState;
@@ -72,10 +73,13 @@ final class NotificationQueueDeliveryV3Test extends TestCase
         self::assertSame(1, $first->createdDeliveryCount);
         self::assertSame(0, $replay->createdDeliveryCount);
         self::assertSame(1, $replay->replayedDeliveryCount);
-        self::assertSame(1, NotificationDelivery::query()
+        self::assertSame(1, NotificationMessage::query()
             ->where('notification_type', OfficerBriefNotificationPublisher::NOTIFICATION_TYPE)
             ->count());
-        $metadata = NotificationDelivery::query()->firstOrFail()->metadata;
+        $metadata = NotificationMessage::query()
+            ->where('notification_type', OfficerBriefNotificationPublisher::NOTIFICATION_TYPE)
+            ->firstOrFail()
+            ->metadata;
         self::assertSame(
             'daily:2026-08-29',
             is_array($metadata) ? ($metadata['policyKey'] ?? null) : null,
@@ -200,7 +204,7 @@ final class NotificationQueueDeliveryV3Test extends TestCase
         $this->observation($tracking, $alliance->allianceId, 4_500_000_000, '2026-08-29T12:30:00Z', 'changed');
         $changed = $queue->handle(asOf: Carbon::parse('2026-08-29T12:30:00Z'));
         self::assertSame(1, $changed->createdDeliveryCount);
-        self::assertSame(2, NotificationDelivery::query()
+        self::assertSame(2, NotificationMessage::query()
             ->where('notification_type', IntelligenceSignalNotificationPublisher::NOTIFICATION_TYPE)
             ->where('recipient_user_id', $account->userId)
             ->count());
