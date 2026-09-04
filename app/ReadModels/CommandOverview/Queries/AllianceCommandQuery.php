@@ -11,6 +11,7 @@ use App\Contexts\Alliance\Recruitment\Models\RecruitmentCandidate;
 use App\Contexts\Communications\Delivery\Enums\DeliveryChannel;
 use App\Contexts\Communications\Delivery\Enums\DeliveryStatus;
 use App\Contexts\Communications\Delivery\Models\NotificationDelivery;
+use App\Contexts\Communications\Delivery\Models\NotificationMessage;
 use App\Contexts\GameWorld\KingdomTransfers\Access\Enums\TransferPermission;
 use App\Contexts\GameWorld\KingdomTransfers\Access\Services\TransferAuthorization;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferEligibilityOutcome;
@@ -490,13 +491,17 @@ final readonly class AllianceCommandQuery
     /** @return array<string,mixed>|null */
     private function communications(int $userId, string $playerId): ?array
     {
-        $query = NotificationDelivery::query()
+        $messageIds = NotificationMessage::query()
+            ->select('id')
             ->where('recipient_user_id', $userId)
-            ->where('status', DeliveryStatus::Failed->value)
-            ->where('channel', '!=', DeliveryChannel::InApp->value)
             ->where(static fn (Builder $builder) => $builder
                 ->whereNull('player_id')
                 ->orWhere('player_id', $playerId));
+
+        $query = NotificationDelivery::query()
+            ->whereIn('notification_message_id', $messageIds)
+            ->where('status', DeliveryStatus::Failed->value)
+            ->where('channel', '!=', DeliveryChannel::InApp->value);
         $count = (clone $query)->count();
         if ($count === 0) {
             return null;
