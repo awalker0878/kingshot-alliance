@@ -74,11 +74,15 @@ Alliance policies belong to the capability that owns the rule; `Alliance/Policie
 
 ## Communications
 
-- **Delivery** — notification delivery coordination, encrypted recipient endpoints, inbox state/preferences, channels, provider acknowledgement, retry/failure handling and idempotency.
+- **Delivery** — one logical recipient-visible notification per source intent; account-default/Governor routing preferences; quiet-hours, urgency, temporary-mute and digest scheduling; encrypted named Discord/Telegram/Web Push destinations; Accounts-owned verified-email routing; concrete provider routes, endpoint health, bounded retry/recovery, logical inbox state and privacy-safe delivery diagnostics.
 
-Communications does not own Event, King Perk or other source-domain reminder semantics.
+Communications owns **how** an already-authorized notification is delivered. It does not own Event, King Perk, Gift Code, Intelligence, Alliance announcement, Officer Brief, Account Security or other source-domain notification meaning/eligibility. Source callers cross the boundary with scalar/value-object `NotificationIntent` and receive scalar `NotificationQueueReceipt` values; they do not inspect Communications persistence models or select concrete endpoints.
 
-For Gift Codes, Communications owns channel preferences, delivery attempts and inbox state. `GameWorld/GiftCodes` owns which account/Governor is eligible for an availability, expiry or trust-change campaign and supplies revision-aware idempotency inputs.
+`NotificationMessage` owns logical inbox identity/read/archive state. `NotificationDelivery` owns one concrete channel/endpoint route and provider attempt state. Multi-channel/multi-endpoint fan-out therefore does not duplicate the inbox message. `NotificationRoutingPolicy`, `NotificationPreference`, `NotificationEndpoint` and `NotificationDigestDispatch` remain Communications-owned delivery policy/operational state rather than source truth.
+
+Email identity remains Accounts-owned and is consumed through a narrow verified-email query. Discord/Telegram/Web Push endpoint configuration remains encrypted Communications state. Immediate and digest workers recheck current recipient policy, endpoint state and Governor ownership before provider delivery.
+
+For Gift Codes, Communications owns channel/routing preferences, concrete delivery attempts and logical inbox state. `GameWorld/GiftCodes` owns which account/Governor is eligible for an availability, expiry or trust-change campaign and supplies revision-aware idempotency inputs. The same source/Delivery separation applies to every normalized notification type.
 
 ## Platform
 
