@@ -6,7 +6,9 @@ use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Alliance\Content\Actions\PublishScheduledContent;
 use App\Contexts\Alliance\Content\Actions\QueuePublishedAnnouncementBroadcasts;
 use App\Contexts\Alliance\Recruitment\Actions\PurgeExpiredRecruitmentCandidates;
+use App\Contexts\Communications\Delivery\Actions\BuildNotificationDigestDispatches;
 use App\Contexts\Communications\Delivery\Actions\ProcessNotificationDeliveries;
+use App\Contexts\Communications\Delivery\Actions\ProcessNotificationDigests;
 use App\Contexts\GameWorld\GiftCodes\Actions\ExpireGiftCodes;
 use App\Contexts\GameWorld\GiftCodes\Actions\QueueGiftCodeExpiryNotifications;
 use App\Contexts\GameWorld\GiftCodes\Actions\QueueGiftCodeTransitionNotifications;
@@ -226,10 +228,26 @@ Artisan::command('content:queue-announcement-broadcasts {--limit=25}', function 
 Artisan::command('notifications:deliver {--limit=100}', function (ProcessNotificationDeliveries $deliveries): int {
     $limit = max(1, min(1000, (int) $this->option('limit')));
     $processed = $deliveries->handle($limit);
-    $this->info(sprintf('Processed %d external notification delivery attempt(s).', $processed));
+    $this->info(sprintf('Processed %d immediate external notification delivery attempt(s).', $processed));
 
     return 0;
-})->purpose('Deliver due Discord and Telegram notifications with bounded retries');
+})->purpose('Deliver due immediate external notifications with bounded retries');
+
+Artisan::command('notifications:build-digests {--limit=500}', function (BuildNotificationDigestDispatches $digests): int {
+    $limit = max(1, min(2000, (int) $this->option('limit')));
+    $created = $digests->handle($limit);
+    $this->info(sprintf('Built %d due notification digest dispatch(es).', $created));
+
+    return 0;
+})->purpose('Group due recipient-selected digest routes into bounded idempotent dispatches');
+
+Artisan::command('notifications:deliver-digests {--limit=100}', function (ProcessNotificationDigests $digests): int {
+    $limit = max(1, min(500, (int) $this->option('limit')));
+    $processed = $digests->handle($limit);
+    $this->info(sprintf('Processed %d notification digest delivery attempt(s).', $processed));
+
+    return 0;
+})->purpose('Deliver due notification digests with bounded retry and route reauthorization');
 
 Artisan::command(
     'notifications:queue-officer-briefs {--group=all} {--limit=1000} {--after=} {--cycle}',
@@ -424,6 +442,8 @@ Schedule::command('notifications:queue-officer-briefs --group=daily --limit=1000
 Schedule::command('notifications:queue-officer-briefs --group=event --limit=1000 --cycle')->everyFifteenMinutes()->onOneServer()->withoutOverlapping(10);
 Schedule::command('notifications:queue-intelligence-changes --limit=1000 --cycle')->everyFifteenMinutes()->onOneServer()->withoutOverlapping(10);
 Schedule::command('notifications:deliver --limit=100')->everyMinute()->onOneServer()->withoutOverlapping(10);
+Schedule::command('notifications:build-digests --limit=500')->everyMinute()->onOneServer()->withoutOverlapping(10);
+Schedule::command('notifications:deliver-digests --limit=100')->everyMinute()->onOneServer()->withoutOverlapping(10);
 Schedule::command('gift-codes:maintain --limit=500 --cycle')->everyFifteenMinutes()->onOneServer()->withoutOverlapping(30);
 Schedule::command('gift-codes:ingest-approved-sources --limit=25 --cycle')->everyFifteenMinutes()->onOneServer()->withoutOverlapping(30);
 Schedule::command('gift-codes:reconcile-source-policies --limit=500')->everyFiveMinutes()->onOneServer()->withoutOverlapping(30);
