@@ -39,14 +39,14 @@ self.addEventListener('push', (event) => {
     payload = {};
   }
 
-  const title = typeof payload.title === 'string' && payload.title.trim() !== ''
-    ? payload.title.slice(0, 200)
-    : 'Kingshot Alliance';
+  const title =
+    typeof payload.title === 'string' && payload.title.trim() !== ''
+      ? payload.title.slice(0, 200)
+      : 'Kingshot Alliance';
   const body = typeof payload.body === 'string' ? payload.body.slice(0, 1200) : undefined;
   const candidate = typeof payload.action_url === 'string' ? payload.action_url : '/notifications';
-  const actionUrl = candidate.startsWith('/') && !candidate.startsWith('//')
-    ? candidate
-    : '/notifications';
+  const actionUrl =
+    candidate.startsWith('/') && !candidate.startsWith('//') ? candidate : '/notifications';
 
   event.waitUntil(
     self.registration.showNotification(title, {
@@ -61,9 +61,10 @@ self.addEventListener('push', (event) => {
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   const candidate = event.notification.data?.actionUrl;
-  const actionUrl = typeof candidate === 'string' && candidate.startsWith('/') && !candidate.startsWith('//')
-    ? candidate
-    : '/notifications';
+  const actionUrl =
+    typeof candidate === 'string' && candidate.startsWith('/') && !candidate.startsWith('//')
+      ? candidate
+      : '/notifications';
   const target = new URL(actionUrl, self.location.origin).href;
 
   event.waitUntil(

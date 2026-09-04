@@ -83,7 +83,8 @@ const english: MessageCatalogue = {
     webPushSetup: 'Browser notifications',
     webPushHelp:
       'Enable this browser as a named Web Push destination. Each browser or installed app is stored separately.',
-    webPushUnavailable: 'Web Push is not available in this browser or is not configured on the server.',
+    webPushUnavailable:
+      'Web Push is not available in this browser or is not configured on the server.',
     webPushDenied: 'Browser notification permission was denied.',
     webPushLabel: 'This device',
     enableWebPush: 'Enable Web Push on this device',

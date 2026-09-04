@@ -188,10 +188,13 @@ const governorHasRoutingOverride = computed(
   () => props.player !== null && props.routingPolicies[props.player.id] !== undefined,
 );
 const visibleMessages = computed(() => props.inbox.items);
-const unread = computed(() => visibleMessages.value.filter((message) => message.readAt === null).length);
+const unread = computed(
+  () => visibleMessages.value.filter((message) => message.readAt === null).length,
+);
 const failures = computed(() =>
   visibleMessages.value.reduce(
-    (count, message) => count + message.deliveries.filter((route) => route.status === 'failed').length,
+    (count, message) =>
+      count + message.deliveries.filter((route) => route.status === 'failed').length,
     0,
   ),
 );
@@ -206,7 +209,9 @@ const bulkPreviewMatchesSelection = computed(() => {
   if (!preview || preview.operation !== bulkOperation.value) return false;
   const selected = [...selectedMessageIds.value].sort();
   const previewed = preview.items.map((item) => item.itemId).sort();
-  return selected.length === previewed.length && selected.every((id, index) => id === previewed[index]);
+  return (
+    selected.length === previewed.length && selected.every((id, index) => id === previewed[index])
+  );
 });
 const canEnableWebPush = computed(
   () =>
@@ -226,7 +231,11 @@ watch(
 );
 
 function currentFilters(cursor: string | null = null): Record<string, string | number> {
-  const query: Record<string, string | number> = { view: filterView.value ?? 'all', scope: filterScope.value ?? 'all', limit: 25 };
+  const query: Record<string, string | number> = {
+    view: filterView.value ?? 'all',
+    scope: filterScope.value ?? 'all',
+    limit: 25,
+  };
   if (filterType.value) query.type = filterType.value;
   if (filterStatus.value) query.delivery_status = filterStatus.value;
   if (filterDateFrom.value) query.date_from = filterDateFrom.value;
@@ -258,7 +267,11 @@ function saveEndpoint(): void {
   });
 }
 function setEndpointState(endpoint: Endpoint, enabled: boolean): void {
-  router.patch(`/notifications/endpoints/${endpoint.id}/state`, { enabled }, { preserveScroll: true });
+  router.patch(
+    `/notifications/endpoints/${endpoint.id}/state`,
+    { enabled },
+    { preserveScroll: true },
+  );
 }
 function testEndpoint(endpoint: Endpoint): void {
   router.post(`/notifications/endpoints/${endpoint.id}/test`, {}, { preserveScroll: true });
@@ -289,7 +302,12 @@ function governorOverride(type: string, channel: ChannelValue): boolean | undefi
 function governorPreference(type: string, channel: ChannelValue): boolean {
   return governorOverride(type, channel) ?? accountPreference(type, channel);
 }
-function setPreference(scope: 'account' | 'governor', type: string, channel: ChannelValue, enabled: boolean): void {
+function setPreference(
+  scope: 'account' | 'governor',
+  type: string,
+  channel: ChannelValue,
+  enabled: boolean,
+): void {
   router.put(
     '/notifications/preferences',
     { notification_type: type, channel, enabled, scope },
@@ -303,7 +321,8 @@ function resetPreference(type: string, channel: ChannelValue): void {
   });
 }
 function setMessageState(message: NotificationMessage, operation: BulkOperation): void {
-  const path = operation === 'mark_read' ? 'read' : operation === 'mark_unread' ? 'unread' : operation;
+  const path =
+    operation === 'mark_read' ? 'read' : operation === 'mark_unread' ? 'unread' : operation;
   router.put(`/notifications/${message.id}/${path}`, {}, { preserveScroll: true });
 }
 function typeLabel(type: string): string {
@@ -345,7 +364,9 @@ function toggleVisibleSelection(): void {
     selectedMessageIds.value = selectedMessageIds.value.filter((id) => !visible.has(id));
     return;
   }
-  selectedMessageIds.value = [...new Set([...selectedMessageIds.value, ...selectableMessageIds.value])].slice(0, 50);
+  selectedMessageIds.value = [
+    ...new Set([...selectedMessageIds.value, ...selectableMessageIds.value]),
+  ].slice(0, 50);
 }
 function previewBulkUpdate(): void {
   if (selectedMessageIds.value.length === 0 || bulkBusy.value) return;
@@ -357,11 +378,15 @@ function previewBulkUpdate(): void {
   );
 }
 function commitBulkUpdate(): void {
-  if (!props.notificationBulkPreview || !bulkPreviewMatchesSelection.value || bulkBusy.value) return;
+  if (!props.notificationBulkPreview || !bulkPreviewMatchesSelection.value || bulkBusy.value)
+    return;
   bulkBusy.value = true;
   router.put(
     '/notifications/bulk',
-    { message_ids: props.notificationBulkPreview.items.map((item) => item.itemId), operation: bulkOperation.value },
+    {
+      message_ids: props.notificationBulkPreview.items.map((item) => item.itemId),
+      operation: bulkOperation.value,
+    },
     {
       preserveScroll: true,
       preserveState: true,
@@ -440,8 +465,17 @@ async function enableWebPush(): Promise<void> {
 
     <section class="mt-4 grid gap-3 sm:grid-cols-3">
       <StatSeal :label="t('notifications.unread')" :value="unread" icon="✦" tone="teal" />
-      <StatSeal :label="t('notifications.externalChannels')" :value="props.endpoints.length" icon="↗" />
-      <StatSeal :label="t('notifications.needsAttention')" :value="failures" icon="!" tone="stone" />
+      <StatSeal
+        :label="t('notifications.externalChannels')"
+        :value="props.endpoints.length"
+        icon="↗"
+      />
+      <StatSeal
+        :label="t('notifications.needsAttention')"
+        :value="failures"
+        icon="!"
+        tone="stone"
+      />
     </section>
 
     <div class="mt-5 grid gap-5 2xl:grid-cols-[minmax(0,1.3fr)_minmax(24rem,.7fr)]">
@@ -450,9 +484,13 @@ async function enableWebPush(): Promise<void> {
           <div class="flex flex-wrap items-end justify-between gap-3">
             <div>
               <p class="ks-kicker">{{ t('notifications.latestActivity') }}</p>
-              <h2 id="notification-inbox-title" class="ks-display mt-1 text-2xl font-semibold">{{ t('notifications.inbox') }}</h2>
+              <h2 id="notification-inbox-title" class="ks-display mt-1 text-2xl font-semibold">
+                {{ t('notifications.inbox') }}
+              </h2>
             </div>
-            <span class="ks-status" data-tone="info">{{ t('notifications.inboxCount', { count: visibleMessages.length }) }}</span>
+            <span class="ks-status" data-tone="info">{{
+              t('notifications.inboxCount', { count: visibleMessages.length })
+            }}</span>
           </div>
 
           <form class="mt-4 grid gap-3 md:grid-cols-3" @submit.prevent="applyFilters">
@@ -468,7 +506,9 @@ async function enableWebPush(): Promise<void> {
               <span class="text-[var(--ks-text-secondary)]">{{ t('notifications.type') }}</span>
               <select v-model="filterType" class="ks-input mt-1 w-full">
                 <option value="">{{ t('notifications.allTypes') }}</option>
-                <option v-for="type in props.notificationTypes" :key="type" :value="type">{{ typeLabel(type) }}</option>
+                <option v-for="type in props.notificationTypes" :key="type" :value="type">
+                  {{ typeLabel(type) }}
+                </option>
               </select>
             </label>
             <label class="text-sm">
@@ -476,14 +516,20 @@ async function enableWebPush(): Promise<void> {
               <select v-model="filterScope" class="ks-input mt-1 w-full">
                 <option value="all">{{ t('notifications.scopes.all') }}</option>
                 <option value="account">{{ t('notifications.scopes.account') }}</option>
-                <option value="governor" :disabled="!props.player">{{ t('notifications.scopes.governor') }}</option>
+                <option value="governor" :disabled="!props.player">
+                  {{ t('notifications.scopes.governor') }}
+                </option>
               </select>
             </label>
             <label class="text-sm">
-              <span class="text-[var(--ks-text-secondary)]">{{ t('notifications.deliveryStatus') }}</span>
+              <span class="text-[var(--ks-text-secondary)]">{{
+                t('notifications.deliveryStatus')
+              }}</span>
               <select v-model="filterStatus" class="ks-input mt-1 w-full">
                 <option value="">{{ t('notifications.allStatuses') }}</option>
-                <option v-for="status in props.deliveryStatuses" :key="status" :value="status">{{ statusLabel(status) }}</option>
+                <option v-for="status in props.deliveryStatuses" :key="status" :value="status">
+                  {{ statusLabel(status) }}
+                </option>
               </select>
             </label>
             <label class="text-sm">
@@ -496,7 +542,9 @@ async function enableWebPush(): Promise<void> {
             </label>
             <div class="flex flex-wrap gap-2 md:col-span-3">
               <AppButton type="submit">{{ t('notifications.applyFilters') }}</AppButton>
-              <AppButton variant="secondary" type="button" @click="clearFilters">{{ t('notifications.clearFilters') }}</AppButton>
+              <AppButton variant="secondary" type="button" @click="clearFilters">{{
+                t('notifications.clearFilters')
+              }}</AppButton>
               <button
                 v-if="visibleMessages.length"
                 type="button"
@@ -505,16 +553,25 @@ async function enableWebPush(): Promise<void> {
                 :data-active="allVisibleSelected"
                 @click="toggleVisibleSelection"
               >
-                {{ allVisibleSelected ? t('notifications.bulk.clearSelection') : t('notifications.bulk.selectVisible') }}
+                {{
+                  allVisibleSelected
+                    ? t('notifications.bulk.clearSelection')
+                    : t('notifications.bulk.selectVisible')
+                }}
               </button>
             </div>
           </form>
         </div>
 
-        <div v-if="selectedMessageIds.length" class="border-t border-[var(--ks-border)] bg-[var(--ks-teal-soft)] p-4 sm:p-5">
+        <div
+          v-if="selectedMessageIds.length"
+          class="border-t border-[var(--ks-border)] bg-[var(--ks-teal-soft)] p-4 sm:p-5"
+        >
           <div class="flex flex-wrap items-end gap-3">
             <div class="min-w-[14rem] flex-1">
-              <p class="font-semibold">{{ t('notifications.bulk.selected', { count: selectedMessageIds.length }) }}</p>
+              <p class="font-semibold">
+                {{ t('notifications.bulk.selected', { count: selectedMessageIds.length }) }}
+              </p>
               <p class="mt-1 text-xs text-[var(--ks-muted)]">{{ t('notifications.bulk.help') }}</p>
             </div>
             <label class="text-sm">
@@ -526,128 +583,374 @@ async function enableWebPush(): Promise<void> {
                 <option value="restore">{{ t('notifications.bulk.restore') }}</option>
               </select>
             </label>
-            <AppButton :busy="bulkBusy" :busy-label="t('notifications.bulk.previewing')" @click="previewBulkUpdate">{{ t('notifications.bulk.preview') }}</AppButton>
+            <AppButton
+              :busy="bulkBusy"
+              :busy-label="t('notifications.bulk.previewing')"
+              @click="previewBulkUpdate"
+              >{{ t('notifications.bulk.preview') }}</AppButton
+            >
           </div>
         </div>
 
-        <div v-if="bulkPreviewMatchesSelection && notificationBulkPreview" class="border-t border-[var(--ks-border)] p-4 sm:p-5">
+        <div
+          v-if="bulkPreviewMatchesSelection && notificationBulkPreview"
+          class="border-t border-[var(--ks-border)] p-4 sm:p-5"
+        >
           <div class="flex flex-wrap items-start justify-between gap-3">
             <div>
               <p class="ks-kicker">{{ t('notifications.bulk.previewTitle') }}</p>
-              <p class="mt-1 font-semibold">{{ t('notifications.bulk.previewSummary', { ready: notificationBulkPreview.ready, blocked: notificationBulkPreview.blocked }) }}</p>
+              <p class="mt-1 font-semibold">
+                {{
+                  t('notifications.bulk.previewSummary', {
+                    ready: notificationBulkPreview.ready,
+                    blocked: notificationBulkPreview.blocked,
+                  })
+                }}
+              </p>
             </div>
-            <AppButton :disabled="notificationBulkPreview.ready === 0" @click="bulkConfirmationOpen = true">{{ t('notifications.bulk.confirm') }}</AppButton>
+            <AppButton
+              :disabled="notificationBulkPreview.ready === 0"
+              @click="bulkConfirmationOpen = true"
+              >{{ t('notifications.bulk.confirm') }}</AppButton
+            >
           </div>
           <ul class="mt-4 grid gap-2 md:grid-cols-2">
-            <li v-for="item in notificationBulkPreview.items" :key="item.itemId" class="flex items-center justify-between gap-3 rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/15 px-3 py-2 text-sm">
+            <li
+              v-for="item in notificationBulkPreview.items"
+              :key="item.itemId"
+              class="flex items-center justify-between gap-3 rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/15 px-3 py-2 text-sm"
+            >
               <span class="truncate">{{ item.label }}</span>
-              <span class="ks-status" :data-tone="item.outcome === 'ready' ? 'success' : item.outcome === 'skipped' ? 'warning' : 'danger'">{{ bulkOutcomeLabel(item.code) }}</span>
+              <span
+                class="ks-status"
+                :data-tone="
+                  item.outcome === 'ready'
+                    ? 'success'
+                    : item.outcome === 'skipped'
+                      ? 'warning'
+                      : 'danger'
+                "
+                >{{ bulkOutcomeLabel(item.code) }}</span
+              >
             </li>
           </ul>
         </div>
 
-        <div v-if="notificationBulkResult" class="border-t border-[var(--ks-border)] p-4 sm:p-5" aria-labelledby="notification-bulk-result-title">
+        <div
+          v-if="notificationBulkResult"
+          class="border-t border-[var(--ks-border)] p-4 sm:p-5"
+          aria-labelledby="notification-bulk-result-title"
+        >
           <p class="ks-kicker">{{ t('notifications.bulk.resultTitle') }}</p>
-          <h3 id="notification-bulk-result-title" class="mt-1 text-lg font-semibold">{{ t('notifications.bulk.resultSummary', { succeeded: notificationBulkResult.succeeded, failed: notificationBulkResult.failed, skipped: notificationBulkResult.skipped }) }}</h3>
+          <h3 id="notification-bulk-result-title" class="mt-1 text-lg font-semibold">
+            {{
+              t('notifications.bulk.resultSummary', {
+                succeeded: notificationBulkResult.succeeded,
+                failed: notificationBulkResult.failed,
+                skipped: notificationBulkResult.skipped,
+              })
+            }}
+          </h3>
           <ul class="mt-4 grid gap-2 md:grid-cols-2">
-            <li v-for="item in notificationBulkResult.items" :key="item.itemId" class="flex items-center justify-between gap-3 rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/15 px-3 py-2 text-sm">
+            <li
+              v-for="item in notificationBulkResult.items"
+              :key="item.itemId"
+              class="flex items-center justify-between gap-3 rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/15 px-3 py-2 text-sm"
+            >
               <span class="truncate">{{ item.label }}</span>
-              <span class="ks-status" :data-tone="item.outcome === 'succeeded' ? 'success' : item.outcome === 'skipped' ? 'warning' : 'danger'">{{ bulkOutcomeLabel(item.code) }}</span>
+              <span
+                class="ks-status"
+                :data-tone="
+                  item.outcome === 'succeeded'
+                    ? 'success'
+                    : item.outcome === 'skipped'
+                      ? 'warning'
+                      : 'danger'
+                "
+                >{{ bulkOutcomeLabel(item.code) }}</span
+              >
             </li>
           </ul>
-          <p v-if="notificationBulkResult.failed" class="mt-3 text-xs text-[var(--ks-muted)]">{{ t('notifications.bulk.failedSelected') }}</p>
+          <p v-if="notificationBulkResult.failed" class="mt-3 text-xs text-[var(--ks-muted)]">
+            {{ t('notifications.bulk.failedSelected') }}
+          </p>
         </div>
 
         <div v-if="visibleMessages.length" class="divide-y divide-[var(--ks-border)] px-4 sm:px-5">
-          <article v-for="message in visibleMessages" :key="message.id" class="grid gap-3 py-5 sm:grid-cols-[auto_minmax(0,1fr)_auto]" :class="message.readAt === null ? 'text-[var(--ks-text)]' : 'opacity-80'">
+          <article
+            v-for="message in visibleMessages"
+            :key="message.id"
+            class="grid gap-3 py-5 sm:grid-cols-[auto_minmax(0,1fr)_auto]"
+            :class="message.readAt === null ? 'text-[var(--ks-text)]' : 'opacity-80'"
+          >
             <div class="pt-1">
-              <input type="checkbox" :checked="messageSelected(message.id)" :aria-label="t('notifications.bulk.selectNotification', { title: message.title })" @change="setMessageSelected(message.id, ($event.target as HTMLInputElement).checked)" />
+              <input
+                type="checkbox"
+                :checked="messageSelected(message.id)"
+                :aria-label="t('notifications.bulk.selectNotification', { title: message.title })"
+                @change="
+                  setMessageSelected(message.id, ($event.target as HTMLInputElement).checked)
+                "
+              />
             </div>
             <div class="min-w-0">
               <div class="flex flex-wrap items-center gap-2">
                 <span class="ks-status" data-tone="info">{{ typeLabel(message.type) }}</span>
-                <span class="ks-status">{{ message.scope === 'account' ? t('notifications.scopeAccount') : t('notifications.scopeGovernor') }}</span>
-                <span v-if="message.readAt === null" class="h-2 w-2 rounded-full bg-cyan-300" :title="t('notifications.unread')" />
+                <span class="ks-status">{{
+                  message.scope === 'account'
+                    ? t('notifications.scopeAccount')
+                    : t('notifications.scopeGovernor')
+                }}</span>
+                <span
+                  v-if="message.readAt === null"
+                  class="h-2 w-2 rounded-full bg-cyan-300"
+                  :title="t('notifications.unread')"
+                />
               </div>
               <h3 class="mt-2 text-base font-semibold">{{ message.title }}</h3>
-              <p v-if="message.body" class="mt-1 text-sm text-[var(--ks-text-secondary)]">{{ message.body }}</p>
-              <p class="mt-2 text-xs text-[var(--ks-muted)]">{{ formatDate(message.createdAt || message.availableAt) }}</p>
+              <p v-if="message.body" class="mt-1 text-sm text-[var(--ks-text-secondary)]">
+                {{ message.body }}
+              </p>
+              <p class="mt-2 text-xs text-[var(--ks-muted)]">
+                {{ formatDate(message.createdAt || message.availableAt) }}
+              </p>
 
-              <details class="mt-3 rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/10 p-3">
-                <summary class="cursor-pointer text-sm font-medium">{{ t('notifications.deliveryRoutes', { count: message.deliverySummary.total }) }}</summary>
-                <p v-if="message.deliveries.length === 0" class="mt-2 text-xs text-[var(--ks-muted)]">{{ t('notifications.noDeliveryRoutes') }}</p>
+              <details
+                class="mt-3 rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/10 p-3"
+              >
+                <summary class="cursor-pointer text-sm font-medium">
+                  {{ t('notifications.deliveryRoutes', { count: message.deliverySummary.total }) }}
+                </summary>
+                <p
+                  v-if="message.deliveries.length === 0"
+                  class="mt-2 text-xs text-[var(--ks-muted)]"
+                >
+                  {{ t('notifications.noDeliveryRoutes') }}
+                </p>
                 <ul v-else class="mt-3 space-y-2">
-                  <li v-for="delivery in message.deliveries" :key="delivery.id" class="rounded border border-[var(--ks-border)] p-2 text-xs">
+                  <li
+                    v-for="delivery in message.deliveries"
+                    :key="delivery.id"
+                    class="rounded border border-[var(--ks-border)] p-2 text-xs"
+                  >
                     <div class="flex flex-wrap items-center gap-2">
-                      <span class="ks-status" :data-tone="delivery.status === 'failed' ? 'danger' : delivery.status === 'sent' ? 'success' : 'info'">{{ channelLabel(delivery.channel) }} · {{ statusLabel(delivery.status) }}</span>
-                      <span v-if="delivery.targetLabel" class="text-[var(--ks-text-secondary)]">{{ delivery.targetLabel }}</span>
+                      <span
+                        class="ks-status"
+                        :data-tone="
+                          delivery.status === 'failed'
+                            ? 'danger'
+                            : delivery.status === 'sent'
+                              ? 'success'
+                              : 'info'
+                        "
+                        >{{ channelLabel(delivery.channel) }} ·
+                        {{ statusLabel(delivery.status) }}</span
+                      >
+                      <span v-if="delivery.targetLabel" class="text-[var(--ks-text-secondary)]">{{
+                        delivery.targetLabel
+                      }}</span>
                     </div>
                     <div class="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[var(--ks-muted)]">
-                      <span>{{ t('notifications.attempts', { attempts: delivery.attemptCount, max: delivery.maxAttempts }) }}</span>
-                      <span>{{ t('notifications.dueAt', { date: formatDate(delivery.dueAt) }) }}</span>
-                      <span v-if="delivery.sentAt">{{ t('notifications.sentAt', { date: formatDate(delivery.sentAt) }) }}</span>
-                      <span v-if="delivery.failedAt">{{ t('notifications.failedAt', { date: formatDate(delivery.failedAt) }) }}</span>
-                      <span v-if="delivery.nextAttemptAt">{{ t('notifications.retryAt', { date: formatDate(delivery.nextAttemptAt) }) }}</span>
+                      <span>{{
+                        t('notifications.attempts', {
+                          attempts: delivery.attemptCount,
+                          max: delivery.maxAttempts,
+                        })
+                      }}</span>
+                      <span>{{
+                        t('notifications.dueAt', { date: formatDate(delivery.dueAt) })
+                      }}</span>
+                      <span v-if="delivery.sentAt">{{
+                        t('notifications.sentAt', { date: formatDate(delivery.sentAt) })
+                      }}</span>
+                      <span v-if="delivery.failedAt">{{
+                        t('notifications.failedAt', { date: formatDate(delivery.failedAt) })
+                      }}</span>
+                      <span v-if="delivery.nextAttemptAt">{{
+                        t('notifications.retryAt', { date: formatDate(delivery.nextAttemptAt) })
+                      }}</span>
                     </div>
-                    <p v-if="delivery.routingReason" class="mt-1 text-[var(--ks-muted)]">{{ t('notifications.routingReason', { reason: delivery.routingReason }) }}</p>
-                    <p v-if="delivery.lastError" class="mt-1 text-rose-300">{{ delivery.lastError }}</p>
+                    <p v-if="delivery.routingReason" class="mt-1 text-[var(--ks-muted)]">
+                      {{ t('notifications.routingReason', { reason: delivery.routingReason }) }}
+                    </p>
+                    <p v-if="delivery.lastError" class="mt-1 text-rose-300">
+                      {{ delivery.lastError }}
+                    </p>
                   </li>
                 </ul>
               </details>
             </div>
             <div class="flex flex-wrap items-start gap-2 sm:justify-end">
-              <Link v-if="message.actionUrl" :href="message.actionUrl" class="ks-command-link" data-variant="secondary">{{ t('notifications.open') }}</Link>
-              <button v-if="message.readAt === null" type="button" class="ks-chip" @click="setMessageState(message, 'mark_read')">{{ t('notifications.markRead') }}</button>
-              <button v-else type="button" class="ks-chip" @click="setMessageState(message, 'mark_unread')">{{ t('notifications.markUnread') }}</button>
-              <button v-if="message.archivedAt === null" type="button" class="ks-chip" @click="setMessageState(message, 'archive')">{{ t('notifications.archive') }}</button>
-              <button v-else type="button" class="ks-chip" @click="setMessageState(message, 'restore')">{{ t('notifications.restore') }}</button>
+              <Link
+                v-if="message.actionUrl"
+                :href="message.actionUrl"
+                class="ks-command-link"
+                data-variant="secondary"
+                >{{ t('notifications.open') }}</Link
+              >
+              <button
+                v-if="message.readAt === null"
+                type="button"
+                class="ks-chip"
+                @click="setMessageState(message, 'mark_read')"
+              >
+                {{ t('notifications.markRead') }}
+              </button>
+              <button
+                v-else
+                type="button"
+                class="ks-chip"
+                @click="setMessageState(message, 'mark_unread')"
+              >
+                {{ t('notifications.markUnread') }}
+              </button>
+              <button
+                v-if="message.archivedAt === null"
+                type="button"
+                class="ks-chip"
+                @click="setMessageState(message, 'archive')"
+              >
+                {{ t('notifications.archive') }}
+              </button>
+              <button
+                v-else
+                type="button"
+                class="ks-chip"
+                @click="setMessageState(message, 'restore')"
+              >
+                {{ t('notifications.restore') }}
+              </button>
             </div>
           </article>
         </div>
         <div v-else class="ks-fantasy-empty m-4 sm:m-5">{{ t('notifications.empty') }}</div>
         <div class="flex justify-center border-t border-[var(--ks-border)] p-4">
-          <AppButton v-if="props.inbox.hasMore && props.inbox.nextCursor" variant="secondary" @click="loadOlder">{{ t('notifications.loadMore') }}</AppButton>
-          <span v-else class="text-xs text-[var(--ks-muted)]">{{ t('notifications.endOfInbox') }}</span>
+          <AppButton
+            v-if="props.inbox.hasMore && props.inbox.nextCursor"
+            variant="secondary"
+            @click="loadOlder"
+            >{{ t('notifications.loadMore') }}</AppButton
+          >
+          <span v-else class="text-xs text-[var(--ks-muted)]">{{
+            t('notifications.endOfInbox')
+          }}</span>
         </div>
       </section>
 
       <aside class="space-y-5">
         <section class="ks-surface p-4 sm:p-5" aria-labelledby="delivery-channels-title">
           <p class="ks-kicker">{{ t('notifications.deliverySetup') }}</p>
-          <h2 id="delivery-channels-title" class="ks-display mt-1 text-xl font-semibold">{{ t('notifications.deliveryChannels') }}</h2>
-          <p class="mt-2 text-sm text-[var(--ks-muted)]">{{ t('notifications.deliverySecurity') }}</p>
+          <h2 id="delivery-channels-title" class="ks-display mt-1 text-xl font-semibold">
+            {{ t('notifications.deliveryChannels') }}
+          </h2>
+          <p class="mt-2 text-sm text-[var(--ks-muted)]">
+            {{ t('notifications.deliverySecurity') }}
+          </p>
 
           <div v-if="props.endpoints.length" class="mt-4 space-y-3">
-            <div v-for="endpoint in props.endpoints" :key="endpoint.id" class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-3">
+            <div
+              v-for="endpoint in props.endpoints"
+              :key="endpoint.id"
+              class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-3"
+            >
               <div class="flex items-start justify-between gap-3">
                 <div>
                   <strong class="text-sm">{{ endpoint.label }}</strong>
                   <div class="mt-1 flex flex-wrap items-center gap-2 text-xs">
                     <span>{{ channelLabel(endpoint.channel) }}</span>
-                    <span class="ks-status" :data-tone="endpoint.healthStatus === 'healthy' ? 'success' : endpoint.healthStatus === 'degraded' ? 'danger' : 'info'">{{ healthLabel(endpoint.healthStatus) }}</span>
+                    <span
+                      class="ks-status"
+                      :data-tone="
+                        endpoint.healthStatus === 'healthy'
+                          ? 'success'
+                          : endpoint.healthStatus === 'degraded'
+                            ? 'danger'
+                            : 'info'
+                      "
+                      >{{ healthLabel(endpoint.healthStatus) }}</span
+                    >
                   </div>
                 </div>
-                <button type="button" class="ks-chip" @click="endpointToRemove = endpoint">{{ t('notifications.remove') }}</button>
+                <button type="button" class="ks-chip" @click="endpointToRemove = endpoint">
+                  {{ t('notifications.remove') }}
+                </button>
               </div>
               <div class="mt-2 space-y-1 text-xs text-[var(--ks-muted)]">
-                <p v-if="endpoint.lastVerifiedAt">{{ t('notifications.lastVerified', { date: formatDate(endpoint.lastVerifiedAt) }) }}</p>
-                <p v-if="endpoint.lastSuccessfulDeliveryAt">{{ t('notifications.lastSuccessfulDelivery', { date: formatDate(endpoint.lastSuccessfulDeliveryAt) }) }}</p>
-                <p v-if="endpoint.lastFailedDeliveryAt">{{ t('notifications.lastFailedDelivery', { date: formatDate(endpoint.lastFailedDeliveryAt) }) }}</p>
-                <p v-if="endpoint.consecutiveFailures">{{ t('notifications.consecutiveFailures', { count: endpoint.consecutiveFailures }) }}</p>
+                <p v-if="endpoint.lastVerifiedAt">
+                  {{
+                    t('notifications.lastVerified', { date: formatDate(endpoint.lastVerifiedAt) })
+                  }}
+                </p>
+                <p v-if="endpoint.lastSuccessfulDeliveryAt">
+                  {{
+                    t('notifications.lastSuccessfulDelivery', {
+                      date: formatDate(endpoint.lastSuccessfulDeliveryAt),
+                    })
+                  }}
+                </p>
+                <p v-if="endpoint.lastFailedDeliveryAt">
+                  {{
+                    t('notifications.lastFailedDelivery', {
+                      date: formatDate(endpoint.lastFailedDeliveryAt),
+                    })
+                  }}
+                </p>
+                <p v-if="endpoint.consecutiveFailures">
+                  {{
+                    t('notifications.consecutiveFailures', { count: endpoint.consecutiveFailures })
+                  }}
+                </p>
                 <p v-if="endpoint.lastError" class="text-rose-300">{{ endpoint.lastError }}</p>
               </div>
               <div class="mt-3 flex flex-wrap gap-2">
-                <button v-if="endpoint.enabled" type="button" class="ks-chip" @click="setEndpointState(endpoint, false)">{{ t('notifications.pause') }}</button>
-                <button v-else type="button" class="ks-chip" @click="setEndpointState(endpoint, true)">{{ t('notifications.resume') }}</button>
-                <button type="button" class="ks-chip" :disabled="!endpoint.enabled" @click="testEndpoint(endpoint)">{{ t('notifications.test') }}</button>
-                <button type="button" class="ks-chip" :disabled="!endpoint.enabled" @click="reverifyEndpoint(endpoint)">{{ t('notifications.reverify') }}</button>
+                <button
+                  v-if="endpoint.enabled"
+                  type="button"
+                  class="ks-chip"
+                  @click="setEndpointState(endpoint, false)"
+                >
+                  {{ t('notifications.pause') }}
+                </button>
+                <button
+                  v-else
+                  type="button"
+                  class="ks-chip"
+                  @click="setEndpointState(endpoint, true)"
+                >
+                  {{ t('notifications.resume') }}
+                </button>
+                <button
+                  type="button"
+                  class="ks-chip"
+                  :disabled="!endpoint.enabled"
+                  @click="testEndpoint(endpoint)"
+                >
+                  {{ t('notifications.test') }}
+                </button>
+                <button
+                  type="button"
+                  class="ks-chip"
+                  :disabled="!endpoint.enabled"
+                  @click="reverifyEndpoint(endpoint)"
+                >
+                  {{ t('notifications.reverify') }}
+                </button>
               </div>
             </div>
           </div>
 
           <div v-if="props.player" class="mt-5">
             <div class="flex gap-2">
-              <button v-for="channel in (['discord', 'telegram'] as const)" :key="channel" type="button" class="ks-chip" :data-active="selectedChannel === channel" @click="selectedChannel = channel">{{ channelLabel(channel) }}</button>
+              <button
+                v-for="channel in ['discord', 'telegram'] as const"
+                :key="channel"
+                type="button"
+                class="ks-chip"
+                :data-active="selectedChannel === channel"
+                @click="selectedChannel = channel"
+              >
+                {{ channelLabel(channel) }}
+              </button>
             </div>
             <form class="mt-4 space-y-3" @submit.prevent="saveEndpoint">
               <label class="block text-sm">
@@ -655,28 +958,61 @@ async function enableWebPush(): Promise<void> {
                 <input v-model="endpointForm.label" class="ks-input mt-1 w-full" required />
               </label>
               <label v-if="selectedChannel === 'discord'" class="block text-sm">
-                <span class="text-[var(--ks-text-secondary)]">{{ t('notifications.webhookUrl') }}</span>
-                <input v-model="endpointForm.webhook_url" class="ks-input mt-1 w-full" type="url" autocomplete="off" required />
+                <span class="text-[var(--ks-text-secondary)]">{{
+                  t('notifications.webhookUrl')
+                }}</span>
+                <input
+                  v-model="endpointForm.webhook_url"
+                  class="ks-input mt-1 w-full"
+                  type="url"
+                  autocomplete="off"
+                  required
+                />
               </label>
               <template v-else>
                 <label class="block text-sm">
-                  <span class="text-[var(--ks-text-secondary)]">{{ t('notifications.botToken') }}</span>
-                  <input v-model="endpointForm.bot_token" class="ks-input mt-1 w-full" type="password" autocomplete="new-password" required />
+                  <span class="text-[var(--ks-text-secondary)]">{{
+                    t('notifications.botToken')
+                  }}</span>
+                  <input
+                    v-model="endpointForm.bot_token"
+                    class="ks-input mt-1 w-full"
+                    type="password"
+                    autocomplete="new-password"
+                    required
+                  />
                 </label>
                 <label class="block text-sm">
-                  <span class="text-[var(--ks-text-secondary)]">{{ t('notifications.chatId') }}</span>
+                  <span class="text-[var(--ks-text-secondary)]">{{
+                    t('notifications.chatId')
+                  }}</span>
                   <input v-model="endpointForm.chat_id" class="ks-input mt-1 w-full" required />
                 </label>
               </template>
-              <AppButton class="w-full" type="submit" :busy="endpointForm.processing">{{ t('notifications.saveChannel', { channel: channelLabel(selectedChannel) }) }}</AppButton>
-              <p v-if="Object.keys(endpointForm.errors).length" class="text-xs text-rose-300">{{ Object.values(endpointForm.errors)[0] }}</p>
+              <AppButton class="w-full" type="submit" :busy="endpointForm.processing">{{
+                t('notifications.saveChannel', { channel: channelLabel(selectedChannel) })
+              }}</AppButton>
+              <p v-if="Object.keys(endpointForm.errors).length" class="text-xs text-rose-300">
+                {{ Object.values(endpointForm.errors)[0] }}
+              </p>
             </form>
 
             <div class="mt-5 border-t border-[var(--ks-border)] pt-4">
               <p class="font-semibold">{{ t('notifications.webPushSetup') }}</p>
-              <p class="mt-1 text-xs text-[var(--ks-muted)]">{{ t('notifications.webPushHelp') }}</p>
-              <AppButton v-if="canEnableWebPush" class="mt-3" :busy="webPushBusy" :busy-label="t('notifications.enablingWebPush')" @click="enableWebPush">{{ t('notifications.enableWebPush') }}</AppButton>
-              <p v-else class="mt-2 text-xs text-amber-200">{{ t('notifications.webPushUnavailable') }}</p>
+              <p class="mt-1 text-xs text-[var(--ks-muted)]">
+                {{ t('notifications.webPushHelp') }}
+              </p>
+              <AppButton
+                v-if="canEnableWebPush"
+                class="mt-3"
+                :busy="webPushBusy"
+                :busy-label="t('notifications.enablingWebPush')"
+                @click="enableWebPush"
+                >{{ t('notifications.enableWebPush') }}</AppButton
+              >
+              <p v-else class="mt-2 text-xs text-amber-200">
+                {{ t('notifications.webPushUnavailable') }}
+              </p>
               <p v-if="webPushError" class="mt-2 text-xs text-rose-300">{{ webPushError }}</p>
             </div>
           </div>
@@ -685,27 +1021,76 @@ async function enableWebPush(): Promise<void> {
 
         <section class="ks-surface p-4 sm:p-5" aria-labelledby="notification-preferences-title">
           <p class="ks-kicker">{{ t('notifications.preferences') }}</p>
-          <h2 id="notification-preferences-title" class="ks-display mt-1 text-xl font-semibold">{{ t('notifications.reminderRouting') }}</h2>
+          <h2 id="notification-preferences-title" class="ks-display mt-1 text-xl font-semibold">
+            {{ t('notifications.reminderRouting') }}
+          </h2>
           <p class="mt-2 text-xs text-[var(--ks-muted)]">{{ t('notifications.preferenceHelp') }}</p>
           <div class="mt-4 flex gap-2">
-            <button type="button" class="ks-chip" :data-active="preferenceScope === 'account'" @click="preferenceScope = 'account'">{{ t('notifications.accountDefaults') }}</button>
-            <button v-if="props.player" type="button" class="ks-chip" :data-active="preferenceScope === 'governor'" @click="preferenceScope = 'governor'">{{ t('notifications.governorOverrides') }}</button>
+            <button
+              type="button"
+              class="ks-chip"
+              :data-active="preferenceScope === 'account'"
+              @click="preferenceScope = 'account'"
+            >
+              {{ t('notifications.accountDefaults') }}
+            </button>
+            <button
+              v-if="props.player"
+              type="button"
+              class="ks-chip"
+              :data-active="preferenceScope === 'governor'"
+              @click="preferenceScope = 'governor'"
+            >
+              {{ t('notifications.governorOverrides') }}
+            </button>
           </div>
           <div class="mt-4 space-y-4">
             <div v-for="type in props.notificationTypes" :key="type">
               <strong class="text-sm">{{ typeLabel(type) }}</strong>
               <div class="mt-2 grid gap-2">
-                <label v-for="channel in props.channels" :key="`${preferenceScope}:${type}:${channel.value}`" class="flex min-h-11 items-center justify-between gap-3 rounded border border-[var(--ks-border)] px-3 text-sm">
+                <label
+                  v-for="channel in props.channels"
+                  :key="`${preferenceScope}:${type}:${channel.value}`"
+                  class="flex min-h-11 items-center justify-between gap-3 rounded border border-[var(--ks-border)] px-3 text-sm"
+                >
                   <span>
                     {{ channelLabel(channel.value) }}
-                    <small v-if="preferenceScope === 'governor' && governorOverride(type, channel.value) === undefined" class="ml-1 text-[var(--ks-muted)]">{{ t('notifications.inherited') }}</small>
+                    <small
+                      v-if="
+                        preferenceScope === 'governor' &&
+                        governorOverride(type, channel.value) === undefined
+                      "
+                      class="ml-1 text-[var(--ks-muted)]"
+                      >{{ t('notifications.inherited') }}</small
+                    >
                   </span>
                   <span class="flex items-center gap-2">
-                    <button v-if="preferenceScope === 'governor' && governorOverride(type, channel.value) !== undefined" type="button" class="ks-chip text-xs" @click.prevent="resetPreference(type, channel.value)">{{ t('notifications.resetOverride') }}</button>
+                    <button
+                      v-if="
+                        preferenceScope === 'governor' &&
+                        governorOverride(type, channel.value) !== undefined
+                      "
+                      type="button"
+                      class="ks-chip text-xs"
+                      @click.prevent="resetPreference(type, channel.value)"
+                    >
+                      {{ t('notifications.resetOverride') }}
+                    </button>
                     <input
                       type="checkbox"
-                      :checked="preferenceScope === 'account' ? accountPreference(type, channel.value) : governorPreference(type, channel.value)"
-                      @change="setPreference(preferenceScope, type, channel.value, ($event.target as HTMLInputElement).checked)"
+                      :checked="
+                        preferenceScope === 'account'
+                          ? accountPreference(type, channel.value)
+                          : governorPreference(type, channel.value)
+                      "
+                      @change="
+                        setPreference(
+                          preferenceScope,
+                          type,
+                          channel.value,
+                          ($event.target as HTMLInputElement).checked,
+                        )
+                      "
                     />
                   </span>
                 </label>
@@ -717,19 +1102,48 @@ async function enableWebPush(): Promise<void> {
 
         <section class="ks-surface p-4 sm:p-5" aria-labelledby="routing-policy-title">
           <p class="ks-kicker">{{ t('notifications.routingPolicy') }}</p>
-          <h2 id="routing-policy-title" class="ks-display mt-1 text-xl font-semibold">{{ t('notifications.routingPolicy') }}</h2>
-          <p class="mt-2 text-xs text-[var(--ks-muted)]">{{ t('notifications.routingPolicyHelp') }}</p>
+          <h2 id="routing-policy-title" class="ks-display mt-1 text-xl font-semibold">
+            {{ t('notifications.routingPolicy') }}
+          </h2>
+          <p class="mt-2 text-xs text-[var(--ks-muted)]">
+            {{ t('notifications.routingPolicyHelp') }}
+          </p>
 
           <div class="mt-4 flex gap-2">
-            <button type="button" class="ks-chip" :data-active="preferenceScope === 'account'" @click="preferenceScope = 'account'">{{ t('notifications.accountDefaults') }}</button>
-            <button v-if="props.player" type="button" class="ks-chip" :data-active="preferenceScope === 'governor'" @click="preferenceScope = 'governor'">{{ t('notifications.governorOverrides') }}</button>
+            <button
+              type="button"
+              class="ks-chip"
+              :data-active="preferenceScope === 'account'"
+              @click="preferenceScope = 'account'"
+            >
+              {{ t('notifications.accountDefaults') }}
+            </button>
+            <button
+              v-if="props.player"
+              type="button"
+              class="ks-chip"
+              :data-active="preferenceScope === 'governor'"
+              @click="preferenceScope = 'governor'"
+            >
+              {{ t('notifications.governorOverrides') }}
+            </button>
           </div>
 
           <form class="mt-4 space-y-3" @submit.prevent="saveRoutingPolicy(preferenceScope)">
-            <template v-for="form in [preferenceScope === 'account' ? accountRouting : governorRouting]" :key="preferenceScope">
-              <p v-if="preferenceScope === 'governor' && !governorHasRoutingOverride" class="text-xs text-[var(--ks-muted)]">{{ t('notifications.policyInherited') }}</p>
+            <template
+              v-for="form in [preferenceScope === 'account' ? accountRouting : governorRouting]"
+              :key="form.timezone"
+            >
+              <p
+                v-if="preferenceScope === 'governor' && !governorHasRoutingOverride"
+                class="text-xs text-[var(--ks-muted)]"
+              >
+                {{ t('notifications.policyInherited') }}
+              </p>
               <label class="block text-sm">
-                <span class="text-[var(--ks-text-secondary)]">{{ t('notifications.timezone') }}</span>
+                <span class="text-[var(--ks-text-secondary)]">{{
+                  t('notifications.timezone')
+                }}</span>
                 <input v-model="form.timezone" class="ks-input mt-1 w-full" required />
               </label>
               <label class="flex items-center justify-between gap-3 text-sm">
@@ -738,11 +1152,19 @@ async function enableWebPush(): Promise<void> {
               </label>
               <div v-if="form.quiet_hours_enabled" class="grid grid-cols-2 gap-2">
                 <label class="text-sm">
-                  <span class="text-[var(--ks-text-secondary)]">{{ t('notifications.quietHoursStart') }}</span>
-                  <input v-model="form.quiet_hours_start" type="time" class="ks-input mt-1 w-full" />
+                  <span class="text-[var(--ks-text-secondary)]">{{
+                    t('notifications.quietHoursStart')
+                  }}</span>
+                  <input
+                    v-model="form.quiet_hours_start"
+                    type="time"
+                    class="ks-input mt-1 w-full"
+                  />
                 </label>
                 <label class="text-sm">
-                  <span class="text-[var(--ks-text-secondary)]">{{ t('notifications.quietHoursEnd') }}</span>
+                  <span class="text-[var(--ks-text-secondary)]">{{
+                    t('notifications.quietHoursEnd')
+                  }}</span>
                   <input v-model="form.quiet_hours_end" type="time" class="ks-input mt-1 w-full" />
                 </label>
                 <label class="col-span-2 flex items-center justify-between gap-3 text-sm">
@@ -751,26 +1173,47 @@ async function enableWebPush(): Promise<void> {
                 </label>
               </div>
               <label class="block text-sm">
-                <span class="text-[var(--ks-text-secondary)]">{{ t('notifications.mutedUntil') }}</span>
-                <input v-model="form.muted_until" type="datetime-local" class="ks-input mt-1 w-full" />
+                <span class="text-[var(--ks-text-secondary)]">{{
+                  t('notifications.mutedUntil')
+                }}</span>
+                <input
+                  v-model="form.muted_until"
+                  type="datetime-local"
+                  class="ks-input mt-1 w-full"
+                />
               </label>
               <label class="block text-sm">
-                <span class="text-[var(--ks-text-secondary)]">{{ t('notifications.digestCadence') }}</span>
+                <span class="text-[var(--ks-text-secondary)]">{{
+                  t('notifications.digestCadence')
+                }}</span>
                 <select v-model="form.digest_cadence" class="ks-input mt-1 w-full">
-                  <option v-for="cadence in props.digestCadences" :key="cadence" :value="cadence">{{ t(`notifications.cadences.${cadence}`) }}</option>
+                  <option v-for="cadence in props.digestCadences" :key="cadence" :value="cadence">
+                    {{ t(`notifications.cadences.${cadence}`) }}
+                  </option>
                 </select>
               </label>
               <label v-if="form.digest_cadence === 'daily'" class="block text-sm">
-                <span class="text-[var(--ks-text-secondary)]">{{ t('notifications.dailyDigestTime') }}</span>
+                <span class="text-[var(--ks-text-secondary)]">{{
+                  t('notifications.dailyDigestTime')
+                }}</span>
                 <input v-model="form.daily_digest_time" type="time" class="ks-input mt-1 w-full" />
               </label>
-              <label v-if="form.digest_cadence !== 'immediate'" class="flex items-center justify-between gap-3 text-sm">
+              <label
+                v-if="form.digest_cadence !== 'immediate'"
+                class="flex items-center justify-between gap-3 text-sm"
+              >
                 <span>{{ t('notifications.digestUrgent') }}</span>
                 <input v-model="form.digest_urgent" type="checkbox" />
               </label>
               <div class="flex flex-wrap gap-2">
                 <AppButton type="submit">{{ t('notifications.savePolicy') }}</AppButton>
-                <AppButton v-if="preferenceScope === 'governor' && governorHasRoutingOverride" variant="secondary" type="button" @click="resetRoutingPolicy">{{ t('notifications.resetPolicy') }}</AppButton>
+                <AppButton
+                  v-if="preferenceScope === 'governor' && governorHasRoutingOverride"
+                  variant="secondary"
+                  type="button"
+                  @click="resetRoutingPolicy"
+                  >{{ t('notifications.resetPolicy') }}</AppButton
+                >
               </div>
             </template>
           </form>
@@ -782,7 +1225,12 @@ async function enableWebPush(): Promise<void> {
       id="notification-bulk-update-confirmation"
       :open="bulkConfirmationOpen"
       :title="t('notifications.bulk.confirmTitle')"
-      :description="t('notifications.bulk.confirmDescription', { count: notificationBulkPreview?.ready ?? 0, operation: t(`notifications.bulk.operationLabels.${bulkOperation}`) })"
+      :description="
+        t('notifications.bulk.confirmDescription', {
+          count: notificationBulkPreview?.ready ?? 0,
+          operation: t(`notifications.bulk.operationLabels.${bulkOperation}`),
+        })
+      "
       :confirm-label="t('notifications.bulk.confirm')"
       :cancel-label="t('common.cancel')"
       :busy="bulkBusy"

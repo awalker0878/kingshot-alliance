@@ -498,7 +498,7 @@ final class NotificationCenterController extends Controller
     }
 
     /**
-     * @param array{webhook_url:?string,bot_token:?string,chat_id:?string,endpoint:?string,p256dh:?string,auth:?string} $validated
+     * @param  array{webhook_url:?string,bot_token:?string,chat_id:?string,endpoint:?string,p256dh:?string,auth:?string}  $validated
      * @return array<string,string>
      */
     private function endpointConfiguration(array $validated): array
