@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { usePasskeyVerify } from '@laravel/passkeys/vue';
+import { computed, unref } from 'vue';
 
 import AppButton from '@/components/ui/AppButton.vue';
 import AuthLayout from '@/layouts/AuthLayout.vue';
@@ -9,6 +10,7 @@ import { useLocale } from '@/localization';
 const props = defineProps<{
   invitationToken: string | null;
   googleAuthEnabled: boolean;
+  passkeyAuthEnabled: boolean;
 }>();
 const { t } = useLocale();
 
@@ -25,12 +27,19 @@ const {
   error: passkeyError,
   isSupported: passkeySupported,
 } = usePasskeyVerify({
-  autofill: true,
+  autofill: props.passkeyAuthEnabled,
   remember: () => form.remember,
   onSuccess: (response) => {
     if (response.redirect) router.visit(response.redirect);
   },
 });
+
+const passkeyAvailable = computed(
+  () => props.passkeyAuthEnabled && Boolean(unref(passkeySupported)),
+);
+const alternativeSignInAvailable = computed(
+  () => passkeyAvailable.value || props.googleAuthEnabled,
+);
 
 const googleAuthUrl = props.invitationToken
   ? `/auth/google?intent=login&invitation=${encodeURIComponent(props.invitationToken)}`
@@ -70,9 +79,9 @@ function submit(): void {
       {{ t('authExperience.login.invitationNotice') }}
     </div>
 
-    <div class="mt-7 grid gap-3">
+    <div v-if="alternativeSignInAvailable" class="mt-7 grid gap-3">
       <AppButton
-        v-if="passkeySupported"
+        v-if="passkeyAvailable"
         type="button"
         :disabled="passkeyLoading"
         @click="verifyPasskey"
@@ -83,7 +92,11 @@ function submit(): void {
             : t('authExperience.passkeys.signIn')
         }}
       </AppButton>
-      <p v-if="passkeyError" class="text-sm text-[var(--ks-red)]" role="alert">
+      <p
+        v-if="passkeyAvailable && passkeyError"
+        class="text-sm text-[var(--ks-red)]"
+        role="alert"
+      >
         {{ passkeyError }}
       </p>
 
@@ -96,7 +109,7 @@ function submit(): void {
       </a>
     </div>
 
-    <div class="my-6 flex items-center gap-3" aria-hidden="true">
+    <div v-if="alternativeSignInAvailable" class="my-6 flex items-center gap-3" aria-hidden="true">
       <span class="h-px flex-1 bg-[var(--ks-border)]" />
       <span class="text-xs tracking-[0.16em] text-[var(--ks-muted)] uppercase">{{
         t('authExperience.social.or')
@@ -104,13 +117,13 @@ function submit(): void {
       <span class="h-px flex-1 bg-[var(--ks-border)]" />
     </div>
 
-    <form class="space-y-5" @submit.prevent="submit">
+    <form :class="alternativeSignInAvailable ? 'space-y-5' : 'mt-7 space-y-5'" @submit.prevent="submit">
       <div>
         <label class="block text-sm font-semibold" for="email">{{ t('auth.login.email') }}</label>
         <input
           id="email"
           v-model="form.email"
-          autocomplete="email webauthn"
+          :autocomplete="props.passkeyAuthEnabled ? 'email webauthn' : 'email'"
           class="ks-input mt-2"
           required
           type="email"
