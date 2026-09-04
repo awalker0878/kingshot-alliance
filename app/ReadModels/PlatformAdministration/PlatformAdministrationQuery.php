@@ -8,6 +8,7 @@ use App\Contexts\Alliance\Lifecycle\Enums\AllianceStatus;
 use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Communications\Delivery\Enums\DeliveryStatus;
 use App\Contexts\Communications\Delivery\Models\NotificationDelivery;
+use App\Contexts\Communications\Delivery\Models\NotificationMessage;
 use App\Contexts\Platform\DataGovernance\Models\LegalHold;
 use App\Contexts\Platform\Integrations\Enums\WebhookDeliveryStatus;
 use App\Contexts\Platform\Integrations\Models\WebhookDelivery;
@@ -208,15 +209,23 @@ final class PlatformAdministrationQuery
                     ->orderByDesc('failed_at')
                     ->limit(25)
                     ->get()
-                    ->map(fn (NotificationDelivery $delivery): array => [
-                        'id' => (string) $delivery->id,
-                        'notificationType' => (string) $delivery->notification_type,
-                        'channel' => (string) $delivery->channel,
-                        'attempts' => (int) $delivery->attempt_count,
-                        'maxAttempts' => (int) $delivery->max_attempts,
-                        'failedAt' => $delivery->failed_at?->toIso8601String(),
-                        'errorFingerprint' => $this->fingerprint($delivery->last_error),
-                    ])->all(),
+                    ->map(function (NotificationDelivery $delivery): array {
+                        $message = NotificationMessage::query()
+                            ->whereKey($delivery->notification_message_id)
+                            ->first();
+
+                        return [
+                            'id' => (string) $delivery->id,
+                            'notificationType' => $message instanceof NotificationMessage
+                                ? (string) $message->notification_type
+                                : 'unknown',
+                            'channel' => $delivery->channel->value,
+                            'attempts' => (int) $delivery->attempt_count,
+                            'maxAttempts' => (int) $delivery->max_attempts,
+                            'failedAt' => $delivery->failed_at?->toIso8601String(),
+                            'errorFingerprint' => $this->fingerprint($delivery->last_error),
+                        ];
+                    })->all(),
                 'failedJobs' => DB::table('failed_jobs')
                     ->orderByDesc('failed_at')
                     ->limit(25)
