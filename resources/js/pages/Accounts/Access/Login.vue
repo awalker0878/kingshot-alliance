@@ -117,7 +117,10 @@ function submit(): void {
       <span class="h-px flex-1 bg-[var(--ks-border)]" />
     </div>
 
-    <form :class="alternativeSignInAvailable ? 'space-y-5' : 'mt-7 space-y-5'" @submit.prevent="submit">
+    <form
+      :class="alternativeSignInAvailable ? 'space-y-5' : 'mt-7 space-y-5'"
+      @submit.prevent="submit"
+    >
       <div>
         <label class="block text-sm font-semibold" for="email">{{ t('auth.login.email') }}</label>
         <input
