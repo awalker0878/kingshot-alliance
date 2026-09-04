@@ -5,19 +5,17 @@ declare(strict_types=1);
 namespace App\Contexts\Communications\Delivery\Actions;
 
 use App\Contexts\Communications\Delivery\Enums\DigestCadence;
-use App\Contexts\Communications\Delivery\Models\NotificationRoutingPolicy;
-use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
+use App\Contexts\Communications\Delivery\Services\NotificationRoutingPolicyWriteState;
 use Carbon\CarbonImmutable;
 use DateTimeInterface;
 use DateTimeZone;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 final readonly class SetNotificationRoutingPolicy
 {
     public const ACCOUNT_SCOPE = 'account';
 
-    public function __construct(private PlayerReferenceQuery $players) {}
+    public function __construct(private NotificationRoutingPolicyWriteState $writeState) {}
 
     public function handle(
         int $recipientUserId,
@@ -61,66 +59,25 @@ final readonly class SetNotificationRoutingPolicy
             $mute = null;
         }
 
-        DB::transaction(function () use (
-            $recipientUserId,
-            $playerId,
-            $timezone,
-            $quietHoursEnabled,
-            $quietHoursStart,
-            $quietHoursEnd,
-            $allowUrgentDuringQuietHours,
-            $mute,
-            $digestCadence,
-            $dailyDigestTime,
-            $digestUrgent,
-        ): void {
-            if ($playerId !== null) {
-                $actor = $this->players->lockCurrent($playerId);
-                if ($actor->userId !== $recipientUserId) {
-                    throw ValidationException::withMessages([
-                        'player' => 'The selected Governor no longer belongs to this account.',
-                    ]);
-                }
-            }
-
-            NotificationRoutingPolicy::query()->updateOrCreate(
-                [
-                    'recipient_user_id' => $recipientUserId,
-                    'scope_key' => $playerId ?? self::ACCOUNT_SCOPE,
-                ],
-                [
-                    'player_id' => $playerId,
-                    'timezone' => $timezone,
-                    'quiet_hours_enabled' => $quietHoursEnabled,
-                    'quiet_hours_start' => $quietHoursEnabled ? $quietHoursStart : null,
-                    'quiet_hours_end' => $quietHoursEnabled ? $quietHoursEnd : null,
-                    'allow_urgent_during_quiet_hours' => $allowUrgentDuringQuietHours,
-                    'muted_until' => $mute,
-                    'digest_cadence' => $digestCadence->value,
-                    'settings' => [
-                        'daily_digest_time' => $dailyDigestTime ?? '09:00',
-                        'digest_urgent' => $digestUrgent,
-                    ],
-                ],
-            );
-        });
+        $this->writeState->set(
+            recipientUserId: $recipientUserId,
+            playerId: $playerId,
+            scopeKey: $playerId ?? self::ACCOUNT_SCOPE,
+            timezone: $timezone,
+            quietHoursEnabled: $quietHoursEnabled,
+            quietHoursStart: $quietHoursStart,
+            quietHoursEnd: $quietHoursEnd,
+            allowUrgentDuringQuietHours: $allowUrgentDuringQuietHours,
+            mutedUntil: $mute,
+            digestCadence: $digestCadence,
+            dailyDigestTime: $dailyDigestTime ?? '09:00',
+            digestUrgent: $digestUrgent,
+        );
     }
 
     public function resetGovernorOverride(int $recipientUserId, string $playerId): void
     {
-        DB::transaction(function () use ($recipientUserId, $playerId): void {
-            $actor = $this->players->lockCurrent($playerId);
-            if ($actor->userId !== $recipientUserId) {
-                throw ValidationException::withMessages([
-                    'player' => 'The selected Governor no longer belongs to this account.',
-                ]);
-            }
-
-            NotificationRoutingPolicy::query()
-                ->where('recipient_user_id', $recipientUserId)
-                ->where('scope_key', $playerId)
-                ->delete();
-        });
+        $this->writeState->resetGovernorOverride($recipientUserId, $playerId);
     }
 
     private function clock(?string $value, string $field): ?string
