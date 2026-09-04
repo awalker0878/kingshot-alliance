@@ -7,9 +7,9 @@ namespace App\Contexts\Communications\Delivery\ValueObjects;
 final readonly class NotificationQueueReceipt
 {
     /**
-     * @param list<string> $deliveryIds
-     * @param list<string> $channels
-     * @param list<string> $createdDeliveryIds
+     * @param  list<string>  $deliveryIds
+     * @param  list<string>  $channels
+     * @param  list<string>  $createdDeliveryIds
      */
     public function __construct(
         public string $messageId,
