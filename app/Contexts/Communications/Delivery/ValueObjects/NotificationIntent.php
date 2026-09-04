@@ -10,7 +10,10 @@ use DateTimeInterface;
 
 final readonly class NotificationIntent
 {
-    /** @param array<string,mixed> $metadata */
+    /**
+     * @param array<string,mixed> $metadata
+     * @param list<string> $eligiblePlayerIds
+     */
     public function __construct(
         public string $notificationType,
         public int $recipientUserId,
@@ -25,9 +28,13 @@ final readonly class NotificationIntent
         public NotificationUrgency $urgency = NotificationUrgency::Normal,
         public array $metadata = [],
         public int $maxAttempts = 5,
+        public array $eligiblePlayerIds = [],
     ) {}
 
-    /** @param array<string,mixed> $metadata */
+    /**
+     * @param array<string,mixed> $metadata
+     * @param list<string> $eligiblePlayerIds
+     */
     public static function fromScalars(
         string $notificationType,
         int $recipientUserId,
@@ -42,6 +49,7 @@ final readonly class NotificationIntent
         NotificationUrgency $urgency = NotificationUrgency::Normal,
         array $metadata = [],
         int $maxAttempts = 5,
+        array $eligiblePlayerIds = [],
     ): self {
         return new self(
             notificationType: $notificationType,
@@ -57,6 +65,7 @@ final readonly class NotificationIntent
             urgency: $urgency,
             metadata: $metadata,
             maxAttempts: $maxAttempts,
+            eligiblePlayerIds: array_values(array_unique($eligiblePlayerIds)),
         );
     }
 }
