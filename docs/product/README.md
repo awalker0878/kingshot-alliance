@@ -8,6 +8,8 @@ Alliance Assistant is delivered as the constrained, authorization-aware read/com
 
 The cross-capability work is governed by the [Capability Extension Program](capability-extension-program.md). That contract distinguishes already-complete product capability from selected extensions and evidence-gated extensions, and defines ownership/provenance before application implementation begins. Intelligence Change Detection is now a current complete Phase 11 capability governed by [Intelligence Change Detection](intelligence-change-detection.md) with verification evidence in its [delivery ledger](intelligence-change-detection-delivery-ledger.md). Progression planning and calculator qualification are further governed by the [Progression Goal Planner and Calculator Evidence Program](progression-goal-planner-calculators.md), which is the implementation source of truth for `GP-*`, `CE-*` and `CI-*` work. Its live implementation reconciliation is recorded in the [Progression Goal Planner and Calculator delivery ledger](progression-goal-planner-calculators-delivery-ledger.md), with verification-discovered closeout requirements captured in the [Progression Goal Planner and Calculator verification amendment](progression-goal-planner-calculators-verification-amendment.md).
 
+The Communications recipient-delivery expansion is defined by [Communications — Recipient Delivery & Notification Experience](communications-recipient-delivery-expansion.md), verified by the [acceptance matrix](communications-recipient-delivery-acceptance.md), and tracked to release closure in its [delivery ledger](communications-recipient-delivery-ledger.md). It preserves source-context ownership while adding one logical inbox message, recipient routing policy, multiple named destinations, quiet hours, Web Push, email and bounded digest delivery.
+
 Phases 13–25 are governed by the [Kingshot Capability Expansion Program](kingshot-capability-expansion-program.md). The program is complete through Phase 25 for all evidence-supported capabilities; it establishes the mandatory named-Event identity/evidence gate, preserves existing capability ownership, and keeps KvK correctly disabled at Phase 17 until canonical identity and workflow evidence exist.
 
 - [Product overview](product-overview.md)
@@ -15,6 +17,9 @@ Phases 13–25 are governed by the [Kingshot Capability Expansion Program](kings
 - [Capability completeness plan](capability-gap-analysis.md)
 - [Capability delivery ledger](capability-delivery-ledger.md)
 - [Capability Extension Program](capability-extension-program.md)
+- [Communications — Recipient Delivery & Notification Experience](communications-recipient-delivery-expansion.md)
+- [Communications Recipient Delivery acceptance](communications-recipient-delivery-acceptance.md)
+- [Communications Recipient Delivery delivery ledger](communications-recipient-delivery-ledger.md)
 - [Alliance Capability Expansion](alliance-capability-expansion.md)
 - [Alliance Capability Expansion acceptance](alliance-capability-expansion-acceptance.md)
 - [Alliance Capability Expansion delivery ledger](alliance-capability-expansion-delivery-ledger.md)
