@@ -8,6 +8,7 @@ use App\Contexts\Alliance\Content\Models\AnnouncementBroadcastRun;
 use App\Contexts\Alliance\Content\Models\AnnouncementBroadcastSchedule;
 use App\Contexts\Communications\Delivery\Enums\DeliveryStatus;
 use App\Contexts\Communications\Delivery\Models\NotificationDelivery;
+use App\Contexts\Communications\Delivery\Models\NotificationMessage;
 
 final class AnnouncementBroadcastManagementQuery
 {
@@ -42,33 +43,56 @@ final class AnnouncementBroadcastManagementQuery
             ->orderByDesc('scheduled_for')
             ->limit(100)
             ->get();
-        $runIds = $runs
+        $runIds = array_values($runs
             ->map(static fn (AnnouncementBroadcastRun $run): string => (string) $run->id)
-            ->all();
-        $contentIds = $runs
+            ->values()
+            ->all());
+        $contentIds = array_values($runs
             ->map(static fn (AnnouncementBroadcastRun $run): string => (string) $run->content_item_id)
             ->unique()
             ->values()
-            ->all();
+            ->all());
+        /** @var array<string,list<NotificationDelivery>> $deliveriesByRun */
         $deliveriesByRun = [];
+        /** @var array<string,int> $readByRun */
+        $readByRun = [];
 
         if ($runIds !== [] && $contentIds !== []) {
-            $deliveries = NotificationDelivery::query()
+            $messages = NotificationMessage::query()
                 ->where('notification_type', 'alliance.announcement')
                 ->where('subject_type', 'content_item')
                 ->whereIn('subject_id', $contentIds)
                 ->orderByDesc('created_at')
                 ->limit(1000)
                 ->get();
+            /** @var array<string,string> $runByMessage */
+            $runByMessage = [];
 
-            foreach ($deliveries as $delivery) {
-                $metadata = is_array($delivery->metadata) ? $delivery->metadata : [];
+            foreach ($messages as $message) {
+                $metadata = is_array($message->metadata) ? $message->metadata : [];
                 $runId = isset($metadata['broadcast_run_id']) ? (string) $metadata['broadcast_run_id'] : '';
                 if ($runId === '' || ! in_array($runId, $runIds, true)) {
                     continue;
                 }
 
-                $deliveriesByRun[$runId][] = $delivery;
+                $runByMessage[(string) $message->id] = $runId;
+                if ($message->read_at !== null) {
+                    $readByRun[$runId] = ($readByRun[$runId] ?? 0) + 1;
+                }
+            }
+
+            if ($runByMessage !== []) {
+                $deliveries = NotificationDelivery::query()
+                    ->whereIn('notification_message_id', array_keys($runByMessage))
+                    ->orderByDesc('created_at')
+                    ->limit(5000)
+                    ->get();
+                foreach ($deliveries as $delivery) {
+                    $runId = $runByMessage[(string) $delivery->notification_message_id] ?? null;
+                    if ($runId !== null) {
+                        $deliveriesByRun[$runId][] = $delivery;
+                    }
+                }
             }
         }
 
@@ -83,17 +107,9 @@ final class AnnouncementBroadcastManagementQuery
                 static fn (DeliveryStatus $status): string => $status->value,
                 DeliveryStatus::cases(),
             ), 0);
-            $readCount = 0;
             $failedDeliveryIds = [];
             foreach ($deliveriesByRun[(string) $run->id] ?? [] as $delivery) {
-                if (! $delivery instanceof NotificationDelivery) {
-                    continue;
-                }
-
                 $deliveryCounts[$delivery->status->value]++;
-                if ($delivery->read_at !== null) {
-                    $readCount++;
-                }
                 if ($delivery->status === DeliveryStatus::Failed
                     && $delivery->attempt_count < $delivery->max_attempts
                     && count($failedDeliveryIds) < 50) {
@@ -109,7 +125,7 @@ final class AnnouncementBroadcastManagementQuery
                 'recipientCount' => (int) $run->recipient_count,
                 'deliveryCount' => (int) $run->delivery_count,
                 'deliveryCounts' => $deliveryCounts,
-                'readCount' => $readCount,
+                'readCount' => $readByRun[(string) $run->id] ?? 0,
                 'failedDeliveryIds' => $failedDeliveryIds,
                 'queuedAt' => $run->queued_at?->toIso8601String(),
             ];
