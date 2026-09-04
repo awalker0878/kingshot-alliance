@@ -69,8 +69,7 @@ final class PreviewNotificationInboxBulkAction
                 self::MARK_READ => $message->read_at !== null ? 'already-read' : null,
                 self::MARK_UNREAD => $message->read_at === null ? 'already-unread' : null,
                 self::ARCHIVE => $message->archived_at !== null ? 'already-archived' : null,
-                self::RESTORE => $message->archived_at === null ? 'already-restored' : null,
-                default => null,
+                default => $message->archived_at === null ? 'already-restored' : null,
             };
 
             if ($skipCode !== null) {
