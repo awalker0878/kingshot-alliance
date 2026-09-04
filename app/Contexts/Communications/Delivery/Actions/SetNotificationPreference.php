@@ -12,6 +12,8 @@ use Illuminate\Validation\ValidationException;
 
 final readonly class SetNotificationPreference
 {
+    public const ACCOUNT_SCOPE = 'account';
+
     /** @var list<string> */
     public const NOTIFICATION_TYPES = [
         'account.security',
@@ -29,7 +31,7 @@ final readonly class SetNotificationPreference
 
     public function handle(
         int $recipientUserId,
-        string $playerId,
+        ?string $playerId,
         string $notificationType,
         DeliveryChannel $channel,
         bool $enabled,
@@ -39,20 +41,50 @@ final readonly class SetNotificationPreference
         }
 
         DB::transaction(function () use ($recipientUserId, $playerId, $notificationType, $channel, $enabled): void {
-            $actor = $this->players->lockCurrent($playerId);
-            if ($actor->userId !== $recipientUserId) {
-                throw ValidationException::withMessages(['player' => 'The active Governor no longer belongs to this account.']);
+            if ($playerId !== null) {
+                $actor = $this->players->lockCurrent($playerId);
+                if ($actor->userId !== $recipientUserId) {
+                    throw ValidationException::withMessages(['player' => 'The selected Governor no longer belongs to this account.']);
+                }
             }
 
             NotificationPreference::query()->updateOrCreate(
                 [
                     'recipient_user_id' => $recipientUserId,
-                    'player_id' => $playerId,
+                    'scope_key' => $playerId ?? self::ACCOUNT_SCOPE,
                     'notification_type' => $notificationType,
                     'channel' => $channel->value,
                 ],
-                ['enabled' => $enabled],
+                [
+                    'player_id' => $playerId,
+                    'enabled' => $enabled,
+                ],
             );
+        });
+    }
+
+    public function resetGovernorOverride(
+        int $recipientUserId,
+        string $playerId,
+        string $notificationType,
+        DeliveryChannel $channel,
+    ): void {
+        if (! in_array($notificationType, self::NOTIFICATION_TYPES, true)) {
+            throw ValidationException::withMessages(['notification_type' => 'Choose a supported notification type.']);
+        }
+
+        DB::transaction(function () use ($recipientUserId, $playerId, $notificationType, $channel): void {
+            $actor = $this->players->lockCurrent($playerId);
+            if ($actor->userId !== $recipientUserId) {
+                throw ValidationException::withMessages(['player' => 'The selected Governor no longer belongs to this account.']);
+            }
+
+            NotificationPreference::query()
+                ->where('recipient_user_id', $recipientUserId)
+                ->where('scope_key', $playerId)
+                ->where('notification_type', $notificationType)
+                ->where('channel', $channel->value)
+                ->delete();
         });
     }
 }
