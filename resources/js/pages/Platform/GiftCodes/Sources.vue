@@ -93,15 +93,20 @@ const manualSources = computed(() =>
 );
 const selectedAdapter = computed(() => sourcePolicy.adapter_key);
 const usesFeedPath = computed(() =>
-  ['json-feed-v1', 'rss-atom-v1', 'structured-html-v1', 'century-games-kingshot-news-rss-v1'].includes(
-    selectedAdapter.value,
-  ),
+  [
+    'json-feed-v1',
+    'rss-atom-v1',
+    'structured-html-v1',
+    'century-games-kingshot-news-rss-v1',
+  ].includes(selectedAdapter.value),
 );
 
 function applyCandidate(candidate: ResearchedSource): void {
   sourcePolicy.source_key = candidate.source_key;
   sourcePolicy.name = candidate.name;
-  sourcePolicy.classification = candidate.evidence_role.includes('independent') ? 'independent' : 'official';
+  sourcePolicy.classification = candidate.evidence_role.includes('independent')
+    ? 'independent'
+    : 'official';
   sourcePolicy.canonical_domain = candidate.canonical_domain_candidate ?? '';
   sourcePolicy.adapter_key = candidate.candidate_adapter_keys[0] ?? '';
   sourcePolicy.provenance_policy.manual_evidence_allowed = candidate.transports.includes(
@@ -143,8 +148,8 @@ function recordEvidence(): void {
           <p class="ks-kicker">{{ t('platformGiftCodes.eyebrow') }}</p>
           <h1 class="ks-display mt-1 text-3xl font-semibold">Gift Code source management</h1>
           <p class="mt-2 max-w-4xl text-sm leading-6 text-[var(--ks-muted)]">
-            Approve transport and provenance policy explicitly. Research catalogue entries never grant
-            authority, automatic verification, or ingestion by themselves.
+            Approve transport and provenance policy explicitly. Research catalogue entries never
+            grant authority, automatic verification, or ingestion by themselves.
           </p>
         </div>
         <Link href="/platform/gift-codes" class="ks-command-link" data-variant="secondary">
@@ -154,14 +159,16 @@ function recordEvidence(): void {
     </header>
 
     <section class="ks-surface mt-5 p-5 sm:p-6" aria-labelledby="researched-sources">
-      <h2 id="researched-sources" class="ks-display text-xl font-semibold">Researched rollout catalogue</h2>
+      <h2 id="researched-sources" class="ks-display text-xl font-semibold">
+        Researched rollout catalogue
+      </h2>
       <p class="mt-2 text-sm text-[var(--ks-muted)]">
-        Stages 2–4 use documented APIs where legitimate access exists and registered manual evidence where
-        no documented machine contract was found.
+        Stages 2–4 use documented APIs where legitimate access exists and registered manual evidence
+        where no documented machine contract was found.
       </p>
       <div class="mt-4 overflow-x-auto">
         <table class="w-full min-w-[58rem] text-left text-sm">
-          <thead class="text-xs uppercase tracking-wide text-[var(--ks-muted)]">
+          <thead class="text-xs tracking-wide text-[var(--ks-muted)] uppercase">
             <tr>
               <th class="p-2">Stage</th>
               <th class="p-2">Source</th>
@@ -178,9 +185,13 @@ function recordEvidence(): void {
                 <span class="text-xs text-[var(--ks-muted)]">{{ candidate.notes }}</span>
               </td>
               <td class="p-2 text-xs">
-                <code>{{ candidate.candidate_adapter_keys.join(', ') || candidate.transports.join(', ') }}</code>
+                <code>{{
+                  candidate.candidate_adapter_keys.join(', ') || candidate.transports.join(', ')
+                }}</code>
               </td>
-              <td class="p-2 text-xs"><code>{{ candidate.gate }}</code></td>
+              <td class="p-2 text-xs">
+                <code>{{ candidate.gate }}</code>
+              </td>
               <td class="p-2">
                 <AppButton
                   v-if="canManagePlatformPolicy"
@@ -202,16 +213,28 @@ function recordEvidence(): void {
       class="ks-surface mt-5 p-5 sm:p-6"
       aria-labelledby="source-policy"
     >
-      <h2 id="source-policy" class="ks-display text-xl font-semibold">{{ t('platformGiftCodes.sourcePolicy') }}</h2>
+      <h2 id="source-policy" class="ks-display text-xl font-semibold">
+        {{ t('platformGiftCodes.sourcePolicy') }}
+      </h2>
       <form class="mt-4 grid gap-4 md:grid-cols-2" @submit.prevent="saveSource">
         <label>
           <span class="ks-kicker">{{ t('platformGiftCodes.sourceKey') }}</span>
-          <input v-model="sourcePolicy.source_key" required maxlength="120" class="ks-input mt-2 w-full" />
+          <input
+            v-model="sourcePolicy.source_key"
+            required
+            maxlength="120"
+            class="ks-input mt-2 w-full"
+          />
           <FormError :message="sourcePolicy.errors.source_key" />
         </label>
         <label>
           <span class="ks-kicker">{{ t('platformGiftCodes.sourceName') }}</span>
-          <input v-model="sourcePolicy.name" required maxlength="160" class="ks-input mt-2 w-full" />
+          <input
+            v-model="sourcePolicy.name"
+            required
+            maxlength="160"
+            class="ks-input mt-2 w-full"
+          />
           <FormError :message="sourcePolicy.errors.name" />
         </label>
         <label>
@@ -223,73 +246,207 @@ function recordEvidence(): void {
         </label>
         <label>
           <span class="ks-kicker">{{ t('platformGiftCodes.canonicalDomain') }}</span>
-          <input v-model="sourcePolicy.canonical_domain" required maxlength="255" class="ks-input mt-2 w-full" />
+          <input
+            v-model="sourcePolicy.canonical_domain"
+            required
+            maxlength="255"
+            class="ks-input mt-2 w-full"
+          />
           <FormError :message="sourcePolicy.errors.canonical_domain" />
         </label>
         <label>
           <span class="ks-kicker">{{ t('platformGiftCodes.verificationMethod') }}</span>
-          <input v-model="sourcePolicy.verification_method" required maxlength="80" class="ks-input mt-2 w-full" />
+          <input
+            v-model="sourcePolicy.verification_method"
+            required
+            maxlength="80"
+            class="ks-input mt-2 w-full"
+          />
         </label>
         <label>
           <span class="ks-kicker">{{ t('platformGiftCodes.adapter') }}</span>
           <select v-model="sourcePolicy.adapter_key" class="ks-input mt-2 w-full">
             <option value="">Manual evidence / no scheduled adapter</option>
-            <option v-for="adapter in adapterKeys" :key="adapter" :value="adapter">{{ adapter }}</option>
+            <option v-for="adapter in adapterKeys" :key="adapter" :value="adapter">
+              {{ adapter }}
+            </option>
           </select>
           <FormError :message="sourcePolicy.errors.adapter_key" />
         </label>
 
         <label v-if="usesFeedPath">
           <span class="ks-kicker">{{ t('platformGiftCodes.feedPath') }}</span>
-          <input v-model="sourcePolicy.provenance_policy.feed_path" maxlength="2048" class="ks-input mt-2 w-full" />
+          <input
+            v-model="sourcePolicy.provenance_policy.feed_path"
+            maxlength="2048"
+            class="ks-input mt-2 w-full"
+          />
           <FormError :message="sourcePolicy.errors['provenance_policy.feed_path']" />
         </label>
 
         <template v-if="selectedAdapter === 'x-api-v2-kingshot-v1'">
-          <label><span class="ks-kicker">X numeric user ID</span><input v-model="sourcePolicy.provenance_policy.x_user_id" class="ks-input mt-2 w-full" /></label>
-          <label><span class="ks-kicker">X username</span><input v-model="sourcePolicy.provenance_policy.x_username" class="ks-input mt-2 w-full" /></label>
+          <label
+            ><span class="ks-kicker">X numeric user ID</span
+            ><input v-model="sourcePolicy.provenance_policy.x_user_id" class="ks-input mt-2 w-full"
+          /></label>
+          <label
+            ><span class="ks-kicker">X username</span
+            ><input
+              v-model="sourcePolicy.provenance_policy.x_username"
+              class="ks-input mt-2 w-full"
+          /></label>
         </template>
 
         <template v-if="selectedAdapter === 'century-games-kingshot-news-rss-v1'">
-          <label><span class="ks-kicker">Agreed Gift Code category</span><input v-model="sourcePolicy.provenance_policy.gift_code_category" class="ks-input mt-2 w-full" /></label>
-          <label class="flex items-center gap-2 pt-7"><input v-model="sourcePolicy.provenance_policy.provider_permission_confirmed" type="checkbox" /> Provider permission confirmed</label>
+          <label
+            ><span class="ks-kicker">Agreed Gift Code category</span
+            ><input
+              v-model="sourcePolicy.provenance_policy.gift_code_category"
+              class="ks-input mt-2 w-full"
+          /></label>
+          <label class="flex items-center gap-2 pt-7"
+            ><input
+              v-model="sourcePolicy.provenance_policy.provider_permission_confirmed"
+              type="checkbox"
+            />
+            Provider permission confirmed</label
+          >
         </template>
 
         <template v-if="selectedAdapter === 'discord-channel-v1'">
-          <label><span class="ks-kicker">Discord guild ID</span><input v-model="sourcePolicy.provenance_policy.discord_guild_id" class="ks-input mt-2 w-full" /></label>
-          <label><span class="ks-kicker">Discord channel ID</span><input v-model="sourcePolicy.provenance_policy.discord_channel_id" class="ks-input mt-2 w-full" /></label>
-          <label class="md:col-span-2"><span class="ks-kicker">Approved Discord author IDs</span><input v-model="discordAuthorIds" class="ks-input mt-2 w-full" placeholder="comma or space separated" /></label>
-          <label class="flex items-center gap-2"><input v-model="sourcePolicy.provenance_policy.platform_permission_confirmed" type="checkbox" /> Bot installation and channel permission confirmed</label>
-          <label class="flex items-center gap-2"><input v-model="sourcePolicy.provenance_policy.message_content_access_confirmed" type="checkbox" /> Message-content access confirmed</label>
+          <label
+            ><span class="ks-kicker">Discord guild ID</span
+            ><input
+              v-model="sourcePolicy.provenance_policy.discord_guild_id"
+              class="ks-input mt-2 w-full"
+          /></label>
+          <label
+            ><span class="ks-kicker">Discord channel ID</span
+            ><input
+              v-model="sourcePolicy.provenance_policy.discord_channel_id"
+              class="ks-input mt-2 w-full"
+          /></label>
+          <label class="md:col-span-2"
+            ><span class="ks-kicker">Approved Discord author IDs</span
+            ><input
+              v-model="discordAuthorIds"
+              class="ks-input mt-2 w-full"
+              placeholder="comma or space separated"
+          /></label>
+          <label class="flex items-center gap-2"
+            ><input
+              v-model="sourcePolicy.provenance_policy.platform_permission_confirmed"
+              type="checkbox"
+            />
+            Bot installation and channel permission confirmed</label
+          >
+          <label class="flex items-center gap-2"
+            ><input
+              v-model="sourcePolicy.provenance_policy.message_content_access_confirmed"
+              type="checkbox"
+            />
+            Message-content access confirmed</label
+          >
         </template>
 
         <template v-if="selectedAdapter === 'youtube-channel-v1'">
-          <label><span class="ks-kicker">YouTube channel ID</span><input v-model="sourcePolicy.provenance_policy.youtube_channel_id" class="ks-input mt-2 w-full" /></label>
-          <label><span class="ks-kicker">YouTube channel title</span><input v-model="sourcePolicy.provenance_policy.youtube_channel_title" class="ks-input mt-2 w-full" /></label>
-          <label class="flex items-center gap-2 md:col-span-2"><input v-model="sourcePolicy.provenance_policy.platform_api_access_confirmed" type="checkbox" /> YouTube Data API access confirmed</label>
+          <label
+            ><span class="ks-kicker">YouTube channel ID</span
+            ><input
+              v-model="sourcePolicy.provenance_policy.youtube_channel_id"
+              class="ks-input mt-2 w-full"
+          /></label>
+          <label
+            ><span class="ks-kicker">YouTube channel title</span
+            ><input
+              v-model="sourcePolicy.provenance_policy.youtube_channel_title"
+              class="ks-input mt-2 w-full"
+          /></label>
+          <label class="flex items-center gap-2 md:col-span-2"
+            ><input
+              v-model="sourcePolicy.provenance_policy.platform_api_access_confirmed"
+              type="checkbox"
+            />
+            YouTube Data API access confirmed</label
+          >
         </template>
 
         <template v-if="selectedAdapter === 'reddit-data-api-v1'">
-          <label><span class="ks-kicker">Subreddit</span><input v-model="sourcePolicy.provenance_policy.reddit_subreddit" class="ks-input mt-2 w-full" /></label>
-          <label class="flex items-center gap-2 pt-7"><input v-model="sourcePolicy.provenance_policy.platform_api_access_confirmed" type="checkbox" /> Registered Reddit Data API access confirmed</label>
+          <label
+            ><span class="ks-kicker">Subreddit</span
+            ><input
+              v-model="sourcePolicy.provenance_policy.reddit_subreddit"
+              class="ks-input mt-2 w-full"
+          /></label>
+          <label class="flex items-center gap-2 pt-7"
+            ><input
+              v-model="sourcePolicy.provenance_policy.platform_api_access_confirmed"
+              type="checkbox"
+            />
+            Registered Reddit Data API access confirmed</label
+          >
         </template>
 
         <template v-if="selectedAdapter === 'facebook-page-v1'">
-          <label><span class="ks-kicker">Facebook Page ID</span><input v-model="sourcePolicy.provenance_policy.facebook_page_id" class="ks-input mt-2 w-full" /></label>
-          <label><span class="ks-kicker">Facebook Page name</span><input v-model="sourcePolicy.provenance_policy.facebook_page_name" class="ks-input mt-2 w-full" /></label>
-          <label class="flex items-center gap-2 md:col-span-2"><input v-model="sourcePolicy.provenance_policy.platform_permission_confirmed" type="checkbox" /> Page access and platform permission confirmed</label>
+          <label
+            ><span class="ks-kicker">Facebook Page ID</span
+            ><input
+              v-model="sourcePolicy.provenance_policy.facebook_page_id"
+              class="ks-input mt-2 w-full"
+          /></label>
+          <label
+            ><span class="ks-kicker">Facebook Page name</span
+            ><input
+              v-model="sourcePolicy.provenance_policy.facebook_page_name"
+              class="ks-input mt-2 w-full"
+          /></label>
+          <label class="flex items-center gap-2 md:col-span-2"
+            ><input
+              v-model="sourcePolicy.provenance_policy.platform_permission_confirmed"
+              type="checkbox"
+            />
+            Page access and platform permission confirmed</label
+          >
         </template>
 
         <template v-if="selectedAdapter === 'instagram-media-v1'">
-          <label><span class="ks-kicker">Instagram professional account ID</span><input v-model="sourcePolicy.provenance_policy.instagram_user_id" class="ks-input mt-2 w-full" /></label>
-          <label><span class="ks-kicker">Instagram username</span><input v-model="sourcePolicy.provenance_policy.instagram_username" class="ks-input mt-2 w-full" /></label>
-          <label class="flex items-center gap-2 md:col-span-2"><input v-model="sourcePolicy.provenance_policy.platform_permission_confirmed" type="checkbox" /> Professional-account API access confirmed</label>
+          <label
+            ><span class="ks-kicker">Instagram professional account ID</span
+            ><input
+              v-model="sourcePolicy.provenance_policy.instagram_user_id"
+              class="ks-input mt-2 w-full"
+          /></label>
+          <label
+            ><span class="ks-kicker">Instagram username</span
+            ><input
+              v-model="sourcePolicy.provenance_policy.instagram_username"
+              class="ks-input mt-2 w-full"
+          /></label>
+          <label class="flex items-center gap-2 md:col-span-2"
+            ><input
+              v-model="sourcePolicy.provenance_policy.platform_permission_confirmed"
+              type="checkbox"
+            />
+            Professional-account API access confirmed</label
+          >
         </template>
 
-        <div class="md:col-span-2 grid gap-3 sm:grid-cols-3">
-          <label class="flex items-center gap-2"><input v-model="sourcePolicy.provenance_policy.auto_verify" type="checkbox" /> {{ t('platformGiftCodes.autoVerify') }}</label>
-          <label class="flex items-center gap-2"><input v-model="sourcePolicy.provenance_policy.manual_evidence_allowed" type="checkbox" /> Allow curator-confirmed manual evidence</label>
-          <label class="flex items-center gap-2"><input v-model="sourcePolicy.ingestion_enabled" type="checkbox" /> {{ t('platformGiftCodes.enableIngestion') }}</label>
+        <div class="grid gap-3 sm:grid-cols-3 md:col-span-2">
+          <label class="flex items-center gap-2"
+            ><input v-model="sourcePolicy.provenance_policy.auto_verify" type="checkbox" />
+            {{ t('platformGiftCodes.autoVerify') }}</label
+          >
+          <label class="flex items-center gap-2"
+            ><input
+              v-model="sourcePolicy.provenance_policy.manual_evidence_allowed"
+              type="checkbox"
+            />
+            Allow curator-confirmed manual evidence</label
+          >
+          <label class="flex items-center gap-2"
+            ><input v-model="sourcePolicy.ingestion_enabled" type="checkbox" />
+            {{ t('platformGiftCodes.enableIngestion') }}</label
+          >
         </div>
         <div class="md:col-span-2">
           <AppButton type="submit" :busy="sourcePolicy.processing" :busy-label="t('common.saving')">
@@ -300,12 +457,19 @@ function recordEvidence(): void {
     </section>
 
     <section class="ks-surface mt-5 p-5 sm:p-6" aria-labelledby="manual-evidence">
-      <h2 id="manual-evidence" class="ks-display text-xl font-semibold">Registered-source manual evidence</h2>
+      <h2 id="manual-evidence" class="ks-display text-xl font-semibold">
+        Registered-source manual evidence
+      </h2>
       <p class="mt-2 text-sm text-[var(--ks-muted)]">
-        Use this only when a registered source was reviewed for manual evidence and no legitimate automated
-        transport exists. The exact publication URL must remain on that source's canonical domain.
+        Use this only when a registered source was reviewed for manual evidence and no legitimate
+        automated transport exists. The exact publication URL must remain on that source's canonical
+        domain.
       </p>
-      <form v-if="manualSources.length" class="mt-4 grid gap-4 md:grid-cols-2" @submit.prevent="recordEvidence">
+      <form
+        v-if="manualSources.length"
+        class="mt-4 grid gap-4 md:grid-cols-2"
+        @submit.prevent="recordEvidence"
+      >
         <label>
           <span class="ks-kicker">Registered source</span>
           <select v-model="evidence.source_id" required class="ks-input mt-2 w-full">
@@ -315,7 +479,14 @@ function recordEvidence(): void {
             </option>
           </select>
         </label>
-        <label><span class="ks-kicker">Gift Code</span><input v-model="evidence.code" required maxlength="64" class="ks-input mt-2 w-full font-mono" /></label>
+        <label
+          ><span class="ks-kicker">Gift Code</span
+          ><input
+            v-model="evidence.code"
+            required
+            maxlength="64"
+            class="ks-input mt-2 w-full font-mono"
+        /></label>
         <label>
           <span class="ks-kicker">Assertion</span>
           <select v-model="evidence.assertion" class="ks-input mt-2 w-full">
@@ -324,12 +495,39 @@ function recordEvidence(): void {
             <option value="expires">Expires</option>
           </select>
         </label>
-        <label><span class="ks-kicker">Exact evidence URL</span><input v-model="evidence.source_url" required type="url" class="ks-input mt-2 w-full" /></label>
-        <label><span class="ks-kicker">Published at</span><input v-model="evidence.published_at" type="datetime-local" class="ks-input mt-2 w-full" /></label>
-        <label v-if="evidence.assertion === 'expires'"><span class="ks-kicker">Expires at</span><input v-model="evidence.expires_at" type="datetime-local" class="ks-input mt-2 w-full" /></label>
-        <label v-if="evidence.assertion === 'expires'"><span class="ks-kicker">Expiry precision</span><select v-model="evidence.expiry_precision" class="ks-input mt-2 w-full"><option value="instant">Instant</option><option value="minute">Minute</option><option value="hour">Hour</option><option value="day">Day</option></select></label>
-        <label v-if="evidence.assertion === 'expires'"><span class="ks-kicker">Expiry timezone</span><input v-model="evidence.expiry_timezone" maxlength="80" class="ks-input mt-2 w-full" /></label>
-        <div class="md:col-span-2"><AppButton type="submit" :busy="evidence.processing">Record verified source evidence</AppButton></div>
+        <label
+          ><span class="ks-kicker">Exact evidence URL</span
+          ><input v-model="evidence.source_url" required type="url" class="ks-input mt-2 w-full"
+        /></label>
+        <label
+          ><span class="ks-kicker">Published at</span
+          ><input
+            v-model="evidence.published_at"
+            type="datetime-local"
+            class="ks-input mt-2 w-full"
+        /></label>
+        <label v-if="evidence.assertion === 'expires'"
+          ><span class="ks-kicker">Expires at</span
+          ><input v-model="evidence.expires_at" type="datetime-local" class="ks-input mt-2 w-full"
+        /></label>
+        <label v-if="evidence.assertion === 'expires'"
+          ><span class="ks-kicker">Expiry precision</span
+          ><select v-model="evidence.expiry_precision" class="ks-input mt-2 w-full">
+            <option value="instant">Instant</option>
+            <option value="minute">Minute</option>
+            <option value="hour">Hour</option>
+            <option value="day">Day</option>
+          </select></label
+        >
+        <label v-if="evidence.assertion === 'expires'"
+          ><span class="ks-kicker">Expiry timezone</span
+          ><input v-model="evidence.expiry_timezone" maxlength="80" class="ks-input mt-2 w-full"
+        /></label>
+        <div class="md:col-span-2">
+          <AppButton type="submit" :busy="evidence.processing"
+            >Record verified source evidence</AppButton
+          >
+        </div>
       </form>
       <p v-else class="mt-4 text-sm text-[var(--ks-muted)]">
         No active source is currently approved for registered manual evidence.
@@ -339,19 +537,37 @@ function recordEvidence(): void {
     <section class="ks-surface mt-5 p-5 sm:p-6" aria-labelledby="registered-sources">
       <h2 id="registered-sources" class="ks-display text-xl font-semibold">Registered sources</h2>
       <ul v-if="sources.length" class="mt-4 grid gap-3 md:grid-cols-2">
-        <li v-for="source in sources" :key="source.id" class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] p-4">
-          <div class="flex items-start justify-between gap-3"><strong>{{ source.name }}</strong><code class="text-xs">{{ source.adapterKey ?? 'manual' }}</code></div>
-          <p class="mt-1 text-xs text-[var(--ks-muted)]">{{ source.canonicalDomain }} · {{ source.classification }}</p>
+        <li
+          v-for="source in sources"
+          :key="source.id"
+          class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] p-4"
+        >
+          <div class="flex items-start justify-between gap-3">
+            <strong>{{ source.name }}</strong
+            ><code class="text-xs">{{ source.adapterKey ?? 'manual' }}</code>
+          </div>
+          <p class="mt-1 text-xs text-[var(--ks-muted)]">
+            {{ source.canonicalDomain }} · {{ source.classification }}
+          </p>
           <p class="mt-2 text-xs text-[var(--ks-muted)]">
-            {{ source.ingestionEnabled ? 'scheduled ingestion enabled' : 'scheduled ingestion disabled' }} ·
-            {{ source.manualEvidenceAllowed ? 'manual evidence allowed' : 'manual evidence disabled' }}
+            {{
+              source.ingestionEnabled
+                ? 'scheduled ingestion enabled'
+                : 'scheduled ingestion disabled'
+            }}
+            ·
+            {{
+              source.manualEvidenceAllowed ? 'manual evidence allowed' : 'manual evidence disabled'
+            }}
           </p>
           <p v-if="source.lastAttemptAt" class="mt-2 text-xs text-[var(--ks-muted)]">
             Last attempt {{ formatDate(source.lastAttemptAt) }}
           </p>
         </li>
       </ul>
-      <p v-else class="mt-3 text-sm text-[var(--ks-muted)]">{{ t('platformGiftCodes.noApprovedSources') }}</p>
+      <p v-else class="mt-3 text-sm text-[var(--ks-muted)]">
+        {{ t('platformGiftCodes.noApprovedSources') }}
+      </p>
     </section>
   </AppLayout>
 </template>

@@ -135,7 +135,7 @@ final class DiscordChannelGiftCodeSourceAdapter implements GiftCodeSourceAdapter
     }
 
     /** @param array<string,mixed> $policy
-     *  @return list<string>
+     * @return list<string>
      */
     private function requiredAuthorIds(array $policy): array
     {
