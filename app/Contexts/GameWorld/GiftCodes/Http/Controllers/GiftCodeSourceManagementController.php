@@ -62,6 +62,7 @@ final class GiftCodeSourceManagementController extends Controller
             'provenance_policy.x_user_id' => ['nullable', 'string', 'max:32'],
             'provenance_policy.x_username' => ['nullable', 'string', 'max:30'],
             'provenance_policy.platform_permission_confirmed' => ['nullable', 'boolean'],
+            'provenance_policy.platform_api_access_confirmed' => ['nullable', 'boolean'],
             'provenance_policy.message_content_access_confirmed' => ['nullable', 'boolean'],
             'provenance_policy.discord_guild_id' => ['nullable', 'string', 'max:32'],
             'provenance_policy.discord_channel_id' => ['nullable', 'string', 'max:32'],
