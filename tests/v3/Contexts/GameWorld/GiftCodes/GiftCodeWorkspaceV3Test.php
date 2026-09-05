@@ -31,6 +31,7 @@ use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeContributorProjection;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeFactProjection;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeProvenance;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeRedemption;
+use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeRedemptionSession;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeRedemptionSessionItem;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeSourceRegistry;
 use App\Contexts\GameWorld\GiftCodes\Queries\GiftCodeWorkspaceQuery;
@@ -56,12 +57,16 @@ final class GiftCodeWorkspaceV3Test extends TestCase
         $code = $this->validCode('GCW-PERSONAL-CODE');
         $revision = $code->status_revision;
 
-        $state = app(UpdateGiftCodeAccountState::class)->handle(
+        app(UpdateGiftCodeAccountState::class)->handle(
             $actor,
             (string) $code->id,
             GiftCodeAccountStateStatus::Dismissed,
             remindAt: now()->addDay()->toImmutable(),
         );
+        $state = GiftCodeAccountState::query()
+            ->where('user_id', $account->userId)
+            ->where('gift_code_id', $code->id)
+            ->firstOrFail();
 
         self::assertSame(GiftCodeAccountStateStatus::Dismissed, $state->state);
         self::assertNotNull($state->remind_at);
@@ -83,11 +88,12 @@ final class GiftCodeWorkspaceV3Test extends TestCase
         $secondCode = $this->validCode('GCW-MULTI-TWO');
         $this->redemption($firstCode, $first, GiftCodeRedemptionStatus::Redeemed);
 
-        $session = app(CreateGiftCodeRedemptionSession::class)->handle(
+        $reference = app(CreateGiftCodeRedemptionSession::class)->handle(
             $actor,
             GiftCodeRedemptionSessionMode::AllActionable,
             playerIds: [$first->playerId, $second->playerId],
         );
+        $session = GiftCodeRedemptionSession::query()->with('items')->findOrFail($reference->sessionId);
 
         self::assertSame(GiftCodeRedemptionSessionStatus::Active, $session->status);
         self::assertSame(3, $session->total_items);
@@ -115,12 +121,13 @@ final class GiftCodeWorkspaceV3Test extends TestCase
         $retry->next_attempt_at = now()->addHour();
         $retry->save();
 
-        $retrySession = app(CreateGiftCodeRedemptionSession::class)->handle(
+        $retryReference = app(CreateGiftCodeRedemptionSession::class)->handle(
             $actor,
             GiftCodeRedemptionSessionMode::Selected,
             [(string) $retryCode->id],
             [$player->playerId],
         );
+        $retrySession = GiftCodeRedemptionSession::query()->with('items')->findOrFail($retryReference->sessionId);
         self::assertSame(
             GiftCodeRedemptionSessionItemState::RetryWait,
             $retrySession->items->firstOrFail()->state,
@@ -128,23 +135,26 @@ final class GiftCodeWorkspaceV3Test extends TestCase
 
         $retry->next_attempt_at = now()->subMinute();
         $retry->save();
-        $reconciled = app(ReconcileGiftCodeRedemptionSession::class)->handle($actor, (string) $retrySession->id);
+        app(ReconcileGiftCodeRedemptionSession::class)->handle($actor, (string) $retrySession->id);
+        $reconciled = GiftCodeRedemptionSession::query()->with('items')->findOrFail($retrySession->id);
         self::assertSame(GiftCodeRedemptionSessionItemState::Ready, $reconciled->items->firstOrFail()->state);
 
         $trustCode = $this->validCode('GCW-TRUST-CODE');
-        $trustSession = app(CreateGiftCodeRedemptionSession::class)->handle(
+        $trustReference = app(CreateGiftCodeRedemptionSession::class)->handle(
             $actor,
             GiftCodeRedemptionSessionMode::Selected,
             [(string) $trustCode->id],
             [$player->playerId],
         );
+        $trustSession = GiftCodeRedemptionSession::query()->with('items')->findOrFail($trustReference->sessionId);
         $trustCode->status = GiftCodeStatus::Disputed;
         $trustCode->status_revision++;
         $trustCode->status_reason_code = 'credible_conflict';
         $trustCode->status_changed_at = now();
         $trustCode->save();
 
-        $reconciled = app(ReconcileGiftCodeRedemptionSession::class)->handle($actor, (string) $trustSession->id);
+        app(ReconcileGiftCodeRedemptionSession::class)->handle($actor, (string) $trustSession->id);
+        $reconciled = GiftCodeRedemptionSession::query()->with('items')->findOrFail($trustSession->id);
         self::assertSame(GiftCodeRedemptionSessionStatus::Completed, $reconciled->status);
         self::assertSame(GiftCodeRedemptionSessionItemState::Unavailable, $reconciled->items->firstOrFail()->state);
         self::assertSame('trust_not_valid', $reconciled->items->firstOrFail()->unavailable_reason);
