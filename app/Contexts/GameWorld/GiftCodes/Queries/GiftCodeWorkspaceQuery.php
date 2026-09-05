@@ -90,6 +90,7 @@ final class GiftCodeWorkspaceQuery
     private function queryFor(int $userId, array $playerIds, string $view): Builder
     {
         $success = [GiftCodeRedemptionStatus::Redeemed->value, GiftCodeRedemptionStatus::AlreadyRedeemed->value];
+        $governorCount = count($playerIds);
         $active = static fn (Builder $query): Builder => $query
             ->where('status', GiftCodeStatus::Valid->value)
             ->where(static fn (Builder $expiry): Builder => $expiry->whereNull('expires_at')->orWhere('expires_at', '>', now()));
@@ -103,6 +104,9 @@ final class GiftCodeWorkspaceQuery
                         ->where('state', GiftCodeAccountStateStatus::Snoozed->value)
                         ->where('snoozed_until', '>', now()))),
         );
+        $successfulOwned = static fn (Builder $redemptions): Builder => $redemptions
+            ->whereIn('player_id', $playerIds)
+            ->whereIn('status', $success);
 
         $query = GiftCode::query();
         match ($view) {
@@ -113,20 +117,12 @@ final class GiftCodeWorkspaceQuery
             self::VIEW_READY => $query
                 ->where($active)
                 ->where($notSuppressed)
-                ->where(static fn (Builder $ready): Builder => $ready
-                    ->whereDoesntHave('redemptions', static fn (Builder $redemptions): Builder => $redemptions->whereIn('player_id', $playerIds))
-                    ->orWhereHas('redemptions', static fn (Builder $redemptions): Builder => $redemptions
-                        ->whereIn('player_id', $playerIds)
-                        ->whereNotIn('status', $success))),
+                ->whereHas('redemptions', $successfulOwned, '<', $governorCount),
             self::VIEW_EXPIRING => $query
                 ->where('status', GiftCodeStatus::Valid->value)
                 ->whereBetween('expires_at', [now(), now()->addDay()])
                 ->where($notSuppressed)
-                ->where(static fn (Builder $incomplete): Builder => $incomplete
-                    ->whereDoesntHave('redemptions', static fn (Builder $redemptions): Builder => $redemptions->whereIn('player_id', $playerIds))
-                    ->orWhereHas('redemptions', static fn (Builder $redemptions): Builder => $redemptions
-                        ->whereIn('player_id', $playerIds)
-                        ->whereNotIn('status', $success))),
+                ->whereHas('redemptions', $successfulOwned, '<', $governorCount),
             self::VIEW_RETRY_READY => $query
                 ->where($active)
                 ->whereHas('redemptions', static fn (Builder $redemptions): Builder => $redemptions
@@ -135,20 +131,14 @@ final class GiftCodeWorkspaceQuery
                     ->where(static fn (Builder $due): Builder => $due->whereNull('next_attempt_at')->orWhere('next_attempt_at', '<=', now()))),
             self::VIEW_IN_PROGRESS => $query
                 ->where($active)
-                ->whereHas('redemptions', static fn (Builder $redemptions): Builder => $redemptions
-                    ->whereIn('player_id', $playerIds)
-                    ->whereNotIn('status', $success)),
+                ->whereHas('redemptions', static fn (Builder $redemptions): Builder => $redemptions->whereIn('player_id', $playerIds))
+                ->whereHas('redemptions', $successfulOwned, '<', $governorCount),
             self::VIEW_SNOOZED => $query->whereHas('accountStates', static fn (Builder $state): Builder => $state
                 ->where('user_id', $userId)
                 ->where('state', GiftCodeAccountStateStatus::Snoozed->value)
                 ->where('snoozed_until', '>', now())),
             self::VIEW_COMPLETED => $query
-                ->whereHas('redemptions', static fn (Builder $redemptions): Builder => $redemptions
-                    ->whereIn('player_id', $playerIds)
-                    ->whereIn('status', $success))
-                ->whereDoesntHave('redemptions', static fn (Builder $redemptions): Builder => $redemptions
-                    ->whereIn('player_id', $playerIds)
-                    ->whereNotIn('status', $success)),
+                ->whereHas('redemptions', $successfulOwned, '=', $governorCount),
             default => throw new InvalidArgumentException('Unsupported Gift Code workspace view.'),
         };
 
