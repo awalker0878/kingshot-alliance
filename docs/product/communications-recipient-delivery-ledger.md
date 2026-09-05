@@ -1,6 +1,6 @@
 # Communications Recipient Delivery Delivery Ledger
 
-Status: Complete candidate — release gates pending
+Status: Closed — current complete capability
 
 Canonical product contract: [Communications — Recipient Delivery & Notification Experience](communications-recipient-delivery-expansion.md).
 Acceptance matrix: [Communications Recipient Delivery Acceptance Matrix](communications-recipient-delivery-acceptance.md).
@@ -23,11 +23,11 @@ Acceptance matrix: [Communications Recipient Delivery Acceptance Matrix](communi
 | 14 | Delivery processor hardening | Complete | Row-locked claims, stale-pending recovery, current endpoint/policy/Governor recheck, route cancellation/redefer, bounded attempts and retry timing |
 | 15 | Source-context integration normalization | Complete | Account Security, Alliance announcements, Events, Gift Codes, Intelligence, King Perks and Officer Briefs publish `NotificationIntent` and consume scalar receipts |
 | 16 | Security and abuse controls | Complete | Encrypted/hidden credentials, provider destination validation, safe relative action URLs, endpoint/route/digest/bulk/payload bounds, test throttling and isolation checks |
-| 17 | Complete behavior/security/concurrency test matrix | Complete | Communications acceptance suite plus existing queue/delivery and source-specific V3 suites; Architecture V3 verification remains a containing-candidate gate |
+| 17 | Complete behavior/security/concurrency test matrix | Complete | Communications acceptance suite plus existing queue/delivery and source-specific V3 suites; Architecture V3 verification passed on the immutable closeout candidate |
 | 18 | UX closeout | Complete | Logical Notification Center, filters, route details, preferences/routing policy, named destinations, Web Push controls, localization/accessibility checks |
 | 19 | Documentation and operational closeout | Complete | Canonical Communications architecture, product/global docs, immediate/digest scheduler wiring and conditional Web Push/mail launch readiness |
-| 20 | Final repository reconciliation and release gates | Complete candidate | Stale route-as-inbox/read-model/test assumptions removed; required candidate workflows must be green before this row and the extension are promoted from candidate to closed/current-complete |
+| 20 | Final repository reconciliation and release gates | Complete | Stale route-as-inbox/read-model/test assumptions removed; immutable candidate `f880cb40014b2ef5236facaf65ac2b68f90fd5ae` passed every required release workflow |
 
-## Closeout rule
+## Closeout evidence
 
-Implementation and repository evidence are complete. The ledger becomes **Closed** only when the exact containing PR head carrying this reconciliation passes CI, Architecture V3 Verification, Intelligence Verification, King Perks Verification, Visual Regression, CodeQL and Dependency Review. Until then, the PR remains draft and the extension remains a complete candidate rather than a shipped/current-complete promotion.
+Implementation and repository evidence are complete. Immutable implementation candidate `f880cb40014b2ef5236facaf65ac2b68f90fd5ae` passed CI, Architecture V3 Verification, Intelligence Verification, King Perks Verification, Visual Regression, CodeQL and Dependency Review. The extension is therefore closed and promoted to **Current complete capability**.
