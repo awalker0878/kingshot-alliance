@@ -141,20 +141,22 @@ test('Gift Code redemption workspace creates, resumes, skips and records a multi
   await page.waitForLoadState('networkidle');
 
   await expect(page.getByRole('heading', { name: 'Gift Code Workspace', level: 1 })).toBeVisible();
-  const code = `VISUAL-GIFT-${testInfo.project.name.toUpperCase()}`;
-  const codeChoice = page.locator('label').filter({ hasText: code }).locator('input[type="checkbox"]');
+  const code = `VISUAL-GIFT-WORKSPACE-${testInfo.project.name.toUpperCase()}`;
+  const codeChoice = page.getByRole('checkbox', { name: code, exact: true });
   await expect(codeChoice).toHaveCount(1);
   await codeChoice.check();
   await page.getByRole('button', { name: 'Redeem selected' }).click();
   await page.waitForLoadState('networkidle');
 
   await expect(page.getByText('Current redemption run')).toBeVisible();
+  await expect(page.getByRole('heading', { name: code, level: 3, exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Prepare official handoff' })).toBeVisible();
   const sessionUrl = await resumableSessionUrl(page);
 
   await page.goto(sessionUrl);
   await page.waitForLoadState('networkidle');
   await expect(page.getByText('Current redemption run')).toBeVisible();
+  await expect(page.getByRole('heading', { name: code, level: 3, exact: true })).toBeVisible();
 
   await page.getByRole('button', { name: 'Skip for now' }).click();
   await page.waitForLoadState('networkidle');
@@ -187,7 +189,7 @@ test('Gift Code redemption workspace invalidates an active run when canonical tr
   await page.goto('/gift-codes/workspace');
   await page.waitForLoadState('networkidle');
 
-  const codeChoice = page.locator('label').filter({ hasText: code }).locator('input[type="checkbox"]');
+  const codeChoice = page.getByRole('checkbox', { name: code, exact: true });
   await expect(codeChoice).toHaveCount(1);
   const giftCodeId = await codeChoice.getAttribute('value');
   expect(giftCodeId).toBeTruthy();
@@ -196,7 +198,7 @@ test('Gift Code redemption workspace invalidates an active run when canonical tr
   await page.waitForLoadState('networkidle');
 
   await expect(page.getByText('Current redemption run')).toBeVisible();
-  await expect(page.getByText(code, { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: code, level: 3, exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Prepare official handoff' })).toBeVisible();
   const sessionUrl = await resumableSessionUrl(page);
 
