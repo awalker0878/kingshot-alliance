@@ -36,7 +36,7 @@ final class GiftCodeRedemptionWorkspaceV3Test extends TestCase
         config()->set('game_world.gift_codes.max_session_items', 500);
     }
 
-    public function test_personal_state_is_idempotent_and_never_mutates_catalogue_truth(): void
+    public function test_personal_state_transitions_are_idempotent_and_never_mutate_catalogue_truth(): void
     {
         $scenarios = app(ScenarioFactory::class);
         $account = $scenarios->account();
@@ -44,23 +44,44 @@ final class GiftCodeRedemptionWorkspaceV3Test extends TestCase
         $giftCode = $this->validGiftCode('PERSONAL-STATE');
         $statusRevision = $giftCode->status_revision;
         $expiresRevision = $giftCode->expires_revision;
+        $update = app(UpdateGiftCodeAccountState::class);
 
-        app(UpdateGiftCodeAccountState::class)->handle(
-            $actor,
-            (string) $giftCode->id,
-            GiftCodeAccountStateStatus::Pinned,
-        );
-        app(UpdateGiftCodeAccountState::class)->handle(
-            $actor,
-            (string) $giftCode->id,
-            GiftCodeAccountStateStatus::Pinned,
-        );
+        $update->handle($actor, (string) $giftCode->id, GiftCodeAccountStateStatus::Pinned);
+        $update->handle($actor, (string) $giftCode->id, GiftCodeAccountStateStatus::Pinned);
 
         self::assertSame(1, GiftCodeAccountState::query()
             ->where('user_id', $account->userId)
             ->where('gift_code_id', $giftCode->id)
             ->count());
         self::assertSame(GiftCodeAccountStateStatus::Pinned, GiftCodeAccountState::query()->firstOrFail()->state);
+
+        $snoozedUntil = now()->addDay()->toImmutable();
+        $update->handle(
+            $actor,
+            (string) $giftCode->id,
+            GiftCodeAccountStateStatus::Snoozed,
+            snoozedUntil: $snoozedUntil,
+        );
+        $state = GiftCodeAccountState::query()->firstOrFail();
+        self::assertSame(GiftCodeAccountStateStatus::Snoozed, $state->state);
+        self::assertTrue($state->snoozed_until?->equalTo($snoozedUntil) ?? false);
+
+        $remindAt = now()->addHours(12)->toImmutable();
+        $update->handle(
+            $actor,
+            (string) $giftCode->id,
+            GiftCodeAccountStateStatus::Actionable,
+            remindAt: $remindAt,
+        );
+        $state->refresh();
+        self::assertSame(GiftCodeAccountStateStatus::Actionable, $state->state);
+        self::assertNull($state->snoozed_until);
+        self::assertTrue($state->remind_at?->equalTo($remindAt) ?? false);
+
+        $update->handle($actor, (string) $giftCode->id, GiftCodeAccountStateStatus::Dismissed);
+        $state->refresh();
+        self::assertSame(GiftCodeAccountStateStatus::Dismissed, $state->state);
+        self::assertNull($state->remind_at);
 
         $giftCode->refresh();
         self::assertSame(GiftCodeStatus::Valid, $giftCode->status);
