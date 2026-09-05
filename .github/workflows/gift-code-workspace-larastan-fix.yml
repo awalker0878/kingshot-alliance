@@ -1,0 +1,84 @@
+name: Gift Code Workspace Larastan Fix
+
+on:
+  push:
+    branches:
+      - gift-code-redemption-workspace
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: gift-code-redemption-workspace
+
+      - name: Apply static-analysis fixes
+        shell: bash
+        run: |
+          python <<'PY'
+          from pathlib import Path
+
+          replacements = {
+              'app/Contexts/GameWorld/GiftCodes/Actions/AbandonGiftCodeRedemptionSession.php': [(
+                  """                $this->audit->record(\n                    'game_world.gift_code_redemption_session.abandoned',\n                    $actor,\n                    'gift_code_redemption_session',\n                    (string) $session->id,\n                );""",
+                  """                $this->audit->record(\n                    'game_world.gift_code_redemption_session.abandoned',\n                    $actor,\n                    $session,\n                );""",
+              )],
+              'app/Contexts/GameWorld/GiftCodes/Actions/CreateGiftCodeRedemptionSession.php': [(
+                  """        $this->audit->record(\n            'game_world.gift_code_redemption_session.created',\n            $actor,\n            'gift_code_redemption_session',\n            (string) $session->id,\n            ['mode' => $mode->value, 'items' => $session->total_items],\n        );""",
+                  """        $this->audit->record(\n            'game_world.gift_code_redemption_session.created',\n            $actor,\n            $session,\n            null,\n            ['mode' => $mode->value, 'items' => $session->total_items],\n        );""",
+              )],
+              'app/Contexts/GameWorld/GiftCodes/Actions/UpdateGiftCodeAccountState.php': [(
+                  """        $this->audit->record(\n            'game_world.gift_codes.account_state_updated',\n            $actor,\n            'gift_code',\n            $giftCodeId,\n            [\n                'state' => $state->value,\n                'snoozed_until' => $snoozedUntil?->toIso8601String(),\n                'remind_at' => $remindAt?->toIso8601String(),\n            ],\n        );""",
+                  """        $this->audit->record(\n            'game_world.gift_codes.account_state_updated',\n            $actor,\n            $accountState,\n            null,\n            [\n                'gift_code_id' => $giftCodeId,\n                'state' => $state->value,\n                'snoozed_until' => $snoozedUntil?->toIso8601String(),\n                'remind_at' => $remindAt?->toIso8601String(),\n            ],\n        );""",
+              )],
+              'app/Contexts/GameWorld/GiftCodes/Actions/RebuildGiftCodeContributorProjections.php': [(
+                  """            $existing = GiftCodeContributorProjection::query()->find($userId);\n            GiftCodeContributorProjection::query()->updateOrCreate(\n                ['user_id' => $userId],\n                [\n                    'accepted_count' => (int) ($counts?->accepted_count ?? 0),\n                    'corroborated_count' => (int) ($counts?->corroborated_count ?? 0),\n                    'rejected_count' => (int) ($counts?->rejected_count ?? 0),\n                    'misleading_count' => (int) ($counts?->misleading_count ?? 0),\n                    'revision' => (int) ($existing?->revision ?? 0) + 1,\n                    'derived_at' => CarbonImmutable::now('UTC'),\n                ],\n            );""",
+                  """            $projection = GiftCodeContributorProjection::query()->firstOrNew(['user_id' => $userId]);\n            $projection->accepted_count = (int) ($counts->accepted_count ?? 0);\n            $projection->corroborated_count = (int) ($counts->corroborated_count ?? 0);\n            $projection->rejected_count = (int) ($counts->rejected_count ?? 0);\n            $projection->misleading_count = (int) ($counts->misleading_count ?? 0);\n            $projection->revision = (int) $projection->revision + 1;\n            $projection->derived_at = CarbonImmutable::now('UTC');\n            $projection->save();""",
+              )],
+              'app/Contexts/GameWorld/GiftCodes/Http/Controllers/GiftCodeWorkspaceController.php': [(
+                  "'playerName' => $player?->currentName ?? $item->player_id,",
+                  "'playerName' => $player === null ? $item->player_id : $player->currentName,",
+              )],
+              'app/Contexts/GameWorld/GiftCodes/Services/GiftCodeRedemptionSignalService.php': [(
+                  "'successRate' => $sampleCount === 0 ? 0.0 : round(($successCount / $sampleCount) * 100, 1),",
+                  "'successRate' => round(($successCount / $sampleCount) * 100, 1),",
+              )],
+          }
+
+          for filename, pairs in replacements.items():
+              path = Path(filename)
+              text = path.read_text()
+              for old, new in pairs:
+                  if old not in text:
+                      raise SystemExit(f'Expected static-analysis target not found in {filename}')
+                  text = text.replace(old, new, 1)
+              path.write_text(text)
+          PY
+
+      - name: Configure PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
+        with:
+          php-version: '8.5'
+          coverage: none
+          tools: composer:v2
+
+      - name: Install locked PHP dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist --no-scripts
+
+      - name: Format changed PHP
+        run: vendor/bin/pint app/Contexts/GameWorld/GiftCodes/Actions/AbandonGiftCodeRedemptionSession.php app/Contexts/GameWorld/GiftCodes/Actions/CreateGiftCodeRedemptionSession.php app/Contexts/GameWorld/GiftCodes/Actions/UpdateGiftCodeAccountState.php app/Contexts/GameWorld/GiftCodes/Actions/RebuildGiftCodeContributorProjections.php app/Contexts/GameWorld/GiftCodes/Http/Controllers/GiftCodeWorkspaceController.php app/Contexts/GameWorld/GiftCodes/Services/GiftCodeRedemptionSignalService.php
+
+      - name: Commit fixes
+        shell: bash
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add app/Contexts/GameWorld/GiftCodes
+          git commit -m "fix: satisfy Gift Code workspace static analysis"
+          git push origin HEAD:gift-code-redemption-workspace
