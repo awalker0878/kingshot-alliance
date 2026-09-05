@@ -4,17 +4,20 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\GiftCodes\Adapters;
 
+use App\Contexts\GameWorld\GiftCodes\Adapters\Concerns\HandlesGiftCodeProviderResponses;
 use App\Contexts\GameWorld\GiftCodes\Adapters\Concerns\ParsesExplicitGiftCodeLabels;
 use App\Contexts\GameWorld\GiftCodes\Contracts\GiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeSourceRegistry;
 use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeIngestionObservation;
 use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeIngestionPage;
+use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeSourceCheckpoint;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use UnexpectedValueException;
 
 final class DiscordChannelGiftCodeSourceAdapter implements GiftCodeSourceAdapter
 {
+    use HandlesGiftCodeProviderResponses;
     use ParsesExplicitGiftCodeLabels;
 
     public const KEY = 'discord-channel-v1';
@@ -26,9 +29,11 @@ final class DiscordChannelGiftCodeSourceAdapter implements GiftCodeSourceAdapter
 
     public function acquire(GiftCodeSourceRegistry $source, ?string $cursor, int $limit): GiftCodeIngestionPage
     {
-        if ($cursor !== null && trim($cursor) !== '') {
-            throw new UnexpectedValueException('The Discord channel adapter does not accept a source cursor.');
+        $cursor = $cursor === null ? null : trim($cursor);
+        if ($cursor !== null && $cursor !== '' && preg_match('/^[0-9]{1,32}$/D', $cursor) !== 1) {
+            throw new UnexpectedValueException('The Discord channel cursor must be a message snowflake.');
         }
+        $cursor = $cursor === '' ? null : $cursor;
 
         $policy = $source->provenance_policy ?? [];
         if (($policy['platform_permission_confirmed'] ?? false) !== true
@@ -68,22 +73,25 @@ final class DiscordChannelGiftCodeSourceAdapter implements GiftCodeSourceAdapter
         $response = Http::withHeaders($headers)
             ->timeout($timeout)
             ->withOptions(['allow_redirects' => false])
-            ->get('https://discord.com/api/v10/channels/'.rawurlencode($channelId).'/messages', [
+            ->get('https://discord.com/api/v10/channels/'.rawurlencode($channelId).'/messages', array_filter([
                 'limit' => $pageSize,
-            ]);
+                'after' => $cursor,
+            ], static fn (mixed $value): bool => $value !== null && $value !== ''));
         $this->assertJsonSuccess($response, 'Discord channel messages');
         $messages = $response->json();
         if (! is_array($messages) || ! array_is_list($messages) || count($messages) > $pageSize) {
             throw new UnexpectedValueException('Discord returned an invalid or unbounded message collection.');
         }
 
-        $retrievalVersion = $this->retrievalVersion($response);
+        $retrievalVersion = $this->giftCodeRetrievalVersion($response);
         $observations = [];
+        $highWater = $cursor;
         foreach ($messages as $position => $message) {
             if (! is_array($message)) {
                 throw new UnexpectedValueException(sprintf('Discord message %d must be an object.', $position + 1));
             }
             $messageId = $this->requiredString($message['id'] ?? null, 'message id', $position + 1, 32);
+            $highWater = $this->greaterSnowflake($highWater, $messageId);
             $author = $message['author'] ?? null;
             if (! is_array($author)) {
                 throw new UnexpectedValueException(sprintf('Discord message %d requires an author object.', $position + 1));
@@ -120,7 +128,26 @@ final class DiscordChannelGiftCodeSourceAdapter implements GiftCodeSourceAdapter
             }
         }
 
-        return new GiftCodeIngestionPage($observations, null);
+        $providerRequestId = $this->giftCodeProviderRequestId($response);
+
+        return new GiftCodeIngestionPage(
+            observations: $observations,
+            nextCursor: $highWater,
+            retrievalVersion: $retrievalVersion,
+            providerRequestId: $providerRequestId,
+            rateLimit: $this->giftCodeRateLimit($response),
+            checkpoint: new GiftCodeSourceCheckpoint(
+                cursor: $highWater,
+                retrievalVersion: $retrievalVersion,
+                providerRequestId: $providerRequestId,
+                providerState: [
+                    'guild_id' => $guildId,
+                    'channel_id' => $channelId,
+                    'message_high_water' => $highWater,
+                ],
+            ),
+            requestCount: 2,
+        );
     }
 
     /** @param array<string,mixed> $policy */
@@ -156,9 +183,7 @@ final class DiscordChannelGiftCodeSourceAdapter implements GiftCodeSourceAdapter
 
     private function assertJsonSuccess(Response $response, string $operation): void
     {
-        if (! $response->successful()) {
-            throw new \RuntimeException(sprintf('%s returned HTTP %d.', $operation, $response->status()));
-        }
+        $this->assertGiftCodeProviderSuccess($response, $operation);
         if (! str_contains(mb_strtolower((string) $response->header('Content-Type')), 'json')) {
             throw new UnexpectedValueException($operation.' did not return JSON content.');
         }
@@ -193,15 +218,15 @@ final class DiscordChannelGiftCodeSourceAdapter implements GiftCodeSourceAdapter
         return $value;
     }
 
-    private function retrievalVersion(Response $response): string
+    private function greaterSnowflake(?string $current, string $candidate): string
     {
-        foreach (['ETag', 'Last-Modified'] as $header) {
-            $value = trim((string) $response->header($header));
-            if ($value !== '') {
-                return mb_substr($header.':'.$value, 0, 120);
-            }
+        if ($current === null || strlen($candidate) > strlen($current)) {
+            return $candidate;
+        }
+        if (strlen($candidate) < strlen($current)) {
+            return $current;
         }
 
-        return 'sha256:'.hash('sha256', $response->body());
+        return strcmp($candidate, $current) > 0 ? $candidate : $current;
     }
 }
