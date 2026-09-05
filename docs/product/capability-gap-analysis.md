@@ -42,13 +42,13 @@ Google attachment is explicit, recent-authenticated and keyed by stable provider
 
 Account merging, email-based identity consolidation, official Kingshot game authentication and game credentials remain unsupported.
 
-### Communications recipient delivery — current complete candidate
+### Communications recipient delivery — current complete
 
-The Communications extension replaces the old route-as-inbox model with one logical `NotificationMessage` plus zero or more concrete `NotificationDelivery` routes. Recipient policy now resolves account defaults and Governor overrides across In App, Discord, Telegram, Web Push and Accounts-owned verified email, with quiet hours, recipient-controlled urgent bypass, temporary mute and immediate/hourly/daily digest timing.
+The Communications capability uses one logical `NotificationMessage` plus zero or more concrete `NotificationDelivery` routes. Recipient policy resolves account defaults and Governor overrides across In App, Discord, Telegram, Web Push and Accounts-owned verified email, with quiet hours, recipient-controlled urgent bypass, temporary mute and immediate/hourly/daily digest timing.
 
 Multiple named stored endpoints are independently testable, pausable and health-tracked. Provider workers recheck current endpoint state, preferences, Governor ownership and verified email before send; immediate and digest processing are both bounded, idempotent and scheduled every minute with overlap protection. Web Push destination/key/VAPID handling, email transport readiness, safe relative action URLs, cursor inbox reads, message-owned read/archive state, bounded bulk operations and privacy-safe platform diagnostics are covered by the Communications acceptance suite.
 
-Implementation/evidence is complete in the branch. Promotion from complete candidate to closed/current-complete requires the exact containing PR head to pass all required CI, Architecture V3, Intelligence, King Perks, Visual Regression, CodeQL and Dependency Review gates documented by the [Communications delivery ledger](communications-recipient-delivery-ledger.md).
+Immutable implementation candidate `f880cb40014b2ef5236facaf65ac2b68f90fd5ae` passed CI, Architecture V3 Verification, Intelligence Verification, King Perks Verification, Visual Regression, CodeQL and Dependency Review. The [Communications delivery ledger](communications-recipient-delivery-ledger.md) is closed and the capability is current complete.
 
 ### Alliance Capability Expansion — current complete
 
@@ -106,7 +106,6 @@ Implementation candidate `e5c492f9391431ab68e1b2ca215038f448e5539d` passed CI, I
 
 | Priority/order | Selected extension | User outcome | Canonical owners | Primary guardrail |
 | --- | --- | --- | --- | --- |
-| Communications | Communications Recipient Delivery — implementation/evidence complete, containing-head verification pending | Use one logical Notification Center with recipient routing, multiple destinations, Web Push/email, quiet hours, digest delivery and endpoint health while source contexts keep notification meaning. | Communications; Accounts owns verified email; source contexts own semantics | One logical message per source intent; current recipient/endpoint/Governor authorization rechecked before send; provider state never mutates source truth. |
 | 1–10 | Alliance Capability Expansion — implementation complete, final verification in progress | Manage application Alliance settings/roles, governance history, roster evidence/reconciliation, bulk rank/role and Recruitment re-entry through existing owners. | Alliance owners + Intelligence/Evidence/Roster + ReadModels/AllianceGovernance | Active Player authority; human-reviewed evidence never auto-mutates Membership. |
 | 5 | Kingdom Transfer Screenshot Intake — current complete | Use the verified supported-screenshot review and exactly-once destination workflow. | Intelligence/Evidence + GameWorld/KingdomTransfers | Evidence owns provenance; KingdomTransfers owns observations/eligibility. |
 | 6 | Governor Progression Screenshot Intake — current complete | Use the verified pinned-release normalization and append-only Governor observation workflow. | Intelligence/Evidence + Intelligence/Roster + GameWorld/Progression | OCR cannot create identity or alter catalogue truth. |
