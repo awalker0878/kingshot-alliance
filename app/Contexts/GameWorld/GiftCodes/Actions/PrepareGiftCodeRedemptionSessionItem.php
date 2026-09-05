@@ -26,7 +26,7 @@ final readonly class PrepareGiftCodeRedemptionSessionItem
         private GiftCodeRedemptionSessionProgressor $progress,
     ) {}
 
-    public function handle(AuditActor $actor, string $sessionId, string $itemId): GiftCodeRedemptionSessionItem
+    public function handle(AuditActor $actor, string $sessionId, string $itemId): void
     {
         $userId = $actor->auditUserId();
         if ($userId === null) {
@@ -44,18 +44,24 @@ final readonly class PrepareGiftCodeRedemptionSessionItem
             throw ValidationException::withMessages(['session' => 'This Gift Code session is no longer active.']);
         }
         if ($item->state->terminal()) {
-            return $item;
+            return;
         }
 
         $player = $this->players->findOwnedByUser($userId, $item->player_id);
         if ($player === null) {
-            return $this->mark($item, GiftCodeRedemptionSessionItemState::Unavailable, 'governor_unavailable');
+            $this->mark($item, GiftCodeRedemptionSessionItemState::Unavailable, 'governor_unavailable');
+
+            return;
         }
         $decision = $this->pairs->resolve($item->giftCode, $player);
         if (! $decision->actionable) {
-            return $decision->reason === 'retry_not_due'
-                ? $this->mark($item, GiftCodeRedemptionSessionItemState::RetryWait, null)
-                : $this->mark($item, GiftCodeRedemptionSessionItemState::Unavailable, $decision->reason);
+            if ($decision->reason === 'retry_not_due') {
+                $this->mark($item, GiftCodeRedemptionSessionItemState::RetryWait, null);
+            } else {
+                $this->mark($item, GiftCodeRedemptionSessionItemState::Unavailable, $decision->reason);
+            }
+
+            return;
         }
 
         $result = $this->prepare->handle($actor, $item->gift_code_id, [$item->player_id]);
@@ -67,7 +73,7 @@ final readonly class PrepareGiftCodeRedemptionSessionItem
             default => GiftCodeRedemptionSessionItemState::Unavailable,
         };
 
-        return $this->mark(
+        $this->mark(
             $item,
             $state,
             $state === GiftCodeRedemptionSessionItemState::Unavailable ? $first->code : null,
@@ -78,7 +84,7 @@ final readonly class PrepareGiftCodeRedemptionSessionItem
         GiftCodeRedemptionSessionItem $item,
         GiftCodeRedemptionSessionItemState $state,
         ?string $reason,
-    ): GiftCodeRedemptionSessionItem {
+    ): void {
         DB::transaction(function () use ($item, $state, $reason): void {
             $locked = GiftCodeRedemptionSessionItem::query()->whereKey($item->id)->lockForUpdate()->firstOrFail();
             $locked->state = $state;
@@ -87,7 +93,5 @@ final readonly class PrepareGiftCodeRedemptionSessionItem
             $locked->save();
             $this->progress->refresh(GiftCodeRedemptionSession::query()->findOrFail($locked->session_id));
         });
-
-        return GiftCodeRedemptionSessionItem::query()->with(['session', 'giftCode'])->findOrFail($item->id);
     }
 }
