@@ -42,25 +42,17 @@ final class InstagramMediaGiftCodeSourceAdapter implements GiftCodeSourceAdapter
 
         $userId = $this->requiredPolicyString($policy, 'instagram_user_id', 64);
         $username = $this->requiredPolicyString($policy, 'instagram_username', 80);
-        if (preg_match('/^[0-9]{1,64}$/D', $userId) !== 1
-            || preg_match('/^[A-Za-z0-9._]{1,80}$/D', $username) !== 1) {
+        if (preg_match('/^[0-9]{1,64}$/D', $userId) !== 1 || preg_match('/^[A-Za-z0-9._]{1,80}$/D', $username) !== 1) {
             throw new UnexpectedValueException('The Instagram media adapter requires a valid professional account id and username.');
         }
         $token = trim((string) config('game_world.gift_codes.instagram_access_token', ''));
         $version = trim((string) config('game_world.gift_codes.meta_graph_api_version', 'v26.0'));
-        if ($token === '') {
-            throw new UnexpectedValueException('The Instagram media adapter requires a configured access token.');
-        }
-        if (preg_match('/^v[0-9]+\.[0-9]+$/D', $version) !== 1) {
-            throw new UnexpectedValueException('The configured Meta Graph API version is invalid.');
-        }
+        if ($token === '') throw new UnexpectedValueException('The Instagram media adapter requires a configured access token.');
+        if (preg_match('/^v[0-9]+\.[0-9]+$/D', $version) !== 1) throw new UnexpectedValueException('The configured Meta Graph API version is invalid.');
 
         $timeout = max(1, min(30, (int) config('game_world.gift_codes.ingestion_timeout_seconds', 10)));
         $base = 'https://graph.instagram.com/'.$version.'/'.rawurlencode($userId);
-        $identity = Http::withToken($token)
-            ->acceptJson()
-            ->timeout($timeout)
-            ->withOptions(['allow_redirects' => false])
+        $identity = Http::withToken($token)->acceptJson()->timeout($timeout)->withOptions(['allow_redirects' => false])
             ->get($base, ['fields' => 'id,username']);
         $this->assertJsonSuccess($identity, 'Instagram account lookup');
         $identityPayload = $identity->json();
@@ -71,10 +63,7 @@ final class InstagramMediaGiftCodeSourceAdapter implements GiftCodeSourceAdapter
         }
 
         $pageSize = max(1, min(100, $limit));
-        $response = Http::withToken($token)
-            ->acceptJson()
-            ->timeout($timeout)
-            ->withOptions(['allow_redirects' => false])
+        $response = Http::withToken($token)->acceptJson()->timeout($timeout)->withOptions(['allow_redirects' => false])
             ->get($base.'/media', array_filter([
                 'fields' => 'id,caption,permalink,timestamp,username',
                 'limit' => $pageSize,
@@ -90,11 +79,11 @@ final class InstagramMediaGiftCodeSourceAdapter implements GiftCodeSourceAdapter
         $retrievalVersion = $this->giftCodeRetrievalVersion($response);
         $observations = [];
         $latestMediaId = null;
+        $providerItemIds = [];
         foreach ($media as $position => $item) {
-            if (! is_array($item)) {
-                throw new UnexpectedValueException(sprintf('Instagram media item %d must be an object.', $position + 1));
-            }
+            if (! is_array($item)) throw new UnexpectedValueException(sprintf('Instagram media item %d must be an object.', $position + 1));
             $mediaId = $this->requiredString($item['id'] ?? null, 'media id', $position + 1, 128);
+            $providerItemIds[] = $mediaId;
             $latestMediaId ??= $mediaId;
             $itemUsername = $this->optionalString($item['username'] ?? null, 80);
             if ($itemUsername !== null && mb_strtolower($itemUsername) !== mb_strtolower($username)) {
@@ -102,12 +91,9 @@ final class InstagramMediaGiftCodeSourceAdapter implements GiftCodeSourceAdapter
             }
             $caption = $this->optionalString($item['caption'] ?? null, 40_000) ?? '';
             $permalink = $this->optionalString($item['permalink'] ?? null, 2048);
-            if ($permalink === null) {
-                continue;
-            }
+            if ($permalink === null) continue;
             $this->assertInstagramUrl($permalink);
             foreach ($this->explicitGiftCodes($caption) as $code) {
-                $fingerprint = hash('sha256', json_encode($item, JSON_THROW_ON_ERROR));
                 $observations[] = new GiftCodeIngestionObservation(
                     code: $code,
                     assertion: 'available',
@@ -120,7 +106,7 @@ final class InstagramMediaGiftCodeSourceAdapter implements GiftCodeSourceAdapter
                     sourceVersion: 'instagram-media:'.$mediaId,
                     retrievalVersion: $retrievalVersion,
                     parserVersion: self::KEY,
-                    contentFingerprint: $fingerprint,
+                    contentFingerprint: hash('sha256', json_encode($item, JSON_THROW_ON_ERROR)),
                     rawEvidenceRef: $permalink.'#gift-code='.rawurlencode($code),
                     verificationPassed: true,
                 );
@@ -130,9 +116,7 @@ final class InstagramMediaGiftCodeSourceAdapter implements GiftCodeSourceAdapter
         $paging = is_array($payload) ? ($payload['paging'] ?? null) : null;
         $cursors = is_array($paging) ? ($paging['cursors'] ?? null) : null;
         $hasNext = is_array($paging) && $this->optionalString($paging['next'] ?? null, 4096) !== null;
-        $nextCursor = $hasNext && is_array($cursors)
-            ? $this->optionalString($cursors['after'] ?? null, 2048)
-            : null;
+        $nextCursor = $hasNext && is_array($cursors) ? $this->optionalString($cursors['after'] ?? null, 2048) : null;
         $providerRequestId = $this->giftCodeProviderRequestId($response);
 
         return new GiftCodeIngestionPage(
@@ -149,6 +133,7 @@ final class InstagramMediaGiftCodeSourceAdapter implements GiftCodeSourceAdapter
                     'user_id' => $userId,
                     'username' => $username,
                     'latest_media_id' => $latestMediaId,
+                    'provider_item_ids' => $providerItemIds,
                     'graph_api_version' => $version,
                 ],
             ),
@@ -161,9 +146,7 @@ final class InstagramMediaGiftCodeSourceAdapter implements GiftCodeSourceAdapter
         $scheme = parse_url($url, PHP_URL_SCHEME);
         $host = parse_url($url, PHP_URL_HOST);
         $host = is_string($host) ? mb_strtolower(rtrim($host, '.')) : null;
-        if ($scheme !== 'https'
-            || $host === null
-            || ($host !== 'instagram.com' && ! str_ends_with($host, '.instagram.com'))) {
+        if ($scheme !== 'https' || $host === null || ($host !== 'instagram.com' && ! str_ends_with($host, '.instagram.com'))) {
             throw new UnexpectedValueException('Instagram evidence links must remain on instagram.com over HTTPS.');
         }
     }
@@ -172,47 +155,30 @@ final class InstagramMediaGiftCodeSourceAdapter implements GiftCodeSourceAdapter
     private function requiredPolicyString(array $policy, string $key, int $maximum): string
     {
         $value = $this->optionalString($policy[$key] ?? null, $maximum);
-        if ($value === null) {
-            throw new UnexpectedValueException(sprintf('The Instagram media adapter requires source policy %s.', $key));
-        }
-
+        if ($value === null) throw new UnexpectedValueException(sprintf('The Instagram media adapter requires source policy %s.', $key));
         return $value;
     }
 
     private function assertJsonSuccess(Response $response, string $operation): void
     {
         $this->assertGiftCodeProviderSuccess($response, $operation);
-        if (! str_contains(mb_strtolower((string) $response->header('Content-Type')), 'json')) {
-            throw new UnexpectedValueException($operation.' did not return JSON content.');
-        }
+        if (! str_contains(mb_strtolower((string) $response->header('Content-Type')), 'json')) throw new UnexpectedValueException($operation.' did not return JSON content.');
     }
 
     private function requiredString(mixed $value, string $field, int $position, int $maximum): string
     {
         $value = $this->optionalString($value, $maximum);
-        if ($value === null) {
-            throw new UnexpectedValueException(sprintf('Instagram media item %d requires a non-empty %s.', $position, $field));
-        }
-
+        if ($value === null) throw new UnexpectedValueException(sprintf('Instagram media item %d requires a non-empty %s.', $position, $field));
         return $value;
     }
 
     private function optionalString(mixed $value, int $maximum): ?string
     {
-        if ($value === null) {
-            return null;
-        }
-        if (! is_string($value)) {
-            throw new UnexpectedValueException('Instagram Graph API scalar fields must be strings.');
-        }
+        if ($value === null) return null;
+        if (! is_string($value)) throw new UnexpectedValueException('Instagram Graph API scalar fields must be strings.');
         $value = trim($value);
-        if ($value === '') {
-            return null;
-        }
-        if (mb_strlen($value) > $maximum) {
-            throw new UnexpectedValueException('An Instagram Graph API scalar field exceeded its maximum length.');
-        }
-
+        if ($value === '') return null;
+        if (mb_strlen($value) > $maximum) throw new UnexpectedValueException('An Instagram Graph API scalar field exceeded its maximum length.');
         return $value;
     }
 }
