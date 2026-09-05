@@ -17,14 +17,14 @@ final readonly class AbandonGiftCodeRedemptionSession
 {
     public function __construct(private AuditRecorder $audit) {}
 
-    public function handle(AuditActor $actor, string $sessionId): GiftCodeRedemptionSession
+    public function handle(AuditActor $actor, string $sessionId): void
     {
         $userId = $actor->auditUserId();
         if ($userId === null) {
             throw new AuthorizationException('An authenticated account is required for a Gift Code session.');
         }
 
-        $session = DB::transaction(function () use ($actor, $sessionId, $userId): GiftCodeRedemptionSession {
+        DB::transaction(function () use ($actor, $sessionId, $userId): void {
             $session = GiftCodeRedemptionSession::query()
                 ->whereKey($sessionId)
                 ->where('user_id', $userId)
@@ -33,21 +33,19 @@ final readonly class AbandonGiftCodeRedemptionSession
             if ($session->status === GiftCodeRedemptionSessionStatus::Completed) {
                 throw ValidationException::withMessages(['session' => 'A completed Gift Code session cannot be abandoned.']);
             }
-            if ($session->status !== GiftCodeRedemptionSessionStatus::Abandoned) {
-                $session->status = GiftCodeRedemptionSessionStatus::Abandoned;
-                $session->abandoned_at = CarbonImmutable::now('UTC');
-                $session->last_activity_at = CarbonImmutable::now('UTC');
-                $session->save();
-                $this->audit->record(
-                    'game_world.gift_code_redemption_session.abandoned',
-                    $actor,
-                    $session,
-                );
+            if ($session->status === GiftCodeRedemptionSessionStatus::Abandoned) {
+                return;
             }
 
-            return $session;
+            $session->status = GiftCodeRedemptionSessionStatus::Abandoned;
+            $session->abandoned_at = CarbonImmutable::now('UTC');
+            $session->last_activity_at = CarbonImmutable::now('UTC');
+            $session->save();
+            $this->audit->record(
+                'game_world.gift_code_redemption_session.abandoned',
+                $actor,
+                $session,
+            );
         });
-
-        return $session->refresh();
     }
 }
