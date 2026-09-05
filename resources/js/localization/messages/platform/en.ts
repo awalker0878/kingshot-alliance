@@ -82,8 +82,7 @@ const messages = {
     sources: {
       pageTitle: 'Gift Code sources',
       heading: 'Gift Code source management',
-      help:
-        'Approve transport and provenance policy explicitly. Research catalogue entries never grant authority, automatic verification, or ingestion by themselves.',
+      help: 'Approve transport and provenance policy explicitly. Research catalogue entries never grant authority, automatic verification, or ingestion by themselves.',
       backReview: 'Back to Gift Code review',
       catalogueTitle: 'Researched rollout catalogue',
       catalogueHelp:

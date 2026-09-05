@@ -488,7 +488,9 @@ function recordEvidence(): void {
         <label>
           <span class="ks-kicker">{{ t('platformGiftCodes.sources.assertion') }}</span>
           <select v-model="evidence.assertion" class="ks-input mt-2 w-full">
-            <option value="available">{{ t('platformGiftCodes.sources.assertionAvailable') }}</option>
+            <option value="available">
+              {{ t('platformGiftCodes.sources.assertionAvailable') }}
+            </option>
             <option value="invalid">{{ t('platformGiftCodes.sources.assertionInvalid') }}</option>
             <option value="expires">{{ t('platformGiftCodes.sources.assertionExpires') }}</option>
           </select>
@@ -544,7 +546,9 @@ function recordEvidence(): void {
         >
           <div class="flex items-start justify-between gap-3">
             <strong>{{ source.name }}</strong
-            ><code class="text-xs">{{ source.adapterKey ?? t('platformGiftCodes.sources.manualShort') }}</code>
+            ><code class="text-xs">{{
+              source.adapterKey ?? t('platformGiftCodes.sources.manualShort')
+            }}</code>
           </div>
           <p class="mt-1 text-xs text-[var(--ks-muted)]">
             {{ source.canonicalDomain }} · {{ source.classification }}
