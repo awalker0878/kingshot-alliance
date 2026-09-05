@@ -1,8 +1,9 @@
 # Gift Code Redemption Workspace — Acceptance Matrix
 
-Status: **Reopened — candidate adapter correction under verification**
+Status: **Complete — verified current capability**
+Verified candidate-adapter correction: `610082b9cbf663e3eb6bd0c14dbe3cdba1d2b086`
 
-The prior acceptance closeout is reopened because its source-ingestion wording exceeded the actual installed adapter set. Existing workspace acceptance remains valid; source-ingestion and final-gate acceptance must be reverified on the correction head.
+The prior source-ingestion closeout was reopened because its wording exceeded the installed adapter set. The correction is accepted because the missing production adapters are implemented, integrated with the canonical approved-source path, covered by end-to-end tests and green on all workflows applicable to this change.
 
 ## Workspace and personal state
 
@@ -52,13 +53,16 @@ The prior acceptance closeout is reopened because its source-ingestion wording e
 
 - Structured reward rendering uses only qualified fact projections.
 - Unknown/conflicting reward evidence remains unknown/conflicted.
-- All additional source ingestion reuses approved-source policy, the canonical ingestion action and append-only provenance.
-- The installed candidate pull-adapter registry contains `json-feed-v1`, `rss-atom-v1` and `structured-html-v1`.
+- All additional source ingestion reuses approved-source policy, `RunApprovedGiftCodeSourceIngestion`, `IngestApprovedGiftCodeObservation` and append-only provenance.
+- The installed candidate pull-adapter registry contains `json-feed-v1`, `rss-atom-v1` and `structured-html-v1`; signed source webhook ingestion is the fourth push transport, not a parallel adapter/trust engine.
 - `json-feed-v1` accepts only bounded JSON observations from an approved canonical hostname/path.
-- `rss-atom-v1` accepts bounded RSS/Atom documents and requires explicit Gift Code elements rather than inferring codes from prose.
+- `rss-atom-v1` accepts bounded RSS/Atom documents and requires explicit direct-child Gift Code elements rather than inferring codes from prose or nested content markup.
 - `structured-html-v1` accepts bounded approved HTML documents and requires explicit machine-readable `data-gift-code*` attributes rather than scraping arbitrary page text.
+- Missing RSS/Atom or structured-HTML assertion metadata normalizes to canonical `available`; supported assertions remain `available`, `invalid`, `expires`, `reward`, and `applicability`.
 - Pull adapters do not follow redirects, enforce source/document/observation bounds and preserve source/retrieval/parser versions plus content fingerprints/raw-evidence references.
-- Invalid parser formats, policy failures and observation failures use the existing ingestion failure/quarantine diagnostics.
+- RSS/Atom rejects DTD/entity declarations and network XML access is disabled.
+- Parser formats, policy failures and observation failures use the existing ingestion failure/quarantine diagnostics.
+- End-to-end tests persist approved RSS/Atom and structured-HTML sources, execute the scheduled ingestion runner, and prove their observations enter canonical provenance and produce valid catalogue trust when qualified.
 - Signed webhook ingestion validates active source status/policy, signature, timestamp/replay and bounded payload size before entering the same canonical observation path.
 - Source transport or reputation never confers authority by itself; evidence qualification and current source policy remain authoritative.
 
@@ -80,22 +84,23 @@ The prior acceptance closeout is reopened because its source-ingestion wording e
 
 - Fresh-schema installation succeeds with no compatibility/backfill migration path.
 - PHP/static-analysis/architecture/localization/accessibility/TypeScript gates pass.
-- Source-adapter behavior tests cover registry installation, RSS, Atom, structured HTML, malicious XML rejection and observation bounds.
+- Source-adapter behavior tests cover registry installation, RSS, Atom, structured HTML, malicious XML rejection, explicit-markup boundaries, observation bounds and end-to-end canonical ingestion.
 - Moderation HTTP coverage proves a Platform Administrator can register each installed pull adapter with canonical source policy.
-- Desktop/mobile Playwright coverage includes create/resume/skip/result/trust-change scenarios.
+- Desktop/mobile Playwright coverage includes create/resume/skip/result/trust-change scenarios and the platform Gift Code source-policy surface.
 - Large fixtures maintain bounded query behavior for at least 100 Gift Codes, 20 Governors and 2,000 possible code/Governor pairs.
 - Repository implementation contains no compatibility alias, parallel redemption engine or parallel source-ingestion trust path introduced by this correction.
 
 ## Verification evidence
 
-Final verification remains pending on the candidate-adapter correction head. Required workflows are:
+Candidate `610082b9cbf663e3eb6bd0c14dbe3cdba1d2b086` passed all workflows applicable to the correction:
 
-- CI, including full PHP/frontend checks, fresh-database installation, production image build, ephemeral staging deployment, backup/restore and image scan;
-- Architecture V3 Verification, including route boot, architecture invariants, fresh schema, static analysis and the full V3 PHPUnit suite;
-- Intelligence Verification;
-- Visual Regression;
-- CodeQL;
-- Dependency Review;
-- King Perks Verification.
+- CI — success, including full PHP/frontend checks, fresh-database installation, production image build, ephemeral staging deployment, backup/restore and image scan;
+- Architecture V3 Verification — success, including route boot, architecture invariants, fresh schema, static analysis and the full V3 PHPUnit suite;
+- Intelligence Verification — success;
+- Visual Regression — success;
+- CodeQL — success;
+- Dependency Review — success.
+
+`King Perks Verification` is path-filtered to King Perks-owned files and did not trigger for this correction because no such path changed. King Perks remains unchanged from the previously verified `main` baseline.
 
 Primary Gift Code workspace acceptance coverage includes `GiftCodeWorkspaceV3Test`, `GiftCodeRedemptionWorkspaceV3Test`, `GiftCodeSessionAcceptanceV3Test`, `GiftCodeAllianceCoverageV3Test`, `GiftCodeSourceAdaptersV3Test`, `GiftCodeModerationHttpV3Test`, Platform Administration diagnostics behavior coverage, and `tests/v3/Visual/GiftCodes.spec.ts`.
