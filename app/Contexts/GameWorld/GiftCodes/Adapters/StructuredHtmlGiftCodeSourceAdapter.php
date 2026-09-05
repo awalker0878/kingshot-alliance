@@ -4,19 +4,22 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\GiftCodes\Adapters;
 
+use App\Contexts\GameWorld\GiftCodes\Adapters\Concerns\HandlesGiftCodeProviderResponses;
 use App\Contexts\GameWorld\GiftCodes\Contracts\GiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeSourceRegistry;
 use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeIngestionObservation;
 use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeIngestionPage;
+use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeSourceCheckpoint;
 use DOMDocument;
 use DOMElement;
 use DOMXPath;
-use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use UnexpectedValueException;
 
 final class StructuredHtmlGiftCodeSourceAdapter implements GiftCodeSourceAdapter
 {
+    use HandlesGiftCodeProviderResponses;
+
     public const KEY = 'structured-html-v1';
 
     public function key(): string
@@ -37,9 +40,7 @@ final class StructuredHtmlGiftCodeSourceAdapter implements GiftCodeSourceAdapter
             ->withOptions(['allow_redirects' => false])
             ->get($url);
 
-        if (! $response->successful()) {
-            throw new \RuntimeException(sprintf('The approved HTML source returned HTTP %d.', $response->status()));
-        }
+        $this->assertGiftCodeProviderSuccess($response, 'The approved HTML source');
         $contentType = mb_strtolower((string) $response->header('Content-Type'));
         if (! str_contains($contentType, 'html') && ! str_contains($contentType, 'xhtml')) {
             throw new UnexpectedValueException('The approved HTML source did not return HTML content.');
@@ -57,7 +58,7 @@ final class StructuredHtmlGiftCodeSourceAdapter implements GiftCodeSourceAdapter
             throw new UnexpectedValueException('The approved HTML source exceeded the bounded observation limit.');
         }
 
-        $retrievalVersion = $this->retrievalVersion($response);
+        $retrievalVersion = $this->giftCodeRetrievalVersion($response);
         $observations = [];
         foreach ($items as $position => $item) {
             if (! $item instanceof DOMElement) {
@@ -91,7 +92,21 @@ final class StructuredHtmlGiftCodeSourceAdapter implements GiftCodeSourceAdapter
             );
         }
 
-        return new GiftCodeIngestionPage($observations, null);
+        $providerRequestId = $this->giftCodeProviderRequestId($response);
+
+        return new GiftCodeIngestionPage(
+            observations: $observations,
+            nextCursor: null,
+            retrievalVersion: $retrievalVersion,
+            providerRequestId: $providerRequestId,
+            rateLimit: $this->giftCodeRateLimit($response),
+            checkpoint: new GiftCodeSourceCheckpoint(
+                cursor: null,
+                retrievalVersion: $retrievalVersion,
+                providerRequestId: $providerRequestId,
+                providerState: ['document_url' => $url],
+            ),
+        );
     }
 
     private function feedUrl(GiftCodeSourceRegistry $source): string
@@ -201,17 +216,5 @@ final class StructuredHtmlGiftCodeSourceAdapter implements GiftCodeSourceAdapter
         }
 
         return $value;
-    }
-
-    private function retrievalVersion(Response $response): string
-    {
-        foreach (['ETag', 'Last-Modified'] as $header) {
-            $value = trim((string) $response->header($header));
-            if ($value !== '') {
-                return mb_substr($header.':'.$value, 0, 120);
-            }
-        }
-
-        return 'sha256:'.hash('sha256', $response->body());
     }
 }
