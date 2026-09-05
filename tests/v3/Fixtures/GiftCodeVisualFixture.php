@@ -5,7 +5,13 @@ declare(strict_types=1);
 namespace Tests\v3\Fixtures;
 
 use App\Contexts\Accounts\Identity\Models\User;
+use App\Contexts\GameWorld\GiftCodes\Actions\ReconcileGiftCodeStatus;
+use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeEvidenceClassification;
+use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeEvidenceVerificationState;
+use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeSource;
+use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeStatus;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCode;
+use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeProvenance;
 use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
 use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Platform\Administration\Actions\ManagePlatformAdministrator;
@@ -78,17 +84,32 @@ final class GiftCodeVisualFixture
 
     private static function createValidGiftCode(string $code): void
     {
-        GiftCode::query()->create([
+        $giftCode = GiftCode::query()->create([
             'code' => $code,
             'normalized_code' => $code,
-            'status' => 'valid',
-            'status_revision' => 1,
-            'status_reason_code' => 'qualified_positive_evidence',
+            'status' => GiftCodeStatus::Pending,
+            'status_revision' => 0,
+            'status_reason_code' => 'awaiting_verified_evidence',
             'status_evidence_ids' => [],
             'status_changed_at' => now(),
             'status_derived_at' => now(),
             'discovered_at' => now(),
             'expires_revision' => 0,
         ]);
+
+        foreach (['alpha', 'beta'] as $source) {
+            GiftCodeProvenance::query()->create([
+                'gift_code_id' => (string) $giftCode->id,
+                'source_type' => GiftCodeSource::Community,
+                'source_label' => 'Visual verified observation '.$source,
+                'assertion' => 'available',
+                'evidence_classification' => GiftCodeEvidenceClassification::IndependentObservation,
+                'verification_state' => GiftCodeEvidenceVerificationState::Verified,
+                'observed_at' => now(),
+                'fingerprint' => hash('sha256', $code.'|'.$source),
+            ]);
+        }
+
+        app(ReconcileGiftCodeStatus::class)->handle((string) $giftCode->id);
     }
 }
