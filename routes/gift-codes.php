@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Contexts\GameWorld\GiftCodes\Http\Controllers\GiftCodeController;
 use App\Contexts\GameWorld\GiftCodes\Http\Controllers\GiftCodeModerationController;
 use App\Contexts\GameWorld\GiftCodes\Http\Controllers\GiftCodeWorkspaceController;
+use App\ReadModels\GiftCodes\Http\Controllers\GiftCodeAllianceCoverageController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'auth.session', 'verified'])->group(function (): void {
@@ -12,6 +13,9 @@ Route::middleware(['auth', 'auth.session', 'verified'])->group(function (): void
         ->name('gift-codes.index');
     Route::get('/gift-codes/workspace', [GiftCodeWorkspaceController::class, 'index'])
         ->name('gift-codes.workspace');
+    Route::get('/gift-codes/workspace/alliance/{alliance}/coverage', GiftCodeAllianceCoverageController::class)
+        ->whereUlid('alliance')
+        ->name('gift-codes.workspace.alliance-coverage');
     Route::post('/gift-codes/workspace/sessions', [GiftCodeWorkspaceController::class, 'createSession'])
         ->middleware('throttle:20,1')
         ->name('gift-codes.workspace.sessions.store');
