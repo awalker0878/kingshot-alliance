@@ -8,10 +8,12 @@ use App\Contexts\Accounts\Identity\Contracts\AuthenticatedAccount;
 use App\Contexts\GameWorld\GiftCodes\Actions\AbandonGiftCodeRedemptionSession;
 use App\Contexts\GameWorld\GiftCodes\Actions\CreateGiftCodeRedemptionSession;
 use App\Contexts\GameWorld\GiftCodes\Actions\PrepareGiftCodeRedemptionSessionItem;
+use App\Contexts\GameWorld\GiftCodes\Actions\ReconcileGiftCodeRedemptionSession;
 use App\Contexts\GameWorld\GiftCodes\Actions\RecordGiftCodeRedemptionSessionItemResult;
 use App\Contexts\GameWorld\GiftCodes\Actions\SkipGiftCodeRedemptionSessionItem;
 use App\Contexts\GameWorld\GiftCodes\Actions\UpdateGiftCodeAccountState;
 use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeAccountStateStatus;
+use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeRedemptionSessionItemState;
 use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeRedemptionSessionMode;
 use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeRedemptionSessionStatus;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCode;
@@ -42,9 +44,11 @@ final class GiftCodeWorkspaceController extends Controller
         GiftCodeWorkspaceQuery $workspace,
         GiftCodeRewardPresenter $rewards,
         GiftCodeRedemptionSignalService $signals,
+        ReconcileGiftCodeRedemptionSession $reconcile,
     ): Response {
         abort_unless((bool) config('game_world.gift_codes.redemption_workspace', false), 404);
         $account = $this->account($request);
+        $actor = $this->actor($request);
         $userId = $this->accountId($account);
         $ownedPlayers = $players->ownedByUser($userId);
         abort_if($ownedPlayers === [], 409, 'At least one owned Governor is required for Gift Codes.');
@@ -69,9 +73,16 @@ final class GiftCodeWorkspaceController extends Controller
         }
 
         $session = $this->sessionForAccount($userId, $validated['session'] ?? null);
+        if ($session instanceof GiftCodeRedemptionSession && $session->status === GiftCodeRedemptionSessionStatus::Active) {
+            $session = $reconcile->handle($actor, (string) $session->id);
+        }
         $signal = null;
         if ($session instanceof GiftCodeRedemptionSession) {
-            $current = $session->items->first(static fn (GiftCodeRedemptionSessionItem $item): bool => ! $item->state->terminal());
+            $current = $session->items->first(static fn (GiftCodeRedemptionSessionItem $item): bool => in_array(
+                $item->state,
+                [GiftCodeRedemptionSessionItemState::Ready, GiftCodeRedemptionSessionItemState::AwaitingConfirmation],
+                true,
+            ));
             if ($current instanceof GiftCodeRedemptionSessionItem) {
                 $signal = $signals->forGiftCode($current->gift_code_id);
             }
@@ -113,9 +124,8 @@ final class GiftCodeWorkspaceController extends Controller
             'player_ids' => ['sometimes', 'array', 'max:50'],
             'player_ids.*' => ['string', 'ulid', 'distinct'],
         ]);
-        $actor = $this->actor($request);
         $session = $create->handle(
-            $actor,
+            $this->actor($request),
             GiftCodeRedemptionSessionMode::from($validated['mode']),
             array_values($validated['gift_code_ids'] ?? []),
             array_values($validated['player_ids'] ?? []),
