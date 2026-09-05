@@ -15,6 +15,7 @@ enum AlliancePermission: string implements Permission
     case InvitationManage = 'invitations.manage';
     case ContentManage = 'content.manage';
     case RecruitmentManage = 'recruitment.manage';
+    case GiftCodeCoverage = 'gift_codes.coverage';
 
     public function key(): string
     {
