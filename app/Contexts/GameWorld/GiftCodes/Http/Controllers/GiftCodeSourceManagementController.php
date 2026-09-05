@@ -57,6 +57,8 @@ final class GiftCodeSourceManagementController extends Controller
             'provenance_policy' => ['nullable', 'array'],
             'provenance_policy.auto_verify' => ['nullable', 'boolean'],
             'provenance_policy.feed_path' => ['nullable', 'string', 'max:2048'],
+            'provenance_policy.provider_contract_confirmed' => ['nullable', 'boolean'],
+            'provenance_policy.structured_contract_confirmed' => ['nullable', 'boolean'],
             'provenance_policy.provider_permission_confirmed' => ['nullable', 'boolean'],
             'provenance_policy.gift_code_category' => ['nullable', 'string', 'max:120'],
             'provenance_policy.x_user_id' => ['nullable', 'string', 'max:32'],
