@@ -44,7 +44,9 @@ Recent redemption signals aggregate observed Governor outcomes only after config
 
 ## Alliance coverage and contributor projections
 
-Authorized Alliance Gift Code coverage is aggregate-only by default: eligible Governor count plus completed, incomplete, retry-ready and missing-Player-ID counts per currently valid Gift Code. The read model reuses existing Alliance authorization and current membership/Player truth. R4/R5 rank by itself does not grant platform Gift Code moderation and the coverage surface does not expose individual member redemption history.
+Alliance Gift Code coverage requires the explicit `gift_codes.coverage` permission. The default `Gift Code Coordinator` specialist role carries that permission and is delegated/revoked through existing Alliance role management; R4/R5 rank alone does not grant coverage. Coverage is aggregate-only: the projection reports the number of active Governors with a usable in-game Player ID plus, per currently valid Gift Code, completed, incomplete, retry-ready and unknown counts. `unknown` represents active members whose Governor lacks a usable in-game Player ID. The surface does not expose member names, Player IDs or individual redemption history.
+
+Alliance coverage never grants platform Gift Code moderation, curator or approved-source administration authority.
 
 Contributor projections are derived from community submission history and moderation outcomes. They can support prioritization and abuse controls, but cannot convert community/manual evidence into registered-source or official authority.
 
@@ -54,11 +56,15 @@ Contributor projections are derived from community submission history and modera
 
 Workspace notifications can consolidate several actionable Gift Codes into one logical message and deep-link back to the workspace/session. Due personal reminders are bounded and idempotent. Current ownership/redemption state is rechecked before materialization so a stale reminder cannot re-authorize an obsolete action.
 
-`gift-codes:maintain --limit=500 --cycle` expires due codes and advances bounded expiry and transition notification cursors. It runs every 15 minutes and processes a configured maximum number of transition campaigns per invocation. The JSON receipt exposes examined, eligible, delivery, replay, skip, cursor and duration counters. Workspace reminder/notification and contributor-projection maintenance are scheduled independently and remain bounded.
+`gift-codes:maintain --limit=500 --cycle` expires due codes and advances bounded expiry and transition notification cursors. It runs every 15 minutes and processes a configured maximum number of transition campaigns per invocation. The JSON receipt exposes examined, eligible, delivery, replay, skip, cursor and duration counters.
+
+Workspace operations are scheduled independently of catalogue maintenance: due personal reminders run every minute, consolidated actionable-workspace notifications run every 15 minutes, and bounded contributor projections rebuild hourly. Each schedule uses single-server and overlap protection; the actions themselves remain idempotent/bounded.
 
 `gift_codes.approved_source_ingestion` controls scheduled source acquisition. `gift-codes:ingest-approved-sources --limit=25 --cycle` runs every 15 minutes; `--source=` provides targeted operator replay. `gift-codes:reconcile-source-policies --limit=500` runs every five minutes. Source and bounded recent-run health expose last attempt/success/failure, stale state, accepted/duplicate/quarantined counts, stable failure codes and reviewable failure detail. Parser/unsupported-format and observation-policy failures are quarantined; source-retrieval failures remain explicit failures. The installed `json-feed-v1` adapter accepts the documented HTTPS JSON feed contract on the approved canonical domain; its source-specific feed path and verification policy remain platform-administered.
 
 When `gift_codes.source_webhook_ingestion` is enabled, a registered source may use the signed internal source webhook transport. Signature verification, timestamp/replay protection, batch bounds and active source policy are enforced before the payload enters the same approved-source observation action used by scheduled adapters. The webhook transport does not create a new evidence/trust path.
+
+Platform Administration diagnostics include privacy-safe Gift Code workspace feature/session/item/reminder/contributor/source counters. They do not expose account IDs, Player IDs or Governor names. Communications provider diagnostics remain Communications-owned.
 
 The generic development defaults remain off. Hosted staging configuration explicitly enables selected launch features. The trust resolver is not feature-selectable because it is the only deployed trust implementation.
 
@@ -72,4 +78,6 @@ Public global events remain `gift_code.created`, `gift_code.provenance_added`, `
 
 Operationally separable workspace controls are `gift_codes.redemption_workspace`, `gift_codes.redemption_intelligence`, `gift_codes.alliance_coverage`, `gift_codes.contributor_reputation`, and `gift_codes.source_webhook_ingestion`. These flags do not select alternative trust/resolver semantics and cannot bypass canonical authorization/evidence paths.
 
-See [ADR-0004](../architecture/adr/0004-gift-code-trust-from-append-only-evidence.md), the [trust/discovery extension closeout](../product/gift-code-extension-program.md), the [Redemption Workspace & Personalization contract](../product/gift-code-redemption-workspace.md), its [acceptance matrix](../product/gift-code-redemption-workspace-acceptance.md), its [delivery ledger](../product/gift-code-redemption-workspace-delivery-ledger.md), [API reference](api/README.md), and [event catalogue](events.md).
+The Gift Code Redemption Workspace & Personalization capability is closed on verified implementation candidate `caf75e732a71ea5dfdd91f7c6432c30fa689d828`.
+
+See [ADR-0004](../architecture/adr/0004-gift-code-trust-from-append-only-evidence.md), the [trust/discovery extension closeout](../product/gift-code-extension-program.md), the [Redemption Workspace & Personalization contract](../product/gift-code-redemption-workspace.md), its [acceptance matrix](../product/gift-code-redemption-workspace-acceptance.md), its [closed delivery ledger](../product/gift-code-redemption-workspace-delivery-ledger.md), [API reference](api/README.md), and [event catalogue](events.md).

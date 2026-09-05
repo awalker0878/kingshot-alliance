@@ -1,8 +1,9 @@
 # Gift Code Redemption Workspace — Acceptance Matrix
 
-Status: Active selected-extension acceptance matrix
+Status: **Complete — verified current capability**
+Verified implementation candidate: `caf75e732a71ea5dfdd91f7c6432c30fa689d828`
 
-The extension is acceptable only when the following behavior is implemented and exercised by automated tests.
+The extension is accepted because the following behavior is implemented and exercised by automated tests.
 
 ## Workspace and personal state
 
@@ -58,10 +59,10 @@ The extension is acceptable only when the following behavior is implemented and 
 ## Alliance coverage
 
 - Members see only their account-owned Governors by default.
-- Authorized Alliance leadership receives aggregate coverage only by default.
-- Individual follow-up requires an explicit existing Alliance permission.
-- Alliance rank never grants platform Gift Code moderation/source authority.
-- Membership/permission changes are rechecked on every request/reminder action.
+- Aggregate Alliance coverage requires the explicit `gift_codes.coverage` permission, delegated through the `Gift Code Coordinator` specialist role; R4/R5 rank alone does not grant coverage.
+- Coverage returns aggregate counts only and does not disclose individual member redemption history.
+- Alliance rank/coverage permission never grants platform Gift Code moderation or approved-source authority.
+- Membership and permission changes are rechecked on every coverage request.
 
 ## Contributor quality
 
@@ -75,4 +76,18 @@ The extension is acceptable only when the following behavior is implemented and 
 - PHP/static-analysis/architecture/localization/accessibility/TypeScript gates pass.
 - Desktop/mobile Playwright coverage includes create/resume/skip/result/trust-change scenarios.
 - Large fixtures maintain bounded query behavior for at least 100 Gift Codes, 20 Governors and 2,000 possible code/Governor pairs.
-- Repository search finds no compatibility aliases or parallel redemption engine introduced by this extension.
+- Repository implementation contains no compatibility alias or parallel redemption engine introduced by this extension.
+
+## Verification evidence
+
+Implementation candidate `caf75e732a71ea5dfdd91f7c6432c30fa689d828` passed all required repository workflows:
+
+- CI, including full PHP/frontend checks, fresh-database installation, production image build, ephemeral staging deployment, backup/restore and image scan;
+- Architecture V3 Verification, including route boot, architecture invariants, fresh schema, static analysis and the full V3 PHPUnit suite;
+- Intelligence Verification;
+- Visual Regression, including desktop/mobile Playwright Gift Code workspace execution and trust-change scenarios;
+- CodeQL;
+- Dependency Review;
+- King Perks Verification.
+
+Primary Gift Code workspace acceptance coverage includes `GiftCodeWorkspaceV3Test`, `GiftCodeRedemptionWorkspaceV3Test`, `GiftCodeSessionAcceptanceV3Test`, `GiftCodeAllianceCoverageV3Test`, Platform Administration diagnostics behavior coverage, and `tests/v3/Visual/GiftCodes.spec.ts`.
