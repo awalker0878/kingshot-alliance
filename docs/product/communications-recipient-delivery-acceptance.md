@@ -1,6 +1,6 @@
 # Communications Recipient Delivery Acceptance Matrix
 
-Status: Complete candidate — requires containing PR release gates
+Status: Closed — release gates green on `f880cb40014b2ef5236facaf65ac2b68f90fd5ae`
 
 Canonical product contract: [Communications — Recipient Delivery & Notification Experience](communications-recipient-delivery-expansion.md).
 
@@ -39,6 +39,6 @@ Primary behavior evidence:
 | COM-23 | Every supported notification type/channel/status has localized user-facing labels including `account.security`. | `communications-recipient-delivery-labels.ts`, core localization messages, Notification Center type/channel/status/health label mappings, frontend localization/quality checks |
 | COM-24 | Existing account-security, Alliance announcement, Event, Gift Code, Intelligence, King Perk and Officer Brief source integrations use the normalized intent contract. | Accounts security, Alliance announcement, Gift Code, Intelligence and Officer Brief V3 integration tests; Event/King Perk source actions; Architecture V3 Verification/search |
 | COM-25 | Production checks cover scheduler/worker readiness plus Web Push and mail configuration when enabled. | `routes/console.php` schedules immediate/digest build/digest delivery every minute; `ProductionLaunchReadiness` notification checks; launch-readiness acceptance assertions |
-| COM-26 | Capability catalogue, gap analysis, architecture docs, frontend map, user journeys and delivery ledger match implemented behavior. | Final documentation reconciliation in this candidate plus required CI, Architecture V3, frontend, Visual Regression, Intelligence, King Perks, CodeQL and Dependency Review gates |
+| COM-26 | Capability catalogue, gap analysis, architecture docs, frontend map, user journeys and delivery ledger match implemented behavior. | Final documentation reconciliation plus green CI, Architecture V3, frontend, Visual Regression, Intelligence, King Perks, CodeQL and Dependency Review gates on `f880cb40014b2ef5236facaf65ac2b68f90fd5ae` |
 
-The matrix is considered closed only when the containing PR commit carrying this evidence and the reconciled documentation passes every required release gate.
+The matrix closed when immutable implementation candidate `f880cb40014b2ef5236facaf65ac2b68f90fd5ae` passed CI, Architecture V3 Verification, Intelligence Verification, King Perks Verification, Visual Regression, CodeQL and Dependency Review.
