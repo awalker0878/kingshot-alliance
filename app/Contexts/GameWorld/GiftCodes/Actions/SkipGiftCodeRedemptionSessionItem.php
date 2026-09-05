@@ -19,7 +19,7 @@ final readonly class SkipGiftCodeRedemptionSessionItem
 {
     public function __construct(private GiftCodeRedemptionSessionProgressor $progress) {}
 
-    public function handle(AuditActor $actor, string $sessionId, string $itemId, string $reason = 'user_skipped'): GiftCodeRedemptionSessionItem
+    public function handle(AuditActor $actor, string $sessionId, string $itemId, string $reason = 'user_skipped'): void
     {
         $userId = $actor->auditUserId();
         if ($userId === null) {
@@ -37,7 +37,7 @@ final readonly class SkipGiftCodeRedemptionSessionItem
             throw ValidationException::withMessages(['session' => 'This Gift Code session is no longer active.']);
         }
         if ($item->state->terminal()) {
-            return $item;
+            return;
         }
 
         DB::transaction(function () use ($item, $reason): void {
@@ -48,7 +48,5 @@ final readonly class SkipGiftCodeRedemptionSessionItem
             $locked->save();
             $this->progress->refresh(GiftCodeRedemptionSession::query()->findOrFail($locked->session_id));
         });
-
-        return GiftCodeRedemptionSessionItem::query()->with(['session', 'giftCode'])->findOrFail($item->id);
     }
 }
