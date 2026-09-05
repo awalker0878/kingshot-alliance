@@ -2,11 +2,17 @@
 
 declare(strict_types=1);
 
+use App\Contexts\GameWorld\GiftCodes\Http\Controllers\GiftCodeSourceWebhookController;
 use App\Contexts\Platform\Integrations\Http\Controllers\AllianceApiController;
 use App\ReadModels\BotCommands\Http\Controllers\BotCommandApiController;
 use App\ReadModels\BotCommands\Http\Controllers\GiftCodeApiController;
 use App\Workflows\ExternalEventParticipation\Http\Controllers\ExternalActorApiController;
 use Illuminate\Support\Facades\Route;
+
+Route::post('/internal/gift-code-sources/{source}/observations', GiftCodeSourceWebhookController::class)
+    ->whereUlid('source')
+    ->middleware('throttle:60,1')
+    ->name('api.internal.gift-code-sources.observations');
 
 Route::prefix('v1')->middleware('throttle:api')->group(function (): void {
     Route::get('/alliance', [AllianceApiController::class, 'show'])
