@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Contexts\GameWorld\GiftCodes\Actions;
 
 use App\Contexts\Accounts\Identity\ValueObjects\AccountIdentity;
+use App\Contexts\GameWorld\GiftCodes\Adapters\CenturyGamesKingshotNewsRssGiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Adapters\JsonFeedGiftCodeSourceAdapter;
+use App\Contexts\GameWorld\GiftCodes\Adapters\OfficialXGiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Adapters\RssAtomGiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Adapters\StructuredHtmlGiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeSourceReconciliationJob;
@@ -55,12 +57,13 @@ final readonly class ManageGiftCodeSourceRegistry
             throw ValidationException::withMessages(['adapter_key' => 'Enabled ingestion requires an installed source adapter.']);
         }
         $policy = $attributes['provenance_policy'] ?? null;
-        $documentAdapterKeys = [
+        $feedPathAdapterKeys = [
             JsonFeedGiftCodeSourceAdapter::KEY,
             RssAtomGiftCodeSourceAdapter::KEY,
             StructuredHtmlGiftCodeSourceAdapter::KEY,
+            CenturyGamesKingshotNewsRssGiftCodeSourceAdapter::KEY,
         ];
-        if ($adapterKey !== null && in_array($adapterKey, $documentAdapterKeys, true)) {
+        if ($adapterKey !== null && in_array($adapterKey, $feedPathAdapterKeys, true)) {
             if (filter_var($domain, FILTER_VALIDATE_IP) !== false || $domain === 'localhost') {
                 throw ValidationException::withMessages([
                     'canonical_domain' => 'The selected source adapter requires a public canonical hostname.',
@@ -79,6 +82,56 @@ final readonly class ManageGiftCodeSourceRegistry
                 || str_contains('/'.$feedPath.'/', '/./')) {
                 throw ValidationException::withMessages([
                     'feed_path' => 'The selected source adapter requires an absolute source path without a host, query, fragment, or traversal segment.',
+                ]);
+            }
+        }
+
+        if ($adapterKey === OfficialXGiftCodeSourceAdapter::KEY) {
+            if ($domain !== 'x.com') {
+                throw ValidationException::withMessages([
+                    'canonical_domain' => 'The official X adapter requires x.com as the canonical source domain.',
+                ]);
+            }
+            $xUserId = is_array($policy) && is_string($policy['x_user_id'] ?? null)
+                ? trim($policy['x_user_id'])
+                : '';
+            if (preg_match('/^[0-9]{1,32}$/D', $xUserId) !== 1) {
+                throw ValidationException::withMessages([
+                    'x_user_id' => 'The official X adapter requires the confirmed numeric X user id.',
+                ]);
+            }
+            $xUsername = is_array($policy) && is_string($policy['x_username'] ?? null)
+                ? trim($policy['x_username'])
+                : '';
+            if (preg_match('/^[A-Za-z0-9_]{1,30}$/D', $xUsername) !== 1) {
+                throw ValidationException::withMessages([
+                    'x_username' => 'The official X adapter requires the confirmed X username.',
+                ]);
+            }
+            if ($ingestionEnabled && trim((string) config('game_world.gift_codes.x_bearer_token', '')) === '') {
+                throw ValidationException::withMessages([
+                    'adapter_key' => 'Enable the official X adapter only after configuring the X API bearer token.',
+                ]);
+            }
+        }
+
+        if ($adapterKey === CenturyGamesKingshotNewsRssGiftCodeSourceAdapter::KEY) {
+            if ($domain !== 'centurygames.com') {
+                throw ValidationException::withMessages([
+                    'canonical_domain' => 'The Century Games Kingshot news adapter requires centurygames.com as the canonical source domain.',
+                ]);
+            }
+            if ($ingestionEnabled && (! is_array($policy) || ($policy['provider_permission_confirmed'] ?? false) !== true)) {
+                throw ValidationException::withMessages([
+                    'provider_permission_confirmed' => 'Enable Century Games Kingshot news ingestion only after provider permission is confirmed.',
+                ]);
+            }
+            $category = is_array($policy) && is_string($policy['gift_code_category'] ?? null)
+                ? trim($policy['gift_code_category'])
+                : '';
+            if ($category === '' || mb_strlen($category) > 120) {
+                throw ValidationException::withMessages([
+                    'gift_code_category' => 'The Century Games Kingshot news adapter requires the agreed Gift Code feed category.',
                 ]);
             }
         }

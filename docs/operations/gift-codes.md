@@ -8,7 +8,7 @@ Staging and production must explicitly enable `GIFT_CODES_MODERATION`, `GIFT_COD
 
 Before approved-source ingestion is launch-ready, a Platform Administrator with verified email, MFA, and recent password confirmation must register at least one active source in `/platform/gift-codes`. The source must use an adapter listed by that screen. `production:check` fails when ingestion is enabled without an active source or when an enabled source references an unavailable adapter.
 
-All built-in pull adapters retrieve HTTPS content from the registered canonical domain. Source policy stores only a relative `feed_path`; redirects, alternate hosts, query-bearing paths, fragments, IP literals, and traversal paths are rejected. Pull adapters are bounded by the configured document and observation limits and feed observations into the same approved-source provenance, verification, quarantine, trust and fact-reconciliation path.
+The generic JSON/RSS/HTML pull adapters retrieve HTTPS content from the registered public canonical domain and a relative `feed_path`; redirects, alternate hosts, query-bearing paths, fragments, IP literals, and traversal paths are rejected. Provider-specific adapters use fixed documented provider endpoints and still constrain resulting evidence URLs to the registered canonical source domain. All pull adapters are bounded and feed observations into the same approved-source provenance, verification, quarantine, trust and fact-reconciliation path.
 
 ### JSON feed adapter
 
@@ -77,11 +77,52 @@ Example:
 </article>
 ```
 
+### Official X API adapter
+
+The `x-api-v2-kingshot-v1` adapter uses the documented X API v2 user-post timeline at `https://api.x.com/2/users/{id}/tweets`. Configure the bearer token in `GIFT_CODES_X_BEARER_TOKEN`; never place it in source policy or the database.
+
+The source registry must use canonical domain `x.com`. Source policy must contain the separately confirmed numeric `x_user_id` and expected `x_username`. The adapter requests author expansion data and verifies that the returned post author matches both values before producing observations.
+
+The parser accepts only a whole post line explicitly labelled `Gift Code:` or `Redeem Code:` followed by a supported code token. It does not guess from arbitrary uppercase text, hashtags, URLs, captions or other prose. Posts without the explicit grammar produce no observation. Evidence links point to the corresponding `https://x.com/{username}/status/{id}` post.
+
+Example policy:
+
+```json
+{
+  "auto_verify": false,
+  "x_user_id": "<confirmed numeric X user id>",
+  "x_username": "<confirmed X username>"
+}
+```
+
+Keep `auto_verify` false until the Platform Administrator has separately approved the account authority and parser behavior. Installing the adapter or cataloguing the source does not grant authority.
+
+### Century Games Kingshot-news RSS adapter
+
+The `century-games-kingshot-news-rss-v1` adapter is provider-permission gated. It requires canonical domain `centurygames.com`, a relative `feed_path`, `provider_permission_confirmed: true`, and the exact agreed `gift_code_category`. It fetches only from `https://www.centurygames.com` with redirects disabled.
+
+Only entries with the exact configured category are considered. A matching entry must satisfy the explicit `Gift Code:` / `Redeem Code:` label contract in its title or description/summary. Unrelated Century Games news is ignored; a category-matched entry that no longer satisfies the agreed parser contract is quarantined as an unsupported source format rather than guessed from prose. Evidence links must remain HTTPS URLs on `centurygames.com` or its subdomains.
+
+Example policy after external permission and feed semantics have been confirmed:
+
+```json
+{
+  "auto_verify": false,
+  "feed_path": "/agreed/kingshot-feed.xml",
+  "provider_permission_confirmed": true,
+  "gift_code_category": "kingshot-gift-code"
+}
+```
+
+The permission flag records an external authorization decision. It is not created by source research and does not represent implied permission to consume a provider feed.
+
 ### Assertion and webhook rules
 
 Supported assertions across approved-source ingestion are `available`, `invalid`, `expires`, `reward`, and `applicability`. Reward and applicability values belong in the assertion payload. Automatic verification still requires the registered source policy to enable `auto_verify`; otherwise observations enter the quarantine review queue.
 
 Signed source webhook ingestion is a transport into the same approved-source observation action, not a pull adapter or a separate evidence/trust engine. It enforces registered-source status, signature/timestamp/replay checks and payload bounds before canonical ingestion.
+
+The research catalogue is informational only. It never creates a source registry row and never sets `official`, `auto_verify`, or `ingestion_enabled`. See [Gift Code researched-source rollout](../product/gift-code-researched-source-rollout.md) for staged source candidates and exclusions.
 
 ## Scheduled processing
 

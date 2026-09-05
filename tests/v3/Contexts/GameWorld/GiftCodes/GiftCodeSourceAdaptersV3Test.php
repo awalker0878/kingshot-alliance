@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Tests\v3\Contexts\GameWorld\GiftCodes;
 
 use App\Contexts\GameWorld\GiftCodes\Actions\RunApprovedGiftCodeSourceIngestion;
+use App\Contexts\GameWorld\GiftCodes\Adapters\CenturyGamesKingshotNewsRssGiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Adapters\JsonFeedGiftCodeSourceAdapter;
+use App\Contexts\GameWorld\GiftCodes\Adapters\OfficialXGiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Adapters\RssAtomGiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Adapters\StructuredHtmlGiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeStatus;
@@ -28,6 +30,8 @@ final class GiftCodeSourceAdaptersV3Test extends TestCase
             JsonFeedGiftCodeSourceAdapter::KEY,
             RssAtomGiftCodeSourceAdapter::KEY,
             StructuredHtmlGiftCodeSourceAdapter::KEY,
+            OfficialXGiftCodeSourceAdapter::KEY,
+            CenturyGamesKingshotNewsRssGiftCodeSourceAdapter::KEY,
         ], app(GiftCodeSourceAdapterRegistry::class)->keys());
     }
 
