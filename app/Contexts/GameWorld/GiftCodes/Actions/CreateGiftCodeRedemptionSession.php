@@ -13,8 +13,8 @@ use App\Contexts\GameWorld\GiftCodes\Models\GiftCode;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeRedemptionSession;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeRedemptionSessionItem;
 use App\Contexts\GameWorld\GiftCodes\Services\GiftCodeActionablePairResolver;
+use App\Contexts\GameWorld\GiftCodes\Services\GiftCodeRedemptionSessionProgressor;
 use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
-use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Shared\Infrastructure\AuditTrail\Contracts\AuditActor;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use Carbon\CarbonImmutable;
@@ -28,6 +28,7 @@ final readonly class CreateGiftCodeRedemptionSession
     public function __construct(
         private PlayerReferenceQuery $players,
         private GiftCodeActionablePairResolver $pairs,
+        private GiftCodeRedemptionSessionProgressor $progress,
         private AuditRecorder $audit,
     ) {}
 
@@ -136,7 +137,7 @@ final readonly class CreateGiftCodeRedemptionSession
                 ]);
             }
 
-            return $session->load('items.giftCode');
+            return $this->progress->refresh($session)->load('items.giftCode');
         });
 
         $this->audit->record(
