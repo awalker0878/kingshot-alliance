@@ -4,20 +4,23 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\GiftCodes\Adapters;
 
+use App\Contexts\GameWorld\GiftCodes\Adapters\Concerns\HandlesGiftCodeProviderResponses;
 use App\Contexts\GameWorld\GiftCodes\Contracts\GiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeSourceRegistry;
 use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeIngestionObservation;
 use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeIngestionPage;
+use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeSourceCheckpoint;
 use DOMDocument;
 use DOMElement;
 use DOMNode;
 use DOMXPath;
-use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use UnexpectedValueException;
 
 final class RssAtomGiftCodeSourceAdapter implements GiftCodeSourceAdapter
 {
+    use HandlesGiftCodeProviderResponses;
+
     public const KEY = 'rss-atom-v1';
 
     public function key(): string
@@ -40,9 +43,7 @@ final class RssAtomGiftCodeSourceAdapter implements GiftCodeSourceAdapter
             ->withOptions(['allow_redirects' => false])
             ->get($url);
 
-        if (! $response->successful()) {
-            throw new \RuntimeException(sprintf('The approved RSS/Atom source returned HTTP %d.', $response->status()));
-        }
+        $this->assertGiftCodeProviderSuccess($response, 'The approved RSS/Atom source');
         if (! str_contains(mb_strtolower((string) $response->header('Content-Type')), 'xml')) {
             throw new UnexpectedValueException('The approved RSS/Atom source did not return XML content.');
         }
@@ -59,7 +60,7 @@ final class RssAtomGiftCodeSourceAdapter implements GiftCodeSourceAdapter
             throw new UnexpectedValueException('The RSS/Atom source exceeded the bounded observation limit.');
         }
 
-        $retrievalVersion = $this->retrievalVersion($response);
+        $retrievalVersion = $this->giftCodeRetrievalVersion($response);
         $sourceVersion = $this->feedVersion($xpath) ?? $retrievalVersion;
         $observations = [];
         foreach ($entries as $position => $entry) {
@@ -83,12 +84,7 @@ final class RssAtomGiftCodeSourceAdapter implements GiftCodeSourceAdapter
                 ));
             }
 
-            $assertion = $this->firstText(
-                $xpath,
-                $entry,
-                './*[local-name()="assertion"]',
-                48,
-            ) ?? 'available';
+            $assertion = $this->firstText($xpath, $entry, './*[local-name()="assertion"]', 48) ?? 'available';
             $claimedExpiresAt = $this->firstText(
                 $xpath,
                 $entry,
@@ -136,7 +132,21 @@ final class RssAtomGiftCodeSourceAdapter implements GiftCodeSourceAdapter
             );
         }
 
-        return new GiftCodeIngestionPage($observations, null);
+        $providerRequestId = $this->giftCodeProviderRequestId($response);
+
+        return new GiftCodeIngestionPage(
+            observations: $observations,
+            nextCursor: null,
+            retrievalVersion: $retrievalVersion,
+            providerRequestId: $providerRequestId,
+            rateLimit: $this->giftCodeRateLimit($response),
+            checkpoint: new GiftCodeSourceCheckpoint(
+                cursor: null,
+                retrievalVersion: $retrievalVersion,
+                providerRequestId: $providerRequestId,
+                providerState: ['feed_url' => $url, 'source_version' => $sourceVersion],
+            ),
+        );
     }
 
     private function feedUrl(GiftCodeSourceRegistry $source): string
@@ -237,12 +247,8 @@ final class RssAtomGiftCodeSourceAdapter implements GiftCodeSourceAdapter
         return null;
     }
 
-    private function firstText(
-        DOMXPath $xpath,
-        DOMNode $context,
-        string $expression,
-        int $maximum,
-    ): ?string {
+    private function firstText(DOMXPath $xpath, DOMNode $context, string $expression, int $maximum): ?string
+    {
         $nodes = $xpath->query($expression, $context);
         if ($nodes === false || $nodes->length === 0) {
             return null;
@@ -253,18 +259,6 @@ final class RssAtomGiftCodeSourceAdapter implements GiftCodeSourceAdapter
         }
 
         return $this->optionalString($node->textContent, $maximum);
-    }
-
-    private function retrievalVersion(Response $response): string
-    {
-        foreach (['ETag', 'Last-Modified'] as $header) {
-            $value = trim((string) $response->header($header));
-            if ($value !== '') {
-                return mb_substr($header.':'.$value, 0, 120);
-            }
-        }
-
-        return 'sha256:'.hash('sha256', $response->body());
     }
 
     private function optionalString(mixed $value, int $maximum): ?string

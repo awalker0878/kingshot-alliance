@@ -4,17 +4,20 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\GiftCodes\Adapters;
 
+use App\Contexts\GameWorld\GiftCodes\Adapters\Concerns\HandlesGiftCodeProviderResponses;
 use App\Contexts\GameWorld\GiftCodes\Adapters\Concerns\ParsesExplicitGiftCodeLabels;
 use App\Contexts\GameWorld\GiftCodes\Contracts\GiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeSourceRegistry;
 use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeIngestionObservation;
 use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeIngestionPage;
+use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeSourceCheckpoint;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use UnexpectedValueException;
 
 final class YouTubeChannelGiftCodeSourceAdapter implements GiftCodeSourceAdapter
 {
+    use HandlesGiftCodeProviderResponses;
     use ParsesExplicitGiftCodeLabels;
 
     public const KEY = 'youtube-channel-v1';
@@ -96,8 +99,9 @@ final class YouTubeChannelGiftCodeSourceAdapter implements GiftCodeSourceAdapter
             throw new UnexpectedValueException('YouTube returned an invalid or unbounded uploads collection.');
         }
 
-        $retrievalVersion = $this->retrievalVersion($response);
+        $retrievalVersion = $this->giftCodeRetrievalVersion($response);
         $observations = [];
+        $latestVideoId = null;
         foreach ($uploads as $position => $upload) {
             if (! is_array($upload)) {
                 throw new UnexpectedValueException(sprintf('YouTube upload %d must be an object.', $position + 1));
@@ -111,6 +115,7 @@ final class YouTubeChannelGiftCodeSourceAdapter implements GiftCodeSourceAdapter
             if ($videoId === null || preg_match('/^[A-Za-z0-9_-]{6,32}$/D', $videoId) !== 1) {
                 throw new UnexpectedValueException(sprintf('YouTube upload %d requires a valid video id.', $position + 1));
             }
+            $latestVideoId ??= $videoId;
             $publishedAt = $this->optionalString($uploadSnippet['publishedAt'] ?? null, 120);
             $title = $this->optionalString($uploadSnippet['title'] ?? null, 1000) ?? '';
             $description = $this->optionalString($uploadSnippet['description'] ?? null, 20_000) ?? '';
@@ -143,8 +148,26 @@ final class YouTubeChannelGiftCodeSourceAdapter implements GiftCodeSourceAdapter
         $nextCursor = is_array($payload)
             ? $this->optionalString($payload['nextPageToken'] ?? null, 2000)
             : null;
+        $providerRequestId = $this->giftCodeProviderRequestId($response);
 
-        return new GiftCodeIngestionPage($observations, $nextCursor);
+        return new GiftCodeIngestionPage(
+            observations: $observations,
+            nextCursor: $nextCursor,
+            retrievalVersion: $retrievalVersion,
+            providerRequestId: $providerRequestId,
+            rateLimit: $this->giftCodeRateLimit($response),
+            checkpoint: new GiftCodeSourceCheckpoint(
+                cursor: $nextCursor,
+                retrievalVersion: $retrievalVersion,
+                providerRequestId: $providerRequestId,
+                providerState: [
+                    'channel_id' => $channelId,
+                    'uploads_playlist_id' => $uploadsPlaylist,
+                    'latest_video_id' => $latestVideoId,
+                ],
+            ),
+            requestCount: 2,
+        );
     }
 
     /** @param array<string,mixed> $policy */
@@ -160,9 +183,7 @@ final class YouTubeChannelGiftCodeSourceAdapter implements GiftCodeSourceAdapter
 
     private function assertJsonSuccess(Response $response, string $operation): void
     {
-        if (! $response->successful()) {
-            throw new \RuntimeException(sprintf('%s returned HTTP %d.', $operation, $response->status()));
-        }
+        $this->assertGiftCodeProviderSuccess($response, $operation);
         if (! str_contains(mb_strtolower((string) $response->header('Content-Type')), 'json')) {
             throw new UnexpectedValueException($operation.' did not return JSON content.');
         }
@@ -185,17 +206,5 @@ final class YouTubeChannelGiftCodeSourceAdapter implements GiftCodeSourceAdapter
         }
 
         return $value;
-    }
-
-    private function retrievalVersion(Response $response): string
-    {
-        foreach (['ETag', 'Last-Modified'] as $header) {
-            $value = trim((string) $response->header($header));
-            if ($value !== '') {
-                return mb_substr($header.':'.$value, 0, 120);
-            }
-        }
-
-        return 'sha256:'.hash('sha256', $response->body());
     }
 }

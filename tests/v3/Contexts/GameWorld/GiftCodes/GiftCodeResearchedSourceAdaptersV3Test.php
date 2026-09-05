@@ -62,6 +62,7 @@ final class GiftCodeResearchedSourceAdaptersV3Test extends TestCase
             'adapter_key' => OfficialXGiftCodeSourceAdapter::KEY,
             'provenance_policy' => [
                 'auto_verify' => true,
+                'platform_api_access_confirmed' => true,
                 'x_user_id' => '123456789',
                 'x_username' => 'KingshotGame',
             ],
@@ -90,10 +91,7 @@ final class GiftCodeResearchedSourceAdaptersV3Test extends TestCase
                         'username' => 'KingshotGame',
                     ]],
                 ],
-                'meta' => [
-                    'result_count' => 2,
-                    'next_token' => 'next-x-page',
-                ],
+                'meta' => ['result_count' => 2],
             ], 200, [
                 'Content-Type' => 'application/json; charset=utf-8',
                 'ETag' => '"x-page-1"',
@@ -131,6 +129,7 @@ final class GiftCodeResearchedSourceAdaptersV3Test extends TestCase
                 'adapter_key' => OfficialXGiftCodeSourceAdapter::KEY,
                 'provenance_policy' => [
                     'auto_verify' => false,
+                    'platform_api_access_confirmed' => true,
                     'x_user_id' => '123456789',
                     'x_username' => 'KingshotGame',
                 ],

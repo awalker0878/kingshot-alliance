@@ -22,7 +22,23 @@ use Illuminate\Support\Carbon;
  * @property array<string, mixed>|null $provenance_policy
  * @property bool $ingestion_enabled
  * @property int $policy_revision
+ * @property string $activation_status
+ * @property string $health_status
  * @property string|null $ingestion_cursor
+ * @property array<string,mixed>|null $ingestion_checkpoint
+ * @property CarbonImmutable|null $next_eligible_ingestion_at
+ * @property int $consecutive_failures
+ * @property int $request_count
+ * @property int $observation_count
+ * @property int $duplicate_observation_count
+ * @property int $rate_limit_event_count
+ * @property CarbonImmutable|null $last_observation_at
+ * @property CarbonImmutable|null $last_health_checked_at
+ * @property string|null $last_provider_request_id
+ * @property string|null $last_retrieval_version
+ * @property int|null $last_quota_remaining
+ * @property int|null $last_rate_limit_remaining
+ * @property int|null $last_retry_after_seconds
  * @property CarbonImmutable|null $last_ingestion_attempt_at
  * @property CarbonImmutable|null $last_ingestion_success_at
  * @property CarbonImmutable|null $last_ingestion_failure_at
@@ -54,7 +70,23 @@ final class GiftCodeSourceRegistry extends Model
         'policy_revision',
         'provenance_policy',
         'ingestion_enabled',
+        'activation_status',
+        'health_status',
         'ingestion_cursor',
+        'ingestion_checkpoint',
+        'next_eligible_ingestion_at',
+        'consecutive_failures',
+        'request_count',
+        'observation_count',
+        'duplicate_observation_count',
+        'rate_limit_event_count',
+        'last_observation_at',
+        'last_health_checked_at',
+        'last_provider_request_id',
+        'last_retrieval_version',
+        'last_quota_remaining',
+        'last_rate_limit_remaining',
+        'last_retry_after_seconds',
         'last_ingestion_attempt_at',
         'last_ingestion_success_at',
         'last_ingestion_failure_at',
@@ -71,6 +103,18 @@ final class GiftCodeSourceRegistry extends Model
             'provenance_policy' => 'array',
             'ingestion_enabled' => 'boolean',
             'policy_revision' => 'integer',
+            'ingestion_checkpoint' => 'array',
+            'next_eligible_ingestion_at' => 'immutable_datetime',
+            'consecutive_failures' => 'integer',
+            'request_count' => 'integer',
+            'observation_count' => 'integer',
+            'duplicate_observation_count' => 'integer',
+            'rate_limit_event_count' => 'integer',
+            'last_observation_at' => 'immutable_datetime',
+            'last_health_checked_at' => 'immutable_datetime',
+            'last_quota_remaining' => 'integer',
+            'last_rate_limit_remaining' => 'integer',
+            'last_retry_after_seconds' => 'integer',
             'last_ingestion_attempt_at' => 'immutable_datetime',
             'last_ingestion_success_at' => 'immutable_datetime',
             'last_ingestion_failure_at' => 'immutable_datetime',

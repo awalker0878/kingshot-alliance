@@ -7,6 +7,8 @@ import FormError from '@/components/ui/FormError.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
+type ReadinessCheck = { ready: boolean; message: string };
+type ActivationReadiness = { ready: boolean; checks: Record<string, ReadinessCheck> };
 type Source = {
   id: string;
   key: string;
@@ -17,9 +19,22 @@ type Source = {
   manualEvidenceAllowed: boolean;
   active: boolean;
   ingestionEnabled: boolean;
+  activationStatus: string;
+  healthStatus: string;
+  activationReadiness: ActivationReadiness;
+  nextEligibleIngestionAt: string | null;
+  consecutiveFailures: number;
+  requestCount: number;
+  observationCount: number;
+  duplicateObservationCount: number;
+  rateLimitEventCount: number;
+  lastObservationAt: string | null;
   lastAttemptAt: string | null;
   lastSuccessAt: string | null;
+  lastFailureAt: string | null;
   failureCode: string | null;
+  lastQuotaRemaining: number | null;
+  lastRateLimitRemaining: number | null;
 };
 
 type ResearchedSource = {
@@ -57,6 +72,8 @@ const sourcePolicy = useForm({
     auto_verify: false,
     manual_evidence_allowed: false,
     feed_path: '',
+    provider_contract_confirmed: false,
+    structured_contract_confirmed: false,
     provider_permission_confirmed: false,
     gift_code_category: '',
     x_user_id: '',
@@ -100,6 +117,10 @@ const usesFeedPath = computed(() =>
     'century-games-kingshot-news-rss-v1',
   ].includes(selectedAdapter.value),
 );
+const usesProviderContract = computed(() =>
+  ['json-feed-v1', 'rss-atom-v1'].includes(selectedAdapter.value),
+);
+const usesStructuredContract = computed(() => selectedAdapter.value === 'structured-html-v1');
 
 function applyCandidate(candidate: ResearchedSource): void {
   sourcePolicy.source_key = candidate.source_key;
@@ -283,6 +304,20 @@ function recordEvidence(): void {
           />
           <FormError :message="sourcePolicy.errors['provenance_policy.feed_path']" />
         </label>
+        <label v-if="usesProviderContract" class="flex items-center gap-2 pt-7">
+          <input
+            v-model="sourcePolicy.provenance_policy.provider_contract_confirmed"
+            type="checkbox"
+          />
+          {{ t('platformGiftCodes.sources.providerContractConfirmed') }}
+        </label>
+        <label v-if="usesStructuredContract" class="flex items-center gap-2 pt-7">
+          <input
+            v-model="sourcePolicy.provenance_policy.structured_contract_confirmed"
+            type="checkbox"
+          />
+          {{ t('platformGiftCodes.sources.structuredContractConfirmed') }}
+        </label>
 
         <template v-if="selectedAdapter === 'x-api-v2-kingshot-v1'">
           <label
@@ -295,6 +330,13 @@ function recordEvidence(): void {
               v-model="sourcePolicy.provenance_policy.x_username"
               class="ks-input mt-2 w-full"
           /></label>
+          <label class="flex items-center gap-2 md:col-span-2">
+            <input
+              v-model="sourcePolicy.provenance_policy.platform_api_access_confirmed"
+              type="checkbox"
+            />
+            {{ t('platformGiftCodes.sources.xApiConfirmed') }}
+          </label>
         </template>
 
         <template v-if="selectedAdapter === 'century-games-kingshot-news-rss-v1'">
@@ -308,8 +350,7 @@ function recordEvidence(): void {
             ><input
               v-model="sourcePolicy.provenance_policy.provider_permission_confirmed"
               type="checkbox"
-            />
-            {{ t('platformGiftCodes.sources.providerPermissionConfirmed') }}</label
+            />{{ t('platformGiftCodes.sources.providerPermissionConfirmed') }}</label
           >
         </template>
 
@@ -337,15 +378,13 @@ function recordEvidence(): void {
             ><input
               v-model="sourcePolicy.provenance_policy.platform_permission_confirmed"
               type="checkbox"
-            />
-            {{ t('platformGiftCodes.sources.discordPermissionConfirmed') }}</label
+            />{{ t('platformGiftCodes.sources.discordPermissionConfirmed') }}</label
           >
           <label class="flex items-center gap-2"
             ><input
               v-model="sourcePolicy.provenance_policy.message_content_access_confirmed"
               type="checkbox"
-            />
-            {{ t('platformGiftCodes.sources.messageContentConfirmed') }}</label
+            />{{ t('platformGiftCodes.sources.messageContentConfirmed') }}</label
           >
         </template>
 
@@ -366,8 +405,7 @@ function recordEvidence(): void {
             ><input
               v-model="sourcePolicy.provenance_policy.platform_api_access_confirmed"
               type="checkbox"
-            />
-            {{ t('platformGiftCodes.sources.youtubeApiConfirmed') }}</label
+            />{{ t('platformGiftCodes.sources.youtubeApiConfirmed') }}</label
           >
         </template>
 
@@ -382,8 +420,7 @@ function recordEvidence(): void {
             ><input
               v-model="sourcePolicy.provenance_policy.platform_api_access_confirmed"
               type="checkbox"
-            />
-            {{ t('platformGiftCodes.sources.redditApiConfirmed') }}</label
+            />{{ t('platformGiftCodes.sources.redditApiConfirmed') }}</label
           >
         </template>
 
@@ -404,8 +441,7 @@ function recordEvidence(): void {
             ><input
               v-model="sourcePolicy.provenance_policy.platform_permission_confirmed"
               type="checkbox"
-            />
-            {{ t('platformGiftCodes.sources.facebookPermissionConfirmed') }}</label
+            />{{ t('platformGiftCodes.sources.facebookPermissionConfirmed') }}</label
           >
         </template>
 
@@ -426,32 +462,36 @@ function recordEvidence(): void {
             ><input
               v-model="sourcePolicy.provenance_policy.platform_permission_confirmed"
               type="checkbox"
-            />
-            {{ t('platformGiftCodes.sources.instagramPermissionConfirmed') }}</label
+            />{{ t('platformGiftCodes.sources.instagramPermissionConfirmed') }}</label
           >
         </template>
 
         <div class="grid gap-3 sm:grid-cols-3 md:col-span-2">
           <label class="flex items-center gap-2"
-            ><input v-model="sourcePolicy.provenance_policy.auto_verify" type="checkbox" />
-            {{ t('platformGiftCodes.autoVerify') }}</label
+            ><input v-model="sourcePolicy.provenance_policy.auto_verify" type="checkbox" />{{
+              t('platformGiftCodes.autoVerify')
+            }}</label
           >
           <label class="flex items-center gap-2"
             ><input
               v-model="sourcePolicy.provenance_policy.manual_evidence_allowed"
               type="checkbox"
-            />
-            {{ t('platformGiftCodes.sources.manualEvidenceAllowed') }}</label
+            />{{ t('platformGiftCodes.sources.manualEvidenceAllowed') }}</label
           >
           <label class="flex items-center gap-2"
-            ><input v-model="sourcePolicy.ingestion_enabled" type="checkbox" />
-            {{ t('platformGiftCodes.enableIngestion') }}</label
+            ><input v-model="sourcePolicy.ingestion_enabled" type="checkbox" />{{
+              t('platformGiftCodes.enableIngestion')
+            }}</label
           >
         </div>
+        <FormError class="md:col-span-2" :message="sourcePolicy.errors.ingestion_enabled" />
         <div class="md:col-span-2">
-          <AppButton type="submit" :busy="sourcePolicy.processing" :busy-label="t('common.saving')">
-            {{ t('platformGiftCodes.saveSourcePolicy') }}
-          </AppButton>
+          <AppButton
+            type="submit"
+            :busy="sourcePolicy.processing"
+            :busy-label="t('common.saving')"
+            >{{ t('platformGiftCodes.saveSourcePolicy') }}</AppButton
+          >
         </div>
       </form>
     </section>
@@ -510,23 +550,23 @@ function recordEvidence(): void {
           ><span class="ks-kicker">{{ t('platformGiftCodes.sources.expiresAt') }}</span
           ><input v-model="evidence.expires_at" type="datetime-local" class="ks-input mt-2 w-full"
         /></label>
-        <label v-if="evidence.assertion === 'expires'"
-          ><span class="ks-kicker">{{ t('platformGiftCodes.sources.expiryPrecision') }}</span
-          ><select v-model="evidence.expiry_precision" class="ks-input mt-2 w-full">
+        <label v-if="evidence.assertion === 'expires'">
+          <span class="ks-kicker">{{ t('platformGiftCodes.sources.expiryPrecision') }}</span>
+          <select v-model="evidence.expiry_precision" class="ks-input mt-2 w-full">
             <option value="instant">{{ t('platformGiftCodes.sources.precisionInstant') }}</option>
             <option value="minute">{{ t('platformGiftCodes.sources.precisionMinute') }}</option>
             <option value="hour">{{ t('platformGiftCodes.sources.precisionHour') }}</option>
             <option value="day">{{ t('platformGiftCodes.sources.precisionDay') }}</option>
-          </select></label
-        >
+          </select>
+        </label>
         <label v-if="evidence.assertion === 'expires'"
           ><span class="ks-kicker">{{ t('platformGiftCodes.sources.expiryTimezone') }}</span
           ><input v-model="evidence.expiry_timezone" maxlength="80" class="ks-input mt-2 w-full"
         /></label>
         <div class="md:col-span-2">
-          <AppButton type="submit" :busy="evidence.processing">
-            {{ t('platformGiftCodes.sources.recordEvidence') }}
-          </AppButton>
+          <AppButton type="submit" :busy="evidence.processing">{{
+            t('platformGiftCodes.sources.recordEvidence')
+          }}</AppButton>
         </div>
       </form>
       <p v-else class="mt-4 text-sm text-[var(--ks-muted)]">
@@ -538,36 +578,71 @@ function recordEvidence(): void {
       <h2 id="registered-sources" class="ks-display text-xl font-semibold">
         {{ t('platformGiftCodes.sources.registeredSources') }}
       </h2>
-      <ul v-if="sources.length" class="mt-4 grid gap-3 md:grid-cols-2">
+      <ul v-if="sources.length" class="mt-4 grid gap-3 lg:grid-cols-2">
         <li
           v-for="source in sources"
           :key="source.id"
           class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] p-4"
         >
           <div class="flex items-start justify-between gap-3">
-            <strong>{{ source.name }}</strong
-            ><code class="text-xs">{{
+            <strong>{{ source.name }}</strong>
+            <code class="text-xs">{{
               source.adapterKey ?? t('platformGiftCodes.sources.manualShort')
             }}</code>
           </div>
           <p class="mt-1 text-xs text-[var(--ks-muted)]">
             {{ source.canonicalDomain }} · {{ source.classification }}
           </p>
-          <p class="mt-2 text-xs text-[var(--ks-muted)]">
-            {{
-              source.ingestionEnabled
-                ? t('platformGiftCodes.sources.ingestionEnabled')
-                : t('platformGiftCodes.sources.ingestionDisabled')
-            }}
-            ·
-            {{
-              source.manualEvidenceAllowed
-                ? t('platformGiftCodes.sources.manualEnabled')
-                : t('platformGiftCodes.sources.manualDisabled')
-            }}
+          <div class="mt-3 flex flex-wrap gap-2 text-xs">
+            <span class="rounded border border-[var(--ks-border)] px-2 py-1"
+              >{{ t('platformGiftCodes.sources.activationLabel') }}:
+              {{ source.activationStatus }}</span
+            >
+            <span class="rounded border border-[var(--ks-border)] px-2 py-1"
+              >{{ t('platformGiftCodes.sources.healthLabel') }}: {{ source.healthStatus }}</span
+            >
+            <span class="rounded border border-[var(--ks-border)] px-2 py-1"
+              >{{ t('platformGiftCodes.sources.readinessLabel') }}:
+              {{
+                source.activationReadiness.ready
+                  ? t('platformGiftCodes.sources.readinessReady')
+                  : t('platformGiftCodes.sources.readinessBlocked')
+              }}</span
+            >
+          </div>
+          <ul
+            v-if="!source.activationReadiness.ready"
+            class="mt-3 space-y-1 text-xs text-[var(--ks-muted)]"
+          >
+            <li
+              v-for="(check, key) in source.activationReadiness.checks"
+              v-show="!check.ready"
+              :key="key"
+            >
+              <code>{{ key }}</code
+              >: {{ check.message }}
+            </li>
+          </ul>
+          <p class="mt-3 text-xs text-[var(--ks-muted)]">
+            {{ t('platformGiftCodes.sources.requestCountLabel') }} {{ source.requestCount }} ·
+            {{ t('platformGiftCodes.sources.observationCountLabel') }}
+            {{ source.observationCount }} · {{ t('platformGiftCodes.sources.duplicateCountLabel') }}
+            {{ source.duplicateObservationCount }} ·
+            {{ t('platformGiftCodes.sources.rateLimitCountLabel') }}
+            {{ source.rateLimitEventCount }}
           </p>
-          <p v-if="source.lastAttemptAt" class="mt-2 text-xs text-[var(--ks-muted)]">
+          <p v-if="source.nextEligibleIngestionAt" class="mt-1 text-xs text-[var(--ks-muted)]">
+            {{ t('platformGiftCodes.sources.nextEligible') }}
+            {{ formatDate(source.nextEligibleIngestionAt) }}
+          </p>
+          <p v-if="source.lastAttemptAt" class="mt-1 text-xs text-[var(--ks-muted)]">
             {{ t('platformGiftCodes.sources.lastAttempt') }} {{ formatDate(source.lastAttemptAt) }}
+          </p>
+          <p v-if="source.failureCode" class="mt-1 text-xs text-[var(--ks-muted)]">
+            {{ t('platformGiftCodes.sources.failureLabel') }}:
+            <code>{{ source.failureCode }}</code> ·
+            {{ t('platformGiftCodes.sources.consecutiveFailures') }}
+            {{ source.consecutiveFailures }}
           </p>
         </li>
       </ul>

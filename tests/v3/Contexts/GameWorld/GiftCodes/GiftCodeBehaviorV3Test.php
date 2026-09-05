@@ -493,6 +493,7 @@ final class GiftCodeBehaviorV3Test extends TestCase
             'provenance_policy' => [
                 'auto_verify' => true,
                 'feed_path' => '/gift-codes.json',
+                'provider_contract_confirmed' => true,
             ],
             'ingestion_enabled' => true,
         ]);

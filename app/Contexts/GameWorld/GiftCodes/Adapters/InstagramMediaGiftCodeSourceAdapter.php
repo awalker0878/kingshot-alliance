@@ -4,17 +4,20 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\GiftCodes\Adapters;
 
+use App\Contexts\GameWorld\GiftCodes\Adapters\Concerns\HandlesGiftCodeProviderResponses;
 use App\Contexts\GameWorld\GiftCodes\Adapters\Concerns\ParsesExplicitGiftCodeLabels;
 use App\Contexts\GameWorld\GiftCodes\Contracts\GiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeSourceRegistry;
 use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeIngestionObservation;
 use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeIngestionPage;
+use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeSourceCheckpoint;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use UnexpectedValueException;
 
 final class InstagramMediaGiftCodeSourceAdapter implements GiftCodeSourceAdapter
 {
+    use HandlesGiftCodeProviderResponses;
     use ParsesExplicitGiftCodeLabels;
 
     public const KEY = 'instagram-media-v1';
@@ -84,13 +87,15 @@ final class InstagramMediaGiftCodeSourceAdapter implements GiftCodeSourceAdapter
             throw new UnexpectedValueException('Instagram returned an invalid or unbounded media collection.');
         }
 
-        $retrievalVersion = $this->retrievalVersion($response);
+        $retrievalVersion = $this->giftCodeRetrievalVersion($response);
         $observations = [];
+        $latestMediaId = null;
         foreach ($media as $position => $item) {
             if (! is_array($item)) {
                 throw new UnexpectedValueException(sprintf('Instagram media item %d must be an object.', $position + 1));
             }
             $mediaId = $this->requiredString($item['id'] ?? null, 'media id', $position + 1, 128);
+            $latestMediaId ??= $mediaId;
             $itemUsername = $this->optionalString($item['username'] ?? null, 80);
             if ($itemUsername !== null && mb_strtolower($itemUsername) !== mb_strtolower($username)) {
                 throw new UnexpectedValueException(sprintf('Instagram media item %d was not owned by the configured account.', $position + 1));
@@ -128,8 +133,27 @@ final class InstagramMediaGiftCodeSourceAdapter implements GiftCodeSourceAdapter
         $nextCursor = $hasNext && is_array($cursors)
             ? $this->optionalString($cursors['after'] ?? null, 2048)
             : null;
+        $providerRequestId = $this->giftCodeProviderRequestId($response);
 
-        return new GiftCodeIngestionPage($observations, $nextCursor);
+        return new GiftCodeIngestionPage(
+            observations: $observations,
+            nextCursor: $nextCursor,
+            retrievalVersion: $retrievalVersion,
+            providerRequestId: $providerRequestId,
+            rateLimit: $this->giftCodeRateLimit($response),
+            checkpoint: new GiftCodeSourceCheckpoint(
+                cursor: $nextCursor,
+                retrievalVersion: $retrievalVersion,
+                providerRequestId: $providerRequestId,
+                providerState: [
+                    'user_id' => $userId,
+                    'username' => $username,
+                    'latest_media_id' => $latestMediaId,
+                    'graph_api_version' => $version,
+                ],
+            ),
+            requestCount: 2,
+        );
     }
 
     private function assertInstagramUrl(string $url): void
@@ -157,9 +181,7 @@ final class InstagramMediaGiftCodeSourceAdapter implements GiftCodeSourceAdapter
 
     private function assertJsonSuccess(Response $response, string $operation): void
     {
-        if (! $response->successful()) {
-            throw new \RuntimeException(sprintf('%s returned HTTP %d.', $operation, $response->status()));
-        }
+        $this->assertGiftCodeProviderSuccess($response, $operation);
         if (! str_contains(mb_strtolower((string) $response->header('Content-Type')), 'json')) {
             throw new UnexpectedValueException($operation.' did not return JSON content.');
         }
@@ -192,17 +214,5 @@ final class InstagramMediaGiftCodeSourceAdapter implements GiftCodeSourceAdapter
         }
 
         return $value;
-    }
-
-    private function retrievalVersion(Response $response): string
-    {
-        foreach (['ETag', 'Last-Modified'] as $header) {
-            $value = trim((string) $response->header($header));
-            if ($value !== '') {
-                return mb_substr($header.':'.$value, 0, 120);
-            }
-        }
-
-        return 'sha256:'.hash('sha256', $response->body());
     }
 }
