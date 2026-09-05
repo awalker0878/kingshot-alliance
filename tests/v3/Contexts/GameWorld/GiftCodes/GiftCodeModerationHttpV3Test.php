@@ -82,21 +82,24 @@ final class GiftCodeModerationHttpV3Test extends TestCase
                 ->where('adapterKeys.9', InstagramMediaGiftCodeSourceAdapter::KEY));
 
         foreach ([
-            [JsonFeedGiftCodeSourceAdapter::KEY, 'http-json-feed', '/gift-codes.json', 'approved_json_feed'],
-            [RssAtomGiftCodeSourceAdapter::KEY, 'http-rss-feed', '/gift-codes.xml', 'approved_rss_atom_feed'],
-            [StructuredHtmlGiftCodeSourceAdapter::KEY, 'http-html-feed', '/gift-codes', 'approved_structured_html'],
-        ] as [$adapterKey, $sourceKey, $feedPath, $verificationMethod]) {
+            [JsonFeedGiftCodeSourceAdapter::KEY, 'http-json-feed', '/gift-codes.json', 'approved_json_feed', 'provider_contract_confirmed'],
+            [RssAtomGiftCodeSourceAdapter::KEY, 'http-rss-feed', '/gift-codes.xml', 'approved_rss_atom_feed', 'provider_contract_confirmed'],
+            [StructuredHtmlGiftCodeSourceAdapter::KEY, 'http-html-feed', '/gift-codes', 'approved_structured_html', 'structured_contract_confirmed'],
+        ] as [$adapterKey, $sourceKey, $feedPath, $verificationMethod, $contractFlag]) {
             $this->actingAs($administrator)
                 ->withSession(['auth.password_confirmed_at' => time()])
-                ->post(route('platform.gift-codes.sources.store'), [
+                ->post(route('platform.gift-codes.sources.policy'), [
                     'source_key' => $sourceKey,
                     'name' => 'HTTP source '.$sourceKey,
                     'classification' => 'official',
                     'canonical_domain' => 'publisher.example.test',
                     'verification_method' => $verificationMethod,
                     'adapter_key' => $adapterKey,
-                    'feed_path' => $feedPath,
-                    'auto_verify' => true,
+                    'provenance_policy' => [
+                        'feed_path' => $feedPath,
+                        'auto_verify' => true,
+                        $contractFlag => true,
+                    ],
                     'ingestion_enabled' => true,
                 ])
                 ->assertRedirect()
@@ -106,6 +109,7 @@ final class GiftCodeModerationHttpV3Test extends TestCase
                 'source_key' => $sourceKey,
                 'adapter_key' => $adapterKey,
                 'ingestion_enabled' => true,
+                'activation_status' => 'enabled',
             ]);
         }
     }
@@ -152,13 +156,12 @@ final class GiftCodeModerationHttpV3Test extends TestCase
         self::assertSame(0, $giftCode->moderationDecisions()->count());
         $this->actingAs($curator)
             ->withSession(['auth.password_confirmed_at' => time()])
-            ->post(route('platform.gift-codes.sources.store'), [
+            ->post(route('platform.gift-codes.sources.policy'), [
                 'source_key' => 'curator-cannot-register',
                 'name' => 'Unauthorized source',
                 'classification' => 'official',
                 'canonical_domain' => 'publisher.example.test',
                 'verification_method' => 'manual_review',
-                'auto_verify' => false,
                 'ingestion_enabled' => false,
             ])
             ->assertForbidden();
