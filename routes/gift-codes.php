@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Contexts\GameWorld\GiftCodes\Http\Controllers\GiftCodeController;
 use App\Contexts\GameWorld\GiftCodes\Http\Controllers\GiftCodeModerationController;
+use App\Contexts\GameWorld\GiftCodes\Http\Controllers\GiftCodeSourceManagementController;
 use App\Contexts\GameWorld\GiftCodes\Http\Controllers\GiftCodeWorkspaceController;
 use App\ReadModels\GiftCodes\Http\Controllers\GiftCodeAllianceCoverageController;
 use Illuminate\Support\Facades\Route;
@@ -67,9 +68,14 @@ Route::middleware(['auth', 'auth.session', 'verified', 'gift-code.curator', 'pas
         Route::post('/bulk', [GiftCodeModerationController::class, 'bulk'])
             ->middleware('throttle:10,1')
             ->name('bulk');
-        Route::post('/sources', [GiftCodeModerationController::class, 'storeSource'])
+        Route::get('/sources', [GiftCodeSourceManagementController::class, 'index'])
+            ->name('sources.index');
+        Route::post('/sources', [GiftCodeSourceManagementController::class, 'store'])
             ->middleware('throttle:10,1')
             ->name('sources.store');
+        Route::post('/sources/evidence', [GiftCodeSourceManagementController::class, 'evidence'])
+            ->middleware('throttle:20,1')
+            ->name('sources.evidence');
         Route::post('/sources/{source}/revoke', [GiftCodeModerationController::class, 'revokeSource'])
             ->whereUlid('source')
             ->middleware('throttle:10,1')
