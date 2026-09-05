@@ -1,0 +1,107 @@
+name: Gift Code hardening reconciliation
+
+on:
+  push:
+    branches:
+      - gift-code-source-acquisition-hardening
+    paths:
+      - '.github/workflows/gift-code-hardening-reconcile.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: gift-code-source-acquisition-hardening
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.5'
+          coverage: none
+          tools: composer:v2
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24'
+          cache: npm
+      - run: composer install --no-interaction --no-progress --prefer-dist
+      - run: npm ci --no-audit --no-fund
+      - name: Reconcile source UI and legacy fixtures
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+
+          vue = Path('resources/js/pages/Platform/GiftCodes/Sources.vue')
+          text = vue.read_text()
+          replacements = {
+              '          Documented provider feed contract confirmed': "          {{ t('platformGiftCodes.sources.providerContractConfirmed') }}",
+              '          Documented structured-markup contract confirmed': "          {{ t('platformGiftCodes.sources.structuredContractConfirmed') }}",
+              '            X API access confirmed': "            {{ t('platformGiftCodes.sources.xApiConfirmed') }}",
+              '<span class="rounded border border-[var(--ks-border)] px-2 py-1">activation: {{ source.activationStatus }}</span>': '<span class="rounded border border-[var(--ks-border)] px-2 py-1">{{ t(\'platformGiftCodes.sources.activationLabel\') }}: {{ source.activationStatus }}</span>',
+              '<span class="rounded border border-[var(--ks-border)] px-2 py-1">health: {{ source.healthStatus }}</span>': '<span class="rounded border border-[var(--ks-border)] px-2 py-1">{{ t(\'platformGiftCodes.sources.healthLabel\') }}: {{ source.healthStatus }}</span>',
+              '<span class="rounded border border-[var(--ks-border)] px-2 py-1">readiness: {{ source.activationReadiness.ready ? \'ready\' : \'blocked\' }}</span>': '<span class="rounded border border-[var(--ks-border)] px-2 py-1">{{ t(\'platformGiftCodes.sources.readinessLabel\') }}: {{ source.activationReadiness.ready ? t(\'platformGiftCodes.sources.readinessReady\') : t(\'platformGiftCodes.sources.readinessBlocked\') }}</span>',
+              '            requests {{ source.requestCount }} · observations {{ source.observationCount }} · duplicates {{ source.duplicateObservationCount }} · rate limits {{ source.rateLimitEventCount }}': "            {{ t('platformGiftCodes.sources.requestCountLabel') }} {{ source.requestCount }} · {{ t('platformGiftCodes.sources.observationCountLabel') }} {{ source.observationCount }} · {{ t('platformGiftCodes.sources.duplicateCountLabel') }} {{ source.duplicateObservationCount }} · {{ t('platformGiftCodes.sources.rateLimitCountLabel') }} {{ source.rateLimitEventCount }}",
+              '<p v-if="source.nextEligibleIngestionAt" class="mt-1 text-xs text-[var(--ks-muted)]">next eligible {{ formatDate(source.nextEligibleIngestionAt) }}</p>': '<p v-if="source.nextEligibleIngestionAt" class="mt-1 text-xs text-[var(--ks-muted)]">{{ t(\'platformGiftCodes.sources.nextEligible\') }} {{ formatDate(source.nextEligibleIngestionAt) }}</p>',
+              '<p v-if="source.failureCode" class="mt-1 text-xs text-[var(--ks-muted)]">failure: <code>{{ source.failureCode }}</code> · consecutive {{ source.consecutiveFailures }}</p>': '<p v-if="source.failureCode" class="mt-1 text-xs text-[var(--ks-muted)]">{{ t(\'platformGiftCodes.sources.failureLabel\') }}: <code>{{ source.failureCode }}</code> · {{ t(\'platformGiftCodes.sources.consecutiveFailures\') }} {{ source.consecutiveFailures }}</p>',
+          }
+          for old, new in replacements.items():
+              if old not in text:
+                  raise SystemExit(f'Missing expected Sources.vue fragment: {old}')
+              text = text.replace(old, new, 1)
+          vue.write_text(text)
+
+          loc = Path('resources/js/localization/messages/platform/en.ts')
+          text = loc.read_text()
+          anchor = "      lastAttempt: 'Last attempt',\n"
+          addition = """      providerContractConfirmed: 'Documented provider feed contract confirmed',
+      structuredContractConfirmed: 'Documented structured-markup contract confirmed',
+      xApiConfirmed: 'X API access confirmed',
+      activationLabel: 'Activation',
+      healthLabel: 'Health',
+      readinessLabel: 'Readiness',
+      readinessReady: 'Ready',
+      readinessBlocked: 'Blocked',
+      requestCountLabel: 'Requests',
+      observationCountLabel: 'Observations',
+      duplicateCountLabel: 'Duplicates',
+      rateLimitCountLabel: 'Rate limits',
+      nextEligible: 'Next eligible',
+      failureLabel: 'Failure',
+      consecutiveFailures: 'consecutive failures',
+"""
+          if addition not in text:
+              if anchor not in text:
+                  raise SystemExit('Localization insertion anchor missing')
+              text = text.replace(anchor, anchor + addition, 1)
+          loc.write_text(text)
+
+          behavior = Path('tests/v3/Contexts/GameWorld/GiftCodes/GiftCodeBehaviorV3Test.php')
+          text = behavior.read_text()
+          old = "                'auto_verify' => true,\n                'feed_path' => '/gift-codes.json',\n"
+          new = "                'auto_verify' => true,\n                'feed_path' => '/gift-codes.json',\n                'provider_contract_confirmed' => true,\n"
+          if old in text and new not in text:
+              text = text.replace(old, new, 1)
+          behavior.write_text(text)
+          PY
+      - name: Format PHP
+        run: vendor/bin/pint app/Contexts/GameWorld/GiftCodes/Actions/ManageGiftCodeSourceRegistry.php app/Contexts/GameWorld/GiftCodes/Adapters/JsonFeedGiftCodeSourceAdapter.php app/Contexts/GameWorld/GiftCodes/Adapters/OfficialXGiftCodeSourceAdapter.php tests/v3/Contexts/GameWorld/GiftCodes/GiftCodeSourceAcquisitionHardeningV3Test.php tests/v3/Contexts/GameWorld/GiftCodes/GiftCodeBehaviorV3Test.php
+      - name: Format frontend
+        run: npx prettier --write resources/js/pages/Platform/GiftCodes/Sources.vue resources/js/localization/messages/platform/en.ts
+      - name: Commit reconciliation
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app/Contexts/GameWorld/GiftCodes/Actions/ManageGiftCodeSourceRegistry.php \
+            app/Contexts/GameWorld/GiftCodes/Adapters/JsonFeedGiftCodeSourceAdapter.php \
+            app/Contexts/GameWorld/GiftCodes/Adapters/OfficialXGiftCodeSourceAdapter.php \
+            tests/v3/Contexts/GameWorld/GiftCodes/GiftCodeSourceAcquisitionHardeningV3Test.php \
+            tests/v3/Contexts/GameWorld/GiftCodes/GiftCodeBehaviorV3Test.php \
+            resources/js/pages/Platform/GiftCodes/Sources.vue \
+            resources/js/localization/messages/platform/en.ts
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git commit -m 'Reconcile Gift Code hardening quality gates'
+          git push origin HEAD:gift-code-source-acquisition-hardening
