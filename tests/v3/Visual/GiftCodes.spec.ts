@@ -1,9 +1,13 @@
 import { expect, test } from '@playwright/test';
-import type { Page } from '@playwright/test';
+import type { Browser, Page } from '@playwright/test';
 
 async function loginWithGovernor(page: Page): Promise<void> {
+  await loginWithGovernorEmail(page, 'gift-code-catalogue-visual@example.test');
+}
+
+async function loginWithGovernorEmail(page: Page, email: string): Promise<void> {
   await page.goto('/login');
-  await page.locator('#email').fill('gift-code-catalogue-visual@example.test');
+  await page.locator('#email').fill(email);
   await page.locator('#password').fill('password');
   await page.locator('button[type="submit"]').click();
   await page.waitForURL('**/dashboard');
@@ -26,6 +30,36 @@ async function loginForModeration(page: Page): Promise<void> {
   await page.locator('#password').fill('password');
   await page.locator('button[type="submit"]').click();
   await page.waitForURL('**/dashboard');
+}
+
+async function openModerationDetail(page: Page, giftCodeId: string): Promise<void> {
+  await page.goto(`/platform/gift-codes?gift_code=${giftCodeId}`);
+  if (/confirm-password/.test(page.url())) {
+    await page.locator('#password').fill('password');
+    await page.locator('button[type="submit"]').click();
+    await page.waitForURL(`**/platform/gift-codes?gift_code=${giftCodeId}`);
+  }
+  await page.waitForLoadState('networkidle');
+  await expect(page.getByRole('heading', { name: 'Gift Code review', level: 1 })).toBeVisible();
+}
+
+async function quarantineGiftCode(browser: Browser, giftCodeId: string): Promise<void> {
+  const adminContext = await browser.newContext({
+    baseURL: process.env.PLAYWRIGHT_BASE_URL ?? 'http://127.0.0.1:8000',
+  });
+  const adminPage = await adminContext.newPage();
+
+  try {
+    await loginForModeration(adminPage);
+    await openModerationDetail(adminPage, giftCodeId);
+    await adminPage.getByLabel('Moderation action').selectOption('quarantine');
+    await adminPage.getByLabel('Required reason').fill('Visual trust-transition acceptance check');
+    await adminPage.getByRole('button', { name: 'Record decision' }).click();
+    await adminPage.waitForLoadState('networkidle');
+    await expect(adminPage.getByText('Gift Code moderation decision recorded.')).toBeVisible();
+  } finally {
+    await adminContext.close();
+  }
 }
 
 test('Gift Code catalogue and guided Governor handoff work without desktop or mobile overflow', async ({
@@ -126,6 +160,40 @@ test('Gift Code redemption workspace creates, resumes, skips and records a multi
     () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
   );
   expect(overflow).toBeFalsy();
+});
+
+test('Gift Code redemption workspace invalidates an active run when canonical trust changes', async ({
+  page,
+  browser,
+}, testInfo) => {
+  const project = testInfo.project.name.toLowerCase();
+  const suffix = project.toUpperCase();
+  const code = `VISUAL-GIFT-TRUST-${suffix}`;
+
+  await loginWithGovernorEmail(page, `gift-code-trust-${project}-visual@example.test`);
+  await page.goto('/gift-codes/workspace');
+  await page.waitForLoadState('networkidle');
+
+  const codeChoice = page.locator('label').filter({ hasText: code }).locator('input[type="checkbox"]');
+  await expect(codeChoice).toHaveCount(1);
+  const giftCodeId = await codeChoice.getAttribute('value');
+  expect(giftCodeId).toBeTruthy();
+  await codeChoice.check();
+  await page.getByRole('button', { name: 'Redeem selected' }).click();
+  await page.waitForLoadState('networkidle');
+
+  await expect(page.getByText('Current redemption run')).toBeVisible();
+  await expect(page.getByText(code, { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Prepare official handoff' })).toBeVisible();
+  const sessionUrl = page.url();
+  expect(sessionUrl).toContain('session=');
+
+  await quarantineGiftCode(browser, giftCodeId as string);
+
+  await page.goto(sessionUrl);
+  await page.waitForLoadState('networkidle');
+  await expect(page.getByText('This redemption run is complete.')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Prepare official handoff' })).toHaveCount(0);
 });
 
 test('Gift Code moderation exposes governed queues and installed source adapters', async ({ page }) => {
