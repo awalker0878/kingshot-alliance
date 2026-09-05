@@ -8,10 +8,15 @@ use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
 use App\Contexts\GameWorld\GiftCodes\Actions\ManageGiftCodeCuratorGrant;
 use App\Contexts\GameWorld\GiftCodes\Adapters\CenturyGamesKingshotNewsRssGiftCodeSourceAdapter;
+use App\Contexts\GameWorld\GiftCodes\Adapters\DiscordChannelGiftCodeSourceAdapter;
+use App\Contexts\GameWorld\GiftCodes\Adapters\FacebookPageGiftCodeSourceAdapter;
+use App\Contexts\GameWorld\GiftCodes\Adapters\InstagramMediaGiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Adapters\JsonFeedGiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Adapters\OfficialXGiftCodeSourceAdapter;
+use App\Contexts\GameWorld\GiftCodes\Adapters\RedditSubredditGiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Adapters\RssAtomGiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Adapters\StructuredHtmlGiftCodeSourceAdapter;
+use App\Contexts\GameWorld\GiftCodes\Adapters\YouTubeChannelGiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeStatus;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCode;
 use App\Contexts\Platform\Administration\Actions\ManagePlatformAdministrator;
@@ -64,12 +69,17 @@ final class GiftCodeModerationHttpV3Test extends TestCase
             ->assertInertia(static fn (Assert $page): Assert => $page
                 ->component('Platform/GiftCodes/Review')
                 ->where('canManagePlatformPolicy', true)
-                ->has('adapterKeys', 5)
+                ->has('adapterKeys', 10)
                 ->where('adapterKeys.0', JsonFeedGiftCodeSourceAdapter::KEY)
                 ->where('adapterKeys.1', RssAtomGiftCodeSourceAdapter::KEY)
                 ->where('adapterKeys.2', StructuredHtmlGiftCodeSourceAdapter::KEY)
                 ->where('adapterKeys.3', OfficialXGiftCodeSourceAdapter::KEY)
-                ->where('adapterKeys.4', CenturyGamesKingshotNewsRssGiftCodeSourceAdapter::KEY));
+                ->where('adapterKeys.4', CenturyGamesKingshotNewsRssGiftCodeSourceAdapter::KEY)
+                ->where('adapterKeys.5', DiscordChannelGiftCodeSourceAdapter::KEY)
+                ->where('adapterKeys.6', YouTubeChannelGiftCodeSourceAdapter::KEY)
+                ->where('adapterKeys.7', RedditSubredditGiftCodeSourceAdapter::KEY)
+                ->where('adapterKeys.8', FacebookPageGiftCodeSourceAdapter::KEY)
+                ->where('adapterKeys.9', InstagramMediaGiftCodeSourceAdapter::KEY));
 
         foreach ([
             [JsonFeedGiftCodeSourceAdapter::KEY, 'http-json-feed', '/gift-codes.json', 'approved_json_feed'],

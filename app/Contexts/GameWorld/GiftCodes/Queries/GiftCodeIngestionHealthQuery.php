@@ -38,6 +38,7 @@ final class GiftCodeIngestionHealthQuery
                     'completedAt' => $run->completed_at?->toIso8601String(),
                 ];
             }
+            $policy = $source->provenance_policy ?? [];
             $result[] = [
                 'id' => (string) $source->id,
                 'key' => $source->source_key,
@@ -45,6 +46,7 @@ final class GiftCodeIngestionHealthQuery
                 'classification' => $source->classification,
                 'canonicalDomain' => $source->canonical_domain,
                 'adapterKey' => $source->adapter_key,
+                'manualEvidenceAllowed' => ($policy['manual_evidence_allowed'] ?? false) === true,
                 'active' => $source->is_active && $source->revoked_at === null,
                 'ingestionEnabled' => $source->ingestion_enabled,
                 'lastAttemptAt' => $source->last_ingestion_attempt_at?->toIso8601String(),

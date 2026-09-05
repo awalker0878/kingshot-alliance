@@ -8,7 +8,9 @@ Gift Codes are owned by `GameWorld/GiftCodes`. Global catalogue truth, account-p
 
 `gift_codes` is a derived catalogue projection. Raw source labels, URLs, authority claims, expiry claims, reward claims and applicability claims live in append-only `gift_code_provenances`. Ordinary account submissions may use only `manual` or `community`; both create unverified community evidence and cannot claim official authority.
 
-Approved sources are platform-owned records with a canonical domain, classification, verification method, policy revision, ingestion eligibility and optional installed adapter key. A registered source observation is verified only when its current policy permits automatic verification and the adapter reports that verification passed. Domain mismatch is rejected, failed policy is quarantined, and source revocation schedules bounded re-reconciliation without rewriting evidence.
+Approved sources are platform-owned records with a canonical domain, classification, verification method, policy revision, ingestion eligibility and optional installed adapter key. A registered automated observation is verified only when its current policy permits automatic verification and the adapter reports that verification passed. Domain mismatch is rejected, failed policy is quarantined, and source revocation schedules bounded re-reconciliation without rewriting evidence.
+
+A reviewed registered source that has no legitimate machine interface may instead use `RecordRegisteredGiftCodeEvidence` when source policy explicitly allows manual registered evidence and forbids automatic verification. That action preserves the registered source id and exact canonical-domain publication URL. Independent manual evidence still counts by distinct registered source identity, so repeated pages from one publisher cannot satisfy the independent corroboration threshold alone.
 
 The canonical resolver produces `pending`, `valid`, `invalid`, `expired`, `disputed`, or `quarantined` with a stable reason code and supporting evidence IDs. Every material trust transition increments `status_revision`; every accepted expiry change increments `expires_revision`. Conflicting qualified expiry claims remain disputed until an authorized moderation decision resolves them. There is no legacy resolver, shadow mode, backfill path or compatibility API.
 
@@ -20,7 +22,21 @@ Reward and applicability projections are separate derived facts. They are publis
 
 Bulk moderation is limited to 50 Gift Codes, previews eligibility before confirmation, reauthorizes every item and reports partial failures. Only MFA-protected Platform Administrators can register/revise/revoke approved sources or grant/revoke the narrower Gift Code curator role. Alliance R4/R5 authority does not grant either capability.
 
-The research-backed source catalogue is deliberately separate from the approved-source registry. `GiftCodeResearchedSourceCatalogue` records staged candidates and intended transports only. A catalogue entry never creates a `GiftCodeSourceRegistry` row, grants `official` classification, enables `auto_verify`, or enables ingestion. Those remain explicit Platform Administrator source-policy decisions.
+`/platform/gift-codes/sources` is the full researched-source management surface. It displays the research catalogue, installed adapters, source health, platform/provider policy fields and registered-source manual-evidence controls. The richer source-policy endpoint is separate from the existing generic-source form so the original moderation workflow remains valid.
+
+`GiftCodeResearchedSourceCatalogue` remains deliberately separate from the approved-source registry. A catalogue row never creates a `GiftCodeSourceRegistry`, grants `official`, enables `auto_verify`, or enables ingestion. Those remain explicit Platform Administrator decisions after real external identity, permission and credential checks.
+
+## Researched source rollout
+
+The 2026-09-05 source research is implemented as a legitimate-path matrix rather than a promise to scrape every site:
+
+- Stage 0 Century Games cooperative acquisition continues through signed webhook and generic structured JSON/RSS transports after provider cooperation.
+- Stage 1 installs the official X and permission-gated Century Games news adapters.
+- Stage 2 installs a legitimate Discord bot/channel adapter. The Official Wiki uses registered manual evidence unless a documented structured feed/markup contract is offered, at which point the existing generic structured adapters can be used.
+- Stage 3 Kingshot.net, Kingshot Optimizer, Kingshot Mastery, Kingshot Atlas and each selected editorial publisher use distinct registered-source manual evidence until a documented machine contract exists.
+- Stage 4 installs gated Facebook, Instagram, Reddit and YouTube platform adapters, with registered manual evidence as the fallback when legitimate API access is unavailable.
+
+Research implementation completion is not production activation. External sources remain disabled until an operator confirms real source/account/channel identity, required platform/provider permission and server-side credentials, then explicitly enables the registered source.
 
 ## Guided Governor redemption
 
@@ -50,7 +66,7 @@ Alliance Gift Code coverage requires the explicit `gift_codes.coverage` permissi
 
 Alliance coverage never grants platform Gift Code moderation, curator or approved-source administration authority.
 
-Contributor projections are derived from community submission history and moderation outcomes. They can support prioritization and abuse controls, but cannot convert community/manual evidence into registered-source or official authority.
+Contributor projections are derived from community submission history and moderation outcomes. They can support prioritization and abuse controls, but cannot convert community/manual account submissions into registered-source or official authority.
 
 ## Notifications and operations
 
@@ -66,19 +82,24 @@ Workspace operations are scheduled independently of catalogue maintenance: due p
 
 The installed pull-adapter set is:
 
-- `json-feed-v1` — a bounded HTTPS JSON document with explicit observation fields;
-- `rss-atom-v1` — bounded RSS or Atom XML containing explicit direct-child Gift Code elements; it does not infer codes from titles, descriptions or nested content markup;
-- `structured-html-v1` — bounded approved HTML containing explicit machine-readable `data-gift-code*` attributes; it does not scrape arbitrary prose;
-- `x-api-v2-kingshot-v1` — the documented X API v2 user-post timeline for a separately confirmed official account, with author-identity verification and an explicit `Gift Code:`/`Redeem Code:` line grammar;
-- `century-games-kingshot-news-rss-v1` — a Century Games provider-permission-gated RSS/Atom parser requiring an agreed Gift Code category plus an explicit Gift Code label contract.
+- `json-feed-v1` — bounded HTTPS JSON with explicit observation fields;
+- `rss-atom-v1` — bounded RSS/Atom with explicit direct-child Gift Code elements, never prose inference;
+- `structured-html-v1` — bounded approved HTML with explicit `data-gift-code*` attributes, never arbitrary prose scraping;
+- `x-api-v2-kingshot-v1` — documented X user-post timeline with confirmed account identity and explicit Gift Code label grammar;
+- `century-games-kingshot-news-rss-v1` — provider-permission-gated Century Games RSS/Atom with agreed category and label contract;
+- `discord-channel-v1` — installed Discord bot scoped to approved guild/channel and author ids; self-bots are excluded;
+- `youtube-channel-v1` — YouTube Data API channel identity plus uploads-playlist acquisition;
+- `reddit-data-api-v1` — registered Reddit Data API discovery, forced independent and forbidden from auto-verifying;
+- `facebook-page-v1` — permission-gated Facebook Page identity/posts acquisition;
+- `instagram-media-v1` — permission-gated Instagram professional-account identity/media acquisition.
 
-The three generic document adapters are restricted to the registered public canonical hostname plus an absolute source `feed_path`, disable redirects, preserve source/retrieval/parser versions, create content fingerprints/raw-evidence references and feed the same `IngestApprovedGiftCodeObservation` action. Missing RSS/Atom or structured-HTML assertion metadata normalizes to canonical `available`. RSS/Atom parsing disables network XML access and rejects document type/entity declarations. Exceeding configured document or observation bounds is a reviewable parser failure rather than silent truncation.
+The generic document adapters are restricted to the registered public canonical hostname plus an absolute source `feed_path`, disable redirects, preserve source/retrieval/parser versions, create content fingerprints/raw-evidence references and feed the same `IngestApprovedGiftCodeObservation` action. RSS/Atom parsing disables network XML access and rejects document type/entity declarations. Exceeding configured document or observation bounds is a reviewable parser failure rather than silent truncation.
 
-The provider-specific Stage 1 adapters use fixed documented/provider-agreed endpoints rather than arbitrary URL policy. X credentials are server-side configuration only; source policy holds the confirmed X user id and username. Century Games Kingshot-news ingestion cannot be enabled until source policy records confirmed provider permission, an approved feed path and the agreed Gift Code category. Both adapters still feed the canonical ingestion action, and `verificationPassed` is not sufficient for verified evidence unless source policy separately enables `auto_verify`.
+Provider/platform credentials are application configuration, never source-row secrets. Source policy records only confirmed identities, scopes and permission decisions. External integrations fail closed when required credentials or permission confirmations are missing.
+
+`RecordRegisteredGiftCodeEvidence` is the explicit non-scraping path for reviewed sources without a machine interface. It requires `manual_evidence_allowed=true`, `auto_verify=false`, MFA-backed curator authority, and an exact HTTPS URL on the registered canonical domain. Independent evidence continues to use distinct registered source ids for threshold counting.
 
 When `gift_codes.source_webhook_ingestion` is enabled, a registered source may use the signed internal source webhook transport. Signature verification, timestamp/replay protection, batch bounds and active source policy are enforced before the payload enters the same approved-source observation action used by scheduled adapters. The webhook transport does not create a new evidence/trust path.
-
-The researched rollout is staged separately from installed transport availability: Stage 0 prioritizes cooperative Century Games webhook/JSON/RSS; Stage 1 installs official X and permission-gated Century Games news adapters; Stage 2 holds Official Wiki structured feeds and legitimate Discord bots for later provider/platform work; Stage 3 keeps Kingshot.net, Optimizer, Mastery, Atlas and separately registered editorial publishers as independent corroboration; Stage 4 reserves Facebook, Instagram, Reddit and YouTube for documented platform-dependent redundancy/discovery. Catalogue presence alone never changes source authority.
 
 Generic prose scraping, Gift Code Center reverse engineering, Discord self-bots/user-token automation, undocumented provider automation and shared editorial source identities that could defeat the independent-source threshold are excluded.
 
@@ -96,6 +117,6 @@ Public global events remain `gift_code.created`, `gift_code.provenance_added`, `
 
 Operationally separable workspace controls are `gift_codes.redemption_workspace`, `gift_codes.redemption_intelligence`, `gift_codes.alliance_coverage`, `gift_codes.contributor_reputation`, and `gift_codes.source_webhook_ingestion`. These flags do not select alternative trust/resolver semantics and cannot bypass canonical authorization/evidence paths.
 
-The Gift Code Redemption Workspace & Personalization capability remains current complete. The researched-source rollout extends approved-source acquisition without changing catalogue trust semantics or claiming that research candidates are approved sources.
+The Gift Code Redemption Workspace & Personalization capability and researched-source rollout are current complete repository capabilities. External source activation remains an operational approval/credential task rather than incomplete application implementation.
 
 See [ADR-0004](../architecture/adr/0004-gift-code-trust-from-append-only-evidence.md), the [trust/discovery extension closeout](../product/gift-code-extension-program.md), the [Researched Source Rollout](../product/gift-code-researched-source-rollout.md), the [Redemption Workspace & Personalization contract](../product/gift-code-redemption-workspace.md), its [acceptance matrix](../product/gift-code-redemption-workspace-acceptance.md), its [delivery ledger](../product/gift-code-redemption-workspace-delivery-ledger.md), [API reference](api/README.md), and [event catalogue](events.md).
