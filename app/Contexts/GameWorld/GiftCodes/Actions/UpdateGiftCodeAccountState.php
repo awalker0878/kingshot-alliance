@@ -31,7 +31,13 @@ final readonly class UpdateGiftCodeAccountState
         }
         GiftCode::query()->findOrFail($giftCodeId);
 
-        $now = CarbonImmutable::now('UTC');
+        // The canonical schema stores these timestamps at second precision. Normalize
+        // before validation, persistence and audit metadata so the application contract
+        // does not expose microseconds that cannot survive a database round trip.
+        $now = CarbonImmutable::now('UTC')->startOfSecond();
+        $snoozedUntil = $snoozedUntil?->startOfSecond();
+        $remindAt = $remindAt?->startOfSecond();
+
         if ($state === GiftCodeAccountStateStatus::Snoozed) {
             if ($snoozedUntil === null || ! $snoozedUntil->isAfter($now)) {
                 throw ValidationException::withMessages(['snoozed_until' => 'A future snooze time is required.']);
