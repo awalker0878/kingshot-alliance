@@ -64,7 +64,7 @@ final class StructuredHtmlGiftCodeSourceAdapter implements GiftCodeSourceAdapter
                 throw new UnexpectedValueException(sprintf('HTML Gift Code item %d must be an element.', $position + 1));
             }
             $code = $this->requiredAttribute($item, 'data-gift-code', $position + 1, 64);
-            $assertion = $this->optionalAttribute($item, 'data-gift-code-assertion', 48) ?? 'valid';
+            $assertion = $this->optionalAttribute($item, 'data-gift-code-assertion', 48) ?? 'available';
             $sourceUrl = $this->optionalAttribute($item, 'data-gift-code-source-url', 2048) ?? $url;
             $payload = $this->payload($item, $position + 1);
             $serialized = $document->saveHTML($item);
