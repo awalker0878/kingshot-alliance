@@ -53,7 +53,7 @@ final class GiftCodeAllianceCoverageV3Test extends TestCase
             AllianceRank::R5,
             AlliancePermission::GiftCodeCoverage,
         ));
-        self::assertTrue($authorization->allows(
+        self::assertFalse($authorization->allows(
             $owner->playerId,
             $alliance->allianceId,
             AlliancePermission::GiftCodeCoverage,
@@ -64,6 +64,8 @@ final class GiftCodeAllianceCoverageV3Test extends TestCase
             AlliancePermission::GiftCodeCoverage,
         ));
 
+        // R5 can manage specialist roles, but coverage authority exists only after
+        // the explicit Gift Code Coordinator role is delegated to a membership.
         app(AssignMembershipRole::class)->handle(
             $alliance->allianceId,
             $owner->playerId,
@@ -72,6 +74,11 @@ final class GiftCodeAllianceCoverageV3Test extends TestCase
         );
         self::assertTrue($authorization->allows(
             $member->playerId,
+            $alliance->allianceId,
+            AlliancePermission::GiftCodeCoverage,
+        ));
+        self::assertFalse($authorization->allows(
+            $owner->playerId,
             $alliance->allianceId,
             AlliancePermission::GiftCodeCoverage,
         ));
