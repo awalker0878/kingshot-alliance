@@ -74,7 +74,9 @@ final class GiftCodeWorkspaceController extends Controller
 
         $session = $this->sessionForAccount($userId, $validated['session'] ?? null);
         if ($session instanceof GiftCodeRedemptionSession && $session->status === GiftCodeRedemptionSessionStatus::Active) {
-            $session = $reconcile->handle($actor, (string) $session->id);
+            $sessionId = (string) $session->id;
+            $reconcile->handle($actor, $sessionId);
+            $session = $this->sessionForAccount($userId, $sessionId);
         }
         $signal = null;
         if ($session instanceof GiftCodeRedemptionSession) {
@@ -124,15 +126,15 @@ final class GiftCodeWorkspaceController extends Controller
             'player_ids' => ['sometimes', 'array', 'max:50'],
             'player_ids.*' => ['string', 'ulid', 'distinct'],
         ]);
-        $session = $create->handle(
+        $reference = $create->handle(
             $this->actor($request),
             GiftCodeRedemptionSessionMode::from($validated['mode']),
             array_values($validated['gift_code_ids'] ?? []),
             array_values($validated['player_ids'] ?? []),
         );
 
-        return redirect('/gift-codes/workspace?session='.$session->id)
-            ->with('actionReceipt', $this->receipt('gift-code-session-created', ['count' => $session->total_items]));
+        return redirect('/gift-codes/workspace?session='.$reference->sessionId)
+            ->with('actionReceipt', $this->receipt('gift-code-session-created', ['count' => $reference->totalItems]));
     }
 
     public function updateState(Request $request, string $giftCode, UpdateGiftCodeAccountState $update): RedirectResponse
@@ -142,16 +144,17 @@ final class GiftCodeWorkspaceController extends Controller
             'snoozed_until' => ['nullable', 'date'],
             'remind_at' => ['nullable', 'date'],
         ]);
-        $state = $update->handle(
+        $state = GiftCodeAccountStateStatus::from($validated['state']);
+        $update->handle(
             $this->actor($request),
             $giftCode,
-            GiftCodeAccountStateStatus::from($validated['state']),
+            $state,
             isset($validated['snoozed_until']) ? CarbonImmutable::parse($validated['snoozed_until']) : null,
             isset($validated['remind_at']) ? CarbonImmutable::parse($validated['remind_at']) : null,
         );
 
         return back()->with('actionReceipt', $this->receipt('gift-code-personal-state-updated', [
-            'state' => $state->state->value,
+            'state' => $state->value,
         ]));
     }
 
