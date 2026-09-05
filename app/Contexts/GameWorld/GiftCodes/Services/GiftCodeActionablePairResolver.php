@@ -16,6 +16,19 @@ final class GiftCodeActionablePairResolver
 {
     public function resolve(GiftCode $giftCode, PlayerReference $player): GiftCodeActionablePairDecision
     {
+        $redemption = GiftCodeRedemption::query()
+            ->where('gift_code_id', $giftCode->id)
+            ->where('player_id', $player->playerId)
+            ->first();
+
+        return $this->resolveWithRedemption($giftCode, $player, $redemption);
+    }
+
+    public function resolveWithRedemption(
+        GiftCode $giftCode,
+        PlayerReference $player,
+        ?GiftCodeRedemption $redemption,
+    ): GiftCodeActionablePairDecision {
         if ($giftCode->status !== GiftCodeStatus::Valid) {
             return GiftCodeActionablePairDecision::unavailable('trust_not_valid');
         }
@@ -26,10 +39,6 @@ final class GiftCodeActionablePairResolver
             return GiftCodeActionablePairDecision::unavailable('missing_game_player_id');
         }
 
-        $redemption = GiftCodeRedemption::query()
-            ->where('gift_code_id', $giftCode->id)
-            ->where('player_id', $player->playerId)
-            ->first();
         if ($redemption instanceof GiftCodeRedemption) {
             if ($redemption->status->successful()) {
                 return GiftCodeActionablePairDecision::unavailable('already_redeemed');
