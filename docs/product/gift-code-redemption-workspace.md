@@ -1,7 +1,8 @@
 # Gift Code Redemption Workspace & Personalization
 
-Status: **Reopened — candidate adapter closeout correction**
+Status: **Current complete capability**
 Baseline: `main` at `2c4d3ae8b296f81b77e1a92cf8b5edaba1f231f9`
+Verified candidate-adapter correction: `610082b9cbf663e3eb6bd0c14dbe3cdba1d2b086`
 Deployment model: **fresh-schema deployment**
 Owner context: `GameWorld/GiftCodes`
 
@@ -101,13 +102,13 @@ Qualified reward evidence may be rendered through structured item types such as 
 The candidate approved-source set is explicit and finite:
 
 - `json-feed-v1` — generic bounded JSON pull ingestion;
-- `rss-atom-v1` — bounded RSS/Atom pull ingestion using explicit Gift Code elements;
+- `rss-atom-v1` — bounded RSS/Atom pull ingestion using explicit direct-child Gift Code elements;
 - `structured-html-v1` — bounded approved HTML extraction using explicit machine-readable `data-gift-code*` attributes, never prose inference;
 - signed internal source webhook ingestion — push transport protected by source policy, signature, timestamp and replay controls.
 
-All modes reuse the approved source registry and `IngestApprovedGiftCodeObservation` path. Pull adapters are restricted to a configured public canonical hostname and absolute source path, do not follow redirects, enforce document/observation bounds, fingerprint raw observations and preserve source/retrieval/parser versions. Parser/source-policy failures enter the existing quarantine/review path. A source or webhook does not become authoritative merely because ingestion succeeds; canonical trust still depends on qualified evidence and current source policy.
+All modes reuse the approved source registry and `IngestApprovedGiftCodeObservation` path. Pull adapters are restricted to a configured public canonical hostname and absolute source path, do not follow redirects, enforce document/observation bounds, fingerprint raw observations and preserve source/retrieval/parser versions. Missing RSS/Atom or structured-HTML assertion metadata normalizes to the canonical `available` assertion. Parser/source-policy failures enter the existing quarantine/review path. A source or webhook does not become authoritative merely because ingestion succeeds; canonical trust still depends on qualified evidence and current source policy.
 
-The post-merge audit of PR #145 found that JSON and webhook ingestion were present while RSS/Atom and structured HTML were absent. The capability remains reopened until the missing candidate adapters pass the repository acceptance gates and the delivery ledger is reclosed.
+The post-merge audit of PR #145 found that JSON and webhook ingestion were present while RSS/Atom and structured HTML were absent. The correction adds both production pull adapters and end-to-end acceptance coverage through the canonical approved-source ingestion runner.
 
 ## Alliance coverage
 
@@ -146,6 +147,6 @@ Canonical authorization, session invariants and trust/evidence integration are n
 
 ## Delivery closeout
 
-The authoritative acceptance matrix is `gift-code-redemption-workspace-acceptance.md`; the delivery ledger is `gift-code-redemption-workspace-delivery-ledger.md`.
+The authoritative acceptance matrix is `gift-code-redemption-workspace-acceptance.md`; the closed delivery ledger is `gift-code-redemption-workspace-delivery-ledger.md`.
 
-The prior closeout has been reopened because its candidate-adapter claim exceeded the implemented pull adapters. Reclose only when the four documented ingestion modes are present, their adapter/source-policy tests pass, the documentation matches code, and all required repository workflows are green on the final correction head.
+Candidate-adapter correction `610082b9cbf663e3eb6bd0c14dbe3cdba1d2b086` passed CI, Architecture V3 Verification, Intelligence Verification, Visual Regression, CodeQL and Dependency Review. `King Perks Verification` is path-filtered and did not trigger because this correction changes no King Perks-owned path. The four documented ingestion modes are implemented and the capability is current product truth.
