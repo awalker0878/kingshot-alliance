@@ -70,9 +70,12 @@ Route::middleware(['auth', 'auth.session', 'verified', 'gift-code.curator', 'pas
             ->name('bulk');
         Route::get('/sources', [GiftCodeSourceManagementController::class, 'index'])
             ->name('sources.index');
-        Route::post('/sources', [GiftCodeSourceManagementController::class, 'store'])
+        Route::post('/sources', [GiftCodeModerationController::class, 'storeSource'])
             ->middleware('throttle:10,1')
             ->name('sources.store');
+        Route::post('/sources/policy', [GiftCodeSourceManagementController::class, 'store'])
+            ->middleware('throttle:10,1')
+            ->name('sources.policy');
         Route::post('/sources/evidence', [GiftCodeSourceManagementController::class, 'evidence'])
             ->middleware('throttle:20,1')
             ->name('sources.evidence');
