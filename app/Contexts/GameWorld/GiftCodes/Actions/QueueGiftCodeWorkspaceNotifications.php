@@ -11,14 +11,32 @@ use App\Contexts\GameWorld\GiftCodes\Models\GiftCode;
 use App\Contexts\GameWorld\GiftCodes\Queries\GiftCodeWorkspaceQuery;
 use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\Cache;
 
 final readonly class QueueGiftCodeWorkspaceNotifications
 {
+    private const CURSOR_KEY = 'gift-codes:workspace-notifications:user-cursor';
+
     public function __construct(
         private PlayerReferenceQuery $players,
         private GiftCodeWorkspaceQuery $workspace,
         private NotificationDeliveryService $deliveries,
     ) {}
+
+    /** @return array{examined:int,queued:int,nextCursor:?int} */
+    public function cycle(int $limit = 100): array
+    {
+        $cursor = Cache::get(self::CURSOR_KEY);
+        $afterUserId = is_int($cursor) ? $cursor : (is_numeric($cursor) ? (int) $cursor : null);
+        $result = $this->handle($limit, $afterUserId);
+        if ($result['nextCursor'] === null) {
+            Cache::forget(self::CURSOR_KEY);
+        } else {
+            Cache::forever(self::CURSOR_KEY, $result['nextCursor']);
+        }
+
+        return $result;
+    }
 
     /** @return array{examined:int,queued:int,nextCursor:?int} */
     public function handle(int $limit = 100, ?int $afterUserId = null): array
