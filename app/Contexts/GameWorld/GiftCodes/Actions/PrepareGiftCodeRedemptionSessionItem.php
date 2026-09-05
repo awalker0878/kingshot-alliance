@@ -49,11 +49,13 @@ final readonly class PrepareGiftCodeRedemptionSessionItem
 
         $player = $this->players->findOwnedByUser($userId, $item->player_id);
         if ($player === null) {
-            return $this->markUnavailable($item, 'governor_unavailable');
+            return $this->mark($item, GiftCodeRedemptionSessionItemState::Unavailable, 'governor_unavailable');
         }
         $decision = $this->pairs->resolve($item->giftCode, $player);
         if (! $decision->actionable) {
-            return $this->markUnavailable($item, $decision->reason);
+            return $decision->reason === 'retry_not_due'
+                ? $this->mark($item, GiftCodeRedemptionSessionItemState::RetryWait, null)
+                : $this->mark($item, GiftCodeRedemptionSessionItemState::Unavailable, $decision->reason);
         }
 
         $result = $this->prepare->handle($actor, $item->gift_code_id, [$item->player_id]);
@@ -65,25 +67,23 @@ final readonly class PrepareGiftCodeRedemptionSessionItem
             default => GiftCodeRedemptionSessionItemState::Unavailable,
         };
 
-        DB::transaction(function () use ($item, $state, $first): void {
-            $locked = GiftCodeRedemptionSessionItem::query()->whereKey($item->id)->lockForUpdate()->firstOrFail();
-            $locked->state = $state;
-            $locked->unavailable_reason = $state === GiftCodeRedemptionSessionItemState::Unavailable ? $first->code : null;
-            $locked->completed_at = $state->terminal() ? CarbonImmutable::now('UTC') : null;
-            $locked->save();
-            $this->progress->refresh(GiftCodeRedemptionSession::query()->findOrFail($locked->session_id));
-        });
-
-        return GiftCodeRedemptionSessionItem::query()->with(['session', 'giftCode'])->findOrFail($item->id);
+        return $this->mark(
+            $item,
+            $state,
+            $state === GiftCodeRedemptionSessionItemState::Unavailable ? $first->code : null,
+        );
     }
 
-    private function markUnavailable(GiftCodeRedemptionSessionItem $item, string $reason): GiftCodeRedemptionSessionItem
-    {
-        DB::transaction(function () use ($item, $reason): void {
+    private function mark(
+        GiftCodeRedemptionSessionItem $item,
+        GiftCodeRedemptionSessionItemState $state,
+        ?string $reason,
+    ): GiftCodeRedemptionSessionItem {
+        DB::transaction(function () use ($item, $state, $reason): void {
             $locked = GiftCodeRedemptionSessionItem::query()->whereKey($item->id)->lockForUpdate()->firstOrFail();
-            $locked->state = GiftCodeRedemptionSessionItemState::Unavailable;
+            $locked->state = $state;
             $locked->unavailable_reason = $reason;
-            $locked->completed_at = CarbonImmutable::now('UTC');
+            $locked->completed_at = $state->terminal() ? CarbonImmutable::now('UTC') : null;
             $locked->save();
             $this->progress->refresh(GiftCodeRedemptionSession::query()->findOrFail($locked->session_id));
         });
