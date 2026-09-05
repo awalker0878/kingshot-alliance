@@ -10,10 +10,8 @@ use App\Contexts\Communications\Delivery\Actions\BuildNotificationDigestDispatch
 use App\Contexts\Communications\Delivery\Actions\ProcessNotificationDeliveries;
 use App\Contexts\Communications\Delivery\Actions\ProcessNotificationDigests;
 use App\Contexts\GameWorld\GiftCodes\Actions\ExpireGiftCodes;
-use App\Contexts\GameWorld\GiftCodes\Actions\QueueDueGiftCodeReminders;
 use App\Contexts\GameWorld\GiftCodes\Actions\QueueGiftCodeExpiryNotifications;
 use App\Contexts\GameWorld\GiftCodes\Actions\QueueGiftCodeTransitionNotifications;
-use App\Contexts\GameWorld\GiftCodes\Actions\QueueGiftCodeWorkspaceNotifications;
 use App\Contexts\GameWorld\GiftCodes\Actions\ReconcileGiftCodeSourcePolicyChanges;
 use App\Contexts\GameWorld\GiftCodes\Actions\RunApprovedGiftCodeSourceIngestion;
 use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
@@ -319,8 +317,6 @@ Artisan::command('gift-codes:maintain {--limit=100} {--after=} {--cycle}', funct
     ExpireGiftCodes $expire,
     QueueGiftCodeExpiryNotifications $expiryNotifications,
     QueueGiftCodeTransitionNotifications $transitionNotifications,
-    QueueDueGiftCodeReminders $workspaceReminders,
-    QueueGiftCodeWorkspaceNotifications $workspaceNotifications,
 ): int {
     $limit = max(1, min(500, (int) $this->option('limit')));
     $afterValue = $this->option('after');
@@ -345,10 +341,6 @@ Artisan::command('gift-codes:maintain {--limit=100} {--after=} {--cycle}', funct
         }
         $transitionRuns[] = $transition->toArray();
     }
-    $remindersQueued = $workspaceReminders->handle($limit);
-    $workspace = $cycle
-        ? $workspaceNotifications->cycle($limit)
-        : $workspaceNotifications->handle($limit);
     if ($cycle) {
         if ($expiry->nextCursor === null) {
             Cache::forget($cursorKey);
@@ -363,12 +355,10 @@ Artisan::command('gift-codes:maintain {--limit=100} {--after=} {--cycle}', funct
             'campaignsProcessed' => count($transitionRuns),
             'runs' => $transitionRuns,
         ],
-        'workspaceRemindersQueued' => $remindersQueued,
-        'workspaceNotifications' => $workspace,
     ], JSON_THROW_ON_ERROR));
 
     return 0;
-})->purpose('Reconcile Gift Code lifecycle and queue bounded idempotent catalogue/workspace notifications');
+})->purpose('Reconcile Gift Code lifecycle and queue bounded idempotent notifications');
 
 Artisan::command(
     'gift-codes:ingest-approved-sources {--limit=10} {--after=} {--source=} {--cycle}',
