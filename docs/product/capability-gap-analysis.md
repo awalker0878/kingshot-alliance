@@ -228,3 +228,12 @@ The completed documentation outcome was:
 - this gap analysis using the three-state taxonomy;
 - global delivery-ledger rows for every extension phase;
 - user journeys for extension outcomes, with delivered journeys promoted as their implementation rows close.
+
+## Gift Code Redemption Workspace & Personalization
+
+The completed Gift Code foundation is extended with account-personal actionable state and persistent many-code/many-Governor redemption sessions. Session items are orchestration only: current Player ownership, canonical Gift Code trust/expiry, qualified applicability, terminal redemption state and retry timing are re-resolved server-side, while `gift_code_redemptions` remains the authoritative Governor outcome ledger. Pin/snooze/dismiss/reminder state never mutates global catalogue truth.
+
+Communications receives GiftCode-owned logical notification intent and retains endpoint, preference, quiet-hour, digest, provider retry and delivery ownership. Privacy-gated redemption signals remain observational and cannot establish canonical validity/applicability. Alliance coverage is aggregate and permission-gated; contributor projections cannot elevate community evidence to official authority. Signed source webhook ingestion feeds the same approved-source evidence path with replay protection and does not create a second trust path. The Century Games redemption centre remains the provider boundary; undocumented redemption automation remains out of scope.
+
+Canonical contract: [Gift Code Redemption Workspace & Personalization](gift-code-redemption-workspace.md), [acceptance matrix](gift-code-redemption-workspace-acceptance.md), and [delivery ledger](gift-code-redemption-workspace-delivery-ledger.md).
+

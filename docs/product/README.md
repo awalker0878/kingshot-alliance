@@ -47,3 +47,12 @@ Architecture is documented under [Architecture](../architecture/README.md); phys
 ## Product truth rule
 
 Describe implemented user outcomes in present tense. Approved but unimplemented work is described only in an explicit implementation contract and must be labelled **Selected extension** or **Evidence-gated extension** until its delivery-ledger exit criteria are satisfied. Do not preserve completed phase/DCP documentation as a second product model, and do not infer future roadmap from unused code or historical plans. Git history is the archive for retired program documents.
+
+### Gift Code Redemption Workspace & Personalization
+
+- [Product contract](gift-code-redemption-workspace.md)
+- [Acceptance matrix](gift-code-redemption-workspace-acceptance.md)
+- [Delivery ledger](gift-code-redemption-workspace-delivery-ledger.md)
+
+This fresh-schema extension adds personal actionable state, persistent many-code/many-Governor redemption runs, Communications-backed reminders, privacy-gated redemption signals, structured reward presentation, signed approved-source webhook ingestion, authorized aggregate Alliance coverage and derived contributor projections without weakening the existing Gift Code trust/evidence model.
+
