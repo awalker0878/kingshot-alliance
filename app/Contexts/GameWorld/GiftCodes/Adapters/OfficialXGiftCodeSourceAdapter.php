@@ -4,16 +4,20 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\GiftCodes\Adapters;
 
+use App\Contexts\GameWorld\GiftCodes\Adapters\Concerns\HandlesGiftCodeProviderResponses;
 use App\Contexts\GameWorld\GiftCodes\Contracts\GiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeSourceRegistry;
 use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeIngestionObservation;
 use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeIngestionPage;
+use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeSourceCheckpoint;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use UnexpectedValueException;
 
 final class OfficialXGiftCodeSourceAdapter implements GiftCodeSourceAdapter
 {
+    use HandlesGiftCodeProviderResponses;
+
     public const KEY = 'x-api-v2-kingshot-v1';
 
     public function key(): string
@@ -24,6 +28,9 @@ final class OfficialXGiftCodeSourceAdapter implements GiftCodeSourceAdapter
     public function acquire(GiftCodeSourceRegistry $source, ?string $cursor, int $limit): GiftCodeIngestionPage
     {
         $policy = $source->provenance_policy ?? [];
+        if (($policy['platform_api_access_confirmed'] ?? false) !== true) {
+            throw new UnexpectedValueException('The official X adapter requires confirmed X API access.');
+        }
         $userId = $this->requiredPolicyString($policy, 'x_user_id', 32);
         $username = $this->requiredPolicyString($policy, 'x_username', 30);
         $token = trim((string) config('game_world.gift_codes.x_bearer_token', ''));
@@ -40,9 +47,11 @@ final class OfficialXGiftCodeSourceAdapter implements GiftCodeSourceAdapter
         if ($token === '') {
             throw new UnexpectedValueException('The official X adapter requires a configured X API bearer token.');
         }
-        if ($cursor !== null && mb_strlen(trim($cursor)) > 2000) {
-            throw new UnexpectedValueException('The X API pagination cursor exceeded its maximum length.');
+        $cursor = $cursor === null ? null : trim($cursor);
+        if ($cursor !== null && $cursor !== '' && preg_match('/^[0-9]{1,32}$/D', $cursor) !== 1) {
+            throw new UnexpectedValueException('The X API cursor must be a post id high-water mark.');
         }
+        $cursor = $cursor === '' ? null : $cursor;
 
         $pageSize = max(5, min(100, $limit));
         $url = sprintf('https://api.x.com/2/users/%s/tweets', rawurlencode($userId));
@@ -55,12 +64,10 @@ final class OfficialXGiftCodeSourceAdapter implements GiftCodeSourceAdapter
                 'tweet.fields' => 'created_at,author_id',
                 'expansions' => 'author_id',
                 'user.fields' => 'username',
-                'pagination_token' => $cursor === null ? null : trim($cursor),
+                'since_id' => $cursor,
             ], static fn (mixed $value): bool => $value !== null && $value !== ''));
 
-        if (! $response->successful()) {
-            throw new \RuntimeException(sprintf('The X API returned HTTP %d.', $response->status()));
-        }
+        $this->assertGiftCodeProviderSuccess($response, 'The X API');
         if (! str_contains(mb_strtolower((string) $response->header('Content-Type')), 'json')) {
             throw new UnexpectedValueException('The X API did not return JSON content.');
         }
@@ -78,13 +85,15 @@ final class OfficialXGiftCodeSourceAdapter implements GiftCodeSourceAdapter
             $this->assertExpectedAccount($payload, $userId, $username);
         }
 
-        $retrievalVersion = $this->retrievalVersion($response);
+        $retrievalVersion = $this->giftCodeRetrievalVersion($response);
         $observations = [];
+        $highWater = $cursor;
         foreach ($posts as $position => $post) {
             if (! is_array($post)) {
                 throw new UnexpectedValueException(sprintf('X post %d must be an object.', $position + 1));
             }
             $postId = $this->requiredString($post['id'] ?? null, 'post id', $position + 1, 32);
+            $highWater = $this->greaterNumericId($highWater, $postId);
             $authorId = $this->requiredString($post['author_id'] ?? null, 'author id', $position + 1, 32);
             $text = $this->requiredString($post['text'] ?? null, 'text', $position + 1, 20_000);
             if (! hash_equals($userId, $authorId)) {
@@ -113,17 +122,21 @@ final class OfficialXGiftCodeSourceAdapter implements GiftCodeSourceAdapter
             }
         }
 
-        $meta = $payload['meta'] ?? null;
-        if ($meta === null) {
-            $nextCursor = null;
-        } else {
-            if (! is_array($meta)) {
-                throw new UnexpectedValueException('The X API response meta field must be an object.');
-            }
-            $nextCursor = $this->optionalString($meta['next_token'] ?? null, 2000);
-        }
+        $providerRequestId = $this->giftCodeProviderRequestId($response);
 
-        return new GiftCodeIngestionPage($observations, $nextCursor);
+        return new GiftCodeIngestionPage(
+            observations: $observations,
+            nextCursor: $highWater,
+            retrievalVersion: $retrievalVersion,
+            providerRequestId: $providerRequestId,
+            rateLimit: $this->giftCodeRateLimit($response),
+            checkpoint: new GiftCodeSourceCheckpoint(
+                cursor: $highWater,
+                retrievalVersion: $retrievalVersion,
+                providerRequestId: $providerRequestId,
+                providerState: ['post_high_water' => $highWater],
+            ),
+        );
     }
 
     /** @param array<string, mixed> $payload */
@@ -193,18 +206,6 @@ final class OfficialXGiftCodeSourceAdapter implements GiftCodeSourceAdapter
         return $value;
     }
 
-    private function retrievalVersion(Response $response): string
-    {
-        foreach (['ETag', 'Last-Modified'] as $header) {
-            $value = trim((string) $response->header($header));
-            if ($value !== '') {
-                return mb_substr($header.':'.$value, 0, 120);
-            }
-        }
-
-        return 'sha256:'.hash('sha256', $response->body());
-    }
-
     private function optionalString(mixed $value, int $maximum): ?string
     {
         if ($value === null) {
@@ -222,5 +223,17 @@ final class OfficialXGiftCodeSourceAdapter implements GiftCodeSourceAdapter
         }
 
         return $value;
+    }
+
+    private function greaterNumericId(?string $current, string $candidate): string
+    {
+        if ($current === null || strlen($candidate) > strlen($current)) {
+            return $candidate;
+        }
+        if (strlen($candidate) < strlen($current)) {
+            return $current;
+        }
+
+        return strcmp($candidate, $current) > 0 ? $candidate : $current;
     }
 }
