@@ -1,0 +1,45 @@
+name: Gift Code Receipt Patch
+
+on:
+  pull_request:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: gift-code-researched-source-rollout-completion
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Add receipt localization
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('resources/js/localization/messages/core/en.ts')
+          text = path.read_text()
+          anchor = "    'gift-code-source-saved': 'Approved Gift Code source policy saved.',\n"
+          addition = "    'gift-code-registered-evidence-recorded': 'Registered Gift Code source evidence recorded.',\n"
+          if addition not in text:
+              if anchor not in text:
+                  raise SystemExit('receipt anchor not found')
+              text = text.replace(anchor, addition + anchor, 1)
+              path.write_text(text)
+          PY
+          npx prettier --write resources/js/localization/messages/core/en.ts
+      - name: Commit receipt localization
+        run: |
+          if git diff --quiet -- resources/js/localization/messages/core/en.ts; then
+            exit 0
+          fi
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add resources/js/localization/messages/core/en.ts
+          git commit -m "Localize registered Gift Code evidence receipt"
+          git push origin HEAD:gift-code-researched-source-rollout-completion
