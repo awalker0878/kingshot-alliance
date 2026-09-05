@@ -62,6 +62,7 @@ const sourcePolicy = useForm({
     x_user_id: '',
     x_username: '',
     platform_permission_confirmed: false,
+    platform_api_access_confirmed: false,
     message_content_access_confirmed: false,
     discord_guild_id: '',
     discord_channel_id: '',
@@ -115,7 +116,7 @@ function saveSource(): void {
     .split(/[\s,]+/)
     .map((value) => value.trim())
     .filter(Boolean);
-  sourcePolicy.post('/platform/gift-codes/sources', {
+  sourcePolicy.post('/platform/gift-codes/sources/policy', {
     preserveScroll: true,
     onSuccess: () => {
       sourcePolicy.reset();
@@ -265,12 +266,12 @@ function recordEvidence(): void {
         <template v-if="selectedAdapter === 'youtube-channel-v1'">
           <label><span class="ks-kicker">YouTube channel ID</span><input v-model="sourcePolicy.provenance_policy.youtube_channel_id" class="ks-input mt-2 w-full" /></label>
           <label><span class="ks-kicker">YouTube channel title</span><input v-model="sourcePolicy.provenance_policy.youtube_channel_title" class="ks-input mt-2 w-full" /></label>
-          <label class="flex items-center gap-2 md:col-span-2"><input v-model="sourcePolicy.provenance_policy.platform_permission_confirmed" type="checkbox" /> YouTube Data API access confirmed</label>
+          <label class="flex items-center gap-2 md:col-span-2"><input v-model="sourcePolicy.provenance_policy.platform_api_access_confirmed" type="checkbox" /> YouTube Data API access confirmed</label>
         </template>
 
         <template v-if="selectedAdapter === 'reddit-data-api-v1'">
           <label><span class="ks-kicker">Subreddit</span><input v-model="sourcePolicy.provenance_policy.reddit_subreddit" class="ks-input mt-2 w-full" /></label>
-          <label class="flex items-center gap-2 pt-7"><input v-model="sourcePolicy.provenance_policy.platform_permission_confirmed" type="checkbox" /> Registered Reddit Data API access confirmed</label>
+          <label class="flex items-center gap-2 pt-7"><input v-model="sourcePolicy.provenance_policy.platform_api_access_confirmed" type="checkbox" /> Registered Reddit Data API access confirmed</label>
         </template>
 
         <template v-if="selectedAdapter === 'facebook-page-v1'">
