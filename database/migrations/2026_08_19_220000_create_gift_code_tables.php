@@ -2,8 +2,12 @@
 
 declare(strict_types=1);
 
+use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeAccountStateStatus;
 use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeEvidenceClassification;
 use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeEvidenceVerificationState;
+use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeRedemptionSessionItemState;
+use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeRedemptionSessionMode;
+use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeRedemptionSessionStatus;
 use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeRedemptionStatus;
 use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeSource;
 use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeStatus;
@@ -114,6 +118,69 @@ return new class extends Migration
             $table->index(['gift_code_id', 'status']);
         });
 
+        Schema::create('gift_code_account_states', function (Blueprint $table): void {
+            $table->ulid('id')->primary();
+            $table->foreignUlid('gift_code_id')->constrained('gift_codes')->cascadeOnDelete();
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+            $table->string('state', 32)->default(GiftCodeAccountStateStatus::Actionable->value)->index();
+            $table->timestampTz('snoozed_until')->nullable()->index();
+            $table->timestampTz('remind_at')->nullable()->index();
+            $table->timestampTz('last_opened_at')->nullable();
+            $table->timestampTz('last_action_at')->nullable();
+            $table->timestampsTz();
+
+            $table->unique(['gift_code_id', 'user_id']);
+            $table->index(['user_id', 'state']);
+        });
+
+        Schema::create('gift_code_redemption_sessions', function (Blueprint $table): void {
+            $table->ulid('id')->primary();
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+            $table->string('mode', 32)->default(GiftCodeRedemptionSessionMode::AllActionable->value)->index();
+            $table->string('status', 32)->default(GiftCodeRedemptionSessionStatus::Active->value)->index();
+            $table->unsignedInteger('total_items')->default(0);
+            $table->unsignedInteger('completed_items')->default(0);
+            $table->unsignedInteger('skipped_items')->default(0);
+            $table->unsignedInteger('failed_items')->default(0);
+            $table->timestampTz('last_activity_at')->index();
+            $table->timestampTz('completed_at')->nullable()->index();
+            $table->timestampTz('abandoned_at')->nullable()->index();
+            $table->timestampsTz();
+
+            $table->index(['user_id', 'status', 'last_activity_at']);
+        });
+
+        Schema::create('gift_code_redemption_session_items', function (Blueprint $table): void {
+            $table->ulid('id')->primary();
+            $table->foreignUlid('session_id')->constrained('gift_code_redemption_sessions')->cascadeOnDelete();
+            $table->foreignUlid('gift_code_id')->constrained('gift_codes')->cascadeOnDelete();
+            $table->foreignUlid('player_id')->constrained('players')->cascadeOnDelete();
+            $table->unsignedInteger('sequence');
+            $table->string('state', 32)->default(GiftCodeRedemptionSessionItemState::Pending->value)->index();
+            $table->unsignedBigInteger('status_revision_snapshot')->default(0);
+            $table->unsignedBigInteger('expires_revision_snapshot')->default(0);
+            $table->string('skip_reason', 120)->nullable();
+            $table->string('unavailable_reason', 120)->nullable()->index();
+            $table->timestampTz('completed_at')->nullable()->index();
+            $table->timestampsTz();
+
+            $table->unique(['session_id', 'gift_code_id', 'player_id'], 'gift_code_session_item_pair_unique');
+            $table->unique(['session_id', 'sequence'], 'gift_code_session_item_sequence_unique');
+            $table->index(['session_id', 'state']);
+            $table->index(['player_id', 'state']);
+        });
+
+        Schema::create('gift_code_contributor_projections', function (Blueprint $table): void {
+            $table->foreignId('user_id')->primary()->constrained('users')->cascadeOnDelete();
+            $table->unsignedInteger('accepted_count')->default(0);
+            $table->unsignedInteger('corroborated_count')->default(0);
+            $table->unsignedInteger('rejected_count')->default(0);
+            $table->unsignedInteger('misleading_count')->default(0);
+            $table->unsignedBigInteger('revision')->default(0);
+            $table->timestampTz('derived_at')->index();
+            $table->timestampsTz();
+        });
+
         Schema::create('gift_code_moderation_decisions', function (Blueprint $table): void {
             $table->ulid('id')->primary();
             $table->foreignUlid('gift_code_id')->constrained('gift_codes')->cascadeOnDelete();
@@ -208,6 +275,10 @@ return new class extends Migration
         Schema::dropIfExists('gift_code_notification_campaigns');
         Schema::dropIfExists('gift_code_fact_projections');
         Schema::dropIfExists('gift_code_moderation_decisions');
+        Schema::dropIfExists('gift_code_contributor_projections');
+        Schema::dropIfExists('gift_code_redemption_session_items');
+        Schema::dropIfExists('gift_code_redemption_sessions');
+        Schema::dropIfExists('gift_code_account_states');
         Schema::dropIfExists('gift_code_redemptions');
         Schema::dropIfExists('gift_code_provenances');
         Schema::dropIfExists('gift_codes');
