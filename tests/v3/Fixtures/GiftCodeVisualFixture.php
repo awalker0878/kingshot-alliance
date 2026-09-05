@@ -33,7 +33,12 @@ final class GiftCodeVisualFixture
                 'current_name' => sprintf('Gift Code Governor %d', $index + 1),
             ]);
         }
-        foreach (['VISUAL-GIFT-DESKTOP', 'VISUAL-GIFT-MOBILE'] as $code) {
+        foreach ([
+            'VISUAL-GIFT-DESKTOP',
+            'VISUAL-GIFT-MOBILE',
+            'VISUAL-GIFT-WORKSPACE-DESKTOP',
+            'VISUAL-GIFT-WORKSPACE-MOBILE',
+        ] as $code) {
             self::createValidGiftCode($code);
         }
 
