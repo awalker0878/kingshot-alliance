@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Participation\Reminders\Actions;
 
-use App\Contexts\Communications\Delivery\Enums\DeliveryChannel;
 use App\Contexts\Communications\Delivery\Services\NotificationDeliveryService;
+use App\Contexts\Communications\Delivery\ValueObjects\NotificationIntent;
 use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Contexts\Operations\Events\Enums\EventOccurrenceStatus;
 use App\Contexts\Operations\Events\Models\Event;
@@ -110,67 +110,58 @@ final readonly class QueueDueEventReminders
                             return 0;
                         }
 
-                        $notificationType = 'event.reminder';
-                        $key = implode(':', [
-                            'event-reminder',
-                            $currentRule->id,
-                            $currentOccurrence->id,
-                            $currentPlayer->playerId,
-                        ]);
-                        $deliveries = $this->deliveries->queueEnabledChannels(
-                            notificationType: $notificationType,
+                        $receipt = $this->deliveries->queue(NotificationIntent::fromScalars(
+                            notificationType: 'event.reminder',
                             recipientUserId: $currentPlayer->userId,
                             playerId: $currentPlayer->playerId,
-                            dueAt: $currentDueAt,
-                            idempotencyKey: $key,
+                            availableAt: $currentDueAt,
+                            idempotencyKey: implode(':', [
+                                'event-reminder',
+                                $currentRule->id,
+                                $currentOccurrence->id,
+                                $currentPlayer->playerId,
+                            ]),
+                            title: trim((string) $currentEvent->title) ?: 'Event reminder',
+                            body: 'An Alliance event is ready for your attention.',
+                            actionUrl: '/events/'.$currentOccurrence->id,
                             subjectType: 'event_occurrence',
                             subjectId: (string) $currentOccurrence->id,
                             metadata: [
-                                'title' => trim((string) $currentEvent->title) ?: 'Event reminder',
-                                'body' => 'An Alliance event is ready for your attention.',
-                                'action_url' => '/events/'.$currentOccurrence->id,
                                 'event_id' => (string) $currentEvent->id,
                                 'rule_id' => (string) $currentRule->id,
                                 'poll_id' => $currentRule->poll_id,
                                 'trigger_type' => $currentRule->trigger_type->value,
                             ],
-                        );
+                        ));
 
-                        $created = 0;
-                        foreach ($deliveries as $delivery) {
-                            if (! $delivery->wasRecentlyCreated) {
-                                continue;
-                            }
-                            $created++;
-
-                            if ($delivery->channel !== DeliveryChannel::InApp->value) {
-                                continue;
-                            }
-
+                        $inAppDeliveryId = $receipt->inAppDeliveryId;
+                        if ($inAppDeliveryId !== null
+                            && in_array($inAppDeliveryId, $receipt->createdDeliveryIds, true)) {
                             $target = $this->targets->forEvent($currentEvent);
                             $payload = [
-                                'delivery_id' => (string) $delivery->id,
+                                'delivery_id' => $inAppDeliveryId,
+                                'message_id' => $receipt->messageId,
                                 'occurrence_id' => (string) $currentOccurrence->id,
                                 'event_id' => (string) $currentEvent->id,
                                 'poll_id' => $currentRule->poll_id,
                                 'trigger_type' => $currentRule->trigger_type->value,
                                 'recipient_user_id' => $currentPlayer->userId,
                                 'player_id' => $currentPlayer->playerId,
-                                'channel' => $delivery->channel,
+                                'channel' => 'in_app',
                                 'due_at' => $currentDueAt->toIso8601String(),
                                 'origin' => 'system',
                             ];
                             $this->outbox->record(
                                 'event.reminder.requested',
                                 $target->allianceId,
-                                $delivery,
+                                $currentOccurrence,
                                 $payload,
-                                idempotencyKey: 'event.reminder.requested:'.$delivery->id,
+                                idempotencyKey: 'event.reminder.requested:'.$inAppDeliveryId,
                                 partitionKey: $target->partitionKey(),
                             );
                         }
 
-                        return $created;
+                        return count($receipt->createdDeliveryIds);
                     });
 
                     $queued += $created;

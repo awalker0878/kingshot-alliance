@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\v3\ReadModels\IntelligenceSignals;
 
 use App\Contexts\Communications\Delivery\Models\NotificationDelivery;
+use App\Contexts\Communications\Delivery\Models\NotificationMessage;
 use App\ReadModels\IntelligenceSignals\Services\IntelligenceSignalNotificationPublisher;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -51,18 +52,22 @@ final class IntelligenceSignalNotificationPublisherV3Test extends TestCase
             'material-alliance-change',
         );
 
+        self::assertSame($first->messageId, $second->messageId);
         self::assertSame($first->deliveryIds, $second->deliveryIds);
-        self::assertSame(1, NotificationDelivery::query()
+        self::assertSame(1, NotificationMessage::query()
             ->where('notification_type', IntelligenceSignalNotificationPublisher::NOTIFICATION_TYPE)
             ->count());
-        $delivery = NotificationDelivery::query()
+        $message = NotificationMessage::query()
             ->where('notification_type', IntelligenceSignalNotificationPublisher::NOTIFICATION_TYPE)
             ->firstOrFail();
-        $metadata = is_array($delivery->metadata) ? $delivery->metadata : [];
+        $metadata = is_array($message->metadata) ? $message->metadata : [];
         self::assertSame($signal['fingerprint'], $metadata['signalFingerprint'] ?? null);
         self::assertSame('Intelligence/Observations', $metadata['sourceOwner'] ?? null);
         self::assertSame($alliance->allianceId, $metadata['alliance_id'] ?? null);
-        self::assertSame($signal['summary'], $metadata['body'] ?? null);
+        self::assertSame($signal['summary'], $message->body);
+        self::assertSame(1, NotificationDelivery::query()
+            ->where('notification_message_id', $message->id)
+            ->count());
 
         $changed = $signal;
         $changed['fingerprint'] = hash('sha256', 'signal-abc-power-changed');
@@ -74,7 +79,7 @@ final class IntelligenceSignalNotificationPublisherV3Test extends TestCase
             $changed,
             'material-alliance-change',
         );
-        self::assertSame(2, NotificationDelivery::query()
+        self::assertSame(2, NotificationMessage::query()
             ->where('notification_type', IntelligenceSignalNotificationPublisher::NOTIFICATION_TYPE)
             ->count());
 

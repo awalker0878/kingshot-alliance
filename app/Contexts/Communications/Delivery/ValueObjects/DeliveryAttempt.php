@@ -8,35 +8,45 @@ use App\Contexts\Communications\Delivery\Enums\DeliveryChannel;
 
 final readonly class DeliveryAttempt
 {
-    /** @param array<string, mixed> $metadata */
+    /** @param array<string,mixed> $metadata */
     public function __construct(
         public string $deliveryId,
+        public string $messageId,
         public int $recipientUserId,
         public ?string $playerId,
         public DeliveryChannel $channel,
+        public ?string $endpointId,
         public int $attemptCount,
         public int $maxAttempts,
+        public string $notificationType,
+        public string $messageTitle,
+        public ?string $messageBody,
+        public ?string $messageActionUrl,
         public array $metadata,
     ) {}
 
     public function title(): string
     {
-        $title = $this->metadata['title'] ?? null;
+        $title = trim($this->messageTitle);
 
-        return is_string($title) && trim($title) !== '' ? trim($title) : 'Kingshot Alliance reminder';
+        return $title !== '' ? $title : 'Kingshot Alliance notification';
     }
 
     public function body(): string
     {
-        $body = $this->metadata['body'] ?? null;
+        $body = trim((string) $this->messageBody);
 
-        return is_string($body) && trim($body) !== '' ? trim($body) : $this->title();
+        return $body !== '' ? $body : $this->title();
     }
 
     public function actionUrl(): ?string
     {
-        $url = $this->metadata['action_url'] ?? null;
+        $url = $this->messageActionUrl;
 
-        return is_string($url) && str_starts_with($url, '/') ? $url : null;
+        return is_string($url)
+            && str_starts_with($url, '/')
+            && ! str_starts_with($url, '//')
+            ? $url
+            : null;
     }
 }

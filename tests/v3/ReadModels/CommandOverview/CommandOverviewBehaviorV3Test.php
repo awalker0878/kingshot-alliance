@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\v3\ReadModels\CommandOverview;
 
-use App\Contexts\Communications\Delivery\Enums\DeliveryChannel;
 use App\Contexts\Communications\Delivery\Services\NotificationDeliveryService;
+use App\Contexts\Communications\Delivery\ValueObjects\NotificationIntent;
 use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeStatus;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCode;
 use App\ReadModels\CommandOverview\Queries\CommandOverviewQuery;
@@ -39,26 +39,23 @@ final class CommandOverviewBehaviorV3Test extends TestCase
         ]);
 
         $deliveries = app(NotificationDeliveryService::class);
-        $notification = $deliveries->queue(
+        $deliveries->queue(NotificationIntent::fromScalars(
             notificationType: 'event.reminder',
             recipientUserId: $account->userId,
             playerId: $player->playerId,
-            channel: DeliveryChannel::InApp->value,
-            dueAt: now()->subMinute(),
-            idempotencyKey: hash('sha256', 'command-overview-notification'),
-            metadata: ['title' => 'Alliance event'],
-        );
-        $deliveries->markSent((string) $notification->id);
+            availableAt: now()->subMinute(),
+            idempotencyKey: 'command-overview-notification',
+            title: 'Alliance event',
+        ));
 
-        $otherNotification = $deliveries->queue(
+        $deliveries->queue(NotificationIntent::fromScalars(
             notificationType: 'event.reminder',
             recipientUserId: $other->userId,
             playerId: $otherPlayer->playerId,
-            channel: DeliveryChannel::InApp->value,
-            dueAt: now()->subMinute(),
-            idempotencyKey: hash('sha256', 'other-command-overview-notification'),
-        );
-        $deliveries->markSent((string) $otherNotification->id);
+            availableAt: now()->subMinute(),
+            idempotencyKey: 'other-command-overview-notification',
+            title: 'Other alliance event',
+        ));
 
         $overview = app(CommandOverviewQuery::class)->for(
             $account->userId,

@@ -4,25 +4,23 @@ declare(strict_types=1);
 
 namespace App\Contexts\Communications\Delivery\Models;
 
+use App\Contexts\Communications\Delivery\Enums\DeliveryChannel;
 use App\Contexts\Communications\Delivery\Enums\DeliveryStatus;
+use App\Contexts\Communications\Delivery\Enums\DigestCadence;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * Communications-owned delivery state.
- *
- * Business subjects and recipients are represented by scalar boundary identifiers;
- * this aggregate deliberately exposes no Eloquent relationships into source contexts.
+ * One concrete route for a logical NotificationMessage.
  *
  * @property string $id
- * @property string $notification_type
- * @property int $recipient_user_id
- * @property string|null $player_id
- * @property string $channel
- * @property string|null $subject_type
- * @property string|null $subject_id
- * @property CarbonImmutable|null $due_at
+ * @property string $notification_message_id
+ * @property DeliveryChannel $channel
+ * @property string|null $notification_endpoint_id
+ * @property string|null $route_target_label
+ * @property DigestCadence $digest_cadence
+ * @property CarbonImmutable $due_at
  * @property DeliveryStatus $status
  * @property int $attempt_count
  * @property int $max_attempts
@@ -31,10 +29,9 @@ use Illuminate\Database\Eloquent\Model;
  * @property CarbonImmutable|null $sent_at
  * @property CarbonImmutable|null $failed_at
  * @property CarbonImmutable|null $next_attempt_at
- * @property CarbonImmutable|null $read_at
- * @property CarbonImmutable|null $dismissed_at
+ * @property string|null $routing_reason
+ * @property string|null $provider_reference
  * @property string|null $last_error
- * @property array<string, mixed>|null $metadata
  */
 final class NotificationDelivery extends Model
 {
@@ -45,12 +42,11 @@ final class NotificationDelivery extends Model
     protected $keyType = 'string';
 
     protected $fillable = [
-        'notification_type',
-        'recipient_user_id',
-        'player_id',
+        'notification_message_id',
         'channel',
-        'subject_type',
-        'subject_id',
+        'notification_endpoint_id',
+        'route_target_label',
+        'digest_cadence',
         'due_at',
         'status',
         'attempt_count',
@@ -60,15 +56,16 @@ final class NotificationDelivery extends Model
         'sent_at',
         'failed_at',
         'next_attempt_at',
-        'read_at',
-        'dismissed_at',
+        'routing_reason',
+        'provider_reference',
         'last_error',
-        'metadata',
     ];
 
     protected function casts(): array
     {
         return [
+            'channel' => DeliveryChannel::class,
+            'digest_cadence' => DigestCadence::class,
             'due_at' => 'immutable_datetime',
             'status' => DeliveryStatus::class,
             'attempt_count' => 'integer',
@@ -77,9 +74,6 @@ final class NotificationDelivery extends Model
             'sent_at' => 'immutable_datetime',
             'failed_at' => 'immutable_datetime',
             'next_attempt_at' => 'immutable_datetime',
-            'read_at' => 'immutable_datetime',
-            'dismissed_at' => 'immutable_datetime',
-            'metadata' => 'array',
         ];
     }
 }

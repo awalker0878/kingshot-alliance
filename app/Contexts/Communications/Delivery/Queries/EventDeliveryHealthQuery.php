@@ -6,6 +6,7 @@ namespace App\Contexts\Communications\Delivery\Queries;
 
 use App\Contexts\Communications\Delivery\Enums\DeliveryStatus;
 use App\Contexts\Communications\Delivery\Models\NotificationDelivery;
+use App\Contexts\Communications\Delivery\Models\NotificationMessage;
 
 final readonly class EventDeliveryHealthQuery
 {
@@ -26,10 +27,14 @@ final readonly class EventDeliveryHealthQuery
      */
     public function forEventOccurrence(string $occurrenceId): array
     {
-        $deliveries = NotificationDelivery::query()
+        $messageIds = NotificationMessage::query()
             ->where('notification_type', 'event.reminder')
             ->where('subject_type', 'event_occurrence')
             ->where('subject_id', $occurrenceId)
+            ->pluck('id');
+
+        $deliveries = NotificationDelivery::query()
+            ->whereIn('notification_message_id', $messageIds)
             ->get(['status', 'attempt_count', 'max_attempts']);
         $failed = $deliveries->filter(
             static fn (NotificationDelivery $delivery): bool => $delivery->status === DeliveryStatus::Failed,

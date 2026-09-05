@@ -4,17 +4,24 @@ declare(strict_types=1);
 
 namespace App\Contexts\Communications\Delivery\Actions;
 
-use App\Contexts\Communications\Delivery\Models\NotificationDelivery;
+use App\Contexts\Communications\Delivery\Models\NotificationMessage;
 use InvalidArgumentException;
 
 final class PreviewNotificationInboxBulkAction
 {
     public const MARK_READ = 'mark_read';
 
-    public const DISMISS = 'dismiss';
+    public const MARK_UNREAD = 'mark_unread';
+
+    public const ARCHIVE = 'archive';
+
+    public const RESTORE = 'restore';
+
+    /** @var list<string> */
+    public const OPERATIONS = [self::MARK_READ, self::MARK_UNREAD, self::ARCHIVE, self::RESTORE];
 
     /**
-     * @param  non-empty-list<string>  $deliveryIds
+     * @param  non-empty-list<string>  $messageIds
      * @return array{
      *   operation: string,
      *   items: non-empty-list<array{itemId: string, label: string, fromStatus: string|null, outcome: string, code: string}>,
@@ -26,16 +33,16 @@ final class PreviewNotificationInboxBulkAction
     public function handle(
         int $recipientUserId,
         ?string $playerId,
-        array $deliveryIds,
+        array $messageIds,
         string $operation,
     ): array {
-        if (! in_array($operation, [self::MARK_READ, self::DISMISS], true)) {
+        if (! in_array($operation, self::OPERATIONS, true)) {
             throw new InvalidArgumentException('Notification inbox bulk operation is unsupported.');
         }
 
-        $deliveries = NotificationDelivery::query()
+        $messages = NotificationMessage::query()
             ->where('recipient_user_id', $recipientUserId)
-            ->whereIn('id', $deliveryIds)
+            ->whereIn('id', $messageIds)
             ->where(static function ($query) use ($playerId): void {
                 $query->whereNull('player_id');
                 if ($playerId !== null) {
@@ -43,31 +50,33 @@ final class PreviewNotificationInboxBulkAction
                 }
             })
             ->get()
-            ->keyBy(static fn (NotificationDelivery $delivery): string => (string) $delivery->id);
+            ->keyBy(static fn (NotificationMessage $message): string => (string) $message->id);
         $items = [];
         $readyItemIds = [];
 
-        foreach ($deliveryIds as $deliveryId) {
-            $delivery = $deliveries->get($deliveryId);
-            if (! $delivery instanceof NotificationDelivery) {
-                $items[] = $this->item($deliveryId, $deliveryId, null, 'blocked', 'notification-unavailable');
+        foreach ($messageIds as $messageId) {
+            $message = $messages->get($messageId);
+            if (! $message instanceof NotificationMessage) {
+                $items[] = $this->item($messageId, $messageId, null, 'blocked', 'notification-unavailable');
 
                 continue;
             }
 
-            $metadata = is_array($delivery->metadata) ? $delivery->metadata : [];
-            $label = is_string($metadata['title'] ?? null) ? $metadata['title'] : 'Notification';
-            $fromStatus = $delivery->dismissed_at !== null
-                ? 'dismissed'
-                : ($delivery->read_at !== null ? 'read' : 'unread');
+            $fromStatus = $message->archived_at !== null
+                ? 'archived'
+                : ($message->read_at !== null ? 'read' : 'unread');
+            $skipCode = match ($operation) {
+                self::MARK_READ => $message->read_at !== null ? 'already-read' : null,
+                self::MARK_UNREAD => $message->read_at === null ? 'already-unread' : null,
+                self::ARCHIVE => $message->archived_at !== null ? 'already-archived' : null,
+                default => $message->archived_at === null ? 'already-restored' : null,
+            };
 
-            if ($delivery->dismissed_at !== null) {
-                $items[] = $this->item($deliveryId, $label, $fromStatus, 'skipped', 'already-dismissed');
-            } elseif ($operation === self::MARK_READ && $delivery->read_at !== null) {
-                $items[] = $this->item($deliveryId, $label, $fromStatus, 'skipped', 'already-read');
+            if ($skipCode !== null) {
+                $items[] = $this->item($messageId, (string) $message->title, $fromStatus, 'skipped', $skipCode);
             } else {
-                $items[] = $this->item($deliveryId, $label, $fromStatus, 'ready', 'ready');
-                $readyItemIds[] = $deliveryId;
+                $items[] = $this->item($messageId, (string) $message->title, $fromStatus, 'ready', 'ready');
+                $readyItemIds[] = $messageId;
             }
         }
 
@@ -75,7 +84,7 @@ final class PreviewNotificationInboxBulkAction
             'operation' => $operation,
             'items' => $items,
             'ready' => count($readyItemIds),
-            'blocked' => count($deliveryIds) - count($readyItemIds),
+            'blocked' => count($messageIds) - count($readyItemIds),
             'readyItemIds' => $readyItemIds,
         ];
     }

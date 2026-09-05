@@ -1,6 +1,6 @@
 # Capability delivery ledger
 
-Status: Current as of 2026-09-02
+Status: Current as of 2026-09-04
 
 This ledger records current delivered outcomes, active selected-extension work and remaining evidence gates. It is a work queue, not a speculative roadmap. Git history remains the archive for retired/completed intermediate phase detail and exact diffs/CI runs.
 
@@ -39,6 +39,7 @@ Later capability delivery is represented by the current canonical contracts belo
 | --- | --- | --- |
 | Accounts Sign-In Methods & Credential Evolution | Complete | [Accounts Sign-In Methods & Credential Evolution](accounts-sign-in-methods.md), [acceptance](accounts-sign-in-methods-acceptance.md), [delivery ledger](accounts-sign-in-methods-delivery-ledger.md), [ADR-0014](../architecture/adr/0014-account-sign-in-methods.md) and Accounts V3 tests |
 | Gift Code trust, discovery and redemption expansion | Complete | [Extension closeout](gift-code-extension-program.md), [ADR-0004](../architecture/adr/0004-gift-code-trust-from-append-only-evidence.md), [owner reference](../reference/gift-codes.md) and `GiftCodeBehaviorV3Test` |
+| Communications Recipient Delivery & Notification Experience | Complete | [Product contract](communications-recipient-delivery-expansion.md), [acceptance matrix](communications-recipient-delivery-acceptance.md), [closed delivery ledger](communications-recipient-delivery-ledger.md), [ADR-0015](../architecture/adr/0015-separate-logical-notifications-from-delivery-routes.md), [delivery architecture](../architecture/contexts/communications/delivery.md), `CommunicationsRecipientDeliveryAcceptanceV3Test` and green release gates on immutable implementation candidate `f880cb40014b2ef5236facaf65ac2b68f90fd5ae` |
 | Notifications, recurring Alliance announcements and delivery recovery | Complete | [Capability catalogue](capability-catalogue.md), [user journeys](experience/user-journeys.md) and owner/reference docs |
 | Pagination, shared workflow UX and bounded bulk workflows | Complete | [Capability catalogue](capability-catalogue.md), [user journeys](experience/user-journeys.md) and owner tests |
 | Integration platform and bot/API participation parity | Complete | [Capability catalogue](capability-catalogue.md), [user journeys](experience/user-journeys.md) and public reference contracts |

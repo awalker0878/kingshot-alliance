@@ -1,6 +1,6 @@
 # FRONTEND-V3 Capability Map
 
-This document defines the Governor-facing screen map from application capabilities. It includes the current Accounts Sign-In Methods, Territory & Hive Planner and Intelligence Change Detection delivery contracts so implementation cannot ship UI without its backing owner capabilities.
+This document defines the Governor-facing screen map from application capabilities. It includes the current Accounts Sign-In Methods, Communications Recipient Delivery, Territory & Hive Planner and Intelligence Change Detection delivery contracts so implementation cannot ship UI without its backing owner capabilities.
 
 ## Presentation rule
 
@@ -58,6 +58,10 @@ Governor Account
           ├── Governor Utilities
           │   ├── Gift Codes
           │   └── Notification Center
+          │       ├── Logical inbox / filters / archive
+          │       ├── Delivery details
+          │       ├── Delivery preferences / routing policy
+          │       └── Named destinations / Web Push
           │
           └── Kingdom
               ├── Kingdom Roles
@@ -207,7 +211,25 @@ Backed by GameWorld GiftCodes: normalized sourced catalogue, per-Governor/Kingdo
 
 ## Notification Center
 
-Backed by Communications Delivery: in-app inbox, Governor-scoped Discord/Telegram endpoints, preferences, provider acknowledgement/health/retries and Event/KingPerk fan-out. Provider credentials remain encrypted and undisclosed after save. When a subscribed Intelligence signal is delivered, Communications owns recipient/channel/idempotency state; the signal itself remains recomputable read-side state rather than a persisted notification-owned fact.
+Backed by Communications Delivery and built around **logical notifications**, not provider-route rows. One source notification appears once in the inbox even when it fans out to multiple channels or named endpoints. The inbox supports bounded cursor pagination and filters for unread/all/archived state, notification type, account/Governor scope, date and delivery status.
+
+A logical notification exposes its title/body/action, read/archive state and an expandable list of concrete routes. Route details show channel, named target where applicable, queued/sent/failed/cancelled state, attempt counts, retry timing and safe routing/provider diagnostics without revealing credentials or raw provider payloads.
+
+### Delivery preferences and routing
+
+The account owns default notification-type/channel preferences. When an active Governor exists, the Governor may override a preference and may reset it to the account default. The routing-policy surface controls timezone, quiet hours, whether urgent notifications may bypass quiet hours, temporary mute, and immediate/hourly/daily digest cadence. In-app notifications remain visible when an external route is deferred.
+
+### Destinations
+
+The destination surface supports multiple named Discord webhook, Telegram and Web Push endpoints. Stored credentials/subscription configuration is encrypted and never redisplayed after save. Endpoints expose generic `Never tested`, `Healthy`, `Degraded` and `Paused` health, plus test/reverify, pause/resume and delete behavior. A failed or rate-limited endpoint does not affect another endpoint.
+
+Web Push may be enabled per supported browser/device and uses the same preference/routing/retry contract as other external routes. Email is not a configurable Communications endpoint: it is available only through the Accounts-owned verified account email and is rechecked before send.
+
+### Inbox actions
+
+Read/unread/archive/restore operate on logical message IDs. Bounded bulk operations select up to 50 visible messages, preview against current ownership/state, confirm the eligible count and recheck ownership at commit. Provider-route recovery remains a separate bounded delivery operation and does not make failed routes look like duplicate inbox notifications.
+
+When a Gift Code, Event, King Perk, Alliance announcement, Officer Brief, Account Security event or Intelligence signal is delivered, the source owner retains semantic truth. Communications owns only recipient routing, inbox state, concrete provider delivery, retry and endpoint health.
 
 ## Kingdom Roles
 

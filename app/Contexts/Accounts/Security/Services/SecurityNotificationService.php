@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App\Contexts\Accounts\Security\Services;
 
+use App\Contexts\Communications\Delivery\Enums\NotificationUrgency;
 use App\Contexts\Communications\Delivery\Services\NotificationDeliveryService;
+use App\Contexts\Communications\Delivery\ValueObjects\NotificationIntent;
+use Carbon\CarbonImmutable;
 
 final readonly class SecurityNotificationService
 {
@@ -17,18 +20,19 @@ final readonly class SecurityNotificationService
         string $body,
         string $idempotencyKey,
     ): void {
-        $this->delivery->queueEnabledChannelBatch(
+        $this->delivery->queue(new NotificationIntent(
             notificationType: 'account.security',
             recipientUserId: $userId,
             playerId: null,
-            dueAt: now(),
+            availableAt: CarbonImmutable::now('UTC'),
             idempotencyKey: $idempotencyKey,
-            metadata: [
-                'event' => $event,
-                'title' => $title,
-                'body' => $body,
-                'action_url' => '/profile#security',
-            ],
-        );
+            title: $title,
+            body: $body,
+            actionUrl: '/profile#security',
+            subjectType: 'account_security_event',
+            subjectId: mb_substr($event, 0, 64),
+            urgency: NotificationUrgency::High,
+            metadata: ['event' => $event],
+        ));
     }
 }

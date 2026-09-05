@@ -15,6 +15,18 @@ const english: MessageCatalogue = {
     'alliance-roster-evidence-reviewed': 'Alliance roster screenshot review saved.',
     'alliance-roster-evidence-committed': '{count} reviewed roster observations committed.',
     'recruitment-reentry-updated': 'Recruitment re-entry control updated.',
+    'notification-preference-reset':
+      'Governor notification preference reset to the account default.',
+    'notification-marked-unread': 'Notification marked as unread.',
+    'notification-archived': 'Notification archived.',
+    'notification-restored': 'Notification restored.',
+    'notification-endpoint-updated': 'Notification destination updated.',
+    'notification-endpoint-paused': 'Notification destination paused.',
+    'notification-endpoint-resumed': 'Notification destination resumed.',
+    'notification-endpoint-test-queued': 'Notification destination test queued.',
+    'notification-endpoint-reverify-queued': 'Notification destination re-verification queued.',
+    'notification-routing-policy-updated': 'Notification routing policy updated.',
+    'notification-routing-policy-reset': 'Governor routing policy reset to the account default.',
   },
   application: {
     dashboard: {

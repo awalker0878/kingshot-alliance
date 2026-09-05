@@ -42,6 +42,14 @@ Google attachment is explicit, recent-authenticated and keyed by stable provider
 
 Account merging, email-based identity consolidation, official Kingshot game authentication and game credentials remain unsupported.
 
+### Communications recipient delivery — current complete
+
+The Communications capability uses one logical `NotificationMessage` plus zero or more concrete `NotificationDelivery` routes. Recipient policy resolves account defaults and Governor overrides across In App, Discord, Telegram, Web Push and Accounts-owned verified email, with quiet hours, recipient-controlled urgent bypass, temporary mute and immediate/hourly/daily digest timing.
+
+Multiple named stored endpoints are independently testable, pausable and health-tracked. Provider workers recheck current endpoint state, preferences, Governor ownership and verified email before send; immediate and digest processing are both bounded, idempotent and scheduled every minute with overlap protection. Web Push destination/key/VAPID handling, email transport readiness, safe relative action URLs, cursor inbox reads, message-owned read/archive state, bounded bulk operations and privacy-safe platform diagnostics are covered by the Communications acceptance suite.
+
+Immutable implementation candidate `f880cb40014b2ef5236facaf65ac2b68f90fd5ae` passed CI, Architecture V3 Verification, Intelligence Verification, King Perks Verification, Visual Regression, CodeQL and Dependency Review. The [Communications delivery ledger](communications-recipient-delivery-ledger.md) is closed and the capability is current complete.
+
 ### Alliance Capability Expansion — current complete
 
 The delivered Alliance expansion closes the officer-facing settings gap and extends existing owners rather than creating a new Alliance domain. `Alliance/Lifecycle` owns application name/slug/language/timezone settings; `Alliance/Access` owns bounded specialist-role definition and delegation; `Alliance/Membership` retains membership, R1–R5 and leadership writes; `Alliance/Recruitment` owns private Alliance-local re-entry controls.
@@ -155,7 +163,7 @@ The extension program intentionally reuses current architecture:
 - `Intelligence/Evidence` — private source artifacts, extraction/review/duplicates/commit attempts/receipts/retention;
 - `Intelligence/Roster` — observed Governor progression history;
 - other Intelligence owners — observation histories consumed by change signals;
-- `Communications` — provider delivery/preferences/retries;
+- `Communications` — logical inbox state, recipient routing/preferences, concrete destinations, digest/provider delivery, retry, endpoint health and delivery diagnostics; source contexts retain notification meaning and Accounts retains verified email identity;
 - `ReadModels` — authorized cross-context composition only;
 - `ReadModels/AllianceAssistant` — bounded interpretation/evidence composition only.
 

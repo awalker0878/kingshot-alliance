@@ -79,7 +79,6 @@ const messages = {
     'contribution-self-report-submitted': 'Contribution submitted for review.',
     'notification-bulk-inbox-completed':
       '{succeeded} notifications updated. {failed} need review. {skipped} were already up to date.',
-    'notification-dismissed': 'Notification dismissed.',
     'notification-marked-read': 'Notification marked as read.',
     'event-alliance-result-saved': 'Alliance Event result saved.',
     'event-attendance-updated': 'Event attendance updated.',

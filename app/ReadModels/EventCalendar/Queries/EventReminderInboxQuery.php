@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace App\ReadModels\EventCalendar\Queries;
 
 use App\Contexts\Accounts\Identity\Models\User;
-use App\Contexts\Communications\Delivery\Enums\DeliveryStatus;
-use App\Contexts\Communications\Delivery\Models\NotificationDelivery;
+use App\Contexts\Communications\Delivery\Models\NotificationMessage;
 use App\Contexts\GameWorld\Players\Services\PlayerContext;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Operations\Events\Enums\EventScope;
@@ -56,21 +55,20 @@ final readonly class EventReminderInboxQuery
     private function eventReminders(User $user, PlayerReference $player, array $targets, int $limit): array
     {
         $items = [];
-        $deliveries = NotificationDelivery::query()
+        $messages = NotificationMessage::query()
             ->where('notification_type', 'event.reminder')
             ->where('subject_type', 'event_occurrence')
             ->where('recipient_user_id', $user->id)
             ->where('player_id', $player->playerId)
-            ->where('status', DeliveryStatus::Sent->value)
-            ->where('sent_at', '>=', now()->subDays(7))
-            ->orderByDesc('sent_at')
+            ->where('created_at', '>=', now()->subDays(7))
+            ->orderByDesc('created_at')
             ->limit($limit * 3)
             ->get();
 
-        foreach ($deliveries as $delivery) {
+        foreach ($messages as $message) {
             $occurrence = EventOccurrence::query()
                 ->with('event.eventType')
-                ->whereKey($delivery->subject_id)
+                ->whereKey($message->subject_id)
                 ->first();
             if (! $occurrence instanceof EventOccurrence) {
                 continue;
@@ -87,14 +85,14 @@ final readonly class EventReminderInboxQuery
             }
 
             $items[] = [
-                'id' => (string) $delivery->id,
+                'id' => (string) $message->id,
                 'occurrenceId' => (string) $occurrence->id,
                 'eventTypeSlug' => (string) $eventType->slug,
                 'nameKey' => (string) $eventType->name_key,
                 'title' => $event->title,
                 'startsAt' => $occurrence->starts_at->toIso8601String(),
-                'sentAt' => $delivery->sent_at?->toIso8601String(),
-                'playerId' => (string) $delivery->player_id,
+                'sentAt' => $message->created_at?->toIso8601String(),
+                'playerId' => (string) $message->player_id,
             ];
         }
 
@@ -108,19 +106,18 @@ final readonly class EventReminderInboxQuery
     private function kingPerkReminders(User $user, PlayerReference $player, array $targets, int $limit): array
     {
         $items = [];
-        $deliveries = NotificationDelivery::query()
+        $messages = NotificationMessage::query()
             ->where('notification_type', 'king_perks.reminder')
             ->whereIn('subject_type', ['king_perk_appointment', 'king_skill_plan'])
             ->where('recipient_user_id', $user->id)
             ->where('player_id', $player->playerId)
-            ->where('status', DeliveryStatus::Sent->value)
-            ->where('sent_at', '>=', now()->subDays(7))
-            ->orderByDesc('sent_at')
+            ->where('created_at', '>=', now()->subDays(7))
+            ->orderByDesc('created_at')
             ->limit($limit * 3)
             ->get();
 
-        foreach ($deliveries as $delivery) {
-            [$appointment, $skill, $plan] = $this->kingPerkSubject($delivery);
+        foreach ($messages as $message) {
+            [$appointment, $skill, $plan] = $this->kingPerkSubject($message);
             if (! $plan instanceof KingPerkPlan) {
                 continue;
             }
@@ -140,7 +137,7 @@ final readonly class EventReminderInboxQuery
                 continue;
             }
 
-            $metadata = is_array($delivery->metadata) ? $delivery->metadata : [];
+            $metadata = is_array($message->metadata) ? $message->metadata : [];
             $kindValue = $metadata['kind'] ?? null;
             $kind = is_string($kindValue) ? KingPerkReminderKind::tryFrom($kindValue) : null;
             if (! $kind instanceof KingPerkReminderKind) {
@@ -161,29 +158,27 @@ final readonly class EventReminderInboxQuery
             };
 
             $items[] = [
-                'id' => 'king-perk:'.$delivery->id,
+                'id' => 'king-perk:'.$message->id,
                 'occurrenceId' => (string) $occurrence->id,
                 'eventTypeSlug' => (string) $eventType->slug,
                 'nameKey' => (string) $eventType->name_key,
                 'title' => $title,
                 'startsAt' => $startsAt->toIso8601String(),
-                'sentAt' => $delivery->sent_at?->toIso8601String(),
-                'playerId' => (string) $delivery->player_id,
+                'sentAt' => $message->created_at?->toIso8601String(),
+                'playerId' => (string) $message->player_id,
             ];
         }
 
         return $items;
     }
 
-    /**
-     * @return array{0:?KingPerkAppointment,1:?KingSkillPlan,2:?KingPerkPlan}
-     */
-    private function kingPerkSubject(NotificationDelivery $delivery): array
+    /** @return array{0:?KingPerkAppointment,1:?KingSkillPlan,2:?KingPerkPlan} */
+    private function kingPerkSubject(NotificationMessage $message): array
     {
-        if ($delivery->subject_type === 'king_perk_appointment') {
+        if ($message->subject_type === 'king_perk_appointment') {
             $appointment = KingPerkAppointment::query()
                 ->with('plan.occurrence.event.eventType')
-                ->whereKey($delivery->subject_id)
+                ->whereKey($message->subject_id)
                 ->first();
 
             return [
@@ -195,10 +190,10 @@ final readonly class EventReminderInboxQuery
             ];
         }
 
-        if ($delivery->subject_type === 'king_skill_plan') {
+        if ($message->subject_type === 'king_skill_plan') {
             $skill = KingSkillPlan::query()
                 ->with('plan.occurrence.event.eventType')
-                ->whereKey($delivery->subject_id)
+                ->whereKey($message->subject_id)
                 ->first();
 
             return [
@@ -213,9 +208,7 @@ final readonly class EventReminderInboxQuery
         return [null, null, null];
     }
 
-    /**
-     * @param  array{alliance:list<string>,player:list<string>,kingdom:list<string>}  $targets
-     */
+    /** @param array{alliance:list<string>,player:list<string>,kingdom:list<string>} $targets */
     private function visibleEventTarget(Event $event, array $targets): bool
     {
         return match ($event->scope) {

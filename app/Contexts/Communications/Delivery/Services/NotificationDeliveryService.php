@@ -7,283 +7,164 @@ namespace App\Contexts\Communications\Delivery\Services;
 use App\Contexts\Communications\Delivery\Enums\DeliveryChannel;
 use App\Contexts\Communications\Delivery\Enums\DeliveryStatus;
 use App\Contexts\Communications\Delivery\Models\NotificationDelivery;
-use App\Contexts\Communications\Delivery\Models\NotificationEndpoint;
-use App\Contexts\Communications\Delivery\Models\NotificationPreference;
-use App\Contexts\Communications\Delivery\ValueObjects\QueuedDeliveryBatch;
-use DateTimeInterface;
-use Illuminate\Support\Carbon;
+use App\Contexts\Communications\Delivery\Models\NotificationMessage;
+use App\Contexts\Communications\Delivery\ValueObjects\NotificationIntent;
+use App\Contexts\Communications\Delivery\ValueObjects\NotificationQueueReceipt;
+use App\Contexts\Communications\Delivery\ValueObjects\ResolvedDeliveryRoute;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
-final class NotificationDeliveryService
+final readonly class NotificationDeliveryService
 {
-    /** @param  array<string, mixed>  $metadata */
-    public function queue(
-        string $notificationType,
-        int $recipientUserId,
-        ?string $playerId,
-        string $channel,
-        DateTimeInterface $dueAt,
-        string $idempotencyKey,
-        ?string $subjectType = null,
-        ?string $subjectId = null,
-        array $metadata = [],
-        int $maxAttempts = 5,
+    public function __construct(private NotificationRouteResolver $routes) {}
+
+    public function queue(NotificationIntent $intent): NotificationQueueReceipt
+    {
+        $this->validateIntent($intent);
+
+        return DB::transaction(function () use ($intent): NotificationQueueReceipt {
+            $message = NotificationMessage::query()->firstOrCreate(
+                ['idempotency_key' => hash('sha256', $intent->idempotencyKey)],
+                [
+                    'notification_type' => $intent->notificationType,
+                    'recipient_user_id' => $intent->recipientUserId,
+                    'player_id' => $intent->playerId,
+                    'subject_type' => $intent->subjectType,
+                    'subject_id' => $intent->subjectId,
+                    'title' => trim($intent->title),
+                    'body' => $intent->body,
+                    'action_url' => $intent->actionUrl,
+                    'urgency' => $intent->urgency->value,
+                    'available_at' => $intent->availableAt,
+                    'metadata' => $intent->metadata === [] ? null : $intent->metadata,
+                ],
+            );
+
+            $createdMessage = $message->wasRecentlyCreated;
+            $createdDeliveryIds = [];
+            foreach ($this->routes->resolve($intent)->routes as $route) {
+                $delivery = $this->createRoute($message, $route, $intent->maxAttempts);
+                if ($delivery->wasRecentlyCreated) {
+                    $createdDeliveryIds[] = (string) $delivery->id;
+                }
+            }
+
+            $deliveries = NotificationDelivery::query()
+                ->where('notification_message_id', (string) $message->id)
+                ->orderBy('created_at')
+                ->get();
+            $inApp = $deliveries->first(
+                static fn (NotificationDelivery $delivery): bool => $delivery->channel === DeliveryChannel::InApp,
+            );
+            $deliveryIds = array_values($deliveries
+                ->map(static fn (NotificationDelivery $delivery): string => (string) $delivery->id)
+                ->values()
+                ->all());
+            $channels = array_values($deliveries
+                ->map(static fn (NotificationDelivery $delivery): string => $delivery->channel->value)
+                ->unique()
+                ->values()
+                ->all());
+
+            return new NotificationQueueReceipt(
+                messageId: (string) $message->id,
+                deliveryIds: $deliveryIds,
+                channels: $channels,
+                createdDeliveryIds: $createdDeliveryIds,
+                createdMessage: $createdMessage,
+                inAppDeliveryId: $inApp instanceof NotificationDelivery ? (string) $inApp->id : null,
+            );
+        });
+    }
+
+    private function createRoute(
+        NotificationMessage $message,
+        ResolvedDeliveryRoute $route,
+        int $maxAttempts,
     ): NotificationDelivery {
         $queuedAt = now();
-        $isInApp = $channel === DeliveryChannel::InApp->value;
+        $isInApp = $route->channel === DeliveryChannel::InApp;
 
         return NotificationDelivery::query()->firstOrCreate(
-            ['idempotency_key' => $idempotencyKey],
             [
-                'notification_type' => $notificationType,
-                'recipient_user_id' => $recipientUserId,
-                'player_id' => $playerId,
-                'channel' => $channel,
-                'subject_type' => $subjectType,
-                'subject_id' => $subjectId,
-                'due_at' => $dueAt,
-                'status' => $isInApp ? DeliveryStatus::Sent : DeliveryStatus::Queued,
+                'idempotency_key' => hash('sha256', implode('|', [
+                    (string) $message->id,
+                    $route->channel->value,
+                    $route->endpointId ?? 'native',
+                ])),
+            ],
+            [
+                'notification_message_id' => (string) $message->id,
+                'channel' => $route->channel->value,
+                'notification_endpoint_id' => $route->endpointId,
+                'route_target_label' => $route->targetLabel,
+                'digest_cadence' => $route->digestCadence->value,
+                'due_at' => $route->dueAt,
+                'status' => $isInApp ? DeliveryStatus::Sent->value : DeliveryStatus::Queued->value,
                 'attempt_count' => 0,
-                'max_attempts' => max(1, $maxAttempts),
+                'max_attempts' => max(1, min(10, $maxAttempts)),
                 'queued_at' => $queuedAt,
                 'sent_at' => $isInApp ? $queuedAt : null,
-                'metadata' => $metadata === [] ? null : $metadata,
+                'routing_reason' => $route->reason,
             ],
         );
     }
 
-    /**
-     * Queue one idempotent delivery per enabled and configured channel.
-     *
-     * @param  array<string, mixed>  $metadata
-     * @return list<NotificationDelivery>
-     */
-    public function queueEnabledChannels(
-        string $notificationType,
-        int $recipientUserId,
-        ?string $playerId,
-        DateTimeInterface $dueAt,
-        string $idempotencyKey,
-        ?string $subjectType = null,
-        ?string $subjectId = null,
-        array $metadata = [],
-        int $maxAttempts = 5,
-    ): array {
-        $deliveries = [];
-        foreach ($this->enabledChannels($recipientUserId, $playerId, $notificationType) as $channel) {
-            $deliveries[] = $this->queue(
-                notificationType: $notificationType,
-                recipientUserId: $recipientUserId,
-                playerId: $playerId,
-                channel: $channel->value,
-                dueAt: $dueAt,
-                idempotencyKey: hash('sha256', $idempotencyKey.':'.$channel->value),
-                subjectType: $subjectType,
-                subjectId: $subjectId,
-                metadata: $metadata,
-                maxAttempts: $maxAttempts,
-            );
-        }
-
-        return $deliveries;
-    }
-
-    /**
-     * Cross-context delivery contract that exposes scalar results instead of
-     * Communications-owned persistence models.
-     *
-     * @param  array<string, mixed>  $metadata
-     */
-    public function queueEnabledChannelBatch(
-        string $notificationType,
-        int $recipientUserId,
-        ?string $playerId,
-        DateTimeInterface $dueAt,
-        string $idempotencyKey,
-        ?string $subjectType = null,
-        ?string $subjectId = null,
-        array $metadata = [],
-        int $maxAttempts = 5,
-    ): QueuedDeliveryBatch {
-        $deliveries = $this->queueEnabledChannels(
-            $notificationType,
-            $recipientUserId,
-            $playerId,
-            $dueAt,
-            $idempotencyKey,
-            $subjectType,
-            $subjectId,
-            $metadata,
-            $maxAttempts,
-        );
-
-        return new QueuedDeliveryBatch(
-            array_values(array_map(
-                static fn (NotificationDelivery $delivery): string => (string) $delivery->id,
-                $deliveries,
-            )),
-            array_values(array_unique(array_map(
-                static fn (NotificationDelivery $delivery): string => (string) $delivery->channel,
-                $deliveries,
-            ))),
-            array_values(array_map(
-                static fn (NotificationDelivery $delivery): string => (string) $delivery->id,
-                array_filter(
-                    $deliveries,
-                    static fn (NotificationDelivery $delivery): bool => $delivery->wasRecentlyCreated,
-                ),
-            )),
-        );
-    }
-
-    /**
-     * Queue one account-wide delivery per enabled channel while evaluating the
-     * preferences and endpoints of every eligible Governor. In-app deliveries
-     * remain visible across Governor switches; external deliveries retain the
-     * first eligible Governor that can route the selected channel.
-     *
-     * @param  non-empty-list<string>  $eligiblePlayerIds
-     * @param  array<string, mixed>  $metadata
-     */
-    public function queueEnabledAccountChannelBatch(
-        string $notificationType,
-        int $recipientUserId,
-        array $eligiblePlayerIds,
-        DateTimeInterface $dueAt,
-        string $idempotencyKey,
-        ?string $subjectType = null,
-        ?string $subjectId = null,
-        array $metadata = [],
-        int $maxAttempts = 5,
-    ): QueuedDeliveryBatch {
-        /** @var array<string, string> $channelRoutes */
-        $channelRoutes = [];
-        foreach (array_values(array_unique($eligiblePlayerIds)) as $playerId) {
-            foreach ($this->enabledChannels($recipientUserId, $playerId, $notificationType) as $channel) {
-                $channelRoutes[$channel->value] ??= $playerId;
-            }
-        }
-
-        $deliveries = [];
-        foreach ($channelRoutes as $channel => $routePlayerId) {
-            $deliveries[] = $this->queue(
-                notificationType: $notificationType,
-                recipientUserId: $recipientUserId,
-                playerId: $channel === DeliveryChannel::InApp->value ? null : $routePlayerId,
-                channel: $channel,
-                dueAt: $dueAt,
-                idempotencyKey: hash('sha256', $idempotencyKey.':'.$channel),
-                subjectType: $subjectType,
-                subjectId: $subjectId,
-                metadata: $metadata,
-                maxAttempts: $maxAttempts,
-            );
-        }
-
-        return new QueuedDeliveryBatch(
-            array_values(array_map(
-                static fn (NotificationDelivery $delivery): string => (string) $delivery->id,
-                $deliveries,
-            )),
-            array_keys($channelRoutes),
-            array_values(array_map(
-                static fn (NotificationDelivery $delivery): string => (string) $delivery->id,
-                array_filter(
-                    $deliveries,
-                    static fn (NotificationDelivery $delivery): bool => $delivery->wasRecentlyCreated,
-                ),
-            )),
-        );
-    }
-
-    /** @return list<DeliveryChannel> */
-    public function enabledChannels(int $recipientUserId, ?string $playerId, string $notificationType): array
+    private function validateIntent(NotificationIntent $intent): void
     {
-        $channels = [DeliveryChannel::InApp];
-        $external = NotificationEndpoint::query()
-            ->where('recipient_user_id', $recipientUserId)
-            ->where('enabled', true)
-            ->where(static function ($query) use ($playerId): void {
-                $query->whereNull('player_id');
-                if ($playerId !== null) {
-                    $query->orWhere('player_id', $playerId);
-                }
-            })
-            ->get()
-            ->map(static fn (NotificationEndpoint $endpoint): DeliveryChannel => $endpoint->channel)
-            ->unique(static fn (DeliveryChannel $channel): string => $channel->value)
-            ->values()
-            ->all();
-
-        foreach ($external as $channel) {
-            if ($channel->isExternal()) {
-                $channels[] = $channel;
-            }
-        }
-
-        return array_values(array_filter(
-            $channels,
-            fn (DeliveryChannel $channel): bool => $this->isEnabled(
-                $recipientUserId,
-                $playerId,
-                $notificationType,
-                $channel->value,
-            ),
-        ));
-    }
-
-    public function markSent(string $deliveryId): void
-    {
-        NotificationDelivery::query()
-            ->whereKey($deliveryId)
-            ->whereIn('status', [DeliveryStatus::Pending->value, DeliveryStatus::Queued->value, DeliveryStatus::Failed->value])
-            ->update([
-                'status' => DeliveryStatus::Sent->value,
-                'sent_at' => now(),
-                'failed_at' => null,
-                'next_attempt_at' => null,
-                'last_error' => null,
+        if (! preg_match('/^[a-z0-9][a-z0-9_.-]{0,95}$/', $intent->notificationType)) {
+            throw ValidationException::withMessages([
+                'notification_type' => 'Notification type is invalid.',
             ]);
-    }
-
-    public function markFailed(string $deliveryId, string $error, ?DateTimeInterface $retryAt = null): void
-    {
-        $delivery = NotificationDelivery::query()->whereKey($deliveryId)->first();
-        if (! $delivery instanceof NotificationDelivery || $delivery->status === DeliveryStatus::Sent) {
-            return;
         }
 
-        $attemptCount = (int) $delivery->attempt_count + 1;
-        $retryAllowed = $attemptCount < (int) $delivery->max_attempts;
+        if ($intent->recipientUserId < 1) {
+            throw ValidationException::withMessages(['recipient' => 'Notification recipient is invalid.']);
+        }
 
-        $delivery->forceFill([
-            'status' => DeliveryStatus::Failed,
-            'attempt_count' => $attemptCount,
-            'failed_at' => now(),
-            'next_attempt_at' => $retryAllowed && $retryAt !== null ? Carbon::instance($retryAt) : null,
-            'last_error' => mb_substr($error, 0, 2000),
-        ])->save();
-    }
+        if ($intent->playerId !== null && ! preg_match('/^[0-9A-HJKMNP-TV-Z]{26}$/i', $intent->playerId)) {
+            throw ValidationException::withMessages(['player' => 'Notification Governor is invalid.']);
+        }
 
-    public function isEnabled(int $recipientUserId, ?string $playerId, string $notificationType, string $channel): bool
-    {
-        $preference = NotificationPreference::query()
-            ->where('recipient_user_id', $recipientUserId)
-            ->where('notification_type', $notificationType)
-            ->where('channel', $channel)
-            ->where(static function ($query) use ($playerId): void {
-                if ($playerId === null) {
-                    $query->whereNull('player_id');
+        foreach ($intent->eligiblePlayerIds as $playerId) {
+            if (! preg_match('/^[0-9A-HJKMNP-TV-Z]{26}$/i', $playerId)) {
+                throw ValidationException::withMessages(['players' => 'An eligible Governor is invalid.']);
+            }
+        }
 
-                    return;
-                }
+        $title = trim($intent->title);
+        if ($title === '' || mb_strlen($title) > 240) {
+            throw ValidationException::withMessages(['title' => 'Notification title is invalid.']);
+        }
 
-                $query->where(static function ($playerQuery) use ($playerId): void {
-                    $playerQuery->where('player_id', $playerId)->orWhereNull('player_id');
-                });
-            })
-            ->orderByRaw('CASE WHEN player_id IS NULL THEN 1 ELSE 0 END')
-            ->first();
+        if ($intent->body !== null && mb_strlen($intent->body) > 12000) {
+            throw ValidationException::withMessages(['body' => 'Notification body is too long.']);
+        }
 
-        return ! $preference instanceof NotificationPreference || $preference->enabled;
+        if ($intent->subjectType !== null && mb_strlen($intent->subjectType) > 64) {
+            throw ValidationException::withMessages(['subject_type' => 'Notification subject type is too long.']);
+        }
+
+        if ($intent->subjectId !== null && mb_strlen($intent->subjectId) > 64) {
+            throw ValidationException::withMessages(['subject_id' => 'Notification subject ID is too long.']);
+        }
+
+        if ($intent->actionUrl !== null) {
+            if (mb_strlen($intent->actionUrl) > 2048
+                || ! str_starts_with($intent->actionUrl, '/')
+                || str_starts_with($intent->actionUrl, '//')
+                || str_contains($intent->actionUrl, "\r")
+                || str_contains($intent->actionUrl, "\n")) {
+                throw ValidationException::withMessages([
+                    'action_url' => 'Notification action URL must be a safe application-relative path.',
+                ]);
+            }
+        }
+
+        if ($intent->maxAttempts < 1 || $intent->maxAttempts > 10) {
+            throw ValidationException::withMessages([
+                'max_attempts' => 'Notification attempt budget must be between 1 and 10.',
+            ]);
+        }
     }
 }

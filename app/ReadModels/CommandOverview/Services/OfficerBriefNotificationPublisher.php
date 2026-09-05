@@ -7,8 +7,10 @@ namespace App\ReadModels\CommandOverview\Services;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Communications\Delivery\Services\NotificationDeliveryService;
-use App\Contexts\Communications\Delivery\ValueObjects\QueuedDeliveryBatch;
+use App\Contexts\Communications\Delivery\ValueObjects\NotificationIntent;
+use App\Contexts\Communications\Delivery\ValueObjects\NotificationQueueReceipt;
 use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
+use Carbon\CarbonImmutable;
 use Illuminate\Auth\Access\AuthorizationException;
 use InvalidArgumentException;
 
@@ -25,19 +27,14 @@ final readonly class OfficerBriefNotificationPublisher
         private NotificationDeliveryService $delivery,
     ) {}
 
-    /**
-     * Queues delivery from an already-built brief only after rechecking current
-     * account and Alliance authority. It never retrieves protected owner facts.
-     *
-     * @param  array<string,mixed>  $brief
-     */
+    /** @param array<string,mixed> $brief */
     public function publish(
         int $recipientUserId,
         string $playerId,
         string $allianceId,
         array $brief,
         string $policyKey = 'default',
-    ): QueuedDeliveryBatch {
+    ): NotificationQueueReceipt {
         $player = $this->players->find($playerId);
         if ($player === null
             || $player->userId !== $recipientUserId
@@ -61,36 +58,26 @@ final readonly class OfficerBriefNotificationPublisher
             'upcoming_event' => 'Upcoming Event Brief',
             'post_event_closeout' => 'Post-Event Closeout Brief',
         };
-        $body = sprintf(
-            '%d factual owner item(s); state: %s; owner: %s.',
-            $count,
-            str_replace('_', ' ', $state),
-            $owner,
-        );
-
+        $body = sprintf('%d factual owner item(s); state: %s; owner: %s.', $count, str_replace('_', ' ', $state), $owner);
         $isDailyPolicy = $group === 'daily_officer'
             && preg_match('/^daily:\\d{4}-\\d{2}-\\d{2}$/D', $policyKey) === 1;
         $meaningKey = $isDailyPolicy ? $policyKey : $fingerprint;
         $idempotencyKey = hash('sha256', implode('|', [
-            self::NOTIFICATION_TYPE,
-            $meaningKey,
-            (string) $recipientUserId,
-            $playerId,
-            $allianceId,
+            self::NOTIFICATION_TYPE, $meaningKey, (string) $recipientUserId, $playerId, $allianceId,
         ]));
 
-        return $this->delivery->queueEnabledChannelBatch(
+        return $this->delivery->queue(new NotificationIntent(
             notificationType: self::NOTIFICATION_TYPE,
             recipientUserId: $recipientUserId,
             playerId: $playerId,
-            dueAt: now(),
+            availableAt: CarbonImmutable::now('UTC'),
             idempotencyKey: $idempotencyKey,
+            title: $title,
+            body: $body,
+            actionUrl: $canonicalUrl,
             subjectType: 'officer_brief',
             subjectId: $fingerprint,
             metadata: [
-                'title' => $title,
-                'body' => $body,
-                'action_url' => $canonicalUrl,
                 'alliance_id' => $allianceId,
                 'group' => $group,
                 'state' => $state,
@@ -100,6 +87,6 @@ final readonly class OfficerBriefNotificationPublisher
                 'briefFingerprint' => $fingerprint,
                 'policyKey' => $policyKey,
             ],
-        );
+        ));
     }
 }

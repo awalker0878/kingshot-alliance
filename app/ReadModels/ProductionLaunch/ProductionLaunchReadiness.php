@@ -6,6 +6,9 @@ namespace App\ReadModels\ProductionLaunch;
 
 use App\Contexts\Alliance\Lifecycle\Enums\AllianceStatus;
 use App\Contexts\Alliance\Lifecycle\Models\Alliance;
+use App\Contexts\Communications\Delivery\Enums\DeliveryChannel;
+use App\Contexts\Communications\Delivery\Models\NotificationEndpoint;
+use App\Contexts\Communications\Delivery\Models\NotificationPreference;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeSourceRegistry;
 use App\Contexts\GameWorld\GiftCodes\Services\GiftCodeSourceAdapterRegistry;
 use App\Contexts\Platform\Administration\Models\PlatformAdministrator;
@@ -15,6 +18,7 @@ use App\Contexts\Platform\Integrations\Models\WebhookDelivery;
 use App\Shared\Infrastructure\Messaging\Outbox\Models\OutboxMessage;
 use App\Shared\Infrastructure\Runtime\Services\RuntimeConfigurationValidator;
 use Illuminate\Support\Facades\DB;
+use OpenSSLAsymmetricKey;
 
 final readonly class ProductionLaunchReadiness
 {
@@ -79,6 +83,22 @@ final readonly class ProductionLaunchReadiness
             ->all();
         $giftCodeIngestionReady = ! $giftCodeFlags['approved_source_ingestion']
             || ($enabledGiftCodeSources->isNotEmpty() && $unavailableGiftCodeSources === []);
+
+        $schedulerSource = file_get_contents(base_path('routes/console.php'));
+        $notificationScheduleReady = is_string($schedulerSource)
+            && str_contains($schedulerSource, "Schedule::command('notifications:deliver --limit=100')->everyMinute()")
+            && str_contains($schedulerSource, "Schedule::command('notifications:build-digests --limit=500')->everyMinute()")
+            && str_contains($schedulerSource, "Schedule::command('notifications:deliver-digests --limit=100')->everyMinute()");
+        $enabledWebPushEndpoints = NotificationEndpoint::query()
+            ->where('channel', DeliveryChannel::WebPush->value)
+            ->where('enabled', true)
+            ->count();
+        $webPushReady = $enabledWebPushEndpoints === 0 || $this->webPushConfigurationReady();
+        $enabledEmailPreferences = NotificationPreference::query()
+            ->where('channel', DeliveryChannel::Email->value)
+            ->where('enabled', true)
+            ->count();
+        $mailReady = $enabledEmailPreferences === 0 || $this->mailConfigurationReady();
 
         return [
             [
@@ -149,6 +169,31 @@ final readonly class ProductionLaunchReadiness
                     default => sprintf('%d active Gift Code source(s) have installed ingestion adapters.', $enabledGiftCodeSources->count()),
                 },
             ],
+            [
+                'key' => 'notification_delivery_schedule',
+                'passed' => $notificationScheduleReady,
+                'detail' => $notificationScheduleReady
+                    ? 'Immediate delivery, digest construction, and digest delivery are scheduled every minute with overlap protection.'
+                    : 'Notification immediate/digest scheduler wiring is incomplete.',
+            ],
+            [
+                'key' => 'notification_web_push_configuration',
+                'passed' => $webPushReady,
+                'detail' => $enabledWebPushEndpoints === 0
+                    ? 'No enabled Web Push endpoint requires VAPID configuration.'
+                    : ($webPushReady
+                        ? sprintf('%d enabled Web Push endpoint(s) have usable VAPID configuration.', $enabledWebPushEndpoints)
+                        : sprintf('%d enabled Web Push endpoint(s) require valid VAPID public/private keys and subject.', $enabledWebPushEndpoints)),
+            ],
+            [
+                'key' => 'notification_email_configuration',
+                'passed' => $mailReady,
+                'detail' => $enabledEmailPreferences === 0
+                    ? 'No enabled email notification preference requires a production mail transport.'
+                    : ($mailReady
+                        ? sprintf('%d enabled email notification preference(s) have a production mail transport and sender.', $enabledEmailPreferences)
+                        : sprintf('%d enabled email notification preference(s) require a non-log/non-array mail transport and valid sender.', $enabledEmailPreferences)),
+            ],
         ];
     }
 
@@ -161,5 +206,63 @@ final readonly class ProductionLaunchReadiness
         }
 
         return true;
+    }
+
+    private function webPushConfigurationReady(): bool
+    {
+        $publicKey = trim((string) config('services.webpush.public_key', ''));
+        $privateKey = trim((string) config('services.webpush.private_key', ''));
+        $subject = trim((string) config('services.webpush.subject', ''));
+        $decodedPublicKey = $this->decodeBase64Url($publicKey);
+        if ($decodedPublicKey === null
+            || strlen($decodedPublicKey) !== 65
+            || ord($decodedPublicKey[0]) !== 4
+            || $privateKey === ''
+            || ! $this->validVapidSubject($subject)) {
+            return false;
+        }
+
+        $pem = str_contains($privateKey, 'BEGIN PRIVATE KEY') || str_contains($privateKey, 'BEGIN EC PRIVATE KEY')
+            ? str_replace('\\n', "\n", $privateKey)
+            : base64_decode($privateKey, true);
+        if (! is_string($pem) || trim($pem) === '') {
+            return false;
+        }
+
+        return openssl_pkey_get_private($pem) instanceof OpenSSLAsymmetricKey;
+    }
+
+    private function validVapidSubject(string $subject): bool
+    {
+        if (str_starts_with($subject, 'mailto:')) {
+            return filter_var(substr($subject, 7), FILTER_VALIDATE_EMAIL) !== false;
+        }
+
+        return filter_var($subject, FILTER_VALIDATE_URL) !== false
+            && mb_strtolower((string) parse_url($subject, PHP_URL_SCHEME)) === 'https';
+    }
+
+    private function mailConfigurationReady(): bool
+    {
+        $mailer = trim((string) config('mail.default', ''));
+        $configuration = $mailer === '' ? null : config('mail.mailers.'.$mailer);
+        $from = trim((string) config('mail.from.address', ''));
+
+        return $mailer !== ''
+            && ! in_array($mailer, ['array', 'log'], true)
+            && is_array($configuration)
+            && filter_var($from, FILTER_VALIDATE_EMAIL) !== false;
+    }
+
+    private function decodeBase64Url(string $value): ?string
+    {
+        if ($value === '' || preg_match('/^[A-Za-z0-9_-]+$/D', $value) !== 1) {
+            return null;
+        }
+
+        $padding = (4 - (strlen($value) % 4)) % 4;
+        $decoded = base64_decode(strtr($value.str_repeat('=', $padding), '-_', '+/'), true);
+
+        return is_string($decoded) ? $decoded : null;
     }
 }

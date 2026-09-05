@@ -87,6 +87,14 @@ async function intelligenceChangeCatalogue(
   return mergeCatalogue(base, intelligenceChangeLabels(locale));
 }
 
+async function communicationsRecipientDeliveryCatalogue(
+  base: MessageCatalogue,
+): Promise<MessageCatalogue> {
+  const { communicationsRecipientDeliveryLabels } =
+    await import('./communications-recipient-delivery-labels');
+  return mergeCatalogue(base, communicationsRecipientDeliveryLabels());
+}
+
 async function loadOne(domain: LocalizationDomain, locale: LocaleCode): Promise<MessageCatalogue> {
   const key = cacheKey(domain, locale);
   const cached = catalogues.get(key);
@@ -105,6 +113,9 @@ async function loadOne(domain: LocalizationDomain, locale: LocaleCode): Promise<
     }
     if (['alliance', 'assistant', 'kingdom'].includes(domain)) {
       catalogue = await intelligenceChangeCatalogue(catalogue, locale);
+    }
+    if (domain === 'account') {
+      catalogue = await communicationsRecipientDeliveryCatalogue(catalogue);
     }
     catalogues.set(key, catalogue);
     pending.delete(key);

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\KingPerks\Actions;
 
-use App\Contexts\Communications\Delivery\Enums\DeliveryChannel;
 use App\Contexts\Communications\Delivery\Services\NotificationDeliveryService;
+use App\Contexts\Communications\Delivery\ValueObjects\NotificationIntent;
 use App\Contexts\GameWorld\Governance\Queries\KingdomAuthorityFactsQuery;
 use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
@@ -200,10 +200,6 @@ final readonly class QueueDueKingPerkReminders
                 return false;
             }
 
-            $notificationType = 'king_perks.reminder';
-            $baseKey = implode(':', [
-                'king-perk-reminder', $kind->value, (string) $source->id, $currentPlayer->playerId,
-            ]);
             $title = $source instanceof KingPerkAppointment
                 ? $source->appointment_type->label()
                 : $source->skill_key->label();
@@ -215,57 +211,52 @@ final readonly class QueueDueKingPerkReminders
                 KingPerkReminderKind::SkillSchedulingAvailable => 'This King Skill can now be scheduled in game.',
                 KingPerkReminderKind::Skill1Hour => 'This King Skill is planned to activate within one hour.',
             };
-            $deliveries = $this->deliveries->queueEnabledChannels(
-                notificationType: $notificationType,
+            $receipt = $this->deliveries->queue(NotificationIntent::fromScalars(
+                notificationType: 'king_perks.reminder',
                 recipientUserId: $currentPlayer->userId,
                 playerId: $currentPlayer->playerId,
-                dueAt: $dueAt,
-                idempotencyKey: $baseKey,
+                availableAt: $dueAt,
+                idempotencyKey: implode(':', [
+                    'king-perk-reminder', $kind->value, (string) $source->id, $currentPlayer->playerId,
+                ]),
+                title: $title,
+                body: $body,
+                actionUrl: '/events',
                 subjectType: $subjectType,
                 subjectId: (string) $source->id,
                 metadata: [
-                    'title' => $title,
-                    'body' => $body,
-                    'action_url' => '/events',
                     'plan_id' => (string) $plan->id,
                     'kind' => $kind->value,
                 ],
-            );
+            ));
 
-            $created = false;
-            foreach ($deliveries as $delivery) {
-                if (! $delivery->wasRecentlyCreated) {
-                    continue;
-                }
-                $created = true;
-
-                if ($delivery->channel !== DeliveryChannel::InApp->value) {
-                    continue;
-                }
-
+            $inAppDeliveryId = $receipt->inAppDeliveryId;
+            if ($inAppDeliveryId !== null
+                && in_array($inAppDeliveryId, $receipt->createdDeliveryIds, true)) {
                 $payload = [
-                    'delivery_id' => (string) $delivery->id,
+                    'delivery_id' => $inAppDeliveryId,
+                    'message_id' => $receipt->messageId,
                     'plan_id' => (string) $plan->id,
                     'appointment_id' => $appointmentId,
                     'skill_plan_id' => $skillId,
                     'kind' => $kind->value,
                     'recipient_user_id' => $currentPlayer->userId,
                     'player_id' => $currentPlayer->playerId,
-                    'channel' => $delivery->channel,
+                    'channel' => 'in_app',
                     'due_at' => $dueAt->toIso8601String(),
                     'origin' => 'system',
                 ];
                 $this->outbox->record(
                     'king_perks.reminder.requested',
                     null,
-                    $delivery,
+                    $source,
                     $payload,
-                    idempotencyKey: 'king_perks.reminder.requested:'.$delivery->id,
+                    idempotencyKey: 'king_perks.reminder.requested:'.$inAppDeliveryId,
                     partitionKey: 'kingdom:'.$plan->kingdom_id,
                 );
             }
 
-            return $created;
+            return $receipt->hasCreatedDeliveries();
         });
     }
 }

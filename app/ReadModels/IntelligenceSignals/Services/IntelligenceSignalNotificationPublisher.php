@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace App\ReadModels\IntelligenceSignals\Services;
 
 use App\Contexts\Communications\Delivery\Services\NotificationDeliveryService;
-use App\Contexts\Communications\Delivery\ValueObjects\QueuedDeliveryBatch;
+use App\Contexts\Communications\Delivery\ValueObjects\NotificationIntent;
+use App\Contexts\Communications\Delivery\ValueObjects\NotificationQueueReceipt;
 use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
+use Carbon\CarbonImmutable;
 use Illuminate\Auth\Access\AuthorizationException;
-use Illuminate\Support\Carbon;
 use InvalidArgumentException;
 
 final readonly class IntelligenceSignalNotificationPublisher
@@ -23,20 +24,14 @@ final readonly class IntelligenceSignalNotificationPublisher
         private AllianceIntelligenceAuthorization $authorization,
     ) {}
 
-    /**
-     * Queue Communications-owned delivery after rechecking the already-derived
-     * signal's recipient and Alliance authority. This service neither retrieves
-     * Intelligence nor persists a signal.
-     *
-     * @param  array<string,mixed>  $signal
-     */
+    /** @param array<string,mixed> $signal */
     public function publish(
         int $recipientUserId,
         string $playerId,
         string $allianceId,
         array $signal,
         string $policyKey = 'default',
-    ): QueuedDeliveryBatch {
+    ): NotificationQueueReceipt {
         $player = $this->players->find($playerId);
         if ($player === null
             || $player->userId !== $recipientUserId
@@ -48,7 +43,6 @@ final readonly class IntelligenceSignalNotificationPublisher
         if ($fingerprint === '') {
             throw new InvalidArgumentException('Intelligence signal delivery requires a deterministic fingerprint.');
         }
-
         $subjectType = trim((string) ($signal['subjectType'] ?? '')) ?: 'intelligence_signal';
         $subjectId = trim((string) ($signal['subjectId'] ?? '')) ?: $fingerprint;
         $summary = trim((string) ($signal['summary'] ?? ''));
@@ -60,26 +54,21 @@ final readonly class IntelligenceSignalNotificationPublisher
             $canonicalUrl = '/alliance/kingdom-alliances/intelligence';
         }
         $idempotencyKey = hash('sha256', implode('|', [
-            self::NOTIFICATION_TYPE,
-            $fingerprint,
-            (string) $recipientUserId,
-            $playerId,
-            $allianceId,
-            $policyKey,
+            self::NOTIFICATION_TYPE, $fingerprint, (string) $recipientUserId, $playerId, $allianceId, $policyKey,
         ]));
 
-        return $this->delivery->queueEnabledChannelBatch(
+        return $this->delivery->queue(new NotificationIntent(
             notificationType: self::NOTIFICATION_TYPE,
             recipientUserId: $recipientUserId,
             playerId: $playerId,
-            dueAt: Carbon::now(),
+            availableAt: CarbonImmutable::now('UTC'),
             idempotencyKey: $idempotencyKey,
+            title: 'Intelligence change',
+            body: $summary,
+            actionUrl: $canonicalUrl,
             subjectType: $subjectType,
             subjectId: $subjectId,
             metadata: [
-                'title' => 'Intelligence change',
-                'body' => $summary,
-                'action_url' => $canonicalUrl,
                 'alliance_id' => $allianceId,
                 'signalType' => $signal['type'] ?? null,
                 'summary' => $summary,
@@ -93,6 +82,6 @@ final readonly class IntelligenceSignalNotificationPublisher
                 'ruleVersion' => $signal['ruleVersion'] ?? null,
                 'policyKey' => $policyKey,
             ],
-        );
+        ));
     }
 }

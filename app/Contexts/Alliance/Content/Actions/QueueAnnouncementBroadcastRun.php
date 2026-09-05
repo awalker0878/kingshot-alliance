@@ -10,6 +10,7 @@ use App\Contexts\Alliance\Content\Models\ContentItem;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\Communications\Delivery\Services\NotificationDeliveryService;
+use App\Contexts\Communications\Delivery\ValueObjects\NotificationIntent;
 use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
@@ -70,24 +71,24 @@ final readonly class QueueAnnouncementBroadcastRun
             }
 
             $recipientCount++;
-            $batch = $this->deliveries->queueEnabledChannelBatch(
+            $receipt = $this->deliveries->queue(new NotificationIntent(
                 notificationType: 'alliance.announcement',
                 recipientUserId: $recipient->userId,
                 playerId: $recipient->playerId,
-                dueAt: now(),
+                availableAt: CarbonImmutable::now('UTC'),
                 idempotencyKey: implode(':', ['alliance-announcement-run', $run->id, $recipient->playerId]),
+                title: (string) $item->title,
+                body: mb_substr(trim((string) ($item->summary ?: $item->body)), 0, 1000),
+                actionUrl: '/alliance/content/'.rawurlencode((string) $item->slug),
                 subjectType: 'content_item',
                 subjectId: (string) $item->id,
                 metadata: [
-                    'title' => (string) $item->title,
-                    'body' => mb_substr(trim((string) ($item->summary ?: $item->body)), 0, 1000),
-                    'action_url' => '/alliance/content/'.rawurlencode((string) $item->slug),
                     'alliance_id' => $allianceId,
                     'content_item_id' => (string) $item->id,
                     'broadcast_run_id' => (string) $run->id,
                 ],
-            );
-            $deliveryCount += $batch->count();
+            ));
+            $deliveryCount += $receipt->count();
         }
 
         $run->forceFill([

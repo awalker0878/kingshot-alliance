@@ -18,15 +18,15 @@ final readonly class BulkUpdateNotificationInbox
         private AuditRecorder $audit,
     ) {}
 
-    /** @param non-empty-list<string> $deliveryIds */
+    /** @param non-empty-list<string> $messageIds */
     public function handle(
         AuditActor $actor,
         int $recipientUserId,
         ?string $playerId,
-        array $deliveryIds,
+        array $messageIds,
         string $operation,
     ): BulkActionResult {
-        $preview = $this->preview->handle($recipientUserId, $playerId, $deliveryIds, $operation);
+        $preview = $this->preview->handle($recipientUserId, $playerId, $messageIds, $operation);
         $items = [];
 
         foreach ($preview['items'] as $item) {
@@ -42,14 +42,21 @@ final readonly class BulkUpdateNotificationInbox
             }
 
             try {
-                if ($operation === PreviewNotificationInboxBulkAction::MARK_READ) {
-                    $this->inboxState->markRead($item['itemId'], $recipientUserId, $playerId);
-                    $code = 'notification-marked-read';
-                } else {
-                    $this->inboxState->dismiss($item['itemId'], $recipientUserId, $playerId);
-                    $code = 'notification-dismissed';
-                }
-
+                $code = match ($operation) {
+                    PreviewNotificationInboxBulkAction::MARK_READ => $this->markRead(
+                        $item['itemId'], $recipientUserId, $playerId,
+                    ),
+                    PreviewNotificationInboxBulkAction::MARK_UNREAD => $this->markUnread(
+                        $item['itemId'], $recipientUserId, $playerId,
+                    ),
+                    PreviewNotificationInboxBulkAction::ARCHIVE => $this->archive(
+                        $item['itemId'], $recipientUserId, $playerId,
+                    ),
+                    PreviewNotificationInboxBulkAction::RESTORE => $this->restore(
+                        $item['itemId'], $recipientUserId, $playerId,
+                    ),
+                    default => 'notification-operation-unsupported',
+                };
                 $items[] = BulkItemResult::succeeded($item['itemId'], $item['label'], $code);
             } catch (ModelNotFoundException) {
                 $items[] = BulkItemResult::failed(
@@ -64,7 +71,7 @@ final readonly class BulkUpdateNotificationInbox
         $result = new BulkActionResult('notification-inbox-update', $items);
         $payload = $result->toArray();
         $this->audit->record(
-            'notification.deliveries.bulk_inbox_updated',
+            'notification.messages.bulk_inbox_updated',
             $actor,
             null,
             null,
@@ -72,7 +79,7 @@ final readonly class BulkUpdateNotificationInbox
                 'recipient_user_id' => $recipientUserId,
                 'player_id' => $playerId,
                 'operation' => $operation,
-                'delivery_ids' => $deliveryIds,
+                'message_ids' => $messageIds,
                 'succeeded' => $payload['succeeded'],
                 'failed' => $payload['failed'],
                 'skipped' => $payload['skipped'],
@@ -80,5 +87,33 @@ final readonly class BulkUpdateNotificationInbox
         );
 
         return $result;
+    }
+
+    private function markRead(string $messageId, int $recipientUserId, ?string $playerId): string
+    {
+        $this->inboxState->markRead($messageId, $recipientUserId, $playerId);
+
+        return 'notification-marked-read';
+    }
+
+    private function markUnread(string $messageId, int $recipientUserId, ?string $playerId): string
+    {
+        $this->inboxState->markUnread($messageId, $recipientUserId, $playerId);
+
+        return 'notification-marked-unread';
+    }
+
+    private function archive(string $messageId, int $recipientUserId, ?string $playerId): string
+    {
+        $this->inboxState->archive($messageId, $recipientUserId, $playerId);
+
+        return 'notification-archived';
+    }
+
+    private function restore(string $messageId, int $recipientUserId, ?string $playerId): string
+    {
+        $this->inboxState->restore($messageId, $recipientUserId, $playerId);
+
+        return 'notification-restored';
     }
 }

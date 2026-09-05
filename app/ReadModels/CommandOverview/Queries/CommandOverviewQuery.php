@@ -8,7 +8,7 @@ use App\Contexts\Alliance\Recruitment\Enums\RecruitmentStage;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentCandidate;
 use App\Contexts\Communications\Delivery\Enums\DeliveryChannel;
 use App\Contexts\Communications\Delivery\Enums\DeliveryStatus;
-use App\Contexts\Communications\Delivery\Models\NotificationDelivery;
+use App\Contexts\Communications\Delivery\Models\NotificationMessage;
 use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeRedemptionStatus;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeRedemption;
 use App\Contexts\GameWorld\GiftCodes\Queries\GiftCodeCatalogQuery;
@@ -25,6 +25,7 @@ use App\Contexts\Operations\Events\Queries\EventCalendarQuery;
 use App\Contexts\Operations\Events\Services\EventAuthorization;
 use App\ReadModels\IntelligenceSignals\Queries\IntelligenceSignalQuery;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 
 final readonly class CommandOverviewQuery
 {
@@ -125,20 +126,25 @@ final readonly class CommandOverviewQuery
 
     private function unreadNotifications(int $userId, string $playerId): int
     {
-        return NotificationDelivery::query()
+        return NotificationMessage::query()
             ->where('recipient_user_id', $userId)
             ->whereNull('read_at')
-            ->whereNull('dismissed_at')
+            ->whereNull('archived_at')
             ->where(static fn (Builder $query) => $query
                 ->whereNull('player_id')
                 ->orWhere('player_id', $playerId))
-            ->where(static fn (Builder $query) => $query
-                ->where(static fn (Builder $inApp) => $inApp
-                    ->where('channel', DeliveryChannel::InApp->value)
-                    ->where('status', DeliveryStatus::Sent->value))
-                ->orWhere(static fn (Builder $failed) => $failed
-                    ->where('channel', '!=', DeliveryChannel::InApp->value)
-                    ->where('status', DeliveryStatus::Failed->value)))
+            ->whereExists(static function (QueryBuilder $query): void {
+                $query->selectRaw('1')
+                    ->from('notification_deliveries')
+                    ->whereColumn('notification_deliveries.notification_message_id', 'notification_messages.id')
+                    ->where(static fn (QueryBuilder $delivery) => $delivery
+                        ->where(static fn (QueryBuilder $inApp) => $inApp
+                            ->where('channel', DeliveryChannel::InApp->value)
+                            ->where('status', DeliveryStatus::Sent->value))
+                        ->orWhere(static fn (QueryBuilder $failed) => $failed
+                            ->where('channel', '!=', DeliveryChannel::InApp->value)
+                            ->where('status', DeliveryStatus::Failed->value)));
+            })
             ->count();
     }
 

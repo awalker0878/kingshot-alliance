@@ -23,6 +23,7 @@ use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\Communications\Delivery\Enums\DeliveryChannel;
 use App\Contexts\Communications\Delivery\Enums\DeliveryStatus;
 use App\Contexts\Communications\Delivery\Models\NotificationDelivery;
+use App\Contexts\Communications\Delivery\Models\NotificationMessage;
 use App\Contexts\GameWorld\Players\Actions\ClaimPlayerAccount;
 use App\Contexts\GameWorld\Players\Actions\PersistPlayerIdentity;
 use Carbon\CarbonImmutable;
@@ -79,21 +80,28 @@ final class AllianceAnnouncementBroadcastBehaviorV3Test extends TestCase
         self::assertSame(1, $queue->handle());
         self::assertSame(0, $queue->handle());
 
-        $deliveries = NotificationDelivery::query()
+        $messages = NotificationMessage::query()
             ->where('notification_type', 'alliance.announcement')
             ->orderBy('recipient_user_id')
             ->get();
-        self::assertCount(2, $deliveries);
+        self::assertCount(2, $messages);
         self::assertSame(
             [$ownerAccount->userId, $memberAccount->userId],
-            $deliveries->pluck('recipient_user_id')->map(static fn (mixed $id): int => (int) $id)->all(),
+            $messages->pluck('recipient_user_id')->map(static fn (mixed $id): int => (int) $id)->all(),
         );
+        self::assertTrue($messages->every(
+            static fn (NotificationMessage $message): bool => $message->action_url === '/alliance/content/bear-rally-at-reset',
+        ));
+
+        $deliveries = NotificationDelivery::query()
+            ->whereIn('notification_message_id', $messages->pluck('id'))
+            ->get();
+        self::assertCount(2, $deliveries);
         self::assertTrue($deliveries->every(
-            static fn (NotificationDelivery $delivery): bool => $delivery->channel === DeliveryChannel::InApp->value
+            static fn (NotificationDelivery $delivery): bool => $delivery->channel === DeliveryChannel::InApp
                 && $delivery->status === DeliveryStatus::Sent
                 && $delivery->sent_at !== null,
         ));
-        self::assertSame('/alliance/content/bear-rally-at-reset', $deliveries->first()?->metadata['action_url']);
         self::assertNotNull($announcement->fresh()?->broadcasted_at);
     }
 
@@ -127,6 +135,7 @@ final class AllianceAnnouncementBroadcastBehaviorV3Test extends TestCase
         }
 
         self::assertSame(0, app(QueuePublishedAnnouncementBroadcasts::class)->handle());
+        self::assertSame(0, NotificationMessage::query()->count());
         self::assertSame(0, NotificationDelivery::query()->count());
     }
 
@@ -204,10 +213,13 @@ final class AllianceAnnouncementBroadcastBehaviorV3Test extends TestCase
         );
 
         self::assertSame([DeliveryChannel::InApp->value], $channels);
+        $message = NotificationMessage::query()->sole();
+        self::assertSame($ownerUserId, (int) $message->recipient_user_id);
+        self::assertTrue((bool) ($message->metadata['test_delivery'] ?? false));
+        self::assertStringStartsWith('[Test] ', $message->title);
         $delivery = NotificationDelivery::query()->sole();
-        self::assertSame($ownerUserId, $delivery->recipient_user_id);
-        self::assertTrue((bool) ($delivery->metadata['test_delivery'] ?? false));
-        self::assertStringStartsWith('[Test] ', (string) ($delivery->metadata['title'] ?? ''));
+        self::assertSame((string) $message->id, (string) $delivery->notification_message_id);
+        self::assertSame(DeliveryChannel::InApp, $delivery->channel);
     }
 
     public function test_failed_run_deliveries_can_be_selected_for_bounded_retry(): void

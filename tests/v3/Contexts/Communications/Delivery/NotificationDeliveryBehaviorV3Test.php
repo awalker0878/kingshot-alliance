@@ -14,7 +14,9 @@ use App\Contexts\Communications\Delivery\Enums\DeliveryChannel;
 use App\Contexts\Communications\Delivery\Enums\DeliveryStatus;
 use App\Contexts\Communications\Delivery\Models\NotificationDelivery;
 use App\Contexts\Communications\Delivery\Models\NotificationEndpoint;
+use App\Contexts\Communications\Delivery\Models\NotificationMessage;
 use App\Contexts\Communications\Delivery\Services\NotificationDeliveryService;
+use App\Contexts\Communications\Delivery\ValueObjects\NotificationIntent;
 use App\Shared\Infrastructure\AuditTrail\Models\AuditEvent;
 use App\Shared\Infrastructure\Messaging\Outbox\Models\OutboxMessage;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -75,22 +77,23 @@ final class NotificationDeliveryBehaviorV3Test extends TestCase
             ['webhook_url' => 'https://discord.com/api/webhooks/123456789/secret-token_value'],
         );
 
-        $deliveries = app(NotificationDeliveryService::class)->queueEnabledChannels(
+        $receipt = app(NotificationDeliveryService::class)->queue(NotificationIntent::fromScalars(
             notificationType: 'event.reminder',
             recipientUserId: $account->userId,
             playerId: $player->playerId,
-            dueAt: now()->subMinute(),
+            availableAt: now()->subMinute(),
             idempotencyKey: 'test-event-reminder',
+            title: 'Bear Hunt',
+            body: 'Starts in ten minutes.',
+            actionUrl: '/events/01ARZ3NDEKTSV4RRFFQ69G5FAV',
             metadata: [
-                'title' => 'Bear Hunt',
-                'body' => 'Starts in ten minutes.',
-                'action_url' => '/events/01ARZ3NDEKTSV4RRFFQ69G5FAV',
                 'alliance_id' => $alliance->allianceId,
                 'broadcast_run_id' => '01ARZ3NDEKTSV4RRFFQ69G5FAW',
                 'content_item_id' => '01ARZ3NDEKTSV4RRFFQ69G5FAX',
             ],
-        );
-        self::assertCount(2, $deliveries);
+        ));
+        self::assertSame(2, $receipt->count());
+        self::assertSame(1, NotificationMessage::query()->count());
 
         Http::fake([
             'discord.com/*' => Http::response(null, 204),
@@ -101,6 +104,7 @@ final class NotificationDeliveryBehaviorV3Test extends TestCase
         self::assertSame(DeliveryStatus::Sent, $external->status);
         self::assertSame(1, $external->attempt_count);
         self::assertNotNull($external->sent_at);
+        self::assertSame($receipt->messageId, (string) $external->notification_message_id);
         $outbox = OutboxMessage::query()->where('event_type', 'broadcast.delivery.succeeded')->firstOrFail();
         self::assertSame($alliance->allianceId, $outbox->alliance_id);
         self::assertSame('discord', $outbox->payload['channel'] ?? null);
@@ -126,16 +130,15 @@ final class NotificationDeliveryBehaviorV3Test extends TestCase
                 'chat_id' => '-1001234567890',
             ],
         );
-        app(NotificationDeliveryService::class)->queue(
+        $receipt = app(NotificationDeliveryService::class)->queue(NotificationIntent::fromScalars(
             notificationType: 'king_perks.reminder',
             recipientUserId: $account->userId,
             playerId: $player->playerId,
-            channel: DeliveryChannel::Telegram->value,
-            dueAt: now()->subMinute(),
-            idempotencyKey: hash('sha256', 'telegram-rate-limit'),
-            metadata: ['title' => 'King appointment'],
+            availableAt: now()->subMinute(),
+            idempotencyKey: 'telegram-rate-limit',
+            title: 'King appointment',
             maxAttempts: 2,
-        );
+        ));
 
         Http::fake([
             'api.telegram.org/*' => Http::response([
@@ -145,21 +148,23 @@ final class NotificationDeliveryBehaviorV3Test extends TestCase
         ]);
         self::assertSame(1, app(ProcessNotificationDeliveries::class)->handle());
 
-        $delivery = NotificationDelivery::query()->firstOrFail();
+        $delivery = NotificationDelivery::query()
+            ->where('channel', DeliveryChannel::Telegram->value)
+            ->firstOrFail();
         self::assertSame(DeliveryStatus::Failed, $delivery->status);
         self::assertSame(1, $delivery->attempt_count);
         self::assertNotNull($delivery->next_attempt_at);
 
         app(UpdateNotificationInboxState::class)->markRead(
-            (string) $delivery->id,
+            $receipt->messageId,
             $account->userId,
             $player->playerId,
         );
-        self::assertNotNull($delivery->fresh()?->read_at);
+        self::assertNotNull(NotificationMessage::query()->findOrFail($receipt->messageId)->read_at);
 
         $this->expectException(ModelNotFoundException::class);
-        app(UpdateNotificationInboxState::class)->dismiss(
-            (string) $delivery->id,
+        app(UpdateNotificationInboxState::class)->archive(
+            $receipt->messageId,
             $other->userId,
             null,
         );
@@ -171,25 +176,25 @@ final class NotificationDeliveryBehaviorV3Test extends TestCase
         $account = $scenarios->account();
         $player = $scenarios->player($account->userId);
         $service = app(NotificationDeliveryService::class);
+        $intent = NotificationIntent::fromScalars(
+            notificationType: 'gift_code.expiring',
+            recipientUserId: $account->userId,
+            playerId: $player->playerId,
+            availableAt: now(),
+            idempotencyKey: 'scalar-delivery-batch',
+            title: 'Gift code expiring',
+        );
 
-        $first = $service->queueEnabledChannelBatch(
-            notificationType: 'gift_code.expiring',
-            recipientUserId: $account->userId,
-            playerId: $player->playerId,
-            dueAt: now(),
-            idempotencyKey: hash('sha256', 'scalar-delivery-batch'),
-        );
-        $replay = $service->queueEnabledChannelBatch(
-            notificationType: 'gift_code.expiring',
-            recipientUserId: $account->userId,
-            playerId: $player->playerId,
-            dueAt: now(),
-            idempotencyKey: hash('sha256', 'scalar-delivery-batch'),
-        );
+        $first = $service->queue($intent);
+        $replay = $service->queue($intent);
 
         self::assertTrue($first->hasCreatedDeliveries());
         self::assertFalse($replay->hasCreatedDeliveries());
+        self::assertTrue($first->createdMessage);
+        self::assertFalse($replay->createdMessage);
+        self::assertSame($first->messageId, $replay->messageId);
         self::assertSame($first->deliveryIds, $replay->deliveryIds);
+        self::assertSame(1, NotificationMessage::query()->count());
         self::assertSame(1, NotificationDelivery::query()->count());
     }
 
@@ -202,62 +207,58 @@ final class NotificationDeliveryBehaviorV3Test extends TestCase
         $service = app(NotificationDeliveryService::class);
         $state = app(UpdateNotificationInboxState::class);
 
-        $ready = $service->queue(
-            'event.reminder',
-            $account->userId,
-            $player->playerId,
-            DeliveryChannel::InApp->value,
-            now(),
-            hash('sha256', 'bulk-ready'),
-            metadata: ['title' => 'Ready reminder'],
-        );
-        $alreadyRead = $service->queue(
-            'event.reminder',
-            $account->userId,
-            $player->playerId,
-            DeliveryChannel::InApp->value,
-            now(),
-            hash('sha256', 'bulk-read'),
-            metadata: ['title' => 'Read reminder'],
-        );
-        $alreadyDismissed = $service->queue(
-            'event.reminder',
-            $account->userId,
-            $player->playerId,
-            DeliveryChannel::InApp->value,
-            now(),
-            hash('sha256', 'bulk-dismissed'),
-            metadata: ['title' => 'Dismissed reminder'],
-        );
-        $foreign = $service->queue(
-            'event.reminder',
-            $other->userId,
-            null,
-            DeliveryChannel::InApp->value,
-            now(),
-            hash('sha256', 'bulk-foreign'),
-            metadata: ['title' => 'Foreign reminder'],
-        );
-        $state->markRead((string) $alreadyRead->id, $account->userId, $player->playerId);
-        $state->dismiss((string) $alreadyDismissed->id, $account->userId, $player->playerId);
+        $ready = $service->queue(NotificationIntent::fromScalars(
+            notificationType: 'event.reminder',
+            recipientUserId: $account->userId,
+            playerId: $player->playerId,
+            availableAt: now(),
+            idempotencyKey: 'bulk-ready',
+            title: 'Ready reminder',
+        ));
+        $alreadyRead = $service->queue(NotificationIntent::fromScalars(
+            notificationType: 'event.reminder',
+            recipientUserId: $account->userId,
+            playerId: $player->playerId,
+            availableAt: now(),
+            idempotencyKey: 'bulk-read',
+            title: 'Read reminder',
+        ));
+        $alreadyArchived = $service->queue(NotificationIntent::fromScalars(
+            notificationType: 'event.reminder',
+            recipientUserId: $account->userId,
+            playerId: $player->playerId,
+            availableAt: now(),
+            idempotencyKey: 'bulk-archived',
+            title: 'Archived reminder',
+        ));
+        $foreign = $service->queue(NotificationIntent::fromScalars(
+            notificationType: 'event.reminder',
+            recipientUserId: $other->userId,
+            playerId: null,
+            availableAt: now(),
+            idempotencyKey: 'bulk-foreign',
+            title: 'Foreign reminder',
+        ));
+        $state->markRead($alreadyRead->messageId, $account->userId, $player->playerId);
+        $state->archive($alreadyArchived->messageId, $account->userId, $player->playerId);
 
-        $deliveryIds = [
-            (string) $ready->id,
-            (string) $alreadyRead->id,
-            (string) $alreadyDismissed->id,
-            (string) $foreign->id,
+        $messageIds = [
+            $ready->messageId,
+            $alreadyRead->messageId,
+            $alreadyArchived->messageId,
+            $foreign->messageId,
         ];
         $preview = app(PreviewNotificationInboxBulkAction::class)->handle(
             $account->userId,
             $player->playerId,
-            $deliveryIds,
+            $messageIds,
             PreviewNotificationInboxBulkAction::MARK_READ,
         );
 
         self::assertSame(1, $preview['ready']);
         self::assertSame(3, $preview['blocked']);
         self::assertSame(
-            ['ready', 'already-read', 'already-dismissed', 'notification-unavailable'],
+            ['ready', 'already-read', 'already-read', 'notification-unavailable'],
             array_column($preview['items'], 'code'),
         );
 
@@ -266,31 +267,31 @@ final class NotificationDeliveryBehaviorV3Test extends TestCase
             $actor,
             $account->userId,
             $player->playerId,
-            $deliveryIds,
+            $messageIds,
             PreviewNotificationInboxBulkAction::MARK_READ,
         )->toArray();
 
         self::assertSame(1, $result['succeeded']);
         self::assertSame(1, $result['failed']);
         self::assertSame(2, $result['skipped']);
-        self::assertSame([(string) $foreign->id], $result['failedItemIds']);
-        self::assertNotNull($ready->fresh()?->read_at);
-        self::assertNull($foreign->fresh()?->read_at);
+        self::assertSame([$foreign->messageId], $result['failedItemIds']);
+        self::assertNotNull(NotificationMessage::query()->findOrFail($ready->messageId)->read_at);
+        self::assertNull(NotificationMessage::query()->findOrFail($foreign->messageId)->read_at);
 
-        $dismissResult = app(BulkUpdateNotificationInbox::class)->handle(
+        $archiveResult = app(BulkUpdateNotificationInbox::class)->handle(
             $actor,
             $account->userId,
             $player->playerId,
-            [(string) $ready->id],
-            PreviewNotificationInboxBulkAction::DISMISS,
+            [$ready->messageId],
+            PreviewNotificationInboxBulkAction::ARCHIVE,
         )->toArray();
-        self::assertSame(1, $dismissResult['succeeded']);
-        self::assertNotNull($ready->fresh()?->dismissed_at);
+        self::assertSame(1, $archiveResult['succeeded']);
+        self::assertNotNull(NotificationMessage::query()->findOrFail($ready->messageId)->archived_at);
 
         self::assertSame(
             2,
             AuditEvent::query()
-                ->where('event', 'notification.deliveries.bulk_inbox_updated')
+                ->where('event', 'notification.messages.bulk_inbox_updated')
                 ->where('actor_user_id', $account->userId)
                 ->count(),
         );
