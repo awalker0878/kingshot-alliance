@@ -90,6 +90,27 @@ const english: MessageCatalogue = {
         other: 'Other',
       },
     },
+    allianceCoverage: {
+      eyebrow: 'Alliance coverage',
+      title: 'Gift Code Coverage',
+      subtitle: 'Aggregate redemption coverage for authorized Alliance operations. Individual member history is not exposed.',
+      eligibleGovernors: 'Eligible Governors',
+      code: 'Gift Code',
+      completed: 'Completed',
+      incomplete: 'Incomplete',
+      retryReady: 'Retry ready',
+      unknown: 'Missing Player ID',
+      expiry: 'Expiry',
+      noExpiry: 'No qualified expiry',
+      empty: 'No currently valid Gift Codes are available for aggregate coverage.',
+      backToWorkspace: 'Back to workspace',
+    },
+  },
+  notifications: {
+    types: {
+      giftCodeReminder: 'Gift Code reminder',
+      giftCodeRedemptionReady: 'Gift Codes ready to redeem',
+    },
   },
   receipts: {
     'gift-code-session-created': 'Gift Code redemption run created with {count} items.',
