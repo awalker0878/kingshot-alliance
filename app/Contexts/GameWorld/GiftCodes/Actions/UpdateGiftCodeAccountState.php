@@ -24,7 +24,7 @@ final readonly class UpdateGiftCodeAccountState
         GiftCodeAccountStateStatus $state,
         ?CarbonImmutable $snoozedUntil = null,
         ?CarbonImmutable $remindAt = null,
-    ): GiftCodeAccountState {
+    ): void {
         $userId = $actor->auditUserId();
         if ($userId === null) {
             throw new AuthorizationException('An authenticated account is required for personal Gift Code state.');
@@ -77,7 +77,5 @@ final readonly class UpdateGiftCodeAccountState
                 'remind_at' => $remindAt?->toIso8601String(),
             ],
         );
-
-        return $accountState;
     }
 }
