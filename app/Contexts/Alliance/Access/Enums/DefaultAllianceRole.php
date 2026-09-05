@@ -9,6 +9,7 @@ enum DefaultAllianceRole: string
     case Recruiter = 'recruiter';
     case EventCoordinator = 'event_coordinator';
     case ContentManager = 'content_manager';
+    case GiftCodeCoordinator = 'gift_code_coordinator';
 
     public function name(): string
     {
@@ -16,6 +17,7 @@ enum DefaultAllianceRole: string
             self::Recruiter => 'Recruiter',
             self::EventCoordinator => 'Event Coordinator',
             self::ContentManager => 'Content Manager',
+            self::GiftCodeCoordinator => 'Gift Code Coordinator',
         };
     }
 }
