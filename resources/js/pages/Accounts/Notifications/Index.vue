@@ -334,6 +334,8 @@ function typeLabel(type: string): string {
     'gift_code.expiring': t('notifications.types.giftCodeExpiring'),
     'gift_code.available': t('notifications.types.giftCodeAvailable'),
     'gift_code.trust_changed': t('notifications.types.giftCodeTrustChanged'),
+    'gift_code.reminder': t('notifications.types.giftCodeReminder'),
+    'gift_code.redemption_ready': t('notifications.types.giftCodeRedemptionReady'),
     'intelligence.change': t('notifications.types.intelligenceChange'),
     'king_perks.reminder': t('notifications.types.kingPerkReminder'),
     'officer.brief': t('notifications.types.officerBrief'),

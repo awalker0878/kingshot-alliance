@@ -248,3 +248,13 @@ Territory planning and Kingdom map interaction are no longer generically exclude
 - arbitrary game resource balances;
 - generic Alliance power ranking;
 - invented events such as Foundry Battle or Canyon Clash.
+
+## Gift Code Redemption Workspace
+
+- `/gift-codes/workspace` is the account-personal many-code/many-Governor action surface and is separate from the global catalogue/detail views.
+- Workspace views are New, Ready to redeem, Expiring soon, Retry ready, In progress, Snoozed and Completed.
+- Persistent redemption runs expose progress, current Governor/Gift Code, structured qualified reward display, copy controls, official-provider handoff, observed-result recording, skip/abandon and privacy-gated recent redemption signals.
+- Personal pin/snooze/dismiss/reminder actions affect only the account workflow projection.
+- `/gift-codes/workspace/alliance/{alliance}/coverage` is an authorized aggregate-only Alliance view and does not expose individual member histories.
+- Desktop and mobile Playwright coverage verifies workspace creation, persisted resume, skip/result progression, accessible controls and horizontal-overflow safety.
+

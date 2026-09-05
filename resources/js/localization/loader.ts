@@ -95,6 +95,11 @@ async function communicationsRecipientDeliveryCatalogue(
   return mergeCatalogue(base, communicationsRecipientDeliveryLabels());
 }
 
+async function giftCodeWorkspaceCatalogue(base: MessageCatalogue): Promise<MessageCatalogue> {
+  const { giftCodeWorkspaceLabels } = await import('./gift-code-workspace-labels');
+  return mergeCatalogue(base, giftCodeWorkspaceLabels());
+}
+
 async function loadOne(domain: LocalizationDomain, locale: LocaleCode): Promise<MessageCatalogue> {
   const key = cacheKey(domain, locale);
   const cached = catalogues.get(key);
@@ -111,6 +116,7 @@ async function loadOne(domain: LocalizationDomain, locale: LocaleCode): Promise<
     if (domain === 'core' || domain === 'alliance') {
       catalogue = await allianceCapabilityExpansionCatalogue(catalogue);
     }
+    if (domain === 'core') catalogue = await giftCodeWorkspaceCatalogue(catalogue);
     if (['alliance', 'assistant', 'kingdom'].includes(domain)) {
       catalogue = await intelligenceChangeCatalogue(catalogue, locale);
     }

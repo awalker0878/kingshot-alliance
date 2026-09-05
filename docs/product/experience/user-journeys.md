@@ -799,3 +799,19 @@ failure / stale authority / duplicate / conflict / unavailable source
 ```
 
 The canonical acceptance criteria, ownership/provenance rules and delivery order for these journeys live in [Capability Extension Program](../capability-extension-program.md), [Kingshot Capability Expansion Program](../kingshot-capability-expansion-program.md) and the [Capability delivery ledger](../capability-delivery-ledger.md).
+
+## Gift Code personal redemption workspace
+
+```text
+Open Gift Code Workspace
+ -> compose New / Ready / Expiring / Retry / In-progress / Snoozed / Completed from current catalogue truth and all currently owned Governors
+ -> optionally pin, snooze, dismiss or schedule a personal reminder without changing global Gift Code truth
+ -> start all-actionable, expiring, retry-ready or explicitly selected many-code/many-Governor redemption run
+ -> reauthorize every Gift Code/Governor pair against current ownership, trust, expiry, qualified applicability and retry state
+ -> copy Player ID and code, open the official Century Games centre, record observed outcome or skip
+ -> persist progress and resume the run after reload/device change
+ -> remove or mark unavailable any pending item invalidated by ownership/trust/expiry change
+```
+
+Authorized Alliance officers may open aggregate Gift Code coverage only when the existing Alliance permission grants it. Coverage shows counts, not individual member redemption history, and never grants platform Gift Code moderation.
+

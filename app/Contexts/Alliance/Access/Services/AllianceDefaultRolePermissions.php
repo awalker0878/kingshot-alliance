@@ -19,6 +19,7 @@ final class AllianceDefaultRolePermissions
             ],
             DefaultAllianceRole::EventCoordinator => [],
             DefaultAllianceRole::ContentManager => [AlliancePermission::ContentManage],
+            DefaultAllianceRole::GiftCodeCoordinator => [AlliancePermission::GiftCodeCoverage],
         };
     }
 }

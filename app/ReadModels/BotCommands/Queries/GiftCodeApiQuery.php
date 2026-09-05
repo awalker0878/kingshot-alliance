@@ -7,11 +7,18 @@ namespace App\ReadModels\BotCommands\Queries;
 use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeStatus;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCode;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeFactProjection;
+use App\Contexts\GameWorld\GiftCodes\Services\GiftCodeRedemptionSignalService;
+use App\Contexts\GameWorld\GiftCodes\Services\GiftCodeRewardPresenter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\CursorPaginator;
 
-final class GiftCodeApiQuery
+final readonly class GiftCodeApiQuery
 {
+    public function __construct(
+        private GiftCodeRewardPresenter $rewards,
+        private GiftCodeRedemptionSignalService $signals,
+    ) {}
+
     /** @return array{items:list<array<string,mixed>>,nextCursor:?string,previousCursor:?string,perPage:int,hasMore:bool} */
     public function page(int $limit = 25, ?string $cursor = null): array
     {
@@ -64,12 +71,14 @@ final class GiftCodeApiQuery
             'official_handoff_url' => (string) config('game_world.gift_code_redemption_url'),
             'reward' => $reward instanceof GiftCodeFactProjection && $reward->qualified ? $reward->value : null,
             'reward_state' => $reward instanceof GiftCodeFactProjection ? $reward->reason_code : 'reward_details_unknown',
+            'reward_display' => $this->rewards->present($giftCode),
             'applicability' => $applicability instanceof GiftCodeFactProjection && $applicability->qualified
                 ? $applicability->value
                 : null,
             'applicability_state' => $applicability instanceof GiftCodeFactProjection
                 ? $applicability->reason_code
                 : 'applicability_details_unknown',
+            'redemption_signal' => $this->signals->forGiftCode((string) $giftCode->id),
         ];
     }
 }

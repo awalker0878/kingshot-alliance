@@ -10,6 +10,7 @@ use App\Contexts\Platform\Administration\Actions\RetryOutboxMessage;
 use App\Contexts\Platform\Administration\Models\PlatformAdministrator;
 use App\Contexts\Platform\Administration\Services\PlatformAuthorization;
 use App\Contexts\Platform\Administration\Services\PlatformWriteState;
+use App\ReadModels\PlatformAdministration\PlatformAdministrationQuery;
 use App\Shared\Infrastructure\AuditTrail\Models\AuditEvent;
 use App\Shared\Infrastructure\Messaging\Outbox\Actions\PublishOutboxBatch;
 use App\Shared\Infrastructure\Messaging\Outbox\Models\OutboxMessage;
@@ -72,6 +73,25 @@ final class PlatformAdministrationBehaviorV3Test extends TestCase
 
         self::assertSame($account->userId, $context->actor->userId);
         self::assertSame($grantId, $context->grantId);
+    }
+
+    public function test_platform_dashboard_includes_privacy_safe_gift_code_workspace_health(): void
+    {
+        config()->set('game_world.gift_codes.redemption_workspace', true);
+        $dashboard = app(PlatformAdministrationQuery::class)->dashboard();
+        $health = $dashboard['diagnostics']['giftCodeWorkspace'] ?? null;
+
+        self::assertIsArray($health);
+        self::assertTrue($health['workspaceEnabled'] ?? false);
+        self::assertArrayHasKey('activeSessions', $health);
+        self::assertArrayHasKey('staleSessions', $health);
+        self::assertArrayHasKey('readyItems', $health);
+        self::assertArrayHasKey('retryWaitItems', $health);
+        self::assertArrayHasKey('unavailableItems', $health);
+        self::assertArrayHasKey('dueReminders', $health);
+        self::assertArrayHasKey('pushEligibleSources', $health);
+        self::assertArrayNotHasKey('playerIds', $health);
+        self::assertArrayNotHasKey('userIds', $health);
     }
 
     public function test_exhausted_outbox_work_requires_an_audited_operator_retry(): void

@@ -54,6 +54,8 @@ final readonly class CreateAlliance
                 'joined_at' => now(),
             ]);
 
+            // Provision specialist roles, including Gift Code Coordinator, without
+            // assigning coverage authority by rank or implicitly to the creator.
             $this->roles->provision($alliance);
             $this->platformDefaults->provision($alliance);
             $this->audit->record('alliance.created', $owner, $alliance, $alliance, ['name' => $alliance->name, 'slug' => $alliance->slug]);

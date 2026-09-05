@@ -22,6 +22,8 @@ final readonly class SetNotificationPreference
         'gift_code.expiring',
         'gift_code.available',
         'gift_code.trust_changed',
+        'gift_code.reminder',
+        'gift_code.redemption_ready',
         'intelligence.change',
         'king_perks.reminder',
         'officer.brief',

@@ -143,6 +143,8 @@ const english: MessageCatalogue = {
       giftCodeExpiring: 'Gift Code expiring',
       giftCodeAvailable: 'Gift Code available',
       giftCodeTrustChanged: 'Gift Code trust changed',
+      giftCodeReminder: 'Gift Code reminder',
+      giftCodeRedemptionReady: 'Gift Codes ready to redeem',
       intelligenceChange: 'Intelligence change',
       kingPerkReminder: 'King Perk reminder',
       officerBrief: 'Officer brief',
