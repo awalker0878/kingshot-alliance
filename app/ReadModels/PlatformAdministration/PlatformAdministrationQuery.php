@@ -9,6 +9,7 @@ use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Communications\Delivery\Enums\DeliveryStatus;
 use App\Contexts\Communications\Delivery\Models\NotificationDelivery;
 use App\Contexts\Communications\Delivery\Models\NotificationMessage;
+use App\Contexts\GameWorld\GiftCodes\Services\GiftCodeWorkspaceOperationalHealth;
 use App\Contexts\Platform\DataGovernance\Models\LegalHold;
 use App\Contexts\Platform\Integrations\Enums\WebhookDeliveryStatus;
 use App\Contexts\Platform\Integrations\Models\WebhookDelivery;
@@ -20,6 +21,8 @@ use Illuminate\Support\Facades\Queue;
 
 final class PlatformAdministrationQuery
 {
+    public function __construct(private readonly GiftCodeWorkspaceOperationalHealth $giftCodeWorkspaceHealth) {}
+
     /** @return array<string, mixed> */
     public function dashboard(?string $correlation = null): array
     {
@@ -172,6 +175,7 @@ final class PlatformAdministrationQuery
             'diagnostics' => [
                 'outboxGraceMinutes' => $outboxGraceMinutes,
                 'maximumOutboxAttempts' => $maximumOutboxAttempts,
+                'giftCodeWorkspace' => $this->giftCodeWorkspaceHealth->snapshot(),
                 'outboxFailures' => OutboxMessage::query()
                     ->whereNull('published_at')
                     ->whereNotNull('last_error')
