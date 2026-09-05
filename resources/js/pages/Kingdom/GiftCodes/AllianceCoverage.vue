@@ -16,7 +16,7 @@ type CoverageCode = {
   unknown: number;
 };
 
-const props = defineProps<{
+defineProps<{
   user: { name: string; email: string };
   player: { id: string; name: string };
   allianceId: string;
