@@ -6,8 +6,12 @@ namespace App\Contexts\GameWorld\GiftCodes\Adapters;
 
 use App\Contexts\GameWorld\GiftCodes\Adapters\Concerns\HandlesGiftCodeProviderResponses;
 use App\Contexts\GameWorld\GiftCodes\Contracts\GiftCodeSourceAdapter;
+use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeSourceSyncMode;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeSourceRegistry;
-use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeIngestionObservation;
+use App\Contexts\GameWorld\GiftCodes\Services\GiftCodeConditionalHttpHeaders;
+use App\Contexts\GameWorld\GiftCodes\Services\GiftCodeProviderPublication;
+use App\Contexts\GameWorld\GiftCodes\Services\GiftCodeProviderPublicationExtractor;
+use App\Contexts\GameWorld\GiftCodes\Services\GiftCodeSourceSyncStateRepository;
 use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeIngestionPage;
 use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeSourceCheckpoint;
 use DOMDocument;
@@ -21,7 +25,13 @@ final class CenturyGamesKingshotNewsRssGiftCodeSourceAdapter implements GiftCode
 {
     use HandlesGiftCodeProviderResponses;
 
-    public const KEY = 'century-games-kingshot-news-rss-v1';
+    public const KEY = 'century-games-kingshot-news-v2';
+
+    public function __construct(
+        private GiftCodeProviderPublicationExtractor $publications,
+        private GiftCodeSourceSyncStateRepository $syncStates,
+        private GiftCodeConditionalHttpHeaders $conditionalHeaders,
+    ) {}
 
     public function key(): string
     {
@@ -31,14 +41,13 @@ final class CenturyGamesKingshotNewsRssGiftCodeSourceAdapter implements GiftCode
     public function acquire(GiftCodeSourceRegistry $source, ?string $cursor, int $limit): GiftCodeIngestionPage
     {
         if ($cursor !== null && trim($cursor) !== '') {
-            throw new UnexpectedValueException('The Century Games Kingshot news adapter does not accept a source cursor.');
+            throw new UnexpectedValueException('The Century Games Kingshot news adapter does not accept a provider page cursor.');
         }
 
         $policy = $source->provenance_policy ?? [];
         if (($policy['provider_permission_confirmed'] ?? false) !== true) {
             throw new UnexpectedValueException('Century Games Kingshot news ingestion requires confirmed provider permission.');
         }
-        $category = $this->requiredPolicyString($policy, 'gift_code_category', 120);
         $feedPath = $this->requiredPolicyString($policy, 'feed_path', 2048);
         if (! $this->validPath($feedPath)) {
             throw new UnexpectedValueException('The Century Games Kingshot news adapter requires an absolute feed path.');
@@ -49,12 +58,40 @@ final class CenturyGamesKingshotNewsRssGiftCodeSourceAdapter implements GiftCode
 
         $limit = max(1, min(500, $limit));
         $url = 'https://www.centurygames.com'.$feedPath;
+        $state = $this->syncStates->get($source, GiftCodeSourceSyncMode::Head);
         $response = Http::withHeaders([
             'Accept' => 'application/rss+xml, application/atom+xml, application/xml, text/xml;q=0.9',
+            ...$this->conditionalHeaders->forState($state),
         ])
             ->timeout(max(1, min(30, (int) config('game_world.gift_codes.ingestion_timeout_seconds', 10))))
             ->withOptions(['allow_redirects' => false])
             ->get($url);
+
+        $providerRequestId = $this->giftCodeProviderRequestId($response);
+        if ($response->status() === 304) {
+            $retrievalVersion = $state->http_etag !== null
+                ? 'ETag:'.$state->http_etag
+                : ($state->http_last_modified !== null ? 'Last-Modified:'.$state->http_last_modified : null);
+
+            return new GiftCodeIngestionPage(
+                observations: [],
+                nextCursor: null,
+                retrievalVersion: $retrievalVersion,
+                providerRequestId: $providerRequestId,
+                rateLimit: $this->giftCodeRateLimit($response),
+                checkpoint: new GiftCodeSourceCheckpoint(
+                    cursor: null,
+                    retrievalVersion: $retrievalVersion,
+                    providerRequestId: $providerRequestId,
+                    providerState: [
+                        'feed_url' => $url,
+                        'not_modified' => true,
+                        'http_etag' => $state->http_etag,
+                        'http_last_modified' => $state->http_last_modified,
+                    ],
+                ),
+            );
+        }
 
         $this->assertGiftCodeProviderSuccess($response, 'The Century Games Kingshot news feed');
         if (! str_contains(mb_strtolower((string) $response->header('Content-Type')), 'xml')) {
@@ -69,76 +106,60 @@ final class CenturyGamesKingshotNewsRssGiftCodeSourceAdapter implements GiftCode
         if ($entries === false) {
             throw new UnexpectedValueException('The Century Games Kingshot news entries could not be evaluated.');
         }
-        if ($entries->length > $limit) {
-            throw new UnexpectedValueException('The Century Games Kingshot news feed exceeded the bounded observation limit.');
+        if ($entries->length > 500) {
+            throw new UnexpectedValueException('The Century Games Kingshot news feed exceeded the bounded publication limit.');
         }
 
         $retrievalVersion = $this->giftCodeRetrievalVersion($response);
-        $sourceVersion = $this->feedVersion($xpath) ?? $retrievalVersion;
         $observations = [];
+        $itemIds = [];
+        $latestPublicationId = null;
         foreach ($entries as $position => $entry) {
             if (! $entry instanceof DOMNode) {
                 throw new UnexpectedValueException(sprintf('Century Games news entry %d is not a supported XML node.', $position + 1));
             }
-            if (! $this->hasCategory($xpath, $entry, $category)) {
-                continue;
-            }
-
-            $code = $this->explicitCode($xpath, $entry);
-            if ($code === null) {
-                throw new UnexpectedValueException(sprintf(
-                    'Century Games Kingshot Gift Code entry %d matched the configured category but not the explicit Gift Code label contract.',
-                    $position + 1,
-                ));
-            }
 
             $sourceUrl = $this->entryLink($xpath, $entry) ?? $url;
             $this->assertCenturyGamesUrl($sourceUrl);
-            $entryDocument = $document->saveXML($entry);
-            if ($entryDocument === false) {
-                throw new UnexpectedValueException(sprintf('Century Games news entry %d could not be serialized.', $position + 1));
+            if (! $this->isKingshotEntry($xpath, $entry, $sourceUrl)) {
+                continue;
             }
-            $fingerprint = hash('sha256', $entryDocument);
 
-            $observations[] = new GiftCodeIngestionObservation(
-                code: $code,
-                assertion: 'available',
-                assertionPayload: null,
-                sourceUrl: $sourceUrl,
-                claimedExpiresAt: $this->firstText(
-                    $xpath,
-                    $entry,
-                    './*[local-name()="expires-at" or local-name()="expires_at" or local-name()="expiresAt"]',
-                    120,
-                ),
-                expiryPrecision: $this->firstText(
-                    $xpath,
-                    $entry,
-                    './*[local-name()="expiry-precision" or local-name()="expiry_precision"]',
-                    32,
-                ),
-                expiryTimezone: $this->firstText(
-                    $xpath,
-                    $entry,
-                    './*[local-name()="expiry-timezone" or local-name()="expiry_timezone"]',
-                    80,
-                ),
-                publishedAt: $this->firstText(
-                    $xpath,
-                    $entry,
-                    './*[local-name()="pubDate" or local-name()="published" or local-name()="updated"]',
-                    120,
-                ),
-                sourceVersion: $sourceVersion,
-                retrievalVersion: $retrievalVersion,
-                parserVersion: self::KEY,
-                contentFingerprint: $fingerprint,
-                rawEvidenceRef: $sourceUrl.'#century-games-gift-code='.rawurlencode($code),
-                verificationPassed: true,
+            $publicationId = $this->publicationId($xpath, $entry, $sourceUrl);
+            $itemIds[] = $publicationId;
+            $latestPublicationId ??= $publicationId;
+            $publishedAt = $this->firstText(
+                $xpath,
+                $entry,
+                './*[local-name()="pubDate" or local-name()="published" or local-name()="updated"]',
+                120,
             );
+            $content = $this->publicationContent($xpath, $entry);
+            if ($content === null) {
+                continue;
+            }
+
+            foreach ($this->publications->observations(
+                new GiftCodeProviderPublication(
+                    provider: 'century-games',
+                    providerItemId: $publicationId,
+                    sourceUrl: $sourceUrl,
+                    content: $content,
+                    publishedAt: $publishedAt,
+                    retrievalVersion: $retrievalVersion,
+                ),
+                self::KEY,
+                true,
+            ) as $observation) {
+                $observations[] = $observation;
+                if (count($observations) >= $limit) {
+                    break 2;
+                }
+            }
         }
 
-        $providerRequestId = $this->giftCodeProviderRequestId($response);
+        $etag = trim((string) $response->header('ETag'));
+        $lastModified = trim((string) $response->header('Last-Modified'));
 
         return new GiftCodeIngestionPage(
             observations: $observations,
@@ -152,55 +173,83 @@ final class CenturyGamesKingshotNewsRssGiftCodeSourceAdapter implements GiftCode
                 providerRequestId: $providerRequestId,
                 providerState: [
                     'feed_url' => $url,
-                    'gift_code_category' => $category,
-                    'source_version' => $sourceVersion,
+                    'source_version' => $this->feedVersion($xpath) ?? $retrievalVersion,
+                    'latest_publication_id' => $latestPublicationId,
+                    'item_ids' => $itemIds,
+                    'http_etag' => $etag !== '' ? $etag : null,
+                    'http_last_modified' => $lastModified !== '' ? $lastModified : null,
+                    'not_modified' => false,
                 ],
             ),
         );
     }
 
-    private function explicitCode(DOMXPath $xpath, DOMNode $entry): ?string
+    private function isKingshotEntry(DOMXPath $xpath, DOMNode $entry, string $sourceUrl): bool
     {
-        foreach ([
-            './*[local-name()="title"]',
-            './*[local-name()="description" or local-name()="summary"]',
-        ] as $expression) {
-            $text = $this->firstText($xpath, $entry, $expression, 10_000);
-            if ($text === null) {
-                continue;
-            }
-            if (preg_match(
-                '/^\s*(?:Kingshot\s*[-–—:]\s*)?(?:gift\s*code|redeem\s*code)\s*[:：-]\s*([A-Za-z0-9_-]{3,64})\s*[.!]?\s*$/iu',
-                $text,
-                $matches,
-            ) === 1) {
-                return $matches[1];
-            }
+        $path = mb_strtolower((string) parse_url($sourceUrl, PHP_URL_PATH));
+        if (str_contains($path, '/kingshot-') || str_contains($path, '/games/kingshot/')) {
+            return true;
         }
 
-        return null;
-    }
+        $title = $this->firstText($xpath, $entry, './*[local-name()="title"]', 1000);
+        if ($title !== null && preg_match('/\bkingshot\b/iu', $title) === 1) {
+            return true;
+        }
 
-    private function hasCategory(DOMXPath $xpath, DOMNode $entry, string $expected): bool
-    {
-        $nodes = $xpath->query('./*[local-name()="category"]', $entry);
-        if ($nodes === false) {
+        $categories = $xpath->query('./*[local-name()="category"]', $entry);
+        if ($categories === false) {
             return false;
         }
-        $expected = mb_strtolower(trim($expected));
-        foreach ($nodes as $node) {
-            if (! $node instanceof DOMNode) {
+        foreach ($categories as $category) {
+            if (! $category instanceof DOMNode) {
                 continue;
             }
-            $value = $node instanceof DOMElement
-                ? ($this->optionalString($node->getAttribute('term'), 120) ?? $this->optionalString($node->textContent, 120))
-                : $this->optionalString($node->textContent, 120);
-            if ($value !== null && mb_strtolower($value) === $expected) {
+            $value = $category instanceof DOMElement
+                ? ($this->optionalString($category->getAttribute('term'), 120) ?? $this->optionalString($category->textContent, 120))
+                : $this->optionalString($category->textContent, 120);
+            if ($value !== null && preg_match('/\bkingshot\b/iu', $value) === 1) {
                 return true;
             }
         }
 
         return false;
+    }
+
+    private function publicationContent(DOMXPath $xpath, DOMNode $entry): ?string
+    {
+        $parts = [];
+        foreach ([
+            './*[local-name()="title"]',
+            './*[local-name()="description" or local-name()="summary"]',
+            './*[local-name()="encoded" or local-name()="content"]',
+        ] as $expression) {
+            $nodes = $xpath->query($expression, $entry);
+            if ($nodes === false) {
+                continue;
+            }
+            foreach ($nodes as $node) {
+                if (! $node instanceof DOMNode) {
+                    continue;
+                }
+                $value = $this->optionalString($node->textContent, 100_000);
+                if ($value !== null) {
+                    $parts[] = $value;
+                }
+            }
+        }
+
+        if ($parts === []) {
+            return null;
+        }
+
+        return implode("\n", $parts);
+    }
+
+    private function publicationId(DOMXPath $xpath, DOMNode $entry, string $sourceUrl): string
+    {
+        $id = $this->firstText($xpath, $entry, './*[local-name()="guid" or local-name()="id"]', 2048);
+
+        return $id ?? $sourceUrl;
     }
 
     private function assertCenturyGamesUrl(string $url): void
@@ -306,7 +355,7 @@ final class CenturyGamesKingshotNewsRssGiftCodeSourceAdapter implements GiftCode
         return $node instanceof DOMNode ? $this->optionalString($node->textContent, $maximum) : null;
     }
 
-    /** @param array<string, mixed> $policy */
+    /** @param array<string,mixed> $policy */
     private function requiredPolicyString(array $policy, string $key, int $maximum): string
     {
         $value = $this->optionalString($policy[$key] ?? null, $maximum);
