@@ -5,10 +5,15 @@ declare(strict_types=1);
 namespace App\Contexts\GameWorld\GiftCodes\Services;
 
 use App\Contexts\GameWorld\GiftCodes\Adapters\CenturyGamesKingshotNewsRssGiftCodeSourceAdapter;
+use App\Contexts\GameWorld\GiftCodes\Adapters\DiscordChannelGiftCodeSourceAdapter;
+use App\Contexts\GameWorld\GiftCodes\Adapters\FacebookPageGiftCodeSourceAdapter;
+use App\Contexts\GameWorld\GiftCodes\Adapters\InstagramMediaGiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Adapters\JsonFeedGiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Adapters\OfficialXGiftCodeSourceAdapter;
+use App\Contexts\GameWorld\GiftCodes\Adapters\RedditSubredditGiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Adapters\RssAtomGiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Adapters\StructuredHtmlGiftCodeSourceAdapter;
+use App\Contexts\GameWorld\GiftCodes\Adapters\YouTubeChannelGiftCodeSourceAdapter;
 
 /**
  * Research catalogue only.
@@ -82,14 +87,14 @@ final class GiftCodeResearchedSourceCatalogue
                 'catalogue_state' => 'research_only',
                 'evidence_role' => 'official_candidate',
                 'canonical_domain_candidate' => 'kingshotwiki.com',
-                'transports' => ['structured_feed_only'],
+                'transports' => ['registered_manual_evidence', 'structured_feed_if_documented'],
                 'candidate_adapter_keys' => [
                     JsonFeedGiftCodeSourceAdapter::KEY,
                     RssAtomGiftCodeSourceAdapter::KEY,
                     StructuredHtmlGiftCodeSourceAdapter::KEY,
                 ],
-                'gate' => 'structured_feed_or_machine_readable_contract_and_authority_review',
-                'notes' => 'Do not infer Gift Codes from wiki prose. Use only a legitimate structured feed or explicit machine-readable publication contract.',
+                'gate' => 'authority_review_then_manual_evidence_or_documented_structured_contract',
+                'notes' => 'No documented machine feed was identified in the 2026-09-05 review. Record exact Wiki evidence manually under its registered source identity unless a legitimate structured contract is later offered; never infer codes from prose automatically.',
             ],
             [
                 'source_key' => 'kingshot-official-discord',
@@ -99,9 +104,9 @@ final class GiftCodeResearchedSourceCatalogue
                 'evidence_role' => 'official_candidate',
                 'canonical_domain_candidate' => 'discord.com',
                 'transports' => ['legitimate_discord_bot'],
-                'candidate_adapter_keys' => [],
-                'gate' => 'bot_installation_channel_scope_and_platform_terms',
-                'notes' => 'Requires a legitimate installed bot and explicit channel permissions. Self-bots and user-token automation are excluded.',
+                'candidate_adapter_keys' => [DiscordChannelGiftCodeSourceAdapter::KEY],
+                'gate' => 'bot_installation_channel_scope_author_allowlist_and_platform_terms',
+                'notes' => 'Uses an installed bot with approved guild/channel scope and author allowlisting. Self-bots and user-token automation remain excluded.',
             ],
             [
                 'source_key' => 'kingshot-net',
@@ -110,10 +115,10 @@ final class GiftCodeResearchedSourceCatalogue
                 'catalogue_state' => 'research_only',
                 'evidence_role' => 'independent_candidate',
                 'canonical_domain_candidate' => 'kingshot.net',
-                'transports' => ['structured_source_if_available'],
+                'transports' => ['registered_manual_evidence', 'structured_source_if_documented'],
                 'candidate_adapter_keys' => [],
                 'gate' => 'independent_source_review_and_corroboration',
-                'notes' => 'Independent corroboration only; one source never satisfies the independent-evidence threshold by itself.',
+                'notes' => 'No documented machine interface was identified in the 2026-09-05 review. Use registered manual evidence; one publisher never satisfies the independent-evidence threshold by itself.',
             ],
             [
                 'source_key' => 'kingshot-optimizer',
@@ -122,10 +127,10 @@ final class GiftCodeResearchedSourceCatalogue
                 'catalogue_state' => 'research_only',
                 'evidence_role' => 'independent_candidate',
                 'canonical_domain_candidate' => 'kingshotoptimizer.com',
-                'transports' => ['structured_source_if_available'],
+                'transports' => ['registered_manual_evidence', 'structured_source_if_documented'],
                 'candidate_adapter_keys' => [],
                 'gate' => 'independent_source_review_and_corroboration',
-                'notes' => 'Independent corroboration only; no generic page scraping.',
+                'notes' => 'No documented machine interface was identified in the 2026-09-05 review. Use registered manual evidence; no generic page scraping.',
             ],
             [
                 'source_key' => 'kingshot-mastery',
@@ -134,10 +139,10 @@ final class GiftCodeResearchedSourceCatalogue
                 'catalogue_state' => 'research_only',
                 'evidence_role' => 'independent_candidate',
                 'canonical_domain_candidate' => 'kingshotmastery.com',
-                'transports' => ['structured_source_if_available'],
+                'transports' => ['registered_manual_evidence', 'structured_source_if_documented'],
                 'candidate_adapter_keys' => [],
                 'gate' => 'independent_source_review_and_corroboration',
-                'notes' => 'Independent corroboration only; no reverse engineering of its redemption tooling.',
+                'notes' => 'No documented machine interface was identified in the 2026-09-05 review. Use registered manual evidence; do not reverse engineer redemption tooling.',
             ],
             [
                 'source_key' => 'kingshot-atlas',
@@ -146,10 +151,10 @@ final class GiftCodeResearchedSourceCatalogue
                 'catalogue_state' => 'research_only',
                 'evidence_role' => 'independent_candidate',
                 'canonical_domain_candidate' => 'ks-atlas.com',
-                'transports' => ['structured_source_if_available'],
+                'transports' => ['registered_manual_evidence', 'structured_source_if_documented'],
                 'candidate_adapter_keys' => [],
                 'gate' => 'independent_source_review_and_corroboration',
-                'notes' => 'Independent corroboration only; use a documented/public structured source if one is offered.',
+                'notes' => 'No documented machine interface was identified in the 2026-09-05 review. Use registered manual evidence until a documented/public structured source is offered.',
             ],
             [
                 'source_key' => 'selected-editorial-sources',
@@ -158,10 +163,10 @@ final class GiftCodeResearchedSourceCatalogue
                 'catalogue_state' => 'research_only',
                 'evidence_role' => 'independent_candidate',
                 'canonical_domain_candidate' => null,
-                'transports' => ['documented_feed_or_manual_evidence'],
+                'transports' => ['registered_manual_evidence', 'documented_feed_if_available'],
                 'candidate_adapter_keys' => [],
                 'gate' => 'per_publisher_review_and_corroboration',
-                'notes' => 'Each publisher must receive its own source registry entry and provenance; this catalogue row is not a shared authority.',
+                'notes' => 'Each publisher must receive its own source registry entry and provenance; this catalogue row is never a shared authority identity.',
             ],
             [
                 'source_key' => 'kingshot-facebook',
@@ -170,10 +175,10 @@ final class GiftCodeResearchedSourceCatalogue
                 'catalogue_state' => 'research_only',
                 'evidence_role' => 'platform_dependent_redundancy',
                 'canonical_domain_candidate' => 'facebook.com',
-                'transports' => ['official_platform_api_or_manual_evidence'],
-                'candidate_adapter_keys' => [],
-                'gate' => 'platform_api_terms_permissions_and_account_identity',
-                'notes' => 'Redundancy/discovery only until a documented platform integration is separately approved.',
+                'transports' => ['facebook_graph_api', 'registered_manual_evidence'],
+                'candidate_adapter_keys' => [FacebookPageGiftCodeSourceAdapter::KEY],
+                'gate' => 'page_access_platform_permission_and_account_identity',
+                'notes' => 'Documented Graph API adapter is available only after Page access and platform permission are confirmed. The adapter does not grant that permission.',
             ],
             [
                 'source_key' => 'kingshot-instagram',
@@ -182,10 +187,10 @@ final class GiftCodeResearchedSourceCatalogue
                 'catalogue_state' => 'research_only',
                 'evidence_role' => 'platform_dependent_redundancy',
                 'canonical_domain_candidate' => 'instagram.com',
-                'transports' => ['official_platform_api_or_manual_evidence'],
-                'candidate_adapter_keys' => [],
-                'gate' => 'platform_api_terms_permissions_and_account_identity',
-                'notes' => 'Redundancy/discovery only until a documented platform integration is separately approved.',
+                'transports' => ['instagram_graph_api', 'registered_manual_evidence'],
+                'candidate_adapter_keys' => [InstagramMediaGiftCodeSourceAdapter::KEY],
+                'gate' => 'professional_account_access_platform_permission_and_identity',
+                'notes' => 'Documented professional-account API adapter is available only after the account has authorized the integration. Consumer-account scraping remains excluded.',
             ],
             [
                 'source_key' => 'kingshot-reddit',
@@ -194,10 +199,10 @@ final class GiftCodeResearchedSourceCatalogue
                 'catalogue_state' => 'research_only',
                 'evidence_role' => 'platform_dependent_discovery',
                 'canonical_domain_candidate' => 'reddit.com',
-                'transports' => ['official_platform_api_or_manual_evidence'],
-                'candidate_adapter_keys' => [],
-                'gate' => 'platform_api_terms_and_independent_corroboration',
-                'notes' => 'Discovery signal only unless a specific independently reviewed source is registered and corroborated.',
+                'transports' => ['reddit_data_api', 'registered_manual_evidence'],
+                'candidate_adapter_keys' => [RedditSubredditGiftCodeSourceAdapter::KEY],
+                'gate' => 'registered_data_api_access_terms_and_independent_review',
+                'notes' => 'Discovery-only adapter for a registered Data API app. Automatic verification is forbidden and the integration can be disabled if Reddit access is unavailable during the Developer Platform transition.',
             ],
             [
                 'source_key' => 'kingshot-youtube',
@@ -206,17 +211,15 @@ final class GiftCodeResearchedSourceCatalogue
                 'catalogue_state' => 'research_only',
                 'evidence_role' => 'platform_dependent_redundancy',
                 'canonical_domain_candidate' => 'youtube.com',
-                'transports' => ['official_platform_api_or_manual_evidence'],
-                'candidate_adapter_keys' => [],
-                'gate' => 'platform_api_terms_permissions_and_channel_identity',
-                'notes' => 'Redundancy/discovery only until a documented platform integration is separately approved.',
+                'transports' => ['youtube_data_api', 'registered_manual_evidence'],
+                'candidate_adapter_keys' => [YouTubeChannelGiftCodeSourceAdapter::KEY],
+                'gate' => 'data_api_access_and_confirmed_channel_identity',
+                'notes' => 'Uses channels.list plus the channel uploads playlist through playlistItems.list; it does not rely on search indexing or scrape video pages.',
             ],
         ];
     }
 
-    /**
-     * @return list<array<string, mixed>>
-     */
+    /** @return list<array<string, mixed>> */
     public function forStage(int $stage): array
     {
         return array_values(array_filter(
