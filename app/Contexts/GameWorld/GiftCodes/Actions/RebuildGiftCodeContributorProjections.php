@@ -70,18 +70,14 @@ final class RebuildGiftCodeContributorProjections
                     ],
                 )
                 ->first();
-            $existing = GiftCodeContributorProjection::query()->find($userId);
-            GiftCodeContributorProjection::query()->updateOrCreate(
-                ['user_id' => $userId],
-                [
-                    'accepted_count' => (int) ($counts?->accepted_count ?? 0),
-                    'corroborated_count' => (int) ($counts?->corroborated_count ?? 0),
-                    'rejected_count' => (int) ($counts?->rejected_count ?? 0),
-                    'misleading_count' => (int) ($counts?->misleading_count ?? 0),
-                    'revision' => (int) ($existing?->revision ?? 0) + 1,
-                    'derived_at' => CarbonImmutable::now('UTC'),
-                ],
-            );
+            $projection = GiftCodeContributorProjection::query()->firstOrNew(['user_id' => $userId]);
+            $projection->accepted_count = (int) ($counts->accepted_count ?? 0);
+            $projection->corroborated_count = (int) ($counts->corroborated_count ?? 0);
+            $projection->rejected_count = (int) ($counts->rejected_count ?? 0);
+            $projection->misleading_count = (int) ($counts->misleading_count ?? 0);
+            $projection->revision = (int) $projection->revision + 1;
+            $projection->derived_at = CarbonImmutable::now('UTC');
+            $projection->save();
             $updated++;
         }
 

@@ -68,9 +68,10 @@ final readonly class UpdateGiftCodeAccountState
         $this->audit->record(
             'game_world.gift_codes.account_state_updated',
             $actor,
-            'gift_code',
-            $giftCodeId,
+            $accountState,
+            null,
             [
+                'gift_code_id' => $giftCodeId,
                 'state' => $state->value,
                 'snoozed_until' => $snoozedUntil?->toIso8601String(),
                 'remind_at' => $remindAt?->toIso8601String(),

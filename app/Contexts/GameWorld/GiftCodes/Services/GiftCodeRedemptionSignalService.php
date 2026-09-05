@@ -55,7 +55,7 @@ final class GiftCodeRedemptionSignalService
             'sampleCount' => $sampleCount,
             'distinctAccounts' => $distinctAccounts,
             'successCount' => $successCount,
-            'successRate' => $sampleCount === 0 ? 0.0 : round(($successCount / $sampleCount) * 100, 1),
+            'successRate' => round(($successCount / $sampleCount) * 100, 1),
             'statusCounts' => $statusCounts,
             'lastSuccessAt' => is_string($lastSuccess) ? $lastSuccess : null,
             'windowHours' => $windowHours,

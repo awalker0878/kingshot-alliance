@@ -157,8 +157,8 @@ final readonly class CreateGiftCodeRedemptionSession
         $this->audit->record(
             'game_world.gift_code_redemption_session.created',
             $actor,
-            'gift_code_redemption_session',
-            (string) $session->id,
+            $session,
+            null,
             ['mode' => $mode->value, 'items' => $session->total_items],
         );
 

@@ -268,7 +268,7 @@ final class GiftCodeWorkspaceController extends Controller
                     'giftCodeId' => $item->gift_code_id,
                     'code' => $item->giftCode->code,
                     'playerId' => $item->player_id,
-                    'playerName' => $player?->currentName ?? $item->player_id,
+                    'playerName' => $player === null ? $item->player_id : $player->currentName,
                     'gamePlayerId' => $player?->gamePlayerId,
                     'kingdomNumber' => $player?->kingdomNumber,
                     'sequence' => $item->sequence,

@@ -41,8 +41,7 @@ final readonly class AbandonGiftCodeRedemptionSession
                 $this->audit->record(
                     'game_world.gift_code_redemption_session.abandoned',
                     $actor,
-                    'gift_code_redemption_session',
-                    (string) $session->id,
+                    $session,
                 );
             }
 
