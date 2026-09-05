@@ -81,12 +81,15 @@ final class GiftCodeActionablePairResolver
             return null;
         }
 
-        $included = $this->integerList($value['kingdom_numbers'] ?? null);
+        // Canonical Gift Code applicability evidence uses `kingdoms`. Accept the
+        // more explicit `kingdom_numbers` spelling as an equivalent structured
+        // representation so qualified evidence is never silently ignored.
+        $included = $this->integerList($value['kingdoms'] ?? $value['kingdom_numbers'] ?? null);
         if ($included !== [] && ! in_array($player->kingdomNumber, $included, true)) {
             return GiftCodeActionablePairDecision::unavailable('qualified_applicability_excludes_governor');
         }
 
-        $excluded = $this->integerList($value['excluded_kingdom_numbers'] ?? null);
+        $excluded = $this->integerList($value['excluded_kingdoms'] ?? $value['excluded_kingdom_numbers'] ?? null);
         if (in_array($player->kingdomNumber, $excluded, true)) {
             return GiftCodeActionablePairDecision::unavailable('qualified_applicability_excludes_governor');
         }
