@@ -14,6 +14,7 @@ return [
         'alliance_coverage' => env('GIFT_CODES_ALLIANCE_COVERAGE', false),
         'contributor_reputation' => env('GIFT_CODES_CONTRIBUTOR_REPUTATION', false),
         'source_webhook_ingestion' => env('GIFT_CODES_SOURCE_WEBHOOK_INGESTION', false),
+        'source_webhook_secret' => env('GIFT_CODES_SOURCE_WEBHOOK_SECRET'),
         'independent_evidence_threshold' => (int) env('GIFT_CODES_INDEPENDENT_EVIDENCE_THRESHOLD', 2),
         'max_redemption_attempts' => (int) env('GIFT_CODES_MAX_REDEMPTION_ATTEMPTS', 6),
         'fanout_batch_size' => (int) env('GIFT_CODES_FANOUT_BATCH_SIZE', 200),
