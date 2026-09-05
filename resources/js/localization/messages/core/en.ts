@@ -121,6 +121,7 @@ const messages = {
     'gift-code-session-item-recorded': 'Gift Code result saved and the run advanced.',
     'gift-code-session-item-skipped': 'Gift Code redemption item skipped for now.',
     'gift-code-source-revoked': 'Approved Gift Code source revoked and queued for reconciliation.',
+    'gift-code-registered-evidence-recorded': 'Registered Gift Code source evidence recorded.',
     'gift-code-source-saved': 'Approved Gift Code source policy saved.',
     'king-perk-appointed': 'Kingdom position appointment created.',
     'king-perk-appointment-active': 'Kingdom position appointment marked active.',
