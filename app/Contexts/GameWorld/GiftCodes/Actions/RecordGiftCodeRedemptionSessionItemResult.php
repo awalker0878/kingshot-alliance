@@ -28,7 +28,7 @@ final readonly class RecordGiftCodeRedemptionSessionItemResult
         string $sessionId,
         string $itemId,
         string $result,
-    ): GiftCodeRedemptionSessionItem {
+    ): void {
         $userId = $actor->auditUserId();
         if ($userId === null) {
             throw new AuthorizationException('An authenticated account is required for a Gift Code session.');
@@ -71,7 +71,5 @@ final readonly class RecordGiftCodeRedemptionSessionItemResult
             $locked->save();
             $this->progress->refresh(GiftCodeRedemptionSession::query()->findOrFail($locked->session_id));
         });
-
-        return GiftCodeRedemptionSessionItem::query()->with(['session', 'giftCode'])->findOrFail($item->id);
     }
 }
