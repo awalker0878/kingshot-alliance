@@ -37,7 +37,8 @@ final readonly class QueueDueGiftCodeReminders
 
         foreach ($states as $state) {
             $giftCode = $state->giftCode;
-            $ownedPlayerIds = $this->players->ownedIds($state->user_id);
+            $ownedPlayerIds = array_values(array_unique($this->players->ownedIds($state->user_id)));
+            sort($ownedPlayerIds, SORT_STRING);
             if ($ownedPlayerIds !== [] && $giftCode->status === GiftCodeStatus::Valid && ! $giftCode->expires_at?->isPast()) {
                 $urgency = $giftCode->expires_at?->isBefore(now()->addDay())
                     ? NotificationUrgency::High
@@ -65,6 +66,7 @@ final readonly class QueueDueGiftCodeReminders
                         'gift_code_id' => (string) $giftCode->id,
                         'status_revision' => $giftCode->status_revision,
                         'expires_revision' => $giftCode->expires_revision,
+                        'eligible_player_ids' => $ownedPlayerIds,
                     ],
                     eligiblePlayerIds: $ownedPlayerIds,
                 ));
