@@ -6,11 +6,13 @@ namespace App\Contexts\GameWorld\GiftCodes\Actions;
 
 use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeRedemptionSessionItemState;
 use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeRedemptionSessionStatus;
+use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeRedemption;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeRedemptionSession;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeRedemptionSessionItem;
 use App\Contexts\GameWorld\GiftCodes\Services\GiftCodeActionablePairResolver;
 use App\Contexts\GameWorld\GiftCodes\Services\GiftCodeRedemptionSessionProgressor;
 use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
+use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Shared\Infrastructure\AuditTrail\Contracts\AuditActor;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -40,21 +42,35 @@ final readonly class ReconcileGiftCodeRedemptionSession
             return $session;
         }
 
-        DB::transaction(function () use ($session, $userId): void {
-            foreach ($session->items as $item) {
-                if ($item->state->terminal()) {
-                    continue;
-                }
+        $openItems = $session->items->filter(static fn (GiftCodeRedemptionSessionItem $item): bool => ! $item->state->terminal());
+        $playerIds = $openItems->pluck('player_id')->unique()->values()->all();
+        $playerMap = array_filter(
+            $this->players->byIds($playerIds),
+            static fn (PlayerReference $player): bool => $player->userId === $userId,
+        );
+        $codeIds = $openItems->pluck('gift_code_id')->unique()->values()->all();
+        $redemptionMap = GiftCodeRedemption::query()
+            ->whereIn('gift_code_id', $codeIds)
+            ->whereIn('player_id', $playerIds)
+            ->get()
+            ->keyBy(static fn (GiftCodeRedemption $redemption): string => $redemption->gift_code_id.'|'.$redemption->player_id);
 
-                $player = $this->players->findOwnedByUser($userId, $item->player_id);
-                $decision = $player === null
-                    ? null
-                    : $this->pairs->resolve($item->giftCode, $player);
+        DB::transaction(function () use ($session, $openItems, $playerMap, $redemptionMap): void {
+            foreach ($openItems as $item) {
+                $player = $playerMap[$item->player_id] ?? null;
+                $redemption = $redemptionMap->get($item->gift_code_id.'|'.$item->player_id);
+                $decision = $player instanceof PlayerReference
+                    ? $this->pairs->resolveWithRedemption(
+                        $item->giftCode,
+                        $player,
+                        $redemption instanceof GiftCodeRedemption ? $redemption : null,
+                    )
+                    : null;
                 $nextState = $item->state;
                 $reason = null;
                 $completedAt = null;
 
-                if ($player === null) {
+                if (! $player instanceof PlayerReference) {
                     $nextState = GiftCodeRedemptionSessionItemState::Unavailable;
                     $reason = 'governor_unavailable';
                     $completedAt = CarbonImmutable::now('UTC');
