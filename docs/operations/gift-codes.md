@@ -4,141 +4,169 @@ Status: Current
 
 ## Launch configuration
 
-Staging and production must explicitly enable `GIFT_CODES_MODERATION`, `GIFT_CODES_APPROVED_SOURCE_INGESTION`, and `GIFT_CODES_NOTIFICATION_FANOUT`. `production:check` reports a failed Gift Code launch check while any flag is disabled. Disabling a flag remains the immediate rollback control for that slice.
+Staging and production must explicitly enable `GIFT_CODES_MODERATION`, `GIFT_CODES_APPROVED_SOURCE_INGESTION`, and `GIFT_CODES_NOTIFICATION_FANOUT`. `production:check` reports a failed Gift Code launch check while any required launch flag is disabled. Disabling a flag remains the immediate rollback control for that slice.
 
-Before approved-source ingestion is launch-ready, a Platform Administrator with verified email, MFA, and recent password confirmation must register at least one active source in `/platform/gift-codes`. The source must use an adapter listed by that screen. `production:check` fails when ingestion is enabled without an active source or when an enabled source references an unavailable adapter.
+Before approved-source ingestion is launch-ready, a Platform Administrator with verified email, MFA, and recent password confirmation must register at least one active source. Generic source policy remains available from `/platform/gift-codes`; the full researched-source policy surface is `/platform/gift-codes/sources`. Research catalogue entries never become source registry rows automatically.
 
-The generic JSON/RSS/HTML pull adapters retrieve HTTPS content from the registered public canonical domain and a relative `feed_path`; redirects, alternate hosts, query-bearing paths, fragments, IP literals, and traversal paths are rejected. Provider-specific adapters use fixed documented provider endpoints and still constrain resulting evidence URLs to the registered canonical source domain. All pull adapters are bounded and feed observations into the same approved-source provenance, verification, quarantine, trust and fact-reconciliation path.
+The generic JSON/RSS/HTML pull adapters retrieve HTTPS content from a registered public canonical domain and relative `feed_path`; redirects, alternate hosts, query-bearing paths, fragments, IP literals and traversal paths are rejected. Provider/platform adapters use fixed documented endpoints and still constrain evidence to the registered canonical source domain. All automated observations enter the same approved-source provenance, verification, quarantine, trust and fact-reconciliation path.
+
+## Installed pull adapters
+
+The registry contains ten adapters:
+
+- `json-feed-v1`
+- `rss-atom-v1`
+- `structured-html-v1`
+- `x-api-v2-kingshot-v1`
+- `century-games-kingshot-news-rss-v1`
+- `discord-channel-v1`
+- `youtube-channel-v1`
+- `reddit-data-api-v1`
+- `facebook-page-v1`
+- `instagram-media-v1`
+
+Installing an adapter does not approve a source and does not enable ingestion.
 
 ### JSON feed adapter
 
-The `json-feed-v1` adapter retrieves a bounded JSON document. The feed contract is:
-
-```json
-{
-  "version": "publisher-version",
-  "next_cursor": "opaque-cursor-or-null",
-  "items": [
-    {
-      "code": "EXAMPLE-CODE",
-      "assertion": "available",
-      "payload": null,
-      "source_url": "https://publisher.example/gift-codes/example-code",
-      "expires_at": "2026-09-30T23:59:00Z",
-      "expiry_precision": "minute",
-      "expiry_timezone": "UTC",
-      "published_at": "2026-08-31T12:00:00Z",
-      "version": "item-version"
-    }
-  ]
-}
-```
-
-The publisher must respect the requested `limit` and may accept the opaque `cursor` query parameter.
+`json-feed-v1` retrieves a bounded JSON document with explicit observation fields. The publisher must respect the requested limit and may accept the opaque `cursor` query parameter. Source URLs remain constrained to the registered canonical domain.
 
 ### RSS/Atom adapter
 
-The `rss-atom-v1` adapter accepts RSS or Atom XML from the configured `feed_path`. It does not infer Gift Codes from article prose or nested content blocks. Each RSS `<item>` or Atom `<entry>` must contain an explicit direct-child machine-readable Gift Code element such as `<ks:gift-code>` or `<ks:code>`. Optional direct-child metadata includes `assertion`, expiry, expiry precision/timezone and publication time; RSS/Atom links may provide the evidence URL and remain subject to the canonical-domain check.
-
-When no assertion is supplied, the adapter emits `available`. The adapter rejects DTD/entity declarations, malformed XML, cursors and documents or entry sets that exceed configured bounds.
-
-Example:
-
-```xml
-<rss version="2.0" xmlns:ks="https://kingshot.app/gift-codes">
-  <channel>
-    <item>
-      <link>https://publisher.example/gift-codes/example-code</link>
-      <ks:gift-code>EXAMPLE-CODE</ks:gift-code>
-      <ks:assertion>available</ks:assertion>
-      <ks:expires-at>2026-09-30T23:59:00Z</ks:expires-at>
-      <ks:expiry-precision>minute</ks:expiry-precision>
-    </item>
-  </channel>
-</rss>
-```
+`rss-atom-v1` accepts bounded RSS or Atom XML from the configured `feed_path`. It never infers Gift Codes from article prose or nested content. An entry must contain an explicit direct-child machine Gift Code element such as `<ks:gift-code>` or `<ks:code>`. DTD/entity declarations, malformed XML, unsupported cursors and over-limit documents fail closed.
 
 ### Structured HTML adapter
 
-The `structured-html-v1` adapter accepts explicit machine-readable HTML markup only. A Gift Code observation is an element with `data-gift-code`; ordinary page text is ignored. Optional attributes include `data-gift-code-assertion`, `data-gift-code-payload` (JSON object/array), `data-gift-code-source-url`, expiry fields, publication time and source version.
-
-When `data-gift-code-assertion` is omitted, the adapter emits `available`.
-
-Example:
-
-```html
-<article
-  data-gift-code="EXAMPLE-CODE"
-  data-gift-code-assertion="reward"
-  data-gift-code-payload='{"rewards":[{"kind":"gold","amount":500}]}'
-  data-gift-code-source-url="https://publisher.example/gift-codes/example-code"
->
-  EXAMPLE-CODE
-</article>
-```
+`structured-html-v1` accepts explicit machine-readable HTML only. A Gift Code observation is an element with `data-gift-code`; ordinary page text is ignored. Optional `data-gift-code-*` attributes carry assertion, source URL, expiry, publication, payload and version metadata.
 
 ### Official X API adapter
 
-The `x-api-v2-kingshot-v1` adapter uses the documented X API v2 user-post timeline at `https://api.x.com/2/users/{id}/tweets`. Configure the bearer token in `GIFT_CODES_X_BEARER_TOKEN`; never place it in source policy or the database.
-
-The source registry must use canonical domain `x.com`. Source policy must contain the separately confirmed numeric `x_user_id` and expected `x_username`. The adapter requests author expansion data and verifies that the returned post author matches both values before producing observations.
-
-The parser accepts only a whole post line explicitly labelled `Gift Code:` or `Redeem Code:` followed by a supported code token. It does not guess from arbitrary uppercase text, hashtags, URLs, captions or other prose. Posts without the explicit grammar produce no observation. Evidence links point to the corresponding `https://x.com/{username}/status/{id}` post.
-
-Example policy:
-
-```json
-{
-  "auto_verify": false,
-  "x_user_id": "<confirmed numeric X user id>",
-  "x_username": "<confirmed X username>"
-}
-```
-
-Keep `auto_verify` false until the Platform Administrator has separately approved the account authority and parser behavior. Installing the adapter or cataloguing the source does not grant authority.
+`x-api-v2-kingshot-v1` uses the documented X user-post timeline. Configure `GIFT_CODES_X_BEARER_TOKEN` server-side. Source policy requires canonical domain `x.com`, confirmed `x_user_id`, and expected `x_username`. Only whole lines explicitly labelled `Gift Code:` or `Redeem Code:` are accepted.
 
 ### Century Games Kingshot-news RSS adapter
 
-The `century-games-kingshot-news-rss-v1` adapter is provider-permission gated. It requires canonical domain `centurygames.com`, a relative `feed_path`, `provider_permission_confirmed: true`, and the exact agreed `gift_code_category`. It fetches only from `https://www.centurygames.com` with redirects disabled.
+`century-games-kingshot-news-rss-v1` is provider-permission gated. It requires canonical domain `centurygames.com`, an agreed relative `feed_path`, `provider_permission_confirmed=true`, and exact `gift_code_category`. A category-matched entry that no longer satisfies the explicit label contract fails closed instead of being guessed from prose.
 
-Only entries with the exact configured category are considered. A matching entry must satisfy the explicit `Gift Code:` / `Redeem Code:` label contract in its title or description/summary. Unrelated Century Games news is ignored; a category-matched entry that no longer satisfies the agreed parser contract is quarantined as an unsupported source format rather than guessed from prose. Evidence links must remain HTTPS URLs on `centurygames.com` or its subdomains.
+### Discord channel adapter
 
-Example policy after external permission and feed semantics have been confirmed:
+`discord-channel-v1` uses an installed bot; it never uses a Discord user token or self-bot session. Configure `GIFT_CODES_DISCORD_BOT_TOKEN` server-side. Policy requires:
+
+- canonical domain `discord.com`;
+- approved `discord_guild_id` and `discord_channel_id`;
+- one-to-fifty approved `discord_author_ids`;
+- `platform_permission_confirmed=true` before enabled ingestion;
+- `message_content_access_confirmed=true` before enabled ingestion.
+
+The adapter verifies channel/guild scope, ignores non-allowlisted authors and accepts only explicit Gift Code labels. Evidence URLs use Discord's canonical channel/message URL.
+
+### YouTube channel adapter
+
+`youtube-channel-v1` uses the YouTube Data API with `GIFT_CODES_YOUTUBE_API_KEY`. Policy requires canonical domain `youtube.com`, confirmed `youtube_channel_id` and `youtube_channel_title`, and `platform_api_access_confirmed=true` before ingestion can be enabled.
+
+The adapter resolves the channel's uploads playlist through `channels.list` and reads it with `playlistItems.list`; it does not depend on search indexing or scrape video pages. Only explicit Gift Code labels in supported upload metadata become observations.
+
+### Reddit discovery adapter
+
+`reddit-data-api-v1` requires registered Data API access plus `GIFT_CODES_REDDIT_CLIENT_ID`, `GIFT_CODES_REDDIT_CLIENT_SECRET`, and a descriptive `GIFT_CODES_REDDIT_USER_AGENT`. Policy requires `platform_api_access_confirmed=true` to enable ingestion and a valid subreddit.
+
+Reddit is an independent discovery signal only:
+
+- source classification must be `independent`;
+- `auto_verify=true` is rejected;
+- API retrieval success does not independently make a Gift Code valid;
+- if Reddit API access is unavailable, keep the adapter disabled and use reviewed registered-source manual evidence where appropriate.
+
+### Facebook Page adapter
+
+`facebook-page-v1` uses the documented Meta platform path only after Page access is confirmed. Configure `GIFT_CODES_FACEBOOK_ACCESS_TOKEN` server-side. Policy requires canonical domain `facebook.com`, confirmed numeric `facebook_page_id`, expected `facebook_page_name`, and `platform_permission_confirmed=true` before ingestion can be enabled. Returned Page identity is checked before posts are parsed.
+
+### Instagram media adapter
+
+`instagram-media-v1` is for an authorized professional-account API path, not consumer-account scraping. Configure `GIFT_CODES_INSTAGRAM_ACCESS_TOKEN`. Policy requires canonical domain `instagram.com`, confirmed `instagram_user_id`, expected `instagram_username`, and `platform_permission_confirmed=true` before ingestion can be enabled. Account identity is checked before media captions are parsed.
+
+`GIFT_CODES_META_GRAPH_API_VERSION` controls the configured Meta API version and defaults to the currently reviewed version rather than persisting API version data in source rows.
+
+## Registered-source manual evidence
+
+`RecordRegisteredGiftCodeEvidence` provides the supported path for a reviewed source that has no legitimate machine contract. This is the normal current path for the Official Wiki and researched Stage 3 publishers unless they later publish a documented structured feed.
+
+A registered source must explicitly have:
 
 ```json
 {
-  "auto_verify": false,
-  "feed_path": "/agreed/kingshot-feed.xml",
-  "provider_permission_confirmed": true,
-  "gift_code_category": "kingshot-gift-code"
+  "manual_evidence_allowed": true,
+  "auto_verify": false
 }
 ```
 
-The permission flag records an external authorization decision. It is not created by source research and does not represent implied permission to consume a provider feed.
+An MFA-authorized Gift Code curator records the exact publication URL. The URL must use HTTPS on the registered canonical domain. The resulting provenance is append-only, verified as a curator-confirmed registered-source observation, and retains the registered source id.
 
-### Assertion and webhook rules
+Independent manual evidence does not bypass corroboration. Two pages from one registered publisher remain one independent source identity; the configured independent-source threshold still requires distinct registered sources.
 
-Supported assertions across approved-source ingestion are `available`, `invalid`, `expires`, `reward`, and `applicability`. Reward and applicability values belong in the assertion payload. Automatic verification still requires the registered source policy to enable `auto_verify`; otherwise observations enter the quarantine review queue.
+Reward and applicability manual evidence requires a structured assertion payload and continues through the existing fact resolver.
 
-Signed source webhook ingestion is a transport into the same approved-source observation action, not a pull adapter or a separate evidence/trust engine. It enforces registered-source status, signature/timestamp/replay checks and payload bounds before canonical ingestion.
+## Source-management surface
 
-The research catalogue is informational only. It never creates a source registry row and never sets `official`, `auto_verify`, or `ingestion_enabled`. See [Gift Code researched-source rollout](../product/gift-code-researched-source-rollout.md) for staged source candidates and exclusions.
+`/platform/gift-codes/sources` is the dedicated researched-source policy surface. It shows:
+
+- the research-only staged catalogue;
+- the installed adapter list;
+- registered source ingestion/manual-evidence state;
+- platform/provider policy inputs required by each adapter;
+- a curated manual-evidence form for sources explicitly allowed to use it.
+
+The richer source-policy POST is separate from the existing generic source registration POST used by `/platform/gift-codes`, preserving the older generic source workflow.
+
+Secrets must never be entered into source policy. They belong in environment/application configuration.
+
+## Assertion and webhook rules
+
+Supported assertions are `available`, `invalid`, `expires`, `reward`, and `applicability`. Reward and applicability values belong in the assertion payload. Automated verification still requires source policy `auto_verify=true`; otherwise an automated observation is quarantined for review.
+
+Signed source webhook ingestion remains a transport into the same approved-source observation action, not a separate evidence/trust engine. It enforces registered-source status, signature/timestamp/replay checks and payload bounds before ingestion.
+
+The research catalogue is informational only. It never creates a source registry row and never sets classification, `auto_verify`, or `ingestion_enabled`. See [Gift Code researched-source rollout](../product/gift-code-researched-source-rollout.md).
 
 ## Scheduled processing
 
-- `gift-codes:ingest-approved-sources --limit=25 --cycle` runs every 15 minutes. Use `--source=<source-key>` for a targeted replay.
+- `gift-codes:ingest-approved-sources --limit=25 --cycle` runs every 15 minutes. Use `--source=<source-key>` for targeted replay.
 - `gift-codes:reconcile-source-policies --limit=500` runs every five minutes.
-- `gift-codes:maintain --limit=500 --cycle` runs every 15 minutes. It expires codes, advances expiry-notification cursors, and processes up to `GIFT_CODES_TRANSITION_CAMPAIGNS_PER_RUN` availability/trust campaigns.
-- `notifications:deliver --limit=100` performs the existing external-channel delivery and retry path every minute.
+- `gift-codes:maintain --limit=500 --cycle` runs every 15 minutes for expiry and availability/trust campaigns.
+- `notifications:deliver --limit=100` performs the Communications delivery/retry path every minute.
 
-Every command emits a bounded JSON receipt. Ingestion health and recent runs are visible on `/platform/gift-codes` with last-attempt, success, failure, stale, accepted, duplicate, and quarantine states.
+Every command emits a bounded JSON receipt. Ingestion health and recent runs expose last-attempt, success, failure, stale, accepted, duplicate and quarantine state.
+
+## External activation checklist
+
+Implementing an adapter does not grant access to an external platform. Before enabling any external source:
+
+1. confirm the real source/account/channel identity;
+2. confirm required provider/platform permission;
+3. configure the server-side credential;
+4. register the source with correct canonical domain and classification;
+5. start with `auto_verify=false` unless authority and parser semantics justify otherwise;
+6. explicitly enable ingestion;
+7. review ingestion health and quarantined observations.
+
+Century Games permission, Discord bot/channel scope, Meta account/Page access, YouTube Data API access and Reddit registered API access are external facts that repository code cannot manufacture.
 
 ## Incident and rollback procedure
 
-1. Disable only the affected flag and refresh application configuration.
-2. Preserve ingestion runs, evidence, moderation decisions, notification deliveries, audit events, and outbox records; do not edit or delete provenance.
-3. For a source incident, revoke or disable the source and run `gift-codes:reconcile-source-policies --limit=500` until its receipt reports completion.
-4. Correct source policy or parser behavior, re-enable the flag/source, and run a targeted ingestion replay.
-5. Confirm `production:check`, ingestion health, failed jobs, outbox backlog, and delivery diagnostics before closing the incident.
+1. Disable only the affected feature/source and refresh application configuration.
+2. Preserve ingestion runs, evidence, moderation decisions, notification deliveries, audit events and outbox records; never edit/delete provenance.
+3. Revoke or disable a bad source and run `gift-codes:reconcile-source-policies --limit=500` until complete.
+4. Correct policy/parser configuration, re-enable the source and run targeted ingestion replay.
+5. Confirm `production:check`, source health, failed jobs, outbox backlog and delivery diagnostics before closing the incident.
 
-Source revocation and policy reconciliation are the trust rollback. Notification idempotency makes command replay safe. The Century Games redemption center remains a user handoff; no operator command automates provider redemption.
+Source revocation and policy reconciliation are the trust rollback. The Century Games redemption center remains a user handoff; no operator command automates provider redemption.
+
+## Explicit operational exclusions
+
+Do not operate or add:
+
+- Gift Code Center reverse engineering or automated redemption;
+- generic prose scraping of Wiki/editorial/social sites;
+- undocumented provider APIs;
+- Discord self-bots or user-token automation;
+- browser/session replay to collect protected social content;
+- a shared Stage 3 publisher identity that can falsely satisfy independent corroboration.
