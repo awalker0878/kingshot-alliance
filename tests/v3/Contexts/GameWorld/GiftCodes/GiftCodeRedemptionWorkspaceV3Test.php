@@ -64,7 +64,7 @@ final class GiftCodeRedemptionWorkspaceV3Test extends TestCase
         );
         $state = GiftCodeAccountState::query()->firstOrFail();
         self::assertSame(GiftCodeAccountStateStatus::Snoozed, $state->state);
-        self::assertTrue($state->snoozed_until?->equalTo($snoozedUntil) ?? false);
+        self::assertTrue($state->snoozed_until?->equalTo($snoozedUntil->startOfSecond()) ?? false);
 
         $remindAt = now()->addHours(12)->toImmutable();
         $update->handle(
@@ -76,7 +76,7 @@ final class GiftCodeRedemptionWorkspaceV3Test extends TestCase
         $state->refresh();
         self::assertSame(GiftCodeAccountStateStatus::Actionable, $state->state);
         self::assertNull($state->snoozed_until);
-        self::assertTrue($state->remind_at?->equalTo($remindAt) ?? false);
+        self::assertTrue($state->remind_at?->equalTo($remindAt->startOfSecond()) ?? false);
 
         $update->handle($actor, (string) $giftCode->id, GiftCodeAccountStateStatus::Dismissed);
         $state->refresh();
