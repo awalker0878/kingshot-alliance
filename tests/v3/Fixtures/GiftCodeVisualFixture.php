@@ -34,27 +34,56 @@ final class GiftCodeVisualFixture
             ]);
         }
         foreach (['VISUAL-GIFT-DESKTOP', 'VISUAL-GIFT-MOBILE'] as $code) {
-            GiftCode::query()->create([
-                'code' => $code,
-                'normalized_code' => $code,
-                'status' => 'valid',
-                'status_revision' => 1,
-                'status_reason_code' => 'qualified_positive_evidence',
-                'status_evidence_ids' => [],
-                'status_changed_at' => now(),
-                'status_derived_at' => now(),
-                'discovered_at' => now(),
-                'expires_revision' => 0,
+            self::createValidGiftCode($code);
+        }
+
+        foreach ([
+            'desktop' => ['kingdom' => 1625, 'suffix' => 'DESKTOP'],
+            'mobile' => ['kingdom' => 1626, 'suffix' => 'MOBILE'],
+        ] as $project => $fixture) {
+            $trustUser = User::factory()->create([
+                'name' => 'Gift Code Trust '.ucfirst($project).' Visual',
+                'email' => sprintf('gift-code-trust-%s-visual@example.test', $project),
+                'password' => Hash::make('password'),
+                'timezone' => 'UTC',
             ]);
+            $trustKingdom = Kingdom::query()->create([
+                'number' => $fixture['kingdom'],
+                'status' => 'active',
+            ]);
+            Player::query()->create([
+                'user_id' => $trustUser->id,
+                'current_kingdom_id' => $trustKingdom->id,
+                'game_player_id' => 'GOV-GIFT-TRUST-'.$fixture['suffix'],
+                'current_name' => 'Gift Code Trust '.$fixture['suffix'].' Governor',
+            ]);
+            self::createValidGiftCode('VISUAL-GIFT-TRUST-'.$fixture['suffix']);
         }
 
         $user = User::factory()->create([
             'name' => 'Gift Code Moderation Visual',
             'email' => 'gift-code-moderation-visual@example.test',
+            'password' => Hash::make('password'),
             'timezone' => 'UTC',
             'email_verified_at' => now(),
             'two_factor_confirmed_at' => now(),
         ]);
         app(ManagePlatformAdministrator::class)->grant((int) $user->id);
+    }
+
+    private static function createValidGiftCode(string $code): void
+    {
+        GiftCode::query()->create([
+            'code' => $code,
+            'normalized_code' => $code,
+            'status' => 'valid',
+            'status_revision' => 1,
+            'status_reason_code' => 'qualified_positive_evidence',
+            'status_evidence_ids' => [],
+            'status_changed_at' => now(),
+            'status_derived_at' => now(),
+            'discovered_at' => now(),
+            'expires_revision' => 0,
+        ]);
     }
 }
