@@ -91,7 +91,6 @@ const selectedOutcome = ref('redeemed');
 const busy = ref(false);
 const operationError = ref<string | null>(null);
 const copied = ref<string | null>(null);
-const terminalStates = ['completed', 'skipped', 'unavailable'];
 const outcomes = [
   'redeemed',
   'already_redeemed',
@@ -341,88 +340,92 @@ function statusTone(status: string): 'success' | 'warning' | 'danger' | 'info' {
 
         <div class="mt-4 border-t border-[var(--ks-border)] pt-4">
           <p class="ks-kicker">{{ t('giftCodes.workspace.signalTitle') }}</p>
-          <p v-if="currentSignal" class="mt-2 text-sm">
+          <p v-if="currentSignal" class="mt-2 text-sm text-[var(--ks-muted)]">
             {{ t('giftCodes.workspace.signalSummary', { successRate: currentSignal.successRate, samples: currentSignal.sampleCount, accounts: currentSignal.distinctAccounts }) }}
           </p>
-          <p v-else class="mt-2 text-xs text-[var(--ks-muted)]">{{ t('giftCodes.workspace.signalPrivate') }}</p>
+          <p v-else class="mt-2 text-sm text-[var(--ks-muted)]">{{ t('giftCodes.workspace.signalPrivate') }}</p>
         </div>
       </article>
-
-      <details class="mt-5">
-        <summary class="cursor-pointer text-sm font-semibold">{{ t('giftCodes.governorReceipts') }}</summary>
-        <ol class="mt-3 grid gap-2 md:grid-cols-2">
-          <li v-for="item in session.items" :key="item.id" class="flex items-center gap-3 rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] p-3 text-sm">
-            <span class="font-mono">{{ item.code }}</span>
-            <span class="truncate">{{ item.playerName }}</span>
-            <span class="ks-status ml-auto" :data-tone="statusTone(item.state)">{{ t(`giftCodes.workspace.states.${item.state}`) }}</span>
-          </li>
-        </ol>
-      </details>
     </section>
 
-    <section class="ks-surface mt-5 p-5 sm:p-6" aria-labelledby="gift-code-run-builder">
+    <section class="ks-surface mt-5 p-5 sm:p-6" aria-labelledby="gift-code-run-builder-heading">
       <p class="ks-kicker">{{ t('giftCodes.workspace.createRun') }}</p>
-      <h2 id="gift-code-run-builder" class="ks-display mt-1 text-2xl font-semibold">{{ t('giftCodes.workspace.createRun') }}</h2>
+      <h2 id="gift-code-run-builder-heading" class="ks-display mt-1 text-2xl font-semibold">{{ t('giftCodes.workspace.createRun') }}</h2>
+
       <div class="mt-4 flex flex-wrap gap-2">
         <AppButton type="button" :busy="busy" @click="createRun('all_actionable')">{{ t('giftCodes.workspace.runModes.all_actionable') }}</AppButton>
         <AppButton type="button" variant="secondary" :busy="busy" @click="createRun('expiring')">{{ t('giftCodes.workspace.runModes.expiring') }}</AppButton>
         <AppButton type="button" variant="secondary" :busy="busy" @click="createRun('retry_ready')">{{ t('giftCodes.workspace.runModes.retry_ready') }}</AppButton>
-        <AppButton
-          type="button"
-          variant="secondary"
-          :busy="busy"
-          :disabled="selectedCodeIds.length === 0 || selectedPlayerIds.length === 0"
-          @click="createRun('selected', selectedCodeIds, selectedPlayerIds)"
-        >
-          {{ t('giftCodes.workspace.runModes.selected') }}
-        </AppButton>
       </div>
+
+      <div class="mt-5 grid gap-5 lg:grid-cols-2">
+        <fieldset>
+          <legend class="ks-kicker">{{ t('giftCodes.workspace.shownCodes', { count: codes.length }) }}</legend>
+          <div class="mt-3 max-h-64 space-y-2 overflow-y-auto pr-1">
+            <label v-for="giftCode in codes" :key="giftCode.id" class="flex items-center gap-3 rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] p-3 text-sm">
+              <input v-model="selectedCodeIds" type="checkbox" :value="giftCode.id" />
+              <span class="font-mono font-semibold">{{ giftCode.code }}</span>
+              <span v-if="giftCode.expiresAt" class="ml-auto text-xs text-[var(--ks-muted)]">{{ formatDate(giftCode.expiresAt) }}</span>
+            </label>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend class="ks-kicker">{{ t('giftCodes.governors') }}</legend>
+          <div class="mt-3 max-h-64 space-y-2 overflow-y-auto pr-1">
+            <label v-for="governor in governors" :key="governor.id" class="flex items-center gap-3 rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] p-3 text-sm">
+              <input v-model="selectedPlayerIds" type="checkbox" :value="governor.id" :disabled="!governor.gamePlayerId" />
+              <span>{{ governor.name }}</span>
+              <span class="ml-auto text-xs text-[var(--ks-muted)]">{{ governor.kingdomNumber ?? '—' }}</span>
+            </label>
+          </div>
+        </fieldset>
+      </div>
+
       <p class="mt-3 text-xs text-[var(--ks-muted)]">{{ t('giftCodes.workspace.selectedSummary', { codes: selectedCodeIds.length, governors: selectedPlayerIds.length }) }}</p>
-      <div class="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-        <label v-for="governor in governors" :key="governor.id" class="flex items-center gap-3 rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] p-3 text-sm">
-          <input v-model="selectedPlayerIds" type="checkbox" :value="governor.id" :disabled="!governor.gamePlayerId" :aria-label="t('giftCodes.workspace.selectGovernor', { governor: governor.name })" />
-          <span>{{ governor.name }}</span>
-          <span class="ml-auto text-xs text-[var(--ks-muted)]">{{ governor.kingdomNumber ? t('giftCodes.kingdom', { kingdom: governor.kingdomNumber }) : t('common.none') }}</span>
-        </label>
-      </div>
+      <AppButton
+        type="button"
+        class="mt-3"
+        :busy="busy"
+        :disabled="selectedCodeIds.length === 0 || selectedPlayerIds.length === 0"
+        @click="createRun('selected', selectedCodeIds, selectedPlayerIds)"
+      >
+        {{ t('giftCodes.workspace.runModes.selected') }}
+      </AppButton>
     </section>
 
-    <section class="mt-5 space-y-3" :aria-label="t('giftCodes.workspace.shownCodes', { count: codes.length })">
-      <article v-for="giftCode in codes" :key="giftCode.id" class="ks-surface p-5 sm:p-6">
-        <div class="flex flex-wrap items-start justify-between gap-4">
-          <div class="flex min-w-0 items-start gap-3">
-            <input v-model="selectedCodeIds" type="checkbox" :value="giftCode.id" class="mt-2" :aria-label="t('giftCodes.workspace.selectCode', { code: giftCode.code })" />
+    <section class="ks-surface mt-5 overflow-hidden">
+      <div v-if="codes.length" class="divide-y divide-[var(--ks-border)]">
+        <article v-for="giftCode in codes" :key="giftCode.id" class="p-5 sm:p-6">
+          <div class="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <h3 class="font-mono text-lg font-bold tracking-[.08em] text-[var(--ks-gold-bright)]">{{ giftCode.code }}</h3>
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="font-mono text-lg font-bold tracking-[.08em] text-[var(--ks-gold-bright)]">{{ giftCode.code }}</span>
+                <span class="ks-status" :data-tone="statusTone(giftCode.status)">{{ giftCode.status }}</span>
+              </div>
               <p class="mt-2 text-xs text-[var(--ks-muted)]">
                 {{ t('giftCodes.workspace.sourceCount', { count: giftCode.sourceCount }) }} ·
                 {{ giftCode.expiresAt ? t('giftCodes.workspace.expires', { date: formatDate(giftCode.expiresAt) }) : t('giftCodes.workspace.noExpiry') }}
               </p>
             </div>
+            <span v-if="giftCode.personalState" class="ks-status" data-tone="info">{{ giftCode.personalState.state }}</span>
           </div>
-          <span v-if="giftCode.personalState" class="ks-status" data-tone="info">{{ giftCode.personalState.state }}</span>
-        </div>
 
-        <ul v-if="giftCode.reward.items.length" class="mt-4 flex flex-wrap gap-2">
-          <li v-for="(reward, index) in giftCode.reward.items" :key="`${reward.type}:${reward.key}:${index}`" class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] px-3 py-2 text-xs">{{ rewardLabel(reward) }}</li>
-        </ul>
-        <p v-else class="mt-4 text-xs text-[var(--ks-muted)]">{{ t('giftCodes.workspace.rewardUnknown') }}</p>
+          <div class="mt-3 flex flex-wrap gap-2">
+            <AppButton type="button" size="sm" variant="secondary" @click="updateState(giftCode.id, 'pinned')">{{ t('giftCodes.workspace.pin') }}</AppButton>
+            <AppButton type="button" size="sm" variant="secondary" @click="updateState(giftCode.id, 'actionable')">{{ t('giftCodes.workspace.restore') }}</AppButton>
+            <AppButton type="button" size="sm" variant="secondary" @click="updateState(giftCode.id, 'snoozed', inHours(24))">{{ t('giftCodes.workspace.snoozeDay') }}</AppButton>
+            <AppButton type="button" size="sm" variant="secondary" @click="updateState(giftCode.id, 'dismissed')">{{ t('giftCodes.workspace.dismiss') }}</AppButton>
+            <AppButton type="button" size="sm" variant="secondary" @click="updateState(giftCode.id, giftCode.personalState?.state ?? 'actionable', null, inHours(24))">{{ t('giftCodes.workspace.remindDay') }}</AppButton>
+          </div>
+        </article>
+      </div>
+      <p v-else class="p-8 text-center text-sm text-[var(--ks-muted)]">{{ t('giftCodes.workspace.noCodes') }}</p>
 
-        <div class="mt-4 flex flex-wrap gap-2">
-          <AppButton type="button" variant="secondary" @click="updateState(giftCode.id, 'pinned')">{{ t('giftCodes.workspace.pin') }}</AppButton>
-          <AppButton type="button" variant="secondary" @click="updateState(giftCode.id, 'snoozed', inHours(24))">{{ t('giftCodes.workspace.snoozeDay') }}</AppButton>
-          <AppButton type="button" variant="secondary" @click="updateState(giftCode.id, giftCode.personalState?.state ?? 'actionable', null, inHours(24))">{{ t('giftCodes.workspace.remindDay') }}</AppButton>
-          <AppButton type="button" variant="secondary" @click="updateState(giftCode.id, 'dismissed')">{{ t('giftCodes.workspace.dismiss') }}</AppButton>
-          <AppButton v-if="giftCode.personalState" type="button" variant="secondary" @click="updateState(giftCode.id, 'actionable')">{{ t('giftCodes.workspace.restore') }}</AppButton>
-        </div>
-      </article>
-      <p v-if="codes.length === 0" class="ks-surface p-8 text-center text-sm text-[var(--ks-muted)]">{{ t('giftCodes.workspace.noCodes') }}</p>
+      <div class="flex justify-between border-t border-[var(--ks-border)] p-4">
+        <Link v-if="pagination.previousCursor" :href="viewUrl(view, pagination.previousCursor)" class="ks-command-link" data-variant="secondary">{{ t('common.previous') }}</Link>
+        <span v-else />
+        <Link v-if="pagination.nextCursor" :href="viewUrl(view, pagination.nextCursor)" class="ks-command-link" data-variant="secondary">{{ t('common.next') }}</Link>
+      </div>
     </section>
-
-    <div class="mt-4 flex justify-between">
-      <Link v-if="pagination.previousCursor" :href="viewUrl(view, pagination.previousCursor)" class="ks-command-link" data-variant="secondary">{{ t('common.previous') }}</Link>
-      <span v-else />
-      <Link v-if="pagination.nextCursor" :href="viewUrl(view, pagination.nextCursor)" class="ks-command-link" data-variant="secondary">{{ t('common.next') }}</Link>
-    </div>
   </AppLayout>
 </template>
