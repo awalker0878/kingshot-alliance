@@ -8,6 +8,8 @@ use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
 use App\Contexts\GameWorld\GiftCodes\Actions\ManageGiftCodeCuratorGrant;
 use App\Contexts\GameWorld\GiftCodes\Adapters\JsonFeedGiftCodeSourceAdapter;
+use App\Contexts\GameWorld\GiftCodes\Adapters\RssAtomGiftCodeSourceAdapter;
+use App\Contexts\GameWorld\GiftCodes\Adapters\StructuredHtmlGiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeStatus;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCode;
 use App\Contexts\Platform\Administration\Actions\ManagePlatformAdministrator;
@@ -48,7 +50,7 @@ final class GiftCodeModerationHttpV3Test extends TestCase
             ->assertForbidden();
     }
 
-    public function test_platform_administrator_can_render_moderation_and_register_the_installed_feed_adapter(): void
+    public function test_platform_administrator_can_render_moderation_and_register_installed_source_adapters(): void
     {
         config()->set('game_world.gift_codes.moderation', true);
         $administrator = $this->administrator();
@@ -60,30 +62,38 @@ final class GiftCodeModerationHttpV3Test extends TestCase
             ->assertInertia(static fn (Assert $page): Assert => $page
                 ->component('Platform/GiftCodes/Review')
                 ->where('canManagePlatformPolicy', true)
-                ->has('adapterKeys', 1)
-                ->where('adapterKeys.0', JsonFeedGiftCodeSourceAdapter::KEY));
+                ->has('adapterKeys', 3)
+                ->where('adapterKeys.0', JsonFeedGiftCodeSourceAdapter::KEY)
+                ->where('adapterKeys.1', RssAtomGiftCodeSourceAdapter::KEY)
+                ->where('adapterKeys.2', StructuredHtmlGiftCodeSourceAdapter::KEY));
 
-        $this->actingAs($administrator)
-            ->withSession(['auth.password_confirmed_at' => time()])
-            ->post(route('platform.gift-codes.sources.store'), [
-                'source_key' => 'http-json-feed',
-                'name' => 'HTTP JSON feed',
-                'classification' => 'official',
-                'canonical_domain' => 'publisher.example.test',
-                'verification_method' => 'approved_json_feed',
-                'adapter_key' => JsonFeedGiftCodeSourceAdapter::KEY,
-                'feed_path' => '/gift-codes.json',
-                'auto_verify' => true,
+        foreach ([
+            [JsonFeedGiftCodeSourceAdapter::KEY, 'http-json-feed', '/gift-codes.json', 'approved_json_feed'],
+            [RssAtomGiftCodeSourceAdapter::KEY, 'http-rss-feed', '/gift-codes.xml', 'approved_rss_atom_feed'],
+            [StructuredHtmlGiftCodeSourceAdapter::KEY, 'http-html-feed', '/gift-codes', 'approved_structured_html'],
+        ] as [$adapterKey, $sourceKey, $feedPath, $verificationMethod]) {
+            $this->actingAs($administrator)
+                ->withSession(['auth.password_confirmed_at' => time()])
+                ->post(route('platform.gift-codes.sources.store'), [
+                    'source_key' => $sourceKey,
+                    'name' => 'HTTP source '.$sourceKey,
+                    'classification' => 'official',
+                    'canonical_domain' => 'publisher.example.test',
+                    'verification_method' => $verificationMethod,
+                    'adapter_key' => $adapterKey,
+                    'feed_path' => $feedPath,
+                    'auto_verify' => true,
+                    'ingestion_enabled' => true,
+                ])
+                ->assertRedirect()
+                ->assertSessionHas('actionReceipt');
+
+            $this->assertDatabaseHas('gift_code_sources', [
+                'source_key' => $sourceKey,
+                'adapter_key' => $adapterKey,
                 'ingestion_enabled' => true,
-            ])
-            ->assertRedirect()
-            ->assertSessionHas('actionReceipt');
-
-        $this->assertDatabaseHas('gift_code_sources', [
-            'source_key' => 'http-json-feed',
-            'adapter_key' => JsonFeedGiftCodeSourceAdapter::KEY,
-            'ingestion_enabled' => true,
-        ]);
+            ]);
+        }
     }
 
     public function test_curator_bulk_confirmation_reauthorizes_and_rejects_a_stale_preview(): void
