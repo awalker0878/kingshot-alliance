@@ -15,6 +15,7 @@ use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeRedemptionSession;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeRedemptionSessionItem;
 use App\Contexts\GameWorld\GiftCodes\Services\GiftCodeActionablePairResolver;
 use App\Contexts\GameWorld\GiftCodes\Services\GiftCodeRedemptionSessionProgressor;
+use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeRedemptionSessionReference;
 use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Shared\Infrastructure\AuditTrail\Contracts\AuditActor;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
@@ -43,7 +44,7 @@ final readonly class CreateGiftCodeRedemptionSession
         GiftCodeRedemptionSessionMode $mode,
         array $giftCodeIds = [],
         array $playerIds = [],
-    ): GiftCodeRedemptionSession {
+    ): GiftCodeRedemptionSessionReference {
         $userId = $actor->auditUserId();
         if ($userId === null) {
             throw new AuthorizationException('An authenticated account is required for a Gift Code session.');
@@ -162,7 +163,10 @@ final readonly class CreateGiftCodeRedemptionSession
             ['mode' => $mode->value, 'items' => $session->total_items],
         );
 
-        return $session;
+        return new GiftCodeRedemptionSessionReference(
+            sessionId: (string) $session->id,
+            totalItems: (int) $session->total_items,
+        );
     }
 
     /**
