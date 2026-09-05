@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Alliance\Lifecycle\Actions;
 
+use App\Contexts\Alliance\Access\Enums\DefaultAllianceRole;
 use App\Contexts\Alliance\Access\Services\AllianceRoleProvisioner;
 use App\Contexts\Alliance\Lifecycle\Enums\AllianceStatus;
 use App\Contexts\Alliance\Lifecycle\Models\Alliance;
@@ -46,7 +47,7 @@ final readonly class CreateAlliance
                 'timezone' => $timezone,
                 'status' => AllianceStatus::Active,
             ]);
-            AllianceMembership::query()->create([
+            $ownerMembership = AllianceMembership::query()->create([
                 'alliance_id' => $alliance->id,
                 'player_id' => $ownerPlayerId,
                 'status' => MembershipStatus::Active,
@@ -54,7 +55,12 @@ final readonly class CreateAlliance
                 'joined_at' => now(),
             ]);
 
-            $this->roles->provision($alliance);
+            $roles = $this->roles->provision($alliance);
+            $giftCodeCoordinator = $roles[DefaultAllianceRole::GiftCodeCoordinator->value] ?? null;
+            if ($giftCodeCoordinator !== null) {
+                // Coverage is granted by an explicit specialist role, never by R5 rank semantics.
+                $ownerMembership->roles()->attach($giftCodeCoordinator->id, ['alliance_id' => $alliance->id]);
+            }
             $this->platformDefaults->provision($alliance);
             $this->audit->record('alliance.created', $owner, $alliance, $alliance, ['name' => $alliance->name, 'slug' => $alliance->slug]);
             OutboxMessage::query()->create([
