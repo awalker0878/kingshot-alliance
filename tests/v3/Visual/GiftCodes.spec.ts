@@ -13,7 +13,10 @@ async function loginWithGovernorEmail(page: Page, email: string): Promise<void> 
   await page.waitForURL('**/dashboard');
 
   const identitySwitcher = page.locator('button[aria-haspopup="listbox"]:visible').first();
-  if (/select governor/i.test((await identitySwitcher.textContent()) ?? '')) {
+  if (
+    (await identitySwitcher.count()) > 0 &&
+    /select governor/i.test((await identitySwitcher.textContent()) ?? '')
+  ) {
     await identitySwitcher.click();
     await page
       .getByRole('listbox', { name: 'Active Governor' })
@@ -60,6 +63,13 @@ async function quarantineGiftCode(browser: Browser, giftCodeId: string): Promise
   } finally {
     await adminContext.close();
   }
+}
+
+async function resumableSessionUrl(page: Page): Promise<string> {
+  const href = await page.getByRole('link', { name: /Ready to redeem/ }).getAttribute('href');
+  expect(href).toContain('session=');
+
+  return href as string;
 }
 
 test('Gift Code catalogue and guided Governor handoff work without desktop or mobile overflow', async ({
@@ -125,22 +135,24 @@ test('Gift Code catalogue and guided Governor handoff work without desktop or mo
 
 test('Gift Code redemption workspace creates, resumes, skips and records a multi-Governor run', async ({
   page,
-}) => {
+}, testInfo) => {
   await loginWithGovernor(page);
   await page.goto('/gift-codes/workspace');
   await page.waitForLoadState('networkidle');
 
   await expect(page.getByRole('heading', { name: 'Gift Code Workspace', level: 1 })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Redeem all ready' })).toBeVisible();
-  await page.getByRole('button', { name: 'Redeem all ready' }).click();
+  const code = `VISUAL-GIFT-${testInfo.project.name.toUpperCase()}`;
+  const codeChoice = page.locator('label').filter({ hasText: code }).locator('input[type="checkbox"]');
+  await expect(codeChoice).toHaveCount(1);
+  await codeChoice.check();
+  await page.getByRole('button', { name: 'Redeem selected' }).click();
   await page.waitForLoadState('networkidle');
 
   await expect(page.getByText('Current redemption run')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Prepare official handoff' })).toBeVisible();
-  const sessionUrl = page.url();
-  expect(sessionUrl).toContain('session=');
+  const sessionUrl = await resumableSessionUrl(page);
 
-  await page.reload();
+  await page.goto(sessionUrl);
   await page.waitForLoadState('networkidle');
   await expect(page.getByText('Current redemption run')).toBeVisible();
 
@@ -152,6 +164,7 @@ test('Gift Code redemption workspace creates, resumes, skips and records a multi
   await expect(prepare).toBeVisible();
   await prepare.click();
   await page.waitForLoadState('networkidle');
+  await expect(page.getByLabel('Observed official-center outcome')).toBeVisible();
   await page.getByLabel('Observed official-center outcome').selectOption('redeemed');
   await page.getByRole('button', { name: 'Record and continue' }).click();
   await page.waitForLoadState('networkidle');
@@ -185,8 +198,7 @@ test('Gift Code redemption workspace invalidates an active run when canonical tr
   await expect(page.getByText('Current redemption run')).toBeVisible();
   await expect(page.getByText(code, { exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Prepare official handoff' })).toBeVisible();
-  const sessionUrl = page.url();
-  expect(sessionUrl).toContain('session=');
+  const sessionUrl = await resumableSessionUrl(page);
 
   await quarantineGiftCode(browser, giftCodeId as string);
 
