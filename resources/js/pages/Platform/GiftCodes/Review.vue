@@ -645,7 +645,7 @@ function revokeCurator(grantId: string): void {
           </select>
           <FormError :message="sourcePolicy.errors.adapter_key" />
         </label>
-        <label v-if="sourcePolicy.adapter_key === 'json-feed-v1'">
+        <label v-if="sourcePolicy.adapter_key">
           <span class="ks-kicker">{{ t('platformGiftCodes.feedPath') }}</span>
           <input
             v-model="sourcePolicy.feed_path"

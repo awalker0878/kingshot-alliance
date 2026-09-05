@@ -6,6 +6,8 @@ namespace App\Contexts\GameWorld\GiftCodes\Actions;
 
 use App\Contexts\Accounts\Identity\ValueObjects\AccountIdentity;
 use App\Contexts\GameWorld\GiftCodes\Adapters\JsonFeedGiftCodeSourceAdapter;
+use App\Contexts\GameWorld\GiftCodes\Adapters\RssAtomGiftCodeSourceAdapter;
+use App\Contexts\GameWorld\GiftCodes\Adapters\StructuredHtmlGiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeSourceReconciliationJob;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeSourceRegistry;
 use App\Contexts\GameWorld\GiftCodes\Services\GiftCodeSourceAdapterRegistry;
@@ -53,10 +55,15 @@ final readonly class ManageGiftCodeSourceRegistry
             throw ValidationException::withMessages(['adapter_key' => 'Enabled ingestion requires an installed source adapter.']);
         }
         $policy = $attributes['provenance_policy'] ?? null;
-        if ($adapterKey === JsonFeedGiftCodeSourceAdapter::KEY) {
+        $documentAdapterKeys = [
+            JsonFeedGiftCodeSourceAdapter::KEY,
+            RssAtomGiftCodeSourceAdapter::KEY,
+            StructuredHtmlGiftCodeSourceAdapter::KEY,
+        ];
+        if ($adapterKey !== null && in_array($adapterKey, $documentAdapterKeys, true)) {
             if (filter_var($domain, FILTER_VALIDATE_IP) !== false || $domain === 'localhost') {
                 throw ValidationException::withMessages([
-                    'canonical_domain' => 'The JSON feed adapter requires a public canonical hostname.',
+                    'canonical_domain' => 'The selected source adapter requires a public canonical hostname.',
                 ]);
             }
             $feedPath = is_array($policy) && is_string($policy['feed_path'] ?? null)
@@ -71,7 +78,7 @@ final readonly class ManageGiftCodeSourceRegistry
                 || str_contains('/'.$feedPath.'/', '/../')
                 || str_contains('/'.$feedPath.'/', '/./')) {
                 throw ValidationException::withMessages([
-                    'feed_path' => 'The JSON feed adapter requires an absolute path without a host, query, fragment, or traversal segment.',
+                    'feed_path' => 'The selected source adapter requires an absolute source path without a host, query, fragment, or traversal segment.',
                 ]);
             }
         }

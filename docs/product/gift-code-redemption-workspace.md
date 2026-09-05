@@ -1,8 +1,8 @@
 # Gift Code Redemption Workspace & Personalization
 
 Status: **Current complete capability**
-Baseline: `main` at `0126df277d9ca840f58502e541fd41587b116d71`
-Verified implementation candidate: `caf75e732a71ea5dfdd91f7c6432c30fa689d828`
+Baseline: `main` at `2c4d3ae8b296f81b77e1a92cf8b5edaba1f231f9`
+Verified candidate-adapter correction: `610082b9cbf663e3eb6bd0c14dbe3cdba1d2b086`
 Deployment model: **fresh-schema deployment**
 Owner context: `GameWorld/GiftCodes`
 
@@ -99,7 +99,16 @@ Qualified reward evidence may be rendered through structured item types such as 
 
 ## Approved-source expansion
 
-New adapters/webhook ingestion reuse the approved source registry and `IngestApprovedGiftCodeObservation` path. Source registration, active policy, verification method, replay protection, bounded batch size and content fingerprinting remain mandatory. A webhook does not become authoritative merely because it can reach an endpoint.
+The candidate approved-source set is explicit and finite:
+
+- `json-feed-v1` — generic bounded JSON pull ingestion;
+- `rss-atom-v1` — bounded RSS/Atom pull ingestion using explicit direct-child Gift Code elements;
+- `structured-html-v1` — bounded approved HTML extraction using explicit machine-readable `data-gift-code*` attributes, never prose inference;
+- signed internal source webhook ingestion — push transport protected by source policy, signature, timestamp and replay controls.
+
+All modes reuse the approved source registry and `IngestApprovedGiftCodeObservation` path. Pull adapters are restricted to a configured public canonical hostname and absolute source path, do not follow redirects, enforce document/observation bounds, fingerprint raw observations and preserve source/retrieval/parser versions. Missing RSS/Atom or structured-HTML assertion metadata normalizes to the canonical `available` assertion. Parser/source-policy failures enter the existing quarantine/review path. A source or webhook does not become authoritative merely because ingestion succeeds; canonical trust still depends on qualified evidence and current source policy.
+
+The post-merge audit of PR #145 found that JSON and webhook ingestion were present while RSS/Atom and structured HTML were absent. The correction adds both production pull adapters and end-to-end acceptance coverage through the canonical approved-source ingestion runner.
 
 ## Alliance coverage
 
@@ -140,4 +149,4 @@ Canonical authorization, session invariants and trust/evidence integration are n
 
 The authoritative acceptance matrix is `gift-code-redemption-workspace-acceptance.md`; the closed delivery ledger is `gift-code-redemption-workspace-delivery-ledger.md`.
 
-Implementation candidate `caf75e732a71ea5dfdd91f7c6432c30fa689d828` passed CI, Architecture V3 Verification, Intelligence Verification, Visual Regression, CodeQL, Dependency Review and King Perks Verification. The capability is therefore current product truth rather than selected-extension work.
+Candidate-adapter correction `610082b9cbf663e3eb6bd0c14dbe3cdba1d2b086` passed CI, Architecture V3 Verification, Intelligence Verification, Visual Regression, CodeQL and Dependency Review. `King Perks Verification` is path-filtered and did not trigger because this correction changes no King Perks-owned path. The four documented ingestion modes are implemented and the capability is current product truth.
