@@ -1,6 +1,6 @@
 # Gift Codes
 
-Status: Current — fresh-schema canonical implementation
+Status: Reopened for candidate-adapter closeout correction — fresh-schema canonical implementation
 
 Gift Codes are owned by `GameWorld/GiftCodes`. Global catalogue truth, account-personal workflow state, persistent redemption-session state and per-Governor redemption truth are deliberately separate.
 
@@ -60,9 +60,19 @@ Workspace notifications can consolidate several actionable Gift Codes into one l
 
 Workspace operations are scheduled independently of catalogue maintenance: due personal reminders run every minute, consolidated actionable-workspace notifications run every 15 minutes, and bounded contributor projections rebuild hourly. Each schedule uses single-server and overlap protection; the actions themselves remain idempotent/bounded.
 
-`gift_codes.approved_source_ingestion` controls scheduled source acquisition. `gift-codes:ingest-approved-sources --limit=25 --cycle` runs every 15 minutes; `--source=` provides targeted operator replay. `gift-codes:reconcile-source-policies --limit=500` runs every five minutes. Source and bounded recent-run health expose last attempt/success/failure, stale state, accepted/duplicate/quarantined counts, stable failure codes and reviewable failure detail. Parser/unsupported-format and observation-policy failures are quarantined; source-retrieval failures remain explicit failures. The installed `json-feed-v1` adapter accepts the documented HTTPS JSON feed contract on the approved canonical domain; its source-specific feed path and verification policy remain platform-administered.
+`gift_codes.approved_source_ingestion` controls scheduled source acquisition. `gift-codes:ingest-approved-sources --limit=25 --cycle` runs every 15 minutes; `--source=` provides targeted operator replay. `gift-codes:reconcile-source-policies --limit=500` runs every five minutes. Source and bounded recent-run health expose last attempt/success/failure, stale state, accepted/duplicate/quarantined counts, stable failure codes and reviewable failure detail. Parser/unsupported-format and observation-policy failures are quarantined; source-retrieval failures remain explicit failures.
 
-When `gift_codes.source_webhook_ingestion` is enabled, a registered source may use the signed internal source webhook transport. Signature verification, timestamp/replay protection, batch bounds and active source policy are enforced before the payload enters the same approved-source observation action used by scheduled adapters. The webhook transport does not create a new evidence/trust path.
+The installed pull-adapter set is:
+
+- `json-feed-v1` — a bounded HTTPS JSON document with explicit observation fields;
+- `rss-atom-v1` — bounded RSS or Atom XML containing explicit Gift Code elements; it does not infer codes from titles/descriptions;
+- `structured-html-v1` — bounded approved HTML containing explicit machine-readable `data-gift-code*` attributes; it does not scrape arbitrary prose.
+
+All pull adapters are source-policy controlled, restricted to the configured public canonical hostname plus an absolute source path, disable redirects, preserve source/retrieval/parser versions, create content fingerprints/raw-evidence references and feed the same `IngestApprovedGiftCodeObservation` action. RSS/Atom parsing disables network XML access and rejects document type/entity declarations. Exceeding configured document or observation bounds is a reviewable parser failure rather than silent truncation.
+
+When `gift_codes.source_webhook_ingestion` is enabled, a registered source may use the fourth candidate mode: the signed internal source webhook transport. Signature verification, timestamp/replay protection, batch bounds and active source policy are enforced before the payload enters the same approved-source observation action used by scheduled adapters. The webhook transport does not create a new evidence/trust path.
+
+The candidate source set is therefore JSON pull, RSS/Atom pull, structured approved-HTML pull and signed webhook push. A post-merge audit found that the earlier PR #145 closeout had only JSON plus webhook in production code; the capability is reopened until the missing pull adapters and all required repository gates are verified.
 
 Platform Administration diagnostics include privacy-safe Gift Code workspace feature/session/item/reminder/contributor/source counters. They do not expose account IDs, Player IDs or Governor names. Communications provider diagnostics remain Communications-owned.
 
@@ -78,6 +88,6 @@ Public global events remain `gift_code.created`, `gift_code.provenance_added`, `
 
 Operationally separable workspace controls are `gift_codes.redemption_workspace`, `gift_codes.redemption_intelligence`, `gift_codes.alliance_coverage`, `gift_codes.contributor_reputation`, and `gift_codes.source_webhook_ingestion`. These flags do not select alternative trust/resolver semantics and cannot bypass canonical authorization/evidence paths.
 
-The Gift Code Redemption Workspace & Personalization capability is closed on verified implementation candidate `caf75e732a71ea5dfdd91f7c6432c30fa689d828`.
+The Gift Code Redemption Workspace & Personalization closeout is currently reopened for the candidate-adapter correction. The delivery ledger may be reclosed only after the correction head passes all required repository workflows.
 
-See [ADR-0004](../architecture/adr/0004-gift-code-trust-from-append-only-evidence.md), the [trust/discovery extension closeout](../product/gift-code-extension-program.md), the [Redemption Workspace & Personalization contract](../product/gift-code-redemption-workspace.md), its [acceptance matrix](../product/gift-code-redemption-workspace-acceptance.md), its [closed delivery ledger](../product/gift-code-redemption-workspace-delivery-ledger.md), [API reference](api/README.md), and [event catalogue](events.md).
+See [ADR-0004](../architecture/adr/0004-gift-code-trust-from-append-only-evidence.md), the [trust/discovery extension closeout](../product/gift-code-extension-program.md), the [Redemption Workspace & Personalization contract](../product/gift-code-redemption-workspace.md), its [acceptance matrix](../product/gift-code-redemption-workspace-acceptance.md), its [delivery ledger](../product/gift-code-redemption-workspace-delivery-ledger.md), [API reference](api/README.md), and [event catalogue](events.md).
