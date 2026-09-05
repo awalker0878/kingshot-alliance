@@ -17,6 +17,7 @@ use App\Contexts\GameWorld\GiftCodes\Adapters\StructuredHtmlGiftCodeSourceAdapte
 use App\Contexts\GameWorld\GiftCodes\Adapters\YouTubeChannelGiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeSourceReconciliationJob;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeSourceRegistry;
+use App\Contexts\GameWorld\GiftCodes\Services\EvaluateGiftCodeSourceActivationReadiness;
 use App\Contexts\GameWorld\GiftCodes\Services\GiftCodeSourceAdapterRegistry;
 use App\Contexts\Platform\Administration\Services\PlatformAuthorization;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
@@ -31,6 +32,7 @@ final readonly class ManageGiftCodeSourceRegistry
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
         private GiftCodeSourceAdapterRegistry $adapters,
+        private EvaluateGiftCodeSourceActivationReadiness $readiness,
         private PlatformAuthorization $platformAuthorization,
     ) {}
 
@@ -66,6 +68,7 @@ final readonly class ManageGiftCodeSourceRegistry
         if ($policy !== null && ! is_array($policy)) {
             throw ValidationException::withMessages(['provenance_policy' => 'Source policy must be an object.']);
         }
+        $policy ??= [];
 
         $this->validateFeedPathAdapter($adapterKey, $domain, $policy);
         $this->validateAdapterPolicy($adapterKey, $domain, $classification, $policy, $ingestionEnabled);
@@ -73,6 +76,34 @@ final readonly class ManageGiftCodeSourceRegistry
             throw ValidationException::withMessages([
                 'auto_verify' => 'Manually recorded registered-source evidence requires explicit curator verification and cannot auto-verify.',
             ]);
+        }
+
+        if ($ingestionEnabled) {
+            $candidate = new GiftCodeSourceRegistry();
+            $candidate->forceFill([
+                'source_key' => $sourceKey,
+                'name' => trim($attributes['name']),
+                'classification' => $classification,
+                'canonical_domain' => $domain,
+                'is_active' => true,
+                'verification_method' => trim($attributes['verification_method']),
+                'adapter_key' => $adapterKey,
+                'provenance_policy' => $policy,
+                'ingestion_enabled' => true,
+                'revoked_at' => null,
+            ]);
+            $activation = $this->readiness->forSource($candidate);
+            if (! $activation->ready()) {
+                $failed = [];
+                foreach ($activation->checks as $key => $check) {
+                    if (! $check['ready']) {
+                        $failed[] = $key.': '.$check['message'];
+                    }
+                }
+                throw ValidationException::withMessages([
+                    'ingestion_enabled' => 'Source activation is not ready: '.implode(' ', $failed),
+                ]);
+            }
         }
 
         return DB::transaction(function () use (
@@ -97,6 +128,9 @@ final readonly class ManageGiftCodeSourceRegistry
                 'adapter_key' => $adapterKey,
                 'provenance_policy' => $policy,
                 'ingestion_enabled' => $ingestionEnabled,
+                'activation_status' => $ingestionEnabled ? 'enabled' : ($adapterKey === null ? 'registered' : 'configured'),
+                'health_status' => $ingestionEnabled ? ($source->health_status === 'healthy' ? 'healthy' : 'pending') : 'disabled',
+                'next_eligible_ingestion_at' => $ingestionEnabled ? $source->next_eligible_ingestion_at : null,
                 'revoked_at' => null,
                 'created_by_user_id' => $source->created_by_user_id ?? $actor->userId,
                 'policy_revision' => $source->policy_revision + 1,
@@ -109,6 +143,7 @@ final readonly class ManageGiftCodeSourceRegistry
                 'source_key' => $source->source_key,
                 'policy_revision' => $source->policy_revision,
                 'ingestion_enabled' => $source->ingestion_enabled,
+                'activation_status' => $source->activation_status,
             ];
             $this->audit->record('game_world.gift_code_source.registered', $actor, $source, null, $metadata);
             $this->outbox->record(
@@ -138,6 +173,9 @@ final readonly class ManageGiftCodeSourceRegistry
                 $source->forceFill([
                     'is_active' => false,
                     'ingestion_enabled' => false,
+                    'activation_status' => 'revoked',
+                    'health_status' => 'disabled',
+                    'next_eligible_ingestion_at' => null,
                     'revoked_at' => now(),
                     'policy_revision' => $source->policy_revision + 1,
                 ])->save();
@@ -163,8 +201,8 @@ final readonly class ManageGiftCodeSourceRegistry
         });
     }
 
-    /** @param array<string,mixed>|null $policy */
-    private function validateFeedPathAdapter(?string $adapterKey, string $domain, ?array $policy): void
+    /** @param array<string,mixed> $policy */
+    private function validateFeedPathAdapter(?string $adapterKey, string $domain, array $policy): void
     {
         $feedPathAdapterKeys = [
             JsonFeedGiftCodeSourceAdapter::KEY,
@@ -195,20 +233,21 @@ final readonly class ManageGiftCodeSourceRegistry
         }
     }
 
-    /** @param array<string,mixed>|null $policy */
+    /** @param array<string,mixed> $policy */
     private function validateAdapterPolicy(
         ?string $adapterKey,
         string $domain,
         string $classification,
-        ?array $policy,
+        array $policy,
         bool $ingestionEnabled,
     ): void {
-        $policy ??= [];
-
         if ($adapterKey === OfficialXGiftCodeSourceAdapter::KEY) {
             $this->requireDomain($domain, 'x.com', 'The official X adapter requires x.com as the canonical source domain.');
             $this->requirePattern($policy, 'x_user_id', '/^[0-9]{1,32}$/D', 'The official X adapter requires the confirmed numeric X user id.');
             $this->requirePattern($policy, 'x_username', '/^[A-Za-z0-9_]{1,30}$/D', 'The official X adapter requires the confirmed X username.');
+            if ($ingestionEnabled && ($policy['platform_api_access_confirmed'] ?? false) !== true) {
+                throw ValidationException::withMessages(['platform_api_access_confirmed' => 'Enable the official X adapter only after API access is confirmed.']);
+            }
             $this->requireConfiguredWhenEnabled($ingestionEnabled, 'game_world.gift_codes.x_bearer_token', 'adapter_key', 'Enable the official X adapter only after configuring the X API bearer token.');
 
             return;
@@ -225,6 +264,26 @@ final readonly class ManageGiftCodeSourceRegistry
             if ($category === '' || mb_strlen($category) > 120) {
                 throw ValidationException::withMessages([
                     'gift_code_category' => 'The Century Games Kingshot news adapter requires the agreed Gift Code feed category.',
+                ]);
+            }
+
+            return;
+        }
+
+        if (in_array($adapterKey, [JsonFeedGiftCodeSourceAdapter::KEY, RssAtomGiftCodeSourceAdapter::KEY], true)) {
+            if ($ingestionEnabled && ($policy['provider_contract_confirmed'] ?? false) !== true) {
+                throw ValidationException::withMessages([
+                    'provider_contract_confirmed' => 'Enable a generic structured feed only after the provider has established a documented machine-readable contract.',
+                ]);
+            }
+
+            return;
+        }
+
+        if ($adapterKey === StructuredHtmlGiftCodeSourceAdapter::KEY) {
+            if ($ingestionEnabled && ($policy['structured_contract_confirmed'] ?? false) !== true) {
+                throw ValidationException::withMessages([
+                    'structured_contract_confirmed' => 'Enable structured HTML only when the publisher documents that exact machine-readable contract; prose scraping is not supported.',
                 ]);
             }
 
