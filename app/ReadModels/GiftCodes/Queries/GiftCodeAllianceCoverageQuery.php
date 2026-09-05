@@ -65,8 +65,7 @@ final class GiftCodeAllianceCoverageQuery
         foreach ($codes as $code) {
             $redemptions = $grouped->get((string) $code->id, collect());
             $completed = $redemptions->filter(static fn (GiftCodeRedemption $redemption): bool => $redemption->status->successful())->count();
-            $retryReady = $redemptions->filter(static fn (GiftCodeRedemption $redemption): bool =>
-                in_array($redemption->status, [GiftCodeRedemptionStatus::RateLimited, GiftCodeRedemptionStatus::TransientFailure], true)
+            $retryReady = $redemptions->filter(static fn (GiftCodeRedemption $redemption): bool => in_array($redemption->status, [GiftCodeRedemptionStatus::RateLimited, GiftCodeRedemptionStatus::TransientFailure], true)
                 && ($redemption->next_attempt_at === null || $redemption->next_attempt_at->isPast())
             )->count();
             $result[] = [

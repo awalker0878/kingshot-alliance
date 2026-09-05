@@ -355,10 +355,10 @@ final class GiftCodeWorkspaceV3Test extends TestCase
         config()->set('game_world.gift_codes.max_session_items', 500);
         $scenarios = app(ScenarioFactory::class);
         $account = $scenarios->account();
-        for ($index = 0; $index < 20; ++$index) {
+        for ($index = 0; $index < 20; $index++) {
             $scenarios->player($account->userId, 2200 + $index, 'GCW-LOAD-'.$index);
         }
-        for ($index = 0; $index < 100; ++$index) {
+        for ($index = 0; $index < 100; $index++) {
             $this->validCode(sprintf('GCW-LOAD-%03d', $index));
         }
         $actor = User::query()->findOrFail($account->userId);

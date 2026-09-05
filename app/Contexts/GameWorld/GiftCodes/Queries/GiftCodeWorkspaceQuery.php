@@ -16,11 +16,17 @@ use InvalidArgumentException;
 final class GiftCodeWorkspaceQuery
 {
     public const VIEW_NEW = 'new';
+
     public const VIEW_READY = 'ready';
+
     public const VIEW_EXPIRING = 'expiring';
+
     public const VIEW_RETRY_READY = 'retry_ready';
+
     public const VIEW_IN_PROGRESS = 'in_progress';
+
     public const VIEW_SNOOZED = 'snoozed';
+
     public const VIEW_COMPLETED = 'completed';
 
     /** @var list<string> */
@@ -35,7 +41,7 @@ final class GiftCodeWorkspaceQuery
     ];
 
     /**
-     * @param non-empty-list<string> $playerIds
+     * @param  non-empty-list<string>  $playerIds
      * @return CursorPaginator<int, GiftCode>
      */
     public function pageForAccount(
@@ -70,7 +76,7 @@ final class GiftCodeWorkspaceQuery
     }
 
     /**
-     * @param non-empty-list<string> $playerIds
+     * @param  non-empty-list<string>  $playerIds
      * @return array<string,int>
      */
     public function countsForAccount(int $userId, array $playerIds): array
@@ -84,7 +90,7 @@ final class GiftCodeWorkspaceQuery
     }
 
     /**
-     * @param non-empty-list<string> $playerIds
+     * @param  non-empty-list<string>  $playerIds
      * @return Builder<GiftCode>
      */
     private function queryFor(int $userId, array $playerIds, string $view): Builder

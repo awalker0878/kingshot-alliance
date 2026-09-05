@@ -99,7 +99,7 @@ final readonly class QueueGiftCodeWorkspaceNotifications
                 eligiblePlayerIds: $playerIds,
             ));
             if ($receipt->count() > 0) {
-                ++$queued;
+                $queued++;
             }
         }
 

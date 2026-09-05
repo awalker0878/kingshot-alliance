@@ -243,7 +243,7 @@ final class GiftCodeWorkspaceController extends Controller
     }
 
     /**
-     * @param array<string,PlayerReference> $players
+     * @param  array<string,PlayerReference>  $players
      * @return array<string,mixed>
      */
     private function session(

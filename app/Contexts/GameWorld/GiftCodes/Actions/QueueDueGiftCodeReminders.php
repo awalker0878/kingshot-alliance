@@ -69,7 +69,7 @@ final readonly class QueueDueGiftCodeReminders
                     eligiblePlayerIds: $ownedPlayerIds,
                 ));
                 if ($receipt->count() > 0) {
-                    ++$queued;
+                    $queued++;
                 }
             }
 

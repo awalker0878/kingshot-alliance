@@ -82,7 +82,7 @@ final class RebuildGiftCodeContributorProjections
                     'derived_at' => CarbonImmutable::now('UTC'),
                 ],
             );
-            ++$updated;
+            $updated++;
         }
 
         return [

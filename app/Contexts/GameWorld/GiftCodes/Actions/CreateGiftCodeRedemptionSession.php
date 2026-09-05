@@ -21,6 +21,7 @@ use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -34,8 +35,8 @@ final readonly class CreateGiftCodeRedemptionSession
     ) {}
 
     /**
-     * @param list<string> $giftCodeIds
-     * @param list<string> $playerIds
+     * @param  list<string>  $giftCodeIds
+     * @param  list<string>  $playerIds
      */
     public function handle(
         AuditActor $actor,
@@ -129,7 +130,7 @@ final readonly class CreateGiftCodeRedemptionSession
 
             $sequence = 0;
             foreach ($candidates as [$giftCode, $player, $decision]) {
-                ++$sequence;
+                $sequence++;
                 $initialState = $decision->actionable
                     ? GiftCodeRedemptionSessionItemState::Ready
                     : ($decision->reason === 'retry_not_due'
@@ -165,9 +166,9 @@ final readonly class CreateGiftCodeRedemptionSession
     }
 
     /**
-     * @param list<string> $giftCodeIds
-     * @param list<string> $playerIds
-     * @return \Illuminate\Database\Eloquent\Collection<int, GiftCode>
+     * @param  list<string>  $giftCodeIds
+     * @param  list<string>  $playerIds
+     * @return Collection<int, GiftCode>
      */
     private function codesForMode(
         GiftCodeRedemptionSessionMode $mode,
