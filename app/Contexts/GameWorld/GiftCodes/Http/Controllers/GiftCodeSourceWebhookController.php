@@ -20,6 +20,10 @@ final class GiftCodeSourceWebhookController extends Controller
         string $source,
         IngestApprovedGiftCodeObservation $ingest,
     ): JsonResponse {
+        // This is a machine-to-machine API. Force validation/signature failures through
+        // Laravel's JSON exception path even when a webhook sender omits an Accept header.
+        $request->headers->set('Accept', 'application/json');
+
         abort_unless((bool) config('game_world.gift_codes.source_webhook_ingestion', false), 404);
         abort_unless((bool) config('game_world.gift_codes.approved_source_ingestion', false), 404);
 
