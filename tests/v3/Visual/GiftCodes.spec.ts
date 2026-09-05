@@ -89,6 +89,45 @@ test('Gift Code catalogue and guided Governor handoff work without desktop or mo
   expect(unnamedControls, 'Every visible Gift Code control needs an accessible name').toBe(0);
 });
 
+test('Gift Code redemption workspace creates, resumes, skips and records a multi-Governor run', async ({
+  page,
+}) => {
+  await loginWithGovernor(page);
+  await page.goto('/gift-codes/workspace');
+  await page.waitForLoadState('networkidle');
+
+  await expect(page.getByRole('heading', { name: 'Gift Code Workspace', level: 1 })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Redeem all ready' })).toBeVisible();
+  await page.getByRole('button', { name: 'Redeem all ready' }).click();
+  await page.waitForLoadState('networkidle');
+
+  await expect(page.getByText('Current redemption run')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Prepare official handoff' })).toBeVisible();
+  const sessionUrl = page.url();
+  expect(sessionUrl).toContain('session=');
+
+  await page.reload();
+  await page.waitForLoadState('networkidle');
+  await expect(page.getByText('Current redemption run')).toBeVisible();
+
+  await page.getByRole('button', { name: 'Skip for now' }).click();
+  await page.waitForLoadState('networkidle');
+  await expect(page.getByText(/1 skipped/i)).toBeVisible();
+
+  const prepare = page.getByRole('button', { name: 'Prepare official handoff' });
+  await expect(prepare).toBeVisible();
+  await prepare.click();
+  await page.waitForLoadState('networkidle');
+  await page.getByLabel('Observed official-center outcome').selectOption('redeemed');
+  await page.getByRole('button', { name: 'Record and continue' }).click();
+  await page.waitForLoadState('networkidle');
+
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
+  );
+  expect(overflow).toBeFalsy();
+});
+
 test('Gift Code moderation exposes governed queues and installed source adapters', async ({ page }) => {
   await loginForModeration(page);
   await page.goto('/platform/gift-codes');
