@@ -59,7 +59,8 @@ const english: MessageCatalogue = {
       unavailable: 'Unavailable: {reason}',
       retryWait: 'Waiting for retry window',
       signalTitle: 'Recent redemption signal',
-      signalSummary: '{successRate}% success across {samples} recent observations from {accounts} accounts.',
+      signalSummary:
+        '{successRate}% success across {samples} recent observations from {accounts} accounts.',
       signalPrivate: 'Signals appear only after privacy and sample thresholds are met.',
       copyFailed: 'Could not copy the value. Select it and copy manually.',
       outcomes: {
@@ -93,7 +94,8 @@ const english: MessageCatalogue = {
     allianceCoverage: {
       eyebrow: 'Alliance coverage',
       title: 'Gift Code Coverage',
-      subtitle: 'Aggregate redemption coverage for authorized Alliance operations. Individual member history is not exposed.',
+      subtitle:
+        'Aggregate redemption coverage for authorized Alliance operations. Individual member history is not exposed.',
       eligibleGovernors: 'Eligible Governors',
       code: 'Gift Code',
       completed: 'Completed',

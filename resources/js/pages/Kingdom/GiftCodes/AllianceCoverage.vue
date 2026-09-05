@@ -76,7 +76,11 @@ const { t, formatDate, formatNumber } = useLocale();
               </h2>
               <p class="mt-2 text-xs text-[var(--ks-muted)]">
                 {{ t('giftCodes.allianceCoverage.expiry') }}:
-                {{ item.expiresAt ? formatDate(item.expiresAt) : t('giftCodes.allianceCoverage.noExpiry') }}
+                {{
+                  item.expiresAt
+                    ? formatDate(item.expiresAt)
+                    : t('giftCodes.allianceCoverage.noExpiry')
+                }}
               </p>
             </div>
             <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
