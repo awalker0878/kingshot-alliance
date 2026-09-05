@@ -6,10 +6,15 @@ namespace Tests\v3\Contexts\GameWorld\GiftCodes;
 
 use App\Contexts\GameWorld\GiftCodes\Actions\RunApprovedGiftCodeSourceIngestion;
 use App\Contexts\GameWorld\GiftCodes\Adapters\CenturyGamesKingshotNewsRssGiftCodeSourceAdapter;
+use App\Contexts\GameWorld\GiftCodes\Adapters\DiscordChannelGiftCodeSourceAdapter;
+use App\Contexts\GameWorld\GiftCodes\Adapters\FacebookPageGiftCodeSourceAdapter;
+use App\Contexts\GameWorld\GiftCodes\Adapters\InstagramMediaGiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Adapters\JsonFeedGiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Adapters\OfficialXGiftCodeSourceAdapter;
+use App\Contexts\GameWorld\GiftCodes\Adapters\RedditSubredditGiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Adapters\RssAtomGiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Adapters\StructuredHtmlGiftCodeSourceAdapter;
+use App\Contexts\GameWorld\GiftCodes\Adapters\YouTubeChannelGiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeStatus;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCode;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeProvenance;
@@ -32,6 +37,11 @@ final class GiftCodeSourceAdaptersV3Test extends TestCase
             StructuredHtmlGiftCodeSourceAdapter::KEY,
             OfficialXGiftCodeSourceAdapter::KEY,
             CenturyGamesKingshotNewsRssGiftCodeSourceAdapter::KEY,
+            DiscordChannelGiftCodeSourceAdapter::KEY,
+            YouTubeChannelGiftCodeSourceAdapter::KEY,
+            RedditSubredditGiftCodeSourceAdapter::KEY,
+            FacebookPageGiftCodeSourceAdapter::KEY,
+            InstagramMediaGiftCodeSourceAdapter::KEY,
         ], app(GiftCodeSourceAdapterRegistry::class)->keys());
     }
 
