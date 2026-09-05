@@ -113,13 +113,15 @@ final class OfficialXGiftCodeSourceAdapter implements GiftCodeSourceAdapter
             }
         }
 
-        $meta = $payload['meta'] ?? [];
-        if ($meta !== null && ! is_array($meta)) {
-            throw new UnexpectedValueException('The X API response meta field must be an object.');
+        $meta = $payload['meta'] ?? null;
+        if ($meta === null) {
+            $nextCursor = null;
+        } else {
+            if (! is_array($meta)) {
+                throw new UnexpectedValueException('The X API response meta field must be an object.');
+            }
+            $nextCursor = $this->optionalString($meta['next_token'] ?? null, 2000);
         }
-        $nextCursor = is_array($meta)
-            ? $this->optionalString($meta['next_token'] ?? null, 2000)
-            : null;
 
         return new GiftCodeIngestionPage($observations, $nextCursor);
     }
