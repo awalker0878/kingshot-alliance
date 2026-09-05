@@ -6,6 +6,9 @@ use App\Contexts\Accounts\Authentication\Http\Middleware\RequireRecentAccountAut
 use App\Contexts\Accounts\Authentication\Http\Middleware\TrackAccountSession;
 use App\Contexts\Alliance\Lifecycle\Http\Middleware\ResolveAllianceContext;
 use App\Contexts\Communications\Delivery\Actions\ProcessNotificationDeliveries;
+use App\Contexts\GameWorld\GiftCodes\Actions\QueueDueGiftCodeReminders;
+use App\Contexts\GameWorld\GiftCodes\Actions\QueueGiftCodeWorkspaceNotifications;
+use App\Contexts\GameWorld\GiftCodes\Actions\RebuildGiftCodeContributorProjections;
 use App\Contexts\GameWorld\GiftCodes\Http\Middleware\RequireGiftCodeCurator;
 use App\Contexts\GameWorld\Players\Http\Middleware\HandleInertiaRequests;
 use App\Contexts\GameWorld\Players\Http\Middleware\RequireCurrentPlayerContextVersion;
@@ -61,6 +64,21 @@ return Application::configure(basePath: dirname(__DIR__))
             ->everyMinute()
             ->onOneServer()
             ->withoutOverlapping(10);
+        $schedule->call(static fn (): int => app(QueueDueGiftCodeReminders::class)->handle(100))
+            ->name('gift-codes:queue-personal-reminders')
+            ->everyMinute()
+            ->onOneServer()
+            ->withoutOverlapping(10);
+        $schedule->call(static fn (): int => app(QueueGiftCodeWorkspaceNotifications::class)->cycle(100)['queued'])
+            ->name('gift-codes:queue-workspace-notifications')
+            ->everyFifteenMinutes()
+            ->onOneServer()
+            ->withoutOverlapping(30);
+        $schedule->call(static fn (): int => app(RebuildGiftCodeContributorProjections::class)->cycle(100)['updated'])
+            ->name('gift-codes:rebuild-contributor-projections')
+            ->hourly()
+            ->onOneServer()
+            ->withoutOverlapping(30);
         $schedule->call(static fn (): int => app(ProcessNotificationDeliveries::class)->handle(100))
             ->name('communications:deliver-notifications')
             ->everyMinute()
