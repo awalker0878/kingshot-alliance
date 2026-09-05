@@ -63,10 +63,17 @@ final class RssAtomGiftCodeSourceAdapter implements GiftCodeSourceAdapter
         $sourceVersion = $this->feedVersion($xpath) ?? $retrievalVersion;
         $observations = [];
         foreach ($entries as $position => $entry) {
+            if (! $entry instanceof DOMNode) {
+                throw new UnexpectedValueException(sprintf(
+                    'RSS/Atom Gift Code entry %d is not a supported XML node.',
+                    $position + 1,
+                ));
+            }
+
             $code = $this->firstText(
                 $xpath,
                 $entry,
-                './/*[local-name()="gift-code" or local-name()="gift_code" or local-name()="giftCode" or local-name()="code"]',
+                './*[local-name()="gift-code" or local-name()="gift_code" or local-name()="giftCode" or local-name()="code"]',
                 64,
             );
             if ($code === null) {
@@ -79,19 +86,19 @@ final class RssAtomGiftCodeSourceAdapter implements GiftCodeSourceAdapter
             $assertion = $this->firstText(
                 $xpath,
                 $entry,
-                './/*[local-name()="assertion"]',
+                './*[local-name()="assertion"]',
                 48,
-            ) ?? 'valid';
+            ) ?? 'available';
             $claimedExpiresAt = $this->firstText(
                 $xpath,
                 $entry,
-                './/*[local-name()="expires-at" or local-name()="expires_at" or local-name()="expiresAt" or local-name()="expiry"]',
+                './*[local-name()="expires-at" or local-name()="expires_at" or local-name()="expiresAt" or local-name()="expiry"]',
                 120,
             );
             $publishedAt = $this->firstText(
                 $xpath,
                 $entry,
-                './/*[local-name()="pubDate" or local-name()="published" or local-name()="updated"]',
+                './*[local-name()="pubDate" or local-name()="published" or local-name()="updated"]',
                 120,
             );
             $sourceUrl = $this->entryLink($xpath, $entry) ?? $url;
@@ -110,13 +117,13 @@ final class RssAtomGiftCodeSourceAdapter implements GiftCodeSourceAdapter
                 expiryPrecision: $this->firstText(
                     $xpath,
                     $entry,
-                    './/*[local-name()="expiry-precision" or local-name()="expiry_precision"]',
+                    './*[local-name()="expiry-precision" or local-name()="expiry_precision"]',
                     32,
                 ),
                 expiryTimezone: $this->firstText(
                     $xpath,
                     $entry,
-                    './/*[local-name()="expiry-timezone" or local-name()="expiry_timezone"]',
+                    './*[local-name()="expiry-timezone" or local-name()="expiry_timezone"]',
                     80,
                 ),
                 publishedAt: $publishedAt,
@@ -197,17 +204,24 @@ final class RssAtomGiftCodeSourceAdapter implements GiftCodeSourceAdapter
         if ($nodes === false || $nodes->length === 0) {
             return null;
         }
+        $node = $nodes->item(0);
+        if (! $node instanceof DOMNode) {
+            return null;
+        }
 
-        return $this->optionalString($nodes->item(0)?->textContent, 120);
+        return $this->optionalString($node->textContent, 120);
     }
 
     private function entryLink(DOMXPath $xpath, DOMNode $entry): ?string
     {
-        $links = $xpath->query('.//*[local-name()="link"]', $entry);
+        $links = $xpath->query('./*[local-name()="link"]', $entry);
         if ($links === false) {
             return null;
         }
         foreach ($links as $link) {
+            if (! $link instanceof DOMNode) {
+                continue;
+            }
             if ($link instanceof DOMElement) {
                 $href = $this->optionalString($link->getAttribute('href'), 2048);
                 if ($href !== null) {
@@ -233,8 +247,12 @@ final class RssAtomGiftCodeSourceAdapter implements GiftCodeSourceAdapter
         if ($nodes === false || $nodes->length === 0) {
             return null;
         }
+        $node = $nodes->item(0);
+        if (! $node instanceof DOMNode) {
+            return null;
+        }
 
-        return $this->optionalString($nodes->item(0)?->textContent, $maximum);
+        return $this->optionalString($node->textContent, $maximum);
     }
 
     private function retrievalVersion(Response $response): string
