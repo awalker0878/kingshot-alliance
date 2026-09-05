@@ -4,17 +4,20 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\GiftCodes\Adapters;
 
+use App\Contexts\GameWorld\GiftCodes\Adapters\Concerns\HandlesGiftCodeProviderResponses;
 use App\Contexts\GameWorld\GiftCodes\Adapters\Concerns\ParsesExplicitGiftCodeLabels;
 use App\Contexts\GameWorld\GiftCodes\Contracts\GiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeSourceRegistry;
 use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeIngestionObservation;
 use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeIngestionPage;
+use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeSourceCheckpoint;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use UnexpectedValueException;
 
 final class RedditSubredditGiftCodeSourceAdapter implements GiftCodeSourceAdapter
 {
+    use HandlesGiftCodeProviderResponses;
     use ParsesExplicitGiftCodeLabels;
 
     public const KEY = 'reddit-data-api-v1';
@@ -87,14 +90,16 @@ final class RedditSubredditGiftCodeSourceAdapter implements GiftCodeSourceAdapte
             throw new UnexpectedValueException('Reddit returned an invalid or unbounded listing.');
         }
 
-        $retrievalVersion = $this->retrievalVersion($response);
+        $retrievalVersion = $this->giftCodeRetrievalVersion($response);
         $observations = [];
+        $latestPostFullname = null;
         foreach ($children as $position => $child) {
             $post = is_array($child) ? ($child['data'] ?? null) : null;
             if (! is_array($post)) {
                 throw new UnexpectedValueException(sprintf('Reddit post %d must contain a data object.', $position + 1));
             }
             $postId = $this->requiredString($post['id'] ?? null, 'post id', $position + 1, 32);
+            $latestPostFullname ??= 't3_'.$postId;
             $title = $this->optionalString($post['title'] ?? null, 1000) ?? '';
             $selfText = $this->optionalString($post['selftext'] ?? null, 40_000) ?? '';
             $permalink = $this->requiredString($post['permalink'] ?? null, 'permalink', $position + 1, 2048);
@@ -134,8 +139,25 @@ final class RedditSubredditGiftCodeSourceAdapter implements GiftCodeSourceAdapte
         $nextCursor = is_array($listing)
             ? $this->optionalString($listing['after'] ?? null, 256)
             : null;
+        $providerRequestId = $this->giftCodeProviderRequestId($response);
 
-        return new GiftCodeIngestionPage($observations, $nextCursor);
+        return new GiftCodeIngestionPage(
+            observations: $observations,
+            nextCursor: $nextCursor,
+            retrievalVersion: $retrievalVersion,
+            providerRequestId: $providerRequestId,
+            rateLimit: $this->giftCodeRateLimit($response),
+            checkpoint: new GiftCodeSourceCheckpoint(
+                cursor: $nextCursor,
+                retrievalVersion: $retrievalVersion,
+                providerRequestId: $providerRequestId,
+                providerState: [
+                    'subreddit' => $subreddit,
+                    'latest_post_fullname' => $latestPostFullname,
+                ],
+            ),
+            requestCount: 2,
+        );
     }
 
     /** @param array<string,mixed> $policy */
@@ -151,9 +173,7 @@ final class RedditSubredditGiftCodeSourceAdapter implements GiftCodeSourceAdapte
 
     private function assertJsonSuccess(Response $response, string $operation): void
     {
-        if (! $response->successful()) {
-            throw new \RuntimeException(sprintf('%s returned HTTP %d.', $operation, $response->status()));
-        }
+        $this->assertGiftCodeProviderSuccess($response, $operation);
         if (! str_contains(mb_strtolower((string) $response->header('Content-Type')), 'json')) {
             throw new UnexpectedValueException($operation.' did not return JSON content.');
         }
@@ -186,17 +206,5 @@ final class RedditSubredditGiftCodeSourceAdapter implements GiftCodeSourceAdapte
         }
 
         return $value;
-    }
-
-    private function retrievalVersion(Response $response): string
-    {
-        foreach (['ETag', 'Last-Modified'] as $header) {
-            $value = trim((string) $response->header($header));
-            if ($value !== '') {
-                return mb_substr($header.':'.$value, 0, 120);
-            }
-        }
-
-        return 'sha256:'.hash('sha256', $response->body());
     }
 }
