@@ -33,20 +33,13 @@ Program-state definitions and acceptance criteria for the active extension effor
 
 Later capability delivery is represented by the current canonical contracts below and Git history rather than duplicating every retired intermediate queue in this file.
 
-## Active complete candidate awaiting release gates
-
-| Capability/program | State | Canonical candidate evidence |
-| --- | --- | --- |
-| Communications Recipient Delivery & Notification Experience | Complete candidate — PR #144 remains draft until the exact reconciled head passes every required release gate | [Product contract](communications-recipient-delivery-expansion.md), [acceptance matrix](communications-recipient-delivery-acceptance.md), [delivery ledger](communications-recipient-delivery-ledger.md), [ADR-0015](../architecture/adr/0015-separate-logical-notifications-from-delivery-routes.md), [delivery architecture](../architecture/contexts/communications/delivery.md), `CommunicationsRecipientDeliveryAcceptanceV3Test` and existing Communications/source V3 suites |
-
-The candidate preserves the already-complete Notifications baseline while extending it to one logical message, account/Governor routing policy, multiple concrete destinations, quiet hours/mute/urgency, Web Push, Accounts-owned verified email, bounded digests, endpoint lifecycle/health and privacy-safe diagnostics. This row moves into the Current complete table only after the exact containing PR head is green across CI, Architecture V3 Verification, Intelligence Verification, King Perks Verification, Visual Regression, CodeQL and Dependency Review.
-
 ## Current complete capability programs
 
 | Capability/program | Status | Canonical current-truth contract |
 | --- | --- | --- |
 | Accounts Sign-In Methods & Credential Evolution | Complete | [Accounts Sign-In Methods & Credential Evolution](accounts-sign-in-methods.md), [acceptance](accounts-sign-in-methods-acceptance.md), [delivery ledger](accounts-sign-in-methods-delivery-ledger.md), [ADR-0014](../architecture/adr/0014-account-sign-in-methods.md) and Accounts V3 tests |
 | Gift Code trust, discovery and redemption expansion | Complete | [Extension closeout](gift-code-extension-program.md), [ADR-0004](../architecture/adr/0004-gift-code-trust-from-append-only-evidence.md), [owner reference](../reference/gift-codes.md) and `GiftCodeBehaviorV3Test` |
+| Communications Recipient Delivery & Notification Experience | Complete | [Product contract](communications-recipient-delivery-expansion.md), [acceptance matrix](communications-recipient-delivery-acceptance.md), [closed delivery ledger](communications-recipient-delivery-ledger.md), [ADR-0015](../architecture/adr/0015-separate-logical-notifications-from-delivery-routes.md), [delivery architecture](../architecture/contexts/communications/delivery.md), `CommunicationsRecipientDeliveryAcceptanceV3Test` and green release gates on immutable implementation candidate `f880cb40014b2ef5236facaf65ac2b68f90fd5ae` |
 | Notifications, recurring Alliance announcements and delivery recovery | Complete | [Capability catalogue](capability-catalogue.md), [user journeys](experience/user-journeys.md) and owner/reference docs |
 | Pagination, shared workflow UX and bounded bulk workflows | Complete | [Capability catalogue](capability-catalogue.md), [user journeys](experience/user-journeys.md) and owner tests |
 | Integration platform and bot/API participation parity | Complete | [Capability catalogue](capability-catalogue.md), [user journeys](experience/user-journeys.md) and public reference contracts |
