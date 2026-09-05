@@ -35,6 +35,7 @@ use Illuminate\Support\Carbon;
  * @property-read Collection<int, GiftCodeModerationDecision> $moderationDecisions
  * @property-read Collection<int, GiftCodeFactProjection> $factProjections
  * @property-read Collection<int, GiftCodeNotificationCampaign> $notificationCampaigns
+ * @property-read Collection<int, GiftCodeAccountState> $accountStates
  */
 final class GiftCode extends Model
 {
@@ -102,5 +103,11 @@ final class GiftCode extends Model
     public function notificationCampaigns(): HasMany
     {
         return $this->hasMany(GiftCodeNotificationCampaign::class);
+    }
+
+    /** @return HasMany<GiftCodeAccountState, $this> */
+    public function accountStates(): HasMany
+    {
+        return $this->hasMany(GiftCodeAccountState::class);
     }
 }
