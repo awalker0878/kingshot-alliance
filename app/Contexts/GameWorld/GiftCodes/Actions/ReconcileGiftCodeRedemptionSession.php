@@ -26,7 +26,7 @@ final readonly class ReconcileGiftCodeRedemptionSession
         private GiftCodeRedemptionSessionProgressor $progress,
     ) {}
 
-    public function handle(AuditActor $actor, string $sessionId): GiftCodeRedemptionSession
+    public function handle(AuditActor $actor, string $sessionId): void
     {
         $userId = $actor->auditUserId();
         if ($userId === null) {
@@ -39,7 +39,7 @@ final readonly class ReconcileGiftCodeRedemptionSession
             ->with(['items.giftCode.factProjections'])
             ->firstOrFail();
         if ($session->status !== GiftCodeRedemptionSessionStatus::Active) {
-            return $session;
+            return;
         }
 
         $openItems = $session->items->filter(static fn (GiftCodeRedemptionSessionItem $item): bool => ! $item->state->terminal());
@@ -110,9 +110,5 @@ final readonly class ReconcileGiftCodeRedemptionSession
 
             $this->progress->refresh($session);
         });
-
-        return GiftCodeRedemptionSession::query()
-            ->with(['items.giftCode.factProjections'])
-            ->findOrFail($session->id);
     }
 }
