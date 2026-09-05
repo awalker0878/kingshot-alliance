@@ -4,20 +4,23 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\GiftCodes\Adapters;
 
+use App\Contexts\GameWorld\GiftCodes\Adapters\Concerns\HandlesGiftCodeProviderResponses;
 use App\Contexts\GameWorld\GiftCodes\Contracts\GiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeSourceRegistry;
 use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeIngestionObservation;
 use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeIngestionPage;
+use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeSourceCheckpoint;
 use DOMDocument;
 use DOMElement;
 use DOMNode;
 use DOMXPath;
-use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use UnexpectedValueException;
 
 final class CenturyGamesKingshotNewsRssGiftCodeSourceAdapter implements GiftCodeSourceAdapter
 {
+    use HandlesGiftCodeProviderResponses;
+
     public const KEY = 'century-games-kingshot-news-rss-v1';
 
     public function key(): string
@@ -53,9 +56,7 @@ final class CenturyGamesKingshotNewsRssGiftCodeSourceAdapter implements GiftCode
             ->withOptions(['allow_redirects' => false])
             ->get($url);
 
-        if (! $response->successful()) {
-            throw new \RuntimeException(sprintf('The Century Games Kingshot news feed returned HTTP %d.', $response->status()));
-        }
+        $this->assertGiftCodeProviderSuccess($response, 'The Century Games Kingshot news feed');
         if (! str_contains(mb_strtolower((string) $response->header('Content-Type')), 'xml')) {
             throw new UnexpectedValueException('The Century Games Kingshot news feed did not return XML content.');
         }
@@ -72,7 +73,7 @@ final class CenturyGamesKingshotNewsRssGiftCodeSourceAdapter implements GiftCode
             throw new UnexpectedValueException('The Century Games Kingshot news feed exceeded the bounded observation limit.');
         }
 
-        $retrievalVersion = $this->retrievalVersion($response);
+        $retrievalVersion = $this->giftCodeRetrievalVersion($response);
         $sourceVersion = $this->feedVersion($xpath) ?? $retrievalVersion;
         $observations = [];
         foreach ($entries as $position => $entry) {
@@ -137,7 +138,25 @@ final class CenturyGamesKingshotNewsRssGiftCodeSourceAdapter implements GiftCode
             );
         }
 
-        return new GiftCodeIngestionPage($observations, null);
+        $providerRequestId = $this->giftCodeProviderRequestId($response);
+
+        return new GiftCodeIngestionPage(
+            observations: $observations,
+            nextCursor: null,
+            retrievalVersion: $retrievalVersion,
+            providerRequestId: $providerRequestId,
+            rateLimit: $this->giftCodeRateLimit($response),
+            checkpoint: new GiftCodeSourceCheckpoint(
+                cursor: null,
+                retrievalVersion: $retrievalVersion,
+                providerRequestId: $providerRequestId,
+                providerState: [
+                    'feed_url' => $url,
+                    'gift_code_category' => $category,
+                    'source_version' => $sourceVersion,
+                ],
+            ),
+        );
     }
 
     private function explicitCode(DOMXPath $xpath, DOMNode $entry): ?string
@@ -296,18 +315,6 @@ final class CenturyGamesKingshotNewsRssGiftCodeSourceAdapter implements GiftCode
         }
 
         return $value;
-    }
-
-    private function retrievalVersion(Response $response): string
-    {
-        foreach (['ETag', 'Last-Modified'] as $header) {
-            $value = trim((string) $response->header($header));
-            if ($value !== '') {
-                return mb_substr($header.':'.$value, 0, 120);
-            }
-        }
-
-        return 'sha256:'.hash('sha256', $response->body());
     }
 
     private function optionalString(mixed $value, int $maximum): ?string
