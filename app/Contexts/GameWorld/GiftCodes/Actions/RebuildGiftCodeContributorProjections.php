@@ -8,10 +8,28 @@ use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeEvidenceVerificationState;
 use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeStatus;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeContributorProjection;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 final class RebuildGiftCodeContributorProjections
 {
+    private const CURSOR_KEY = 'gift-codes:contributor-projections:user-cursor';
+
+    /** @return array{examined:int,updated:int,nextCursor:?int} */
+    public function cycle(int $limit = 100): array
+    {
+        $cursor = Cache::get(self::CURSOR_KEY);
+        $afterUserId = is_int($cursor) ? $cursor : (is_numeric($cursor) ? (int) $cursor : null);
+        $result = $this->handle($limit, $afterUserId);
+        if ($result['nextCursor'] === null) {
+            Cache::forget(self::CURSOR_KEY);
+        } else {
+            Cache::forever(self::CURSOR_KEY, $result['nextCursor']);
+        }
+
+        return $result;
+    }
+
     /** @return array{examined:int,updated:int,nextCursor:?int} */
     public function handle(int $limit = 100, ?int $afterUserId = null): array
     {
