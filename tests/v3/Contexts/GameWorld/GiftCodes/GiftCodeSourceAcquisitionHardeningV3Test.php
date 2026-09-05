@@ -6,6 +6,7 @@ namespace Tests\v3\Contexts\GameWorld\GiftCodes;
 
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
+use App\Contexts\Accounts\Identity\ValueObjects\AccountIdentity;
 use App\Contexts\GameWorld\GiftCodes\Actions\ManageGiftCodeSourceRegistry;
 use App\Contexts\GameWorld\GiftCodes\Actions\RunApprovedGiftCodeSourceIngestion;
 use App\Contexts\GameWorld\GiftCodes\Adapters\DiscordChannelGiftCodeSourceAdapter;
@@ -183,7 +184,7 @@ final class GiftCodeSourceAcquisitionHardeningV3Test extends TestCase
         ));
     }
 
-    private function administrator(): \App\Contexts\Accounts\Identity\ValueObjects\AccountIdentity
+    private function administrator(): AccountIdentity
     {
         $account = app(ScenarioFactory::class)->account();
         User::query()->whereKey($account->userId)->update([

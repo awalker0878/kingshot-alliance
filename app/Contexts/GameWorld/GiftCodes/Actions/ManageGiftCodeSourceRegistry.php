@@ -79,7 +79,7 @@ final readonly class ManageGiftCodeSourceRegistry
         }
 
         if ($ingestionEnabled) {
-            $candidate = new GiftCodeSourceRegistry();
+            $candidate = new GiftCodeSourceRegistry;
             $candidate->forceFill([
                 'source_key' => $sourceKey,
                 'name' => trim($attributes['name']),
