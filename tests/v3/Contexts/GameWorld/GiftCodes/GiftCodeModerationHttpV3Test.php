@@ -7,7 +7,9 @@ namespace Tests\v3\Contexts\GameWorld\GiftCodes;
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
 use App\Contexts\GameWorld\GiftCodes\Actions\ManageGiftCodeCuratorGrant;
+use App\Contexts\GameWorld\GiftCodes\Adapters\CenturyGamesKingshotNewsRssGiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Adapters\JsonFeedGiftCodeSourceAdapter;
+use App\Contexts\GameWorld\GiftCodes\Adapters\OfficialXGiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Adapters\RssAtomGiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Adapters\StructuredHtmlGiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeStatus;
@@ -62,10 +64,12 @@ final class GiftCodeModerationHttpV3Test extends TestCase
             ->assertInertia(static fn (Assert $page): Assert => $page
                 ->component('Platform/GiftCodes/Review')
                 ->where('canManagePlatformPolicy', true)
-                ->has('adapterKeys', 3)
+                ->has('adapterKeys', 5)
                 ->where('adapterKeys.0', JsonFeedGiftCodeSourceAdapter::KEY)
                 ->where('adapterKeys.1', RssAtomGiftCodeSourceAdapter::KEY)
-                ->where('adapterKeys.2', StructuredHtmlGiftCodeSourceAdapter::KEY));
+                ->where('adapterKeys.2', StructuredHtmlGiftCodeSourceAdapter::KEY)
+                ->where('adapterKeys.3', OfficialXGiftCodeSourceAdapter::KEY)
+                ->where('adapterKeys.4', CenturyGamesKingshotNewsRssGiftCodeSourceAdapter::KEY));
 
         foreach ([
             [JsonFeedGiftCodeSourceAdapter::KEY, 'http-json-feed', '/gift-codes.json', 'approved_json_feed'],
