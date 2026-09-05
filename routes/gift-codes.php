@@ -20,15 +20,18 @@ Route::middleware(['auth', 'auth.session', 'verified'])->group(function (): void
         ->middleware('throttle:30,1')
         ->name('gift-codes.workspace.state');
     Route::post('/gift-codes/workspace/sessions/{session}/items/{item}/prepare', [GiftCodeWorkspaceController::class, 'prepareItem'])
-        ->whereUlid(['session', 'item'])
+        ->whereUlid('session')
+        ->whereUlid('item')
         ->middleware('throttle:30,1')
         ->name('gift-codes.workspace.sessions.items.prepare');
     Route::post('/gift-codes/workspace/sessions/{session}/items/{item}/result', [GiftCodeWorkspaceController::class, 'resultItem'])
-        ->whereUlid(['session', 'item'])
+        ->whereUlid('session')
+        ->whereUlid('item')
         ->middleware('throttle:30,1')
         ->name('gift-codes.workspace.sessions.items.result');
     Route::post('/gift-codes/workspace/sessions/{session}/items/{item}/skip', [GiftCodeWorkspaceController::class, 'skipItem'])
-        ->whereUlid(['session', 'item'])
+        ->whereUlid('session')
+        ->whereUlid('item')
         ->middleware('throttle:30,1')
         ->name('gift-codes.workspace.sessions.items.skip');
     Route::post('/gift-codes/workspace/sessions/{session}/abandon', [GiftCodeWorkspaceController::class, 'abandon'])
