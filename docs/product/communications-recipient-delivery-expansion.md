@@ -1,12 +1,12 @@
 # Communications — Recipient Delivery & Notification Experience
 
-Status: Selected extension
+Status: Current complete capability
 
 Implementation target: `app/Contexts/Communications/Delivery`
 
 ## Outcome
 
-Extend the current complete Communications capability from channel enablement and provider retry into a recipient-owned notification experience with one logical inbox message, explicit routing policy, multiple concrete destinations, quiet hours, deferred/digest delivery, Web Push, email, endpoint health, bounded diagnostics and cursor-based inbox reads.
+Communications provides a recipient-owned notification experience with one logical inbox message, explicit routing policy, multiple concrete destinations, quiet hours, deferred/digest delivery, Web Push, email, endpoint health, bounded diagnostics and cursor-based inbox reads while preserving the previously complete channel-delivery baseline.
 
 This is a fresh-deployment contract. No compatibility shims, backfills, dual writes or legacy schema preservation are required.
 
@@ -105,4 +105,4 @@ Recipients can see safe routing and delivery state for their messages. Platform 
 10. Delivery diagnostics and processor hardening.
 11. Source integration normalization, security hardening, full acceptance evidence and documentation reconciliation.
 
-Completion requires repository evidence for every acceptance criterion in `communications-recipient-delivery-acceptance.md` and every item in `communications-recipient-delivery-ledger.md`.
+Completion evidence is recorded in `communications-recipient-delivery-acceptance.md` and `communications-recipient-delivery-ledger.md`.
