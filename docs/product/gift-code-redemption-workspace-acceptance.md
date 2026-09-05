@@ -1,9 +1,8 @@
 # Gift Code Redemption Workspace — Acceptance Matrix
 
-Status: **Complete — verified current capability**
-Verified implementation candidate: `caf75e732a71ea5dfdd91f7c6432c30fa689d828`
+Status: **Reopened — candidate adapter correction under verification**
 
-The extension is accepted because the following behavior is implemented and exercised by automated tests.
+The prior acceptance closeout is reopened because its source-ingestion wording exceeded the actual installed adapter set. Existing workspace acceptance remains valid; source-ingestion and final-gate acceptance must be reverified on the correction head.
 
 ## Workspace and personal state
 
@@ -53,8 +52,15 @@ The extension is accepted because the following behavior is implemented and exer
 
 - Structured reward rendering uses only qualified fact projections.
 - Unknown/conflicting reward evidence remains unknown/conflicted.
-- Additional source ingestion reuses approved-source policy and append-only provenance.
-- Signed webhook ingestion validates source status, policy, signature/timestamp/replay and bounded payload size.
+- All additional source ingestion reuses approved-source policy, the canonical ingestion action and append-only provenance.
+- The installed candidate pull-adapter registry contains `json-feed-v1`, `rss-atom-v1` and `structured-html-v1`.
+- `json-feed-v1` accepts only bounded JSON observations from an approved canonical hostname/path.
+- `rss-atom-v1` accepts bounded RSS/Atom documents and requires explicit Gift Code elements rather than inferring codes from prose.
+- `structured-html-v1` accepts bounded approved HTML documents and requires explicit machine-readable `data-gift-code*` attributes rather than scraping arbitrary page text.
+- Pull adapters do not follow redirects, enforce source/document/observation bounds and preserve source/retrieval/parser versions plus content fingerprints/raw-evidence references.
+- Invalid parser formats, policy failures and observation failures use the existing ingestion failure/quarantine diagnostics.
+- Signed webhook ingestion validates active source status/policy, signature, timestamp/replay and bounded payload size before entering the same canonical observation path.
+- Source transport or reputation never confers authority by itself; evidence qualification and current source policy remain authoritative.
 
 ## Alliance coverage
 
@@ -74,20 +80,22 @@ The extension is accepted because the following behavior is implemented and exer
 
 - Fresh-schema installation succeeds with no compatibility/backfill migration path.
 - PHP/static-analysis/architecture/localization/accessibility/TypeScript gates pass.
+- Source-adapter behavior tests cover registry installation, RSS, Atom, structured HTML, malicious XML rejection and observation bounds.
+- Moderation HTTP coverage proves a Platform Administrator can register each installed pull adapter with canonical source policy.
 - Desktop/mobile Playwright coverage includes create/resume/skip/result/trust-change scenarios.
 - Large fixtures maintain bounded query behavior for at least 100 Gift Codes, 20 Governors and 2,000 possible code/Governor pairs.
-- Repository implementation contains no compatibility alias or parallel redemption engine introduced by this extension.
+- Repository implementation contains no compatibility alias, parallel redemption engine or parallel source-ingestion trust path introduced by this correction.
 
 ## Verification evidence
 
-Implementation candidate `caf75e732a71ea5dfdd91f7c6432c30fa689d828` passed all required repository workflows:
+Final verification remains pending on the candidate-adapter correction head. Required workflows are:
 
 - CI, including full PHP/frontend checks, fresh-database installation, production image build, ephemeral staging deployment, backup/restore and image scan;
 - Architecture V3 Verification, including route boot, architecture invariants, fresh schema, static analysis and the full V3 PHPUnit suite;
 - Intelligence Verification;
-- Visual Regression, including desktop/mobile Playwright Gift Code workspace execution and trust-change scenarios;
+- Visual Regression;
 - CodeQL;
 - Dependency Review;
 - King Perks Verification.
 
-Primary Gift Code workspace acceptance coverage includes `GiftCodeWorkspaceV3Test`, `GiftCodeRedemptionWorkspaceV3Test`, `GiftCodeSessionAcceptanceV3Test`, `GiftCodeAllianceCoverageV3Test`, Platform Administration diagnostics behavior coverage, and `tests/v3/Visual/GiftCodes.spec.ts`.
+Primary Gift Code workspace acceptance coverage includes `GiftCodeWorkspaceV3Test`, `GiftCodeRedemptionWorkspaceV3Test`, `GiftCodeSessionAcceptanceV3Test`, `GiftCodeAllianceCoverageV3Test`, `GiftCodeSourceAdaptersV3Test`, `GiftCodeModerationHttpV3Test`, Platform Administration diagnostics behavior coverage, and `tests/v3/Visual/GiftCodes.spec.ts`.
