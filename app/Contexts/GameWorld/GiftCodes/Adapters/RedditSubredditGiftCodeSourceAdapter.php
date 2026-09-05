@@ -60,14 +60,10 @@ final class RedditSubredditGiftCodeSourceAdapter implements GiftCodeSourceAdapte
             ->asForm()
             ->timeout($timeout)
             ->withOptions(['allow_redirects' => false])
-            ->post('https://www.reddit.com/api/v1/access_token', [
-                'grant_type' => 'client_credentials',
-            ]);
+            ->post('https://www.reddit.com/api/v1/access_token', ['grant_type' => 'client_credentials']);
         $this->assertJsonSuccess($tokenResponse, 'Reddit OAuth token request');
         $tokenPayload = $tokenResponse->json();
-        $accessToken = is_array($tokenPayload)
-            ? $this->optionalString($tokenPayload['access_token'] ?? null, 4096)
-            : null;
+        $accessToken = is_array($tokenPayload) ? $this->optionalString($tokenPayload['access_token'] ?? null, 4096) : null;
         if ($accessToken === null) {
             throw new UnexpectedValueException('Reddit OAuth did not return an access token.');
         }
@@ -93,30 +89,26 @@ final class RedditSubredditGiftCodeSourceAdapter implements GiftCodeSourceAdapte
         $retrievalVersion = $this->giftCodeRetrievalVersion($response);
         $observations = [];
         $latestPostFullname = null;
+        $providerItemIds = [];
         foreach ($children as $position => $child) {
             $post = is_array($child) ? ($child['data'] ?? null) : null;
             if (! is_array($post)) {
                 throw new UnexpectedValueException(sprintf('Reddit post %d must contain a data object.', $position + 1));
             }
             $postId = $this->requiredString($post['id'] ?? null, 'post id', $position + 1, 32);
-            $latestPostFullname ??= 't3_'.$postId;
+            $fullname = 't3_'.$postId;
+            $providerItemIds[] = $fullname;
+            $latestPostFullname ??= $fullname;
             $title = $this->optionalString($post['title'] ?? null, 1000) ?? '';
             $selfText = $this->optionalString($post['selftext'] ?? null, 40_000) ?? '';
             $permalink = $this->requiredString($post['permalink'] ?? null, 'permalink', $position + 1, 2048);
             if (! str_starts_with($permalink, '/') || str_starts_with($permalink, '//')) {
                 throw new UnexpectedValueException(sprintf('Reddit post %d returned an invalid permalink.', $position + 1));
             }
-            $codes = array_values(array_unique([
-                ...$this->explicitGiftCodes($title),
-                ...$this->explicitGiftCodes($selfText),
-            ]));
-            foreach ($codes as $code) {
+            foreach (array_values(array_unique([...$this->explicitGiftCodes($title), ...$this->explicitGiftCodes($selfText)])) as $code) {
                 $sourceUrl = 'https://www.reddit.com'.$permalink;
-                $fingerprint = hash('sha256', json_encode($post, JSON_THROW_ON_ERROR));
                 $created = $post['created_utc'] ?? null;
-                $publishedAt = is_int($created) || is_float($created)
-                    ? gmdate(DATE_ATOM, (int) $created)
-                    : null;
+                $publishedAt = is_int($created) || is_float($created) ? gmdate(DATE_ATOM, (int) $created) : null;
                 $observations[] = new GiftCodeIngestionObservation(
                     code: $code,
                     assertion: 'available',
@@ -129,16 +121,14 @@ final class RedditSubredditGiftCodeSourceAdapter implements GiftCodeSourceAdapte
                     sourceVersion: 'reddit-post:'.$postId,
                     retrievalVersion: $retrievalVersion,
                     parserVersion: self::KEY,
-                    contentFingerprint: $fingerprint,
+                    contentFingerprint: hash('sha256', json_encode($post, JSON_THROW_ON_ERROR)),
                     rawEvidenceRef: $sourceUrl.'#gift-code='.rawurlencode($code),
                     verificationPassed: true,
                 );
             }
         }
 
-        $nextCursor = is_array($listing)
-            ? $this->optionalString($listing['after'] ?? null, 256)
-            : null;
+        $nextCursor = is_array($listing) ? $this->optionalString($listing['after'] ?? null, 256) : null;
         $providerRequestId = $this->giftCodeProviderRequestId($response);
 
         return new GiftCodeIngestionPage(
@@ -154,6 +144,7 @@ final class RedditSubredditGiftCodeSourceAdapter implements GiftCodeSourceAdapte
                 providerState: [
                     'subreddit' => $subreddit,
                     'latest_post_fullname' => $latestPostFullname,
+                    'provider_item_ids' => $providerItemIds,
                 ],
             ),
             requestCount: 2,
@@ -167,7 +158,6 @@ final class RedditSubredditGiftCodeSourceAdapter implements GiftCodeSourceAdapte
         if ($value === null) {
             throw new UnexpectedValueException(sprintf('The Reddit adapter requires source policy %s.', $key));
         }
-
         return $value;
     }
 
@@ -185,26 +175,16 @@ final class RedditSubredditGiftCodeSourceAdapter implements GiftCodeSourceAdapte
         if ($value === null) {
             throw new UnexpectedValueException(sprintf('Reddit post %d requires a non-empty %s.', $position, $field));
         }
-
         return $value;
     }
 
     private function optionalString(mixed $value, int $maximum): ?string
     {
-        if ($value === null) {
-            return null;
-        }
-        if (! is_string($value)) {
-            throw new UnexpectedValueException('Reddit API scalar fields must be strings.');
-        }
+        if ($value === null) return null;
+        if (! is_string($value)) throw new UnexpectedValueException('Reddit API scalar fields must be strings.');
         $value = trim($value);
-        if ($value === '') {
-            return null;
-        }
-        if (mb_strlen($value) > $maximum) {
-            throw new UnexpectedValueException('A Reddit API scalar field exceeded its maximum length.');
-        }
-
+        if ($value === '') return null;
+        if (mb_strlen($value) > $maximum) throw new UnexpectedValueException('A Reddit API scalar field exceeded its maximum length.');
         return $value;
     }
 }
