@@ -10,6 +10,7 @@ use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeRedemptionSessionStatus;
 use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeRedemptionStatus;
 use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeStatus;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCode;
+use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeRedemption;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeRedemptionSession;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeRedemptionSessionItem;
 use App\Contexts\GameWorld\GiftCodes\Services\GiftCodeActionablePairResolver;
@@ -92,7 +93,14 @@ final readonly class CreateGiftCodeRedemptionSession
         $candidates = [];
         foreach ($codes as $giftCode) {
             foreach ($owned as $player) {
-                $decision = $this->pairs->resolve($giftCode, $player);
+                $loaded = $giftCode->redemptions->first(
+                    static fn (GiftCodeRedemption $redemption): bool => $redemption->player_id === $player->playerId,
+                );
+                $decision = $this->pairs->resolveWithRedemption(
+                    $giftCode,
+                    $player,
+                    $loaded instanceof GiftCodeRedemption ? $loaded : null,
+                );
                 if (! $decision->actionable && $mode !== GiftCodeRedemptionSessionMode::Selected) {
                     continue;
                 }
@@ -122,18 +130,23 @@ final readonly class CreateGiftCodeRedemptionSession
             $sequence = 0;
             foreach ($candidates as [$giftCode, $player, $decision]) {
                 ++$sequence;
+                $initialState = $decision->actionable
+                    ? GiftCodeRedemptionSessionItemState::Ready
+                    : ($decision->reason === 'retry_not_due'
+                        ? GiftCodeRedemptionSessionItemState::RetryWait
+                        : GiftCodeRedemptionSessionItemState::Unavailable);
                 GiftCodeRedemptionSessionItem::query()->create([
                     'session_id' => $session->id,
                     'gift_code_id' => $giftCode->id,
                     'player_id' => $player->playerId,
                     'sequence' => $sequence,
-                    'state' => $decision->actionable
-                        ? GiftCodeRedemptionSessionItemState::Ready
-                        : GiftCodeRedemptionSessionItemState::Unavailable,
+                    'state' => $initialState,
                     'status_revision_snapshot' => $giftCode->status_revision,
                     'expires_revision_snapshot' => $giftCode->expires_revision,
-                    'unavailable_reason' => $decision->actionable ? null : $decision->reason,
-                    'completed_at' => $decision->actionable ? null : $now,
+                    'unavailable_reason' => $initialState === GiftCodeRedemptionSessionItemState::Unavailable
+                        ? $decision->reason
+                        : null,
+                    'completed_at' => $initialState === GiftCodeRedemptionSessionItemState::Unavailable ? $now : null,
                 ]);
             }
 
@@ -162,7 +175,10 @@ final readonly class CreateGiftCodeRedemptionSession
         array $playerIds,
         int $limit,
     ) {
-        $query = GiftCode::query()->with('factProjections');
+        $query = GiftCode::query()->with([
+            'factProjections',
+            'redemptions' => static fn ($redemptions) => $redemptions->whereIn('player_id', $playerIds),
+        ]);
 
         match ($mode) {
             GiftCodeRedemptionSessionMode::Selected => $query->whereIn('id', $giftCodeIds),
