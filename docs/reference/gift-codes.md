@@ -1,6 +1,6 @@
 # Gift Codes
 
-Status: Reopened for candidate-adapter closeout correction — fresh-schema canonical implementation
+Status: Current complete capability — fresh-schema canonical implementation
 
 Gift Codes are owned by `GameWorld/GiftCodes`. Global catalogue truth, account-personal workflow state, persistent redemption-session state and per-Governor redemption truth are deliberately separate.
 
@@ -65,14 +65,14 @@ Workspace operations are scheduled independently of catalogue maintenance: due p
 The installed pull-adapter set is:
 
 - `json-feed-v1` — a bounded HTTPS JSON document with explicit observation fields;
-- `rss-atom-v1` — bounded RSS or Atom XML containing explicit Gift Code elements; it does not infer codes from titles/descriptions;
+- `rss-atom-v1` — bounded RSS or Atom XML containing explicit direct-child Gift Code elements; it does not infer codes from titles, descriptions or nested content markup;
 - `structured-html-v1` — bounded approved HTML containing explicit machine-readable `data-gift-code*` attributes; it does not scrape arbitrary prose.
 
-All pull adapters are source-policy controlled, restricted to the configured public canonical hostname plus an absolute source path, disable redirects, preserve source/retrieval/parser versions, create content fingerprints/raw-evidence references and feed the same `IngestApprovedGiftCodeObservation` action. RSS/Atom parsing disables network XML access and rejects document type/entity declarations. Exceeding configured document or observation bounds is a reviewable parser failure rather than silent truncation.
+All pull adapters are source-policy controlled, restricted to the configured public canonical hostname plus an absolute source path, disable redirects, preserve source/retrieval/parser versions, create content fingerprints/raw-evidence references and feed the same `IngestApprovedGiftCodeObservation` action. Missing RSS/Atom or structured-HTML assertion metadata normalizes to canonical `available`. RSS/Atom parsing disables network XML access and rejects document type/entity declarations. Exceeding configured document or observation bounds is a reviewable parser failure rather than silent truncation.
 
 When `gift_codes.source_webhook_ingestion` is enabled, a registered source may use the fourth candidate mode: the signed internal source webhook transport. Signature verification, timestamp/replay protection, batch bounds and active source policy are enforced before the payload enters the same approved-source observation action used by scheduled adapters. The webhook transport does not create a new evidence/trust path.
 
-The candidate source set is therefore JSON pull, RSS/Atom pull, structured approved-HTML pull and signed webhook push. A post-merge audit found that the earlier PR #145 closeout had only JSON plus webhook in production code; the capability is reopened until the missing pull adapters and all required repository gates are verified.
+The candidate source set is therefore JSON pull, RSS/Atom pull, structured approved-HTML pull and signed webhook push. Candidate-adapter correction `610082b9cbf663e3eb6bd0c14dbe3cdba1d2b086` verifies the missing pull adapters through the canonical ingestion runner and closes the post-PR-#145 audit gap.
 
 Platform Administration diagnostics include privacy-safe Gift Code workspace feature/session/item/reminder/contributor/source counters. They do not expose account IDs, Player IDs or Governor names. Communications provider diagnostics remain Communications-owned.
 
@@ -88,6 +88,6 @@ Public global events remain `gift_code.created`, `gift_code.provenance_added`, `
 
 Operationally separable workspace controls are `gift_codes.redemption_workspace`, `gift_codes.redemption_intelligence`, `gift_codes.alliance_coverage`, `gift_codes.contributor_reputation`, and `gift_codes.source_webhook_ingestion`. These flags do not select alternative trust/resolver semantics and cannot bypass canonical authorization/evidence paths.
 
-The Gift Code Redemption Workspace & Personalization closeout is currently reopened for the candidate-adapter correction. The delivery ledger may be reclosed only after the correction head passes all required repository workflows.
+The Gift Code Redemption Workspace & Personalization capability is current complete. The candidate-adapter correction passed CI, Architecture V3 Verification, Intelligence Verification, Visual Regression, CodeQL and Dependency Review; King Perks Verification is path-filtered and did not trigger because no King Perks-owned path changed.
 
 See [ADR-0004](../architecture/adr/0004-gift-code-trust-from-append-only-evidence.md), the [trust/discovery extension closeout](../product/gift-code-extension-program.md), the [Redemption Workspace & Personalization contract](../product/gift-code-redemption-workspace.md), its [acceptance matrix](../product/gift-code-redemption-workspace-acceptance.md), its [delivery ledger](../product/gift-code-redemption-workspace-delivery-ledger.md), [API reference](api/README.md), and [event catalogue](events.md).
