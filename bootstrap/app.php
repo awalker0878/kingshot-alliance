@@ -7,6 +7,7 @@ use App\Contexts\Accounts\Authentication\Http\Middleware\TrackAccountSession;
 use App\Contexts\Alliance\Lifecycle\Http\Middleware\ResolveAllianceContext;
 use App\Contexts\Communications\Delivery\Actions\ProcessNotificationDeliveries;
 use App\Contexts\GameWorld\GiftCodes\Actions\QueueDueGiftCodeReminders;
+use App\Contexts\GameWorld\GiftCodes\Actions\QueueGiftCodeSourceOperationalAlerts;
 use App\Contexts\GameWorld\GiftCodes\Actions\QueueGiftCodeWorkspaceNotifications;
 use App\Contexts\GameWorld\GiftCodes\Actions\RebuildGiftCodeContributorProjections;
 use App\Contexts\GameWorld\GiftCodes\Actions\RunGiftCodeSourceBackfill;
@@ -94,6 +95,15 @@ return Application::configure(basePath: dirname(__DIR__))
             ->hourly()
             ->onOneServer()
             ->withoutOverlapping(45);
+        $schedule->call(static function (): int {
+            $result = app(QueueGiftCodeSourceOperationalAlerts::class)->handle(100);
+
+            return $result['queued'];
+        })
+            ->name('gift-codes:source-operational-alerts')
+            ->everyFiveMinutes()
+            ->onOneServer()
+            ->withoutOverlapping(10);
         $schedule->call(static fn (): int => app(RebuildGiftCodeContributorProjections::class)->cycle(100)['updated'])
             ->name('gift-codes:rebuild-contributor-projections')
             ->hourly()
