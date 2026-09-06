@@ -6,7 +6,7 @@ import { useLocale } from '@/localization';
 type Permission = { key: string; owner: string; description: string };
 type Role = { id: string; key: string; name: string; description: string | null; isSystem: boolean; permissions: Permission[]; effectiveAssignmentCount: number };
 type Holder = { playerId: string; playerName: string; roles: string[] };
-const props = defineProps<{ user: { name: string; email: string }; alliance: { id: string; name: string }; kingdom: { id: string; number: number }; roles: Role[]; permissions: Permission[]; selectedPermission: string | null; holders: Holder[] }>();
+defineProps<{ user: { name: string; email: string }; alliance: { id: string; name: string }; kingdom: { id: string; number: number }; roles: Role[]; permissions: Permission[]; selectedPermission: string | null; holders: Holder[] }>();
 const { t } = useLocale();
 function choose(event: Event): void { const value = (event.target as HTMLSelectElement).value; router.get('/alliance/settings/kingdom/governance/authority', value ? { permission: value } : {}, { preserveState: true, replace: true }); }
 </script>
