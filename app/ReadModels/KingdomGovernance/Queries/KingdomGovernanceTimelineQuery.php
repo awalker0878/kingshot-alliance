@@ -30,7 +30,9 @@ final readonly class KingdomGovernanceTimelineQuery
         $items = $rows->map(static function (AuditEvent $event) use ($playerRefs, $accountRefs): array {
             $playerId = $event->actor_player_id;
             $userId = $event->actor_user_id;
-            $actorName = $playerId !== null ? ($playerRefs[$playerId]?->currentName ?? 'Unknown Governor') : ($userId !== null ? ($accountRefs[(int) $userId]?->name ?? 'Platform Administrator') : 'System');
+            $playerRef = $playerId === null ? null : ($playerRefs[$playerId] ?? null);
+            $accountRef = $userId === null ? null : ($accountRefs[(int) $userId] ?? null);
+            $actorName = $playerRef?->currentName ?? $accountRef?->name ?? ($userId !== null ? 'Platform Administrator' : 'System');
             return ['id' => (string) $event->id, 'type' => (string) $event->event, 'occurredAt' => $event->created_at->toIso8601String(), 'actor' => ['playerId' => $playerId, 'userId' => $userId, 'name' => $actorName], 'metadata' => $event->metadata ?? []];
         })->values()->all();
         return ['items' => $items, 'nextCursor' => $hasMore && $rows->isNotEmpty() ? (string) $rows->last()->id : null];

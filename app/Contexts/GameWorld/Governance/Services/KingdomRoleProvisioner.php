@@ -10,7 +10,6 @@ use App\Contexts\GameWorld\Governance\Enums\KingdomPermission;
 use App\Contexts\GameWorld\Governance\Models\KingdomRole;
 use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
 use App\Shared\Infrastructure\Access\Models\Permission;
-use Illuminate\Support\Str;
 use RuntimeException;
 
 final readonly class KingdomRoleProvisioner
@@ -20,33 +19,24 @@ final readonly class KingdomRoleProvisioner
     /** @return array<string, KingdomRole> */
     public function provision(Kingdom $kingdom): array
     {
-        Permission::query()->updateOrCreate(
+        $permission = Permission::query()->firstOrCreate(
             ['key' => KingdomPermission::RoleManage->key()],
-            [
-                'id' => (string) Str::ulid(),
-                'owner_key' => KingdomPermission::ownerKey(),
-                'description' => KingdomPermission::RoleManage->description(),
-            ],
+            ['owner_key' => KingdomPermission::ownerKey(), 'description' => KingdomPermission::RoleManage->description()],
         );
+        if ($permission->owner_key !== KingdomPermission::ownerKey() || $permission->description !== KingdomPermission::RoleManage->description()) {
+            $permission->forceFill(['owner_key' => KingdomPermission::ownerKey(), 'description' => KingdomPermission::RoleManage->description()])->save();
+        }
 
         $roles = [];
         foreach (DefaultKingdomRole::cases() as $roleTemplate) {
             $role = KingdomRole::query()->firstOrCreate(
                 ['kingdom_id' => $kingdom->id, 'key' => $roleTemplate->value],
-                [
-                    'name' => $roleTemplate->name(),
-                    'description' => $roleTemplate->description(),
-                    'is_system' => true,
-                    'archived_at' => null,
-                ],
+                ['name' => $roleTemplate->name(), 'description' => $roleTemplate->description(), 'is_system' => true, 'archived_at' => null],
             );
-
-            $role->forceFill([
-                'name' => $roleTemplate->name(),
-                'description' => $roleTemplate->description(),
-                'is_system' => true,
-                'archived_at' => null,
-            ])->save();
+            $desired = ['name' => $roleTemplate->name(), 'description' => $roleTemplate->description(), 'is_system' => true, 'archived_at' => null];
+            if ($role->name !== $desired['name'] || $role->description !== $desired['description'] || ! $role->is_system || $role->archived_at !== null) {
+                $role->forceFill($desired)->save();
+            }
             $roles[$roleTemplate->value] = $role;
         }
 

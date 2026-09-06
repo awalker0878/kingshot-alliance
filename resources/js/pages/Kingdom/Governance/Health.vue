@@ -4,7 +4,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import RoomBanner from '@/components/game/RoomBanner.vue';
 import { useLocale } from '@/localization';
 type Issue = { severity: 'warning' | 'critical'; code: string; message: string; repairable: boolean };
-const props = defineProps<{ user: { name: string; email: string }; alliance: { id: string; name: string }; kingdom: { id: string; number: number }; health: { status: 'healthy' | 'degraded' | 'critical'; issues: Issue[] } }>();
+defineProps<{ user: { name: string; email: string }; alliance: { id: string; name: string }; kingdom: { id: string; number: number }; health: { status: 'healthy' | 'degraded' | 'critical'; issues: Issue[] } }>();
 const { t } = useLocale();
 function reconcile(): void { router.post('/alliance/settings/kingdom/governance/reconcile', {}, { preserveScroll: true }); }
 </script>

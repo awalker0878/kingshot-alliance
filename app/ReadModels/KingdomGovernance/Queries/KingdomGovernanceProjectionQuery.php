@@ -60,7 +60,8 @@ final readonly class KingdomGovernanceProjectionQuery
         $grouped = [];
         foreach ($rows as $row) {
             $playerId = (string) $row->player_id;
-            $grouped[$playerId] ??= ['playerId' => $playerId, 'playerName' => $refs[$playerId]?->currentName ?? 'Unknown Governor', 'roles' => []];
+            $ref = $refs[$playerId] ?? null;
+            $grouped[$playerId] ??= ['playerId' => $playerId, 'playerName' => $ref?->currentName ?? 'Unknown Governor', 'roles' => []];
             $grouped[$playerId]['roles'][] = (string) $row->role->name;
             $grouped[$playerId]['roles'] = array_values(array_unique($grouped[$playerId]['roles']));
         }

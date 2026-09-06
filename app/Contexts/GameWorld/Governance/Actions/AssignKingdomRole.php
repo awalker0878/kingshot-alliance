@@ -62,6 +62,9 @@ final readonly class AssignKingdomRole
                 ->where('player_id', $targetPlayerId)
                 ->where('kingdom_role_id', $roleId)
                 ->whereNull('revoked_at')
+                ->where(function ($query): void {
+                    $query->whereNull('expires_at')->orWhere('expires_at', '>', now());
+                })
                 ->lockForUpdate()
                 ->first();
             if ($existing instanceof KingdomRoleAssignment) {
