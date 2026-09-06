@@ -7,8 +7,8 @@ namespace App\Contexts\GameWorld\GiftCodes\ValueObjects;
 final readonly class GiftCodeExtractedEvidence
 {
     /**
-     * @param array<string, mixed>|null $applicability
-     * @param array<string, mixed>|null $reward
+     * @param  array<string, mixed>|null  $applicability
+     * @param  array<string, mixed>|null  $reward
      */
     public function __construct(
         public string $code,
