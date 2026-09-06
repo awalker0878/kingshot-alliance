@@ -92,7 +92,11 @@ function recordEvidence(): void {
             {{ t('giftCodes.acquisitionOperations.evidenceHelp') }}
           </p>
         </div>
-        <Link href="/platform/gift-codes/sources/operations" class="ks-command-link" data-variant="secondary">
+        <Link
+          href="/platform/gift-codes/sources/operations"
+          class="ks-command-link"
+          data-variant="secondary"
+        >
           {{ t('giftCodes.acquisitionOperations.backOperations') }}
         </Link>
       </div>
@@ -106,11 +110,17 @@ function recordEvidence(): void {
         {{ t('giftCodes.acquisitionOperations.evidenceBoundary') }}
       </p>
 
-      <form v-if="sources.length" class="mt-4 grid gap-4 md:grid-cols-2" @submit.prevent="recordEvidence">
+      <form
+        v-if="sources.length"
+        class="mt-4 grid gap-4 md:grid-cols-2"
+        @submit.prevent="recordEvidence"
+      >
         <label>
           <span class="ks-kicker">{{ t('giftCodes.acquisitionOperations.registeredSource') }}</span>
           <select v-model="evidence.source_id" required class="ks-input mt-2 w-full">
-            <option value="" disabled>{{ t('giftCodes.acquisitionOperations.selectSource') }}</option>
+            <option value="" disabled>
+              {{ t('giftCodes.acquisitionOperations.selectSource') }}
+            </option>
             <option v-for="source in props.sources" :key="source.id" :value="source.id">
               {{ source.name }} · {{ source.classification }}
             </option>
@@ -120,7 +130,12 @@ function recordEvidence(): void {
 
         <label>
           <span class="ks-kicker">{{ t('giftCodes.acquisitionOperations.code') }}</span>
-          <input v-model="evidence.code" required maxlength="64" class="ks-input mt-2 w-full font-mono" />
+          <input
+            v-model="evidence.code"
+            required
+            maxlength="64"
+            class="ks-input mt-2 w-full font-mono"
+          />
           <FormError :message="evidence.errors.code" />
         </label>
 
@@ -131,7 +146,9 @@ function recordEvidence(): void {
             <option value="invalid">{{ t('giftCodes.acquisitionOperations.invalid') }}</option>
             <option value="expires">{{ t('giftCodes.acquisitionOperations.expires') }}</option>
             <option value="reward">{{ t('giftCodes.acquisitionOperations.reward') }}</option>
-            <option value="applicability">{{ t('giftCodes.acquisitionOperations.applicability') }}</option>
+            <option value="applicability">
+              {{ t('giftCodes.acquisitionOperations.applicability') }}
+            </option>
           </select>
         </label>
 
@@ -143,22 +160,39 @@ function recordEvidence(): void {
 
         <label>
           <span class="ks-kicker">{{ t('giftCodes.acquisitionOperations.publishedAt') }}</span>
-          <input v-model="evidence.published_at" type="datetime-local" class="ks-input mt-2 w-full" />
+          <input
+            v-model="evidence.published_at"
+            type="datetime-local"
+            class="ks-input mt-2 w-full"
+          />
         </label>
 
         <template v-if="evidence.assertion === 'expires'">
           <label>
             <span class="ks-kicker">{{ t('giftCodes.acquisitionOperations.expiresAt') }}</span>
-            <input v-model="evidence.expires_at" required type="datetime-local" class="ks-input mt-2 w-full" />
+            <input
+              v-model="evidence.expires_at"
+              required
+              type="datetime-local"
+              class="ks-input mt-2 w-full"
+            />
           </label>
           <label>
-            <span class="ks-kicker">{{ t('giftCodes.acquisitionOperations.expiryPrecision') }}</span>
+            <span class="ks-kicker">{{
+              t('giftCodes.acquisitionOperations.expiryPrecision')
+            }}</span>
             <select v-model="evidence.expiry_precision" class="ks-input mt-2 w-full">
-              <option value="instant">{{ t('giftCodes.acquisitionOperations.precisionInstant') }}</option>
-              <option value="minute">{{ t('giftCodes.acquisitionOperations.precisionMinute') }}</option>
+              <option value="instant">
+                {{ t('giftCodes.acquisitionOperations.precisionInstant') }}
+              </option>
+              <option value="minute">
+                {{ t('giftCodes.acquisitionOperations.precisionMinute') }}
+              </option>
               <option value="hour">{{ t('giftCodes.acquisitionOperations.precisionHour') }}</option>
               <option value="day">{{ t('giftCodes.acquisitionOperations.precisionDay') }}</option>
-              <option value="approximate">{{ t('giftCodes.acquisitionOperations.precisionApproximate') }}</option>
+              <option value="approximate">
+                {{ t('giftCodes.acquisitionOperations.precisionApproximate') }}
+              </option>
             </select>
           </label>
           <label>
@@ -170,11 +204,23 @@ function recordEvidence(): void {
         <template v-if="evidence.assertion === 'reward'">
           <label>
             <span class="ks-kicker">{{ t('giftCodes.acquisitionOperations.rewardName') }}</span>
-            <input v-model="evidence.reward_name" required maxlength="120" class="ks-input mt-2 w-full" />
+            <input
+              v-model="evidence.reward_name"
+              required
+              maxlength="120"
+              class="ks-input mt-2 w-full"
+            />
           </label>
           <label>
             <span class="ks-kicker">{{ t('giftCodes.acquisitionOperations.rewardQuantity') }}</span>
-            <input v-model="evidence.reward_quantity" required type="number" min="1" max="2147483647" class="ks-input mt-2 w-full" />
+            <input
+              v-model="evidence.reward_quantity"
+              required
+              type="number"
+              min="1"
+              max="2147483647"
+              class="ks-input mt-2 w-full"
+            />
           </label>
         </template>
 
