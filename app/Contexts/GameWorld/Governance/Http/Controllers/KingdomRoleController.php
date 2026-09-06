@@ -65,7 +65,7 @@ final class KingdomRoleController extends Controller
         })->values()->all();
         $kingdomPlayers = array_map(static fn ($player): array => ['id' => $player->playerId, 'name' => $player->currentName, 'gamePlayerId' => $player->gamePlayerId], $players->inKingdom($scope->kingdomId));
         $facts = $authorityFacts->findCurrent($scope->playerId, $scope->kingdomId);
-        $actorPermissionKeys = $facts->permissionKeysObservedAtRead;
+        $actorPermissionKeys = $facts === null ? [] : $facts->permissionKeysObservedAtRead;
         $permissionOptions = Permission::query()->whereNotNull('owner_key')->whereIn('key', $actorPermissionKeys)->orderBy('owner_key')->orderBy('key')->get()->map(static fn (Permission $permission): array => [
             'key' => (string) $permission->key,
             'owner' => (string) $permission->owner_key,
