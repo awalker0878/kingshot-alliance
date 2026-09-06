@@ -25,6 +25,7 @@ final class KingdomGovernanceAdministrationController extends Controller
         $scope = $context->scope();
         $validated = $request->validate(['name' => ['required', 'string', 'max:100'], 'description' => ['nullable', 'string', 'max:255'], 'permissions' => ['array', 'max:50'], 'permissions.*' => ['string', 'max:100']]);
         $create->handle($scope->playerId, $scope->kingdomId, (string) $validated['name'], $validated['description'] ?? null, array_values($validated['permissions'] ?? []));
+
         return back()->with('actionReceipt', $this->receipt('kingdom-role-created'));
     }
 
@@ -33,6 +34,7 @@ final class KingdomGovernanceAdministrationController extends Controller
         $scope = $context->scope();
         $validated = $request->validate(['name' => ['required', 'string', 'max:100'], 'description' => ['nullable', 'string', 'max:255'], 'permissions' => ['array', 'max:50'], 'permissions.*' => ['string', 'max:100']]);
         $update->handle($scope->playerId, $scope->kingdomId, (string) $role->id, (string) $validated['name'], $validated['description'] ?? null, array_values($validated['permissions'] ?? []));
+
         return back()->with('actionReceipt', $this->receipt('kingdom-role-updated'));
     }
 
@@ -40,6 +42,7 @@ final class KingdomGovernanceAdministrationController extends Controller
     {
         $scope = $context->scope();
         $archive->handle($scope->playerId, $scope->kingdomId, (string) $role->id);
+
         return back()->with('actionReceipt', $this->receipt('kingdom-role-archived'));
     }
 
@@ -52,6 +55,7 @@ final class KingdomGovernanceAdministrationController extends Controller
             'reason' => ['nullable', 'string', 'max:500'],
         ]);
         $handoff->handle($scope->playerId, $scope->kingdomId, (string) $validated['player_id'], $validated['mode'] === 'replace', $validated['reason'] ?? null);
+
         return back()->with('actionReceipt', $this->receipt('kingdom-administrator-handoff'));
     }
 
@@ -59,7 +63,8 @@ final class KingdomGovernanceAdministrationController extends Controller
     {
         $scope = $context->scope();
         $validated = $request->validate(['role_id' => ['required', 'string', 'size:26'], 'operation' => ['required', Rule::in(['assign', 'remove'])], 'player_ids' => ['required', 'array', 'min:1', 'max:50'], 'player_ids.*' => ['string', 'size:26']]);
-        return response()->json($bulk->preview($scope->kingdomId, (string) $validated['role_id'], (string) $validated['operation'], array_values($validated['player_ids'])));
+
+        return response()->json($bulk->preview($scope->playerId, $scope->kingdomId, (string) $validated['role_id'], (string) $validated['operation'], array_values($validated['player_ids'])));
     }
 
     public function bulk(Request $request, AllianceContext $context, BulkKingdomRoleAdministration $bulk): RedirectResponse
@@ -67,6 +72,7 @@ final class KingdomGovernanceAdministrationController extends Controller
         $scope = $context->scope();
         $validated = $request->validate(['role_id' => ['required', 'string', 'size:26'], 'operation' => ['required', Rule::in(['assign', 'remove'])], 'player_ids' => ['required', 'array', 'min:1', 'max:50'], 'player_ids.*' => ['string', 'size:26'], 'reason' => ['nullable', 'string', 'max:500']]);
         $result = $bulk->handle($scope->playerId, $scope->kingdomId, (string) $validated['role_id'], (string) $validated['operation'], array_values($validated['player_ids']), $validated['reason'] ?? null);
+
         return back()->with('actionReceipt', $this->receipt('kingdom-role-bulk-updated'))->with('governanceBulkResult', $result);
     }
 
@@ -74,6 +80,7 @@ final class KingdomGovernanceAdministrationController extends Controller
     {
         $scope = $context->scope();
         $reconcile->handle($scope->playerId, $scope->kingdomId);
+
         return back()->with('actionReceipt', $this->receipt('kingdom-governance-reconciled'));
     }
 }
