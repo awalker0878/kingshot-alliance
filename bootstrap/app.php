@@ -9,6 +9,8 @@ use App\Contexts\Communications\Delivery\Actions\ProcessNotificationDeliveries;
 use App\Contexts\GameWorld\GiftCodes\Actions\QueueDueGiftCodeReminders;
 use App\Contexts\GameWorld\GiftCodes\Actions\QueueGiftCodeWorkspaceNotifications;
 use App\Contexts\GameWorld\GiftCodes\Actions\RebuildGiftCodeContributorProjections;
+use App\Contexts\GameWorld\GiftCodes\Actions\RunGiftCodeSourceBackfill;
+use App\Contexts\GameWorld\GiftCodes\Actions\RunGiftCodeSourceReconciliation;
 use App\Contexts\GameWorld\GiftCodes\Http\Middleware\RequireGiftCodeCurator;
 use App\Contexts\GameWorld\Players\Http\Middleware\HandleInertiaRequests;
 use App\Contexts\GameWorld\Players\Http\Middleware\RequireCurrentPlayerContextVersion;
@@ -74,6 +76,24 @@ return Application::configure(basePath: dirname(__DIR__))
             ->everyFifteenMinutes()
             ->onOneServer()
             ->withoutOverlapping(30);
+        $schedule->call(static function (): int {
+            $result = app(RunGiftCodeSourceReconciliation::class)->handle(25);
+
+            return $result['failedSources'];
+        })
+            ->name('gift-codes:reconcile-sources')
+            ->everyFifteenMinutes()
+            ->onOneServer()
+            ->withoutOverlapping(30);
+        $schedule->call(static function (): int {
+            $result = app(RunGiftCodeSourceBackfill::class)->handle(5);
+
+            return $result['failedSources'];
+        })
+            ->name('gift-codes:backfill-sources')
+            ->hourly()
+            ->onOneServer()
+            ->withoutOverlapping(45);
         $schedule->call(static fn (): int => app(RebuildGiftCodeContributorProjections::class)->cycle(100)['updated'])
             ->name('gift-codes:rebuild-contributor-projections')
             ->hourly()
