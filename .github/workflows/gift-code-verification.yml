@@ -115,8 +115,11 @@ jobs:
       - name: ESLint Gift Code operations
         run: npx eslint resources/js/pages/Platform/GiftCodes resources/js/localization/gift-code-workspace-labels.ts
 
-      - name: Prettier Gift Code operations
-        run: npx prettier --check resources/js/pages/Platform/GiftCodes resources/js/localization/gift-code-workspace-labels.ts
+      - name: Format Gift Code operations for verification
+        run: npx prettier --write resources/js/pages/Platform/GiftCodes resources/js/localization/gift-code-workspace-labels.ts
+
+      - name: Verify Gift Code operation formatting
+        run: git diff --exit-code -- resources/js/pages/Platform/GiftCodes resources/js/localization/gift-code-workspace-labels.ts
 
       - name: Vue TypeScript contract
         run: npx vue-tsc --noEmit
