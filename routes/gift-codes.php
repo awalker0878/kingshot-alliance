@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Contexts\GameWorld\GiftCodes\Http\Controllers\GiftCodeAcquisitionOperationsController;
 use App\Contexts\GameWorld\GiftCodes\Http\Controllers\GiftCodeController;
 use App\Contexts\GameWorld\GiftCodes\Http\Controllers\GiftCodeModerationController;
 use App\Contexts\GameWorld\GiftCodes\Http\Controllers\GiftCodeSourceManagementController;
@@ -70,6 +71,10 @@ Route::middleware(['auth', 'auth.session', 'verified', 'gift-code.curator', 'pas
             ->name('bulk');
         Route::get('/sources', [GiftCodeSourceManagementController::class, 'index'])
             ->name('sources.index');
+        Route::get('/sources/operations', [GiftCodeAcquisitionOperationsController::class, 'index'])
+            ->name('sources.operations');
+        Route::get('/sources/evidence-entry', [GiftCodeAcquisitionOperationsController::class, 'evidence'])
+            ->name('sources.evidence-entry');
         Route::post('/sources', [GiftCodeModerationController::class, 'storeSource'])
             ->middleware('throttle:10,1')
             ->name('sources.store');
