@@ -17,6 +17,7 @@ final class GiftCodeProviderPublicationExtractor
         bool $verificationPassed,
     ): array {
         $contentFingerprint = hash('sha256', $publication->content);
+        $retrievalVersion = $publication->retrievalVersion ?? $publication->provider.':'.$publication->providerItemId;
         $observations = [];
         foreach ($this->extractor->extract($publication->content, $publication->publishedAt) as $evidence) {
             $observations[] = new GiftCodeIngestionObservation(
@@ -29,7 +30,7 @@ final class GiftCodeProviderPublicationExtractor
                 expiryTimezone: $evidence['expiry_timezone'],
                 publishedAt: $publication->publishedAt,
                 sourceVersion: $publication->provider.':'.$publication->providerItemId,
-                retrievalVersion: $publication->retrievalVersion,
+                retrievalVersion: $retrievalVersion,
                 parserVersion: $parserVersion,
                 contentFingerprint: $contentFingerprint,
                 rawEvidenceRef: $publication->sourceUrl.'#gift-code='.rawurlencode($evidence['code']),
@@ -46,7 +47,7 @@ final class GiftCodeProviderPublicationExtractor
                     expiryTimezone: null,
                     publishedAt: $publication->publishedAt,
                     sourceVersion: $publication->provider.':'.$publication->providerItemId,
-                    retrievalVersion: $publication->retrievalVersion,
+                    retrievalVersion: $retrievalVersion,
                     parserVersion: $parserVersion,
                     contentFingerprint: $contentFingerprint,
                     rawEvidenceRef: $publication->sourceUrl.'#gift-code-applicability='.rawurlencode($evidence['code']),
@@ -64,7 +65,7 @@ final class GiftCodeProviderPublicationExtractor
                     expiryTimezone: null,
                     publishedAt: $publication->publishedAt,
                     sourceVersion: $publication->provider.':'.$publication->providerItemId,
-                    retrievalVersion: $publication->retrievalVersion,
+                    retrievalVersion: $retrievalVersion,
                     parserVersion: $parserVersion,
                     contentFingerprint: $contentFingerprint,
                     rawEvidenceRef: $publication->sourceUrl.'#gift-code-reward='.rawurlencode($evidence['code']),

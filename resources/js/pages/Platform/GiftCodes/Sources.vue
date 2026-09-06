@@ -591,42 +591,42 @@ function asPercent(value: number): string {
               v-model="sourcePolicy.authority_promotion_enabled"
               type="checkbox"
               :disabled="sourcePolicy.classification === 'independent'"
-            />Authority promotion</label
+            /> {{ t('platformGiftCodes.sources.authorityPromotion') }}</label
           >
           <label class="flex items-center gap-2"
             ><input
               v-model="sourcePolicy.push_enabled"
               type="checkbox"
               :disabled="!sourcePolicy.ingestion_enabled || !selectedPushAvailable"
-            />Push discovery</label
+            /> {{ t('platformGiftCodes.sources.pushDiscovery') }}</label
           >
           <label class="flex items-center gap-2"
             ><input
               v-model="sourcePolicy.head_poll_enabled"
               type="checkbox"
               :disabled="!sourcePolicy.ingestion_enabled"
-            />Head polling</label
+            /> {{ t('platformGiftCodes.sources.headPolling') }}</label
           >
           <label class="flex items-center gap-2"
             ><input
               v-model="sourcePolicy.reconciliation_enabled"
               type="checkbox"
               :disabled="!sourcePolicy.ingestion_enabled"
-            />Reconciliation</label
+            /> {{ t('platformGiftCodes.sources.reconciliation') }}</label
           >
           <label class="flex items-center gap-2"
             ><input
               v-model="sourcePolicy.backfill_enabled"
               type="checkbox"
               :disabled="!sourcePolicy.ingestion_enabled"
-            />Historical backfill</label
+            /> {{ t('platformGiftCodes.sources.historicalBackfill') }}</label
           >
         </div>
         <p
           v-if="sourcePolicy.push_enabled && !selectedPushAvailable"
           class="text-xs text-[var(--ks-muted)] md:col-span-2"
         >
-          The selected provider push transport is not configured in this environment.
+          {{ t('platformGiftCodes.sources.pushUnavailable') }}
         </p>
         <FormError class="md:col-span-2" :message="sourcePolicy.errors.ingestion_enabled" />
         <FormError class="md:col-span-2" :message="sourcePolicy.errors.push_enabled" />
@@ -756,11 +756,11 @@ function asPercent(value: number): string {
             >
           </div>
           <div class="mt-3 flex flex-wrap gap-2 text-xs text-[var(--ks-muted)]">
-            <span>push {{ source.pushEnabled ? 'on' : 'off' }}</span
-            ><span>head {{ source.headPollEnabled ? 'on' : 'off' }}</span
-            ><span>reconcile {{ source.reconciliationEnabled ? 'on' : 'off' }}</span
-            ><span>backfill {{ source.backfillEnabled ? 'on' : 'off' }}</span
-            ><span>authority {{ source.authorityPromotionEnabled ? 'on' : 'off' }}</span>
+            <span>{{ t('platformGiftCodes.sources.pushLabel') }} {{ source.pushEnabled ? t('platformGiftCodes.sources.stateOn') : t('platformGiftCodes.sources.stateOff') }}</span
+            ><span>{{ t('platformGiftCodes.sources.headLabel') }} {{ source.headPollEnabled ? t('platformGiftCodes.sources.stateOn') : t('platformGiftCodes.sources.stateOff') }}</span
+            ><span>{{ t('platformGiftCodes.sources.reconcileLabel') }} {{ source.reconciliationEnabled ? t('platformGiftCodes.sources.stateOn') : t('platformGiftCodes.sources.stateOff') }}</span
+            ><span>{{ t('platformGiftCodes.sources.backfillLabel') }} {{ source.backfillEnabled ? t('platformGiftCodes.sources.stateOn') : t('platformGiftCodes.sources.stateOff') }}</span
+            ><span>{{ t('platformGiftCodes.sources.authorityLabel') }} {{ source.authorityPromotionEnabled ? t('platformGiftCodes.sources.stateOn') : t('platformGiftCodes.sources.stateOff') }}</span>
           </div>
           <ul
             v-if="!source.activationReadiness.ready"
@@ -778,16 +778,16 @@ function asPercent(value: number): string {
           <p class="mt-3 text-xs text-[var(--ks-muted)]">
             {{ t('platformGiftCodes.sources.requestCountLabel') }} {{ source.requestCount }} ·
             {{ t('platformGiftCodes.sources.observationCountLabel') }}
-            {{ source.observationCount }} · accepted {{ source.acceptedObservationCount }} ·
-            quarantined {{ source.quarantinedObservationCount }} ·
+            {{ source.observationCount }} · {{ t('platformGiftCodes.sources.acceptedCountLabel') }} {{ source.acceptedObservationCount }} ·
+            {{ t('platformGiftCodes.sources.quarantinedCountLabel') }} {{ source.quarantinedObservationCount }} ·
             {{ t('platformGiftCodes.sources.duplicateCountLabel') }}
             {{ source.duplicateObservationCount }}
           </p>
           <p class="mt-1 text-xs text-[var(--ks-muted)]">
-            accept {{ asPercent(source.acceptanceRatio) }} · quarantine
-            {{ asPercent(source.quarantineRatio) }} · duplicate
-            {{ asPercent(source.duplicateRatio) }} · reconciliation gaps
-            {{ source.reconciliationGapCount }}
+            {{ t('platformGiftCodes.sources.acceptanceRatioLabel') }} {{ asPercent(source.acceptanceRatio) }} ·
+            {{ t('platformGiftCodes.sources.quarantineRatioLabel') }} {{ asPercent(source.quarantineRatio) }} ·
+            {{ t('platformGiftCodes.sources.duplicateRatioLabel') }} {{ asPercent(source.duplicateRatio) }} ·
+            {{ t('platformGiftCodes.sources.reconciliationGapCountLabel') }} {{ source.reconciliationGapCount }}
           </p>
           <p v-if="source.nextEligibleIngestionAt" class="mt-1 text-xs text-[var(--ks-muted)]">
             {{ t('platformGiftCodes.sources.nextEligible') }}
@@ -797,7 +797,7 @@ function asPercent(value: number): string {
             {{ t('platformGiftCodes.sources.lastAttempt') }} {{ formatDate(source.lastAttemptAt) }}
           </p>
           <p v-if="source.lastPushReceivedAt" class="mt-1 text-xs text-[var(--ks-muted)]">
-            last push {{ formatDate(source.lastPushReceivedAt) }}
+            {{ t('platformGiftCodes.sources.lastPush') }} {{ formatDate(source.lastPushReceivedAt) }}
           </p>
           <p v-if="source.failureCode" class="mt-1 text-xs text-[var(--ks-muted)]">
             {{ t('platformGiftCodes.sources.failureLabel') }}:
@@ -806,7 +806,7 @@ function asPercent(value: number): string {
             {{ source.consecutiveFailures }}
           </p>
           <p v-if="source.reconciliationGapCount > 0" class="mt-1 text-xs font-medium">
-            Push completeness warning: {{ source.reconciliationGapCount }} reconciliation gap(s).
+            {{ t('platformGiftCodes.sources.pushCompletenessWarning', { count: source.reconciliationGapCount }) }}
           </p>
 
           <div
@@ -820,7 +820,7 @@ function asPercent(value: number): string {
               <code>{{ subscription.provider }}/{{ subscription.transport }}</code> ·
               {{ subscription.status
               }}<template v-if="subscription.lastEventReceivedAt">
-                · last event {{ formatDate(subscription.lastEventReceivedAt) }}</template
+                · {{ t('platformGiftCodes.sources.lastEvent') }} {{ formatDate(subscription.lastEventReceivedAt) }}</template
               ><template v-if="subscription.lastErrorCode">
                 · {{ subscription.lastErrorCode }}</template
               >
@@ -836,7 +836,7 @@ function asPercent(value: number): string {
               variant="secondary"
               :busy="busySourceAction === `${source.id}:reconcile`"
               @click="runSourceAction(source, 'reconcile')"
-              >Reconcile now</AppButton
+              >{{ t('platformGiftCodes.sources.reconcileNow') }}</AppButton
             >
             <AppButton
               v-if="source.backfillEnabled"
@@ -844,7 +844,7 @@ function asPercent(value: number): string {
               variant="secondary"
               :busy="busySourceAction === `${source.id}:backfill`"
               @click="runSourceAction(source, 'backfill')"
-              >Backfill</AppButton
+              >{{ t('platformGiftCodes.sources.backfillAction') }}</AppButton
             >
             <AppButton
               v-if="
@@ -854,7 +854,7 @@ function asPercent(value: number): string {
               variant="secondary"
               :busy="busySourceAction === `${source.id}:push/subscribe`"
               @click="runSourceAction(source, 'push/subscribe')"
-              >Subscribe push</AppButton
+              >{{ t('platformGiftCodes.sources.subscribePush') }}</AppButton
             >
             <AppButton
               v-if="source.pushEnabled && hasActivePush(source)"
@@ -862,7 +862,7 @@ function asPercent(value: number): string {
               variant="secondary"
               :busy="busySourceAction === `${source.id}:push/unsubscribe`"
               @click="runSourceAction(source, 'push/unsubscribe')"
-              >Disable push subscription</AppButton
+              >{{ t('platformGiftCodes.sources.disablePushSubscription') }}</AppButton
             >
           </div>
         </li>

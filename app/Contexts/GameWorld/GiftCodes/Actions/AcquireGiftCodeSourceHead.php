@@ -284,13 +284,16 @@ final readonly class AcquireGiftCodeSourceHead
         }
     }
 
-    /** @param array<string,mixed> $changes @return array<string,mixed> */
+    /**
+     * @param array<string, mixed> $changes
+     * @return array<string, mixed>
+     */
     private function withHttpState(
         array $changes,
         ?GiftCodeSourceCheckpoint $checkpoint,
         GiftCodeSourceSyncState $state,
     ): array {
-        $providerState = $checkpoint?->providerState ?? [];
+        $providerState = $checkpoint === null ? [] : $checkpoint->providerState;
         $etag = $providerState['http_etag'] ?? null;
         $lastModified = $providerState['http_last_modified'] ?? null;
         $notModified = ($providerState['not_modified'] ?? false) === true;

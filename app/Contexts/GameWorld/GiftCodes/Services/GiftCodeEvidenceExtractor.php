@@ -83,7 +83,10 @@ final class GiftCodeEvidenceExtractor
         return trim($content);
     }
 
-    /** @param list<string> $lines */
+    /**
+     * @param list<string> $lines
+     * @return array{value:?string, precision:?string, timezone:?string}
+     */
     private function extractExpiry(array $lines, ?string $publishedAt): array
     {
         foreach ($lines as $line) {
@@ -129,7 +132,10 @@ final class GiftCodeEvidenceExtractor
         return ['value' => null, 'precision' => null, 'timezone' => null];
     }
 
-    /** @param list<string> $lines @param list<string> $labels */
+    /**
+     * @param list<string> $lines
+     * @param list<string> $labels
+     */
     private function extractLabelledValue(array $lines, array $labels): ?string
     {
         $quoted = implode('|', array_map(static fn (string $label): string => preg_quote($label, '/'), $labels));

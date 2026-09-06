@@ -6,6 +6,7 @@ namespace App\Contexts\GameWorld\GiftCodes\Services;
 
 final class GiftCodeSourceConfig
 {
+    /** @param array<string, mixed> $policy */
     public function boolean(array $policy, string $key, bool $default = false): bool
     {
         $value = $policy[$key] ?? $default;

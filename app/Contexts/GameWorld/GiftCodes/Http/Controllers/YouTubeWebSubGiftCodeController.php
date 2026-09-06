@@ -225,7 +225,11 @@ final class YouTubeWebSubGiftCodeController extends Controller
         if ($nodes === false || $nodes->length === 0) {
             return null;
         }
-        $value = trim((string) $nodes->item(0)?->textContent);
+        $node = $nodes->item(0);
+        if (! $node instanceof DOMNode) {
+            return null;
+        }
+        $value = trim($node->textContent);
 
         return $value === '' ? null : $value;
     }

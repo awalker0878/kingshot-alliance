@@ -8,6 +8,6 @@ final class GiftCodeSourceQuarantinePolicy
 {
     public function isDegraded(int $examined, int $quarantined): bool
     {
-        return $quarantined > 0 || ($examined > 0 && $quarantined >= $examined);
+        return $quarantined > 0;
     }
 }

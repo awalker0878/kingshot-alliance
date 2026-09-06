@@ -266,7 +266,10 @@ final class DiscordGiftCodeGatewayClient
         return $socket;
     }
 
-    /** @param resource $socket */
+    /**
+     * @param resource $socket
+     * @return array<string, mixed>|null
+     */
     private function receiveJson($socket, int $timeoutSeconds): ?array
     {
         $message = $this->readMessage($socket, $timeoutSeconds);
@@ -326,7 +329,10 @@ final class DiscordGiftCodeGatewayClient
         }
     }
 
-    /** @param resource $socket @return array{fin:bool,opcode:int,payload:string}|null */
+    /**
+     * @param resource $socket
+     * @return array{fin: bool, opcode: int, payload: string}|null
+     */
     private function readFrame($socket, int $timeoutSeconds): ?array
     {
         $read = [$socket];
@@ -348,7 +354,11 @@ final class DiscordGiftCodeGatewayClient
         $masked = ($second & 0x80) !== 0;
         $length = $second & 0x7F;
         if ($length === 126) {
-            $length = unpack('nlength', $this->readExact($socket, 2))['length'];
+            $decodedLength = unpack('nlength', $this->readExact($socket, 2));
+            if ($decodedLength === false) {
+                throw new RuntimeException('Discord Gateway frame length could not be decoded.');
+            }
+            $length = (int) $decodedLength['length'];
         } elseif ($length === 127) {
             $parts = unpack('Nhigh/Nlow', $this->readExact($socket, 8));
             if (($parts['high'] ?? 0) !== 0) {
@@ -373,7 +383,10 @@ final class DiscordGiftCodeGatewayClient
         return ['fin' => $fin, 'opcode' => $opcode, 'payload' => $payload];
     }
 
-    /** @param resource $socket */
+    /**
+     * @param resource $socket
+     * @param array<string, mixed> $payload
+     */
     private function sendJson($socket, array $payload): void
     {
         $this->writeFrame($socket, json_encode($payload, JSON_THROW_ON_ERROR), 0x1);
@@ -404,10 +417,14 @@ final class DiscordGiftCodeGatewayClient
     {
         $buffer = '';
         while (strlen($buffer) < $length) {
-            $chunk = fread($socket, $length - strlen($buffer));
+            $remaining = $length - strlen($buffer);
+            if ($remaining < 1) {
+                break;
+            }
+            $chunk = fread($socket, $remaining);
             if ($chunk === false || $chunk === '') {
                 $meta = stream_get_meta_data($socket);
-                throw new RuntimeException(($meta['timed_out'] ?? false)
+                throw new RuntimeException($meta['timed_out']
                     ? 'Discord Gateway socket read timed out.'
                     : 'Discord Gateway socket closed while reading a frame.');
             }

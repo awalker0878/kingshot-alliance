@@ -4,10 +4,30 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\GiftCodes\Models;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property string $id
+ * @property string $gift_code_source_id
+ * @property string $sync_mode
+ * @property string|null $latest_observed_provider_id
+ * @property string|null $committed_high_water
+ * @property string|null $candidate_high_water
+ * @property string|null $active_sync_since_id
+ * @property string|null $active_page_token
+ * @property string|null $backfill_page_token
+ * @property string|null $backfill_boundary_provider_id
+ * @property string|null $http_etag
+ * @property string|null $http_last_modified
+ * @property CarbonImmutable|null $last_not_modified_at
+ * @property CarbonImmutable|null $last_head_poll_at
+ * @property CarbonImmutable|null $last_reconciliation_at
+ * @property CarbonImmutable|null $last_backfill_at
+ * @property int $version
+ */
 final class GiftCodeSourceSyncState extends Model
 {
     use HasUlids;
