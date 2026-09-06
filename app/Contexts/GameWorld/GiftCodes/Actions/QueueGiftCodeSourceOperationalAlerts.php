@@ -9,14 +9,17 @@ use App\Contexts\Communications\Delivery\Services\NotificationDeliveryService;
 use App\Contexts\Communications\Delivery\ValueObjects\NotificationIntent;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeSourceRegistry;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeSourceSubscription;
-use App\Contexts\Platform\Administration\Models\PlatformAdministrator;
+use App\Contexts\Platform\Administration\Services\PlatformAdministratorDirectory;
 use Carbon\CarbonImmutable;
 
 final readonly class QueueGiftCodeSourceOperationalAlerts
 {
     public const NOTIFICATION_TYPE = 'gift_code.source_alert';
 
-    public function __construct(private NotificationDeliveryService $delivery) {}
+    public function __construct(
+        private NotificationDeliveryService $delivery,
+        private PlatformAdministratorDirectory $administrators,
+    ) {}
 
     /** @return array{sources:int,alerts:int,recipients:int,queued:int} */
     public function handle(int $sourceLimit = 100): array
@@ -28,14 +31,7 @@ final readonly class QueueGiftCodeSourceOperationalAlerts
             ->orderBy('id')
             ->limit(max(1, min(500, $sourceLimit)))
             ->get();
-        $administratorIds = PlatformAdministrator::query()
-    ->whereNull('revoked_at')
-    ->orderBy('user_id')
-    ->pluck('user_id')
-    ->map(static fn (mixed $value): int => (int) $value)
-    ->filter(static fn (int $value): bool => $value > 0)
-    ->values()
-    ->all();
+        $administratorIds = $this->administrators->activeUserIds();
 
         $alertCount = 0;
         $queued = 0;
