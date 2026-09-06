@@ -85,7 +85,11 @@ defineProps<{
 const { t, formatDate, formatNumber } = useLocale();
 const busy = ref<string | null>(null);
 
-function runSourceAction(source: Source, action: string, data: Record<string, unknown> = {}): void {
+function runSourceAction(
+  source: Source,
+  action: string,
+  data: Record<string, string | number | boolean | null> = {},
+): void {
   const key = `${source.id}:${action}`;
   busy.value = key;
   router.post(`/platform/gift-codes/sources/${source.id}/${action}`, data, {
