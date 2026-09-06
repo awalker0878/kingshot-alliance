@@ -67,7 +67,7 @@ final class GiftCodeProviderFailureMatrixV3Test extends TestCase
                 ['Content-Type' => 'application/json'],
             ),
         ]);
-        $this->assertUnexpectedValue(static fn () => app(JsonFeedGiftCodeSourceAdapter::class)
+        $this->assertUnexpectedValue(fn () => app(JsonFeedGiftCodeSourceAdapter::class)
             ->acquire($this->source('/gift-codes.json'), null, 10));
 
         Http::fake([
@@ -77,9 +77,22 @@ final class GiftCodeProviderFailureMatrixV3Test extends TestCase
                 ['Content-Type' => 'application/rss+xml'],
             ),
         ]);
-        $this->assertUnexpectedValue(static fn () => app(RssAtomGiftCodeSourceAdapter::class)
+        $this->assertUnexpectedValue(fn () => app(RssAtomGiftCodeSourceAdapter::class)
             ->acquire($this->source('/gift-codes.xml'), null, 10));
 
+        Http::fake([
+            'https://publisher.example.test/gift-codes*' => Http::response(
+                '<html><body><article data-gift-code="DRIFT26" data-gift-code-payload="{bad-json">DRIFT26</article></body></html>',
+                200,
+                ['Content-Type' => 'text/html'],
+            ),
+        ]);
+        $this->assertUnexpectedValue(fn () => app(StructuredHtmlGiftCodeSourceAdapter::class)
+            ->acquire($this->source('/gift-codes'), null, 10));
+    }
+
+    public function test_unstructured_prose_does_not_become_a_structured_html_observation(): void
+    {
         Http::fake([
             'https://publisher.example.test/gift-codes*' => Http::response(
                 '<html><body><p>Gift Code: PROSE-ONLY-26</p></body></html>',
@@ -87,8 +100,11 @@ final class GiftCodeProviderFailureMatrixV3Test extends TestCase
                 ['Content-Type' => 'text/html'],
             ),
         ]);
-        $this->assertUnexpectedValue(static fn () => app(StructuredHtmlGiftCodeSourceAdapter::class)
-            ->acquire($this->source('/gift-codes'), null, 10));
+
+        $page = app(StructuredHtmlGiftCodeSourceAdapter::class)
+            ->acquire($this->source('/gift-codes'), null, 10);
+
+        self::assertSame([], $page->observations);
     }
 
     public function test_facebook_identity_mismatch_fails_before_publication_observations_are_accepted(): void
