@@ -1,0 +1,206 @@
+name: Temporary Gift Code static cleanup
+
+on:
+  push:
+    branches:
+      - gift-code-research-backed-acquisition
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: gift-code-research-backed-acquisition
+      - name: Apply static-analysis and localization fixes
+        shell: bash
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+
+          def replace(path, old, new, count=None):
+              p = Path(path)
+              text = p.read_text()
+              actual = text.count(old)
+              if actual == 0:
+                  raise SystemExit(f'Pattern not found in {path}: {old[:120]!r}')
+              if count is not None and actual != count:
+                  raise SystemExit(f'Expected {count} occurrences in {path}, found {actual}: {old[:120]!r}')
+              p.write_text(text.replace(old, new))
+
+          # AcquireGiftCodeSourceHead: make PHPStan understand array shapes and nullable checkpoint handling.
+          replace(
+              'app/Contexts/GameWorld/GiftCodes/Actions/AcquireGiftCodeSourceHead.php',
+              '/** @param array<string,mixed> $changes @return array<string,mixed> */',
+              '''/**\n     * @param array<string, mixed> $changes\n     * @return array<string, mixed>\n     */''',
+              1,
+          )
+          replace(
+              'app/Contexts/GameWorld/GiftCodes/Actions/AcquireGiftCodeSourceHead.php',
+              '$providerState = $checkpoint?->providerState ?? [];',
+              '$providerState = $checkpoint === null ? [] : $checkpoint->providerState;',
+              1,
+          )
+
+          # Eloquent models: declare casted datetime/string properties explicitly for Larastan.
+          replace(
+              'app/Contexts/GameWorld/GiftCodes/Models/GiftCodeSourceSubscription.php',
+              'namespace App\\Contexts\\GameWorld\\GiftCodes\\Models;\n\nuse Illuminate',
+              'namespace App\\Contexts\\GameWorld\\GiftCodes\\Models;\n\nuse Carbon\\CarbonImmutable;\nuse Illuminate',
+              1,
+          )
+          replace(
+              'app/Contexts/GameWorld/GiftCodes/Models/GiftCodeSourceSubscription.php',
+              'final class GiftCodeSourceSubscription extends Model',
+              '''/**\n * @property string $id\n * @property string $gift_code_source_id\n * @property string $provider\n * @property string $transport\n * @property string|null $provider_subscription_id\n * @property string|null $topic_or_rule\n * @property array<string, mixed>|null $configured_identity\n * @property string $status\n * @property CarbonImmutable|null $activated_at\n * @property CarbonImmutable|null $expires_at\n * @property CarbonImmutable|null $last_verified_at\n * @property CarbonImmutable|null $last_event_received_at\n * @property string|null $secret_version\n * @property string|null $last_error_code\n */\nfinal class GiftCodeSourceSubscription extends Model''',
+              1,
+          )
+          replace(
+              'app/Contexts/GameWorld/GiftCodes/Models/GiftCodeSourceSyncState.php',
+              'namespace App\\Contexts\\GameWorld\\GiftCodes\\Models;\n\nuse Illuminate',
+              'namespace App\\Contexts\\GameWorld\\GiftCodes\\Models;\n\nuse Carbon\\CarbonImmutable;\nuse Illuminate',
+              1,
+          )
+          replace(
+              'app/Contexts/GameWorld/GiftCodes/Models/GiftCodeSourceSyncState.php',
+              'final class GiftCodeSourceSyncState extends Model',
+              '''/**\n * @property string $id\n * @property string $gift_code_source_id\n * @property string $sync_mode\n * @property string|null $latest_observed_provider_id\n * @property string|null $committed_high_water\n * @property string|null $candidate_high_water\n * @property string|null $active_sync_since_id\n * @property string|null $active_page_token\n * @property string|null $backfill_page_token\n * @property string|null $backfill_boundary_provider_id\n * @property string|null $http_etag\n * @property string|null $http_last_modified\n * @property CarbonImmutable|null $last_not_modified_at\n * @property CarbonImmutable|null $last_head_poll_at\n * @property CarbonImmutable|null $last_reconciliation_at\n * @property CarbonImmutable|null $last_backfill_at\n * @property int $version\n */\nfinal class GiftCodeSourceSyncState extends Model''',
+              1,
+          )
+
+          # Evidence extraction types.
+          replace(
+              'app/Contexts/GameWorld/GiftCodes/Services/GiftCodeEvidenceExtractor.php',
+              '/** @param list<string> $lines */\n    private function extractExpiry',
+              '''/**\n     * @param list<string> $lines\n     * @return array{value:?string, precision:?string, timezone:?string}\n     */\n    private function extractExpiry''',
+              1,
+          )
+          replace(
+              'app/Contexts/GameWorld/GiftCodes/Services/GiftCodeEvidenceExtractor.php',
+              '/** @param list<string> $lines @param list<string> $labels */\n    private function extractLabelledValue',
+              '''/**\n     * @param list<string> $lines\n     * @param list<string> $labels\n     */\n    private function extractLabelledValue''',
+              1,
+          )
+          replace(
+              'app/Contexts/GameWorld/GiftCodes/ValueObjects/GiftCodeExtractedEvidence.php',
+              '/** @param array<string,mixed>|null $applicability @param array<string,mixed>|null $reward */',
+              '''/**\n     * @param array<string, mixed>|null $applicability\n     * @param array<string, mixed>|null $reward\n     */''',
+              1,
+          )
+
+          # Publication observations require a durable non-null retrieval version.
+          replace(
+              'app/Contexts/GameWorld/GiftCodes/Services/GiftCodeProviderPublicationExtractor.php',
+              "$contentFingerprint = hash('sha256', $publication->content);\n        $observations = [];",
+              "$contentFingerprint = hash('sha256', $publication->content);\n        $retrievalVersion = $publication->retrievalVersion ?? $publication->provider.':'.$publication->providerItemId;\n        $observations = [];",
+              1,
+          )
+          replace(
+              'app/Contexts/GameWorld/GiftCodes/Services/GiftCodeProviderPublicationExtractor.php',
+              'retrievalVersion: $publication->retrievalVersion,',
+              'retrievalVersion: $retrievalVersion,',
+              3,
+          )
+
+          # Policy arrays are deliberately unstructured source policy maps.
+          replace(
+              'app/Contexts/GameWorld/GiftCodes/Services/GiftCodeSourceConfig.php',
+              '    public function boolean(array $policy, string $key, bool $default = false): bool',
+              '''    /** @param array<string, mixed> $policy */\n    public function boolean(array $policy, string $key, bool $default = false): bool''',
+              1,
+          )
+          for method in ['pushEnabled', 'headPollEnabled', 'reconciliationEnabled', 'backfillEnabled']:
+              replace(
+                  'app/Contexts/GameWorld/GiftCodes/Services/GiftCodeSourceFeaturePolicy.php',
+                  f'    public function {method}(array $policy): bool',
+                  f'    /** @param array<string, mixed> $policy */\\n    public function {method}(array $policy): bool'.replace('\\n', '\n'),
+                  1,
+              )
+
+          # Any quarantined observation means the run/source is degraded; the old second clause was unreachable.
+          replace(
+              'app/Contexts/GameWorld/GiftCodes/Services/GiftCodeSourceQuarantinePolicy.php',
+              'return $quarantined > 0 || ($examined > 0 && $quarantined >= $examined);',
+              'return $quarantined > 0;',
+              1,
+          )
+
+          # DOMXPath::item can also return DOMNameSpaceNode; narrow before reading textContent.
+          replace(
+              'app/Contexts/GameWorld/GiftCodes/Http/Controllers/YouTubeWebSubGiftCodeController.php',
+              '''        $value = trim((string) $nodes->item(0)?->textContent);\n\n        return $value === '' ? null : $value;''',
+              '''        $node = $nodes->item(0);\n        if (! $node instanceof DOMNode) {\n            return null;\n        }\n        $value = trim($node->textContent);\n\n        return $value === '' ? null : $value;''',
+              1,
+          )
+
+          # Discord WebSocket frame/JSON shapes and stream guards.
+          replace(
+              'app/Contexts/GameWorld/GiftCodes/Services/DiscordGiftCodeGatewayClient.php',
+              '''    /** @param resource $socket */\n    private function receiveJson($socket, int $timeoutSeconds): ?array''',
+              '''    /**\n     * @param resource $socket\n     * @return array<string, mixed>|null\n     */\n    private function receiveJson($socket, int $timeoutSeconds): ?array''',
+              1,
+          )
+          replace(
+              'app/Contexts/GameWorld/GiftCodes/Services/DiscordGiftCodeGatewayClient.php',
+              '''    /** @param resource $socket @return array{fin:bool,opcode:int,payload:string}|null */\n    private function readFrame($socket, int $timeoutSeconds): ?array''',
+              '''    /**\n     * @param resource $socket\n     * @return array{fin: bool, opcode: int, payload: string}|null\n     */\n    private function readFrame($socket, int $timeoutSeconds): ?array''',
+              1,
+          )
+          replace(
+              'app/Contexts/GameWorld/GiftCodes/Services/DiscordGiftCodeGatewayClient.php',
+              '''        if ($length === 126) {\n            $length = unpack('nlength', $this->readExact($socket, 2))['length'];\n        } elseif ($length === 127) {''',
+              '''        if ($length === 126) {\n            $decodedLength = unpack('nlength', $this->readExact($socket, 2));\n            if ($decodedLength === false) {\n                throw new RuntimeException('Discord Gateway frame length could not be decoded.');\n            }\n            $length = (int) $decodedLength['length'];\n        } elseif ($length === 127) {''',
+              1,
+          )
+          replace(
+              'app/Contexts/GameWorld/GiftCodes/Services/DiscordGiftCodeGatewayClient.php',
+              '''    /** @param resource $socket */\n    private function sendJson($socket, array $payload): void''',
+              '''    /**\n     * @param resource $socket\n     * @param array<string, mixed> $payload\n     */\n    private function sendJson($socket, array $payload): void''',
+              1,
+          )
+          replace(
+              'app/Contexts/GameWorld/GiftCodes/Services/DiscordGiftCodeGatewayClient.php',
+              '''        while (strlen($buffer) < $length) {\n            $chunk = fread($socket, $length - strlen($buffer));\n            if ($chunk === false || $chunk === '') {\n                $meta = stream_get_meta_data($socket);\n                throw new RuntimeException(($meta['timed_out'] ?? false)\n                    ? 'Discord Gateway socket read timed out.'\n                    : 'Discord Gateway socket closed while reading a frame.');\n            }\n            $buffer .= $chunk;\n        }''',
+              '''        while (strlen($buffer) < $length) {\n            $remaining = $length - strlen($buffer);\n            if ($remaining < 1) {\n                break;\n            }\n            $chunk = fread($socket, $remaining);\n            if ($chunk === false || $chunk === '') {\n                $meta = stream_get_meta_data($socket);\n                throw new RuntimeException($meta['timed_out']\n                    ? 'Discord Gateway socket read timed out.'\n                    : 'Discord Gateway socket closed while reading a frame.');\n            }\n            $buffer .= $chunk;\n        }''',
+              1,
+          )
+
+          # Localize all newly visible source-management copy.
+          page = 'resources/js/pages/Platform/GiftCodes/Sources.vue'
+          replacements = {
+              '/>Authority promotion</label': "/> {{ t('platformGiftCodes.sources.authorityPromotion') }}</label",
+              '/>Push discovery</label': "/> {{ t('platformGiftCodes.sources.pushDiscovery') }}</label",
+              '/>Head polling</label': "/> {{ t('platformGiftCodes.sources.headPolling') }}</label",
+              '/>Reconciliation</label': "/> {{ t('platformGiftCodes.sources.reconciliation') }}</label",
+              '/>Historical backfill</label': "/> {{ t('platformGiftCodes.sources.historicalBackfill') }}</label",
+              '          The selected provider push transport is not configured in this environment.': "          {{ t('platformGiftCodes.sources.pushUnavailable') }}",
+              '''            <span>push {{ source.pushEnabled ? 'on' : 'off' }}</span\n            ><span>head {{ source.headPollEnabled ? 'on' : 'off' }}</span\n            ><span>reconcile {{ source.reconciliationEnabled ? 'on' : 'off' }}</span\n            ><span>backfill {{ source.backfillEnabled ? 'on' : 'off' }}</span\n            ><span>authority {{ source.authorityPromotionEnabled ? 'on' : 'off' }}</span>''': '''            <span>{{ t('platformGiftCodes.sources.pushLabel') }} {{ source.pushEnabled ? t('platformGiftCodes.sources.stateOn') : t('platformGiftCodes.sources.stateOff') }}</span\n            ><span>{{ t('platformGiftCodes.sources.headLabel') }} {{ source.headPollEnabled ? t('platformGiftCodes.sources.stateOn') : t('platformGiftCodes.sources.stateOff') }}</span\n            ><span>{{ t('platformGiftCodes.sources.reconcileLabel') }} {{ source.reconciliationEnabled ? t('platformGiftCodes.sources.stateOn') : t('platformGiftCodes.sources.stateOff') }}</span\n            ><span>{{ t('platformGiftCodes.sources.backfillLabel') }} {{ source.backfillEnabled ? t('platformGiftCodes.sources.stateOn') : t('platformGiftCodes.sources.stateOff') }}</span\n            ><span>{{ t('platformGiftCodes.sources.authorityLabel') }} {{ source.authorityPromotionEnabled ? t('platformGiftCodes.sources.stateOn') : t('platformGiftCodes.sources.stateOff') }}</span>''',
+              '''            {{ source.observationCount }} · accepted {{ source.acceptedObservationCount }} ·\n            quarantined {{ source.quarantinedObservationCount }} ·''': '''            {{ source.observationCount }} · {{ t('platformGiftCodes.sources.acceptedCountLabel') }} {{ source.acceptedObservationCount }} ·\n            {{ t('platformGiftCodes.sources.quarantinedCountLabel') }} {{ source.quarantinedObservationCount }} ·''',
+              '''            accept {{ asPercent(source.acceptanceRatio) }} · quarantine\n            {{ asPercent(source.quarantineRatio) }} · duplicate\n            {{ asPercent(source.duplicateRatio) }} · reconciliation gaps\n            {{ source.reconciliationGapCount }}''': '''            {{ t('platformGiftCodes.sources.acceptanceRatioLabel') }} {{ asPercent(source.acceptanceRatio) }} ·\n            {{ t('platformGiftCodes.sources.quarantineRatioLabel') }} {{ asPercent(source.quarantineRatio) }} ·\n            {{ t('platformGiftCodes.sources.duplicateRatioLabel') }} {{ asPercent(source.duplicateRatio) }} ·\n            {{ t('platformGiftCodes.sources.reconciliationGapCountLabel') }} {{ source.reconciliationGapCount }}''',
+              '            last push {{ formatDate(source.lastPushReceivedAt) }}': "            {{ t('platformGiftCodes.sources.lastPush') }} {{ formatDate(source.lastPushReceivedAt) }}",
+              '            Push completeness warning: {{ source.reconciliationGapCount }} reconciliation gap(s).': "            {{ t('platformGiftCodes.sources.pushCompletenessWarning', { count: source.reconciliationGapCount }) }}",
+              '                · last event {{ formatDate(subscription.lastEventReceivedAt) }}': "                · {{ t('platformGiftCodes.sources.lastEvent') }} {{ formatDate(subscription.lastEventReceivedAt) }}",
+              '>Reconcile now</AppButton': ">{{ t('platformGiftCodes.sources.reconcileNow') }}</AppButton",
+              '>Backfill</AppButton': ">{{ t('platformGiftCodes.sources.backfillAction') }}</AppButton",
+              '>Subscribe push</AppButton': ">{{ t('platformGiftCodes.sources.subscribePush') }}</AppButton",
+              '>Disable push subscription</AppButton': ">{{ t('platformGiftCodes.sources.disablePushSubscription') }}</AppButton",
+          }
+          for old, new in replacements.items():
+              replace(page, old, new, 1)
+
+          en = 'resources/js/localization/messages/platform/en.ts'
+          marker = "      consecutiveFailures: 'consecutive failures',"
+          keys = '''      authorityPromotion: 'Authority promotion',\n      pushDiscovery: 'Push discovery',\n      headPolling: 'Head polling',\n      reconciliation: 'Reconciliation',\n      historicalBackfill: 'Historical backfill',\n      pushUnavailable: 'The selected provider push transport is not configured in this environment.',\n      pushLabel: 'push',\n      headLabel: 'head',\n      reconcileLabel: 'reconcile',\n      backfillLabel: 'backfill',\n      authorityLabel: 'authority',\n      stateOn: 'on',\n      stateOff: 'off',\n      acceptedCountLabel: 'accepted',\n      quarantinedCountLabel: 'quarantined',\n      acceptanceRatioLabel: 'accept',\n      quarantineRatioLabel: 'quarantine',\n      duplicateRatioLabel: 'duplicate',\n      reconciliationGapCountLabel: 'reconciliation gaps',\n      lastPush: 'last push',\n      pushCompletenessWarning: 'Push completeness warning: {count} reconciliation gap(s).',\n      lastEvent: 'last event',\n      reconcileNow: 'Reconcile now',\n      backfillAction: 'Backfill',\n      subscribePush: 'Subscribe push',\n      disablePushSubscription: 'Disable push subscription',\n'''
+          replace(en, marker, keys + marker, 1)
+          PY
+
+          rm .github/workflows/tmp-gift-code-static-fix.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git commit -m "Fix Gift Code static analysis and localization"
+          git push origin HEAD:gift-code-research-backed-acquisition
