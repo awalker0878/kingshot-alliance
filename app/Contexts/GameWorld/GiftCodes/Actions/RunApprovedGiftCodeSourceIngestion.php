@@ -9,6 +9,7 @@ use App\Contexts\GameWorld\GiftCodes\Exceptions\GiftCodeSourceAcquisitionExcepti
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeIngestionRun;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeSourceRegistry;
 use App\Contexts\GameWorld\GiftCodes\Services\GiftCodeSourceAdapterRegistry;
+use App\Contexts\GameWorld\GiftCodes\Services\GiftCodeSourceHeadAcquirer;
 use App\Contexts\GameWorld\GiftCodes\Services\GiftCodeSourceHealthProjector;
 use App\Contexts\GameWorld\GiftCodes\Services\GiftCodeSourceSyncStateRepository;
 use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeIngestionObservation;
@@ -26,7 +27,7 @@ final readonly class RunApprovedGiftCodeSourceIngestion
         private IngestApprovedGiftCodeObservation $ingest,
         private GiftCodeSourceSyncStateRepository $syncStates,
         private GiftCodeSourceHealthProjector $health,
-        private AcquireGiftCodeSourceHead $acquireHead,
+        private GiftCodeSourceHeadAcquirer $acquireHead,
     ) {}
 
     public function handle(
