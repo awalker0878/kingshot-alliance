@@ -8,10 +8,11 @@ use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeSourceDeliveryStatus;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeSourceDelivery;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeSourceRegistry;
 use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodePushDelivery;
+use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodePushDeliveryReceipt;
 
 final class RecordGiftCodePushDelivery
 {
-    public function handle(GiftCodePushDelivery $delivery): GiftCodeSourceDelivery
+    public function handle(GiftCodePushDelivery $delivery): GiftCodePushDeliveryReceipt
     {
         $source = GiftCodeSourceRegistry::query()
             ->where('source_key', $delivery->sourceKey)
@@ -19,7 +20,7 @@ final class RecordGiftCodePushDelivery
             ->whereNull('revoked_at')
             ->firstOrFail();
 
-        return GiftCodeSourceDelivery::query()->firstOrCreate(
+        $record = GiftCodeSourceDelivery::query()->firstOrCreate(
             [
                 'gift_code_source_id' => (string) $source->id,
                 'replay_key' => $delivery->replayKey,
@@ -35,6 +36,11 @@ final class RecordGiftCodePushDelivery
                 'processing_status' => GiftCodeSourceDeliveryStatus::Authenticated->value,
                 'correlation_id' => $delivery->correlationId,
             ],
+        );
+
+        return new GiftCodePushDeliveryReceipt(
+            deliveryId: (string) $record->id,
+            created: $record->wasRecentlyCreated,
         );
     }
 }
