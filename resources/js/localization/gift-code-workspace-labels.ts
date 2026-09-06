@@ -125,6 +125,7 @@ const english: MessageCatalogue = {
       sourceSummary:
         '{distinct} distinct source observations · {independent} independent · {official} official · {samples} Time-to-Code samples',
       seconds: '{count} s',
+      milliseconds: '{count} ms',
       unknown: 'Unknown',
       sources: 'Source operations',
       sourcesHelp:
