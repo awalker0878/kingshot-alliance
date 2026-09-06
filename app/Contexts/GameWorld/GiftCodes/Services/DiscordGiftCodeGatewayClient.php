@@ -267,7 +267,7 @@ final class DiscordGiftCodeGatewayClient
     }
 
     /**
-     * @param resource $socket
+     * @param  resource  $socket
      * @return array<string, mixed>|null
      */
     private function receiveJson($socket, int $timeoutSeconds): ?array
@@ -288,7 +288,7 @@ final class DiscordGiftCodeGatewayClient
         return $payload;
     }
 
-    /** @param resource $socket */
+    /** @param  resource  $socket */
     private function readMessage($socket, int $timeoutSeconds): ?string
     {
         $buffer = '';
@@ -330,7 +330,7 @@ final class DiscordGiftCodeGatewayClient
     }
 
     /**
-     * @param resource $socket
+     * @param  resource  $socket
      * @return array{fin: bool, opcode: int, payload: string}|null
      */
     private function readFrame($socket, int $timeoutSeconds): ?array
@@ -384,15 +384,15 @@ final class DiscordGiftCodeGatewayClient
     }
 
     /**
-     * @param resource $socket
-     * @param array<string, mixed> $payload
+     * @param  resource  $socket
+     * @param  array<string, mixed>  $payload
      */
     private function sendJson($socket, array $payload): void
     {
         $this->writeFrame($socket, json_encode($payload, JSON_THROW_ON_ERROR), 0x1);
     }
 
-    /** @param resource $socket */
+    /** @param  resource  $socket */
     private function writeFrame($socket, string $payload, int $opcode): void
     {
         $length = strlen($payload);
@@ -412,7 +412,7 @@ final class DiscordGiftCodeGatewayClient
         $this->writeAll($socket, $header.$mask.$encoded);
     }
 
-    /** @param resource $socket */
+    /** @param  resource  $socket */
     private function readExact($socket, int $length): string
     {
         $buffer = '';
@@ -434,7 +434,7 @@ final class DiscordGiftCodeGatewayClient
         return $buffer;
     }
 
-    /** @param resource $socket */
+    /** @param  resource  $socket */
     private function writeAll($socket, string $payload): void
     {
         $offset = 0;
@@ -486,7 +486,7 @@ final class DiscordGiftCodeGatewayClient
             ->update(['status' => 'degraded', 'last_error_code' => $code]);
     }
 
-    /** @return Collection<int,GiftCodeSourceRegistry> */
+    /** @return Collection<int, GiftCodeSourceRegistry> */
     private function discordSources()
     {
         return GiftCodeSourceRegistry::query()
