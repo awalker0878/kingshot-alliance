@@ -83,6 +83,7 @@ final readonly class RebuildGiftCodeSourcePerformance
             }
         }
 
+        /** @var list<int> $clusters */
         $clusters = GiftCodeObservationCluster::query()
             ->where('earliest_source_id', $source->id)
             ->whereNotNull('time_to_code_seconds')
