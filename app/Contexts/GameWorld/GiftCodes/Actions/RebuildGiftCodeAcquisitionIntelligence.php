@@ -9,12 +9,14 @@ use Illuminate\Support\Facades\Cache;
 final readonly class RebuildGiftCodeAcquisitionIntelligence
 {
     private const CLUSTER_CURSOR = 'gift-codes:acquisition-intelligence:cluster-cursor';
+
     private const SOURCE_CURSOR = 'gift-codes:acquisition-intelligence:source-cursor';
 
     public function __construct(
         private RebuildGiftCodeObservationClusters $clusters,
         private RebuildGiftCodeSourcePerformance $sources,
-    ) {}
+    ) {
+    }
 
     /** @return array{clusters:array{examined:int,updated:int,nextCursor:?string},sources:array{examined:int,updated:int,nextCursor:?string}} */
     public function cycle(int $clusterLimit = 200, int $sourceLimit = 100): array
@@ -37,6 +39,7 @@ final readonly class RebuildGiftCodeAcquisitionIntelligence
 
             return;
         }
+
         Cache::forever($key, $cursor);
     }
 }
