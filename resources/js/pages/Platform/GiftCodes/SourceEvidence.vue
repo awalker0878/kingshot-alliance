@@ -13,13 +13,27 @@ type Source = {
   canonicalDomain: string | null;
 };
 
+type EvidenceData = {
+  source_id: string;
+  code: string;
+  assertion: string;
+  source_url: string;
+  published_at: string;
+  expires_at: string;
+  expiry_precision: string;
+  expiry_timezone: string;
+  reward_name: string;
+  reward_quantity: string;
+  applicability_kingdoms: string;
+};
+
 const props = defineProps<{
   user: { name: string; email: string };
   sources: Source[];
 }>();
 
 const { t } = useLocale();
-const evidence = useForm({
+const evidence = useForm<EvidenceData>({
   source_id: '',
   code: '',
   assertion: 'available',
@@ -33,7 +47,7 @@ const evidence = useForm({
   applicability_kingdoms: '',
 });
 
-function assertionPayload(data: typeof evidence.data): Record<string, unknown> | null {
+function assertionPayload(data: EvidenceData): Record<string, unknown> | null {
   if (data.assertion === 'reward') {
     const quantity = Number.parseInt(data.reward_quantity, 10);
     return {
@@ -49,8 +63,8 @@ function assertionPayload(data: typeof evidence.data): Record<string, unknown> |
   if (data.assertion === 'applicability') {
     const kingdoms = data.applicability_kingdoms
       .split(/[\s,]+/)
-      .map((value) => Number.parseInt(value, 10))
-      .filter((value) => Number.isInteger(value) && value > 0);
+      .map((value: string) => Number.parseInt(value, 10))
+      .filter((value: number) => Number.isInteger(value) && value > 0);
     return { kingdoms: [...new Set(kingdoms)] };
   }
 
