@@ -9,6 +9,10 @@ const allianceExpansionCataloguePath = new URL(
   '../resources/js/localization/alliance-capability-expansion-labels.ts',
   import.meta.url,
 );
+const giftCodeWorkspaceCataloguePath = new URL(
+  '../resources/js/localization/gift-code-workspace-labels.ts',
+  import.meta.url,
+);
 
 function filesUnder(directory) {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
@@ -102,6 +106,7 @@ for (const filename of filesUnder(controllerRoot).filter((file) => extname(file)
 
 const catalogue = readFileSync(cataloguePath, 'utf8');
 const allianceExpansionCatalogue = readFileSync(allianceExpansionCataloguePath, 'utf8');
+const giftCodeWorkspaceCatalogue = readFileSync(giftCodeWorkspaceCataloguePath, 'utf8');
 const receiptSources = [
   receiptSource(catalogue, '  receipts: {', '\n  },\n  navigation:', 'core/en.ts'),
   receiptSource(
@@ -109,6 +114,12 @@ const receiptSources = [
     '  receipts: {',
     '\n  },\n  allianceExpansion:',
     'alliance-capability-expansion-labels.ts',
+  ),
+  receiptSource(
+    giftCodeWorkspaceCatalogue,
+    '  receipts: {',
+    '\n  },\n};',
+    'gift-code-workspace-labels.ts',
   ),
 ];
 
