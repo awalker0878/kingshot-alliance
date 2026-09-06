@@ -69,7 +69,7 @@ final readonly class CreateKingdomRole
             return [];
         }
         $actorFacts = $this->authorityFacts->findCurrent($actorPlayerId, $kingdomId);
-        $effective = $actorFacts === null ? [] : $actorFacts->permissionKeys;
+        $effective = $actorFacts === null ? [] : $actorFacts->permissionKeysObservedAtRead;
         foreach ($keys as $key) {
             if (! in_array($key, $effective, true)) {
                 throw ValidationException::withMessages(['permissions' => "You cannot delegate permission [{$key}] that the active Player does not hold."]);

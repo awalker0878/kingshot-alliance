@@ -28,76 +28,58 @@ final readonly class BootstrapKingdomAdministrator
     public function handle(string $kingdomId, string $targetPlayerId): KingdomAdministratorBootstrap
     {
         return DB::transaction(function () use ($kingdomId, $targetPlayerId): KingdomAdministratorBootstrap {
-            $lockedKingdom = Kingdom::query()->whereKey($kingdomId)->lockForUpdate()->firstOrFail();
-            $lockedTarget = Player::query()->whereKey($targetPlayerId)->lockForUpdate()->firstOrFail();
-
-            if ((string) $lockedTarget->current_kingdom_id !== (string) $lockedKingdom->id) {
-                throw ValidationException::withMessages([
-                    'player' => 'The bootstrap Player must currently belong to the target Kingdom.',
-                ]);
+            $kingdom = Kingdom::query()->whereKey($kingdomId)->lockForUpdate()->firstOrFail();
+            $target = Player::query()->whereKey($targetPlayerId)->lockForUpdate()->firstOrFail();
+            if ((string) $target->current_kingdom_id !== (string) $kingdom->id) {
+                throw ValidationException::withMessages(['player' => 'The bootstrap Player must currently belong to the target Kingdom.']);
             }
 
-            $roles = $this->provisioner->provision($lockedKingdom);
+            $roles = $this->provisioner->provision($kingdom);
             $administrator = $roles[DefaultKingdomRole::Administrator->value] ?? null;
             $eventCoordinator = $roles[DefaultKingdomRole::EventCoordinator->value] ?? null;
             $viewer = $roles[DefaultKingdomRole::Viewer->value] ?? null;
-
             if (! $administrator instanceof KingdomRole || ! $eventCoordinator instanceof KingdomRole || ! $viewer instanceof KingdomRole) {
                 throw new RuntimeException('The default Kingdom roles were not provisioned.');
             }
 
-            $existingAssignment = KingdomRoleAssignment::query()
-                ->where('kingdom_id', $lockedKingdom->id)
+            $historicalAssignment = KingdomRoleAssignment::query()
+                ->where('kingdom_id', $kingdom->id)
                 ->where('kingdom_role_id', $administrator->id)
+                ->with('role')
                 ->lockForUpdate()
                 ->first();
-
-            if ($existingAssignment instanceof KingdomRoleAssignment) {
-                if ((string) $existingAssignment->player_id !== (string) $lockedTarget->id) {
-                    throw ValidationException::withMessages([
-                        'kingdom' => 'This Kingdom already has an administrator. Use Player-authorized Kingdom role management.',
-                    ]);
+            if ($historicalAssignment instanceof KingdomRoleAssignment) {
+                if ((string) $historicalAssignment->player_id === (string) $target->id && $historicalAssignment->isEffectiveAt()) {
+                    return $this->result($historicalAssignment, $kingdom, $target, $administrator, $eventCoordinator, $viewer);
                 }
-
-                return new KingdomAdministratorBootstrap(
-                    assignmentId: (string) $existingAssignment->id,
-                    kingdomId: (string) $lockedKingdom->id,
-                    kingdomNumber: (int) $lockedKingdom->number,
-                    playerId: (string) $lockedTarget->id,
-                    roleKey: DefaultKingdomRole::Administrator->value,
-                    administratorRoleId: (string) $administrator->id,
-                    eventCoordinatorRoleId: (string) $eventCoordinator->id,
-                    viewerRoleId: (string) $viewer->id,
-                );
+                throw ValidationException::withMessages(['kingdom' => 'This Kingdom has already had an administrator. Use Player-authorized handoff or Platform break-glass recovery.']);
             }
 
             $assignment = KingdomRoleAssignment::query()->create([
-                'kingdom_id' => $lockedKingdom->id,
-                'player_id' => $lockedTarget->id,
+                'kingdom_id' => $kingdom->id,
+                'player_id' => $target->id,
                 'kingdom_role_id' => $administrator->id,
+                'reason' => 'Initial Kingdom administrator bootstrap',
             ]);
-
-            $metadata = [
-                'kingdom_id' => (string) $lockedKingdom->id,
-                'kingdom_number' => (int) $lockedKingdom->number,
-                'target_player_id' => (string) $lockedTarget->id,
-                'role_key' => DefaultKingdomRole::Administrator->value,
-                'bootstrap_source' => 'operator_cli',
-            ];
-
+            $metadata = ['kingdom_id' => (string) $kingdom->id, 'kingdom_number' => (int) $kingdom->number, 'target_player_id' => (string) $target->id, 'role_key' => DefaultKingdomRole::Administrator->value, 'bootstrap_source' => 'operator_cli'];
             $this->audit->record('kingdom.role_bootstrapped', null, $assignment, null, $metadata);
             $this->outbox->record('kingdom.role_bootstrapped', null, $assignment, $metadata);
 
-            return new KingdomAdministratorBootstrap(
-                assignmentId: (string) $assignment->id,
-                kingdomId: (string) $lockedKingdom->id,
-                kingdomNumber: (int) $lockedKingdom->number,
-                playerId: (string) $lockedTarget->id,
-                roleKey: DefaultKingdomRole::Administrator->value,
-                administratorRoleId: (string) $administrator->id,
-                eventCoordinatorRoleId: (string) $eventCoordinator->id,
-                viewerRoleId: (string) $viewer->id,
-            );
+            return $this->result($assignment, $kingdom, $target, $administrator, $eventCoordinator, $viewer);
         });
+    }
+
+    private function result(KingdomRoleAssignment $assignment, Kingdom $kingdom, Player $target, KingdomRole $administrator, KingdomRole $eventCoordinator, KingdomRole $viewer): KingdomAdministratorBootstrap
+    {
+        return new KingdomAdministratorBootstrap(
+            assignmentId: (string) $assignment->id,
+            kingdomId: (string) $kingdom->id,
+            kingdomNumber: (int) $kingdom->number,
+            playerId: (string) $target->id,
+            roleKey: DefaultKingdomRole::Administrator->value,
+            administratorRoleId: (string) $administrator->id,
+            eventCoordinatorRoleId: (string) $eventCoordinator->id,
+            viewerRoleId: (string) $viewer->id,
+        );
     }
 }
