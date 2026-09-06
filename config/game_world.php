@@ -25,6 +25,7 @@ return [
         'discord_gateway_intents' => (int) env('GIFT_CODES_DISCORD_GATEWAY_INTENTS', 33281),
         'push_payload_max_bytes' => (int) env('GIFT_CODES_PUSH_PAYLOAD_MAX_BYTES', 1000000),
         'source_stale_minutes' => (int) env('GIFT_CODES_SOURCE_STALE_MINUTES', 90),
+        'source_smoke_check_max_age_hours' => (int) env('GIFT_CODES_SOURCE_SMOKE_CHECK_MAX_AGE_HOURS', 24),
         'quarantine_alert_consecutive_runs' => (int) env('GIFT_CODES_QUARANTINE_ALERT_CONSECUTIVE_RUNS', 3),
         'quota_alert_remaining' => (int) env('GIFT_CODES_QUOTA_ALERT_REMAINING', 10),
         'x_bearer_token' => env('GIFT_CODES_X_BEARER_TOKEN'),

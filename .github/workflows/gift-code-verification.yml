@@ -1,0 +1,128 @@
+name: Gift Code Verification
+
+on:
+  pull_request:
+    paths:
+      - 'app/Contexts/GameWorld/GiftCodes/**'
+      - 'app/ReadModels/GiftCodes/**'
+      - 'config/game_world.php'
+      - 'database/migrations/*gift_code*'
+      - 'docs/**/*gift-code*'
+      - 'resources/js/pages/Platform/GiftCodes/**'
+      - 'resources/js/localization/gift-code-workspace-labels.ts'
+      - 'routes/api.php'
+      - 'routes/gift-codes.php'
+      - 'tests/v3/Contexts/GameWorld/GiftCodes/**'
+      - '.github/workflows/gift-code-verification.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gift-codes-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Gift Code backend contracts
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: kingshot_test
+          POSTGRES_USER: kingshot
+          POSTGRES_PASSWORD: kingshot
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U kingshot -d kingshot_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      APP_ENV: testing
+      APP_KEY: base64:Wb1PHh03m1vXbmyRxlI+Y96TqgK7Vyt8H/lkQ8o1SP0=
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_DATABASE: kingshot_test
+      DB_USERNAME: kingshot
+      DB_PASSWORD: kingshot
+      CACHE_STORE: array
+      SESSION_DRIVER: array
+      QUEUE_CONNECTION: sync
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+
+      - name: Configure PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.5'
+          extensions: dom, intl, mbstring, pcntl, pdo_pgsql, posix, redis, simplexml, xml, xmlwriter, zip
+          coverage: none
+          tools: composer:v2
+
+      - name: Install locked PHP dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Verify fresh Gift Code schema
+        run: php artisan migrate:fresh --force
+
+      - name: Pint Gift Code contracts
+        run: >-
+          vendor/bin/pint --test
+          app/Contexts/GameWorld/GiftCodes
+          app/ReadModels/GiftCodes
+          config/game_world.php
+          routes/gift-codes.php
+          tests/v3/Contexts/GameWorld/GiftCodes
+
+      - name: Larastan Gift Code contracts
+        run: >-
+          vendor/bin/phpstan analyse --memory-limit=1G
+          app/Contexts/GameWorld/GiftCodes
+          app/ReadModels/GiftCodes
+          routes/gift-codes.php
+
+      - name: Gift Code V3 backend tests
+        run: >-
+          vendor/bin/phpunit --configuration phpunit.xml
+          tests/v3/Contexts/GameWorld/GiftCodes
+
+  frontend:
+    name: Gift Code frontend contracts
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+
+      - name: Configure Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install locked frontend dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: ESLint Gift Code operations
+        run: npx eslint resources/js/pages/Platform/GiftCodes resources/js/localization/gift-code-workspace-labels.ts
+
+      - name: Format Gift Code operations for verification
+        run: npx prettier --write resources/js/pages/Platform/GiftCodes resources/js/localization/gift-code-workspace-labels.ts
+
+      - name: Verify Gift Code operation formatting
+        run: git diff --exit-code -- resources/js/pages/Platform/GiftCodes resources/js/localization/gift-code-workspace-labels.ts
+
+      - name: Vue TypeScript contract
+        run: npx vue-tsc --noEmit
+
+      - name: Production build
+        run: npm run build

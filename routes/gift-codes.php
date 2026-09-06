@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Contexts\GameWorld\GiftCodes\Http\Controllers\GiftCodeAcquisitionOperationsController;
 use App\Contexts\GameWorld\GiftCodes\Http\Controllers\GiftCodeController;
 use App\Contexts\GameWorld\GiftCodes\Http\Controllers\GiftCodeModerationController;
 use App\Contexts\GameWorld\GiftCodes\Http\Controllers\GiftCodeSourceManagementController;
@@ -70,6 +71,10 @@ Route::middleware(['auth', 'auth.session', 'verified', 'gift-code.curator', 'pas
             ->name('bulk');
         Route::get('/sources', [GiftCodeSourceManagementController::class, 'index'])
             ->name('sources.index');
+        Route::get('/sources/operations', [GiftCodeAcquisitionOperationsController::class, 'index'])
+            ->name('sources.operations');
+        Route::get('/sources/evidence-entry', [GiftCodeAcquisitionOperationsController::class, 'evidence'])
+            ->name('sources.evidence-entry');
         Route::post('/sources', [GiftCodeModerationController::class, 'storeSource'])
             ->middleware('throttle:10,1')
             ->name('sources.store');
@@ -79,6 +84,21 @@ Route::middleware(['auth', 'auth.session', 'verified', 'gift-code.curator', 'pas
         Route::post('/sources/evidence', [GiftCodeSourceManagementController::class, 'evidence'])
             ->middleware('throttle:20,1')
             ->name('sources.evidence');
+        Route::post('/sources/intelligence/rebuild', [GiftCodeSourceManagementController::class, 'rebuildIntelligence'])
+            ->middleware('throttle:5,1')
+            ->name('sources.intelligence.rebuild');
+        Route::post('/sources/{source}/smoke', [GiftCodeSourceManagementController::class, 'smoke'])
+            ->whereUlid('source')
+            ->middleware('throttle:10,1')
+            ->name('sources.smoke');
+        Route::post('/sources/{source}/controls', [GiftCodeSourceManagementController::class, 'controls'])
+            ->whereUlid('source')
+            ->middleware('throttle:10,1')
+            ->name('sources.controls');
+        Route::post('/sources/{source}/head', [GiftCodeSourceManagementController::class, 'head'])
+            ->whereUlid('source')
+            ->middleware('throttle:10,1')
+            ->name('sources.head');
         Route::post('/sources/{source}/push/subscribe', [GiftCodeSourceManagementController::class, 'subscribePush'])
             ->whereUlid('source')
             ->middleware('throttle:10,1')
