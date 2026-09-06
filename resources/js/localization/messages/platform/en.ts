@@ -163,7 +163,8 @@ const messages = {
       headPolling: 'Head polling',
       reconciliation: 'Reconciliation',
       historicalBackfill: 'Historical backfill',
-      pushUnavailable: 'The selected provider push transport is not configured in this environment.',
+      pushUnavailable:
+        'The selected provider push transport is not configured in this environment.',
       pushLabel: 'push',
       headLabel: 'head',
       reconcileLabel: 'reconcile',

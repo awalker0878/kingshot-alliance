@@ -591,35 +591,40 @@ function asPercent(value: number): string {
               v-model="sourcePolicy.authority_promotion_enabled"
               type="checkbox"
               :disabled="sourcePolicy.classification === 'independent'"
-            /> {{ t('platformGiftCodes.sources.authorityPromotion') }}</label
+            />
+            {{ t('platformGiftCodes.sources.authorityPromotion') }}</label
           >
           <label class="flex items-center gap-2"
             ><input
               v-model="sourcePolicy.push_enabled"
               type="checkbox"
               :disabled="!sourcePolicy.ingestion_enabled || !selectedPushAvailable"
-            /> {{ t('platformGiftCodes.sources.pushDiscovery') }}</label
+            />
+            {{ t('platformGiftCodes.sources.pushDiscovery') }}</label
           >
           <label class="flex items-center gap-2"
             ><input
               v-model="sourcePolicy.head_poll_enabled"
               type="checkbox"
               :disabled="!sourcePolicy.ingestion_enabled"
-            /> {{ t('platformGiftCodes.sources.headPolling') }}</label
+            />
+            {{ t('platformGiftCodes.sources.headPolling') }}</label
           >
           <label class="flex items-center gap-2"
             ><input
               v-model="sourcePolicy.reconciliation_enabled"
               type="checkbox"
               :disabled="!sourcePolicy.ingestion_enabled"
-            /> {{ t('platformGiftCodes.sources.reconciliation') }}</label
+            />
+            {{ t('platformGiftCodes.sources.reconciliation') }}</label
           >
           <label class="flex items-center gap-2"
             ><input
               v-model="sourcePolicy.backfill_enabled"
               type="checkbox"
               :disabled="!sourcePolicy.ingestion_enabled"
-            /> {{ t('platformGiftCodes.sources.historicalBackfill') }}</label
+            />
+            {{ t('platformGiftCodes.sources.historicalBackfill') }}</label
           >
         </div>
         <p
@@ -756,11 +761,42 @@ function asPercent(value: number): string {
             >
           </div>
           <div class="mt-3 flex flex-wrap gap-2 text-xs text-[var(--ks-muted)]">
-            <span>{{ t('platformGiftCodes.sources.pushLabel') }} {{ source.pushEnabled ? t('platformGiftCodes.sources.stateOn') : t('platformGiftCodes.sources.stateOff') }}</span
-            ><span>{{ t('platformGiftCodes.sources.headLabel') }} {{ source.headPollEnabled ? t('platformGiftCodes.sources.stateOn') : t('platformGiftCodes.sources.stateOff') }}</span
-            ><span>{{ t('platformGiftCodes.sources.reconcileLabel') }} {{ source.reconciliationEnabled ? t('platformGiftCodes.sources.stateOn') : t('platformGiftCodes.sources.stateOff') }}</span
-            ><span>{{ t('platformGiftCodes.sources.backfillLabel') }} {{ source.backfillEnabled ? t('platformGiftCodes.sources.stateOn') : t('platformGiftCodes.sources.stateOff') }}</span
-            ><span>{{ t('platformGiftCodes.sources.authorityLabel') }} {{ source.authorityPromotionEnabled ? t('platformGiftCodes.sources.stateOn') : t('platformGiftCodes.sources.stateOff') }}</span>
+            <span
+              >{{ t('platformGiftCodes.sources.pushLabel') }}
+              {{
+                source.pushEnabled
+                  ? t('platformGiftCodes.sources.stateOn')
+                  : t('platformGiftCodes.sources.stateOff')
+              }}</span
+            ><span
+              >{{ t('platformGiftCodes.sources.headLabel') }}
+              {{
+                source.headPollEnabled
+                  ? t('platformGiftCodes.sources.stateOn')
+                  : t('platformGiftCodes.sources.stateOff')
+              }}</span
+            ><span
+              >{{ t('platformGiftCodes.sources.reconcileLabel') }}
+              {{
+                source.reconciliationEnabled
+                  ? t('platformGiftCodes.sources.stateOn')
+                  : t('platformGiftCodes.sources.stateOff')
+              }}</span
+            ><span
+              >{{ t('platformGiftCodes.sources.backfillLabel') }}
+              {{
+                source.backfillEnabled
+                  ? t('platformGiftCodes.sources.stateOn')
+                  : t('platformGiftCodes.sources.stateOff')
+              }}</span
+            ><span
+              >{{ t('platformGiftCodes.sources.authorityLabel') }}
+              {{
+                source.authorityPromotionEnabled
+                  ? t('platformGiftCodes.sources.stateOn')
+                  : t('platformGiftCodes.sources.stateOff')
+              }}</span
+            >
           </div>
           <ul
             v-if="!source.activationReadiness.ready"
@@ -778,16 +814,22 @@ function asPercent(value: number): string {
           <p class="mt-3 text-xs text-[var(--ks-muted)]">
             {{ t('platformGiftCodes.sources.requestCountLabel') }} {{ source.requestCount }} ·
             {{ t('platformGiftCodes.sources.observationCountLabel') }}
-            {{ source.observationCount }} · {{ t('platformGiftCodes.sources.acceptedCountLabel') }} {{ source.acceptedObservationCount }} ·
-            {{ t('platformGiftCodes.sources.quarantinedCountLabel') }} {{ source.quarantinedObservationCount }} ·
+            {{ source.observationCount }} · {{ t('platformGiftCodes.sources.acceptedCountLabel') }}
+            {{ source.acceptedObservationCount }} ·
+            {{ t('platformGiftCodes.sources.quarantinedCountLabel') }}
+            {{ source.quarantinedObservationCount }} ·
             {{ t('platformGiftCodes.sources.duplicateCountLabel') }}
             {{ source.duplicateObservationCount }}
           </p>
           <p class="mt-1 text-xs text-[var(--ks-muted)]">
-            {{ t('platformGiftCodes.sources.acceptanceRatioLabel') }} {{ asPercent(source.acceptanceRatio) }} ·
-            {{ t('platformGiftCodes.sources.quarantineRatioLabel') }} {{ asPercent(source.quarantineRatio) }} ·
-            {{ t('platformGiftCodes.sources.duplicateRatioLabel') }} {{ asPercent(source.duplicateRatio) }} ·
-            {{ t('platformGiftCodes.sources.reconciliationGapCountLabel') }} {{ source.reconciliationGapCount }}
+            {{ t('platformGiftCodes.sources.acceptanceRatioLabel') }}
+            {{ asPercent(source.acceptanceRatio) }} ·
+            {{ t('platformGiftCodes.sources.quarantineRatioLabel') }}
+            {{ asPercent(source.quarantineRatio) }} ·
+            {{ t('platformGiftCodes.sources.duplicateRatioLabel') }}
+            {{ asPercent(source.duplicateRatio) }} ·
+            {{ t('platformGiftCodes.sources.reconciliationGapCountLabel') }}
+            {{ source.reconciliationGapCount }}
           </p>
           <p v-if="source.nextEligibleIngestionAt" class="mt-1 text-xs text-[var(--ks-muted)]">
             {{ t('platformGiftCodes.sources.nextEligible') }}
@@ -797,7 +839,8 @@ function asPercent(value: number): string {
             {{ t('platformGiftCodes.sources.lastAttempt') }} {{ formatDate(source.lastAttemptAt) }}
           </p>
           <p v-if="source.lastPushReceivedAt" class="mt-1 text-xs text-[var(--ks-muted)]">
-            {{ t('platformGiftCodes.sources.lastPush') }} {{ formatDate(source.lastPushReceivedAt) }}
+            {{ t('platformGiftCodes.sources.lastPush') }}
+            {{ formatDate(source.lastPushReceivedAt) }}
           </p>
           <p v-if="source.failureCode" class="mt-1 text-xs text-[var(--ks-muted)]">
             {{ t('platformGiftCodes.sources.failureLabel') }}:
@@ -806,7 +849,11 @@ function asPercent(value: number): string {
             {{ source.consecutiveFailures }}
           </p>
           <p v-if="source.reconciliationGapCount > 0" class="mt-1 text-xs font-medium">
-            {{ t('platformGiftCodes.sources.pushCompletenessWarning', { count: source.reconciliationGapCount }) }}
+            {{
+              t('platformGiftCodes.sources.pushCompletenessWarning', {
+                count: source.reconciliationGapCount,
+              })
+            }}
           </p>
 
           <div
@@ -820,7 +867,8 @@ function asPercent(value: number): string {
               <code>{{ subscription.provider }}/{{ subscription.transport }}</code> ·
               {{ subscription.status
               }}<template v-if="subscription.lastEventReceivedAt">
-                · {{ t('platformGiftCodes.sources.lastEvent') }} {{ formatDate(subscription.lastEventReceivedAt) }}</template
+                · {{ t('platformGiftCodes.sources.lastEvent') }}
+                {{ formatDate(subscription.lastEventReceivedAt) }}</template
               ><template v-if="subscription.lastErrorCode">
                 · {{ subscription.lastErrorCode }}</template
               >
