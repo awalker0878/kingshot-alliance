@@ -111,8 +111,7 @@ const english: MessageCatalogue = {
       pageTitle: 'Gift Code acquisition operations',
       eyebrow: 'Gift Code acquisition',
       title: 'Acquisition intelligence and operations',
-      help:
-        'Measure source usefulness, verify transports without ingesting observations, and activate acquisition separately from source authority.',
+      help: 'Measure source usefulness, verify transports without ingesting observations, and activate acquisition separately from source authority.',
       sourcePolicies: 'Source policies',
       evidenceEntry: 'Evidence entry',
       effectiveness: 'Acquisition effectiveness',
@@ -184,7 +183,8 @@ const english: MessageCatalogue = {
       kingdomsPlaceholder: '1501, 1502',
       kingdomsHelp: 'Enter only Kingdom numbers explicitly supported by the reviewed publication.',
       submitEvidence: 'Record verified source evidence',
-      noManualSources: 'No active registered source currently permits curator-confirmed manual evidence.',
+      noManualSources:
+        'No active registered source currently permits curator-confirmed manual evidence.',
     },
   },
   notifications: {
