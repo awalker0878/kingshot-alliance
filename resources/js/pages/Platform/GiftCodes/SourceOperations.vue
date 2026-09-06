@@ -268,7 +268,11 @@ function percent(value: number): string {
               <dd v-if="source.latestSmokeCheck">
                 {{ source.latestSmokeCheck.status }} ·
                 {{ formatDate(source.latestSmokeCheck.checkedAt) }} ·
-                {{ source.latestSmokeCheck.durationMs }} ms
+                {{
+                  t('giftCodes.acquisitionOperations.milliseconds', {
+                    count: formatNumber(source.latestSmokeCheck.durationMs),
+                  })
+                }}
                 <template v-if="source.latestSmokeCheck.failureCode">
                   · <code>{{ source.latestSmokeCheck.failureCode }}</code></template
                 >
