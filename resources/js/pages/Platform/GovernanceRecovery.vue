@@ -38,7 +38,7 @@ function recover(): void {
       image="/images/kingshot/v4/kingdom-map.svg"
       compact
       ><template #actions
-        ><Link href="/platform" class="ks-command-link">← Platform</Link></template
+        ><Link href="/platform" class="ks-command-link">← {{ t('platformAdmin.title') }}</Link></template
       ></RoomBanner
     >
     <section class="ks-surface mt-5 max-w-3xl p-5">
