@@ -125,6 +125,10 @@ const english: MessageCatalogue = {
     'gift-code-source-push-subscribed': 'Gift Code source push subscription enabled.',
     'gift-code-source-push-unsubscribed': 'Gift Code source push subscription disabled.',
     'gift-code-source-reconciled': 'Gift Code source reconciliation completed.',
+    'gift-code-source-smoke-checked': 'Gift Code source readiness smoke check completed.',
+    'gift-code-source-controls-updated': 'Gift Code source acquisition controls updated.',
+    'gift-code-source-head-run': 'Gift Code source head acquisition completed.',
+    'gift-code-acquisition-intelligence-rebuilt': 'Gift Code acquisition intelligence rebuilt.',
   },
 };
 
