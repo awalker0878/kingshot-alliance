@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
+use App\Contexts\GameWorld\GiftCodes\Http\Controllers\FacebookPageGiftCodeWebhookController;
 use App\Contexts\GameWorld\GiftCodes\Http\Controllers\GiftCodeSourceWebhookController;
+use App\Contexts\GameWorld\GiftCodes\Http\Controllers\YouTubeWebSubGiftCodeController;
 use App\Contexts\Platform\Integrations\Http\Controllers\AllianceApiController;
 use App\ReadModels\BotCommands\Http\Controllers\BotCommandApiController;
 use App\ReadModels\BotCommands\Http\Controllers\GiftCodeApiController;
@@ -13,6 +15,24 @@ Route::post('/internal/gift-code-sources/{source}/observations', GiftCodeSourceW
     ->whereUlid('source')
     ->middleware('throttle:60,1')
     ->name('api.internal.gift-code-sources.observations');
+
+Route::get('/gift-code-sources/{source}/youtube-websub', [YouTubeWebSubGiftCodeController::class, 'verify'])
+    ->whereUlid('source')
+    ->middleware('throttle:120,1')
+    ->name('api.gift-code-sources.youtube-websub.verify');
+Route::post('/gift-code-sources/{source}/youtube-websub', [YouTubeWebSubGiftCodeController::class, 'receive'])
+    ->whereUlid('source')
+    ->middleware('throttle:120,1')
+    ->name('api.gift-code-sources.youtube-websub.receive');
+
+Route::get('/gift-code-sources/{source}/facebook-webhook', [FacebookPageGiftCodeWebhookController::class, 'verify'])
+    ->whereUlid('source')
+    ->middleware('throttle:120,1')
+    ->name('api.gift-code-sources.facebook-webhook.verify');
+Route::post('/gift-code-sources/{source}/facebook-webhook', [FacebookPageGiftCodeWebhookController::class, 'receive'])
+    ->whereUlid('source')
+    ->middleware('throttle:120,1')
+    ->name('api.gift-code-sources.facebook-webhook.receive');
 
 Route::prefix('v1')->middleware('throttle:api')->group(function (): void {
     Route::get('/alliance', [AllianceApiController::class, 'show'])
@@ -25,7 +45,7 @@ Route::prefix('v1')->middleware('throttle:api')->group(function (): void {
         ->middleware('api.credential:contributions:read')
         ->name('api.v1.contributions.index');
 
-    Route::get('/commands/overview', [BotCommandApiController::class, 'overview'])
+    Route::get('/commands/overview', BotCommandApiController::class)
         ->middleware('api.credential:commands:read')
         ->name('api.v1.commands.overview');
     Route::get('/gift-codes', GiftCodeApiController::class)
