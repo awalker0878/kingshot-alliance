@@ -72,7 +72,8 @@ final class GiftCodePullAdapterConformanceV3Test extends TestCase
 
         $result = app(RunApprovedGiftCodeSourceIngestion::class)->handle(sourceKey: $source->source_key);
 
-        self::assertSame(1, $result->failedSources);
+        self::assertSame(0, $result->failedSources);
+        self::assertSame(1, $result->quarantined);
         $state->refresh();
         self::assertSame('stable-cursor', $state->committed_high_water);
         self::assertNull($state->active_page_token);
