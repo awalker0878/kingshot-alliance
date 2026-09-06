@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\Governance\Services;
 
+use App\Contexts\GameWorld\Governance\Actions\ReconcileKingdomRolePermissions;
 use App\Contexts\GameWorld\Governance\Enums\DefaultKingdomRole;
 use App\Contexts\GameWorld\Governance\Enums\KingdomPermission;
 use App\Contexts\GameWorld\Governance\Models\KingdomRole;
@@ -12,15 +13,18 @@ use App\Shared\Infrastructure\Access\Models\Permission;
 use Illuminate\Support\Str;
 use RuntimeException;
 
-final class KingdomRoleProvisioner
+final readonly class KingdomRoleProvisioner
 {
+    public function __construct(private ReconcileKingdomRolePermissions $reconcilePermissions) {}
+
     /** @return array<string, KingdomRole> */
     public function provision(Kingdom $kingdom): array
     {
-        $permission = Permission::query()->updateOrCreate(
+        Permission::query()->updateOrCreate(
             ['key' => KingdomPermission::RoleManage->key()],
             [
                 'id' => (string) Str::ulid(),
+                'owner_key' => KingdomPermission::ownerKey(),
                 'description' => KingdomPermission::RoleManage->description(),
             ],
         );
@@ -28,33 +32,38 @@ final class KingdomRoleProvisioner
         $roles = [];
         foreach (DefaultKingdomRole::cases() as $roleTemplate) {
             $role = KingdomRole::query()->firstOrCreate(
-                [
-                    'kingdom_id' => $kingdom->id,
-                    'key' => $roleTemplate->value,
-                ],
+                ['kingdom_id' => $kingdom->id, 'key' => $roleTemplate->value],
                 [
                     'name' => $roleTemplate->name(),
+                    'description' => $roleTemplate->description(),
                     'is_system' => true,
+                    'archived_at' => null,
                 ],
             );
 
-            if ($role->name !== $roleTemplate->name() || ! $role->is_system) {
-                $role->forceFill([
-                    'name' => $roleTemplate->name(),
-                    'is_system' => true,
-                ])->save();
-            }
-
-            if ($roleTemplate === DefaultKingdomRole::Administrator) {
-                $role->permissions()->syncWithoutDetaching([$permission->id]);
-            }
-
+            $role->forceFill([
+                'name' => $roleTemplate->name(),
+                'description' => $roleTemplate->description(),
+                'is_system' => true,
+                'archived_at' => null,
+            ])->save();
             $roles[$roleTemplate->value] = $role;
         }
 
-        if (! isset($roles[DefaultKingdomRole::Administrator->value])) {
+        $administrator = $roles[DefaultKingdomRole::Administrator->value] ?? null;
+        if (! $administrator instanceof KingdomRole) {
             throw new RuntimeException('The Kingdom Administrator role was not provisioned.');
         }
+
+        $this->reconcilePermissions->handle(
+            (string) $kingdom->id,
+            KingdomPermission::ownerKey(),
+            [
+                (string) $roles[DefaultKingdomRole::Administrator->value]->id => [KingdomPermission::RoleManage->key()],
+                (string) $roles[DefaultKingdomRole::EventCoordinator->value]->id => [],
+                (string) $roles[DefaultKingdomRole::Viewer->value]->id => [],
+            ],
+        );
 
         return $roles;
     }

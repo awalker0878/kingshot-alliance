@@ -12,7 +12,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
+/** @property Carbon|null $archived_at */
 final class KingdomRole extends Model
 {
     use HasUlids;
@@ -25,39 +27,38 @@ final class KingdomRole extends Model
         'kingdom_id',
         'key',
         'name',
+        'description',
         'is_system',
+        'archived_at',
     ];
 
     protected function casts(): array
     {
         return [
             'is_system' => 'boolean',
+            'archived_at' => 'datetime',
         ];
     }
 
-    /** @return BelongsTo<Kingdom, $this> */
     public function kingdom(): BelongsTo
     {
         return $this->belongsTo(Kingdom::class);
     }
 
-    /** @return BelongsToMany<Permission, $this> */
     public function permissions(): BelongsToMany
     {
         return $this->belongsToMany(Permission::class, 'kingdom_role_permissions');
     }
 
-    /** @return HasMany<KingdomRoleAssignment, $this> */
     public function assignments(): HasMany
     {
         return $this->hasMany(KingdomRoleAssignment::class);
     }
 
-    /** @return BelongsToMany<Player, $this> */
     public function players(): BelongsToMany
     {
         return $this->belongsToMany(Player::class, 'kingdom_role_assignments', 'kingdom_role_id', 'player_id')
-            ->withPivot(['kingdom_id'])
+            ->withPivot(['kingdom_id', 'effective_from', 'expires_at', 'revoked_at'])
             ->withTimestamps();
     }
 }

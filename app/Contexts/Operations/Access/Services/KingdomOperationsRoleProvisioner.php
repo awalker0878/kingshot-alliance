@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Access\Services;
 
-use App\Contexts\GameWorld\Governance\Actions\GrantKingdomRolePermissions;
+use App\Contexts\GameWorld\Governance\Actions\ReconcileKingdomRolePermissions;
 use App\Contexts\Operations\Access\Enums\OperationsPermission;
 use App\Shared\Infrastructure\Access\Models\Permission;
 use Illuminate\Support\Str;
 
 final readonly class KingdomOperationsRoleProvisioner
 {
-    public function __construct(private GrantKingdomRolePermissions $grantRolePermissions) {}
+    public function __construct(private ReconcileKingdomRolePermissions $reconcileRolePermissions) {}
 
     public function provision(string $kingdomId, string $administratorRoleId, string $eventCoordinatorRoleId, string $viewerRoleId): void
     {
@@ -44,17 +44,18 @@ final readonly class KingdomOperationsRoleProvisioner
             static fn (OperationsPermission $permission): array => [
                 'id' => (string) Str::ulid(),
                 'key' => $permission->key(),
+                'owner_key' => OperationsPermission::ownerKey(),
                 'description' => $permission->description(),
             ],
             array_values($requiredPermissions),
         );
-        Permission::query()->upsert($permissionRows, ['key'], ['description']);
+        Permission::query()->upsert($permissionRows, ['key'], ['owner_key', 'description']);
 
         $permissionKeysByRoleId = [];
         foreach ($grants as $roleId => $permissions) {
             $permissionKeysByRoleId[$roleId] = array_map(static fn (OperationsPermission $permission): string => $permission->key(), $permissions);
         }
 
-        $this->grantRolePermissions->handle($kingdomId, $permissionKeysByRoleId);
+        $this->reconcileRolePermissions->handle($kingdomId, OperationsPermission::ownerKey(), $permissionKeysByRoleId);
     }
 }

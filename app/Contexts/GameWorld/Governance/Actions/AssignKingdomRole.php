@@ -13,6 +13,7 @@ use App\Contexts\GameWorld\Governance\Services\KingdomWriteState;
 use App\Contexts\GameWorld\Players\Models\Player;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -20,7 +21,7 @@ final readonly class AssignKingdomRole
 {
     public function __construct(
         private KingdomWriteState $kingdomWriteState,
-        private KingdomAuthorization $mutations,
+        private KingdomAuthorization $authorization,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -29,45 +30,83 @@ final readonly class AssignKingdomRole
         string $actorPlayerId,
         string $kingdomId,
         string $targetPlayerId,
-        DefaultKingdomRole $roleTemplate,
-    ): void {
-        DB::transaction(function () use ($actorPlayerId, $kingdomId, $targetPlayerId, $roleTemplate): void {
-            $authority = $this->kingdomWriteState->lockActiveScope($actorPlayerId, $kingdomId);
-            $this->mutations->authorizeContext($authority, KingdomPermission::RoleManage);
-            $currentKingdom = $authority->kingdom;
-            $currentActor = $authority->actor;
+        string $roleId,
+        ?string $effectiveFrom = null,
+        ?string $expiresAt = null,
+        ?string $reason = null,
+    ): string {
+        $effective = $effectiveFrom === null ? null : Carbon::parse($effectiveFrom);
+        $expires = $expiresAt === null ? null : Carbon::parse($expiresAt);
+        if ($expires !== null && $expires->lte($effective ?? now())) {
+            throw ValidationException::withMessages(['expires_at' => 'Role expiry must be after its effective time.']);
+        }
 
-            $lockedTarget = Player::query()->whereKey($targetPlayerId)->lockForUpdate()->firstOrFail();
-            if ((string) $lockedTarget->current_kingdom_id !== (string) $currentKingdom->id) {
-                throw ValidationException::withMessages([
-                    'player_id' => 'The selected Player is not currently in this Kingdom.',
-                ]);
+        return DB::transaction(function () use ($actorPlayerId, $kingdomId, $targetPlayerId, $roleId, $effective, $expires, $reason): string {
+            $authority = $this->kingdomWriteState->lockActiveScope($actorPlayerId, $kingdomId);
+            $this->authorization->authorizeContext($authority, KingdomPermission::RoleManage);
+
+            $target = Player::query()->whereKey($targetPlayerId)->lockForUpdate()->firstOrFail();
+            if ((string) $target->current_kingdom_id !== $kingdomId) {
+                throw ValidationException::withMessages(['player_id' => 'The selected Player is not currently in this Kingdom.']);
             }
 
             $role = KingdomRole::query()
-                ->where('kingdom_id', $currentKingdom->id)
-                ->where('key', $roleTemplate->value)
+                ->whereKey($roleId)
+                ->where('kingdom_id', $kingdomId)
+                ->whereNull('archived_at')
+                ->lockForUpdate()
                 ->firstOrFail();
 
-            $assignment = KingdomRoleAssignment::query()->firstOrCreate([
-                'kingdom_id' => $currentKingdom->id,
-                'player_id' => $lockedTarget->id,
-                'kingdom_role_id' => $role->id,
-            ]);
-
-            if (! $assignment->wasRecentlyCreated) {
-                return;
+            $existing = KingdomRoleAssignment::query()
+                ->where('kingdom_id', $kingdomId)
+                ->where('player_id', $targetPlayerId)
+                ->where('kingdom_role_id', $roleId)
+                ->whereNull('revoked_at')
+                ->lockForUpdate()
+                ->first();
+            if ($existing instanceof KingdomRoleAssignment) {
+                return (string) $existing->id;
             }
 
-            $metadata = [
-                'kingdom_id' => (string) $currentKingdom->id,
-                'kingdom_number' => (int) $currentKingdom->number,
-                'target_player_id' => (string) $lockedTarget->id,
-                'role_key' => $roleTemplate->value,
-            ];
+            if ($role->key === DefaultKingdomRole::Administrator->value && $expires !== null) {
+                $survivingAdmin = KingdomRoleAssignment::query()
+                    ->where('kingdom_id', $kingdomId)
+                    ->whereNull('revoked_at')
+                    ->whereHas('role', static fn ($query) => $query->where('key', DefaultKingdomRole::Administrator->value))
+                    ->where(function ($query) use ($expires): void {
+                        $query->whereNull('expires_at')->orWhere('expires_at', '>', $expires);
+                    })
+                    ->exists();
+                if (! $survivingAdmin) {
+                    throw ValidationException::withMessages(['expires_at' => 'A temporary Kingdom Admin requires another administrator whose authority survives that expiry.']);
+                }
+            }
 
-            $this->audit->record('kingdom.role_assigned', $currentActor, $assignment, null, $metadata);
-            $this->outbox->record('kingdom.role_assigned', null, $assignment, $metadata);
+            $assignment = KingdomRoleAssignment::query()->create([
+                'kingdom_id' => $kingdomId,
+                'player_id' => $targetPlayerId,
+                'kingdom_role_id' => $roleId,
+                'assigned_by_player_id' => $actorPlayerId,
+                'effective_from' => $effective,
+                'expires_at' => $expires,
+                'reason' => $reason === null ? null : trim($reason),
+            ]);
+
+            $metadata = [
+                'kingdom_id' => $kingdomId,
+                'kingdom_number' => (int) $authority->kingdom->number,
+                'target_player_id' => $targetPlayerId,
+                'role_id' => $roleId,
+                'role_key' => (string) $role->key,
+                'effective_from' => $effective?->toIso8601String(),
+                'expires_at' => $expires?->toIso8601String(),
+                'reason' => $reason,
+            ];
+            $event = $expires === null ? 'kingdom.role_assigned' : 'kingdom.role_delegated';
+            $this->audit->record($event, $authority->actor, $assignment, null, $metadata);
+            $this->outbox->record($event, null, $assignment, $metadata);
+
+            return (string) $assignment->id;
         });
     }
 }

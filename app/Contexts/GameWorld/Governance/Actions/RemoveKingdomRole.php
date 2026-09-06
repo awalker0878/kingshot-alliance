@@ -6,72 +6,67 @@ namespace App\Contexts\GameWorld\Governance\Actions;
 
 use App\Contexts\GameWorld\Governance\Enums\DefaultKingdomRole;
 use App\Contexts\GameWorld\Governance\Enums\KingdomPermission;
-use App\Contexts\GameWorld\Governance\Models\KingdomRole;
 use App\Contexts\GameWorld\Governance\Models\KingdomRoleAssignment;
 use App\Contexts\GameWorld\Governance\Services\KingdomAuthorization;
 use App\Contexts\GameWorld\Governance\Services\KingdomWriteState;
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
-use LogicException;
 
 final readonly class RemoveKingdomRole
 {
     public function __construct(
         private KingdomWriteState $kingdomWriteState,
-        private KingdomAuthorization $mutations,
+        private KingdomAuthorization $authorization,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
 
-    public function handle(string $actorPlayerId, string $kingdomId, string $assignmentId): void
+    public function handle(string $actorPlayerId, string $kingdomId, string $assignmentId, ?string $reason = null): void
     {
-        DB::transaction(function () use ($actorPlayerId, $kingdomId, $assignmentId): void {
+        DB::transaction(function () use ($actorPlayerId, $kingdomId, $assignmentId, $reason): void {
             $authority = $this->kingdomWriteState->lockActiveScope($actorPlayerId, $kingdomId);
-            $this->mutations->authorizeContext($authority, KingdomPermission::RoleManage);
-            $currentKingdom = $authority->kingdom;
-            $currentActor = $authority->actor;
+            $this->authorization->authorizeContext($authority, KingdomPermission::RoleManage);
 
-            $locked = KingdomRoleAssignment::query()
+            $assignment = KingdomRoleAssignment::query()
                 ->whereKey($assignmentId)
-                ->where('kingdom_id', $currentKingdom->id)
-                ->with('role:id,key')
+                ->where('kingdom_id', $kingdomId)
+                ->with('role')
                 ->lockForUpdate()
                 ->firstOrFail();
-
-            Player::query()->whereKey($locked->player_id)->lockForUpdate()->firstOrFail();
-
-            $role = $locked->role;
-            if (! $role instanceof KingdomRole) {
-                throw new LogicException('A Kingdom role assignment must reference a Kingdom role.');
+            if ($assignment->revoked_at !== null) {
+                return;
             }
 
-            if ($role->key === DefaultKingdomRole::Administrator->value) {
-                $anotherAdministratorExists = KingdomRoleAssignment::query()
-                    ->where('kingdom_id', $currentKingdom->id)
-                    ->where('id', '!=', $locked->id)
+            if ($assignment->role->key === DefaultKingdomRole::Administrator->value && $assignment->isEffectiveAt()) {
+                $anotherAdminExists = KingdomRoleAssignment::query()
+                    ->effective()
+                    ->where('kingdom_id', $kingdomId)
+                    ->where('id', '!=', $assignment->id)
                     ->whereHas('role', static fn ($query) => $query->where('key', DefaultKingdomRole::Administrator->value))
                     ->exists();
-
-                if (! $anotherAdministratorExists) {
-                    throw ValidationException::withMessages([
-                        'role' => 'A Kingdom must retain at least one Kingdom Admin.',
-                    ]);
+                if (! $anotherAdminExists) {
+                    throw ValidationException::withMessages(['role' => 'A Kingdom must retain at least one effective Kingdom Admin.']);
                 }
             }
 
-            $metadata = [
-                'kingdom_id' => (string) $currentKingdom->id,
-                'kingdom_number' => (int) $currentKingdom->number,
-                'target_player_id' => (string) $locked->player_id,
-                'role_key' => $role->key,
-            ];
+            $assignment->forceFill([
+                'revoked_at' => now(),
+                'revoked_by_player_id' => $actorPlayerId,
+                'revocation_reason' => $reason === null ? null : trim($reason),
+            ])->save();
 
-            $this->audit->record('kingdom.role_removed', $currentActor, $locked, null, $metadata);
-            $this->outbox->record('kingdom.role_removed', null, $locked, $metadata);
-            $locked->delete();
+            $metadata = [
+                'kingdom_id' => $kingdomId,
+                'kingdom_number' => (int) $authority->kingdom->number,
+                'target_player_id' => (string) $assignment->player_id,
+                'role_id' => (string) $assignment->kingdom_role_id,
+                'role_key' => (string) $assignment->role->key,
+                'reason' => $reason,
+            ];
+            $this->audit->record('kingdom.role_removed', $authority->actor, $assignment, null, $metadata);
+            $this->outbox->record('kingdom.role_removed', null, $assignment, $metadata);
         });
     }
 }

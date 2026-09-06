@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 /**
  * @property string $id
  * @property string $key
+ * @property string|null $owner_key
  * @property string $description
  */
 final class Permission extends Model
@@ -22,6 +23,7 @@ final class Permission extends Model
 
     protected $fillable = [
         'key',
+        'owner_key',
         'description',
     ];
 }

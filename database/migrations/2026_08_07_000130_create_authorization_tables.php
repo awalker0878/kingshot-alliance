@@ -13,8 +13,11 @@ return new class extends Migration
         Schema::create('permissions', function (Blueprint $table): void {
             $table->ulid('id')->primary();
             $table->string('key', 100)->unique();
+            $table->string('owner_key', 100)->nullable();
             $table->string('description', 255);
             $table->timestamps();
+
+            $table->index(['owner_key', 'key']);
         });
 
         Schema::create('roles', function (Blueprint $table): void {
