@@ -5,19 +5,30 @@ declare(strict_types=1);
 namespace App\Contexts\GameWorld\Governance\Actions;
 
 use App\Contexts\GameWorld\Governance\Enums\DefaultKingdomRole;
+use App\Contexts\GameWorld\Governance\Enums\KingdomPermission;
 use App\Contexts\GameWorld\Governance\Models\KingdomRole;
 use App\Contexts\GameWorld\Governance\Models\KingdomRoleAssignment;
+use App\Contexts\GameWorld\Governance\Services\KingdomAuthorization;
 use App\Contexts\GameWorld\Players\Models\Player;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 final readonly class BulkKingdomRoleAdministration
 {
-    public function __construct(private AssignKingdomRole $assign, private RemoveKingdomRole $remove) {}
+    public function __construct(
+        private AssignKingdomRole $assign,
+        private RemoveKingdomRole $remove,
+        private KingdomAuthorization $authorization,
+    ) {}
 
     /** @param list<string> $playerIds @return array{eligible:list<string>,ineligible:array<string,string>} */
-    public function preview(string $kingdomId, string $roleId, string $operation, array $playerIds): array
+    public function preview(string $actorPlayerId, string $kingdomId, string $roleId, string $operation, array $playerIds): array
     {
+        if (! $this->authorization->allows($actorPlayerId, $kingdomId, KingdomPermission::RoleManage)) {
+            throw new AuthorizationException;
+        }
+
         $playerIds = array_values(array_unique(array_map('strval', $playerIds)));
         if (count($playerIds) > 50) {
             throw ValidationException::withMessages(['players' => 'Bulk Kingdom role administration is limited to 50 Governors.']);
@@ -62,7 +73,7 @@ final readonly class BulkKingdomRoleAdministration
     /** @param list<string> $playerIds @return array{applied:list<string>,skipped:array<string,string>} */
     public function handle(string $actorPlayerId, string $kingdomId, string $roleId, string $operation, array $playerIds, ?string $reason = null): array
     {
-        $preview = $this->preview($kingdomId, $roleId, $operation, $playerIds);
+        $preview = $this->preview($actorPlayerId, $kingdomId, $roleId, $operation, $playerIds);
         $applied = [];
         DB::transaction(function () use ($actorPlayerId, $kingdomId, $roleId, $operation, $reason, $preview, &$applied): void {
             foreach ($preview['eligible'] as $playerId) {
