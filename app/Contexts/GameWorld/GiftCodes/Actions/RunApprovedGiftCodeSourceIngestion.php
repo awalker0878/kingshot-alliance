@@ -278,8 +278,10 @@ final readonly class RunApprovedGiftCodeSourceIngestion
         }
         if ($rateLimit?->remaining === 0 && $rateLimit->resetAtUnix !== null) {
             $seconds = max(1, min(86_400, $rateLimit->resetAtUnix - time()));
+
             return now()->addSeconds($seconds);
         }
+
         return null;
     }
 

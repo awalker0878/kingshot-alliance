@@ -9,8 +9,8 @@ use App\Contexts\GameWorld\GiftCodes\Actions\RecordGiftCodePushDelivery;
 use App\Contexts\GameWorld\GiftCodes\Adapters\YouTubeChannelGiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeSourceRegistry;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeSourceSubscription;
-use App\Contexts\GameWorld\GiftCodes\Services\GiftCodePushPayloadLimits;
 use App\Contexts\GameWorld\GiftCodes\Services\GiftCodePushDeliveryIdentity;
+use App\Contexts\GameWorld\GiftCodes\Services\GiftCodePushPayloadLimits;
 use App\Contexts\GameWorld\GiftCodes\Services\YouTubeVideoGiftCodeFetcher;
 use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodePushDelivery;
 use App\Shared\Infrastructure\Http\Controller;
@@ -96,6 +96,7 @@ final class YouTubeWebSubGiftCodeController extends Controller
             if (! $delivery->wasRecentlyCreated) {
                 $duplicates++;
                 $registry->increment('replay_rejection_count');
+
                 continue;
             }
 
@@ -194,7 +195,9 @@ final class YouTubeWebSubGiftCodeController extends Controller
             $expectedChannelId = trim((string) (($source->provenance_policy ?? [])['youtube_channel_id'] ?? ''));
             $result = [];
             foreach ($nodes as $node) {
-                if (! $node instanceof DOMNode) continue;
+                if (! $node instanceof DOMNode) {
+                    continue;
+                }
                 $videoId = $this->firstText($xpath, $node, './*[local-name()="videoId"]');
                 $channelId = $this->firstText($xpath, $node, './*[local-name()="channelId"]');
                 $updatedAt = $this->firstText($xpath, $node, './*[local-name()="updated"]') ?? '';
@@ -208,6 +211,7 @@ final class YouTubeWebSubGiftCodeController extends Controller
                     'updated_at' => mb_substr($updatedAt, 0, 120),
                 ];
             }
+
             return $result;
         } finally {
             libxml_clear_errors();
@@ -218,8 +222,11 @@ final class YouTubeWebSubGiftCodeController extends Controller
     private function firstText(DOMXPath $xpath, DOMNode $context, string $expression): ?string
     {
         $nodes = $xpath->query($expression, $context);
-        if ($nodes === false || $nodes->length === 0) return null;
+        if ($nodes === false || $nodes->length === 0) {
+            return null;
+        }
         $value = trim((string) $nodes->item(0)?->textContent);
+
         return $value === '' ? null : $value;
     }
 }

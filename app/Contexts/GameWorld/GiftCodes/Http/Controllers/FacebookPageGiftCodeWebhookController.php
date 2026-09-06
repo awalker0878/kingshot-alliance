@@ -99,6 +99,7 @@ final class FacebookPageGiftCodeWebhookController extends Controller
             if (! $delivery->wasRecentlyCreated) {
                 $duplicates++;
                 $registry->increment('replay_rejection_count');
+
                 continue;
             }
 
@@ -109,6 +110,7 @@ final class FacebookPageGiftCodeWebhookController extends Controller
                         'processed_at' => now(),
                     ])->save();
                     $processed++;
+
                     continue;
                 }
 

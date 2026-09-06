@@ -157,30 +157,47 @@ final class FacebookPageGiftCodeSourceAdapter implements GiftCodeSourceAdapter
     private function requiredPolicyString(array $policy, string $key, int $maximum): string
     {
         $value = $this->optionalString($policy[$key] ?? null, $maximum);
-        if ($value === null) throw new UnexpectedValueException(sprintf('The Facebook Page adapter requires source policy %s.', $key));
+        if ($value === null) {
+            throw new UnexpectedValueException(sprintf('The Facebook Page adapter requires source policy %s.', $key));
+        }
+
         return $value;
     }
 
     private function assertJsonSuccess(Response $response, string $operation): void
     {
         $this->assertGiftCodeProviderSuccess($response, $operation);
-        if (! str_contains(mb_strtolower((string) $response->header('Content-Type')), 'json')) throw new UnexpectedValueException($operation.' did not return JSON content.');
+        if (! str_contains(mb_strtolower((string) $response->header('Content-Type')), 'json')) {
+            throw new UnexpectedValueException($operation.' did not return JSON content.');
+        }
     }
 
     private function requiredString(mixed $value, string $field, int $position, int $maximum): string
     {
         $value = $this->optionalString($value, $maximum);
-        if ($value === null) throw new UnexpectedValueException(sprintf('Facebook Page post %d requires a non-empty %s.', $position, $field));
+        if ($value === null) {
+            throw new UnexpectedValueException(sprintf('Facebook Page post %d requires a non-empty %s.', $position, $field));
+        }
+
         return $value;
     }
 
     private function optionalString(mixed $value, int $maximum): ?string
     {
-        if ($value === null) return null;
-        if (! is_string($value)) throw new UnexpectedValueException('Facebook Graph API scalar fields must be strings.');
+        if ($value === null) {
+            return null;
+        }
+        if (! is_string($value)) {
+            throw new UnexpectedValueException('Facebook Graph API scalar fields must be strings.');
+        }
         $value = trim($value);
-        if ($value === '') return null;
-        if (mb_strlen($value) > $maximum) throw new UnexpectedValueException('A Facebook Graph API scalar field exceeded its maximum length.');
+        if ($value === '') {
+            return null;
+        }
+        if (mb_strlen($value) > $maximum) {
+            throw new UnexpectedValueException('A Facebook Graph API scalar field exceeded its maximum length.');
+        }
+
         return $value;
     }
 }

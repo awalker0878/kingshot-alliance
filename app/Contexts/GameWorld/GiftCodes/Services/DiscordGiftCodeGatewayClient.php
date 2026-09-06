@@ -8,6 +8,7 @@ use App\Contexts\GameWorld\GiftCodes\Actions\ProcessDiscordGiftCodeGatewayEvent;
 use App\Contexts\GameWorld\GiftCodes\Adapters\DiscordChannelGiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeSourceRegistry;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeSourceSubscription;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
 use Throwable;
@@ -119,6 +120,7 @@ final class DiscordGiftCodeGatewayClient
                         }
                         $result = $this->processor->handle($payload);
                         $handled += $result['processed'];
+
                         continue;
                     }
 
@@ -126,6 +128,7 @@ final class DiscordGiftCodeGatewayClient
                         $this->sendJson($socket, ['op' => 1, 'd' => $sequence]);
                         $heartbeatAcked = false;
                         $nextHeartbeatAt = microtime(true) + ($heartbeatMs / 1000);
+
                         continue;
                     }
                     if ($op === 7) {
@@ -297,6 +300,7 @@ final class DiscordGiftCodeGatewayClient
             }
             if ($frame['opcode'] === 0x9) {
                 $this->writeFrame($socket, $frame['payload'], 0xA);
+
                 continue;
             }
             if ($frame['opcode'] === 0xA) {
@@ -465,7 +469,7 @@ final class DiscordGiftCodeGatewayClient
             ->update(['status' => 'degraded', 'last_error_code' => $code]);
     }
 
-    /** @return \Illuminate\Database\Eloquent\Collection<int,GiftCodeSourceRegistry> */
+    /** @return Collection<int,GiftCodeSourceRegistry> */
     private function discordSources()
     {
         return GiftCodeSourceRegistry::query()

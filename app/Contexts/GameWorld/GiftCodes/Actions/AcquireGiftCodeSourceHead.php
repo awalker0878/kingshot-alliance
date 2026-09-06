@@ -13,7 +13,6 @@ use App\Contexts\GameWorld\GiftCodes\Services\GiftCodeSourcePaginationPolicy;
 use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeIngestionPage;
 use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeSourceAcquisitionBatch;
 use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeSourceCheckpoint;
-use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeSourceRateLimit;
 use UnexpectedValueException;
 
 final readonly class AcquireGiftCodeSourceHead

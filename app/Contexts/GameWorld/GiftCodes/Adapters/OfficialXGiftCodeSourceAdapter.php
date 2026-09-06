@@ -162,7 +162,9 @@ final class OfficialXGiftCodeSourceAdapter implements GiftCodeIncrementalPaginat
             throw new UnexpectedValueException('The X API response did not include the configured author identity.');
         }
         foreach ($users as $user) {
-            if (! is_array($user)) continue;
+            if (! is_array($user)) {
+                continue;
+            }
             $includedId = $this->optionalString($user['id'] ?? null, 32);
             $includedUsername = $this->optionalString($user['username'] ?? null, 30);
             if ($includedId === $userId && $includedUsername !== null && mb_strtolower($includedUsername) === mb_strtolower($username)) {
@@ -177,11 +179,14 @@ final class OfficialXGiftCodeSourceAdapter implements GiftCodeIncrementalPaginat
     {
         $codes = [];
         foreach (preg_split('/\R/u', $text) ?: [] as $line) {
-            if (! is_string($line)) continue;
+            if (! is_string($line)) {
+                continue;
+            }
             if (preg_match('/^\s*(?:🎁\s*)?(?:gift\s*code|redeem\s*code)\s*[:：]\s*([A-Za-z0-9_-]{3,64})\s*[.!]?\s*$/iu', $line, $matches) === 1) {
                 $codes[] = $matches[1];
             }
         }
+
         return array_values(array_unique($codes));
     }
 
@@ -189,39 +194,64 @@ final class OfficialXGiftCodeSourceAdapter implements GiftCodeIncrementalPaginat
     private function requiredPolicyString(array $policy, string $key, int $maximum): string
     {
         $value = $this->optionalString($policy[$key] ?? null, $maximum);
-        if ($value === null) throw new UnexpectedValueException(sprintf('The official X adapter requires source policy %s.', $key));
+        if ($value === null) {
+            throw new UnexpectedValueException(sprintf('The official X adapter requires source policy %s.', $key));
+        }
+
         return $value;
     }
 
     private function requiredString(mixed $value, string $field, int $position, int $maximum): string
     {
         $value = $this->optionalString($value, $maximum);
-        if ($value === null) throw new UnexpectedValueException(sprintf('X post %d requires a non-empty %s.', $position, $field));
+        if ($value === null) {
+            throw new UnexpectedValueException(sprintf('X post %d requires a non-empty %s.', $position, $field));
+        }
+
         return $value;
     }
 
     private function optionalString(mixed $value, int $maximum): ?string
     {
-        if ($value === null) return null;
-        if (! is_string($value)) throw new UnexpectedValueException('X API scalar fields must be strings.');
+        if ($value === null) {
+            return null;
+        }
+        if (! is_string($value)) {
+            throw new UnexpectedValueException('X API scalar fields must be strings.');
+        }
         $value = trim($value);
-        if ($value === '') return null;
-        if (mb_strlen($value) > $maximum) throw new UnexpectedValueException('An X API scalar field exceeded its maximum length.');
+        if ($value === '') {
+            return null;
+        }
+        if (mb_strlen($value) > $maximum) {
+            throw new UnexpectedValueException('An X API scalar field exceeded its maximum length.');
+        }
+
         return $value;
     }
 
     private function optionalCursor(?string $value, string $pattern, int $maximum, string $message): ?string
     {
-        if ($value === null || trim($value) === '') return null;
+        if ($value === null || trim($value) === '') {
+            return null;
+        }
         $value = trim($value);
-        if (mb_strlen($value) > $maximum || preg_match($pattern, $value) !== 1) throw new UnexpectedValueException($message);
+        if (mb_strlen($value) > $maximum || preg_match($pattern, $value) !== 1) {
+            throw new UnexpectedValueException($message);
+        }
+
         return $value;
     }
 
     private function greaterNumericId(?string $current, string $candidate): string
     {
-        if ($current === null || strlen($candidate) > strlen($current)) return $candidate;
-        if (strlen($candidate) < strlen($current)) return $current;
+        if ($current === null || strlen($candidate) > strlen($current)) {
+            return $candidate;
+        }
+        if (strlen($candidate) < strlen($current)) {
+            return $current;
+        }
+
         return strcmp($candidate, $current) > 0 ? $candidate : $current;
     }
 }

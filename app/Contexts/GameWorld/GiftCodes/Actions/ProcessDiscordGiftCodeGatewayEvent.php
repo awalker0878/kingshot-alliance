@@ -79,6 +79,7 @@ final readonly class ProcessDiscordGiftCodeGatewayEvent
             if (! $delivery->wasRecentlyCreated) {
                 $duplicates++;
                 $source->increment('replay_rejection_count');
+
                 continue;
             }
 

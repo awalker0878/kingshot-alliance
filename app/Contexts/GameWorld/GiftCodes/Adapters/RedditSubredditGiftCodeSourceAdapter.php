@@ -158,6 +158,7 @@ final class RedditSubredditGiftCodeSourceAdapter implements GiftCodeSourceAdapte
         if ($value === null) {
             throw new UnexpectedValueException(sprintf('The Reddit adapter requires source policy %s.', $key));
         }
+
         return $value;
     }
 
@@ -175,16 +176,26 @@ final class RedditSubredditGiftCodeSourceAdapter implements GiftCodeSourceAdapte
         if ($value === null) {
             throw new UnexpectedValueException(sprintf('Reddit post %d requires a non-empty %s.', $position, $field));
         }
+
         return $value;
     }
 
     private function optionalString(mixed $value, int $maximum): ?string
     {
-        if ($value === null) return null;
-        if (! is_string($value)) throw new UnexpectedValueException('Reddit API scalar fields must be strings.');
+        if ($value === null) {
+            return null;
+        }
+        if (! is_string($value)) {
+            throw new UnexpectedValueException('Reddit API scalar fields must be strings.');
+        }
         $value = trim($value);
-        if ($value === '') return null;
-        if (mb_strlen($value) > $maximum) throw new UnexpectedValueException('A Reddit API scalar field exceeded its maximum length.');
+        if ($value === '') {
+            return null;
+        }
+        if (mb_strlen($value) > $maximum) {
+            throw new UnexpectedValueException('A Reddit API scalar field exceeded its maximum length.');
+        }
+
         return $value;
     }
 }

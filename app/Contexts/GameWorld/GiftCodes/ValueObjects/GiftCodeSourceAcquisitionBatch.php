@@ -7,8 +7,8 @@ namespace App\Contexts\GameWorld\GiftCodes\ValueObjects;
 final readonly class GiftCodeSourceAcquisitionBatch
 {
     /**
-     * @param list<GiftCodeIngestionObservation> $observations
-     * @param array<string,mixed> $syncStateChanges
+     * @param  list<GiftCodeIngestionObservation>  $observations
+     * @param  array<string,mixed>  $syncStateChanges
      */
     public function __construct(
         public array $observations,

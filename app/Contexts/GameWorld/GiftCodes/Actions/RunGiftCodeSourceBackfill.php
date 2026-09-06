@@ -58,6 +58,7 @@ final readonly class RunGiftCodeSourceBackfill
                 $state->refresh();
             } elseif ($state->last_backfill_at !== null && $state->backfill_page_token === null) {
                 $totals['completed']++;
+
                 continue;
             }
 
