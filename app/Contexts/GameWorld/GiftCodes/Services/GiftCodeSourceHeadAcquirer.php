@@ -283,7 +283,7 @@ final readonly class GiftCodeSourceHeadAcquirer
     }
 
     /**
-     * @param array<string, mixed> $changes
+     * @param  array<string, mixed>  $changes
      * @return array<string, mixed>
      */
     private function withHttpState(
