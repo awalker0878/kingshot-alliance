@@ -37,6 +37,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string|null $raw_evidence_ref
  * @property CarbonImmutable $observed_at
  * @property string $fingerprint
+ * @property-read GiftCode $giftCode
  */
 final class GiftCodeProvenance extends Model
 {
@@ -81,6 +82,12 @@ final class GiftCodeProvenance extends Model
             'verification_state' => GiftCodeEvidenceVerificationState::class,
             'observed_at' => 'immutable_datetime',
         ];
+    }
+
+    /** @return BelongsTo<GiftCode, $this> */
+    public function giftCode(): BelongsTo
+    {
+        return $this->belongsTo(GiftCode::class);
     }
 
     /** @return BelongsTo<GiftCodeSourceRegistry, $this> */
