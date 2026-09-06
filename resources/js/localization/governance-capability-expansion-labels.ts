@@ -1,0 +1,130 @@
+import type { LocaleCode } from './locales';
+import type { MessageCatalogue } from './types';
+
+type Headings = {
+  governance: string;
+  roles: string;
+  authority: string;
+  history: string;
+  health: string;
+  recovery: string;
+  reconcile: string;
+  handoff: string;
+  bulk: string;
+  customRole: string;
+};
+
+const headings: Record<LocaleCode, Headings> = {
+  en: { governance: 'Kingdom governance', roles: 'Kingdom roles', authority: 'Effective authority', history: 'Governance history', health: 'Governance health', recovery: 'Administrator recovery', reconcile: 'Reconcile policy', handoff: 'Administrator handoff', bulk: 'Bulk administration', customRole: 'Custom role' },
+  ar: { governance: 'حوكمة المملكة', roles: 'أدوار المملكة', authority: 'الصلاحيات الفعلية', history: 'سجل الحوكمة', health: 'سلامة الحوكمة', recovery: 'استعادة المسؤول', reconcile: 'مطابقة السياسة', handoff: 'تسليم المسؤولية', bulk: 'إدارة جماعية', customRole: 'دور مخصص' },
+  de: { governance: 'Königreich-Verwaltung', roles: 'Königreich-Rollen', authority: 'Wirksame Berechtigungen', history: 'Verwaltungsverlauf', health: 'Verwaltungsstatus', recovery: 'Administrator-Wiederherstellung', reconcile: 'Richtlinie abgleichen', handoff: 'Administratorübergabe', bulk: 'Massenverwaltung', customRole: 'Benutzerdefinierte Rolle' },
+  es: { governance: 'Gobernanza del reino', roles: 'Roles del reino', authority: 'Autoridad efectiva', history: 'Historial de gobernanza', health: 'Estado de gobernanza', recovery: 'Recuperación de administrador', reconcile: 'Reconciliar política', handoff: 'Traspaso de administrador', bulk: 'Administración masiva', customRole: 'Rol personalizado' },
+  fr: { governance: 'Gouvernance du royaume', roles: 'Rôles du royaume', authority: 'Autorisations effectives', history: 'Historique de gouvernance', health: 'État de la gouvernance', recovery: 'Récupération administrateur', reconcile: 'Réconcilier la politique', handoff: 'Transfert administrateur', bulk: 'Administration en lot', customRole: 'Rôle personnalisé' },
+  id: { governance: 'Tata kelola kerajaan', roles: 'Peran kerajaan', authority: 'Wewenang efektif', history: 'Riwayat tata kelola', health: 'Kesehatan tata kelola', recovery: 'Pemulihan administrator', reconcile: 'Selaraskan kebijakan', handoff: 'Serah terima administrator', bulk: 'Administrasi massal', customRole: 'Peran khusus' },
+  it: { governance: 'Governance del regno', roles: 'Ruoli del regno', authority: 'Autorità effettiva', history: 'Cronologia governance', health: 'Stato governance', recovery: 'Recupero amministratore', reconcile: 'Riconcilia policy', handoff: 'Passaggio amministratore', bulk: 'Amministrazione massiva', customRole: 'Ruolo personalizzato' },
+  ja: { governance: '王国ガバナンス', roles: '王国役職', authority: '有効な権限', history: 'ガバナンス履歴', health: 'ガバナンス状態', recovery: '管理者の復旧', reconcile: 'ポリシーを整合', handoff: '管理者の引き継ぎ', bulk: '一括管理', customRole: 'カスタム役職' },
+  ko: { governance: '왕국 거버넌스', roles: '왕국 역할', authority: '유효 권한', history: '거버넌스 기록', health: '거버넌스 상태', recovery: '관리자 복구', reconcile: '정책 조정', handoff: '관리자 인계', bulk: '일괄 관리', customRole: '사용자 지정 역할' },
+  pl: { governance: 'Zarządzanie królestwem', roles: 'Role królestwa', authority: 'Skuteczne uprawnienia', history: 'Historia zarządzania', health: 'Stan zarządzania', recovery: 'Odzyskiwanie administratora', reconcile: 'Uzgodnij politykę', handoff: 'Przekazanie administratora', bulk: 'Administracja zbiorcza', customRole: 'Rola niestandardowa' },
+  'pt-BR': { governance: 'Governança do reino', roles: 'Funções do reino', authority: 'Autoridade efetiva', history: 'Histórico de governança', health: 'Saúde da governança', recovery: 'Recuperação de administrador', reconcile: 'Reconciliar política', handoff: 'Transferência de administrador', bulk: 'Administração em massa', customRole: 'Função personalizada' },
+  ru: { governance: 'Управление королевством', roles: 'Роли королевства', authority: 'Действующие права', history: 'История управления', health: 'Состояние управления', recovery: 'Восстановление администратора', reconcile: 'Сверить политику', handoff: 'Передача администратора', bulk: 'Массовое управление', customRole: 'Пользовательская роль' },
+  th: { governance: 'การกำกับดูแลอาณาจักร', roles: 'บทบาทอาณาจักร', authority: 'สิทธิ์ที่มีผล', history: 'ประวัติการกำกับดูแล', health: 'สถานะการกำกับดูแล', recovery: 'กู้คืนผู้ดูแล', reconcile: 'ปรับนโยบายให้ตรงกัน', handoff: 'ส่งต่อผู้ดูแล', bulk: 'จัดการแบบกลุ่ม', customRole: 'บทบาทกำหนดเอง' },
+  tr: { governance: 'Krallık yönetişimi', roles: 'Krallık rolleri', authority: 'Etkin yetki', history: 'Yönetişim geçmişi', health: 'Yönetişim durumu', recovery: 'Yönetici kurtarma', reconcile: 'İlkeyi uzlaştır', handoff: 'Yönetici devri', bulk: 'Toplu yönetim', customRole: 'Özel rol' },
+  vi: { governance: 'Quản trị vương quốc', roles: 'Vai trò vương quốc', authority: 'Quyền hiệu lực', history: 'Lịch sử quản trị', health: 'Tình trạng quản trị', recovery: 'Khôi phục quản trị viên', reconcile: 'Đồng bộ chính sách', handoff: 'Bàn giao quản trị viên', bulk: 'Quản trị hàng loạt', customRole: 'Vai trò tùy chỉnh' },
+  'zh-CN': { governance: '王国治理', roles: '王国职位', authority: '有效权限', history: '治理历史', health: '治理状态', recovery: '管理员恢复', reconcile: '协调策略', handoff: '管理员移交', bulk: '批量管理', customRole: '自定义职位' },
+  'zh-TW': { governance: '王國治理', roles: '王國職位', authority: '有效權限', history: '治理歷史', health: '治理狀態', recovery: '管理員復原', reconcile: '協調政策', handoff: '管理員移交', bulk: '批次管理', customRole: '自訂職位' },
+};
+
+const english = {
+  eyebrow: 'Player-scoped Kingdom authority',
+  subtitle: 'Manage Kingdom governance without turning Platform or Alliance authority into game authority.',
+  navRoles: 'Roles',
+  navAuthority: 'Authority',
+  navHistory: 'History',
+  navHealth: 'Health',
+  search: 'Search Governors',
+  allRoles: 'All roles',
+  assignment: 'Assign role',
+  assignmentHelp: 'Permanent or time-bounded authority applies only to the selected Governor in this Kingdom.',
+  governor: 'Governor',
+  role: 'Role',
+  effectiveFrom: 'Effective from',
+  expiresAt: 'Expires at',
+  reason: 'Reason',
+  assign: 'Assign',
+  remove: 'Revoke',
+  scheduled: 'Scheduled',
+  effective: 'Effective',
+  expired: 'Expired',
+  permanent: 'Permanent',
+  permissions: 'Permissions',
+  permissionOwner: 'Owning context',
+  createCustom: 'Create custom role',
+  customHelp: 'A custom role can contain only recognized permissions the active Governor currently holds.',
+  name: 'Name',
+  description: 'Description',
+  create: 'Create',
+  save: 'Save',
+  archive: 'Archive',
+  systemRole: 'System role',
+  customRoleBadge: 'Custom role',
+  handoffHelp: 'Add another Kingdom Admin or replace your own administrator assignment after the replacement is safely established.',
+  addAdmin: 'Add administrator',
+  replaceMe: 'Replace my administrator assignment',
+  bulkHelp: 'Select up to 50 Governors, preview eligibility, then commit the explicit result set.',
+  operation: 'Operation',
+  preview: 'Preview',
+  commit: 'Commit',
+  selected: '{count} selected',
+  eligible: '{count} eligible',
+  ineligible: '{count} ineligible',
+  noAssignments: 'No matching Kingdom role assignments.',
+  authorityHelp: 'Observation-time projection of who currently holds each permission and which roles grant it. Writes always re-check current authority.',
+  selectPermission: 'Select a permission',
+  whoHasAuthority: 'Who has this authority?',
+  grantedBy: 'Granted by',
+  noHolders: 'No Governor currently holds this permission.',
+  historyHelp: 'Bounded audit history for Kingdom governance changes, including Player actions, policy reconciliation and Platform recovery.',
+  systemActor: 'System',
+  loadMore: 'Load older events',
+  healthHelp: 'Detect missing administrators, policy drift, stale assignments and permission ownership issues. Reads never silently repair authority.',
+  healthy: 'Healthy',
+  degraded: 'Needs attention',
+  critical: 'Critical',
+  repairable: 'Repairable by policy reconciliation',
+  reconcileHelp: 'Restore declared system roles and exact owner-scoped Governance/Operations permission grants. Custom roles are not overwritten.',
+  recoveryHelp: 'Break-glass recovery requires an active Platform Administrator and recent account authentication. It repairs Player-scoped Kingdom authority; the Platform account never becomes Kingdom authority.',
+  kingdom: 'Kingdom',
+  replacementGovernor: 'Replacement Governor',
+  replaceExisting: 'Revoke other effective Kingdom Admin assignments',
+  recoveryReason: 'Recovery reason',
+  recover: 'Recover administrator',
+  recoveryWarning: 'Use only when normal Player-authorized administrator handoff is unavailable.',
+};
+
+export function governanceCapabilityExpansionLabels(locale: LocaleCode): MessageCatalogue {
+  const h = headings[locale] ?? headings.en;
+  return {
+    receipts: {
+      'kingdom-role-created': 'Kingdom role created.',
+      'kingdom-role-updated': 'Kingdom role policy updated.',
+      'kingdom-role-archived': 'Kingdom role archived.',
+      'kingdom-administrator-handoff': 'Kingdom administrator handoff completed.',
+      'kingdom-role-bulk-updated': 'Bulk Kingdom role administration completed.',
+      'kingdom-governance-reconciled': 'Kingdom governance system policy reconciled.',
+      'kingdom-administrator-recovered': 'Kingdom administrator recovery completed.',
+    },
+    governanceExpansion: {
+      ...english,
+      title: h.governance,
+      rolesTitle: h.roles,
+      authorityTitle: h.authority,
+      historyTitle: h.history,
+      healthTitle: h.health,
+      recoveryTitle: h.recovery,
+      reconcile: h.reconcile,
+      handoffTitle: h.handoff,
+      bulkTitle: h.bulk,
+      customRoleTitle: h.customRole,
+    },
+  };
+}
