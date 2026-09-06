@@ -110,12 +110,16 @@ function setControls(source: Source, updates: Partial<Record<keyof Source, boole
 
 function rebuildIntelligence(): void {
   busy.value = 'intelligence';
-  router.post('/platform/gift-codes/sources/intelligence/rebuild', {}, {
-    preserveScroll: true,
-    onFinish: () => {
-      busy.value = null;
+  router.post(
+    '/platform/gift-codes/sources/intelligence/rebuild',
+    {},
+    {
+      preserveScroll: true,
+      onFinish: () => {
+        busy.value = null;
+      },
     },
-  });
+  );
 }
 
 function seconds(value: number | null): string {
@@ -145,10 +149,18 @@ function percent(value: number): string {
           </p>
         </div>
         <div class="flex flex-wrap gap-2">
-          <Link href="/platform/gift-codes/sources/evidence-entry" class="ks-command-link" data-variant="secondary">
+          <Link
+            href="/platform/gift-codes/sources/evidence-entry"
+            class="ks-command-link"
+            data-variant="secondary"
+          >
             {{ t('giftCodes.acquisitionOperations.evidenceEntry') }}
           </Link>
-          <Link href="/platform/gift-codes/sources" class="ks-command-link" data-variant="secondary">
+          <Link
+            href="/platform/gift-codes/sources"
+            class="ks-command-link"
+            data-variant="secondary"
+          >
             {{ t('giftCodes.acquisitionOperations.sourcePolicies') }}
           </Link>
         </div>
@@ -178,28 +190,38 @@ function percent(value: number): string {
       <dl class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <div class="rounded border border-[var(--ks-border)] p-3">
           <dt class="ks-kicker">{{ t('giftCodes.acquisitionOperations.codesMeasured') }}</dt>
-          <dd class="mt-1 text-2xl font-semibold">{{ formatNumber(acquisitionEffectiveness.codesMeasured) }}</dd>
+          <dd class="mt-1 text-2xl font-semibold">
+            {{ formatNumber(acquisitionEffectiveness.codesMeasured) }}
+          </dd>
         </div>
         <div class="rounded border border-[var(--ks-border)] p-3">
           <dt class="ks-kicker">{{ t('giftCodes.acquisitionOperations.observations') }}</dt>
-          <dd class="mt-1 text-2xl font-semibold">{{ formatNumber(acquisitionEffectiveness.observations) }}</dd>
+          <dd class="mt-1 text-2xl font-semibold">
+            {{ formatNumber(acquisitionEffectiveness.observations) }}
+          </dd>
         </div>
         <div class="rounded border border-[var(--ks-border)] p-3">
           <dt class="ks-kicker">{{ t('giftCodes.acquisitionOperations.medianTimeToCode') }}</dt>
-          <dd class="mt-1 text-2xl font-semibold">{{ seconds(acquisitionEffectiveness.medianTimeToCodeSeconds) }}</dd>
+          <dd class="mt-1 text-2xl font-semibold">
+            {{ seconds(acquisitionEffectiveness.medianTimeToCodeSeconds) }}
+          </dd>
         </div>
         <div class="rounded border border-[var(--ks-border)] p-3">
           <dt class="ks-kicker">{{ t('giftCodes.acquisitionOperations.p95TimeToCode') }}</dt>
-          <dd class="mt-1 text-2xl font-semibold">{{ seconds(acquisitionEffectiveness.p95TimeToCodeSeconds) }}</dd>
+          <dd class="mt-1 text-2xl font-semibold">
+            {{ seconds(acquisitionEffectiveness.p95TimeToCodeSeconds) }}
+          </dd>
         </div>
       </dl>
       <p class="mt-3 text-xs text-[var(--ks-muted)]">
-        {{ t('giftCodes.acquisitionOperations.sourceSummary', {
-          distinct: acquisitionEffectiveness.distinctSources,
-          independent: acquisitionEffectiveness.independentSources,
-          official: acquisitionEffectiveness.officialSources,
-          samples: acquisitionEffectiveness.timeToCodeSamples,
-        }) }}
+        {{
+          t('giftCodes.acquisitionOperations.sourceSummary', {
+            distinct: acquisitionEffectiveness.distinctSources,
+            independent: acquisitionEffectiveness.independentSources,
+            official: acquisitionEffectiveness.officialSources,
+            samples: acquisitionEffectiveness.timeToCodeSamples,
+          })
+        }}
       </p>
     </section>
 
@@ -220,46 +242,72 @@ function percent(value: number): string {
           <div class="flex flex-wrap items-start justify-between gap-2">
             <div>
               <strong>{{ source.name }}</strong>
-              <p class="text-xs text-[var(--ks-muted)]">{{ source.classification }} · <code>{{ source.adapterKey ?? 'manual' }}</code></p>
+              <p class="text-xs text-[var(--ks-muted)]">
+                {{ source.classification }} · <code>{{ source.adapterKey ?? 'manual' }}</code>
+              </p>
             </div>
             <div class="flex flex-wrap gap-2 text-xs">
-              <span class="rounded border border-[var(--ks-border)] px-2 py-1">{{ source.activationStatus }}</span>
-              <span class="rounded border border-[var(--ks-border)] px-2 py-1">{{ source.healthStatus }}</span>
+              <span class="rounded border border-[var(--ks-border)] px-2 py-1">
+                {{ source.activationStatus }}
+              </span>
+              <span class="rounded border border-[var(--ks-border)] px-2 py-1">
+                {{ source.healthStatus }}
+              </span>
             </div>
           </div>
 
           <dl class="mt-3 grid gap-2 text-xs sm:grid-cols-2">
             <div>
-              <dt class="text-[var(--ks-muted)]">{{ t('giftCodes.acquisitionOperations.smoke') }}</dt>
+              <dt class="text-[var(--ks-muted)]">
+                {{ t('giftCodes.acquisitionOperations.smoke') }}
+              </dt>
               <dd v-if="source.latestSmokeCheck">
-                {{ source.latestSmokeCheck.status }} · {{ formatDate(source.latestSmokeCheck.checkedAt) }} ·
+                {{ source.latestSmokeCheck.status }} ·
+                {{ formatDate(source.latestSmokeCheck.checkedAt) }} ·
                 {{ source.latestSmokeCheck.durationMs }} ms
-                <template v-if="source.latestSmokeCheck.failureCode"> · <code>{{ source.latestSmokeCheck.failureCode }}</code></template>
+                <template v-if="source.latestSmokeCheck.failureCode">
+                  · <code>{{ source.latestSmokeCheck.failureCode }}</code></template
+                >
               </dd>
               <dd v-else>{{ t('giftCodes.acquisitionOperations.neverChecked') }}</dd>
             </div>
             <div>
-              <dt class="text-[var(--ks-muted)]">{{ t('giftCodes.acquisitionOperations.transportHealth') }}</dt>
+              <dt class="text-[var(--ks-muted)]">
+                {{ t('giftCodes.acquisitionOperations.transportHealth') }}
+              </dt>
               <dd>
-                {{ formatNumber(source.requestCount) }} {{ t('giftCodes.acquisitionOperations.requests') }} ·
-                {{ formatNumber(source.reconciliationGapCount) }} {{ t('giftCodes.acquisitionOperations.gaps') }} ·
-                {{ formatNumber(source.signatureFailureCount) }} {{ t('giftCodes.acquisitionOperations.signatureFailures') }} ·
-                {{ formatNumber(source.replayRejectionCount) }} {{ t('giftCodes.acquisitionOperations.replays') }}
+                {{ formatNumber(source.requestCount) }}
+                {{ t('giftCodes.acquisitionOperations.requests') }} ·
+                {{ formatNumber(source.reconciliationGapCount) }}
+                {{ t('giftCodes.acquisitionOperations.gaps') }} ·
+                {{ formatNumber(source.signatureFailureCount) }}
+                {{ t('giftCodes.acquisitionOperations.signatureFailures') }} ·
+                {{ formatNumber(source.replayRejectionCount) }}
+                {{ t('giftCodes.acquisitionOperations.replays') }}
               </dd>
             </div>
           </dl>
 
-          <div v-if="source.performance" class="mt-3 rounded border border-[var(--ks-border)] p-3 text-xs">
+          <div
+            v-if="source.performance"
+            class="mt-3 rounded border border-[var(--ks-border)] p-3 text-xs"
+          >
             <strong>{{ t('giftCodes.acquisitionOperations.performance') }}</strong>
             <p class="mt-1 text-[var(--ks-muted)]">
-              {{ formatNumber(source.performance.uniqueCodesDiscovered) }} {{ t('giftCodes.acquisitionOperations.uniqueCodes') }} ·
-              {{ formatNumber(source.performance.firstDiscoveries) }} {{ t('giftCodes.acquisitionOperations.firstDiscoveries') }} ·
-              {{ percent(source.performance.usefulObservationRatio) }} {{ t('giftCodes.acquisitionOperations.useful') }} ·
-              {{ percent(source.performance.quarantineRatio) }} {{ t('giftCodes.acquisitionOperations.quarantined') }}
+              {{ formatNumber(source.performance.uniqueCodesDiscovered) }}
+              {{ t('giftCodes.acquisitionOperations.uniqueCodes') }} ·
+              {{ formatNumber(source.performance.firstDiscoveries) }}
+              {{ t('giftCodes.acquisitionOperations.firstDiscoveries') }} ·
+              {{ percent(source.performance.usefulObservationRatio) }}
+              {{ t('giftCodes.acquisitionOperations.useful') }} ·
+              {{ percent(source.performance.quarantineRatio) }}
+              {{ t('giftCodes.acquisitionOperations.quarantined') }}
             </p>
             <p class="mt-1 text-[var(--ks-muted)]">
-              {{ t('giftCodes.acquisitionOperations.medianTimeToCode') }}: {{ seconds(source.performance.medianTimeToCodeSeconds) }} ·
-              {{ t('giftCodes.acquisitionOperations.p95TimeToCode') }}: {{ seconds(source.performance.p95TimeToCodeSeconds) }}
+              {{ t('giftCodes.acquisitionOperations.medianTimeToCode') }}:
+              {{ seconds(source.performance.medianTimeToCodeSeconds) }} ·
+              {{ t('giftCodes.acquisitionOperations.p95TimeToCode') }}:
+              {{ seconds(source.performance.p95TimeToCodeSeconds) }}
             </p>
           </div>
 
@@ -322,11 +370,17 @@ function percent(value: number): string {
               type="button"
               variant="secondary"
               :busy="busy === `${source.id}:controls`"
-              @click="setControls(source, { authorityPromotionEnabled: !source.authorityPromotionEnabled })"
+              @click="
+                setControls(source, {
+                  authorityPromotionEnabled: !source.authorityPromotionEnabled,
+                })
+              "
             >
-              {{ source.authorityPromotionEnabled
-                ? t('giftCodes.acquisitionOperations.disableAuthority')
-                : t('giftCodes.acquisitionOperations.enableAuthority') }}
+              {{
+                source.authorityPromotionEnabled
+                  ? t('giftCodes.acquisitionOperations.disableAuthority')
+                  : t('giftCodes.acquisitionOperations.enableAuthority')
+              }}
             </AppButton>
           </div>
         </li>
