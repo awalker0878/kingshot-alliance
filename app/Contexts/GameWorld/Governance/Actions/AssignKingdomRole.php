@@ -35,8 +35,8 @@ final readonly class AssignKingdomRole
         ?string $expiresAt = null,
         ?string $reason = null,
     ): string {
-        $effective = $effectiveFrom === null ? null : Carbon::parse($effectiveFrom);
-        $expires = $expiresAt === null ? null : Carbon::parse($expiresAt);
+        $effective = $effectiveFrom === null ? null : Carbon::parse($effectiveFrom)->utc();
+        $expires = $expiresAt === null ? null : Carbon::parse($expiresAt)->utc();
         if ($expires !== null && $expires->lte($effective ?? now())) {
             throw ValidationException::withMessages(['expires_at' => 'Role expiry must be after its effective time.']);
         }
