@@ -248,7 +248,11 @@ function hasActivePush(source: Source): boolean {
   );
 }
 
-function runSourceAction(source: Source, action: string, data: Record<string, unknown> = {}): void {
+function runSourceAction(
+  source: Source,
+  action: string,
+  data: Record<string, string | number | boolean | null> = {},
+): void {
   busySourceAction.value = `${source.id}:${action}`;
   router.post(`/platform/gift-codes/sources/${source.id}/${action}`, data, {
     preserveScroll: true,
