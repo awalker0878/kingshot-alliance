@@ -37,7 +37,21 @@ final readonly class ManageGiftCodeSourceRegistry
     ) {}
 
     /**
-     * @param  array{source_key:string,name:string,classification:string,canonical_domain:string,verification_method:string,adapter_key?:string|null,provenance_policy?:array<string,mixed>|null,ingestion_enabled?:bool}  $attributes
+     * @param array{
+     *   source_key:string,
+     *   name:string,
+     *   classification:string,
+     *   canonical_domain:string,
+     *   verification_method:string,
+     *   adapter_key?:string|null,
+     *   provenance_policy?:array<string,mixed>|null,
+     *   ingestion_enabled?:bool,
+     *   push_enabled?:bool,
+     *   head_poll_enabled?:bool,
+     *   reconciliation_enabled?:bool,
+     *   backfill_enabled?:bool,
+     *   authority_promotion_enabled?:bool
+     * } $attributes
      */
     public function register(AccountIdentity $actor, array $attributes): string
     {
@@ -58,12 +72,25 @@ final readonly class ManageGiftCodeSourceRegistry
         }
 
         $ingestionEnabled = (bool) ($attributes['ingestion_enabled'] ?? false);
+        $pushEnabled = (bool) ($attributes['push_enabled'] ?? false);
+        $headPollEnabled = (bool) ($attributes['head_poll_enabled'] ?? true);
+        $reconciliationEnabled = (bool) ($attributes['reconciliation_enabled'] ?? true);
+        $backfillEnabled = (bool) ($attributes['backfill_enabled'] ?? true);
+        $authorityPromotionEnabled = (bool) ($attributes['authority_promotion_enabled'] ?? true);
+        if ($classification === 'independent') {
+            $authorityPromotionEnabled = false;
+        }
+
         if ($ingestionEnabled && $adapterKey === null) {
             throw ValidationException::withMessages(['adapter_key' => 'Enabled ingestion requires a registered adapter key.']);
         }
         if ($ingestionEnabled && $this->adapters->find($adapterKey) === null) {
             throw ValidationException::withMessages(['adapter_key' => 'Enabled ingestion requires an installed source adapter.']);
         }
+        if ($pushEnabled && ! $ingestionEnabled) {
+            throw ValidationException::withMessages(['push_enabled' => 'Push acquisition requires source ingestion to be enabled.']);
+        }
+
         $policy = $attributes['provenance_policy'] ?? null;
         if ($policy !== null && ! is_array($policy)) {
             throw ValidationException::withMessages(['provenance_policy' => 'Source policy must be an object.']);
@@ -72,9 +99,15 @@ final readonly class ManageGiftCodeSourceRegistry
 
         $this->validateFeedPathAdapter($adapterKey, $domain, $policy);
         $this->validateAdapterPolicy($adapterKey, $domain, $classification, $policy, $ingestionEnabled);
+        $this->validatePushConfiguration($adapterKey, $pushEnabled);
         if (($policy['manual_evidence_allowed'] ?? false) === true && ($policy['auto_verify'] ?? false) === true) {
             throw ValidationException::withMessages([
                 'auto_verify' => 'Manually recorded registered-source evidence requires explicit curator verification and cannot auto-verify.',
+            ]);
+        }
+        if ($classification === 'independent' && ($policy['auto_verify'] ?? false) === true) {
+            throw ValidationException::withMessages([
+                'auto_verify' => 'Independent sources cannot automatically verify Gift Code evidence.',
             ]);
         }
 
@@ -90,6 +123,11 @@ final readonly class ManageGiftCodeSourceRegistry
                 'adapter_key' => $adapterKey,
                 'provenance_policy' => $policy,
                 'ingestion_enabled' => true,
+                'push_enabled' => $pushEnabled,
+                'head_poll_enabled' => $headPollEnabled,
+                'reconciliation_enabled' => $reconciliationEnabled,
+                'backfill_enabled' => $backfillEnabled,
+                'authority_promotion_enabled' => $authorityPromotionEnabled,
                 'revoked_at' => null,
             ]);
             $activation = $this->readiness->forSource($candidate);
@@ -114,6 +152,11 @@ final readonly class ManageGiftCodeSourceRegistry
             $classification,
             $adapterKey,
             $ingestionEnabled,
+            $pushEnabled,
+            $headPollEnabled,
+            $reconciliationEnabled,
+            $backfillEnabled,
+            $authorityPromotionEnabled,
             $policy,
         ): string {
             $source = GiftCodeSourceRegistry::query()->where('source_key', $sourceKey)->lockForUpdate()->first();
@@ -128,6 +171,11 @@ final readonly class ManageGiftCodeSourceRegistry
                 'adapter_key' => $adapterKey,
                 'provenance_policy' => $policy,
                 'ingestion_enabled' => $ingestionEnabled,
+                'push_enabled' => $ingestionEnabled && $pushEnabled,
+                'head_poll_enabled' => $ingestionEnabled && $headPollEnabled,
+                'reconciliation_enabled' => $ingestionEnabled && $reconciliationEnabled,
+                'backfill_enabled' => $ingestionEnabled && $backfillEnabled,
+                'authority_promotion_enabled' => $authorityPromotionEnabled,
                 'activation_status' => $ingestionEnabled ? 'enabled' : ($adapterKey === null ? 'registered' : 'configured'),
                 'health_status' => $ingestionEnabled ? ($source->health_status === 'healthy' ? 'healthy' : 'pending') : 'disabled',
                 'next_eligible_ingestion_at' => $ingestionEnabled ? $source->next_eligible_ingestion_at : null,
@@ -143,6 +191,11 @@ final readonly class ManageGiftCodeSourceRegistry
                 'source_key' => $source->source_key,
                 'policy_revision' => $source->policy_revision,
                 'ingestion_enabled' => $source->ingestion_enabled,
+                'push_enabled' => $source->push_enabled,
+                'head_poll_enabled' => $source->head_poll_enabled,
+                'reconciliation_enabled' => $source->reconciliation_enabled,
+                'backfill_enabled' => $source->backfill_enabled,
+                'authority_promotion_enabled' => $source->authority_promotion_enabled,
                 'activation_status' => $source->activation_status,
             ];
             $this->audit->record('game_world.gift_code_source.registered', $actor, $source, null, $metadata);
@@ -173,6 +226,11 @@ final readonly class ManageGiftCodeSourceRegistry
                 $source->forceFill([
                     'is_active' => false,
                     'ingestion_enabled' => false,
+                    'push_enabled' => false,
+                    'head_poll_enabled' => false,
+                    'reconciliation_enabled' => false,
+                    'backfill_enabled' => false,
+                    'authority_promotion_enabled' => false,
                     'activation_status' => 'revoked',
                     'health_status' => 'disabled',
                     'next_eligible_ingestion_at' => null,
@@ -258,12 +316,6 @@ final readonly class ManageGiftCodeSourceRegistry
             if ($ingestionEnabled && ($policy['provider_permission_confirmed'] ?? false) !== true) {
                 throw ValidationException::withMessages([
                     'provider_permission_confirmed' => 'Enable Century Games Kingshot news ingestion only after provider permission is confirmed.',
-                ]);
-            }
-            $category = is_string($policy['gift_code_category'] ?? null) ? trim($policy['gift_code_category']) : '';
-            if ($category === '' || mb_strlen($category) > 120) {
-                throw ValidationException::withMessages([
-                    'gift_code_category' => 'The Century Games Kingshot news adapter requires the agreed Gift Code feed category.',
                 ]);
             }
 
@@ -372,6 +424,45 @@ final readonly class ManageGiftCodeSourceRegistry
         }
     }
 
+    private function validatePushConfiguration(?string $adapterKey, bool $pushEnabled): void
+    {
+        if (! $pushEnabled) {
+            return;
+        }
+
+        if ($adapterKey === YouTubeChannelGiftCodeSourceAdapter::KEY) {
+            $this->requireConfigured('game_world.gift_codes.youtube_websub_secret', 'push_enabled', 'YouTube push requires a WebSub secret.');
+
+            return;
+        }
+        if ($adapterKey === FacebookPageGiftCodeSourceAdapter::KEY) {
+            $this->requireConfigured('game_world.gift_codes.meta_app_secret', 'push_enabled', 'Facebook push requires the Meta app secret.');
+            $this->requireConfigured('game_world.gift_codes.meta_webhook_verify_token', 'push_enabled', 'Facebook push requires a Meta webhook verification token.');
+
+            return;
+        }
+        if ($adapterKey === DiscordChannelGiftCodeSourceAdapter::KEY) {
+            if (! (bool) config('game_world.gift_codes.discord_gateway_enabled', false)) {
+                throw ValidationException::withMessages(['push_enabled' => 'Discord push requires the Gateway transport to be enabled.']);
+            }
+
+            return;
+        }
+        if ($adapterKey === OfficialXGiftCodeSourceAdapter::KEY) {
+            if (! (bool) config('game_world.gift_codes.x_realtime_transport', false)
+                || ! (bool) config('game_world.gift_codes.x_filtered_stream_webhook_entitled', false)) {
+                throw ValidationException::withMessages(['push_enabled' => 'X push requires the explicitly configured Filtered Stream Webhook Enterprise entitlement.']);
+            }
+            $this->requireConfigured('game_world.gift_codes.x_consumer_secret', 'push_enabled', 'X push requires the app consumer secret.');
+
+            return;
+        }
+
+        throw ValidationException::withMessages([
+            'push_enabled' => 'The selected source adapter does not support a legitimate push transport.',
+        ]);
+    }
+
     private function requireDomain(string $actual, string $expected, string $message): void
     {
         if ($actual !== $expected) {
@@ -403,7 +494,14 @@ final readonly class ManageGiftCodeSourceRegistry
         string $field,
         string $message,
     ): void {
-        if ($ingestionEnabled && trim((string) config($configKey, '')) === '') {
+        if ($ingestionEnabled) {
+            $this->requireConfigured($configKey, $field, $message);
+        }
+    }
+
+    private function requireConfigured(string $configKey, string $field, string $message): void
+    {
+        if (trim((string) config($configKey, '')) === '') {
             throw ValidationException::withMessages([$field => $message]);
         }
     }
