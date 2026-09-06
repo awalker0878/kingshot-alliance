@@ -34,8 +34,9 @@ final class GiftCodeProviderFailureMatrixV3Test extends TestCase
         ];
 
         foreach ($matrix as $status => $expected) {
+            $path = '/gift-codes-'.$status.'.json';
             Http::fake([
-                'https://publisher.example.test/gift-codes.json*' => Http::response(
+                'https://publisher.example.test'.$path.'*' => Http::response(
                     ['error' => 'fixture'],
                     $status,
                     [
@@ -47,7 +48,7 @@ final class GiftCodeProviderFailureMatrixV3Test extends TestCase
             ]);
 
             try {
-                app(JsonFeedGiftCodeSourceAdapter::class)->acquire($this->source('/gift-codes.json'), null, 10);
+                app(JsonFeedGiftCodeSourceAdapter::class)->acquire($this->source($path), null, 10);
                 self::fail(sprintf('HTTP %d must fail the provider contract.', $status));
             } catch (GiftCodeSourceAcquisitionException $exception) {
                 self::assertSame($expected, $exception->failureCode, 'Unexpected failure code for HTTP '.$status);
