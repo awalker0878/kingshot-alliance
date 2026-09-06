@@ -10,12 +10,12 @@ final class GiftCodeEvidenceExtractor
 {
     /**
      * @return list<array{
-     *   code:string,
-     *   claimed_expires_at:?string,
-     *   expiry_precision:?string,
-     *   expiry_timezone:?string,
-     *   applicability:?array<string,mixed>,
-     *   reward:?array<string,mixed>
+     *   code: string,
+     *   claimed_expires_at: ?string,
+     *   expiry_precision: ?string,
+     *   expiry_timezone: ?string,
+     *   applicability: ?array<string, mixed>,
+     *   reward: ?array<string, mixed>
      * }>
      */
     public function extract(string $content, ?string $publishedAt = null): array
@@ -84,8 +84,8 @@ final class GiftCodeEvidenceExtractor
     }
 
     /**
-     * @param list<string> $lines
-     * @return array{value:?string, precision:?string, timezone:?string}
+     * @param  list<string>  $lines
+     * @return array{value: ?string, precision: ?string, timezone: ?string}
      */
     private function extractExpiry(array $lines, ?string $publishedAt): array
     {
@@ -133,8 +133,8 @@ final class GiftCodeEvidenceExtractor
     }
 
     /**
-     * @param list<string> $lines
-     * @param list<string> $labels
+     * @param  list<string>  $lines
+     * @param  list<string>  $labels
      */
     private function extractLabelledValue(array $lines, array $labels): ?string
     {
