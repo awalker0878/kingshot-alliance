@@ -29,13 +29,13 @@ final readonly class QueueGiftCodeSourceOperationalAlerts
             ->limit(max(1, min(500, $sourceLimit)))
             ->get();
         $administratorIds = PlatformAdministrator::query()
-              ->whereNull('revoked_at')
-              ->orderBy('user_id')
-              ->pluck('user_id')
-              ->map(static fn (mixed $value): int => (int) $value)
-              ->filter(static fn (int $value): bool => $value > 0)
-              ->values()
-              ->all();
+    ->whereNull('revoked_at')
+    ->orderBy('user_id')
+    ->pluck('user_id')
+    ->map(static fn (mixed $value): int => (int) $value)
+    ->filter(static fn (int $value): bool => $value > 0)
+    ->values()
+    ->all();
 
         $alertCount = 0;
         $queued = 0;
