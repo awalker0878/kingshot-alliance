@@ -9,6 +9,7 @@ use App\Contexts\Communications\Delivery\Actions\ProcessNotificationDeliveries;
 use App\Contexts\GameWorld\GiftCodes\Actions\QueueDueGiftCodeReminders;
 use App\Contexts\GameWorld\GiftCodes\Actions\QueueGiftCodeSourceOperationalAlerts;
 use App\Contexts\GameWorld\GiftCodes\Actions\QueueGiftCodeWorkspaceNotifications;
+use App\Contexts\GameWorld\GiftCodes\Actions\RebuildGiftCodeAcquisitionIntelligence;
 use App\Contexts\GameWorld\GiftCodes\Actions\RebuildGiftCodeContributorProjections;
 use App\Contexts\GameWorld\GiftCodes\Actions\RunGiftCodeSourceBackfill;
 use App\Contexts\GameWorld\GiftCodes\Actions\RunGiftCodeSourceReconciliation;
@@ -106,6 +107,15 @@ return Application::configure(basePath: dirname(__DIR__))
             ->withoutOverlapping(10);
         $schedule->call(static fn (): int => app(RebuildGiftCodeContributorProjections::class)->cycle(100)['updated'])
             ->name('gift-codes:rebuild-contributor-projections')
+            ->hourly()
+            ->onOneServer()
+            ->withoutOverlapping(30);
+        $schedule->call(static function (): int {
+            $result = app(RebuildGiftCodeAcquisitionIntelligence::class)->cycle(200, 100);
+
+            return $result['clusters']['updated'] + $result['sources']['updated'];
+        })
+            ->name('gift-codes:rebuild-acquisition-intelligence')
             ->hourly()
             ->onOneServer()
             ->withoutOverlapping(30);
