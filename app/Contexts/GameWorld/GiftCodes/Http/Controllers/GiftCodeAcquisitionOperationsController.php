@@ -21,8 +21,7 @@ final readonly class GiftCodeAcquisitionOperationsController extends Controller
         private GiftCodeIngestionHealthQuery $health,
         private GiftCodeAcquisitionEffectivenessQuery $effectiveness,
         private PlatformAuthorization $platformAuthorization,
-    ) {
-    }
+    ) {}
 
     public function index(Request $request): Response
     {
