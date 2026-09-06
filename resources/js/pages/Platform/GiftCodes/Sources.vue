@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 
 import AppButton from '@/components/ui/AppButton.vue';
@@ -9,6 +9,28 @@ import { useLocale } from '@/localization';
 
 type ReadinessCheck = { ready: boolean; message: string };
 type ActivationReadiness = { ready: boolean; checks: Record<string, ReadinessCheck> };
+type SyncState = {
+  mode: string;
+  latestObservedProviderId: string | null;
+  committedHighWater: string | null;
+  candidateHighWater: string | null;
+  activePageToken: string | null;
+  backfillPageToken: string | null;
+  lastHeadPollAt: string | null;
+  lastReconciliationAt: string | null;
+  lastBackfillAt: string | null;
+};
+type Subscription = {
+  provider: string;
+  transport: string;
+  status: string;
+  providerSubscriptionId: string | null;
+  activatedAt: string | null;
+  expiresAt: string | null;
+  lastVerifiedAt: string | null;
+  lastEventReceivedAt: string | null;
+  lastErrorCode: string | null;
+};
 type Source = {
   id: string;
   key: string;
@@ -19,16 +41,37 @@ type Source = {
   manualEvidenceAllowed: boolean;
   active: boolean;
   ingestionEnabled: boolean;
+  pushEnabled: boolean;
+  headPollEnabled: boolean;
+  reconciliationEnabled: boolean;
+  backfillEnabled: boolean;
+  authorityPromotionEnabled: boolean;
   activationStatus: string;
   healthStatus: string;
   activationReadiness: ActivationReadiness;
+  syncStates: SyncState[];
+  subscriptions: Subscription[];
   nextEligibleIngestionAt: string | null;
   consecutiveFailures: number;
+  consecutiveQuarantinedRuns: number;
   requestCount: number;
   observationCount: number;
+  acceptedObservationCount: number;
+  quarantinedObservationCount: number;
   duplicateObservationCount: number;
+  acceptanceRatio: number;
+  quarantineRatio: number;
+  duplicateRatio: number;
   rateLimitEventCount: number;
+  reconciliationGapCount: number;
+  signatureFailureCount: number;
+  replayRejectionCount: number;
   lastObservationAt: string | null;
+  lastAcceptedObservationAt: string | null;
+  lastQuarantinedObservationAt: string | null;
+  lastPushReceivedAt: string | null;
+  lastProviderEventAt: string | null;
+  lastReconciliationGapAt: string | null;
   lastAttemptAt: string | null;
   lastSuccessAt: string | null;
   lastFailureAt: string | null;
@@ -50,16 +93,25 @@ type ResearchedSource = {
   notes: string;
 };
 
+type PushCapabilities = {
+  youtubeWebSub: boolean;
+  facebookWebhook: boolean;
+  discordGateway: boolean;
+  xFilteredStreamWebhook: boolean;
+};
+
 const props = defineProps<{
   user: { name: string; email: string };
   sources: Source[];
   adapterKeys: string[];
   researchedSources: ResearchedSource[];
   canManagePlatformPolicy: boolean;
+  pushCapabilities: PushCapabilities;
 }>();
 
 const { t, formatDate } = useLocale();
 const discordAuthorIds = ref('');
+const busySourceAction = ref<string | null>(null);
 const sourcePolicy = useForm({
   source_key: '',
   name: '',
@@ -68,6 +120,11 @@ const sourcePolicy = useForm({
   verification_method: 'manual_review',
   adapter_key: '',
   ingestion_enabled: false,
+  push_enabled: false,
+  head_poll_enabled: true,
+  reconciliation_enabled: true,
+  backfill_enabled: true,
+  authority_promotion_enabled: true,
   provenance_policy: {
     auto_verify: false,
     manual_evidence_allowed: false,
@@ -75,7 +132,6 @@ const sourcePolicy = useForm({
     provider_contract_confirmed: false,
     structured_contract_confirmed: false,
     provider_permission_confirmed: false,
-    gift_code_category: '',
     x_user_id: '',
     x_username: '',
     platform_permission_confirmed: false,
@@ -114,13 +170,29 @@ const usesFeedPath = computed(() =>
     'json-feed-v1',
     'rss-atom-v1',
     'structured-html-v1',
-    'century-games-kingshot-news-rss-v1',
+    'century-games-kingshot-news-rss-v2',
   ].includes(selectedAdapter.value),
 );
 const usesProviderContract = computed(() =>
   ['json-feed-v1', 'rss-atom-v1'].includes(selectedAdapter.value),
 );
 const usesStructuredContract = computed(() => selectedAdapter.value === 'structured-html-v1');
+const selectedPushAvailable = computed(() => pushAvailableFor(selectedAdapter.value));
+
+function pushAvailableFor(adapter: string | null): boolean {
+  switch (adapter) {
+    case 'youtube-channel-v1':
+      return props.pushCapabilities.youtubeWebSub;
+    case 'facebook-page-v1':
+      return props.pushCapabilities.facebookWebhook;
+    case 'discord-channel-v1':
+      return props.pushCapabilities.discordGateway;
+    case 'x-api-v2-kingshot-v2':
+      return props.pushCapabilities.xFilteredStreamWebhook;
+    default:
+      return false;
+  }
+}
 
 function applyCandidate(candidate: ResearchedSource): void {
   sourcePolicy.source_key = candidate.source_key;
@@ -135,6 +207,11 @@ function applyCandidate(candidate: ResearchedSource): void {
   );
   sourcePolicy.provenance_policy.auto_verify = false;
   sourcePolicy.ingestion_enabled = false;
+  sourcePolicy.push_enabled = false;
+  sourcePolicy.head_poll_enabled = true;
+  sourcePolicy.reconciliation_enabled = true;
+  sourcePolicy.backfill_enabled = true;
+  sourcePolicy.authority_promotion_enabled = sourcePolicy.classification === 'official';
 }
 
 function saveSource(): void {
@@ -142,6 +219,13 @@ function saveSource(): void {
     .split(/[\s,]+/)
     .map((value) => value.trim())
     .filter(Boolean);
+  if (sourcePolicy.classification === 'independent') {
+    sourcePolicy.authority_promotion_enabled = false;
+    sourcePolicy.provenance_policy.auto_verify = false;
+  }
+  if (!sourcePolicy.ingestion_enabled) {
+    sourcePolicy.push_enabled = false;
+  }
   sourcePolicy.post('/platform/gift-codes/sources/policy', {
     preserveScroll: true,
     onSuccess: () => {
@@ -156,6 +240,26 @@ function recordEvidence(): void {
     preserveScroll: true,
     onSuccess: () => evidence.reset(),
   });
+}
+
+function hasActivePush(source: Source): boolean {
+  return source.subscriptions.some((subscription) =>
+    ['pending', 'active'].includes(subscription.status),
+  );
+}
+
+function runSourceAction(source: Source, action: string, data: Record<string, unknown> = {}): void {
+  busySourceAction.value = `${source.id}:${action}`;
+  router.post(`/platform/gift-codes/sources/${source.id}/${action}`, data, {
+    preserveScroll: true,
+    onFinish: () => {
+      busySourceAction.value = null;
+    },
+  });
+}
+
+function asPercent(value: number): string {
+  return `${Math.round(value * 100)}%`;
 }
 </script>
 
@@ -206,13 +310,9 @@ function recordEvidence(): void {
                 <span class="text-xs text-[var(--ks-muted)]">{{ candidate.notes }}</span>
               </td>
               <td class="p-2 text-xs">
-                <code>{{
-                  candidate.candidate_adapter_keys.join(', ') || candidate.transports.join(', ')
-                }}</code>
+                <code>{{ candidate.candidate_adapter_keys.join(', ') || candidate.transports.join(', ') }}</code>
               </td>
-              <td class="p-2 text-xs">
-                <code>{{ candidate.gate }}</code>
-              </td>
+              <td class="p-2 text-xs"><code>{{ candidate.gate }}</code></td>
               <td class="p-2">
                 <AppButton
                   v-if="canManagePlatformPolicy"
@@ -240,22 +340,12 @@ function recordEvidence(): void {
       <form class="mt-4 grid gap-4 md:grid-cols-2" @submit.prevent="saveSource">
         <label>
           <span class="ks-kicker">{{ t('platformGiftCodes.sourceKey') }}</span>
-          <input
-            v-model="sourcePolicy.source_key"
-            required
-            maxlength="120"
-            class="ks-input mt-2 w-full"
-          />
+          <input v-model="sourcePolicy.source_key" required maxlength="120" class="ks-input mt-2 w-full" />
           <FormError :message="sourcePolicy.errors.source_key" />
         </label>
         <label>
           <span class="ks-kicker">{{ t('platformGiftCodes.sourceName') }}</span>
-          <input
-            v-model="sourcePolicy.name"
-            required
-            maxlength="160"
-            class="ks-input mt-2 w-full"
-          />
+          <input v-model="sourcePolicy.name" required maxlength="160" class="ks-input mt-2 w-full" />
           <FormError :message="sourcePolicy.errors.name" />
         </label>
         <label>
@@ -267,388 +357,149 @@ function recordEvidence(): void {
         </label>
         <label>
           <span class="ks-kicker">{{ t('platformGiftCodes.canonicalDomain') }}</span>
-          <input
-            v-model="sourcePolicy.canonical_domain"
-            required
-            maxlength="255"
-            class="ks-input mt-2 w-full"
-          />
+          <input v-model="sourcePolicy.canonical_domain" required maxlength="255" class="ks-input mt-2 w-full" />
           <FormError :message="sourcePolicy.errors.canonical_domain" />
         </label>
         <label>
           <span class="ks-kicker">{{ t('platformGiftCodes.verificationMethod') }}</span>
-          <input
-            v-model="sourcePolicy.verification_method"
-            required
-            maxlength="80"
-            class="ks-input mt-2 w-full"
-          />
+          <input v-model="sourcePolicy.verification_method" required maxlength="80" class="ks-input mt-2 w-full" />
         </label>
         <label>
           <span class="ks-kicker">{{ t('platformGiftCodes.adapter') }}</span>
           <select v-model="sourcePolicy.adapter_key" class="ks-input mt-2 w-full">
             <option value="">{{ t('platformGiftCodes.sources.manualAdapter') }}</option>
-            <option v-for="adapter in adapterKeys" :key="adapter" :value="adapter">
-              {{ adapter }}
-            </option>
+            <option v-for="adapter in adapterKeys" :key="adapter" :value="adapter">{{ adapter }}</option>
           </select>
           <FormError :message="sourcePolicy.errors.adapter_key" />
         </label>
 
         <label v-if="usesFeedPath">
           <span class="ks-kicker">{{ t('platformGiftCodes.feedPath') }}</span>
-          <input
-            v-model="sourcePolicy.provenance_policy.feed_path"
-            maxlength="2048"
-            class="ks-input mt-2 w-full"
-          />
+          <input v-model="sourcePolicy.provenance_policy.feed_path" maxlength="2048" class="ks-input mt-2 w-full" />
           <FormError :message="sourcePolicy.errors['provenance_policy.feed_path']" />
         </label>
         <label v-if="usesProviderContract" class="flex items-center gap-2 pt-7">
-          <input
-            v-model="sourcePolicy.provenance_policy.provider_contract_confirmed"
-            type="checkbox"
-          />
+          <input v-model="sourcePolicy.provenance_policy.provider_contract_confirmed" type="checkbox" />
           {{ t('platformGiftCodes.sources.providerContractConfirmed') }}
         </label>
         <label v-if="usesStructuredContract" class="flex items-center gap-2 pt-7">
-          <input
-            v-model="sourcePolicy.provenance_policy.structured_contract_confirmed"
-            type="checkbox"
-          />
+          <input v-model="sourcePolicy.provenance_policy.structured_contract_confirmed" type="checkbox" />
           {{ t('platformGiftCodes.sources.structuredContractConfirmed') }}
         </label>
 
-        <template v-if="selectedAdapter === 'x-api-v2-kingshot-v1'">
-          <label
-            ><span class="ks-kicker">{{ t('platformGiftCodes.sources.xUserId') }}</span
-            ><input v-model="sourcePolicy.provenance_policy.x_user_id" class="ks-input mt-2 w-full"
-          /></label>
-          <label
-            ><span class="ks-kicker">{{ t('platformGiftCodes.sources.xUsername') }}</span
-            ><input
-              v-model="sourcePolicy.provenance_policy.x_username"
-              class="ks-input mt-2 w-full"
-          /></label>
-          <label class="flex items-center gap-2 md:col-span-2">
-            <input
-              v-model="sourcePolicy.provenance_policy.platform_api_access_confirmed"
-              type="checkbox"
-            />
-            {{ t('platformGiftCodes.sources.xApiConfirmed') }}
-          </label>
+        <template v-if="selectedAdapter === 'x-api-v2-kingshot-v2'">
+          <label><span class="ks-kicker">{{ t('platformGiftCodes.sources.xUserId') }}</span><input v-model="sourcePolicy.provenance_policy.x_user_id" class="ks-input mt-2 w-full" /></label>
+          <label><span class="ks-kicker">{{ t('platformGiftCodes.sources.xUsername') }}</span><input v-model="sourcePolicy.provenance_policy.x_username" class="ks-input mt-2 w-full" /></label>
+          <label class="flex items-center gap-2 md:col-span-2"><input v-model="sourcePolicy.provenance_policy.platform_api_access_confirmed" type="checkbox" />{{ t('platformGiftCodes.sources.xApiConfirmed') }}</label>
         </template>
 
-        <template v-if="selectedAdapter === 'century-games-kingshot-news-rss-v1'">
-          <label
-            ><span class="ks-kicker">{{ t('platformGiftCodes.sources.centuryCategory') }}</span
-            ><input
-              v-model="sourcePolicy.provenance_policy.gift_code_category"
-              class="ks-input mt-2 w-full"
-          /></label>
-          <label class="flex items-center gap-2 pt-7"
-            ><input
-              v-model="sourcePolicy.provenance_policy.provider_permission_confirmed"
-              type="checkbox"
-            />{{ t('platformGiftCodes.sources.providerPermissionConfirmed') }}</label
-          >
+        <template v-if="selectedAdapter === 'century-games-kingshot-news-rss-v2'">
+          <label class="flex items-center gap-2 md:col-span-2"><input v-model="sourcePolicy.provenance_policy.provider_permission_confirmed" type="checkbox" />{{ t('platformGiftCodes.sources.providerPermissionConfirmed') }}</label>
         </template>
 
         <template v-if="selectedAdapter === 'discord-channel-v1'">
-          <label
-            ><span class="ks-kicker">{{ t('platformGiftCodes.sources.discordGuildId') }}</span
-            ><input
-              v-model="sourcePolicy.provenance_policy.discord_guild_id"
-              class="ks-input mt-2 w-full"
-          /></label>
-          <label
-            ><span class="ks-kicker">{{ t('platformGiftCodes.sources.discordChannelId') }}</span
-            ><input
-              v-model="sourcePolicy.provenance_policy.discord_channel_id"
-              class="ks-input mt-2 w-full"
-          /></label>
-          <label class="md:col-span-2"
-            ><span class="ks-kicker">{{ t('platformGiftCodes.sources.discordAuthorIds') }}</span
-            ><input
-              v-model="discordAuthorIds"
-              class="ks-input mt-2 w-full"
-              :placeholder="t('platformGiftCodes.sources.authorIdsPlaceholder')"
-          /></label>
-          <label class="flex items-center gap-2"
-            ><input
-              v-model="sourcePolicy.provenance_policy.platform_permission_confirmed"
-              type="checkbox"
-            />{{ t('platformGiftCodes.sources.discordPermissionConfirmed') }}</label
-          >
-          <label class="flex items-center gap-2"
-            ><input
-              v-model="sourcePolicy.provenance_policy.message_content_access_confirmed"
-              type="checkbox"
-            />{{ t('platformGiftCodes.sources.messageContentConfirmed') }}</label
-          >
+          <label><span class="ks-kicker">{{ t('platformGiftCodes.sources.discordGuildId') }}</span><input v-model="sourcePolicy.provenance_policy.discord_guild_id" class="ks-input mt-2 w-full" /></label>
+          <label><span class="ks-kicker">{{ t('platformGiftCodes.sources.discordChannelId') }}</span><input v-model="sourcePolicy.provenance_policy.discord_channel_id" class="ks-input mt-2 w-full" /></label>
+          <label class="md:col-span-2"><span class="ks-kicker">{{ t('platformGiftCodes.sources.discordAuthorIds') }}</span><input v-model="discordAuthorIds" class="ks-input mt-2 w-full" :placeholder="t('platformGiftCodes.sources.authorIdsPlaceholder')" /></label>
+          <label class="flex items-center gap-2"><input v-model="sourcePolicy.provenance_policy.platform_permission_confirmed" type="checkbox" />{{ t('platformGiftCodes.sources.discordPermissionConfirmed') }}</label>
+          <label class="flex items-center gap-2"><input v-model="sourcePolicy.provenance_policy.message_content_access_confirmed" type="checkbox" />{{ t('platformGiftCodes.sources.messageContentConfirmed') }}</label>
         </template>
 
         <template v-if="selectedAdapter === 'youtube-channel-v1'">
-          <label
-            ><span class="ks-kicker">{{ t('platformGiftCodes.sources.youtubeChannelId') }}</span
-            ><input
-              v-model="sourcePolicy.provenance_policy.youtube_channel_id"
-              class="ks-input mt-2 w-full"
-          /></label>
-          <label
-            ><span class="ks-kicker">{{ t('platformGiftCodes.sources.youtubeChannelTitle') }}</span
-            ><input
-              v-model="sourcePolicy.provenance_policy.youtube_channel_title"
-              class="ks-input mt-2 w-full"
-          /></label>
-          <label class="flex items-center gap-2 md:col-span-2"
-            ><input
-              v-model="sourcePolicy.provenance_policy.platform_api_access_confirmed"
-              type="checkbox"
-            />{{ t('platformGiftCodes.sources.youtubeApiConfirmed') }}</label
-          >
+          <label><span class="ks-kicker">{{ t('platformGiftCodes.sources.youtubeChannelId') }}</span><input v-model="sourcePolicy.provenance_policy.youtube_channel_id" class="ks-input mt-2 w-full" /></label>
+          <label><span class="ks-kicker">{{ t('platformGiftCodes.sources.youtubeChannelTitle') }}</span><input v-model="sourcePolicy.provenance_policy.youtube_channel_title" class="ks-input mt-2 w-full" /></label>
+          <label class="flex items-center gap-2 md:col-span-2"><input v-model="sourcePolicy.provenance_policy.platform_api_access_confirmed" type="checkbox" />{{ t('platformGiftCodes.sources.youtubeApiConfirmed') }}</label>
         </template>
 
         <template v-if="selectedAdapter === 'reddit-data-api-v1'">
-          <label
-            ><span class="ks-kicker">{{ t('platformGiftCodes.sources.subreddit') }}</span
-            ><input
-              v-model="sourcePolicy.provenance_policy.reddit_subreddit"
-              class="ks-input mt-2 w-full"
-          /></label>
-          <label class="flex items-center gap-2 pt-7"
-            ><input
-              v-model="sourcePolicy.provenance_policy.platform_api_access_confirmed"
-              type="checkbox"
-            />{{ t('platformGiftCodes.sources.redditApiConfirmed') }}</label
-          >
+          <label><span class="ks-kicker">{{ t('platformGiftCodes.sources.subreddit') }}</span><input v-model="sourcePolicy.provenance_policy.reddit_subreddit" class="ks-input mt-2 w-full" /></label>
+          <label class="flex items-center gap-2 pt-7"><input v-model="sourcePolicy.provenance_policy.platform_api_access_confirmed" type="checkbox" />{{ t('platformGiftCodes.sources.redditApiConfirmed') }}</label>
         </template>
 
         <template v-if="selectedAdapter === 'facebook-page-v1'">
-          <label
-            ><span class="ks-kicker">{{ t('platformGiftCodes.sources.facebookPageId') }}</span
-            ><input
-              v-model="sourcePolicy.provenance_policy.facebook_page_id"
-              class="ks-input mt-2 w-full"
-          /></label>
-          <label
-            ><span class="ks-kicker">{{ t('platformGiftCodes.sources.facebookPageName') }}</span
-            ><input
-              v-model="sourcePolicy.provenance_policy.facebook_page_name"
-              class="ks-input mt-2 w-full"
-          /></label>
-          <label class="flex items-center gap-2 md:col-span-2"
-            ><input
-              v-model="sourcePolicy.provenance_policy.platform_permission_confirmed"
-              type="checkbox"
-            />{{ t('platformGiftCodes.sources.facebookPermissionConfirmed') }}</label
-          >
+          <label><span class="ks-kicker">{{ t('platformGiftCodes.sources.facebookPageId') }}</span><input v-model="sourcePolicy.provenance_policy.facebook_page_id" class="ks-input mt-2 w-full" /></label>
+          <label><span class="ks-kicker">{{ t('platformGiftCodes.sources.facebookPageName') }}</span><input v-model="sourcePolicy.provenance_policy.facebook_page_name" class="ks-input mt-2 w-full" /></label>
+          <label class="flex items-center gap-2 md:col-span-2"><input v-model="sourcePolicy.provenance_policy.platform_permission_confirmed" type="checkbox" />{{ t('platformGiftCodes.sources.facebookPermissionConfirmed') }}</label>
         </template>
 
         <template v-if="selectedAdapter === 'instagram-media-v1'">
-          <label
-            ><span class="ks-kicker">{{ t('platformGiftCodes.sources.instagramUserId') }}</span
-            ><input
-              v-model="sourcePolicy.provenance_policy.instagram_user_id"
-              class="ks-input mt-2 w-full"
-          /></label>
-          <label
-            ><span class="ks-kicker">{{ t('platformGiftCodes.sources.instagramUsername') }}</span
-            ><input
-              v-model="sourcePolicy.provenance_policy.instagram_username"
-              class="ks-input mt-2 w-full"
-          /></label>
-          <label class="flex items-center gap-2 md:col-span-2"
-            ><input
-              v-model="sourcePolicy.provenance_policy.platform_permission_confirmed"
-              type="checkbox"
-            />{{ t('platformGiftCodes.sources.instagramPermissionConfirmed') }}</label
-          >
+          <label><span class="ks-kicker">{{ t('platformGiftCodes.sources.instagramUserId') }}</span><input v-model="sourcePolicy.provenance_policy.instagram_user_id" class="ks-input mt-2 w-full" /></label>
+          <label><span class="ks-kicker">{{ t('platformGiftCodes.sources.instagramUsername') }}</span><input v-model="sourcePolicy.provenance_policy.instagram_username" class="ks-input mt-2 w-full" /></label>
+          <label class="flex items-center gap-2 md:col-span-2"><input v-model="sourcePolicy.provenance_policy.platform_permission_confirmed" type="checkbox" />{{ t('platformGiftCodes.sources.instagramPermissionConfirmed') }}</label>
         </template>
 
-        <div class="grid gap-3 sm:grid-cols-3 md:col-span-2">
-          <label class="flex items-center gap-2"
-            ><input v-model="sourcePolicy.provenance_policy.auto_verify" type="checkbox" />{{
-              t('platformGiftCodes.autoVerify')
-            }}</label
-          >
-          <label class="flex items-center gap-2"
-            ><input
-              v-model="sourcePolicy.provenance_policy.manual_evidence_allowed"
-              type="checkbox"
-            />{{ t('platformGiftCodes.sources.manualEvidenceAllowed') }}</label
-          >
-          <label class="flex items-center gap-2"
-            ><input v-model="sourcePolicy.ingestion_enabled" type="checkbox" />{{
-              t('platformGiftCodes.enableIngestion')
-            }}</label
-          >
+        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 md:col-span-2">
+          <label class="flex items-center gap-2"><input v-model="sourcePolicy.provenance_policy.auto_verify" type="checkbox" :disabled="sourcePolicy.classification === 'independent'" />{{ t('platformGiftCodes.autoVerify') }}</label>
+          <label class="flex items-center gap-2"><input v-model="sourcePolicy.provenance_policy.manual_evidence_allowed" type="checkbox" />{{ t('platformGiftCodes.sources.manualEvidenceAllowed') }}</label>
+          <label class="flex items-center gap-2"><input v-model="sourcePolicy.ingestion_enabled" type="checkbox" />{{ t('platformGiftCodes.enableIngestion') }}</label>
+          <label class="flex items-center gap-2"><input v-model="sourcePolicy.authority_promotion_enabled" type="checkbox" :disabled="sourcePolicy.classification === 'independent'" />Authority promotion</label>
+          <label class="flex items-center gap-2"><input v-model="sourcePolicy.push_enabled" type="checkbox" :disabled="!sourcePolicy.ingestion_enabled || !selectedPushAvailable" />Push discovery</label>
+          <label class="flex items-center gap-2"><input v-model="sourcePolicy.head_poll_enabled" type="checkbox" :disabled="!sourcePolicy.ingestion_enabled" />Head polling</label>
+          <label class="flex items-center gap-2"><input v-model="sourcePolicy.reconciliation_enabled" type="checkbox" :disabled="!sourcePolicy.ingestion_enabled" />Reconciliation</label>
+          <label class="flex items-center gap-2"><input v-model="sourcePolicy.backfill_enabled" type="checkbox" :disabled="!sourcePolicy.ingestion_enabled" />Historical backfill</label>
         </div>
+        <p v-if="sourcePolicy.push_enabled && !selectedPushAvailable" class="md:col-span-2 text-xs text-[var(--ks-muted)]">The selected provider push transport is not configured in this environment.</p>
         <FormError class="md:col-span-2" :message="sourcePolicy.errors.ingestion_enabled" />
-        <div class="md:col-span-2">
-          <AppButton
-            type="submit"
-            :busy="sourcePolicy.processing"
-            :busy-label="t('common.saving')"
-            >{{ t('platformGiftCodes.saveSourcePolicy') }}</AppButton
-          >
-        </div>
+        <FormError class="md:col-span-2" :message="sourcePolicy.errors.push_enabled" />
+        <div class="md:col-span-2"><AppButton type="submit" :busy="sourcePolicy.processing" :busy-label="t('common.saving')">{{ t('platformGiftCodes.saveSourcePolicy') }}</AppButton></div>
       </form>
     </section>
 
     <section class="ks-surface mt-5 p-5 sm:p-6" aria-labelledby="manual-evidence">
-      <h2 id="manual-evidence" class="ks-display text-xl font-semibold">
-        {{ t('platformGiftCodes.sources.manualEvidenceTitle') }}
-      </h2>
-      <p class="mt-2 text-sm text-[var(--ks-muted)]">
-        {{ t('platformGiftCodes.sources.manualEvidenceHelp') }}
-      </p>
-      <form
-        v-if="manualSources.length"
-        class="mt-4 grid gap-4 md:grid-cols-2"
-        @submit.prevent="recordEvidence"
-      >
-        <label>
-          <span class="ks-kicker">{{ t('platformGiftCodes.sources.registeredSource') }}</span>
-          <select v-model="evidence.source_id" required class="ks-input mt-2 w-full">
-            <option value="" disabled>{{ t('platformGiftCodes.sources.selectSource') }}</option>
-            <option v-for="source in manualSources" :key="source.id" :value="source.id">
-              {{ source.name }} · {{ source.classification }}
-            </option>
-          </select>
-        </label>
-        <label
-          ><span class="ks-kicker">{{ t('platformGiftCodes.sources.giftCode') }}</span
-          ><input
-            v-model="evidence.code"
-            required
-            maxlength="64"
-            class="ks-input mt-2 w-full font-mono"
-        /></label>
-        <label>
-          <span class="ks-kicker">{{ t('platformGiftCodes.sources.assertion') }}</span>
-          <select v-model="evidence.assertion" class="ks-input mt-2 w-full">
-            <option value="available">
-              {{ t('platformGiftCodes.sources.assertionAvailable') }}
-            </option>
-            <option value="invalid">{{ t('platformGiftCodes.sources.assertionInvalid') }}</option>
-            <option value="expires">{{ t('platformGiftCodes.sources.assertionExpires') }}</option>
-          </select>
-        </label>
-        <label
-          ><span class="ks-kicker">{{ t('platformGiftCodes.sources.exactEvidenceUrl') }}</span
-          ><input v-model="evidence.source_url" required type="url" class="ks-input mt-2 w-full"
-        /></label>
-        <label
-          ><span class="ks-kicker">{{ t('platformGiftCodes.sources.publishedAt') }}</span
-          ><input
-            v-model="evidence.published_at"
-            type="datetime-local"
-            class="ks-input mt-2 w-full"
-        /></label>
-        <label v-if="evidence.assertion === 'expires'"
-          ><span class="ks-kicker">{{ t('platformGiftCodes.sources.expiresAt') }}</span
-          ><input v-model="evidence.expires_at" type="datetime-local" class="ks-input mt-2 w-full"
-        /></label>
-        <label v-if="evidence.assertion === 'expires'">
-          <span class="ks-kicker">{{ t('platformGiftCodes.sources.expiryPrecision') }}</span>
-          <select v-model="evidence.expiry_precision" class="ks-input mt-2 w-full">
-            <option value="instant">{{ t('platformGiftCodes.sources.precisionInstant') }}</option>
-            <option value="minute">{{ t('platformGiftCodes.sources.precisionMinute') }}</option>
-            <option value="hour">{{ t('platformGiftCodes.sources.precisionHour') }}</option>
-            <option value="day">{{ t('platformGiftCodes.sources.precisionDay') }}</option>
-          </select>
-        </label>
-        <label v-if="evidence.assertion === 'expires'"
-          ><span class="ks-kicker">{{ t('platformGiftCodes.sources.expiryTimezone') }}</span
-          ><input v-model="evidence.expiry_timezone" maxlength="80" class="ks-input mt-2 w-full"
-        /></label>
-        <div class="md:col-span-2">
-          <AppButton type="submit" :busy="evidence.processing">{{
-            t('platformGiftCodes.sources.recordEvidence')
-          }}</AppButton>
-        </div>
+      <h2 id="manual-evidence" class="ks-display text-xl font-semibold">{{ t('platformGiftCodes.sources.manualEvidenceTitle') }}</h2>
+      <p class="mt-2 text-sm text-[var(--ks-muted)]">{{ t('platformGiftCodes.sources.manualEvidenceHelp') }}</p>
+      <form v-if="manualSources.length" class="mt-4 grid gap-4 md:grid-cols-2" @submit.prevent="recordEvidence">
+        <label><span class="ks-kicker">{{ t('platformGiftCodes.sources.registeredSource') }}</span><select v-model="evidence.source_id" required class="ks-input mt-2 w-full"><option value="" disabled>{{ t('platformGiftCodes.sources.selectSource') }}</option><option v-for="source in manualSources" :key="source.id" :value="source.id">{{ source.name }} · {{ source.classification }}</option></select></label>
+        <label><span class="ks-kicker">{{ t('platformGiftCodes.sources.giftCode') }}</span><input v-model="evidence.code" required maxlength="64" class="ks-input mt-2 w-full font-mono" /></label>
+        <label><span class="ks-kicker">{{ t('platformGiftCodes.sources.assertion') }}</span><select v-model="evidence.assertion" class="ks-input mt-2 w-full"><option value="available">{{ t('platformGiftCodes.sources.assertionAvailable') }}</option><option value="invalid">{{ t('platformGiftCodes.sources.assertionInvalid') }}</option><option value="expires">{{ t('platformGiftCodes.sources.assertionExpires') }}</option></select></label>
+        <label><span class="ks-kicker">{{ t('platformGiftCodes.sources.exactEvidenceUrl') }}</span><input v-model="evidence.source_url" required type="url" class="ks-input mt-2 w-full" /></label>
+        <label><span class="ks-kicker">{{ t('platformGiftCodes.sources.publishedAt') }}</span><input v-model="evidence.published_at" type="datetime-local" class="ks-input mt-2 w-full" /></label>
+        <label v-if="evidence.assertion === 'expires'"><span class="ks-kicker">{{ t('platformGiftCodes.sources.expiresAt') }}</span><input v-model="evidence.expires_at" type="datetime-local" class="ks-input mt-2 w-full" /></label>
+        <label v-if="evidence.assertion === 'expires'"><span class="ks-kicker">{{ t('platformGiftCodes.sources.expiryPrecision') }}</span><select v-model="evidence.expiry_precision" class="ks-input mt-2 w-full"><option value="instant">{{ t('platformGiftCodes.sources.precisionInstant') }}</option><option value="minute">{{ t('platformGiftCodes.sources.precisionMinute') }}</option><option value="hour">{{ t('platformGiftCodes.sources.precisionHour') }}</option><option value="day">{{ t('platformGiftCodes.sources.precisionDay') }}</option></select></label>
+        <label v-if="evidence.assertion === 'expires'"><span class="ks-kicker">{{ t('platformGiftCodes.sources.expiryTimezone') }}</span><input v-model="evidence.expiry_timezone" maxlength="80" class="ks-input mt-2 w-full" /></label>
+        <div class="md:col-span-2"><AppButton type="submit" :busy="evidence.processing">{{ t('platformGiftCodes.sources.recordEvidence') }}</AppButton></div>
       </form>
-      <p v-else class="mt-4 text-sm text-[var(--ks-muted)]">
-        {{ t('platformGiftCodes.sources.noManualSources') }}
-      </p>
+      <p v-else class="mt-4 text-sm text-[var(--ks-muted)]">{{ t('platformGiftCodes.sources.noManualSources') }}</p>
     </section>
 
     <section class="ks-surface mt-5 p-5 sm:p-6" aria-labelledby="registered-sources">
-      <h2 id="registered-sources" class="ks-display text-xl font-semibold">
-        {{ t('platformGiftCodes.sources.registeredSources') }}
-      </h2>
+      <h2 id="registered-sources" class="ks-display text-xl font-semibold">{{ t('platformGiftCodes.sources.registeredSources') }}</h2>
       <ul v-if="sources.length" class="mt-4 grid gap-3 lg:grid-cols-2">
-        <li
-          v-for="source in sources"
-          :key="source.id"
-          class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] p-4"
-        >
-          <div class="flex items-start justify-between gap-3">
-            <strong>{{ source.name }}</strong>
-            <code class="text-xs">{{
-              source.adapterKey ?? t('platformGiftCodes.sources.manualShort')
-            }}</code>
-          </div>
-          <p class="mt-1 text-xs text-[var(--ks-muted)]">
-            {{ source.canonicalDomain }} · {{ source.classification }}
-          </p>
+        <li v-for="source in sources" :key="source.id" class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] p-4">
+          <div class="flex items-start justify-between gap-3"><strong>{{ source.name }}</strong><code class="text-xs">{{ source.adapterKey ?? t('platformGiftCodes.sources.manualShort') }}</code></div>
+          <p class="mt-1 text-xs text-[var(--ks-muted)]">{{ source.canonicalDomain }} · {{ source.classification }}</p>
           <div class="mt-3 flex flex-wrap gap-2 text-xs">
-            <span class="rounded border border-[var(--ks-border)] px-2 py-1"
-              >{{ t('platformGiftCodes.sources.activationLabel') }}:
-              {{ source.activationStatus }}</span
-            >
-            <span class="rounded border border-[var(--ks-border)] px-2 py-1"
-              >{{ t('platformGiftCodes.sources.healthLabel') }}: {{ source.healthStatus }}</span
-            >
-            <span class="rounded border border-[var(--ks-border)] px-2 py-1"
-              >{{ t('platformGiftCodes.sources.readinessLabel') }}:
-              {{
-                source.activationReadiness.ready
-                  ? t('platformGiftCodes.sources.readinessReady')
-                  : t('platformGiftCodes.sources.readinessBlocked')
-              }}</span
-            >
+            <span class="rounded border border-[var(--ks-border)] px-2 py-1">{{ t('platformGiftCodes.sources.activationLabel') }}: {{ source.activationStatus }}</span>
+            <span class="rounded border border-[var(--ks-border)] px-2 py-1">{{ t('platformGiftCodes.sources.healthLabel') }}: {{ source.healthStatus }}</span>
+            <span class="rounded border border-[var(--ks-border)] px-2 py-1">{{ t('platformGiftCodes.sources.readinessLabel') }}: {{ source.activationReadiness.ready ? t('platformGiftCodes.sources.readinessReady') : t('platformGiftCodes.sources.readinessBlocked') }}</span>
           </div>
-          <ul
-            v-if="!source.activationReadiness.ready"
-            class="mt-3 space-y-1 text-xs text-[var(--ks-muted)]"
-          >
-            <li
-              v-for="(check, key) in source.activationReadiness.checks"
-              v-show="!check.ready"
-              :key="key"
-            >
-              <code>{{ key }}</code
-              >: {{ check.message }}
-            </li>
+          <div class="mt-3 flex flex-wrap gap-2 text-xs text-[var(--ks-muted)]">
+            <span>push {{ source.pushEnabled ? 'on' : 'off' }}</span><span>head {{ source.headPollEnabled ? 'on' : 'off' }}</span><span>reconcile {{ source.reconciliationEnabled ? 'on' : 'off' }}</span><span>backfill {{ source.backfillEnabled ? 'on' : 'off' }}</span><span>authority {{ source.authorityPromotionEnabled ? 'on' : 'off' }}</span>
+          </div>
+          <ul v-if="!source.activationReadiness.ready" class="mt-3 space-y-1 text-xs text-[var(--ks-muted)]">
+            <li v-for="(check, key) in source.activationReadiness.checks" v-show="!check.ready" :key="key"><code>{{ key }}</code>: {{ check.message }}</li>
           </ul>
-          <p class="mt-3 text-xs text-[var(--ks-muted)]">
-            {{ t('platformGiftCodes.sources.requestCountLabel') }} {{ source.requestCount }} ·
-            {{ t('platformGiftCodes.sources.observationCountLabel') }}
-            {{ source.observationCount }} · {{ t('platformGiftCodes.sources.duplicateCountLabel') }}
-            {{ source.duplicateObservationCount }} ·
-            {{ t('platformGiftCodes.sources.rateLimitCountLabel') }}
-            {{ source.rateLimitEventCount }}
-          </p>
-          <p v-if="source.nextEligibleIngestionAt" class="mt-1 text-xs text-[var(--ks-muted)]">
-            {{ t('platformGiftCodes.sources.nextEligible') }}
-            {{ formatDate(source.nextEligibleIngestionAt) }}
-          </p>
-          <p v-if="source.lastAttemptAt" class="mt-1 text-xs text-[var(--ks-muted)]">
-            {{ t('platformGiftCodes.sources.lastAttempt') }} {{ formatDate(source.lastAttemptAt) }}
-          </p>
-          <p v-if="source.failureCode" class="mt-1 text-xs text-[var(--ks-muted)]">
-            {{ t('platformGiftCodes.sources.failureLabel') }}:
-            <code>{{ source.failureCode }}</code> ·
-            {{ t('platformGiftCodes.sources.consecutiveFailures') }}
-            {{ source.consecutiveFailures }}
-          </p>
+          <p class="mt-3 text-xs text-[var(--ks-muted)]">{{ t('platformGiftCodes.sources.requestCountLabel') }} {{ source.requestCount }} · {{ t('platformGiftCodes.sources.observationCountLabel') }} {{ source.observationCount }} · accepted {{ source.acceptedObservationCount }} · quarantined {{ source.quarantinedObservationCount }} · {{ t('platformGiftCodes.sources.duplicateCountLabel') }} {{ source.duplicateObservationCount }}</p>
+          <p class="mt-1 text-xs text-[var(--ks-muted)]">accept {{ asPercent(source.acceptanceRatio) }} · quarantine {{ asPercent(source.quarantineRatio) }} · duplicate {{ asPercent(source.duplicateRatio) }} · reconciliation gaps {{ source.reconciliationGapCount }}</p>
+          <p v-if="source.nextEligibleIngestionAt" class="mt-1 text-xs text-[var(--ks-muted)]">{{ t('platformGiftCodes.sources.nextEligible') }} {{ formatDate(source.nextEligibleIngestionAt) }}</p>
+          <p v-if="source.lastAttemptAt" class="mt-1 text-xs text-[var(--ks-muted)]">{{ t('platformGiftCodes.sources.lastAttempt') }} {{ formatDate(source.lastAttemptAt) }}</p>
+          <p v-if="source.lastPushReceivedAt" class="mt-1 text-xs text-[var(--ks-muted)]">last push {{ formatDate(source.lastPushReceivedAt) }}</p>
+          <p v-if="source.failureCode" class="mt-1 text-xs text-[var(--ks-muted)]">{{ t('platformGiftCodes.sources.failureLabel') }}: <code>{{ source.failureCode }}</code> · {{ t('platformGiftCodes.sources.consecutiveFailures') }} {{ source.consecutiveFailures }}</p>
+          <p v-if="source.reconciliationGapCount > 0" class="mt-1 text-xs font-medium">Push completeness warning: {{ source.reconciliationGapCount }} reconciliation gap(s).</p>
+
+          <div v-if="source.subscriptions.length" class="mt-3 space-y-1 text-xs text-[var(--ks-muted)]">
+            <p v-for="subscription in source.subscriptions" :key="`${subscription.provider}:${subscription.transport}`"><code>{{ subscription.provider }}/{{ subscription.transport }}</code> · {{ subscription.status }}<template v-if="subscription.lastEventReceivedAt"> · last event {{ formatDate(subscription.lastEventReceivedAt) }}</template><template v-if="subscription.lastErrorCode"> · {{ subscription.lastErrorCode }}</template></p>
+          </div>
+
+          <div v-if="canManagePlatformPolicy && source.ingestionEnabled" class="mt-4 flex flex-wrap gap-2">
+            <AppButton type="button" variant="secondary" :busy="busySourceAction === `${source.id}:reconcile`" @click="runSourceAction(source, 'reconcile')">Reconcile now</AppButton>
+            <AppButton v-if="source.backfillEnabled" type="button" variant="secondary" :busy="busySourceAction === `${source.id}:backfill`" @click="runSourceAction(source, 'backfill')">Backfill</AppButton>
+            <AppButton v-if="source.pushEnabled && pushAvailableFor(source.adapterKey) && !hasActivePush(source)" type="button" variant="secondary" :busy="busySourceAction === `${source.id}:push/subscribe`" @click="runSourceAction(source, 'push/subscribe')">Subscribe push</AppButton>
+            <AppButton v-if="source.pushEnabled && hasActivePush(source)" type="button" variant="secondary" :busy="busySourceAction === `${source.id}:push/unsubscribe`" @click="runSourceAction(source, 'push/unsubscribe')">Disable push subscription</AppButton>
+          </div>
         </li>
       </ul>
-      <p v-else class="mt-3 text-sm text-[var(--ks-muted)]">
-        {{ t('platformGiftCodes.noApprovedSources') }}
-      </p>
+      <p v-else class="mt-3 text-sm text-[var(--ks-muted)]">{{ t('platformGiftCodes.noApprovedSources') }}</p>
     </section>
   </AppLayout>
 </template>
