@@ -62,9 +62,21 @@ return Application::configure(basePath: dirname(__DIR__))
         $schedule->call(static fn (): int => app(QueueDueKingPerkReminders::class)->handle(100))->name('king-perks:queue-reminders')->everyMinute()->onOneServer()->withoutOverlapping(10);
         $schedule->call(static fn (): int => app(QueueDueGiftCodeReminders::class)->handle(100))->name('gift-codes:queue-personal-reminders')->everyMinute()->onOneServer()->withoutOverlapping(10);
         $schedule->call(static fn (): int => app(QueueGiftCodeWorkspaceNotifications::class)->cycle(100)['queued'])->name('gift-codes:queue-workspace-notifications')->everyFifteenMinutes()->onOneServer()->withoutOverlapping(30);
-        $schedule->call(static function (): int { $result = app(RunGiftCodeSourceReconciliation::class)->handle(25); return $result['failedSources']; })->name('gift-codes:reconcile-sources')->everyFifteenMinutes()->onOneServer()->withoutOverlapping(30);
-        $schedule->call(static function (): int { $result = app(RunGiftCodeSourceBackfill::class)->handle(5); return $result['failedSources']; })->name('gift-codes:backfill-sources')->hourly()->onOneServer()->withoutOverlapping(45);
-        $schedule->call(static function (): int { $result = app(QueueGiftCodeSourceOperationalAlerts::class)->handle(100); return $result['queued']; })->name('gift-codes:source-operational-alerts')->everyFiveMinutes()->onOneServer()->withoutOverlapping(10);
+        $schedule->call(static function (): int {
+            $result = app(RunGiftCodeSourceReconciliation::class)->handle(25);
+
+            return $result['failedSources'];
+        })->name('gift-codes:reconcile-sources')->everyFifteenMinutes()->onOneServer()->withoutOverlapping(30);
+        $schedule->call(static function (): int {
+            $result = app(RunGiftCodeSourceBackfill::class)->handle(5);
+
+            return $result['failedSources'];
+        })->name('gift-codes:backfill-sources')->hourly()->onOneServer()->withoutOverlapping(45);
+        $schedule->call(static function (): int {
+            $result = app(QueueGiftCodeSourceOperationalAlerts::class)->handle(100);
+
+            return $result['queued'];
+        })->name('gift-codes:source-operational-alerts')->everyFiveMinutes()->onOneServer()->withoutOverlapping(10);
         $schedule->call(static fn (): int => app(RebuildGiftCodeContributorProjections::class)->cycle(100)['updated'])->name('gift-codes:rebuild-contributor-projections')->hourly()->onOneServer()->withoutOverlapping(30);
         $schedule->call(static fn (): int => app(ProcessNotificationDeliveries::class)->handle(100))->name('communications:deliver-notifications')->everyMinute()->onOneServer()->withoutOverlapping(10);
         $schedule->call(static fn (): int => app(ExpireKingdomRoleAssignments::class)->handle(250))->name('kingdom-governance:expire-delegations')->hourly()->onOneServer()->withoutOverlapping(30);
@@ -84,11 +96,15 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->context(static function (): array {
             $request = app()->bound('request') ? request() : null;
+
             return ['request_id' => $request instanceof Request ? $request->attributes->get('request_id') : null, 'trace_id' => $request instanceof Request ? $request->attributes->get('trace_id') : null];
         });
         $exceptions->respond(static function (Response $response): Response {
             $request = app()->bound('request') ? request() : null;
-            if ($request instanceof Request) { AssignRequestContext::applyResponseHeaders($response, $request); }
+            if ($request instanceof Request) {
+                AssignRequestContext::applyResponseHeaders($response, $request);
+            }
+
             return SecurityHeaders::apply($response, $request instanceof Request ? $request : null);
         });
     })

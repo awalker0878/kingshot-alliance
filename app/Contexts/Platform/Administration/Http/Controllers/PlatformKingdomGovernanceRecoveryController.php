@@ -25,6 +25,7 @@ final class PlatformKingdomGovernanceRecoveryController extends Controller
             'replace_existing' => ['sometimes', 'boolean'],
         ]);
         $recover->handle($accounts->require((int) $user->id), (string) $validated['kingdom_id'], (string) $validated['player_id'], (string) $validated['reason'], (bool) ($validated['replace_existing'] ?? false));
+
         return back()->with('actionReceipt', $this->receipt('kingdom-administrator-recovered'));
     }
 }

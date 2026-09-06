@@ -30,6 +30,7 @@ final class KingdomGovernanceHistoryController extends Controller
         $alliance = $alliances->require($scope->allianceId);
         $kingdom = $kingdoms->require($scope->kingdomId);
         $history = $timeline->forKingdom($scope->kingdomId, $request->query('before'));
+
         return Inertia::render('Kingdom/Governance/History', ['user' => ['name' => $user->accountName(), 'email' => $user->accountEmail()], 'alliance' => ['id' => $alliance->allianceId, 'name' => $alliance->name], 'kingdom' => ['id' => $kingdom->kingdomId, 'number' => $kingdom->number], 'items' => $history['items'], 'nextCursor' => $history['nextCursor']]);
     }
 }

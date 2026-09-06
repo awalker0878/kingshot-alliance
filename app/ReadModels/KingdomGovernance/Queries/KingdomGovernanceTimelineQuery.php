@@ -33,8 +33,10 @@ final readonly class KingdomGovernanceTimelineQuery
             $playerRef = $playerId === null ? null : ($playerRefs[$playerId] ?? null);
             $accountRef = $userId === null ? null : ($accountRefs[(int) $userId] ?? null);
             $actorName = $playerRef?->currentName ?? $accountRef?->name ?? ($userId !== null ? 'Platform Administrator' : 'System');
+
             return ['id' => (string) $event->id, 'type' => (string) $event->event, 'occurredAt' => $event->created_at->toIso8601String(), 'actor' => ['playerId' => $playerId, 'userId' => $userId, 'name' => $actorName], 'metadata' => $event->metadata ?? []];
         })->values()->all();
+
         return ['items' => $items, 'nextCursor' => $hasMore && $rows->isNotEmpty() ? (string) $rows->last()->id : null];
     }
 }

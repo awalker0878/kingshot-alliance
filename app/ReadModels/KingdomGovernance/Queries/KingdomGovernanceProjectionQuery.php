@@ -33,6 +33,7 @@ final readonly class KingdomGovernanceProjectionQuery
             ])->values()->all(),
             'assignments' => $assignmentRows->map(static function (KingdomRoleAssignment $assignment) use ($refs): array {
                 $ref = $refs[(string) $assignment->player_id] ?? null;
+
                 return [
                     'id' => (string) $assignment->id,
                     'playerId' => (string) $assignment->player_id,
@@ -65,6 +66,7 @@ final readonly class KingdomGovernanceProjectionQuery
             $grouped[$playerId]['roles'][] = (string) $row->role->name;
             $grouped[$playerId]['roles'] = array_values(array_unique($grouped[$playerId]['roles']));
         }
+
         return array_values($grouped);
     }
 }

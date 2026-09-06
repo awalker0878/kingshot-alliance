@@ -63,6 +63,7 @@ final class KingdomGovernanceHealthQuery
             }
         }
         $status = collect($issues)->contains(static fn (array $issue): bool => $issue['severity'] === 'critical') ? 'critical' : ($issues === [] ? 'healthy' : 'degraded');
+
         return ['status' => $status, 'issues' => $issues];
     }
 }

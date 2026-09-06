@@ -50,6 +50,7 @@ final class KingdomRoleController extends Controller
         $assignments = $assignmentRows->map(static function (KingdomRoleAssignment $assignment) use ($playerReferences): array {
             $player = $playerReferences[(string) $assignment->player_id] ?? null;
             $state = $assignment->isEffectiveAt() ? 'effective' : (($assignment->effective_from?->isFuture() ?? false) ? 'scheduled' : 'expired');
+
             return [
                 'id' => (string) $assignment->id,
                 'player' => ['id' => (string) $assignment->player_id, 'name' => $player->currentName ?? 'Unknown Governor', 'gamePlayerId' => $player?->gamePlayerId],

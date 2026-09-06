@@ -44,15 +44,18 @@ final readonly class BulkKingdomRoleAdministration
             $player = $players->get($playerId);
             if (! $player instanceof Player || (string) $player->current_kingdom_id !== $kingdomId) {
                 $ineligible[$playerId] = 'Governor is not currently in this Kingdom.';
+
                 continue;
             }
             $assignment = KingdomRoleAssignment::query()->effective()->where('kingdom_id', $kingdomId)->where('player_id', $playerId)->where('kingdom_role_id', $roleId)->first();
             if ($operation === 'assign' && $assignment instanceof KingdomRoleAssignment) {
                 $ineligible[$playerId] = 'Governor already has this effective role.';
+
                 continue;
             }
             if ($operation === 'remove' && ! $assignment instanceof KingdomRoleAssignment) {
                 $ineligible[$playerId] = 'Governor does not have this effective role.';
+
                 continue;
             }
             $eligible[] = $playerId;

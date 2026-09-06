@@ -32,6 +32,7 @@ final class KingdomGovernanceAuthorityController extends Controller
         $holders = $selected === '' ? [] : $projection->holders($scope->kingdomId, $selected);
         $alliance = $alliances->require($scope->allianceId);
         $kingdom = $kingdoms->require($scope->kingdomId);
+
         return Inertia::render('Kingdom/Governance/Authority', ['user' => ['name' => $user->accountName(), 'email' => $user->accountEmail()], 'alliance' => ['id' => $alliance->allianceId, 'name' => $alliance->name], 'kingdom' => ['id' => $kingdom->kingdomId, 'number' => $kingdom->number], 'roles' => $data['roles'], 'assignments' => $data['assignments'], 'permissions' => $data['permissions'], 'selectedPermission' => $selected === '' ? null : $selected, 'holders' => $holders]);
     }
 }

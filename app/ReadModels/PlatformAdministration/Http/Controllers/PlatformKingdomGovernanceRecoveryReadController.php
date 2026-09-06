@@ -21,6 +21,7 @@ final class PlatformKingdomGovernanceRecoveryReadController extends Controller
         $kingdoms = Kingdom::query()->orderBy('number')->limit(250)->get(['id', 'number']);
         $kingdomIds = $kingdoms->pluck('id')->map('strval')->all();
         $players = Player::query()->whereIn('current_kingdom_id', $kingdomIds)->orderBy('current_name')->limit(1000)->get(['id', 'current_kingdom_id', 'current_name', 'game_player_id']);
+
         return Inertia::render('Platform/GovernanceRecovery', [
             'user' => ['name' => (string) $user->name, 'email' => (string) $user->email],
             'kingdoms' => $kingdoms->map(static fn (Kingdom $kingdom): array => ['id' => (string) $kingdom->id, 'number' => (int) $kingdom->number])->values()->all(),
