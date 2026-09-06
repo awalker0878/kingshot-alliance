@@ -62,7 +62,7 @@ final readonly class CreateKingdomRole
     }
 
     /**
-     * @param list<string> $permissionKeys
+     * @param  list<string>  $permissionKeys
      * @return list<string>
      */
     private function authorizedPermissionIds(string $actorPlayerId, string $kingdomId, array $permissionKeys): array

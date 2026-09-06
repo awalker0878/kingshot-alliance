@@ -85,7 +85,8 @@ function choose(event: Event): void {
       <article v-for="role in roles" :key="role.id" class="ks-surface p-5">
         <h2 class="font-semibold">{{ role.name }}</h2>
         <p class="mt-1 text-xs text-[var(--ks-text-muted)]">
-          {{ role.effectiveAssignmentCount }} {{ t('governanceExpansion.effective') }} · {{ role.key }}
+          {{ role.effectiveAssignmentCount }} {{ t('governanceExpansion.effective') }} ·
+          {{ role.key }}
         </p>
         <p v-if="role.description" class="mt-2 text-sm text-[var(--ks-text-secondary)]">
           {{ role.description }}

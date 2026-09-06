@@ -60,7 +60,7 @@ final class KingdomRoleAssignment extends Model
     }
 
     /**
-     * @param Builder<KingdomRoleAssignment> $query
+     * @param  Builder<KingdomRoleAssignment>  $query
      * @return Builder<KingdomRoleAssignment>
      */
     public function scopeEffective(Builder $query, ?DateTimeInterface $at = null): Builder
