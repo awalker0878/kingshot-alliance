@@ -85,12 +85,14 @@ final class DiscordChannelGiftCodeSourceAdapter implements GiftCodeSourceAdapter
 
         $retrievalVersion = $this->giftCodeRetrievalVersion($response);
         $observations = [];
+        $messageIds = [];
         $highWater = $cursor;
         foreach ($messages as $position => $message) {
             if (! is_array($message)) {
                 throw new UnexpectedValueException(sprintf('Discord message %d must be an object.', $position + 1));
             }
             $messageId = $this->requiredString($message['id'] ?? null, 'message id', $position + 1, 32);
+            $messageIds[] = $messageId;
             $highWater = $this->greaterSnowflake($highWater, $messageId);
             $author = $message['author'] ?? null;
             if (! is_array($author)) {
@@ -144,6 +146,7 @@ final class DiscordChannelGiftCodeSourceAdapter implements GiftCodeSourceAdapter
                     'guild_id' => $guildId,
                     'channel_id' => $channelId,
                     'message_high_water' => $highWater,
+                    'provider_item_ids' => array_values(array_unique($messageIds)),
                 ],
             ),
             requestCount: 2,
