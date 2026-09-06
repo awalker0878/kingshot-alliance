@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\GiftCodes\Http\Controllers;
 
+use App\Contexts\GameWorld\GiftCodes\Actions\CompleteGiftCodePushDelivery;
 use App\Contexts\GameWorld\GiftCodes\Actions\IngestGiftCodeProviderPublication;
 use App\Contexts\GameWorld\GiftCodes\Actions\RecordGiftCodePushDelivery;
+use App\Contexts\GameWorld\GiftCodes\Actions\RecordGiftCodeSourcePushActivity;
+use App\Contexts\GameWorld\GiftCodes\Actions\UpdateGiftCodeSourceSubscription;
 use App\Contexts\GameWorld\GiftCodes\Adapters\YouTubeChannelGiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeSourceRegistry;
-use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeSourceSubscription;
 use App\Contexts\GameWorld\GiftCodes\Services\GiftCodePushDeliveryIdentity;
 use App\Contexts\GameWorld\GiftCodes\Services\GiftCodePushPayloadLimits;
 use App\Contexts\GameWorld\GiftCodes\Services\YouTubeVideoGiftCodeFetcher;
@@ -25,8 +27,11 @@ use UnexpectedValueException;
 
 final class YouTubeWebSubGiftCodeController extends Controller
 {
-    public function verify(Request $request, string $source): Response
-    {
+    public function verify(
+        Request $request,
+        string $source,
+        UpdateGiftCodeSourceSubscription $subscriptions,
+    ): Response {
         $registry = $this->source($source);
         $policy = $registry->provenance_policy ?? [];
         $channelId = is_string($policy['youtube_channel_id'] ?? null) ? trim($policy['youtube_channel_id']) : '';
@@ -44,13 +49,11 @@ final class YouTubeWebSubGiftCodeController extends Controller
             abort(404);
         }
 
-        GiftCodeSourceSubscription::query()->updateOrCreate(
-            [
-                'gift_code_source_id' => (string) $registry->id,
-                'provider' => 'youtube',
-                'transport' => 'websub',
-            ],
-            [
+        $subscriptions->handle(
+            sourceId: (string) $registry->id,
+            provider: 'youtube',
+            transport: 'websub',
+            attributes: [
                 'topic_or_rule' => $expectedTopic,
                 'configured_identity' => ['channel_id' => $channelId],
                 'status' => $mode === 'subscribe' ? 'active' : 'disabled',
@@ -59,6 +62,7 @@ final class YouTubeWebSubGiftCodeController extends Controller
                 'last_verified_at' => now(),
                 'last_error_code' => null,
             ],
+            createIfMissing: true,
         );
 
         return response($challenge, 200, ['Content-Type' => 'text/plain; charset=UTF-8']);
@@ -70,13 +74,16 @@ final class YouTubeWebSubGiftCodeController extends Controller
         GiftCodePushPayloadLimits $limits,
         GiftCodePushDeliveryIdentity $identity,
         RecordGiftCodePushDelivery $record,
+        CompleteGiftCodePushDelivery $complete,
+        RecordGiftCodeSourcePushActivity $activity,
+        UpdateGiftCodeSourceSubscription $subscriptions,
         YouTubeVideoGiftCodeFetcher $fetcher,
         IngestGiftCodeProviderPublication $ingest,
     ): JsonResponse {
         $registry = $this->source($source);
         $body = $request->getContent();
         $limits->assertBounded($body);
-        $this->authorizeSignature($request, $registry, $body);
+        $this->authorizeSignature($request, $registry, $body, $activity);
         $entries = $this->entries($body, $registry);
 
         $processed = 0;
@@ -93,42 +100,32 @@ final class YouTubeWebSubGiftCodeController extends Controller
                 payloadSha256: hash('sha256', $body),
                 correlationId: trim((string) $request->header('X-Request-Id')) ?: null,
             ));
-            if (! $delivery->wasRecentlyCreated) {
+            if (! $delivery->created) {
                 $duplicates++;
-                $registry->increment('replay_rejection_count');
+                $activity->handle((string) $registry->id, 'replay_rejection');
 
                 continue;
             }
 
             try {
                 $publication = $fetcher->fetch($registry, $entry['video_id']);
-                $outcome = $ingest->handle($registry, $publication, 'youtube-websub-v1', true);
-                $delivery->forceFill([
-                    'processing_status' => $outcome->status,
-                    'processed_at' => now(),
-                ])->save();
+                $outcome = $ingest->handle((string) $registry->id, $publication, 'youtube-websub-v1', true);
+                $complete->handle($delivery->deliveryId, $outcome->status);
                 $processed++;
                 $accepted += $outcome->accepted;
             } catch (\Throwable $exception) {
-                $delivery->forceFill([
-                    'processing_status' => 'failed',
-                    'error_code' => 'canonical_fetch_or_ingestion_failed',
-                    'processed_at' => now(),
-                ])->save();
+                $complete->handle($delivery->deliveryId, 'failed', 'canonical_fetch_or_ingestion_failed');
                 throw $exception;
             }
         }
 
-        $registry->forceFill([
-            'last_push_received_at' => now(),
-            'last_provider_event_at' => now(),
-            'last_health_checked_at' => now(),
-        ])->save();
-        GiftCodeSourceSubscription::query()
-            ->where('gift_code_source_id', $registry->id)
-            ->where('provider', 'youtube')
-            ->where('transport', 'websub')
-            ->update(['last_event_received_at' => now(), 'last_error_code' => null]);
+        $activity->handle((string) $registry->id, 'received');
+        $subscriptions->handle(
+            sourceId: (string) $registry->id,
+            provider: 'youtube',
+            transport: 'websub',
+            attributes: ['last_event_received_at' => now(), 'last_error_code' => null],
+        );
 
         return response()->json([
             'sourceId' => (string) $registry->id,
@@ -155,21 +152,25 @@ final class YouTubeWebSubGiftCodeController extends Controller
         return $registry;
     }
 
-    private function authorizeSignature(Request $request, GiftCodeSourceRegistry $source, string $body): void
-    {
+    private function authorizeSignature(
+        Request $request,
+        GiftCodeSourceRegistry $source,
+        string $body,
+        RecordGiftCodeSourcePushActivity $activity,
+    ): void {
         $secret = trim((string) config('game_world.gift_codes.youtube_websub_secret', ''));
         if (strlen($secret) < 32) {
             abort(503, 'YouTube WebSub verification is not configured.');
         }
         $header = trim((string) $request->header('X-Hub-Signature', ''));
         if (preg_match('/^(sha1|sha256)=([a-f0-9]+)$/D', $header, $matches) !== 1) {
-            $source->increment('signature_failure_count');
+            $activity->handle((string) $source->id, 'signature_failure');
             throw ValidationException::withMessages(['signature' => 'The YouTube WebSub signature is missing or invalid.']);
         }
         $algorithm = $matches[1];
         $expected = hash_hmac($algorithm, $body, $secret);
         if (! hash_equals($expected, $matches[2])) {
-            $source->increment('signature_failure_count');
+            $activity->handle((string) $source->id, 'signature_failure');
             throw ValidationException::withMessages(['signature' => 'The YouTube WebSub signature is invalid.']);
         }
     }
