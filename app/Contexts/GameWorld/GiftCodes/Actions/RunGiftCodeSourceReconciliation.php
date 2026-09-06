@@ -11,6 +11,7 @@ use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeSourceRegistry;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeSourceSubscription;
 use App\Contexts\GameWorld\GiftCodes\Services\GiftCodeProviderItemIdentity;
 use App\Contexts\GameWorld\GiftCodes\Services\GiftCodeSourceAdapterRegistry;
+use App\Contexts\GameWorld\GiftCodes\Services\GiftCodeSourceHeadAcquirer;
 use App\Contexts\GameWorld\GiftCodes\Services\GiftCodeSourceHealthProjector;
 use App\Contexts\GameWorld\GiftCodes\Services\GiftCodeSourceSyncStateRepository;
 use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeIngestionObservation;
@@ -22,7 +23,7 @@ final readonly class RunGiftCodeSourceReconciliation
 {
     public function __construct(
         private GiftCodeSourceAdapterRegistry $adapters,
-        private AcquireGiftCodeSourceHead $acquire,
+        private GiftCodeSourceHeadAcquirer $acquire,
         private IngestApprovedGiftCodeObservation $ingest,
         private GiftCodeSourceSyncStateRepository $syncStates,
         private GiftCodeSourceHealthProjector $health,
