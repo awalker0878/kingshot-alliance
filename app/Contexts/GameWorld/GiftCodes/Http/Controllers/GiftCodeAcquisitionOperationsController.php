@@ -14,13 +14,13 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
-final readonly class GiftCodeAcquisitionOperationsController extends Controller
+final class GiftCodeAcquisitionOperationsController extends Controller
 {
     public function __construct(
-        private AccountIdentityQuery $accounts,
-        private GiftCodeIngestionHealthQuery $health,
-        private GiftCodeAcquisitionEffectivenessQuery $effectiveness,
-        private PlatformAuthorization $platformAuthorization,
+        private readonly AccountIdentityQuery $accounts,
+        private readonly GiftCodeIngestionHealthQuery $health,
+        private readonly GiftCodeAcquisitionEffectivenessQuery $effectiveness,
+        private readonly PlatformAuthorization $platformAuthorization,
     ) {}
 
     public function index(Request $request): Response
