@@ -75,7 +75,7 @@ type Effectiveness = {
   sourcePerformanceRows: number;
 };
 
-const props = defineProps<{
+defineProps<{
   user: { name: string; email: string };
   sources: Source[];
   acquisitionEffectiveness: Effectiveness;
