@@ -6,7 +6,6 @@ namespace App\Contexts\GameWorld\GiftCodes\Actions;
 
 use App\Contexts\GameWorld\GiftCodes\Adapters\DiscordChannelGiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeSourceRegistry;
-use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeSourceSubscription;
 use App\Contexts\GameWorld\GiftCodes\Services\DiscordMessageGiftCodeFetcher;
 use App\Contexts\GameWorld\GiftCodes\Services\GiftCodePushDeliveryIdentity;
 use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodePushDelivery;
@@ -16,6 +15,9 @@ final readonly class ProcessDiscordGiftCodeGatewayEvent
     public function __construct(
         private GiftCodePushDeliveryIdentity $identity,
         private RecordGiftCodePushDelivery $record,
+        private CompleteGiftCodePushDelivery $complete,
+        private RecordGiftCodeSourcePushActivity $activity,
+        private UpdateGiftCodeSourceSubscription $subscriptions,
         private DiscordMessageGiftCodeFetcher $fetcher,
         private IngestGiftCodeProviderPublication $ingest,
     ) {}
@@ -76,38 +78,28 @@ final readonly class ProcessDiscordGiftCodeGatewayEvent
                 payloadSha256: hash('sha256', json_encode($payload, JSON_THROW_ON_ERROR)),
                 correlationId: $sequence === '' ? null : $sequence,
             ));
-            if (! $delivery->wasRecentlyCreated) {
+            if (! $delivery->created) {
                 $duplicates++;
-                $source->increment('replay_rejection_count');
+                $this->activity->handle((string) $source->id, 'replay_rejection');
 
                 continue;
             }
 
             try {
                 $publication = $this->fetcher->fetch($source, $messageId);
-                $outcome = $this->ingest->handle($source, $publication, 'discord-gateway-v1', true);
-                $delivery->forceFill([
-                    'processing_status' => $outcome->status,
-                    'processed_at' => now(),
-                ])->save();
+                $outcome = $this->ingest->handle((string) $source->id, $publication, 'discord-gateway-v1', true);
+                $this->complete->handle($delivery->deliveryId, $outcome->status);
                 $processed++;
                 $accepted += $outcome->accepted;
-                $source->forceFill([
-                    'last_push_received_at' => now(),
-                    'last_provider_event_at' => now(),
-                    'last_health_checked_at' => now(),
-                ])->save();
-                GiftCodeSourceSubscription::query()
-                    ->where('gift_code_source_id', $source->id)
-                    ->where('provider', 'discord')
-                    ->where('transport', 'gateway')
-                    ->update(['last_event_received_at' => now(), 'last_error_code' => null]);
+                $this->activity->handle((string) $source->id, 'received');
+                $this->subscriptions->handle(
+                    sourceId: (string) $source->id,
+                    provider: 'discord',
+                    transport: 'gateway',
+                    attributes: ['last_event_received_at' => now(), 'last_error_code' => null],
+                );
             } catch (\Throwable $exception) {
-                $delivery->forceFill([
-                    'processing_status' => 'failed',
-                    'error_code' => 'canonical_fetch_or_ingestion_failed',
-                    'processed_at' => now(),
-                ])->save();
+                $this->complete->handle($delivery->deliveryId, 'failed', 'canonical_fetch_or_ingestion_failed');
                 throw $exception;
             }
         }
