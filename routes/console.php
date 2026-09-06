@@ -14,6 +14,9 @@ use App\Contexts\GameWorld\GiftCodes\Actions\QueueGiftCodeExpiryNotifications;
 use App\Contexts\GameWorld\GiftCodes\Actions\QueueGiftCodeTransitionNotifications;
 use App\Contexts\GameWorld\GiftCodes\Actions\ReconcileGiftCodeSourcePolicyChanges;
 use App\Contexts\GameWorld\GiftCodes\Actions\RunApprovedGiftCodeSourceIngestion;
+use App\Contexts\GameWorld\GiftCodes\Actions\RunGiftCodeSourceBackfill;
+use App\Contexts\GameWorld\GiftCodes\Actions\RunGiftCodeSourceReconciliation;
+use App\Contexts\GameWorld\GiftCodes\Services\DiscordGiftCodeGatewayClient;
 use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
 use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Intelligence\Contributions\Actions\QueueDueContributionReports;
@@ -392,6 +395,41 @@ Artisan::command(
 )->purpose('Run bounded idempotent ingestion for active approved Gift Code sources');
 
 Artisan::command(
+    'gift-codes:reconcile-sources {--limit=10} {--source=}',
+    function (RunGiftCodeSourceReconciliation $reconcile): int {
+        $sourceValue = $this->option('source');
+        $source = is_string($sourceValue) && trim($sourceValue) !== '' ? trim($sourceValue) : null;
+        $result = $reconcile->handle(max(1, min(100, (int) $this->option('limit'))), $source);
+        $this->line(json_encode($result, JSON_THROW_ON_ERROR));
+
+        return $result['failedSources'] > 0 ? 1 : 0;
+    },
+)->purpose('Reconcile approved Gift Code sources against pull-provider state and detect missed push deliveries');
+
+Artisan::command(
+    'gift-codes:backfill-sources {--limit=5} {--source=} {--restart}',
+    function (RunGiftCodeSourceBackfill $backfill): int {
+        $sourceValue = $this->option('source');
+        $source = is_string($sourceValue) && trim($sourceValue) !== '' ? trim($sourceValue) : null;
+        $result = $backfill->handle(
+            max(1, min(50, (int) $this->option('limit'))),
+            $source,
+            (bool) $this->option('restart'),
+        );
+        $this->line(json_encode($result, JSON_THROW_ON_ERROR));
+
+        return $result['failedSources'] > 0 ? 1 : 0;
+    },
+)->purpose('Run bounded historical backfill independently from Gift Code freshness acquisition');
+
+Artisan::command('gift-codes:discord-gateway {--max-seconds=0}', function (DiscordGiftCodeGatewayClient $gateway): int {
+    $handled = $gateway->run(max(0, min(86_400, (int) $this->option('max-seconds'))));
+    $this->info(sprintf('Processed %d Discord Gift Code Gateway event(s).', $handled));
+
+    return 0;
+})->purpose('Run the Discord Gateway push transport for approved Gift Code sources');
+
+Artisan::command(
     'gift-codes:reconcile-source-policies {--limit=200}',
     function (ReconcileGiftCodeSourcePolicyChanges $reconcile): int {
         $this->line(json_encode(
@@ -446,6 +484,8 @@ Schedule::command('notifications:build-digests --limit=500')->everyMinute()->onO
 Schedule::command('notifications:deliver-digests --limit=100')->everyMinute()->onOneServer()->withoutOverlapping(10);
 Schedule::command('gift-codes:maintain --limit=500 --cycle')->everyFifteenMinutes()->onOneServer()->withoutOverlapping(30);
 Schedule::command('gift-codes:ingest-approved-sources --limit=25 --cycle')->everyFifteenMinutes()->onOneServer()->withoutOverlapping(30);
+Schedule::command('gift-codes:reconcile-sources --limit=25')->everyFifteenMinutes()->onOneServer()->withoutOverlapping(30);
+Schedule::command('gift-codes:backfill-sources --limit=5')->hourly()->onOneServer()->withoutOverlapping(45);
 Schedule::command('gift-codes:reconcile-source-policies --limit=500')->everyFiveMinutes()->onOneServer()->withoutOverlapping(30);
 Schedule::command('contributions:queue-reports --limit=50')->everyMinute()->onOneServer()->withoutOverlapping(10);
 Schedule::command('outbox:publish --limit=100')->everyMinute()->onOneServer()->withoutOverlapping(10);
