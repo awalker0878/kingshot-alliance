@@ -26,6 +26,8 @@ final readonly class GiftCodeIngestionHealthQuery
                 'ingestionRuns' => static fn ($query) => $query->orderByDesc('started_at')->limit(5),
                 'syncStates',
                 'subscriptions',
+                'latestSmokeCheck',
+                'performanceProjection',
             ])
             ->orderBy('source_key')
             ->limit(max(1, min(100, $limit)))
@@ -99,6 +101,8 @@ final readonly class GiftCodeIngestionHealthQuery
             $policy = $source->provenance_policy ?? [];
             $activation = $this->readiness->forSource($source)->toArray();
             $ratios = $this->usefulness->forSource($source);
+            $smoke = $source->latestSmokeCheck;
+            $performance = $source->performanceProjection;
             $result[] = [
                 'id' => (string) $source->id,
                 'key' => $source->source_key,
@@ -117,6 +121,36 @@ final readonly class GiftCodeIngestionHealthQuery
                 'activationStatus' => $source->activation_status,
                 'healthStatus' => $source->health_status,
                 'activationReadiness' => $activation,
+                'latestSmokeCheck' => $smoke === null ? null : [
+                    'status' => $smoke->status,
+                    'checkedAt' => $smoke->checked_at->toIso8601String(),
+                    'durationMs' => $smoke->duration_ms,
+                    'observationCount' => $smoke->observation_count,
+                    'retrievalVersion' => $smoke->retrieval_version,
+                    'providerRequestId' => $smoke->provider_request_id,
+                    'pushStatus' => $smoke->push_status,
+                    'failureCode' => $smoke->failure_code,
+                    'failureMessage' => $smoke->failure_message,
+                ],
+                'performance' => $performance === null ? null : [
+                    'observations' => $performance->observations,
+                    'uniqueCodesDiscovered' => $performance->unique_codes_discovered,
+                    'firstDiscoveries' => $performance->first_discoveries,
+                    'qualifiedObservations' => $performance->qualified_observations,
+                    'confirmedCorrect' => $performance->confirmed_correct,
+                    'confirmedIncorrect' => $performance->confirmed_incorrect,
+                    'conflictingObservations' => $performance->conflicting_observations,
+                    'medianDiscoveryLatencySeconds' => $performance->median_discovery_latency_seconds,
+                    'medianConfirmationLatencySeconds' => $performance->median_confirmation_latency_seconds,
+                    'medianTimeToCodeSeconds' => $performance->median_time_to_code_seconds,
+                    'p95TimeToCodeSeconds' => $performance->p95_time_to_code_seconds,
+                    'usefulObservationRatio' => $performance->useful_observation_ratio,
+                    'quarantineRatio' => $performance->quarantine_ratio,
+                    'duplicateRatio' => $performance->duplicate_ratio,
+                    'latencySampleCount' => $performance->latency_sample_count,
+                    'lastProductiveObservationAt' => $performance->last_productive_observation_at?->toIso8601String(),
+                    'derivedAt' => $performance->derived_at->toIso8601String(),
+                ],
                 'syncStates' => $syncStates,
                 'subscriptions' => $subscriptions,
                 'nextEligibleIngestionAt' => $source->next_eligible_ingestion_at?->toIso8601String(),

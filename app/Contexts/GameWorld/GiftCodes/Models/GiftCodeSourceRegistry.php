@@ -8,6 +8,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 
 /**
@@ -193,5 +194,23 @@ final class GiftCodeSourceRegistry extends Model
     public function deliveries(): HasMany
     {
         return $this->hasMany(GiftCodeSourceDelivery::class, 'gift_code_source_id');
+    }
+
+    /** @return HasMany<GiftCodeSourceSmokeCheck, $this> */
+    public function smokeChecks(): HasMany
+    {
+        return $this->hasMany(GiftCodeSourceSmokeCheck::class, 'gift_code_source_id');
+    }
+
+    /** @return HasOne<GiftCodeSourceSmokeCheck, $this> */
+    public function latestSmokeCheck(): HasOne
+    {
+        return $this->hasOne(GiftCodeSourceSmokeCheck::class, 'gift_code_source_id')->latestOfMany('checked_at');
+    }
+
+    /** @return HasOne<GiftCodeSourcePerformanceProjection, $this> */
+    public function performanceProjection(): HasOne
+    {
+        return $this->hasOne(GiftCodeSourcePerformanceProjection::class, 'gift_code_source_id');
     }
 }

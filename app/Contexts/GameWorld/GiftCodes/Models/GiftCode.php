@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 
 /**
@@ -36,6 +37,7 @@ use Illuminate\Support\Carbon;
  * @property-read Collection<int, GiftCodeFactProjection> $factProjections
  * @property-read Collection<int, GiftCodeNotificationCampaign> $notificationCampaigns
  * @property-read Collection<int, GiftCodeAccountState> $accountStates
+ * @property-read GiftCodeObservationCluster|null $acquisitionCluster
  */
 final class GiftCode extends Model
 {
@@ -109,5 +111,11 @@ final class GiftCode extends Model
     public function accountStates(): HasMany
     {
         return $this->hasMany(GiftCodeAccountState::class);
+    }
+
+    /** @return HasOne<GiftCodeObservationCluster, $this> */
+    public function acquisitionCluster(): HasOne
+    {
+        return $this->hasOne(GiftCodeObservationCluster::class);
     }
 }

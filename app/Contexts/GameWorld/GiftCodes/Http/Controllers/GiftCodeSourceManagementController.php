@@ -7,10 +7,15 @@ namespace App\Contexts\GameWorld\GiftCodes\Http\Controllers;
 use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
 use App\Contexts\Accounts\Identity\ValueObjects\AccountIdentity;
 use App\Contexts\GameWorld\GiftCodes\Actions\ManageGiftCodeSourceRegistry;
+use App\Contexts\GameWorld\GiftCodes\Actions\RebuildGiftCodeAcquisitionIntelligence;
 use App\Contexts\GameWorld\GiftCodes\Actions\RecordRegisteredGiftCodeEvidence;
+use App\Contexts\GameWorld\GiftCodes\Actions\RunApprovedGiftCodeSourceIngestion;
 use App\Contexts\GameWorld\GiftCodes\Actions\RunGiftCodeSourceBackfill;
 use App\Contexts\GameWorld\GiftCodes\Actions\RunGiftCodeSourceReconciliation;
+use App\Contexts\GameWorld\GiftCodes\Actions\RunGiftCodeSourceSmokeCheck;
+use App\Contexts\GameWorld\GiftCodes\Actions\SetGiftCodeSourceAcquisitionControls;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeSourceRegistry;
+use App\Contexts\GameWorld\GiftCodes\Queries\GiftCodeAcquisitionEffectivenessQuery;
 use App\Contexts\GameWorld\GiftCodes\Queries\GiftCodeIngestionHealthQuery;
 use App\Contexts\GameWorld\GiftCodes\Services\GiftCodePushSubscriptionCoordinator;
 use App\Contexts\GameWorld\GiftCodes\Services\GiftCodeResearchedSourceCatalogue;
@@ -28,6 +33,7 @@ final class GiftCodeSourceManagementController extends Controller
     public function __construct(
         private readonly AccountIdentityQuery $accounts,
         private readonly GiftCodeIngestionHealthQuery $ingestionHealth,
+        private readonly GiftCodeAcquisitionEffectivenessQuery $effectiveness,
         private readonly GiftCodeSourceAdapterRegistry $sourceAdapters,
         private readonly GiftCodeResearchedSourceCatalogue $researchedSources,
         private readonly PlatformAuthorization $platformAuthorization,
@@ -40,6 +46,7 @@ final class GiftCodeSourceManagementController extends Controller
         return Inertia::render('Platform/GiftCodes/Sources', [
             'user' => ['name' => $actor->name, 'email' => $actor->email],
             'sources' => $this->ingestionHealth->get(100),
+            'acquisitionEffectiveness' => $this->effectiveness->get(),
             'adapterKeys' => $this->sourceAdapters->keys(),
             'researchedSources' => $this->researchedSources->all(),
             'canManagePlatformPolicy' => $this->platformAuthorization->allows($actor),
@@ -104,9 +111,7 @@ final class GiftCodeSourceManagementController extends Controller
             'canonical_domain' => (string) $validated['canonical_domain'],
             'verification_method' => (string) $validated['verification_method'],
             'adapter_key' => isset($validated['adapter_key']) ? (string) $validated['adapter_key'] : null,
-            'provenance_policy' => is_array($validated['provenance_policy'] ?? null)
-                ? $validated['provenance_policy']
-                : [],
+            'provenance_policy' => is_array($validated['provenance_policy'] ?? null) ? $validated['provenance_policy'] : [],
             'ingestion_enabled' => (bool) $validated['ingestion_enabled'],
             'push_enabled' => (bool) $validated['push_enabled'],
             'head_poll_enabled' => (bool) $validated['head_poll_enabled'],
@@ -118,11 +123,48 @@ final class GiftCodeSourceManagementController extends Controller
         return back()->with('actionReceipt', $this->receipt('gift-code-source-saved', ['source_id' => $sourceId]));
     }
 
-    public function subscribePush(
-        Request $request,
-        string $source,
-        GiftCodePushSubscriptionCoordinator $subscriptions,
-    ): RedirectResponse {
+    public function smoke(Request $request, string $source, RunGiftCodeSourceSmokeCheck $smoke): RedirectResponse
+    {
+        $result = $smoke->handle($this->account($request), $source);
+
+        return back()->with('actionReceipt', $this->receipt('gift-code-source-smoke-checked', $result));
+    }
+
+    public function controls(Request $request, string $source, SetGiftCodeSourceAcquisitionControls $controls): RedirectResponse
+    {
+        /** @var array{ingestion_enabled:bool,push_enabled:bool,head_poll_enabled:bool,reconciliation_enabled:bool,backfill_enabled:bool,authority_promotion_enabled:bool} $validated */
+        $validated = $request->validate([
+            'ingestion_enabled' => ['required', 'boolean'],
+            'push_enabled' => ['required', 'boolean'],
+            'head_poll_enabled' => ['required', 'boolean'],
+            'reconciliation_enabled' => ['required', 'boolean'],
+            'backfill_enabled' => ['required', 'boolean'],
+            'authority_promotion_enabled' => ['required', 'boolean'],
+        ]);
+        $sourceId = $controls->handle($this->account($request), $source, $validated);
+
+        return back()->with('actionReceipt', $this->receipt('gift-code-source-controls-updated', ['source_id' => $sourceId]));
+    }
+
+    public function head(Request $request, string $source, RunApprovedGiftCodeSourceIngestion $ingestion): RedirectResponse
+    {
+        $this->authorizePlatform($request);
+        $registry = GiftCodeSourceRegistry::query()->findOrFail($source);
+        $result = $ingestion->handle(1, null, $registry->source_key);
+
+        return back()->with('actionReceipt', $this->receipt('gift-code-source-head-run', $result->toArray()));
+    }
+
+    public function rebuildIntelligence(Request $request, RebuildGiftCodeAcquisitionIntelligence $rebuild): RedirectResponse
+    {
+        $this->authorizePlatform($request);
+        $result = $rebuild->cycle(500, 100);
+
+        return back()->with('actionReceipt', $this->receipt('gift-code-acquisition-intelligence-rebuilt', $result));
+    }
+
+    public function subscribePush(Request $request, string $source, GiftCodePushSubscriptionCoordinator $subscriptions): RedirectResponse
+    {
         $this->authorizePlatform($request);
         $registry = GiftCodeSourceRegistry::query()->findOrFail($source);
         $subscription = $subscriptions->subscribe($registry);
@@ -134,11 +176,8 @@ final class GiftCodeSourceManagementController extends Controller
         ]));
     }
 
-    public function unsubscribePush(
-        Request $request,
-        string $source,
-        GiftCodePushSubscriptionCoordinator $subscriptions,
-    ): RedirectResponse {
+    public function unsubscribePush(Request $request, string $source, GiftCodePushSubscriptionCoordinator $subscriptions): RedirectResponse
+    {
         $this->authorizePlatform($request);
         $registry = GiftCodeSourceRegistry::query()->findOrFail($source);
         $subscription = $subscriptions->unsubscribe($registry);
@@ -149,11 +188,8 @@ final class GiftCodeSourceManagementController extends Controller
         ]));
     }
 
-    public function reconcile(
-        Request $request,
-        string $source,
-        RunGiftCodeSourceReconciliation $reconcile,
-    ): RedirectResponse {
+    public function reconcile(Request $request, string $source, RunGiftCodeSourceReconciliation $reconcile): RedirectResponse
+    {
         $this->authorizePlatform($request);
         $registry = GiftCodeSourceRegistry::query()->findOrFail($source);
         $result = $reconcile->handle(1, $registry->source_key);
@@ -161,11 +197,8 @@ final class GiftCodeSourceManagementController extends Controller
         return back()->with('actionReceipt', $this->receipt('gift-code-source-reconciled', $result));
     }
 
-    public function backfill(
-        Request $request,
-        string $source,
-        RunGiftCodeSourceBackfill $backfill,
-    ): RedirectResponse {
+    public function backfill(Request $request, string $source, RunGiftCodeSourceBackfill $backfill): RedirectResponse
+    {
         $this->authorizePlatform($request);
         $registry = GiftCodeSourceRegistry::query()->findOrFail($source);
         /** @var array{restart?:bool} $validated */
@@ -185,7 +218,7 @@ final class GiftCodeSourceManagementController extends Controller
             'source_url' => ['required', 'url:https', 'max:2048'],
             'assertion_payload' => ['nullable', 'array'],
             'expires_at' => ['nullable', 'date'],
-            'expiry_precision' => ['nullable', Rule::in(['instant', 'minute', 'hour', 'day'])],
+            'expiry_precision' => ['nullable', Rule::in(['instant', 'minute', 'hour', 'day', 'approximate', 'relative_duration'])],
             'expiry_timezone' => ['nullable', 'string', 'max:80'],
             'published_at' => ['nullable', 'date'],
         ]);
@@ -194,9 +227,7 @@ final class GiftCodeSourceManagementController extends Controller
             'code' => (string) $validated['code'],
             'assertion' => (string) $validated['assertion'],
             'source_url' => (string) $validated['source_url'],
-            'assertion_payload' => is_array($validated['assertion_payload'] ?? null)
-                ? $validated['assertion_payload']
-                : null,
+            'assertion_payload' => is_array($validated['assertion_payload'] ?? null) ? $validated['assertion_payload'] : null,
             'expires_at' => isset($validated['expires_at']) ? (string) $validated['expires_at'] : null,
             'expiry_precision' => isset($validated['expiry_precision']) ? (string) $validated['expiry_precision'] : null,
             'expiry_timezone' => isset($validated['expiry_timezone']) ? (string) $validated['expiry_timezone'] : null,
