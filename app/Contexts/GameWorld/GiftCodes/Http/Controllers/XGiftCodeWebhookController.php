@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\GiftCodes\Http\Controllers;
 
+use App\Contexts\GameWorld\GiftCodes\Actions\CompleteGiftCodePushDelivery;
 use App\Contexts\GameWorld\GiftCodes\Actions\IngestGiftCodeProviderPublication;
 use App\Contexts\GameWorld\GiftCodes\Actions\RecordGiftCodePushDelivery;
+use App\Contexts\GameWorld\GiftCodes\Actions\RecordGiftCodeSourcePushActivity;
+use App\Contexts\GameWorld\GiftCodes\Actions\UpdateGiftCodeSourceSubscription;
 use App\Contexts\GameWorld\GiftCodes\Adapters\OfficialXGiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeSourceRegistry;
-use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeSourceSubscription;
 use App\Contexts\GameWorld\GiftCodes\Services\GiftCodePushDeliveryIdentity;
 use App\Contexts\GameWorld\GiftCodes\Services\GiftCodePushPayloadLimits;
 use App\Contexts\GameWorld\GiftCodes\Services\XPostGiftCodeFetcher;
@@ -21,8 +23,11 @@ use UnexpectedValueException;
 
 final class XGiftCodeWebhookController extends Controller
 {
-    public function verify(Request $request, string $source): JsonResponse
-    {
+    public function verify(
+        Request $request,
+        string $source,
+        UpdateGiftCodeSourceSubscription $subscriptions,
+    ): JsonResponse {
         $registry = $this->source($source);
         $secret = $this->consumerSecret();
         $crcToken = trim((string) $request->query('crc_token', ''));
@@ -31,11 +36,12 @@ final class XGiftCodeWebhookController extends Controller
         }
 
         $digest = base64_encode(hash_hmac('sha256', $crcToken, $secret, true));
-        GiftCodeSourceSubscription::query()
-            ->where('gift_code_source_id', $registry->id)
-            ->where('provider', 'x')
-            ->where('transport', 'filtered_stream_webhook')
-            ->update(['last_verified_at' => now(), 'last_error_code' => null]);
+        $subscriptions->handle(
+            sourceId: (string) $registry->id,
+            provider: 'x',
+            transport: 'filtered_stream_webhook',
+            attributes: ['last_verified_at' => now(), 'last_error_code' => null],
+        );
 
         return response()->json(['response_token' => 'sha256='.$digest]);
     }
@@ -46,13 +52,16 @@ final class XGiftCodeWebhookController extends Controller
         GiftCodePushPayloadLimits $limits,
         GiftCodePushDeliveryIdentity $identity,
         RecordGiftCodePushDelivery $record,
+        CompleteGiftCodePushDelivery $complete,
+        RecordGiftCodeSourcePushActivity $activity,
+        UpdateGiftCodeSourceSubscription $subscriptions,
         XPostGiftCodeFetcher $fetcher,
         IngestGiftCodeProviderPublication $ingest,
     ): JsonResponse {
         $registry = $this->source($source);
         $body = $request->getContent();
         $limits->assertBounded($body);
-        $this->authorizeSignature($request, $registry, $body);
+        $this->authorizeSignature($request, $registry, $body, $activity);
         $payload = $request->json()->all();
         $event = $this->event($payload, $registry);
 
@@ -72,8 +81,8 @@ final class XGiftCodeWebhookController extends Controller
             correlationId: trim((string) $request->header('X-Request-Id')) ?: null,
         ));
 
-        if (! $delivery->wasRecentlyCreated) {
-            $registry->increment('replay_rejection_count');
+        if (! $delivery->created) {
+            $activity->handle((string) $registry->id, 'replay_rejection');
 
             return response()->json([
                 'sourceId' => (string) $registry->id,
@@ -85,21 +94,15 @@ final class XGiftCodeWebhookController extends Controller
 
         try {
             $publication = $fetcher->fetch($registry, $event['post_id']);
-            $outcome = $ingest->handle($registry, $publication, 'x-filtered-stream-webhook-v1', true);
-            $delivery->forceFill([
-                'processing_status' => $outcome->status,
-                'processed_at' => now(),
-            ])->save();
-            $registry->forceFill([
-                'last_push_received_at' => now(),
-                'last_provider_event_at' => now(),
-                'last_health_checked_at' => now(),
-            ])->save();
-            GiftCodeSourceSubscription::query()
-                ->where('gift_code_source_id', $registry->id)
-                ->where('provider', 'x')
-                ->where('transport', 'filtered_stream_webhook')
-                ->update(['last_event_received_at' => now(), 'last_error_code' => null]);
+            $outcome = $ingest->handle((string) $registry->id, $publication, 'x-filtered-stream-webhook-v1', true);
+            $complete->handle($delivery->deliveryId, $outcome->status);
+            $activity->handle((string) $registry->id, 'received');
+            $subscriptions->handle(
+                sourceId: (string) $registry->id,
+                provider: 'x',
+                transport: 'filtered_stream_webhook',
+                attributes: ['last_event_received_at' => now(), 'last_error_code' => null],
+            );
 
             return response()->json([
                 'sourceId' => (string) $registry->id,
@@ -108,11 +111,7 @@ final class XGiftCodeWebhookController extends Controller
                 'accepted' => $outcome->accepted,
             ], 200);
         } catch (\Throwable $exception) {
-            $delivery->forceFill([
-                'processing_status' => 'failed',
-                'error_code' => 'canonical_fetch_or_ingestion_failed',
-                'processed_at' => now(),
-            ])->save();
+            $complete->handle($delivery->deliveryId, 'failed', 'canonical_fetch_or_ingestion_failed');
             throw $exception;
         }
     }
@@ -135,12 +134,16 @@ final class XGiftCodeWebhookController extends Controller
         return $registry;
     }
 
-    private function authorizeSignature(Request $request, GiftCodeSourceRegistry $source, string $body): void
-    {
+    private function authorizeSignature(
+        Request $request,
+        GiftCodeSourceRegistry $source,
+        string $body,
+        RecordGiftCodeSourcePushActivity $activity,
+    ): void {
         $signature = trim((string) $request->header('x-twitter-webhooks-signature', ''));
         $expected = 'sha256='.base64_encode(hash_hmac('sha256', $body, $this->consumerSecret(), true));
         if ($signature === '' || ! hash_equals($expected, $signature)) {
-            $source->increment('signature_failure_count');
+            $activity->handle((string) $source->id, 'signature_failure');
             throw ValidationException::withMessages(['signature' => 'The X webhook signature is invalid.']);
         }
     }
