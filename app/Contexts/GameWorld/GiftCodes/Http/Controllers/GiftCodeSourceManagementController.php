@@ -152,7 +152,15 @@ final class GiftCodeSourceManagementController extends Controller
         $registry = GiftCodeSourceRegistry::query()->findOrFail($source);
         $result = $ingestion->handle(1, null, $registry->source_key);
 
-        return back()->with('actionReceipt', $this->receipt('gift-code-source-head-run', $result->toArray()));
+        return back()->with('actionReceipt', $this->receipt('gift-code-source-head-run', [
+            'sources' => $result->sourceCount,
+            'examined' => $result->examined,
+            'accepted' => $result->accepted,
+            'duplicates' => $result->duplicates,
+            'quarantined' => $result->quarantined,
+            'failed_sources' => $result->failedSources,
+            'duration_ms' => $result->durationMs,
+        ]));
     }
 
     public function rebuildIntelligence(Request $request, RebuildGiftCodeAcquisitionIntelligence $rebuild): RedirectResponse
@@ -160,7 +168,12 @@ final class GiftCodeSourceManagementController extends Controller
         $this->authorizePlatform($request);
         $result = $rebuild->cycle(500, 100);
 
-        return back()->with('actionReceipt', $this->receipt('gift-code-acquisition-intelligence-rebuilt', $result));
+        return back()->with('actionReceipt', $this->receipt('gift-code-acquisition-intelligence-rebuilt', [
+            'clusters_examined' => $result['clusters']['examined'],
+            'clusters_updated' => $result['clusters']['updated'],
+            'sources_examined' => $result['sources']['examined'],
+            'sources_updated' => $result['sources']['updated'],
+        ]));
     }
 
     public function subscribePush(Request $request, string $source, GiftCodePushSubscriptionCoordinator $subscriptions): RedirectResponse
