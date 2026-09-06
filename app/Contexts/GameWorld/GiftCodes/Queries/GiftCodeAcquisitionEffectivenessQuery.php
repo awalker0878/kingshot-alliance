@@ -15,6 +15,7 @@ final readonly class GiftCodeAcquisitionEffectivenessQuery
     /** @return array<string,mixed> */
     public function get(): array
     {
+        /** @var list<int> $timeToCode */
         $timeToCode = GiftCodeObservationCluster::query()
             ->whereNotNull('time_to_code_seconds')
             ->pluck('time_to_code_seconds')
