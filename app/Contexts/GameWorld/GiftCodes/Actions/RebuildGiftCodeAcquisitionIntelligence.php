@@ -15,8 +15,7 @@ final readonly class RebuildGiftCodeAcquisitionIntelligence
     public function __construct(
         private RebuildGiftCodeObservationClusters $clusters,
         private RebuildGiftCodeSourcePerformance $sources,
-    ) {
-    }
+    ) {}
 
     /** @return array{clusters:array{examined:int,updated:int,nextCursor:?string},sources:array{examined:int,updated:int,nextCursor:?string}} */
     public function cycle(int $clusterLimit = 200, int $sourceLimit = 100): array
