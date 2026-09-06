@@ -141,7 +141,7 @@ final class GiftCodeResearchedSourceAdaptersV3Test extends TestCase
         }
     }
 
-    public function test_century_games_news_adapter_requires_permission_and_structured_category_contract(): void
+    public function test_century_games_news_adapter_requires_express_permission_and_explicit_kingshot_content(): void
     {
         config()->set('game_world.gift_codes.approved_source_ingestion', true);
         $actor = $this->administrator();
@@ -156,13 +156,12 @@ final class GiftCodeResearchedSourceAdaptersV3Test extends TestCase
                 'adapter_key' => CenturyGamesKingshotNewsRssGiftCodeSourceAdapter::KEY,
                 'provenance_policy' => [
                     'auto_verify' => false,
-                    'feed_path' => '/feeds/kingshot.xml',
+                    'feed_path' => '/feed/',
                     'provider_permission_confirmed' => false,
-                    'gift_code_category' => 'kingshot-gift-code',
                 ],
                 'ingestion_enabled' => true,
             ]);
-            self::fail('Century Games news ingestion must not enable before provider permission is confirmed.');
+            self::fail('Century Games news ingestion must not enable before express provider permission is recorded.');
         } catch (ValidationException $exception) {
             self::assertArrayHasKey('provider_permission_confirmed', $exception->errors());
         }
@@ -176,29 +175,31 @@ final class GiftCodeResearchedSourceAdaptersV3Test extends TestCase
             'adapter_key' => CenturyGamesKingshotNewsRssGiftCodeSourceAdapter::KEY,
             'provenance_policy' => [
                 'auto_verify' => true,
-                'feed_path' => '/feeds/kingshot.xml',
+                'feed_path' => '/feed/',
                 'provider_permission_confirmed' => true,
-                'gift_code_category' => 'kingshot-gift-code',
             ],
             'ingestion_enabled' => true,
         ]);
 
         Http::fake([
-            'www.centurygames.com/feeds/kingshot.xml*' => Http::response(<<<'XML'
+            'www.centurygames.com/feed/*' => Http::response(<<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0">
   <channel>
-    <title>Century Games Kingshot News</title>
+    <title>Century Games News</title>
     <lastBuildDate>Sat, 05 Sep 2026 12:30:00 +0000</lastBuildDate>
     <item>
-      <title>Kingshot - September Calendar</title>
-      <category>event</category>
-      <link>https://www.centurygames.com/kingshot-september-calendar/</link>
-      <description>General event news without a Gift Code feed contract.</description>
+      <title>Other game promotion</title>
+      <link>https://www.centurygames.com/other-game-promotion/</link>
+      <description>Gift Code: WRONGGAME2026</description>
     </item>
     <item>
-      <title>Kingshot - Gift Code: RSSCODE2026</title>
-      <category>kingshot-gift-code</category>
+      <title>Kingshot - September Calendar</title>
+      <link>https://www.centurygames.com/kingshot-september-calendar/</link>
+      <description>General event news without an explicit Gift Code label.</description>
+    </item>
+    <item>
+      <title>Kingshot - Gift Code announcement</title>
       <link>https://www.centurygames.com/kingshot-gift-code-rsscode2026/</link>
       <description>Gift Code: RSSCODE2026</description>
       <pubDate>Sat, 05 Sep 2026 12:15:00 +0000</pubDate>
