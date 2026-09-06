@@ -31,17 +31,31 @@ return new class extends Migration
             $table->unsignedBigInteger('policy_revision')->default(0);
             $table->json('provenance_policy')->nullable();
             $table->boolean('ingestion_enabled')->default(false)->index();
+            $table->boolean('push_enabled')->default(false)->index();
+            $table->boolean('head_poll_enabled')->default(true)->index();
+            $table->boolean('reconciliation_enabled')->default(true)->index();
+            $table->boolean('backfill_enabled')->default(true)->index();
+            $table->boolean('authority_promotion_enabled')->default(true)->index();
             $table->string('activation_status', 32)->default('registered')->index();
             $table->string('health_status', 32)->default('disabled')->index();
-            $table->text('ingestion_cursor')->nullable();
-            $table->json('ingestion_checkpoint')->nullable();
             $table->timestampTz('next_eligible_ingestion_at')->nullable()->index();
             $table->unsignedInteger('consecutive_failures')->default(0);
+            $table->unsignedInteger('consecutive_quarantined_runs')->default(0);
             $table->unsignedBigInteger('request_count')->default(0);
             $table->unsignedBigInteger('observation_count')->default(0);
+            $table->unsignedBigInteger('accepted_observation_count')->default(0);
+            $table->unsignedBigInteger('quarantined_observation_count')->default(0);
             $table->unsignedBigInteger('duplicate_observation_count')->default(0);
             $table->unsignedBigInteger('rate_limit_event_count')->default(0);
+            $table->unsignedBigInteger('reconciliation_gap_count')->default(0);
+            $table->unsignedBigInteger('signature_failure_count')->default(0);
+            $table->unsignedBigInteger('replay_rejection_count')->default(0);
             $table->timestampTz('last_observation_at')->nullable()->index();
+            $table->timestampTz('last_accepted_observation_at')->nullable()->index();
+            $table->timestampTz('last_quarantined_observation_at')->nullable()->index();
+            $table->timestampTz('last_push_received_at')->nullable()->index();
+            $table->timestampTz('last_provider_event_at')->nullable()->index();
+            $table->timestampTz('last_reconciliation_gap_at')->nullable()->index();
             $table->timestampTz('last_health_checked_at')->nullable()->index();
             $table->string('last_provider_request_id', 255)->nullable();
             $table->string('last_retrieval_version', 120)->nullable();
@@ -56,6 +70,75 @@ return new class extends Migration
             $table->timestampTz('revoked_at')->nullable()->index();
             $table->foreignId('created_by_user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->timestampsTz();
+        });
+
+        Schema::create('gift_code_source_sync_states', function (Blueprint $table): void {
+            $table->ulid('id')->primary();
+            $table->foreignUlid('gift_code_source_id')->constrained('gift_code_sources')->cascadeOnDelete();
+            $table->string('sync_mode', 32);
+            $table->text('latest_observed_provider_id')->nullable();
+            $table->text('committed_high_water')->nullable();
+            $table->text('candidate_high_water')->nullable();
+            $table->text('active_sync_since_id')->nullable();
+            $table->text('active_page_token')->nullable();
+            $table->text('backfill_page_token')->nullable();
+            $table->text('backfill_boundary_provider_id')->nullable();
+            $table->text('http_etag')->nullable();
+            $table->text('http_last_modified')->nullable();
+            $table->timestampTz('last_not_modified_at')->nullable()->index();
+            $table->timestampTz('last_head_poll_at')->nullable()->index();
+            $table->timestampTz('last_reconciliation_at')->nullable()->index();
+            $table->timestampTz('last_backfill_at')->nullable()->index();
+            $table->unsignedBigInteger('version')->default(0);
+            $table->timestampsTz();
+
+            $table->unique(['gift_code_source_id', 'sync_mode'], 'gift_code_source_sync_mode_unique');
+            $table->index(['sync_mode', 'last_head_poll_at']);
+            $table->index(['sync_mode', 'last_reconciliation_at']);
+            $table->index(['sync_mode', 'last_backfill_at']);
+        });
+
+        Schema::create('gift_code_source_subscriptions', function (Blueprint $table): void {
+            $table->ulid('id')->primary();
+            $table->foreignUlid('gift_code_source_id')->constrained('gift_code_sources')->cascadeOnDelete();
+            $table->string('provider', 48)->index();
+            $table->string('transport', 48)->index();
+            $table->string('provider_subscription_id', 255)->nullable();
+            $table->text('topic_or_rule')->nullable();
+            $table->json('configured_identity')->nullable();
+            $table->string('status', 32)->default('pending')->index();
+            $table->timestampTz('activated_at')->nullable();
+            $table->timestampTz('expires_at')->nullable()->index();
+            $table->timestampTz('last_verified_at')->nullable();
+            $table->timestampTz('last_event_received_at')->nullable()->index();
+            $table->string('secret_version', 120)->nullable();
+            $table->string('last_error_code', 120)->nullable()->index();
+            $table->timestampsTz();
+
+            $table->unique(['gift_code_source_id', 'provider', 'transport'], 'gift_code_source_subscription_unique');
+            $table->index(['status', 'expires_at']);
+        });
+
+        Schema::create('gift_code_source_deliveries', function (Blueprint $table): void {
+            $table->ulid('id')->primary();
+            $table->foreignUlid('gift_code_source_id')->constrained('gift_code_sources')->cascadeOnDelete();
+            $table->string('provider', 48)->index();
+            $table->string('provider_event_id', 255)->nullable()->index();
+            $table->string('provider_item_id', 255)->nullable()->index();
+            $table->string('replay_key', 64);
+            $table->string('payload_sha256', 64);
+            $table->timestampTz('received_at')->index();
+            $table->timestampTz('authenticated_at')->nullable();
+            $table->boolean('signature_valid')->default(false)->index();
+            $table->timestampTz('processed_at')->nullable()->index();
+            $table->string('processing_status', 32)->default('received')->index();
+            $table->string('error_code', 120)->nullable()->index();
+            $table->string('correlation_id', 255)->nullable()->index();
+            $table->timestampsTz();
+
+            $table->unique(['gift_code_source_id', 'replay_key'], 'gift_code_source_delivery_replay_unique');
+            $table->index(['gift_code_source_id', 'received_at']);
+            $table->index(['processing_status', 'received_at']);
         });
 
         Schema::create('gift_codes', function (Blueprint $table): void {
@@ -254,6 +337,7 @@ return new class extends Migration
             $table->ulid('id')->primary();
             $table->foreignUlid('gift_code_source_id')->constrained('gift_code_sources')->cascadeOnDelete();
             $table->string('status', 32)->index();
+            $table->string('sync_mode', 32)->default('head')->index();
             $table->text('source_cursor')->nullable();
             $table->text('result_cursor')->nullable();
             $table->json('result_checkpoint')->nullable();
@@ -274,6 +358,7 @@ return new class extends Migration
             $table->timestampsTz();
 
             $table->index(['gift_code_source_id', 'started_at']);
+            $table->index(['gift_code_source_id', 'sync_mode', 'started_at'], 'gift_code_ingestion_mode_runs');
         });
 
         Schema::create('gift_code_source_reconciliation_jobs', function (Blueprint $table): void {
@@ -305,6 +390,9 @@ return new class extends Migration
         Schema::dropIfExists('gift_code_redemptions');
         Schema::dropIfExists('gift_code_provenances');
         Schema::dropIfExists('gift_codes');
+        Schema::dropIfExists('gift_code_source_deliveries');
+        Schema::dropIfExists('gift_code_source_subscriptions');
+        Schema::dropIfExists('gift_code_source_sync_states');
         Schema::dropIfExists('gift_code_sources');
     }
 };

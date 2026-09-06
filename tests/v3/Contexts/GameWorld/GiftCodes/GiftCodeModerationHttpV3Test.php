@@ -101,6 +101,11 @@ final class GiftCodeModerationHttpV3Test extends TestCase
                         $contractFlag => true,
                     ],
                     'ingestion_enabled' => true,
+                    'push_enabled' => false,
+                    'head_poll_enabled' => true,
+                    'reconciliation_enabled' => true,
+                    'backfill_enabled' => true,
+                    'authority_promotion_enabled' => true,
                 ])
                 ->assertRedirect()
                 ->assertSessionHas('actionReceipt');
@@ -163,6 +168,11 @@ final class GiftCodeModerationHttpV3Test extends TestCase
                 'canonical_domain' => 'publisher.example.test',
                 'verification_method' => 'manual_review',
                 'ingestion_enabled' => false,
+                'push_enabled' => false,
+                'head_poll_enabled' => false,
+                'reconciliation_enabled' => false,
+                'backfill_enabled' => false,
+                'authority_promotion_enabled' => false,
             ])
             ->assertForbidden();
     }

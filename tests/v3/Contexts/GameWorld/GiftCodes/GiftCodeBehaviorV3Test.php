@@ -31,6 +31,7 @@ use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeEvidenceVerificationState;
 use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeModerationAction;
 use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeRedemptionStatus;
 use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeSource;
+use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeSourceSyncMode;
 use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeStatus;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCode;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeFactProjection;
@@ -41,6 +42,7 @@ use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeSourceReconciliationJob;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeSourceRegistry;
 use App\Contexts\GameWorld\GiftCodes\Queries\GiftCodeCatalogQuery;
 use App\Contexts\GameWorld\GiftCodes\Services\GiftCodeSourceAdapterRegistry;
+use App\Contexts\GameWorld\GiftCodes\Services\GiftCodeSourceSyncStateRepository;
 use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeIngestionObservation;
 use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeIngestionPage;
 use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeRedemptionOutcome;
@@ -517,7 +519,12 @@ final class GiftCodeBehaviorV3Test extends TestCase
         $sweep = app(RunApprovedGiftCodeSourceIngestion::class)->handle(sourceKey: 'publisher-feed');
 
         self::assertSame(1, $sweep->accepted);
-        self::assertSame('next-page', GiftCodeSourceRegistry::query()->findOrFail($sourceId)->ingestion_cursor);
+        $registeredSource = GiftCodeSourceRegistry::query()->findOrFail($sourceId);
+        $syncState = app(GiftCodeSourceSyncStateRepository::class)->get(
+            $registeredSource,
+            GiftCodeSourceSyncMode::Head,
+        );
+        self::assertSame('next-page', $syncState->committed_high_water);
         $evidence = GiftCodeProvenance::query()->firstOrFail();
         self::assertSame('publication-7', $evidence->source_version);
         self::assertSame('ETag:"feed-42"', $evidence->retrieval_version);
@@ -600,10 +607,11 @@ final class GiftCodeBehaviorV3Test extends TestCase
             sourceUrl: 'https://misleading.example.test/gift',
         );
         $quarantining = new StaticGiftCodeSourceAdapter('quarantining-adapter', $quarantinedObservation, null);
-        $runner = new RunApprovedGiftCodeSourceIngestion(
+        $this->app->instance(
+            GiftCodeSourceAdapterRegistry::class,
             new GiftCodeSourceAdapterRegistry([$stable, $broken, $quarantining]),
-            app(IngestApprovedGiftCodeObservation::class),
         );
+        $runner = app(RunApprovedGiftCodeSourceIngestion::class);
 
         $first = $runner->handle(sourceKey: $source->source_key);
         $replay = $runner->handle(sourceKey: $source->source_key);

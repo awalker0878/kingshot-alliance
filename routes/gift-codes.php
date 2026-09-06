@@ -79,6 +79,22 @@ Route::middleware(['auth', 'auth.session', 'verified', 'gift-code.curator', 'pas
         Route::post('/sources/evidence', [GiftCodeSourceManagementController::class, 'evidence'])
             ->middleware('throttle:20,1')
             ->name('sources.evidence');
+        Route::post('/sources/{source}/push/subscribe', [GiftCodeSourceManagementController::class, 'subscribePush'])
+            ->whereUlid('source')
+            ->middleware('throttle:10,1')
+            ->name('sources.push.subscribe');
+        Route::post('/sources/{source}/push/unsubscribe', [GiftCodeSourceManagementController::class, 'unsubscribePush'])
+            ->whereUlid('source')
+            ->middleware('throttle:10,1')
+            ->name('sources.push.unsubscribe');
+        Route::post('/sources/{source}/reconcile', [GiftCodeSourceManagementController::class, 'reconcile'])
+            ->whereUlid('source')
+            ->middleware('throttle:10,1')
+            ->name('sources.reconcile');
+        Route::post('/sources/{source}/backfill', [GiftCodeSourceManagementController::class, 'backfill'])
+            ->whereUlid('source')
+            ->middleware('throttle:10,1')
+            ->name('sources.backfill');
         Route::post('/sources/{source}/revoke', [GiftCodeModerationController::class, 'revokeSource'])
             ->whereUlid('source')
             ->middleware('throttle:10,1')

@@ -4,13 +4,16 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\GiftCodes\Actions;
 
+use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeSourceSyncMode;
 use App\Contexts\GameWorld\GiftCodes\Exceptions\GiftCodeSourceAcquisitionException;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeIngestionRun;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeSourceRegistry;
 use App\Contexts\GameWorld\GiftCodes\Services\GiftCodeSourceAdapterRegistry;
+use App\Contexts\GameWorld\GiftCodes\Services\GiftCodeSourceHeadAcquirer;
+use App\Contexts\GameWorld\GiftCodes\Services\GiftCodeSourceHealthProjector;
+use App\Contexts\GameWorld\GiftCodes\Services\GiftCodeSourceSyncStateRepository;
 use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeIngestionObservation;
 use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeIngestionSweep;
-use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeSourceCheckpoint;
 use App\Contexts\GameWorld\GiftCodes\ValueObjects\GiftCodeSourceRateLimit;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Log;
@@ -22,6 +25,9 @@ final readonly class RunApprovedGiftCodeSourceIngestion
     public function __construct(
         private GiftCodeSourceAdapterRegistry $adapters,
         private IngestApprovedGiftCodeObservation $ingest,
+        private GiftCodeSourceSyncStateRepository $syncStates,
+        private GiftCodeSourceHealthProjector $health,
+        private GiftCodeSourceHeadAcquirer $acquireHead,
     ) {}
 
     public function handle(
@@ -38,6 +44,7 @@ final readonly class RunApprovedGiftCodeSourceIngestion
         $rows = GiftCodeSourceRegistry::query()
             ->where('is_active', true)
             ->where('ingestion_enabled', true)
+            ->where('head_poll_enabled', true)
             ->whereNull('revoked_at')
             ->where(static function (Builder $query): void {
                 $query->whereNull('next_eligible_ingestion_at')
@@ -48,6 +55,7 @@ final readonly class RunApprovedGiftCodeSourceIngestion
             ->orderBy('id')
             ->limit($sourceLimit + 1)
             ->get();
+
         $truncated = $rows->count() > $sourceLimit;
         $sources = $rows->take($sourceLimit)->values();
         $examined = 0;
@@ -59,10 +67,12 @@ final readonly class RunApprovedGiftCodeSourceIngestion
         $maxPages = max(1, min(10, (int) config('game_world.gift_codes.ingestion_max_pages_per_source', 3)));
 
         foreach ($sources as $source) {
+            $syncState = $this->syncStates->get($source, GiftCodeSourceSyncMode::Head);
             $run = GiftCodeIngestionRun::query()->create([
                 'gift_code_source_id' => (string) $source->id,
                 'status' => 'running',
-                'source_cursor' => $source->ingestion_cursor,
+                'sync_mode' => GiftCodeSourceSyncMode::Head->value,
+                'source_cursor' => $syncState->active_page_token ?? $syncState->committed_high_water,
                 'started_at' => now(),
             ]);
             $source->forceFill([
@@ -76,81 +86,51 @@ final readonly class RunApprovedGiftCodeSourceIngestion
                     throw new \RuntimeException('No registered adapter matches this approved source.');
                 }
 
+                $batch = $this->acquireHead->handle(
+                    $source,
+                    $adapter,
+                    $syncState,
+                    $observationLimit,
+                    $maxPages,
+                );
+
                 $runExamined = 0;
                 $runAccepted = 0;
                 $runDuplicates = 0;
                 $runQuarantined = 0;
                 $runFailureCode = null;
                 $runFailureMessage = null;
-                $requestCount = 0;
-                $providerRequestId = null;
-                $retrievalVersion = null;
-                $rateLimit = null;
-                $checkpoint = null;
-                $cursor = $source->ingestion_cursor;
-                $resultCursor = $cursor;
-                $seenCursors = [];
 
-                for ($pageNumber = 0; $pageNumber < $maxPages && $runExamined < $observationLimit; $pageNumber++) {
-                    if ($cursor !== null && isset($seenCursors[$cursor])) {
-                        throw new \UnexpectedValueException('The source adapter repeated an ingestion cursor.');
+                foreach ($batch->observations as $observation) {
+                    $runExamined++;
+                    try {
+                        $result = $this->ingest->handle((string) $source->id, $observation);
+                        $runAccepted += $result['accepted'] ? 1 : 0;
+                        $runDuplicates += $result['duplicate'] ? 1 : 0;
+                        $runQuarantined += $result['quarantined'] ? 1 : 0;
+                    } catch (Throwable $exception) {
+                        report($exception);
+                        $runQuarantined++;
+                        $runFailureCode ??= $this->observationFailureCode($exception);
+                        $runFailureMessage ??= $this->observationFailureMessage(
+                            $observation,
+                            $runExamined,
+                            $exception,
+                        );
                     }
-                    if ($cursor !== null) {
-                        $seenCursors[$cursor] = true;
-                    }
-
-                    $remaining = max(1, $observationLimit - $runExamined);
-                    $page = $adapter->acquire($source, $cursor, $remaining);
-                    if (count($page->observations) > $remaining) {
-                        throw new \UnexpectedValueException('The source adapter exceeded the bounded observation limit.');
-                    }
-                    $requestCount += max(1, $page->requestCount);
-                    $providerRequestId = $page->providerRequestId ?? $providerRequestId;
-                    $retrievalVersion = $page->retrievalVersion ?? $retrievalVersion;
-                    $rateLimit = $page->rateLimit ?? $rateLimit;
-                    $checkpoint = $page->checkpoint ?? new GiftCodeSourceCheckpoint(
-                        cursor: $page->nextCursor,
-                        retrievalVersion: $page->retrievalVersion,
-                        providerRequestId: $page->providerRequestId,
-                    );
-
-                    foreach ($page->observations as $observation) {
-                        $runExamined++;
-                        try {
-                            $result = $this->ingest->handle((string) $source->id, $observation);
-                            $runAccepted += $result['accepted'] ? 1 : 0;
-                            $runDuplicates += $result['duplicate'] ? 1 : 0;
-                            $runQuarantined += $result['quarantined'] ? 1 : 0;
-                        } catch (Throwable $exception) {
-                            report($exception);
-                            $runQuarantined++;
-                            $runFailureCode ??= $this->observationFailureCode($exception);
-                            $runFailureMessage ??= $this->observationFailureMessage(
-                                $observation,
-                                $runExamined,
-                                $exception,
-                            );
-                        }
-                    }
-
-                    $resultCursor = $page->nextCursor;
-                    if ($page->nextCursor === null || $page->nextCursor === $cursor) {
-                        break;
-                    }
-                    $cursor = $page->nextCursor;
                 }
 
-                $status = $runQuarantined > 0 ? 'completed_with_quarantine' : 'completed';
                 $run->forceFill([
-                    'status' => $status,
-                    'result_cursor' => $resultCursor,
-                    'result_checkpoint' => $checkpoint?->toArray(),
-                    'request_count' => $requestCount,
-                    'provider_request_id' => $providerRequestId,
-                    'retrieval_version' => $retrievalVersion,
-                    'quota_remaining' => $rateLimit?->quotaRemaining,
-                    'rate_limit_remaining' => $rateLimit?->remaining,
-                    'retry_after_seconds' => $rateLimit?->retryAfterSeconds,
+                    'status' => $runQuarantined > 0 ? 'completed_with_quarantine' : 'completed',
+                    'source_cursor' => $batch->sourceCursor,
+                    'result_cursor' => $batch->resultCursor,
+                    'result_checkpoint' => $batch->checkpoint?->toArray(),
+                    'request_count' => $batch->requestCount,
+                    'provider_request_id' => $batch->providerRequestId,
+                    'retrieval_version' => $batch->retrievalVersion,
+                    'quota_remaining' => $batch->rateLimit?->quotaRemaining,
+                    'rate_limit_remaining' => $batch->rateLimit?->remaining,
+                    'retry_after_seconds' => $batch->rateLimit?->retryAfterSeconds,
                     'examined_count' => $runExamined,
                     'accepted_count' => $runAccepted,
                     'duplicate_count' => $runDuplicates,
@@ -160,28 +140,28 @@ final readonly class RunApprovedGiftCodeSourceIngestion
                     'completed_at' => now(),
                 ])->save();
 
-                $nextEligibleAt = $this->nextEligibleFromRateLimit($rateLimit);
+                $this->syncStates->advance($syncState, $batch->syncStateChanges);
                 $source->forceFill([
-                    'ingestion_cursor' => $resultCursor,
-                    'ingestion_checkpoint' => $checkpoint?->toArray(),
                     'activation_status' => 'enabled',
-                    'health_status' => $runExamined > 0 ? 'healthy' : 'idle',
-                    'consecutive_failures' => 0,
-                    'request_count' => $source->request_count + $requestCount,
+                    'request_count' => $source->request_count + $batch->requestCount,
                     'observation_count' => $source->observation_count + $runExamined,
-                    'duplicate_observation_count' => $source->duplicate_observation_count + $runDuplicates,
                     'last_observation_at' => $runExamined > 0 ? now() : $source->last_observation_at,
                     'last_health_checked_at' => now(),
-                    'last_provider_request_id' => $providerRequestId,
-                    'last_retrieval_version' => $retrievalVersion,
-                    'last_quota_remaining' => $rateLimit?->quotaRemaining,
-                    'last_rate_limit_remaining' => $rateLimit?->remaining,
-                    'last_retry_after_seconds' => $rateLimit?->retryAfterSeconds,
-                    'next_eligible_ingestion_at' => $nextEligibleAt,
-                    'last_ingestion_success_at' => now(),
-                    'last_ingestion_failure_code' => null,
-                    'last_ingestion_error' => null,
+                    'last_provider_request_id' => $batch->providerRequestId,
+                    'last_retrieval_version' => $batch->retrievalVersion,
+                    'last_quota_remaining' => $batch->rateLimit?->quotaRemaining,
+                    'last_rate_limit_remaining' => $batch->rateLimit?->remaining,
+                    'last_retry_after_seconds' => $batch->rateLimit?->retryAfterSeconds,
+                    'next_eligible_ingestion_at' => $this->nextEligibleFromRateLimit($batch->rateLimit),
                 ])->save();
+                $this->health->recordCompletedRun(
+                    $source,
+                    $runExamined,
+                    $runAccepted,
+                    $runDuplicates,
+                    $runQuarantined,
+                );
+
                 $examined += $runExamined;
                 $accepted += $runAccepted;
                 $duplicates += $runDuplicates;
@@ -198,6 +178,7 @@ final readonly class RunApprovedGiftCodeSourceIngestion
                 } else {
                     $failedSources++;
                 }
+
                 $message = mb_substr($exception->getMessage(), 0, 2000);
                 $retryAfter = $this->retryAfterSeconds($source, $exception);
                 $providerRequestId = $exception instanceof GiftCodeSourceAcquisitionException
@@ -217,6 +198,11 @@ final readonly class RunApprovedGiftCodeSourceIngestion
                     'activation_status' => 'enabled',
                     'health_status' => $this->healthStatus($failureCode),
                     'consecutive_failures' => $source->consecutive_failures + 1,
+                    'consecutive_quarantined_runs' => $requiresReview
+                        ? $source->consecutive_quarantined_runs + 1
+                        : $source->consecutive_quarantined_runs,
+                    'quarantined_observation_count' => $source->quarantined_observation_count + ($requiresReview ? 1 : 0),
+                    'last_quarantined_observation_at' => $requiresReview ? now() : $source->last_quarantined_observation_at,
                     'request_count' => $source->request_count + 1,
                     'rate_limit_event_count' => $source->rate_limit_event_count + ($failureCode === 'rate_limited' ? 1 : 0),
                     'last_health_checked_at' => now(),

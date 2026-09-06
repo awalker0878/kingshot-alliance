@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $id
  * @property string $gift_code_source_id
  * @property string $status
+ * @property string $sync_mode
  * @property string|null $source_cursor
  * @property string|null $result_cursor
  * @property array<string,mixed>|null $result_checkpoint
@@ -42,6 +43,7 @@ final class GiftCodeIngestionRun extends Model
     protected $fillable = [
         'gift_code_source_id',
         'status',
+        'sync_mode',
         'source_cursor',
         'result_cursor',
         'result_checkpoint',

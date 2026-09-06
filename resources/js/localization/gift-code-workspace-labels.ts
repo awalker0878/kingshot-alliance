@@ -121,6 +121,10 @@ const english: MessageCatalogue = {
     'gift-code-session-item-recorded': 'Gift Code outcome recorded and run progress updated.',
     'gift-code-session-item-skipped': 'Gift Code item skipped for this run.',
     'gift-code-session-abandoned': 'Gift Code redemption run abandoned.',
+    'gift-code-source-backfill-run': 'Gift Code source backfill completed.',
+    'gift-code-source-push-subscribed': 'Gift Code source push subscription enabled.',
+    'gift-code-source-push-unsubscribed': 'Gift Code source push subscription disabled.',
+    'gift-code-source-reconciled': 'Gift Code source reconciliation completed.',
   },
 };
 

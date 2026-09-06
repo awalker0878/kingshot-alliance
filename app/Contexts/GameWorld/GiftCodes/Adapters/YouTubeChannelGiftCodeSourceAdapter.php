@@ -102,6 +102,7 @@ final class YouTubeChannelGiftCodeSourceAdapter implements GiftCodeSourceAdapter
         $retrievalVersion = $this->giftCodeRetrievalVersion($response);
         $observations = [];
         $latestVideoId = null;
+        $providerItemIds = [];
         foreach ($uploads as $position => $upload) {
             if (! is_array($upload)) {
                 throw new UnexpectedValueException(sprintf('YouTube upload %d must be an object.', $position + 1));
@@ -115,6 +116,7 @@ final class YouTubeChannelGiftCodeSourceAdapter implements GiftCodeSourceAdapter
             if ($videoId === null || preg_match('/^[A-Za-z0-9_-]{6,32}$/D', $videoId) !== 1) {
                 throw new UnexpectedValueException(sprintf('YouTube upload %d requires a valid video id.', $position + 1));
             }
+            $providerItemIds[] = $videoId;
             $latestVideoId ??= $videoId;
             $publishedAt = $this->optionalString($uploadSnippet['publishedAt'] ?? null, 120);
             $title = $this->optionalString($uploadSnippet['title'] ?? null, 1000) ?? '';
@@ -164,6 +166,7 @@ final class YouTubeChannelGiftCodeSourceAdapter implements GiftCodeSourceAdapter
                     'channel_id' => $channelId,
                     'uploads_playlist_id' => $uploadsPlaylist,
                     'latest_video_id' => $latestVideoId,
+                    'provider_item_ids' => $providerItemIds,
                 ],
             ),
             requestCount: 2,

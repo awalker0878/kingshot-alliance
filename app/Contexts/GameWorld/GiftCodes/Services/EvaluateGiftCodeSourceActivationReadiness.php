@@ -69,7 +69,7 @@ final readonly class EvaluateGiftCodeSourceActivationReadiness
                 && $this->matches($policy, 'x_user_id', '/^[0-9]{1,32}$/D')
                 && $this->matches($policy, 'x_username', '/^[A-Za-z0-9_]{1,30}$/D'),
             CenturyGamesKingshotNewsRssGiftCodeSourceAdapter::KEY => $domain === 'centurygames.com'
-                && $this->nonEmpty($policy, 'gift_code_category', 120),
+                && $this->validFeedPath($policy),
             DiscordChannelGiftCodeSourceAdapter::KEY => $domain === 'discord.com'
                 && $this->matches($policy, 'discord_guild_id', '/^[0-9]{1,32}$/D')
                 && $this->matches($policy, 'discord_channel_id', '/^[0-9]{1,32}$/D')

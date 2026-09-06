@@ -8,7 +8,11 @@ use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
 use App\Contexts\Accounts\Identity\ValueObjects\AccountIdentity;
 use App\Contexts\GameWorld\GiftCodes\Actions\ManageGiftCodeSourceRegistry;
 use App\Contexts\GameWorld\GiftCodes\Actions\RecordRegisteredGiftCodeEvidence;
+use App\Contexts\GameWorld\GiftCodes\Actions\RunGiftCodeSourceBackfill;
+use App\Contexts\GameWorld\GiftCodes\Actions\RunGiftCodeSourceReconciliation;
+use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeSourceRegistry;
 use App\Contexts\GameWorld\GiftCodes\Queries\GiftCodeIngestionHealthQuery;
+use App\Contexts\GameWorld\GiftCodes\Services\GiftCodePushSubscriptionCoordinator;
 use App\Contexts\GameWorld\GiftCodes\Services\GiftCodeResearchedSourceCatalogue;
 use App\Contexts\GameWorld\GiftCodes\Services\GiftCodeSourceAdapterRegistry;
 use App\Contexts\Platform\Administration\Services\PlatformAuthorization;
@@ -39,6 +43,15 @@ final class GiftCodeSourceManagementController extends Controller
             'adapterKeys' => $this->sourceAdapters->keys(),
             'researchedSources' => $this->researchedSources->all(),
             'canManagePlatformPolicy' => $this->platformAuthorization->allows($actor),
+            'pushCapabilities' => [
+                'youtubeWebSub' => trim((string) config('game_world.gift_codes.youtube_websub_secret', '')) !== '',
+                'facebookWebhook' => trim((string) config('game_world.gift_codes.meta_app_secret', '')) !== ''
+                    && trim((string) config('game_world.gift_codes.meta_webhook_verify_token', '')) !== '',
+                'discordGateway' => (bool) config('game_world.gift_codes.discord_gateway_enabled', false),
+                'xFilteredStreamWebhook' => (bool) config('game_world.gift_codes.x_realtime_transport', false)
+                    && (bool) config('game_world.gift_codes.x_filtered_stream_webhook_entitled', false)
+                    && trim((string) config('game_world.gift_codes.x_consumer_secret', '')) !== '',
+            ],
         ]);
     }
 
@@ -54,13 +67,17 @@ final class GiftCodeSourceManagementController extends Controller
             'verification_method' => ['required', 'string', 'max:80'],
             'adapter_key' => ['nullable', 'string', Rule::in($adapterKeys)],
             'ingestion_enabled' => ['required', 'boolean'],
+            'push_enabled' => ['required', 'boolean'],
+            'head_poll_enabled' => ['required', 'boolean'],
+            'reconciliation_enabled' => ['required', 'boolean'],
+            'backfill_enabled' => ['required', 'boolean'],
+            'authority_promotion_enabled' => ['required', 'boolean'],
             'provenance_policy' => ['nullable', 'array'],
             'provenance_policy.auto_verify' => ['nullable', 'boolean'],
             'provenance_policy.feed_path' => ['nullable', 'string', 'max:2048'],
             'provenance_policy.provider_contract_confirmed' => ['nullable', 'boolean'],
             'provenance_policy.structured_contract_confirmed' => ['nullable', 'boolean'],
             'provenance_policy.provider_permission_confirmed' => ['nullable', 'boolean'],
-            'provenance_policy.gift_code_category' => ['nullable', 'string', 'max:120'],
             'provenance_policy.x_user_id' => ['nullable', 'string', 'max:32'],
             'provenance_policy.x_username' => ['nullable', 'string', 'max:30'],
             'provenance_policy.platform_permission_confirmed' => ['nullable', 'boolean'],
@@ -91,9 +108,71 @@ final class GiftCodeSourceManagementController extends Controller
                 ? $validated['provenance_policy']
                 : [],
             'ingestion_enabled' => (bool) $validated['ingestion_enabled'],
+            'push_enabled' => (bool) $validated['push_enabled'],
+            'head_poll_enabled' => (bool) $validated['head_poll_enabled'],
+            'reconciliation_enabled' => (bool) $validated['reconciliation_enabled'],
+            'backfill_enabled' => (bool) $validated['backfill_enabled'],
+            'authority_promotion_enabled' => (bool) $validated['authority_promotion_enabled'],
         ]);
 
         return back()->with('actionReceipt', $this->receipt('gift-code-source-saved', ['source_id' => $sourceId]));
+    }
+
+    public function subscribePush(
+        Request $request,
+        string $source,
+        GiftCodePushSubscriptionCoordinator $subscriptions,
+    ): RedirectResponse {
+        $this->authorizePlatform($request);
+        $registry = GiftCodeSourceRegistry::query()->findOrFail($source);
+        $subscription = $subscriptions->subscribe($registry);
+
+        return back()->with('actionReceipt', $this->receipt('gift-code-source-push-subscribed', [
+            'source_id' => (string) $registry->id,
+            'subscription_id' => (string) $subscription->id,
+            'status' => $subscription->status,
+        ]));
+    }
+
+    public function unsubscribePush(
+        Request $request,
+        string $source,
+        GiftCodePushSubscriptionCoordinator $subscriptions,
+    ): RedirectResponse {
+        $this->authorizePlatform($request);
+        $registry = GiftCodeSourceRegistry::query()->findOrFail($source);
+        $subscription = $subscriptions->unsubscribe($registry);
+
+        return back()->with('actionReceipt', $this->receipt('gift-code-source-push-unsubscribed', [
+            'source_id' => (string) $registry->id,
+            'subscription_id' => (string) $subscription->id,
+        ]));
+    }
+
+    public function reconcile(
+        Request $request,
+        string $source,
+        RunGiftCodeSourceReconciliation $reconcile,
+    ): RedirectResponse {
+        $this->authorizePlatform($request);
+        $registry = GiftCodeSourceRegistry::query()->findOrFail($source);
+        $result = $reconcile->handle(1, $registry->source_key);
+
+        return back()->with('actionReceipt', $this->receipt('gift-code-source-reconciled', $result));
+    }
+
+    public function backfill(
+        Request $request,
+        string $source,
+        RunGiftCodeSourceBackfill $backfill,
+    ): RedirectResponse {
+        $this->authorizePlatform($request);
+        $registry = GiftCodeSourceRegistry::query()->findOrFail($source);
+        /** @var array{restart?:bool} $validated */
+        $validated = $request->validate(['restart' => ['sometimes', 'boolean']]);
+        $result = $backfill->handle(1, $registry->source_key, (bool) ($validated['restart'] ?? false));
+
+        return back()->with('actionReceipt', $this->receipt('gift-code-source-backfill-run', $result));
     }
 
     public function evidence(Request $request, RecordRegisteredGiftCodeEvidence $record): RedirectResponse
@@ -128,6 +207,14 @@ final class GiftCodeSourceManagementController extends Controller
             'gift_code_id' => $result['gift_code_id'],
             'provenance_id' => $result['provenance_id'],
         ]));
+    }
+
+    private function authorizePlatform(Request $request): AccountIdentity
+    {
+        $actor = $this->account($request);
+        abort_unless($this->platformAuthorization->allows($actor), 403);
+
+        return $actor;
     }
 
     private function account(Request $request): AccountIdentity

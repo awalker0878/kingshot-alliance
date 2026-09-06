@@ -42,8 +42,7 @@ final class InstagramMediaGiftCodeSourceAdapter implements GiftCodeSourceAdapter
 
         $userId = $this->requiredPolicyString($policy, 'instagram_user_id', 64);
         $username = $this->requiredPolicyString($policy, 'instagram_username', 80);
-        if (preg_match('/^[0-9]{1,64}$/D', $userId) !== 1
-            || preg_match('/^[A-Za-z0-9._]{1,80}$/D', $username) !== 1) {
+        if (preg_match('/^[0-9]{1,64}$/D', $userId) !== 1 || preg_match('/^[A-Za-z0-9._]{1,80}$/D', $username) !== 1) {
             throw new UnexpectedValueException('The Instagram media adapter requires a valid professional account id and username.');
         }
         $token = trim((string) config('game_world.gift_codes.instagram_access_token', ''));
@@ -57,10 +56,7 @@ final class InstagramMediaGiftCodeSourceAdapter implements GiftCodeSourceAdapter
 
         $timeout = max(1, min(30, (int) config('game_world.gift_codes.ingestion_timeout_seconds', 10)));
         $base = 'https://graph.instagram.com/'.$version.'/'.rawurlencode($userId);
-        $identity = Http::withToken($token)
-            ->acceptJson()
-            ->timeout($timeout)
-            ->withOptions(['allow_redirects' => false])
+        $identity = Http::withToken($token)->acceptJson()->timeout($timeout)->withOptions(['allow_redirects' => false])
             ->get($base, ['fields' => 'id,username']);
         $this->assertJsonSuccess($identity, 'Instagram account lookup');
         $identityPayload = $identity->json();
@@ -71,10 +67,7 @@ final class InstagramMediaGiftCodeSourceAdapter implements GiftCodeSourceAdapter
         }
 
         $pageSize = max(1, min(100, $limit));
-        $response = Http::withToken($token)
-            ->acceptJson()
-            ->timeout($timeout)
-            ->withOptions(['allow_redirects' => false])
+        $response = Http::withToken($token)->acceptJson()->timeout($timeout)->withOptions(['allow_redirects' => false])
             ->get($base.'/media', array_filter([
                 'fields' => 'id,caption,permalink,timestamp,username',
                 'limit' => $pageSize,
@@ -90,11 +83,13 @@ final class InstagramMediaGiftCodeSourceAdapter implements GiftCodeSourceAdapter
         $retrievalVersion = $this->giftCodeRetrievalVersion($response);
         $observations = [];
         $latestMediaId = null;
+        $providerItemIds = [];
         foreach ($media as $position => $item) {
             if (! is_array($item)) {
                 throw new UnexpectedValueException(sprintf('Instagram media item %d must be an object.', $position + 1));
             }
             $mediaId = $this->requiredString($item['id'] ?? null, 'media id', $position + 1, 128);
+            $providerItemIds[] = $mediaId;
             $latestMediaId ??= $mediaId;
             $itemUsername = $this->optionalString($item['username'] ?? null, 80);
             if ($itemUsername !== null && mb_strtolower($itemUsername) !== mb_strtolower($username)) {
@@ -107,7 +102,6 @@ final class InstagramMediaGiftCodeSourceAdapter implements GiftCodeSourceAdapter
             }
             $this->assertInstagramUrl($permalink);
             foreach ($this->explicitGiftCodes($caption) as $code) {
-                $fingerprint = hash('sha256', json_encode($item, JSON_THROW_ON_ERROR));
                 $observations[] = new GiftCodeIngestionObservation(
                     code: $code,
                     assertion: 'available',
@@ -120,7 +114,7 @@ final class InstagramMediaGiftCodeSourceAdapter implements GiftCodeSourceAdapter
                     sourceVersion: 'instagram-media:'.$mediaId,
                     retrievalVersion: $retrievalVersion,
                     parserVersion: self::KEY,
-                    contentFingerprint: $fingerprint,
+                    contentFingerprint: hash('sha256', json_encode($item, JSON_THROW_ON_ERROR)),
                     rawEvidenceRef: $permalink.'#gift-code='.rawurlencode($code),
                     verificationPassed: true,
                 );
@@ -130,9 +124,7 @@ final class InstagramMediaGiftCodeSourceAdapter implements GiftCodeSourceAdapter
         $paging = is_array($payload) ? ($payload['paging'] ?? null) : null;
         $cursors = is_array($paging) ? ($paging['cursors'] ?? null) : null;
         $hasNext = is_array($paging) && $this->optionalString($paging['next'] ?? null, 4096) !== null;
-        $nextCursor = $hasNext && is_array($cursors)
-            ? $this->optionalString($cursors['after'] ?? null, 2048)
-            : null;
+        $nextCursor = $hasNext && is_array($cursors) ? $this->optionalString($cursors['after'] ?? null, 2048) : null;
         $providerRequestId = $this->giftCodeProviderRequestId($response);
 
         return new GiftCodeIngestionPage(
@@ -149,6 +141,7 @@ final class InstagramMediaGiftCodeSourceAdapter implements GiftCodeSourceAdapter
                     'user_id' => $userId,
                     'username' => $username,
                     'latest_media_id' => $latestMediaId,
+                    'provider_item_ids' => $providerItemIds,
                     'graph_api_version' => $version,
                 ],
             ),
@@ -161,9 +154,7 @@ final class InstagramMediaGiftCodeSourceAdapter implements GiftCodeSourceAdapter
         $scheme = parse_url($url, PHP_URL_SCHEME);
         $host = parse_url($url, PHP_URL_HOST);
         $host = is_string($host) ? mb_strtolower(rtrim($host, '.')) : null;
-        if ($scheme !== 'https'
-            || $host === null
-            || ($host !== 'instagram.com' && ! str_ends_with($host, '.instagram.com'))) {
+        if ($scheme !== 'https' || $host === null || ($host !== 'instagram.com' && ! str_ends_with($host, '.instagram.com'))) {
             throw new UnexpectedValueException('Instagram evidence links must remain on instagram.com over HTTPS.');
         }
     }
