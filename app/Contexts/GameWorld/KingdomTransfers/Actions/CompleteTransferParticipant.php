@@ -10,7 +10,7 @@ use App\Contexts\Alliance\Membership\Actions\MarkRosterEntryLeftForTransfer;
 use App\Contexts\Alliance\Membership\Queries\PlayerMembershipQuery;
 use App\Contexts\Alliance\Membership\Queries\RosterEntryQuery;
 use App\Contexts\Alliance\Membership\ValueObjects\RosterEntryReference;
-use App\Contexts\GameWorld\Governance\Models\KingdomRoleAssignment;
+use App\Contexts\GameWorld\Governance\Queries\KingdomAuthorityFactsQuery;
 use App\Contexts\GameWorld\KingdomTransfers\Access\Enums\TransferPermission;
 use App\Contexts\GameWorld\KingdomTransfers\Access\Services\TransferAuthorization;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferDirection;
@@ -41,6 +41,7 @@ final readonly class CompleteTransferParticipant
         private EndMembershipForTransfer $endMembership,
         private PersistPlayerIdentity $playerIdentity,
         private PlayerReferenceQuery $players,
+        private KingdomAuthorityFactsQuery $governance,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -90,8 +91,6 @@ final readonly class CompleteTransferParticipant
 
             $this->assertCompletable($participant);
 
-            // The mutable Player row is loaded only inside the owner operation. Cross-action
-            // state is represented by PlayerReference, never by an Eloquent union.
             $player = Player::query()
                 ->whereKey($participant->player_id)
                 ->lockForUpdate()
@@ -275,12 +274,9 @@ final readonly class CompleteTransferParticipant
             ]);
         }
 
-        if (KingdomRoleAssignment::query()
-            ->where('player_id', $player->id)
-            ->where('kingdom_id', $player->current_kingdom_id)
-            ->exists()) {
+        if ($this->governance->hasActiveAssignmentsForPlayer((string) $player->id, (string) $player->current_kingdom_id)) {
             throw ValidationException::withMessages([
-                'completion' => 'Remove or transfer the Player Kingdom roles before changing Kingdoms.',
+                'completion' => 'Revoke the Player effective Kingdom roles before changing Kingdoms.',
             ]);
         }
 
