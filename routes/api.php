@@ -45,7 +45,7 @@ Route::prefix('v1')->middleware('throttle:api')->group(function (): void {
         ->middleware('api.credential:contributions:read')
         ->name('api.v1.contributions.index');
 
-    Route::get('/commands/overview', BotCommandApiController::class)
+    Route::get('/commands/overview', [BotCommandApiController::class, 'overview'])
         ->middleware('api.credential:commands:read')
         ->name('api.v1.commands.overview');
     Route::get('/gift-codes', GiftCodeApiController::class)
