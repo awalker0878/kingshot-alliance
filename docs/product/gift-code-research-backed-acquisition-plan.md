@@ -17,6 +17,8 @@ Gift Code acquisition is hybrid:
 
 Push is an acquisition optimization, not a trust grant. Pull reconciliation remains independent so a missed, delayed, expired or disabled push subscription can be detected instead of silently losing evidence.
 
+Application command definitions for this capability belong in `routes/console.php`, following the repository's console-registration pattern; this work does not add capability-specific classes under `app/Console/Commands`.
+
 ## Delivery order and status
 
 1. **Implemented:** replace the single ingestion cursor with explicit per-source synchronization state for head, incremental, reconciliation and backfill modes.
