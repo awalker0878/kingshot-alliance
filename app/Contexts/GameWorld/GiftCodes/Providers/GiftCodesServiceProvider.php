@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\GiftCodes\Providers;
 
+use App\Contexts\GameWorld\GiftCodes\Actions\RebuildGiftCodeAcquisitionIntelligence;
 use App\Contexts\GameWorld\GiftCodes\Adapters\CenturyGamesKingshotNewsRssGiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Adapters\DiscordChannelGiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Adapters\FacebookPageGiftCodeSourceAdapter;
@@ -17,6 +18,7 @@ use App\Contexts\GameWorld\GiftCodes\Adapters\YouTubeChannelGiftCodeSourceAdapte
 use App\Contexts\GameWorld\GiftCodes\Contracts\GiftCodeRedemptionProvider;
 use App\Contexts\GameWorld\GiftCodes\Services\GiftCodeSourceAdapterRegistry;
 use App\Contexts\GameWorld\GiftCodes\Services\OfficialGiftCodeHandoff;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\ServiceProvider;
 
 final class GiftCodesServiceProvider extends ServiceProvider
@@ -57,5 +59,18 @@ final class GiftCodesServiceProvider extends ServiceProvider
                 (string) config('game_world.gift_code_redemption_url'),
             ),
         );
+    }
+
+    public function boot(Schedule $schedule): void
+    {
+        $schedule->call(static function (): int {
+            $result = app(RebuildGiftCodeAcquisitionIntelligence::class)->cycle(500, 100);
+
+            return $result['clusters']['updated'] + $result['sources']['updated'];
+        })
+            ->name('gift-codes:rebuild-acquisition-intelligence')
+            ->hourly()
+            ->onOneServer()
+            ->withoutOverlapping(30);
     }
 }
