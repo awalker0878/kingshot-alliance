@@ -46,10 +46,20 @@ final class KingdomAuthorityFactsQuery
         return $this->snapshot($playerId, $kingdomId, true);
     }
 
+    public function hasActiveAssignmentsForPlayer(string $playerId, string $kingdomId): bool
+    {
+        return KingdomRoleAssignment::query()
+            ->effective()
+            ->where('player_id', $playerId)
+            ->where('kingdom_id', $kingdomId)
+            ->exists();
+    }
+
     /** @return list<string> */
     public function playerIdsWithPermission(string $kingdomId, string $permissionKey): array
     {
         return array_values(KingdomRoleAssignment::query()
+            ->effective()
             ->where('kingdom_id', $kingdomId)
             ->whereHas('role.permissions', static function ($query) use ($permissionKey): void {
                 $query->where('permissions.key', $permissionKey);
@@ -65,6 +75,7 @@ final class KingdomAuthorityFactsQuery
     private function snapshot(string $playerId, string $kingdomId, bool $lock): KingdomAuthorityFacts
     {
         $assignments = KingdomRoleAssignment::query()
+            ->effective()
             ->where('kingdom_id', $kingdomId)
             ->where('player_id', $playerId)
             ->orderBy('id');
@@ -79,7 +90,7 @@ final class KingdomAuthorityFactsQuery
             return new KingdomAuthorityFacts($playerId, $kingdomId, []);
         }
 
-        $roles = KingdomRole::query()->whereIn('id', $roleIds)->with('permissions');
+        $roles = KingdomRole::query()->whereNull('archived_at')->whereIn('id', $roleIds)->with('permissions');
         if ($lock) {
             $roles->sharedLock();
         }

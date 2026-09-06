@@ -38,6 +38,7 @@ final class KingdomAuthorization
     private function hasPermission(string $playerId, string $kingdomId, Permission $permission): bool
     {
         return KingdomRoleAssignment::query()
+            ->effective()
             ->where('kingdom_id', $kingdomId)
             ->where('player_id', $playerId)
             ->whereHas('role.permissions', static function (Builder $query) use ($permission): void {

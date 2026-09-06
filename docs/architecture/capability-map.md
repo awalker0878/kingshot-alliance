@@ -2,7 +2,7 @@
 
 Status: Current — Architecture V3
 
-Capabilities are first-class modules inside the seven bounded contexts. This map is the canonical business capability inventory for V3. New delivery adds capabilities inside those contexts; it does not create an eighth context.
+Capabilities are first-class modules inside the seven bounded contexts. New delivery adds capabilities inside those contexts; it does not create an eighth context.
 
 | Context | Capabilities |
 | --- | --- |
@@ -30,8 +30,8 @@ Capabilities are first-class modules inside the seven bounded contexts. This map
 - **Kingdoms** — Kingdom identity and neutral Kingdom/Alliance placement/reference state.
 - **KingdomMaps** — immutable/versioned Kingdom-map datasets, coordinate/geometry facts, provenance and sourced game placement rules.
 - **Progression** — immutable/versioned KingShot progression catalogue releases, source registry, reconciliation/conflict metadata, factual Hero/gear/building/research/Pet/Master/system reference data and source-scoped community formation conventions.
-- **Governance** — Kingdom roles, assignments and GameWorld-owned governance authorization.
-- **KingdomTransfers** — Player/Kingdom transfer planning and transfer-domain state owned by GameWorld.
+- **Governance** — Kingdom governance policy, system/custom roles, Player-scoped role assignments and bounded delegation, effective-authority interpretation, exact owner-scoped permission reconciliation, administrator handoff/recovery state, and Governance owner-side audit/outbox mutations. Read models compose history, authority and health without becoming persistence owners.
+- **KingdomTransfers** — Player/Kingdom transfer planning and transfer-domain state owned by GameWorld; effective Governance authority must be removed before a Player changes Kingdom.
 - **GiftCodes** — normalized global catalogue, approved-source policy, append-only provenance, revisioned trust/expiry/fact projections, moderation/ingestion operations, lifecycle notification eligibility, provider handoff policy, and per-Player/per-Kingdom redemption state.
 
 `KingdomMaps` owns represented spatial world truth, not Alliance planning preferences or saved layouts. `Progression` owns game-reference catalogue truth, not a Governor's observed roster and not a saved tactical loadout.
@@ -48,7 +48,7 @@ Alliance policies belong to the capability that owns the rule; `Alliance/Policie
 
 ## Operations
 
-- **Access** — Operations permission vocabulary and authorization interpretation.
+- **Access** — Operations permission vocabulary and authorization interpretation. Operations owns its permission semantics even when recognized Operations permissions are attached to Governance-owned Kingdom roles.
 - **Events** — Event identity, scheduling and occurrences.
 - **Participation** — registration, attendance and reminder business policy associated with participation/event timing.
 - **Polls** — Event polls and voting.
@@ -76,23 +76,17 @@ Alliance policies belong to the capability that owns the rule; `Alliance/Policie
 
 - **Delivery** — one logical recipient-visible notification per source intent; account-default/Governor routing preferences; quiet-hours, urgency, temporary-mute and digest scheduling; encrypted named Discord/Telegram/Web Push destinations; Accounts-owned verified-email routing; concrete provider routes, endpoint health, bounded retry/recovery, logical inbox state and privacy-safe delivery diagnostics.
 
-Communications owns **how** an already-authorized notification is delivered. It does not own Event, King Perk, Gift Code, Intelligence, Alliance announcement, Officer Brief, Account Security or other source-domain notification meaning/eligibility. Source callers cross the boundary with scalar/value-object `NotificationIntent` and receive scalar `NotificationQueueReceipt` values; they do not inspect Communications persistence models or select concrete endpoints.
-
-`NotificationMessage` owns logical inbox identity/read/archive state. `NotificationDelivery` owns one concrete channel/endpoint route and provider attempt state. Multi-channel/multi-endpoint fan-out therefore does not duplicate the inbox message. `NotificationRoutingPolicy`, `NotificationPreference`, `NotificationEndpoint` and `NotificationDigestDispatch` remain Communications-owned delivery policy/operational state rather than source truth.
-
-Email identity remains Accounts-owned and is consumed through a narrow verified-email query. Discord/Telegram/Web Push endpoint configuration remains encrypted Communications state. Immediate and digest workers recheck current recipient policy, endpoint state and Governor ownership before provider delivery.
-
-For Gift Codes, Communications owns channel/routing preferences, concrete delivery attempts and logical inbox state. `GameWorld/GiftCodes` owns which account/Governor is eligible for an availability, expiry or trust-change campaign and supplies revision-aware idempotency inputs. The same source/Delivery separation applies to every normalized notification type.
+Communications owns **how** an already-authorized notification is delivered. It does not own Event, King Perk, Gift Code, Intelligence, Alliance announcement, Officer Brief, Account Security or other source-domain notification meaning/eligibility. Source callers cross the boundary with scalar/value-object notification contracts; they do not inspect Communications persistence models or select concrete endpoints.
 
 ## Platform
 
-- **Administration** — Platform Administrator access and platform administrative behavior.
+- **Administration** — Platform Administrator access and platform administrative behavior, including invoking the narrowly scoped, recent-auth Kingdom administrator recovery workflow without acquiring game authority.
 - **AllianceAdministration** — platform-side Alliance lifecycle, entitlement, feature and usage controls.
 - **DataGovernance** — retention, legal hold, export and account deletion orchestration.
 - **EventAdministration** — platform Event-type administration.
 - **Integrations** — API credentials, webhooks and external integration administration.
 
-Platform Administration supplies the cross-Alliance authority used to manage approved Gift Code sources and narrowly scoped curator grants. Platform/Integrations exposes only bounded read/webhook contracts; it does not own or mutate Gift Code trust.
+Platform Administration may authorize a recovery workflow, but GameWorld/Governance remains the only owner that changes Kingdom governance state.
 
 ## Not capabilities or contexts
 
@@ -105,7 +99,7 @@ The following are implementation/composition mechanisms, not business capabiliti
 - `app/ReadModels`;
 - `app/Shared`.
 
-Cross-context analytical views such as Event analysis, Screenshot Intake workspaces, the Territory Command editor, Rally Roster Builder, Member Capability Profile, Transfer Campaign Workspace, Kingdom Intelligence Timeline, Alliance Command, Officer Briefs and Alliance Assistant are composition surfaces under `app/ReadModels` when they combine multiple owners; they do not become new persistence owners. `ReadModels/AllianceAssistant` composes exact authorized owner projections; its evidence/citations are response values rather than a new business truth store. Officer Brief delivery state remains Communications-owned, while the brief content/fingerprint is recomputable from owner facts.
+Cross-context analytical views such as Event analysis, Screenshot Intake workspaces, Territory Command, Rally Roster Builder, Member Capability Profile, Transfer Campaign Workspace, Kingdom Intelligence Timeline, Kingdom Governance authority/history/health, Alliance Command, Officer Briefs and Alliance Assistant are composition surfaces under `app/ReadModels` when they combine multiple owners; they do not become new persistence owners.
 
 The HTTP adapter that renders a cross-context composition surface lives with that read model; owner-context adapters must not import `app/ReadModels`.
 

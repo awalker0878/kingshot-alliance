@@ -1,7 +1,7 @@
 import '../css/app.css';
 
 import { createInertiaApp, router } from '@inertiajs/vue3';
-import { createApp, h, type DefineComponent } from 'vue';
+import { createApp, h } from 'vue';
 
 import {
   AUTHORITY_CONTEXT_HEADER,
@@ -21,7 +21,6 @@ import {
 import { ensurePageDomains, initializeLocale, t } from './localization';
 
 const appName = import.meta.env.VITE_APP_NAME ?? 'Kingshot Alliance';
-const pages = import.meta.glob<DefineComponent>('./pages/**/*.vue', { import: 'default' });
 let recoveringAuthorityContext = false;
 let authorityNoticeTimer: number | null = null;
 let fetchInterceptorInstalled = false;
@@ -32,11 +31,12 @@ async function bootstrap(): Promise<void> {
   await createInertiaApp({
     title: (title) => (title ? `${title} · ${appName}` : appName),
     resolve: async (name) => {
-      const page = pages[`./pages/${name}.vue`];
-      if (!page) throw new Error(`Page not found: ${name}`);
+      const [{ resolvePage }] = await Promise.all([
+        import('./page-loader'),
+        ensurePageDomains(name),
+      ]);
 
-      await ensurePageDomains(name);
-      return page();
+      return resolvePage(name);
     },
     defaults: {
       visitOptions: (_href, options) => ({

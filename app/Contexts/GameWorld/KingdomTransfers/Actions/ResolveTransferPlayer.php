@@ -6,7 +6,7 @@ namespace App\Contexts\GameWorld\KingdomTransfers\Actions;
 
 use App\Contexts\Alliance\Membership\Queries\PlayerMembershipQuery;
 use App\Contexts\Alliance\Membership\Queries\RosterEntryQuery;
-use App\Contexts\GameWorld\Governance\Models\KingdomRoleAssignment;
+use App\Contexts\GameWorld\Governance\Queries\KingdomAuthorityFactsQuery;
 use App\Contexts\GameWorld\Players\Actions\PersistPlayerIdentity;
 use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
@@ -18,6 +18,7 @@ final readonly class ResolveTransferPlayer
         private PersistPlayerIdentity $playerIdentity,
         private PlayerMembershipQuery $memberships,
         private RosterEntryQuery $roster,
+        private KingdomAuthorityFactsQuery $governance,
     ) {}
 
     public function handle(string $sourceKingdomId, string $name, ?string $gamePlayerId, ?string $currentPlayerId = null): PlayerReference
@@ -46,14 +47,12 @@ final readonly class ResolveTransferPlayer
             $this->assertKingdomCanBeObserved((string) $player->id, (string) $player->current_kingdom_id, $sourceKingdomId);
         }
 
-        $persisted = $this->playerIdentity->handle(
+        return $this->playerIdentity->handle(
             $sourceKingdomId,
             trim($name),
             $stableId,
             $player instanceof Player ? (string) $player->id : null,
         );
-
-        return $persisted;
     }
 
     private function assertKingdomCanBeObserved(string $playerId, string $currentKingdomId, string $sourceKingdomId): void
@@ -61,8 +60,8 @@ final readonly class ResolveTransferPlayer
         if ($currentKingdomId === $sourceKingdomId) {
             return;
         }
-        if (KingdomRoleAssignment::query()->where('player_id', $playerId)->where('kingdom_id', $currentKingdomId)->exists()) {
-            throw ValidationException::withMessages(['source_kingdom' => 'That Player still has Kingdom roles in the current Kingdom. Remove or transfer those roles before changing the Player source Kingdom.']);
+        if ($this->governance->hasActiveAssignmentsForPlayer($playerId, $currentKingdomId)) {
+            throw ValidationException::withMessages(['source_kingdom' => 'That Player still has effective Kingdom roles in the current Kingdom. Revoke those roles before changing the Player source Kingdom.']);
         }
         if ($this->memberships->hasAnyActiveForPlayer($playerId)) {
             throw ValidationException::withMessages(['source_kingdom' => 'That Player has an active Alliance membership. End the membership before changing the Player source Kingdom.']);

@@ -8,7 +8,6 @@ const pending = new Map<string, Promise<MessageCatalogue>>();
 function cacheKey(domain: LocalizationDomain, locale: LocaleCode): string {
   return `${domain}:${locale}`;
 }
-
 function readPath(source: MessageCatalogue | undefined, path: string): string | null {
   if (!source) return null;
   const value = path.split('.').reduce<unknown>((node, segment) => {
@@ -17,7 +16,6 @@ function readPath(source: MessageCatalogue | undefined, path: string): string | 
   }, source);
   return typeof value === 'string' ? value : null;
 }
-
 function mergeCatalogue(base: MessageCatalogue, overlay: MessageCatalogue): MessageCatalogue {
   const result: MessageCatalogue = { ...base };
   for (const [key, value] of Object.entries(overlay)) {
@@ -30,7 +28,6 @@ function mergeCatalogue(base: MessageCatalogue, overlay: MessageCatalogue): Mess
   }
   return result;
 }
-
 async function assistantCatalogue(
   base: MessageCatalogue,
   locale: LocaleCode,
@@ -44,7 +41,6 @@ async function assistantCatalogue(
     assistantTransferLabels(locale),
   );
 }
-
 async function eventsCatalogue(
   base: MessageCatalogue,
   locale: LocaleCode,
@@ -52,12 +48,10 @@ async function eventsCatalogue(
   const { eventCommandLabels } = await import('./event-command-labels');
   return mergeCatalogue(base, eventCommandLabels(locale));
 }
-
 async function transfersCatalogue(base: MessageCatalogue): Promise<MessageCatalogue> {
   const { transferEvidenceLabels } = await import('./transfer-evidence-labels');
   return mergeCatalogue(base, transferEvidenceLabels());
 }
-
 async function progressionCatalogue(
   base: MessageCatalogue,
   locale: LocaleCode,
@@ -65,12 +59,10 @@ async function progressionCatalogue(
   const { progressionPlannerLabels } = await import('./progression-planner-labels');
   return mergeCatalogue(base, progressionPlannerLabels(locale));
 }
-
 async function territoryCatalogue(base: MessageCatalogue): Promise<MessageCatalogue> {
   const { territoryReconciliationLabels } = await import('./territory-reconciliation-labels');
   return mergeCatalogue(base, territoryReconciliationLabels());
 }
-
 async function allianceCapabilityExpansionCatalogue(
   base: MessageCatalogue,
 ): Promise<MessageCatalogue> {
@@ -78,7 +70,14 @@ async function allianceCapabilityExpansionCatalogue(
     await import('./alliance-capability-expansion-labels');
   return mergeCatalogue(base, allianceCapabilityExpansionLabels());
 }
-
+async function governanceCapabilityExpansionCatalogue(
+  base: MessageCatalogue,
+  locale: LocaleCode,
+): Promise<MessageCatalogue> {
+  const { governanceCapabilityExpansionLabels } =
+    await import('./governance-capability-expansion-labels');
+  return mergeCatalogue(base, governanceCapabilityExpansionLabels(locale));
+}
 async function intelligenceChangeCatalogue(
   base: MessageCatalogue,
   locale: LocaleCode,
@@ -86,7 +85,6 @@ async function intelligenceChangeCatalogue(
   const { intelligenceChangeLabels } = await import('./intelligence-change-labels');
   return mergeCatalogue(base, intelligenceChangeLabels(locale));
 }
-
 async function communicationsRecipientDeliveryCatalogue(
   base: MessageCatalogue,
 ): Promise<MessageCatalogue> {
@@ -94,7 +92,6 @@ async function communicationsRecipientDeliveryCatalogue(
     await import('./communications-recipient-delivery-labels');
   return mergeCatalogue(base, communicationsRecipientDeliveryLabels());
 }
-
 async function giftCodeWorkspaceCatalogue(base: MessageCatalogue): Promise<MessageCatalogue> {
   const { giftCodeWorkspaceLabels } = await import('./gift-code-workspace-labels');
   return mergeCatalogue(base, giftCodeWorkspaceLabels());
@@ -113,16 +110,14 @@ async function loadOne(domain: LocalizationDomain, locale: LocaleCode): Promise<
     if (domain === 'transfers') catalogue = await transfersCatalogue(catalogue);
     if (domain === 'progression') catalogue = await progressionCatalogue(catalogue, locale);
     if (domain === 'territory') catalogue = await territoryCatalogue(catalogue);
-    if (domain === 'core' || domain === 'alliance') {
+    if (domain === 'core' || domain === 'alliance')
       catalogue = await allianceCapabilityExpansionCatalogue(catalogue);
-    }
+    if (domain === 'core' || domain === 'kingdom')
+      catalogue = await governanceCapabilityExpansionCatalogue(catalogue, locale);
     if (domain === 'core') catalogue = await giftCodeWorkspaceCatalogue(catalogue);
-    if (['alliance', 'assistant', 'kingdom'].includes(domain)) {
+    if (['alliance', 'assistant', 'kingdom'].includes(domain))
       catalogue = await intelligenceChangeCatalogue(catalogue, locale);
-    }
-    if (domain === 'account') {
-      catalogue = await communicationsRecipientDeliveryCatalogue(catalogue);
-    }
+    if (domain === 'account') catalogue = await communicationsRecipientDeliveryCatalogue(catalogue);
     catalogues.set(key, catalogue);
     pending.delete(key);
     return catalogue;
@@ -130,26 +125,22 @@ async function loadOne(domain: LocalizationDomain, locale: LocaleCode): Promise<
   pending.set(key, request);
   return request;
 }
-
 export async function loadDomain(locale: LocaleCode, domain: LocalizationDomain): Promise<void> {
   await loadOne(domain, defaultLocale);
   if (locale !== defaultLocale) await loadOne(domain, locale);
 }
-
 export async function loadDomains(
   locale: LocaleCode,
   domains: readonly LocalizationDomain[],
 ): Promise<void> {
   await Promise.all([...new Set(domains)].map((domain) => loadDomain(locale, domain)));
 }
-
 export function isDomainLoaded(locale: LocaleCode, domain: LocalizationDomain): boolean {
   return (
     catalogues.has(cacheKey(domain, defaultLocale)) &&
     (locale === defaultLocale || catalogues.has(cacheKey(domain, locale)))
   );
 }
-
 export function resolveMessage(
   locale: LocaleCode,
   domains: readonly LocalizationDomain[],

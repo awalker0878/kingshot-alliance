@@ -10,6 +10,11 @@ enum KingdomPermission: string implements Permission
 {
     case RoleManage = 'kingdom.roles.manage';
 
+    public static function ownerKey(): string
+    {
+        return 'game-world.governance';
+    }
+
     public function key(): string
     {
         return $this->value;
@@ -18,7 +23,7 @@ enum KingdomPermission: string implements Permission
     public function description(): string
     {
         return match ($this) {
-            self::RoleManage => 'Manage roles and role assignments for a specific kingdom.',
+            self::RoleManage => 'Manage roles, assignments, delegations and governance policy for a specific Kingdom.',
         };
     }
 }

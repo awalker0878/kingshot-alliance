@@ -21,6 +21,11 @@ enum OperationsPermission: string
     case TerritoryKingdomView = 'territory.kingdom.view';
     case TerritoryKingdomManage = 'territory.kingdom.manage';
 
+    public static function ownerKey(): string
+    {
+        return 'operations';
+    }
+
     public function key(): string
     {
         return $this->value;

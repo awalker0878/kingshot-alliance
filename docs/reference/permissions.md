@@ -4,6 +4,8 @@ Status: Current
 
 Permission semantics remain owned by the context/workflow that defines the vocabulary. This table is a lookup index, not a replacement for authorization services.
 
+Provisioned permissions additionally carry an `owner_key`. That owner identity exists so shared Kingdom roles can reconcile one owner's grants exactly without deleting another owner's grants. It does not create a global authorization engine or transfer permission meaning to Governance.
+
 ## Alliance
 
 Source: `app/Contexts/Alliance/Access/Enums/AlliancePermission.php`
@@ -18,15 +20,19 @@ Source: `app/Contexts/Alliance/Access/Enums/AlliancePermission.php`
 | `content.manage` | Manage Alliance content. |
 | `recruitment.manage` | Manage recruitment. |
 
-## GameWorld / Kingdom
+## GameWorld / Kingdom Governance
 
 Source: `app/Contexts/GameWorld/Governance/Enums/KingdomPermission.php`
 
+Permission owner: `game-world.governance`
+
 | Key | Meaning |
 | --- | --- |
-| `kingdom.roles.manage` | Manage roles/role assignments for a concrete Kingdom. |
+| `kingdom.roles.manage` | Manage Kingdom roles, assignments, bounded delegations and governance policy for a concrete Kingdom. |
 
-`GameWorld/KingdomMaps` currently exposes map truth through owner queries and does not grant a separate user-managed map permission merely to consume immutable dataset facts.
+Holding this permission is always an active-Player, concrete-Kingdom fact. Platform Administrator status is not equivalent. Custom Kingdom roles may include recognized permissions only when the assigning actor can currently delegate them.
+
+`GameWorld/KingdomMaps` exposes map truth through owner queries and does not grant a separate user-managed map permission merely to consume immutable dataset facts.
 
 ## GameWorld / Kingdom Transfers
 
@@ -37,11 +43,15 @@ Source: `app/Contexts/GameWorld/KingdomTransfers/Access/Enums/TransferPermission
 | `kingdom_transfer.view` | View the active Alliance's Kingdom Transfer plans, participants, readiness, sourced game facts, observations, and server-authoritative eligibility assessments. |
 | `kingdom_transfer.manage` | Manage the active Alliance's Transfer Windows, official Transfer Group observations, target conditions, participant observations, planning cohorts, readiness, blockers, and outcomes. |
 
-Transfer permissions are always interpreted against the active Player and concrete Alliance-owned transfer scope. Possessing a transfer permission in one Alliance does not authorize another Alliance's Transfer Window, plan, participant, observation, blocker, or cohort. Mutating HTTP routes additionally require password confirmation and reauthorize the concrete owner-scoped records at commit time.
+Transfer permissions are interpreted against the active Player and concrete Alliance-owned transfer scope. Possessing a transfer permission in one Alliance does not authorize another Alliance's Transfer Window, plan, participant, observation, blocker or cohort. Mutating HTTP routes additionally require password confirmation and reauthorize concrete owner-scoped records at commit time.
+
+A Player can change Kingdom only after effective Governance assignments are revoked/expired. Historical revoked or expired Governance assignments do not permanently block transfer.
 
 ## Operations
 
 Source: `app/Contexts/Operations/Access/Enums/OperationsPermission.php`
+
+Permission owner: `operations`
 
 | Key | Meaning |
 | --- | --- |
@@ -60,7 +70,7 @@ Source: `app/Contexts/Operations/Access/Enums/OperationsPermission.php`
 | `territory.kingdom.view` | View permitted Kingdom-scoped multi-Alliance territory plans. |
 | `territory.kingdom.manage` | Create/edit/publish/import/archive permitted Kingdom-scoped multi-Alliance territory plans. |
 
-The permission family encodes both action and scope. Operations interprets these permissions using current Player/scope facts. Frontend flags control affordances only; every write is reauthorized at commit time.
+The permission family encodes action and scope. Operations interprets these permissions using current Player/scope facts. Operations may provision its recognized permissions onto Governance-owned Kingdom roles through exact owner-scoped reconciliation; Governance does not interpret their meaning.
 
 ## Intelligence
 
@@ -74,8 +84,8 @@ Source: `app/Contexts/Intelligence/Access/Enums/IntelligencePermission.php`
 
 ## Platform
 
-Platform administration is based on an active Platform Administrator grant plus account-assurance requirements rather than treating platform access as a game permission family.
+Platform administration is based on an active Platform Administrator grant plus account-assurance requirements rather than a game permission family. The Kingdom Administrator recovery workflow is a narrow repair process: Platform authority can repair a Player's Kingdom administrator assignment but does not receive `kingdom.roles.manage` or any Operations permission.
 
 ## Rule
 
-Never grant a User a game permission merely because the same User owns another privileged Player. Use active Player and concrete scope.
+Never grant a User a game permission merely because the same User owns another privileged Player. Use the active Player and concrete scope.

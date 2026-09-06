@@ -18,4 +18,13 @@ enum DefaultKingdomRole: string
             self::Viewer => 'Kingdom Viewer',
         };
     }
+
+    public function description(): string
+    {
+        return match ($this) {
+            self::Administrator => 'Manages Kingdom governance roles and receives the default Kingdom operations authority.',
+            self::EventCoordinator => 'Coordinates Kingdom Events and Territory operations without governance-role administration.',
+            self::Viewer => 'Receives read-only Kingdom Event and Territory visibility.',
+        };
+    }
 }

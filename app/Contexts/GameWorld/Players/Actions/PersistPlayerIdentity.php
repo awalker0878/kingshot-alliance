@@ -6,7 +6,7 @@ namespace App\Contexts\GameWorld\Players\Actions;
 
 use App\Contexts\Alliance\Membership\Queries\PlayerMembershipQuery;
 use App\Contexts\Alliance\Membership\Queries\RosterEntryQuery;
-use App\Contexts\GameWorld\Governance\Models\KingdomRoleAssignment;
+use App\Contexts\GameWorld\Governance\Queries\KingdomAuthorityFactsQuery;
 use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
 use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
@@ -20,6 +20,7 @@ final readonly class PersistPlayerIdentity
         private PlayerReferenceQuery $references,
         private PlayerMembershipQuery $memberships,
         private RosterEntryQuery $roster,
+        private KingdomAuthorityFactsQuery $governance,
     ) {}
 
     public function handle(string $kingdomId, string $observedName, ?string $gamePlayerId, ?string $expectedPlayerId = null): PlayerReference
@@ -80,8 +81,8 @@ final readonly class PersistPlayerIdentity
             return;
         }
         $playerId = (string) $player->id;
-        if (KingdomRoleAssignment::query()->where('player_id', $playerId)->where('kingdom_id', $currentKingdomId)->exists()) {
-            throw ValidationException::withMessages(['kingdom' => 'That Player still has Kingdom roles in the current Kingdom. Remove or transfer those roles before changing Kingdoms.']);
+        if ($this->governance->hasActiveAssignmentsForPlayer($playerId, $currentKingdomId)) {
+            throw ValidationException::withMessages(['kingdom' => 'That Player still has effective Kingdom roles in the current Kingdom. Revoke those roles before changing Kingdoms.']);
         }
         if ($this->memberships->hasAnyActiveForPlayer($playerId)) {
             throw ValidationException::withMessages(['kingdom' => 'That Player has an active Alliance membership. End or transfer the membership before changing Kingdoms.']);
