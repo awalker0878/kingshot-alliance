@@ -22,7 +22,10 @@ final readonly class BulkKingdomRoleAdministration
         private KingdomAuthorization $authorization,
     ) {}
 
-    /** @param list<string> $playerIds @return array{eligible:list<string>,ineligible:array<string,string>} */
+    /**
+     * @param list<string> $playerIds
+     * @return array{eligible:list<string>,ineligible:array<string,string>}
+     */
     public function preview(string $actorPlayerId, string $kingdomId, string $roleId, string $operation, array $playerIds): array
     {
         if (! $this->authorization->allows($actorPlayerId, $kingdomId, KingdomPermission::RoleManage)) {
@@ -44,18 +47,15 @@ final readonly class BulkKingdomRoleAdministration
             $player = $players->get($playerId);
             if (! $player instanceof Player || (string) $player->current_kingdom_id !== $kingdomId) {
                 $ineligible[$playerId] = 'Governor is not currently in this Kingdom.';
-
                 continue;
             }
             $assignment = KingdomRoleAssignment::query()->effective()->where('kingdom_id', $kingdomId)->where('player_id', $playerId)->where('kingdom_role_id', $roleId)->first();
             if ($operation === 'assign' && $assignment instanceof KingdomRoleAssignment) {
                 $ineligible[$playerId] = 'Governor already has this effective role.';
-
                 continue;
             }
             if ($operation === 'remove' && ! $assignment instanceof KingdomRoleAssignment) {
                 $ineligible[$playerId] = 'Governor does not have this effective role.';
-
                 continue;
             }
             $eligible[] = $playerId;
@@ -73,7 +73,10 @@ final readonly class BulkKingdomRoleAdministration
         return ['eligible' => $eligible, 'ineligible' => $ineligible];
     }
 
-    /** @param list<string> $playerIds @return array{applied:list<string>,skipped:array<string,string>} */
+    /**
+     * @param list<string> $playerIds
+     * @return array{applied:list<string>,skipped:array<string,string>}
+     */
     public function handle(string $actorPlayerId, string $kingdomId, string $roleId, string $operation, array $playerIds, ?string $reason = null): array
     {
         $preview = $this->preview($actorPlayerId, $kingdomId, $roleId, $operation, $playerIds);

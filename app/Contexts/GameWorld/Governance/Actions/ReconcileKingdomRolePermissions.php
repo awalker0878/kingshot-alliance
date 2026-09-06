@@ -40,7 +40,7 @@ final readonly class ReconcileKingdomRolePermissions
                 throw new RuntimeException('A requested GameWorld Kingdom role is not provisioned in this Kingdom.');
             }
 
-            $allKeys = collect($permissionKeysByRoleId)->flatten()->map('strval')->unique()->values();
+            $allKeys = array_values(array_unique(array_map('strval', array_merge(...array_values($permissionKeysByRoleId)))));
             $permissions = Permission::query()->whereIn('key', $allKeys)->get()->keyBy('key');
             foreach ($allKeys as $key) {
                 $permission = $permissions->get($key);
@@ -58,18 +58,23 @@ final readonly class ReconcileKingdomRolePermissions
                     throw new RuntimeException('The requested GameWorld Kingdom role is not provisioned in this Kingdom.');
                 }
 
-                $desiredIds = collect($keys)
-                    ->map(static fn (string $key): string => (string) $permissions->get($key)->id)
-                    ->unique()
-                    ->values();
+                $desiredIds = [];
+                foreach (array_values(array_unique($keys)) as $key) {
+                    $permission = $permissions->get($key);
+                    if (! $permission instanceof Permission) {
+                        throw new RuntimeException("Requested permission [{$key}] is not provisioned.");
+                    }
+                    $desiredIds[] = (string) $permission->id;
+                }
                 $currentOwnedIds = $role->permissions()
                     ->where('permissions.owner_key', $permissionOwnerKey)
                     ->pluck('permissions.id')
                     ->map('strval')
-                    ->values();
+                    ->values()
+                    ->all();
 
-                $detach = $currentOwnedIds->diff($desiredIds)->values()->all();
-                $attach = $desiredIds->diff($currentOwnedIds)->values()->all();
+                $detach = array_values(array_diff($currentOwnedIds, $desiredIds));
+                $attach = array_values(array_diff($desiredIds, $currentOwnedIds));
                 if ($detach === [] && $attach === []) {
                     continue;
                 }

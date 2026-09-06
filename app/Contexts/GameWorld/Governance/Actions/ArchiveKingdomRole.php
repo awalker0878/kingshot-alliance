@@ -6,6 +6,7 @@ namespace App\Contexts\GameWorld\Governance\Actions;
 
 use App\Contexts\GameWorld\Governance\Enums\KingdomPermission;
 use App\Contexts\GameWorld\Governance\Models\KingdomRole;
+use App\Contexts\GameWorld\Governance\Models\KingdomRoleAssignment;
 use App\Contexts\GameWorld\Governance\Services\KingdomAuthorization;
 use App\Contexts\GameWorld\Governance\Services\KingdomWriteState;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
@@ -34,7 +35,7 @@ final readonly class ArchiveKingdomRole
             if ($role->archived_at !== null) {
                 return;
             }
-            if ($role->assignments()->effective()->exists()) {
+            if (KingdomRoleAssignment::query()->effective()->where('kingdom_role_id', (string) $role->id)->exists()) {
                 throw ValidationException::withMessages(['role' => 'Revoke active assignments before archiving this Kingdom role.']);
             }
             $role->forceFill(['archived_at' => now()])->save();

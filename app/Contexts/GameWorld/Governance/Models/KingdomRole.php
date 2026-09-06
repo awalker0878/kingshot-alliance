@@ -7,6 +7,7 @@ namespace App\Contexts\GameWorld\Governance\Models;
 use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
 use App\Contexts\GameWorld\Players\Models\Player;
 use App\Shared\Infrastructure\Access\Models\Permission;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,7 +15,15 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
-/** @property Carbon|null $archived_at */
+/**
+ * @property string $kingdom_id
+ * @property string $key
+ * @property string $name
+ * @property string|null $description
+ * @property bool $is_system
+ * @property Carbon|null $archived_at
+ * @property-read Collection<int, Permission> $permissions
+ */
 final class KingdomRole extends Model
 {
     use HasUlids;
@@ -40,21 +49,25 @@ final class KingdomRole extends Model
         ];
     }
 
+    /** @return BelongsTo<Kingdom, $this> */
     public function kingdom(): BelongsTo
     {
         return $this->belongsTo(Kingdom::class);
     }
 
+    /** @return BelongsToMany<Permission, $this> */
     public function permissions(): BelongsToMany
     {
         return $this->belongsToMany(Permission::class, 'kingdom_role_permissions');
     }
 
+    /** @return HasMany<KingdomRoleAssignment, $this> */
     public function assignments(): HasMany
     {
         return $this->hasMany(KingdomRoleAssignment::class);
     }
 
+    /** @return BelongsToMany<Player, $this> */
     public function players(): BelongsToMany
     {
         return $this->belongsToMany(Player::class, 'kingdom_role_assignments', 'kingdom_role_id', 'player_id')

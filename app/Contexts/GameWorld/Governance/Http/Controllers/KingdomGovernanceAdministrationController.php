@@ -12,7 +12,6 @@ use App\Contexts\GameWorld\Governance\Actions\HandoffKingdomAdministrator;
 use App\Contexts\GameWorld\Governance\Actions\UpdateKingdomRole;
 use App\Contexts\GameWorld\Governance\Models\KingdomRole;
 use App\Shared\Infrastructure\Http\Controller;
-use App\Workflows\KingdomGovernance\Actions\ReconcileKingdomGovernancePolicy;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -74,13 +73,5 @@ final class KingdomGovernanceAdministrationController extends Controller
         $result = $bulk->handle($scope->playerId, $scope->kingdomId, (string) $validated['role_id'], (string) $validated['operation'], array_values($validated['player_ids']), $validated['reason'] ?? null);
 
         return back()->with('actionReceipt', $this->receipt('kingdom-role-bulk-updated'))->with('governanceBulkResult', $result);
-    }
-
-    public function reconcile(AllianceContext $context, ReconcileKingdomGovernancePolicy $reconcile): RedirectResponse
-    {
-        $scope = $context->scope();
-        $reconcile->handle($scope->playerId, $scope->kingdomId);
-
-        return back()->with('actionReceipt', $this->receipt('kingdom-governance-reconciled'));
     }
 }

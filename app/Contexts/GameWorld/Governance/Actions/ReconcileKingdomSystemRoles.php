@@ -15,7 +15,7 @@ use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
-final readonly class ReconcileKingdomSystemPolicy
+final readonly class ReconcileKingdomSystemRoles
 {
     public function __construct(
         private KingdomWriteState $writeState,

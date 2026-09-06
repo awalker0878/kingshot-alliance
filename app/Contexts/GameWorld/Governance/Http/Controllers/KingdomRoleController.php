@@ -48,12 +48,13 @@ final class KingdomRoleController extends Controller
         $assignmentRows = KingdomRoleAssignment::query()->where('kingdom_id', $scope->kingdomId)->whereNull('revoked_at')->with('role:id,key,name,archived_at')->orderBy('created_at')->get();
         $playerReferences = $players->byIds($assignmentRows->pluck('player_id')->map('strval')->all());
         $assignments = $assignmentRows->map(static function (KingdomRoleAssignment $assignment) use ($playerReferences): array {
-            $player = $playerReferences[(string) $assignment->player_id] ?? null;
+            $playerId = (string) $assignment->player_id;
+            $player = $playerReferences[$playerId] ?? null;
             $state = $assignment->isEffectiveAt() ? 'effective' : (($assignment->effective_from?->isFuture() ?? false) ? 'scheduled' : 'expired');
 
             return [
                 'id' => (string) $assignment->id,
-                'player' => ['id' => (string) $assignment->player_id, 'name' => $player->currentName ?? 'Unknown Governor', 'gamePlayerId' => $player?->gamePlayerId],
+                'player' => ['id' => $playerId, 'name' => $player === null ? 'Unknown Governor' : $player->currentName, 'gamePlayerId' => $player?->gamePlayerId],
                 'role' => ['id' => (string) $assignment->role->id, 'key' => (string) $assignment->role->key, 'name' => (string) $assignment->role->name],
                 'state' => $state,
                 'effectiveFrom' => $assignment->effective_from?->toIso8601String(),
@@ -64,7 +65,7 @@ final class KingdomRoleController extends Controller
         })->values()->all();
         $kingdomPlayers = array_map(static fn ($player): array => ['id' => $player->playerId, 'name' => $player->currentName, 'gamePlayerId' => $player->gamePlayerId], $players->inKingdom($scope->kingdomId));
         $facts = $authorityFacts->findCurrent($scope->playerId, $scope->kingdomId);
-        $actorPermissionKeys = $facts?->permissionKeysObservedAtRead ?? [];
+        $actorPermissionKeys = $facts->permissionKeysObservedAtRead;
         $permissionOptions = Permission::query()->whereNotNull('owner_key')->whereIn('key', $actorPermissionKeys)->orderBy('owner_key')->orderBy('key')->get()->map(static fn (Permission $permission): array => [
             'key' => (string) $permission->key,
             'owner' => (string) $permission->owner_key,

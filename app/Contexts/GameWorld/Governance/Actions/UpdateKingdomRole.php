@@ -6,6 +6,7 @@ namespace App\Contexts\GameWorld\Governance\Actions;
 
 use App\Contexts\GameWorld\Governance\Enums\KingdomPermission;
 use App\Contexts\GameWorld\Governance\Models\KingdomRole;
+use App\Contexts\GameWorld\Governance\Models\KingdomRoleAssignment;
 use App\Contexts\GameWorld\Governance\Queries\KingdomAuthorityFactsQuery;
 use App\Contexts\GameWorld\Governance\Services\KingdomAuthorization;
 use App\Contexts\GameWorld\Governance\Services\KingdomWriteState;
@@ -43,7 +44,7 @@ final readonly class UpdateKingdomRole
                 throw ValidationException::withMessages(['name' => 'Role name is required.']);
             }
 
-            $keys = collect($permissionKeys)->map('strval')->unique()->values();
+            $keys = array_values(array_unique(array_map('strval', $permissionKeys)));
             $actorFacts = $this->authorityFacts->findCurrent($actorPlayerId, $kingdomId);
             $effective = $actorFacts === null ? [] : $actorFacts->permissionKeysObservedAtRead;
             foreach ($keys as $key) {
@@ -52,14 +53,20 @@ final readonly class UpdateKingdomRole
                 }
             }
             $permissions = Permission::query()->whereIn('key', $keys)->whereNotNull('owner_key')->get()->keyBy('key');
-            if ($permissions->count() !== $keys->count()) {
-                throw ValidationException::withMessages(['permissions' => 'Every Kingdom-role permission must be a recognized provisioned permission with an owning context.']);
+            $permissionIds = [];
+            foreach ($keys as $key) {
+                $permission = $permissions->get($key);
+                if (! $permission instanceof Permission) {
+                    throw ValidationException::withMessages(['permissions' => 'Every Kingdom-role permission must be a recognized provisioned permission with an owning context.']);
+                }
+                $permissionIds[] = (string) $permission->id;
             }
 
             $before = $role->permissions()->pluck('permissions.key')->map('strval')->sort()->values()->all();
-            $after = $keys->sort()->values()->all();
+            $after = $keys;
+            sort($after);
             $role->forceFill(['name' => $name, 'description' => $description === null ? null : trim($description)])->save();
-            $role->permissions()->sync($keys->map(static fn (string $key): string => (string) $permissions->get($key)->id)->all());
+            $role->permissions()->sync($permissionIds);
 
             $metadata = [
                 'kingdom_id' => $kingdomId,
@@ -67,7 +74,7 @@ final readonly class UpdateKingdomRole
                 'role_key' => (string) $role->key,
                 'permission_added' => array_values(array_diff($after, $before)),
                 'permission_removed' => array_values(array_diff($before, $after)),
-                'affected_players' => $role->assignments()->effective()->distinct('player_id')->count('player_id'),
+                'affected_players' => KingdomRoleAssignment::query()->effective()->where('kingdom_role_id', $roleId)->distinct('player_id')->count('player_id'),
             ];
             $this->audit->record('kingdom.role_updated', $context->actor, $role, null, $metadata);
             $this->outbox->record('kingdom.role_updated', null, $role, $metadata);

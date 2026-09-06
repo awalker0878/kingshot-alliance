@@ -6,12 +6,12 @@ namespace App\Contexts\GameWorld\Governance\Models;
 
 use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
 use App\Contexts\GameWorld\Players\Models\Player;
+use DateTimeInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\CarbonInterface;
 
 /**
  * @property string $kingdom_id
@@ -25,6 +25,8 @@ use Illuminate\Support\CarbonInterface;
  * @property string|null $revoked_by_player_id
  * @property string|null $revocation_reason
  * @property Carbon|null $created_at
+ * @property-read Kingdom $kingdom
+ * @property-read Player $player
  * @property-read KingdomRole $role
  */
 final class KingdomRoleAssignment extends Model
@@ -57,7 +59,11 @@ final class KingdomRoleAssignment extends Model
         ];
     }
 
-    public function scopeEffective(Builder $query, ?CarbonInterface $at = null): Builder
+    /**
+     * @param Builder<KingdomRoleAssignment> $query
+     * @return Builder<KingdomRoleAssignment>
+     */
+    public function scopeEffective(Builder $query, ?DateTimeInterface $at = null): Builder
     {
         $at ??= now();
 
@@ -72,7 +78,7 @@ final class KingdomRoleAssignment extends Model
             ->whereHas('role', static fn (Builder $builder) => $builder->whereNull('archived_at'));
     }
 
-    public function isEffectiveAt(?CarbonInterface $at = null): bool
+    public function isEffectiveAt(?DateTimeInterface $at = null): bool
     {
         $at ??= now();
 
@@ -82,16 +88,19 @@ final class KingdomRoleAssignment extends Model
             && $this->role->archived_at === null;
     }
 
+    /** @return BelongsTo<Kingdom, $this> */
     public function kingdom(): BelongsTo
     {
         return $this->belongsTo(Kingdom::class);
     }
 
+    /** @return BelongsTo<Player, $this> */
     public function player(): BelongsTo
     {
         return $this->belongsTo(Player::class);
     }
 
+    /** @return BelongsTo<KingdomRole, $this> */
     public function role(): BelongsTo
     {
         return $this->belongsTo(KingdomRole::class, 'kingdom_role_id');

@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use App\Contexts\GameWorld\Governance\Http\Controllers\KingdomGovernanceAdministrationController;
-use App\Contexts\Platform\Administration\Http\Controllers\PlatformKingdomGovernanceRecoveryController;
+use App\Http\Controllers\KingdomGovernanceWorkflowController;
 use App\ReadModels\KingdomGovernance\Http\Controllers\KingdomGovernanceAuthorityController;
 use App\ReadModels\KingdomGovernance\Http\Controllers\KingdomGovernanceHealthController;
 use App\ReadModels\KingdomGovernance\Http\Controllers\KingdomGovernanceHistoryController;
@@ -22,11 +22,11 @@ Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->gro
         Route::post('/alliance/settings/kingdom/governance/administrator-handoff', [KingdomGovernanceAdministrationController::class, 'handoff'])->name('alliance.kingdom.governance.handoff');
         Route::post('/alliance/settings/kingdom/governance/bulk/preview', [KingdomGovernanceAdministrationController::class, 'bulkPreview'])->name('alliance.kingdom.governance.bulk.preview');
         Route::post('/alliance/settings/kingdom/governance/bulk', [KingdomGovernanceAdministrationController::class, 'bulk'])->name('alliance.kingdom.governance.bulk.store');
-        Route::post('/alliance/settings/kingdom/governance/reconcile', [KingdomGovernanceAdministrationController::class, 'reconcile'])->name('alliance.kingdom.governance.reconcile');
+        Route::post('/alliance/settings/kingdom/governance/reconcile', [KingdomGovernanceWorkflowController::class, 'reconcile'])->name('alliance.kingdom.governance.reconcile');
     });
 });
 
 Route::middleware(['auth', 'auth.session', 'verified', 'platform.admin', 'password.confirm'])->prefix('platform')->name('platform.')->group(function (): void {
     Route::get('/kingdom-governance-recovery', PlatformKingdomGovernanceRecoveryReadController::class)->name('kingdom-governance-recovery.index');
-    Route::post('/kingdom-governance-recovery', [PlatformKingdomGovernanceRecoveryController::class, 'store'])->name('kingdom-governance-recovery.store');
+    Route::post('/kingdom-governance-recovery', [KingdomGovernanceWorkflowController::class, 'recover'])->name('kingdom-governance-recovery.store');
 });

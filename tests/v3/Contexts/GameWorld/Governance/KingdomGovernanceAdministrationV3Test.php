@@ -63,7 +63,7 @@ final class KingdomGovernanceAdministrationV3Test extends TestCase
         $viewer = KingdomRole::query()->where('kingdom_id', $kingdom->kingdomId)->where('key', DefaultKingdomRole::Viewer->value)->firstOrFail();
 
         $preview = app(BulkKingdomRoleAdministration::class)->preview($administrator->playerId, $kingdom->kingdomId, (string) $viewer->id, 'assign', [$first->playerId, $second->playerId, $outsider->playerId]);
-        self::assertSameCanonicalizing([$first->playerId, $second->playerId], $preview['eligible']);
+        self::assertEqualsCanonicalizing([$first->playerId, $second->playerId], $preview['eligible']);
         self::assertArrayHasKey($outsider->playerId, $preview['ineligible']);
 
         $result = app(BulkKingdomRoleAdministration::class)->handle($administrator->playerId, $kingdom->kingdomId, (string) $viewer->id, 'assign', [$first->playerId, $second->playerId, $outsider->playerId], 'bulk viewers');

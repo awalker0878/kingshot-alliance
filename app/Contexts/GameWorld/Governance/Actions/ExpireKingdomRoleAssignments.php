@@ -24,8 +24,9 @@ final readonly class ExpireKingdomRoleAssignments
                 if (! $assignment instanceof KingdomRoleAssignment || $assignment->expires_at === null || $assignment->expires_at->isFuture()) {
                     return;
                 }
-                $assignment->forceFill(['revoked_at' => $assignment->expires_at, 'revocation_reason' => 'Delegation expired'])->save();
-                $metadata = ['kingdom_id' => (string) $assignment->kingdom_id, 'target_player_id' => (string) $assignment->player_id, 'role_key' => (string) $assignment->role->key, 'expired_at' => $assignment->expires_at->toIso8601String()];
+                $expiredAt = $assignment->expires_at;
+                $assignment->forceFill(['revoked_at' => $expiredAt, 'revocation_reason' => 'Delegation expired'])->save();
+                $metadata = ['kingdom_id' => (string) $assignment->kingdom_id, 'target_player_id' => (string) $assignment->player_id, 'role_key' => (string) $assignment->role->key, 'expired_at' => $expiredAt->toIso8601String()];
                 $this->audit->record('kingdom.role_expired', null, $assignment, null, $metadata);
                 $this->outbox->record('kingdom.role_expired', null, $assignment, $metadata);
                 $expired++;

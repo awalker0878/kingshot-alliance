@@ -23,20 +23,25 @@ final readonly class KingdomGovernanceTimelineQuery
         $rows = $query->orderByDesc('id')->limit($limit + 1)->get();
         $hasMore = $rows->count() > $limit;
         $rows = $rows->take($limit)->values();
-        $playerIds = $rows->pluck('actor_player_id')->filter()->map('strval')->unique()->values()->all();
-        $userIds = $rows->pluck('actor_user_id')->filter()->map(static fn ($id): int => (int) $id)->unique()->values()->all();
+        $playerIds = array_values($rows->pluck('actor_player_id')->filter()->map('strval')->unique()->values()->all());
+        $userIds = array_values($rows->pluck('actor_user_id')->filter()->map(static fn ($id): int => (int) $id)->unique()->values()->all());
         $playerRefs = $this->players->byIds($playerIds);
         $accountRefs = $this->accounts->byIds($userIds);
         $items = $rows->map(static function (AuditEvent $event) use ($playerRefs, $accountRefs): array {
             $playerId = $event->actor_player_id;
             $userId = $event->actor_user_id;
-            $playerRef = $playerId === null ? null : ($playerRefs[$playerId] ?? null);
-            $accountRef = $userId === null ? null : ($accountRefs[(int) $userId] ?? null);
-            $actorName = $playerRef?->currentName ?? $accountRef?->name ?? ($userId !== null ? 'Platform Administrator' : 'System');
+            if ($playerId !== null && isset($playerRefs[$playerId])) {
+                $actorName = $playerRefs[$playerId]->currentName;
+            } elseif ($userId !== null && isset($accountRefs[(int) $userId])) {
+                $actorName = $accountRefs[(int) $userId]->name;
+            } else {
+                $actorName = $userId !== null ? 'Platform Administrator' : 'System';
+            }
 
             return ['id' => (string) $event->id, 'type' => (string) $event->event, 'occurredAt' => $event->created_at->toIso8601String(), 'actor' => ['playerId' => $playerId, 'userId' => $userId, 'name' => $actorName], 'metadata' => $event->metadata ?? []];
         })->values()->all();
+        $last = $rows->last();
 
-        return ['items' => $items, 'nextCursor' => $hasMore && $rows->isNotEmpty() ? (string) $rows->last()->id : null];
+        return ['items' => array_values($items), 'nextCursor' => $hasMore && $last instanceof AuditEvent ? (string) $last->id : null];
     }
 }

@@ -61,11 +61,14 @@ final readonly class CreateKingdomRole
         });
     }
 
-    /** @param list<string> $permissionKeys @return list<string> */
+    /**
+     * @param list<string> $permissionKeys
+     * @return list<string>
+     */
     private function authorizedPermissionIds(string $actorPlayerId, string $kingdomId, array $permissionKeys): array
     {
-        $keys = collect($permissionKeys)->map('strval')->unique()->values();
-        if ($keys->isEmpty()) {
+        $keys = array_values(array_unique(array_map('strval', $permissionKeys)));
+        if ($keys === []) {
             return [];
         }
         $actorFacts = $this->authorityFacts->findCurrent($actorPlayerId, $kingdomId);
@@ -76,10 +79,15 @@ final readonly class CreateKingdomRole
             }
         }
         $permissions = Permission::query()->whereIn('key', $keys)->whereNotNull('owner_key')->get()->keyBy('key');
-        if ($permissions->count() !== $keys->count()) {
-            throw ValidationException::withMessages(['permissions' => 'Every Kingdom-role permission must be a recognized provisioned permission with an owning context.']);
+        $ids = [];
+        foreach ($keys as $key) {
+            $permission = $permissions->get($key);
+            if (! $permission instanceof Permission) {
+                throw ValidationException::withMessages(['permissions' => 'Every Kingdom-role permission must be a recognized provisioned permission with an owning context.']);
+            }
+            $ids[] = (string) $permission->id;
         }
 
-        return $keys->map(static fn (string $key): string => (string) $permissions->get($key)->id)->all();
+        return $ids;
     }
 }
