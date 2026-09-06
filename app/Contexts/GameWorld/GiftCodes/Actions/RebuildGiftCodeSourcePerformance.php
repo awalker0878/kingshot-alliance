@@ -88,6 +88,7 @@ final readonly class RebuildGiftCodeSourcePerformance
             ->whereNotNull('time_to_code_seconds')
             ->pluck('time_to_code_seconds')
             ->map(static fn ($value): int => (int) $value)
+            ->values()
             ->all();
         $firstDiscoveries = GiftCodeObservationCluster::query()->where('earliest_source_id', $source->id)->count();
         $denominator = max(1, $observationCount);
