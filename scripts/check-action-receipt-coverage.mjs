@@ -3,7 +3,10 @@ import { extname, join } from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 
-const controllerRoot = fileURLToPath(new URL('../app/Contexts/', import.meta.url));
+const controllerRoots = [
+  fileURLToPath(new URL('../app/Contexts/', import.meta.url)),
+  fileURLToPath(new URL('../app/Http/Controllers/', import.meta.url)),
+];
 const cataloguePath = new URL('../resources/js/localization/messages/core/en.ts', import.meta.url);
 const allianceExpansionCataloguePath = new URL('../resources/js/localization/alliance-capability-expansion-labels.ts', import.meta.url);
 const governanceExpansionCataloguePath = new URL('../resources/js/localization/governance-capability-expansion-labels.ts', import.meta.url);
@@ -22,7 +25,14 @@ function receiptArguments(source, filename) {
 function firstArgument(source) { let round = 0; let square = 0; let curly = 0; let quote = null; let escaped = false; for (let index = 0; index < source.length; index += 1) { const character = source[index]; if (quote !== null) { if (escaped) escaped = false; else if (character === '\\') escaped = true; else if (character === quote) quote = null; continue; } if (character === "'" || character === '"') quote = character; else if (character === '(') round += 1; else if (character === ')') round -= 1; else if (character === '[') square += 1; else if (character === ']') square -= 1; else if (character === '{') curly += 1; else if (character === '}') curly -= 1; else if (character === ',' && round === 0 && square === 0 && curly === 0) return source.slice(0, index); } return source; }
 function receiptSource(source, startMarker, endMarker, filename) { const receiptStart = source.indexOf(startMarker); const receiptEnd = source.indexOf(endMarker, receiptStart); if (receiptStart === -1 || receiptEnd === -1) throw new Error(`Unable to locate the receipt catalogue in ${filename}.`); return source.slice(receiptStart, receiptEnd); }
 const usedCodes = new Set();
-for (const filename of filesUnder(controllerRoot).filter((file) => extname(file) === '.php')) { const source = readFileSync(filename, 'utf8'); for (const argumentsSource of receiptArguments(source, filename)) { for (const match of firstArgument(argumentsSource).matchAll(/'([a-z][a-z0-9]*-[a-z0-9-]+)'/g)) usedCodes.add(match[1]); } }
+for (const controllerRoot of controllerRoots) {
+  for (const filename of filesUnder(controllerRoot).filter((file) => extname(file) === '.php')) {
+    const source = readFileSync(filename, 'utf8');
+    for (const argumentsSource of receiptArguments(source, filename)) {
+      for (const match of firstArgument(argumentsSource).matchAll(/'([a-z][a-z0-9]*-[a-z0-9-]+)'/g)) usedCodes.add(match[1]);
+    }
+  }
+}
 const catalogue = readFileSync(cataloguePath, 'utf8');
 const allianceExpansionCatalogue = readFileSync(allianceExpansionCataloguePath, 'utf8');
 const governanceExpansionCatalogue = readFileSync(governanceExpansionCataloguePath, 'utf8');
