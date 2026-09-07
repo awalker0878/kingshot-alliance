@@ -1,6 +1,11 @@
 import type { MessageCatalogue } from './types';
 
 const english: MessageCatalogue = {
+  receipts: {
+    'transfer-capacity-observed': 'Target Kingdom transfer capacity recorded.',
+    'transfer-capacity-reservation-saved': 'Governor transfer-capacity reservation updated.',
+    'transfer-invitation-allocation-saved': 'Governor transfer invitation allocation updated.',
+  },
   kingdomP7D: {
     transferEvidenceTitle: 'In-game evidence',
     transferEvidenceHelp:
