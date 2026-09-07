@@ -113,6 +113,15 @@ final readonly class TransferEvidencePreviewQuery
         $passesRequired = $review->kind === TransferEvidencePreviewKind::ScorePasses
             ? $this->reviewedFact($review->passesRequired, $review, $now)
             : $this->selector->select($rows, TransferObservationKind::TransferPassesRequired, $targetId, $now);
+        $targetHeroGeneration = $review->kind === TransferEvidencePreviewKind::TargetKingdomRules
+            ? $this->reviewedConditionFact($review->targetHeroGeneration, $review)
+            : $this->conditionSelector->value($conditionRows, 'hero_generation');
+        $targetTruegoldLevel = $review->kind === TransferEvidencePreviewKind::TargetKingdomRules
+            ? $this->reviewedConditionFact($review->targetTruegoldLevel, $review)
+            : $this->conditionSelector->value($conditionRows, 'truegold_level');
+        $targetCharacterAgeThresholdDays = $review->kind === TransferEvidencePreviewKind::TargetKingdomRules
+            ? $this->reviewedConditionFact($review->targetCharacterAgeThresholdDays, $review)
+            : $this->conditionSelector->value($conditionRows, 'character_age_threshold_days');
 
         $after = $this->evaluator->evaluate(new TransferEligibilityInput(
             phase: $plan->window->phaseAt($now),
@@ -121,9 +130,9 @@ final readonly class TransferEvidencePreviewQuery
             targetGroupLabel: $targetGroupLabel,
             targetPowerCap: $powerCap,
             targetClassification: $classification,
-            targetHeroGeneration: $this->conditionSelector->value($conditionRows, 'hero_generation'),
-            targetTruegoldLevel: $this->conditionSelector->value($conditionRows, 'truegold_level'),
-            targetCharacterAgeThresholdDays: $this->conditionSelector->value($conditionRows, 'character_age_threshold_days'),
+            targetHeroGeneration: $targetHeroGeneration,
+            targetTruegoldLevel: $targetTruegoldLevel,
+            targetCharacterAgeThresholdDays: $targetCharacterAgeThresholdDays,
             targetCapacityRemaining: $projection?->totalRemaining() ?? TransferObservedValue::unknown(),
             invitationCapacityRemaining: $projection?->ordinaryInviteRemaining() ?? TransferObservedValue::unknown(),
             transferOpenCapacityRemaining: $projection?->transferOpenRemaining() ?? TransferObservedValue::unknown(),
@@ -166,6 +175,17 @@ final readonly class TransferEvidencePreviewQuery
             sourceReference: 'Reviewed screenshot preview',
             observedAt: $observedAt,
             validUntil: $validUntil,
+        );
+    }
+
+    private function reviewedConditionFact(?int $value, TransferEvidencePreviewInput $review): TransferObservedValue
+    {
+        return new TransferObservedValue(
+            state: $value === null ? TransferRequirementState::Unknown : TransferRequirementState::Met,
+            value: $value,
+            sourceType: TransferSourceType::Evidence,
+            sourceReference: 'Reviewed screenshot preview',
+            observedAt: CarbonImmutable::parse($review->observedAt)->utc(),
         );
     }
 
@@ -266,8 +286,8 @@ final readonly class TransferEvidencePreviewQuery
             TransferEvidencePreviewKind::ScorePasses => ['transfer_score', 'transfer_passes_available', 'transfer_passes_required'],
             TransferEvidencePreviewKind::Invitation => ['invitation_status'],
             TransferEvidencePreviewKind::TargetKingdomRules => $review->kingdomClassification === null
-                ? ['target_power_cap']
-                : ['target_power_cap', 'kingdom_classification'],
+                ? ['target_power_cap', 'hero_generation', 'truegold_level', 'character_age_threshold_days']
+                : ['target_power_cap', 'hero_generation', 'truegold_level', 'character_age_threshold_days', 'kingdom_classification'],
             TransferEvidencePreviewKind::OfficialGroup => ['official_transfer_group'],
         };
     }
