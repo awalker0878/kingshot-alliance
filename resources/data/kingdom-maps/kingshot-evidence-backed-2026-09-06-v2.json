@@ -1,1 +1,595 @@
-{"id":"kingshot-evidence-backed-2026-09-06-v2","schema_version":2,"release_status":"released","released_at":"2026-09-07T02:24:00Z","observed_at":"2026-09-06","game_version":null,"season":null,"predecessor_id":null,"title":"KingShot evidence-backed Kingdom map release","summary":"Schema V2 release combining official Century Games placement rules with user-authorized ksmapper spatial facts and corroborating community facility references.","confidence":"community_observed","primary_source_id":"ksmapper","sources":{"century_games_alliance":{"type":"official","label":"Century Games Kingshot Help Center — Alliance","uri":"https://centurygames.helpshift.com/hc/en/140-kingshot/section/1417-alliance/?l=en","confidence_ceiling":"official","rights_basis":"public_official_reference","lineage":"primary_century_games"},"century_games_hq":{"type":"official","label":"Century Games Kingshot Help Center — Plains and HQ placement","uri":"https://centurygames.helpshift.com/hc/en/140-kingshot/faq/9407-what-is-plains-may-i-build-the-hq-on-fertile-land-which-is-the-best-place-to-set-up-my-hq/","confidence_ceiling":"official","rights_basis":"public_official_reference","lineage":"primary_century_games"},"century_games_banner_tech":{"type":"official","label":"Century Games Kingshot Help Center — Plains and Fertile Land banners","uri":"https://centurygames.helpshift.com/hc/en/140-kingshot/faq/7647-how-to-place-banners-on-plains-and-fertile-land/","confidence_ceiling":"official","rights_basis":"public_official_reference","lineage":"primary_century_games"},"ksmapper":{"type":"community_dataset","label":"Kingshot Mapper","uri":"https://ksmapper.pages.dev/","confidence_ceiling":"community_observed","rights_basis":"user_authorized_reuse_2026-09-06","lineage":"primary_ksmapper"},"kingshot_wiki_outposts":{"type":"community_reference","label":"Kingshot Wiki — Alliance Outposts","uri":"https://kingshotwiki.com/alliance-outpost/outpost/","confidence_ceiling":"community_observed","rights_basis":"public_factual_reference","lineage":"independent_community_reference"},"kingshot_wiki_ruins":{"type":"community_reference","label":"Kingshot Wiki — Alliance Ruins","uri":"https://kingshotwiki.com/alliance-ruins/ruins/","confidence_ceiling":"community_observed","rights_basis":"public_factual_reference","lineage":"independent_community_reference"},"planner_geometry":{"type":"application_rule","label":"Kingshot Alliance deterministic planner geometry","uri":"https://github.com/awalker0878/kingshot-alliance","confidence_ceiling":"verified_observation","rights_basis":"repository_owned","lineage":"application_owned"}},"coordinate_system":{"name":"kingshot_xy","origin":"south_west_game_coordinates","tile_size":1,"confidence":"community_observed","provenance":["ksmapper"]},"bounds":{"x":0,"y":0,"width":1200,"height":1200,"confidence":"community_observed","provenance":["ksmapper"]},"object_types":{"headquarters":{"footprint":{"width":3,"height":3},"coverage":{"width":15,"height":15},"max_per_alliance":2,"confidence":"community_observed","provenance":["ksmapper"],"facts":{"footprint":{"confidence":"community_observed","provenance":["ksmapper"]},"coverage":{"confidence":"community_observed","provenance":["ksmapper"]},"max_per_alliance":{"confidence":"community_observed","provenance":["ksmapper"]}},"variants":[{"key":"badland_headquarters","allowed_zones":["badlands"],"prerequisites":[],"confidence":"official","provenance":["century_games_hq"]},{"key":"plains_headquarters","allowed_zones":["plains"],"prerequisites":["banner_raised_high"],"confidence":"official","provenance":["century_games_hq"]}]},"banner":{"footprint":{"width":1,"height":1},"coverage":{"width":7,"height":7},"max_per_alliance":285,"confidence":"community_observed","provenance":["ksmapper","century_games_alliance"],"facts":{"footprint":{"confidence":"community_observed","provenance":["ksmapper"]},"coverage":{"confidence":"community_observed","provenance":["ksmapper"]},"max_per_alliance":{"confidence":"official","provenance":["century_games_alliance"]}}},"governor_city":{"footprint":{"width":2,"height":2},"max_per_alliance":100,"confidence":"community_observed","provenance":["ksmapper"],"facts":{"footprint":{"confidence":"community_observed","provenance":["ksmapper"]},"max_per_alliance":{"confidence":"community_observed","provenance":["ksmapper"]}}},"bear_trap":{"footprint":{"width":3,"height":3},"max_per_alliance":2,"confidence":"community_observed","provenance":["ksmapper"],"facts":{"footprint":{"confidence":"community_observed","provenance":["ksmapper"]},"max_per_alliance":{"confidence":"community_observed","provenance":["ksmapper"]}}}},"zones":{"forbidden":{"x":586,"y":586,"width":28,"height":28,"blocked_types":["headquarters","banner","governor_city","bear_trap"],"confidence":"community_observed","provenance":["ksmapper"]},"ruins":{"x":552,"y":552,"width":96,"height":96,"blocked_types":["headquarters","banner","bear_trap"],"confidence":"community_observed","provenance":["ksmapper"]},"fertile":{"x":450,"y":450,"width":300,"height":300,"blocked_types":["headquarters"],"confidence":"community_observed","provenance":["ksmapper","century_games_hq"],"facts":{"geometry":{"confidence":"community_observed","provenance":["ksmapper"]},"headquarters_blocked":{"confidence":"official","provenance":["century_games_hq"]}}},"plains":{"x":300,"y":300,"width":600,"height":600,"blocked_types":[],"confidence":"community_observed","provenance":["ksmapper"],"facts":{"geometry":{"confidence":"community_observed","provenance":["ksmapper"]},"headquarters_allowed":{"confidence":"official","provenance":["century_games_hq"]}}},"badlands":{"x":0,"y":0,"width":1200,"height":1200,"blocked_types":[],"confidence":"community_observed","provenance":["ksmapper"],"facts":{"geometry":{"confidence":"community_observed","provenance":["ksmapper"]},"headquarters_allowed":{"confidence":"official","provenance":["century_games_hq"]}}}},"structures":[{"key":"kings_castle","name":"King's Castle","category":"castle","x":597,"y":597,"footprint":{"width":6,"height":6},"exclusion_tiles":6,"city_exempt":false,"blocks_placement":true,"confidence":"community_observed","provenance":["ksmapper"]},{"key":"south_turret","name":"South Turret","category":"turret","x":594,"y":594,"footprint":{"width":2,"height":2},"exclusion_tiles":0,"city_exempt":false,"blocks_placement":true,"confidence":"community_observed","provenance":["ksmapper"]},{"key":"north_turret","name":"North Turret","category":"turret","x":604,"y":604,"footprint":{"width":2,"height":2},"exclusion_tiles":0,"city_exempt":false,"blocks_placement":true,"confidence":"community_observed","provenance":["ksmapper"]},{"key":"west_turret","name":"West Turret","category":"turret","x":594,"y":604,"footprint":{"width":2,"height":2},"exclusion_tiles":0,"city_exempt":false,"blocks_placement":true,"confidence":"community_observed","provenance":["ksmapper"]},{"key":"east_turret","name":"East Turret","category":"turret","x":604,"y":594,"footprint":{"width":2,"height":2},"exclusion_tiles":0,"city_exempt":false,"blocks_placement":true,"confidence":"community_observed","provenance":["ksmapper"]},{"key":"fortress_1","name":"Fortress 1","category":"fortress","x":597,"y":800,"footprint":{"width":6,"height":6},"exclusion_tiles":60,"city_exempt":true,"blocks_placement":true,"confidence":"community_observed","provenance":["ksmapper","kingshot_wiki_ruins"]},{"key":"fortress_2","name":"Fortress 2","category":"fortress","x":400,"y":597,"footprint":{"width":6,"height":6},"exclusion_tiles":60,"city_exempt":true,"blocks_placement":true,"confidence":"community_observed","provenance":["ksmapper","kingshot_wiki_ruins"]},{"key":"fortress_3","name":"Fortress 3","category":"fortress","x":597,"y":400,"footprint":{"width":6,"height":6},"exclusion_tiles":60,"city_exempt":true,"blocks_placement":true,"confidence":"community_observed","provenance":["ksmapper","kingshot_wiki_ruins"]},{"key":"fortress_4","name":"Fortress 4","category":"fortress","x":800,"y":597,"footprint":{"width":6,"height":6},"exclusion_tiles":60,"city_exempt":true,"blocks_placement":true,"confidence":"community_observed","provenance":["ksmapper","kingshot_wiki_ruins"]},{"key":"sanctuary_1","name":"Sanctuary 1","category":"sanctuary","x":237,"y":828,"footprint":{"width":6,"height":6},"exclusion_tiles":60,"city_exempt":true,"blocks_placement":true,"confidence":"community_observed","provenance":["ksmapper","kingshot_wiki_ruins"]},{"key":"sanctuary_2","name":"Sanctuary 2","category":"sanctuary","x":237,"y":606,"footprint":{"width":6,"height":6},"exclusion_tiles":60,"city_exempt":true,"blocks_placement":true,"confidence":"community_observed","provenance":["ksmapper","kingshot_wiki_ruins"]},{"key":"sanctuary_3","name":"Sanctuary 3","category":"sanctuary","x":237,"y":348,"footprint":{"width":6,"height":6},"exclusion_tiles":60,"city_exempt":true,"blocks_placement":true,"confidence":"community_observed","provenance":["ksmapper","kingshot_wiki_ruins"]},{"key":"sanctuary_4","name":"Sanctuary 4","category":"sanctuary","x":366,"y":237,"footprint":{"width":6,"height":6},"exclusion_tiles":60,"city_exempt":true,"blocks_placement":true,"confidence":"community_observed","provenance":["ksmapper","kingshot_wiki_ruins"]},{"key":"sanctuary_5","name":"Sanctuary 5","category":"sanctuary","x":588,"y":237,"footprint":{"width":6,"height":6},"exclusion_tiles":60,"city_exempt":true,"blocks_placement":true,"confidence":"community_observed","provenance":["ksmapper","kingshot_wiki_ruins"]},{"key":"sanctuary_6","name":"Sanctuary 6","category":"sanctuary","x":846,"y":237,"footprint":{"width":6,"height":6},"exclusion_tiles":60,"city_exempt":true,"blocks_placement":true,"confidence":"community_observed","provenance":["ksmapper","kingshot_wiki_ruins"]},{"key":"sanctuary_7","name":"Sanctuary 7","category":"sanctuary","x":957,"y":348,"footprint":{"width":6,"height":6},"exclusion_tiles":60,"city_exempt":true,"blocks_placement":true,"confidence":"community_observed","provenance":["ksmapper","kingshot_wiki_ruins"]},{"key":"sanctuary_8","name":"Sanctuary 8","category":"sanctuary","x":957,"y":606,"footprint":{"width":6,"height":6},"exclusion_tiles":60,"city_exempt":true,"blocks_placement":true,"confidence":"community_observed","provenance":["ksmapper","kingshot_wiki_ruins"]},{"key":"sanctuary_9","name":"Sanctuary 9","category":"sanctuary","x":957,"y":828,"footprint":{"width":6,"height":6},"exclusion_tiles":60,"city_exempt":true,"blocks_placement":true,"confidence":"community_observed","provenance":["ksmapper","kingshot_wiki_ruins"]},{"key":"sanctuary_10","name":"Sanctuary 10","category":"sanctuary","x":846,"y":957,"footprint":{"width":6,"height":6},"exclusion_tiles":60,"city_exempt":true,"blocks_placement":true,"confidence":"community_observed","provenance":["ksmapper","kingshot_wiki_ruins"]},{"key":"sanctuary_11","name":"Sanctuary 11","category":"sanctuary","x":606,"y":957,"footprint":{"width":6,"height":6},"exclusion_tiles":60,"city_exempt":true,"blocks_placement":true,"confidence":"community_observed","provenance":["ksmapper","kingshot_wiki_ruins"]},{"key":"sanctuary_12","name":"Sanctuary 12","category":"sanctuary","x":366,"y":957,"footprint":{"width":6,"height":6},"exclusion_tiles":60,"city_exempt":true,"blocks_placement":true,"confidence":"community_observed","provenance":["ksmapper","kingshot_wiki_ruins"]}],"placement_rules":[{"key":"map_bounds","kind":"blocking","statement":"Planned footprints must remain inside the released Kingdom map bounds.","confidence":"verified_observation","provenance":["planner_geometry"]},{"key":"fixed_structure_exclusion","kind":"blocking","statement":"Blocking fixed-structure footprints and sourced no-build exclusions cannot be overlapped.","confidence":"community_observed","provenance":["ksmapper"]},{"key":"zone_restrictions","kind":"blocking","statement":"Object placement must satisfy the released map-zone restrictions.","confidence":"community_observed","provenance":["ksmapper"]},{"key":"object_collision","kind":"blocking","statement":"Planned object footprints cannot overlap.","confidence":"verified_observation","provenance":["planner_geometry"]},{"key":"banner_max_285","kind":"blocking","statement":"An Alliance may build at most 285 Alliance Banners.","parameters":{"max_per_alliance":285},"confidence":"official","provenance":["century_games_alliance"]},{"key":"alliance_resource_territory_ratio","kind":"blocking","statement":"At least 75% of an Alliance resource mine must lie within Alliance territory for production.","parameters":{"target":"alliance_resource_mine","minimum_covered_ratio":0.75},"confidence":"official","provenance":["century_games_alliance"]},{"key":"banner_hq_connectivity","kind":"blocking","statement":"Alliance Banners become invalid when disconnected from the Alliance Headquarters.","confidence":"official","provenance":["century_games_alliance"]},{"key":"headquarters_legal_zones","kind":"blocking","statement":"Alliance Headquarters may be built in Badland or Plains, but not on Fertile Land.","parameters":{"allowed":["badlands","plains"],"blocked":["fertile"]},"confidence":"official","provenance":["century_games_hq"]},{"key":"banner_raised_high","kind":"fact","statement":"Plains access follows the Banner Raised High Alliance milestone.","confidence":"official","provenance":["century_games_hq"]},{"key":"grand_conquest","kind":"fact","statement":"Fertile Land access follows the Grand Conquest Alliance milestone.","confidence":"official","provenance":["century_games_hq"]},{"key":"plains_fertile_banner_technology","kind":"fact","statement":"Banner placement on Plains and Fertile Land depends on Alliance Growth technology including Plains Enrichment and Cultivation Drive.","confidence":"official","provenance":["century_games_banner_tech"]}],"resource_layers":{"resource_nodes":{"count":6499,"data_state":"authorized_source_corpus_reference","fixed_coordinates":true,"placement_blocking":true,"confidence":"community_observed","provenance":["ksmapper"],"rights_basis":"user_authorized_reuse_2026-09-06"},"terrain":{"lakes":501,"mountains":1948,"data_state":"authorized_source_corpus_reference","placement_blocking":true,"territory_overlay_allowed":true,"confidence":"community_observed","provenance":["ksmapper"],"rights_basis":"user_authorized_reuse_2026-09-06"}},"artifacts":{"facilities":{"path":"resources/data/kingdom-maps/artifacts/kingshot-facilities-2026-09-06.json","sha256":"712adadab82828894e248e4ce75ae000d3d6d466d7c0fff9008f562e10a31cf4","schema_version":1,"confidence":"community_observed","provenance":["ksmapper","kingshot_wiki_outposts","kingshot_wiki_ruins"]}}}
+{
+  "id": "kingshot-evidence-backed-2026-09-06-v2",
+  "schema_version": 2,
+  "release_status": "released",
+  "released_at": "2026-09-07T02:24:00Z",
+  "observed_at": "2026-09-06",
+  "game_version": null,
+  "season": null,
+  "predecessor_id": null,
+  "title": "KingShot evidence-backed Kingdom map release",
+  "summary": "Schema V2 release combining official Century Games placement rules with user-authorized ksmapper spatial facts and corroborating community facility references.",
+  "confidence": "community_observed",
+  "primary_source_id": "ksmapper",
+  "sources": {
+    "century_games_alliance": {
+      "type": "official",
+      "label": "Century Games Kingshot Help Center — Alliance",
+      "uri": "https://centurygames.helpshift.com/hc/en/140-kingshot/section/1417-alliance/?l=en",
+      "confidence_ceiling": "official",
+      "rights_basis": "public_official_reference",
+      "lineage": "primary_century_games"
+    },
+    "century_games_hq": {
+      "type": "official",
+      "label": "Century Games Kingshot Help Center — Plains and HQ placement",
+      "uri": "https://centurygames.helpshift.com/hc/en/140-kingshot/faq/9407-what-is-plains-may-i-build-the-hq-on-fertile-land-which-is-the-best-place-to-set-up-my-hq/",
+      "confidence_ceiling": "official",
+      "rights_basis": "public_official_reference",
+      "lineage": "primary_century_games"
+    },
+    "century_games_banner_tech": {
+      "type": "official",
+      "label": "Century Games Kingshot Help Center — Plains and Fertile Land banners",
+      "uri": "https://centurygames.helpshift.com/hc/en/140-kingshot/faq/7647-how-to-place-banners-on-plains-and-fertile-land/",
+      "confidence_ceiling": "official",
+      "rights_basis": "public_official_reference",
+      "lineage": "primary_century_games"
+    },
+    "ksmapper": {
+      "type": "community_dataset",
+      "label": "Kingshot Mapper",
+      "uri": "https://ksmapper.pages.dev/",
+      "confidence_ceiling": "community_observed",
+      "rights_basis": "user_authorized_reuse_2026-09-06",
+      "lineage": "primary_ksmapper"
+    },
+    "kingshot_wiki_outposts": {
+      "type": "community_reference",
+      "label": "Kingshot Wiki — Alliance Outposts",
+      "uri": "https://kingshotwiki.com/alliance-outpost/outpost/",
+      "confidence_ceiling": "community_observed",
+      "rights_basis": "public_factual_reference",
+      "lineage": "independent_community_reference"
+    },
+    "kingshot_wiki_ruins": {
+      "type": "community_reference",
+      "label": "Kingshot Wiki — Alliance Ruins",
+      "uri": "https://kingshotwiki.com/alliance-ruins/ruins/",
+      "confidence_ceiling": "community_observed",
+      "rights_basis": "public_factual_reference",
+      "lineage": "independent_community_reference"
+    },
+    "planner_geometry": {
+      "type": "application_rule",
+      "label": "Kingshot Alliance deterministic planner geometry",
+      "uri": "https://github.com/awalker0878/kingshot-alliance",
+      "confidence_ceiling": "verified_observation",
+      "rights_basis": "repository_owned",
+      "lineage": "application_owned"
+    }
+  },
+  "coordinate_system": {
+    "name": "kingshot_xy",
+    "origin": "south_west_game_coordinates",
+    "tile_size": 1,
+    "confidence": "community_observed",
+    "provenance": ["ksmapper"]
+  },
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 1200,
+    "height": 1200,
+    "confidence": "community_observed",
+    "provenance": ["ksmapper"]
+  },
+  "object_types": {
+    "headquarters": {
+      "footprint": { "width": 3, "height": 3 },
+      "coverage": { "width": 15, "height": 15 },
+      "max_per_alliance": 2,
+      "confidence": "community_observed",
+      "provenance": ["ksmapper"],
+      "facts": {
+        "footprint": { "confidence": "community_observed", "provenance": ["ksmapper"] },
+        "coverage": { "confidence": "community_observed", "provenance": ["ksmapper"] },
+        "max_per_alliance": { "confidence": "community_observed", "provenance": ["ksmapper"] }
+      },
+      "variants": [
+        {
+          "key": "badland_headquarters",
+          "allowed_zones": ["badlands"],
+          "prerequisites": [],
+          "confidence": "official",
+          "provenance": ["century_games_hq"]
+        },
+        {
+          "key": "plains_headquarters",
+          "allowed_zones": ["plains"],
+          "prerequisites": ["banner_raised_high"],
+          "confidence": "official",
+          "provenance": ["century_games_hq"]
+        }
+      ]
+    },
+    "banner": {
+      "footprint": { "width": 1, "height": 1 },
+      "coverage": { "width": 7, "height": 7 },
+      "max_per_alliance": 285,
+      "confidence": "community_observed",
+      "provenance": ["ksmapper", "century_games_alliance"],
+      "facts": {
+        "footprint": { "confidence": "community_observed", "provenance": ["ksmapper"] },
+        "coverage": { "confidence": "community_observed", "provenance": ["ksmapper"] },
+        "max_per_alliance": { "confidence": "official", "provenance": ["century_games_alliance"] }
+      }
+    },
+    "governor_city": {
+      "footprint": { "width": 2, "height": 2 },
+      "max_per_alliance": 100,
+      "confidence": "community_observed",
+      "provenance": ["ksmapper"],
+      "facts": {
+        "footprint": { "confidence": "community_observed", "provenance": ["ksmapper"] },
+        "max_per_alliance": { "confidence": "community_observed", "provenance": ["ksmapper"] }
+      }
+    },
+    "bear_trap": {
+      "footprint": { "width": 3, "height": 3 },
+      "max_per_alliance": 2,
+      "confidence": "community_observed",
+      "provenance": ["ksmapper"],
+      "facts": {
+        "footprint": { "confidence": "community_observed", "provenance": ["ksmapper"] },
+        "max_per_alliance": { "confidence": "community_observed", "provenance": ["ksmapper"] }
+      }
+    }
+  },
+  "zones": {
+    "forbidden": {
+      "x": 586,
+      "y": 586,
+      "width": 28,
+      "height": 28,
+      "blocked_types": ["headquarters", "banner", "governor_city", "bear_trap"],
+      "confidence": "community_observed",
+      "provenance": ["ksmapper"]
+    },
+    "ruins": {
+      "x": 552,
+      "y": 552,
+      "width": 96,
+      "height": 96,
+      "blocked_types": ["headquarters", "banner", "bear_trap"],
+      "confidence": "community_observed",
+      "provenance": ["ksmapper"]
+    },
+    "fertile": {
+      "x": 450,
+      "y": 450,
+      "width": 300,
+      "height": 300,
+      "blocked_types": ["headquarters"],
+      "confidence": "community_observed",
+      "provenance": ["ksmapper", "century_games_hq"],
+      "facts": {
+        "geometry": { "confidence": "community_observed", "provenance": ["ksmapper"] },
+        "headquarters_blocked": { "confidence": "official", "provenance": ["century_games_hq"] }
+      }
+    },
+    "plains": {
+      "x": 300,
+      "y": 300,
+      "width": 600,
+      "height": 600,
+      "blocked_types": [],
+      "confidence": "community_observed",
+      "provenance": ["ksmapper"],
+      "facts": {
+        "geometry": { "confidence": "community_observed", "provenance": ["ksmapper"] },
+        "headquarters_allowed": { "confidence": "official", "provenance": ["century_games_hq"] }
+      }
+    },
+    "badlands": {
+      "x": 0,
+      "y": 0,
+      "width": 1200,
+      "height": 1200,
+      "blocked_types": [],
+      "confidence": "community_observed",
+      "provenance": ["ksmapper"],
+      "facts": {
+        "geometry": { "confidence": "community_observed", "provenance": ["ksmapper"] },
+        "headquarters_allowed": { "confidence": "official", "provenance": ["century_games_hq"] }
+      }
+    }
+  },
+  "structures": [
+    {
+      "key": "kings_castle",
+      "name": "King's Castle",
+      "category": "castle",
+      "x": 597,
+      "y": 597,
+      "footprint": { "width": 6, "height": 6 },
+      "exclusion_tiles": 6,
+      "city_exempt": false,
+      "blocks_placement": true,
+      "confidence": "community_observed",
+      "provenance": ["ksmapper"]
+    },
+    {
+      "key": "south_turret",
+      "name": "South Turret",
+      "category": "turret",
+      "x": 594,
+      "y": 594,
+      "footprint": { "width": 2, "height": 2 },
+      "exclusion_tiles": 0,
+      "city_exempt": false,
+      "blocks_placement": true,
+      "confidence": "community_observed",
+      "provenance": ["ksmapper"]
+    },
+    {
+      "key": "north_turret",
+      "name": "North Turret",
+      "category": "turret",
+      "x": 604,
+      "y": 604,
+      "footprint": { "width": 2, "height": 2 },
+      "exclusion_tiles": 0,
+      "city_exempt": false,
+      "blocks_placement": true,
+      "confidence": "community_observed",
+      "provenance": ["ksmapper"]
+    },
+    {
+      "key": "west_turret",
+      "name": "West Turret",
+      "category": "turret",
+      "x": 594,
+      "y": 604,
+      "footprint": { "width": 2, "height": 2 },
+      "exclusion_tiles": 0,
+      "city_exempt": false,
+      "blocks_placement": true,
+      "confidence": "community_observed",
+      "provenance": ["ksmapper"]
+    },
+    {
+      "key": "east_turret",
+      "name": "East Turret",
+      "category": "turret",
+      "x": 604,
+      "y": 594,
+      "footprint": { "width": 2, "height": 2 },
+      "exclusion_tiles": 0,
+      "city_exempt": false,
+      "blocks_placement": true,
+      "confidence": "community_observed",
+      "provenance": ["ksmapper"]
+    },
+    {
+      "key": "fortress_1",
+      "name": "Fortress 1",
+      "category": "fortress",
+      "x": 597,
+      "y": 800,
+      "footprint": { "width": 6, "height": 6 },
+      "exclusion_tiles": 60,
+      "city_exempt": true,
+      "blocks_placement": true,
+      "confidence": "community_observed",
+      "provenance": ["ksmapper", "kingshot_wiki_ruins"]
+    },
+    {
+      "key": "fortress_2",
+      "name": "Fortress 2",
+      "category": "fortress",
+      "x": 400,
+      "y": 597,
+      "footprint": { "width": 6, "height": 6 },
+      "exclusion_tiles": 60,
+      "city_exempt": true,
+      "blocks_placement": true,
+      "confidence": "community_observed",
+      "provenance": ["ksmapper", "kingshot_wiki_ruins"]
+    },
+    {
+      "key": "fortress_3",
+      "name": "Fortress 3",
+      "category": "fortress",
+      "x": 597,
+      "y": 400,
+      "footprint": { "width": 6, "height": 6 },
+      "exclusion_tiles": 60,
+      "city_exempt": true,
+      "blocks_placement": true,
+      "confidence": "community_observed",
+      "provenance": ["ksmapper", "kingshot_wiki_ruins"]
+    },
+    {
+      "key": "fortress_4",
+      "name": "Fortress 4",
+      "category": "fortress",
+      "x": 800,
+      "y": 597,
+      "footprint": { "width": 6, "height": 6 },
+      "exclusion_tiles": 60,
+      "city_exempt": true,
+      "blocks_placement": true,
+      "confidence": "community_observed",
+      "provenance": ["ksmapper", "kingshot_wiki_ruins"]
+    },
+    {
+      "key": "sanctuary_1",
+      "name": "Sanctuary 1",
+      "category": "sanctuary",
+      "x": 237,
+      "y": 828,
+      "footprint": { "width": 6, "height": 6 },
+      "exclusion_tiles": 60,
+      "city_exempt": true,
+      "blocks_placement": true,
+      "confidence": "community_observed",
+      "provenance": ["ksmapper", "kingshot_wiki_ruins"]
+    },
+    {
+      "key": "sanctuary_2",
+      "name": "Sanctuary 2",
+      "category": "sanctuary",
+      "x": 237,
+      "y": 606,
+      "footprint": { "width": 6, "height": 6 },
+      "exclusion_tiles": 60,
+      "city_exempt": true,
+      "blocks_placement": true,
+      "confidence": "community_observed",
+      "provenance": ["ksmapper", "kingshot_wiki_ruins"]
+    },
+    {
+      "key": "sanctuary_3",
+      "name": "Sanctuary 3",
+      "category": "sanctuary",
+      "x": 237,
+      "y": 348,
+      "footprint": { "width": 6, "height": 6 },
+      "exclusion_tiles": 60,
+      "city_exempt": true,
+      "blocks_placement": true,
+      "confidence": "community_observed",
+      "provenance": ["ksmapper", "kingshot_wiki_ruins"]
+    },
+    {
+      "key": "sanctuary_4",
+      "name": "Sanctuary 4",
+      "category": "sanctuary",
+      "x": 366,
+      "y": 237,
+      "footprint": { "width": 6, "height": 6 },
+      "exclusion_tiles": 60,
+      "city_exempt": true,
+      "blocks_placement": true,
+      "confidence": "community_observed",
+      "provenance": ["ksmapper", "kingshot_wiki_ruins"]
+    },
+    {
+      "key": "sanctuary_5",
+      "name": "Sanctuary 5",
+      "category": "sanctuary",
+      "x": 588,
+      "y": 237,
+      "footprint": { "width": 6, "height": 6 },
+      "exclusion_tiles": 60,
+      "city_exempt": true,
+      "blocks_placement": true,
+      "confidence": "community_observed",
+      "provenance": ["ksmapper", "kingshot_wiki_ruins"]
+    },
+    {
+      "key": "sanctuary_6",
+      "name": "Sanctuary 6",
+      "category": "sanctuary",
+      "x": 846,
+      "y": 237,
+      "footprint": { "width": 6, "height": 6 },
+      "exclusion_tiles": 60,
+      "city_exempt": true,
+      "blocks_placement": true,
+      "confidence": "community_observed",
+      "provenance": ["ksmapper", "kingshot_wiki_ruins"]
+    },
+    {
+      "key": "sanctuary_7",
+      "name": "Sanctuary 7",
+      "category": "sanctuary",
+      "x": 957,
+      "y": 348,
+      "footprint": { "width": 6, "height": 6 },
+      "exclusion_tiles": 60,
+      "city_exempt": true,
+      "blocks_placement": true,
+      "confidence": "community_observed",
+      "provenance": ["ksmapper", "kingshot_wiki_ruins"]
+    },
+    {
+      "key": "sanctuary_8",
+      "name": "Sanctuary 8",
+      "category": "sanctuary",
+      "x": 957,
+      "y": 606,
+      "footprint": { "width": 6, "height": 6 },
+      "exclusion_tiles": 60,
+      "city_exempt": true,
+      "blocks_placement": true,
+      "confidence": "community_observed",
+      "provenance": ["ksmapper", "kingshot_wiki_ruins"]
+    },
+    {
+      "key": "sanctuary_9",
+      "name": "Sanctuary 9",
+      "category": "sanctuary",
+      "x": 957,
+      "y": 828,
+      "footprint": { "width": 6, "height": 6 },
+      "exclusion_tiles": 60,
+      "city_exempt": true,
+      "blocks_placement": true,
+      "confidence": "community_observed",
+      "provenance": ["ksmapper", "kingshot_wiki_ruins"]
+    },
+    {
+      "key": "sanctuary_10",
+      "name": "Sanctuary 10",
+      "category": "sanctuary",
+      "x": 846,
+      "y": 957,
+      "footprint": { "width": 6, "height": 6 },
+      "exclusion_tiles": 60,
+      "city_exempt": true,
+      "blocks_placement": true,
+      "confidence": "community_observed",
+      "provenance": ["ksmapper", "kingshot_wiki_ruins"]
+    },
+    {
+      "key": "sanctuary_11",
+      "name": "Sanctuary 11",
+      "category": "sanctuary",
+      "x": 606,
+      "y": 957,
+      "footprint": { "width": 6, "height": 6 },
+      "exclusion_tiles": 60,
+      "city_exempt": true,
+      "blocks_placement": true,
+      "confidence": "community_observed",
+      "provenance": ["ksmapper", "kingshot_wiki_ruins"]
+    },
+    {
+      "key": "sanctuary_12",
+      "name": "Sanctuary 12",
+      "category": "sanctuary",
+      "x": 366,
+      "y": 957,
+      "footprint": { "width": 6, "height": 6 },
+      "exclusion_tiles": 60,
+      "city_exempt": true,
+      "blocks_placement": true,
+      "confidence": "community_observed",
+      "provenance": ["ksmapper", "kingshot_wiki_ruins"]
+    }
+  ],
+  "placement_rules": [
+    {
+      "key": "map_bounds",
+      "kind": "blocking",
+      "statement": "Planned footprints must remain inside the released Kingdom map bounds.",
+      "confidence": "verified_observation",
+      "provenance": ["planner_geometry"]
+    },
+    {
+      "key": "fixed_structure_exclusion",
+      "kind": "blocking",
+      "statement": "Blocking fixed-structure footprints and sourced no-build exclusions cannot be overlapped.",
+      "confidence": "community_observed",
+      "provenance": ["ksmapper"]
+    },
+    {
+      "key": "zone_restrictions",
+      "kind": "blocking",
+      "statement": "Object placement must satisfy the released map-zone restrictions.",
+      "confidence": "community_observed",
+      "provenance": ["ksmapper"]
+    },
+    {
+      "key": "object_collision",
+      "kind": "blocking",
+      "statement": "Planned object footprints cannot overlap.",
+      "confidence": "verified_observation",
+      "provenance": ["planner_geometry"]
+    },
+    {
+      "key": "banner_max_285",
+      "kind": "blocking",
+      "statement": "An Alliance may build at most 285 Alliance Banners.",
+      "parameters": { "max_per_alliance": 285 },
+      "confidence": "official",
+      "provenance": ["century_games_alliance"]
+    },
+    {
+      "key": "alliance_resource_territory_ratio",
+      "kind": "blocking",
+      "statement": "At least 75% of an Alliance resource mine must lie within Alliance territory for production.",
+      "parameters": { "target": "alliance_resource_mine", "minimum_covered_ratio": 0.75 },
+      "confidence": "official",
+      "provenance": ["century_games_alliance"]
+    },
+    {
+      "key": "banner_hq_connectivity",
+      "kind": "blocking",
+      "statement": "Alliance Banners become invalid when disconnected from the Alliance Headquarters.",
+      "confidence": "official",
+      "provenance": ["century_games_alliance"]
+    },
+    {
+      "key": "headquarters_legal_zones",
+      "kind": "blocking",
+      "statement": "Alliance Headquarters may be built in Badland or Plains, but not on Fertile Land.",
+      "parameters": { "allowed": ["badlands", "plains"], "blocked": ["fertile"] },
+      "confidence": "official",
+      "provenance": ["century_games_hq"]
+    },
+    {
+      "key": "banner_raised_high",
+      "kind": "fact",
+      "statement": "Plains access follows the Banner Raised High Alliance milestone.",
+      "confidence": "official",
+      "provenance": ["century_games_hq"]
+    },
+    {
+      "key": "grand_conquest",
+      "kind": "fact",
+      "statement": "Fertile Land access follows the Grand Conquest Alliance milestone.",
+      "confidence": "official",
+      "provenance": ["century_games_hq"]
+    },
+    {
+      "key": "plains_fertile_banner_technology",
+      "kind": "fact",
+      "statement": "Banner placement on Plains and Fertile Land depends on Alliance Growth technology including Plains Enrichment and Cultivation Drive.",
+      "confidence": "official",
+      "provenance": ["century_games_banner_tech"]
+    }
+  ],
+  "resource_layers": {
+    "resource_nodes": {
+      "count": 6499,
+      "data_state": "authorized_source_corpus_reference",
+      "fixed_coordinates": true,
+      "placement_blocking": true,
+      "confidence": "community_observed",
+      "provenance": ["ksmapper"],
+      "rights_basis": "user_authorized_reuse_2026-09-06"
+    },
+    "terrain": {
+      "lakes": 501,
+      "mountains": 1948,
+      "data_state": "authorized_source_corpus_reference",
+      "placement_blocking": true,
+      "territory_overlay_allowed": true,
+      "confidence": "community_observed",
+      "provenance": ["ksmapper"],
+      "rights_basis": "user_authorized_reuse_2026-09-06"
+    }
+  },
+  "artifacts": {
+    "facilities": {
+      "path": "resources/data/kingdom-maps/artifacts/kingshot-facilities-2026-09-06.json",
+      "sha256": "712adadab82828894e248e4ce75ae000d3d6d466d7c0fff9008f562e10a31cf4",
+      "schema_version": 1,
+      "confidence": "community_observed",
+      "provenance": ["ksmapper", "kingshot_wiki_outposts", "kingshot_wiki_ruins"]
+    }
+  }
+}

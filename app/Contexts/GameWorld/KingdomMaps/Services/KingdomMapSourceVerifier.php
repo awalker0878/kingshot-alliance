@@ -29,6 +29,7 @@ final class KingdomMapSourceVerifier
         foreach ($sources as $sourceId => $source) {
             if (! is_string($sourceId) || ! is_array($source)) {
                 $errors[] = 'Source registry contains an invalid entry.';
+
                 continue;
             }
             $rights = $source['rights_basis'] ?? null;
@@ -48,6 +49,7 @@ final class KingdomMapSourceVerifier
             $ceiling = is_string($ceilingValue) ? MapDatasetConfidence::tryFrom($ceilingValue) : null;
             if (! $ceiling instanceof MapDatasetConfidence) {
                 $errors[] = 'Source '.$sourceId.' has an unsupported confidence ceiling.';
+
                 continue;
             }
             if ($type !== 'official' && $ceiling === MapDatasetConfidence::Official) {

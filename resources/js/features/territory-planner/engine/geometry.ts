@@ -39,7 +39,9 @@ function intersects(a: Rect, b: Rect): boolean {
 }
 
 function touchesOrIntersects(a: Rect, b: Rect): boolean {
-  return a.x <= b.x + b.width && a.x + a.width >= b.x && a.y <= b.y + b.height && a.y + a.height >= b.y;
+  return (
+    a.x <= b.x + b.width && a.x + a.width >= b.x && a.y <= b.y + b.height && a.y + a.height >= b.y
+  );
 }
 
 function inside(rect: Rect, bounds: Rect): boolean {
@@ -52,7 +54,9 @@ function inside(rect: Rect, bounds: Rect): boolean {
 }
 
 function containsCell(rect: Rect, x: number, y: number): boolean {
-  return x >= rect.x && x + 1 <= rect.x + rect.width && y >= rect.y && y + 1 <= rect.y + rect.height;
+  return (
+    x >= rect.x && x + 1 <= rect.x + rect.width && y >= rect.y && y + 1 <= rect.y + rect.height
+  );
 }
 
 export function coveredRatio(target: Rect, territory: Rect[]): number {
@@ -68,7 +72,9 @@ export function coveredRatio(target: Rect, territory: Rect[]): number {
 }
 
 export function allianceResourceMinimumRatio(map: MapData): number {
-  const rule = map.placement_rules.find((candidate) => candidate.key === 'alliance_resource_territory_ratio');
+  const rule = map.placement_rules.find(
+    (candidate) => candidate.key === 'alliance_resource_territory_ratio',
+  );
   const ratio = rule?.parameters?.minimum_covered_ratio;
   if (typeof ratio !== 'number' || ratio < 0 || ratio > 1) {
     throw new Error('Selected Kingdom map release has no valid Alliance resource territory ratio.');
@@ -168,7 +174,11 @@ export function validatePlacement(
     const rect = rectFor(object, map);
     if (!rect) {
       violations.push(
-        issue('unknown_object_type', 'This object type is not supported by the selected map dataset.', object.key),
+        issue(
+          'unknown_object_type',
+          'This object type is not supported by the selected map dataset.',
+          object.key,
+        ),
       );
       continue;
     }
@@ -178,12 +188,18 @@ export function validatePlacement(
     countsByAlliance.set(countKey, count);
     if (definition.max_per_alliance && count > definition.max_per_alliance) {
       violations.push(
-        issue('alliance_object_cap', 'This Alliance exceeds the selected map dataset object cap.', object.key),
+        issue(
+          'alliance_object_cap',
+          'This Alliance exceeds the selected map dataset object cap.',
+          object.key,
+        ),
       );
     }
     rectangles.set(object.key, rect);
     if (!inside(rect, bounds)) {
-      violations.push(issue('map_bounds', 'The object footprint must stay inside the Kingdom map.', object.key));
+      violations.push(
+        issue('map_bounds', 'The object footprint must stay inside the Kingdom map.', object.key),
+      );
       continue;
     }
 
@@ -196,7 +212,13 @@ export function validatePlacement(
         height: structure.footprint.height,
       };
       if (intersects(rect, actual)) {
-        violations.push(issue('structure_collision', 'The object overlaps a fixed Kingdom structure.', object.key));
+        violations.push(
+          issue(
+            'structure_collision',
+            'The object overlaps a fixed Kingdom structure.',
+            object.key,
+          ),
+        );
         break;
       }
       const exclusion = Math.max(structure.exclusion_tiles, 0);
@@ -207,9 +229,16 @@ export function validatePlacement(
         width: structure.footprint.width + exclusion * 2,
         height: structure.footprint.height + exclusion * 2,
       };
-      if (intersects(rect, forbidden) && !(object.type === 'governor_city' && structure.city_exempt)) {
+      if (
+        intersects(rect, forbidden) &&
+        !(object.type === 'governor_city' && structure.city_exempt)
+      ) {
         violations.push(
-          issue('structure_exclusion', 'The object overlaps a fixed structure no-build zone.', object.key),
+          issue(
+            'structure_exclusion',
+            'The object overlaps a fixed structure no-build zone.',
+            object.key,
+          ),
         );
         break;
       }
@@ -217,7 +246,9 @@ export function validatePlacement(
 
     for (const zone of Object.values(map.zones)) {
       if (intersects(rect, zone) && zone.blocked_types.includes(object.type)) {
-        violations.push(issue('zone_restriction', 'The object type is not allowed in this map zone.', object.key));
+        violations.push(
+          issue('zone_restriction', 'The object type is not allowed in this map zone.', object.key),
+        );
       }
     }
   }
@@ -227,7 +258,9 @@ export function validatePlacement(
     for (let other = index + 1; other < entries.length; other += 1) {
       const candidate = entries[other];
       if (candidate && intersects(rect, candidate[1])) {
-        violations.push(issue('object_collision', 'Planned object footprints cannot overlap.', candidate[0]));
+        violations.push(
+          issue('object_collision', 'Planned object footprints cannot overlap.', candidate[0]),
+        );
       }
     }
   });
@@ -238,15 +271,26 @@ export function validatePlacement(
     objects
       .filter((object) => object.type === 'bear_trap')
       .forEach((trap) =>
-        trapsByAlliance.set(trap.alliance_key, [...(trapsByAlliance.get(trap.alliance_key) ?? []), trap]),
+        trapsByAlliance.set(trap.alliance_key, [
+          ...(trapsByAlliance.get(trap.alliance_key) ?? []),
+          trap,
+        ]),
       );
     objects
       .filter((object) => object.type === 'governor_city')
       .forEach((city) => {
-        const target = targetTrapForCity(city, trapsByAlliance.get(city.alliance_key) ?? [], preferences);
+        const target = targetTrapForCity(
+          city,
+          trapsByAlliance.get(city.alliance_key) ?? [],
+          preferences,
+        );
         if (target && target.distance > radius) {
           warnings.push(
-            issue('preferred_bear_radius', 'This Governor city is outside the plan preferred Bear Trap radius.', city.key),
+            issue(
+              'preferred_bear_radius',
+              'This Governor city is outside the plan preferred Bear Trap radius.',
+              city.key,
+            ),
           );
         }
       });
@@ -257,7 +301,10 @@ export function validatePlacement(
   );
   const allianceObjects = new Map<string, PlanObject[]>();
   objects.forEach((object) =>
-    allianceObjects.set(object.alliance_key, [...(allianceObjects.get(object.alliance_key) ?? []), object]),
+    allianceObjects.set(object.alliance_key, [
+      ...(allianceObjects.get(object.alliance_key) ?? []),
+      object,
+    ]),
   );
   for (const scopedObjects of allianceObjects.values()) {
     if (scopedObjects.some((object) => violatingObjectKeys.has(object.key))) continue;
@@ -274,7 +321,9 @@ export function validatePlacement(
       );
     }
     for (const component of components) {
-      const members = component.flatMap((index) => (sources[index] ? [sources[index] as CoverageSource] : []));
+      const members = component.flatMap((index) =>
+        sources[index] ? [sources[index] as CoverageSource] : [],
+      );
       const hasHeadquarters = members.some((source) => source.type === 'headquarters');
       if (!hasHeadquarters) {
         members
@@ -295,7 +344,11 @@ export function validatePlacement(
     if (!firstCity) continue;
     if (!scopedObjects.some((object) => object.type === 'headquarters')) {
       suggestions.push(
-        issue('consider_headquarters', 'Consider placing the Alliance HQ before finalizing this layout.', firstCity.key),
+        issue(
+          'consider_headquarters',
+          'Consider placing the Alliance HQ before finalizing this layout.',
+          firstCity.key,
+        ),
       );
     }
     if (!scopedObjects.some((object) => object.type === 'banner')) {
@@ -309,7 +362,11 @@ export function validatePlacement(
     }
     if (!scopedObjects.some((object) => object.type === 'bear_trap')) {
       suggestions.push(
-        issue('consider_bear_trap', 'Consider placing a Bear Trap to analyze hive march distances.', firstCity.key),
+        issue(
+          'consider_bear_trap',
+          'Consider placing a Bear Trap to analyze hive march distances.',
+          firstCity.key,
+        ),
       );
     }
   }
@@ -330,7 +387,8 @@ function stats(values: number[]) {
       ? ((sorted[middle - 1] ?? 0) + (sorted[middle] ?? 0)) / 2
       : (sorted[middle] ?? 0);
   return {
-    average: Math.round((values.reduce((sum, value) => sum + value, 0) / values.length) * 100) / 100,
+    average:
+      Math.round((values.reduce((sum, value) => sum + value, 0) / values.length) * 100) / 100,
     median: Math.round(median * 100) / 100,
     max: Math.round(Math.max(...values) * 100) / 100,
   };
@@ -404,7 +462,11 @@ export function analyzeLayout(
     const estimatedSeconds = marches.flatMap((march) =>
       march.estimated_seconds === null ? [] : [march.estimated_seconds],
     );
-    const qualityForAlliance = quality[allianceKey] ?? { violations: 0, warnings: 0, suggestions: 0 };
+    const qualityForAlliance = quality[allianceKey] ?? {
+      violations: 0,
+      warnings: 0,
+      suggestions: 0,
+    };
 
     result[allianceKey] = {
       counts,

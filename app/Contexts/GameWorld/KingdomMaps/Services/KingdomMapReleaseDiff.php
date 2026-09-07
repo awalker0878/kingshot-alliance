@@ -36,8 +36,8 @@ final class KingdomMapReleaseDiff
     }
 
     /**
-     * @param array<string,mixed> $from
-     * @param array<string,mixed> $to
+     * @param  array<string,mixed>  $from
+     * @param  array<string,mixed>  $to
      * @return array{added:list<string>,removed:list<string>,changed:list<string>}
      */
     private function section(array $from, array $to): array
