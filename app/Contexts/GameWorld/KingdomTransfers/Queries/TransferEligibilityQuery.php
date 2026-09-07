@@ -99,6 +99,7 @@ final readonly class TransferEligibilityQuery
                     'targetCondition' => null,
                     'capacityProjection' => null,
                 ];
+
                 continue;
             }
 
@@ -117,6 +118,7 @@ final readonly class TransferEligibilityQuery
                     'targetCondition' => null,
                     'capacityProjection' => null,
                 ];
+
                 continue;
             }
 
