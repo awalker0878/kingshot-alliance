@@ -78,14 +78,14 @@ final class TransferPlanningController extends Controller
             $v['kingdom_number'],
             $v['power_cap'] ?? null,
             TransferKingdomClassification::from($v['classification']),
-            $v['hero_generation'] ?? null,
-            $v['truegold_level'] ?? null,
-            $v['character_age_threshold_days'] ?? null,
             TransferSourceType::from($v['source_type']),
             $v['source_reference'],
             $v['observed_at'],
             $v['is_correction'] ?? false,
             $v['evidence_id'] ?? null,
+            $v['hero_generation'] ?? null,
+            $v['truegold_level'] ?? null,
+            $v['character_age_threshold_days'] ?? null,
         );
 
         return back()->with('actionReceipt', $this->receipt('transfer-kingdom-condition-recorded'));
