@@ -76,17 +76,24 @@ final readonly class SaveTransferInvitationAllocation
                 if (! $capacity instanceof TransferKingdomCapacityObservation || $capacity->special_invites_available === null) {
                     throw ValidationException::withMessages(['invitation' => 'Verify current Special Invite inventory before reserving one.']);
                 }
+                $activeStates = array_map(
+                    static fn (TransferInvitationAllocationState $candidate): string => $candidate->value,
+                    array_filter(
+                        TransferInvitationAllocationState::cases(),
+                        static fn (TransferInvitationAllocationState $candidate): bool => $candidate->consumesPlannedInventory(),
+                    ),
+                );
                 $otherReserved = TransferInvitationAllocation::query()
                     ->where('alliance_id', $allianceId)
                     ->where('transfer_window_id', $plan->transfer_window_id)
                     ->where('target_kingdom_id', $targetId)
                     ->where('kind', TransferInvitationKind::Special->value)
-                    ->where('state', TransferInvitationAllocationState::Reserved->value)
+                    ->whereIn('state', $activeStates)
                     ->when($existing instanceof TransferInvitationAllocation, static fn (Builder $query): Builder => $query->where('id', '!=', (string) $existing->id))
                     ->lockForUpdate()
                     ->count();
                 if ($capacity->special_invites_available - $otherReserved <= 0) {
-                    throw ValidationException::withMessages(['invitation' => 'No verified Special Invite inventory remains after Alliance reservations.']);
+                    throw ValidationException::withMessages(['invitation' => 'No verified Special Invite inventory remains after Alliance allocations.']);
                 }
             }
 
