@@ -311,6 +311,7 @@ final class TransferPlanningCompletenessV3Test extends TestCase
             [TransferObservationKind::TargetExistingCharacterCount, 0, 'KingShot target character list', null],
             [TransferObservationKind::TransferPassesAvailable, 9, 'KingShot Transfer Pass inventory', null],
             [TransferObservationKind::TransferPassesRequired, 9, 'KingShot target transfer requirements', null],
+            [TransferObservationKind::ResourceProtectionVerified, true, 'KingShot Storehouse protection pre-flight', null],
             [TransferObservationKind::InGameRulesVerified, true, 'KingShot transfer eligibility screen', null],
         ] as [$kind, $value, $reference, $details]) {
             $record->handle(
