@@ -23,6 +23,11 @@ final readonly class Rectangle
         return $this->y + $this->height;
     }
 
+    public function area(): int
+    {
+        return max(0, $this->width) * max(0, $this->height);
+    }
+
     public function intersects(self $other): bool
     {
         return $this->x < $other->right()
@@ -31,11 +36,27 @@ final readonly class Rectangle
             && $this->bottom() > $other->y;
     }
 
+    public function touchesOrIntersects(self $other): bool
+    {
+        return $this->x <= $other->right()
+            && $this->right() >= $other->x
+            && $this->y <= $other->bottom()
+            && $this->bottom() >= $other->y;
+    }
+
     public function inside(self $bounds): bool
     {
         return $this->x >= $bounds->x
             && $this->y >= $bounds->y
             && $this->right() <= $bounds->right()
             && $this->bottom() <= $bounds->bottom();
+    }
+
+    public function containsCell(int $x, int $y): bool
+    {
+        return $x >= $this->x
+            && $x + 1 <= $this->right()
+            && $y >= $this->y
+            && $y + 1 <= $this->bottom();
     }
 }
