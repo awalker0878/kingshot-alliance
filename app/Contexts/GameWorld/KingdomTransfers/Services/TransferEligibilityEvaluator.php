@@ -41,6 +41,7 @@ final readonly class TransferEligibilityEvaluator
             $this->invitationCapacity($input),
             $this->transferOpenCapacity($input),
             $this->passes($input),
+            $this->resourceProtection($input),
             $this->inGameRules($input),
         ];
 
@@ -278,6 +279,31 @@ final readonly class TransferEligibilityEvaluator
         $met = $available >= $required;
 
         return new TransferRequirement(TransferRequirementKey::TransferPasses, $met ? TransferRequirementState::Met : TransferRequirementState::Unmet, 'Transfer Passes are compared with the current in-game required count.', $available, $required, $met ? null : 'Acquire '.($required - $available).' more Transfer Pass(es).', $input->passesAvailable->sourceType, $input->passesAvailable->sourceReference, $input->passesAvailable->observedAt, $input->passesAvailable->validUntil);
+    }
+
+    private function resourceProtection(TransferEligibilityInput $input): TransferRequirement
+    {
+        if ($input->resourceProtectionVerified->state !== TransferRequirementState::Met) {
+            return $this->fromObserved(
+                TransferRequirementKey::ResourceProtection,
+                $input->resourceProtectionVerified,
+                'Verify that resources above Storehouse Protection have been reduced or protected before transfer.',
+            );
+        }
+        $protected = $input->resourceProtectionVerified->value === true;
+
+        return new TransferRequirement(
+            TransferRequirementKey::ResourceProtection,
+            $protected ? TransferRequirementState::Met : TransferRequirementState::Unmet,
+            'Resources above the Storehouse Protection limit are lost during Kingdom Transfer.',
+            $protected,
+            true,
+            $protected ? null : 'Reduce or protect excess resources before transferring to avoid resource loss.',
+            $input->resourceProtectionVerified->sourceType,
+            $input->resourceProtectionVerified->sourceReference,
+            $input->resourceProtectionVerified->observedAt,
+            $input->resourceProtectionVerified->validUntil,
+        );
     }
 
     private function inGameRules(TransferEligibilityInput $input): TransferRequirement
