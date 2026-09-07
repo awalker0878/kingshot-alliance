@@ -18,8 +18,10 @@ final class KingdomMapReleaseDiff
             'object_types' => 'object_types',
             'zones' => 'zones',
             'structures' => 'structures',
+            'facilities' => 'facilities',
             'placement_rules' => 'placement_rules',
             'resource_layers' => 'resource_layers',
+            'artifacts' => 'artifacts',
         ];
 
         $result = [];
