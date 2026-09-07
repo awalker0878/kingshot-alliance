@@ -1,197 +1,202 @@
 # Kingdom Transfer Planning operations
 
-Status: Current — 2026-08-26
+Status: Current — 2026-09-07
 
 Owner: `GameWorld/KingdomTransfers`
 
+Product contract: [`../product/kingdom-transfer-planning.md`](../product/kingdom-transfer-planning.md)  
+Source matrix: [`../product/kingdom-transfer-official-rules-source-matrix.md`](../product/kingdom-transfer-official-rules-source-matrix.md)
+
 ## Operational intent
 
-Kingdom Transfer Planning is an evidence-sensitive planning capability. Operations must prefer an explicit **Needs verification** result over optimistic eligibility when a source is missing, stale, conflicting or no longer valid.
+Kingdom Transfer Planning is evidence-sensitive and fail-closed. Support must repair underlying sourced facts or planning commitments, never edit a derived eligibility result.
 
-Do not repair eligibility by editing derived output. Repair the underlying sourced Transfer Window/group/condition/observation and allow the deterministic evaluator to recompute the assessment.
+Prefer **Needs verification** over optimistic eligibility whenever a material source is missing, stale, conflicting or non-authoritative.
 
-Screenshot Intake: Transfer Evidence is an authorized source-ingestion path into this owner context. `Intelligence/Evidence` owns the screenshot and review provenance; KingdomTransfers owns every accepted observation, target condition, official group, validity/conflict rule and eligibility result.
+## Diagnostic order
 
-## Support diagnostics
+For an eligibility or capacity complaint, identify Alliance, Plan, Transfer Window, participant and target Kingdom, then inspect:
 
-For a reported eligibility problem, identify the Alliance, Transfer Plan, Transfer Window, participant and target Kingdom, then inspect in this order:
+1. window boundaries/current phase;
+2. official Transfer Group membership/revision;
+3. target condition: Power Cap, classification, Hero Generation, Truegold and age threshold;
+4. latest authoritative target capacity observation;
+5. participant observations: Power, Hero Generation, Truegold, age-over-target, cooldown, target character count, passes, invitation, resource protection and final in-game verification;
+6. freshness/conflict selection state;
+7. capacity reservation and invitation allocation state;
+8. structured eligibility requirements/primary action;
+9. independent Alliance readiness/blockers;
+10. Evidence review/receipt when a fact came through Screenshot Intake.
 
-1. Transfer Window boundaries and current official phase;
-2. current official Transfer Group revisions and source/target Kingdom membership;
-3. current target Kingdom condition observation, including Power Cap/classification provenance;
-4. participant Governor observations for Power, Transfer Score, Transfer Passes, invitation status and in-game rule verification;
-5. selected observation freshness/conflict state;
-6. structured eligibility requirements and `evaluated_at`;
-7. independent workflow readiness and manual blockers;
-8. when a fact came from Screenshot Intake, the Evidence destination receipt and source Evidence/review identifiers visible to the authorized operator.
+Readiness, planning allocations and Evidence provenance do not independently prove game eligibility.
 
-A manual planning blocker does not prove a game rule failed, and workflow readiness does not prove a Governor is game-eligible. An Evidence screenshot also proves only the fields defined by its schema; it does not prove unrelated game rules.
+## Current capacity diagnostics
+
+Always distinguish:
+
+- **Observed KingShot capacity** — current sourced usage/inventory;
+- **Official capacity limits** — classification-derived constants from `TransferOfficialRulebook`;
+- **Alliance planning reservations/allocations** — internal intent only;
+- **Projected remaining** — observed remaining minus relevant current Alliance commitments.
+
+Ordinary target limits are 55 total / 35 Ordinary Invite / 20 Transfer Opens. Leading target limits are 30 / 20 / 10. Special Invite inventory is observed and bounded to a maximum of three.
+
+If projected capacity appears too low after completed transfers, compare the finalized commitment `updated_at` with the newest capacity `observed_at`. Finalized commitments stop subtracting once a newer/equal authoritative observation supersedes them. Planned/reserved future intent continues subtracting.
+
+Do not manually release a confirmed commitment merely to make capacity green; refresh the authoritative in-game capacity observation.
+
+## Completion/withdrawal reconciliation
+
+Withdrawal atomically releases consuming slot reservations and cancels consuming invitation allocations.
+
+Completion atomically finalizes consuming slot reservations and invitation allocations along with the existing roster/Player transfer outcome. These finalized planning states are not substitutes for observed game truth.
+
+If a completion transaction fails, none of the completion/finalization changes should survive. Retry the canonical completion Action; do not repair rows manually.
 
 ## Observation correction
 
-Governor observations are append-only. Do not overwrite prior Power, Transfer Score, Transfer Pass, invitation or in-game verification records to correct a mistake. Record a new sourced observation with the correct observation/validity boundary.
+Governor observations, target conditions and capacity observations are append-only. Correct a mistake by recording a newer sourced observation/correction. Do not overwrite historical rows.
 
-Target Kingdom condition corrections likewise preserve history. Official Transfer Group corrections create a new revision and supersede the previous current revision.
+Official Transfer Group correction creates a new revision and supersedes the previous current revision.
 
-This historical chain is required to explain why an eligibility assessment changed.
+This historical chain is necessary to explain assessment changes.
 
-Evidence review correction and owner correction are separate:
+## Freshness and conflicts
 
-- before commit, a reviewer creates a newer immutable Evidence review revision;
-- after commit, correcting accepted game/domain truth uses the relevant KingdomTransfers owner write and preserves the accepted historical record;
-- deleting/redacting the screenshot never edits accepted Transfer history.
+Mutable participant facts require explicit `valid_until` when used as current eligibility truth.
 
-## Idempotency and retries
+- expired → `stale`;
+- simultaneous authoritative disagreement → `conflicting`;
+- absent/non-authoritative → `unknown`.
 
-Repeated ingestion or a user retry with the same normalized observation fingerprint must return/reuse the existing observation instead of inserting a duplicate.
+Any material stale/conflict/unknown state prevents `eligible_now`.
 
-For Screenshot Intake, owner observation fingerprints remain an internal protection while a separate `transfer_evidence_receipts.idempotency_key` protects the entire schema handoff. Replaying the same approved Evidence review must return the existing destination receipt and must not append duplicate observation/condition/group history.
+Do not extend a validity boundary just to force a favorable result.
 
-When a write fails before commit, retry the same request. When the request may have committed but the client did not receive the response, use the normal Evidence commit path rather than manually entering replacement facts. The stable destination idempotency key is specifically designed for the crash window after the owner transaction commits but before Evidence records acknowledgement.
+## Transfer Pass support boundary
 
-Do not build dual-write or compensating legacy paths for the pre-rename `TransferGroup` planning concept. The supported planning concept is `TransferCohort` only.
+Do not calculate required Transfer Passes from Transfer Score. The current required count is an observed in-game fact and must remain in the supported official 1–50 range. An out-of-range observation is treated as conflicting and must be rechecked.
 
-## Atomic score/pass recovery
+## Storehouse/resource warning
 
-A reviewed Transfer Score/pass screenshot owns three related facts: Transfer Score, passes available and observed passes required. `RecordTransferScorePassEvidence` commits all three observations plus the destination receipt in one KingdomTransfers transaction.
+`resource_protection_verified=false` means the Governor has a known pre-transfer resource-loss action to resolve. It is not modeled as a hard game prohibition.
 
-Support expectations:
+Missing/stale/conflicting resource verification still blocks an optimistic `eligible_now` result because resources above Storehouse protection are a material transfer consequence.
 
-- validation or persistence failure in any one of the three values leaves none of the three new observations and no receipt;
-- retrying after a successful owner commit returns the same receipt;
-- never repair a partial-looking client result by manually creating the missing observations—verify the owner transaction/receipt first.
+## Special Invite incidents
 
-## Stale observations
+A consuming Special Invite planning allocation requires:
 
-Mutable Governor facts carry `valid_until`. Once that boundary passes, the observation may remain visible as history but cannot satisfy current eligibility.
+- target classification = authoritative Ordinary;
+- current Special Invite inventory;
+- remaining inventory after other current Alliance allocations.
 
-Expected support outcome:
+Leading Kingdoms cannot consume a Special Invite allocation. If the target classification or inventory is missing, refresh the game fact instead of overriding the planning check.
 
-- UI identifies the stale requirement;
-- source/reference and `observed_at` remain visible;
-- assessment is `needs_verification` when the stale fact is material;
-- operator/officer records a new observation rather than extending the old row in place.
+Observed participant `invitation_status` remains separate from Alliance allocation state.
 
-Do not extend validity merely to force a green eligibility result.
+## Evidence support
 
-Transfer Evidence does not manufacture a validity boundary. Governor-status, score/pass and invitation review require the reviewer to provide the explicit validity boundary used by the owner. Upload time is not silently substituted for observation time or validity.
+`Intelligence/Evidence` owns screenshots/reviews and KingdomTransfers owns accepted game facts.
 
-## Conflicting observations
+Five explicit families are supported:
 
-When multiple current authoritative observations disagree for the same material fact/target, the selected requirement is conflicting and eligibility is `needs_verification`.
+- Governor status;
+- Transfer Score & Passes;
+- invitation;
+- target Kingdom rules;
+- official Transfer Group.
 
-Resolve by determining which source is authoritative/current and recording a correction or newer observation according to the owning write contract. Preserve the conflicting records for audit/history.
+Target Kingdom rules are schema v2. Fixture-proven reviewed fields may include target number, Power Cap, classification, Hero Generation, Truegold and character-age threshold days.
 
-The Evidence preview is advisory derived state. It uses the same owner evaluator, but it cannot erase an existing conflict and it cannot supply facts absent from the active screenshot schema.
+No schema may infer or create `in_game_rules_verified=true`.
 
-## Transfer Evidence scope-change incidents
+### Evidence retry/idempotency
 
-A Transfer Evidence review snapshots scalar Plan/participant/Transfer Window/target meaning. The destination owner compares that approved snapshot with current state before a new write.
+- exact/visual/semantic duplicate handling is Evidence-owned;
+- owner destination replay uses a stable `transfer_evidence_receipts.idempotency_key`;
+- retrying the same approved review returns the existing receipt and cannot append duplicate owner truth;
+- material Plan/window/target drift requires re-review.
 
-If commit returns a scope-changed/re-review validation error:
+Score/pass commit is atomic across Transfer Score, available passes, required passes and receipt.
 
-1. confirm the participant still belongs to the expected Plan;
-2. confirm the Plan still references the reviewed Transfer Window;
-3. confirm participant direction and target Kingdom;
-4. determine whether the retained screenshot still proves the current target meaning;
-5. create a new review revision only when the evidence is still applicable; otherwise capture newer in-game evidence.
+## Evidence review changes
 
-Never edit review scope IDs or destination owner IDs to force the handoff through.
+Before commit, a correction creates a new immutable Evidence review revision. After commit, accepted domain truth is corrected through the relevant KingdomTransfers owner Action/append-only observation.
 
-## Evidence references
+Deleting/redacting Evidence never deletes already accepted KingdomTransfers history.
 
-An `evidence_id` is a reference to `Intelligence/Evidence`-owned source material, not ownership transfer. Every supplied Evidence identifier is validated through the owner contract for the same Alliance; `source_type=evidence` additionally requires an approved relevant Evidence review. Support tooling must not expose or dereference evidence across an unauthorized Alliance, Plan, participant or Player scope.
+## Authorization incidents
 
-Transfer Screenshot Intake owner Actions receive only scalar Evidence/review IDs and typed values. They do not import Evidence Eloquent models. The Evidence lookup contract confirms same-Alliance/approved provenance while Evidence remains the persistence owner of the source/review.
+Every mutation must re-resolve current actor/Alliance authority and concrete owner scope. Foreign Alliance/Plan/window/participant/Evidence identifiers must not disclose existence.
 
-If Evidence is later redacted for retention/privacy, accepted KingdomTransfers history and the destination receipt remain. Authorized support may see a safe Evidence reference/tombstone even when the binary is no longer retained.
+Manual forms cannot select `source_type=evidence`.
 
-## Screenshot schema support boundaries
+## Audit/outbox
 
-The five supported v1 screenshot classes are:
+Material events include:
 
-- Governor status → Governor Power only;
-- Transfer Score/pass screen → displayed Transfer Score, displayed available Passes, displayed required Passes;
-- invitation screen → supported invitation enum and current target reconciliation;
-- target Kingdom rules → visible target Kingdom, Power Cap and fixture-proven classification;
-- official Transfer Group → complete explicitly visible group label/membership.
+- Transfer Window/group/condition/capacity changes;
+- participant observation changes;
+- capacity reservation/invitation allocation changes;
+- readiness/withdrawal/completion changes;
+- accepted Evidence receipts.
 
-Operationally important exclusions:
+Completion metadata includes finalized reservation/allocation counts; withdrawal metadata includes released/cancelled counts.
 
-- required Passes are not calculated from Transfer Score;
-- none of these schemas can create `in_game_rules_verified=true`;
-- hidden/off-screen official-group membership is not inferred;
-- ambiguous invitation wording remains unverified;
-- visually similar screenshots are not automatically treated as semantic duplicates.
+Do not log raw screenshots/OCR, unrestricted Governor values, secret tokens or private free-form evidence payloads.
 
-If a game UI changes so a fixture no longer proves a field reliably, treat the screenshot as unsupported/needs review until the schema/fixture corpus is intentionally versioned. Do not loosen extraction heuristics in production diagnostics.
+## Metrics
 
-## Semantic duplicates versus destination retries
+Privacy-safe useful telemetry includes:
 
-These are intentionally separate support cases.
-
-**Semantic duplicate:** two Evidence reviews describe the same reviewed game state in the same schema/scope. Evidence blocks the newer review until an authorized manager records an explicit supported resolution.
-
-**Destination replay:** the same immutable approved review is retried because acknowledgement was interrupted. KingdomTransfers returns the existing receipt under the same idempotency key.
-
-A genuinely newer observation should have a newer observation boundary and/or changed reviewed meaning and should not be suppressed as the old game state.
-
-## Audit and outbox
-
-Material transfer writes emit audit/outbox records for operational traceability, including window/group/condition/observation changes, planning workflow mutations and accepted Transfer Evidence receipts. Audit metadata should identify owner scope, record identifiers, source/schema/action and timing needed to diagnose a change without unnecessarily duplicating raw Governor values.
-
-Evidence emits its own upload/classification/extraction/review/duplicate/commit/retry/redaction events. The cross-context correlation is Evidence/review/receipt identity; raw OCR text or screenshot contents do not belong in owner audit metadata.
-
-Do not place raw screenshots, OCR/provider payloads, secret tokens, hashes or unrestricted private evidence values in audit/outbox metadata.
-
-## Metrics and logs
-
-Useful aggregate telemetry includes counts/rates for:
-
-- `eligible_now`, `blocked`, `eligible_with_action`, and `needs_verification` assessments;
-- stale/unknown/conflicting requirement frequency by requirement key;
-- observation write retries/deduplications;
-- Transfer Evidence destination replay count/failure rate by schema Action;
-- Evidence semantic/visual/exact duplicate rates from privacy-safe aggregate diagnostics;
-- rejected cross-scope or invalid observation/Evidence writes;
-- query-budget regressions on transfer read pages.
-
-Telemetry must not require raw Governor Power/Score/Pass values when an outcome/requirement key is sufficient.
+- eligibility outcome counts;
+- requirement state/failure counts;
+- observed/projected capacity pressure;
+- Special Invite availability/shortage;
+- stale/conflicting fact frequency;
+- Evidence replay/failure/duplicate rates;
+- rejected cross-scope writes;
+- transfer read query-budget regressions.
 
 ## Backup and restore
 
-The standard application database backup/restore path must include:
+Database backup/restore must include:
 
 - `transfer_windows`;
-- official `transfer_groups` and `transfer_group_kingdoms`;
+- official `transfer_groups` / membership;
 - `transfer_kingdom_condition_observations`;
+- `transfer_kingdom_capacity_observations`;
 - `transfer_plans`;
 - `transfer_participants`;
 - `transfer_cohorts`;
 - `transfer_observations`;
+- `transfer_capacity_reservations`;
+- `transfer_invitation_allocations`;
 - `transfer_evidence_receipts`;
-- readiness transitions/manual blockers/completions;
-- associated audit/outbox rows covered by the platform backup policy.
+- readiness transitions/blockers/completions;
+- related audit/outbox rows.
 
-Evidence-owned source/review/commit tables are covered by the application database backup and Evidence binary-store policy documented in `docs/operations/screenshot-intake.md`.
+After restore, recompute eligibility/projections from owner inputs. There is no eligibility cache/boolean to restore.
 
-Restore verification should confirm that observation history, official group revisions and Transfer Evidence receipts remain intact and that a known participant assessment can be recomputed from restored inputs. No derived eligibility cache/boolean is required for recovery.
-
-For one restored committed Evidence handoff, retry the Evidence commit path and confirm the existing destination receipt is returned without appending owner history.
+Verify at least one Evidence replay returns its existing destination receipt without duplicating owner history.
 
 ## Release verification
 
-Before release:
+Before release/merge readiness:
 
-1. run a fresh PostgreSQL migration, including the narrow Evidence scope constraint and Transfer review/receipt tables;
-2. verify all five schema fixture corpora, classifier/extractor negative cases and field whitelists;
-3. verify Transfer Evidence authorization/scope-change behavior, atomic score/pass commit and crash/idempotent replay;
-4. verify evaluator/window/observation authorization and existing idempotency tests;
-5. run strict PHPStan/Pint and frontend lint/format/type/build;
-6. run architecture/contract/documentation checks, including no Transfer OCR context/generic schema and no foreign Evidence/Transfer Eloquent crossing;
-7. run keyboard/accessibility/localization checks on the participant Evidence workflow;
-8. run deterministic eligible/blocked/needs-verification visual scenarios on desktop/mobile, including the Evidence panel state;
-9. run CodeQL, dependency review, Intelligence Verification and container/security checks;
-10. run staging smoke checks plus backup/restore/replay verification.
+1. fresh PostgreSQL migration succeeds;
+2. KingdomTransfers migrations/constraints install cleanly;
+3. Pint and PHPStan pass;
+4. KingdomTransfers V3 behavior/contract/completeness tests pass;
+5. Evidence target-rules v2 classification/extraction/review/preview/commit tests pass;
+6. frontend lint/Prettier/type/build pass;
+7. readiness/manage UX is responsive, localized and keyboard-accessible;
+8. observed versus planned capacity is visually distinct;
+9. Architecture V3 and Intelligence Verification pass;
+10. Visual Regression passes on deterministic desktop/mobile states;
+11. CodeQL and Dependency Review pass;
+12. authorization/isolation, concurrency/idempotency and query-budget coverage pass;
+13. documentation/source matrix/reference/operations contracts agree with code.
 
-A release is not acceptable while a documented Transfer Evidence schema, fixture family, destination Action, participant UX state, security boundary, test or delivery-ledger item remains partial or unverified.
+No compatibility shim, legacy alias, dual read/write or migration-backfill path is required for this fresh deployment.
