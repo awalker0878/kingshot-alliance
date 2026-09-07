@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace App\Contexts\Platform\Administration\Console\Commands;
 
-use App\Contexts\Accounts\Identity\Models\User;
+use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
 use App\Contexts\Platform\Administration\Actions\ManagePlatformAdministrator;
 use Illuminate\Console\Command;
-use Illuminate\Support\Str;
 
 final class GrantPlatformAdministratorCommand extends Command
 {
@@ -15,7 +14,7 @@ final class GrantPlatformAdministratorCommand extends Command
 
     protected $description = 'Bootstrap a platform administrator grant.';
 
-    public function handle(ManagePlatformAdministrator $manage): int
+    public function handle(ManagePlatformAdministrator $manage, AccountIdentityQuery $accounts): int
     {
         $emailArgument = $this->argument('email');
         if (! is_string($emailArgument)) {
@@ -24,15 +23,14 @@ final class GrantPlatformAdministratorCommand extends Command
             return self::FAILURE;
         }
 
-        $email = Str::lower(trim($emailArgument));
-        $user = User::query()->where('email', $email)->first();
-        if (! $user instanceof User) {
+        $userId = $accounts->findIdByEmail($emailArgument);
+        if ($userId === null) {
             $this->error('No user exists with that email address.');
 
             return self::FAILURE;
         }
 
-        $manage->grant((int) $user->id);
+        $manage->grant($userId);
         $this->info('Platform administrator grant created. Web access still requires verified email and MFA.');
 
         return self::SUCCESS;
