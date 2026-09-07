@@ -8,6 +8,7 @@ use App\Contexts\Alliance\Lifecycle\ValueObjects\AllianceReference;
 use App\Contexts\Alliance\Membership\ValueObjects\RosterEntryReference;
 use App\Contexts\GameWorld\KingdomTransfers\Actions\CreateTransferBlocker;
 use App\Contexts\GameWorld\KingdomTransfers\Actions\CreateTransferPlan;
+use App\Contexts\GameWorld\KingdomTransfers\Actions\RecordTransferKingdomCapacity;
 use App\Contexts\GameWorld\KingdomTransfers\Actions\RecordTransferKingdomCondition;
 use App\Contexts\GameWorld\KingdomTransfers\Actions\RecordTransferObservation;
 use App\Contexts\GameWorld\KingdomTransfers\Actions\SaveTransferGroup;
@@ -398,15 +399,30 @@ final class TransferPlanningBehaviorV3Test extends TestCase
             ),
         );
         app(RecordTransferKingdomCondition::class)->handle(
+            allianceId: $scenario['alliance']->allianceId,
+            actorPlayerId: $scenario['actor']->playerId,
+            windowId: $scenario['windowId'],
+            kingdomNumber: $scenario['targetNumber'],
+            powerCap: $cap,
+            classification: TransferKingdomClassification::Ordinary,
+            sourceType: TransferSourceType::InGame,
+            sourceReference: 'KingShot target Kingdom transfer screen',
+            observedAt: $this->now->subMinutes(15)->toIso8601String(),
+            heroGeneration: 4,
+            truegoldLevel: 5,
+            characterAgeThresholdDays: 120,
+        );
+        app(RecordTransferKingdomCapacity::class)->handle(
             $scenario['alliance']->allianceId,
             $scenario['actor']->playerId,
             $scenario['windowId'],
             $scenario['targetNumber'],
-            $cap,
-            TransferKingdomClassification::Ordinary,
+            0,
+            0,
+            3,
             TransferSourceType::InGame,
-            'KingShot target Kingdom transfer screen',
-            $this->now->subMinutes(15)->toIso8601String(),
+            'KingShot target Kingdom capacity screen',
+            $this->now->subMinutes(14)->toIso8601String(),
         );
 
         $record = app(RecordTransferObservation::class);
@@ -422,6 +438,26 @@ final class TransferPlanningBehaviorV3Test extends TestCase
             $this->now->subMinutes(10)->toIso8601String(),
             ($stalePower ? $this->now->subMinute() : $this->now->addHours(2))->toIso8601String(),
         );
+        foreach ([
+            [TransferObservationKind::HeroGeneration, 4, 'KingShot Governor hero generation'],
+            [TransferObservationKind::TruegoldLevel, 5, 'KingShot Governor Truegold level'],
+            [TransferObservationKind::CharacterAgeOverTargetDays, 30, 'KingShot character age eligibility'],
+            [TransferObservationKind::TransferCooldownRemainingDays, 0, 'KingShot transfer cooldown'],
+            [TransferObservationKind::TargetExistingCharacterCount, 0, 'KingShot target character list'],
+        ] as [$kind, $value, $reference]) {
+            $record->handle(
+                $scenario['alliance']->allianceId,
+                $scenario['actor']->playerId,
+                (string) $scenario['plan']->id,
+                (string) $scenario['participant']->id,
+                $kind,
+                $value,
+                TransferSourceType::InGame,
+                $reference,
+                $this->now->subMinutes(10)->toIso8601String(),
+                $this->now->addHours(2)->toIso8601String(),
+            );
+        }
         $record->handle(
             $scenario['alliance']->allianceId,
             $scenario['actor']->playerId,
