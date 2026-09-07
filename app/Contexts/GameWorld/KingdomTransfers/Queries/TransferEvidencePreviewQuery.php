@@ -53,8 +53,7 @@ final readonly class TransferEvidencePreviewQuery
         string $planId,
         string $participantId,
         TransferEvidencePreviewInput $review,
-    ): array
-    {
+    ): array {
         $scope = $this->targets->authorizeManage($actorPlayerId, $allianceId, $planId, $participantId);
         $plan = TransferPlan::query()
             ->where('alliance_id', $allianceId)
