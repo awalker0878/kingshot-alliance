@@ -10,6 +10,8 @@ use App\Contexts\GameWorld\KingdomMaps\ValueObjects\Rectangle;
 
 final class PlacementValidator
 {
+    public function __construct(private readonly TerritoryCoverageGeometry $coverageGeometry) {}
+
     /**
      * @param  list<array{key: string, type: string, x: int, y: int, alliance_key: string}>  $objects
      * @param  array<string, mixed>  $preferences
@@ -26,18 +28,20 @@ final class PlacementValidator
         $countsByAlliance = [];
 
         foreach ($objects as $object) {
-            $definition = $data['object_types'][$object['type']] ?? null;
-            if (! is_array($definition)) {
+            $definition = $dataset->objectDefinition($object['type']);
+            if ($definition === []) {
                 $violations[] = $this->issue('unknown_object_type', 'This object type is not supported by the selected map dataset.', $object['key']);
 
                 continue;
             }
-            $size = (int) ($definition['size'] ?? 0);
-            if ($size < 1) {
+
+            $rect = $this->coverageGeometry->footprint($dataset, $object['type'], $object['x'], $object['y']);
+            if (! $rect instanceof Rectangle || $rect->area() < 1) {
                 $violations[] = $this->issue('invalid_object_footprint', 'The selected map dataset has no valid footprint for this object.', $object['key']);
 
                 continue;
             }
+
             $countKey = $object['alliance_key'].'|'.$object['type'];
             $countsByAlliance[$countKey] = ($countsByAlliance[$countKey] ?? 0) + 1;
             $maximum = $definition['max_per_alliance'] ?? null;
@@ -48,7 +52,7 @@ final class PlacementValidator
                     $object['key'],
                 );
             }
-            $rect = new Rectangle($object['x'], $object['y'], $size, $size);
+
             $rectangles[$object['key']] = $rect;
             if (! $rect->inside($bounds)) {
                 $violations[] = $this->issue('map_bounds', 'The object footprint must stay inside the Kingdom map.', $object['key']);
@@ -57,20 +61,33 @@ final class PlacementValidator
             }
 
             foreach ($data['structures'] as $structure) {
-                if (! is_array($structure)) {
+                if (! is_array($structure) || ($structure['blocks_placement'] ?? true) !== true) {
                     continue;
                 }
-                $structureSize = (int) ($structure['size'] ?? 0);
-                $structureRect = new Rectangle((int) $structure['x'], (int) $structure['y'], $structureSize, $structureSize);
+                $footprint = $structure['footprint'] ?? null;
+                if (! is_array($footprint)) {
+                    continue;
+                }
+                $structureRect = new Rectangle(
+                    (int) $structure['x'],
+                    (int) $structure['y'],
+                    (int) $footprint['width'],
+                    (int) $footprint['height'],
+                );
                 if ($rect->intersects($structureRect)) {
                     $violations[] = $this->issue('structure_collision', 'The object overlaps a fixed Kingdom structure.', $object['key']);
                     break;
                 }
-                $exclusion = max((int) ($structure['exclusion'] ?? 0), 0);
+                $exclusion = max((int) ($structure['exclusion_tiles'] ?? 0), 0);
                 if ($exclusion === 0) {
                     continue;
                 }
-                $forbidden = new Rectangle((int) $structure['x'] - $exclusion, (int) $structure['y'] - $exclusion, $structureSize + ($exclusion * 2), $structureSize + ($exclusion * 2));
+                $forbidden = new Rectangle(
+                    $structureRect->x - $exclusion,
+                    $structureRect->y - $exclusion,
+                    $structureRect->width + ($exclusion * 2),
+                    $structureRect->height + ($exclusion * 2),
+                );
                 $cityExempt = (bool) ($structure['city_exempt'] ?? false);
                 if ($rect->intersects($forbidden) && ! ($object['type'] === 'governor_city' && $cityExempt)) {
                     $violations[] = $this->issue('structure_exclusion', 'The object overlaps a fixed structure no-build zone.', $object['key']);
@@ -173,28 +190,51 @@ final class PlacementValidator
 
             $coverageSources = [];
             foreach ($scopedObjects as $object) {
-                $definition = $data['object_types'][$object['type']] ?? null;
-                if (! is_array($definition)) {
-                    continue;
-                }
-                $coverage = (float) ($definition['coverage'] ?? 0);
-                $size = (float) ($definition['size'] ?? 0);
-                if ($coverage <= 0 || $size <= 0) {
+                $coverage = $this->coverageGeometry->coverage($dataset, $object['type'], $object['x'], $object['y']);
+                if (! $coverage instanceof Rectangle) {
                     continue;
                 }
                 $coverageSources[] = [
                     'key' => $object['key'],
-                    'x' => $object['x'] + ($size / 2),
-                    'y' => $object['y'] + ($size / 2),
-                    'coverage' => $coverage,
+                    'type' => $object['type'],
+                    'rect' => $coverage,
                 ];
             }
-            if (count($coverageSources) > 1 && $this->coverageComponents($coverageSources) > 1) {
+
+            $coverageRectangles = array_values(array_map(
+                static fn (array $source): Rectangle => $source['rect'],
+                $coverageSources,
+            ));
+            $components = $this->coverageGeometry->components($coverageRectangles);
+            if (count($components) > 1 && $coverageSources !== []) {
                 $warnings[] = $this->issue(
                     'disconnected_territory',
                     'Alliance territory coverage is split into disconnected regions.',
                     $coverageSources[0]['key'],
                 );
+            }
+            foreach ($components as $component) {
+                $hasHeadquarters = false;
+                $bannerKeys = [];
+                foreach ($component as $index) {
+                    $source = $coverageSources[$index] ?? null;
+                    if (! is_array($source)) {
+                        continue;
+                    }
+                    $hasHeadquarters = $hasHeadquarters || $source['type'] === 'headquarters';
+                    if ($source['type'] === 'banner') {
+                        $bannerKeys[] = $source['key'];
+                    }
+                }
+                if ($bannerKeys !== [] && ! $hasHeadquarters) {
+                    foreach ($bannerKeys as $bannerKey) {
+                        $violations[] = $this->issue(
+                            'banner_hq_connectivity',
+                            'Alliance Banners must remain connected to an Alliance Headquarters.',
+                            $bannerKey,
+                        );
+                    }
+                }
             }
 
             $firstCity = null;
@@ -222,45 +262,6 @@ final class PlacementValidator
         }
 
         return new PlacementValidationResult($this->unique($violations), $this->unique($warnings), $this->unique($suggestions));
-    }
-
-    /**
-     * @param  list<array{key: string, x: float, y: float, coverage: float}>  $sources
-     */
-    private function coverageComponents(array $sources): int
-    {
-        if ($sources === []) {
-            return 0;
-        }
-
-        $visited = [];
-        $components = 0;
-        foreach (array_keys($sources) as $start) {
-            if (isset($visited[$start])) {
-                continue;
-            }
-            $components++;
-            $queue = [$start];
-            while ($queue !== []) {
-                $index = array_pop($queue);
-                if ($index === null || isset($visited[$index])) {
-                    continue;
-                }
-                $visited[$index] = true;
-                $source = $sources[$index];
-                foreach ($sources as $candidateIndex => $candidate) {
-                    if (isset($visited[$candidateIndex])) {
-                        continue;
-                    }
-                    $distance = max(abs($source['x'] - $candidate['x']), abs($source['y'] - $candidate['y']));
-                    if ($distance <= $source['coverage'] + $candidate['coverage']) {
-                        $queue[] = $candidateIndex;
-                    }
-                }
-            }
-        }
-
-        return $components;
     }
 
     /** @return array{code: string, message: string, object_key: string} */
