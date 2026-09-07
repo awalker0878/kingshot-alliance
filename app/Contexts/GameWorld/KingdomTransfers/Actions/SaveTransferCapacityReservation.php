@@ -81,7 +81,13 @@ final readonly class SaveTransferCapacityReservation
                 if (! $capacity instanceof TransferKingdomCapacityObservation || $official === null || $capacity->ordinary_invites_used === null || $capacity->transfer_opens_used === null) {
                     throw ValidationException::withMessages(['reservation' => 'Verify authoritative target capacity before reserving an Alliance planning slot.']);
                 }
-                $activeStates = [TransferCapacityReservationState::Planned->value, TransferCapacityReservationState::Reserved->value];
+                $activeStates = array_map(
+                    static fn (TransferCapacityReservationState $candidate): string => $candidate->value,
+                    array_filter(
+                        TransferCapacityReservationState::cases(),
+                        static fn (TransferCapacityReservationState $candidate): bool => $candidate->consumesPlannedCapacity(),
+                    ),
+                );
                 $otherReservations = TransferCapacityReservation::query()
                     ->where('alliance_id', $allianceId)
                     ->where('transfer_window_id', $plan->transfer_window_id)
