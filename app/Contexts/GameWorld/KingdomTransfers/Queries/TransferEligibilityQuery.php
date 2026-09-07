@@ -161,6 +161,7 @@ final readonly class TransferEligibilityQuery
                 invitationStatus: $this->selector->select($rows, TransferObservationKind::InvitationStatus, $targetId, $now),
                 passesAvailable: $this->selector->select($rows, TransferObservationKind::TransferPassesAvailable, null, $now),
                 passesRequired: $this->selector->select($rows, TransferObservationKind::TransferPassesRequired, $targetId, $now),
+                resourceProtectionVerified: $this->selector->select($rows, TransferObservationKind::ResourceProtectionVerified, null, $now),
                 inGameRulesVerified: $this->selector->select($rows, TransferObservationKind::InGameRulesVerified, $targetId, $now),
             );
 
