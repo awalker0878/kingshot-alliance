@@ -20,59 +20,52 @@ jobs:
       - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
         with:
           php-version: '8.4'
-      - name: Reconcile global docs and lifecycle acceptance
+      - name: Reconcile global capability docs
         shell: bash
         run: |
           python3 <<'PY'
           from pathlib import Path
 
-          def replace_once(path: str, old: str, new: str) -> None:
-              p = Path(path)
-              text = p.read_text()
-              if old not in text:
-                  raise SystemExit(f'marker not found in {path}: {old[:100]!r}')
-              p.write_text(text.replace(old, new, 1))
+          catalogue = Path('docs/product/capability-catalogue.md')
+          text = catalogue.read_text()
+          start = text.index('## Kingdom Transfer Planning product contract')
+          end = text.index('\n## Bear Hunt Debrief product contract', start)
+          replacement = '''## Kingdom Transfer Planning product contract
 
-          catalogue = 'docs/product/capability-catalogue.md'
-          old_section = '''Kingdom Transfer Planning is a delivered `GameWorld/KingdomTransfers` capability, not a generic workflow. It preserves participant/readiness/blocker/completion behavior while adding:\n\n- sourced Transfer Windows with explicit phase boundaries;\n- official Transfer Groups whose Kingdom membership is window-specific;\n- sourced target-Kingdom Power Caps and Leading/Ordinary classification;\n- append-only Governor Power, Transfer Score, Transfer Pass, invitation and in-game eligibility observations with observation/validity boundaries;\n- deterministic per-requirement eligibility outcomes rather than a stored boolean;\n- a strict rule that stale, missing, conflicting or non-authoritative evidence yields `needs_verification`, never `eligible_now`;\n- visible provenance/freshness and next actions in the manager-facing participant UX;\n- an evidence gate for the unpublished Transfer Score → Transfer Pass formula and other unpublished in-game rules;\n- a terminology correction that reserves **Transfer Group** for the official game concept and uses **Transfer Cohorts** for Alliance planning groups.\n\nThe canonical contract and completed delivery record live in [Kingdom Transfer Planning](kingdom-transfer-planning.md). The selected Transfer Screenshot Intake extension feeds reviewed observations through this existing owner rather than creating a second transfer model.'''
-          new_section = '''Kingdom Transfer Planning is a delivered `GameWorld/KingdomTransfers` capability, not a generic workflow. It preserves participant/readiness/blocker/completion behavior while adding:\n\n- sourced Transfer Windows and official window-scoped Transfer Groups;\n- sourced target Power Cap/classification, Hero Generation, Truegold and character-age thresholds;\n- first-class cooldown, target-character-limit, Transfer Pass and Storehouse pre-flight requirements;\n- observed Ordinary Invite/Transfer Opens/Special Invite capacity separated from Alliance slot reservations and invitation allocations;\n- deterministic fail-closed eligibility with visible provenance/freshness/next actions;\n- reviewed Transfer Evidence target-rules v2 for fixture-proven Power/classification/Hero/Truegold/age facts;\n- a strict boundary that required Transfer Passes are observed in-game because no safe exact public formula is encoded;\n- completion/withdrawal reconciliation of Alliance planning commitments without converting planning intent into game truth;\n- terminology reserving **Transfer Group** for the official game concept and **Transfer Cohort** for Alliance planning.\n\nThe canonical contract lives in [Kingdom Transfer Planning](kingdom-transfer-planning.md), with current official-rule evidence in the [source matrix](kingdom-transfer-official-rules-source-matrix.md) and reviewed screenshot semantics in [Transfer Evidence](screenshot-intake-transfer-evidence.md).'''
-          replace_once(catalogue, old_section, new_section)
+Kingdom Transfer Planning is a delivered `GameWorld/KingdomTransfers` capability, not a generic workflow. It preserves participant/readiness/blocker/completion behavior while adding:
 
-          ledger = 'docs/product/capability-delivery-ledger.md'
-          replace_once(ledger, 'Status: Current as of 2026-09-04', 'Status: Current as of 2026-09-07')
-          replace_once(
-              ledger,
-              '| Kingdom Transfer Planning | Complete | [Kingdom Transfer Planning](kingdom-transfer-planning.md) |',
-              '| Kingdom Transfer Planning | Complete | [Kingdom Transfer Planning](kingdom-transfer-planning.md), [official-rule source matrix](kingdom-transfer-official-rules-source-matrix.md), [Transfer Evidence](screenshot-intake-transfer-evidence.md), owner reference/operations docs and KingdomTransfers V3 tests |',
-          )
+- sourced Transfer Windows and official window-scoped Transfer Groups;
+- sourced target Power Cap/classification, Hero Generation, Truegold and character-age thresholds;
+- first-class cooldown, target-character-limit, Transfer Pass and Storehouse pre-flight requirements;
+- observed Ordinary Invite/Transfer Opens/Special Invite capacity separated from Alliance slot reservations and invitation allocations;
+- deterministic fail-closed eligibility with visible provenance/freshness/next actions;
+- reviewed Transfer Evidence target-rules v2 for fixture-proven Power/classification/Hero/Truegold/age facts;
+- a strict boundary that required Transfer Passes are observed in-game because no safe exact public formula is encoded;
+- completion/withdrawal reconciliation of Alliance planning commitments without converting planning intent into game truth;
+- terminology reserving **Transfer Group** for the official game concept and **Transfer Cohort** for Alliance planning.
 
-          test = 'tests/v3/Contexts/GameWorld/KingdomTransfers/TransferPlanningCompletenessV3Test.php'
-          replace_once(test,
-              'use App\\Contexts\\GameWorld\\KingdomTransfers\\Actions\\CreateTransferPlan;\n',
-              'use App\\Contexts\\GameWorld\\KingdomTransfers\\Actions\\CompleteTransferParticipant;\nuse App\\Contexts\\GameWorld\\KingdomTransfers\\Actions\\CreateTransferPlan;\nuse App\\Contexts\\GameWorld\\KingdomTransfers\\Actions\\LockTransferPlan;\nuse App\\Contexts\\GameWorld\\KingdomTransfers\\Actions\\OpenTransferPlan;\n',
-          )
-          replace_once(test,
-              'use App\\Contexts\\GameWorld\\KingdomTransfers\\Enums\\TransferDirection;\n',
-              'use App\\Contexts\\GameWorld\\KingdomTransfers\\Enums\\TransferCapacityBucket;\nuse App\\Contexts\\GameWorld\\KingdomTransfers\\Enums\\TransferCapacityReservationState;\nuse App\\Contexts\\GameWorld\\KingdomTransfers\\Enums\\TransferDirection;\nuse App\\Contexts\\GameWorld\\KingdomTransfers\\Enums\\TransferInvitationAllocationState;\nuse App\\Contexts\\GameWorld\\KingdomTransfers\\Enums\\TransferInvitationKind;\n',
-          )
-          replace_once(test,
-              'use App\\Contexts\\GameWorld\\KingdomTransfers\\Models\\TransferBlocker;\n',
-              'use App\\Contexts\\GameWorld\\KingdomTransfers\\Models\\TransferBlocker;\nuse App\\Contexts\\GameWorld\\KingdomTransfers\\Models\\TransferCapacityReservation;\nuse App\\Contexts\\GameWorld\\KingdomTransfers\\Models\\TransferInvitationAllocation;\n',
-          )
-          marker = '''    /**\n     * @return array{actor:PlayerReference,alliance:AllianceReference,roster:RosterEntryReference}\n     */\n    private function ownerScenario'''
-          method = '''    public function test_completion_finalizes_consuming_capacity_and_invitation_commitments(): void\n    {\n        $scenario = $this->ownerScenario(7391);\n        $factory = app(ScenarioFactory::class);\n        $incoming = $factory->unclaimedPlayer(7392, 'TRANSFER-COMMITMENT-INCOMING');\n        $windowId = app(SaveTransferWindow::class)->handle(\n            $scenario['alliance']->allianceId,\n            $scenario['actor']->playerId,\n            $this->windowData('Commitment reconciliation transfer'),\n        );\n        app(CreateTransferPlan::class)->handle(\n            $scenario['alliance']->allianceId,\n            $scenario['actor']->playerId,\n            ['label' => 'Commitment reconciliation plan', 'transfer_window_id' => $windowId],\n        );\n        $plan = TransferPlan::query()\n            ->where('alliance_id', $scenario['alliance']->allianceId)\n            ->where('transfer_window_id', $windowId)\n            ->firstOrFail();\n        $participant = TransferParticipant::query()->create([\n            'alliance_id' => $scenario['alliance']->allianceId,\n            'transfer_plan_id' => $plan->id,\n            'direction' => TransferDirection::Incoming,\n            'readiness_state' => TransferReadinessState::NotStarted,\n            'player_id' => $incoming->playerId,\n            'observed_name' => $incoming->currentName,\n            'game_player_id' => $incoming->gamePlayerId,\n            'source_kingdom_id' => $incoming->kingdomId,\n            'destination_kingdom_id' => $plan->home_kingdom_id,\n        ]);\n\n        $reservation = TransferCapacityReservation::query()->create([\n            'alliance_id' => $scenario['alliance']->allianceId,\n            'transfer_window_id' => $windowId,\n            'transfer_plan_id' => $plan->id,\n            'transfer_participant_id' => $participant->id,\n            'target_kingdom_id' => $plan->home_kingdom_id,\n            'bucket' => TransferCapacityBucket::TransferOpen,\n            'state' => TransferCapacityReservationState::Reserved,\n            'reserved_at' => now(),\n            'created_by_player_id' => $scenario['actor']->playerId,\n        ]);\n        $allocation = TransferInvitationAllocation::query()->create([\n            'alliance_id' => $scenario['alliance']->allianceId,\n            'transfer_window_id' => $windowId,\n            'transfer_plan_id' => $plan->id,\n            'transfer_participant_id' => $participant->id,\n            'target_kingdom_id' => $plan->home_kingdom_id,\n            'kind' => TransferInvitationKind::Ordinary,\n            'state' => TransferInvitationAllocationState::Reserved,\n            'created_by_player_id' => $scenario['actor']->playerId,\n        ]);\n\n        $readiness = app(TransitionTransferReadiness::class);\n        foreach ([TransferReadinessState::Preparing, TransferReadinessState::Ready, TransferReadinessState::Confirmed] as $state) {\n            $readiness->handle(\n                $scenario['alliance']->allianceId,\n                $scenario['actor']->playerId,\n                (string) $plan->id,\n                (string) $participant->id,\n                $state,\n            );\n        }\n        app(OpenTransferPlan::class)->handle($scenario['alliance']->allianceId, $scenario['actor']->playerId, (string) $plan->id);\n        app(LockTransferPlan::class)->handle($scenario['alliance']->allianceId, $scenario['actor']->playerId, (string) $plan->id);\n        app(CompleteTransferParticipant::class)->handle(\n            $scenario['alliance']->allianceId,\n            $scenario['actor']->playerId,\n            (string) $plan->id,\n            (string) $participant->id,\n        );\n\n        self::assertSame(TransferCapacityReservationState::Confirmed, $reservation->fresh()?->state);\n        self::assertSame(TransferInvitationAllocationState::Accepted, $allocation->fresh()?->state);\n        self::assertDatabaseHas('transfer_completions', [\n            'transfer_plan_id' => (string) $plan->id,\n            'transfer_participant_id' => (string) $participant->id,\n        ]);\n    }\n\n''' + marker
-          replace_once(test, marker, method)
+The canonical contract lives in [Kingdom Transfer Planning](kingdom-transfer-planning.md), with current official-rule evidence in the [source matrix](kingdom-transfer-official-rules-source-matrix.md) and reviewed screenshot semantics in [Transfer Evidence](screenshot-intake-transfer-evidence.md).
+'''
+          catalogue.write_text(text[:start] + replacement + text[end:])
+
+          ledger = Path('docs/product/capability-delivery-ledger.md')
+          text = ledger.read_text().replace('Status: Current as of 2026-09-04', 'Status: Current as of 2026-09-07', 1)
+          old = '| Kingdom Transfer Planning | Complete | [Kingdom Transfer Planning](kingdom-transfer-planning.md) |'
+          new = '| Kingdom Transfer Planning | Complete | [Kingdom Transfer Planning](kingdom-transfer-planning.md), [official-rule source matrix](kingdom-transfer-official-rules-source-matrix.md), [Transfer Evidence](screenshot-intake-transfer-evidence.md), owner reference/operations docs and KingdomTransfers V3 tests |'
+          if old not in text:
+              raise SystemExit('Kingdom Transfer ledger row not found')
+          ledger.write_text(text.replace(old, new, 1))
           PY
       - run: composer install --no-interaction --prefer-dist --no-progress
-      - name: Format lifecycle acceptance test
-        run: vendor/bin/pint tests/v3/Contexts/GameWorld/KingdomTransfers/TransferPlanningCompletenessV3Test.php app/Contexts/GameWorld/KingdomTransfers/Actions/CompleteTransferParticipant.php app/Contexts/GameWorld/KingdomTransfers/Queries/TransferCapacityPlanningQuery.php
+      - name: Format lifecycle implementation and acceptance
+        run: vendor/bin/pint app/Contexts/GameWorld/KingdomTransfers/Actions/CompleteTransferParticipant.php app/Contexts/GameWorld/KingdomTransfers/Queries/TransferCapacityPlanningQuery.php tests/v3/Contexts/GameWorld/KingdomTransfers/TransferCompletionCapacityReconciliationV3Test.php
       - name: Self-clean and commit closeout
         shell: bash
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git rm .github/workflows/temporary-kingdom-transfers-closeout.yml
-          git add docs/product/capability-catalogue.md docs/product/capability-delivery-ledger.md tests/v3/Contexts/GameWorld/KingdomTransfers/TransferPlanningCompletenessV3Test.php app/Contexts/GameWorld/KingdomTransfers/Actions/CompleteTransferParticipant.php app/Contexts/GameWorld/KingdomTransfers/Queries/TransferCapacityPlanningQuery.php
+          git add docs/product/capability-catalogue.md docs/product/capability-delivery-ledger.md app/Contexts/GameWorld/KingdomTransfers/Actions/CompleteTransferParticipant.php app/Contexts/GameWorld/KingdomTransfers/Queries/TransferCapacityPlanningQuery.php tests/v3/Contexts/GameWorld/KingdomTransfers/TransferCompletionCapacityReconciliationV3Test.php
           git diff --cached --check
           git commit -m 'Close KingdomTransfers lifecycle and capability contracts'
           git push origin HEAD:kingdom-transfers-official-rules-capacity
