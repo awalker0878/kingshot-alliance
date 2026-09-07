@@ -109,7 +109,22 @@ jobs:
           routes/contributions.php
 
       - name: Intelligence V3 behavior contracts
-        run: vendor/bin/phpunit --configuration phpunit.xml --testsuite "Architecture V3"
+        shell: bash
+        run: |
+          set +e
+          vendor/bin/phpunit --configuration phpunit.xml --testsuite "Architecture V3" 2>&1 | tee "${RUNNER_TEMP}/intelligence-v3-behavior.log"
+          status=${PIPESTATUS[0]}
+          set -e
+          exit "$status"
+
+      - name: Upload behavior-contract diagnostics
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: intelligence-v3-behavior
+          path: ${{ runner.temp }}/intelligence-v3-behavior.log
+          if-no-files-found: ignore
+          retention-days: 7
 
   frontend:
     name: Intelligence history frontend contracts
