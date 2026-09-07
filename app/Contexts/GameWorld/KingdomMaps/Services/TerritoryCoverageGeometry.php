@@ -87,20 +87,16 @@ final class TerritoryCoverageGeometry
         throw new InvalidArgumentException('Selected Kingdom map release has no Alliance resource territory ratio rule.');
     }
 
-    /** @param list<Rectangle> $coverage */
-    public function componentCount(array $coverage): int
+    /** @param list<Rectangle> $coverage @return list<list<int>> */
+    public function components(array $coverage): array
     {
-        if ($coverage === []) {
-            return 0;
-        }
-
         $visited = [];
-        $components = 0;
+        $components = [];
         foreach (array_keys($coverage) as $start) {
             if (isset($visited[$start])) {
                 continue;
             }
-            $components++;
+            $component = [];
             $queue = [$start];
             while ($queue !== []) {
                 $index = array_pop($queue);
@@ -108,6 +104,7 @@ final class TerritoryCoverageGeometry
                     continue;
                 }
                 $visited[$index] = true;
+                $component[] = $index;
                 foreach ($coverage as $candidateIndex => $candidate) {
                     if (isset($visited[$candidateIndex]) || $candidateIndex === $index) {
                         continue;
@@ -117,8 +114,16 @@ final class TerritoryCoverageGeometry
                     }
                 }
             }
+            sort($component);
+            $components[] = $component;
         }
 
         return $components;
+    }
+
+    /** @param list<Rectangle> $coverage */
+    public function componentCount(array $coverage): int
+    {
+        return count($this->components($coverage));
     }
 }
