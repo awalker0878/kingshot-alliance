@@ -1,132 +1,177 @@
-# KingdomMaps Evidence-backed Map Knowledge Expansion
+# KingdomMaps Evidence Expansion
 
-Status: Selected extension — implementation in progress
+Status: Implemented on `kingdommaps-research-evidence-expansion`; CI/PR verification pending
 
-## Purpose
+This program turns `GameWorld/KingdomMaps` from a trusted community JSON profile plus placement validator into a versioned, evidence-backed KingShot map-knowledge capability. The application is a fresh deployment: schema V2 replaces V1 outright. No compatibility aliases, dual reads, migration shims or fallback loaders are permitted.
 
-KingdomMaps is the GameWorld-owned source of immutable, versioned KingShot map facts used by TerritoryPlanning and Intelligence reconciliation. This expansion turns the capability from a checked-in JSON profile plus placement validator into a versioned, evidence-aware map knowledge capability with explicit source lineage, fact confidence, release validation, researched facility coverage, and operational verification.
+## Goals
 
-## Fresh-deployment rule
+- make fact-level provenance/confidence a runtime invariant;
+- encode official Century Games Alliance territory rules as official only for the exact facts they support;
+- preserve community-observed geometry truthfully rather than presenting it as official;
+- record and use the repository owner's 2026-09-06 authorization to reuse ksmapper data;
+- expand fixed/facility knowledge to the researched 4 Fortress + 12 Sanctuary + 74 Outpost catalogue;
+- represent authorized resource/terrain corpus facts (6,499 resource nodes, 501 lakes, 1,948 mountains);
+- replace scalar factual geometry with explicit rectangular footprint/coverage contracts;
+- implement official 75% Alliance-resource ownership geometry and Banner-HQ connectivity semantics;
+- provide immutable release diffing, source/rights verification, operational commands and CI assurance.
 
-This is a fresh deployment. Schema V2 replaces schema V1 directly. Do not add compatibility readers, legacy shims, dual-read paths, migration adapters, or fallback-to-V1 behavior.
+## Evidence policy
 
-## Data-rights decision
+Confidence is attached to a fact/property, not granted wholesale by the release or source.
 
-The repository owner/user has explicitly confirmed on 2026-09-06 that they hold the rights needed to use the ksmapper map data in this project. KingdomMaps may therefore store and use ksmapper-derived map facts, including resource-node and terrain facts, subject to normal provenance and confidence rules.
+Supported states:
 
-This authorization affects rights to reuse the data; it does **not** change evidentiary confidence. ksmapper-derived facts remain `community_observed` unless independently verified. They must never be promoted to `official` merely because reuse is authorized.
+```text
+official
+verified_observation
+community_observed
+disputed
+unknown
+```
 
-## Source policy
+Rules:
 
-KingdomMaps distinguishes source authority from reuse rights.
+1. Only Century Games-published evidence may establish `official` facts.
+2. Independent observations may establish `verified_observation` only through explicit review/policy; agreement never silently becomes official.
+3. A single community source remains `community_observed`.
+4. Shared lineage does not count as independent corroboration. Bleezy/planner data derived from ksmapper remains ksmapper lineage.
+5. Conflicts are preserved as `disputed`; missing evidence remains `unknown`.
+6. Reuse rights and factual confidence are independent concepts.
 
-- **Century Games Kingshot Help Center**: official source for game rules such as the 285 Banner limit, the 75% Alliance-resource territory requirement, Banner/HQ connectivity, Plains/Fertile progression gates, and HQ placement restrictions.
-- **Kingshot Wiki (`kingshotwiki.com`)**: structured community reference used for facility coordinates and facility metadata. Coordinates may be promoted only to the confidence justified by corroboration recorded in the release.
-- **ksmapper**: user-authorized community-observed spatial source for map geometry, fixed structures, resource nodes, terrain masks, and map-placement observations.
-- **Planner geometry**: deterministic application-owned geometry rules such as object/object collision. These are not game-source claims.
+## ksmapper rights decision
 
-Two sources that reproduce the same upstream ksmapper dataset do not count as independent corroboration.
+On 2026-09-06 the repository owner/user explicitly confirmed that they possess the rights needed to use ksmapper data in Kingshot Alliance.
 
-## Schema V2 release contract
+The V2 source registry records:
 
-Every released dataset is immutable and exposes at least:
+```text
+source: ksmapper
+rights_basis: user_authorized_reuse_2026-09-06
+confidence_ceiling: community_observed
+lineage: primary_ksmapper
+```
 
-- `id`, `schema_version=2`, `release_status`, `released_at`, `observed_at`;
-- `game_version`, `season`, and applicability metadata when known;
-- `predecessor_id` and a human-readable change summary;
-- coordinate-system and map-bounds metadata;
-- source registry with source type, URI, confidence ceiling, rights basis, and lineage;
-- property/fact provenance references;
-- typed object definitions with rectangular `footprint` and `coverage` geometry;
-- map zones and placement restrictions;
-- fixed structures/facilities;
-- resource-node and terrain-layer metadata/facts when available;
-- sourced game placement rules;
-- release checksum computed from the immutable file bytes.
+This removes the prior reuse-rights blocker. It does not promote ksmapper facts to official or independently verified evidence.
 
-## Researched facts incorporated
+## V2 release contract
 
-The V2 release incorporates the following researched facts without overstating confidence:
+The sole runtime release is currently:
 
-- Alliance Banner limit: **285** per Alliance — official Century Games rule.
-- Alliance resource production requires **at least 75%** of the resource mine to be within Alliance territory — official Century Games rule.
-- Alliance Banners become invalid when disconnected from the Alliance HQ — official Century Games rule.
-- HQ may be built in **Badland** and **Plains**, but not **Fertile Land** — official Century Games rule.
-- Plains access follows the **Banner Raised High** milestone; Fertile Land access follows **Grand Conquest** — official Century Games rule.
-- Banner placement on Plains/Fertile Land depends on Alliance Growth technology including **Plains Enrichment** and **Cultivation Drive** — official Century Games rule.
-- Fixed facility catalogue: 4 Fortresses, 12 Sanctuaries, and 74 Outposts with researched coordinates.
-- ksmapper reports **6,499 canonical resource nodes**, **501 lake cells/features**, and **1,948 mountain cells/features** in its observed spatial corpus. Those facts are usable because reuse rights have been confirmed, but retain community-observed confidence unless separately verified.
-- ksmapper also describes map-planning limits of 2 HQs, 2 Bear Traps, and 100 Governor cities; where Century Games evidence is absent these remain community-observed, not official.
+```text
+kingshot-evidence-backed-2026-09-06-v2
+```
 
-## Object identity
+A release contains:
 
-V2 separates the two Alliance HQ facts:
+- immutable identity/status/release/observation metadata;
+- game/season applicability where known;
+- predecessor lineage where applicable;
+- source registry with type, URI, confidence ceiling, rights basis and lineage;
+- coordinate system and map bounds;
+- typed rectangular object footprint/coverage definitions;
+- HQ variants and fact-level provenance;
+- zones with property-level facts where evidence differs;
+- blocking/reference structures;
+- placement/territory rules;
+- resource/terrain layer state;
+- immutable artifact manifests and SHA-256 values.
 
-- `badland_headquarters`
-- `plains_headquarters`
+Released files are immutable. Territory plans and observations retain exact release ID/checksum pins.
 
-TerritoryPlanning may present a single user-facing HQ tool, but the factual map model must preserve the variant because legal placement and progression requirements differ.
+## Research-backed official rule set
 
-## Evidence rules
+The V2 release represents official Century Games evidence for at least:
 
-Confidence values are:
+- maximum 285 Alliance Banners;
+- minimum 75% Alliance-resource-mine inclusion within Alliance territory for production;
+- Banner invalidity/non-production when disconnected from an Alliance HQ;
+- Alliance HQ allowed on Badland;
+- Alliance HQ allowed on Plains under the documented progression boundary;
+- Alliance HQ prohibited on Fertile Land;
+- Plains access following `Banner Raised High`;
+- Fertile Land access following `Grand Conquest`;
+- later-zone Banner placement depending on Alliance Growth technology including `Plains Enrichment` and `Cultivation Drive`.
 
-- `official`
-- `verified_observation`
-- `community_observed`
-- `disputed`
-- `unknown`
+Where the official source does not state a finer relationship, the schema does not invent one.
 
-A release may contain facts at multiple confidence levels. Release-level confidence is a summary only and must not overwrite property-level provenance.
+## Researched spatial/facility set
 
-Each fact/properties group must reference one or more source IDs. Promotion to `verified_observation` requires independent corroboration or an explicit reviewer decision with evidence. `official` requires a Century Games-controlled source or another explicitly designated official source.
+The V2 release and immutable facility artifact cover:
 
-## Release lifecycle
+- King's Castle;
+- four central Turrets;
+- four Fortresses;
+- twelve Sanctuaries;
+- seventy-four Outposts with researched coordinates/levels;
+- 1,200 × 1,200 map bounds;
+- researched Badland, Plains, Fertile, Ruins and central forbidden regions;
+- ksmapper corpus facts for 6,499 resource nodes, 501 lake features and 1,948 mountain features.
 
-The supported lifecycle is:
+Blocking footprints/exclusions and corpus geometry retain community-observed confidence unless the exact property is supported by official evidence.
 
-1. ingest or author candidate facts;
-2. validate schema and source references;
-3. compare semantically with the current release;
-4. review additions/removals/changed facts and confidence;
-5. verify source-lineage and reuse-rights declarations;
-6. publish a new immutable release;
-7. retain predecessor/checksum identity so published TerritoryPlans remain pinned to the exact release they used.
+## Geometry contract
 
-A released file is never edited in place after publication; corrections create a successor release.
+V2 removes scalar factual `size` and scalar coverage contracts. Object and structure geometry uses:
 
-## Geometry policy
+```text
+footprint:
+  width
+  height
 
-- Rectangular footprints are first-class (`width`, `height`).
-- Coverage geometry is explicit and separate from footprint geometry.
-- Polygon/circle/mask geometry is introduced only when sourced facts require it.
-- Territory ownership uses the official 75% requirement instead of hard-coded corner heuristics.
-- Placement validation remains deterministic in both PHP and browser geometry implementations.
+coverage:
+  width
+  height
+```
 
-## Consumer boundaries
+`TerritoryCoverageGeometry` owns server-side rectangular footprint/coverage, covered-area ratio and territory-component calculations.
 
-KingdomMaps owns map truth and validation facts. It does not own:
+The official 75% rule is read from the released `alliance_resource_territory_ratio` rule and applied specifically to Alliance resource ownership. Governor-city coverage remains a TerritoryPlanning analytical semantic rather than being incorrectly promoted to the official 75% rule.
 
-- saved Alliance/Kingdom plans;
-- plan-local external Alliances/Governors;
-- Bear-hive optimization preferences;
-- event assignments/objectives;
-- unsourced march-speed assumptions.
+Banner connectivity is blocking only when a Banner-containing connected territory component has no HQ. A separate component anchored by another HQ is not incorrectly rejected.
 
-Those remain Operations/TerritoryPlanning concerns. Intelligence owns observations/evidence about live Kingdom state but consumes the pinned KingdomMaps release to interpret spatial evidence.
+## Consumers
 
-## Completion criteria
+The V2 geometry contract is consumed by:
 
-The extension is complete only when:
+- `PlacementValidator`;
+- `Operations/TerritoryPlanning/TerritoryCoverageAnalyzer`;
+- `Operations/TerritoryPlanning/TerritoryLayoutAnalyzer`;
+- browser Territory Planner geometry;
+- Intelligence spatial-observation bounds validation;
+- Territory Reconciliation absence/bounds reasoning.
 
-- V1 is removed and V2 is the only runtime dataset schema;
-- nested V2 schema validation is enforced;
-- source/provenance/rights validation is enforced;
-- researched facility facts and official rules are represented with truthful confidence;
-- ksmapper resource/terrain facts are represented as authorized community-observed data;
-- semantic release diffing exists;
-- 75% territory coverage is implemented;
-- production dataset loading is directly tested;
-- PHP/browser geometry parity remains green;
-- KingdomMaps validation is part of CI;
-- documentation and delivery ledger are reconciled to current truth.
+Browser/server behavior is pinned by the shared V2 golden fixture.
+
+## Operational tooling
+
+KingdomMaps registers:
+
+```text
+php artisan kingdom-maps:list
+php artisan kingdom-maps:validate
+php artisan kingdom-maps:verify-sources [release]
+php artisan kingdom-maps:diff <from> <to> [--json]
+```
+
+Validation covers schema, artifact identity/checksum, provenance, source confidence ceilings, rights basis and lineage.
+
+## CI
+
+`.github/workflows/kingdom-maps-assurance.yml` runs for relevant PR/main changes and verifies:
+
+- runtime release validation;
+- source rights/lineage verification;
+- focused KingdomMaps PHP tests;
+- production release facts/artifacts;
+- PHP/browser geometry parity.
+
+Full repository CI remains authoritative for broader PHP, frontend, architecture and container quality.
+
+## Implementation source matrix
+
+The direct implementation mapping of researched fact families, evidence, confidence and schema representation is maintained in [KingdomMaps source/confidence matrix](kingdom-maps-source-confidence-matrix.md).
+
+## Closeout
+
+The code/data/document implementation is complete on the feature branch. The delivery ledger remains open only for PR check verification, actionable review-thread resolution and merge to `main`.
