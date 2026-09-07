@@ -163,6 +163,7 @@ final readonly class TransferSelfEligibilityQuery
             invitationStatus: $this->selector->select($observations, TransferObservationKind::InvitationStatus, $targetId, $now),
             passesAvailable: $this->selector->select($observations, TransferObservationKind::TransferPassesAvailable, null, $now),
             passesRequired: $this->selector->select($observations, TransferObservationKind::TransferPassesRequired, $targetId, $now),
+            resourceProtectionVerified: $this->selector->select($observations, TransferObservationKind::ResourceProtectionVerified, null, $now),
             inGameRulesVerified: $this->selector->select($observations, TransferObservationKind::InGameRulesVerified, $targetId, $now),
         );
         $assessment = $this->evaluator->evaluate($input, $now);
