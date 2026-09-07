@@ -13,10 +13,14 @@ use App\Contexts\Alliance\Membership\ValueObjects\RosterEntryReference;
 use App\Contexts\GameWorld\Governance\Queries\KingdomAuthorityFactsQuery;
 use App\Contexts\GameWorld\KingdomTransfers\Access\Enums\TransferPermission;
 use App\Contexts\GameWorld\KingdomTransfers\Access\Services\TransferAuthorization;
+use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferCapacityReservationState;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferDirection;
+use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferInvitationAllocationState;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferPlanState;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferReadinessState;
+use App\Contexts\GameWorld\KingdomTransfers\Models\TransferCapacityReservation;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferCompletion;
+use App\Contexts\GameWorld\KingdomTransfers\Models\TransferInvitationAllocation;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferParticipant;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferPlan;
 use App\Contexts\GameWorld\KingdomTransfers\Services\TransferWriteState;
@@ -157,6 +161,39 @@ final readonly class CompleteTransferParticipant
                 'completed_at' => now(),
             ]);
 
+            $confirmedCapacityReservations = TransferCapacityReservation::query()
+                ->where('alliance_id', $allianceId)
+                ->where('transfer_plan_id', $plan->id)
+                ->where('transfer_participant_id', $participant->id)
+                ->whereIn('state', array_map(
+                    static fn (TransferCapacityReservationState $state): string => $state->value,
+                    array_filter(
+                        TransferCapacityReservationState::cases(),
+                        static fn (TransferCapacityReservationState $state): bool => $state->consumesPlannedCapacity(),
+                    ),
+                ))
+                ->update([
+                    'state' => TransferCapacityReservationState::Confirmed->value,
+                    'released_at' => null,
+                    'updated_at' => now(),
+                ]);
+
+            $acceptedInvitationAllocations = TransferInvitationAllocation::query()
+                ->where('alliance_id', $allianceId)
+                ->where('transfer_plan_id', $plan->id)
+                ->where('transfer_participant_id', $participant->id)
+                ->whereIn('state', array_map(
+                    static fn (TransferInvitationAllocationState $state): string => $state->value,
+                    array_filter(
+                        TransferInvitationAllocationState::cases(),
+                        static fn (TransferInvitationAllocationState $state): bool => $state->consumesPlannedInventory(),
+                    ),
+                ))
+                ->update([
+                    'state' => TransferInvitationAllocationState::Accepted->value,
+                    'updated_at' => now(),
+                ]);
+
             $metadata = [
                 'transfer_plan_id' => (string) $plan->id,
                 'transfer_participant_id' => (string) $participant->id,
@@ -165,6 +202,8 @@ final readonly class CompleteTransferParticipant
                 'roster_entry_id' => $rosterEntry->rosterEntryId,
                 'player_id' => $playerReference->playerId,
                 'player_current_kingdom_id' => $playerReference->kingdomId,
+                'confirmed_capacity_reservations' => $confirmedCapacityReservations,
+                'accepted_invitation_allocations' => $acceptedInvitationAllocations,
             ];
 
             $this->audit->record(
