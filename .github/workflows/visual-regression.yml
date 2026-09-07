@@ -124,6 +124,7 @@ jobs:
         with:
           name: ux-p9-visual-failure
           path: |
+            ${{ runner.temp }}/ux-p9-server.log
             test-results/visual
             playwright-report
           if-no-files-found: ignore
