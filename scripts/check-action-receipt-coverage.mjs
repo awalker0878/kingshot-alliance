@@ -5,9 +5,10 @@ import { fileURLToPath } from 'node:url';
 
 const controllerRoots = [
   fileURLToPath(new URL('../app/Contexts/', import.meta.url)),
-  fileURLToPath(new URL('../app/Http/Controllers/', import.meta.url)),
+  fileURLToPath(new URL('../app/Workflows/', import.meta.url)),
 ];
 const cataloguePath = new URL('../resources/js/localization/messages/core/en.ts', import.meta.url);
+const accountCataloguePath = new URL('../resources/js/localization/messages/account/en.ts', import.meta.url);
 const allianceExpansionCataloguePath = new URL('../resources/js/localization/alliance-capability-expansion-labels.ts', import.meta.url);
 const governanceExpansionCataloguePath = new URL('../resources/js/localization/governance-capability-expansion-labels.ts', import.meta.url);
 const giftCodeWorkspaceCataloguePath = new URL('../resources/js/localization/gift-code-workspace-labels.ts', import.meta.url);
@@ -34,11 +35,13 @@ for (const controllerRoot of controllerRoots) {
   }
 }
 const catalogue = readFileSync(cataloguePath, 'utf8');
+const accountCatalogue = readFileSync(accountCataloguePath, 'utf8');
 const allianceExpansionCatalogue = readFileSync(allianceExpansionCataloguePath, 'utf8');
 const governanceExpansionCatalogue = readFileSync(governanceExpansionCataloguePath, 'utf8');
 const giftCodeWorkspaceCatalogue = readFileSync(giftCodeWorkspaceCataloguePath, 'utf8');
 const receiptSources = [
   receiptSource(catalogue, '  receipts: {', '\n  },\n  navigation:', 'core/en.ts'),
+  receiptSource(accountCatalogue, '  receipts: {', '\n  },\n  notifications:', 'account/en.ts'),
   receiptSource(allianceExpansionCatalogue, '  receipts: {', '\n  },\n  allianceExpansion:', 'alliance-capability-expansion-labels.ts'),
   receiptSource(governanceExpansionCatalogue, '    receipts: {', '\n    },\n    governanceExpansion:', 'governance-capability-expansion-labels.ts'),
   receiptSource(giftCodeWorkspaceCatalogue, '  receipts: {', '\n  },\n};', 'gift-code-workspace-labels.ts'),

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers;
+namespace App\Workflows\KingdomGovernance\Http\Controllers;
 
 use App\Contexts\Accounts\Identity\Contracts\AuthenticatedAccount;
 use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;

@@ -1,6 +1,10 @@
 import type { MessageCatalogue } from '../../types';
 
 const messages = {
+  receipts: {
+    'google-connected': 'Google sign-in connected.',
+    'google-disconnected': 'Google sign-in disconnected.',
+  },
   notifications: {
     eyebrow: 'Governor notifications',
     title: 'Notifications',
