@@ -65,6 +65,7 @@ final readonly class SaveTransferCapacityReservation
             }
 
             $existing = TransferCapacityReservation::query()->where('transfer_participant_id', $participantId)->lockForUpdate()->first();
+            $existingId = $existing instanceof TransferCapacityReservation ? (string) $existing->id : null;
             if ($state->consumesPlannedCapacity()) {
                 $condition = TransferKingdomConditionObservation::query()
                     ->where('alliance_id', $allianceId)
@@ -96,7 +97,7 @@ final readonly class SaveTransferCapacityReservation
                     ->where('transfer_window_id', $plan->transfer_window_id)
                     ->where('target_kingdom_id', $targetId)
                     ->whereIn('state', $activeStates)
-                    ->when($existing instanceof TransferCapacityReservation, static fn (Builder $query): Builder => $query->where('id', '!=', (string) $existing->id))
+                    ->when($existingId !== null, static fn (Builder $query): Builder => $query->where('id', '!=', $existingId))
                     ->lockForUpdate()
                     ->get();
                 $plannedTotal = $otherReservations->count();
