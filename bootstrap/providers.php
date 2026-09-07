@@ -6,15 +6,24 @@ use App\Contexts\Accounts\Authentication\Providers\AuthenticationServiceProvider
 use App\Contexts\Accounts\MultiFactorAuthentication\Providers\MultiFactorAuthenticationServiceProvider;
 use App\Contexts\Accounts\Registration\Providers\RegistrationServiceProvider;
 use App\Contexts\Alliance\Access\Providers\AccessServiceProvider;
+use App\Contexts\Alliance\Content\Providers\ContentServiceProvider;
 use App\Contexts\Alliance\Lifecycle\Providers\LifecycleServiceProvider;
 use App\Contexts\Alliance\Membership\Providers\MembershipServiceProvider;
 use App\Contexts\Alliance\Recruitment\Providers\RecruitmentServiceProvider;
+use App\Contexts\Communications\Delivery\Providers\DeliveryServiceProvider;
 use App\Contexts\GameWorld\GiftCodes\Providers\GiftCodesServiceProvider;
 use App\Contexts\GameWorld\KingdomMaps\Providers\KingdomMapsServiceProvider;
+use App\Contexts\GameWorld\Kingdoms\Providers\KingdomsServiceProvider;
 use App\Contexts\GameWorld\Players\Providers\PlayersServiceProvider;
+use App\Contexts\Intelligence\Contributions\Providers\ContributionsServiceProvider;
 use App\Contexts\Intelligence\Evidence\Providers\EvidenceServiceProvider;
+use App\Contexts\Intelligence\Ingestion\Providers\IngestionServiceProvider;
+use App\Contexts\Intelligence\Sharing\Providers\SharingServiceProvider;
+use App\Contexts\Operations\Participation\Reminders\Providers\RemindersServiceProvider;
 use App\Contexts\Operations\TerritoryPlanning\Providers\TerritoryPlanningServiceProvider;
 use App\Contexts\Platform\Administration\Providers\AdministrationServiceProvider;
+use App\Contexts\Platform\AllianceAdministration\Providers\AllianceAdministrationServiceProvider;
+use App\Contexts\Platform\DataGovernance\Providers\DataGovernanceServiceProvider;
 use App\Contexts\Platform\Integrations\Providers\IntegrationsServiceProvider;
 use App\ReadModels\AllianceAssistant\Providers\AllianceAssistantServiceProvider;
 use App\ReadModels\AllianceGovernance\Providers\AllianceGovernanceServiceProvider;
@@ -29,15 +38,24 @@ return [
     PlayersServiceProvider::class,
     GiftCodesServiceProvider::class,
     KingdomMapsServiceProvider::class,
+    KingdomsServiceProvider::class,
     LifecycleServiceProvider::class,
     MembershipServiceProvider::class,
     AccessServiceProvider::class,
+    ContentServiceProvider::class,
     RecruitmentServiceProvider::class,
+    DeliveryServiceProvider::class,
     TerritoryPlanningServiceProvider::class,
+    RemindersServiceProvider::class,
     TerritoryPlanningReadModelServiceProvider::class,
     AllianceGovernanceServiceProvider::class,
     AllianceAssistantServiceProvider::class,
     EvidenceServiceProvider::class,
+    ContributionsServiceProvider::class,
+    IngestionServiceProvider::class,
+    SharingServiceProvider::class,
     AdministrationServiceProvider::class,
+    AllianceAdministrationServiceProvider::class,
+    DataGovernanceServiceProvider::class,
     IntegrationsServiceProvider::class,
 ];

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Contexts\Platform\Administration\Providers;
 
 use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
+use App\Contexts\Platform\Administration\Console\Commands\GrantPlatformAdministratorCommand;
 use App\Contexts\Platform\Administration\Models\PlatformAdministrator;
 use Illuminate\Http\Request;
 use Illuminate\Support\ServiceProvider;
@@ -30,5 +31,12 @@ final class AdministrationServiceProvider extends ServiceProvider
                 && $account->multiFactorConfirmed
                 && PlatformAdministrator::activeForUserId($account->userId);
         });
+    }
+
+    public function boot(): void
+    {
+        if ($this->app->runningInConsole()) {
+            $this->commands([GrantPlatformAdministratorCommand::class]);
+        }
     }
 }

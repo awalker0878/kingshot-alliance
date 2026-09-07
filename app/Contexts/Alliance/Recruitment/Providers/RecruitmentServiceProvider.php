@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Contexts\Alliance\Recruitment\Providers;
 
 use App\Contexts\Alliance\Recruitment\Actions\MarkRecruitmentCandidateJoined;
+use App\Contexts\Alliance\Recruitment\Console\Commands\PurgeExpiredRecruitmentCandidatesCommand;
 use App\Contexts\Alliance\Recruitment\Http\Controllers\RecruitmentReentryController;
 use App\Shared\Infrastructure\Messaging\Outbox\Events\OutboxPublished;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -19,6 +20,10 @@ final class RecruitmentServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
+        if ($this->app->runningInConsole()) {
+            $this->commands([PurgeExpiredRecruitmentCandidatesCommand::class]);
+        }
+
         RateLimiter::for('recruitment-application', static fn (Request $request): Limit => Limit::perMinute(3)->by(
             Str::lower(trim((string) $request->input('email'))).'|'.(string) $request->ip(),
         ));

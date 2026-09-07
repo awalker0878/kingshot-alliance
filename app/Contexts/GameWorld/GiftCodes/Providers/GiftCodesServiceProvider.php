@@ -15,6 +15,12 @@ use App\Contexts\GameWorld\GiftCodes\Adapters\RedditSubredditGiftCodeSourceAdapt
 use App\Contexts\GameWorld\GiftCodes\Adapters\RssAtomGiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Adapters\StructuredHtmlGiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Adapters\YouTubeChannelGiftCodeSourceAdapter;
+use App\Contexts\GameWorld\GiftCodes\Console\Commands\BackfillGiftCodeSourcesCommand;
+use App\Contexts\GameWorld\GiftCodes\Console\Commands\GiftCodeDiscordGatewayCommand;
+use App\Contexts\GameWorld\GiftCodes\Console\Commands\IngestApprovedGiftCodeSourcesCommand;
+use App\Contexts\GameWorld\GiftCodes\Console\Commands\MaintainGiftCodesCommand;
+use App\Contexts\GameWorld\GiftCodes\Console\Commands\ReconcileGiftCodeSourcePoliciesCommand;
+use App\Contexts\GameWorld\GiftCodes\Console\Commands\ReconcileGiftCodeSourcesCommand;
 use App\Contexts\GameWorld\GiftCodes\Contracts\GiftCodeRedemptionProvider;
 use App\Contexts\GameWorld\GiftCodes\Services\GiftCodeSourceAdapterRegistry;
 use App\Contexts\GameWorld\GiftCodes\Services\OfficialGiftCodeHandoff;
@@ -63,6 +69,17 @@ final class GiftCodesServiceProvider extends ServiceProvider
 
     public function boot(Schedule $schedule): void
     {
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                MaintainGiftCodesCommand::class,
+                IngestApprovedGiftCodeSourcesCommand::class,
+                ReconcileGiftCodeSourcesCommand::class,
+                BackfillGiftCodeSourcesCommand::class,
+                GiftCodeDiscordGatewayCommand::class,
+                ReconcileGiftCodeSourcePoliciesCommand::class,
+            ]);
+        }
+
         $schedule->call(static function (): int {
             $result = app(RebuildGiftCodeAcquisitionIntelligence::class)->cycle(500, 100);
 

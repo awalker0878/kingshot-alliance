@@ -16,3 +16,7 @@ Architecture decision records explain material changes to ownership, boundaries,
 - [ADR-0010: Separate screenshot evidence from domain results](0010-separate-screenshot-evidence-from-domain-results.md)
 - [ADR-0011: Separate transfer planning cohorts from official Transfer Groups](0011-separate-transfer-planning-cohorts-from-official-transfer-groups.md)
 - [ADR-0012: Keep Alliance Assistant as authorized read composition](0012-keep-alliance-assistant-as-authorized-read-composition.md)
+- [ADR-0013: Use exclusive account authentication types and durable Google subjects](0013-exclusive-account-authentication-types.md)
+- [ADR-0014: Model authentication as sign-in methods attached to Kingshot Alliance Users](0014-account-sign-in-methods.md)
+- [ADR-0015: Separate logical notifications from delivery routes](0015-separate-logical-notifications-from-delivery-routes.md)
+- [ADR-0016: Keep capability console commands with their owning capability](0016-capability-console-command-ownership.md)
