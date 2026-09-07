@@ -22,7 +22,7 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci --no-audit --no-fund
-      - name: Complete officer capacity UI and boolean projection
+      - name: Complete officer capacity UI
         shell: bash
         run: |
           python3 <<'PY'
@@ -71,11 +71,6 @@ jobs:
           replace_once(translations,
           """    capacityPlanning: 'Target capacity planning',""",
           """    capacityObservationTitle: 'Observed KingShot capacity',\n    capacityObservationHelp:\n      'Record the current in-game slot consumption and Special Invite inventory. These are sourced game facts; Alliance reservations remain separate planning intent.',\n    recordCapacityObservation: 'Record capacity observation',\n    capacityHistory: 'Observed capacity history',\n    observedFactsHelp:\n      'These rows are sourced observations from KingShot or official publications. They are not Alliance reservations.',\n    ordinaryInvitesUsed: 'Ordinary Invites used',\n    transferOpensUsed: 'Transfer Opens used',\n    specialInvitesAvailable: 'Special Invites available',\n    capacityPlanning: 'Target capacity planning',""")
-
-          readiness_controller = 'app/Contexts/GameWorld/KingdomTransfers/Http/Controllers/TransferReadinessController.php'
-          replace_once(readiness_controller,
-          """                : ($observation->kind->value === 'in_game_rules_verified'\n                    ? $observation->boolean_value\n                    : $observation->text_value),""",
-          """                : ($observation->kind->usesBooleanValue()\n                    ? $observation->boolean_value\n                    : $observation->text_value),""")
           PY
       - name: Produce canonical Prettier output
         run: npx prettier --write resources/js/components/transfers/TransferEvidencePanel.vue resources/js/pages/Kingdom/Transfer/Readiness.vue resources/js/pages/Kingdom/Transfer/Manage.vue resources/js/localization/messages/transfers/en.ts
@@ -84,7 +79,7 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add app/Contexts/GameWorld/KingdomTransfers/Http/Controllers/TransferReadinessController.php resources/js/components/transfers/TransferEvidencePanel.vue resources/js/pages/Kingdom/Transfer/Readiness.vue resources/js/pages/Kingdom/Transfer/Manage.vue resources/js/localization/messages/transfers/en.ts
+          git add resources/js/components/transfers/TransferEvidencePanel.vue resources/js/pages/Kingdom/Transfer/Readiness.vue resources/js/pages/Kingdom/Transfer/Manage.vue resources/js/localization/messages/transfers/en.ts
           git diff --cached --check
           git commit -m 'Complete KingdomTransfers officer capacity workflow'
           git push origin HEAD:kingdom-transfers-official-rules-capacity
