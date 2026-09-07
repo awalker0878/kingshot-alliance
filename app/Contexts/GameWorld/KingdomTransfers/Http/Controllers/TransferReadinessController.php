@@ -28,6 +28,7 @@ use App\Contexts\GameWorld\KingdomTransfers\Queries\TransferEligibilityQuery;
 use App\Contexts\GameWorld\KingdomTransfers\Queries\TransferParticipantQuery;
 use App\Contexts\GameWorld\KingdomTransfers\Queries\TransferPlanQuery;
 use App\Contexts\GameWorld\KingdomTransfers\ValueObjects\TransferEligibilityAssessment;
+use App\Contexts\GameWorld\KingdomTransfers\ValueObjects\TransferKingdomCapacityProjection;
 use App\Contexts\GameWorld\KingdomTransfers\ValueObjects\TransferObservedValue;
 use App\Contexts\GameWorld\KingdomTransfers\ValueObjects\TransferRequirement;
 use App\Shared\Infrastructure\Http\Controller;
@@ -212,7 +213,8 @@ final class TransferReadinessController extends Controller
      *     transferScore: TransferObservedValue,
      *     observations: Collection<int, TransferObservation>,
      *     officialGroup: TransferGroup|null,
-     *     targetCondition: TransferKingdomConditionObservation|null
+     *     targetCondition: TransferKingdomConditionObservation|null,
+     *     capacityProjection: TransferKingdomCapacityProjection|null
      * }|null $planning
      * @return array<string, mixed>
      */
@@ -221,6 +223,7 @@ final class TransferReadinessController extends Controller
         $assessment = $planning['assessment'] ?? null;
         $score = $planning['transferScore'] ?? TransferObservedValue::unknown();
         $targetCondition = $planning['targetCondition'] ?? null;
+        $capacity = $planning['capacityProjection'] ?? null;
         $observations = $planning['observations'] ?? collect();
 
         return [
@@ -249,11 +252,53 @@ final class TransferReadinessController extends Controller
                 ? [
                     'powerCap' => $targetCondition->power_cap,
                     'classification' => $targetCondition->classification?->value,
+                    'heroGeneration' => $targetCondition->hero_generation,
+                    'truegoldLevel' => $targetCondition->truegold_level,
+                    'characterAgeThresholdDays' => $targetCondition->character_age_threshold_days,
                     'sourceType' => $targetCondition->source_type->value,
                     'sourceReference' => $targetCondition->source_reference,
                     'observedAt' => $targetCondition->observed_at->toIso8601String(),
                 ]
                 : null,
+            'capacity' => $capacity instanceof TransferKingdomCapacityProjection
+                ? [
+                    'state' => $capacity->state->value,
+                    'officialTotalCapacity' => $capacity->officialTotalCapacity,
+                    'officialOrdinaryInviteCapacity' => $capacity->officialOrdinaryInviteCapacity,
+                    'officialTransferOpenCapacity' => $capacity->officialTransferOpenCapacity,
+                    'ordinaryInvitesUsed' => $capacity->ordinaryInvitesUsed,
+                    'transferOpensUsed' => $capacity->transferOpensUsed,
+                    'specialInvitesAvailable' => $capacity->specialInvitesAvailable,
+                    'plannedOrdinaryInviteReservations' => $capacity->plannedOrdinaryInviteReservations,
+                    'plannedTransferOpenReservations' => $capacity->plannedTransferOpenReservations,
+                    'plannedSpecialInviteAllocations' => $capacity->plannedSpecialInviteAllocations,
+                    'observedTotalRemaining' => $capacity->totalRemaining()->value,
+                    'projectedTotalRemaining' => $capacity->totalRemaining(true)->value,
+                    'observedOrdinaryInviteRemaining' => $capacity->ordinaryInviteRemaining()->value,
+                    'projectedOrdinaryInviteRemaining' => $capacity->ordinaryInviteRemaining(true)->value,
+                    'observedTransferOpenRemaining' => $capacity->transferOpenRemaining()->value,
+                    'projectedTransferOpenRemaining' => $capacity->transferOpenRemaining(true)->value,
+                    'observedSpecialInvitesAvailable' => $capacity->specialInviteRemaining()->value,
+                    'projectedSpecialInvitesAvailable' => $capacity->specialInviteRemaining(true)->value,
+                    'sourceType' => $capacity->sourceType?->value,
+                    'sourceReference' => $capacity->sourceReference,
+                    'observedAt' => $capacity->observedAt?->toIso8601String(),
+                ]
+                : null,
+            'capacityReservation' => $participant->capacityReservation === null
+                ? null
+                : [
+                    'bucket' => $participant->capacityReservation->bucket->value,
+                    'state' => $participant->capacityReservation->state->value,
+                    'notes' => $participant->capacityReservation->notes,
+                ],
+            'invitationAllocation' => $participant->invitationAllocation === null
+                ? null
+                : [
+                    'kind' => $participant->invitationAllocation->kind->value,
+                    'state' => $participant->invitationAllocation->state->value,
+                    'notes' => $participant->invitationAllocation->notes,
+                ],
             'transferScore' => $this->observed($score),
             'eligibility' => $assessment instanceof TransferEligibilityAssessment
                 ? $this->assessment($assessment)
@@ -341,7 +386,7 @@ final class TransferReadinessController extends Controller
             'kind' => $observation->kind->value,
             'value' => $observation->kind->usesNumericValue()
                 ? $observation->numeric_value
-                : ($observation->kind->value === 'in_game_rules_verified'
+                : ($observation->kind->usesBooleanValue()
                     ? $observation->boolean_value
                     : $observation->text_value),
             'details' => $observation->details,
