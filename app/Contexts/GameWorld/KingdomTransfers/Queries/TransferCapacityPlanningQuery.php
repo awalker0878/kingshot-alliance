@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Contexts\GameWorld\KingdomTransfers\Queries;
 
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferCapacityBucket;
+use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferCapacityReservationState;
+use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferInvitationAllocationState;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferInvitationKind;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferRequirementState;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferCapacityReservation;
@@ -73,9 +75,9 @@ final readonly class TransferCapacityPlanningQuery
                     : TransferRequirementState::Unknown;
 
             $targetReservations = $reservations->where('target_kingdom_id', $kingdomId)
-                ->filter(static fn (TransferCapacityReservation $row): bool => $row->state->consumesPlannedCapacity());
+                ->filter(fn (TransferCapacityReservation $row): bool => $this->reservationStillConsumes($row, $capacity));
             $targetAllocations = $allocations->where('target_kingdom_id', $kingdomId)
-                ->filter(static fn (TransferInvitationAllocation $row): bool => $row->state->consumesPlannedInventory());
+                ->filter(fn (TransferInvitationAllocation $row): bool => $this->allocationStillConsumes($row, $capacity));
 
             $result[$kingdomId] = new TransferKingdomCapacityProjection(
                 kingdomId: $kingdomId,
@@ -96,5 +98,47 @@ final readonly class TransferCapacityPlanningQuery
         }
 
         return $result;
+    }
+
+    private function reservationStillConsumes(
+        TransferCapacityReservation $reservation,
+        mixed $capacity,
+    ): bool {
+        if (! $reservation->state->consumesPlannedCapacity()) {
+            return false;
+        }
+
+        if ($reservation->state !== TransferCapacityReservationState::Confirmed) {
+            return true;
+        }
+
+        return ! $this->isReflectedByCapacityObservation($reservation->getAttribute('updated_at'), $capacity);
+    }
+
+    private function allocationStillConsumes(
+        TransferInvitationAllocation $allocation,
+        mixed $capacity,
+    ): bool {
+        if (! $allocation->state->consumesPlannedInventory()) {
+            return false;
+        }
+
+        if (! in_array($allocation->state, [TransferInvitationAllocationState::Issued, TransferInvitationAllocationState::Accepted], true)) {
+            return true;
+        }
+
+        return ! $this->isReflectedByCapacityObservation($allocation->getAttribute('updated_at'), $capacity);
+    }
+
+    private function isReflectedByCapacityObservation(
+        mixed $commitmentUpdatedAt,
+        mixed $capacity,
+    ): bool {
+        if (! $capacity instanceof TransferKingdomCapacityObservation || $commitmentUpdatedAt === null) {
+            return false;
+        }
+
+        return CarbonImmutable::parse((string) $commitmentUpdatedAt)
+            ->lessThanOrEqualTo(CarbonImmutable::instance($capacity->observed_at));
     }
 }
