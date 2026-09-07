@@ -7,6 +7,7 @@ namespace Tests\v3\Contexts\GameWorld\KingdomTransfers;
 use App\Contexts\Alliance\Lifecycle\ValueObjects\AllianceReference;
 use App\Contexts\Alliance\Membership\ValueObjects\RosterEntryReference;
 use App\Contexts\GameWorld\KingdomTransfers\Actions\CreateTransferPlan;
+use App\Contexts\GameWorld\KingdomTransfers\Actions\RecordTransferKingdomCapacity;
 use App\Contexts\GameWorld\KingdomTransfers\Actions\RecordTransferKingdomCondition;
 use App\Contexts\GameWorld\KingdomTransfers\Actions\RecordTransferObservation;
 use App\Contexts\GameWorld\KingdomTransfers\Actions\SaveTransferGroup;
@@ -95,16 +96,19 @@ final class TransferPlanningCompletenessV3Test extends TestCase
         self::assertSame(TransferEligibilityOutcome::EligibleNow, $this->eligibility($scenario)['assessment']->outcome);
 
         app(RecordTransferKingdomCondition::class)->handle(
-            $scenario['alliance']->allianceId,
-            $scenario['actor']->playerId,
-            $scenario['windowId'],
-            $scenario['targetNumber'],
-            110_000_000,
-            TransferKingdomClassification::Ordinary,
-            TransferSourceType::InGame,
-            'KingShot corrected target Kingdom transfer screen',
-            $this->now->addMinute()->toIso8601String(),
-            true,
+            allianceId: $scenario['alliance']->allianceId,
+            actorPlayerId: $scenario['actor']->playerId,
+            windowId: $scenario['windowId'],
+            kingdomNumber: $scenario['targetNumber'],
+            powerCap: 110_000_000,
+            classification: TransferKingdomClassification::Ordinary,
+            sourceType: TransferSourceType::InGame,
+            sourceReference: 'KingShot corrected target Kingdom transfer screen',
+            observedAt: $this->now->addMinute()->toIso8601String(),
+            isCorrection: true,
+            heroGeneration: 4,
+            truegoldLevel: 5,
+            characterAgeThresholdDays: 120,
         );
 
         $afterCorrection = $this->eligibility($scenario);
@@ -271,20 +275,40 @@ final class TransferPlanningCompletenessV3Test extends TestCase
             ],
         );
         app(RecordTransferKingdomCondition::class)->handle(
+            allianceId: $scenario['alliance']->allianceId,
+            actorPlayerId: $scenario['actor']->playerId,
+            windowId: $scenario['windowId'],
+            kingdomNumber: $scenario['targetNumber'],
+            powerCap: $cap,
+            classification: TransferKingdomClassification::Ordinary,
+            sourceType: TransferSourceType::InGame,
+            sourceReference: 'KingShot target Kingdom transfer screen',
+            observedAt: $this->now->subMinutes(15)->toIso8601String(),
+            heroGeneration: 4,
+            truegoldLevel: 5,
+            characterAgeThresholdDays: 120,
+        );
+        app(RecordTransferKingdomCapacity::class)->handle(
             $scenario['alliance']->allianceId,
             $scenario['actor']->playerId,
             $scenario['windowId'],
             $scenario['targetNumber'],
-            $cap,
-            TransferKingdomClassification::Ordinary,
+            0,
+            0,
+            3,
             TransferSourceType::InGame,
-            'KingShot target Kingdom transfer screen',
-            $this->now->subMinutes(15)->toIso8601String(),
+            'KingShot target Kingdom capacity screen',
+            $this->now->subMinutes(14)->toIso8601String(),
         );
 
         $record = app(RecordTransferObservation::class);
         foreach ([
             [TransferObservationKind::GovernorPower, $power, 'KingShot Governor transfer screen', null],
+            [TransferObservationKind::HeroGeneration, 4, 'KingShot Governor hero generation', null],
+            [TransferObservationKind::TruegoldLevel, 5, 'KingShot Governor Truegold level', null],
+            [TransferObservationKind::CharacterAgeOverTargetDays, 30, 'KingShot character age eligibility', null],
+            [TransferObservationKind::TransferCooldownRemainingDays, 0, 'KingShot transfer cooldown', null],
+            [TransferObservationKind::TargetExistingCharacterCount, 0, 'KingShot target character list', null],
             [TransferObservationKind::TransferPassesAvailable, 9, 'KingShot Transfer Pass inventory', null],
             [TransferObservationKind::TransferPassesRequired, 9, 'KingShot target transfer requirements', null],
             [TransferObservationKind::InGameRulesVerified, true, 'KingShot transfer eligibility screen', null],
