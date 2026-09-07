@@ -93,8 +93,14 @@ function objectAt(screenX: number, screenY: number): PlanObject | null {
     if (!object) continue;
     const definition = props.map.object_types[object.type];
     const [x, yBottom] = toScreen(object.x, object.y);
-    const size = definition.size * zoom.value;
-    if (screenX >= x && screenX <= x + size && screenY <= yBottom && screenY >= yBottom - size)
+    const objectWidth = definition.footprint.width * zoom.value;
+    const objectHeight = definition.footprint.height * zoom.value;
+    if (
+      screenX >= x &&
+      screenX <= x + objectWidth &&
+      screenY <= yBottom &&
+      screenY >= yBottom - objectHeight
+    )
       return object;
   }
   return null;
@@ -189,8 +195,14 @@ function onPointerUp(event: PointerEvent): void {
         if (!visibleAlliances.value.has(object.alliance_key)) return false;
         const definition = props.map.object_types[object.type];
         const [x, yBottom] = toScreen(object.x, object.y);
-        const size = definition.size * zoom.value;
-        return x >= left && x + size <= right && yBottom - size >= top && yBottom <= bottom;
+        const objectWidth = definition.footprint.width * zoom.value;
+        const objectHeight = definition.footprint.height * zoom.value;
+        return (
+          x >= left &&
+          x + objectWidth <= right &&
+          yBottom - objectHeight >= top &&
+          yBottom <= bottom
+        );
       })
       .map((object) => object.key);
     emit(
@@ -237,9 +249,10 @@ function draw(): void {
   if (props.showStructures) {
     for (const structure of props.map.structures) {
       const [x, yBottom] = toScreen(structure.x, structure.y);
-      const size = structure.size * zoom.value;
+      const structureWidth = structure.footprint.width * zoom.value;
+      const structureHeight = structure.footprint.height * zoom.value;
       context.fillStyle = 'rgba(139, 125, 107, .82)';
-      context.fillRect(x, yBottom - size, size, size);
+      context.fillRect(x, yBottom - structureHeight, structureWidth, structureHeight);
     }
   }
   for (const object of props.objects) {
@@ -247,30 +260,52 @@ function draw(): void {
     const definition = props.map.object_types[object.type];
     const color = allianceColor.value.get(object.alliance_key) ?? '#4da3ff';
     const [x, yBottom] = toScreen(object.x, object.y);
-    const size = definition.size * zoom.value;
-    if (props.showCoverage && definition.coverage > 0) {
+    const objectWidth = definition.footprint.width * zoom.value;
+    const objectHeight = definition.footprint.height * zoom.value;
+    if (props.showCoverage && definition.coverage) {
+      const coverageOffsetX = Math.trunc(
+        (definition.coverage.width - definition.footprint.width) / 2,
+      );
+      const coverageOffsetY = Math.trunc(
+        (definition.coverage.height - definition.footprint.height) / 2,
+      );
+      const [coverageX, coverageBottom] = toScreen(
+        object.x - coverageOffsetX,
+        object.y - coverageOffsetY,
+      );
+      const coverageWidth = definition.coverage.width * zoom.value;
+      const coverageHeight = definition.coverage.height * zoom.value;
       context.globalAlpha = 0.12;
       context.fillStyle = color;
-      const coverage = definition.coverage * zoom.value;
       context.fillRect(
-        x - coverage,
-        yBottom - size - coverage,
-        size + coverage * 2,
-        size + coverage * 2,
+        coverageX,
+        coverageBottom - coverageHeight,
+        coverageWidth,
+        coverageHeight,
       );
       context.globalAlpha = 1;
     }
     context.fillStyle = color;
-    context.fillRect(x, yBottom - size, Math.max(size, 2), Math.max(size, 2));
+    context.fillRect(
+      x,
+      yBottom - objectHeight,
+      Math.max(objectWidth, 2),
+      Math.max(objectHeight, 2),
+    );
     context.strokeStyle = props.selectedKeys.includes(object.key)
       ? '#fff4b8'
       : 'rgba(255,255,255,.55)';
     context.lineWidth = props.selectedKeys.includes(object.key) ? 2 : 1;
-    context.strokeRect(x, yBottom - size, Math.max(size, 2), Math.max(size, 2));
+    context.strokeRect(
+      x,
+      yBottom - objectHeight,
+      Math.max(objectWidth, 2),
+      Math.max(objectHeight, 2),
+    );
     if (zoom.value > 1.2 && object.label) {
       context.fillStyle = '#f8fafc';
       context.font = '11px sans-serif';
-      context.fillText(object.label, x + 3, yBottom - size - 4);
+      context.fillText(object.label, x + 3, yBottom - objectHeight - 4);
     }
   }
   if (drag.value?.kind === 'box' && boxEnd.value) {
