@@ -86,15 +86,30 @@
   },
   "object_types": {
     "headquarters": {
-      "footprint": { "width": 3, "height": 3 },
-      "coverage": { "width": 15, "height": 15 },
+      "footprint": {
+        "width": 3,
+        "height": 3
+      },
+      "coverage": {
+        "width": 15,
+        "height": 15
+      },
       "max_per_alliance": 2,
       "confidence": "community_observed",
       "provenance": ["ksmapper"],
       "facts": {
-        "footprint": { "confidence": "community_observed", "provenance": ["ksmapper"] },
-        "coverage": { "confidence": "community_observed", "provenance": ["ksmapper"] },
-        "max_per_alliance": { "confidence": "community_observed", "provenance": ["ksmapper"] }
+        "footprint": {
+          "confidence": "community_observed",
+          "provenance": ["ksmapper"]
+        },
+        "coverage": {
+          "confidence": "community_observed",
+          "provenance": ["ksmapper"]
+        },
+        "max_per_alliance": {
+          "confidence": "community_observed",
+          "provenance": ["ksmapper"]
+        }
       },
       "variants": [
         {
@@ -114,35 +129,68 @@
       ]
     },
     "banner": {
-      "footprint": { "width": 1, "height": 1 },
-      "coverage": { "width": 7, "height": 7 },
+      "footprint": {
+        "width": 1,
+        "height": 1
+      },
+      "coverage": {
+        "width": 7,
+        "height": 7
+      },
       "max_per_alliance": 285,
       "confidence": "community_observed",
       "provenance": ["ksmapper", "century_games_alliance"],
       "facts": {
-        "footprint": { "confidence": "community_observed", "provenance": ["ksmapper"] },
-        "coverage": { "confidence": "community_observed", "provenance": ["ksmapper"] },
-        "max_per_alliance": { "confidence": "official", "provenance": ["century_games_alliance"] }
+        "footprint": {
+          "confidence": "community_observed",
+          "provenance": ["ksmapper"]
+        },
+        "coverage": {
+          "confidence": "community_observed",
+          "provenance": ["ksmapper"]
+        },
+        "max_per_alliance": {
+          "confidence": "official",
+          "provenance": ["century_games_alliance"]
+        }
       }
     },
     "governor_city": {
-      "footprint": { "width": 2, "height": 2 },
+      "footprint": {
+        "width": 2,
+        "height": 2
+      },
       "max_per_alliance": 100,
       "confidence": "community_observed",
       "provenance": ["ksmapper"],
       "facts": {
-        "footprint": { "confidence": "community_observed", "provenance": ["ksmapper"] },
-        "max_per_alliance": { "confidence": "community_observed", "provenance": ["ksmapper"] }
+        "footprint": {
+          "confidence": "community_observed",
+          "provenance": ["ksmapper"]
+        },
+        "max_per_alliance": {
+          "confidence": "community_observed",
+          "provenance": ["ksmapper"]
+        }
       }
     },
     "bear_trap": {
-      "footprint": { "width": 3, "height": 3 },
+      "footprint": {
+        "width": 3,
+        "height": 3
+      },
       "max_per_alliance": 2,
       "confidence": "community_observed",
       "provenance": ["ksmapper"],
       "facts": {
-        "footprint": { "confidence": "community_observed", "provenance": ["ksmapper"] },
-        "max_per_alliance": { "confidence": "community_observed", "provenance": ["ksmapper"] }
+        "footprint": {
+          "confidence": "community_observed",
+          "provenance": ["ksmapper"]
+        },
+        "max_per_alliance": {
+          "confidence": "community_observed",
+          "provenance": ["ksmapper"]
+        }
       }
     }
   },
@@ -174,8 +222,14 @@
       "confidence": "community_observed",
       "provenance": ["ksmapper", "century_games_hq"],
       "facts": {
-        "geometry": { "confidence": "community_observed", "provenance": ["ksmapper"] },
-        "headquarters_blocked": { "confidence": "official", "provenance": ["century_games_hq"] }
+        "geometry": {
+          "confidence": "community_observed",
+          "provenance": ["ksmapper"]
+        },
+        "headquarters_blocked": {
+          "confidence": "official",
+          "provenance": ["century_games_hq"]
+        }
       }
     },
     "plains": {
@@ -187,8 +241,14 @@
       "confidence": "community_observed",
       "provenance": ["ksmapper"],
       "facts": {
-        "geometry": { "confidence": "community_observed", "provenance": ["ksmapper"] },
-        "headquarters_allowed": { "confidence": "official", "provenance": ["century_games_hq"] }
+        "geometry": {
+          "confidence": "community_observed",
+          "provenance": ["ksmapper"]
+        },
+        "headquarters_allowed": {
+          "confidence": "official",
+          "provenance": ["century_games_hq"]
+        }
       }
     },
     "badlands": {
@@ -200,8 +260,14 @@
       "confidence": "community_observed",
       "provenance": ["ksmapper"],
       "facts": {
-        "geometry": { "confidence": "community_observed", "provenance": ["ksmapper"] },
-        "headquarters_allowed": { "confidence": "official", "provenance": ["century_games_hq"] }
+        "geometry": {
+          "confidence": "community_observed",
+          "provenance": ["ksmapper"]
+        },
+        "headquarters_allowed": {
+          "confidence": "official",
+          "provenance": ["century_games_hq"]
+        }
       }
     }
   },
@@ -212,7 +278,10 @@
       "category": "castle",
       "x": 597,
       "y": 597,
-      "footprint": { "width": 6, "height": 6 },
+      "footprint": {
+        "width": 6,
+        "height": 6
+      },
       "exclusion_tiles": 6,
       "city_exempt": false,
       "blocks_placement": true,
@@ -225,7 +294,10 @@
       "category": "turret",
       "x": 594,
       "y": 594,
-      "footprint": { "width": 2, "height": 2 },
+      "footprint": {
+        "width": 2,
+        "height": 2
+      },
       "exclusion_tiles": 0,
       "city_exempt": false,
       "blocks_placement": true,
@@ -238,7 +310,10 @@
       "category": "turret",
       "x": 604,
       "y": 604,
-      "footprint": { "width": 2, "height": 2 },
+      "footprint": {
+        "width": 2,
+        "height": 2
+      },
       "exclusion_tiles": 0,
       "city_exempt": false,
       "blocks_placement": true,
@@ -251,7 +326,10 @@
       "category": "turret",
       "x": 594,
       "y": 604,
-      "footprint": { "width": 2, "height": 2 },
+      "footprint": {
+        "width": 2,
+        "height": 2
+      },
       "exclusion_tiles": 0,
       "city_exempt": false,
       "blocks_placement": true,
@@ -264,7 +342,10 @@
       "category": "turret",
       "x": 604,
       "y": 594,
-      "footprint": { "width": 2, "height": 2 },
+      "footprint": {
+        "width": 2,
+        "height": 2
+      },
       "exclusion_tiles": 0,
       "city_exempt": false,
       "blocks_placement": true,
@@ -277,7 +358,10 @@
       "category": "fortress",
       "x": 597,
       "y": 800,
-      "footprint": { "width": 6, "height": 6 },
+      "footprint": {
+        "width": 6,
+        "height": 6
+      },
       "exclusion_tiles": 60,
       "city_exempt": true,
       "blocks_placement": true,
@@ -290,7 +374,10 @@
       "category": "fortress",
       "x": 400,
       "y": 597,
-      "footprint": { "width": 6, "height": 6 },
+      "footprint": {
+        "width": 6,
+        "height": 6
+      },
       "exclusion_tiles": 60,
       "city_exempt": true,
       "blocks_placement": true,
@@ -303,7 +390,10 @@
       "category": "fortress",
       "x": 597,
       "y": 400,
-      "footprint": { "width": 6, "height": 6 },
+      "footprint": {
+        "width": 6,
+        "height": 6
+      },
       "exclusion_tiles": 60,
       "city_exempt": true,
       "blocks_placement": true,
@@ -316,7 +406,10 @@
       "category": "fortress",
       "x": 800,
       "y": 597,
-      "footprint": { "width": 6, "height": 6 },
+      "footprint": {
+        "width": 6,
+        "height": 6
+      },
       "exclusion_tiles": 60,
       "city_exempt": true,
       "blocks_placement": true,
@@ -329,7 +422,10 @@
       "category": "sanctuary",
       "x": 237,
       "y": 828,
-      "footprint": { "width": 6, "height": 6 },
+      "footprint": {
+        "width": 6,
+        "height": 6
+      },
       "exclusion_tiles": 60,
       "city_exempt": true,
       "blocks_placement": true,
@@ -342,7 +438,10 @@
       "category": "sanctuary",
       "x": 237,
       "y": 606,
-      "footprint": { "width": 6, "height": 6 },
+      "footprint": {
+        "width": 6,
+        "height": 6
+      },
       "exclusion_tiles": 60,
       "city_exempt": true,
       "blocks_placement": true,
@@ -355,7 +454,10 @@
       "category": "sanctuary",
       "x": 237,
       "y": 348,
-      "footprint": { "width": 6, "height": 6 },
+      "footprint": {
+        "width": 6,
+        "height": 6
+      },
       "exclusion_tiles": 60,
       "city_exempt": true,
       "blocks_placement": true,
@@ -368,7 +470,10 @@
       "category": "sanctuary",
       "x": 366,
       "y": 237,
-      "footprint": { "width": 6, "height": 6 },
+      "footprint": {
+        "width": 6,
+        "height": 6
+      },
       "exclusion_tiles": 60,
       "city_exempt": true,
       "blocks_placement": true,
@@ -381,7 +486,10 @@
       "category": "sanctuary",
       "x": 588,
       "y": 237,
-      "footprint": { "width": 6, "height": 6 },
+      "footprint": {
+        "width": 6,
+        "height": 6
+      },
       "exclusion_tiles": 60,
       "city_exempt": true,
       "blocks_placement": true,
@@ -394,7 +502,10 @@
       "category": "sanctuary",
       "x": 846,
       "y": 237,
-      "footprint": { "width": 6, "height": 6 },
+      "footprint": {
+        "width": 6,
+        "height": 6
+      },
       "exclusion_tiles": 60,
       "city_exempt": true,
       "blocks_placement": true,
@@ -407,7 +518,10 @@
       "category": "sanctuary",
       "x": 957,
       "y": 348,
-      "footprint": { "width": 6, "height": 6 },
+      "footprint": {
+        "width": 6,
+        "height": 6
+      },
       "exclusion_tiles": 60,
       "city_exempt": true,
       "blocks_placement": true,
@@ -420,7 +534,10 @@
       "category": "sanctuary",
       "x": 957,
       "y": 606,
-      "footprint": { "width": 6, "height": 6 },
+      "footprint": {
+        "width": 6,
+        "height": 6
+      },
       "exclusion_tiles": 60,
       "city_exempt": true,
       "blocks_placement": true,
@@ -433,7 +550,10 @@
       "category": "sanctuary",
       "x": 957,
       "y": 828,
-      "footprint": { "width": 6, "height": 6 },
+      "footprint": {
+        "width": 6,
+        "height": 6
+      },
       "exclusion_tiles": 60,
       "city_exempt": true,
       "blocks_placement": true,
@@ -446,7 +566,10 @@
       "category": "sanctuary",
       "x": 846,
       "y": 957,
-      "footprint": { "width": 6, "height": 6 },
+      "footprint": {
+        "width": 6,
+        "height": 6
+      },
       "exclusion_tiles": 60,
       "city_exempt": true,
       "blocks_placement": true,
@@ -459,7 +582,10 @@
       "category": "sanctuary",
       "x": 606,
       "y": 957,
-      "footprint": { "width": 6, "height": 6 },
+      "footprint": {
+        "width": 6,
+        "height": 6
+      },
       "exclusion_tiles": 60,
       "city_exempt": true,
       "blocks_placement": true,
@@ -472,7 +598,10 @@
       "category": "sanctuary",
       "x": 366,
       "y": 957,
-      "footprint": { "width": 6, "height": 6 },
+      "footprint": {
+        "width": 6,
+        "height": 6
+      },
       "exclusion_tiles": 60,
       "city_exempt": true,
       "blocks_placement": true,
@@ -513,7 +642,9 @@
       "key": "banner_max_285",
       "kind": "blocking",
       "statement": "An Alliance may build at most 285 Alliance Banners.",
-      "parameters": { "max_per_alliance": 285 },
+      "parameters": {
+        "max_per_alliance": 285
+      },
       "confidence": "official",
       "provenance": ["century_games_alliance"]
     },
@@ -521,7 +652,10 @@
       "key": "alliance_resource_territory_ratio",
       "kind": "blocking",
       "statement": "At least 75% of an Alliance resource mine must lie within Alliance territory for production.",
-      "parameters": { "target": "alliance_resource_mine", "minimum_covered_ratio": 0.75 },
+      "parameters": {
+        "target": "alliance_resource_mine",
+        "minimum_covered_ratio": 0.75
+      },
       "confidence": "official",
       "provenance": ["century_games_alliance"]
     },
@@ -536,7 +670,10 @@
       "key": "headquarters_legal_zones",
       "kind": "blocking",
       "statement": "Alliance Headquarters may be built in Badland or Plains, but not on Fertile Land.",
-      "parameters": { "allowed": ["badlands", "plains"], "blocked": ["fertile"] },
+      "parameters": {
+        "allowed": ["badlands", "plains"],
+        "blocked": ["fertile"]
+      },
       "confidence": "official",
       "provenance": ["century_games_hq"]
     },
@@ -586,7 +723,7 @@
   "artifacts": {
     "facilities": {
       "path": "resources/data/kingdom-maps/artifacts/kingshot-facilities-2026-09-06.json",
-      "sha256": "712adadab82828894e248e4ce75ae000d3d6d466d7c0fff9008f562e10a31cf4",
+      "sha256": "96c57142e688145f51e657aad41f2abc9afd934a9ff15f48193b9e3fc0ad89d7",
       "schema_version": 1,
       "confidence": "community_observed",
       "provenance": ["ksmapper", "kingshot_wiki_outposts", "kingshot_wiki_ruins"]
