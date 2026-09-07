@@ -64,6 +64,7 @@ final readonly class SaveTransferInvitationAllocation
             }
 
             $existing = TransferInvitationAllocation::query()->where('transfer_participant_id', $participantId)->lockForUpdate()->first();
+            $existingId = $existing instanceof TransferInvitationAllocation ? (string) $existing->id : null;
             if ($kind === TransferInvitationKind::Special && $state->consumesPlannedInventory()) {
                 $condition = TransferKingdomConditionObservation::query()
                     ->where('alliance_id', $allianceId)->where('transfer_window_id', $plan->transfer_window_id)->where('kingdom_id', $targetId)
@@ -92,7 +93,7 @@ final readonly class SaveTransferInvitationAllocation
                     ->where('target_kingdom_id', $targetId)
                     ->where('kind', TransferInvitationKind::Special->value)
                     ->whereIn('state', $activeStates)
-                    ->when($existing instanceof TransferInvitationAllocation, static fn (Builder $query): Builder => $query->where('id', '!=', (string) $existing->id))
+                    ->when($existingId !== null, static fn (Builder $query): Builder => $query->where('id', '!=', $existingId))
                     ->lockForUpdate()
                     ->count();
                 if ($capacity->special_invites_available - $otherReserved <= 0) {
