@@ -227,6 +227,16 @@ const messages = {
     recordCondition: 'Record target conditions',
     conditionHistory: 'Target condition history',
 
+    capacityObservationTitle: 'Observed KingShot capacity',
+    capacityObservationHelp:
+      'Record the current in-game slot consumption and Special Invite inventory. These are sourced game facts; Alliance reservations remain separate planning intent.',
+    recordCapacityObservation: 'Record capacity observation',
+    capacityHistory: 'Observed capacity history',
+    observedFactsHelp:
+      'These rows are sourced observations from KingShot or official publications. They are not Alliance reservations.',
+    ordinaryInvitesUsed: 'Ordinary Invites used',
+    transferOpensUsed: 'Transfer Opens used',
+    specialInvitesAvailable: 'Special Invites available',
     capacityPlanning: 'Target capacity planning',
     capacityPlanningHelp:
       'Observed remaining capacity reflects the current in-game snapshot. Projected remaining capacity also subtracts Alliance reservations and invitation allocations.',
