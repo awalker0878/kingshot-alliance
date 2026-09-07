@@ -83,14 +83,14 @@ final class TerritoryReconciliationBoundariesV3Test extends TestCase
         if (! is_array($data)) {
             throw new RuntimeException('The source Kingdom map test fixture is invalid.');
         }
+        $coordinateSystem = $data['coordinate_system'] ?? null;
+        if (! is_array($coordinateSystem)) {
+            throw new RuntimeException('The source Kingdom map coordinate system is invalid.');
+        }
         $data['id'] = $incompatibleId;
-        $data['source_label'] = 'Test incompatible coordinate system';
-        $data['source_uri'] = null;
-        $data['coordinate_system'] = [
-            'name' => 'test_incompatible_xy',
-            'origin' => 'north_east_test_coordinates',
-            'tile_size' => 1,
-        ];
+        $coordinateSystem['name'] = 'test_incompatible_xy';
+        $coordinateSystem['origin'] = 'north_east_test_coordinates';
+        $data['coordinate_system'] = $coordinateSystem;
         file_put_contents(
             $incompatiblePath,
             json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR).PHP_EOL,
