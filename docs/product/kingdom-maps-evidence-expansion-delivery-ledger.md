@@ -17,7 +17,7 @@ Status: Implementation complete; CI/PR verification and merge pending
 | Browser/server parity | Complete — awaiting CI | Shared golden fixture and browser engine reconciled to V2 including Banner-HQ connectivity. |
 | Operational commands | Complete | `kingdom-maps:list`, `validate`, `verify-sources`, and `diff` registered by `KingdomMapsServiceProvider`. |
 | CI gate | Complete — awaiting run | Dedicated `KingdomMaps Assurance` workflow validates release/source/test/parity surfaces on PRs and `main`. |
-| Documentation reconciliation | Complete | Architecture and expansion docs describe evidence-backed V2 and the ksmapper rights decision. |
+| Documentation reconciliation | Complete | Architecture, product, acceptance, delivery and source/confidence-matrix docs describe the same evidence-backed V2 truth and ksmapper rights decision. |
 | PR verification | Pending | Dedicated assurance plus repository-required checks green; review threads resolved. |
 | Merge | Pending | PR merged to `main` only after verification passes. |
 
