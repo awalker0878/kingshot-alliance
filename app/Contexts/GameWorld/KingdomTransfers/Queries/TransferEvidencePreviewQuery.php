@@ -53,7 +53,8 @@ final readonly class TransferEvidencePreviewQuery
         string $planId,
         string $participantId,
         TransferEvidencePreviewInput $review,
-    ): array {
+    ): array
+    {
         $scope = $this->targets->authorizeManage($actorPlayerId, $allianceId, $planId, $participantId);
         $plan = TransferPlan::query()
             ->where('alliance_id', $allianceId)
@@ -213,8 +214,9 @@ final readonly class TransferEvidencePreviewQuery
         ];
     }
 
-    /** @param Collection<int,TransferKingdomConditionObservation> $rows
-     *  @return array{0:TransferObservedValue,1:TransferKingdomClassification}
+    /**
+     * @param  Collection<int,TransferKingdomConditionObservation>  $rows
+     * @return array{0:TransferObservedValue,1:TransferKingdomClassification}
      */
     private function conditionFacts(Collection $rows, TransferEvidencePreviewInput $review): array
     {
