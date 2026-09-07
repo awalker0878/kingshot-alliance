@@ -8,6 +8,7 @@ use App\Contexts\GameWorld\KingdomTransfers\Access\Enums\TransferPermission;
 use App\Contexts\GameWorld\KingdomTransfers\Access\Services\TransferAuthorization;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferCapacityBucket;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferCapacityReservationState;
+use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferPlanState;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferCapacityReservation;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferKingdomCapacityObservation;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferKingdomConditionObservation;
@@ -45,6 +46,9 @@ final readonly class SaveTransferCapacityReservation
             $context = $this->writeState->lockAuthority($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, TransferPermission::Manage);
             $plan = TransferPlan::query()->where('alliance_id', $allianceId)->whereKey($planId)->sharedLock()->firstOrFail();
+            if (! in_array($plan->state, [TransferPlanState::Draft, TransferPlanState::Open], true)) {
+                throw ValidationException::withMessages(['reservation' => 'Capacity reservations can only change while the transfer cycle is Draft or Open.']);
+            }
             $participant = TransferParticipant::query()
                 ->where('alliance_id', $allianceId)
                 ->where('transfer_plan_id', $planId)
