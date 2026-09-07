@@ -117,7 +117,12 @@ final class KingdomMapGeometryParityV3Test extends TestCase
         return new KingdomMapDataset(
             id: (string) ($dataset['id'] ?? ''),
             schemaVersion: (int) ($dataset['schema_version'] ?? 0),
+            releaseStatus: (string) ($dataset['release_status'] ?? ''),
+            releasedAt: (string) ($dataset['released_at'] ?? ''),
             observedAt: (string) ($dataset['observed_at'] ?? ''),
+            gameVersion: is_string($dataset['game_version'] ?? null) ? $dataset['game_version'] : null,
+            season: is_string($dataset['season'] ?? null) ? $dataset['season'] : null,
+            predecessorId: is_string($dataset['predecessor_id'] ?? null) ? $dataset['predecessor_id'] : null,
             sourceLabel: (string) ($dataset['source_label'] ?? ''),
             sourceUri: is_string($dataset['source_uri'] ?? null) ? $dataset['source_uri'] : null,
             confidence: MapDatasetConfidence::from((string) ($dataset['confidence'] ?? '')),
