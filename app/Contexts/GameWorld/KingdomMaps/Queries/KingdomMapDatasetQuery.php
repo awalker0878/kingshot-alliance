@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Contexts\GameWorld\KingdomMaps\Queries;
 
 use App\Contexts\GameWorld\KingdomMaps\Enums\MapDatasetConfidence;
+use App\Contexts\GameWorld\KingdomMaps\Services\KingdomMapArtifactLoader;
+use App\Contexts\GameWorld\KingdomMaps\Services\KingdomMapFactProvenanceValidator;
 use App\Contexts\GameWorld\KingdomMaps\Services\KingdomMapSchemaV2Validator;
 use App\Contexts\GameWorld\KingdomMaps\ValueObjects\KingdomMapDataset;
 use Illuminate\Validation\ValidationException;
@@ -15,7 +17,11 @@ final class KingdomMapDatasetQuery
 {
     private const DIRECTORY = 'resources/data/kingdom-maps';
 
-    public function __construct(private readonly KingdomMapSchemaV2Validator $validator) {}
+    public function __construct(
+        private readonly KingdomMapSchemaV2Validator $validator,
+        private readonly KingdomMapFactProvenanceValidator $factProvenance,
+        private readonly KingdomMapArtifactLoader $artifacts,
+    ) {}
 
     /** @return list<KingdomMapDataset> */
     public function all(): array
@@ -80,11 +86,14 @@ final class KingdomMapDatasetQuery
         }
 
         $this->validator->validate($data);
+        $this->factProvenance->validate($data);
 
         $id = pathinfo($path, PATHINFO_FILENAME);
         if ($data['id'] !== $id) {
             throw new RuntimeException('Kingdom map dataset identity does not match its immutable file name.');
         }
+
+        $data = $this->artifacts->hydrate($data);
 
         $primarySourceUri = null;
         $primarySourceId = $data['primary_source_id'] ?? null;
