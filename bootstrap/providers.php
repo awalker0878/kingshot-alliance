@@ -1,5 +1,4 @@
 <?php
-
 declare(strict_types=1);
 
 use App\Contexts\Accounts\Authentication\Providers\AuthenticationServiceProvider;
@@ -10,6 +9,7 @@ use App\Contexts\Alliance\Lifecycle\Providers\LifecycleServiceProvider;
 use App\Contexts\Alliance\Membership\Providers\MembershipServiceProvider;
 use App\Contexts\Alliance\Recruitment\Providers\RecruitmentServiceProvider;
 use App\Contexts\GameWorld\GiftCodes\Providers\GiftCodesServiceProvider;
+use App\Contexts\GameWorld\KingdomMaps\Providers\KingdomMapsServiceProvider;
 use App\Contexts\GameWorld\Players\Providers\PlayersServiceProvider;
 use App\Contexts\Intelligence\Evidence\Providers\EvidenceServiceProvider;
 use App\Contexts\Operations\TerritoryPlanning\Providers\TerritoryPlanningServiceProvider;
@@ -27,6 +27,7 @@ return [
     MultiFactorAuthenticationServiceProvider::class,
     PlayersServiceProvider::class,
     GiftCodesServiceProvider::class,
+    KingdomMapsServiceProvider::class,
     LifecycleServiceProvider::class,
     MembershipServiceProvider::class,
     AccessServiceProvider::class,
