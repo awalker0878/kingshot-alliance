@@ -38,7 +38,8 @@ final readonly class SaveTransferInvitationAllocation
         TransferInvitationKind $kind,
         TransferInvitationAllocationState $state,
         ?string $notes = null,
-    ): string {
+    ): string
+    {
         return DB::transaction(function () use ($allianceId, $actorPlayerId, $planId, $participantId, $kind, $state, $notes): string {
             $context = $this->writeState->lockAuthority($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, TransferPermission::Manage);
@@ -89,7 +90,7 @@ final readonly class SaveTransferInvitationAllocation
                 }
             }
 
-            $row = $existing ?? new TransferInvitationAllocation();
+            $row = $existing ?? new TransferInvitationAllocation;
             $row->fill([
                 'alliance_id' => $allianceId,
                 'transfer_window_id' => $plan->transfer_window_id,
