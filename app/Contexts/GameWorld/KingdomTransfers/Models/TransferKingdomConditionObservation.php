@@ -18,6 +18,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $transfer_window_id
  * @property string $kingdom_id
  * @property int|null $power_cap
+ * @property int|null $hero_generation
+ * @property int|null $truegold_level
+ * @property int|null $character_age_threshold_days
  * @property TransferKingdomClassification|null $classification
  * @property TransferSourceType $source_type
  * @property string $source_reference
@@ -43,6 +46,9 @@ final class TransferKingdomConditionObservation extends Model
     {
         return [
             'power_cap' => 'integer',
+            'hero_generation' => 'integer',
+            'truegold_level' => 'integer',
+            'character_age_threshold_days' => 'integer',
             'classification' => TransferKingdomClassification::class,
             'source_type' => TransferSourceType::class,
             'observed_at' => 'immutable_datetime',

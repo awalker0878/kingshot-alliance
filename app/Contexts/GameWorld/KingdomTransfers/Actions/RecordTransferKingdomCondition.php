@@ -27,13 +27,16 @@ final readonly class RecordTransferKingdomCondition
         int|string $kingdomNumber,
         ?int $powerCap,
         TransferKingdomClassification $classification,
+        ?int $heroGeneration,
+        ?int $truegoldLevel,
+        ?int $characterAgeThresholdDays,
         TransferSourceType $sourceType,
         string $sourceReference,
         string $observedAt,
         bool $isCorrection = false,
         ?string $evidenceId = null,
     ): string {
-        return DB::transaction(function () use ($allianceId, $actorPlayerId, $windowId, $kingdomNumber, $powerCap, $classification, $sourceType, $sourceReference, $observedAt, $isCorrection, $evidenceId): string {
+        return DB::transaction(function () use ($allianceId, $actorPlayerId, $windowId, $kingdomNumber, $powerCap, $classification, $heroGeneration, $truegoldLevel, $characterAgeThresholdDays, $sourceType, $sourceReference, $observedAt, $isCorrection, $evidenceId): string {
             $context = $this->writeState->lockAuthority($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, TransferPermission::Manage);
 
@@ -44,6 +47,9 @@ final readonly class RecordTransferKingdomCondition
                 $kingdomNumber,
                 $powerCap,
                 $classification,
+                $heroGeneration,
+                $truegoldLevel,
+                $characterAgeThresholdDays,
                 $sourceType,
                 $sourceReference,
                 $observedAt,

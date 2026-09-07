@@ -32,6 +32,9 @@ final readonly class TransferKingdomConditionWriter
         int|string $kingdomNumber,
         ?int $powerCap,
         ?TransferKingdomClassification $classification,
+        ?int $heroGeneration,
+        ?int $truegoldLevel,
+        ?int $characterAgeThresholdDays,
         TransferSourceType $sourceType,
         string $sourceReference,
         string $observedAt,
@@ -47,6 +50,11 @@ final readonly class TransferKingdomConditionWriter
         if ($kingdom === null) {
             throw ValidationException::withMessages([
                 'kingdom' => 'A target Kingdom is required.',
+            ]);
+        }
+        if ($characterAgeThresholdDays !== null && ($characterAgeThresholdDays < TransferOfficialRulebook::MIN_CHARACTER_AGE_THRESHOLD_DAYS || $characterAgeThresholdDays > TransferOfficialRulebook::MAX_CHARACTER_AGE_THRESHOLD_DAYS)) {
+            throw ValidationException::withMessages([
+                'character_age_threshold_days' => 'The official character-age threshold must be between 90 and 180 days.',
             ]);
         }
 
@@ -91,6 +99,9 @@ final readonly class TransferKingdomConditionWriter
             $kingdom->kingdomId,
             (string) $powerCap,
             $classificationValue,
+            (string) $heroGeneration,
+            (string) $truegoldLevel,
+            (string) $characterAgeThresholdDays,
             $sourceType->value,
             $sourceReference,
             $observed->toIso8601String(),
@@ -108,6 +119,9 @@ final readonly class TransferKingdomConditionWriter
             'kingdom_id' => $kingdom->kingdomId,
             'power_cap' => $powerCap,
             'classification' => $classification,
+            'hero_generation' => $heroGeneration,
+            'truegold_level' => $truegoldLevel,
+            'character_age_threshold_days' => $characterAgeThresholdDays,
             'source_type' => $sourceType,
             'source_reference' => $sourceReference,
             'observed_at' => $observed,
@@ -124,6 +138,9 @@ final readonly class TransferKingdomConditionWriter
             'source_type' => $sourceType->value,
             'is_correction' => $isCorrection,
             'classification_observed' => $classification !== null,
+            'hero_generation_observed' => $heroGeneration !== null,
+            'truegold_level_observed' => $truegoldLevel !== null,
+            'character_age_threshold_observed' => $characterAgeThresholdDays !== null,
         ];
         $this->audit->record('kingdoms.transfer_kingdom_condition_recorded', $context->actor, $row, null, $metadata);
         $this->outbox->record('kingdoms.transfer_kingdom_condition_recorded', $allianceId, $row, $metadata);

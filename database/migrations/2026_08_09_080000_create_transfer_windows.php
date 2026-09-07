@@ -61,6 +61,9 @@ return new class extends Migration
             $table->foreignUlid('kingdom_id')->constrained('kingdoms')->restrictOnDelete();
             $table->unsignedBigInteger('power_cap')->nullable();
             $table->string('classification', 24)->default('unknown');
+            $table->unsignedSmallInteger('hero_generation')->nullable();
+            $table->unsignedSmallInteger('truegold_level')->nullable();
+            $table->unsignedSmallInteger('character_age_threshold_days')->nullable();
             $table->string('source_type', 32);
             $table->string('source_reference', 2048);
             $table->timestampTz('observed_at');
