@@ -9,6 +9,7 @@ use App\Contexts\GameWorld\KingdomTransfers\Access\Services\TransferAuthorizatio
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferInvitationAllocationState;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferInvitationKind;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferKingdomClassification;
+use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferPlanState;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferInvitationAllocation;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferKingdomCapacityObservation;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferKingdomConditionObservation;
@@ -44,6 +45,9 @@ final readonly class SaveTransferInvitationAllocation
             $context = $this->writeState->lockAuthority($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, TransferPermission::Manage);
             $plan = TransferPlan::query()->where('alliance_id', $allianceId)->whereKey($planId)->sharedLock()->firstOrFail();
+            if (! in_array($plan->state, [TransferPlanState::Draft, TransferPlanState::Open], true)) {
+                throw ValidationException::withMessages(['invitation' => 'Invitation allocations can only change while the transfer cycle is Draft or Open.']);
+            }
             $participant = TransferParticipant::query()
                 ->where('alliance_id', $allianceId)
                 ->where('transfer_plan_id', $planId)
