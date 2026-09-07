@@ -10,7 +10,10 @@ use RuntimeException;
 
 final class KingdomMapArtifactLoader
 {
-    /** @param array<string,mixed> $data @return array<string,mixed> */
+    /**
+     * @param  array<string,mixed>  $data
+     * @return array<string,mixed>
+     */
     public function hydrate(array $data): array
     {
         $artifacts = $data['artifacts'] ?? null;
@@ -114,7 +117,10 @@ final class KingdomMapArtifactLoader
         return $data;
     }
 
-    /** @param array<string,mixed> $manifest @param array<string,mixed> $sources */
+    /**
+     * @param  array<string,mixed>  $manifest
+     * @param  array<string,mixed>  $sources
+     */
     private function validateManifestProvenance(array $manifest, array $sources): void
     {
         $this->validateConfidenceAndSources($manifest, $sources, 'facilities artifact manifest');
@@ -123,13 +129,19 @@ final class KingdomMapArtifactLoader
         }
     }
 
-    /** @param array<string,mixed> $facility @param array<string,mixed> $sources */
+    /**
+     * @param  array<string,mixed>  $facility
+     * @param  array<string,mixed>  $sources
+     */
     private function validateFacilityProvenance(array $facility, array $sources): void
     {
         $this->validateConfidenceAndSources($facility, $sources, 'facility '.$facility['key']);
     }
 
-    /** @param array<string,mixed> $fact @param array<string,mixed> $sources */
+    /**
+     * @param  array<string,mixed>  $fact
+     * @param  array<string,mixed>  $sources
+     */
     private function validateConfidenceAndSources(array $fact, array $sources, string $label): void
     {
         $confidenceValue = $fact['confidence'] ?? null;
