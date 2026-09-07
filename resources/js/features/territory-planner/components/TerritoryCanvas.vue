@@ -277,12 +277,7 @@ function draw(): void {
       const coverageHeight = definition.coverage.height * zoom.value;
       context.globalAlpha = 0.12;
       context.fillStyle = color;
-      context.fillRect(
-        coverageX,
-        coverageBottom - coverageHeight,
-        coverageWidth,
-        coverageHeight,
-      );
+      context.fillRect(coverageX, coverageBottom - coverageHeight, coverageWidth, coverageHeight);
       context.globalAlpha = 1;
     }
     context.fillStyle = color;
