@@ -68,7 +68,12 @@ final class KingdomMapReleaseDiff
             return [];
         }
         if (! array_is_list($value)) {
-            return $value;
+            $result = [];
+            foreach ($value as $key => $item) {
+                $result[(string) $key] = $item;
+            }
+
+            return $result;
         }
 
         $result = [];
