@@ -33,6 +33,7 @@ final readonly class TransferEligibilityInput
         public TransferObservedValue $invitationStatus,
         public TransferObservedValue $passesAvailable,
         public TransferObservedValue $passesRequired,
+        public TransferObservedValue $resourceProtectionVerified,
         public TransferObservedValue $inGameRulesVerified,
     ) {}
 }
