@@ -181,10 +181,17 @@ final class TransferEvidenceSchemasV3Test extends TestCase
             EvidenceKind::TransferTargetKingdomRules->value => 'RecordTransferKingdomRulesEvidence',
             EvidenceKind::TransferOfficialGroup->value => 'RecordOfficialTransferGroupEvidence',
         ];
+        $expectedVersions = [
+            EvidenceKind::TransferGovernorStatus->value => 'transfer-governor-status/1',
+            EvidenceKind::TransferScorePasses->value => 'transfer-score-passes/1',
+            EvidenceKind::TransferInvitation->value => 'transfer-invitation/1',
+            EvidenceKind::TransferTargetKingdomRules->value => 'transfer-target-kingdom-rules/2',
+            EvidenceKind::TransferOfficialGroup->value => 'transfer-official-group/1',
+        ];
 
         foreach (EvidenceKind::transferCases() as $kind) {
             $schema = $registry->require($kind);
-            self::assertStringEndsWith('/1', $schema->version);
+            self::assertSame($expectedVersions[$kind->value], $schema->version);
             self::assertNotEmpty($schema->requiredFields);
             self::assertNotEmpty($schema->fixtureCorpus);
             self::assertSame($expectedActions[$kind->value], $schema->destinationAction);

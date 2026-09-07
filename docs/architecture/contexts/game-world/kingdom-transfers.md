@@ -1,61 +1,97 @@
 # GameWorld — KingdomTransfers
 
-Status: Current — Architecture V3
+Status: Current — Architecture V3 — 2026-09-07
 
-Implementation target: `app/Contexts/GameWorld/KingdomTransfers`
+Implementation: `app/Contexts/GameWorld/KingdomTransfers`
 
-KingdomTransfers owns the domain state and rules for planning and executing Player/Kingdom transfer behavior, including sourced Kingdom Transfer game-planning truth and deterministic eligibility assessment.
+KingdomTransfers is the GameWorld owner for sourced Kingdom Transfer truth, Alliance transfer-planning commitments, participant workflow and deterministic eligibility. It is not a generic workflow context and does not belong under `app/Workflows`.
 
 ## Owned state
 
 KingdomTransfers owns:
 
-- Transfer Plans, participants, readiness transitions, manual blockers and completion state;
-- Alliance planning **Transfer Cohorts**;
-- Transfer Windows and explicit official phase boundaries;
-- official window-scoped Transfer Groups and their Kingdom membership;
-- window/target-scoped Kingdom condition observations such as Power Cap and Kingdom classification;
-- transfer-specific Governor observations including Power, Transfer Score, available/required Transfer Passes, invitation status and in-game eligibility verification;
-- provenance/freshness/conflict semantics for transfer observations;
-- deterministic transfer eligibility requirements and next-action calculation;
-- transfer audit/outbox events and transfer-specific write invariants;
-- accepted Transfer Evidence destination receipts and destination idempotency.
+- Transfer Plans, participants, readiness transitions, blockers and completions;
+- Alliance planning Transfer Cohorts;
+- Transfer Windows/phase boundaries;
+- official window-scoped Transfer Groups and Kingdom membership revisions;
+- target Kingdom condition observations: Power Cap, classification, Hero Generation, Truegold and age threshold;
+- target Kingdom capacity observations: Ordinary Invite/Open use and Special Invite inventory;
+- transfer-specific Governor observations;
+- Alliance capacity reservations and invitation allocations;
+- provenance/freshness/conflict rules;
+- deterministic eligibility and capacity projections;
+- owner audit/outbox events;
+- Transfer Evidence destination receipts/idempotency.
 
-## Boundary
+## Cross-context boundary
 
-A transfer may reference Player, Kingdom, Alliance and Evidence identifiers, but the capability does not take ownership of those aggregates. It does not mutate Alliance membership, Kingdom identity, Player identity/progression or Intelligence/Evidence records directly.
+KingdomTransfers references Alliance, Player, Kingdom and Evidence identities but does not take ownership of those aggregates.
 
-Cross-context effects use explicit owner Actions, immutable references/snapshots, scalar identifiers, value objects or composed reads. Evidence may support a transfer observation, but Intelligence/Evidence remains the owner of the source artifact, OCR/classification/extraction/review lifecycle, duplicate decisions, commit-attempt lifecycle and retention. KingdomTransfers validates an Evidence reference only through the Intelligence/Evidence owner lookup contract. KingdomTransfers never loads or mutates Evidence models directly.
+Cross-context effects use explicit owner Actions/value objects/scalar IDs. Completion may invoke Membership/Player owner Actions; Evidence may invoke KingdomTransfers destination Actions. No foreign Eloquent model is passed across context boundaries.
 
-No foreign Eloquent model crosses the Evidence/KingdomTransfers boundary. Transfer Evidence destination Actions accept scalar Evidence/review/scope identifiers plus typed owner values and return scalar receipts.
-
-The capability is not placed in `app/Workflows`; Kingdom Transfer is a GameWorld business capability with its own state and invariants.
+`Intelligence/Evidence` owns screenshot storage, OCR/provider attempts, classification/extraction, review revisions, duplicate decisions, commit attempts and retention. KingdomTransfers owns every accepted transfer fact after the scalar handoff.
 
 ## Terminology boundary
 
-**Transfer Cohort** is an Alliance-owned coordination bucket inside a Transfer Plan. **Transfer Group** is only the official KingShot event grouping of Kingdoms. See [ADR 0011](../../adr/0011-separate-transfer-planning-cohorts-from-official-transfer-groups.md).
+**Transfer Cohort** is internal Alliance coordination. **Transfer Group** is only the official KingShot event grouping. Official group membership is Transfer-Window-scoped; there is no timeless `Kingdom.transfer_group` attribute.
 
-Official Transfer Group membership is scoped to one Transfer Window. No timeless `Kingdom.transfer_group` attribute exists.
+## Observation model
 
-## Decision boundary
+Game/domain facts are append-only observations, not mutable current-truth columns.
 
-Eligibility is derived, not persisted. `TransferEligibilityEvaluator` accepts typed, already-scoped inputs and returns a structured assessment containing per-requirement states and next actions. Controllers, jobs, Vue components and generic read models do not reproduce game eligibility rules.
+Participant observations include Power, Hero Generation, Truegold, character age difference, cooldown, target character count, Transfer Score, pass counts, invitation status, resource-protection verification and final in-game rules verification.
 
-Readiness remains an independent planning concern. A participant may be workflow-ready while game eligibility is blocked or unverified, and may be game-eligible while Alliance planning remains incomplete.
+Target conditions and target capacity have separate append-only aggregates because they are target/window facts shared across participants.
 
-## Evidence and freshness boundary
+Current selection is authority/freshness/conflict aware. Missing/stale/conflicting/non-authoritative facts cannot become `eligible_now`.
 
-Material eligibility facts carry source/reference and observation time. Mutable Governor observations also carry an explicit validity boundary. Missing, stale, conflicting or non-authoritative information cannot produce `eligible_now`.
+## Eligibility boundary
 
-KingdomTransfers owns freshness. Evidence may supply reviewer-confirmed `observed_at` and the explicit validity boundary required by this product contract, but Evidence does not invent a global TTL or determine whether an owner fact is current.
+`TransferEligibilityEvaluator` is the single game-eligibility rule implementation. It accepts typed already-scoped inputs and returns a structured assessment. Controllers, Vue, Assistant and generic read models must not reproduce eligibility rules.
 
-The initial Transfer Evidence schemas cannot set `in_game_rules_verified`. A fresh owner observation for that requirement remains independently necessary before eligibility can become `eligible_now`. Required Transfer Passes are observed; there is no Transfer Score → required-pass calculation.
+The evaluator covers:
 
-Community projects and guides are discovery evidence only. Unpublished or unverified game rules remain evidence-gated instead of being inferred into product truth.
+- phase;
+- official group compatibility;
+- Hero Generation;
+- Truegold;
+- character age threshold;
+- 25-day cooldown;
+- four-character target limit;
+- Power Cap/invitation path;
+- target total/invite/open capacity;
+- Special Invite inventory where applicable;
+- Transfer Pass sufficiency from observed required count;
+- Storehouse resource-protection pre-flight;
+- final in-game rules verification.
 
-## Transfer Evidence destination boundary
+Required Transfer Passes are observed. No Transfer Score → Pass formula is encoded.
 
-The second Screenshot Intake family enters KingdomTransfers only through five dedicated owner Actions:
+Readiness remains a separate Alliance workflow state.
+
+## Capacity ownership and projection
+
+`TransferOfficialRulebook` owns version-bounded official public constants. Target capacity observations own current game usage/inventory. `TransferCapacityPlanningQuery` composes those facts with Alliance planning commitments.
+
+Capacity reservations and invitation allocations are **planning intent**, not game truth.
+
+Reservation writes serialize competing commitments and reject known total/bucket oversubscription. Special Invite allocations additionally require authoritative Ordinary classification and current inventory; Leading targets cannot consume Special Invite allocations.
+
+### Reconciliation rule
+
+Future planning states (`planned`/`reserved`) always reduce projected remaining capacity.
+
+Finalized commitments continue reducing projected capacity only until a newer authoritative capacity observation is at or after the commitment update. Then the observed game state supersedes the planning subtraction. This prevents both premature slot reuse and permanent double counting.
+
+Withdrawal releases/cancels consuming commitments inside the readiness transaction. Completion finalizes consuming commitments inside the completion transaction.
+
+## Resource-protection boundary
+
+`resource_protection_verified` models a material transfer consequence, not a fabricated game prohibition. False is actionable and may yield `eligible_with_action`; missing/stale/conflicting verification yields `needs_verification`. It is intentionally outside the hard-blocker set.
+
+## Evidence boundary
+
+Five explicit Transfer Evidence destination Actions are supported:
 
 - `RecordGovernorStatusEvidence`;
 - `RecordTransferScorePassEvidence`;
@@ -63,34 +99,50 @@ The second Screenshot Intake family enters KingdomTransfers only through five de
 - `RecordTransferKingdomRulesEvidence`;
 - `RecordOfficialTransferGroupEvidence`.
 
-Each Action:
+Target Kingdom rules are schema v2 and can carry only reviewed fixture-proven fields among target number, Power Cap, classification, Hero Generation, Truegold and age threshold.
 
-1. reacquires and authorizes current Alliance Transfer authority;
-2. checks for an existing destination receipt under the immutable approved-review idempotency key;
-3. for a new write, locks and re-resolves the current Plan/participant/Transfer Window/target scope against the reviewed snapshot;
-4. validates the Evidence reference through the Evidence owner contract;
-5. delegates owner invariant/persistence logic to the shared internal writer;
-6. appends owner history and audit/outbox evidence;
-7. persists and returns a scalar destination receipt.
+Every destination Action:
 
-Material destination-scope drift rejects the new write. The Action never silently retargets a reviewed screenshot.
+1. reacquires current actor/Alliance authority;
+2. resolves/locks current Plan/participant/window/target scope;
+3. validates reviewed scope/provenance;
+4. checks stable owner receipt/idempotency;
+5. delegates to owner writers;
+6. appends owner history/audit/outbox;
+7. returns only scalar receipt data.
 
-## Shared owner-internal writers
+Material scope drift requires re-review. No Evidence schema can synthesize `in_game_rules_verified=true`.
 
-Normal owner Actions and Transfer Evidence destination Actions share the same internal writers after their respective authorization boundaries:
+## Shared owner writers
 
-- `TransferObservationWriter` owns typed observation validation, target requirements, validity checks, deterministic observation identity, append-only observation persistence and observation audit/outbox;
-- `TransferKingdomConditionWriter` owns target resolution, Power Cap/classification validation, Phase-II correction invariants, append-only condition history and audit/outbox;
-- `TransferGroupWriter` owns complete official-group membership validation, same-window membership conflicts, revision/supersession semantics and audit/outbox.
+Owner Actions and Evidence destination Actions share internal writers after their respective authorization boundaries:
 
-Public owner Actions such as `RecordTransferObservation`, `RecordTransferKingdomCondition` and `SaveTransferGroup` authorize and then delegate to these writers. Transfer Evidence Actions authorize once through `TransferEvidenceDestinationSupport` and then invoke the same writers directly. This prevents duplicate authorization logic while keeping every external owner mutation behind an authorized Action.
+- `TransferObservationWriter` — typed observation validation, target requirements, freshness boundaries, deterministic identity and append-only persistence;
+- `TransferKingdomConditionWriter` — target resolution, Power/classification/Hero/Truegold/age validation, correction rules and condition history;
+- `TransferGroupWriter` — official-group membership, revision/supersession and conflict rules.
 
-`RecordTransferScorePassEvidence` invokes `TransferObservationWriter` three times inside one outer database transaction. Transfer Score, passes available, passes required and the destination receipt therefore commit atomically.
+Capacity observation and planning commitment Actions remain explicit owner Actions because their concurrency/oversubscription semantics are distinct.
 
-## Destination idempotency and recovery
+## Idempotency/concurrency
 
-Semantic duplicate detection remains an Evidence review concern. Destination idempotency is separate and is enforced by `transfer_evidence_receipts.idempotency_key`.
+- observation writes use deterministic fingerprints;
+- Evidence commit uses stable destination receipt keys;
+- official-group revision is serialized per window;
+- target condition/capacity histories are append-only;
+- reservation/allocation writes lock participant/current commitment and competing capacity/inventory rows;
+- completion/withdrawal reconcile planning commitments in the same database transaction as the workflow mutation;
+- duplicate retries do not append owner truth twice.
 
-The destination Action checks an existing receipt before requiring the historical Plan/participant to remain mutable. This supports the crash window where KingdomTransfers committed successfully but Evidence failed before acknowledging the receipt: an authorized retry using the same immutable review key returns the existing receipt without appending another observation, condition or group revision.
+## Authorization
 
-A genuinely newer approved Evidence revision uses new reviewed meaning/observation time and a new destination idempotency key, so it may append new owner history.
+Every external mutation is behind an owner Action. HTTP password confirmation is additional UX/security hardening, not a replacement for application authorization.
+
+The concrete actor/Alliance/Plan/window/participant/target scope is re-resolved at mutation time. Foreign IDs must not become a cross-Alliance existence oracle.
+
+## Read-model boundary
+
+Read models may compose `TransferSelfEligibilityQuery` or other typed KingdomTransfers projections after authorization. They may render requirement/outcome/next-action information but must not calculate substitute game rules or persist a second transfer truth store.
+
+## Fresh deployment
+
+No compatibility aliases, legacy planning `TransferGroup`, dual reads/writes, migration backfills or schema shims are retained. The database is treated as fresh deployment state.

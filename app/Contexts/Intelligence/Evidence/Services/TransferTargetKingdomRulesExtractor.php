@@ -15,21 +15,21 @@ final class TransferTargetKingdomRulesExtractor extends AbstractTransferEvidence
     {
         $this->assertKind($kind);
 
-        return 'transfer-target-kingdom-rules-v1';
+        return 'transfer-target-kingdom-rules-v2';
     }
 
     public function version(EvidenceKind $kind): string
     {
         $this->assertKind($kind);
 
-        return '1.0.0';
+        return '2.0.0';
     }
 
     public function schemaVersion(EvidenceKind $kind): string
     {
         $this->assertKind($kind);
 
-        return 'transfer-target-kingdom-rules/1';
+        return 'transfer-target-kingdom-rules/2';
     }
 
     public function supports(EvidenceKind $kind): bool
@@ -47,9 +47,16 @@ final class TransferTargetKingdomRulesExtractor extends AbstractTransferEvidence
                 $fields['target_kingdom_number'] = $this->candidate('target_kingdom_number', 0, array_values($line), (string) $kingdom, 'integer');
             }
 
-            $cap = $this->numericCandidate($line, ['power cap'], 'power_cap');
-            if ($cap !== null) {
-                $fields['power_cap'] = $cap;
+            foreach ([
+                ['power_cap', ['power cap']],
+                ['hero_generation', ['hero generation', 'hero gen']],
+                ['truegold_level', ['truegold level', 'truegold']],
+                ['character_age_threshold_days', ['character age threshold', 'age threshold', 'days older']],
+            ] as [$field, $signals]) {
+                $candidate = $this->numericCandidate($line, $signals, $field);
+                if ($candidate !== null) {
+                    $fields[$field] = $candidate;
+                }
             }
 
             $text = mb_strtolower($this->lineText($line));

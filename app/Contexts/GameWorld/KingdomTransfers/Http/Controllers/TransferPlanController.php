@@ -21,6 +21,7 @@ use App\Contexts\GameWorld\KingdomTransfers\Actions\LockTransferPlan;
 use App\Contexts\GameWorld\KingdomTransfers\Actions\OpenTransferPlan;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferCohort;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferGroup;
+use App\Contexts\GameWorld\KingdomTransfers\Models\TransferKingdomCapacityObservation;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferKingdomConditionObservation;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferParticipant;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferPlan;
@@ -41,134 +42,280 @@ use Inertia\Response;
 
 final class TransferPlanController extends Controller
 {
-    public function index(Request $request, AllianceContext $context, AccountIdentityQuery $accounts, AllianceReferenceQuery $alliances, KingdomReferenceQuery $kingdoms, TransferAuthorization $transferAuthorization, TransferPlanQuery $plans, TransferParticipantQuery $participants, TransferCohortQuery $cohorts): Response
-    {
+    public function index(
+        Request $request,
+        AllianceContext $context,
+        AccountIdentityQuery $accounts,
+        AllianceReferenceQuery $alliances,
+        KingdomReferenceQuery $kingdoms,
+        TransferAuthorization $transferAuthorization,
+        TransferPlanQuery $plans,
+        TransferParticipantQuery $participants,
+        TransferCohortQuery $cohorts,
+    ): Response {
         $s = $context->scope();
         $account = $this->account($request, $accounts);
         $alliance = $alliances->require($s->allianceId);
         $kingdom = $kingdoms->require($alliance->kingdomId);
         if (! $transferAuthorization->allows($s->playerId, $s->allianceId, TransferPermission::View)) {
             throw new AuthorizationException;
-        }$current = $plans->currentForAlliance($s->allianceId);
+        }
+        $current = $plans->currentForAlliance($s->allianceId);
 
-        return Inertia::render('Kingdom/Transfer/Index', ['user' => ['name' => $account->name, 'email' => $account->email], 'alliance' => ['id' => $alliance->allianceId, 'name' => $alliance->name, 'kingdom' => (string) $kingdom->number], 'canManage' => $transferAuthorization->allows($s->playerId, $s->allianceId, TransferPermission::Manage), 'plan' => $current === null ? null : $this->plan($current), 'cohorts' => $current === null ? [] : $cohorts->forPlan($s->allianceId, (string) $current->id)->map(fn (TransferCohort $c): array => $this->cohort($c, false))->all(), 'participants' => $current === null ? [] : $participants->forPlan($s->allianceId, (string) $current->id)->map(fn (TransferParticipant $p): array => $this->participant($p, false))->all()]);
+        return Inertia::render('Kingdom/Transfer/Index', [
+            'user' => ['name' => $account->name, 'email' => $account->email],
+            'alliance' => ['id' => $alliance->allianceId, 'name' => $alliance->name, 'kingdom' => (string) $kingdom->number],
+            'canManage' => $transferAuthorization->allows($s->playerId, $s->allianceId, TransferPermission::Manage),
+            'plan' => $current === null ? null : $this->plan($current),
+            'cohorts' => $current === null ? [] : $cohorts->forPlan($s->allianceId, (string) $current->id)->map(fn (TransferCohort $c): array => $this->cohort($c, false))->all(),
+            'participants' => $current === null ? [] : $participants->forPlan($s->allianceId, (string) $current->id)->map(fn (TransferParticipant $p): array => $this->participant($p, false))->all(),
+        ]);
     }
 
-    public function manage(Request $request, AllianceContext $context, AccountIdentityQuery $accounts, AllianceReferenceQuery $alliances, KingdomReferenceQuery $kingdoms, TransferAuthorization $authorization, TransferPlanQuery $plans, TransferParticipantQuery $participants, TransferCohortQuery $cohorts, TransferWindowQuery $windows, TransferGroupQuery $groups, TransferKingdomConditionQuery $conditions, RosterEntryQuery $roster, PlayerMembershipQuery $memberships, PlayerReferenceQuery $players): Response
-    {
+    public function manage(
+        Request $request,
+        AllianceContext $context,
+        AccountIdentityQuery $accounts,
+        AllianceReferenceQuery $alliances,
+        KingdomReferenceQuery $kingdoms,
+        TransferAuthorization $authorization,
+        TransferPlanQuery $plans,
+        TransferParticipantQuery $participants,
+        TransferCohortQuery $cohorts,
+        TransferWindowQuery $windows,
+        TransferGroupQuery $groups,
+        TransferKingdomConditionQuery $conditions,
+        RosterEntryQuery $roster,
+        PlayerMembershipQuery $memberships,
+        PlayerReferenceQuery $players,
+    ): Response {
         $s = $context->scope();
         $account = $this->account($request, $accounts);
         $alliance = $alliances->require($s->allianceId);
         $kingdom = $kingdoms->require($alliance->kingdomId);
         if (! $authorization->allows($s->playerId, $s->allianceId, TransferPermission::Manage)) {
             throw new AuthorizationException;
-        }$mutable = $plans->mutableForAlliance($s->allianceId);
+        }
+        $mutable = $plans->mutableForAlliance($s->allianceId);
         $participantRows = $mutable === null ? collect() : $participants->forPlan($s->allianceId, (string) $mutable->id, true);
         $rosterOptions = $roster->activeOrTracked($s->allianceId);
         $memberIds = $memberships->activePlayerIds($s->allianceId);
-        $refs = $players->byIds(array_values(array_unique(array_merge($memberIds, array_map(static fn (RosterEntryReference $e): string => $e->playerId, $rosterOptions)))));
+        $refs = $players->byIds(array_values(array_unique(array_merge(
+            $memberIds,
+            array_map(static fn (RosterEntryReference $e): string => $e->playerId, $rosterOptions),
+        ))));
         $windowRows = $windows->forAlliance($s->allianceId);
         $selectedWindow = $mutable?->window;
+        $capacityRows = $selectedWindow === null
+            ? collect()
+            : TransferKingdomCapacityObservation::query()
+                ->where('alliance_id', $s->allianceId)
+                ->where('transfer_window_id', $selectedWindow->id)
+                ->with('kingdom:id,number')
+                ->orderByDesc('observed_at')
+                ->orderByDesc('id')
+                ->get();
 
-        return Inertia::render('Kingdom/Transfer/Manage', ['user' => ['name' => $account->name, 'email' => $account->email], 'alliance' => ['id' => $alliance->allianceId, 'name' => $alliance->name, 'kingdom' => (string) $kingdom->number], 'plans' => $plans->forAlliance($s->allianceId)->map(fn (TransferPlan $p): array => $this->plan($p))->all(), 'mutablePlan' => $mutable === null ? null : $this->plan($mutable), 'windows' => $windowRows->map(fn (TransferWindow $w): array => $this->window($w))->all(), 'officialGroups' => $selectedWindow === null ? [] : $groups->historyForWindow($s->allianceId, (string) $selectedWindow->id)->map(fn (TransferGroup $g): array => $this->officialGroup($g))->all(), 'conditions' => $selectedWindow === null ? [] : $conditions->forWindow($s->allianceId, (string) $selectedWindow->id)->map(fn (TransferKingdomConditionObservation $c): array => $this->condition($c))->all(), 'cohorts' => $mutable === null ? [] : $cohorts->forPlan($s->allianceId, (string) $mutable->id, true)->map(fn (TransferCohort $c): array => $this->cohort($c, true))->all(), 'participants' => $participantRows->map(fn (TransferParticipant $p): array => $this->participant($p, true))->all(), 'rosterOptions' => array_values(array_map(fn (RosterEntryReference $e): array => ['id' => $e->rosterEntryId, 'name' => $e->observedName, 'gamePlayerId' => $refs[$e->playerId]->gamePlayerId ?? null, 'playerId' => $e->playerId], $rosterOptions)), 'players' => array_values(array_map(static fn (string $id): array => ['id' => $id, 'name' => $refs[$id]->currentName ?? $id], $memberIds))]);
+        return Inertia::render('Kingdom/Transfer/Manage', [
+            'user' => ['name' => $account->name, 'email' => $account->email],
+            'alliance' => ['id' => $alliance->allianceId, 'name' => $alliance->name, 'kingdom' => (string) $kingdom->number],
+            'plans' => $plans->forAlliance($s->allianceId)->map(fn (TransferPlan $p): array => $this->plan($p))->all(),
+            'mutablePlan' => $mutable === null ? null : $this->plan($mutable),
+            'windows' => $windowRows->map(fn (TransferWindow $w): array => $this->window($w))->all(),
+            'officialGroups' => $selectedWindow === null ? [] : $groups->historyForWindow($s->allianceId, (string) $selectedWindow->id)->map(fn (TransferGroup $g): array => $this->officialGroup($g))->all(),
+            'conditions' => $selectedWindow === null ? [] : $conditions->forWindow($s->allianceId, (string) $selectedWindow->id)->map(fn (TransferKingdomConditionObservation $c): array => $this->condition($c))->all(),
+            'capacities' => $capacityRows->map(fn (TransferKingdomCapacityObservation $c): array => $this->capacity($c))->all(),
+            'cohorts' => $mutable === null ? [] : $cohorts->forPlan($s->allianceId, (string) $mutable->id, true)->map(fn (TransferCohort $c): array => $this->cohort($c, true))->all(),
+            'participants' => $participantRows->map(fn (TransferParticipant $p): array => $this->participant($p, true))->all(),
+            'rosterOptions' => array_values(array_map(fn (RosterEntryReference $e): array => [
+                'id' => $e->rosterEntryId,
+                'name' => $e->observedName,
+                'gamePlayerId' => $refs[$e->playerId]->gamePlayerId ?? null,
+                'playerId' => $e->playerId,
+            ], $rosterOptions)),
+            'players' => array_values(array_map(static fn (string $id): array => [
+                'id' => $id,
+                'name' => $refs[$id]->currentName ?? $id,
+            ], $memberIds)),
+        ]);
     }
 
     public function store(Request $request, AllianceContext $context, CreateTransferPlan $create): RedirectResponse
-    {/** @var array{label:string,transfer_window_id:string} $v */ $v = $request->validate(['label' => ['required', 'string', 'max:160'], 'transfer_window_id' => ['required', 'string', 'ulid']]);
+    {
+        /** @var array{label:string,transfer_window_id:string} $v */
+        $v = $request->validate([
+            'label' => ['required', 'string', 'max:160'],
+            'transfer_window_id' => ['required', 'string', 'ulid'],
+        ]);
         $s = $context->scope();
         $create->handle($s->allianceId, $s->playerId, $v);
 
         return back()->with('actionReceipt', $this->receipt('transfer-plan-created'));
     }
 
-    public function open(Request $r, AllianceContext $c, OpenTransferPlan $a, string $plan): RedirectResponse
+    public function open(Request $request, AllianceContext $context, OpenTransferPlan $action, string $plan): RedirectResponse
     {
-        $s = $c->scope();
-        $a->handle($s->allianceId, $s->playerId, $plan);
+        $s = $context->scope();
+        $action->handle($s->allianceId, $s->playerId, $plan);
 
         return back()->with('actionReceipt', $this->receipt('transfer-plan-opened'));
     }
 
-    public function lock(Request $r, AllianceContext $c, LockTransferPlan $a, string $plan): RedirectResponse
+    public function lock(Request $request, AllianceContext $context, LockTransferPlan $action, string $plan): RedirectResponse
     {
-        $s = $c->scope();
-        $a->handle($s->allianceId, $s->playerId, $plan);
+        $s = $context->scope();
+        $action->handle($s->allianceId, $s->playerId, $plan);
 
         return back()->with('actionReceipt', $this->receipt('transfer-plan-locked'));
     }
 
-    public function close(Request $r, AllianceContext $c, CloseTransferPlan $a, string $plan): RedirectResponse
+    public function close(Request $request, AllianceContext $context, CloseTransferPlan $action, string $plan): RedirectResponse
     {
-        $s = $c->scope();
-        $a->handle($s->allianceId, $s->playerId, $plan);
+        $s = $context->scope();
+        $action->handle($s->allianceId, $s->playerId, $plan);
 
         return back()->with('actionReceipt', $this->receipt('transfer-plan-closed'));
     }
 
-    public function cancel(Request $r, AllianceContext $c, CancelTransferPlan $a, string $plan): RedirectResponse
+    public function cancel(Request $request, AllianceContext $context, CancelTransferPlan $action, string $plan): RedirectResponse
     {
-        $s = $c->scope();
-        $a->handle($s->allianceId, $s->playerId, $plan);
+        $s = $context->scope();
+        $action->handle($s->allianceId, $s->playerId, $plan);
 
         return back()->with('actionReceipt', $this->receipt('transfer-plan-cancelled'));
     }
 
     /** @return array<string,mixed> */
-    private function plan(TransferPlan $p): array
+    private function plan(TransferPlan $plan): array
     {
-        return ['id' => (string) $p->id, 'label' => (string) $p->label, 'homeKingdom' => (string) $p->homeKingdom->number, 'state' => $p->state->value, 'createdAt' => $p->created_at?->toIso8601String(), 'window' => $this->window($p->window)];
+        return [
+            'id' => (string) $plan->id,
+            'label' => (string) $plan->label,
+            'homeKingdom' => (string) $plan->homeKingdom->number,
+            'state' => $plan->state->value,
+            'createdAt' => $plan->created_at?->toIso8601String(),
+            'window' => $this->window($plan->window),
+        ];
     }
 
     /** @return array<string,mixed> */
-    private function window(TransferWindow $w): array
+    private function window(TransferWindow $window): array
     {
-        return ['id' => (string) $w->id, 'label' => $w->label, 'phase' => $w->phaseAt(now('UTC'))->value, 'preTransferStartsAt' => $w->pre_transfer_starts_at->toIso8601String(), 'invitationalStartsAt' => $w->invitational_starts_at->toIso8601String(), 'transferOpensAt' => $w->transfer_opens_at->toIso8601String(), 'endsAt' => $w->ends_at->toIso8601String(), 'sourceType' => $w->source_type->value, 'sourceReference' => $w->source_reference, 'observedAt' => $w->observed_at->toIso8601String()];
+        return [
+            'id' => (string) $window->id,
+            'label' => $window->label,
+            'phase' => $window->phaseAt(now('UTC'))->value,
+            'preTransferStartsAt' => $window->pre_transfer_starts_at->toIso8601String(),
+            'invitationalStartsAt' => $window->invitational_starts_at->toIso8601String(),
+            'transferOpensAt' => $window->transfer_opens_at->toIso8601String(),
+            'endsAt' => $window->ends_at->toIso8601String(),
+            'sourceType' => $window->source_type->value,
+            'sourceReference' => $window->source_reference,
+            'observedAt' => $window->observed_at->toIso8601String(),
+        ];
     }
 
     /** @return array<string,mixed> */
-    private function cohort(TransferCohort $c, bool $private): array
+    private function cohort(TransferCohort $cohort, bool $private): array
     {
-        $row = ['name' => $c->name, 'direction' => $c->direction->value, 'destinationKingdom' => $c->destinationKingdom === null ? null : (string) $c->destinationKingdom->number, 'coordinator' => $c->coordinator === null ? null : ['name' => $c->coordinator->current_name]];
+        $row = [
+            'name' => $cohort->name,
+            'direction' => $cohort->direction->value,
+            'destinationKingdom' => $cohort->destinationKingdom === null ? null : (string) $cohort->destinationKingdom->number,
+            'coordinator' => $cohort->coordinator === null ? null : ['name' => $cohort->coordinator->current_name],
+        ];
         if ($private) {
-            $row['id'] = (string) $c->id;
-            $row['state'] = $c->state->value;
-            $row['coordinatorPlayerId'] = $c->coordinator_player_id;
-            $row['managerNotes'] = $c->manager_notes;
+            $row['id'] = (string) $cohort->id;
+            $row['state'] = $cohort->state->value;
+            $row['coordinatorPlayerId'] = $cohort->coordinator_player_id;
+            $row['managerNotes'] = $cohort->manager_notes;
         }
 
         return $row;
     }
 
     /** @return array<string,mixed> */
-    private function officialGroup(TransferGroup $g): array
+    private function officialGroup(TransferGroup $group): array
     {
-        return ['id' => (string) $g->id, 'officialLabel' => $g->official_label, 'revision' => $g->revision, 'kingdoms' => $g->kingdoms->map(static fn ($k): array => ['id' => (string) $k->id, 'number' => (string) $k->number])->all(), 'sourceType' => $g->source_type->value, 'sourceReference' => $g->source_reference, 'observedAt' => $g->observed_at->toIso8601String(), 'supersededAt' => $g->superseded_at?->toIso8601String()];
+        return [
+            'id' => (string) $group->id,
+            'officialLabel' => $group->official_label,
+            'revision' => $group->revision,
+            'kingdoms' => $group->kingdoms->map(static fn ($kingdom): array => [
+                'id' => (string) $kingdom->id,
+                'number' => (string) $kingdom->number,
+            ])->all(),
+            'sourceType' => $group->source_type->value,
+            'sourceReference' => $group->source_reference,
+            'observedAt' => $group->observed_at->toIso8601String(),
+            'supersededAt' => $group->superseded_at?->toIso8601String(),
+        ];
     }
 
     /** @return array<string,mixed> */
-    private function condition(TransferKingdomConditionObservation $c): array
+    private function condition(TransferKingdomConditionObservation $condition): array
     {
-        return ['id' => (string) $c->id, 'kingdom' => (string) $c->kingdom->number, 'powerCap' => $c->power_cap, 'classification' => $c->classification?->value, 'sourceType' => $c->source_type->value, 'sourceReference' => $c->source_reference, 'observedAt' => $c->observed_at->toIso8601String(), 'isCorrection' => $c->is_correction];
+        return [
+            'id' => (string) $condition->id,
+            'kingdom' => (string) $condition->kingdom->number,
+            'powerCap' => $condition->power_cap,
+            'classification' => $condition->classification?->value,
+            'heroGeneration' => $condition->hero_generation,
+            'truegoldLevel' => $condition->truegold_level,
+            'characterAgeThresholdDays' => $condition->character_age_threshold_days,
+            'sourceType' => $condition->source_type->value,
+            'sourceReference' => $condition->source_reference,
+            'observedAt' => $condition->observed_at->toIso8601String(),
+            'isCorrection' => $condition->is_correction,
+        ];
     }
 
     /** @return array<string,mixed> */
-    private function participant(TransferParticipant $p, bool $private): array
+    private function capacity(TransferKingdomCapacityObservation $capacity): array
     {
-        $row = ['id' => (string) $p->id, 'direction' => $p->direction->value, 'readiness' => $p->readiness_state->value, 'name' => $p->observed_name, 'gamePlayerId' => $p->game_player_id, 'sourceKingdom' => $p->sourceKingdom === null ? null : (string) $p->sourceKingdom->number, 'destinationKingdom' => $p->destinationKingdom === null ? null : (string) $p->destinationKingdom->number, 'player' => ['id' => (string) $p->player_id, 'name' => $p->player->current_name], 'cohort' => $p->cohort === null ? null : $this->cohort($p->cohort, false), 'withdrawnAt' => $p->withdrawn_at?->toIso8601String(), 'completedAt' => $p->completion?->completed_at->toIso8601String()];
+        return [
+            'id' => (string) $capacity->id,
+            'kingdom' => (string) $capacity->kingdom->number,
+            'ordinaryInvitesUsed' => $capacity->ordinary_invites_used,
+            'transferOpensUsed' => $capacity->transfer_opens_used,
+            'specialInvitesAvailable' => $capacity->special_invites_available,
+            'sourceType' => $capacity->source_type->value,
+            'sourceReference' => $capacity->source_reference,
+            'observedAt' => $capacity->observed_at->toIso8601String(),
+            'isCorrection' => $capacity->is_correction,
+        ];
+    }
+
+    /** @return array<string,mixed> */
+    private function participant(TransferParticipant $participant, bool $private): array
+    {
+        $row = [
+            'id' => (string) $participant->id,
+            'direction' => $participant->direction->value,
+            'readiness' => $participant->readiness_state->value,
+            'name' => $participant->observed_name,
+            'gamePlayerId' => $participant->game_player_id,
+            'sourceKingdom' => $participant->sourceKingdom === null ? null : (string) $participant->sourceKingdom->number,
+            'destinationKingdom' => $participant->destinationKingdom === null ? null : (string) $participant->destinationKingdom->number,
+            'player' => ['id' => (string) $participant->player_id, 'name' => $participant->player->current_name],
+            'cohort' => $participant->cohort === null ? null : $this->cohort($participant->cohort, false),
+            'withdrawnAt' => $participant->withdrawn_at?->toIso8601String(),
+            'completedAt' => $participant->completion?->completed_at->toIso8601String(),
+        ];
         if ($private) {
-            $row['rosterEntryId'] = $p->roster_entry_id;
-            $row['transferCohortId'] = $p->transfer_cohort_id;
-            $row['managerNotes'] = $p->manager_notes;
+            $row['rosterEntryId'] = $participant->roster_entry_id;
+            $row['transferCohortId'] = $participant->transfer_cohort_id;
+            $row['managerNotes'] = $participant->manager_notes;
         }
 
         return $row;
     }
 
-    private function account(Request $r, AccountIdentityQuery $q): AccountIdentity
+    private function account(Request $request, AccountIdentityQuery $accounts): AccountIdentity
     {
-        $id = $r->user()?->getAuthIdentifier();
+        $id = $request->user()?->getAuthIdentifier();
         abort_unless(is_numeric($id), 401);
 
-        return $q->require((int) $id);
+        return $accounts->require((int) $id);
     }
 }

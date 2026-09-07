@@ -42,7 +42,21 @@ type Condition = {
   id: string;
   kingdom: string;
   powerCap: number | null;
-  classification: string;
+  classification: string | null;
+  heroGeneration: number | null;
+  truegoldLevel: number | null;
+  characterAgeThresholdDays: number | null;
+  sourceType: SourceType;
+  sourceReference: string;
+  observedAt: string;
+  isCorrection: boolean;
+};
+type Capacity = {
+  id: string;
+  kingdom: string;
+  ordinaryInvitesUsed: number | null;
+  transferOpensUsed: number | null;
+  specialInvitesAvailable: number | null;
   sourceType: SourceType;
   sourceReference: string;
   observedAt: string;
@@ -88,6 +102,7 @@ const props = defineProps<{
   windows: WindowRow[];
   officialGroups: OfficialGroup[];
   conditions: Condition[];
+  capacities: Capacity[];
   cohorts: Cohort[];
   participants: Participant[];
   rosterOptions: Roster[];
@@ -134,8 +149,21 @@ const conditionForm = useForm({
   kingdom_number: '',
   power_cap: '',
   classification: 'ordinary',
+  hero_generation: '',
+  truegold_level: '',
+  character_age_threshold_days: '',
   source_type: 'in_game' as SourceType,
   source_reference: 'KingShot Kingdom Transfer screen',
+  observed_at: local(),
+  is_correction: false,
+});
+const capacityForm = useForm({
+  kingdom_number: '',
+  ordinary_invites_used: '',
+  transfer_opens_used: '',
+  special_invites_available: '',
+  source_type: 'in_game' as SourceType,
+  source_reference: 'KingShot target Kingdom transfer capacity screen',
   observed_at: local(),
   is_correction: false,
 });
@@ -273,6 +301,35 @@ function recordCondition(): void {
       ...conditionForm.data(),
       kingdom_number: Number(conditionForm.kingdom_number),
       power_cap: conditionForm.power_cap === '' ? null : Number(conditionForm.power_cap),
+      hero_generation:
+        conditionForm.hero_generation === '' ? null : Number(conditionForm.hero_generation),
+      truegold_level:
+        conditionForm.truegold_level === '' ? null : Number(conditionForm.truegold_level),
+      character_age_threshold_days:
+        conditionForm.character_age_threshold_days === ''
+          ? null
+          : Number(conditionForm.character_age_threshold_days),
+    },
+    { preserveScroll: true },
+  );
+}
+function recordCapacity(): void {
+  if (!props.mutablePlan) return;
+  router.post(
+    `/alliance/transfers/windows/${props.mutablePlan.window.id}/capacity`,
+    {
+      ...capacityForm.data(),
+      kingdom_number: Number(capacityForm.kingdom_number),
+      ordinary_invites_used:
+        capacityForm.ordinary_invites_used === ''
+          ? null
+          : Number(capacityForm.ordinary_invites_used),
+      transfer_opens_used:
+        capacityForm.transfer_opens_used === '' ? null : Number(capacityForm.transfer_opens_used),
+      special_invites_available:
+        capacityForm.special_invites_available === ''
+          ? null
+          : Number(capacityForm.special_invites_available),
     },
     { preserveScroll: true },
   );
@@ -596,6 +653,28 @@ function compatibleCohorts(p: Participant): Cohort[] {
                 <option value="unknown">{{ t('kingdomP7D.unknown') }}</option>
               </select></label
             ><label
+              >{{ t('kingdomP7D.targetHeroGeneration')
+              }}<input
+                v-model="conditionForm.hero_generation"
+                class="ks-input mt-1 w-full"
+                min="1"
+                type="number" /></label
+            ><label
+              >{{ t('kingdomP7D.targetTruegoldLevel')
+              }}<input
+                v-model="conditionForm.truegold_level"
+                class="ks-input mt-1 w-full"
+                min="0"
+                type="number" /></label
+            ><label
+              >{{ t('kingdomP7D.targetCharacterAgeThresholdDays')
+              }}<input
+                v-model="conditionForm.character_age_threshold_days"
+                class="ks-input mt-1 w-full"
+                min="90"
+                max="180"
+                type="number" /></label
+            ><label
               >{{ t('kingdomP7D.sourceType')
               }}<select v-model="conditionForm.source_type" class="ks-input mt-1 w-full">
                 <option v-for="s in sourceTypes" :key="s" :value="s">{{ sourceLabel(s) }}</option>
@@ -635,10 +714,113 @@ function compatibleCohorts(p: Participant): Cohort[] {
               {{ c.powerCap == null ? '—' : formatNumber(c.powerCap) }} ·
               {{ t(`kingdomP7D.classification_${c.classification}`) }}</strong
             >
+            <p class="mt-2 text-sm text-[var(--ks-text-secondary)]">
+              {{ t('kingdomP7D.targetHeroGeneration') }}: {{ c.heroGeneration ?? '—' }} ·
+              {{ t('kingdomP7D.targetTruegoldLevel') }}: {{ c.truegoldLevel ?? '—' }} ·
+              {{ t('kingdomP7D.targetCharacterAgeThresholdDays') }}:
+              {{ c.characterAgeThresholdDays ?? '—' }}
+            </p>
             <p class="mt-1 text-xs break-all text-[var(--ks-muted)]">
               {{ sourceLabel(c.sourceType) }} · {{ ts(c.observedAt) }} · {{ c.sourceReference }}
             </p>
           </article>
+        </div>
+      </section>
+      <section class="mt-5 grid gap-5 xl:grid-cols-2">
+        <form class="ks-surface p-5" @submit.prevent="recordCapacity">
+          <h2 class="text-xl font-semibold">{{ t('kingdomP7D.capacityObservationTitle') }}</h2>
+          <p class="mt-2 text-sm text-[var(--ks-muted)]">
+            {{ t('kingdomP7D.capacityObservationHelp') }}
+          </p>
+          <div class="mt-3 grid gap-3 sm:grid-cols-2">
+            <label
+              >{{ t('kingdomP7D.destinationKingdom')
+              }}<input
+                v-model="capacityForm.kingdom_number"
+                class="ks-input mt-1 w-full"
+                min="1"
+                required
+                type="number"
+            /></label>
+            <label
+              >{{ t('kingdomP7D.ordinaryInvitesUsed')
+              }}<input
+                v-model="capacityForm.ordinary_invites_used"
+                class="ks-input mt-1 w-full"
+                min="0"
+                type="number"
+            /></label>
+            <label
+              >{{ t('kingdomP7D.transferOpensUsed')
+              }}<input
+                v-model="capacityForm.transfer_opens_used"
+                class="ks-input mt-1 w-full"
+                min="0"
+                type="number"
+            /></label>
+            <label
+              >{{ t('kingdomP7D.specialInvitesAvailable')
+              }}<input
+                v-model="capacityForm.special_invites_available"
+                class="ks-input mt-1 w-full"
+                min="0"
+                max="3"
+                type="number"
+            /></label>
+            <label
+              >{{ t('kingdomP7D.sourceType')
+              }}<select v-model="capacityForm.source_type" class="ks-input mt-1 w-full">
+                <option v-for="s in sourceTypes" :key="s" :value="s">{{ sourceLabel(s) }}</option>
+              </select></label
+            >
+            <label
+              >{{ t('kingdomP7D.observedAt')
+              }}<input
+                v-model="capacityForm.observed_at"
+                class="ks-input mt-1 w-full"
+                required
+                type="datetime-local"
+            /></label>
+            <label class="sm:col-span-2"
+              >{{ t('kingdomP7D.sourceReference')
+              }}<input
+                v-model="capacityForm.source_reference"
+                class="ks-input mt-1 w-full"
+                required
+            /></label>
+            <label class="flex items-end gap-2 sm:col-span-2"
+              ><input v-model="capacityForm.is_correction" type="checkbox" />{{
+                t('kingdomP7D.authoritativeCorrection')
+              }}</label
+            >
+          </div>
+          <button
+            class="mt-3 rounded-lg bg-[var(--ks-gold)] px-4 py-2 font-bold text-[var(--ks-ink)]"
+          >
+            {{ t('kingdomP7D.recordCapacityObservation') }}
+          </button>
+        </form>
+        <div class="ks-surface p-5">
+          <h2 class="text-xl font-semibold">{{ t('kingdomP7D.capacityHistory') }}</h2>
+          <p class="mt-2 text-sm text-[var(--ks-muted)]">{{ t('kingdomP7D.observedFactsHelp') }}</p>
+          <article
+            v-for="c in capacities"
+            :key="c.id"
+            class="mt-3 rounded-xl border border-[var(--ks-border)] p-3"
+          >
+            <strong>{{ t('kingdomP7D.kingdomValue', { kingdom: c.kingdom }) }}</strong>
+            <p class="mt-2 text-sm">
+              {{ t('kingdomP7D.ordinaryInvitesUsed') }}: {{ c.ordinaryInvitesUsed ?? '—' }} ·
+              {{ t('kingdomP7D.transferOpensUsed') }}: {{ c.transferOpensUsed ?? '—' }} ·
+              {{ t('kingdomP7D.specialInvitesAvailable') }}: {{ c.specialInvitesAvailable ?? '—' }}
+            </p>
+            <p class="mt-1 text-xs break-all text-[var(--ks-muted)]">
+              {{ sourceLabel(c.sourceType) }} · {{ ts(c.observedAt) }} · {{ c.sourceReference }}
+            </p>
+          </article>
+          <p v-if="!capacities.length" class="mt-3 text-sm text-[var(--ks-muted)]">
+            {{ t('kingdomP7D.capacityUnknown') }}
+          </p>
         </div>
       </section>
       <section class="ks-surface mt-5 p-5">

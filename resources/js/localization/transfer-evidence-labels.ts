@@ -1,6 +1,11 @@
 import type { MessageCatalogue } from './types';
 
 const english: MessageCatalogue = {
+  receipts: {
+    'transfer-capacity-observed': 'Target Kingdom transfer capacity recorded.',
+    'transfer-capacity-reservation-saved': 'Governor transfer-capacity reservation updated.',
+    'transfer-invitation-allocation-saved': 'Governor transfer invitation allocation updated.',
+  },
   kingdomP7D: {
     transferEvidenceTitle: 'In-game evidence',
     transferEvidenceHelp:
@@ -42,6 +47,9 @@ const english: MessageCatalogue = {
     passesAvailable: 'Transfer Passes available',
     passesRequired: 'Transfer Passes required',
     invitationStatus: 'Invitation status',
+    targetHeroGeneration: 'Target Hero Generation',
+    targetTruegoldLevel: 'Target Truegold level',
+    targetCharacterAgeThresholdDays: 'Character-age threshold (days)',
     officialGroupIdentifier: 'Official Transfer Group',
     officialGroupKingdoms: 'Visible Kingdom membership',
     previewImpact: 'Preview destination facts and eligibility impact',

@@ -120,6 +120,9 @@ final readonly class CommitReviewedTransferEvidence
                     ? null
                     : TransferKingdomClassification::from($command->kingdomClassification),
                 observedAt: $command->observedAt,
+                heroGeneration: $command->targetHeroGeneration ?? throw new LogicException('Hero Generation is missing from an approved target-rules review.'),
+                truegoldLevel: $command->targetTruegoldLevel ?? throw new LogicException('Truegold level is missing from an approved target-rules review.'),
+                characterAgeThresholdDays: $command->targetCharacterAgeThresholdDays ?? throw new LogicException('Character-age threshold is missing from an approved target-rules review.'),
             ),
             EvidenceKind::TransferOfficialGroup => $this->officialGroup->handle(
                 allianceId: $command->allianceId,

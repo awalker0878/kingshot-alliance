@@ -66,6 +66,9 @@ type EvidenceItem = {
     passesRequired: number | null;
     invitationStatus: string | null;
     targetPowerCap: number | null;
+    targetHeroGeneration: number | null;
+    targetTruegoldLevel: number | null;
+    targetCharacterAgeThresholdDays: number | null;
     kingdomClassification: string | null;
     officialGroupIdentifier: string | null;
     officialGroupKingdomNumbers: number[];
@@ -124,6 +127,9 @@ type ReviewDraft = {
   invitationStatus: string;
   targetKingdomNumber: string;
   targetPowerCap: string;
+  targetHeroGeneration: string;
+  targetTruegoldLevel: string;
+  targetCharacterAgeThresholdDays: string;
   kingdomClassification: string;
   officialGroupIdentifier: string;
   officialGroupKingdoms: string;
@@ -152,7 +158,10 @@ const props = defineProps<{
   } | null;
   currentTargetCondition: {
     powerCap: number | null;
-    classification: string;
+    classification: string | null;
+    heroGeneration?: number | null;
+    truegoldLevel?: number | null;
+    characterAgeThresholdDays?: number | null;
     sourceType: string;
     sourceReference: string;
     observedAt: string;
@@ -190,50 +199,39 @@ const basePath = computed(
 function kindLabel(kind: string): string {
   return t(`kingdomP7D.evidenceKind_${kind}`);
 }
-
 function statusLabel(status: string): string {
   return t(`kingdomP7D.evidenceStatus_${status}`);
 }
-
 function reviewStatusLabel(status: string): string {
   return t(`kingdomP7D.evidenceReviewStatus_${status}`);
 }
-
 function commitStatusLabel(status: string): string {
   return t(`kingdomP7D.evidenceCommitStatus_${status}`);
 }
-
 function schemaFor(kind: string): Schema | undefined {
   return schemas.value.find((schema) => schema.kind === kind);
 }
-
 function percent(value: number): string {
   return `${Math.round(value * 100)}%`;
 }
-
 function timestamp(value: string | null): string {
   return value ? formatDate(value, { dateStyle: 'medium', timeStyle: 'short' }) : '—';
 }
-
 function displayValue(value: unknown): string {
   if (typeof value === 'number') return formatNumber(value);
   if (typeof value === 'boolean') return value ? t('common.yes') : t('common.no');
   return value === null || value === undefined || value === '' ? '—' : String(value);
 }
-
 function evidenceField(item: EvidenceItem, key: string): ExtractedField | undefined {
   return item.extraction?.fields.find((field) => field.key === key);
 }
-
 function evidenceFields(item: EvidenceItem, key: string): ExtractedField[] {
   return item.extraction?.fields.filter((field) => field.key === key) ?? [];
 }
-
 function normalizedText(item: EvidenceItem, key: string): string {
   const value = evidenceField(item, key)?.value;
   return value === null || value === undefined ? '' : String(value);
 }
-
 function ensureDraft(item: EvidenceItem): void {
   if (drafts[item.id]) return;
 
@@ -249,6 +247,13 @@ function ensureDraft(item: EvidenceItem): void {
     invitationStatus: item.review?.invitationStatus ?? normalizedText(item, 'invitation_status'),
     targetKingdomNumber: normalizedText(item, 'target_kingdom_number') || props.targetKingdom || '',
     targetPowerCap: item.review?.targetPowerCap?.toString() ?? normalizedText(item, 'power_cap'),
+    targetHeroGeneration:
+      item.review?.targetHeroGeneration?.toString() ?? normalizedText(item, 'hero_generation'),
+    targetTruegoldLevel:
+      item.review?.targetTruegoldLevel?.toString() ?? normalizedText(item, 'truegold_level'),
+    targetCharacterAgeThresholdDays:
+      item.review?.targetCharacterAgeThresholdDays?.toString() ??
+      normalizedText(item, 'character_age_threshold_days'),
     kingdomClassification:
       item.review?.kingdomClassification ?? normalizedText(item, 'kingdom_classification'),
     officialGroupIdentifier:
@@ -261,13 +266,11 @@ function ensureDraft(item: EvidenceItem): void {
         .join(', '),
   };
 }
-
 function localDateTime(value: string): string {
   const date = new Date(value);
   date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
   return date.toISOString().slice(0, 16);
 }
-
 async function loadEvidence(force = false): Promise<void> {
   if (loading.value || (loaded.value && !force)) return;
   loading.value = true;
@@ -289,12 +292,10 @@ async function loadEvidence(force = false): Promise<void> {
     loading.value = false;
   }
 }
-
 function chooseFile(event: Event): void {
   const input = event.target as HTMLInputElement;
   uploadFile.value = input.files?.[0] ?? null;
 }
-
 function upload(): void {
   if (!props.mutable || !uploadFile.value) return;
   notice.value = '';
@@ -311,19 +312,16 @@ function upload(): void {
     },
   );
 }
-
 function requiresValidity(kind: EvidenceKind): boolean {
   return ['transfer_governor_status', 'transfer_score_passes', 'transfer_invitation'].includes(
     kind,
   );
 }
-
 function numeric(value: string): number | null {
   if (value.trim() === '') return null;
   const parsed = Number(value);
   return Number.isSafeInteger(parsed) && parsed >= 0 ? parsed : null;
 }
-
 function parseKingdoms(value: string): number[] {
   return [
     ...new Set(
@@ -334,7 +332,6 @@ function parseKingdoms(value: string): number[] {
     ),
   ].sort((a, b) => a - b);
 }
-
 function review(item: EvidenceItem): void {
   const draft = drafts[item.id];
   if (!draft || !item.extraction || !draft.observedAt) return;
@@ -361,6 +358,9 @@ function review(item: EvidenceItem): void {
   } else if (item.expectedKind === 'transfer_target_kingdom_rules') {
     payload.target_kingdom_number = numeric(draft.targetKingdomNumber);
     payload.target_power_cap = numeric(draft.targetPowerCap);
+    payload.hero_generation = numeric(draft.targetHeroGeneration);
+    payload.truegold_level = numeric(draft.targetTruegoldLevel);
+    payload.character_age_threshold_days = numeric(draft.targetCharacterAgeThresholdDays);
     payload.kingdom_classification = draft.kingdomClassification || null;
   } else if (item.expectedKind === 'transfer_official_group') {
     payload.official_group_identifier = draft.officialGroupIdentifier || null;
@@ -373,7 +373,6 @@ function review(item: EvidenceItem): void {
     onSuccess: () => void loadEvidence(true),
   });
 }
-
 async function preview(item: EvidenceItem): Promise<void> {
   if (!item.review || previewLoading[item.id]) return;
   previewLoading[item.id] = true;
@@ -391,7 +390,6 @@ async function preview(item: EvidenceItem): Promise<void> {
     previewLoading[item.id] = false;
   }
 }
-
 function resolveDuplicate(item: EvidenceItem): void {
   if (!item.review) return;
   const justification = duplicateJustifications[item.review.id]?.trim() ?? '';
@@ -402,7 +400,6 @@ function resolveDuplicate(item: EvidenceItem): void {
     { preserveScroll: true, onSuccess: () => void loadEvidence(true) },
   );
 }
-
 function commit(item: EvidenceItem): void {
   if (!item.review || !previews[item.id]) {
     notice.value = t('kingdomP7D.previewRequired');
@@ -411,24 +408,16 @@ function commit(item: EvidenceItem): void {
   router.post(
     `${basePath.value}/reviews/${item.review.id}/commit`,
     {},
-    {
-      preserveScroll: true,
-      onSuccess: () => void loadEvidence(true),
-    },
+    { preserveScroll: true, onSuccess: () => void loadEvidence(true) },
   );
 }
-
 function retry(item: EvidenceItem): void {
   router.post(
     `${basePath.value}/${item.id}/retry`,
     {},
-    {
-      preserveScroll: true,
-      onSuccess: () => void loadEvidence(true),
-    },
+    { preserveScroll: true, onSuccess: () => void loadEvidence(true) },
   );
 }
-
 function remove(item: EvidenceItem): void {
   requestConfirmation({
     id: `delete-transfer-evidence-${item.id}`,
@@ -445,17 +434,14 @@ function remove(item: EvidenceItem): void {
       }),
   });
 }
-
 function hasLowConfidence(item: EvidenceItem): boolean {
   const schema = schemaFor(item.expectedKind);
   if (!schema || !item.extraction) return false;
   return item.extraction.fields.some((field) => field.confidence < schema.minimumFieldConfidence);
 }
-
 function classMismatch(item: EvidenceItem): boolean {
   return Boolean(item.classification && item.classification.kind !== item.expectedKind);
 }
-
 function fieldCorrected(item: EvidenceItem, field: ExtractedField): boolean {
   const draft = drafts[item.id];
   if (!draft) return false;
@@ -475,11 +461,17 @@ function fieldCorrected(item: EvidenceItem, field: ExtractedField): boolean {
                 ? draft.targetKingdomNumber
                 : field.key === 'power_cap'
                   ? draft.targetPowerCap
-                  : field.key === 'kingdom_classification'
-                    ? draft.kingdomClassification
-                    : field.key === 'official_group_identifier'
-                      ? draft.officialGroupIdentifier
-                      : normalized;
+                  : field.key === 'hero_generation'
+                    ? draft.targetHeroGeneration
+                    : field.key === 'truegold_level'
+                      ? draft.targetTruegoldLevel
+                      : field.key === 'character_age_threshold_days'
+                        ? draft.targetCharacterAgeThresholdDays
+                        : field.key === 'kingdom_classification'
+                          ? draft.kingdomClassification
+                          : field.key === 'official_group_identifier'
+                            ? draft.officialGroupIdentifier
+                            : normalized;
   return current.trim() !== normalized.trim();
 }
 </script>
@@ -514,8 +506,8 @@ function fieldCorrected(item: EvidenceItem, field: ExtractedField): boolean {
           @submit.prevent="upload"
         >
           <div class="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] md:items-end">
-            <label class="text-sm font-semibold">
-              {{ t('kingdomP7D.screenshotClass') }}
+            <label class="text-sm font-semibold"
+              >{{ t('kingdomP7D.screenshotClass') }}
               <select
                 v-model="uploadKind"
                 class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2"
@@ -525,8 +517,8 @@ function fieldCorrected(item: EvidenceItem, field: ExtractedField): boolean {
                 </option>
               </select>
             </label>
-            <label class="text-sm font-semibold">
-              {{ t('kingdomP7D.uploadScreenshot') }}
+            <label class="text-sm font-semibold"
+              >{{ t('kingdomP7D.uploadScreenshot') }}
               <input
                 accept="image/jpeg,image/png,image/webp"
                 class="mt-1 block w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2 text-sm"
@@ -665,8 +657,8 @@ function fieldCorrected(item: EvidenceItem, field: ExtractedField): boolean {
                   <div>
                     <dt class="ks-kicker">{{ t('kingdomP7D.normalizedValue') }}</dt>
                     <dd class="mt-1">
-                      {{ displayValue(field.value) }}
-                      <span
+                      {{ displayValue(field.value)
+                      }}<span
                         v-if="fieldCorrected(item, field)"
                         class="ml-1 text-xs font-semibold text-amber-200"
                         >· {{ t('kingdomP7D.evidenceCorrected') }}</span
@@ -715,8 +707,8 @@ function fieldCorrected(item: EvidenceItem, field: ExtractedField): boolean {
                     <td class="py-2 pr-3 font-semibold">{{ field.key }}</td>
                     <td class="py-2 pr-3 break-words">{{ field.raw }}</td>
                     <td class="py-2 pr-3">
-                      {{ displayValue(field.value) }}
-                      <span
+                      {{ displayValue(field.value)
+                      }}<span
                         v-if="fieldCorrected(item, field)"
                         class="ml-1 text-xs font-semibold text-amber-200"
                         >· {{ t('kingdomP7D.evidenceCorrected') }}</span
@@ -764,10 +756,9 @@ function fieldCorrected(item: EvidenceItem, field: ExtractedField): boolean {
               <span
                 v-if="item.review"
                 class="rounded-full border border-[var(--ks-border)] px-3 py-1 text-xs font-semibold"
+                >{{ reviewStatusLabel(item.review.status) }} ·
+                {{ t('kingdomP7D.evidenceRevision') }} {{ item.review.revision }}</span
               >
-                {{ reviewStatusLabel(item.review.status) }} · {{ t('kingdomP7D.evidenceRevision') }}
-                {{ item.review.revision }}
-              </span>
             </div>
 
             <form
@@ -775,38 +766,34 @@ function fieldCorrected(item: EvidenceItem, field: ExtractedField): boolean {
               class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3"
               @submit.prevent="review(item)"
             >
-              <label class="text-sm font-semibold">
-                {{ t('kingdomP7D.observationTime') }}
-                <input
+              <label class="text-sm font-semibold"
+                >{{ t('kingdomP7D.observationTime')
+                }}<input
                   v-model="drafts[item.id]!.observedAt"
                   class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2"
                   required
                   type="datetime-local"
-                />
-              </label>
-              <label v-if="requiresValidity(item.expectedKind)" class="text-sm font-semibold">
-                {{ t('kingdomP7D.freshnessBoundary') }}
-                <input
+              /></label>
+              <label v-if="requiresValidity(item.expectedKind)" class="text-sm font-semibold"
+                >{{ t('kingdomP7D.freshnessBoundary')
+                }}<input
                   v-model="drafts[item.id]!.validUntil"
                   class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2"
                   required
                   type="datetime-local"
-                />
-              </label>
+              /></label>
 
               <label
                 v-if="item.expectedKind === 'transfer_governor_status'"
                 class="text-sm font-semibold"
-              >
-                {{ t('kingdomP7D.observation_governor_power') }}
-                <input
+                >{{ t('kingdomP7D.observation_governor_power')
+                }}<input
                   v-model="drafts[item.id]!.governorPower"
                   class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2"
                   min="0"
                   required
                   type="number"
-                />
-              </label>
+              /></label>
 
               <template v-else-if="item.expectedKind === 'transfer_score_passes'">
                 <label class="text-sm font-semibold"
@@ -840,8 +827,8 @@ function fieldCorrected(item: EvidenceItem, field: ExtractedField): boolean {
 
               <template v-else-if="item.expectedKind === 'transfer_invitation'">
                 <label class="text-sm font-semibold"
-                  >{{ t('kingdomP7D.invitationStatus') }}
-                  <select
+                  >{{ t('kingdomP7D.invitationStatus')
+                  }}<select
                     v-model="drafts[item.id]!.invitationStatus"
                     class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2"
                     required
@@ -856,8 +843,8 @@ function fieldCorrected(item: EvidenceItem, field: ExtractedField): boolean {
                     <option value="special_approved">
                       {{ t('kingdomP7D.invitation_special_approved') }}
                     </option>
-                  </select>
-                </label>
+                  </select></label
+                >
                 <label class="text-sm font-semibold"
                   >{{ t('kingdomP7D.targetKingdomNumber')
                   }}<input
@@ -888,16 +875,44 @@ function fieldCorrected(item: EvidenceItem, field: ExtractedField): boolean {
                     type="number"
                 /></label>
                 <label class="text-sm font-semibold"
-                  >{{ t('kingdomP7D.kingdomClassification') }}
-                  <select
+                  >{{ t('kingdomP7D.targetHeroGeneration')
+                  }}<input
+                    v-model="drafts[item.id]!.targetHeroGeneration"
+                    class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2"
+                    min="0"
+                    required
+                    type="number"
+                /></label>
+                <label class="text-sm font-semibold"
+                  >{{ t('kingdomP7D.targetTruegoldLevel')
+                  }}<input
+                    v-model="drafts[item.id]!.targetTruegoldLevel"
+                    class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2"
+                    min="0"
+                    required
+                    type="number"
+                /></label>
+                <label class="text-sm font-semibold"
+                  >{{ t('kingdomP7D.targetCharacterAgeThresholdDays')
+                  }}<input
+                    v-model="drafts[item.id]!.targetCharacterAgeThresholdDays"
+                    class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2"
+                    min="90"
+                    max="180"
+                    required
+                    type="number"
+                /></label>
+                <label class="text-sm font-semibold"
+                  >{{ t('kingdomP7D.kingdomClassification')
+                  }}<select
                     v-model="drafts[item.id]!.kingdomClassification"
                     class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2"
                   >
                     <option value="">{{ t('kingdomP7D.classificationNotProved') }}</option>
                     <option value="ordinary">{{ t('kingdomP7D.classification_ordinary') }}</option>
                     <option value="leading">{{ t('kingdomP7D.classification_leading') }}</option>
-                  </select>
-                </label>
+                  </select></label
+                >
               </template>
 
               <template v-else-if="item.expectedKind === 'transfer_official_group'">
@@ -1070,6 +1085,36 @@ function fieldCorrected(item: EvidenceItem, field: ExtractedField): boolean {
                   <strong>{{ formatNumber(item.review.targetPowerCap) }}</strong>
                 </li>
                 <li
+                  v-if="item.review.targetHeroGeneration !== null"
+                  class="rounded-lg border border-[var(--ks-border)] p-3"
+                >
+                  {{ t('kingdomP7D.targetHeroGeneration') }}:
+                  <strong>{{ formatNumber(item.review.targetHeroGeneration) }}</strong>
+                </li>
+                <li
+                  v-if="item.review.targetTruegoldLevel !== null"
+                  class="rounded-lg border border-[var(--ks-border)] p-3"
+                >
+                  {{ t('kingdomP7D.targetTruegoldLevel') }}:
+                  <strong>{{ formatNumber(item.review.targetTruegoldLevel) }}</strong>
+                </li>
+                <li
+                  v-if="item.review.targetCharacterAgeThresholdDays !== null"
+                  class="rounded-lg border border-[var(--ks-border)] p-3"
+                >
+                  {{ t('kingdomP7D.targetCharacterAgeThresholdDays') }}:
+                  <strong>{{ formatNumber(item.review.targetCharacterAgeThresholdDays) }}</strong>
+                </li>
+                <li
+                  v-if="item.review.kingdomClassification"
+                  class="rounded-lg border border-[var(--ks-border)] p-3"
+                >
+                  {{ t('kingdomP7D.kingdomClassification') }}:
+                  <strong>{{
+                    t(`kingdomP7D.classification_${item.review.kingdomClassification}`)
+                  }}</strong>
+                </li>
+                <li
                   v-if="item.review.officialGroupIdentifier"
                   class="rounded-lg border border-[var(--ks-border)] p-3"
                 >
@@ -1098,8 +1143,7 @@ function fieldCorrected(item: EvidenceItem, field: ExtractedField): boolean {
                 class="min-w-0 flex-1 rounded-lg border border-amber-400/30 bg-[var(--ks-bg)] px-3 py-2"
                 minlength="8"
                 required
-              />
-              <button
+              /><button
                 class="rounded-lg border border-amber-300/40 px-4 py-2 font-semibold text-amber-50"
                 type="submit"
               >
@@ -1172,8 +1216,7 @@ function fieldCorrected(item: EvidenceItem, field: ExtractedField): boolean {
                   · {{ t('kingdomP7D.destinationReceipt') }}
                   {{ item.commit.destinationReceiptId }}</span
                 ></span
-              >
-              <span v-else-if="item.status === 'unsupported'" class="text-amber-100">{{
+              ><span v-else-if="item.status === 'unsupported'" class="text-amber-100">{{
                 t('kingdomP7D.unsupportedEvidence')
               }}</span>
             </div>
@@ -1184,9 +1227,8 @@ function fieldCorrected(item: EvidenceItem, field: ExtractedField): boolean {
                 type="button"
                 @click="retry(item)"
               >
-                {{ t('kingdomP7D.retryProcessing') }}
-              </button>
-              <button
+                {{ t('kingdomP7D.retryProcessing') }}</button
+              ><button
                 v-if="!['classifying', 'extracting', 'committing', 'deleted'].includes(item.status)"
                 class="rounded-lg border border-red-400/30 px-3 py-2 text-red-200"
                 type="button"

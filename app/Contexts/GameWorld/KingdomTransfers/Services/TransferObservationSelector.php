@@ -118,7 +118,7 @@ final class TransferObservationSelector
             return $row->numeric_value;
         }
 
-        if ($row->kind === TransferObservationKind::InGameRulesVerified) {
+        if ($row->kind->usesBooleanValue()) {
             return $row->boolean_value;
         }
 

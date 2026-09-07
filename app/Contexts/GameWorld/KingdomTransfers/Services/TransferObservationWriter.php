@@ -77,14 +77,24 @@ final readonly class TransferObservationWriter
                 'value' => 'This observation requires a non-negative integer value.',
             ]);
         }
-        if ($kind === TransferObservationKind::InGameRulesVerified && ! is_bool($value)) {
+        if ($kind->usesBooleanValue() && ! is_bool($value)) {
             throw ValidationException::withMessages([
-                'value' => 'In-game rule verification requires a boolean value.',
+                'value' => 'This observation requires a boolean value.',
             ]);
         }
         if ($kind === TransferObservationKind::InvitationStatus && (! is_string($value) || TransferInvitationStatus::tryFrom($value) === null)) {
             throw ValidationException::withMessages([
                 'value' => 'Invitation status is invalid.',
+            ]);
+        }
+        if ($kind === TransferObservationKind::TransferPassesRequired && is_int($value) && ($value < TransferOfficialRulebook::MIN_REQUIRED_TRANSFER_PASSES || $value > TransferOfficialRulebook::MAX_REQUIRED_TRANSFER_PASSES)) {
+            throw ValidationException::withMessages([
+                'value' => 'Required Transfer Passes must be between 1 and 50 under the current official rule.',
+            ]);
+        }
+        if ($kind === TransferObservationKind::TargetExistingCharacterCount && is_int($value) && $value > TransferOfficialRulebook::MAX_CHARACTERS_PER_KINGDOM) {
+            throw ValidationException::withMessages([
+                'value' => 'A Kingdom can contain at most four characters for the same account.',
             ]);
         }
 
@@ -128,7 +138,7 @@ final readonly class TransferObservationWriter
             'kind' => $kind,
             'numeric_value' => $kind->usesNumericValue() ? $value : null,
             'text_value' => $kind === TransferObservationKind::InvitationStatus ? $value : null,
-            'boolean_value' => $kind === TransferObservationKind::InGameRulesVerified ? $value : null,
+            'boolean_value' => $kind->usesBooleanValue() ? $value : null,
             'details' => $details,
             'source_type' => $sourceType,
             'source_reference' => $sourceReference,

@@ -34,8 +34,11 @@ final readonly class RecordTransferKingdomRulesEvidence
         int $powerCap,
         ?TransferKingdomClassification $classification,
         string $observedAt,
+        ?int $heroGeneration = null,
+        ?int $truegoldLevel = null,
+        ?int $characterAgeThresholdDays = null,
     ): TransferEvidenceDestinationReceipt {
-        return DB::transaction(function () use ($allianceId, $actorPlayerId, $planId, $participantId, $expectedWindowId, $expectedTargetKingdomId, $evidenceId, $reviewId, $schemaVersion, $idempotencyKey, $powerCap, $classification, $observedAt): TransferEvidenceDestinationReceipt {
+        return DB::transaction(function () use ($allianceId, $actorPlayerId, $planId, $participantId, $expectedWindowId, $expectedTargetKingdomId, $evidenceId, $reviewId, $schemaVersion, $idempotencyKey, $powerCap, $classification, $observedAt, $heroGeneration, $truegoldLevel, $characterAgeThresholdDays): TransferEvidenceDestinationReceipt {
             $context = $this->support->authorize($actorPlayerId, $allianceId);
             $existing = $this->support->existingReceipt($idempotencyKey);
             if ($existing instanceof TransferEvidenceDestinationReceipt) {
@@ -44,17 +47,20 @@ final readonly class RecordTransferKingdomRulesEvidence
             $target = $this->support->lockScope($allianceId, $planId, $participantId, $expectedWindowId, $expectedTargetKingdomId, true);
             $kingdom = $this->kingdoms->require($expectedTargetKingdomId);
             $conditionId = $this->conditions->append(
-                $context,
-                $allianceId,
-                $expectedWindowId,
-                $kingdom->number,
-                $powerCap,
-                $classification,
-                TransferSourceType::Evidence,
-                'Screenshot Intake review '.$reviewId,
-                $observedAt,
-                false,
-                $evidenceId,
+                context: $context,
+                allianceId: $allianceId,
+                windowId: $expectedWindowId,
+                kingdomNumber: $kingdom->number,
+                powerCap: $powerCap,
+                classification: $classification,
+                heroGeneration: $heroGeneration,
+                truegoldLevel: $truegoldLevel,
+                characterAgeThresholdDays: $characterAgeThresholdDays,
+                sourceType: TransferSourceType::Evidence,
+                sourceReference: 'Screenshot Intake review '.$reviewId,
+                observedAt: $observedAt,
+                isCorrection: false,
+                evidenceId: $evidenceId,
             );
 
             return $this->support->complete(

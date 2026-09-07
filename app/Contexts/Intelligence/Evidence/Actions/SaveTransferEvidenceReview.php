@@ -8,6 +8,7 @@ use App\Contexts\GameWorld\Kingdoms\Queries\KingdomReferenceQuery;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferInvitationStatus;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferKingdomClassification;
 use App\Contexts\GameWorld\KingdomTransfers\Queries\TransferEvidenceTargetQuery;
+use App\Contexts\GameWorld\KingdomTransfers\Services\TransferOfficialRulebook;
 use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Contexts\Intelligence\Evidence\Enums\EvidenceAttemptStatus;
 use App\Contexts\Intelligence\Evidence\Enums\EvidenceKind;
@@ -55,6 +56,9 @@ final readonly class SaveTransferEvidenceReview
         ?string $invitationStatus = null,
         ?int $targetKingdomNumber = null,
         ?int $targetPowerCap = null,
+        ?int $targetHeroGeneration = null,
+        ?int $targetTruegoldLevel = null,
+        ?int $targetCharacterAgeThresholdDays = null,
         ?string $kingdomClassification = null,
         ?string $officialGroupIdentifier = null,
         array $officialGroupKingdomNumbers = [],
@@ -66,7 +70,7 @@ final readonly class SaveTransferEvidenceReview
             throw ValidationException::withMessages(['valid_until' => 'Validity must end on or after the observation time.']);
         }
 
-        return DB::transaction(function () use ($actorPlayerId, $allianceId, $planId, $participantId, $evidenceId, $extractionAttemptId, $observed, $valid, $governorPower, $transferScore, $transferPassesAvailable, $transferPassesRequired, $invitationStatus, $targetKingdomNumber, $targetPowerCap, $kingdomClassification, $officialGroupIdentifier, $officialGroupKingdomNumbers, $target): string {
+        return DB::transaction(function () use ($actorPlayerId, $allianceId, $planId, $participantId, $evidenceId, $extractionAttemptId, $observed, $valid, $governorPower, $transferScore, $transferPassesAvailable, $transferPassesRequired, $invitationStatus, $targetKingdomNumber, $targetPowerCap, $targetHeroGeneration, $targetTruegoldLevel, $targetCharacterAgeThresholdDays, $kingdomClassification, $officialGroupIdentifier, $officialGroupKingdomNumbers, $target): string {
             $currentTarget = $this->targets->authorizeManage($actorPlayerId, $allianceId, $planId, $participantId);
             if ($currentTarget->transferWindowId !== $target->transferWindowId || $currentTarget->direction !== $target->direction || $currentTarget->targetKingdomId !== $target->targetKingdomId) {
                 throw ValidationException::withMessages(['evidence' => 'Transfer scope changed while the Evidence review was being saved. Review the current participant state again.']);
@@ -121,6 +125,9 @@ final readonly class SaveTransferEvidenceReview
                 invitationStatus: $invitationStatus,
                 targetKingdomNumber: $targetKingdomNumber,
                 targetPowerCap: $targetPowerCap,
+                targetHeroGeneration: $targetHeroGeneration,
+                targetTruegoldLevel: $targetTruegoldLevel,
+                targetCharacterAgeThresholdDays: $targetCharacterAgeThresholdDays,
                 kingdomClassification: $kingdomClassification,
                 officialGroupIdentifier: $officialGroupIdentifier,
                 officialGroupKingdomNumbers: $officialGroupKingdomNumbers,
@@ -218,6 +225,9 @@ final readonly class SaveTransferEvidenceReview
         ?string $invitationStatus,
         ?int $targetKingdomNumber,
         ?int $targetPowerCap,
+        ?int $targetHeroGeneration,
+        ?int $targetTruegoldLevel,
+        ?int $targetCharacterAgeThresholdDays,
         ?string $kingdomClassification,
         ?string $officialGroupIdentifier,
         array $officialGroupKingdomNumbers,
@@ -230,6 +240,9 @@ final readonly class SaveTransferEvidenceReview
             'transfer_passes_required' => null,
             'invitation_status' => null,
             'target_power_cap' => null,
+            'target_hero_generation' => null,
+            'target_truegold_level' => null,
+            'target_character_age_threshold_days' => null,
             'kingdom_classification' => null,
             'official_group_identifier' => null,
         ];
@@ -257,6 +270,9 @@ final readonly class SaveTransferEvidenceReview
             EvidenceKind::TransferTargetKingdomRules => [
                 [...$empty,
                     'target_power_cap' => $this->nonNegative($targetPowerCap, 'Power Cap'),
+                    'target_hero_generation' => $this->nonNegative($targetHeroGeneration, 'Hero Generation'),
+                    'target_truegold_level' => $this->nonNegative($targetTruegoldLevel, 'Truegold level'),
+                    'target_character_age_threshold_days' => $this->characterAgeThreshold($targetCharacterAgeThresholdDays),
                     'kingdom_classification' => $this->classification($kingdomClassification),
                 ],
                 [],
@@ -275,6 +291,18 @@ final readonly class SaveTransferEvidenceReview
     {
         if ($value === null || $value < 0) {
             throw ValidationException::withMessages(['evidence' => $label.' is required and must be a non-negative integer.']);
+        }
+
+        return $value;
+    }
+
+    private function characterAgeThreshold(?int $value): int
+    {
+        $value = $this->nonNegative($value, 'Character-age threshold');
+        if ($value < TransferOfficialRulebook::MIN_CHARACTER_AGE_THRESHOLD_DAYS || $value > TransferOfficialRulebook::MAX_CHARACTER_AGE_THRESHOLD_DAYS) {
+            throw ValidationException::withMessages([
+                'character_age_threshold_days' => 'The official character-age threshold must be between 90 and 180 days.',
+            ]);
         }
 
         return $value;
@@ -394,7 +422,17 @@ final readonly class SaveTransferEvidenceReview
             EvidenceKind::TransferGovernorStatus => [$schemaVersion, $windowId, $participantId, $values['governor_power'], $observedAt->toIso8601String()],
             EvidenceKind::TransferScorePasses => [$schemaVersion, $windowId, $participantId, $targetId, $values['transfer_score'], $values['transfer_passes_available'], $values['transfer_passes_required'], $observedAt->toIso8601String()],
             EvidenceKind::TransferInvitation => [$schemaVersion, $windowId, $participantId, $targetId, $values['invitation_status'], $observedAt->toIso8601String()],
-            EvidenceKind::TransferTargetKingdomRules => [$schemaVersion, $windowId, $targetId, $values['target_power_cap'], $values['kingdom_classification'], $observedAt->toIso8601String()],
+            EvidenceKind::TransferTargetKingdomRules => [
+                $schemaVersion,
+                $windowId,
+                $targetId,
+                $values['target_power_cap'],
+                $values['target_hero_generation'],
+                $values['target_truegold_level'],
+                $values['target_character_age_threshold_days'],
+                $values['kingdom_classification'],
+                $observedAt->toIso8601String(),
+            ],
             EvidenceKind::TransferOfficialGroup => [$schemaVersion, $windowId, $values['official_group_identifier'], $kingdomNumbers, $observedAt->toIso8601String()],
             default => throw ValidationException::withMessages(['evidence' => 'Unsupported Transfer Evidence fingerprint schema.']),
         };

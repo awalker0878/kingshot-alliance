@@ -133,17 +133,17 @@ The canonical requirements and completed delivery record live in [Alliance Conte
 
 Kingdom Transfer Planning is a delivered `GameWorld/KingdomTransfers` capability, not a generic workflow. It preserves participant/readiness/blocker/completion behavior while adding:
 
-- sourced Transfer Windows with explicit phase boundaries;
-- official Transfer Groups whose Kingdom membership is window-specific;
-- sourced target-Kingdom Power Caps and Leading/Ordinary classification;
-- append-only Governor Power, Transfer Score, Transfer Pass, invitation and in-game eligibility observations with observation/validity boundaries;
-- deterministic per-requirement eligibility outcomes rather than a stored boolean;
-- a strict rule that stale, missing, conflicting or non-authoritative evidence yields `needs_verification`, never `eligible_now`;
-- visible provenance/freshness and next actions in the manager-facing participant UX;
-- an evidence gate for the unpublished Transfer Score → Transfer Pass formula and other unpublished in-game rules;
-- a terminology correction that reserves **Transfer Group** for the official game concept and uses **Transfer Cohorts** for Alliance planning groups.
+- sourced Transfer Windows and official window-scoped Transfer Groups;
+- sourced target Power Cap/classification, Hero Generation, Truegold and character-age thresholds;
+- first-class cooldown, target-character-limit, Transfer Pass and Storehouse pre-flight requirements;
+- observed Ordinary Invite/Transfer Opens/Special Invite capacity separated from Alliance slot reservations and invitation allocations;
+- deterministic fail-closed eligibility with visible provenance/freshness/next actions;
+- reviewed Transfer Evidence target-rules v2 for fixture-proven Power/classification/Hero/Truegold/age facts;
+- a strict boundary that required Transfer Passes are observed in-game because no safe exact public formula is encoded;
+- completion/withdrawal reconciliation of Alliance planning commitments without converting planning intent into game truth;
+- terminology reserving **Transfer Group** for the official game concept and **Transfer Cohort** for Alliance planning.
 
-The canonical contract and completed delivery record live in [Kingdom Transfer Planning](kingdom-transfer-planning.md). The selected Transfer Screenshot Intake extension feeds reviewed observations through this existing owner rather than creating a second transfer model.
+The canonical contract lives in [Kingdom Transfer Planning](kingdom-transfer-planning.md), with current official-rule evidence in the [source matrix](kingdom-transfer-official-rules-source-matrix.md) and reviewed screenshot semantics in [Transfer Evidence](screenshot-intake-transfer-evidence.md).
 
 ## Bear Hunt Debrief product contract
 

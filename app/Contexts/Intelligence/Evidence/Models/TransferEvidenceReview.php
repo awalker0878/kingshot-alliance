@@ -22,6 +22,9 @@ use Illuminate\Database\Eloquent\Model;
  * @property int|null $transfer_passes_available
  * @property int|null $transfer_passes_required
  * @property int|null $target_power_cap
+ * @property int|null $target_hero_generation
+ * @property int|null $target_truegold_level
+ * @property int|null $target_character_age_threshold_days
  */
 final class TransferEvidenceReview extends Model
 {
@@ -48,6 +51,9 @@ final class TransferEvidenceReview extends Model
             'transfer_passes_available' => 'integer',
             'transfer_passes_required' => 'integer',
             'target_power_cap' => 'integer',
+            'target_hero_generation' => 'integer',
+            'target_truegold_level' => 'integer',
+            'target_character_age_threshold_days' => 'integer',
             'reviewed_at' => 'immutable_datetime',
             'resolved_at' => 'immutable_datetime',
         ];

@@ -140,10 +140,13 @@ final class TransferEvidenceReviewV3Test extends TestCase
         [$evidence, $extraction] = $this->evidence(
             $scenario,
             EvidenceKind::TransferTargetKingdomRules,
-            'transfer-target-kingdom-rules/1',
+            'transfer-target-kingdom-rules/2',
             [
                 ['target_kingdom_number', 'Kingdom #7732', '7732', 'integer', 0.96],
                 ['power_cap', 'Power Cap 80,000,000', '80000000', 'integer', 0.94],
+                ['hero_generation', 'Hero Generation 4', '4', 'integer', 0.94],
+                ['truegold_level', 'Truegold Level 5', '5', 'integer', 0.94],
+                ['character_age_threshold_days', 'Character Age Threshold 120 days', '120', 'integer', 0.94],
             ],
         );
 
@@ -157,11 +160,17 @@ final class TransferEvidenceReviewV3Test extends TestCase
             observedAt: $this->now->subMinutes(10)->toIso8601String(),
             targetKingdomNumber: 7732,
             targetPowerCap: 80_000_000,
+            targetHeroGeneration: 4,
+            targetTruegoldLevel: 5,
+            targetCharacterAgeThresholdDays: 120,
             kingdomClassification: null,
         );
 
         $review = TransferEvidenceReview::query()->findOrFail($reviewId);
         self::assertSame(80_000_000, (int) $review->target_power_cap);
+        self::assertSame(4, (int) $review->target_hero_generation);
+        self::assertSame(5, (int) $review->target_truegold_level);
+        self::assertSame(120, (int) $review->target_character_age_threshold_days);
         self::assertNull($review->kingdom_classification);
     }
 

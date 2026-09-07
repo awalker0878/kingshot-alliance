@@ -1,6 +1,6 @@
 # Capability delivery ledger
 
-Status: Current as of 2026-09-04
+Status: Current as of 2026-09-07
 
 This ledger records current delivered outcomes, active selected-extension work and remaining evidence gates. It is a work queue, not a speculative roadmap. Git history remains the archive for retired/completed intermediate phase detail and exact diffs/CI runs.
 
@@ -46,7 +46,7 @@ Later capability delivery is represented by the current canonical contracts belo
 | Integration platform and bot/API participation parity | Complete | [Capability catalogue](capability-catalogue.md), [user journeys](experience/user-journeys.md) and public reference contracts |
 | Alliance Content game parity | Complete | [Alliance Content game parity](alliance-content-game-parity.md) |
 | Factual Governor Progression | Complete | [Factual Governor Progression](factual-governor-progression.md) |
-| Kingdom Transfer Planning | Complete | [Kingdom Transfer Planning](kingdom-transfer-planning.md) |
+| Kingdom Transfer Planning | Complete | [Kingdom Transfer Planning](kingdom-transfer-planning.md), [official-rule source matrix](kingdom-transfer-official-rules-source-matrix.md), [Transfer Evidence](screenshot-intake-transfer-evidence.md), owner reference/operations docs and KingdomTransfers V3 tests |
 | Alliance Territory & Hive Planner | Complete | [Capability catalogue](capability-catalogue.md), [Capability completeness plan](capability-gap-analysis.md), [user journeys](experience/user-journeys.md), and architecture/ADR docs |
 | Territory Planner — Plan vs Observed Reality | Complete | [Territory plan versus observed reality](territory-plan-observed-reality.md). Published Territory revisions remain immutable desired state; Evidence owns reviewed source provenance; Observations owns append-only accepted spatial facts; KingdomMaps owns geometry; ReadModels composes authorized comparison without plan mutation. |
 | Screenshot Intake — Bear Hunt | Complete | [Screenshot Intake](screenshot-intake.md) |

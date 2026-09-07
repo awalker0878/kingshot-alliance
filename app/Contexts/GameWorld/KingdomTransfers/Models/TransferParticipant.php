@@ -42,6 +42,8 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property-read Collection<int, TransferReadinessTransition> $readinessTransitions
  * @property-read Collection<int, TransferObservation> $observations
  * @property-read TransferCompletion|null $completion
+ * @property-read TransferCapacityReservation|null $capacityReservation
+ * @property-read TransferInvitationAllocation|null $invitationAllocation
  */
 final class TransferParticipant extends Model
 {
@@ -114,5 +116,17 @@ final class TransferParticipant extends Model
     public function completion(): HasOne
     {
         return $this->hasOne(TransferCompletion::class, 'transfer_participant_id');
+    }
+
+    /** @return HasOne<TransferCapacityReservation, $this> */
+    public function capacityReservation(): HasOne
+    {
+        return $this->hasOne(TransferCapacityReservation::class, 'transfer_participant_id');
+    }
+
+    /** @return HasOne<TransferInvitationAllocation, $this> */
+    public function invitationAllocation(): HasOne
+    {
+        return $this->hasOne(TransferInvitationAllocation::class, 'transfer_participant_id');
     }
 }

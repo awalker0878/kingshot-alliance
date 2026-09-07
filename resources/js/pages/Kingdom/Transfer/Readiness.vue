@@ -20,12 +20,23 @@ type Outcome =
 type RequirementState = 'met' | 'unmet' | 'unknown' | 'stale' | 'conflicting' | 'not_applicable';
 type ObservationKind =
   | 'governor_power'
+  | 'hero_generation'
+  | 'truegold_level'
+  | 'character_age_over_target_days'
+  | 'transfer_cooldown_remaining_days'
+  | 'target_existing_character_count'
   | 'transfer_score'
   | 'transfer_passes_available'
   | 'transfer_passes_required'
   | 'invitation_status'
+  | 'resource_protection_verified'
   | 'in_game_rules_verified';
 type SourceType = 'official_publication' | 'in_game' | 'evidence' | 'manager_note' | 'community';
+type CapacityBucket = 'ordinary_invite' | 'transfer_open';
+type CapacityReservationState = 'planned' | 'reserved' | 'confirmed' | 'released' | 'failed';
+type InvitationKind = 'ordinary' | 'special';
+type InvitationAllocationState =
+  'requested' | 'reserved' | 'issued' | 'accepted' | 'declined' | 'cancelled';
 
 type Requirement = {
   key: string;
@@ -66,6 +77,29 @@ type History = {
   changedAt: string;
   actor: { name: string } | null;
 };
+type Capacity = {
+  state: RequirementState;
+  officialTotalCapacity: number | null;
+  officialOrdinaryInviteCapacity: number | null;
+  officialTransferOpenCapacity: number | null;
+  ordinaryInvitesUsed: number | null;
+  transferOpensUsed: number | null;
+  specialInvitesAvailable: number | null;
+  plannedOrdinaryInviteReservations: number;
+  plannedTransferOpenReservations: number;
+  plannedSpecialInviteAllocations: number;
+  observedTotalRemaining: number | null;
+  projectedTotalRemaining: number | null;
+  observedOrdinaryInviteRemaining: number | null;
+  projectedOrdinaryInviteRemaining: number | null;
+  observedTransferOpenRemaining: number | null;
+  projectedTransferOpenRemaining: number | null;
+  observedSpecialInvitesAvailable: number | null;
+  projectedSpecialInvitesAvailable: number | null;
+  sourceType: SourceType | null;
+  sourceReference: string | null;
+  observedAt: string | null;
+};
 type Participant = {
   id: string;
   name: string;
@@ -84,10 +118,24 @@ type Participant = {
   } | null;
   targetCondition: {
     powerCap: number | null;
-    classification: string;
+    classification: string | null;
+    heroGeneration: number | null;
+    truegoldLevel: number | null;
+    characterAgeThresholdDays: number | null;
     sourceType: SourceType;
     sourceReference: string;
     observedAt: string;
+  } | null;
+  capacity: Capacity | null;
+  capacityReservation: {
+    bucket: CapacityBucket;
+    state: CapacityReservationState;
+    notes: string | null;
+  } | null;
+  invitationAllocation: {
+    kind: InvitationKind;
+    state: InvitationAllocationState;
+    notes: string | null;
   } | null;
   transferScore: {
     state: RequirementState;
@@ -182,16 +230,73 @@ const observationDrafts = reactive(
     }
   >,
 );
+const capacityDrafts = reactive(
+  Object.fromEntries(
+    props.participants.map((p) => [
+      p.id,
+      {
+        bucket: p.capacityReservation?.bucket ?? ('transfer_open' as CapacityBucket),
+        state: p.capacityReservation?.state ?? ('planned' as CapacityReservationState),
+        notes: p.capacityReservation?.notes ?? '',
+      },
+    ]),
+  ) as Record<string, { bucket: CapacityBucket; state: CapacityReservationState; notes: string }>,
+);
+const invitationDrafts = reactive(
+  Object.fromEntries(
+    props.participants.map((p) => [
+      p.id,
+      {
+        kind: p.invitationAllocation?.kind ?? ('ordinary' as InvitationKind),
+        state: p.invitationAllocation?.state ?? ('requested' as InvitationAllocationState),
+        notes: p.invitationAllocation?.notes ?? '',
+      },
+    ]),
+  ) as Record<string, { kind: InvitationKind; state: InvitationAllocationState; notes: string }>,
+);
 
 const observationKinds: ObservationKind[] = [
   'governor_power',
+  'hero_generation',
+  'truegold_level',
+  'character_age_over_target_days',
+  'transfer_cooldown_remaining_days',
+  'target_existing_character_count',
   'transfer_score',
   'transfer_passes_available',
   'transfer_passes_required',
   'invitation_status',
+  'resource_protection_verified',
   'in_game_rules_verified',
 ];
 const sourceTypes: SourceType[] = ['in_game', 'official_publication', 'manager_note', 'community'];
+const numericKinds: ObservationKind[] = [
+  'governor_power',
+  'hero_generation',
+  'truegold_level',
+  'character_age_over_target_days',
+  'transfer_cooldown_remaining_days',
+  'target_existing_character_count',
+  'transfer_score',
+  'transfer_passes_available',
+  'transfer_passes_required',
+];
+const booleanKinds: ObservationKind[] = ['resource_protection_verified', 'in_game_rules_verified'];
+const capacityStates: CapacityReservationState[] = [
+  'planned',
+  'reserved',
+  'confirmed',
+  'released',
+  'failed',
+];
+const invitationStates: InvitationAllocationState[] = [
+  'requested',
+  'reserved',
+  'issued',
+  'accepted',
+  'declined',
+  'cancelled',
+];
 
 const filtered = computed(() =>
   props.participants.filter((p) => {
@@ -322,16 +427,8 @@ function recordObservation(p: Participant): void {
   if (!props.plan?.mutable || p.withdrawnAt) return;
   const d = observationDrafts[p.id]!;
   let value: string | number | boolean = d.value;
-  if (
-    [
-      'governor_power',
-      'transfer_score',
-      'transfer_passes_available',
-      'transfer_passes_required',
-    ].includes(d.kind)
-  )
-    value = Number(d.value);
-  if (d.kind === 'in_game_rules_verified') value = d.value === 'true';
+  if (numericKinds.includes(d.kind)) value = Number(d.value);
+  if (booleanKinds.includes(d.kind)) value = d.value === 'true';
   router.post(
     `/alliance/transfers/${props.plan.id}/participants/${p.id}/observations`,
     {
@@ -341,6 +438,24 @@ function recordObservation(p: Participant): void {
       valid_until: d.valid_until ? new Date(d.valid_until).toISOString() : null,
       details: d.details || null,
     },
+    { preserveScroll: true },
+  );
+}
+function saveCapacityReservation(p: Participant): void {
+  if (!props.plan?.mutable || p.withdrawnAt || p.direction === 'staying') return;
+  const d = capacityDrafts[p.id]!;
+  router.patch(
+    `/alliance/transfers/${props.plan.id}/participants/${p.id}/capacity-reservation`,
+    { ...d, notes: d.notes || null },
+    { preserveScroll: true },
+  );
+}
+function saveInvitationAllocation(p: Participant): void {
+  if (!props.plan?.mutable || p.withdrawnAt || p.direction === 'staying') return;
+  const d = invitationDrafts[p.id]!;
+  router.patch(
+    `/alliance/transfers/${props.plan.id}/participants/${p.id}/invitation-allocation`,
+    { ...d, notes: d.notes || null },
     { preserveScroll: true },
   );
 }
@@ -407,6 +522,9 @@ function recordObservation(p: Participant): void {
       >
         <option value="all">{{ t('kingdomP7D.filter_all') }}</option>
         <option value="eligible_now">{{ t('kingdomP7D.eligibility_eligible_now') }}</option>
+        <option value="eligible_with_action">
+          {{ t('kingdomP7D.eligibility_eligible_with_action') }}
+        </option>
         <option value="blocked">{{ t('kingdomP7D.eligibility_blocked') }}</option>
         <option value="needs_verification">
           {{ t('kingdomP7D.eligibility_needs_verification') }}
@@ -463,7 +581,7 @@ function recordObservation(p: Participant): void {
               {{ t('kingdomP7D.evaluatedAt') }} {{ timestamp(p.eligibility.evaluatedAt) }}
             </p>
           </div>
-          <dl class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <dl class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
             <div class="rounded-lg border border-[var(--ks-border)] p-3">
               <dt class="ks-kicker">{{ t('kingdomP7D.officialTransferGroup') }}</dt>
               <dd class="mt-1 font-semibold">
@@ -473,25 +591,27 @@ function recordObservation(p: Participant): void {
                 {{ sourceLabel(p.officialGroup.sourceType) }} ·
                 {{ timestamp(p.officialGroup.observedAt) }}
               </dd>
-              <dd v-if="p.officialGroup" class="mt-1 text-xs break-all text-[var(--ks-muted)]">
-                {{ p.officialGroup.sourceReference }}
-              </dd>
             </div>
             <div class="rounded-lg border border-[var(--ks-border)] p-3">
               <dt class="ks-kicker">{{ t('kingdomP7D.powerCap') }}</dt>
+              <dd class="mt-1 font-semibold">{{ displayValue(p.targetCondition?.powerCap) }}</dd>
+            </div>
+            <div class="rounded-lg border border-[var(--ks-border)] p-3">
+              <dt class="ks-kicker">{{ t('kingdomP7D.targetHeroGeneration') }}</dt>
               <dd class="mt-1 font-semibold">
-                {{
-                  p.targetCondition?.powerCap == null
-                    ? t('kingdomP7D.needsVerification')
-                    : formatNumber(p.targetCondition.powerCap)
-                }}
+                {{ displayValue(p.targetCondition?.heroGeneration) }}
               </dd>
-              <dd v-if="p.targetCondition" class="mt-1 text-xs text-[var(--ks-muted)]">
-                {{ sourceLabel(p.targetCondition.sourceType) }} ·
-                {{ timestamp(p.targetCondition.observedAt) }}
+            </div>
+            <div class="rounded-lg border border-[var(--ks-border)] p-3">
+              <dt class="ks-kicker">{{ t('kingdomP7D.targetTruegoldLevel') }}</dt>
+              <dd class="mt-1 font-semibold">
+                {{ displayValue(p.targetCondition?.truegoldLevel) }}
               </dd>
-              <dd v-if="p.targetCondition" class="mt-1 text-xs break-all text-[var(--ks-muted)]">
-                {{ p.targetCondition.sourceReference }}
+            </div>
+            <div class="rounded-lg border border-[var(--ks-border)] p-3">
+              <dt class="ks-kicker">{{ t('kingdomP7D.targetCharacterAgeThresholdDays') }}</dt>
+              <dd class="mt-1 font-semibold">
+                {{ displayValue(p.targetCondition?.characterAgeThresholdDays) }}
               </dd>
             </div>
             <div class="rounded-lg border border-[var(--ks-border)] p-3">
@@ -505,19 +625,202 @@ function recordObservation(p: Participant): void {
                     : t('kingdomP7D.noObservation')
                 }}
               </dd>
-              <dd
-                v-if="p.transferScore.sourceReference"
-                class="mt-1 text-xs break-all text-[var(--ks-muted)]"
-              >
-                {{ p.transferScore.sourceReference }}
-              </dd>
-            </div>
-            <div class="rounded-lg border border-[var(--ks-border)] p-3">
-              <dt class="ks-kicker">{{ t('kingdomP7D.windowPhase') }}</dt>
-              <dd class="mt-1 font-semibold">{{ phaseLabel(plan.window.phase) }}</dd>
             </div>
           </dl>
+          <p v-if="p.targetCondition" class="mt-2 text-xs break-all text-[var(--ks-muted)]">
+            {{ sourceLabel(p.targetCondition.sourceType) }} ·
+            {{ timestamp(p.targetCondition.observedAt) }} ·
+            {{ p.targetCondition.sourceReference }}
+          </p>
         </div>
+
+        <section
+          v-if="p.direction !== 'staying'"
+          class="border-t border-[var(--ks-border)] p-5 sm:p-6"
+        >
+          <div class="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h3 class="text-lg font-semibold">{{ t('kingdomP7D.capacityPlanning') }}</h3>
+              <p class="mt-1 max-w-4xl text-sm text-[var(--ks-muted)]">
+                {{ t('kingdomP7D.capacityPlanningHelp') }}
+              </p>
+            </div>
+            <span
+              :class="[
+                'rounded-full border px-3 py-1 text-xs font-semibold',
+                p.capacity?.state === 'met'
+                  ? 'border-green-400/30 text-green-200'
+                  : 'border-amber-400/30 text-amber-100',
+              ]"
+              >{{
+                p.capacity?.state === 'met'
+                  ? t('kingdomP7D.requirement_met')
+                  : t('kingdomP7D.needsVerification')
+              }}</span
+            >
+          </div>
+
+          <div v-if="p.capacity" class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <div class="rounded-xl border border-[var(--ks-border)] p-4">
+              <p class="ks-kicker">{{ t('kingdomP7D.totalCapacity') }}</p>
+              <p class="mt-2 text-sm">
+                {{ t('kingdomP7D.observedRemaining') }}:
+                <strong>{{ displayValue(p.capacity.observedTotalRemaining) }}</strong>
+              </p>
+              <p class="mt-1 text-sm">
+                {{ t('kingdomP7D.projectedRemaining') }}:
+                <strong>{{ displayValue(p.capacity.projectedTotalRemaining) }}</strong>
+              </p>
+              <p class="mt-2 text-xs text-[var(--ks-muted)]">
+                {{ t('kingdomP7D.required') }}: {{ displayValue(p.capacity.officialTotalCapacity) }}
+              </p>
+            </div>
+            <div class="rounded-xl border border-[var(--ks-border)] p-4">
+              <p class="ks-kicker">{{ t('kingdomP7D.ordinaryInviteCapacity') }}</p>
+              <p class="mt-2 text-sm">
+                {{ t('kingdomP7D.observedRemaining') }}:
+                <strong>{{ displayValue(p.capacity.observedOrdinaryInviteRemaining) }}</strong>
+              </p>
+              <p class="mt-1 text-sm">
+                {{ t('kingdomP7D.projectedRemaining') }}:
+                <strong>{{ displayValue(p.capacity.projectedOrdinaryInviteRemaining) }}</strong>
+              </p>
+              <p class="mt-2 text-xs text-[var(--ks-muted)]">
+                {{ t('kingdomP7D.observedUsed') }}:
+                {{ displayValue(p.capacity.ordinaryInvitesUsed) }} ·
+                {{ t('kingdomP7D.plannedAllocated') }}:
+                {{ p.capacity.plannedOrdinaryInviteReservations }}
+              </p>
+            </div>
+            <div class="rounded-xl border border-[var(--ks-border)] p-4">
+              <p class="ks-kicker">{{ t('kingdomP7D.transferOpenCapacity') }}</p>
+              <p class="mt-2 text-sm">
+                {{ t('kingdomP7D.observedRemaining') }}:
+                <strong>{{ displayValue(p.capacity.observedTransferOpenRemaining) }}</strong>
+              </p>
+              <p class="mt-1 text-sm">
+                {{ t('kingdomP7D.projectedRemaining') }}:
+                <strong>{{ displayValue(p.capacity.projectedTransferOpenRemaining) }}</strong>
+              </p>
+              <p class="mt-2 text-xs text-[var(--ks-muted)]">
+                {{ t('kingdomP7D.observedUsed') }}:
+                {{ displayValue(p.capacity.transferOpensUsed) }} ·
+                {{ t('kingdomP7D.plannedAllocated') }}:
+                {{ p.capacity.plannedTransferOpenReservations }}
+              </p>
+            </div>
+            <div class="rounded-xl border border-[var(--ks-border)] p-4">
+              <p class="ks-kicker">{{ t('kingdomP7D.specialInviteInventory') }}</p>
+              <p class="mt-2 text-sm">
+                {{ t('kingdomP7D.observedRemaining') }}:
+                <strong>{{ displayValue(p.capacity.observedSpecialInvitesAvailable) }}</strong>
+              </p>
+              <p class="mt-1 text-sm">
+                {{ t('kingdomP7D.projectedRemaining') }}:
+                <strong>{{ displayValue(p.capacity.projectedSpecialInvitesAvailable) }}</strong>
+              </p>
+              <p class="mt-2 text-xs text-[var(--ks-muted)]">
+                {{ t('kingdomP7D.plannedAllocated') }}:
+                {{ p.capacity.plannedSpecialInviteAllocations }}
+              </p>
+            </div>
+          </div>
+          <p
+            v-else
+            class="mt-4 rounded-lg border border-amber-400/30 bg-amber-500/10 p-3 text-sm text-amber-100"
+          >
+            {{ t('kingdomP7D.capacityUnknown') }}
+          </p>
+          <p
+            v-if="p.capacity?.sourceReference"
+            class="mt-2 text-xs break-all text-[var(--ks-muted)]"
+          >
+            {{ sourceLabel(p.capacity.sourceType) }} · {{ timestamp(p.capacity.observedAt) }} ·
+            {{ p.capacity.sourceReference }}
+          </p>
+
+          <div v-if="plan.mutable && !p.withdrawnAt" class="mt-5 grid gap-4 xl:grid-cols-2">
+            <form
+              class="rounded-xl border border-[var(--ks-border)] p-4"
+              @submit.prevent="saveCapacityReservation(p)"
+            >
+              <h4 class="font-semibold">{{ t('kingdomP7D.capacityReservation') }}</h4>
+              <div class="mt-3 grid gap-3 sm:grid-cols-2">
+                <label class="text-sm font-semibold"
+                  >{{ t('kingdomP7D.capacityBucket') }}
+                  <select v-model="capacityDrafts[p.id]!.bucket" class="ks-input mt-1 w-full">
+                    <option value="ordinary_invite">
+                      {{ t('kingdomP7D.bucket_ordinary_invite') }}
+                    </option>
+                    <option value="transfer_open">
+                      {{ t('kingdomP7D.bucket_transfer_open') }}
+                    </option>
+                  </select>
+                </label>
+                <label class="text-sm font-semibold"
+                  >{{ t('kingdomP7D.reservationState') }}
+                  <select v-model="capacityDrafts[p.id]!.state" class="ks-input mt-1 w-full">
+                    <option v-for="state in capacityStates" :key="state" :value="state">
+                      {{ t(`kingdomP7D.reservation_${state}`) }}
+                    </option>
+                  </select>
+                </label>
+                <label class="text-sm font-semibold sm:col-span-2"
+                  >{{ t('kingdomP7D.capacityNotes') }}
+                  <textarea
+                    v-model="capacityDrafts[p.id]!.notes"
+                    class="ks-input mt-1 w-full"
+                    rows="2"
+                  />
+                </label>
+              </div>
+              <button
+                class="mt-3 rounded-lg border border-[var(--ks-border)] px-4 py-2 text-sm font-semibold"
+                type="submit"
+              >
+                {{ t('kingdomP7D.saveCapacityReservation') }}
+              </button>
+            </form>
+
+            <form
+              class="rounded-xl border border-[var(--ks-border)] p-4"
+              @submit.prevent="saveInvitationAllocation(p)"
+            >
+              <h4 class="font-semibold">{{ t('kingdomP7D.invitationAllocation') }}</h4>
+              <div class="mt-3 grid gap-3 sm:grid-cols-2">
+                <label class="text-sm font-semibold"
+                  >{{ t('kingdomP7D.invitationKind') }}
+                  <select v-model="invitationDrafts[p.id]!.kind" class="ks-input mt-1 w-full">
+                    <option value="ordinary">{{ t('kingdomP7D.invitationKind_ordinary') }}</option>
+                    <option value="special">{{ t('kingdomP7D.invitationKind_special') }}</option>
+                  </select>
+                </label>
+                <label class="text-sm font-semibold"
+                  >{{ t('kingdomP7D.invitationAllocationState') }}
+                  <select v-model="invitationDrafts[p.id]!.state" class="ks-input mt-1 w-full">
+                    <option v-for="state in invitationStates" :key="state" :value="state">
+                      {{ t(`kingdomP7D.invitationAllocation_${state}`) }}
+                    </option>
+                  </select>
+                </label>
+                <label class="text-sm font-semibold sm:col-span-2"
+                  >{{ t('kingdomP7D.invitationNotes') }}
+                  <textarea
+                    v-model="invitationDrafts[p.id]!.notes"
+                    class="ks-input mt-1 w-full"
+                    rows="2"
+                  />
+                </label>
+              </div>
+              <button
+                class="mt-3 rounded-lg border border-[var(--ks-border)] px-4 py-2 text-sm font-semibold"
+                type="submit"
+              >
+                {{ t('kingdomP7D.saveInvitationAllocation') }}
+              </button>
+            </form>
+          </div>
+        </section>
 
         <TransferEvidencePanel
           :plan-id="plan.id"
@@ -609,7 +912,7 @@ function recordObservation(p: Participant): void {
                   </option>
                 </select>
                 <select
-                  v-else-if="observationDrafts[p.id]!.kind === 'in_game_rules_verified'"
+                  v-else-if="booleanKinds.includes(observationDrafts[p.id]!.kind)"
                   v-model="observationDrafts[p.id]!.value"
                   class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2"
                   required
@@ -636,31 +939,34 @@ function recordObservation(p: Participant): void {
                 </select>
               </label>
               <label class="text-sm font-semibold sm:col-span-2"
-                >{{ t('kingdomP7D.sourceReference')
-                }}<input
+                >{{ t('kingdomP7D.sourceReference') }}
+                <input
                   v-model="observationDrafts[p.id]!.source_reference"
                   class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2"
                   maxlength="2048"
                   required
-              /></label>
+                />
+              </label>
               <label class="text-sm font-semibold"
-                >{{ t('kingdomP7D.observedAt')
-                }}<input
+                >{{ t('kingdomP7D.observedAt') }}
+                <input
                   v-model="observationDrafts[p.id]!.observed_at"
                   class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2"
                   required
                   type="datetime-local"
-              /></label>
+                />
+              </label>
               <label class="text-sm font-semibold"
-                >{{ t('kingdomP7D.validUntil')
-                }}<input
+                >{{ t('kingdomP7D.validUntil') }}
+                <input
                   v-model="observationDrafts[p.id]!.valid_until"
                   class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2"
                   type="datetime-local"
-              /></label>
+                />
+              </label>
               <label class="text-sm font-semibold sm:col-span-2"
-                >{{ t('kingdomP7D.details')
-                }}<textarea
+                >{{ t('kingdomP7D.details') }}
+                <textarea
                   v-model="observationDrafts[p.id]!.details"
                   class="mt-1 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2"
                   rows="2"

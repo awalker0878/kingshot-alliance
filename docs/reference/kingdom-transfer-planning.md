@@ -1,118 +1,227 @@
 # Kingdom Transfer Planning reference
 
-Status: Current — 2026-08-26
+Status: Current — 2026-09-07
 
 Owner: `GameWorld/KingdomTransfers`
 
-Product contract: [`../product/kingdom-transfer-planning.md`](../product/kingdom-transfer-planning.md)
-
-Transfer Evidence product contract: [`../product/screenshot-intake-transfer-evidence.md`](../product/screenshot-intake-transfer-evidence.md)
-
+Product contract: [`../product/kingdom-transfer-planning.md`](../product/kingdom-transfer-planning.md)  
+Official-rule source matrix: [`../product/kingdom-transfer-official-rules-source-matrix.md`](../product/kingdom-transfer-official-rules-source-matrix.md)  
+Transfer Evidence contract: [`../product/screenshot-intake-transfer-evidence.md`](../product/screenshot-intake-transfer-evidence.md)  
 Architecture: [`../architecture/contexts/game-world/kingdom-transfers.md`](../architecture/contexts/game-world/kingdom-transfers.md)
 
 ## Boundary
 
-The HTTP surface is Alliance-scoped and uses the active Player established by `alliance.context`. Read routes require the transfer view boundary; writes require `kingdom_transfer.manage`, password confirmation, and concrete owner-scope authorization inside the application Action.
+All HTTP reads are Alliance-scoped through `alliance.context`. Transfer writes require current `kingdom_transfer.manage` authority and recent password confirmation. Application Actions re-resolve current actor/Alliance and concrete plan/window/participant scope inside their transaction.
 
-Frontend permission flags control affordances only. They are not authorization evidence.
+Frontend capability flags control affordances only.
 
-`GameWorld/KingdomTransfers` owns accepted Transfer observations, official groups, target conditions, freshness/conflict rules and eligibility. `Intelligence/Evidence` may coordinate reviewed screenshot handoffs but never writes these owner tables directly and never passes an Eloquent model into KingdomTransfers.
+KingdomTransfers owns accepted transfer facts, planning commitments and eligibility. `Intelligence/Evidence` owns screenshot provenance/review/retention and hands reviewed scalar meaning to dedicated KingdomTransfers Actions.
 
 ## Read routes
 
 | Method | Route | Purpose |
 | --- | --- | --- |
-| `GET` | `/alliance/transfers` | Transfer plan overview. |
-| `GET` | `/alliance/transfers/manage` | Transfer Window, official game-fact, cohort and participant management. |
-| `GET` | `/alliance/transfers/readiness` | Decision-first participant eligibility, independent workflow readiness, and the entry point for participant in-game Evidence. |
-| `GET` | `/alliance/transfers/completion` | Final transfer outcome workflow. |
-| `GET` | `/alliance/transfers/{plan}/participants/{participant}/evidence` | Lazy participant-scoped Screenshot Intake summary and schema registry contract. |
-| `GET` | `/alliance/transfers/{plan}/participants/{participant}/evidence/{evidence}/image` | Stream one authorized private retained screenshot. |
-| `GET` | `/alliance/transfers/{plan}/participants/{participant}/evidence/reviews/{review}/preview` | Derive current-versus-reviewed eligibility through the owner evaluator without persisting hypothetical state. |
+| `GET` | `/alliance/transfers` | Current Transfer Plan overview. |
+| `GET` | `/alliance/transfers/manage` | Window, official facts, capacity, cohorts and participant management. |
+| `GET` | `/alliance/transfers/readiness` | Server-authoritative eligibility plus independent Alliance readiness. |
+| `GET` | `/alliance/transfers/completion` | Final outcome workflow. |
+| `GET` | `/alliance/transfers/{plan}/participants/{participant}/evidence` | Lazy participant Transfer Evidence summary/schema registry. |
+| `GET` | `/alliance/transfers/{plan}/participants/{participant}/evidence/{evidence}/image` | Authorized private image stream. |
+| `GET` | `/alliance/transfers/{plan}/participants/{participant}/evidence/reviews/{review}/preview` | Current-versus-reviewed evaluator preview. |
 
-The readiness response composes, for each participant, the selected Transfer Window, target Kingdom, official phase, official Transfer Group, applicable target condition observation, selected Governor observations, structured eligibility assessment, planning readiness, cohort, manual blockers and relevant history. Material decision facts include their source type, source reference and observation time; the UI does not present an official Transfer Group, target Power Cap or Transfer Score without the provenance context needed to explain the conclusion.
+The readiness response is bounded by relation type, not participant count. Evidence history is loaded lazily only when its participant panel opens.
 
-Transfer Evidence itself is loaded lazily when the participant's **Add in-game evidence** surface is opened so normal readiness composition remains bounded rather than adding per-participant Evidence queries.
-
-## Transfer Window writes
+## Official-fact writes
 
 | Method | Route | Purpose |
 | --- | --- | --- |
-| `POST` | `/alliance/transfers/windows` | Record a Transfer Window and explicit phase boundaries. |
-| `PATCH` | `/alliance/transfers/windows/{window}` | Correct a window before its Pre-Transfer phase starts. |
-| `POST` | `/alliance/transfers/windows/{window}/official-groups` | Record/revise an official Transfer Group and its window-scoped Kingdom membership. |
-| `POST` | `/alliance/transfers/windows/{window}/conditions` | Record a target Kingdom condition observation such as Power Cap/classification. |
+| `POST` | `/alliance/transfers/windows` | Record a sourced Transfer Window. |
+| `PATCH` | `/alliance/transfers/windows/{window}` | Correct an eligible window before its immutable boundary. |
+| `POST` | `/alliance/transfers/windows/{window}/official-groups` | Record/revise official Transfer Group membership. |
+| `POST` | `/alliance/transfers/windows/{window}/conditions` | Append target Kingdom rule/condition facts. |
+| `POST` | `/alliance/transfers/windows/{window}/capacity` | Append observed target slot usage/Special Invite inventory. |
 
-Window/group/condition writes require explicit provenance. Official game facts are not accepted as timeless Kingdom attributes.
+### Target condition payload
 
-### Transfer Window fields
+Supported typed facts are:
 
-Window input carries a label and strictly increasing UTC boundaries for:
+- `kingdom_number`;
+- optional `power_cap`;
+- optional classification;
+- optional `hero_generation`;
+- optional `truegold_level`;
+- optional `character_age_threshold_days`;
+- source type/reference;
+- `observed_at`;
+- correction marker;
+- optional Evidence reference where the owner path permits it.
 
-- `pre_transfer_starts_at`;
-- `invitational_starts_at`;
-- `transfer_opens_at`;
-- `ends_at`.
+Conditions are append-only. Corrections preserve prior rows. Current selection is authoritative-source aware rather than naive last-write-wins.
 
-It also carries source type/reference, `observed_at`, and optional evidence reference where available. A window is immutable once its Pre-Transfer phase has begun.
+### Capacity payload
 
-### Official Transfer Group fields
+Capacity observations carry:
 
-An official Transfer Group record includes its window, official label, Kingdom membership, source/reference, `observed_at`, and an optional `evidence_id`. Re-recording identical evidence is idempotent. A correction creates a new revision and supersedes the previous current revision; a Kingdom cannot belong to two current official groups in the same window.
+- target Kingdom;
+- optional Ordinary Invites used;
+- optional Transfer Opens used;
+- optional Special Invites available, bounded `0..3`;
+- source/reference;
+- `observed_at`;
+- correction marker;
+- optional Evidence reference.
 
-When `source_type=evidence`, `evidence_id` is mandatory and must resolve through the Intelligence/Evidence owner contract to the same Alliance with a latest approved review. A foreign, missing, deleted-before-approval, or unapproved Evidence reference is rejected before the official Group fact is recorded.
+Official totals are classification-derived from `TransferOfficialRulebook`; observed use/inventory is never manufactured from those totals.
 
-### Target condition fields
+## Plan, cohort and participant writes
 
-Target Kingdom condition observations are append-only and window/Kingdom-scoped. Supported typed facts include the observed Power Cap and Kingdom classification. Corrections preserve prior records rather than rewriting history. An optional Evidence reference follows the same owner-scope and approval rules described below.
+The existing Plan lifecycle is Draft → Open → Locked → Closed, with Cancelled as terminal. Alliance planning **Transfer Cohorts** remain distinct from official Transfer Groups.
 
-## Plan and cohort writes
-
-Existing plan, participant, readiness, blocker and completion routes remain supported. The previous Alliance planning `TransferGroup` concept has been renamed cleanly to **Transfer Cohort**; no compatibility route or alias is retained.
-
-| Method | Route | Purpose |
-| --- | --- | --- |
-| `POST` | `/alliance/transfers/{plan}/cohorts` | Create a planning cohort. |
-| `PATCH` | `/alliance/transfers/{plan}/cohorts/{cohort}` | Update a planning cohort. |
-| `POST` | `/alliance/transfers/{plan}/cohorts/{cohort}/archive` | Archive a planning cohort. |
-| `PATCH` | `/alliance/transfers/{plan}/participants/{participant}/cohort` | Assign/unassign a participant cohort. |
+Participant mutation routes include create/update, cohort assignment, withdrawal, completion, readiness transitions and manual blocker management.
 
 ## Governor observation write
 
 `POST /alliance/transfers/{plan}/participants/{participant}/observations`
 
-The endpoint records one append-only transfer observation. It does not set eligibility.
+Supported observation kinds:
 
-Observation input is typed by observation kind and may carry:
+- `governor_power`;
+- `hero_generation`;
+- `truegold_level`;
+- `character_age_over_target_days`;
+- `transfer_cooldown_remaining_days`;
+- `target_existing_character_count`;
+- `transfer_score`;
+- `transfer_passes_available`;
+- `transfer_passes_required`;
+- `invitation_status`;
+- `resource_protection_verified`;
+- `in_game_rules_verified`.
 
-- target Kingdom when the fact is target-specific;
-- numeric, text or boolean value according to kind;
-- source type and source reference;
-- `observed_at`;
-- `valid_until` for mutable Governor facts;
-- optional evidence reference;
-- optional explanatory details.
+Numeric/text/boolean storage is chosen by the enum contract. Target-specific observations must match the participant's current target. Mutable current-use facts require an explicit `valid_until` boundary.
 
-Supported transfer observation kinds cover Governor Power, Transfer Score, available Transfer Passes, observed required Transfer Passes, invitation status and the explicit in-game verification gate used for eligibility rules not safely modeled from public authoritative evidence.
+Manual forms do not expose `source_type=evidence`; reviewed Evidence commits own that provenance path.
 
-The write fingerprint is derived from owner scope plus the normalized observation payload. Retrying the identical record is a no-op and returns the existing observation rather than creating duplicate history.
+## Capacity reservation write
 
-## Screenshot Intake: Transfer Evidence writes
+`PATCH /alliance/transfers/{plan}/participants/{participant}/capacity-reservation`
 
-Transfer participant Screenshot Intake is a separate authorized mutation path from the manual observation form. It is the only participant UI that may produce `source_type=evidence` because it owns the approved Evidence reference and commit handshake.
+Payload:
 
-| Method | Route | Purpose |
-| --- | --- | --- |
-| `POST` | `/alliance/transfers/{plan}/participants/{participant}/evidence` | Upload a private screenshot with an expected schema and start independent classification. |
-| `POST` | `/alliance/transfers/{plan}/participants/{participant}/evidence/{evidence}/review` | Save an immutable human review revision. |
-| `POST` | `/alliance/transfers/{plan}/participants/{participant}/evidence/reviews/{review}/resolve-duplicate` | Resolve a semantic duplicate with an audited justification. |
-| `POST` | `/alliance/transfers/{plan}/participants/{participant}/evidence/reviews/{review}/commit` | Execute the schema-specific owner handoff and record only the returned Evidence receipt. |
-| `POST` | `/alliance/transfers/{plan}/participants/{participant}/evidence/{evidence}/retry` | Retry terminal failed Evidence processing. |
-| `DELETE` | `/alliance/transfers/{plan}/participants/{participant}/evidence/{evidence}` | Redact/delete Evidence-owned source material while preserving accepted owner history. |
+- `bucket`: `ordinary_invite` or `transfer_open`;
+- `state`: `planned`, `reserved`, `confirmed`, `released`, or `failed`;
+- optional notes.
 
-All of these writes require current Transfer management authority and recent password confirmation. Evidence also re-resolves its participant scope at the application boundary. Commit then re-enters KingdomTransfers and reacquires current authority again in the owner transaction.
+A consuming reservation is allowed only for an active incoming/outgoing participant with a target and verified authoritative capacity. The Action locks current competing reservations and rejects total/bucket oversubscription.
 
-The five destination Actions are:
+These rows are Alliance planning intent, not game reservations.
+
+## Invitation allocation write
+
+`PATCH /alliance/transfers/{plan}/participants/{participant}/invitation-allocation`
+
+Payload:
+
+- kind: `ordinary` or `special`;
+- state: `requested`, `reserved`, `issued`, `accepted`, `declined`, or `cancelled`;
+- optional notes.
+
+A consuming Special Invite allocation requires an authoritative Ordinary target classification, current Special Invite inventory and remaining inventory after competing allocations. Leading Kingdoms cannot create a consuming Special Invite allocation.
+
+Allocation state is planning workflow and never replaces the independently sourced `invitation_status` used by eligibility.
+
+## Capacity projection semantics
+
+`TransferCapacityPlanningQuery` composes, per target Kingdom:
+
+- official total/invite/open capacity from classification;
+- observed Ordinary Invite/Open use and Special Invite inventory;
+- Alliance planned Ordinary/Open reservations;
+- Alliance planned Special Invite allocations;
+- observed remaining capacity;
+- projected remaining capacity after Alliance planning.
+
+Planned/reserved commitments always reduce the projection. Finalized commitments (`confirmed` capacity; `issued`/`accepted` Special Invites) continue to reduce it until a newer authoritative capacity observation is at or after the commitment update. At that point the observation supersedes the planning subtraction so the same consumed slot/invite is not counted twice.
+
+## Completion and withdrawal reconciliation
+
+Withdrawal happens through readiness transition and, atomically:
+
+- marks the participant withdrawn;
+- releases consuming capacity reservations;
+- cancels consuming invitation allocations;
+- records audit/outbox counts.
+
+Completion is allowed only after the Plan is Locked and the participant is explicitly Confirmed. In the same completion transaction it:
+
+- records the final TransferCompletion;
+- performs existing roster/Player owner handoffs;
+- finalizes consuming capacity reservations to `confirmed`;
+- finalizes consuming invitation allocations to `accepted` as Alliance planning state;
+- emits completion audit/outbox metadata.
+
+No completion mutation rewrites prior sourced eligibility observations.
+
+## Eligibility response
+
+Eligibility is derived by `TransferEligibilityEvaluator`; no persisted `eligible` column exists.
+
+Requirement keys:
+
+- `window_phase`;
+- `transfer_group`;
+- `hero_generation`;
+- `truegold_level`;
+- `character_age`;
+- `transfer_cooldown`;
+- `target_character_limit`;
+- `power_cap`;
+- `invitation`;
+- `target_capacity`;
+- `invitation_capacity`;
+- `transfer_open_capacity`;
+- `transfer_passes`;
+- `resource_protection`;
+- `in_game_rules`.
+
+Requirement states are `met`, `unmet`, `unknown`, `stale`, `conflicting`, and `not_applicable`.
+
+Outcomes are `eligible_now`, `eligible_with_action`, `blocked`, `needs_verification`, `not_open_yet`, `window_closed`, and `not_applicable`.
+
+Any material unknown/stale/conflict prevents `eligible_now`.
+
+## Current official rule constants
+
+`TransferOfficialRulebook` is the versioned application rule boundary for sourced public constants:
+
+- Ordinary: total 55, Ordinary Invite 35, Transfer Opens 20;
+- Leading: total 30, Ordinary Invite 20, Transfer Opens 10;
+- Special Invite maximum 3;
+- maximum four characters in a Kingdom;
+- Transfer Pass observed required range 1–50.
+
+Target-specific Hero/Truegold/age/capacity usage remains sourced observation truth rather than anonymous constants.
+
+## Transfer Pass boundary
+
+The exact required-pass formula is not public enough to encode safely. `transfer_passes_required` is therefore a current observed fact. Transfer Score is not used to synthesize required Passes.
+
+## Resource protection boundary
+
+`resource_protection_verified` is a pre-flight consequence check. False means actionable resource loss risk, not a fabricated game prohibition. Unknown/stale/conflicting resource verification prevents an optimistic `eligible_now` result.
+
+## Transfer Evidence
+
+Five explicit screenshot families are supported. Target Kingdom rules are schema v2 and may review fixture-proven:
+
+- target Kingdom number;
+- Power Cap;
+- classification;
+- Hero Generation;
+- Truegold level;
+- character-age threshold days.
+
+The owner destination Actions remain:
 
 - `RecordGovernorStatusEvidence`;
 - `RecordTransferScorePassEvidence`;
@@ -120,82 +229,28 @@ The five destination Actions are:
 - `RecordTransferKingdomRulesEvidence`;
 - `RecordOfficialTransferGroupEvidence`.
 
-They share `TransferEvidenceDestinationSupport` for current-scope locking, provenance validation, stable receipt lookup/creation and audit/outbox behavior. The actions reuse the existing internal observation/condition/group writers rather than duplicating owner authorization.
+Preview calls the same evaluator as live reads and persists nothing. Commit revalidates current scope and records stable owner receipts. No Evidence schema can create `in_game_rules_verified=true`.
 
-A reviewed screenshot is not silently retargeted. The destination compares the approved Transfer Window/participant/target snapshot with current owner state. A material change rejects a new destination write and requires a new/revalidated review.
+## Source authority
 
-### Atomic score/pass semantics
-
-A score/pass screenshot is one reviewed meaning. `RecordTransferScorePassEvidence` records Transfer Score, passes available and observed passes required inside one outer database transaction. Any failed typed value, scope check, provenance check or owner invariant rolls the entire handoff back.
-
-### Destination receipt/idempotency
-
-Every approved Transfer review derives a stable destination idempotency key. `transfer_evidence_receipts` enforces uniqueness in the owner context. A retry after owner commit but before Evidence acknowledgement returns the existing receipt and creates no duplicate observation history.
-
-This is separate from Evidence semantic-duplicate detection between different screenshots.
-
-## Source types
-
-| Source | Eligibility authority |
+| Source | Current eligibility authority |
 | --- | --- |
-| `official_publication` | May satisfy an authoritative published game fact. |
-| `in_game` | May satisfy a fact observed directly in KingShot. |
-| `evidence` | May satisfy a fact only when `evidence_id` resolves through Intelligence/Evidence to the same Alliance and its latest relevant review is approved. |
-| `manager_note` | Planning context only; not authoritative eligibility truth. |
-| `community` | Discovery/context only; not authoritative eligibility truth. |
+| `official_publication` | Yes, for facts explicitly supported by the publication/version. |
+| `in_game` | Yes, for directly observed current facts. |
+| `evidence` | Yes only through an approved same-Alliance reviewed Evidence handoff. |
+| `manager_note` | No; planning context only. |
+| `community` | No; discovery/context only. |
 
-A source reference is mandatory for recorded sourced facts. `source_type=evidence` additionally requires an `evidence_id` validated through the Intelligence/Evidence owner contract; a foreign or unapproved Evidence record is rejected. Optional Evidence attachments on other source types are also same-Alliance checked. KingdomTransfers consumes only the owner-side Evidence reference contract and never loads or mutates Evidence models directly.
-
-Manual transfer forms do not expose `evidence` as a selectable source. Evidence-backed observations/groups/conditions must arrive through the Screenshot Intake handoff so the approved review and stable receipt exist.
-
-Mutable Governor observations without an explicit validity boundary cannot silently become current eligibility truth.
-
-## Eligibility response contract
-
-Eligibility is a deterministic response, never a persisted boolean. The server emits:
-
-- overall `outcome`;
-- `evaluated_at`;
-- `primary_next_action` when applicable;
-- ordered `requirements`.
-
-Each requirement contains:
-
-- requirement key;
-- state: `met`, `unmet`, `unknown`, `stale`, `conflicting`, or `not_applicable`;
-- actual and required values where meaningful;
-- human-readable explanation/next action;
-- source/reference and observation time for material evidence.
-
-The participant summary also exposes provenance for the selected official Transfer Group, target Kingdom condition/Power Cap, and Transfer Score observation so the decision can be traced without opening a separate management page.
-
-Overall outcomes are `eligible_now`, `eligible_with_action`, `blocked`, `needs_verification`, `not_open_yet`, `window_closed`, or `not_applicable`.
-
-`eligible_now` is impossible when a material requirement is missing, stale, conflicting, non-authoritative or otherwise unverified.
-
-The Transfer Evidence preview calls the same `TransferEligibilityEvaluator` used by current reads. It substitutes only the reviewed candidate facts in memory. No v1 Evidence schema can set `in_game_rules_verified`, so a missing verification gate remains missing in preview and after commit.
-
-## Transfer Pass rule boundary
-
-The application does **not** invent a public Transfer Pass formula. Where KingShot/public authoritative evidence does not expose a trustworthy calculation, the required-pass value is recorded as an observed sourced fact. The evaluator may compare fresh authoritative available/required observations, but it does not extrapolate an undocumented formula.
-
-The `transfer_score_passes` screenshot schema requires the displayed Transfer Score, displayed available Passes and displayed required Passes independently. Missing required Passes cannot be filled from Transfer Score or a nearby unrelated number.
-
-## Error semantics
+## Error/fail-closed semantics
 
 - invalid typed input → validation error;
-- wrong Alliance/plan/window/participant scope → authorization/not-found boundary without cross-scope disclosure;
-- Evidence source without a same-Alliance approved Evidence review → validation error;
-- optional cross-Alliance Evidence attachment on another source type → validation error;
-- withdrawn participant → observation/evidence mutation rejected;
-- material target/window scope changed since Evidence review → destination commit rejected for re-review;
-- mutable observation without explicit validity → review/write rejected or historical/unknown according to the owner contract;
-- stale/conflicting/non-authoritative facts → successful read with `needs_verification`, never optimistic eligibility;
-- duplicate owner retry → idempotent receipt/no duplicate row;
-- semantic duplicate screenshot → Evidence review blocked until explicit supported resolution.
+- wrong owner scope → authorization/not-found boundary without cross-Alliance disclosure;
+- stale/missing/conflicting/non-authoritative facts → successful read with `needs_verification`;
+- no verified slot/invite inventory → consuming planning mutation rejected;
+- scope drift after Evidence review → re-review required;
+- duplicate Evidence owner retry → stable receipt/no duplicate owner facts;
+- unsupported required-pass formula → observe in-game value instead of calculating it.
 
-## Query budget
+## Release checks
 
-Read composition must remain bounded by relation type rather than participant count. Eligibility evaluation operates on preloaded/typed snapshots and must not issue per-requirement database queries from the evaluator or Vue layer.
-
-Transfer Evidence summaries are intentionally lazy per opened participant panel. The normal readiness response does not eagerly query each participant's screenshot history.
+Final readiness requires clean database migration, Pint/PHPStan, frontend lint/format/type/build, KingdomTransfers/Evidence V3 tests, architecture/intelligence/visual workflows, CodeQL/Dependency Review, bounded-query and cross-Alliance isolation coverage, plus documentation/source-matrix reconciliation.
