@@ -14,6 +14,6 @@ enum TransferCapacityReservationState: string
 
     public function consumesPlannedCapacity(): bool
     {
-        return in_array($this, [self::Planned, self::Reserved], true);
+        return in_array($this, [self::Planned, self::Reserved, self::Confirmed], true);
     }
 }
