@@ -179,8 +179,9 @@ final readonly class TransferSelfEligibilityQuery
         );
     }
 
-    /** @param Collection<int,TransferObservation> $observations
-     *  @return array<string,mixed>
+    /**
+     * @param  Collection<int,TransferObservation>  $observations
+     * @return array<string,mixed>
      */
     private function result(
         TransferParticipant $participant,
@@ -191,7 +192,8 @@ final readonly class TransferSelfEligibilityQuery
         ?TransferKingdomConditionObservation $targetCondition,
         ?string $targetId,
         ?TransferKingdomCapacityProjection $capacity,
-    ): array {
+    ): array
+    {
         $requirements = [];
         foreach ($assessment->requirements as $requirement) {
             $requirements[] = [
