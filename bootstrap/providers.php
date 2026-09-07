@@ -13,7 +13,6 @@ use App\Contexts\Alliance\Recruitment\Providers\RecruitmentServiceProvider;
 use App\Contexts\Communications\Delivery\Providers\DeliveryServiceProvider;
 use App\Contexts\GameWorld\GiftCodes\Providers\GiftCodesServiceProvider;
 use App\Contexts\GameWorld\KingdomMaps\Providers\KingdomMapsServiceProvider;
-use App\Contexts\GameWorld\Kingdoms\Providers\KingdomsServiceProvider;
 use App\Contexts\GameWorld\Players\Providers\PlayersServiceProvider;
 use App\Contexts\Intelligence\Contributions\Providers\ContributionsServiceProvider;
 use App\Contexts\Intelligence\Evidence\Providers\EvidenceServiceProvider;
@@ -27,8 +26,11 @@ use App\Contexts\Platform\DataGovernance\Providers\DataGovernanceServiceProvider
 use App\Contexts\Platform\Integrations\Providers\IntegrationsServiceProvider;
 use App\ReadModels\AllianceAssistant\Providers\AllianceAssistantServiceProvider;
 use App\ReadModels\AllianceGovernance\Providers\AllianceGovernanceServiceProvider;
+use App\ReadModels\CommandOverview\Providers\CommandOverviewServiceProvider;
+use App\ReadModels\IntelligenceSignals\Providers\IntelligenceSignalsServiceProvider;
 use App\ReadModels\TerritoryPlanning\Providers\TerritoryPlanningReadModelServiceProvider;
 use App\Shared\Infrastructure\Providers\InfrastructureServiceProvider;
+use App\Workflows\KingdomGovernance\Providers\KingdomGovernanceServiceProvider;
 
 return [
     InfrastructureServiceProvider::class,
@@ -38,7 +40,6 @@ return [
     PlayersServiceProvider::class,
     GiftCodesServiceProvider::class,
     KingdomMapsServiceProvider::class,
-    KingdomsServiceProvider::class,
     LifecycleServiceProvider::class,
     MembershipServiceProvider::class,
     AccessServiceProvider::class,
@@ -50,6 +51,9 @@ return [
     TerritoryPlanningReadModelServiceProvider::class,
     AllianceGovernanceServiceProvider::class,
     AllianceAssistantServiceProvider::class,
+    CommandOverviewServiceProvider::class,
+    IntelligenceSignalsServiceProvider::class,
+    KingdomGovernanceServiceProvider::class,
     EvidenceServiceProvider::class,
     ContributionsServiceProvider::class,
     IngestionServiceProvider::class,
