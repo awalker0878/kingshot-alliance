@@ -145,6 +145,7 @@ final readonly class TransferEvidencePreviewQuery
             invitationStatus: $invitation,
             passesAvailable: $passesAvailable,
             passesRequired: $passesRequired,
+            resourceProtectionVerified: $this->selector->select($rows, TransferObservationKind::ResourceProtectionVerified, null, $now),
             inGameRulesVerified: $this->selector->select($rows, TransferObservationKind::InGameRulesVerified, $targetId, $now),
         ), $now);
 
