@@ -1,0 +1,35 @@
+name: Temporary KingdomTransfers Formatter
+
+on:
+  push:
+    branches:
+      - kingdom-transfers-official-rules-capacity
+    paths:
+      - .github/workflows/temporary-kingdom-transfers-format.yml
+
+permissions:
+  contents: read
+
+jobs:
+  format:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Produce canonical Prettier output
+        run: npx prettier --write resources/js/components/transfers/TransferEvidencePanel.vue resources/js/pages/Kingdom/Transfer/Readiness.vue
+      - name: Emit formatted files
+        shell: bash
+        run: |
+          echo '__READINESS_BEGIN__'
+          base64 -w0 resources/js/pages/Kingdom/Transfer/Readiness.vue
+          echo
+          echo '__READINESS_END__'
+          echo '__EVIDENCE_BEGIN__'
+          base64 -w0 resources/js/components/transfers/TransferEvidencePanel.vue
+          echo
+          echo '__EVIDENCE_END__'
