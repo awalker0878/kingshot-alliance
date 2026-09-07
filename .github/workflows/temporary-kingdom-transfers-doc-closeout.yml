@@ -1,0 +1,31 @@
+name: Temporary KingdomTransfers Doc Closeout
+
+on:
+  push:
+    branches:
+      - kingdom-transfers-official-rules-capacity
+    paths:
+      - .github/workflows/temporary-kingdom-transfers-doc-closeout.yml
+
+permissions:
+  contents: write
+
+jobs:
+  closeout:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: kingdom-transfers-official-rules-capacity
+      - name: Apply documentation closeout
+        run: python3 scripts/temporary-kingdom-transfers-doc-closeout.py
+      - name: Commit documentation closeout
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm .github/workflows/temporary-kingdom-transfers-doc-closeout.yml scripts/temporary-kingdom-transfers-doc-closeout.py
+          git add docs/product/capability-catalogue.md docs/product/capability-delivery-ledger.md
+          git diff --cached --check
+          git commit -m 'Reconcile KingdomTransfers capability indexes'
+          git push origin HEAD:kingdom-transfers-official-rules-capacity
