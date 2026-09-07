@@ -1,6 +1,6 @@
 # KingdomMaps Evidence Expansion — Acceptance Matrix
 
-Status: Implemented; PR verification pending
+Status: Verified; release ready
 
 | ID | Acceptance criterion | State |
 | --- | --- | --- |
@@ -29,10 +29,10 @@ Status: Implemented; PR verification pending
 | KM-023 | Intelligence spatial-observation bounds consume V2 footprints. | Implemented |
 | KM-024 | Territory Reconciliation absence/bounds reasoning consumes V2 footprints. | Implemented |
 | KM-025 | Official 75% resource ownership is area-based and data-driven from the release rule. | Implemented |
-| KM-026 | PHP/browser geometry parity is reconciled to V2 including Banner-HQ connectivity. | Implemented; CI pending |
-| KM-027 | Direct production-release tests cover schema, rights, provenance, artifacts, facility counts and 75% geometry. | Implemented; CI pending |
-| KM-028 | `kingdom-maps:list`, `validate`, `verify-sources`, and `diff` are registered and the dedicated assurance workflow gates relevant PR/main changes. | Implemented; CI pending |
+| KM-026 | PHP/browser geometry parity is reconciled to V2 including Banner-HQ connectivity. | Verified |
+| KM-027 | Direct production-release tests cover schema, rights, provenance, artifacts, facility counts and 75% geometry. | Verified |
+| KM-028 | `kingdom-maps:list`, `validate`, `verify-sources`, and `diff` are registered and the dedicated assurance workflow gates relevant PR/main changes. | Verified |
 
 ## Verification exit
 
-The extension is releasable when KM-026 through KM-028 pass in GitHub Actions, full repository required checks are green, actionable review threads are resolved, and the delivery ledger is reconciled before merge.
+Satisfied on 2026-09-07 at source head `750e8ebd184b7915d45bc6107037490eb1a5347d`: KingdomMaps Assurance #46, CI #5325, Architecture V3 Verification #2330, Intelligence Verification #2167, Visual Regression #3297, Gift Code Verification #47, CodeQL #5321 and Dependency Review #5093 all completed successfully. PR #154 had no reviews, inline review comments or conversation comments, so there were no actionable review threads to resolve. The delivery ledger is reconciled for merge.
