@@ -137,6 +137,19 @@ final class TransferEligibilityEvaluatorV3Test extends TestCase
         self::assertSame(TransferEligibilityOutcome::EligibleWithAction, $evaluator->evaluate($openFull, $this->now)->outcome);
     }
 
+    public function test_resource_loss_preflight_is_actionable_but_not_a_hard_game_blocker(): void
+    {
+        $assessment = app(TransferEligibilityEvaluator::class)->evaluate(
+            $this->eligibleInput(TransferWindowPhase::TransferOpens, resourceProtection: $this->current(false)),
+            $this->now,
+        );
+
+        self::assertSame(TransferEligibilityOutcome::EligibleWithAction, $assessment->outcome);
+        $resource = collect($assessment->requirements)->first(static fn ($row): bool => $row->key === TransferRequirementKey::ResourceProtection);
+        self::assertSame(TransferRequirementState::Unmet, $resource?->state);
+        self::assertSame('Reduce or protect excess resources before transferring to avoid resource loss.', $resource?->nextAction);
+    }
+
     public function test_missing_stale_or_conflicting_evidence_yields_needs_verification(): void
     {
         $evaluator = app(TransferEligibilityEvaluator::class);
@@ -204,6 +217,7 @@ final class TransferEligibilityEvaluatorV3Test extends TestCase
         ?TransferObservedValue $invitation = null,
         ?TransferObservedValue $passesAvailable = null,
         ?TransferObservedValue $passesRequired = null,
+        ?TransferObservedValue $resourceProtection = null,
         ?TransferObservedValue $inGameRules = null,
     ): TransferEligibilityInput {
         return new TransferEligibilityInput(
@@ -229,6 +243,7 @@ final class TransferEligibilityEvaluatorV3Test extends TestCase
             invitationStatus: $invitation ?? $this->current(TransferInvitationStatus::None->value),
             passesAvailable: $passesAvailable ?? $this->current(9),
             passesRequired: $passesRequired ?? $this->current(9),
+            resourceProtectionVerified: $resourceProtection ?? $this->current(true),
             inGameRulesVerified: $inGameRules ?? $this->current(true),
         );
     }
