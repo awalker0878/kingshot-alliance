@@ -136,6 +136,7 @@ final class TransferCompletionCapacityReconciliationV3Test extends TestCase
         );
 
         self::assertSame(TransferCapacityReservationState::Confirmed, $reservation->fresh()?->state);
+        self::assertNull($reservation->fresh()?->released_at);
         self::assertSame(TransferInvitationAllocationState::Accepted, $allocation->fresh()?->state);
         self::assertDatabaseHas('transfer_completions', [
             'transfer_plan_id' => (string) $plan->id,
