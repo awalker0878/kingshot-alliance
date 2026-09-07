@@ -12,7 +12,7 @@ use Tests\v3\TestCase;
 
 final class TerritoryAnalysisTelemetryV3Test extends TestCase
 {
-    private const DATASET_ID = 'kingshot-community-observed-2026-08-21-v1';
+    private const DATASET_ID = 'kingshot-evidence-backed-2026-09-06-v2';
 
     public function test_analysis_telemetry_records_scale_and_latency_without_layout_content(): void
     {

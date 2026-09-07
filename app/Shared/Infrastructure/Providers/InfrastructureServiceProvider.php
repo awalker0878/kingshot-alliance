@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Shared\Infrastructure\Providers;
 
+use App\Shared\Infrastructure\Messaging\Outbox\Console\Commands\PublishOutboxCommand;
 use App\Shared\Infrastructure\Uploads\Services\BasicUploadScanner;
 use App\Shared\Infrastructure\Uploads\Services\UploadScanner;
 use Illuminate\Http\Middleware\TrustProxies;
@@ -24,6 +25,10 @@ final class InfrastructureServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        if ($this->app->runningInConsole()) {
+            $this->commands([PublishOutboxCommand::class]);
+        }
+
         $trustedProxies = trim((string) config('operations.trusted_proxies', ''));
         if ($trustedProxies !== '') {
             TrustProxies::at($trustedProxies);

@@ -379,10 +379,12 @@ final readonly class RecordSpatialObservationEvidence
             $definition = is_array($definitions[$type->value] ?? null)
                 ? $definitions[$type->value]
                 : [];
-            $size = max(1, (int) ($definition['size'] ?? 1));
+            $footprint = is_array($definition['footprint'] ?? null) ? $definition['footprint'] : [];
+            $width = max(1, (int) ($footprint['width'] ?? 1));
+            $height = max(1, (int) ($footprint['height'] ?? 1));
             $x = $object['x'];
             $y = $object['y'];
-            if ($x < $minX || $y < $minY || $x + $size > $maxX || $y + $size > $maxY) {
+            if ($x < $minX || $y < $minY || $x + $width > $maxX || $y + $height > $maxY) {
                 throw ValidationException::withMessages([
                     "objects.{$index}" => 'An observed object lies outside the pinned Kingdom map bounds.',
                 ]);

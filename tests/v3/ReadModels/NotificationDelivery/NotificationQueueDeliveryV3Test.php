@@ -22,12 +22,13 @@ use App\Contexts\Intelligence\Observations\Models\KingdomAllianceObservation;
 use App\Contexts\Intelligence\Observations\Models\TrackedKingdomAlliance;
 use App\ReadModels\CommandOverview\Actions\QueueOfficerBriefNotifications;
 use App\ReadModels\CommandOverview\Services\OfficerBriefNotificationPublisher;
-use App\ReadModels\IntelligenceSignals\Actions\QueueIntelligenceChangeNotifications;
 use App\ReadModels\IntelligenceSignals\Services\IntelligenceSignalNotificationPublisher;
+use App\ReadModels\IntelligenceSignals\Services\QueueIntelligenceChangeNotifications;
 use App\ReadModels\NotificationDelivery\Queries\AllianceNotificationRecipientQuery;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Http;
 use Tests\v3\Support\ScenarioFactory;
 use Tests\v3\TestCase;
@@ -276,10 +277,11 @@ final class NotificationQueueDeliveryV3Test extends TestCase
 
     public function test_queue_commands_and_scheduler_are_registered_with_bounded_cursors(): void
     {
-        $source = (string) file_get_contents(base_path('routes/console.php'));
+        $commands = Artisan::all();
+        self::assertArrayHasKey('notifications:queue-officer-briefs', $commands);
+        self::assertArrayHasKey('notifications:queue-intelligence-changes', $commands);
 
-        self::assertStringContainsString('notifications:queue-officer-briefs {--group=all} {--limit=1000} {--after=} {--cycle}', $source);
-        self::assertStringContainsString('notifications:queue-intelligence-changes {--limit=1000} {--after=} {--cycle}', $source);
+        $source = (string) file_get_contents(base_path('routes/console.php'));
         self::assertStringContainsString('notifications:queue-officer-briefs --group=daily --limit=1000 --cycle', $source);
         self::assertStringContainsString('notifications:queue-officer-briefs --group=event --limit=1000 --cycle', $source);
         self::assertStringContainsString('notifications:queue-intelligence-changes --limit=1000 --cycle', $source);

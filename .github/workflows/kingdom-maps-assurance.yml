@@ -1,0 +1,91 @@
+name: KingdomMaps Assurance
+
+on:
+  pull_request:
+    paths:
+      - 'app/Contexts/GameWorld/KingdomMaps/**'
+      - 'app/Contexts/Intelligence/Observations/Actions/RecordSpatialObservationEvidence.php'
+      - 'app/Contexts/Operations/TerritoryPlanning/**'
+      - 'app/ReadModels/TerritoryPlanning/**'
+      - 'bootstrap/providers.php'
+      - 'resources/data/kingdom-maps/**'
+      - 'resources/js/features/territory-planner/engine/**'
+      - 'tests/v3/Contexts/GameWorld/KingdomMaps/**'
+      - 'tests/v3/Fixtures/territory-geometry.json'
+      - 'scripts/check-territory-geometry-parity.mjs'
+      - '.github/workflows/kingdom-maps-assurance.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'app/Contexts/GameWorld/KingdomMaps/**'
+      - 'resources/data/kingdom-maps/**'
+      - 'resources/js/features/territory-planner/engine/**'
+      - 'tests/v3/Contexts/GameWorld/KingdomMaps/**'
+      - 'tests/v3/Fixtures/territory-geometry.json'
+      - 'scripts/check-territory-geometry-parity.mjs'
+      - '.github/workflows/kingdom-maps-assurance.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kingdom-maps-assurance-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  kingdom-maps:
+    name: KingdomMaps release and geometry
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      APP_ENV: testing
+      APP_KEY: base64:Wb1PHh03m1vXbmyRxlI+Y96TqgK7Vyt8H/lkQ8o1SP0=
+      APP_DEBUG: false
+      DB_CONNECTION: sqlite
+      DB_DATABASE: ':memory:'
+      CACHE_STORE: array
+      QUEUE_CONNECTION: sync
+      SESSION_DRIVER: array
+      PULSE_ENABLED: false
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Configure PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
+        with:
+          php-version: '8.5'
+          extensions: dom, intl, mbstring, pdo_sqlite, simplexml, xml, xmlwriter
+          coverage: none
+          tools: composer:v2
+
+      - name: Install locked PHP dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Validate KingdomMaps releases
+        run: php artisan kingdom-maps:validate
+
+      - name: Verify KingdomMaps source rights and lineage
+        run: php artisan kingdom-maps:verify-sources
+
+      - name: List released KingdomMaps datasets
+        run: php artisan kingdom-maps:list
+
+      - name: Run KingdomMaps PHP tests
+        run: php artisan test tests/v3/Contexts/GameWorld/KingdomMaps
+
+      - name: Configure Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install locked frontend dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Verify PHP/browser geometry parity
+        run: npm run check:territory-geometry

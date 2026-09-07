@@ -4,21 +4,25 @@ import { buildSvg } from '../resources/js/features/territory-planner/engine/expo
 
 const map = {
   id: 'export-fixture',
-  schema_version: 1,
+  schema_version: 2,
+  release_status: 'released',
+  released_at: '2026-08-22',
   observed_at: '2026-08-22',
-  source_label: 'Export fixture',
-  source_uri: null,
+  game_version: null,
+  season: null,
+  title: 'Export fixture',
   confidence: 'verified_observation',
   coordinate_system: { name: 'xy', origin: 'south_west', tile_size: 1 },
   bounds: { x: 0, y: 0, width: 100, height: 100 },
   object_types: {
-    headquarters: { size: 3, coverage: 6 },
-    banner: { size: 1, coverage: 3 },
-    governor_city: { size: 2, coverage: 0 },
-    bear_trap: { size: 3, coverage: 0 },
+    headquarters: { footprint: { width: 3, height: 3 }, coverage: { width: 6, height: 6 } },
+    banner: { footprint: { width: 1, height: 1 }, coverage: { width: 3, height: 3 } },
+    governor_city: { footprint: { width: 2, height: 2 } },
+    bear_trap: { footprint: { width: 3, height: 3 } },
   },
   zones: {},
   structures: [],
+  placement_rules: [],
 };
 const alliances = [
   {

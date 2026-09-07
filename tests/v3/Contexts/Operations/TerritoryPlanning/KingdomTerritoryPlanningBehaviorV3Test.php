@@ -22,7 +22,7 @@ final class KingdomTerritoryPlanningBehaviorV3Test extends TestCase
 {
     use RefreshDatabase;
 
-    private const DATASET_ID = 'kingshot-community-observed-2026-08-21-v1';
+    private const DATASET_ID = 'kingshot-evidence-backed-2026-09-06-v2';
 
     public function test_kingdom_manager_can_plan_multiple_linked_and_external_alliances(): void
     {

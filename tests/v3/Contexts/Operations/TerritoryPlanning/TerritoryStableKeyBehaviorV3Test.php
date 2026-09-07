@@ -18,7 +18,7 @@ final class TerritoryStableKeyBehaviorV3Test extends TestCase
 {
     use RefreshDatabase;
 
-    private const DATASET_ID = 'kingshot-community-observed-2026-08-21-v1';
+    private const DATASET_ID = 'kingshot-evidence-backed-2026-09-06-v2';
 
     public function test_plan_local_keys_and_selected_bear_trap_survive_save_reload_and_publish(): void
     {

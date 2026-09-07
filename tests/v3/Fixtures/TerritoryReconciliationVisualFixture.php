@@ -54,7 +54,7 @@ final class TerritoryReconciliationVisualFixture
             (string) $kingdom->id,
             $allianceId,
             'Observed Hive Alpha',
-            'kingshot-community-observed-2026-08-21-v1',
+            'kingshot-evidence-backed-2026-09-06-v2',
         );
         app(SaveTerritoryPlan::class)->handle(
             (string) $player->id,
@@ -100,7 +100,7 @@ final class TerritoryReconciliationVisualFixture
         }
 
         $dataset = app(KingdomMapDatasetQuery::class)->require(
-            'kingshot-community-observed-2026-08-21-v1',
+            'kingshot-evidence-backed-2026-09-06-v2',
         );
         $observation = SpatialObservation::query()->create([
             'alliance_id' => $allianceId,

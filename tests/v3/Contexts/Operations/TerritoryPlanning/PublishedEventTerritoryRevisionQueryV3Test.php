@@ -25,7 +25,7 @@ final class PublishedEventTerritoryRevisionQueryV3Test extends TestCase
 {
     use RefreshDatabase;
 
-    private const DATASET_ID = 'kingshot-community-observed-2026-08-21-v1';
+    private const DATASET_ID = 'kingshot-evidence-backed-2026-09-06-v2';
 
     public function test_projection_returns_only_attached_published_revision_and_ignores_new_mutable_head(): void
     {

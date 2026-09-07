@@ -1,6 +1,6 @@
 # GameWorld — KingdomMaps
 
-Status: Implemented — Architecture V3; release assurance in progress
+Status: Implemented — Architecture V3; evidence-backed V2 release assurance pending merge
 
 Implementation: `app/Contexts/GameWorld/KingdomMaps`
 
@@ -10,14 +10,14 @@ KingdomMaps owns neutral, versioned KingShot map truth used by planning and othe
 
 KingdomMaps owns:
 
-- map dataset identity and schema version;
+- immutable map-release identity, schema version and checksum;
 - represented game-version/season boundary when known;
 - coordinate bounds and coordinate-system metadata;
-- fixed structures, terrain/reference layers and exclusion/no-build geometry;
+- fixed structures, facility catalogues, terrain/reference layers and exclusion/no-build geometry;
 - building footprints/coverage definitions only when they are sourced game/map facts;
-- sourced game placement rules;
-- provenance, observation time, confidence/status and checksum for every released dataset;
-- the minimal canonical geometry values required to interpret and validate the current dataset schema.
+- sourced game placement and territory rules;
+- per-fact/source provenance, confidence ceilings, source lineage and reuse-rights basis;
+- the minimal canonical geometry values required to interpret and validate the current release schema.
 
 KingdomMaps does not own:
 
@@ -29,56 +29,106 @@ KingdomMaps does not own:
 
 Those planning concerns belong to `Operations/TerritoryPlanning`.
 
-## Dataset contract
+## Runtime release contract
 
-A released dataset is immutable. At minimum it exposes:
+Fresh deployment policy: schema V2 is the sole supported runtime contract. There is no V1 dual-read, migration shim or compatibility alias.
+
+A released dataset is immutable and exposes at minimum:
 
 ```text
 KingdomMapDataset
   id
-  schema_version
-  game_version nullable
+  schema_version = 2
+  release_status = released
+  released_at
   observed_at
-  source_label
-  source_uri nullable
+  game_version nullable
+  season nullable
+  predecessor_id nullable
   confidence
   checksum
+  sources
   coordinate_system
   bounds
+  object_types
+    footprint { width, height }
+    coverage { width, height } nullable
+    variants/facts where applicable
   zones
   structures
-  terrain/reference layers when evidence-gated
-  resource-node references when evidence-gated
-  sourced placement rules
+  artifacts
+  facilities (hydrated from immutable artifact)
+  placement_rules
+  resource_layers
 ```
 
-The runtime checksum is SHA-256 over the immutable dataset file. A newer dataset supersedes rather than mutates an older release. Published territory-plan revisions retain the exact dataset ID/checksum that was used when they were published.
+The runtime checksum is SHA-256 over the immutable release file. Artifact manifests carry their own SHA-256 values and are verified before hydration. A newer release supersedes rather than mutates an older release. Published territory-plan revisions retain the exact release ID/checksum used when they were published.
 
-## Current community-observed profile
+`KingdomMapDatasetQuery::current()` resolves the newest released dataset by `released_at`; consumers that persist map truth must continue to pin the exact release rather than silently track `current()`.
 
-The first profile, `kingshot-community-observed-2026-08-21-v1`, is deliberately labelled `community_observed`. Its source boundary is `Bleezy-D/Alliance-Layout-Planner` at commit `c0162ed5f3b41bb997bac970f0c73d1545e622fb` (observed 2026-08-21). The upstream README declares the project MIT licensed and describes its map as community-derived; the upstream repository does not contain a separate `LICENSE` file. The application therefore records the source and license note without presenting these coordinates, footprints or placement observations as official Century Games data.
+## Current evidence-backed release
 
-Community planners remain discovery/evidence sources. Their coordinates, node sets, footprint sizes or rules do not become official product truth merely because they are useful. Community-observed values may be represented only with truthful provenance/confidence and a version/observation boundary. Unknown stays unknown.
+The current release is `kingshot-evidence-backed-2026-09-06-v2`.
+
+It deliberately combines multiple evidence classes without flattening them into one truth label:
+
+- Century Games Help Center facts are eligible for `official` confidence only on the specific rules they support;
+- ksmapper coordinates/terrain/resource facts are reusable under the repository owner's explicit 2026-09-06 authorization and remain `community_observed` unless independently verified;
+- independent community references can corroborate observations but do not become official evidence;
+- deterministic application geometry can be `verified_observation` only for behavior the application itself defines and tests.
+
+The release records source lineage so two references derived from the same upstream data cannot masquerade as independent corroboration. `KingdomMapSourceVerifier` enforces rights basis, lineage and confidence ceilings, including the recorded ksmapper authorization.
+
+## Released researched facts
+
+The V2 release includes:
+
+- 1,200 × 1,200 KingShot coordinate bounds;
+- Badland, Plains, Fertile, Ruins and central forbidden-zone geometry as community-observed map facts;
+- King's Castle, four Turrets, four Fortresses and twelve Sanctuaries as blocking/reference structures with evidence-preserving confidence;
+- an immutable facility artifact containing 4 Fortresses, 12 Sanctuaries and 74 Outposts;
+- ksmapper corpus metadata for 6,499 resource nodes, 501 lake features and 1,948 mountain features under the recorded user-authorized reuse basis;
+- official Century Games rule facts including the 285 Banner cap, the 75% Alliance-resource territory threshold, Banner-to-HQ connectivity, HQ legality in Badland/Plains and prohibition on Fertile Land, plus the documented Plains/Fertile progression prerequisites.
+
+Corpus counts do not by themselves imply official confidence. Where the full source corpus is represented by a release reference rather than expanded inline, `data_state` records that distinction explicitly.
 
 ## Geometry contract
 
-The implemented schema currently needs two immutable geometry primitives:
+KingdomMaps uses:
 
 - `Coordinate` for exact integer KingShot positions;
-- `Rectangle` for bounds, footprints, zones, structure footprints and exclusion checks.
+- `Rectangle` for bounds, object footprints, territory coverage, zones, structures and exclusions;
+- explicit `{ width, height }` footprints and coverage rectangles rather than scalar `size`/radius compatibility values.
 
-Object rotation is represented as the validated integer set `0 | 90 | 180 | 270`; distance is a deterministic calculation result used by TerritoryPlanning analysis rather than a separately persisted geometry object. Circle, polygon or richer footprint abstractions are not part of the current contract and should be introduced only when a versioned dataset actually requires them.
+`TerritoryCoverageGeometry` is the shared server geometry service for footprint, coverage, covered-area ratio and connected-component calculations. The official 75% rule is read from the released `alliance_resource_territory_ratio` fact rather than hard-coded in consumers.
 
-`PlacementValidator` is the authoritative server implementation. Browser geometry mirrors the same behavior for immediate preview and is contract-tested against the shared `tests/v3/Fixtures/territory-geometry.json` fixture. The parity contract covers map bounds, footprint/object collision, fixed-structure collision/exclusion, zone restrictions, object caps, Bear-radius planning warnings, disconnected-territory warnings, coverage and analysis calculations.
+The official 75% rule applies to Alliance resource ownership. Governor-city coverage remains a TerritoryPlanning analysis semantic and is not promoted to an official game rule without separate evidence.
+
+Object rotation remains the validated integer set `0 | 90 | 180 | 270`; richer polygons/circles are not introduced until a released factual layer requires them.
+
+`PlacementValidator` is the authoritative server implementation. Browser geometry mirrors the same V2 behavior and is contract-tested against `tests/v3/Fixtures/territory-geometry.json`. The parity contract covers map bounds, rectangular footprint/object collision, fixed-structure collision/exclusion, zone restrictions, object caps, Banner-HQ connectivity, Bear-radius planning warnings, territory connectivity, coverage and analysis calculations.
 
 ## Rule taxonomy
 
-A **map fact** describes what exists. A **game placement rule** determines whether a placement is legal and must be sourced/versioned. A **planning preference** is an officer choice and cannot be promoted into KingdomMaps as a game rule.
+A **map fact** describes what exists. A **game placement/territory rule** determines legal or producing state and must be sourced/versioned. A **planning preference** is an officer choice and cannot be promoted into KingdomMaps as a game rule.
 
-The current validator therefore distinguishes:
+The validator distinguishes:
 
-- **violations** for dataset-backed legality failures such as map bounds, collisions, exclusion zones and object caps;
-- **warnings** for legal but undesirable planning state such as preferred Bear radius or disconnected planned territory;
-- **suggestions** for optional planning improvements such as adding an HQ, Banner coverage or Bear Trap.
+- **violations** for dataset-backed legality/state failures such as map bounds, collisions, exclusions, zone restrictions, Banner cap and Banner components disconnected from any HQ;
+- **warnings** for legal but undesirable planning state such as preferred Bear radius or multi-component territory that still has valid HQ anchoring;
+- **suggestions** for optional planning improvements.
 
 Laravel remains save authority even when the browser preview has already evaluated the same geometry.
+
+## Operational assurance
+
+KingdomMaps registers bounded-context console adapters through `KingdomMapsServiceProvider`:
+
+```text
+kingdom-maps:list
+kingdom-maps:validate
+kingdom-maps:verify-sources
+kingdom-maps:diff <from> <to> [--json]
+```
+
+The dedicated `KingdomMaps Assurance` GitHub Actions workflow validates released schema/artifact/provenance state, verifies source rights and lineage, runs the focused PHP suite and executes PHP/browser geometry parity. Generic repository CI remains responsible for full PHP/frontend/architecture/container assurance.

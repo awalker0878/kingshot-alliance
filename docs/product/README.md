@@ -1,6 +1,6 @@
 # Product
 
-Status: Current — 2026-09-04
+Status: Current — 2026-09-06
 
 This area explains **what Kingshot Alliance provides to users**. It does not define code ownership or operational procedure.
 
@@ -9,6 +9,8 @@ Alliance Assistant is delivered as the constrained, authorization-aware read/com
 The cross-capability work is governed by the [Capability Extension Program](capability-extension-program.md). That contract distinguishes already-complete product capability from selected extensions and evidence-gated extensions, and defines ownership/provenance before application implementation begins. Intelligence Change Detection is now a current complete Phase 11 capability governed by [Intelligence Change Detection](intelligence-change-detection.md) with verification evidence in its [delivery ledger](intelligence-change-detection-delivery-ledger.md). Progression planning and calculator qualification are further governed by the [Progression Goal Planner and Calculator Evidence Program](progression-goal-planner-calculators.md), which is the implementation source of truth for `GP-*`, `CE-*` and `CI-*` work. Its live implementation reconciliation is recorded in the [Progression Goal Planner and Calculator delivery ledger](progression-goal-planner-calculators-delivery-ledger.md), with verification-discovered closeout requirements captured in the [Progression Goal Planner and Calculator verification amendment](progression-goal-planner-calculators-verification-amendment.md).
 
 The Communications recipient-delivery expansion is defined by [Communications — Recipient Delivery & Notification Experience](communications-recipient-delivery-expansion.md), verified by the [acceptance matrix](communications-recipient-delivery-acceptance.md), and tracked to release closure in its [delivery ledger](communications-recipient-delivery-ledger.md). It preserves source-context ownership while adding one logical inbox message, recipient routing policy, multiple named destinations, quiet hours, Web Push, email and bounded digest delivery.
+
+The KingdomMaps evidence expansion is defined by [KingdomMaps Evidence Expansion](kingdom-maps-evidence-expansion.md), verified by its [acceptance matrix](kingdom-maps-evidence-expansion-acceptance.md), tracked in its [delivery ledger](kingdom-maps-evidence-expansion-delivery-ledger.md), and grounded in the [implementation source/confidence matrix](kingdom-maps-source-confidence-matrix.md). It is a fresh-deployment V2 contract with no V1 compatibility path. The repository owner explicitly confirmed on 2026-09-06 that ksmapper data is authorized for use in Kingshot Alliance; those facts remain `community_observed` unless separately verified.
 
 Phases 13–25 are governed by the [Kingshot Capability Expansion Program](kingshot-capability-expansion-program.md). The program is complete through Phase 25 for all evidence-supported capabilities; it establishes the mandatory named-Event identity/evidence gate, preserves existing capability ownership, and keeps KvK correctly disabled at Phase 17 until canonical identity and workflow evidence exist.
 
@@ -23,6 +25,10 @@ Phases 13–25 are governed by the [Kingshot Capability Expansion Program](kings
 - [Alliance Capability Expansion](alliance-capability-expansion.md)
 - [Alliance Capability Expansion acceptance](alliance-capability-expansion-acceptance.md)
 - [Alliance Capability Expansion delivery ledger](alliance-capability-expansion-delivery-ledger.md)
+- [KingdomMaps Evidence Expansion](kingdom-maps-evidence-expansion.md)
+- [KingdomMaps Evidence Expansion acceptance](kingdom-maps-evidence-expansion-acceptance.md)
+- [KingdomMaps Evidence Expansion delivery ledger](kingdom-maps-evidence-expansion-delivery-ledger.md)
+- [KingdomMaps source/confidence matrix](kingdom-maps-source-confidence-matrix.md)
 - [Kingshot Capability Expansion Program](kingshot-capability-expansion-program.md)
 - [Intelligence Change Detection](intelligence-change-detection.md)
 - [Intelligence Change Detection delivery ledger](intelligence-change-detection-delivery-ledger.md)
@@ -40,7 +46,7 @@ Phases 13–25 are governed by the [Kingshot Capability Expansion Program](kings
 - [Experience principles](experience/README.md)
 - [Primary user journeys](experience/user-journeys.md)
 
-Territory & Hive Planner current product truth is recorded in the [Capability catalogue](capability-catalogue.md), [Capability completeness plan](capability-gap-analysis.md), [Primary user journeys](experience/user-journeys.md), and the architecture/ADR documentation under `docs/architecture`.
+Territory & Hive Planner current product truth is recorded in the [Capability catalogue](capability-catalogue.md), [Capability completeness plan](capability-gap-analysis.md), [Primary user journeys](experience/user-journeys.md), and the architecture/ADR documentation under `docs/architecture`. Kingdom-map factual provenance and release assurance are additionally governed by the KingdomMaps evidence-expansion documents above.
 
 Architecture is documented under [Architecture](../architecture/README.md); physical implementation under [Codebase](../codebase/README.md); deploy/recovery under [Operations](../operations/README.md).
 
@@ -55,4 +61,3 @@ Describe implemented user outcomes in present tense. Approved but unimplemented 
 - [Delivery ledger](gift-code-redemption-workspace-delivery-ledger.md)
 
 This fresh-schema extension adds personal actionable state, persistent many-code/many-Governor redemption runs, Communications-backed reminders, privacy-gated redemption signals, structured reward presentation, signed approved-source webhook ingestion, authorized aggregate Alliance coverage and derived contributor projections without weakening the existing Gift Code trust/evidence model.
-

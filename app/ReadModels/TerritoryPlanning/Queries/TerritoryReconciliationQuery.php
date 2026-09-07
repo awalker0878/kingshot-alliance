@@ -692,12 +692,14 @@ final readonly class TerritoryReconciliationQuery
         $definition = is_array($dataset['object_types'][$planned['type']] ?? null)
             ? $dataset['object_types'][$planned['type']]
             : [];
-        $size = max(1, (int) ($definition['size'] ?? 1));
+        $footprint = is_array($definition['footprint'] ?? null) ? $definition['footprint'] : [];
+        $width = max(1, (int) ($footprint['width'] ?? 1));
+        $height = max(1, (int) ($footprint['height'] ?? 1));
 
         return (int) $planned['x'] >= (int) $bounds['x']
             && (int) $planned['y'] >= (int) $bounds['y']
-            && (int) $planned['x'] + $size <= (int) $bounds['x'] + (int) $bounds['width']
-            && (int) $planned['y'] + $size <= (int) $bounds['y'] + (int) $bounds['height'];
+            && (int) $planned['x'] + $width <= (int) $bounds['x'] + (int) $bounds['width']
+            && (int) $planned['y'] + $height <= (int) $bounds['y'] + (int) $bounds['height'];
     }
 
     /**

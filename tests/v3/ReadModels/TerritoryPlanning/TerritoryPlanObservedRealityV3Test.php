@@ -26,7 +26,7 @@ final class TerritoryPlanObservedRealityV3Test extends TestCase
 {
     use RefreshDatabase;
 
-    private const DATASET_ID = 'kingshot-community-observed-2026-08-21-v1';
+    private const DATASET_ID = 'kingshot-evidence-backed-2026-09-06-v2';
 
     public function test_partial_observation_preserves_unknown_absence_and_does_not_mutate_published_plan(): void
     {
