@@ -40,8 +40,7 @@ final readonly class SaveTransferCapacityReservation
         TransferCapacityBucket $bucket,
         TransferCapacityReservationState $state,
         ?string $notes = null,
-    ): string
-    {
+    ): string {
         return DB::transaction(function () use ($allianceId, $actorPlayerId, $planId, $participantId, $bucket, $state, $notes): string {
             $context = $this->writeState->lockAuthority($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, TransferPermission::Manage);
