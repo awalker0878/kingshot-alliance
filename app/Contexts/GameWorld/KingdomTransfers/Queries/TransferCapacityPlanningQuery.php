@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Contexts\GameWorld\KingdomTransfers\Queries;
 
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferCapacityBucket;
-use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferInvitationAllocationState;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferInvitationKind;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferRequirementState;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferCapacityReservation;
@@ -76,7 +75,7 @@ final readonly class TransferCapacityPlanningQuery
             $targetReservations = $reservations->where('target_kingdom_id', $kingdomId)
                 ->filter(static fn (TransferCapacityReservation $row): bool => $row->state->consumesPlannedCapacity());
             $targetAllocations = $allocations->where('target_kingdom_id', $kingdomId)
-                ->filter(static fn (TransferInvitationAllocation $row): bool => $row->state === TransferInvitationAllocationState::Reserved);
+                ->filter(static fn (TransferInvitationAllocation $row): bool => $row->state->consumesPlannedInventory());
 
             $result[$kingdomId] = new TransferKingdomCapacityProjection(
                 kingdomId: $kingdomId,
