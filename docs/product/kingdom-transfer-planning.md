@@ -1,418 +1,302 @@
 # Kingdom Transfer Planning
 
-Status: Current — Complete 2026-08-23
+Status: Current — Complete 2026-09-07
 
-Kingdom Transfer Planning extends the existing Kingdom Transfer participant/readiness workflow into a sourced game-planning capability. This document is the implementation contract for the delivered capability. A delivery-ledger item is complete only when the behavior, authorization, persistence, idempotency where applicable, audit/observability, responsive UX, accessibility, localization, tests and visual proof required by that item are complete.
+Owner: `GameWorld/KingdomTransfers`
 
-## Product outcome
+Source/confidence matrix: [Kingdom Transfer official-rules source matrix](kingdom-transfer-official-rules-source-matrix.md)
 
-For an authorized Alliance manager, the primary question is:
+Kingdom Transfer Planning answers one operational question without manufacturing certainty:
 
-> Can this Governor transfer to Kingdom 123 during this Transfer Window, and what still needs to happen?
+> Can this Governor transfer to the selected Kingdom in this Transfer Window, what still needs to happen, and what capacity is actually available?
 
-The product answers that question without manufacturing certainty. A Governor is never presented as eligible from stale, missing, conflicting or unsourced facts. When evidence is insufficient, the answer is **Needs verification** and the UI identifies the exact facts that must be refreshed or verified.
+The capability separates three kinds of truth:
 
-Readiness and game eligibility are separate concepts. Existing readiness state remains an Alliance planning workflow. Eligibility is a deterministic assessment of the current Transfer Window, target Kingdom, sourced game facts and current Governor observations. Eligibility never silently changes readiness.
+1. **KingShot observations/rules** — sourced, append-only facts about the current event, target Kingdom and Governor.
+2. **Alliance planning intent** — cohorts, readiness, blockers, slot reservations and invitation allocations.
+3. **Derived eligibility** — a recomputable assessment over current authoritative facts. It is never persisted as a boolean.
 
-## Authoritative game-rule boundary
+Missing, stale, conflicting or non-authoritative information cannot silently become `eligible_now`.
 
-Verified official sources as of 2026-08-23:
+## Current authoritative rule boundary
 
-- [Kingshot — Kingdom Transfer](https://www.centurygames.com/kingshot-kingdom-transfer/) — official event announcement describing the seven-day event, three phases, Transfer Groups, same-group restriction, Power Cap, Leading/Ordinary Kingdom classification, invitations, Transfer Score and Transfer Pass dependency.
-- [How many phases are there in Kingdom Transfer?](https://centurygames.helpshift.com/hc/en/140-kingshot/faq/8546-how-many-phases-are-there-in-kingdom-transfer/) — official phase semantics and the rule that the Power Cap cannot change after Phase II begins.
-- [Special Invites & Ordinary Invites](https://centurygames.helpshift.com/hc/en/140-kingshot/faq/8547-special-invites-ordinary-invites/) — official invitation distinction and Special Invite behavior.
-- [Leading Kingdoms & Ordinary Kingdoms](https://centurygames.helpshift.com/hc/en/140-kingshot/faq/8559-leading-kingdoms-ordinary-kingdoms/) — official target classification and the rule that Leading Kingdoms cannot issue Special Invites.
+The implementation is aligned to the current official KingShot transfer material recorded in the source matrix. First-class rules include:
 
-These sources do not publish the exact Transfer Pass formula and explicitly defer additional eligibility rules to the in-game rules. Therefore:
+- source and target Kingdoms must be in the same official Transfer Group for the selected window;
+- source/target Hero Generation compatibility;
+- source/target Truegold compatibility;
+- target-specific character-age threshold, bounded by the official 90–180 day rule range;
+- 25-day transfer cooldown;
+- maximum four characters in one Kingdom;
+- target Power Cap and Leading/Ordinary classification;
+- Ordinary/Special Invite requirements;
+- Leading Kingdoms cannot issue Special Invites;
+- Ordinary Kingdom capacity: 55 total, split into 35 Ordinary Invite and 20 Transfer Opens slots;
+- Leading Kingdom capacity: 30 total, split into 20 Ordinary Invite and 10 Transfer Opens slots;
+- current Special Invite inventory, with a maximum of three;
+- Transfer Pass sufficiency using the current in-game required count; official public material establishes a 1–50 range but does not publish a safe exact formula;
+- pre-transfer Storehouse protection warning because resources above the protected amount are lost after transfer;
+- a final current `in_game_rules_verified` gate for remaining unpublished or game-version-specific restrictions.
 
-1. the application may display and use an **observed required Transfer Pass count** from current in-game evidence;
-2. it must not invent a Transfer Score → Transfer Pass formula;
-3. it must not claim complete game eligibility solely from the public web rules;
-4. a fresh `in_game_rules_verified` observation is required before an assessment can become `eligible_now`;
-5. unpublished rules remain evidence-gated until an authoritative, version-bounded source exists.
+The application does **not** calculate required Transfer Passes from Transfer Score. Transfer Score may remain useful observed context, but the required-pass value used by eligibility is the current sourced in-game value.
 
-Community projects, wikis, bots, guides and social posts are discovery evidence only. They may never turn an eligibility requirement from unknown into met.
+Community guides, bots, social posts and other non-authoritative material are discovery/context only and cannot satisfy an authoritative requirement.
 
-## Capability ownership
+## Domain ownership
 
 `GameWorld/KingdomTransfers` owns:
 
-- Transfer Plans and the existing participant/readiness/completion workflow;
-- Alliance planning cohorts;
-- Transfer Windows and official phase boundaries;
-- official Transfer Groups and their window-specific Kingdom membership;
-- target-Kingdom transfer conditions, including sourced Power Caps and Kingdom classification;
-- transfer-specific Governor observation history;
-- eligibility rules, requirement evaluation and transfer-specific invariants;
-- audit/outbox semantics for material Kingdom Transfer mutations.
+- Transfer Plans, participants, readiness transitions, blockers and completions;
+- Alliance planning Transfer Cohorts;
+- Transfer Windows and phase boundaries;
+- official window-scoped Transfer Groups and membership;
+- target Kingdom condition history;
+- target Kingdom capacity observations;
+- participant transfer observations;
+- Alliance capacity reservations and invitation allocations;
+- observation provenance/freshness/conflict semantics;
+- deterministic eligibility evaluation;
+- transfer-specific audit/outbox events and idempotency.
 
-Other contexts retain their own aggregates. Kingdom Transfer may reference Player, Alliance, Kingdom and Evidence identifiers but does not take ownership of those aggregates. Cross-context writes continue through owner Actions/value objects rather than foreign-model mutation.
+`Intelligence/Evidence` owns screenshots, OCR/classification/extraction, reviews, duplicate handling, commit attempts and retention. Evidence can prove owner facts only through dedicated scalar handoffs; it never mutates KingdomTransfers tables directly.
 
-## Terminology correction
+## Terminology
 
-The former code used `TransferGroup` for an Alliance-managed coordination bucket. That conflicted with KingShot's official **Transfer Group** concept.
+**Transfer Group** means only the official KingShot grouping of Kingdoms for one Transfer Window.
 
-Because the application is not deployed, implementation renamed the existing planning concept cleanly:
+**Transfer Cohort** means an Alliance planning bucket. No compatibility aliases or old planning `TransferGroup` model remain.
 
-- `TransferGroup` → `TransferCohort`
-- `transfer_groups` → `transfer_cohorts`
-- `transfer_group_id` → `transfer_cohort_id`
-- related Actions, Queries, Controllers, routes, event names, localization and frontend vocabulary use **cohort** for the Alliance planning concept.
+## Transfer Window and phases
 
-No compatibility aliases, duplicate models, dual reads/writes or transitional schema are retained.
+A Transfer Plan references exactly one sourced Transfer Window with explicit UTC boundaries for:
 
-**Transfer Group** now means only the official, Transfer-Window-scoped KingShot grouping of Kingdoms.
+- Pre-Transfer;
+- Invitational Transfer;
+- Transfer Opens;
+- event end.
 
-## Domain model
+Derived phases are `not_started`, `pre_transfer`, `invitational_transfer`, `transfer_opens`, and `closed`.
 
-### Transfer Window
+Phase is derived from timestamps, not maintained as mutable free-form state.
 
-One official Kingdom Transfer event. It carries:
+## Official Transfer Group
 
-- stable application ID;
-- label;
-- Phase I start;
-- Phase II start;
-- Phase III start;
-- event end;
-- source type/reference;
-- `observed_at`;
-- optional source evidence identifier.
+Official Transfer Group membership is window-scoped. Corrections create new revisions and preserve prior history. A Kingdom is not given a timeless transfer-group attribute.
 
-Phase is derived from explicit timestamps; it is not a mutable free-form status.
+## Target Kingdom conditions
 
-Required derived states:
+Target Kingdom condition observations are append-only and may include:
 
-- `not_started`;
-- `pre_transfer`;
-- `invitational_transfer`;
-- `transfer_opens`;
-- `closed`.
+- Power Cap;
+- classification: `ordinary`, `leading`, or unknown/not proved;
+- Hero Generation;
+- Truegold level;
+- character-age threshold days.
 
-A Transfer Plan references exactly one Transfer Window.
+Every condition records source/reference and `observed_at`. Corrections preserve history. The Power Cap cannot be changed after Phase II begins except through an explicit sourced correction path.
 
-### Official Transfer Group
+## Target capacity observations
 
-An official Transfer Group belongs to one Transfer Window and has:
+Target capacity observations are separate from Alliance reservations. They record current observed KingShot state for one window + target Kingdom:
 
-- official label/identifier;
-- sourced window-specific Kingdom membership;
-- source/reference and `observed_at`;
-- optional Evidence identifier when an approved Evidence record is the source.
-
-Membership is never stored as a timeless Kingdom attribute. The same Kingdom may belong to a different Transfer Group in another window.
-
-### Target Kingdom condition
-
-A Target Kingdom condition belongs to a Transfer Window + Kingdom and records:
-
-- Power Cap when known;
-- Kingdom classification: `ordinary`, `leading`, or `unknown`;
+- Ordinary Invites used;
+- Transfer Opens used;
+- Special Invites available;
 - source/reference;
 - `observed_at`;
-- optional evidence ID.
+- optional Evidence reference;
+- correction marker.
 
-Power Cap is a window fact. The application enforces the official invariant that it cannot be changed after Phase II begins except by recording a correction whose source explicitly proves the previous observation was wrong. Corrections retain history; they do not erase prior observations.
+Official capacity totals come from the versioned rulebook and classification; current use/inventory comes from sourced observations.
 
-### Transfer observation
+The UI must clearly distinguish **Observed KingShot capacity** from **Alliance planned reservations**.
 
-Mutable Governor/target facts are append-only observations, never silently overwritten current-truth columns.
+## Governor observations
 
-First-release observation kinds:
+Transfer observations are append-only. Supported first-class kinds are:
 
 - `governor_power`;
+- `hero_generation`;
+- `truegold_level`;
+- `character_age_over_target_days`;
+- `transfer_cooldown_remaining_days`;
+- `target_existing_character_count`;
 - `transfer_score`;
 - `transfer_passes_available`;
 - `transfer_passes_required`;
 - `invitation_status`;
+- `resource_protection_verified`;
 - `in_game_rules_verified`.
 
-Each observation records:
+Each observation records Transfer Window, participant, target where applicable, typed value, source/reference, `observed_at`, explicit `valid_until` for mutable current facts, optional Evidence ID, actor and deterministic fingerprint.
 
-- Transfer Window;
-- Transfer participant;
-- target Kingdom where the fact is target-specific;
-- typed kind;
-- typed value;
-- source type/reference;
-- `observed_at`;
-- `valid_until` for mutable Governor facts;
-- optional Evidence identifier;
-- actor who recorded it;
-- deterministic fingerprint for idempotent ingestion.
+Manual forms cannot claim `source_type=evidence`; Evidence-backed truth enters only through the reviewed Evidence commit path.
 
-`transfer_passes_required` is observed from the game until an authoritative pass formula is available. `in_game_rules_verified` is a current in-game verification that no additional unpublished transfer restriction is presently blocking the Governor; it does not replace the explicitly modeled requirements.
+## Provenance and freshness
 
-## Provenance and freshness contract
+Authoritative source types are `official_publication`, `in_game`, and approved same-Alliance `evidence`.
 
-### Source types
+`manager_note` and `community` are visible planning/context sources only.
 
-Supported source types are:
+There is no hidden universal TTL. Mutable facts used for current eligibility require an explicit validity boundary. Expired facts are `stale`; simultaneous authoritative disagreement is `conflicting`; missing or non-authoritative truth is `unknown`.
 
-- `official_publication` — Century Games public material;
-- `in_game` — direct observation of KingShot UI/rules;
-- `evidence` — reviewed application Evidence whose provenance remains owned by Intelligence/Evidence;
-- `manager_note` — human planning note without authoritative supporting evidence;
-- `community` — discovery-only external community material.
+## Eligibility requirements
 
-Only `official_publication`, `in_game`, and reviewed `evidence` may satisfy an authoritative eligibility requirement. An `evidence` source must include an Intelligence/Evidence-owned identifier that resolves to the same Alliance and whose latest review is approved; raw or cross-Alliance Evidence identifiers are rejected. Manual transfer forms do not offer `evidence` as a source unless an owner-authorized Evidence selection flow supplies that identifier. `manager_note` and `community` remain visible context but cannot produce a `met` requirement.
+For an active incoming/outgoing participant, evaluation is ordered around the current transfer decision:
 
-### Freshness
+1. official window phase;
+2. official Transfer Group compatibility;
+3. Hero Generation compatibility;
+4. Truegold compatibility;
+5. character-age threshold;
+6. transfer cooldown;
+7. target character-count limit;
+8. target Power Cap;
+9. invitation requirement/type;
+10. total target capacity;
+11. invitation/Special Invite capacity when applicable;
+12. Transfer Opens capacity when applicable;
+13. Transfer Pass sufficiency;
+14. Storehouse resource-protection pre-flight;
+15. final in-game rules verification.
 
-The application does not invent a universal hidden TTL.
+Requirement states are `met`, `unmet`, `unknown`, `stale`, `conflicting`, and `not_applicable`.
 
-- Window/group/Kingdom-condition facts are valid only inside the Transfer Window/version boundary they explicitly describe.
-- Mutable Governor observations must carry `valid_until` to be usable as current eligibility evidence.
-- A mutable observation with no `valid_until` is historical context only and yields `unknown` for a current assessment.
-- When `now > valid_until`, the requirement is `stale`.
-- An observation from another Transfer Window is never current for this window.
-- Conflicting non-expired authoritative observations produce `conflicting`, not last-write-wins certainty.
+Overall outcomes are:
 
-Every material fact shown in the eligibility UI includes source and observation time. Stale and conflicting states are visible, not hidden behind a tooltip-only treatment.
-
-## Eligibility assessment
-
-Eligibility is derived on read. There is no persisted `eligible` boolean.
-
-Assessment outcomes:
-
-- `eligible_now` — every required modeled rule is met and a fresh in-game rules verification is present;
-- `eligible_with_action` — transfer is possible in the current phase but one or more actionable requirements are unmet;
-- `blocked` — a known rule currently prevents transfer and cannot be satisfied merely by refreshing evidence;
-- `needs_verification` — at least one required fact is missing, stale, conflicting or non-authoritative;
-- `not_open_yet` — the Transfer Window has not reached a phase in which this Governor can transfer;
-- `window_closed` — the event has ended;
-- `not_applicable` — the Governor is staying in the current Kingdom, so transfer eligibility is not applicable.
-
-Requirement states:
-
-- `met`;
-- `unmet`;
-- `unknown`;
-- `stale`;
-- `conflicting`;
+- `eligible_now`;
+- `eligible_with_action`;
+- `blocked`;
+- `needs_verification`;
+- `not_open_yet`;
+- `window_closed`;
 - `not_applicable`.
 
-Every requirement result includes a stable requirement key, explanation, actual/required display values where appropriate, source/reference, `observed_at`, `valid_until`, and the recommended next action.
+Hard rule mismatches such as Transfer Group, Hero Generation, Truegold, character age, target character limit and impossible Leading-Kingdom Special Invite paths produce `blocked`.
 
-### Modeled authoritative requirements
+Actionable shortages such as cooldown, passes, capacity, invitation acquisition or unprotected resources produce `eligible_with_action` when all required facts are trustworthy.
 
-The first authoritative evaluator models:
+`resource_protection_verified=false` is a pre-transfer consequence warning, not a false claim that KingShot forbids the transfer. Missing/stale resource verification still fails closed to `needs_verification` because the user must be warned before completion.
 
-1. **Window phase** — Phase I is planning only; Phase II permits invitation-based early transfer; Phase III is open transfer subject to requirements.
-2. **Transfer Group compatibility** — source and target Kingdom must be in the same official Transfer Group for the selected window.
-3. **Target Power Cap** — sourced target cap must be known.
-4. **Invitation**:
-   - Phase II requires a current observed invitation;
-   - a Governor at or below the cap requires an Ordinary Invite in Phase II;
-   - a Governor above the cap requires a Special Invite in Phase II or III;
-   - a Leading target Kingdom cannot satisfy an over-cap Special Invite path because official rules state Leading Kingdoms cannot issue Special Invites;
-   - in Phase III, a Governor at/below cap does not require an invitation.
-5. **Transfer Passes** — available and required counts must be current observations; available must be greater than or equal to required. Automatic required-pass calculation remains evidence-gated.
-6. **Additional in-game eligibility** — a current authoritative `in_game_rules_verified=true` observation is required because official public material does not enumerate every in-game restriction.
+## Alliance capacity reservations
 
-An explicit current `in_game_rules_verified=false` observation may carry a human-readable blocker reason and produces `blocked`/`eligible_with_action` as appropriate. Unknown unpublished rules never silently pass.
+Capacity reservations are Alliance planning intent, not KingShot reservations. One participant may hold one current planning reservation in either:
 
-## Manual planning blockers
+- `ordinary_invite`;
+- `transfer_open`.
 
-The existing persistent Transfer Blocker workflow remains independent from derived game eligibility blockers.
+States are `planned`, `reserved`, `confirmed`, `released`, and `failed`.
 
-- Manual blockers are Alliance planning records with create/resolve history.
-- Derived eligibility blockers are computed requirement results and are never copied into the blocker table on every evaluation.
-- Resolving a manual blocker does not alter observations.
-- Refreshing an observation does not erase manual blocker history.
+Creating/changing a consuming reservation requires current authoritative target capacity and is serialized against other reservations so Alliance planning cannot oversubscribe known capacity.
 
-## Readiness independence
+Withdrawal releases consuming reservations. Completion finalizes consuming reservations to `confirmed`. A confirmed commitment continues to reduce projected remaining capacity until a newer authoritative capacity observation is at or after that commitment update, at which point the observed game state supersedes the planning subtraction and double counting stops.
 
-Existing readiness states and transition history remain supported.
+## Invitation allocations
 
-Examples:
+Invitation allocations are Alliance planning workflow, separate from observed `invitation_status` game truth.
 
-- `readiness=ready`, `eligibility=needs_verification` is valid;
-- `readiness=blocked`, `eligibility=eligible_now` is valid when the Alliance still has planning work;
-- eligibility reevaluation never invokes the readiness transition Action automatically.
+Kinds are `ordinary` and `special`. States are `requested`, `reserved`, `issued`, `accepted`, `declined`, and `cancelled`.
 
-## User experience
+Special Invite consuming states require:
 
-The manager-facing participant surface leads with game eligibility, not the workflow state.
+- authoritative Ordinary target classification;
+- current observed Special Invite inventory;
+- remaining inventory after other Alliance allocations.
 
-For every outgoing/incoming Governor with a target Kingdom it shows, before secondary details:
+Leading Kingdoms cannot create a consuming Special Invite allocation.
 
-- Governor name;
-- target Kingdom;
-- assessment outcome;
-- current official phase;
-- official Transfer Group;
-- target Power Cap;
-- invitation requirement/status;
-- Transfer Score where observed;
-- available/required Transfer Passes;
-- highest-priority remaining action;
-- stale/missing/conflicting facts;
-- visible source and observation date for each material fact.
+Withdrawal cancels consuming allocations. Completion finalizes consuming allocations to `accepted` as planning workflow. The evaluator still relies on the independently sourced `invitation_status`; allocation state never proves game eligibility.
 
-The existing readiness control, cohort, notes, manual blockers, readiness history and completion state remain available below the eligibility summary.
+Issued/accepted Special Invite commitments are subtracted only until a newer authoritative capacity/inventory observation supersedes them, avoiding double counting.
 
-Required triage filters:
+## Screenshot Intake: Transfer Evidence
 
-- all;
-- eligible now;
-- blocked;
-- needs verification;
-- needs invite;
-- insufficient passes;
-- over Power Cap;
-- missing target Kingdom.
+The five explicit Evidence families remain:
 
-### UX states
+- Governor status;
+- Transfer Score & Passes;
+- invitation;
+- target Kingdom rules;
+- official Transfer Group.
 
-The page has explicit, localized states for:
+The target Kingdom rules schema is v2 and may review/commit only fixture-proven fields among:
 
-- no Transfer Window configured;
-- window not started;
-- Phase I planning;
-- Phase II invitation transfer;
-- Phase III transfer open;
-- window closed;
-- no current Transfer Plan;
-- no participants;
-- no target Kingdom;
-- missing official Transfer Group facts;
-- missing Power Cap;
-- missing/stale/conflicting Governor observations;
-- evidence-gated pass formula;
-- eligible now;
-- blocked/action required;
-- read-only locked/closed plan;
-- mutation validation/failure and success receipts.
+- target Kingdom number;
+- Power Cap;
+- classification;
+- Hero Generation;
+- Truegold level;
+- character-age threshold days.
 
-On mobile, Governor, target Kingdom, assessment outcome and primary blocker/action are visible without a wide table or opening a secondary panel. All visual status coding has text equivalents. Source/freshness disclosure is keyboard and screen-reader accessible.
+Evidence preview invokes the same `TransferEligibilityEvaluator` as current reads and substitutes only reviewed candidate facts in memory. No Evidence schema can manufacture `in_game_rules_verified=true`.
 
 ## Management UX
 
-Managers can:
+`/alliance/transfers/manage` lets authorized managers:
 
-- create/edit Transfer Windows and explicit phase boundaries before use;
-- record official Transfer Groups and their Kingdom membership for a selected window;
-- record/correct target Kingdom conditions with provenance;
-- attach a Transfer Plan to one window;
-- preserve existing participant/readiness/cohort/blocker/completion management;
-- append Governor observations with source, `observed_at` and `valid_until`;
-- inspect observation history rather than overwriting it;
-- correct a prior game fact by appending a sourced correction;
-- see immediately how new observations change the deterministic assessment.
+- record Transfer Windows;
+- record/revise official Transfer Groups;
+- record target Power/classification/Hero/Truegold/age-threshold facts;
+- record current target slot usage and Special Invite inventory;
+- inspect sourced condition/capacity history;
+- create/manage the Transfer Plan, cohorts and participants.
 
-Material source facts cannot be edited into anonymous values: source type, source/reference and observation time are required at the write boundary.
+`/alliance/transfers/readiness` is decision-first. It shows:
 
-## Authorization
+- outcome and primary next action;
+- every requirement and provenance;
+- observed versus Alliance-projected capacity;
+- capacity reservation and invitation allocation controls;
+- reviewed Evidence workflow;
+- append-only observation entry/history;
+- independent Alliance readiness and blockers.
 
-- Alliance members with transfer view permission may see the current authorized planning surface according to existing policy.
-- Transfer management permission is required to create/update Windows, Transfer Groups, Kingdom conditions, observations, readiness, cohorts and manual blockers.
-- Every mutation re-resolves active Player + Alliance authority inside the transaction and re-checks the concrete plan/window/participant scope.
-- IDs from another Alliance/plan/window cannot be used to infer whether a record exists.
-- Evidence references never bypass Intelligence/Evidence authorization or disclose cross-Alliance evidence. `source_type=evidence` requires a same-Alliance Evidence identifier whose latest owner review is approved; optional Evidence attachments on other source types are also same-Alliance checked.
+Required triage includes outcome plus missing target, invitation need, pass shortfall, Power Cap, generation, Truegold, age, cooldown, character limit, resource warning and capacity shortages where represented by the current UI.
 
-## Idempotency and concurrency
+## Completion and withdrawal
 
-- Observation ingestion uses a deterministic fingerprint over scope, kind, target, typed value, source and observation boundary. Repeating the same observation returns the existing record/no-op rather than duplicating history.
-- Window/group/condition corrections are serialized under the relevant window/plan lock.
-- A Power Cap write after Phase II begins is rejected unless the Action is explicitly recording a correction and includes authoritative correction provenance.
-- Participant/cohort/readiness mutations retain current aggregate locking/idempotent no-op behavior.
+Withdrawal and completion reconcile planning commitments in the same domain transaction as the workflow state change.
 
-## Audit, outbox and observability
+- withdrawal releases consuming capacity reservations and cancels consuming invitation allocations;
+- completion finalizes consuming reservations/allocations while recording the roster/player outcome;
+- accepted owner observations remain immutable history;
+- completion does not mutate prior eligibility observations into synthetic game truth.
 
-Material mutations record audit + outbox metadata without logging sensitive free-form evidence payloads. At minimum this includes:
+## Authorization and isolation
 
-- Transfer Window create/update;
-- official Transfer Group/membership change;
-- target Kingdom condition observation/correction;
-- Governor transfer observation recorded;
-- existing plan/cohort/participant/readiness/blocker/completion events after terminology correction.
+- view requires the transfer view boundary;
+- mutations require `kingdom_transfer.manage` and recent password confirmation at HTTP boundaries;
+- every Action reacquires current actor/Alliance authority and concrete plan/window/participant scope;
+- foreign Alliance IDs cannot be used to infer record existence;
+- Evidence references must be same-Alliance and approved where required.
 
-Read telemetry is privacy-safe. It may report counts by assessment outcome/requirement state and availability of data, but not Governor names, Transfer Score values, Power values, pass counts, raw evidence text or source screenshots.
+Frontend permission flags are affordances only.
 
-Operational diagnostics expose failed validation/retry/idempotency outcomes by correlation/fingerprint without leaking private observation values.
+## Concurrency and idempotency
 
-## Localization
+- observation identity uses deterministic fingerprints;
+- official-group revisions are serialized per window;
+- target condition/capacity corrections preserve history;
+- reservation/invitation allocation writes lock participant/current commitment and relevant competing commitments;
+- destination Evidence receipts are stable/idempotent;
+- retries cannot create duplicate accepted owner truth.
 
-Every new visible string lives in the existing transfer localization domain. English is the complete canonical fallback for every supported locale; locale overlays override the keys they translate and otherwise use the shared English fallback, so no supported locale path exposes raw localization keys. Dates, times, Kingdom numbers, Power/Score/pass numbers and phase labels use the existing locale formatting utilities. Source type and freshness state are resolved through localization keys rather than hard-coded English in Vue. Visual regression explicitly rejects rendered raw transfer localization keys.
+## Operational and test acceptance
 
-## Test contract
+The capability is complete only when the final implementation candidate is green for:
 
-Completion requires behavior coverage for at least:
+- fresh PostgreSQL installation/migrations;
+- Pint;
+- PHPStan;
+- KingdomTransfers V3 behavior/contract/completeness tests;
+- Evidence review/commit tests;
+- frontend lint/format/type/build;
+- Architecture V3 Verification;
+- Intelligence Verification;
+- Visual Regression desktop/mobile transfer states;
+- CodeQL and Dependency Review;
+- authorization/isolation and query-budget coverage;
+- backup/restore/replay expectations in operations guidance;
+- documentation/source-matrix reconciliation.
 
-- phase boundary instants and UTC-safe ordering;
-- invalid/overlapping phase boundaries;
-- same/different/missing Transfer Group membership;
-- window-specific group changes;
-- Power below/equal/above cap;
-- Phase II Ordinary/Special Invite paths;
-- Phase III at/below-cap no-invite path;
-- Phase III over-cap Special Invite path;
-- Leading target + over-cap impossibility;
-- sufficient/insufficient/unknown/stale/conflicting pass observations;
-- Transfer Score history/freshness disclosure;
-- stale/missing/conflicting Governor Power;
-- missing/non-authoritative provenance;
-- fresh/false/stale/missing in-game rule verification;
-- deterministic assessment changes after a new observation;
-- manual blockers independent from derived blockers;
-- readiness independent from eligibility;
-- observation idempotency;
-- cross-Alliance/window/plan authorization;
-- Evidence-backed Window/Group/condition/Governor writes rejecting missing, foreign or unapproved Evidence references;
-- query budgets/no-N+1 behavior for a representative large participant list;
-- localized formatting and all supported locales;
-- keyboard/screen-reader operation;
-- mobile layout without horizontal overflow;
-- deterministic visual states for eligible, blocked and needs-verification participants.
-
-## Acceptance criteria
-
-The capability is complete only when all of the following are true:
-
-1. A manager can configure/select a sourced Transfer Window, official groups and target conditions without editing code.
-2. Existing participants/readiness/blockers/completion continue to work after the cohort terminology correction.
-3. For a Governor + target + window, the server returns a structured deterministic eligibility assessment with per-requirement explanations.
-4. `eligible_now` is impossible when any required fact is missing, stale, conflicting, non-authoritative, or when fresh in-game verification is absent.
-5. Every mutable fact used by the assessment visibly exposes source and observation date; mutable Governor facts also expose their validity boundary.
-6. Automatic Transfer Pass calculation is not implemented until an authoritative formula exists; observed required passes are supported now.
-7. The UI answers both “Can they transfer?” and “What still needs to happen?” before presenting secondary workflow details.
-8. Desktop/mobile, keyboard, screen-reader and all supported locale paths are complete.
-9. Material writes are scoped, authorized, audited, concurrency-safe and idempotent where repeat delivery is possible.
-10. Product/architecture/reference/operations docs describe current implementation truth with no stale `TransferGroup` planning terminology.
-11. Full applicable repository release gates pass on one immutable implementation candidate.
-
-## Delivery ledger
-
-`Complete` means the slice satisfies its complete exit condition across code, UX, authorization, tests, observability and documentation. Documentation-only or backend-only completion is not accepted.
-
-| Phase | Status | Slice | Exit condition |
-| --- | --- | --- | --- |
-| 1 | Complete | Product contract | This contract defines complete scope, source/evidence boundary, ownership, UX states, acceptance criteria and delivery ledger before application changes. |
-| 2 | Complete | Cohort terminology correction | Existing Alliance planning `TransferGroup` is renamed to `TransferCohort` across schema/code/routes/events/localization/tests with no compatibility layer; official Transfer Group vocabulary becomes unambiguous. |
-| 3 | Complete | Transfer Window + official groups | Window/phase persistence, official Transfer Group membership, target conditions and provenance are writable through authorized domain Actions and exposed by bounded queries. |
-| 4 | Complete | Governor observation history | Typed append-only sourced observations, explicit validity, conflict handling and idempotent ingestion are implemented with history UI. |
-| 5 | Complete | Eligibility domain | Deterministic evaluator implements the sourced rule set, evidence gates, requirement states and structured next actions without a persisted eligibility boolean. |
-| 6 | Complete | HTTP/read composition | Authorized planning reads expose window, phase, target, observations, manual blockers and assessments with bounded query counts and no cross-tenant leakage. |
-| 7 | Complete | Management UX | Managers can maintain sourced window/group/condition/observation data and see validation, history and receipts without raw IDs or hidden provenance requirements. |
-| 8 | Complete | Decision-first participant UX | Readiness page leads with eligibility, requirement/source/freshness details and required triage filters while preserving readiness/cohort/blocker/completion controls. |
-| 9 | Complete | Accessibility/localization/mobile | All new states are localized through the canonical English fallback/locale-overlay contract, keyboard/screen-reader usable, mobile-first and free of horizontal overflow; visual status has text equivalents and raw-key rendering is regression-tested. |
-| 10 | Complete | Audit/observability/recovery | Material writes are audited/outboxed, observation retries are idempotent, diagnostics are privacy-safe and recovery/correction behavior is documented. |
-| 11 | Complete | Behavioral/architecture/performance tests | Rule boundaries, authorization, Evidence ownership, idempotency, history, independence invariants, query budgets and architecture constraints are covered. |
-| 12 | Complete | Visual regression + closeout | Deterministic eligible/blocked/needs-verification desktop/mobile states are accepted; spec→code, code→spec, UX→backend and docs scans show no implementable gap and full release gates pass. |
-
-The delivery queue is closed. Immutable implementation candidate `ea4c426259ec9b1a571f72a2b453e81bd0d96e63` passed CI (including fresh PostgreSQL install, PHP/frontend checks, production image build, ephemeral staging, backup/restore and HIGH/CRITICAL image scan), Architecture V3 Verification, Intelligence Verification, CodeQL, Dependency Review and Visual Regression. Final spec→code, code→spec, UX→backend, authorization, provenance, architecture ownership, data-model, accessibility, localization, observability and test-coverage reconciliation found no remaining implementable Kingdom Transfer Planning gap. The unpublished Transfer Pass formula remains explicitly evidence-gated because no authoritative version-bounded formula is available; it is not an implementation TODO.
-
-### Cross-phase invariants
-
-1. Readiness is not eligibility.
-2. Eligibility is derived, never a persisted boolean.
-3. Mutable eligibility facts are observations with source + time + explicit validity.
-4. Unknown/stale/conflicting/non-authoritative data cannot produce `eligible_now`.
-5. Official Transfer Groups are window-scoped game facts; Alliance planning cohorts are a different concept.
-6. No unpublished Transfer Pass formula is invented.
-7. Additional unpublished in-game requirements are never silently assumed met; fresh in-game verification is required for a yes answer.
-8. Owner Actions retain write semantics; controllers/Vue never become the game-rule authority.
-9. Every material mutation reauthorizes active Player + concrete scope at commit time.
-10. No compatibility shims, dual reads/writes, legacy naming or placeholder implementation survive closeout.
+No compatibility shims, legacy aliases or dual-read/write paths are part of this fresh deployment.
