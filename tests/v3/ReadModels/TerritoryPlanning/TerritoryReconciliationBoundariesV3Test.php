@@ -28,7 +28,7 @@ final class TerritoryReconciliationBoundariesV3Test extends TestCase
 {
     use RefreshDatabase;
 
-    private const DATASET_ID = 'kingshot-community-observed-2026-08-21-v1';
+    private const DATASET_ID = 'kingshot-evidence-backed-2026-09-06-v2';
 
     public function test_unauthorized_actor_is_rejected_before_observation_history_is_retrieved(): void
     {

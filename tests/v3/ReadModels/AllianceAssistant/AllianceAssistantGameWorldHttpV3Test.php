@@ -44,7 +44,7 @@ final class AllianceAssistantGameWorldHttpV3Test extends TestCase
 {
     use RefreshDatabase;
 
-    private const MAP_DATASET = 'kingshot-community-observed-2026-08-21-v1';
+    private const MAP_DATASET = 'kingshot-evidence-backed-2026-09-06-v2';
 
     protected function setUp(): void
     {

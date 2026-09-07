@@ -25,7 +25,7 @@ final class TerritoryPlanLifecycleBehaviorV3Test extends TestCase
 {
     use RefreshDatabase;
 
-    private const DATASET_ID = 'kingshot-community-observed-2026-08-21-v1';
+    private const DATASET_ID = 'kingshot-evidence-backed-2026-09-06-v2';
 
     public function test_alliance_plan_save_publish_restore_clone_and_archive_preserve_history(): void
     {
