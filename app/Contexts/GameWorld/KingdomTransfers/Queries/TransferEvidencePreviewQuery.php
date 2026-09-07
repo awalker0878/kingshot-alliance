@@ -16,6 +16,7 @@ use App\Contexts\GameWorld\KingdomTransfers\Models\TransferObservation;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferParticipant;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferPlan;
 use App\Contexts\GameWorld\KingdomTransfers\Services\TransferEligibilityEvaluator;
+use App\Contexts\GameWorld\KingdomTransfers\Services\TransferKingdomConditionSelector;
 use App\Contexts\GameWorld\KingdomTransfers\Services\TransferObservationSelector;
 use App\Contexts\GameWorld\KingdomTransfers\ValueObjects\TransferEligibilityInput;
 use App\Contexts\GameWorld\KingdomTransfers\ValueObjects\TransferEvidencePreviewInput;
@@ -30,6 +31,8 @@ final readonly class TransferEvidencePreviewQuery
         private TransferEligibilityQuery $eligibility,
         private TransferEligibilityEvaluator $evaluator,
         private TransferObservationSelector $selector,
+        private TransferKingdomConditionSelector $conditionSelector,
+        private TransferCapacityPlanningQuery $capacity,
         private KingdomReferenceQuery $kingdoms,
     ) {}
 
@@ -90,12 +93,12 @@ final readonly class TransferEvidencePreviewQuery
             $targetId,
             $review,
         );
-        [$powerCap, $classification] = $this->conditionFacts(
-            $allianceId,
-            $scope->transferWindowId,
-            $targetId,
-            $review,
-        );
+
+        $conditionRows = $this->conditionRows($allianceId, $scope->transferWindowId, $targetId);
+        [$powerCap, $classification] = $this->conditionFacts($conditionRows, $review);
+        $projection = $targetId === null
+            ? null
+            : ($this->capacity->forTargets($allianceId, $scope->transferWindowId, [$targetId])[$targetId] ?? null);
 
         $governorPower = $review->kind === TransferEvidencePreviewKind::GovernorStatus
             ? $this->reviewedFact($review->governorPower, $review, $now)
@@ -109,7 +112,6 @@ final readonly class TransferEvidencePreviewQuery
         $passesRequired = $review->kind === TransferEvidencePreviewKind::ScorePasses
             ? $this->reviewedFact($review->passesRequired, $review, $now)
             : $this->selector->select($rows, TransferObservationKind::TransferPassesRequired, $targetId, $now);
-        $inGameRulesVerified = $this->selector->select($rows, TransferObservationKind::InGameRulesVerified, $targetId, $now);
 
         $after = $this->evaluator->evaluate(new TransferEligibilityInput(
             phase: $plan->window->phaseAt($now),
@@ -118,11 +120,23 @@ final readonly class TransferEvidencePreviewQuery
             targetGroupLabel: $targetGroupLabel,
             targetPowerCap: $powerCap,
             targetClassification: $classification,
+            targetHeroGeneration: $this->conditionSelector->value($conditionRows, 'hero_generation'),
+            targetTruegoldLevel: $this->conditionSelector->value($conditionRows, 'truegold_level'),
+            targetCharacterAgeThresholdDays: $this->conditionSelector->value($conditionRows, 'character_age_threshold_days'),
+            targetCapacityRemaining: $projection?->totalRemaining() ?? TransferObservedValue::unknown(),
+            invitationCapacityRemaining: $projection?->ordinaryInviteRemaining() ?? TransferObservedValue::unknown(),
+            transferOpenCapacityRemaining: $projection?->transferOpenRemaining() ?? TransferObservedValue::unknown(),
+            specialInvitesAvailable: $projection?->specialInviteRemaining() ?? TransferObservedValue::unknown(),
             governorPower: $governorPower,
+            governorHeroGeneration: $this->selector->select($rows, TransferObservationKind::HeroGeneration, null, $now),
+            governorTruegoldLevel: $this->selector->select($rows, TransferObservationKind::TruegoldLevel, null, $now),
+            characterAgeOverTargetDays: $this->selector->select($rows, TransferObservationKind::CharacterAgeOverTargetDays, $targetId, $now),
+            transferCooldownRemainingDays: $this->selector->select($rows, TransferObservationKind::TransferCooldownRemainingDays, null, $now),
+            targetExistingCharacterCount: $this->selector->select($rows, TransferObservationKind::TargetExistingCharacterCount, $targetId, $now),
             invitationStatus: $invitation,
             passesAvailable: $passesAvailable,
             passesRequired: $passesRequired,
-            inGameRulesVerified: $inGameRulesVerified,
+            inGameRulesVerified: $this->selector->select($rows, TransferObservationKind::InGameRulesVerified, $targetId, $now),
         ), $now);
 
         return [
@@ -199,10 +213,13 @@ final readonly class TransferEvidencePreviewQuery
         ];
     }
 
-    /** @return array{0:TransferObservedValue,1:TransferKingdomClassification} */
-    private function conditionFacts(string $allianceId, string $windowId, ?string $targetId, TransferEvidencePreviewInput $review): array
+    /** @param Collection<int,TransferKingdomConditionObservation> $rows
+     *  @return array{0:TransferObservedValue,1:TransferKingdomClassification}
+     */
+    private function conditionFacts(Collection $rows, TransferEvidencePreviewInput $review): array
     {
-        [$currentPowerCap, $currentClassification] = $this->currentConditionFacts($allianceId, $windowId, $targetId);
+        $currentPowerCap = $this->conditionSelector->value($rows, 'power_cap');
+        $currentClassification = $this->conditionSelector->classification($rows);
         if ($review->kind !== TransferEvidencePreviewKind::TargetKingdomRules) {
             return [$currentPowerCap, $currentClassification];
         }
@@ -213,7 +230,7 @@ final readonly class TransferEvidencePreviewQuery
 
         return [
             new TransferObservedValue(
-                TransferRequirementState::Met,
+                $review->targetPowerCap === null ? TransferRequirementState::Unknown : TransferRequirementState::Met,
                 $review->targetPowerCap,
                 TransferSourceType::Evidence,
                 'Reviewed screenshot preview',
@@ -223,40 +240,20 @@ final readonly class TransferEvidencePreviewQuery
         ];
     }
 
-    /** @return array{0:TransferObservedValue,1:TransferKingdomClassification} */
-    private function currentConditionFacts(string $allianceId, string $windowId, ?string $targetId): array
+    /** @return Collection<int,TransferKingdomConditionObservation> */
+    private function conditionRows(string $allianceId, string $windowId, ?string $targetId): Collection
     {
         if ($targetId === null) {
-            return [TransferObservedValue::unknown(), TransferKingdomClassification::Unknown];
+            return collect();
         }
 
-        $rows = TransferKingdomConditionObservation::query()
+        return TransferKingdomConditionObservation::query()
             ->where('alliance_id', $allianceId)
             ->where('transfer_window_id', $windowId)
             ->where('kingdom_id', $targetId)
             ->orderByDesc('observed_at')
             ->orderByDesc('id')
             ->get();
-        $authoritative = $rows->filter(static fn (TransferKingdomConditionObservation $row): bool => $row->source_type->isAuthoritative())->values();
-        if ($authoritative->isEmpty()) {
-            return [TransferObservedValue::unknown(), TransferKingdomClassification::Unknown];
-        }
-        /** @var TransferKingdomConditionObservation $latest */
-        $latest = $authoritative->first();
-        $sameTime = $authoritative->filter(static fn (TransferKingdomConditionObservation $row): bool => $row->observed_at->equalTo($latest->observed_at));
-        if ($sameTime->pluck('power_cap')->unique()->count() > 1) {
-            return [
-                new TransferObservedValue(TransferRequirementState::Conflicting, null, $latest->source_type, $latest->source_reference, CarbonImmutable::instance($latest->observed_at)),
-                TransferKingdomClassification::Unknown,
-            ];
-        }
-
-        return [
-            $latest->power_cap === null
-                ? new TransferObservedValue(TransferRequirementState::Unknown, null, $latest->source_type, $latest->source_reference, CarbonImmutable::instance($latest->observed_at))
-                : new TransferObservedValue(TransferRequirementState::Met, $latest->power_cap, $latest->source_type, $latest->source_reference, CarbonImmutable::instance($latest->observed_at)),
-            $latest->classification ?? TransferKingdomClassification::Unknown,
-        ];
     }
 
     /** @return list<string> */

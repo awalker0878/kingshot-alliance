@@ -7,6 +7,7 @@ namespace Tests\v3\Contexts\GameWorld\KingdomTransfers;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferEligibilityOutcome;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferInvitationStatus;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferKingdomClassification;
+use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferRequirementKey;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferRequirementState;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferSourceType;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferWindowPhase;
@@ -23,36 +24,24 @@ final class TransferEligibilityEvaluatorV3Test extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->now = CarbonImmutable::parse('2026-08-23T12:00:00Z');
+        $this->now = CarbonImmutable::parse('2026-09-07T12:00:00Z');
     }
 
     public function test_phase_i_and_closed_windows_never_report_eligible(): void
     {
         $evaluator = app(TransferEligibilityEvaluator::class);
 
-        self::assertSame(
-            TransferEligibilityOutcome::NotOpenYet,
-            $evaluator->evaluate($this->eligibleInput(TransferWindowPhase::PreTransfer), $this->now)->outcome,
-        );
-        self::assertSame(
-            TransferEligibilityOutcome::WindowClosed,
-            $evaluator->evaluate($this->eligibleInput(TransferWindowPhase::Closed), $this->now)->outcome,
-        );
+        self::assertSame(TransferEligibilityOutcome::NotOpenYet, $evaluator->evaluate($this->eligibleInput(TransferWindowPhase::PreTransfer), $this->now)->outcome);
+        self::assertSame(TransferEligibilityOutcome::WindowClosed, $evaluator->evaluate($this->eligibleInput(TransferWindowPhase::Closed), $this->now)->outcome);
     }
 
-    public function test_phase_iii_under_cap_governor_is_eligible_without_invitation_when_all_evidence_is_current(): void
+    public function test_phase_iii_under_cap_governor_is_eligible_without_invitation_when_all_rules_are_current(): void
     {
-        $assessment = app(TransferEligibilityEvaluator::class)->evaluate(
-            $this->eligibleInput(TransferWindowPhase::TransferOpens),
-            $this->now,
-        );
+        $assessment = app(TransferEligibilityEvaluator::class)->evaluate($this->eligibleInput(TransferWindowPhase::TransferOpens), $this->now);
 
         self::assertSame(TransferEligibilityOutcome::EligibleNow, $assessment->outcome);
         self::assertNull($assessment->primaryAction);
-        self::assertContains(
-            TransferRequirementState::NotApplicable,
-            array_map(static fn ($requirement): TransferRequirementState => $requirement->state, $assessment->requirements),
-        );
+        self::assertContains(TransferRequirementState::NotApplicable, array_map(static fn ($requirement): TransferRequirementState => $requirement->state, $assessment->requirements));
     }
 
     public function test_phase_ii_requires_the_correct_invitation_type(): void
@@ -84,27 +73,68 @@ final class TransferEligibilityEvaluatorV3Test extends TestCase
         self::assertSame(TransferEligibilityOutcome::Blocked, $evaluator->evaluate($leading, $this->now)->outcome);
     }
 
-    public function test_group_mismatch_is_a_hard_blocker(): void
+    public function test_group_generation_and_truegold_mismatches_are_hard_blockers(): void
     {
-        $input = $this->eligibleInput(TransferWindowPhase::TransferOpens);
-        $input = new TransferEligibilityInput(
-            $input->phase,
-            TransferRequirementState::Met,
-            'Group 3',
-            'Group 4',
-            $input->targetPowerCap,
-            $input->targetClassification,
-            $input->governorPower,
-            $input->invitationStatus,
-            $input->passesAvailable,
-            $input->passesRequired,
-            $input->inGameRulesVerified,
-        );
+        $evaluator = app(TransferEligibilityEvaluator::class);
 
         self::assertSame(
             TransferEligibilityOutcome::Blocked,
-            app(TransferEligibilityEvaluator::class)->evaluate($input, $this->now)->outcome,
+            $evaluator->evaluate($this->eligibleInput(TransferWindowPhase::TransferOpens, targetGroupLabel: 'Group 5'), $this->now)->outcome,
         );
+        self::assertSame(
+            TransferEligibilityOutcome::Blocked,
+            $evaluator->evaluate($this->eligibleInput(TransferWindowPhase::TransferOpens, governorHeroGeneration: $this->current(4)), $this->now)->outcome,
+        );
+        self::assertSame(
+            TransferEligibilityOutcome::Blocked,
+            $evaluator->evaluate($this->eligibleInput(TransferWindowPhase::TransferOpens, governorTruegoldLevel: $this->current(2)), $this->now)->outcome,
+        );
+    }
+
+    public function test_character_age_threshold_is_inclusive_and_exceeding_it_blocks(): void
+    {
+        $evaluator = app(TransferEligibilityEvaluator::class);
+        $atBoundary = $this->eligibleInput(TransferWindowPhase::TransferOpens, characterAgeOverTargetDays: $this->current(120));
+        $overBoundary = $this->eligibleInput(TransferWindowPhase::TransferOpens, characterAgeOverTargetDays: $this->current(121));
+
+        self::assertSame(TransferEligibilityOutcome::EligibleNow, $evaluator->evaluate($atBoundary, $this->now)->outcome);
+        self::assertSame(TransferEligibilityOutcome::Blocked, $evaluator->evaluate($overBoundary, $this->now)->outcome);
+    }
+
+    public function test_transfer_cooldown_is_actionable_until_zero_days_remain(): void
+    {
+        $evaluator = app(TransferEligibilityEvaluator::class);
+        $coolingDown = $this->eligibleInput(TransferWindowPhase::TransferOpens, cooldownRemaining: $this->current(1));
+        $ready = $this->eligibleInput(TransferWindowPhase::TransferOpens, cooldownRemaining: $this->current(0));
+
+        $assessment = $evaluator->evaluate($coolingDown, $this->now);
+        self::assertSame(TransferEligibilityOutcome::EligibleWithAction, $assessment->outcome);
+        self::assertSame('Wait 1 more day(s) for the transfer cooldown to expire.', $assessment->primaryAction);
+        self::assertSame(TransferEligibilityOutcome::EligibleNow, $evaluator->evaluate($ready, $this->now)->outcome);
+    }
+
+    public function test_four_existing_characters_in_target_is_a_hard_blocker(): void
+    {
+        $evaluator = app(TransferEligibilityEvaluator::class);
+
+        self::assertSame(
+            TransferEligibilityOutcome::EligibleNow,
+            $evaluator->evaluate($this->eligibleInput(TransferWindowPhase::TransferOpens, targetCharacterCount: $this->current(3)), $this->now)->outcome,
+        );
+        self::assertSame(
+            TransferEligibilityOutcome::Blocked,
+            $evaluator->evaluate($this->eligibleInput(TransferWindowPhase::TransferOpens, targetCharacterCount: $this->current(4)), $this->now)->outcome,
+        );
+    }
+
+    public function test_exhausted_target_or_phase_capacity_never_reports_eligible_now(): void
+    {
+        $evaluator = app(TransferEligibilityEvaluator::class);
+        $totalFull = $this->eligibleInput(TransferWindowPhase::TransferOpens, targetCapacity: $this->current(0));
+        $openFull = $this->eligibleInput(TransferWindowPhase::TransferOpens, transferOpenCapacity: $this->current(0));
+
+        self::assertSame(TransferEligibilityOutcome::EligibleWithAction, $evaluator->evaluate($totalFull, $this->now)->outcome);
+        self::assertSame(TransferEligibilityOutcome::EligibleWithAction, $evaluator->evaluate($openFull, $this->now)->outcome);
     }
 
     public function test_missing_stale_or_conflicting_evidence_yields_needs_verification(): void
@@ -134,17 +164,23 @@ final class TransferEligibilityEvaluatorV3Test extends TestCase
         self::assertSame('Acquire 2 more Transfer Pass(es).', $assessment->primaryAction);
     }
 
+    public function test_required_pass_count_outside_official_range_is_conflicting(): void
+    {
+        $assessment = app(TransferEligibilityEvaluator::class)->evaluate(
+            $this->eligibleInput(TransferWindowPhase::TransferOpens, passesRequired: $this->current(51), passesAvailable: $this->current(51)),
+            $this->now,
+        );
+
+        self::assertSame(TransferEligibilityOutcome::NeedsVerification, $assessment->outcome);
+        $passes = collect($assessment->requirements)->first(static fn ($row): bool => $row->key === TransferRequirementKey::TransferPasses);
+        self::assertSame(TransferRequirementState::Conflicting, $passes?->state);
+    }
+
     public function test_false_in_game_verification_is_a_hard_blocker_and_missing_verification_never_silently_passes(): void
     {
         $evaluator = app(TransferEligibilityEvaluator::class);
-        $blocked = $this->eligibleInput(
-            TransferWindowPhase::TransferOpens,
-            inGameRules: $this->current(false, 'Governor is still in an Alliance.'),
-        );
-        $unknown = $this->eligibleInput(
-            TransferWindowPhase::TransferOpens,
-            inGameRules: TransferObservedValue::unknown(),
-        );
+        $blocked = $this->eligibleInput(TransferWindowPhase::TransferOpens, inGameRules: $this->current(false, 'Governor is still in an Alliance.'));
+        $unknown = $this->eligibleInput(TransferWindowPhase::TransferOpens, inGameRules: TransferObservedValue::unknown());
 
         self::assertSame(TransferEligibilityOutcome::Blocked, $evaluator->evaluate($blocked, $this->now)->outcome);
         self::assertSame(TransferEligibilityOutcome::NeedsVerification, $evaluator->evaluate($unknown, $this->now)->outcome);
@@ -153,24 +189,47 @@ final class TransferEligibilityEvaluatorV3Test extends TestCase
     private function eligibleInput(
         TransferWindowPhase $phase,
         TransferKingdomClassification $classification = TransferKingdomClassification::Ordinary,
+        string $sourceGroupLabel = 'Group 4',
+        string $targetGroupLabel = 'Group 4',
         ?TransferObservedValue $power = null,
+        ?TransferObservedValue $governorHeroGeneration = null,
+        ?TransferObservedValue $governorTruegoldLevel = null,
+        ?TransferObservedValue $characterAgeOverTargetDays = null,
+        ?TransferObservedValue $cooldownRemaining = null,
+        ?TransferObservedValue $targetCharacterCount = null,
+        ?TransferObservedValue $targetCapacity = null,
+        ?TransferObservedValue $invitationCapacity = null,
+        ?TransferObservedValue $transferOpenCapacity = null,
+        ?TransferObservedValue $specialInvites = null,
         ?TransferObservedValue $invitation = null,
         ?TransferObservedValue $passesAvailable = null,
         ?TransferObservedValue $passesRequired = null,
         ?TransferObservedValue $inGameRules = null,
     ): TransferEligibilityInput {
         return new TransferEligibilityInput(
-            $phase,
-            TransferRequirementState::Met,
-            'Group 4',
-            'Group 4',
-            $this->current(125_000_000),
-            $classification,
-            $power ?? $this->current(118_400_000),
-            $invitation ?? $this->current(TransferInvitationStatus::None->value),
-            $passesAvailable ?? $this->current(9),
-            $passesRequired ?? $this->current(9),
-            $inGameRules ?? $this->current(true),
+            phase: $phase,
+            groupState: TransferRequirementState::Met,
+            sourceGroupLabel: $sourceGroupLabel,
+            targetGroupLabel: $targetGroupLabel,
+            targetPowerCap: $this->current(125_000_000),
+            targetClassification: $classification,
+            targetHeroGeneration: $this->current(5),
+            targetTruegoldLevel: $this->current(3),
+            targetCharacterAgeThresholdDays: $this->current(120),
+            targetCapacityRemaining: $targetCapacity ?? $this->current(20),
+            invitationCapacityRemaining: $invitationCapacity ?? $this->current(10),
+            transferOpenCapacityRemaining: $transferOpenCapacity ?? $this->current(10),
+            specialInvitesAvailable: $specialInvites ?? $this->current(3),
+            governorPower: $power ?? $this->current(118_400_000),
+            governorHeroGeneration: $governorHeroGeneration ?? $this->current(5),
+            governorTruegoldLevel: $governorTruegoldLevel ?? $this->current(3),
+            characterAgeOverTargetDays: $characterAgeOverTargetDays ?? $this->current(60),
+            transferCooldownRemainingDays: $cooldownRemaining ?? $this->current(0),
+            targetExistingCharacterCount: $targetCharacterCount ?? $this->current(0),
+            invitationStatus: $invitation ?? $this->current(TransferInvitationStatus::None->value),
+            passesAvailable: $passesAvailable ?? $this->current(9),
+            passesRequired: $passesRequired ?? $this->current(9),
+            inGameRulesVerified: $inGameRules ?? $this->current(true),
         );
     }
 

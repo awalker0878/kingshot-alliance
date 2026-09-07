@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Contexts\GameWorld\Governance\Http\Controllers\KingdomRoleController;
+use App\Contexts\GameWorld\KingdomTransfers\Http\Controllers\TransferCapacityController;
 use App\Contexts\GameWorld\KingdomTransfers\Http\Controllers\TransferCohortController;
 use App\Contexts\GameWorld\KingdomTransfers\Http\Controllers\TransferCompletionController;
 use App\Contexts\GameWorld\KingdomTransfers\Http\Controllers\TransferParticipantController;
@@ -89,6 +90,7 @@ Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->gro
         Route::patch('/alliance/transfers/windows/{window}', [TransferPlanningController::class, 'updateWindow'])->name('alliance.transfers.windows.update');
         Route::post('/alliance/transfers/windows/{window}/official-groups', [TransferPlanningController::class, 'storeGroup'])->name('alliance.transfers.official-groups.store');
         Route::post('/alliance/transfers/windows/{window}/conditions', [TransferPlanningController::class, 'storeCondition'])->name('alliance.transfers.conditions.store');
+        Route::post('/alliance/transfers/windows/{window}/capacity', [TransferCapacityController::class, 'storeObservation'])->name('alliance.transfers.capacity.store');
         Route::post('/alliance/transfers', [TransferPlanController::class, 'store'])->name('alliance.transfers.store');
         Route::post('/alliance/transfers/{plan}/open', [TransferPlanController::class, 'open'])->name('alliance.transfers.open');
         Route::post('/alliance/transfers/{plan}/lock', [TransferPlanController::class, 'lock'])->name('alliance.transfers.lock');
@@ -101,6 +103,8 @@ Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->gro
         Route::patch('/alliance/transfers/{plan}/participants/{participant}', [TransferParticipantController::class, 'update'])->name('alliance.transfers.participants.update');
         Route::patch('/alliance/transfers/{plan}/participants/{participant}/cohort', [TransferCohortController::class, 'assignParticipant'])->name('alliance.transfers.participants.cohort');
         Route::post('/alliance/transfers/{plan}/participants/{participant}/observations', [TransferPlanningController::class, 'storeObservation'])->name('alliance.transfers.participants.observations.store');
+        Route::patch('/alliance/transfers/{plan}/participants/{participant}/capacity-reservation', [TransferCapacityController::class, 'saveReservation'])->name('alliance.transfers.participants.capacity-reservation');
+        Route::patch('/alliance/transfers/{plan}/participants/{participant}/invitation-allocation', [TransferCapacityController::class, 'saveInvitation'])->name('alliance.transfers.participants.invitation-allocation');
         Route::patch('/alliance/transfers/{plan}/participants/{participant}/readiness', [TransferReadinessController::class, 'transition'])->name('alliance.transfers.participants.readiness');
         Route::post('/alliance/transfers/{plan}/participants/{participant}/blockers', [TransferReadinessController::class, 'storeBlocker'])->name('alliance.transfers.participants.blockers.store');
         Route::post('/alliance/transfers/{plan}/participants/{participant}/blockers/{blocker}/resolve', [TransferReadinessController::class, 'resolveBlocker'])->name('alliance.transfers.participants.blockers.resolve');
