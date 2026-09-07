@@ -33,7 +33,7 @@ final readonly class TransferEligibilityQuery
     ) {}
 
     /**
-     * @param Collection<int, TransferParticipant> $participants
+     * @param  Collection<int, TransferParticipant>  $participants
      * @return array<string, array<string,mixed>>
      */
     public function forPlan(string $allianceId, TransferPlan $plan, Collection $participants): array
