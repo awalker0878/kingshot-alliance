@@ -211,7 +211,10 @@ final class KingdomMapSchemaV2Validator
         }
     }
 
-    /** @param array<string,mixed> $data @return array<string,mixed> */
+    /**
+     * @param  array<string,mixed>  $data
+     * @return array<string,mixed>
+     */
     private function requireMap(array $data, string $key, string $prefix = ''): array
     {
         $value = $data[$key] ?? null;
@@ -222,7 +225,10 @@ final class KingdomMapSchemaV2Validator
         return $value;
     }
 
-    /** @param array<string,mixed> $data @return list<mixed> */
+    /**
+     * @param  array<string,mixed>  $data
+     * @return list<mixed>
+     */
     private function requireList(array $data, string $key): array
     {
         $value = $data[$key] ?? null;
@@ -252,7 +258,10 @@ final class KingdomMapSchemaV2Validator
         }
     }
 
-    /** @param array<string,mixed> $fact @param array<string,mixed> $sources */
+    /**
+     * @param  array<string,mixed>  $fact
+     * @param  array<string,mixed>  $sources
+     */
     private function provenance(array $fact, array $sources, string $path): void
     {
         $provenance = $fact['provenance'] ?? null;
