@@ -29,16 +29,32 @@ export type PlanObject = {
   metadata: Record<string, unknown>;
 };
 
-export type MapObjectDefinition = { size: number; coverage: number; max_per_alliance?: number };
+export type MapRectangle = { width: number; height: number };
+export type MapObjectVariant = {
+  key: string;
+  allowed_zones: string[];
+  prerequisites: string[];
+  confidence: string;
+  provenance: string[];
+};
+export type MapObjectDefinition = {
+  footprint: MapRectangle;
+  coverage?: MapRectangle;
+  max_per_alliance?: number;
+  confidence?: string;
+  provenance?: string[];
+  variants?: MapObjectVariant[];
+};
 export type MapStructure = {
   key: string;
   name: string;
   category: string;
   x: number;
   y: number;
-  size: number;
-  exclusion: number;
+  footprint: MapRectangle;
+  exclusion_tiles: number;
   city_exempt: boolean;
+  blocks_placement?: boolean;
 };
 export type MapZone = {
   x: number;
@@ -47,18 +63,41 @@ export type MapZone = {
   height: number;
   blocked_types: TerritoryObjectType[];
 };
+export type MapPlacementRule = {
+  key: string;
+  kind: 'blocking' | 'warning' | 'advisory' | 'fact';
+  statement: string;
+  parameters?: Record<string, unknown>;
+  confidence: string;
+  provenance: string[];
+};
 export type MapData = {
   id: string;
-  schema_version: number;
+  schema_version: 2;
+  release_status: 'released';
+  released_at: string;
   observed_at: string;
-  source_label: string;
-  source_uri: string | null;
+  game_version: string | null;
+  season: string | null;
+  title: string;
   confidence: string;
   coordinate_system: { name: string; origin: string; tile_size: number };
   bounds: { x: number; y: number; width: number; height: number };
   object_types: Record<TerritoryObjectType, MapObjectDefinition>;
   zones: Record<string, MapZone>;
   structures: MapStructure[];
+  placement_rules: MapPlacementRule[];
+  facilities?: Array<{
+    key: string;
+    name: string;
+    category: 'fortress' | 'sanctuary' | 'outpost';
+    level?: number;
+    x: number;
+    y: number;
+    confidence: string;
+    provenance: string[];
+  }>;
+  resource_layers?: Record<string, unknown>;
 };
 
 export type ValidationIssue = { code: string; message: string; object_key?: string };
