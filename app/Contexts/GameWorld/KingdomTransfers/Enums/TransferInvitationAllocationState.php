@@ -15,6 +15,6 @@ enum TransferInvitationAllocationState: string
 
     public function consumesPlannedInventory(): bool
     {
-        return $this === self::Reserved;
+        return in_array($this, [self::Reserved, self::Issued, self::Accepted], true);
     }
 }
