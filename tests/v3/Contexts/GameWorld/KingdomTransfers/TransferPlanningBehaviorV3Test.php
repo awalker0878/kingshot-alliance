@@ -444,6 +444,7 @@ final class TransferPlanningBehaviorV3Test extends TestCase
             [TransferObservationKind::CharacterAgeOverTargetDays, 30, 'KingShot character age eligibility'],
             [TransferObservationKind::TransferCooldownRemainingDays, 0, 'KingShot transfer cooldown'],
             [TransferObservationKind::TargetExistingCharacterCount, 0, 'KingShot target character list'],
+            [TransferObservationKind::ResourceProtectionVerified, true, 'KingShot Storehouse protection pre-flight'],
         ] as [$kind, $value, $reference]) {
             $record->handle(
                 $scenario['alliance']->allianceId,
