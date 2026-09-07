@@ -5,12 +5,16 @@ declare(strict_types=1);
 namespace App\Contexts\Operations\TerritoryPlanning\Services;
 
 use App\Contexts\GameWorld\KingdomMaps\Services\PlacementValidator;
+use App\Contexts\GameWorld\KingdomMaps\Services\TerritoryCoverageGeometry;
 use App\Contexts\GameWorld\KingdomMaps\ValueObjects\KingdomMapDataset;
+use App\Contexts\GameWorld\KingdomMaps\ValueObjects\Rectangle;
 
 final readonly class TerritoryLayoutAnalyzer
 {
     public function __construct(
         private PlacementValidator $placement,
+        private TerritoryCoverageAnalyzer $coverage,
+        private TerritoryCoverageGeometry $coverageGeometry,
         private TerritoryPlanningTelemetry $telemetry,
     ) {}
 
@@ -37,30 +41,23 @@ final readonly class TerritoryLayoutAnalyzer
         $this->countIssues($validation->violations, 'violation_count', $allianceByObjectKey, $issueCounts);
         $this->countIssues($validation->warnings, 'warning_count', $allianceByObjectKey, $issueCounts);
         $this->countIssues($validation->suggestions, 'suggestion_count', $allianceByObjectKey, $issueCounts);
+        $coverageByCity = $this->coverage->byGovernorCity($dataset, $objects);
 
         $selectedBearTraps = is_array($preferences['selected_bear_trap_by_alliance'] ?? null)
             ? $preferences['selected_bear_trap_by_alliance']
             : [];
         $result = [];
         foreach ($byAlliance as $allianceKey => $allianceObjects) {
-            $coverageSources = [];
+            $coverageRectangles = [];
             $cities = [];
             $traps = [];
             $counts = [];
 
             foreach ($allianceObjects as $object) {
                 $counts[$object['type']] = ($counts[$object['type']] ?? 0) + 1;
-                $definition = $dataset->data['object_types'][$object['type']] ?? [];
-                $coverage = (float) ($definition['coverage'] ?? 0);
-                $size = (float) ($definition['size'] ?? 1);
-
-                if ($coverage > 0) {
-                    $coverageSources[] = [
-                        'key' => $object['key'],
-                        'x' => $object['x'] + ($size / 2),
-                        'y' => $object['y'] + ($size / 2),
-                        'coverage' => $coverage,
-                    ];
+                $coverageRectangle = $this->coverageGeometry->coverage($dataset, $object['type'], $object['x'], $object['y']);
+                if ($coverageRectangle instanceof Rectangle) {
+                    $coverageRectangles[] = $coverageRectangle;
                 }
                 if ($object['type'] === 'governor_city') {
                     $cities[] = $object;
@@ -72,27 +69,12 @@ final readonly class TerritoryLayoutAnalyzer
 
             $covered = 0;
             foreach ($cities as $city) {
-                $cityDefinition = $dataset->data['object_types']['governor_city'] ?? ['size' => 2];
-                $size = (float) ($cityDefinition['size'] ?? 2);
-                $corners = [
-                    [$city['x'], $city['y']],
-                    [$city['x'] + $size, $city['y']],
-                    [$city['x'], $city['y'] + $size],
-                    [$city['x'] + $size, $city['y'] + $size],
-                ];
-                $inside = true;
-                foreach ($corners as [$x, $y]) {
-                    if (! $this->pointCovered((float) $x, (float) $y, $coverageSources)) {
-                        $inside = false;
-                        break;
-                    }
-                }
-                if ($inside) {
+                if (($coverageByCity[$city['key']] ?? false) === true) {
                     $covered++;
                 }
             }
 
-            $components = $this->coverageComponents($coverageSources);
+            $components = $this->coverageGeometry->componentCount($coverageRectangles);
             $marchSecondsPerTile = isset($preferences['march_seconds_per_tile'])
                 ? (float) $preferences['march_seconds_per_tile']
                 : null;
@@ -162,57 +144,6 @@ final readonly class TerritoryLayoutAnalyzer
             }
             $counts[$allianceKey][$metric] = ($counts[$allianceKey][$metric] ?? 0) + 1;
         }
-    }
-
-    /** @param list<array{key: string, x: float, y: float, coverage: float}> $sources */
-    private function pointCovered(float $x, float $y, array $sources): bool
-    {
-        foreach ($sources as $source) {
-            if (
-                abs($x - $source['x']) <= $source['coverage']
-                && abs($y - $source['y']) <= $source['coverage']
-            ) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /** @param list<array{key: string, x: float, y: float, coverage: float}> $sources */
-    private function coverageComponents(array $sources): int
-    {
-        if ($sources === []) {
-            return 0;
-        }
-        $visited = [];
-        $components = 0;
-        foreach (array_keys($sources) as $start) {
-            if (isset($visited[$start])) {
-                continue;
-            }
-            $components++;
-            $queue = [$start];
-            while ($queue !== []) {
-                $index = array_pop($queue);
-                if ($index === null || isset($visited[$index])) {
-                    continue;
-                }
-                $visited[$index] = true;
-                foreach ($sources as $candidateIndex => $candidate) {
-                    if (isset($visited[$candidateIndex])) {
-                        continue;
-                    }
-                    $source = $sources[$index];
-                    $distance = max(abs($source['x'] - $candidate['x']), abs($source['y'] - $candidate['y']));
-                    if ($distance <= $source['coverage'] + $candidate['coverage']) {
-                        $queue[] = $candidateIndex;
-                    }
-                }
-            }
-        }
-
-        return $components;
     }
 
     /**
