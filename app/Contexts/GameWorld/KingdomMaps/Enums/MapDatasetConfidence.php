@@ -9,4 +9,6 @@ enum MapDatasetConfidence: string
     case Official = 'official';
     case VerifiedObservation = 'verified_observation';
     case CommunityObserved = 'community_observed';
+    case Disputed = 'disputed';
+    case Unknown = 'unknown';
 }
