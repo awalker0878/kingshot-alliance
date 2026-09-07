@@ -1,34 +1,38 @@
 # KingdomMaps Evidence Expansion — Acceptance Matrix
 
-Status: Active acceptance contract
+Status: Implemented; PR verification pending
 
-| ID | Acceptance criterion |
-| --- | --- |
-| KM-001 | Runtime accepts only KingdomMaps schema version 2. |
-| KM-002 | V1 dataset/runtime fallback is removed; no compatibility shim or dual-read path remains. |
-| KM-003 | Dataset identity matches its immutable file name and checksum pinning remains enforceable. |
-| KM-004 | Nested coordinate-system, bounds, source registry, object, zone, structure, rule, resource and terrain shapes are validated. |
-| KM-005 | Invalid confidence/status/source references fail with a KingdomMaps validation error rather than an enum `ValueError`. |
-| KM-006 | Every factual structure/rule/layer references valid provenance entries. |
-| KM-007 | Source registry records source type, URI, lineage, confidence ceiling and reuse-rights basis. |
-| KM-008 | ksmapper reuse rights are recorded as user-authorized on 2026-09-06 while confidence remains community-observed. |
-| KM-009 | Century Games-sourced 285 Banner limit is represented as official. |
-| KM-010 | Century Games-sourced 75% Alliance-resource territory requirement is represented as official and executable. |
-| KM-011 | Century Games Banner/HQ connectivity rule is represented as official. |
-| KM-012 | HQ legal zones are Badland/Plains and Fertile Land is rejected using official evidence. |
-| KM-013 | Plains/Fertile progression prerequisites are represented without inventing unsupported precision. |
-| KM-014 | Badland HQ and Plains HQ are distinct factual object definitions. |
-| KM-015 | Object definitions use rectangular footprint metadata, not a scalar-only footprint contract. |
-| KM-016 | Facility catalogue includes 4 Fortresses, 12 Sanctuaries and 74 researched Outposts. |
-| KM-017 | Facility coordinates retain property-level provenance and truthful confidence. |
-| KM-018 | ksmapper corpus metadata records 6,499 resource nodes, 501 lakes and 1,948 mountains as authorized community-observed facts. |
-| KM-019 | Resource/terrain facts can be consumed without being promoted to official. |
-| KM-020 | Semantic release diff reports source, object, zone, structure, rule and layer additions/removals/changes. |
-| KM-021 | Production dataset loader is directly tested with the checked-in release. |
-| KM-022 | Invalid schema version, malformed nested values, dangling provenance and duplicate keys are directly tested. |
-| KM-023 | Territory coverage uses an area-ratio threshold of 75% for the official resource-ownership rule instead of four-corner heuristics. |
-| KM-024 | Existing placement checks remain deterministic: bounds, fixed structures, exclusions, zone restrictions, caps and object collisions. |
-| KM-025 | PHP/browser geometry parity remains part of required frontend checks. |
-| KM-026 | CI runs KingdomMaps dataset validation and tests on every pull request. |
-| KM-027 | Published TerritoryPlan revisions remain pinned to the exact map dataset ID/checksum. |
-| KM-028 | Product, architecture and delivery documentation describe the same final capability truth. |
+| ID | Acceptance criterion | State |
+| --- | --- | --- |
+| KM-001 | V1 runtime dataset is removed and V2 is the sole supported KingdomMaps schema. | Implemented |
+| KM-002 | Unsupported schema versions fail explicitly. | Implemented |
+| KM-003 | V2 nested schema validation covers sources, coordinate system, bounds, object definitions, variants, zones, structures, placement rules and resource/terrain layers. | Implemented |
+| KM-004 | Confidence supports `official`, `verified_observation`, `community_observed`, `disputed`, and `unknown`. | Implemented |
+| KM-005 | Property/fact provenance cannot reference missing sources. | Implemented |
+| KM-006 | Fact confidence cannot exceed source confidence ceilings. | Implemented |
+| KM-007 | Source registry records type, URI, rights basis and lineage. | Implemented |
+| KM-008 | ksmapper source records `user_authorized_reuse_2026-09-06` while retaining a `community_observed` ceiling. | Implemented |
+| KM-009 | Shared ksmapper lineage does not count as independent corroboration. | Implemented |
+| KM-010 | Current released V2 dataset is immutable and checksum-pinned. | Implemented |
+| KM-011 | Immutable facility artifact identity and SHA-256 are validated before hydration. | Implemented |
+| KM-012 | Facility catalogue contains 4 Fortresses, 12 Sanctuaries and 74 Outposts. | Implemented |
+| KM-013 | V2 records the authorized ksmapper corpus facts for 6,499 resource nodes. | Implemented |
+| KM-014 | V2 records 501 lake and 1,948 mountain corpus facts. | Implemented |
+| KM-015 | Century Games 285 Banner maximum is represented as an `official` fact. | Implemented |
+| KM-016 | Century Games 75% Alliance-resource territory requirement is represented as an `official` rule. | Implemented |
+| KM-017 | Banner-to-HQ disconnection semantics are represented as an `official` rule. | Implemented |
+| KM-018 | HQ Badland/Plains legality and Fertile prohibition are represented without promoting zone geometry to official. | Implemented |
+| KM-019 | Plains/Fertile progression requirements are represented without inventing unsupported finer mappings. | Implemented |
+| KM-020 | Object and structure geometry uses rectangular width/height footprints, not scalar factual `size`. | Implemented |
+| KM-021 | Server placement validation consumes V2 rectangular geometry. | Implemented |
+| KM-022 | TerritoryPlanning coverage/analysis consumes shared V2 geometry. | Implemented |
+| KM-023 | Intelligence spatial-observation bounds consume V2 footprints. | Implemented |
+| KM-024 | Territory Reconciliation absence/bounds reasoning consumes V2 footprints. | Implemented |
+| KM-025 | Official 75% resource ownership is area-based and data-driven from the release rule. | Implemented |
+| KM-026 | PHP/browser geometry parity is reconciled to V2 including Banner-HQ connectivity. | Implemented; CI pending |
+| KM-027 | Direct production-release tests cover schema, rights, provenance, artifacts, facility counts and 75% geometry. | Implemented; CI pending |
+| KM-028 | `kingdom-maps:list`, `validate`, `verify-sources`, and `diff` are registered and the dedicated assurance workflow gates relevant PR/main changes. | Implemented; CI pending |
+
+## Verification exit
+
+The extension is releasable when KM-026 through KM-028 pass in GitHub Actions, full repository required checks are green, actionable review threads are resolved, and the delivery ledger is reconciled before merge.
