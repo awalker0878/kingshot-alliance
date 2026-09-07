@@ -3,11 +3,11 @@
 declare(strict_types=1);
 
 use App\Contexts\GameWorld\Governance\Http\Controllers\KingdomGovernanceAdministrationController;
-use App\Http\Controllers\KingdomGovernanceWorkflowController;
 use App\ReadModels\KingdomGovernance\Http\Controllers\KingdomGovernanceAuthorityController;
 use App\ReadModels\KingdomGovernance\Http\Controllers\KingdomGovernanceHealthController;
 use App\ReadModels\KingdomGovernance\Http\Controllers\KingdomGovernanceHistoryController;
 use App\ReadModels\PlatformAdministration\Http\Controllers\PlatformKingdomGovernanceRecoveryReadController;
+use App\Workflows\KingdomGovernance\Http\Controllers\KingdomGovernanceWorkflowController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->group(function (): void {

@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 const controllerRoots = [
   fileURLToPath(new URL('../app/Contexts/', import.meta.url)),
-  fileURLToPath(new URL('../app/Http/Controllers/', import.meta.url)),
+  fileURLToPath(new URL('../app/Workflows/', import.meta.url)),
 ];
 const cataloguePath = new URL('../resources/js/localization/messages/core/en.ts', import.meta.url);
 const allianceExpansionCataloguePath = new URL('../resources/js/localization/alliance-capability-expansion-labels.ts', import.meta.url);
