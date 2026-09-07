@@ -48,7 +48,10 @@ final class KingdomMapFactProvenanceValidator
         }
     }
 
-    /** @param array<string,mixed> $fact @param array<string,mixed> $sources */
+    /**
+     * @param  array<string,mixed>  $fact
+     * @param  array<string,mixed>  $sources
+     */
     private function validateFact(array $fact, array $sources, string $path): void
     {
         $confidenceValue = $fact['confidence'] ?? null;
