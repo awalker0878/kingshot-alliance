@@ -7,9 +7,13 @@ namespace App\Contexts\GameWorld\KingdomTransfers\Actions;
 use App\Contexts\GameWorld\KingdomTransfers\Access\Enums\TransferPermission;
 use App\Contexts\GameWorld\KingdomTransfers\Access\Services\TransferAuthorization;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferBlockerState;
+use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferCapacityReservationState;
+use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferInvitationAllocationState;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferPlanState;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferReadinessState;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferBlocker;
+use App\Contexts\GameWorld\KingdomTransfers\Models\TransferCapacityReservation;
+use App\Contexts\GameWorld\KingdomTransfers\Models\TransferInvitationAllocation;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferParticipant;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferPlan;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferReadinessTransition;
@@ -103,6 +107,42 @@ final readonly class TransitionTransferReadiness
                 'withdrawn_at' => $target === TransferReadinessState::Withdrawn ? now() : null,
             ])->save();
 
+            $releasedCapacity = 0;
+            $cancelledInvitations = 0;
+            if ($target === TransferReadinessState::Withdrawn) {
+                $releasedCapacity = TransferCapacityReservation::query()
+                    ->where('alliance_id', $allianceId)
+                    ->where('transfer_plan_id', $plan->id)
+                    ->where('transfer_participant_id', $participant->id)
+                    ->whereIn('state', array_map(
+                        static fn (TransferCapacityReservationState $state): string => $state->value,
+                        array_filter(
+                            TransferCapacityReservationState::cases(),
+                            static fn (TransferCapacityReservationState $state): bool => $state->consumesPlannedCapacity(),
+                        ),
+                    ))
+                    ->update([
+                        'state' => TransferCapacityReservationState::Released->value,
+                        'released_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                $cancelledInvitations = TransferInvitationAllocation::query()
+                    ->where('alliance_id', $allianceId)
+                    ->where('transfer_plan_id', $plan->id)
+                    ->where('transfer_participant_id', $participant->id)
+                    ->whereIn('state', array_map(
+                        static fn (TransferInvitationAllocationState $state): string => $state->value,
+                        array_filter(
+                            TransferInvitationAllocationState::cases(),
+                            static fn (TransferInvitationAllocationState $state): bool => $state->consumesPlannedInventory(),
+                        ),
+                    ))
+                    ->update([
+                        'state' => TransferInvitationAllocationState::Cancelled->value,
+                        'updated_at' => now(),
+                    ]);
+            }
+
             TransferReadinessTransition::query()->create([
                 'alliance_id' => $allianceId,
                 'transfer_plan_id' => $plan->id,
@@ -120,6 +160,8 @@ final readonly class TransitionTransferReadiness
                 'from_state' => $current->value,
                 'to_state' => $target->value,
                 'active_blocker_count' => $activeBlockerCount,
+                'released_capacity_reservations' => $releasedCapacity,
+                'cancelled_invitation_allocations' => $cancelledInvitations,
             ];
 
             $this->audit->record('kingdoms.transfer_readiness_changed', $context->actor, $participant, null, $metadata);
@@ -131,6 +173,8 @@ final readonly class TransitionTransferReadiness
                     'transfer_plan_id' => (string) $plan->id,
                     'transfer_participant_id' => (string) $participant->id,
                     'direction' => $participant->direction->value,
+                    'released_capacity_reservations' => $releasedCapacity,
+                    'cancelled_invitation_allocations' => $cancelledInvitations,
                 ];
                 $this->audit->record('kingdoms.transfer_participant_withdrawn', $context->actor, $participant, null, $withdrawMetadata);
                 $this->outbox->record('kingdoms.transfer_participant_withdrawn', $allianceId, $participant, $withdrawMetadata);
