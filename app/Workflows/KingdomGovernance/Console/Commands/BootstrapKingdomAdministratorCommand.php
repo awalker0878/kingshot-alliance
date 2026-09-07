@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Workflows\KingdomGovernance\Console\Commands;
 
-use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
-use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\GameWorld\Kingdoms\Queries\KingdomReferenceQuery;
+use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Workflows\KingdomGovernance\Actions\BootstrapKingdomAdministrator;
 use Illuminate\Console\Command;
 
@@ -15,8 +15,11 @@ final class BootstrapKingdomAdministratorCommand extends Command
 
     protected $description = 'Bootstrap the first Kingdom administrator to a Player without granting game authority to a Platform User.';
 
-    public function handle(BootstrapKingdomAdministrator $bootstrap): int
-    {
+    public function handle(
+        BootstrapKingdomAdministrator $bootstrap,
+        KingdomReferenceQuery $kingdoms,
+        PlayerReferenceQuery $players,
+    ): int {
         $kingdomInput = $this->argument('kingdom');
         if (! is_string($kingdomInput)) {
             $this->error('Kingdom must be an existing positive numeric Kingdom number.');
@@ -31,8 +34,8 @@ final class BootstrapKingdomAdministratorCommand extends Command
             return self::FAILURE;
         }
 
-        $kingdom = Kingdom::query()->where('number', (int) $kingdomArgument)->first();
-        if (! $kingdom instanceof Kingdom) {
+        $kingdom = $kingdoms->findByNumber((int) $kingdomArgument);
+        if ($kingdom === null) {
             $this->error('No Kingdom exists with that number.');
 
             return self::FAILURE;
@@ -45,14 +48,14 @@ final class BootstrapKingdomAdministratorCommand extends Command
             return self::FAILURE;
         }
 
-        $player = Player::query()->find(trim($playerInput));
-        if (! $player instanceof Player) {
+        $player = $players->find(trim($playerInput));
+        if ($player === null) {
             $this->error('No Player exists with that ID.');
 
             return self::FAILURE;
         }
 
-        $assignment = $bootstrap->handle((string) $kingdom->id, (string) $player->id);
+        $assignment = $bootstrap->handle($kingdom->kingdomId, $player->playerId);
         $this->info(sprintf(
             'Bootstrapped Kingdom #%d administrator to Player %s.',
             $assignment->kingdomNumber,

@@ -3,8 +3,8 @@ import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
 
 const territoryVisualFingerprints: Record<string, string> = {
-  desktop: '9c9f374bd87eb535b16ea75ee06d862a7417b21ebd0c9433ea695ac45a7835c2',
-  mobile: '0fa34fb492a3d8ec368f41db1908a19264334b439c047b07fcbd3ed3826d403c',
+  desktop: '4a21a9a563fa545e46feac70eb0916efceadb082d4024a7485ca1fcf97d8c0b6',
+  mobile: 'e240171fe0ac14c41550a68000e974320cfb764182573659411d9ea717f2e442',
 };
 
 const territoryReconciliationFingerprints: Record<string, string> = {

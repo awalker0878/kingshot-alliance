@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\ReadModels\IntelligenceSignals\Console\Commands;
 
-use App\ReadModels\IntelligenceSignals\Actions\QueueIntelligenceChangeNotifications;
+use App\ReadModels\IntelligenceSignals\Services\QueueIntelligenceChangeNotifications;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 

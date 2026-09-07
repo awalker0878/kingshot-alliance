@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\ReadModels\IntelligenceSignals\Actions;
+namespace App\ReadModels\IntelligenceSignals\Services;
 
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
@@ -14,7 +14,6 @@ use App\Contexts\Operations\Access\Enums\OperationsPermission;
 use App\Contexts\Operations\Events\Enums\EventScope;
 use App\Contexts\Operations\Events\Services\EventAuthorization;
 use App\ReadModels\IntelligenceSignals\Queries\IntelligenceSignalQuery;
-use App\ReadModels\IntelligenceSignals\Services\IntelligenceSignalNotificationPublisher;
 use App\ReadModels\NotificationDelivery\Queries\AllianceNotificationRecipientQuery;
 use App\ReadModels\NotificationDelivery\ValueObjects\NotificationQueueSweep;
 use Illuminate\Auth\Access\AuthorizationException;
