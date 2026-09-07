@@ -192,8 +192,7 @@ final readonly class TransferSelfEligibilityQuery
         ?TransferKingdomConditionObservation $targetCondition,
         ?string $targetId,
         ?TransferKingdomCapacityProjection $capacity,
-    ): array
-    {
+    ): array {
         $requirements = [];
         foreach ($assessment->requirements as $requirement) {
             $requirements[] = [
