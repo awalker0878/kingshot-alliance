@@ -44,7 +44,7 @@ final readonly class SaveTransferInvitationAllocation
             $context = $this->writeState->lockAuthority($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, TransferPermission::Manage);
             $plan = TransferPlan::query()->where('alliance_id', $allianceId)->whereKey($planId)->sharedLock()->firstOrFail();
-            if (! $plan->state || ! in_array($plan->state, [TransferPlanState::Draft, TransferPlanState::Open], true)) {
+            if (! in_array($plan->state, [TransferPlanState::Draft, TransferPlanState::Open], true)) {
                 throw ValidationException::withMessages(['invitation' => 'Invitation allocations can only change while the transfer cycle is Draft or Open.']);
             }
             $participant = TransferParticipant::query()
