@@ -48,7 +48,7 @@ export function buildSvg(
 
   for (const structure of map.structures) {
     parts.push(
-      `<rect x="${structure.x}" y="${map.bounds.height - structure.y - structure.size}" width="${structure.size}" height="${structure.size}" fill="#8b7d6b" opacity="0.86"/>`,
+      `<rect x="${structure.x}" y="${map.bounds.height - structure.y - structure.footprint.height}" width="${structure.footprint.width}" height="${structure.footprint.height}" fill="#8b7d6b" opacity="0.86"/>`,
     );
   }
 
@@ -57,13 +57,21 @@ export function buildSvg(
     const definition = map.object_types[object.type];
     if (!definition) continue;
     const color = colors.get(object.alliance_key) ?? '#4da3ff';
-    if (definition.coverage > 0) {
+    if (definition.coverage) {
+      const coverageOffsetX = Math.trunc(
+        (definition.coverage.width - definition.footprint.width) / 2,
+      );
+      const coverageOffsetY = Math.trunc(
+        (definition.coverage.height - definition.footprint.height) / 2,
+      );
+      const coverageX = object.x - coverageOffsetX;
+      const coverageY = object.y - coverageOffsetY;
       parts.push(
-        `<rect x="${object.x - definition.coverage}" y="${map.bounds.height - object.y - definition.size - definition.coverage}" width="${definition.size + definition.coverage * 2}" height="${definition.size + definition.coverage * 2}" fill="${color}" opacity="0.12"/>`,
+        `<rect x="${coverageX}" y="${map.bounds.height - coverageY - definition.coverage.height}" width="${definition.coverage.width}" height="${definition.coverage.height}" fill="${color}" opacity="0.12"/>`,
       );
     }
     parts.push(
-      `<rect x="${object.x}" y="${map.bounds.height - object.y - definition.size}" width="${definition.size}" height="${definition.size}" fill="${color}" stroke="#fff" stroke-width="0.35"/>`,
+      `<rect x="${object.x}" y="${map.bounds.height - object.y - definition.footprint.height}" width="${definition.footprint.width}" height="${definition.footprint.height}" fill="${color}" stroke="#fff" stroke-width="0.35"/>`,
     );
   }
 
