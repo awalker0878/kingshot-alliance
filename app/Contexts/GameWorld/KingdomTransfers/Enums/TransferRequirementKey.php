@@ -19,5 +19,6 @@ enum TransferRequirementKey: string
     case InvitationCapacity = 'invitation_capacity';
     case TransferOpenCapacity = 'transfer_open_capacity';
     case TransferPasses = 'transfer_passes';
+    case ResourceProtection = 'resource_protection';
     case InGameRules = 'in_game_rules';
 }
