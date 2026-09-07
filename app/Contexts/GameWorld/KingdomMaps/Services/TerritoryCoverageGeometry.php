@@ -87,7 +87,10 @@ final class TerritoryCoverageGeometry
         throw new InvalidArgumentException('Selected Kingdom map release has no Alliance resource territory ratio rule.');
     }
 
-    /** @param list<Rectangle> $coverage @return list<list<int>> */
+    /**
+     * @param  list<Rectangle>  $coverage
+     * @return list<list<int>>
+     */
     public function components(array $coverage): array
     {
         $visited = [];
