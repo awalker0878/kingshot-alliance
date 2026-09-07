@@ -18,6 +18,7 @@ use App\Contexts\GameWorld\KingdomTransfers\Services\TransferKingdomConditionSel
 use App\Contexts\GameWorld\KingdomTransfers\Services\TransferObservationSelector;
 use App\Contexts\GameWorld\KingdomTransfers\ValueObjects\TransferEligibilityAssessment;
 use App\Contexts\GameWorld\KingdomTransfers\ValueObjects\TransferEligibilityInput;
+use App\Contexts\GameWorld\KingdomTransfers\ValueObjects\TransferKingdomCapacityProjection;
 use App\Contexts\GameWorld\KingdomTransfers\ValueObjects\TransferObservedValue;
 use App\Contexts\GameWorld\KingdomTransfers\ValueObjects\TransferRequirement;
 use Carbon\CarbonImmutable;
@@ -34,7 +35,14 @@ final readonly class TransferEligibilityQuery
 
     /**
      * @param  Collection<int, TransferParticipant>  $participants
-     * @return array<string, array<string,mixed>>
+     * @return array<string, array{
+     *     assessment: TransferEligibilityAssessment,
+     *     transferScore: TransferObservedValue,
+     *     observations: Collection<int, TransferObservation>,
+     *     officialGroup: TransferGroup|null,
+     *     targetCondition: TransferKingdomConditionObservation|null,
+     *     capacityProjection: TransferKingdomCapacityProjection|null
+     * }>
      */
     public function forPlan(string $allianceId, TransferPlan $plan, Collection $participants): array
     {
