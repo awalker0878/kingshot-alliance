@@ -67,25 +67,32 @@ final class KingdomMapReleaseDiff
         if (! is_array($value)) {
             return [];
         }
+
+        $result = [];
         if (! array_is_list($value)) {
-            $result = [];
             foreach ($value as $key => $item) {
-                $result[(string) $key] = $item;
+                $result[$this->stringKey($key)] = $item;
             }
 
             return $result;
         }
 
-        $result = [];
         foreach ($value as $index => $item) {
             if (is_array($item) && is_string($item['key'] ?? null)) {
-                $result[$item['key']] = $item;
+                $result[$this->stringKey($item['key'])] = $item;
             } else {
-                $result[(string) $index] = $item;
+                $result['index:'.$index] = $item;
             }
         }
 
         return $result;
+    }
+
+    private function stringKey(string|int $key): string
+    {
+        $key = (string) $key;
+
+        return ctype_digit($key) ? 'key:'.$key : $key;
     }
 
     private function canonical(mixed $value): string
