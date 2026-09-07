@@ -20,8 +20,9 @@ final readonly class TransferCapacityPlanningQuery
 {
     public function __construct(private TransferOfficialRulebook $rules) {}
 
-    /** @param list<string> $kingdomIds
-     *  @return array<string, TransferKingdomCapacityProjection>
+    /**
+     * @param  list<string>  $kingdomIds
+     * @return array<string, TransferKingdomCapacityProjection>
      */
     public function forTargets(string $allianceId, string $windowId, array $kingdomIds): array
     {
