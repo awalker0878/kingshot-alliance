@@ -69,10 +69,6 @@ test('multi-governor account selects and activates the first Governor', async ({
     fullPage: true,
   });
 
-  await manageGovernorsFooter.evaluate((footer) => {
-    footer.style.removeProperty('display');
-  });
-
   await options.nth(0).click();
   await page.waitForURL('**/dashboard');
   await page.waitForLoadState('networkidle');
