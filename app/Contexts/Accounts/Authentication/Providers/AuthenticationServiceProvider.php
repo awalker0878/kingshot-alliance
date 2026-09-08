@@ -7,6 +7,7 @@ namespace App\Contexts\Accounts\Authentication\Providers;
 use App\Contexts\Accounts\Authentication\Actions\DeleteAccountPasskey;
 use App\Contexts\Accounts\Authentication\Actions\RevokeOtherAccountSessions;
 use App\Contexts\Accounts\Authentication\Actions\StoreAccountPasskey;
+use App\Contexts\Accounts\Authentication\Actions\VerifyAccountPasskey;
 use App\Contexts\Accounts\Authentication\Http\Responses\AccountPasskeyLoginResponse;
 use App\Contexts\Accounts\Authentication\Models\AccountPasskey;
 use App\Contexts\Accounts\Authentication\Services\RecentAuthentication;
@@ -22,6 +23,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Laravel\Passkeys\Actions\DeletePasskey;
 use Laravel\Passkeys\Actions\StorePasskey;
+use Laravel\Passkeys\Actions\VerifyPasskey;
 use Laravel\Passkeys\Contracts\PasskeyLoginResponse;
 use Laravel\Passkeys\Events\PasskeyDeleted;
 use Laravel\Passkeys\Events\PasskeyRegistered;
@@ -35,6 +37,7 @@ final class AuthenticationServiceProvider extends ServiceProvider
         $this->app->singleton(PasskeyLoginResponse::class, AccountPasskeyLoginResponse::class);
         $this->app->bind(DeletePasskey::class, DeleteAccountPasskey::class);
         $this->app->bind(StorePasskey::class, StoreAccountPasskey::class);
+        $this->app->bind(VerifyPasskey::class, VerifyAccountPasskey::class);
     }
 
     public function boot(): void
@@ -112,23 +115,31 @@ final class AuthenticationServiceProvider extends ServiceProvider
                 return;
             }
 
-            $request = request();
-            $request->session()->put('accounts.passkey_verified_public_id', (string) $event->passkey->public_id);
-
-            if ($request->user() instanceof User && (int) $request->user()->id === (int) $event->user->id) {
-                app(RecentAuthentication::class)->mark(
-                    $request,
-                    'passkey',
-                    (string) $event->passkey->public_id,
-                );
-            }
-
             app(AuditRecorder::class)->record(
                 event: 'auth.passkey.verified',
                 actor: $event->user,
                 subject: $event->user,
                 metadata: ['passkey_public_id' => (string) $event->passkey->public_id],
             );
+
+            $request = request();
+            if ($request->hasSession()) {
+                DB::afterCommit(static function () use ($event, $request): void {
+                    $active = User::query()->whereKey($event->user->id)->whereNull('anonymized_at')->exists();
+                    $currentPasskey = AccountPasskey::query()->whereKey($event->passkey->id)->where('user_id', $event->user->id)->exists();
+                    if (! $active || ! $currentPasskey) {
+                        return;
+                    }
+                    $requestUser = $request->user();
+                    if ($requestUser !== null && (! $requestUser instanceof User || (int) $requestUser->id !== (int) $event->user->id)) {
+                        return;
+                    }
+                    $request->session()->put('accounts.passkey_verified_public_id', (string) $event->passkey->public_id);
+                    if ($requestUser instanceof User) {
+                        app(RecentAuthentication::class)->mark($request, 'passkey', (string) $event->passkey->public_id);
+                    }
+                });
+            }
         });
 
         $this->loadRoutesFrom(base_path('routes/auth.php'));

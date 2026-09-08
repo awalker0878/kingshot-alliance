@@ -37,6 +37,14 @@ final class DurablePasswordResetIssuanceV3Test extends TestCase
 {
     use DatabaseMigrations;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // Independent scenarios must not share the production Redis IP budget.
+        $client = hash('sha256', self::class.'::'.$this->nameWithDataSet());
+        $this->withServerVariables(['REMOTE_ADDR' => '2001:db8::'.substr($client, 0, 4).':'.substr($client, 4, 4)]);
+    }
+
     public function test_real_request_queues_protected_current_token_and_delivery_scrubs_the_secret_but_preserves_redemption(): void
     {
         Notification::fake();
