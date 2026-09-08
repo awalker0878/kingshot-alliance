@@ -44,7 +44,7 @@ final class AnnouncementBroadcastManagementController extends Controller
         abort_unless($user instanceof AuthenticatedAccount, 401);
         $scope = $context->scope();
         $alliance = $alliances->require($scope->allianceId);
-        $kingdom = $kingdoms->find($alliance->kingdomId);
+        $kingdom = $kingdoms->requireActive($alliance->kingdomId);
 
         if (! $authorization->allows($scope->playerId, $scope->allianceId, AlliancePermission::ContentManage)) {
             throw new AuthorizationException;
@@ -113,7 +113,7 @@ final class AnnouncementBroadcastManagementController extends Controller
                 'id' => $alliance->allianceId,
                 'name' => $alliance->name,
                 'slug' => $alliance->slug,
-                'kingdom' => $kingdom?->number,
+                'kingdom' => $kingdom->number,
                 'language' => $alliance->language,
                 'timezone' => $alliance->timezone,
                 'description' => $profile?->description,
