@@ -19,6 +19,7 @@ use App\Contexts\Intelligence\Evidence\Models\GovernorProgressionEvidenceReview;
 use App\Contexts\Intelligence\Evidence\Models\ProgressionNormalizationAttempt;
 use App\Contexts\Intelligence\Evidence\Services\GovernorProgressionEvidenceSchemaRegistry;
 use App\Contexts\Intelligence\Roster\Services\GovernorProgressionObservationValidator;
+use App\Contexts\Intelligence\Roster\Services\StructuredGovernorProgressionObservationValidator;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Carbon\CarbonImmutable;
@@ -36,6 +37,7 @@ final readonly class SaveGovernorProgressionEvidenceReview
         private RosterEntryQuery $roster,
         private GovernorProgressionEvidenceSchemaRegistry $schemas,
         private GovernorProgressionObservationValidator $validator,
+        private StructuredGovernorProgressionObservationValidator $structuredValidator,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -110,7 +112,9 @@ final readonly class SaveGovernorProgressionEvidenceReview
 
             $datasetId = (string) $normalization->progression_dataset_id;
             $datasetChecksum = (string) $normalization->progression_dataset_checksum;
-            $reviewedPayload = $this->validator->validate($kind, $payload, $datasetId, $datasetChecksum);
+            $reviewedPayload = $this->structuredValidator->supports($kind)
+                ? $this->structuredValidator->validate($kind, $payload, $datasetId, $datasetChecksum)
+                : $this->validator->validate($kind, $payload, $datasetId, $datasetChecksum);
             $fingerprint = $this->fingerprint(
                 $allianceId,
                 $rosterEntryId,

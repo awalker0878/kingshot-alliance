@@ -20,6 +20,7 @@ use App\Contexts\Intelligence\Roster\Actions\RecordGovernorProfileEvidence;
 use App\Contexts\Intelligence\Roster\Actions\RecordHeroDetailEvidence;
 use App\Contexts\Intelligence\Roster\Actions\RecordHeroGearEvidence;
 use App\Contexts\Intelligence\Roster\Actions\RecordHeroRosterEvidence;
+use App\Contexts\Intelligence\Roster\Actions\RecordStructuredProgressionEvidence;
 use App\Contexts\Intelligence\Roster\ValueObjects\GovernorProgressionEvidenceRecordResult;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
@@ -39,6 +40,7 @@ final readonly class CommitReviewedGovernorProgressionEvidence
         private RecordHeroGearEvidence $heroGear,
         private RecordGovernorGearEvidence $governorGear,
         private RecordGovernorCharmsEvidence $governorCharms,
+        private RecordStructuredProgressionEvidence $structuredProgression,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -241,6 +243,9 @@ final readonly class CommitReviewedGovernorProgressionEvidence
             EvidenceKind::GovernorHeroGear => $this->heroGear->handle(...$arguments),
             EvidenceKind::GovernorGear => $this->governorGear->handle(...$arguments),
             EvidenceKind::GovernorCharms => $this->governorCharms->handle(...$arguments),
+            EvidenceKind::GovernorBuildings,
+            EvidenceKind::GovernorAcademyResearch,
+            EvidenceKind::GovernorWarAcademyResearch => $this->structuredProgression->handle($kind, ...$arguments),
             default => throw new LogicException('Unsupported Governor Progression Evidence destination schema.'),
         };
     }
@@ -254,6 +259,9 @@ final readonly class CommitReviewedGovernorProgressionEvidence
             EvidenceKind::GovernorHeroGear => 'RecordHeroGearEvidence',
             EvidenceKind::GovernorGear => 'RecordGovernorGearEvidence',
             EvidenceKind::GovernorCharms => 'RecordGovernorCharmsEvidence',
+            EvidenceKind::GovernorBuildings,
+            EvidenceKind::GovernorAcademyResearch,
+            EvidenceKind::GovernorWarAcademyResearch => 'RecordStructuredProgressionEvidence',
             default => throw new LogicException('Unsupported Governor Progression Evidence destination schema.'),
         };
     }

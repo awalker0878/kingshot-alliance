@@ -11,7 +11,10 @@ use Illuminate\Validation\ValidationException;
 
 final readonly class GovernorProgressionObservationValidator
 {
-    public function __construct(private ProgressionDatasetQuery $progression) {}
+    public function __construct(
+        private ProgressionDatasetQuery $progression,
+        private StructuredGovernorProgressionObservationValidator $structured,
+    ) {}
 
     /**
      * @param  array<string, mixed>  $payload
@@ -25,6 +28,9 @@ final readonly class GovernorProgressionObservationValidator
     ): array {
         if (! $kind->isGovernorProgression()) {
             throw ValidationException::withMessages(['kind' => 'The observation kind is not Governor Progression Evidence.']);
+        }
+        if ($this->structured->supports($kind)) {
+            return $this->structured->validate($kind, $payload, $datasetId, $datasetChecksum);
         }
         $dataset = $this->progression->require($datasetId, $datasetChecksum);
 
