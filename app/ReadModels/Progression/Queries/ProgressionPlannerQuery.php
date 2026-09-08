@@ -292,11 +292,12 @@ final class ProgressionPlannerQuery
             if (is_numeric($level)) {
                 $stateId = 'level:'.(int) $level;
             }
-        } elseif ($family === 'hero_level') {
+        } elseif (in_array($family, ['hero_level', 'hero_widget'], true)) {
             $hero = is_array($current['heroes'][$subject['id']] ?? null) ? $current['heroes'][$subject['id']] : [];
             $heroFacts = is_array($hero['facts'] ?? null) ? $hero['facts'] : [];
             $facts = $heroFacts;
-            $level = $this->factValue($heroFacts['level'] ?? null);
+            $factKey = $family === 'hero_widget' ? 'widget_level' : 'level';
+            $level = $this->factValue($heroFacts[$factKey] ?? null);
             if (is_numeric($level)) {
                 $stateId = 'level:'.(int) $level;
             }
