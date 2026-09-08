@@ -243,7 +243,7 @@ function releaseGovernor(governor: Governor): void {
                 }}</label>
                 <input
                   :id="`name-${governor.id}`"
-                  v-model="edits[governor.id].name"
+                  v-model="edits[governor.id]!.name"
                   class="ks-input mt-2"
                   maxlength="160"
                   required
@@ -255,7 +255,7 @@ function releaseGovernor(governor: Governor): void {
                 }}</label>
                 <input
                   :id="`game-id-${governor.id}`"
-                  v-model="edits[governor.id].game_player_id"
+                  v-model="edits[governor.id]!.game_player_id"
                   class="ks-input mt-2"
                   maxlength="100"
                 />
@@ -283,7 +283,7 @@ function releaseGovernor(governor: Governor): void {
             <div class="mt-2 flex gap-2">
               <input
                 :id="`kingdom-${governor.id}`"
-                v-model="moves[governor.id].kingdom_number"
+                v-model="moves[governor.id]!.kingdom_number"
                 class="ks-input"
                 inputmode="numeric"
                 required
