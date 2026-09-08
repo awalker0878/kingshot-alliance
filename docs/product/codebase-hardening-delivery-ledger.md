@@ -5,15 +5,15 @@
 - Program state: In progress.
 - Exact main baseline: `7e780521295e868005ecfee5bd38b33e8215ec49`.
 - Working branch: `astra/codebase-hardening`.
-- Latest pushed durable checkpoint: `3139868a09edde1700bd7ebfe2913f1a43d8e608`.
+- Latest pushed durable checkpoint: `3e4a2dae4a61c88fcdb4fd2eb481d4ce3da09a02`.
 - Draft PR: [#163](https://github.com/awalker0878/kingshot-alliance/pull/163).
-- Current item/state: HARD-028 / In progress (deletion worker fairness). HARD-026/027 are Complete with all nine containing workflows green.
-- Most recently verified gates: all nine PR workflows pass on `3139868a09edde1700bd7ebfe2913f1a43d8e608`, including 799 PHP tests / 74,337 assertions, fresh PostgreSQL, frontend, image/staging/recovery, architecture/capabilities, visual and security.
-- Active files: deletion worker due-time ordering/revalidation, request retry state and canonical schema index, four fairness regressions, DataGovernance contract and ledger.
-- Remaining current work: verify HARD-028 and reconcile HARD-026/027 containing gates; repair remaining credential security effects under HARD-029 and durable registration verification under HARD-030, then continue repository audit coverage.
-- Known failures: none in the full PostgreSQL suite on `3139868a` (799 tests, 74,337 assertions). All nine containing workflows pass. HARD-028 database regressions await CI.
+- Current item/state: HARD-029 / In progress (credential security effect atomicity). HARD-028 is Complete with all nine containing workflows green.
+- Most recently verified gates: all nine PR workflows pass on `3e4a2dae4a61c88fcdb4fd2eb481d4ce3da09a02`, including 803 PHP tests / 74,375 assertions, fresh PostgreSQL, frontend, image/staging/recovery, architecture/capabilities, visual and security.
+- Active files: AddPassword/RemovePassword, TwoFactorManager, credential intent rollback/success regressions, Accounts contracts and ledger.
+- Remaining current work: verify the first HARD-029 slice; finish password/session, passkey, Google and email security-effect composition; HARD-030 durable verification, HARD-031 single-use reset serialization and HARD-032 finalized-account mutation guards; then continue repository audit coverage.
+- Known failures: none on the latest verified checkpoint. Ten new credential intent database regressions await CI.
 - Blockers: local PostgreSQL/Redis services unavailable; service-backed verification uses GitHub CI. Local PHP 8.5.8 and locked Composer/npm dependencies available. Checkpoints publish via the authorized GitHub connection with exact staged-tree verification and non-forced branch updates.
-- Exact next action: publish HARD-028 and verify containing workflows, then complete the HARD-029 credential effect trace and implement atomic durable security effects without moving external storage/network work inside owner transactions.
+- Exact next action: publish the first HARD-029 slice and verify containing workflows; then make session revocation safe under outer owner transactions and compose the remaining credential effects without running storage/network work inside database transactions.
 - Remaining repository-wide gates: final full PHP/architecture/capability and frontend gates on one containing commit; production image/staging/recovery; final security/dependency/visual checks; remaining capability-by-capability audit coverage below.
 
 Checkpoint SHAs are recorded by the following documentation commit; verify that the recorded checkpoint is an ancestor of current branch HEAD. No audit area is complete solely because its paths have been inventoried.
@@ -406,11 +406,11 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: the same bounded worker with durable retry scheduling for blocked records.
 - Rationale: a persistent blocker for one account must not halt unrelated deletion work; retry timing must survive worker restart and remain auditable.
 - Remediation: add explicit due-time/retry state and query filtering before the limit, preserve the original cooling-off deadline, and verify bounded progress past a full blocked batch plus eventual retry after a blocker is removed.
-- State: In progress.
+- State: Complete.
 - Verification required: later eligible records progress despite a full blocked batch; blocked requests retry at the defined time; cancellation/re-request/processing correctly reset retry state.
-- Verification result: Blocked requests now persist a one-hour next_attempt_at while retaining eligible_at. The worker filters and orders by the effective due time before the batch limit and revalidates under lock; fresh schema adds a partial due-time index. Cancellation/re-request/processing clear retry state. Four database cases cover progress past a full blocked batch even when retries are due, exact retry timing after removing a blocker, new-cycle cooling-off and deferral after initial selection. Full PHPStan and changed-file Pint pass; PostgreSQL fresh-schema/behavior verification pending.
-- Completion evidence: pending.
-- Commit SHA: pending.
+- Verification result: Blocked requests now persist a one-hour next_attempt_at while retaining eligible_at. The worker filters and orders by the effective due time before the batch limit and revalidates under lock; fresh schema adds a partial due-time index. Cancellation/re-request/processing clear retry state. Four database cases cover progress past a full blocked batch even when retries are due, exact retry timing after removing a blocker, new-cycle cooling-off and deferral after initial selection. Full PHPStan and changed-file Pint pass; All four cases and fresh PostgreSQL schema pass on `3e4a2dae`; full suite 803 tests / 74,375 assertions, all nine workflows green.
+- Completion evidence: CI `34264785844`, PHP job `102191314036`, Architecture `34264785862`, Intelligence `34264785852` and all other PR workflows pass.
+- Commit SHA: `3e4a2dae4a61c88fcdb4fd2eb481d4ce3da09a02`.
 
 ### HARD-029 — Credential security effects are committed separately from credential changes
 
@@ -420,9 +420,9 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: Accounts atomically coordinates credential state and required durable security effects through owner APIs; raw session cleanup and remote delivery run after commit.
 - Rationale: security-effect persistence failures must not silently separate credential changes from their durable revocation/audit/notification contract. Moving external cleanup into a database transaction would create a different failure mode.
 - Remediation: trace all password, MFA, passkey, Google and email effect writers; include required database effects in the owner transaction and preserve after-commit external cleanup; verify real failure/rollback and response behavior.
-- State: Planned.
+- State: In progress.
 - Verification required: failures while recording security intent preserve credential/reset-token/audit consistency, successful changes retain session/proof behavior, package verification remains maintained, and no storage/network calls run under widened transactions.
-- Verification result: AddPassword, RemovePassword, ChangePassword and passkey listener ordering traced. Other affected writers and session cleanup composition require review before implementation.
+- Verification result: First slice moves AddPassword/RemovePassword and MFA confirm/regenerate/disable security intent into their owner transactions, including password reset-token deletion. Ten database cases exercise real intent INSERT failures and successful credential/audit/message contracts. Full PHPStan and changed-file Pint pass; database cases await CI. ChangePassword/session revocation, passkey event adapters, Google and email effects remain under this item. Trace also found a forced password rehash through logoutOtherDevices outside the owner lock; that call must be removed while preserving durable session revocation.
 - Completion evidence: pending.
 - Commit SHA: pending.
 
@@ -440,13 +440,41 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Completion evidence: pending.
 - Commit SHA: pending.
 
+### HARD-031 — Password reset tokens are checked and consumed outside the credential lock
+
+- Area: Accounts password reset and maintained broker integration.
+- Finding: Laravel's broker validates a reset token before invoking ResetPassword's callback and deletes it after the callback transaction. Two requests can both validate the same token before serializing their password writes. The callback can also decline a stale password-less account while the broker still reports success.
+- Current owner: ResetPassword and the maintained password broker/token repository.
+- Intended authoritative owner: Accounts serializes current-account/token revalidation and consumption with the password mutation; the maintained broker owns token hashing, expiry and throttling.
+- Rationale: reset tokens must authorize one successful current credential transition and report accurately when current state no longer permits it.
+- Remediation: move current token validation/consumption within the account serialization boundary without duplicating maintained token cryptography; verify a real competing-connection reset and changed credential state.
+- State: Planned.
+- Verification required: one token cannot authorize two password changes; token failure/expiry/stale credential state return failure; rollback preserves retryable intent and existing successful-reset behavior.
+- Verification result: ResetPassword and installed PasswordBroker reset/validateReset ordering traced; implementation pending.
+- Completion evidence: pending.
+- Commit SHA: pending.
+
+### HARD-032 — In-flight account mutations can restore data after finalization
+
+- Area: Accounts credential, MFA, identity and email/profile write boundaries.
+- Finding: Several User-row-locked Actions do not recheck anonymized_at after acquiring the lock. A request authorized before finalization can wait for anonymization and then add a password, begin MFA enrollment or set a new pending email on the finalized account.
+- Current owner: Accounts mutation Actions and current account lifecycle authority.
+- Intended authoritative owner: Accounts rejects terminal lifecycle state at each ordinary mutation boundary; explicit anonymization/reporting APIs retain access to finalized records.
+- Rationale: request middleware cannot protect an already-running writer waiting behind account finalization; the terminal state must remain durable under concurrent mutation.
+- Remediation: trace all account-owned writes, establish an explicit current-active owner guard without hiding finalized records globally, and exercise both lock orders with real competing connections.
+- State: Planned.
+- Verification required: finalized accounts cannot regain credentials or personal profile/email data; in-flight writes serialize correctly with finalization; authorized lifecycle/reporting behavior remains intact.
+- Verification result: AddPassword, TwoFactorManager.begin and RequestAccountEmailChange expose the missing post-lock check. Remaining owner writers require tracing; implementation pending.
+- Completion evidence: pending.
+- Commit SHA: pending.
+
 ## Repository audit coverage
 
 All rows below remain Planned until actual production paths have been traced. This table tracks audit scope, not discovered defects.
 
 | Area | Required authority/scalability review | State |
 | --- | --- | --- |
-| Accounts | Identity/provider queries, authentication/credential owners, sessions, MFA, profile/email/reset and account-side deletion traced; repairs under HARD-018–024. Registration/invitation atomicity under HARD-025 and deletion lifecycle under HARD-026; finalization ownership coordination remains under HARD-027 | In progress |
+| Accounts | Identity/provider queries, authentication/credential owners, sessions, MFA, profile/email/reset and account-side deletion traced; repairs under HARD-018–024. Registration/invitation atomicity and deletion/finalization coordination verified under HARD-025–028; credential effects, verification delivery, password reset serialization and terminal account guards remain under HARD-029–032 | In progress |
 | GameWorld | Progression dataset/topology/prerequisite and Gift Code reminder paths traced (HARD-007/009/011/012); Governors, Kingdoms/transfers/governance, remaining Gift Codes/calculators and KingdomMaps audit remain | In progress |
 | Alliance | Lifecycle, membership/rank/delegation, recruitment, content, territories/hive planning | Planned |
 | Operations | Events, participation, rallies, King Perks, results/Bear Hunt and reminders | Planned |

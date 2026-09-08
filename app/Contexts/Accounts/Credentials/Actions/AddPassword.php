@@ -40,14 +40,13 @@ final readonly class AddPassword
                 actor: $user,
                 subject: $user,
             );
+            $this->securityNotifications->publish(
+                userId: $userId,
+                event: 'account.password.added',
+                title: (string) __('accounts.security.password_added.title'),
+                body: (string) __('accounts.security.password_added.body'),
+                idempotencyKey: 'account.password.added:'.$userId.':'.now()->format('Uu'),
+            );
         });
-
-        $this->securityNotifications->publish(
-            userId: $userId,
-            event: 'account.password.added',
-            title: (string) __('accounts.security.password_added.title'),
-            body: (string) __('accounts.security.password_added.body'),
-            idempotencyKey: 'account.password.added:'.$userId.':'.now()->format('Uu'),
-        );
     }
 }

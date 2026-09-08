@@ -22,7 +22,7 @@ final readonly class RemovePassword
 
     public function handle(int $userId): void
     {
-        $email = DB::transaction(function () use ($userId): string {
+        DB::transaction(function () use ($userId): void {
             $user = User::query()->whereKey($userId)->lockForUpdate()->firstOrFail();
 
             if (! $this->methods->canRemovePassword($user)) {
@@ -43,17 +43,14 @@ final readonly class RemovePassword
                 subject: $user,
             );
 
-            return (string) $user->email;
+            DB::table('password_reset_tokens')->where('email', (string) $user->email)->delete();
+            $this->securityNotifications->publish(
+                userId: $userId,
+                event: 'account.password.removed',
+                title: (string) __('accounts.security.password_removed.title'),
+                body: (string) __('accounts.security.password_removed.body'),
+                idempotencyKey: 'account.password.removed:'.$userId.':'.now()->format('Uu'),
+            );
         });
-
-        DB::table('password_reset_tokens')->where('email', $email)->delete();
-
-        $this->securityNotifications->publish(
-            userId: $userId,
-            event: 'account.password.removed',
-            title: (string) __('accounts.security.password_removed.title'),
-            body: (string) __('accounts.security.password_removed.body'),
-            idempotencyKey: 'account.password.removed:'.$userId.':'.now()->format('Uu'),
-        );
     }
 }
