@@ -15,6 +15,8 @@ The KingdomMaps evidence expansion is defined by [KingdomMaps Evidence Expansion
 Phases 13–25 are governed by the [Kingshot Capability Expansion Program](kingshot-capability-expansion-program.md). The program is complete through Phase 25 for all evidence-supported capabilities; it establishes the mandatory named-Event identity/evidence gate, preserves existing capability ownership, and keeps KvK correctly disabled at Phase 17 until canonical identity and workflow evidence exist.
 
 - [Product overview](product-overview.md)
+- [Codebase hardening program](codebase-hardening-program.md)
+- [Codebase hardening delivery ledger](codebase-hardening-delivery-ledger.md)
 - [Capability catalogue](capability-catalogue.md)
 - [Capability completeness plan](capability-gap-analysis.md)
 - [Capability delivery ledger](capability-delivery-ledger.md)
