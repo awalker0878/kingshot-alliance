@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\v3\ReadModels\NotificationDelivery;
+namespace Tests\v3\Workflows\NotificationDelivery;
 
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Alliance\Membership\Enums\AllianceRank;
@@ -20,11 +20,11 @@ use App\Contexts\GameWorld\Kingdoms\Models\KingdomAlliance;
 use App\Contexts\Intelligence\Observations\Enums\TrackedKingdomAllianceState;
 use App\Contexts\Intelligence\Observations\Models\KingdomAllianceObservation;
 use App\Contexts\Intelligence\Observations\Models\TrackedKingdomAlliance;
-use App\ReadModels\CommandOverview\Actions\QueueOfficerBriefNotifications;
-use App\ReadModels\CommandOverview\Services\OfficerBriefNotificationPublisher;
-use App\ReadModels\IntelligenceSignals\Services\IntelligenceSignalNotificationPublisher;
-use App\ReadModels\IntelligenceSignals\Services\QueueIntelligenceChangeNotifications;
 use App\ReadModels\NotificationDelivery\Queries\AllianceNotificationRecipientQuery;
+use App\Workflows\NotificationDelivery\Actions\QueueIntelligenceChangeNotifications;
+use App\Workflows\NotificationDelivery\Actions\QueueOfficerBriefNotifications;
+use App\Workflows\NotificationDelivery\Services\IntelligenceSignalNotificationPublisher;
+use App\Workflows\NotificationDelivery\Services\OfficerBriefNotificationPublisher;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;

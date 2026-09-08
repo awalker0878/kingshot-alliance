@@ -10,14 +10,14 @@ Date: 2026-09-07
 
 KingdomMaps introduced class-based commands under its capability and registered them through `KingdomMapsServiceProvider`. Intelligence Evidence already used the same pattern for `EvidenceDiagnosticsCommand`. Keeping both patterns would make command ownership depend on when a feature was implemented rather than on an architectural rule.
 
-The repository also has application actions owned by read models and cross-context workflows. Placing a CLI adapter for one of those actions inside an unrelated context would invert the dependency direction merely to satisfy a directory convention.
+The repository also exposes composed queries and cross-context workflows. Placing their CLI adapters inside an unrelated context would invert the dependency direction merely to satisfy a directory convention. [ADR-0018](0018-notification-orchestration-workflow.md) removes notification Actions formerly placed in ReadModels and establishes their correct Workflow owner.
 
 ## Decision
 
 Console commands are application adapters owned by the application package whose action, query or service they expose.
 
 - Context capability command implementations live under the owning capability at `app/Contexts/.../Console/Commands`.
-- Commands that directly expose a read-model action live under that read model at `app/ReadModels/.../Console/Commands`.
+- Commands that expose read-only composed Queries may live under that read model at `app/ReadModels/.../Console/Commands`. ReadModels do not own Actions or notification-writing orchestration.
 - Commands that directly expose cross-context workflow orchestration live under that workflow at `app/Workflows/.../Console/Commands`.
 - Each command is registered from a service provider in the same owning application package.
 - A command class may parse CLI arguments and options, perform CLI-specific validation and cursor handling, invoke the owner's Actions, Queries or Services, render output and select an exit code.

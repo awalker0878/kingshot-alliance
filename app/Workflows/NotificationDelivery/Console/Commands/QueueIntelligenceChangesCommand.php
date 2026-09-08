@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\ReadModels\IntelligenceSignals\Console\Commands;
+namespace App\Workflows\NotificationDelivery\Console\Commands;
 
-use App\ReadModels\IntelligenceSignals\Services\QueueIntelligenceChangeNotifications;
+use App\Workflows\NotificationDelivery\Actions\QueueIntelligenceChangeNotifications;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 

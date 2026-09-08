@@ -28,14 +28,14 @@ use App\Contexts\Platform\DataGovernance\Providers\DataGovernanceServiceProvider
 use App\Contexts\Platform\Integrations\Providers\IntegrationsServiceProvider;
 use App\ReadModels\AllianceAssistant\Providers\AllianceAssistantServiceProvider;
 use App\ReadModels\AllianceGovernance\Providers\AllianceGovernanceServiceProvider;
-use App\ReadModels\CommandOverview\Providers\CommandOverviewServiceProvider;
-use App\ReadModels\IntelligenceSignals\Providers\IntelligenceSignalsServiceProvider;
 use App\ReadModels\TerritoryPlanning\Providers\TerritoryPlanningReadModelServiceProvider;
 use App\Shared\Infrastructure\Providers\InfrastructureServiceProvider;
 use App\Workflows\KingdomGovernance\Providers\KingdomGovernanceServiceProvider;
+use App\Workflows\NotificationDelivery\Providers\NotificationDeliveryServiceProvider;
 
 return [
     InfrastructureServiceProvider::class,
+    NotificationDeliveryServiceProvider::class,
     KingPerksServiceProvider::class,
     GovernanceServiceProvider::class,
     AuthenticationServiceProvider::class,
@@ -55,8 +55,6 @@ return [
     TerritoryPlanningReadModelServiceProvider::class,
     AllianceGovernanceServiceProvider::class,
     AllianceAssistantServiceProvider::class,
-    CommandOverviewServiceProvider::class,
-    IntelligenceSignalsServiceProvider::class,
     KingdomGovernanceServiceProvider::class,
     EvidenceServiceProvider::class,
     ContributionsServiceProvider::class,

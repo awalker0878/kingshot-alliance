@@ -28,7 +28,7 @@ Baseline ReadModel packages: `AllianceAssistant`, `AllianceDashboard`, `Alliance
 
 Shared infrastructure owns audit/outbox, observability, runtime checks and security mechanisms. `bootstrap/providers.php` is the explicit provider composition root. Route exposure is composed in bootstrap and owner providers; each of the 20 route files requires middleware/owner review. Namespace placement alone does not establish authorization correctness.
 
-ReadModel inspection found `QueueOfficerBriefNotifications`, `QueueIntelligenceChangeNotifications`, their publishers and CLI adapters producing Communications writes under read-only packages. HARD-005 will move cross-owner notification orchestration to a Workflow; authorized recipient/fact projections remain ReadModels and delivery persistence remains Communications. ADR-0016 currently permits read-model action commands and must be reconciled with the read-only rule rather than treated as an exception.
+ReadModel inspection found `QueueOfficerBriefNotifications`, `QueueIntelligenceChangeNotifications`, their publishers and CLI adapters producing Communications writes under read-only packages. HARD-005 moves cross-owner notification orchestration to `Workflows/NotificationDelivery`; authorized recipient/fact projections remain ReadModels and delivery persistence remains Communications. ADR-0018 reconciles ADR-0016 with the read-only rule. Database-backed behavior verification remains tracked in the ledger.
 
 ## Entry points and duplicate execution
 

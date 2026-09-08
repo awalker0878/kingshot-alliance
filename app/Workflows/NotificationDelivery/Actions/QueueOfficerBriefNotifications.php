@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\ReadModels\CommandOverview\Actions;
+namespace App\Workflows\NotificationDelivery\Actions;
 
 use App\ReadModels\CommandOverview\Queries\AllianceCommandQuery;
 use App\ReadModels\CommandOverview\Queries\OfficerBriefQuery;
-use App\ReadModels\CommandOverview\Services\OfficerBriefNotificationPublisher;
 use App\ReadModels\NotificationDelivery\Queries\AllianceNotificationRecipientQuery;
-use App\ReadModels\NotificationDelivery\ValueObjects\NotificationQueueSweep;
+use App\Workflows\NotificationDelivery\Services\OfficerBriefNotificationPublisher;
+use App\Workflows\NotificationDelivery\ValueObjects\NotificationQueueSweep;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;

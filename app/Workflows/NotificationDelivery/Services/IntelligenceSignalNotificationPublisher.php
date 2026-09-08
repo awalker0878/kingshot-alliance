@@ -2,13 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\ReadModels\IntelligenceSignals\Services;
+namespace App\Workflows\NotificationDelivery\Services;
 
 use App\Contexts\Communications\Delivery\Services\NotificationDeliveryService;
 use App\Contexts\Communications\Delivery\ValueObjects\NotificationIntent;
 use App\Contexts\Communications\Delivery\ValueObjects\NotificationQueueReceipt;
 use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
-use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -35,7 +34,7 @@ final readonly class IntelligenceSignalNotificationPublisher
         $player = $this->players->find($playerId);
         if ($player === null
             || $player->userId !== $recipientUserId
-            || ! $this->authorization->allows($playerId, $allianceId, IntelligencePermission::View)) {
+            || ! $this->authorization->canView($playerId, $allianceId)) {
             throw new AuthorizationException;
         }
 

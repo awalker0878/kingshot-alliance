@@ -322,6 +322,16 @@ foreach ($phpFiles($app) as $file) {
 // ReadModels own no writes.
 foreach ($phpFiles($app.'/ReadModels') as $file) {
     $source = file_get_contents($file) ?: '';
+    foreach ($imports($source) as $import) {
+        if (str_starts_with($import, 'App\\Workflows\\')
+            || (str_starts_with($import, 'App\\') && str_contains($import, '\\Actions\\'))
+            || in_array($import, [
+                'App\\Contexts\\Communications\\Delivery\\Services\\NotificationDeliveryService',
+                'App\\Shared\\Infrastructure\\Messaging\\Outbox\\Services\\OutboxRecorder',
+            ], true)) {
+            $record('READMODEL_IMPORTS_WRITE_PATH', $file, $import);
+        }
+    }
     if (preg_match('/\bDB::transaction\s*\(|->lockForUpdate\s*\(|->save\s*\(|->update\s*\(|->delete\s*\(|::create\s*\(/', $source) === 1) {
         $record('READMODEL_WRITES', $file, 'ReadModel contains mutation/transaction code.');
     }
@@ -344,7 +354,7 @@ foreach ($phpFiles($app.'/Contexts/Communications') as $file) {
 if (is_dir($app.'/Workflows')) {
     $workflowDirs = array_values(array_filter(scandir($app.'/Workflows') ?: [], static fn (string $name): bool => $name !== '.' && $name !== '..' && is_dir($app.'/Workflows/'.$name)));
     sort($workflowDirs);
-    $allowed = ['AccountOnboarding', 'ExternalEventParticipation', 'KingdomGovernance'];
+    $allowed = ['AccountOnboarding', 'ExternalEventParticipation', 'KingdomGovernance', 'NotificationDelivery'];
     sort($allowed);
     if ($workflowDirs !== $allowed) {
         $record('WORKFLOW_SET', $app.'/Workflows', 'Expected '.implode(', ', $allowed).'; found '.implode(', ', $workflowDirs));

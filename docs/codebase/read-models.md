@@ -44,6 +44,6 @@ Examples of V3 cross-context composition include:
 - `ReadModels/AllianceAssistant` for closed, source-backed questions over exact authorized owner projections and navigation-only write handoffs;
 - Platform administration and launch-readiness projections that read across tenant/context ownership.
 
-Officer Brief fingerprints and Intelligence signals are semantic values derived from composed owner facts. Their queue actions authorize and build those read projections, then pass immutable scalar payloads to Communications-owned publishers. Communications may persist preference/attempt/receipt state, but recipient sweeps, briefs, signals and Alliance attention are not persisted as parallel domain truth.
+Officer Brief fingerprints and Intelligence signals are semantic values derived from composed owner facts. `Workflows/NotificationDelivery` owns their queue Actions, publishers, CLI adapters and execution results. It consumes the authorized ReadModel projections and passes immutable delivery intent to Communications. Communications persists preference/attempt/receipt state; ReadModels own no queue Actions or writer dependencies, and briefs/signals/Alliance attention are not persisted as parallel domain truth.
 
 Moving a query into a ReadModel does not transfer write ownership. Source facts remain owned by their business contexts.

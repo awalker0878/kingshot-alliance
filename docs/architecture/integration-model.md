@@ -38,7 +38,7 @@ Workflow
 
 ## Multi-owner processes
 
-Use `app/Workflows` only when a command genuinely coordinates multiple owners. V3 intended workflow packages are `AccountOnboarding`, `ExternalEventParticipation`, and `KingdomGovernance`.
+Use `app/Workflows` only when a command genuinely coordinates multiple owners. V3 workflow packages are `AccountOnboarding`, `ExternalEventParticipation`, `KingdomGovernance`, and `NotificationDelivery`.
 
 Player activation belongs to `GameWorld/Players`. Kingdom transfer belongs to `GameWorld/KingdomTransfers`.
 
@@ -53,6 +53,8 @@ The event publisher owns the fact being published. Consumers must not treat an e
 Source capabilities retain the semantics/timing of notifications they request. `Communications/Delivery` accepts generic delivery intent and owns recipient preferences, channels, attempts, retries/failure and idempotency.
 
 Communications does not import source-domain Models to reconstruct Event/KingPerk/business meaning.
+
+`Workflows/NotificationDelivery` owns Officer Brief and Intelligence change sweep/publication orchestration. ReadModels provide authorized facts/recipient pages and remain read-only; owner semantic authorization services retain permission interpretation. See [ADR-0018](adr/0018-notification-orchestration-workflow.md).
 
 ## Shared infrastructure
 

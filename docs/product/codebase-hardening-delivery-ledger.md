@@ -5,15 +5,15 @@
 - Program state: In progress.
 - Exact main baseline: `7e780521295e868005ecfee5bd38b33e8215ec49`.
 - Working branch: `astra/codebase-hardening`.
-- Latest pushed durable checkpoint: `aa8928b0cbf67bddeb252f4692bf5c0b4c59b420`.
+- Latest pushed durable checkpoint: `d0bdb8d662aac5803a361003ee28f5f72e0e2dd2`.
 - Draft PR: [#163](https://github.com/awalker0878/kingshot-alliance/pull/163).
-- Current item/state: HARD-005 / Planned.
+- Current item/state: HARD-005 / In progress (CI behavior verification pending).
 - Most recently verified gates: scheduler/command ownership (4 tests, 646 assertions); architecture verifier; syntax and Pint on 16 changed PHP files; documentation links (233 files); 35 scheduled commands and 490 routes boot. Full PHPStan finds one unrelated evidence-routing defect (HARD-008).
-- Active files: HARD-003 scheduler slice ready for checkpoint; next scope is notification orchestration under ReadModels.
-- Remaining current work: move notification writers/CLI adapters into a Workflow; reconcile ADR-0016 and dependency enforcement, callers, tests and docs.
+- Active files: HARD-005 Workflow/NotificationDelivery move, semantic owner authorization APIs, architecture enforcement, test ownership and ADR-0018.
+- Remaining current work: production move complete; verify migrated database-backed notification behavior in CI after HARD-006–008 unblock the baseline gates.
 - Known failures: baseline CI run `34239160645` and Architecture V3 run `34239160675` failed; failure details pending. Baseline CodeQL run `34239160740` passed. Visual run `34239160758` was still running at initial inspection.
 - Blockers: local PostgreSQL/Redis services are unavailable for database/queue integration tests; PHP 8.5.10, Composer dependencies and frontend dependencies are installed. Use CI for remaining service-dependent gates. Command-line push has no credentials; checkpoint commits are published through the GitHub connection with exact tree verification.
-- Exact next action: publish HARD-003 and record its SHA; implement HARD-005 notification workflow ownership, then address baseline verification defects without weakening gates.
+- Exact next action: publish HARD-005 checkpoint, then fix HARD-006 formatting, HARD-007 dataset contract tests and HARD-008 evidence routing to unblock CI. Return to HARD-005 behavior verification before marking it Complete.
 - Remaining repository-wide gates: PHP syntax/Pint/PSR-4/PHPStan/PHPUnit/Architecture/capability suites; fresh schema/routes/commands/schedules/queues; full frontend checks/build; Playwright/visual; CodeQL/dependency review/advisories; container/staging/recovery.
 
 Checkpoint SHAs are recorded by the following documentation commit; verify that the recorded checkpoint is an ancestor of current branch HEAD. No audit area is complete solely because its paths have been inventoried.
@@ -60,7 +60,7 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Verification required: actual booted scheduler contains one registration per workload and valid commands with expected cadence/limits/coordination; owner command behavior, architecture, syntax/style, routes and static analysis for changed code.
 - Verification result: new regression failed both tests before remediation; booted scheduler and command ownership now pass (4 tests, 646 assertions), including actual Symfony argument binding/validation for all 35 workloads. 490 routes boot, architecture verifier passes, changed-file PHP syntax/Pint pass. Full PHPStan reports only unrelated HARD-008. No owner Action business behavior changed; service-dependent capability suites remain part of milestone verification.
 - Completion evidence: `SchedulerOwnershipV3Test`, owner commands/providers, ADR-0017 and updated background/source-acquisition runbooks.
-- Commit SHA: recorded at next checkpoint.
+- Commit SHA: `d0bdb8d662aac5803a361003ee28f5f72e0e2dd2`.
 
 ### HARD-004 — Baseline verification failures
 
@@ -84,11 +84,11 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: Workflows/NotificationDelivery orchestration; Communications persistence; ReadModel projections.
 - Rationale: Enforce read-only composition without moving source semantics into generic Communications.
 - Remediation: Move orchestration, publishers and CLI adapters/providers; migrate callers/tests/docs and strengthen no-write dependency checks.
-- State: Planned.
+- State: In progress.
 - Verification required: Production notification behavior including duplicate runs, revoked authority, cross-Alliance isolation, command registration, architecture and static analysis.
-- Verification result: baseline source/CI inspection confirms finding; remediation pending.
-- Completion evidence: pending.
-- Commit SHA: pending.
+- Verification result: architecture verifier passes, scheduler/provider tests pass (4 tests, 642 assertions), no obsolete writer classes/aliases remain. Migrated real notification test cannot run locally: PostgreSQL connection refused at 127.0.0.1:5432. CI behavior verification is required before completion.
+- Completion evidence: ADR-0018, migrated Workflow classes/tests, owner semantic APIs and strengthened ReadModel write-path enforcement; runtime behavioral evidence pending.
+- Commit SHA: checkpoint recorded next; item remains In progress.
 
 ### HARD-006 — Baseline formatting failures
 
@@ -163,3 +163,7 @@ All rows below remain Planned until actual production paths have been traced. Th
 | Infrastructure/entry points | Scheduler registration/commands verified by HARD-003; route authorization, shared mechanisms, queues/listeners/outbox and middleware audit remain | In progress |
 | Frontend | Pages, components, composables/stores, server contracts, localization, receipts and accessibility | Planned |
 | Schema/verification/operations/docs | Fresh schema/indexes, concurrency/query budgets, tests, CI, image/recovery, contracts/catalogues/ADRs/ledgers | Planned |
+
+## Execution adjustments
+
+- After HARD-003, HARD-005 implements the ownership move but remains In progress until database-backed behavior passes. Local PHP/architecture/command checks are available; local PostgreSQL is not. HARD-006–008 are processed next because baseline formatter/architecture/static-analysis failures prevent CI from reaching those behavior tests. No gate is skipped or weakened; return to HARD-005 verification after these prerequisite repairs.

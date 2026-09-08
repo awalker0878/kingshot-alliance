@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\ReadModels\NotificationDelivery\ValueObjects;
+namespace App\Workflows\NotificationDelivery\ValueObjects;
 
 final readonly class NotificationQueueSweep
 {

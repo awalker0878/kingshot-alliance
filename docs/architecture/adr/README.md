@@ -21,3 +21,4 @@ Architecture decision records explain material changes to ownership, boundaries,
 - [ADR-0015: Separate logical notifications from delivery routes](0015-separate-logical-notifications-from-delivery-routes.md)
 - [ADR-0016: Keep capability console commands with their owning capability](0016-capability-console-command-ownership.md)
 - [ADR-0017: One scheduler registry with owner command adapters](0017-single-scheduler-registry.md)
+- [ADR-0018: Own cross-context notification orchestration in a Workflow](0018-notification-orchestration-workflow.md)

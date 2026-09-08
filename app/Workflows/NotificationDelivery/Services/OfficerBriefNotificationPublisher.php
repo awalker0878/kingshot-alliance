@@ -2,9 +2,8 @@
 
 declare(strict_types=1);
 
-namespace App\ReadModels\CommandOverview\Services;
+namespace App\Workflows\NotificationDelivery\Services;
 
-use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Communications\Delivery\Services\NotificationDeliveryService;
 use App\Contexts\Communications\Delivery\ValueObjects\NotificationIntent;
@@ -38,7 +37,7 @@ final readonly class OfficerBriefNotificationPublisher
         $player = $this->players->find($playerId);
         if ($player === null
             || $player->userId !== $recipientUserId
-            || ! $this->authorization->allows($playerId, $allianceId, AlliancePermission::MembershipManage)) {
+            || ! $this->authorization->canManageMembership($playerId, $allianceId)) {
             throw new AuthorizationException;
         }
 

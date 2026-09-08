@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\ReadModels\CommandOverview\Console\Commands;
+namespace App\Workflows\NotificationDelivery\Console\Commands;
 
-use App\ReadModels\CommandOverview\Actions\QueueOfficerBriefNotifications;
+use App\Workflows\NotificationDelivery\Actions\QueueOfficerBriefNotifications;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 

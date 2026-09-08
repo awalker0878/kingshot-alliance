@@ -1,0 +1,120 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\v3\Workflows\NotificationDelivery;
+
+use App\Contexts\Alliance\Membership\Enums\AllianceRank;
+use App\Contexts\Alliance\Membership\Models\AllianceMembership;
+use App\Contexts\Communications\Delivery\Models\NotificationMessage;
+use App\ReadModels\CommandOverview\Queries\AllianceCommandQuery;
+use App\ReadModels\CommandOverview\Queries\OfficerBriefQuery;
+use App\Workflows\NotificationDelivery\Services\OfficerBriefNotificationPublisher;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\v3\Support\ScenarioFactory;
+use Tests\v3\TestCase;
+
+final class OfficerBriefNotificationPublisherV3Test extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_brief_groups_and_delivery_fingerprints_are_stable_and_recheck_authority(): void
+    {
+        $scenario = new ScenarioFactory;
+        $account = $scenario->account();
+        $actor = $scenario->player($account->userId, 78102);
+        $alliance = $scenario->alliance($actor);
+        $scenario->roster($actor, $alliance);
+        $command = app(AllianceCommandQuery::class)->for(
+            $account->userId,
+            $actor,
+            $alliance->allianceId,
+        );
+        self::assertNotNull($command);
+
+        $query = app(OfficerBriefQuery::class);
+        $first = $query->for($actor, $alliance->allianceId, $command);
+        $second = $query->for($actor, $alliance->allianceId, $command);
+
+        self::assertSame(
+            ['daily_officer', 'upcoming_event', 'post_event_closeout'],
+            array_column($first, 'group'),
+        );
+        self::assertSame(array_column($first, 'fingerprint'), array_column($second, 'fingerprint'));
+
+        $publisher = app(OfficerBriefNotificationPublisher::class);
+        $one = $publisher->publish(
+            $account->userId,
+            $actor->playerId,
+            $alliance->allianceId,
+            $first[0],
+        );
+        $two = $publisher->publish(
+            $account->userId,
+            $actor->playerId,
+            $alliance->allianceId,
+            $first[0],
+        );
+
+        self::assertSame($one->messageId, $two->messageId);
+        self::assertSame($one->deliveryIds, $two->deliveryIds);
+        self::assertSame(1, NotificationMessage::query()
+            ->where('notification_type', OfficerBriefNotificationPublisher::NOTIFICATION_TYPE)
+            ->count());
+        $message = NotificationMessage::query()
+            ->where('notification_type', OfficerBriefNotificationPublisher::NOTIFICATION_TYPE)
+            ->firstOrFail();
+        $metadata = is_array($message->metadata) ? $message->metadata : [];
+
+        self::assertSame('Daily Officer Brief', $message->title);
+        self::assertSame('/', $message->action_url);
+        self::assertSame($alliance->allianceId, $metadata['alliance_id'] ?? null);
+        self::assertStringContainsString('owner:', (string) $message->body);
+
+        $changedBrief = $first[0];
+        $changedBrief['fingerprint'] = hash('sha256', 'changed-daily-brief');
+        $publisher->publish(
+            $account->userId,
+            $actor->playerId,
+            $alliance->allianceId,
+            $changedBrief,
+        );
+        self::assertSame(2, NotificationMessage::query()
+            ->where('notification_type', OfficerBriefNotificationPublisher::NOTIFICATION_TYPE)
+            ->count());
+
+        $dailyOne = $publisher->publish(
+            $account->userId,
+            $actor->playerId,
+            $alliance->allianceId,
+            $first[0],
+            'daily:2026-08-29',
+        );
+        $dailyChanged = $publisher->publish(
+            $account->userId,
+            $actor->playerId,
+            $alliance->allianceId,
+            $changedBrief,
+            'daily:2026-08-29',
+        );
+        self::assertSame($dailyOne->messageId, $dailyChanged->messageId);
+        self::assertSame($dailyOne->deliveryIds, $dailyChanged->deliveryIds);
+        self::assertSame(3, NotificationMessage::query()
+            ->where('notification_type', OfficerBriefNotificationPublisher::NOTIFICATION_TYPE)
+            ->count());
+
+        AllianceMembership::query()
+            ->where('alliance_id', $alliance->allianceId)
+            ->where('player_id', $actor->playerId)
+            ->update(['rank' => AllianceRank::R1->value]);
+
+        $this->expectException(AuthorizationException::class);
+        $publisher->publish(
+            $account->userId,
+            $actor->playerId,
+            $alliance->allianceId,
+            $first[1],
+        );
+    }
+}

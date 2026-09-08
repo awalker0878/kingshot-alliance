@@ -51,4 +51,9 @@ final readonly class TransferAuthorization
             ),
         };
     }
+
+    public function canView(string $playerId, string $allianceId): bool
+    {
+        return $this->allows($playerId, $allianceId, TransferPermission::View);
+    }
 }

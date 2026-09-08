@@ -146,4 +146,9 @@ final readonly class EventAuthorization
                 ),
         };
     }
+
+    public function canViewAllianceEvents(string $playerId, string $allianceId): bool
+    {
+        return $this->allows($playerId, EventScope::Alliance, $allianceId, OperationsPermission::EventAllianceView);
+    }
 }

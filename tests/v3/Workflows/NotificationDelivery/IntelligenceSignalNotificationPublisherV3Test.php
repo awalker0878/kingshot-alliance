@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Tests\v3\ReadModels\IntelligenceSignals;
+namespace Tests\v3\Workflows\NotificationDelivery;
 
 use App\Contexts\Communications\Delivery\Models\NotificationDelivery;
 use App\Contexts\Communications\Delivery\Models\NotificationMessage;
-use App\ReadModels\IntelligenceSignals\Services\IntelligenceSignalNotificationPublisher;
+use App\Workflows\NotificationDelivery\Services\IntelligenceSignalNotificationPublisher;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\v3\Support\ScenarioFactory;

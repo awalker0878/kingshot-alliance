@@ -2,20 +2,16 @@
 
 declare(strict_types=1);
 
-namespace App\ReadModels\IntelligenceSignals\Services;
+namespace App\Workflows\NotificationDelivery\Actions;
 
-use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
-use App\Contexts\GameWorld\KingdomTransfers\Access\Enums\TransferPermission;
 use App\Contexts\GameWorld\KingdomTransfers\Access\Services\TransferAuthorization;
-use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
-use App\Contexts\Operations\Access\Enums\OperationsPermission;
-use App\Contexts\Operations\Events\Enums\EventScope;
 use App\Contexts\Operations\Events\Services\EventAuthorization;
 use App\ReadModels\IntelligenceSignals\Queries\IntelligenceSignalQuery;
 use App\ReadModels\NotificationDelivery\Queries\AllianceNotificationRecipientQuery;
-use App\ReadModels\NotificationDelivery\ValueObjects\NotificationQueueSweep;
+use App\Workflows\NotificationDelivery\Services\IntelligenceSignalNotificationPublisher;
+use App\Workflows\NotificationDelivery\ValueObjects\NotificationQueueSweep;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
@@ -49,10 +45,9 @@ final readonly class QueueIntelligenceChangeNotifications
 
         foreach ($page->recipients as $recipient) {
             $userId = $recipient->player->userId;
-            if ($userId === null || ! $this->intelligenceAuthorization->allows(
+            if ($userId === null || ! $this->intelligenceAuthorization->canView(
                 $recipient->player->playerId,
                 $recipient->allianceId,
-                IntelligencePermission::View,
             )) {
                 $skipped++;
 
@@ -66,21 +61,17 @@ final readonly class QueueIntelligenceChangeNotifications
                     actorPlayerId: $recipient->player->playerId,
                     limit: $signalLimit,
                     asOf: $asOf,
-                    includeTransfer: $this->transferAuthorization->allows(
+                    includeTransfer: $this->transferAuthorization->canView(
                         $recipient->player->playerId,
                         $recipient->allianceId,
-                        TransferPermission::View,
                     ),
-                    includeRecruitment: $this->allianceAuthorization->allows(
+                    includeRecruitment: $this->allianceAuthorization->canManageRecruitment(
                         $recipient->player->playerId,
                         $recipient->allianceId,
-                        AlliancePermission::RecruitmentManage,
                     ),
-                    includeBearHunt: $this->eventAuthorization->allows(
+                    includeBearHunt: $this->eventAuthorization->canViewAllianceEvents(
                         $recipient->player->playerId,
-                        EventScope::Alliance,
                         $recipient->allianceId,
-                        OperationsPermission::EventAllianceView,
                     ),
                 );
 
