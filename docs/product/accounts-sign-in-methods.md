@@ -157,6 +157,10 @@ Credential changes explicitly rotate or revoke sessions as appropriate, clear st
 
 Accounts owns durable session revocation markers. Successful login registers its final rotated session before returning its redirect. Request tracking never clears a revoked marker and rejects revoked or anonymized accounts before resolving game context. The Laravel session handler continues to store credentials; deleting its raw session is cleanup, while the committed marker prevents a concurrent storage write or failed delete from restoring access. Revoking one or all other sessions also rotates the account's remember-me token, so existing remembered sign-ins cannot recreate the revoked session. Confirming, disabling or replacing recovery codes for MFA likewise rotates remember authority so cookies issued under the previous assurance state cannot restore access. These rotations preserve the current active session. All-other revocation is limited to the registered-session snapshot and loads records in batches; storage cleanup runs after the revocation transaction commits.
 
+## Sign-out
+
+Sign-out revokes the current session and invalidates previously issued remember-me cookies. Because the maintained remember token is account-scoped, remembered sign-in is reset across devices; other already-active sessions are retained. Successful sign-out is durable even if raw session cleanup fails. Failed audit/revocation persistence is reported as a failure, with browser-local credentials cleared on a best-effort basis.
+
 ## Lifecycle
 
 Platform/DataGovernance retains deletion request/cooling-off/cancellation/finalization orchestration. Accounts finalization removes password/reset tokens, provider identities, passkeys, MFA material, sessions, pending authentication ceremonies, and recent-authentication state.
