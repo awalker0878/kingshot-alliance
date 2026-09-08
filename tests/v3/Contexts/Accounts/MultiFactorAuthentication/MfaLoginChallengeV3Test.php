@@ -13,7 +13,7 @@ use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Accounts\MultiFactorAuthentication\Actions\CompleteMfaLogin;
 use App\Contexts\Accounts\MultiFactorAuthentication\Services\TotpService;
 use App\Contexts\Accounts\MultiFactorAuthentication\Services\TwoFactorManager;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -27,7 +27,7 @@ use Tests\v3\TestCase;
 
 final class MfaLoginChallengeV3Test extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseMigrations;
 
     private const RECOVERY_CODE = 'a1b2-c3d4-e5f6-0123';
 

@@ -171,6 +171,21 @@ final readonly class TwoFactorManager
         });
     }
 
+    public function verifyRecoveryCode(User $user, string $code): bool
+    {
+        if ($user->two_factor_confirmed_at === null || (string) $user->two_factor_secret === '' || trim($code) === '') {
+            return false;
+        }
+        $candidate = hash('sha256', strtolower(trim($code)));
+        foreach ($user->two_factor_recovery_codes ?? [] as $hash) {
+            if (is_string($hash) && hash_equals($hash, $candidate)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /** @return list<string> */
     private function generateRecoveryCodes(): array
     {

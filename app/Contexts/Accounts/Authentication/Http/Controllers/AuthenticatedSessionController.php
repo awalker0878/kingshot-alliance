@@ -4,16 +4,13 @@ declare(strict_types=1);
 
 namespace App\Contexts\Accounts\Authentication\Http\Controllers;
 
-use App\Contexts\Accounts\Authentication\Services\RecentAuthentication;
+use App\Contexts\Accounts\Authentication\Actions\AuthenticateWithPassword;
 use App\Contexts\Accounts\Identity\Models\User;
-use App\Contexts\Accounts\MultiFactorAuthentication\Services\MfaLoginChallenge;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
-use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -32,9 +29,7 @@ final class AuthenticatedSessionController extends Controller
 
     public function store(
         Request $request,
-        AuditRecorder $audit,
-        RecentAuthentication $recentAuthentication,
-        MfaLoginChallenge $mfaChallenges,
+        AuthenticateWithPassword $authenticate,
     ): RedirectResponse {
         $validated = $request->validate([
             'email' => ['required', 'string', 'email', 'max:254'],
@@ -43,48 +38,11 @@ final class AuthenticatedSessionController extends Controller
             'invitation_token' => ['nullable', 'string', 'max:256'],
         ]);
 
-        $email = Str::lower(trim((string) $validated['email']));
-        $passwordConfigured = User::query()
-            ->where('email', $email)
-            ->whereNotNull('password')
-            ->exists();
-
-        $remember = (bool) ($validated['remember'] ?? false);
-        $authenticated = $passwordConfigured && Auth::attempt([
-            'email' => $email,
-            'password' => $validated['password'],
-        ], $remember);
-
-        if (! $authenticated) {
-            throw ValidationException::withMessages([
-                'email' => 'The provided credentials are incorrect.',
-            ]);
-        }
-
-        $request->session()->regenerate();
-
-        $user = $request->user();
-        abort_unless($user instanceof User && $user->supportsPasswordAuthentication(), 403);
-
         $token = trim((string) ($validated['invitation_token'] ?? ''));
-
-        if ($user->two_factor_confirmed_at !== null && (string) $user->two_factor_secret !== '') {
-            $mfaChallenges->startPassword($request, $user, $remember, $token === '' ? null : $token);
-
-            Auth::guard('web')->logout();
-            $request->session()->regenerate();
-
+        if ($authenticate->handle($request, (string) $validated['email'], (string) $validated['password'],
+            (bool) ($validated['remember'] ?? false), $token === '' ? null : $token)) {
             return redirect()->route('two-factor.login');
         }
-
-        $mfaChallenges->clear($request);
-        $recentAuthentication->mark($request, 'password');
-        $audit->record(
-            event: 'auth.login',
-            actor: $user,
-            subject: $user,
-            metadata: ['provider' => 'password', 'mfa_method' => null],
-        );
 
         if ($token !== '') {
             return redirect()->route('invitations.show', ['token' => $token]);

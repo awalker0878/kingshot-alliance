@@ -22,3 +22,5 @@ Architecture decision records explain material changes to ownership, boundaries,
 - [ADR-0016: Keep capability console commands with their owning capability](0016-capability-console-command-ownership.md)
 - [ADR-0017: One scheduler registry with owner command adapters](0017-single-scheduler-registry.md)
 - [ADR-0018: Own cross-context notification orchestration in a Workflow](0018-notification-orchestration-workflow.md)
+- [ADR-0019: Atomic owner composition for account onboarding](0019-atomic-account-onboarding-owner-composition.md)
+- [ADR-0020: Complete account login against current credential proof](0020-current-proof-account-login-completion.md)

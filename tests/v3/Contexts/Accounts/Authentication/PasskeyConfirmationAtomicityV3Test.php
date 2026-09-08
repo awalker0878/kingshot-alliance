@@ -49,7 +49,7 @@ final class PasskeyConfirmationAtomicityV3Test extends TestCase
     public function test_failed_assertion_transaction_restores_counter_metadata_and_prior_proof(bool $outerRollback): void
     {
         [$user, $passkey, $fixture, $options, $request] = $this->account();
-        $before = $passkey->getRawOriginal();
+        $before = $passkey->refresh()->getRawOriginal();
         $prior = ['accounts.recent_authentication_at' => now()->subHour()->timestamp,
             'accounts.recent_authentication_method' => 'password', 'accounts.passkey_verified_public_id' => 'prior-reference'];
         $request->session()->put($prior);
@@ -244,9 +244,11 @@ final class PasskeyConfirmationAtomicityV3Test extends TestCase
         $passkey = app(StorePasskey::class)($user, 'Assertion key', $fixture->registration($registration), $registration);
         self::assertInstanceOf(AccountPasskey::class, $passkey);
         $request = Request::create('/user/passkeys/confirm');
-        $request->setUserResolver(static fn (): User => $user);
         $request->setLaravelSession(app('session.store'));
         $this->app->instance('request', $request);
+        // The application's request-rebinding hook installs its guard resolver.
+        // Bind the explicit authenticated fixture only after that hook has run.
+        $request->setUserResolver(static fn (): User => $user);
 
         return [$user, $passkey, $fixture, app(GenerateVerificationOptions::class)($user), $request];
     }
