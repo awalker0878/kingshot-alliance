@@ -39,7 +39,7 @@ final class KingdomRoleController extends Controller
         $user = $this->user($request);
         $scope = $context->scope();
         $alliance = $alliances->require($scope->allianceId);
-        $kingdom = $kingdoms->require($scope->kingdomId);
+        $kingdom = $kingdoms->requireActive($scope->kingdomId);
         if (! $authorization->allows($scope->playerId, $scope->kingdomId, KingdomPermission::RoleManage)) {
             throw new AuthorizationException;
         }
