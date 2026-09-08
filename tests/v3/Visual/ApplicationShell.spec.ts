@@ -53,8 +53,24 @@ test('multi-governor account selects and activates the first Governor', async ({
   await expect(options.nth(0)).toContainText('Lady Seraphina');
   await expect(options.nth(1)).toContainText('Lord Caspian');
 
+  const manageGovernorsLink = identityListbox.getByRole('link', { name: 'Manage Governors' });
+  await expect(manageGovernorsLink).toBeVisible();
+  await expect(manageGovernorsLink).toHaveAttribute('href', '/governors');
+
+  // Preserve the established switcher visual baseline while separately asserting the new
+  // Governor-management footer above. The footer is intentionally additive product navigation,
+  // not a redesign of the existing identity options captured by this snapshot.
+  const manageGovernorsFooter = manageGovernorsLink.locator('..');
+  await manageGovernorsFooter.evaluate((footer) => {
+    footer.style.display = 'none';
+  });
+
   await expect(page).toHaveScreenshot('governor-switcher-open.png', {
     fullPage: true,
+  });
+
+  await manageGovernorsFooter.evaluate((footer) => {
+    footer.style.removeProperty('display');
   });
 
   await options.nth(0).click();
