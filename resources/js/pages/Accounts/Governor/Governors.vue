@@ -3,6 +3,8 @@ import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { reactive } from 'vue';
 
 import RoomBanner from '@/components/game/RoomBanner.vue';
+import ConfirmActionDialog from '@/components/ui/ConfirmActionDialog.vue';
+import { useConfirmAction } from '@/components/ui/useConfirmAction';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
@@ -44,6 +46,7 @@ const props = defineProps<{
 }>();
 
 const { formatDate, t } = useLocale();
+const { dialog, requestConfirmation, cancelConfirmation, confirmAction } = useConfirmAction();
 const createForm = useForm({ name: '', kingdom_number: '', game_player_id: '' });
 const edits = reactive<Record<string, { name: string; game_player_id: string }>>(
   Object.fromEntries(
@@ -84,8 +87,15 @@ function activateGovernor(governor: Governor): void {
 
 function releaseGovernor(governor: Governor): void {
   if (governor.releaseBlockers.length > 0) return;
-  if (!window.confirm(t('governorLifecycle.releaseConfirm', { governor: governor.name }))) return;
-  router.delete(`/governors/${governor.id}`);
+
+  requestConfirmation({
+    id: `governor-release-${governor.id}`,
+    title: t('governorLifecycle.releaseTitle'),
+    description: t('governorLifecycle.releaseConfirm', { governor: governor.name }),
+    confirmLabel: t('governorLifecycle.releaseGovernor'),
+    cancelLabel: t('common.cancel'),
+    perform: (finish) => router.delete(`/governors/${governor.id}`, { onFinish: finish }),
+  });
 }
 </script>
 
@@ -359,5 +369,7 @@ function releaseGovernor(governor: Governor): void {
         </footer>
       </article>
     </section>
+
+    <ConfirmActionDialog v-bind="dialog" @confirm="confirmAction" @cancel="cancelConfirmation" />
   </AppLayout>
 </template>
