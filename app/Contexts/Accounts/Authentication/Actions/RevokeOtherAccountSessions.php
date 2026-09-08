@@ -10,6 +10,7 @@ use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use Illuminate\Session\SessionManager;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Throwable;
 
 final readonly class RevokeOtherAccountSessions
 {
@@ -18,7 +19,7 @@ final readonly class RevokeOtherAccountSessions
         private AuditRecorder $audit,
     ) {}
 
-    public function handle(int $userId, string $currentSessionId): int
+    public function handle(int $userId, ?string $currentSessionId): int
     {
         $sessionIds = DB::transaction(function () use ($userId, $currentSessionId): array {
             $user = User::query()->whereKey($userId)->lockForUpdate()->firstOrFail();
@@ -27,7 +28,7 @@ final readonly class RevokeOtherAccountSessions
                 ->where('user_id', $userId)
                 ->where('id', '<=', $lastRegisteredId)
                 ->whereNull('revoked_at')
-                ->where('session_id_hash', '!=', hash('sha256', $currentSessionId))
+                ->when($currentSessionId !== null, fn ($query) => $query->where('session_id_hash', '!=', hash('sha256', (string) $currentSessionId)))
                 ->lockForUpdate()
                 ->lazyById(100);
 
@@ -48,9 +49,16 @@ final readonly class RevokeOtherAccountSessions
             return $sessionIds;
         });
 
-        foreach ($sessionIds as $sessionId) {
-            $this->sessions->driver()->getHandler()->destroy($sessionId);
-        }
+        DB::afterCommit(function () use ($sessionIds): void {
+            foreach ($sessionIds as $sessionId) {
+                try {
+                    $this->sessions->driver()->getHandler()->destroy($sessionId);
+                } catch (Throwable $exception) {
+                    // The durable marker already denies access; storage expires normally.
+                    report($exception);
+                }
+            }
+        });
 
         return count($sessionIds);
     }

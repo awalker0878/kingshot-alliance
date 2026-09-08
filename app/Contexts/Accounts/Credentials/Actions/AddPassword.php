@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Accounts\Credentials\Actions;
 
+use App\Contexts\Accounts\Authentication\Actions\RevokeOtherAccountSessions;
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Accounts\Security\Services\SecurityNotificationService;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
@@ -16,12 +17,13 @@ final readonly class AddPassword
 {
     public function __construct(
         private AuditRecorder $audit,
+        private RevokeOtherAccountSessions $revokeOtherSessions,
         private SecurityNotificationService $securityNotifications,
     ) {}
 
-    public function handle(int $userId, string $password): void
+    public function handle(int $userId, string $password, ?string $currentSessionId): void
     {
-        DB::transaction(function () use ($userId, $password): void {
+        DB::transaction(function () use ($userId, $password, $currentSessionId): void {
             $user = User::query()->whereKey($userId)->lockForUpdate()->firstOrFail();
 
             if ($user->supportsPasswordAuthentication()) {
@@ -40,6 +42,7 @@ final readonly class AddPassword
                 actor: $user,
                 subject: $user,
             );
+            $this->revokeOtherSessions->handle($userId, $currentSessionId);
             $this->securityNotifications->publish(
                 userId: $userId,
                 event: 'account.password.added',

@@ -5,15 +5,15 @@
 - Program state: In progress.
 - Exact main baseline: `7e780521295e868005ecfee5bd38b33e8215ec49`.
 - Working branch: `astra/codebase-hardening`.
-- Latest pushed durable checkpoint: `3e4a2dae4a61c88fcdb4fd2eb481d4ce3da09a02`.
+- Latest pushed durable checkpoint: `bd5c86401a432fc698c6f6976c1a329f84b23ee0`.
 - Draft PR: [#163](https://github.com/awalker0878/kingshot-alliance/pull/163).
 - Current item/state: HARD-029 / In progress (credential security effect atomicity). HARD-028 is Complete with all nine containing workflows green.
 - Most recently verified gates: all nine PR workflows pass on `3e4a2dae4a61c88fcdb4fd2eb481d4ce3da09a02`, including 803 PHP tests / 74,375 assertions, fresh PostgreSQL, frontend, image/staging/recovery, architecture/capabilities, visual and security.
-- Active files: AddPassword/RemovePassword, TwoFactorManager, credential intent rollback/success regressions, Accounts contracts and ledger.
-- Remaining current work: verify the first HARD-029 slice; finish password/session, passkey, Google and email security-effect composition; HARD-030 durable verification, HARD-031 single-use reset serialization and HARD-032 finalized-account mutation guards; then continue repository audit coverage.
-- Known failures: none on the latest verified checkpoint. Ten new credential intent database regressions await CI.
+- Active files: password Actions/controllers, session revocation after-commit handling, credential/session regressions, Accounts contracts and ledger.
+- Remaining current work: verify the second HARD-029 slice; finish passkey, Google and email security-effect composition; HARD-030 durable verification, HARD-031 single-use reset serialization and HARD-032 finalized-account mutation guards; then continue repository audit coverage.
+- Known failures: none in PostgreSQL CI on `bd5c8640`: all 813 tests / 74,413 assertions pass, including the ten credential intent cases. Second-slice session/HTTP regressions await CI.
 - Blockers: local PostgreSQL/Redis services unavailable; service-backed verification uses GitHub CI. Local PHP 8.5.8 and locked Composer/npm dependencies available. Checkpoints publish via the authorized GitHub connection with exact staged-tree verification and non-forced branch updates.
-- Exact next action: publish the first HARD-029 slice and verify containing workflows; then make session revocation safe under outer owner transactions and compose the remaining credential effects without running storage/network work inside database transactions.
+- Exact next action: verify the second HARD-029 slice, then finish passkey event, Google and email security effects. All remote delivery must remain outside database transactions.
 - Remaining repository-wide gates: final full PHP/architecture/capability and frontend gates on one containing commit; production image/staging/recovery; final security/dependency/visual checks; remaining capability-by-capability audit coverage below.
 
 Checkpoint SHAs are recorded by the following documentation commit; verify that the recorded checkpoint is an ancestor of current branch HEAD. No audit area is complete solely because its paths have been inventoried.
@@ -422,7 +422,7 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Remediation: trace all password, MFA, passkey, Google and email effect writers; include required database effects in the owner transaction and preserve after-commit external cleanup; verify real failure/rollback and response behavior.
 - State: In progress.
 - Verification required: failures while recording security intent preserve credential/reset-token/audit consistency, successful changes retain session/proof behavior, package verification remains maintained, and no storage/network calls run under widened transactions.
-- Verification result: First slice moves AddPassword/RemovePassword and MFA confirm/regenerate/disable security intent into their owner transactions, including password reset-token deletion. Ten database cases exercise real intent INSERT failures and successful credential/audit/message contracts. Full PHPStan and changed-file Pint pass; database cases await CI. ChangePassword/session revocation, passkey event adapters, Google and email effects remain under this item. Trace also found a forced password rehash through logoutOtherDevices outside the owner lock; that call must be removed while preserving durable session revocation.
+- Verification result: First slice moves AddPassword/RemovePassword and MFA confirm/regenerate/disable security intent into their owner transactions, including password reset-token deletion. Ten database cases exercise real intent INSERT failures and successful credential/audit/message contracts. First-slice PostgreSQL CI passes all ten cases on `bd5c8640` (813 tests / 74,413 assertions), PHP job `102196149819`. Second slice composes session revocation into all three password Actions, removes the forced second rehash, refreshes current HTTP authentication and clears recent proof. Both revocation Actions defer raw cleanup until the outermost commit, discard cleanup on rollback and report storage exceptions without turning committed revocation into a failed request. Seven commit/rollback/storage/HTTP regressions and two expanded password-change intent cases await CI. Full PHPStan and changed-file Pint pass. Passkey event adapters, Google and email effects remain under this item.
 - Completion evidence: pending.
 - Commit SHA: pending.
 

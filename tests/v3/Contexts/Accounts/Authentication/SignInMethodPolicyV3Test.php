@@ -74,7 +74,7 @@ final class SignInMethodPolicyV3Test extends TestCase
         $user = User::factory()->create();
 
         $this->expectException(ValidationException::class);
-        app(RemovePassword::class)->handle((int) $user->id);
+        app(RemovePassword::class)->handle((int) $user->id, null);
     }
 
     public function test_password_can_be_removed_when_google_remains(): void
@@ -90,7 +90,7 @@ final class SignInMethodPolicyV3Test extends TestCase
             'last_used_at' => now(),
         ]);
 
-        app(RemovePassword::class)->handle((int) $user->id);
+        app(RemovePassword::class)->handle((int) $user->id, null);
 
         self::assertNull($user->refresh()->getRawOriginal('password'));
         self::assertTrue($user->supportsGoogleAuthentication());

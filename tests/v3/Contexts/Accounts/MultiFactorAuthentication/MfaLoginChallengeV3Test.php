@@ -101,7 +101,7 @@ final class MfaLoginChallengeV3Test extends TestCase
                 $user->forceFill(['password' => Hash::make('ChangedPassword123')])->save();
                 break;
             case 'password removed':
-                app(RemovePassword::class)->handle((int) $user->id);
+                app(RemovePassword::class)->handle((int) $user->id, null);
                 break;
             case 'google removed':
             case 'google replaced':

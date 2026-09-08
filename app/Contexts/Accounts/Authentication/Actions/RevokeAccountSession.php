@@ -11,6 +11,7 @@ use Illuminate\Session\SessionManager;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 
 final readonly class RevokeAccountSession
 {
@@ -50,7 +51,14 @@ final readonly class RevokeAccountSession
             return (string) $record->session_id;
         });
 
-        // The committed marker denies stale writes even if storage cleanup fails.
-        $this->sessions->driver()->getHandler()->destroy($sessionId);
+        // An outer credential transaction must commit before raw storage is touched.
+        DB::afterCommit(function () use ($sessionId): void {
+            try {
+                $this->sessions->driver()->getHandler()->destroy($sessionId);
+            } catch (Throwable $exception) {
+                // The durable marker already denies access; storage expires normally.
+                report($exception);
+            }
+        });
     }
 }

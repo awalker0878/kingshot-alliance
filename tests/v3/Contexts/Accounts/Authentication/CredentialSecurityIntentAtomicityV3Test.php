@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\v3\Contexts\Accounts\Authentication;
 
+use App\Contexts\Accounts\Authentication\Actions\RecordAccountSession;
+use App\Contexts\Accounts\Authentication\Models\AccountSession;
 use App\Contexts\Accounts\Credentials\Actions\AddPassword;
 use App\Contexts\Accounts\Credentials\Actions\RemovePassword;
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Accounts\MultiFactorAuthentication\Services\TotpService;
 use App\Contexts\Accounts\MultiFactorAuthentication\Services\TwoFactorManager;
+use App\Contexts\Accounts\Profile\Actions\ChangePassword;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -24,6 +27,7 @@ final class CredentialSecurityIntentAtomicityV3Test extends TestCase
     /** @return iterable<string,array{string,string}> */
     public static function mutations(): iterable
     {
+        yield 'change-password' => ['change-password', 'profile.password.updated'];
         yield 'add-password' => ['add-password', 'account.password.added'];
         yield 'remove-password' => ['remove-password', 'account.password.removed'];
         yield 'enable-mfa' => ['enable-mfa', 'auth.mfa.enabled'];
@@ -65,7 +69,7 @@ final class CredentialSecurityIntentAtomicityV3Test extends TestCase
         self::assertSame(1, DB::table('notification_messages')->where('recipient_user_id', $user->id)->where('subject_id', $event)->count());
         self::assertSame(1, DB::table('audit_events')->where('actor_user_id', $user->id)->where('event', $event)->count());
 
-        if ($operation === 'add-password') {
+        if (in_array($operation, ['add-password', 'change-password'], true)) {
             self::assertTrue(Hash::check('After-Password-321!', (string) $user->password));
         } elseif ($operation === 'remove-password') {
             self::assertNull($user->getRawOriginal('password'));
@@ -86,12 +90,17 @@ final class CredentialSecurityIntentAtomicityV3Test extends TestCase
     private function mutate(User $user, string $operation): array
     {
         if ($operation === 'add-password') {
-            app(AddPassword::class)->handle((int) $user->id, 'After-Password-321!');
+            app(AddPassword::class)->handle((int) $user->id, 'After-Password-321!', null);
 
             return [];
         }
         if ($operation === 'remove-password') {
-            app(RemovePassword::class)->handle((int) $user->id);
+            app(RemovePassword::class)->handle((int) $user->id, null);
+
+            return [];
+        }
+        if ($operation === 'change-password') {
+            app(ChangePassword::class)->handle((int) $user->id, 'Before-Password-123!', 'After-Password-321!', null);
 
             return [];
         }
@@ -112,12 +121,13 @@ final class CredentialSecurityIntentAtomicityV3Test extends TestCase
     private function account(string $operation): User
     {
         $user = User::factory()->google()->create([
-            'password' => $operation === 'remove-password' ? Hash::make('Before-Password-123!') : null,
+            'password' => in_array($operation, ['remove-password', 'change-password'], true) ? Hash::make('Before-Password-123!') : null,
             'two_factor_secret' => str_contains($operation, 'mfa') ? 'JBSWY3DPEHPK3PXP' : null,
             'two_factor_confirmed_at' => in_array($operation, ['disable-mfa', 'regenerate-mfa'], true) ? now() : null,
             'two_factor_recovery_codes' => in_array($operation, ['disable-mfa', 'regenerate-mfa'], true) ? [hash('sha256', 'prior-recovery-code')] : null,
         ]);
         $user->createToken('Credential transaction fixture');
+        app(RecordAccountSession::class)->handle((int) $user->id, 'prior-browser-session', 'Chrome/');
         DB::table('password_reset_tokens')->insert([
             'email' => $user->email,
             'token' => hash('sha256', 'prior-reset-token'),
@@ -133,6 +143,7 @@ final class CredentialSecurityIntentAtomicityV3Test extends TestCase
         return [
             'account' => $user->refresh()->getRawOriginal(),
             'tokens' => $user->tokens()->orderBy('id')->get()->toArray(),
+            'sessions' => AccountSession::query()->where('user_id', $user->id)->orderBy('id')->get()->toArray(),
             'reset' => (array) DB::table('password_reset_tokens')->where('email', $user->email)->first(),
             'audit' => DB::table('audit_events')->count(),
             'outbox' => DB::table('outbox_messages')->count(),

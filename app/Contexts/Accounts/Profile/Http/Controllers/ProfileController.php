@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Contexts\Accounts\Profile\Http\Controllers;
 
-use App\Contexts\Accounts\Authentication\Actions\RevokeOtherAccountSessions;
 use App\Contexts\Accounts\Authentication\Models\AccountPasskey;
 use App\Contexts\Accounts\Authentication\Models\AccountSession;
 use App\Contexts\Accounts\Authentication\Services\AccountSignInMethodPolicy;
+use App\Contexts\Accounts\Authentication\Services\RecentAuthentication;
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Accounts\Profile\Actions\ChangePassword;
 use App\Contexts\Accounts\Profile\Actions\UpdateProfile;
@@ -15,6 +15,7 @@ use App\Contexts\Accounts\Security\Queries\AccountSecurityActivityQuery;
 use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -119,7 +120,7 @@ final class ProfileController extends Controller
     public function updatePassword(
         Request $request,
         ChangePassword $changePassword,
-        RevokeOtherAccountSessions $revokeOtherSessions,
+        RecentAuthentication $recentAuthentication,
     ): RedirectResponse {
         $user = $request->user();
         abort_unless($user instanceof User, 401);
@@ -133,8 +134,10 @@ final class ProfileController extends Controller
             (int) $user->id,
             (string) $validated['current_password'],
             (string) $validated['password'],
+            $request->session()->getId(),
         );
-        $revokeOtherSessions->handle((int) $user->id, $request->session()->getId());
+        Auth::setUser($user->refresh());
+        $recentAuthentication->clear($request);
 
         return redirect()->route('profile.show')->with('actionReceipt', $this->receipt('password-updated'));
     }

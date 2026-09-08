@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Accounts\Credentials\Actions;
 
+use App\Contexts\Accounts\Authentication\Actions\RevokeOtherAccountSessions;
 use App\Contexts\Accounts\Authentication\Services\AccountSignInMethodPolicy;
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Accounts\Security\Services\SecurityNotificationService;
@@ -17,12 +18,13 @@ final readonly class RemovePassword
     public function __construct(
         private AccountSignInMethodPolicy $methods,
         private AuditRecorder $audit,
+        private RevokeOtherAccountSessions $revokeOtherSessions,
         private SecurityNotificationService $securityNotifications,
     ) {}
 
-    public function handle(int $userId): void
+    public function handle(int $userId, ?string $currentSessionId): void
     {
-        DB::transaction(function () use ($userId): void {
+        DB::transaction(function () use ($userId, $currentSessionId): void {
             $user = User::query()->whereKey($userId)->lockForUpdate()->firstOrFail();
 
             if (! $this->methods->canRemovePassword($user)) {
@@ -44,6 +46,7 @@ final readonly class RemovePassword
             );
 
             DB::table('password_reset_tokens')->where('email', (string) $user->email)->delete();
+            $this->revokeOtherSessions->handle($userId, $currentSessionId);
             $this->securityNotifications->publish(
                 userId: $userId,
                 event: 'account.password.removed',

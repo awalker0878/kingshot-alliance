@@ -46,7 +46,7 @@ final class PasskeyMutationSerializationV3Test extends TestCase
 
             DB::setDefaultConnection('credential_competitor');
             try {
-                app(RemovePassword::class)->handle((int) $user->id);
+                app(RemovePassword::class)->handle((int) $user->id, null);
             } catch (QueryException $error) {
                 if (($error->errorInfo[0] ?? null) !== '55P03') {
                     throw $error;
@@ -67,7 +67,7 @@ final class PasskeyMutationSerializationV3Test extends TestCase
             $this->assertDatabaseMissing('passkeys', ['id' => $passkey->id]);
 
             $this->expectException(ValidationException::class);
-            app(RemovePassword::class)->handle((int) $user->id);
+            app(RemovePassword::class)->handle((int) $user->id, null);
         } finally {
             DB::setDefaultConnection($primaryConnection);
             DB::purge('credential_competitor');
