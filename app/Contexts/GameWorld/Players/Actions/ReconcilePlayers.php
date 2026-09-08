@@ -59,10 +59,10 @@ final readonly class ReconcilePlayers
             $locked = Player::query()->whereIn('id', $ids)->orderBy('id')->lockForUpdate()->get()->keyBy('id');
             $canonical = $locked->get($canonicalPlayerId);
             $duplicate = $locked->get($duplicatePlayerId);
-            if (! $canonical instanceof Player) {
+            if (! ($canonical instanceof Player)) {
                 Player::query()->findOrFail($canonicalPlayerId);
             }
-            if (! $duplicate instanceof Player) {
+            if (! ($duplicate instanceof Player)) {
                 Player::query()->findOrFail($duplicatePlayerId);
             }
             /** @var Player $canonical */
