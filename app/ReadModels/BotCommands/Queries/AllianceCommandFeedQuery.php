@@ -28,14 +28,14 @@ final readonly class AllianceCommandFeedQuery
     public function overview(string $allianceId): array
     {
         $alliance = $this->alliances->require($allianceId);
-        $kingdom = $this->kingdoms->find($alliance->kingdomId);
+        $kingdom = $this->kingdoms->requireActive($alliance->kingdomId);
 
         return [
             'alliance' => [
                 'id' => $alliance->allianceId,
                 'name' => $alliance->name,
                 'slug' => $alliance->slug,
-                'kingdom' => $kingdom?->number,
+                'kingdom' => $kingdom->number,
                 'language' => $alliance->language,
                 'timezone' => $alliance->timezone,
             ],
