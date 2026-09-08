@@ -105,7 +105,7 @@ final class PasskeySecurityIntentAtomicityV3Test extends TestCase
         $this->withoutExceptionHandling();
 
         try {
-            $this->withCookie((string) config('session.cookie'), $currentId)
+            $this->withCredentials()->withCookie((string) config('session.cookie'), $currentId)
                 ->deleteJson('/user/passkeys/'.$passkey->public_id);
             self::fail('The deletion event must persist security intent.');
         } catch (RuntimeException $exception) {

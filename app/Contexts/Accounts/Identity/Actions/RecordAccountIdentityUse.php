@@ -21,9 +21,12 @@ final readonly class RecordAccountIdentityUse
     ): void {
         $email = $providerEmail === null ? null : Str::lower(trim($providerEmail));
 
-        DB::transaction(function () use ($identityId, $email, $providerEmailVerified): void {
-            $identity = AccountIdentity::query()->whereKey($identityId)->lockForUpdate()->firstOrFail();
-            $user = User::query()->whereKey($identity->user_id)->lockForUpdate()->firstOrFail();
+        $userId = (int) AccountIdentity::query()->whereKey($identityId)->firstOrFail()->user_id;
+
+        DB::transaction(function () use ($identityId, $userId, $email, $providerEmailVerified): void {
+            $user = User::query()->whereKey($userId)->lockForUpdate()->firstOrFail();
+            $identity = AccountIdentity::query()->whereKey($identityId)->where('user_id', $userId)
+                ->lockForUpdate()->firstOrFail();
 
             $identity->forceFill([
                 'provider_email' => $email,

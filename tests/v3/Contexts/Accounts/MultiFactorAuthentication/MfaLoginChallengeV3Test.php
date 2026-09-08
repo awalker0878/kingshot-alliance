@@ -105,7 +105,7 @@ final class MfaLoginChallengeV3Test extends TestCase
                 break;
             case 'google removed':
             case 'google replaced':
-                app(RemoveAccountIdentity::class)->handle((int) $user->id, 'google');
+                app(RemoveAccountIdentity::class)->handle((int) $user->id, 'google', null);
                 if ($change === 'google replaced') {
                     $this->attachGoogle($user, 'replacement-google-subject');
                 }

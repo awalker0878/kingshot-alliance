@@ -10,6 +10,7 @@ use App\Contexts\Accounts\Security\Services\SecurityNotificationService;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 final readonly class PromotePendingAccountEmail
@@ -49,16 +50,19 @@ final readonly class PromotePendingAccountEmail
                 subject: $user,
             );
 
+            $this->securityNotifications->publish(
+                userId: $userId,
+                event: 'auth.email.changed',
+                title: (string) __('accounts.security.email_changed.title'),
+                body: (string) __('accounts.security.email_changed.body'),
+                idempotencyKey: 'auth.email.changed:'.$userId.':'.Str::ulid(),
+            );
+
             return [$previousEmail, $pendingEmail];
         });
 
-        Notification::route('mail', $previousEmail)->notify(new KingshotAllianceEmailChangedNotice($email));
-        $this->securityNotifications->publish(
-            userId: $userId,
-            event: 'auth.email.changed',
-            title: (string) __('accounts.security.email_changed.title'),
-            body: (string) __('accounts.security.email_changed.body'),
-            idempotencyKey: 'auth.email.changed:'.$userId.':'.sha1($email),
-        );
+        DB::afterCommit(static function () use ($previousEmail, $email): void {
+            Notification::route('mail', $previousEmail)->notify(new KingshotAllianceEmailChangedNotice($email));
+        });
     }
 }

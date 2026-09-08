@@ -50,19 +50,21 @@ final readonly class RequestAccountEmailChange
                 subject: $user,
             );
 
+            $this->securityNotifications->publish(
+                userId: $userId,
+                event: 'auth.email.change_requested',
+                title: (string) __('accounts.security.email_change_requested.title'),
+                body: (string) __('accounts.security.email_change_requested.body'),
+                idempotencyKey: 'auth.email.change_requested:'.$userId.':'.Str::ulid(),
+            );
+
             return $email;
         });
 
-        Notification::route('mail', $pendingEmail)->notify(
-            new VerifyPendingKingshotAllianceEmail($userId, sha1($pendingEmail)),
-        );
-
-        $this->securityNotifications->publish(
-            userId: $userId,
-            event: 'auth.email.change_requested',
-            title: (string) __('accounts.security.email_change_requested.title'),
-            body: (string) __('accounts.security.email_change_requested.body'),
-            idempotencyKey: 'auth.email.change_requested:'.$userId.':'.sha1($pendingEmail),
-        );
+        DB::afterCommit(static function () use ($userId, $pendingEmail): void {
+            Notification::route('mail', $pendingEmail)->notify(
+                new VerifyPendingKingshotAllianceEmail($userId, sha1($pendingEmail)),
+            );
+        });
     }
 }

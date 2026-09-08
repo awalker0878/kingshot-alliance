@@ -21,7 +21,7 @@ final class CredentialMutationV3Test extends TestCase
         $user = User::factory()->google()->create();
 
         $this->expectException(ValidationException::class);
-        app(RemoveAccountIdentity::class)->handle((int) $user->id, 'google');
+        app(RemoveAccountIdentity::class)->handle((int) $user->id, 'google', null);
     }
 
     public function test_google_can_be_disconnected_when_password_remains(): void
@@ -37,7 +37,7 @@ final class CredentialMutationV3Test extends TestCase
             'last_used_at' => now(),
         ]);
 
-        app(RemoveAccountIdentity::class)->handle((int) $user->id, 'google');
+        app(RemoveAccountIdentity::class)->handle((int) $user->id, 'google', null);
 
         self::assertFalse($user->refresh()->supportsGoogleAuthentication());
         self::assertTrue($user->supportsPasswordAuthentication());

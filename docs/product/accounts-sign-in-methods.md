@@ -71,7 +71,7 @@ The callback never infers intent from matching email, browser redirect input, or
 
 An authenticated User may choose **Security -> Sign-in methods -> Connect Google**. The flow requires recent authentication, proves a Google subject, rejects subjects already owned by another User, and attaches the subject to the current User. Provider email may differ from the Kingshot Alliance account email.
 
-Connecting Google never changes the Kingshot Alliance account email.
+Connecting Google never changes the Kingshot Alliance account email. Accounts ConnectGoogleAccount owns the account lock, provider attachment and connection audit/security intent in one transaction. Repeating the same subject refreshes provider metadata without duplicating connection effects; replacing a different subject requires an explicit disconnect. The global provider-subject constraint rejects competing ownership.
 
 ## Google sign-in
 
@@ -79,7 +79,7 @@ Established Google identities resolve only by `google + provider_subject`, then 
 
 ## Disconnect Google
 
-Disconnect requires recent authentication and the central sign-in-method policy. It is allowed only when another usable sign-in method remains. Successful removal clears relevant recent proof/pending operations, applies session hardening, records security activity, and sends an account-security notification.
+Disconnect requires recent authentication and the central sign-in-method policy. It is allowed only when another usable sign-in method remains. Successful removal commits identity deletion, durable session revocation, security audit and Communications intent together; the HTTP adapter clears recent proof after success. Raw session cleanup runs after the outermost commit. Provider use also locks the account before the identity, matching removal and finalization.
 
 ## Password sign-in method
 
@@ -89,7 +89,7 @@ Forgot Password remains enumeration resistant and emits reset credentials only w
 
 ## Account email
 
-The Kingshot Alliance account email is independent from provider email and is managed by the existing signed verified-email-change workflow. Google email updates provider metadata only. Email-change eligibility is based on account ownership/recent authentication, not on which sign-in methods are attached.
+The Kingshot Alliance account email is independent from provider email and is managed by the existing signed verified-email-change workflow. Email request/promotion state, audit and account-security intent commit together. Verification and old-address mail wait for the outermost commit, and rolled-back operations send none. Each new change cycle receives new security intent even when an earlier address is reused. Google email updates provider metadata only. Email-change eligibility is based on account ownership/recent authentication, not on which sign-in methods are attached.
 
 ## Sign-in-method policy
 
