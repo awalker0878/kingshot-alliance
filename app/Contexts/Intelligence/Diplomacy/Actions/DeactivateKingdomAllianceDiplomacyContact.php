@@ -50,7 +50,7 @@ final readonly class DeactivateKingdomAllianceDiplomacyContact
                 ]);
             }
 
-            $reference = $this->kingdomAlliances->require((string) $tracking->kingdom_alliance_id);
+            $reference = $this->kingdomAlliances->requireActiveCanonical((string) $tracking->kingdom_alliance_id);
             if ($reference->kingdomId !== (string) $tracking->kingdom_id) {
                 throw ValidationException::withMessages([
                     'contact' => 'The tracked alliance reference no longer matches its captured Kingdom context.',
@@ -63,9 +63,10 @@ final readonly class DeactivateKingdomAllianceDiplomacyContact
                 ->lockForUpdate()
                 ->findOrFail($contactId);
 
-            if ($contact->kingdom_alliance_id !== $reference->kingdomAllianceId) {
+            $contactCanonical = $this->kingdomAlliances->requireCanonical((string) $contact->kingdom_alliance_id);
+            if ($contactCanonical->kingdomAllianceId !== $reference->kingdomAllianceId) {
                 throw ValidationException::withMessages([
-                    'contact' => 'The diplomacy contact no longer matches the tracked neutral alliance reference.',
+                    'contact' => 'The diplomacy contact no longer matches the tracked canonical Alliance identity.',
                 ]);
             }
 
@@ -75,6 +76,7 @@ final readonly class DeactivateKingdomAllianceDiplomacyContact
 
             $deactivatedAt = now();
             $contact->forceFill([
+                'kingdom_alliance_id' => $reference->kingdomAllianceId,
                 'state' => KingdomAllianceContactState::Inactive,
                 'deactivated_at' => $deactivatedAt,
                 'deactivated_by_player_id' => $actor->playerId,
@@ -84,7 +86,7 @@ final readonly class DeactivateKingdomAllianceDiplomacyContact
             $metadata = [
                 'diplomacy_contact_id' => (string) $contact->id,
                 'tracked_kingdom_alliance_id' => (string) $tracking->id,
-                'kingdom_alliance_id' => (string) $reference->kingdomAllianceId,
+                'kingdom_alliance_id' => $reference->kingdomAllianceId,
                 'state' => KingdomAllianceContactState::Inactive->value,
                 'deactivated_at' => $deactivatedAt->toIso8601String(),
             ];

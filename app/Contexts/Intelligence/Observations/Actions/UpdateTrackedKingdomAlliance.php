@@ -42,7 +42,7 @@ final readonly class UpdateTrackedKingdomAlliance
                 throw ValidationException::withMessages(['tracking' => 'This tracking record belongs to an earlier Kingdom context and cannot be edited.']);
             }
 
-            $reference = $this->references->require((string) $tracking->kingdom_alliance_id);
+            $reference = $this->references->requireActiveCanonical((string) $tracking->kingdom_alliance_id);
             if ($reference->kingdomId !== (string) $tracking->kingdom_id) {
                 throw ValidationException::withMessages(['tracking' => 'The tracked alliance identity no longer matches its captured Kingdom context.']);
             }
@@ -68,6 +68,9 @@ final readonly class UpdateTrackedKingdomAlliance
                     $name,
                     $tag,
                     $stableId,
+                    sourceReference: 'tracked-kingdom-alliance:'.$tracking->id,
+                    actor: $actor,
+                    reason: 'Alliance identity updated through active Intelligence tracking.',
                 );
             } else {
                 $updated = $reference;

@@ -8,6 +8,7 @@ use App\Contexts\GameWorld\Kingdoms\Enums\KingdomAllianceStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @property string $kingdom_id
@@ -15,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $current_name
  * @property string|null $current_tag
  * @property KingdomAllianceStatus $status
+ * @property string|null $canonical_kingdom_alliance_id
  * @property-read Kingdom $kingdom
  */
 final class KingdomAlliance extends Model
@@ -25,7 +27,14 @@ final class KingdomAlliance extends Model
 
     protected $keyType = 'string';
 
-    protected $fillable = ['kingdom_id', 'game_alliance_id', 'current_name', 'current_tag', 'status'];
+    protected $fillable = [
+        'kingdom_id',
+        'game_alliance_id',
+        'current_name',
+        'current_tag',
+        'status',
+        'canonical_kingdom_alliance_id',
+    ];
 
     protected function casts(): array
     {
@@ -36,5 +45,23 @@ final class KingdomAlliance extends Model
     public function kingdom(): BelongsTo
     {
         return $this->belongsTo(Kingdom::class);
+    }
+
+    /** @return BelongsTo<KingdomAlliance, $this> */
+    public function canonicalAlliance(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'canonical_kingdom_alliance_id');
+    }
+
+    /** @return HasMany<KingdomAlliance, $this> */
+    public function aliases(): HasMany
+    {
+        return $this->hasMany(self::class, 'canonical_kingdom_alliance_id');
+    }
+
+    /** @return HasMany<KingdomAllianceIdentityHistory, $this> */
+    public function identityHistory(): HasMany
+    {
+        return $this->hasMany(KingdomAllianceIdentityHistory::class);
     }
 }

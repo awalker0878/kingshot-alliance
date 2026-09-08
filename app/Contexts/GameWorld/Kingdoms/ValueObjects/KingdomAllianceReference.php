@@ -15,5 +15,11 @@ final readonly class KingdomAllianceReference
         public string $currentName,
         public ?string $currentTag,
         public KingdomAllianceStatus $statusObservedAtRead,
+        public ?string $canonicalKingdomAllianceId = null,
     ) {}
+
+    public function isCanonical(): bool
+    {
+        return $this->canonicalKingdomAllianceId === null;
+    }
 }
