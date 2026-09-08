@@ -15,11 +15,17 @@ final readonly class PlayerReference implements AuditActor
         public string $currentName,
         public ?string $gamePlayerId,
         public ?int $kingdomNumber = null,
+        public ?string $canonicalPlayerId = null,
     ) {}
 
     public function claimed(): bool
     {
         return $this->userId !== null;
+    }
+
+    public function directIdentity(): bool
+    {
+        return $this->canonicalPlayerId === null;
     }
 
     public function auditUserId(): ?int

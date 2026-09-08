@@ -13,4 +13,9 @@ final class PlayersServiceProvider extends ServiceProvider
     {
         $this->app->scoped(PlayerContext::class);
     }
+
+    public function boot(): void
+    {
+        $this->loadRoutesFrom(base_path('routes/governors.php'));
+    }
 }

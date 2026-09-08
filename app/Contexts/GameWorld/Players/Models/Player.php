@@ -16,10 +16,15 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * The owning account is represented by the scalar user_id boundary key. GameWorld
  * deliberately exposes no Eloquent navigation back into Accounts.
  *
+ * Reconciled duplicate identities retain their historical row and point at the
+ * direct canonical Player through canonical_player_id. They are never current
+ * operational principals and must not retain account ownership or a stable game ID.
+ *
  * @property int|null $user_id
  * @property string $current_kingdom_id
  * @property string|null $game_player_id
  * @property string $current_name
+ * @property string|null $canonical_player_id
  * @property-read Kingdom $currentKingdom
  */
 final class Player extends Model implements AuditActor
@@ -30,7 +35,13 @@ final class Player extends Model implements AuditActor
 
     protected $keyType = 'string';
 
-    protected $fillable = ['user_id', 'current_kingdom_id', 'game_player_id', 'current_name'];
+    protected $fillable = [
+        'user_id',
+        'current_kingdom_id',
+        'game_player_id',
+        'current_name',
+        'canonical_player_id',
+    ];
 
     /** @return BelongsTo<Kingdom, $this> */
     public function currentKingdom(): BelongsTo

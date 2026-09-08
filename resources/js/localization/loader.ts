@@ -96,6 +96,13 @@ async function giftCodeWorkspaceCatalogue(base: MessageCatalogue): Promise<Messa
   const { giftCodeWorkspaceLabels } = await import('./gift-code-workspace-labels');
   return mergeCatalogue(base, giftCodeWorkspaceLabels());
 }
+async function governorLifecycleCatalogue(
+  base: MessageCatalogue,
+  locale: LocaleCode,
+): Promise<MessageCatalogue> {
+  const { governorLifecycleLabels } = await import('./governor-lifecycle-labels');
+  return mergeCatalogue(base, governorLifecycleLabels(locale));
+}
 
 async function loadOne(domain: LocalizationDomain, locale: LocaleCode): Promise<MessageCatalogue> {
   const key = cacheKey(domain, locale);
@@ -115,6 +122,8 @@ async function loadOne(domain: LocalizationDomain, locale: LocaleCode): Promise<
     if (domain === 'core' || domain === 'kingdom')
       catalogue = await governanceCapabilityExpansionCatalogue(catalogue, locale);
     if (domain === 'core') catalogue = await giftCodeWorkspaceCatalogue(catalogue);
+    if (domain === 'core' || domain === 'account')
+      catalogue = await governorLifecycleCatalogue(catalogue, locale);
     if (['alliance', 'assistant', 'kingdom'].includes(domain))
       catalogue = await intelligenceChangeCatalogue(catalogue, locale);
     if (domain === 'account') catalogue = await communicationsRecipientDeliveryCatalogue(catalogue);

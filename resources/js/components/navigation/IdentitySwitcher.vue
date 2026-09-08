@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { router, usePage } from '@inertiajs/vue3';
+import { Link, router, usePage } from '@inertiajs/vue3';
 import { computed, nextTick, ref, watch } from 'vue';
 
 import { useLocale } from '@/localization';
@@ -288,6 +288,12 @@ function activate(playerId: string): void {
             {{ t('common.loading') }}
           </span>
         </button>
+      </div>
+
+      <div class="border-t border-[var(--ks-border)] p-3">
+        <Link href="/governors" class="ks-command-link w-full justify-center" @click="close">
+          {{ t('common.manageGovernors') }}
+        </Link>
       </div>
     </div>
   </div>

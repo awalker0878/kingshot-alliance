@@ -4,14 +4,43 @@ Status: Current — Architecture V3
 
 Implementation target: `app/Contexts/GameWorld/Players`
 
-Players owns durable Player identity/claim behavior, the scalar User ownership reference, Player lookup/ownership queries and active Player selection.
+Players owns durable Player identity/claim behavior, the scalar User ownership reference, Player lookup/ownership queries, active Player selection, temporal identity history and explicit canonical identity reconciliation.
+
+User-facing product term: **Governor**. Internal/domain term: **Player**.
 
 ## Invariants
 
-- one User may own multiple Players;
+- one User may own zero, one or multiple Players;
 - the active Player is the game-domain principal;
 - active Player selection must validate ownership by the authenticated User;
 - authority is never aggregated across a User's Players;
-- Player does not expose an Eloquent relationship into Accounts User.
+- Player does not expose an Eloquent relationship into Accounts User;
+- `players` remains the current authoritative identity projection;
+- temporal identity/ownership history is retained in `player_identity_history` rather than inferred from current state;
+- a stable game Player ID is the strongest identity key when known and cannot be silently replaced;
+- name similarity may surface a reconciliation candidate but can never authorize an automatic merge;
+- reconciled duplicate rows remain as historical aliases through `canonical_player_id` and are excluded from current owned/operational Player reads;
+- Players does not rewrite foreign-owner tables during reconciliation;
+- live Governance, Alliance membership or active/tracked roster dependencies must be resolved by their owning context before a duplicate can be reconciled;
+- account release clears Player ownership but preserves the durable Player identity and its history;
+- cross-Kingdom movement fails closed while current-Kingdom Governance, active Alliance membership or conflicting roster state remains.
 
-Active Player activation is a GameWorld/Players Action, not a Workflow.
+## Lifecycle
+
+Player-owned intent Actions include creation for an account, safe owned identity update, explicit owned Kingdom movement, claim, voluntary release, account-deletion release, trusted identity persistence and explicit reconciliation.
+
+The first-class `/governors` surface exposes the safe self-service subset. Voluntary release is recent-auth protected and subject to lifecycle blockers.
+
+Active Player activation remains a `GameWorld/Players` Action, not a Workflow. It validates account ownership, emits `player.context_changed`, updates session context through its controller, and never accepts browser authority facts.
+
+## History and reconciliation
+
+`player_identity_history` stores temporal snapshots with provenance fields such as source/reference, observed time, optional confidence and reason. The current Player row remains authoritative for current reads.
+
+`player_reconciliations` records the explicit canonical/duplicate decision. Historical aliases are preserved instead of deleted or globally repointed. Callers that need present identity from an historical alias use explicit canonical resolution.
+
+See:
+
+- `docs/product/player-governor-identity-lifecycle.md`
+- `docs/product/player-governor-identity-lifecycle-delivery-ledger.md`
+- `docs/architecture/adr/0017-preserve-player-identity-history-and-reconcile-by-canonical-alias.md`
