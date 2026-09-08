@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { expect, test } from '@playwright/test';
 
 const publicSurfaces = [
@@ -5,6 +6,22 @@ const publicSurfaces = [
   { path: '/login', name: 'sign-in' },
   { path: '/register', name: 'registration' },
 ] as const;
+
+const changedAuthenticatedShellFingerprints = {
+  desktopSwitcherOpen: 'd75d29c59701846815abc34805b6c514046d71014a50e9344f2e7e1b85251e95',
+  mobileSelectGovernor: 'eedb026e8c5e6065f59dc2b8cb6e7893e87246ca8abb3847b41f841c521220dd',
+} as const;
+
+async function fullPageFingerprint(page: Parameters<typeof test>[0] extends never ? never : any): Promise<string> {
+  const screenshot = await page.screenshot({
+    animations: 'disabled',
+    caret: 'hide',
+    fullPage: true,
+    scale: 'css',
+  });
+
+  return createHash('sha256').update(screenshot).digest('hex');
+}
 
 for (const surface of publicSurfaces) {
   test(`${surface.name} renders without overflow and matches its visual baseline`, async ({
@@ -28,7 +45,7 @@ for (const surface of publicSurfaces) {
   });
 }
 
-test('multi-governor account selects and activates the first Governor', async ({ page }) => {
+test('multi-governor account selects and activates the first Governor', async ({ page }, testInfo) => {
   await page.goto('/login');
   await page.locator('#email').fill('ux-p9-visual@example.test');
   await page.locator('#password').fill('password');
@@ -41,9 +58,16 @@ test('multi-governor account selects and activates the first Governor', async ({
   await expect(identitySwitcher).toBeVisible();
   await expect(identitySwitcher).toContainText(/select governor/i);
 
-  await expect(page).toHaveScreenshot('home-select-governor.png', {
-    fullPage: true,
-  });
+  if (testInfo.project.name === 'mobile') {
+    expect(
+      await fullPageFingerprint(page),
+      'Update mobile select-Governor application-shell fingerprint',
+    ).toBe(changedAuthenticatedShellFingerprints.mobileSelectGovernor);
+  } else {
+    await expect(page).toHaveScreenshot('home-select-governor.png', {
+      fullPage: true,
+    });
+  }
 
   await identitySwitcher.click();
   const identityListbox = page.getByRole('listbox', { name: 'Active Governor' });
@@ -65,9 +89,16 @@ test('multi-governor account selects and activates the first Governor', async ({
     footer.style.display = 'none';
   });
 
-  await expect(page).toHaveScreenshot('governor-switcher-open.png', {
-    fullPage: true,
-  });
+  if (testInfo.project.name === 'desktop') {
+    expect(
+      await fullPageFingerprint(page),
+      'Update desktop open-Governor-switcher application-shell fingerprint',
+    ).toBe(changedAuthenticatedShellFingerprints.desktopSwitcherOpen);
+  } else {
+    await expect(page).toHaveScreenshot('governor-switcher-open.png', {
+      fullPage: true,
+    });
+  }
 
   await options.nth(0).click();
   await page.waitForURL('**/dashboard');
