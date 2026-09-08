@@ -25,7 +25,7 @@ return new class extends Migration
             $table->timestamp('started_at');
             $table->timestamp('completed_at')->nullable();
             $table->timestamps();
-            $table->index(['evidence_id', 'created_at'], 'evidence_extraction_history_idx');
+            $table->index(['evidence_id', 'created_at', 'id'], 'evidence_extraction_history_idx');
         });
 
         Schema::create('evidence_extracted_fields', function (Blueprint $table): void {

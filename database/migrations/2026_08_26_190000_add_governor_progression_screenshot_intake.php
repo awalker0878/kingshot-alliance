@@ -27,6 +27,7 @@ return new class extends Migration
                 ['alliance_id', 'roster_entry_id', 'lifecycle_status', 'created_at'],
                 'game_evidence_governor_status_idx',
             );
+            $table->index(['alliance_id', 'roster_entry_id', 'created_at', 'id'], 'game_evidence_governor_history_idx');
             $table->index(
                 ['alliance_id', 'roster_entry_id', 'perceptual_hash'],
                 'game_evidence_governor_visual_idx',
@@ -51,6 +52,7 @@ return new class extends Migration
             $table->timestamp('completed_at')->nullable();
             $table->timestamps();
             $table->index(['evidence_id', 'status', 'created_at'], 'evidence_progression_normalization_status_idx');
+            $table->index(['evidence_id', 'created_at', 'id'], 'evidence_progression_normalization_history_idx');
             $table->index(['progression_dataset_id', 'progression_dataset_checksum'], 'evidence_progression_normalization_dataset_idx');
         });
 
@@ -103,6 +105,7 @@ return new class extends Migration
             $table->index(['governor_review_id', 'idempotency_key', 'status'], 'evidence_governor_commit_review_key_idx');
             $table->index(['alliance_id', 'status', 'created_at'], 'evidence_governor_commit_status_idx');
             $table->index(['evidence_id', 'status'], 'evidence_governor_commit_retention_idx');
+            $table->index(['evidence_id', 'created_at', 'id'], 'evidence_governor_commit_history_idx');
         });
 
         Schema::create('governor_progression_observations', function (Blueprint $table): void {

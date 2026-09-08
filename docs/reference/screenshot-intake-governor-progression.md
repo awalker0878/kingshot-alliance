@@ -86,6 +86,8 @@ Redaction removes classification OCR, extracted raw and normalized candidates, b
 
 `GovernorProgressionObservationQuery` composes append-only observations by newest fact while preserving observation IDs, Evidence/review IDs, captured times and dataset pins. Unobserved fields are not cleared by later partial screenshots.
 
+The authorized screenshot workspace retains a 30-item limit and orders equal creation times by Evidence ID. PostgreSQL DISTINCT ON batches select only the latest classification, extraction, normalization and commit (creation time, then ID), and the latest review (revision number, then ID), within that list's Evidence IDs. Only fields from selected extractions are loaded. Database round trips remain constant as the list grows; historical attempts are not materialized into application memory. HARD-017 verifies the query budget and current-history semantics.
+
 ## UX contract
 
 The owning Governor Progression workflow provides a mobile-first screenshot workspace for upload, processing status, class mismatch, extraction/normalization, low-confidence review, canonical Hero correction, captured-time confirmation, complete-roster confirmation, duplicate handling, before/after preview, explicit commit and destination receipt/recovery.

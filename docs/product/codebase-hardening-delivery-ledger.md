@@ -5,15 +5,15 @@
 - Program state: In progress.
 - Exact main baseline: `7e780521295e868005ecfee5bd38b33e8215ec49`.
 - Working branch: `astra/codebase-hardening`.
-- Latest pushed durable checkpoint: `d006843e46e04f85a30afc578ff49651b5328581`.
+- Latest pushed durable checkpoint: `cf25fba039e0c123cc30546d9300db31f44a5eca`.
 - Draft PR: [#163](https://github.com/awalker0878/kingshot-alliance/pull/163).
-- Current item/state: HARD-015 and HARD-016 / In progress (redaction implementation ready for CI); HARD-014 candidate checks are running.
+- Current item/state: HARD-017 / In progress (query-budget implementation ready for PostgreSQL CI). HARD-014–016 behavior now passes on `cf25fba0`; containing image/recovery gates are running.
 - Most recently verified gates: all nine PR workflows pass on `5a01bf68930c52cfac3ee77564e2f5a1570ae1ad`, including 727 PHP tests / 73,144 assertions, fresh PostgreSQL, frontend, image/staging/recovery, architecture/capabilities, visual and security. HARD-014 full PHPStan and changed-file Pint pass locally.
-- Active files: EvidenceRedactor, pipeline deletion/retention/storage-failure regressions and privacy contracts; ledger.
-- Remaining current work: verify HARD-014–016 in CI, then implement HARD-017 bounded Governor screenshot summary loading and continue repository audit.
-- Known failures: CI on `d006843e` reports four errors and three downstream retention failures from clearing the required extracted candidate string to null. HARD-015 follow-up uses empty-string redaction, matching the existing raw-text/string contract; regression expectations retain strict content removal. Reverification pending. HARD-017 remains Planned.
+- Active files: Governor screenshot summary batching, bounded-query regression, fresh-schema history indexes and projection contracts; ledger.
+- Remaining current work: verify HARD-017 and all candidate gates; reconcile HARD-014–017 completion evidence, then continue the remaining repository coverage beginning with Accounts authority/lifecycle paths.
+- Known failures: the HARD-015 required-string mismatch is repaired in `cf25fba0`; its full PHP, frontend and Intelligence jobs pass. No known current failing checks; remaining image/recovery and HARD-017 checks must still complete.
 - Blockers: local PostgreSQL/Redis services unavailable; service-backed verification uses GitHub CI. Local PHP 8.5.8 and locked Composer/npm dependencies available. Checkpoints publish via the authorized GitHub connection with exact staged-tree verification and non-forced branch updates.
-- Exact next action: publish HARD-015/HARD-016 checkpoint; implement HARD-017 query-budget repair while CI runs, then reconcile results and continue capability review.
+- Exact next action: publish HARD-017 checkpoint, inspect query-budget and full CI results, reconcile the durable candidate evidence, then audit Accounts identity/session/credential/registration/profile/deletion ownership and authorization.
 - Remaining repository-wide gates: final full PHP/architecture/capability and frontend gates on one containing commit; production image/staging/recovery; final security/dependency/visual checks; remaining capability-by-capability audit coverage below.
 
 Checkpoint SHAs are recorded by the following documentation commit; verify that the recorded checkpoint is an ancestor of current branch HEAD. No audit area is complete solely because its paths have been inventoried.
@@ -252,10 +252,10 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: same owner query with bounded latest-record loading.
 - Rationale: list cardinality should not multiply database round trips or load unbounded attempt history.
 - Remediation: load only the latest related records and fields in batches, preserve current scope/order/provenance semantics, and enforce a meaningful query budget with multiple attempts and Evidence records.
-- State: Planned.
+- State: In progress.
 - Verification required: query count remains bounded as the list grows; latest revision and deterministic attempt ordering, cross-scope filtering and existing pipeline summaries remain correct.
-- Verification result: production trace confirms six queries inside the per-Evidence mapper; implementation pending.
-- Completion evidence: pending.
+- Verification result: PostgreSQL DISTINCT ON batches now load one latest record per Evidence ID for classification, extraction, normalization, review and commit, plus fields for only the selected extractions. The 30-item parent list is ordered deterministically and remains scope-filtered. New query-budget coverage compares one item with a full page backed by three historical attempts/revisions each, checks foreign scope exclusion, latest identities/field ordering and the empty-list path. Full PHPStan passes (zero errors); fresh-schema history indexes support scoped latest reads. PostgreSQL query-budget execution pending CI.
+- Completion evidence: GovernorProgressionEvidenceSummaryBudgetV3Test and owner projection/index changes; containing-commit CI pending.
 - Commit SHA: pending.
 
 ## Repository audit coverage
@@ -265,16 +265,16 @@ All rows below remain Planned until actual production paths have been traced. Th
 | Area | Required authority/scalability review | State |
 | --- | --- | --- |
 | Accounts | Identity, authentication, credential linking, sessions, registration, profile/security, deletion | Planned |
-| GameWorld | Governors, Kingdoms/transfers/governance, progression facts/calculators, Gift Code facts/trust/evidence/redemption, KingdomMaps | Planned |
+| GameWorld | Progression dataset/topology/prerequisite and Gift Code reminder paths traced (HARD-007/009/011/012); Governors, Kingdoms/transfers/governance, remaining Gift Codes/calculators and KingdomMaps audit remain | In progress |
 | Alliance | Lifecycle, membership/rank/delegation, recruitment, content, territories/hive planning | Planned |
 | Operations | Events, participation, rallies, King Perks, results/Bear Hunt and reminders | Planned |
 | Intelligence | Evidence/Roster structured pipeline traced under HARD-008/010/013; observations, other evidence families, ingestion, contributions, projections/signals and retention remain | In progress |
 | Communications | Preferences/recipients, inbox, delivery channels, digests, retry/idempotency and revocation | Planned |
 | Platform | Administration, integrations/API credentials, webhooks, retention and operational controls | Planned |
-| Workflows/ReadModels | All cross-context orchestration, authorized dashboards, Assistant/API/notification projections | Planned |
+| Workflows/ReadModels | NotificationDelivery authority/mutations verified under HARD-005; progression prerequisite provenance under HARD-012; other orchestration, dashboards and Assistant/API projections remain | In progress |
 | Infrastructure/entry points | Scheduler registration/commands verified by HARD-003; route authorization, shared mechanisms, queues/listeners/outbox and middleware audit remain | In progress |
 | Frontend | Pages, components, composables/stores, server contracts, localization, receipts and accessibility | Planned |
-| Schema/verification/operations/docs | Fresh schema/indexes, concurrency/query budgets, tests, CI, image/recovery, contracts/catalogues/ADRs/ledgers | Planned |
+| Schema/verification/operations/docs | Baseline gates, fresh schema, image/recovery and current repaired contracts verified; Evidence retention/query indexes and budgets under HARD-014/017; remaining capability indexes/operations/contracts audit remains | In progress |
 
 ## Execution adjustments
 

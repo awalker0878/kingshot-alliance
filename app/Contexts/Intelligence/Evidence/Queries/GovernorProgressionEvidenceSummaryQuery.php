@@ -11,6 +11,7 @@ use App\Contexts\Intelligence\Evidence\Models\GameEvidence;
 use App\Contexts\Intelligence\Evidence\Models\GovernorProgressionEvidenceCommitAttempt;
 use App\Contexts\Intelligence\Evidence\Models\GovernorProgressionEvidenceReview;
 use App\Contexts\Intelligence\Evidence\Models\ProgressionNormalizationAttempt;
+use Illuminate\Support\Collection;
 
 final class GovernorProgressionEvidenceSummaryQuery
 {
@@ -46,64 +47,84 @@ final class GovernorProgressionEvidenceSummaryQuery
     /** @return list<array<string,mixed>> */
     public function forRosterEntry(string $allianceId, string $rosterEntryId): array
     {
-        $summaries = GameEvidence::query()
+        $evidence = GameEvidence::query()
             ->where('alliance_id', $allianceId)
             ->where('roster_entry_id', $rosterEntryId)
             ->whereNull('occurrence_id')
             ->whereNull('transfer_plan_id')
             ->whereNull('transfer_participant_id')
             ->orderByDesc('created_at')
+            ->orderByDesc('id')
             ->limit(30)
-            ->get()
-            ->map(fn (GameEvidence $evidence): array => $this->summary($evidence))
-            ->values()
-            ->all();
+            ->get();
+        if ($evidence->isEmpty()) {
+            return [];
+        }
+        $ids = $evidence->modelKeys();
+        // PostgreSQL DISTINCT ON keeps attempt history on the server while each
+        // batch is restricted to this authorized list's Evidence identities.
+        $classifications = EvidenceClassificationAttempt::query()
+            ->whereIn('evidence_id', $ids)->distinct('evidence_id')
+            ->orderBy('evidence_id')->orderByDesc('created_at')->orderByDesc('id')
+            ->get()->keyBy('evidence_id');
+        $extractions = EvidenceExtractionAttempt::query()
+            ->whereIn('evidence_id', $ids)->distinct('evidence_id')
+            ->orderBy('evidence_id')->orderByDesc('created_at')->orderByDesc('id')
+            ->get()->keyBy('evidence_id');
+        $normalizations = ProgressionNormalizationAttempt::query()
+            ->whereIn('evidence_id', $ids)->distinct('evidence_id')
+            ->orderBy('evidence_id')->orderByDesc('created_at')->orderByDesc('id')
+            ->get()->keyBy('evidence_id');
+        $reviews = GovernorProgressionEvidenceReview::query()
+            ->whereIn('evidence_id', $ids)->distinct('evidence_id')
+            ->orderBy('evidence_id')->orderByDesc('revision_number')->orderByDesc('id')
+            ->get()->keyBy('evidence_id');
+        $commits = GovernorProgressionEvidenceCommitAttempt::query()
+            ->whereIn('evidence_id', $ids)->distinct('evidence_id')
+            ->orderBy('evidence_id')->orderByDesc('created_at')->orderByDesc('id')
+            ->get()->keyBy('evidence_id');
+        $fields = EvidenceExtractedField::query()
+            ->whereIn('extraction_attempt_id', $extractions->modelKeys())
+            ->orderBy('row_ordinal')->orderBy('field_key')
+            ->get()->groupBy('extraction_attempt_id');
+
+        $summaries = $evidence->map(fn (GameEvidence $item): array => $this->summary(
+            evidence: $item,
+            classification: $classifications->get((string) $item->id),
+            extraction: $extractions->get((string) $item->id),
+            normalization: $normalizations->get((string) $item->id),
+            review: $reviews->get((string) $item->id),
+            commit: $commits->get((string) $item->id),
+            extractedFields: $fields->get((string) $extractions->get((string) $item->id)?->id, collect()),
+        ))->all();
 
         return array_values($summaries);
     }
 
-    /** @return array<string,mixed> */
-    private function summary(GameEvidence $evidence): array
-    {
-        $classification = EvidenceClassificationAttempt::query()
-            ->where('evidence_id', $evidence->id)
-            ->orderByDesc('created_at')
-            ->first();
-        $extraction = EvidenceExtractionAttempt::query()
-            ->where('evidence_id', $evidence->id)
-            ->orderByDesc('created_at')
-            ->first();
-        $normalization = ProgressionNormalizationAttempt::query()
-            ->where('evidence_id', $evidence->id)
-            ->orderByDesc('created_at')
-            ->first();
-        $review = GovernorProgressionEvidenceReview::query()
-            ->where('evidence_id', $evidence->id)
-            ->orderByDesc('revision_number')
-            ->orderByDesc('id')
-            ->first();
-        $commit = GovernorProgressionEvidenceCommitAttempt::query()
-            ->where('evidence_id', $evidence->id)
-            ->orderByDesc('created_at')
-            ->first();
-        $fields = $extraction instanceof EvidenceExtractionAttempt
-            ? EvidenceExtractedField::query()
-                ->where('extraction_attempt_id', $extraction->id)
-                ->orderBy('row_ordinal')
-                ->orderBy('field_key')
-                ->get()
-                ->map(static fn (EvidenceExtractedField $field): array => [
-                    'id' => (string) $field->id,
-                    'fieldKey' => (string) $field->field_key,
-                    'rowOrdinal' => (int) $field->row_ordinal,
-                    'rawText' => (string) $field->raw_text,
-                    'normalizedValue' => $field->normalized_value,
-                    'dataType' => (string) $field->data_type,
-                    'confidence' => (float) $field->confidence,
-                    'boundingBox' => is_array($field->bounding_box) ? $field->bounding_box : null,
-                    'warnings' => is_array($field->warnings) ? $field->warnings : [],
-                ])->values()->all()
-            : [];
+    /**
+     * @param  Collection<int,EvidenceExtractedField>  $extractedFields
+     * @return array<string,mixed>
+     */
+    private function summary(
+        GameEvidence $evidence,
+        ?EvidenceClassificationAttempt $classification,
+        ?EvidenceExtractionAttempt $extraction,
+        ?ProgressionNormalizationAttempt $normalization,
+        ?GovernorProgressionEvidenceReview $review,
+        ?GovernorProgressionEvidenceCommitAttempt $commit,
+        Collection $extractedFields,
+    ): array {
+        $fields = $extractedFields->map(static fn (EvidenceExtractedField $field): array => [
+            'id' => (string) $field->id,
+            'fieldKey' => (string) $field->field_key,
+            'rowOrdinal' => (int) $field->row_ordinal,
+            'rawText' => (string) $field->raw_text,
+            'normalizedValue' => $field->normalized_value,
+            'dataType' => (string) $field->data_type,
+            'confidence' => (float) $field->confidence,
+            'boundingBox' => is_array($field->bounding_box) ? $field->bounding_box : null,
+            'warnings' => is_array($field->warnings) ? $field->warnings : [],
+        ])->values()->all();
 
         return [
             'id' => (string) $evidence->id,

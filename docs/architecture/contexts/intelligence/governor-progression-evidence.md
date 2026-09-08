@@ -118,6 +118,8 @@ Four controls stay distinct:
 
 A genuinely newer observation remains importable. Destination success followed by Evidence acknowledgement failure recovers by replaying the same destination key and recording the already-created receipt.
 
+The authorized screenshot workspace retains a 30-item limit and orders equal creation times by Evidence ID. PostgreSQL DISTINCT ON batches select only the latest classification, extraction, normalization and commit (creation time, then ID), and the latest review (revision number, then ID), within that list's Evidence IDs. Only fields from selected extractions are loaded. Database round trips remain constant as the list grows; historical attempts are not materialized into application memory. HARD-017 verifies the query budget and current-history semantics.
+
 ## Deletion, retention and consumers
 
 Deleting/redacting Evidence never deletes accepted Roster observations. Evidence retention may remove binary/OCR/raw sensitive material while retaining minimum handoff provenance. Roster correction/removal is a separate explicit owner operation.
