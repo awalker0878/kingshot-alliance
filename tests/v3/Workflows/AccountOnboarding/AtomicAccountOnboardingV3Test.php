@@ -17,6 +17,7 @@ use App\Contexts\GameWorld\Players\Actions\ClaimPlayerAccount;
 use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\GameWorld\Players\Models\PlayerIdentityHistory;
 use App\Shared\Infrastructure\AuditTrail\Models\AuditEvent;
+use App\Shared\Infrastructure\Messaging\Outbox\Actions\PublishOutboxBatch;
 use App\Shared\Infrastructure\Messaging\Outbox\Models\OutboxMessage;
 use App\Workflows\AccountOnboarding\Actions\AcceptInvitationForAccount;
 use App\Workflows\AccountOnboarding\Actions\RegisterAccount;
@@ -137,10 +138,12 @@ final class AtomicAccountOnboardingV3Test extends TestCase
         }
     }
 
-    public function test_successful_registration_delivers_verification_only_after_every_owner_commits(): void
+    public function test_successful_registration_queues_verification_and_worker_delivers_after_every_owner_commits(): void
     {
         $fixture = $this->invitation();
-        Notification::shouldReceive('send')->once()->withArgs(static function (User $user, VerifyKingshotAllianceEmail $notification) use ($fixture): bool {
+        $delivered = false;
+        Notification::shouldReceive('send')->once()->withArgs(static function (User $user, VerifyKingshotAllianceEmail $notification) use ($fixture, &$delivered): bool {
+            $delivered = true;
             self::assertSame(0, DB::transactionLevel(), 'Mail must not run inside an owner or Workflow transaction.');
             self::assertSame($fixture['email'], $user->email);
             self::assertSame((int) $user->id, (int) Player::query()->findOrFail($fixture['playerId'])->user_id);
@@ -157,6 +160,9 @@ final class AtomicAccountOnboardingV3Test extends TestCase
         self::assertNotNull($result->membershipId);
         self::assertSame(1, OutboxMessage::query()->where('event_type', 'user.registered')->where('aggregate_id', (string) $result->userId)->count());
         self::assertSame(1, OutboxMessage::query()->where('event_type', 'invitation.accepted')->where('aggregate_id', $fixture['invitationId'])->count());
+        self::assertFalse($delivered, 'Registration returns after durable intent without contacting mail.');
+        app(PublishOutboxBatch::class)->handle(100);
+        self::assertTrue($delivered);
     }
 
     public function test_existing_account_acceptance_commits_once_and_selects_the_claimed_player(): void

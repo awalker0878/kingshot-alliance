@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Contexts\Accounts\Identity\Models;
 
 use App\Contexts\Accounts\Credentials\Notifications\ResetKingshotAlliancePassword;
-use App\Contexts\Accounts\EmailVerification\Notifications\VerifyKingshotAllianceEmail;
+use App\Contexts\Accounts\EmailVerification\Actions\RequestEmailVerification;
 use App\Contexts\Accounts\Identity\Contracts\AuthenticatedAccount;
 use App\Shared\Infrastructure\AuditTrail\Contracts\AuditActor;
 use Database\Factories\UserFactory;
@@ -96,7 +96,7 @@ final class User extends Authenticatable implements AuditActor, AuthenticatedAcc
 
     public function sendEmailVerificationNotification(): void
     {
-        $this->notify(new VerifyKingshotAllianceEmail);
+        app(RequestEmailVerification::class)->handle((int) $this->id);
     }
 
     public function sendPasswordResetNotification($token): void

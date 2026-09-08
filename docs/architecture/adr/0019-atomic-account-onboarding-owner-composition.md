@@ -12,7 +12,7 @@ The blanket Workflow transaction prohibition prevented a single dependent databa
 
 `RegisterAccount` and `AcceptInvitationForAccount` may open a bounded database transaction around their dependent owner calls. They are the two explicit exceptions registered in the architecture verifier. No other Workflow gains this permission.
 
-- Accounts remains the sole writer of accounts, provider identities and registration audit/outbox. Registration verification delivery runs after the outermost commit.
+- Accounts remains the sole writer of accounts, provider identities and registration audit/outbox. Registration verification intent commits with onboarding; the Accounts outbox consumer delivers after the outermost commit with durable retry.
 - Existing-account acceptance obtains the current account snapshot through the Accounts locking query and rejects finalized accounts. Account email/lifecycle cannot change during acceptance.
 - GameWorld locks, validates and claims the targeted Player through its existing owner Action.
 - Alliance locks and validates the current invitation, lifecycle, roster and membership through its existing owner Action. A rejection rolls back the Player claim and every preceding owner write in the composed command.
@@ -29,7 +29,7 @@ The Workflow owns only the atomic composition decision. It cannot import context
 
 ## Verification and consequences
 
-`AtomicAccountOnboardingV3Test` exercises real owner Actions and HTTP acceptance. It covers wrong-email and inactive-Alliance denial; password/Google registration rollback after lifecycle, roster or ownership rejection; revocation committed through a second PostgreSQL connection after preflight; verification delivery only after all owners commit; successful existing-account acceptance and replay; and finalized-account rejection.
+`AtomicAccountOnboardingV3Test` exercises real owner Actions and HTTP acceptance. It covers wrong-email and inactive-Alliance denial; password/Google registration rollback after lifecycle, roster or ownership rejection; revocation committed through a second PostgreSQL connection after preflight; durable verification intent and worker delivery only after all owners commit; successful existing-account acceptance and replay; and finalized-account rejection.
 
 The architecture verifier continues to reject direct Workflow persistence, model imports, business locks and permission vocabularies, and rejects transactions outside the two named commands. New atomic compositions require their own justification and failure/rollback evidence. NotificationDelivery remains without transactions.
 
