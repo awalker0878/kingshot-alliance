@@ -52,10 +52,10 @@ final readonly class ReconcileKingdomAlliances
             $locked = KingdomAlliance::query()->whereIn('id', $ids)->orderBy('id')->lockForUpdate()->get()->keyBy('id');
             $canonical = $locked->get($canonicalKingdomAllianceId);
             $duplicate = $locked->get($duplicateKingdomAllianceId);
-            if (! $canonical instanceof KingdomAlliance) {
+            if ($canonical === null) {
                 KingdomAlliance::query()->findOrFail($canonicalKingdomAllianceId);
             }
-            if (! $duplicate instanceof KingdomAlliance) {
+            if ($duplicate === null) {
                 KingdomAlliance::query()->findOrFail($duplicateKingdomAllianceId);
             }
             /** @var KingdomAlliance $canonical */
