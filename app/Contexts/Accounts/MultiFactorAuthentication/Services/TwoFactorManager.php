@@ -9,6 +9,7 @@ use App\Contexts\Accounts\Security\Services\SecurityNotificationService;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Models\OutboxMessage;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 final readonly class TwoFactorManager
@@ -67,6 +68,7 @@ final readonly class TwoFactorManager
                     $plainCodes,
                 ),
                 'two_factor_confirmed_at' => now(),
+                'remember_token' => Str::random(60),
             ])->save();
             $this->audit->record(event: 'auth.mfa.enabled', actor: $locked, subject: $locked);
             $this->outbox($locked, 'auth.mfa.enabled');
@@ -98,6 +100,7 @@ final readonly class TwoFactorManager
                     static fn (string $recoveryCode): string => hash('sha256', $recoveryCode),
                     $plainCodes,
                 ),
+                'remember_token' => Str::random(60),
             ])->save();
             $this->audit->record(event: 'auth.mfa.recovery_codes_regenerated', actor: $locked, subject: $locked);
 
@@ -122,6 +125,7 @@ final readonly class TwoFactorManager
                 'two_factor_secret' => null,
                 'two_factor_recovery_codes' => null,
                 'two_factor_confirmed_at' => null,
+                'remember_token' => Str::random(60),
             ])->save();
             $this->audit->record(event: 'auth.mfa.disabled', actor: $locked, subject: $locked);
             $this->outbox($locked, 'auth.mfa.disabled');
