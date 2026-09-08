@@ -56,7 +56,7 @@ final class AllianceOverviewController extends Controller
             'member_cursor' => ['nullable', 'string', 'max:4096'],
         ]);
         $alliance = $alliances->require($scope->allianceId);
-        $kingdom = $kingdoms->require($alliance->kingdomId);
+        $kingdom = $kingdoms->requireActive($alliance->kingdomId);
         $membership = AllianceMembership::query()
             ->whereKey($scope->membershipId)
             ->where('alliance_id', $scope->allianceId)

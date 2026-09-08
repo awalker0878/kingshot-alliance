@@ -50,7 +50,7 @@ final class KingdomAllianceController extends Controller
         }
         $account = $accounts->require((int) $request->user()?->getAuthIdentifier());
         $alliance = $alliances->require($scope->allianceId);
-        $kingdom = $kingdoms->require($alliance->kingdomId);
+        $kingdom = $kingdoms->requireActive($alliance->kingdomId);
         $tracked = $tracking->forAlliance($alliance->allianceId);
 
         return Inertia::render('Intelligence/KingdomWatch/Index', [
@@ -76,7 +76,7 @@ final class KingdomAllianceController extends Controller
             throw new AuthorizationException;
         }
         $alliance = $alliances->require($scope->allianceId);
-        $kingdom = $kingdoms->require($alliance->kingdomId);
+        $kingdom = $kingdoms->requireActive($alliance->kingdomId);
         $tracked = $tracking->forAlliance($alliance->allianceId);
 
         return Inertia::render('Intelligence/KingdomWatch/Tracking', [

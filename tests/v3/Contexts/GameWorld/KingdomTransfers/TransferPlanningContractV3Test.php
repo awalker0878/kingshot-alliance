@@ -6,6 +6,7 @@ namespace Tests\v3\Contexts\GameWorld\KingdomTransfers;
 
 use App\Contexts\Alliance\Membership\Enums\AllianceRank;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
+use App\Contexts\GameWorld\Kingdoms\Actions\ArchiveKingdom;
 use App\Contexts\GameWorld\KingdomTransfers\Access\Enums\TransferPermission;
 use App\Contexts\GameWorld\KingdomTransfers\Access\Services\TransferAuthorization;
 use App\Contexts\GameWorld\KingdomTransfers\Actions\SaveTransferWindow;
@@ -97,6 +98,34 @@ final class TransferPlanningContractV3Test extends TestCase
         $authorization = app(TransferAuthorization::class);
 
         self::assertTrue($authorization->allows(
+            $actor->playerId,
+            $alliance->allianceId,
+            TransferPermission::View,
+        ));
+        self::assertFalse($authorization->allows(
+            $actor->playerId,
+            $alliance->allianceId,
+            TransferPermission::Manage,
+        ));
+    }
+
+    public function test_transfer_reads_fail_closed_when_operating_kingdom_is_archived(): void
+    {
+        $factory = app(ScenarioFactory::class);
+        $account = $factory->account();
+        $actor = $factory->player($account->userId, 7383, 'TRANSFER-CONTRACT-7383');
+        $alliance = $factory->alliance($actor);
+        $authorization = app(TransferAuthorization::class);
+
+        self::assertTrue($authorization->allows(
+            $actor->playerId,
+            $alliance->allianceId,
+            TransferPermission::View,
+        ));
+
+        app(ArchiveKingdom::class)->handle($actor->kingdomId, reason: 'transfer-read-boundary-test');
+
+        self::assertFalse($authorization->allows(
             $actor->playerId,
             $alliance->allianceId,
             TransferPermission::View,
