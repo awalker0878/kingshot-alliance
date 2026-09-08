@@ -96,6 +96,9 @@ final class GovernorProgressionObservationQuery
             'heroes' => [],
             'governorGear' => [],
             'charms' => [],
+            'buildings' => [],
+            'academyResearch' => [],
+            'warAcademyResearch' => [],
             'completeRosterCapture' => null,
         ];
         foreach ($observations as $observation) {
@@ -112,9 +115,9 @@ final class GovernorProgressionObservationQuery
             }
         }
         unset($hero);
-        ksort($current['governorGear']);
-        ksort($current['charms']);
-        ksort($current['profile']);
+        foreach (['governorGear', 'charms', 'buildings', 'academyResearch', 'warAcademyResearch', 'profile'] as $key) {
+            ksort($current[$key]);
+        }
 
         return $current;
     }
@@ -227,6 +230,28 @@ final class GovernorProgressionObservationQuery
                     }
                 }
                 ksort($current['charms'][$slotId]);
+            }
+
+            return;
+        }
+        $projectionKey = match ($kind) {
+            EvidenceKind::GovernorBuildings => 'buildings',
+            EvidenceKind::GovernorAcademyResearch => 'academyResearch',
+            EvidenceKind::GovernorWarAcademyResearch => 'warAcademyResearch',
+            default => null,
+        };
+        if ($projectionKey !== null) {
+            foreach (is_array($payload['states'] ?? null) ? $payload['states'] : [] as $row) {
+                if (! is_array($row) || ! is_string($row['subject_id'] ?? null)) {
+                    continue;
+                }
+                $subjectId = $row['subject_id'];
+                foreach (['state_id', 'level'] as $field) {
+                    if (array_key_exists($field, $row)) {
+                        $current[$projectionKey][$subjectId][$field] = $this->fact($row[$field], $observation);
+                    }
+                }
+                ksort($current[$projectionKey][$subjectId]);
             }
         }
     }

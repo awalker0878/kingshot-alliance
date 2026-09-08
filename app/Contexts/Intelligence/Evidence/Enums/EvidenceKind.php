@@ -20,6 +20,9 @@ enum EvidenceKind: string
     case GovernorHeroGear = 'governor_hero_gear';
     case GovernorGear = 'governor_gear';
     case GovernorCharms = 'governor_charms';
+    case GovernorBuildings = 'governor_buildings';
+    case GovernorAcademyResearch = 'governor_academy_research';
+    case GovernorWarAcademyResearch = 'governor_war_academy_research';
     case TerritoryMapObservation = 'territory_map_observation';
 
     public function isTransfer(): bool
@@ -30,6 +33,15 @@ enum EvidenceKind: string
     public function isGovernorProgression(): bool
     {
         return in_array($this, self::governorProgressionCases(), true);
+    }
+
+    public function isStructuredGovernorProgression(): bool
+    {
+        return in_array($this, [
+            self::GovernorBuildings,
+            self::GovernorAcademyResearch,
+            self::GovernorWarAcademyResearch,
+        ], true);
     }
 
     public function isTerritorySpatial(): bool
@@ -64,6 +76,9 @@ enum EvidenceKind: string
             self::GovernorHeroGear,
             self::GovernorGear,
             self::GovernorCharms,
+            self::GovernorBuildings,
+            self::GovernorAcademyResearch,
+            self::GovernorWarAcademyResearch,
         ];
     }
 
