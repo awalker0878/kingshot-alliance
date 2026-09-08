@@ -7,11 +7,11 @@ const factualProgressionVisualFingerprints: Record<
   { library: string; governor: string }
 > = {
   desktop: {
-    library: 'f3a8c27a39e1c641e6cb570cc82f86d2b26fd08a33f5227a0d6c2b386be9573d',
+    library: 'b953a2e4fa401ea8dcc3cc33884fa5114caab11fa8fb4d919f4dccfbbd16340a',
     governor: '2e02000083aa6d49387129b41bda4222253e583d9d0b9ecfe90252cdacf4e97d',
   },
   mobile: {
-    library: 'c549584809471cfad5b8cb751be4d30c06518149d9846d0700f2cf1979de39e1',
+    library: 'df7d6a11e733cdae35d08dbcf051b0b2c8b2c3d712053aefb0b4648d000cb4a2',
     governor: 'd1b26470c9fb5167b6fbee520caaff114b87e148d1adb2a178189afc4fe941f1',
   },
 };
