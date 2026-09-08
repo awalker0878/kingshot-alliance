@@ -4,19 +4,17 @@ declare(strict_types=1);
 
 namespace App\Workflows\AccountOnboarding\Http\Controllers;
 
+use App\Contexts\Accounts\Authentication\Actions\AuthenticateWithGoogle;
 use App\Contexts\Accounts\Authentication\Actions\ConfirmGoogleAccount;
 use App\Contexts\Accounts\Authentication\Actions\ConnectGoogleAccount;
-use App\Contexts\Accounts\Authentication\Actions\RecordAuthenticationAuditEvent;
 use App\Contexts\Accounts\Authentication\Enums\GoogleAuthenticationIntent;
 use App\Contexts\Accounts\Authentication\Services\AccountSignInMethodPolicy;
 use App\Contexts\Accounts\Authentication\Services\GoogleAuthenticationOperation;
 use App\Contexts\Accounts\Authentication\Services\RecentAuthentication;
-use App\Contexts\Accounts\Identity\Actions\RecordAccountIdentityUse;
 use App\Contexts\Accounts\Identity\Actions\RemoveAccountIdentity;
 use App\Contexts\Accounts\Identity\Contracts\AuthenticatedAccount;
 use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
 use App\Contexts\Accounts\Identity\Queries\ProviderIdentityQuery;
-use App\Contexts\Accounts\MultiFactorAuthentication\Services\MfaLoginChallenge;
 use App\Contexts\Accounts\Registration\Data\RegistrationProviderIdentity;
 use App\Contexts\Alliance\Membership\Queries\FindPendingInvitation;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
@@ -25,7 +23,6 @@ use App\Workflows\AccountOnboarding\Actions\RegisterAccount;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Laravel\Socialite\AbstractUser;
@@ -123,12 +120,9 @@ final class GoogleAuthenticationController extends Controller
         ProviderIdentityQuery $providerIdentities,
         ConnectGoogleAccount $connectGoogle,
         ConfirmGoogleAccount $confirmGoogle,
-        RecordAccountIdentityUse $recordIdentityUse,
+        AuthenticateWithGoogle $authenticateGoogle,
         GoogleAuthenticationOperation $operations,
-        RecentAuthentication $recentAuthentication,
-        MfaLoginChallenge $mfaChallenges,
         AuditRecorder $audit,
-        RecordAuthenticationAuditEvent $authenticationAudit,
     ): RedirectResponse {
         $this->ensureConfigured();
         $operation = $operations->consume($request);
@@ -151,7 +145,7 @@ final class GoogleAuthenticationController extends Controller
                 subject: $subject,
                 email: $email,
                 connectGoogle: $connectGoogle,
-                recentAuthentication: $recentAuthentication,
+                confirmGoogle: $confirmGoogle,
             );
         }
 
@@ -176,20 +170,14 @@ final class GoogleAuthenticationController extends Controller
         $providerIdentity = $providerIdentities->findByProviderSubject('google', $subject);
 
         if ($providerIdentity !== null) {
-            $account = $accounts->require($providerIdentity->userId);
-            abort_unless(! $account->anonymized, 403);
-            $recordIdentityUse->handle($providerIdentity->identityId, $email, true);
+            if ($authenticateGoogle->handle($request, $providerIdentity->userId, $providerIdentity->identityId,
+                $subject, $email, $invitationToken)) {
+                return redirect()->route('two-factor.login');
+            }
 
-            return $this->completeLogin(
-                request: $request,
-                userId: $account->userId,
-                identityId: $providerIdentity->identityId,
-                invitationToken: $invitationToken,
-                accounts: $accounts,
-                recentAuthentication: $recentAuthentication,
-                authenticationAudit: $authenticationAudit,
-                mfaChallenges: $mfaChallenges,
-            );
+            return $invitationToken === null
+                ? redirect()->intended(route('dashboard'))
+                : redirect()->route('invitations.show', ['token' => $invitationToken]);
         }
 
         if ($accounts->findIdByEmail($email) !== null) {
@@ -248,21 +236,11 @@ final class GoogleAuthenticationController extends Controller
             ]);
         }
 
-        $mfaChallenges->clear($request);
-        abort_unless(Auth::loginUsingId($result->userId) instanceof Authenticatable, 401);
-        $request->session()->regenerate();
-
         $identity = $providerIdentities->findForUser($result->userId, 'google');
-        $recentAuthentication->mark(
-            $request,
-            'google',
-            $identity === null ? null : (string) $identity->identityId,
-        );
-        $authenticationAudit->handle(
-            userId: $result->userId,
-            event: 'auth.login',
-            metadata: ['provider' => 'google', 'mfa_method' => null],
-        );
+        abort_unless($identity !== null, 403);
+        if ($authenticateGoogle->handle($request, $result->userId, $identity->identityId, $subject, $email, null)) {
+            return redirect()->route('two-factor.login');
+        }
 
         if ($result->joinedAlliance() && $result->playerId !== null) {
             $request->session()->put(
@@ -282,15 +260,15 @@ final class GoogleAuthenticationController extends Controller
         string $subject,
         string $email,
         ConnectGoogleAccount $connectGoogle,
-        RecentAuthentication $recentAuthentication,
+        ConfirmGoogleAccount $confirmGoogle,
     ): RedirectResponse {
         $user = $request->user();
         abort_unless($user instanceof AuthenticatedAccount, 403);
         $userId = (int) $user->getAuthIdentifier();
         abort_unless($expectedUserId === $userId, 403);
 
-        $identityId = $connectGoogle->handle($userId, $subject, $email);
-        $recentAuthentication->mark($request, 'google', (string) $identityId);
+        $connectGoogle->handle($userId, $subject, $email);
+        $confirmGoogle->handle($request, $userId, $subject, $email);
 
         return redirect()->route('profile.show')->with(
             'actionReceipt',
@@ -306,40 +284,6 @@ final class GoogleAuthenticationController extends Controller
         ConfirmGoogleAccount $confirmGoogle,
     ): RedirectResponse {
         $confirmGoogle->handle($request, $expectedUserId, $subject, $email);
-
-        return redirect()->intended(route('dashboard'));
-    }
-
-    private function completeLogin(
-        Request $request,
-        int $userId,
-        int $identityId,
-        ?string $invitationToken,
-        AccountIdentityQuery $accounts,
-        RecentAuthentication $recentAuthentication,
-        RecordAuthenticationAuditEvent $authenticationAudit,
-        MfaLoginChallenge $mfaChallenges,
-    ): RedirectResponse {
-        if ($accounts->requiresMultiFactor($userId)) {
-            $mfaChallenges->startGoogle($request, $userId, $identityId, $invitationToken);
-
-            return redirect()->route('two-factor.login');
-        }
-
-        $mfaChallenges->clear($request);
-        abort_unless(Auth::loginUsingId($userId) instanceof Authenticatable, 401);
-        $request->session()->regenerate();
-        $recentAuthentication->mark($request, 'google', (string) $identityId);
-
-        $authenticationAudit->handle(
-            userId: $userId,
-            event: 'auth.login',
-            metadata: ['provider' => 'google', 'mfa_method' => null],
-        );
-
-        if ($invitationToken !== null) {
-            return redirect()->route('invitations.show', ['token' => $invitationToken]);
-        }
 
         return redirect()->intended(route('dashboard'));
     }

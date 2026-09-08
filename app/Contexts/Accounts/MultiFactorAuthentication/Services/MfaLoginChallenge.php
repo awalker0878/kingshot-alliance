@@ -5,10 +5,7 @@ declare(strict_types=1);
 namespace App\Contexts\Accounts\MultiFactorAuthentication\Services;
 
 use App\Contexts\Accounts\Authentication\Data\VerifiedAccountLogin;
-use App\Contexts\Accounts\Authentication\Services\AccountLoginProofs;
 use App\Contexts\Accounts\Authentication\Services\RecentAuthentication;
-use App\Contexts\Accounts\Identity\Models\AccountIdentity;
-use App\Contexts\Accounts\Identity\Models\User;
 use Illuminate\Http\Request;
 
 /**
@@ -20,15 +17,7 @@ final readonly class MfaLoginChallenge
 
     private const TTL_SECONDS = 600;
 
-    public function __construct(private RecentAuthentication $recentAuthentication, private AccountLoginProofs $proofs) {}
-
-    public function startGoogle(Request $request, int $userId, int $verifiedIdentityId, ?string $invitationToken): void
-    {
-        $user = User::query()->findOrFail($userId);
-        $identity = AccountIdentity::query()->whereKey($verifiedIdentityId)
-            ->where('user_id', $userId)->where('provider', 'google')->firstOrFail();
-        $this->start($request, $this->proofs->google($user, $identity), false, $invitationToken);
-    }
+    public function __construct(private RecentAuthentication $recentAuthentication) {}
 
     public function start(Request $request, VerifiedAccountLogin $proof, bool $remember, ?string $invitationToken): void
     {

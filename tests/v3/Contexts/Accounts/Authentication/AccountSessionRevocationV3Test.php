@@ -12,7 +12,7 @@ use App\Contexts\Accounts\Identity\Actions\AnonymizeAccount;
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use Illuminate\Database\Events\QueryExecuted;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Session\SessionManager;
 use Illuminate\Session\Store;
 use Illuminate\Support\Facades\Auth;
@@ -24,7 +24,7 @@ use Tests\v3\TestCase;
 
 final class AccountSessionRevocationV3Test extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseMigrations;
 
     public function test_completed_login_registers_its_rotated_session_before_the_redirect_is_returned(): void
     {

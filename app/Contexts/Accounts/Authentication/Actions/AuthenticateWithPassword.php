@@ -31,18 +31,19 @@ final readonly class AuthenticateWithPassword
     ) {}
 
     // True means a second factor is required; the request remains a guest.
-    public function handle(Request $request, string $email, #[SensitiveParameter] string $password, bool $remember, ?string $invitationToken): bool
+    public function handle(Request $request, string $email, #[SensitiveParameter] string $password, bool $remember, ?string $invitationToken, ?int $expectedUserId = null): bool
     {
         $guard = Auth::guard('web');
         if (! $guard instanceof SessionGuard) {
             throw new LogicException('Password login requires the maintained web session guard.');
         }
         $credentials = ['email' => Str::lower(trim($email)), 'password' => $password];
-        $proof = (new Timebox)->call(function (Timebox $timebox) use ($guard, $credentials, $remember): VerifiedAccountLogin {
+        $proof = (new Timebox)->call(function (Timebox $timebox) use ($guard, $credentials, $remember, $expectedUserId): VerifiedAccountLogin {
             Event::dispatch(new Attempting('web', $credentials, $remember));
-            $verified = DB::transaction(function () use ($guard, $credentials): ?VerifiedAccountLogin {
+            $verified = DB::transaction(function () use ($guard, $credentials, $expectedUserId): ?VerifiedAccountLogin {
                 $user = User::query()->where('email', $credentials['email'])->lockForUpdate()->first();
-                if ($user === null || ! $user->isActive() || ! $user->supportsPasswordAuthentication()
+                if ($user === null || ($expectedUserId !== null && (int) $user->id !== $expectedUserId)
+                    || ! $user->isActive() || ! $user->supportsPasswordAuthentication()
                     || ! $guard->getProvider()->validateCredentials($user, $credentials)) {
                     Event::dispatch(new Failed('web', $user, $credentials));
 

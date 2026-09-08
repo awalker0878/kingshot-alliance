@@ -6,7 +6,7 @@ namespace Tests\v3\Contexts\Accounts\Authentication;
 
 use App\Contexts\Accounts\Identity\Models\AccountIdentity;
 use App\Contexts\Accounts\Identity\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Laravel\Socialite\Contracts\Provider;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\User as SocialiteUser;
@@ -15,11 +15,13 @@ use Tests\v3\TestCase;
 
 final class GoogleAuthenticationV3Test extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseMigrations;
 
     protected function setUp(): void
     {
         parent::setUp();
+        $client = hash('sha256', self::class.'::'.$this->nameWithDataSet());
+        $this->withServerVariables(['REMOTE_ADDR' => '2001:db8::'.substr($client, 0, 4).':'.substr($client, 4, 4)]);
 
         config()->set('services.google', [
             'client_id' => 'google-client-id',

@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\v3\Contexts\Accounts\Authentication;
 
+use App\Contexts\Accounts\Authentication\Actions\AuthenticateWithGoogle;
 use App\Contexts\Accounts\Authentication\Actions\AuthenticateWithPassword;
 use App\Contexts\Accounts\Authentication\Actions\RecordAccountSession;
 use App\Contexts\Accounts\Authentication\Actions\RevokeOtherAccountSessions;
 use App\Contexts\Accounts\Authentication\Models\AccountSession;
 use App\Contexts\Accounts\Credentials\Actions\RemovePassword;
 use App\Contexts\Accounts\Identity\Actions\AnonymizeAccount;
+use App\Contexts\Accounts\Identity\Actions\RemoveAccountIdentity;
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Accounts\MultiFactorAuthentication\Actions\CompleteMfaLogin;
 use App\Contexts\Accounts\MultiFactorAuthentication\Services\TotpService;
@@ -36,6 +38,7 @@ use Illuminate\Validation\ValidationException;
 use LogicException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use RuntimeException;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\v3\TestCase;
 
 final class AccountLoginCompletionV3Test extends TestCase
@@ -43,6 +46,13 @@ final class AccountLoginCompletionV3Test extends TestCase
     use DatabaseMigrations;
 
     private const RECOVERY = 'a1b2-c3d4-e5f6-0123';
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $client = hash('sha256', self::class.'::'.$this->nameWithDataSet());
+        $this->withServerVariables(['REMOTE_ADDR' => '2001:db8::'.substr($client, 0, 4).':'.substr($client, 4, 4)]);
+    }
 
     public function test_real_password_http_login_registers_the_rotated_session_before_login_events_and_initializes_remember_atomically(): void
     {
@@ -121,8 +131,12 @@ final class AccountLoginCompletionV3Test extends TestCase
             }
         });
         $loginEvents = 0;
+        $authenticatedEvents = 0;
         Event::listen(Login::class, static function () use (&$loginEvents): void {
             $loginEvents++;
+        });
+        Event::listen(Authenticated::class, static function () use (&$authenticatedEvents): void {
+            $authenticatedEvents++;
         });
 
         try {
@@ -135,11 +149,12 @@ final class AccountLoginCompletionV3Test extends TestCase
         self::assertTrue($failed);
         self::assertSame(1, $rotations);
         self::assertSame(0, $loginEvents);
+        self::assertSame(0, $authenticatedEvents);
         $this->assertGuest();
         self::assertFalse($request->session()->has('accounts.recent_authentication_at'));
         self::assertSame(0, AccountSession::query()->count());
         self::assertSame(0, DB::table('audit_events')->whereIn('event', ['auth.login', 'auth.mfa.recovery_code_used'])->count());
-        self::assertNull($user->refresh()->getRememberToken());
+        self::assertNull($user->refresh()->getRawOriginal('remember_token'));
         $guard = Auth::guard('web');
         self::assertInstanceOf(SessionGuard::class, $guard);
         self::assertFalse(Cookie::hasQueued($guard->getRecallerName()));
@@ -151,23 +166,28 @@ final class AccountLoginCompletionV3Test extends TestCase
         $this->complete($request, $user, $mfa);
         $this->assertAuthenticatedAs($user);
         self::assertSame(1, $loginEvents);
+        self::assertSame(1, $authenticatedEvents);
         self::assertSame(1, AccountSession::query()->count());
         self::assertFalse($request->session()->has('accounts.mfa_login'));
         self::assertSame($mfa ? [] : null, $user->refresh()->two_factor_recovery_codes);
     }
 
-    /** @return iterable<string,array{string}> */
+    /** @return iterable<string,array{string,bool}> */
     public static function transitions(): iterable
     {
         foreach (['password changed', 'password removed', 'finalized', 'remember revoked', 'MFA enabled'] as $transition) {
-            yield $transition => [$transition];
+            yield 'password: '.$transition => [$transition, false];
+        }
+        foreach (['password changed', 'identity removed', 'finalized', 'remember revoked', 'MFA enabled'] as $transition) {
+            yield 'Google: '.$transition => [$transition, true];
         }
     }
 
     #[DataProvider('transitions')]
-    public function test_real_competing_transition_during_raw_rotation_cannot_create_a_session_from_earlier_password_proof(string $transition): void
+    public function test_real_competing_transition_during_raw_rotation_cannot_create_a_session_from_earlier_primary_proof(string $transition, bool $google): void
     {
         $user = User::factory()->google()->create(['password' => Hash::make('password')]);
+        $identity = $user->accountIdentities()->where('provider', 'google')->sole();
         $request = $this->request();
         $primary = DB::getDefaultConnection();
         config()->set('database.connections.login_transition_competitor', array_replace(DB::connection()->getConfig(), ['name' => 'login_transition_competitor']));
@@ -183,6 +203,8 @@ final class AccountLoginCompletionV3Test extends TestCase
                     app(ChangePassword::class)->handle((int) $user->id, 'password', 'ChangedPassword123!', null);
                 } elseif ($transition === 'password removed') {
                     app(RemovePassword::class)->handle((int) $user->id, null);
+                } elseif ($transition === 'identity removed') {
+                    app(RemoveAccountIdentity::class)->handle((int) $user->id, 'google', null);
                 } elseif ($transition === 'finalized') {
                     app(AnonymizeAccount::class)->handle((int) $user->id, 'login-rotation-finalization');
                 } elseif ($transition === 'remember revoked') {
@@ -201,10 +223,15 @@ final class AccountLoginCompletionV3Test extends TestCase
 
         try {
             try {
-                app(AuthenticateWithPassword::class)->handle($request, (string) $user->email, 'password', true, null);
+                if ($google) {
+                    app(AuthenticateWithGoogle::class)->handle($request, (int) $user->id, (int) $identity->id,
+                        $identity->provider_subject, (string) $identity->provider_email, null);
+                } else {
+                    app(AuthenticateWithPassword::class)->handle($request, (string) $user->email, 'password', true, null);
+                }
                 self::fail('The final account lock must recheck proof after raw rotation.');
             } catch (ValidationException $exception) {
-                self::assertArrayHasKey('email', $exception->errors());
+                self::assertArrayHasKey($google ? 'google' : 'email', $exception->errors());
             }
             self::assertTrue($transitioned);
             $this->assertGuest();
@@ -289,7 +316,7 @@ final class AccountLoginCompletionV3Test extends TestCase
         $this->assertGuest();
         self::assertSame(0, $rotations);
         self::assertSame(0, $logins);
-        self::assertNull($user->refresh()->getRememberToken());
+        self::assertNull($user->refresh()->getRawOriginal('remember_token'));
         self::assertSame(0, AccountSession::query()->count());
         self::assertSame('invitation-token', session('accounts.mfa_login.invitation_token'));
     }
@@ -306,8 +333,101 @@ final class AccountLoginCompletionV3Test extends TestCase
         }
         $this->assertGuest();
         self::assertSame(0, AccountSession::query()->count());
-        self::assertNull($user->refresh()->getRememberToken());
+        self::assertNull($user->refresh()->getRawOriginal('remember_token'));
         self::assertFalse($request->session()->has('accounts.recent_authentication_at'));
+    }
+
+    /** @return iterable<string,array{string}> */
+    public static function rejectedGoogleProofs(): iterable
+    {
+        foreach (['wrong account', 'wrong subject', 'disconnected'] as $state) {
+            yield $state => [$state];
+        }
+    }
+
+    #[DataProvider('rejectedGoogleProofs')]
+    public function test_google_routing_snapshots_cannot_replace_exact_current_provider_proof(string $state): void
+    {
+        $user = User::factory()->google()->create(['password' => Hash::make('password')]);
+        $identity = $user->accountIdentities()->where('provider', 'google')->sole();
+        $request = $this->request();
+        $expectedUserId = $state === 'wrong account' ? (int) User::factory()->create()->id : (int) $user->id;
+        if ($state === 'disconnected') {
+            app(RemoveAccountIdentity::class)->handle((int) $user->id, 'google', null);
+        }
+        $before = DB::table('audit_events')->count();
+        try {
+            app(AuthenticateWithGoogle::class)->handle($request, $expectedUserId, (int) $identity->id,
+                $state === 'wrong subject' ? 'another-subject' : $identity->provider_subject, 'provider@example.test', null);
+            self::fail('Only the current owner and verified provider subject may begin login.');
+        } catch (HttpException $exception) {
+            self::assertSame(403, $exception->getStatusCode());
+        }
+        $this->assertGuest();
+        self::assertSame($before, DB::table('audit_events')->count());
+        self::assertSame(0, AccountSession::query()->count());
+        self::assertFalse($request->session()->has('accounts.recent_authentication_at'));
+    }
+
+    public function test_registration_auto_login_cannot_resolve_the_same_credentials_to_another_account(): void
+    {
+        $created = $this->account(false);
+        $replacement = $this->account(false);
+        $request = $this->request();
+        try {
+            app(AuthenticateWithPassword::class)->handle($request, (string) $replacement->email, 'password', false, null, (int) $created->id);
+            self::fail('Registration auto-login is bound to its completed registration result.');
+        } catch (ValidationException $exception) {
+            self::assertArrayHasKey('email', $exception->errors());
+        }
+        $this->assertGuest();
+        self::assertSame(0, AccountSession::query()->count());
+        self::assertSame(0, DB::table('audit_events')->where('event', 'auth.login')->count());
+    }
+
+    /** @return iterable<string,array{bool}> */
+    public static function registrationCompletions(): iterable
+    {
+        yield 'successful auto-login' => [false];
+        yield 'late auto-login audit failure' => [true];
+    }
+
+    #[DataProvider('registrationCompletions')]
+    public function test_registration_http_commits_onboarding_before_safe_auto_login(bool $failLogin): void
+    {
+        config()->set('accounts.registration_mode', 'open');
+        if ($failLogin) {
+            $this->withoutExceptionHandling();
+            DB::listen(static function (QueryExecuted $query): void {
+                if (str_starts_with($query->sql, 'insert into "audit_events"') && in_array('auth.login', $query->bindings, true)) {
+                    throw new RuntimeException('Injected auto-login audit failure.');
+                }
+            });
+        }
+        try {
+            $response = $this->post('/register', [
+                'name' => 'Registration fixture', 'email' => 'new-account@example.test',
+                'password' => 'RegistrationPassword123!', 'password_confirmation' => 'RegistrationPassword123!',
+                'timezone' => 'UTC',
+            ]);
+            self::assertFalse($failLogin);
+            $response->assertRedirect(route('verification.notice'))
+                ->assertSessionHas('accounts.recent_authentication_method', 'password');
+        } catch (RuntimeException $exception) {
+            self::assertTrue($failLogin);
+            self::assertSame('Injected auto-login audit failure.', $exception->getMessage());
+        }
+
+        $user = User::query()->where('email', 'new-account@example.test')->sole();
+        $this->assertDatabaseHas('audit_events', ['event' => 'user.registered', 'actor_user_id' => $user->id]);
+        self::assertSame($failLogin ? 0 : 1, AccountSession::query()->where('user_id', $user->id)->count());
+        self::assertSame($failLogin ? 0 : 1, DB::table('audit_events')->where('event', 'auth.login')->count());
+        if ($failLogin) {
+            $this->assertGuest();
+            self::assertFalse(session()->has('accounts.recent_authentication_at'));
+        } else {
+            $this->assertAuthenticatedAs($user);
+        }
     }
 
     private function account(bool $mfa): User

@@ -56,15 +56,6 @@ final class AccountIdentityQuery
         return $user instanceof User && $user->supportsGoogleAuthentication();
     }
 
-    public function requiresMultiFactor(int $userId): bool
-    {
-        $user = User::query()->find($userId);
-
-        return $user instanceof User
-            && $user->two_factor_confirmed_at !== null
-            && (string) $user->two_factor_secret !== '';
-    }
-
     /** @param list<int> $userIds
      * @return array<int,AccountIdentity>
      */

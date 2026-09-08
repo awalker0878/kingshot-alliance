@@ -99,6 +99,10 @@ final readonly class CompleteAccountLogin
             }, [Login::class, Authenticated::class]);
         } catch (Throwable $exception) {
             if (! $committed) {
+                // A failed guard rotation may have stored the account ID before
+                // setting its in-memory user. Do not let cleanup reload that ID
+                // and emit an Authenticated event for an aborted preparation.
+                $request->session()->forget($guard->getName());
                 try {
                     $guard->logoutCurrentDevice();
                 } catch (Throwable $cleanupFailure) {
