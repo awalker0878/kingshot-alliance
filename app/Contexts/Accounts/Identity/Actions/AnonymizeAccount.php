@@ -11,6 +11,7 @@ use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use Illuminate\Session\SessionManager;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Throwable;
 
 final readonly class AnonymizeAccount
 {
@@ -29,10 +30,7 @@ final readonly class AnonymizeAccount
             }
 
             $originalEmail = (string) $user->email;
-            $registeredSessions = AccountSession::query()->where('user_id', $userId)->lockForUpdate()->get();
-            foreach ($registeredSessions as $session) {
-                $this->sessions->driver()->getHandler()->destroy((string) $session->session_id);
-            }
+            $sessionIds = AccountSession::query()->where('user_id', $userId)->lockForUpdate()->pluck('session_id')->all();
 
             AccountSession::query()->where('user_id', $userId)->delete();
             $user->tokens()->delete();
@@ -63,6 +61,17 @@ final readonly class AnonymizeAccount
                 subject: $user,
                 metadata: ['deletion_request_id' => $requestId],
             );
+
+            DB::afterCommit(function () use ($sessionIds): void {
+                foreach ($sessionIds as $sessionId) {
+                    try {
+                        $this->sessions->driver()->getHandler()->destroy((string) $sessionId);
+                    } catch (Throwable $exception) {
+                        // Terminal account state denies access even if raw storage fails.
+                        report($exception);
+                    }
+                }
+            });
         });
     }
 }
