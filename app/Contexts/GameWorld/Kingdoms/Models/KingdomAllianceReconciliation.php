@@ -7,6 +7,7 @@ namespace App\Contexts\GameWorld\Kingdoms\Models;
 use App\Contexts\GameWorld\Kingdoms\Enums\KingdomAllianceIdentitySource;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
 /**
  * @property string $kingdom_id
@@ -16,7 +17,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property KingdomAllianceIdentitySource $source_type
  * @property string|null $source_reference
  * @property int|null $confidence_basis_points
- * @property \Illuminate\Support\Carbon $reconciled_at
+ * @property Carbon $reconciled_at
  */
 final class KingdomAllianceReconciliation extends Model
 {
