@@ -34,8 +34,7 @@ final readonly class ReconcileKingdomAlliances
         ?string $sourceReference = null,
         ?int $confidenceBasisPoints = null,
         ?AuditActor $actor = null,
-    ): KingdomAllianceReference
-    {
+    ): KingdomAllianceReference {
         $reason = trim($reason);
         if ($canonicalKingdomAllianceId === $duplicateKingdomAllianceId) {
             throw ValidationException::withMessages(['duplicate_kingdom_alliance_id' => 'Canonical and duplicate Alliance identities must be different.']);
