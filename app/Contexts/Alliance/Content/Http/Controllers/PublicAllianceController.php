@@ -42,7 +42,7 @@ final class PublicAllianceController extends Controller
             (string) $alliance->slug,
             'alliance-public-page',
         );
-        $kingdom = $kingdoms->find((string) $alliance->kingdom_id);
+        $kingdom = $kingdoms->requireActive((string) $alliance->kingdom_id);
         $items = $content->publicList(
             (string) $alliance->id,
             $request->string('q')->toString(),
@@ -88,7 +88,7 @@ final class PublicAllianceController extends Controller
             'alliance' => [
                 'name' => $alliance->name,
                 'slug' => $alliance->slug,
-                'kingdom' => $kingdom?->number,
+                'kingdom' => $kingdom->number,
                 'language' => $alliance->language,
                 'timezone' => $alliance->timezone,
                 'description' => $profile?->description,
