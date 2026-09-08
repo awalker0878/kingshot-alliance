@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\Players\Actions;
 
+use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
 use App\Contexts\GameWorld\Players\Enums\PlayerIdentitySource;
 use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
@@ -14,6 +15,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class CreatePlayerForAccount
 {
     public function __construct(
+        private AccountIdentityQuery $accounts,
         private PersistPlayerIdentity $persist,
         private ClaimPlayerAccount $claim,
     ) {}
@@ -21,6 +23,7 @@ final readonly class CreatePlayerForAccount
     public function handle(int $userId, string $kingdomId, string $name, ?string $gamePlayerId): PlayerReference
     {
         return DB::transaction(function () use ($userId, $kingdomId, $name, $gamePlayerId): PlayerReference {
+            $this->accounts->lockActive($userId);
             $stableId = $gamePlayerId === null ? null : trim($gamePlayerId);
             $stableId = $stableId === '' ? null : $stableId;
             if ($stableId !== null) {

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\Players\Actions;
 
+use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
 use App\Contexts\GameWorld\Players\Enums\PlayerIdentitySource;
 use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\GameWorld\Players\Services\PlayerIdentityHistoryRecorder;
@@ -17,6 +18,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class ClaimPlayerAccount
 {
     public function __construct(
+        private AccountIdentityQuery $accounts,
         private PlayerIdentityHistoryRecorder $history,
         private AuditRecorder $audit,
     ) {}
@@ -34,6 +36,7 @@ final readonly class ClaimPlayerAccount
         ?AuditActor $actor = null,
     ): PlayerReference {
         return DB::transaction(function () use ($playerId, $userId, $source, $sourceReference, $actor): PlayerReference {
+            $this->accounts->lockActive($userId);
             $locked = Player::query()
                 ->whereKey($playerId)
                 ->whereNull('canonical_player_id')

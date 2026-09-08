@@ -7,6 +7,7 @@ namespace App\Contexts\Accounts\Identity\Queries;
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Accounts\Identity\ValueObjects\AccountIdentity;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 final class AccountIdentityQuery
 {
@@ -25,6 +26,16 @@ final class AccountIdentityQuery
     public function lockCurrent(int $userId): AccountIdentity
     {
         return $this->snapshot(User::query()->whereKey($userId)->lockForUpdate()->firstOrFail());
+    }
+
+    public function lockActive(int $userId): AccountIdentity
+    {
+        $account = $this->lockCurrent($userId);
+        if ($account->anonymized) {
+            throw ValidationException::withMessages(['account' => 'This account has already been deleted.']);
+        }
+
+        return $account;
     }
 
     public function findIdByEmail(string $email): ?int

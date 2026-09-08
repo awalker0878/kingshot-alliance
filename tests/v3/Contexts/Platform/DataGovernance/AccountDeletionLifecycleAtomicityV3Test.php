@@ -67,7 +67,7 @@ final class AccountDeletionLifecycleAtomicityV3Test extends TestCase
 
     public function test_repeats_preserve_cooling_off_and_a_new_request_after_cancellation_gets_new_intent(): void
     {
-        $this->freezeTime();
+        $this->freezeSecond();
         $user = User::factory()->create();
         $request = app(RequestAccountDeletion::class);
         $cancel = app(CancelAccountDeletion::class);

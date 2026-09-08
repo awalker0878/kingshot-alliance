@@ -29,6 +29,10 @@ User-facing product term: **Governor**. Internal/domain term: **Player**.
 
 Player-owned intent Actions include creation for an account, safe owned identity update, explicit owned Kingdom movement, claim, voluntary release, account-deletion release, trusted identity persistence and explicit reconciliation.
 
+Ownership changes acquire the current Accounts lock before Player locks. Claim, creation, voluntary release and reconciliation consume `AccountIdentityQuery::lockActive`, which rejects finalized accounts while allowing accounts in the cooling-off period. DataGovernance release uses the current account lock already held by finalization. Accounts owns lifecycle validation; GameWorld owns every Player and history write.
+
+Reconciliation first discovers the two current owner IDs, locks those accounts in ascending order, then locks Players in ascending order and compares current owners with the discovery snapshot. A changed owner causes a retryable validation rejection before any identity write. Finalization holds the same account lock while enumerating and releasing the complete current ownership set, so assignments cannot arrive after enumeration.
+
 The first-class `/governors` surface exposes the safe self-service subset. Voluntary release is recent-auth protected and subject to lifecycle blockers.
 
 Active Player activation remains a `GameWorld/Players` Action, not a Workflow. It validates account ownership, emits `player.context_changed`, updates session context through its controller, and never accepts browser authority facts.

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\Players\Actions;
 
+use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
 use App\Contexts\GameWorld\Players\Enums\PlayerIdentitySource;
 use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\GameWorld\Players\Models\PlayerReconciliation;
@@ -19,6 +20,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class ReconcilePlayers
 {
     public function __construct(
+        private AccountIdentityQuery $accounts,
         private PlayerReferenceQuery $references,
         private PlayerIdentityHistoryRecorder $history,
         private PlayerLifecyclePolicy $lifecycle,
@@ -56,7 +58,23 @@ final readonly class ReconcilePlayers
         ): void {
             $ids = [$canonicalPlayerId, $duplicatePlayerId];
             sort($ids, SORT_STRING);
+            $expectedOwners = Player::query()->whereIn('id', $ids)->get(['id', 'user_id'])
+                ->mapWithKeys(static fn (Player $player): array => [
+                    (string) $player->id => $player->user_id === null ? null : (int) $player->user_id,
+                ])->all();
+            $accountIds = array_values(array_unique(array_filter($expectedOwners, static fn (?int $id): bool => $id !== null)));
+            sort($accountIds, SORT_NUMERIC);
+            foreach ($accountIds as $accountId) {
+                $this->accounts->lockActive($accountId);
+            }
+
             $locked = Player::query()->whereIn('id', $ids)->orderBy('id')->lockForUpdate()->get()->keyBy('id');
+            foreach ($locked as $player) {
+                $currentOwner = $player->user_id === null ? null : (int) $player->user_id;
+                if ($currentOwner !== ($expectedOwners[(string) $player->id] ?? null)) {
+                    throw ValidationException::withMessages(['player' => 'Player ownership changed. Reload the current identities before reconciling.']);
+                }
+            }
             $canonical = $locked->get($canonicalPlayerId);
             $duplicate = $locked->get($duplicatePlayerId);
             if (! ($canonical instanceof Player)) {

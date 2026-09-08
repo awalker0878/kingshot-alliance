@@ -5,15 +5,15 @@
 - Program state: In progress.
 - Exact main baseline: `7e780521295e868005ecfee5bd38b33e8215ec49`.
 - Working branch: `astra/codebase-hardening`.
-- Latest pushed durable checkpoint: `685ee1c65fdb6b5283dcc8d1deedff37b2a7469a`.
+- Latest pushed durable checkpoint: `26012474ba14f442590bc7bdfa6572309ffaad22`.
 - Draft PR: [#163](https://github.com/awalker0878/kingshot-alliance/pull/163).
-- Current item/state: HARD-026 / In progress (account deletion lifecycle atomicity). HARD-025 is Complete with all nine workflows green.
+- Current item/state: HARD-027 / In progress (Player ownership/finalization). HARD-026 owner rollback/concurrency cases pass; one exact-deadline clock fixture needs containing verification.
 - Most recently verified gates: all nine PR workflows pass on `685ee1c65fdb6b5283dcc8d1deedff37b2a7469a`, including 785 PHP tests / 74,246 assertions, fresh PostgreSQL, frontend, image/staging/recovery, architecture/capabilities, visual and security.
-- Active files: Platform request/cancel/process Actions, Accounts lifecycle intent, six rollback/idempotency/concurrency regressions, DataGovernance contract and ledger.
-- Remaining current work: verify HARD-026 and reconcile HARD-025 final gates; repair Player ownership/finalization coordination under HARD-027 and deletion-worker fairness under HARD-028, then continue repository audit coverage.
-- Known failures: none in PostgreSQL on `685ee1c6` (785 tests, 74,246 assertions); All nine containing workflows pass. HARD-026 database regressions await PostgreSQL CI; local static/style/architecture gates pass.
+- Active files: Accounts active lifecycle query, GameWorld claim/create/reconcile/release Actions, eight ownership/finalization regressions, precise-second HARD-026 clock fixture and owner contracts.
+- Remaining current work: verify HARD-027 and the corrected HARD-026 deadline fixture; implement deletion-worker fairness under HARD-028, then continue remaining Accounts/GameWorld and repository audit coverage.
+- Known failures: `26012474` has one failure in the HARD-026 exact-deadline fixture because freezeTime retains microseconds while the schema stores whole seconds. The fixture now uses freezeSecond without loosening assertions. Five other deletion regressions pass, including real lock contention and rollback. HARD-027 containing verification is pending.
 - Blockers: local PostgreSQL/Redis services unavailable; service-backed verification uses GitHub CI. Local PHP 8.5.8 and locked Composer/npm dependencies available. Checkpoints publish via the authorized GitHub connection with exact staged-tree verification and non-forced branch updates.
-- Exact next action: publish HARD-026 and verify containing workflows, then implement the GameWorld ownership/finalization handshake under HARD-027 across claim, create and reconciliation entry points.
+- Exact next action: publish HARD-027 with the HARD-026 clock correction and verify containing workflows, then implement HARD-028 durable blocked-request retry scheduling before the worker limit.
 - Remaining repository-wide gates: final full PHP/architecture/capability and frontend gates on one containing commit; production image/staging/recovery; final security/dependency/visual checks; remaining capability-by-capability audit coverage below.
 
 Checkpoint SHAs are recorded by the following documentation commit; verify that the recorded checkpoint is an ancestor of current branch HEAD. No audit area is complete solely because its paths have been inventoried.
@@ -380,7 +380,7 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Remediation: acquire Accounts then the request in every transition; compose owner lifecycle/audit/Communications intent in one transaction; preserve pending/blocked/processed replays and give genuinely new request cycles new notification intent.
 - State: In progress.
 - Verification required: request/cancel rollback preserves both owners, repeat/processed transitions do not emit contradictory effects, competing transitions share the account lock, and normal release/security notification behavior remains intact.
-- Verification result: all three Platform transitions acquire the current Accounts lock before request state. Request/cancel invoke Accounts inside their transaction; Accounts publishes only transactional Communications intent, with no network delivery under the lock. Replays preserve deadlines and do not duplicate audit/notifications; cancellation followed by a new request produces a new intent. Six real regressions cover injected notification persistence failure on request/cancel, complete lifecycle replay, processed-state protection and cancellation over a second PostgreSQL connection during request/process. Full PHPStan, Pint and all 62 Architecture tests pass (66,719 assertions). PostgreSQL verification pending. Player ownership writers are separately tracked under HARD-027.
+- Verification result: all three Platform transitions acquire the current Accounts lock before request state. Request/cancel invoke Accounts inside their transaction; Accounts publishes only transactional Communications intent, with no network delivery under the lock. Replays preserve deadlines and do not duplicate audit/notifications; cancellation followed by a new request produces a new intent. Six real regressions cover injected notification persistence failure on request/cancel, complete lifecycle replay, processed-state protection and cancellation over a second PostgreSQL connection during request/process. Full PHPStan, Pint and all 62 Architecture tests pass (66,719 assertions). PostgreSQL CI on `26012474` passes five of six new cases, including both failure rollbacks and competing-connection checks. The exact-deadline case compares a microsecond-bearing frozen clock to second-precision persisted timestamps; its fixture now freezes a whole second while retaining the exact seven-day/account-date assertions. Full run: 791 tests / 74,280 assertions, one failure; PHP job `102185431754`. Containing verification pending. Player ownership writers are separately tracked under HARD-027.
 - Completion evidence: pending.
 - Commit SHA: pending.
 
@@ -392,9 +392,9 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: Accounts supplies current lifecycle serialization; GameWorld retains all ownership/history writes; Platform coordinates release through those owner APIs.
 - Rationale: finalization must not miss a concurrent new ownership assignment or leave game identities attached to an anonymized account. Lock order must remain consistent when an operation touches account and Player rows.
 - Remediation: trace all ownership writers and release/reconciliation entry points, require current account lifecycle before assigning/transferring ownership, revalidate any routing snapshot after locks and verify actual competing-connection finalization/claim behavior.
-- State: Planned.
+- State: In progress.
 - Verification required: finalized accounts cannot claim/create/receive reconciled ownership; concurrent claims and finalization serialize without missing Players; normal reconciliation and identity provenance remain correct.
-- Verification result: claim/create/reconciliation and bulk release paths traced; single release and enclosing reconciliation callers remain to be traced before implementation.
+- Verification result: All assignment/release writers and callers are traced. Accounts lockActive owns the finalized-account rejection; claim/create/voluntary release acquire it before Player writes, and bulk release retains the current account lock. Reconciliation locks discovered accounts then Players in deterministic order and rejects changed owner snapshots. Eight real database cases cover finalized assignment kinds, both finalization/assignment lock orders, complete released history after claim/create/reconciliation, and a second-connection claim changing the routing snapshot. Full PHPStan, changed-file Pint and all 62 Architecture tests pass (66,719 assertions). PostgreSQL verification pending.
 - Completion evidence: pending.
 - Commit SHA: pending.
 
