@@ -18,7 +18,7 @@ final class GovernorProgressionEvidenceClassifier implements EvidenceClassifier
 
     public function version(): string
     {
-        return '1.0.2';
+        return '1.1.0';
     }
 
     public function classify(EvidenceKind $expectedKind, OcrDocument $document): ClassificationDecision
@@ -31,6 +31,9 @@ final class GovernorProgressionEvidenceClassifier implements EvidenceClassifier
             EvidenceKind::GovernorHeroGear->value => $this->heroGearScore($text),
             EvidenceKind::GovernorGear->value => $this->governorGearScore($text),
             EvidenceKind::GovernorCharms->value => $this->charmsScore($text),
+            EvidenceKind::GovernorBuildings->value => $this->structuredScore($text, '(?:governor[\t ]+)?buildings', 'building'),
+            EvidenceKind::GovernorAcademyResearch->value => $this->structuredScore($text, 'academy[\t ]+research', 'technology'),
+            EvidenceKind::GovernorWarAcademyResearch->value => $this->structuredScore($text, 'war[\t ]+academy[\t ]+research', 'technology'),
         ];
         arsort($scores, SORT_NUMERIC);
         $keys = array_keys($scores);
@@ -58,6 +61,15 @@ final class GovernorProgressionEvidenceClassifier implements EvidenceClassifier
             min(1.0, $best),
             sprintf('Detected the %s Governor Progression screenshot schema from explicit fixture-backed labels.', $bestKind->value),
         );
+    }
+
+    private function structuredScore(string $text, string $heading, string $label): float
+    {
+        if (preg_match('/^[\t ]*'.$heading.'[\t ]*$/im', $text) !== 1) {
+            return 0.0;
+        }
+
+        return preg_match('/^'.preg_quote($label, '/').'\s*:\s*\S.+$/im', $text) === 1 ? 0.90 : 0.64;
     }
 
     private function profileScore(string $text): float

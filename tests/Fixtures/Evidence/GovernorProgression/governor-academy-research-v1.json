@@ -1,0 +1,179 @@
+{
+  "schema_version": "governor-academy-research/1",
+  "fixture_type": "synthetic OCR contract examples; not captured game images or proof of additional UI variants",
+  "coverage_cases": [
+    {
+      "name": "canonical",
+      "category": "canonical",
+      "lines": [
+        "Academy Research",
+        "Technology: Tool Enhancement I Level 2"
+      ],
+      "expected_kind": "governor_academy_research",
+      "fields": {
+        "technology_name": "Tool Enhancement I",
+        "research_level": "2"
+      }
+    },
+    {
+      "name": "alternate_resolution",
+      "category": "alternate_resolution",
+      "lines": [
+        "Academy Research",
+        "Technology: Tool Enhancement I Lv. 2"
+      ],
+      "expected_kind": "governor_academy_research",
+      "fields": {
+        "technology_name": "Tool Enhancement I",
+        "research_level": "2"
+      }
+    },
+    {
+      "name": "safe_crop",
+      "category": "safe_crop",
+      "lines": [
+        "Academy Research",
+        "Technology: Tool Enhancement I Level 2"
+      ],
+      "expected_kind": "governor_academy_research",
+      "fields": {
+        "technology_name": "Tool Enhancement I",
+        "research_level": "2"
+      }
+    },
+    {
+      "name": "numeric_grouping",
+      "category": "numeric_grouping",
+      "lines": [
+        "Academy Research",
+        "Technology: Tool Enhancement I Level 1,000"
+      ],
+      "expected_kind": "governor_academy_research",
+      "fields": {
+        "technology_name": "Tool Enhancement I"
+      },
+      "forbidden_fields": [
+        "research_level"
+      ]
+    },
+    {
+      "name": "low_confidence",
+      "category": "low_confidence",
+      "lines": [
+        "Academy Research",
+        "Technology: Tool Enhancement I Level 2"
+      ],
+      "expected_kind": "governor_academy_research",
+      "fields": {
+        "technology_name": "Tool Enhancement I",
+        "research_level": "2"
+      },
+      "ocr_confidence": 0.4,
+      "expect_below_field_threshold": true
+    },
+    {
+      "name": "adjacent_unrelated_numbers",
+      "category": "adjacent_unrelated_numbers",
+      "lines": [
+        "Academy Research",
+        "Technology: Tool Enhancement I Level 2 Power 900,000",
+        "Upgrade Cost 4,000",
+        "Time 20"
+      ],
+      "expected_kind": "governor_academy_research",
+      "fields": {
+        "technology_name": "Tool Enhancement I",
+        "research_level": "2"
+      }
+    },
+    {
+      "name": "missing_required_field",
+      "category": "missing_required_field",
+      "lines": [
+        "Academy Research",
+        "Technology: Tool Enhancement I"
+      ],
+      "expected_kind": "governor_academy_research",
+      "fields": {
+        "technology_name": "Tool Enhancement I"
+      },
+      "forbidden_fields": [
+        "research_level"
+      ]
+    },
+    {
+      "name": "unsupported_ui_variant",
+      "category": "unsupported_ui_variant",
+      "lines": [
+        "Progression Overview",
+        "Bonus +20%"
+      ],
+      "expected_kind": "unknown",
+      "fields": {},
+      "forbidden_fields": [
+        "technology_name",
+        "research_level"
+      ]
+    },
+    {
+      "name": "wrong_screenshot_class",
+      "category": "wrong_screenshot_class",
+      "lines": [
+        "Governor Profile",
+        "Governor Power 500,000",
+        "Kingdom #123"
+      ],
+      "expected_kind": "governor_profile",
+      "fields": {},
+      "forbidden_fields": [
+        "technology_name",
+        "research_level"
+      ]
+    },
+    {
+      "name": "visual_duplicate_recompressed",
+      "category": "visual_duplicate_recompressed",
+      "lines": [
+        "Academy Research",
+        "Technology: Tool Enhancement I Level 2"
+      ],
+      "expected_kind": "governor_academy_research",
+      "fields": {
+        "technology_name": "Tool Enhancement I",
+        "research_level": "2"
+      }
+    },
+    {
+      "name": "semantic_equal",
+      "category": "semantic_equal",
+      "lines": [
+        "Academy Research",
+        "Technology: Tool Enhancement I Level 2"
+      ],
+      "expected_kind": "governor_academy_research",
+      "fields": {
+        "technology_name": "Tool Enhancement I",
+        "research_level": "2"
+      },
+      "semantic": {
+        "observed_at": "2026-09-07T12:00:00Z"
+      }
+    },
+    {
+      "name": "semantic_newer",
+      "category": "semantic_newer",
+      "lines": [
+        "Academy Research",
+        "Technology: Tool Enhancement I Level 2"
+      ],
+      "expected_kind": "governor_academy_research",
+      "fields": {
+        "technology_name": "Tool Enhancement I",
+        "research_level": "2"
+      },
+      "semantic": {
+        "observed_at": "2026-09-08T12:00:00Z"
+      }
+    }
+  ]
+}

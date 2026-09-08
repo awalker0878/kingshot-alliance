@@ -5,15 +5,15 @@
 - Program state: In progress.
 - Exact main baseline: `7e780521295e868005ecfee5bd38b33e8215ec49`.
 - Working branch: `astra/codebase-hardening`.
-- Latest pushed durable checkpoint: `d8f134da75d2485d7775c4e13712b1a8ff9b3620`.
+- Latest pushed durable checkpoint: `2bb70908fea818f704d403614c92617b1ec057fa`.
 - Draft PR: [#163](https://github.com/awalker0878/kingshot-alliance/pull/163).
 - Current item/state: HARD-005 / In progress (CI behavior verification pending).
-- Most recently verified gates: scheduler/command ownership (4 tests, 646 assertions); architecture verifier; syntax and Pint on 16 changed PHP files; documentation links (233 files); 35 scheduled commands and 490 routes boot. Full PHPStan finds one unrelated evidence-routing defect (HARD-008).
-- Active files: HARD-007 release availability/integrity behavior tests and architectural boundary checks; ledger.
+- Most recently verified gates: full local PHPStan (zero errors); full frontend `npm run check` including build/budgets; HARD-008/HARD-010 routing/schema/corpora 22 tests (1,017 assertions), pinned-state validator 3 tests (18 assertions); earlier evidence: scheduler/command ownership (4 tests, 646 assertions); architecture verifier; syntax and Pint on 16 changed PHP files; documentation links (233 files); 35 scheduled commands and 490 routes boot. Full PHPStan finds one unrelated evidence-routing defect (HARD-008).
+- Active files: HARD-008/HARD-010 Evidence routing, classifier/extractor, synthetic corpora, Roster destination contracts and screenshot contract; ledger.
 - Remaining current work: production move complete; verify migrated database-backed notification behavior in CI after HARD-006–008 unblock the baseline gates.
 - Known failures at resumed HEAD `9b39d476`: CI `34242100412` and Intelligence `34242099956` fail formatting (HARD-006); Architecture `34242099981` fails two obsolete dataset diagnostic assertions (HARD-007). Full PHPStan remains blocked by HARD-008. Visual `34242100095`, CodeQL `34242100035`, Dependency Review `34242100043`, Gift Code `34242100200`, King Perks `34242100097`, and KingdomMaps `34242100142` pass.
 - Blockers: local PostgreSQL/Redis services are unavailable for database/queue integration tests; This resumed workspace uses PHP 8.5.8 with locked Composer/frontend dependencies installed; local PostgreSQL/Redis remain unavailable. Use CI for remaining service-dependent gates. Checkpoints are published through the authorized GitHub connection; checkpoint commits are published through the GitHub connection with exact tree verification.
-- Exact next action: publish HARD-007, then resolve HARD-008 routing plus HARD-010 structured-intake behavior and HARD-011 topology/prerequisite contracts. Return to HARD-005 verification after CI prerequisites pass.
+- Exact next action: publish verified HARD-008/HARD-010 routing/extraction slice; inspect CI behavior, then repair HARD-011 and return to HARD-005 notification verification.
 - Remaining repository-wide gates: PHP syntax/Pint/PSR-4/PHPStan/PHPUnit/Architecture/capability suites; fresh schema/routes/commands/schedules/queues; full frontend checks/build; Playwright/visual; CodeQL/dependency review/advisories; container/staging/recovery.
 
 Checkpoint SHAs are recorded by the following documentation commit; verify that the recorded checkpoint is an ancestor of current branch HEAD. No audit area is complete solely because its paths have been inventoried.
@@ -116,7 +116,7 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Verification required: Architecture V3 and dataset/planner behavior pass with absent and invalid release fixtures.
 - Verification result: reproduced both obsolete assertions before the repair. Twelve new filesystem-backed availability/controller cases pass (47 assertions): empty catalogue, every unpublished status, published version ordering, malformed JSON, invalid schema/manifest/status, changed checksum and missing pinned release. Combined Architecture/Progression run: 107/109 pass (67,124 assertions); all Architecture and availability cases pass. Two pre-existing topology/prerequisite expectation defects are separately tracked as HARD-011. Changed-test Pint passes.
 - Completion evidence: ProgressionDatasetAvailabilityV3Test exercises real release loading and planner responses without mocking release behavior or mutating checked-in datasets; architecture enforcement retains the typed-absence and early-scope boundary.
-- Commit SHA: recorded by the next checkpoint after publication.
+- Commit SHA: `2bb70908fea818f704d403614c92617b1ec057fa`.
 
 ### HARD-008 — Missing Governor progression evidence routing
 
@@ -126,11 +126,11 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: same router and the existing Governor progression extractor.
 - Rationale: one complete evidence-kind dispatch contract; supported intake kinds must reach their authoritative extractor.
 - Remediation: map all supported progression kinds, verify actual extraction behavior and keep unknown/unsupported input semantics explicit.
-- State: Planned.
+- State: Complete.
 - Verification required: exhaustive enum/router regression, production progression extraction behavior and full PHPStan.
-- Verification result: local full PHPStan reports exactly this one error; no suppression added.
-- Completion evidence: pending.
-- Commit SHA: pending.
+- Verification result: reproduced an UnhandledMatchError for GovernorBuildings plus three failed routed classifications before remediation. Complete enum routing and real classifier/extractor/schema corpora now pass (22 tests, 1,017 assertions). Full PHPStan passes with zero errors; changed PHP Pint, architecture verifier and documentation links pass.
+- Completion evidence: RoutedEvidenceExtractorV3Test covers every EvidenceKind, actual extraction, explicit unsupported failures and structured classification independent of expected kind; HARD-010 tracks wider destination/UX verification.
+- Commit SHA: recorded by the next checkpoint after publication.
 
 ### HARD-009 — Personal reminder stale-snapshot race
 
@@ -154,11 +154,11 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: same Evidence pipeline; Roster owns accepted states and GameWorld owns pinned reference facts.
 - Rationale: a registered kind and a passing enum match do not establish an executable capability; machine extraction must remain independent of the user-selected kind and preserve unknown fields.
 - Remediation: complete explicit classifier/extractor contracts with fixtures, trace normalized review through typed destination validation, reconcile current documentation and test production routing/review behavior.
-- State: Planned.
+- State: In progress.
 - Verification required: routed classification/extraction including mismatch/ambiguity/unknown fields; pinned-dataset review and destination behavior; full Intelligence, architecture, style and static analysis.
-- Verification result: missing classifier/extractor branches confirmed during HARD-008 trace; behavioral remediation pending.
-- Completion evidence: pending.
-- Commit SHA: pending.
+- Verification result: narrow English heading/label extraction implemented with three 12-case synthetic OCR corpora. Classifier/extractor versions advanced for provenance. All 22 routing/schema/corpus tests pass (1,017 assertions); three real pinned-state validator cases pass (18 assertions), covering valid names and rejected missing/invalid/duplicate/mismatched states. Roster replay behavior expanded across all three kinds; database-backed verification pending in CI. Full PHPStan passes, changed PHP Pint and architecture verifier pass.
+- Completion evidence: routing/extraction, synthetic fixture corpora, structured pinned-state validation and expanded owner replay tests; screenshot contract now marks this extension In progress. Remaining: database-backed review/normalization/destination/authorization checks and reconcile related reference/architecture/operations contracts.
+- Commit SHA: recorded by the next checkpoint after publication.
 
 ### HARD-011 — Progression topology and prerequisite contract drift
 

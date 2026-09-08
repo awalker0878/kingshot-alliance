@@ -1,0 +1,179 @@
+{
+  "schema_version": "governor-buildings/1",
+  "fixture_type": "synthetic OCR contract examples; not captured game images or proof of additional UI variants",
+  "coverage_cases": [
+    {
+      "name": "canonical",
+      "category": "canonical",
+      "lines": [
+        "Governor Buildings",
+        "Building: Town Center Level 2"
+      ],
+      "expected_kind": "governor_buildings",
+      "fields": {
+        "building_name": "Town Center",
+        "building_level": "2"
+      }
+    },
+    {
+      "name": "alternate_resolution",
+      "category": "alternate_resolution",
+      "lines": [
+        "Governor Buildings",
+        "Building: Town Center Lv. 2"
+      ],
+      "expected_kind": "governor_buildings",
+      "fields": {
+        "building_name": "Town Center",
+        "building_level": "2"
+      }
+    },
+    {
+      "name": "safe_crop",
+      "category": "safe_crop",
+      "lines": [
+        "Governor Buildings",
+        "Building: Town Center Level 2"
+      ],
+      "expected_kind": "governor_buildings",
+      "fields": {
+        "building_name": "Town Center",
+        "building_level": "2"
+      }
+    },
+    {
+      "name": "numeric_grouping",
+      "category": "numeric_grouping",
+      "lines": [
+        "Governor Buildings",
+        "Building: Town Center Level 1,000"
+      ],
+      "expected_kind": "governor_buildings",
+      "fields": {
+        "building_name": "Town Center"
+      },
+      "forbidden_fields": [
+        "building_level"
+      ]
+    },
+    {
+      "name": "low_confidence",
+      "category": "low_confidence",
+      "lines": [
+        "Governor Buildings",
+        "Building: Town Center Level 2"
+      ],
+      "expected_kind": "governor_buildings",
+      "fields": {
+        "building_name": "Town Center",
+        "building_level": "2"
+      },
+      "ocr_confidence": 0.4,
+      "expect_below_field_threshold": true
+    },
+    {
+      "name": "adjacent_unrelated_numbers",
+      "category": "adjacent_unrelated_numbers",
+      "lines": [
+        "Governor Buildings",
+        "Building: Town Center Level 2 Power 900,000",
+        "Upgrade Cost 4,000",
+        "Time 20"
+      ],
+      "expected_kind": "governor_buildings",
+      "fields": {
+        "building_name": "Town Center",
+        "building_level": "2"
+      }
+    },
+    {
+      "name": "missing_required_field",
+      "category": "missing_required_field",
+      "lines": [
+        "Governor Buildings",
+        "Building: Town Center"
+      ],
+      "expected_kind": "governor_buildings",
+      "fields": {
+        "building_name": "Town Center"
+      },
+      "forbidden_fields": [
+        "building_level"
+      ]
+    },
+    {
+      "name": "unsupported_ui_variant",
+      "category": "unsupported_ui_variant",
+      "lines": [
+        "Progression Overview",
+        "Bonus +20%"
+      ],
+      "expected_kind": "unknown",
+      "fields": {},
+      "forbidden_fields": [
+        "building_name",
+        "building_level"
+      ]
+    },
+    {
+      "name": "wrong_screenshot_class",
+      "category": "wrong_screenshot_class",
+      "lines": [
+        "Governor Profile",
+        "Governor Power 500,000",
+        "Kingdom #123"
+      ],
+      "expected_kind": "governor_profile",
+      "fields": {},
+      "forbidden_fields": [
+        "building_name",
+        "building_level"
+      ]
+    },
+    {
+      "name": "visual_duplicate_recompressed",
+      "category": "visual_duplicate_recompressed",
+      "lines": [
+        "Governor Buildings",
+        "Building: Town Center Level 2"
+      ],
+      "expected_kind": "governor_buildings",
+      "fields": {
+        "building_name": "Town Center",
+        "building_level": "2"
+      }
+    },
+    {
+      "name": "semantic_equal",
+      "category": "semantic_equal",
+      "lines": [
+        "Governor Buildings",
+        "Building: Town Center Level 2"
+      ],
+      "expected_kind": "governor_buildings",
+      "fields": {
+        "building_name": "Town Center",
+        "building_level": "2"
+      },
+      "semantic": {
+        "observed_at": "2026-09-07T12:00:00Z"
+      }
+    },
+    {
+      "name": "semantic_newer",
+      "category": "semantic_newer",
+      "lines": [
+        "Governor Buildings",
+        "Building: Town Center Level 2"
+      ],
+      "expected_kind": "governor_buildings",
+      "fields": {
+        "building_name": "Town Center",
+        "building_level": "2"
+      },
+      "semantic": {
+        "observed_at": "2026-09-08T12:00:00Z"
+      }
+    }
+  ]
+}

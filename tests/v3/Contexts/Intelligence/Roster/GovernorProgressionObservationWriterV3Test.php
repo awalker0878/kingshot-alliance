@@ -12,6 +12,7 @@ use App\Contexts\Intelligence\Roster\Models\GovernorProgressionObservation;
 use App\Contexts\Intelligence\Roster\Services\GovernorProgressionObservationWriter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\v3\Support\ScenarioFactory;
 use Tests\v3\TestCase;
 
@@ -19,7 +20,8 @@ final class GovernorProgressionObservationWriterV3Test extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_destination_replay_returns_same_receipt_without_duplicate_observation(): void
+    #[DataProvider('destinationKinds')]
+    public function test_destination_replay_returns_same_receipt_without_duplicate_observation(EvidenceKind $kind, string $schema, array $payload): void
     {
         $scenario = new ScenarioFactory;
         $account = $scenario->authUser();
@@ -55,12 +57,12 @@ final class GovernorProgressionObservationWriterV3Test extends TestCase
             'rosterEntryId' => $entry->rosterEntryId,
             'evidenceId' => $evidenceId,
             'reviewId' => $reviewId,
-            'kind' => EvidenceKind::GovernorProfile,
-            'schemaVersion' => 'governor-profile/1',
+            'kind' => $kind,
+            'schemaVersion' => $schema,
             'progressionDatasetId' => $dataset->id,
             'progressionDatasetChecksum' => $dataset->checksum,
             'capturedAt' => '2026-08-26T12:00:00Z',
-            'payload' => ['power' => '45000000'],
+            'payload' => $payload,
             'idempotencyKey' => $idempotencyKey,
         ];
 
@@ -73,6 +75,14 @@ final class GovernorProgressionObservationWriterV3Test extends TestCase
         self::assertSame($first->observationId, $second->observationId);
         self::assertSame(1, GovernorProgressionObservation::query()->count());
         self::assertSame(1, GovernorProgressionEvidenceReceipt::query()->count());
+    }
+
+    public static function destinationKinds(): iterable
+    {
+        yield 'profile' => [EvidenceKind::GovernorProfile, 'governor-profile/1', ['power' => '45000000']];
+        yield 'buildings' => [EvidenceKind::GovernorBuildings, 'governor-buildings/1', ['states' => [['subject_id' => 'academy', 'level' => 1]]]];
+        yield 'academy' => [EvidenceKind::GovernorAcademyResearch, 'governor-academy-research/1', ['states' => [['subject_id' => 'development-tool-enhancement-i', 'level' => 1]]]];
+        yield 'war academy' => [EvidenceKind::GovernorWarAcademyResearch, 'governor-war-academy-research/1', ['states' => [['subject_id' => 'truegold-battalion', 'level' => 1]]]];
     }
 
     public function test_destination_rejects_unapproved_evidence_provenance(): void
