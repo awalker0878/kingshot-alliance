@@ -5,15 +5,15 @@
 - Program state: In progress.
 - Exact main baseline: `7e780521295e868005ecfee5bd38b33e8215ec49`.
 - Working branch: `astra/codebase-hardening`.
-- Latest pushed durable checkpoint: `57f383abc0fb67787724f9cce4f18cdf71cd34de`.
+- Latest pushed durable checkpoint: `1591cb5a6c592788f2fafc225ad453f58cfb9d5e`.
 - Draft PR: [#163](https://github.com/awalker0878/kingshot-alliance/pull/163).
-- Current item/state: HARD-011/HARD-012 slice verified; HARD-009 is next. HARD-004 integration gate reconciliation and HARD-010 wider intake verification remain open.
+- Current item/state: HARD-009 / In progress (implementation ready for CI behavior verification). HARD-004 integration gates and HARD-010 wider intake verification remain open.
 - Most recently verified gates: local Architecture/Progression 113 tests (67,161 assertions); full PHPStan zero errors; changed PHP Pint; full frontend `npm run check` including build/budgets; documentation links (234 files). CI on `57f383ab`: fresh PostgreSQL, style, PHPStan and frontend checks pass; 703/705 PHP tests pass, with only HARD-011 failures now repaired locally. HARD-005 behavior verified in that full run.
-- Active files: HARD-011 topology/planner expectations, HARD-012 prerequisite evaluator/regressions and current product contract; ledger.
-- Remaining current work: publish HARD-011/HARD-012, then recheck CI on the containing commit and implement HARD-009 reminder occurrence claim.
-- Known failures: CI `34246307890` and Intelligence `34246307954` fail only the two HARD-011 test expectations; container/staging/recovery is consequently skipped. New full CI after this slice is pending.
+- Active files: HARD-009 reminder occurrence transaction, PostgreSQL regressions and reminder product contract; ledger.
+- Remaining current work: publish HARD-009 checkpoint and verify its PostgreSQL race/retry cases in CI. Finish HARD-010 structured-intake integration/documentation and remaining repository audit.
+- Known failures: none in the latest completed PHP/frontend runs on `1591cb5a`. CI `34249019123` backend and frontend pass; container/staging/recovery is building. HARD-009 PostgreSQL regressions have not yet executed.
 - Blockers: local PostgreSQL/Redis services unavailable; service-backed verification uses GitHub CI. Local PHP 8.5.8 and locked Composer/npm dependencies available. Checkpoints publish via the authorized GitHub connection with exact staged-tree verification and non-forced branch updates.
-- Exact next action: publish this verified slice, then reproduce/fix HARD-009 stale reminder rescheduling and retry semantics; inspect resulting CI and finish HARD-010 integration/documentation reconciliation.
+- Exact next action: publish HARD-009 checkpoint, inspect CI behavior, then finish HARD-010 full intake/review/commit verification and related documentation.
 - Remaining repository-wide gates: final full PHP/architecture/capability and frontend gates on one containing commit; production image/staging/recovery; final security/dependency/visual checks; remaining capability-by-capability audit coverage below.
 
 Checkpoint SHAs are recorded by the following documentation commit; verify that the recorded checkpoint is an ancestor of current branch HEAD. No audit area is complete solely because its paths have been inventoried.
@@ -140,11 +140,11 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: same owner Action with an explicit reminder occurrence/claim boundary.
 - Rationale: stale processing must not erase a newer user intention; retries and parallel runs need stable occurrence identity.
 - Remediation: reproduce the reschedule race, revalidate/lock occurrence state at mutation and preserve new reminders; verify retry/idempotency semantics without network calls under a broad transaction.
-- State: Planned.
+- State: In progress.
 - Verification required: race regression preserving a rescheduled reminder, duplicate sweep/retry behavior and owner authorization.
-- Verification result: snapshot-to-lock path confirmed by source inspection; behavioral reproduction pending.
-- Completion evidence: pending.
-- Commit SHA: pending.
+- Verification result: per-occurrence transaction, locked timestamp comparison and second-precision stable idempotency implemented. Six PostgreSQL regression cases cover changed/cancelled snapshots, same-minute separate occurrences, rollback/retry and the exact due/no-owner boundary. Changed-file Pint, PHP syntax and full PHPStan pass; documentation links pass (234 files). Local service-backed execution is unavailable; CI verification is required before completion.
+- Completion evidence: QueueDueGiftCodeReminders and GiftCodeReminderOccurrenceV3Test; product reminder contract reconciled. No external network calls occur in Communications intent persistence.
+- Commit SHA: checkpoint recorded after publication; runtime verification pending.
 
 ### HARD-010 — Structured progression screenshot pipeline is incomplete
 
@@ -172,7 +172,7 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Verification required: complete GameWorld/Progression and ReadModels/Progression suites; architecture and static analysis.
 - Verification result: both expectations also fail in the full CI 705-test run. Updated current-family list and unknown-prerequisite semantics now pass with all local Architecture/Progression checks: 113 tests, 67,161 assertions. Full PHPStan passes; changed-file Pint and documentation links pass.
 - Completion evidence: current family catalogue checked against pinned topology sources; planner assertions retain sourced labels and require unknown observed levels with resolved subject identities. HARD-012 separately fixes the material pin defect revealed by this trace.
-- Commit SHA: recorded by the next checkpoint after publication.
+- Commit SHA: `1591cb5a6c592788f2fafc225ad453f58cfb9d5e`.
 
 ### HARD-012 — Prerequisite evaluation borrows another field's dataset pin
 
@@ -186,7 +186,7 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Verification required: mixed/missing pin, matching known/unknown level and satisfied/not-satisfied behavior; Progression/architecture suites and PHPStan.
 - Verification result: three new regressions fail before remediation (borrowed pin, missing pin, unsafe numeric coercion). All four evaluator cases and the complete local Architecture/Progression selection now pass: 113 tests, 67,161 assertions. Full PHPStan passes with zero errors; changed-file Pint and documentation links pass.
 - Completion evidence: ProgressionPrerequisiteEvaluatorV3Test; exact level-owned provenance, strict integer semantics and superseded helper removal; current prerequisite contract reconciled.
-- Commit SHA: recorded by the next checkpoint after publication.
+- Commit SHA: `1591cb5a6c592788f2fafc225ad453f58cfb9d5e`.
 
 ## Repository audit coverage
 
