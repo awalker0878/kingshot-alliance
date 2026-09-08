@@ -51,6 +51,21 @@ final readonly class WebAuthnAssertionFixture
         int $counter = 1,
         bool $validSignature = true,
     ): PublicKeyCredential {
+        return WebAuthn::fromJson(json_encode($this->browserAssertion(
+            $options, $userHandle, $origin, $challenge, $userVerified, $counter, $validSignature,
+        ), JSON_THROW_ON_ERROR), PublicKeyCredential::class);
+    }
+
+    /** @return array<string,mixed> */
+    public function browserAssertion(
+        PublicKeyCredentialRequestOptions $options,
+        string $userHandle,
+        string $origin = 'https://accounts.example.test',
+        ?string $challenge = null,
+        bool $userVerified = true,
+        int $counter = 1,
+        bool $validSignature = true,
+    ): array {
         $clientData = json_encode([
             'type' => 'webauthn.get',
             'challenge' => Base64UrlSafe::encodeUnpadded($challenge ?? $options->challenge),
@@ -65,7 +80,7 @@ final readonly class WebAuthnAssertionFixture
             throw new RuntimeException('Unable to sign the test assertion.');
         }
 
-        return WebAuthn::fromJson(json_encode([
+        return [
             'id' => Base64UrlSafe::encodeUnpadded($this->credentialId),
             'rawId' => Base64UrlSafe::encodeUnpadded($this->credentialId),
             'type' => 'public-key',
@@ -75,6 +90,6 @@ final readonly class WebAuthnAssertionFixture
                 'signature' => Base64UrlSafe::encodeUnpadded($signature),
                 'userHandle' => Base64UrlSafe::encodeUnpadded($userHandle),
             ],
-        ], JSON_THROW_ON_ERROR), PublicKeyCredential::class);
+        ];
     }
 }

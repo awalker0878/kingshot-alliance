@@ -64,7 +64,7 @@ final class PasskeyLoginCompletionV3Test extends TestCase
             self::assertSame(1, DB::table('audit_events')->where('event', 'auth.login')->count());
             $loginEvents++;
         });
-        $payload = ['credential' => WebAuthn::toBrowserArray($fixture->assertion($options, $user->getPasskeyUserHandle())), 'remember' => true];
+        $payload = ['credential' => $fixture->browserAssertion($options, $user->getPasskeyUserHandle()), 'remember' => true];
         $response = $json ? $this->postJson(route('passkey.login'), $payload) : $this->post(route('passkey.login'), $payload);
         if ($json) {
             $response->assertOk()->assertJsonPath('redirect', route('dashboard'));
@@ -118,7 +118,7 @@ final class PasskeyLoginCompletionV3Test extends TestCase
         });
         $this->withoutExceptionHandling();
         try {
-            $this->postJson(route('passkey.login'), ['credential' => WebAuthn::toBrowserArray($fixture->assertion($options, $user->getPasskeyUserHandle())), 'remember' => true]);
+            $this->postJson(route('passkey.login'), ['credential' => $fixture->browserAssertion($options, $user->getPasskeyUserHandle()), 'remember' => true]);
             self::fail('Exercise failure after maintained assertion verification.');
         } catch (RuntimeException $exception) {
             self::assertSame('Injected passkey login failure.', $exception->getMessage());
@@ -146,8 +146,8 @@ final class PasskeyLoginCompletionV3Test extends TestCase
     {
         [$user, $passkey, $fixture] = $this->account();
         $options = $missing ? app(GenerateVerificationOptions::class)() : $this->verificationOptions();
-        $this->postJson(route('passkey.login'), ['credential' => WebAuthn::toBrowserArray($fixture->assertion($options,
-            $user->getPasskeyUserHandle(), challenge: $missing ? null : 'wrong-challenge'))])
+        $this->postJson(route('passkey.login'), ['credential' => $fixture->browserAssertion($options,
+            $user->getPasskeyUserHandle(), challenge: $missing ? null : 'wrong-challenge')])
             ->assertUnprocessable()->assertJsonValidationErrors('credential');
         $this->assertGuest();
         self::assertSame(0, $passkey->refresh()->credential['counter']);
@@ -156,7 +156,7 @@ final class PasskeyLoginCompletionV3Test extends TestCase
         self::assertFalse(session()->has('accounts.recent_authentication_at'));
 
         $options = $this->verificationOptions();
-        $this->postJson(route('passkey.login'), ['credential' => WebAuthn::toBrowserArray($fixture->assertion($options, $user->getPasskeyUserHandle()))])
+        $this->postJson(route('passkey.login'), ['credential' => $fixture->browserAssertion($options, $user->getPasskeyUserHandle())])
             ->assertOk()->assertJsonPath('redirect', route('dashboard'));
         $this->assertAuthenticatedAs($user);
     }
@@ -180,7 +180,7 @@ final class PasskeyLoginCompletionV3Test extends TestCase
             }
         });
         try {
-            $this->postJson(route('passkey.login'), ['credential' => WebAuthn::toBrowserArray($fixture->assertion($options, $user->getPasskeyUserHandle()))])
+            $this->postJson(route('passkey.login'), ['credential' => $fixture->browserAssertion($options, $user->getPasskeyUserHandle())])
                 ->assertUnprocessable();
             self::assertTrue($removed);
             $this->assertGuest();
@@ -201,8 +201,8 @@ final class PasskeyLoginCompletionV3Test extends TestCase
             ->getJson(route('passkey.registration-options'))->assertOk();
         $options = WebAuthn::fromJson((string) session('passkey.registration_options'), PublicKeyCredentialCreationOptions::class);
         $this->withCredentials()->withCookie((string) config('session.cookie'), session()->getId())
-            ->postJson(route('passkey.store'), ['name' => 'Rejected registration', 'credential' => WebAuthn::toBrowserArray(
-                WebAuthnRegistrationFixture::credential($options, origin: 'https://foreign.example.test'))])
+            ->postJson(route('passkey.store'), ['name' => 'Rejected registration', 'credential' => WebAuthnRegistrationFixture::browserCredential(
+                $options, origin: 'https://foreign.example.test')])
             ->assertUnprocessable()->assertJsonValidationErrors('credential');
 
         self::assertSame(0, AccountPasskey::query()->count());

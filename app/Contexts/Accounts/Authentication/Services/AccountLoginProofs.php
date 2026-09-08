@@ -54,6 +54,15 @@ final class AccountLoginProofs
         return $passkey !== null && hash_equals($proof->credentialFingerprint, $this->passkeyFingerprint($passkey));
     }
 
+    // The verified snapshot comes only from the maintained recaller validator.
+    // Call with the current account lock held, before registering its session.
+    public function matchesRemembered(User $current, User $verified): bool
+    {
+        return (int) $current->id === (int) $verified->id && $current->isActive()
+            && $current->getRememberToken() !== ''
+            && hash_equals($this->accountFingerprint($current), $this->accountFingerprint($verified));
+    }
+
     private function requiresMultiFactor(User $user): bool
     {
         return $user->two_factor_confirmed_at !== null && (string) $user->two_factor_secret !== '';

@@ -22,6 +22,20 @@ final class WebAuthnRegistrationFixture
         bool $userVerified = true,
         ?string $cosePublicKey = null,
     ): PublicKeyCredential {
+        return WebAuthn::fromJson(json_encode(self::browserCredential(
+            $options, $credentialId, $origin, $challenge, $userVerified, $cosePublicKey,
+        ), JSON_THROW_ON_ERROR), PublicKeyCredential::class);
+    }
+
+    /** @return array<string,mixed> */
+    public static function browserCredential(
+        PublicKeyCredentialCreationOptions $options,
+        string $credentialId = 'synthetic-registration-credential',
+        string $origin = 'https://accounts.example.test',
+        ?string $challenge = null,
+        bool $userVerified = true,
+        ?string $cosePublicKey = null,
+    ): array {
         // Public P-256 generator point in a COSE ES256 key; no private key or
         // hardware attestation is involved in this synthetic browser response.
         $publicKey = $cosePublicKey ?? hex2bin('a5010203262001215820'
@@ -42,7 +56,7 @@ final class WebAuthnRegistrationFixture
             'crossOrigin' => false,
         ], JSON_THROW_ON_ERROR);
 
-        return WebAuthn::fromJson(json_encode([
+        return [
             'id' => Base64UrlSafe::encodeUnpadded($credentialId),
             'rawId' => Base64UrlSafe::encodeUnpadded($credentialId),
             'type' => 'public-key',
@@ -51,6 +65,6 @@ final class WebAuthnRegistrationFixture
                 'attestationObject' => Base64UrlSafe::encodeUnpadded((string) $attestation),
                 'transports' => ['internal'],
             ],
-        ], JSON_THROW_ON_ERROR), PublicKeyCredential::class);
+        ];
     }
 }

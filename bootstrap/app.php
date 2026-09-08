@@ -19,6 +19,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Route;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -54,6 +55,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'password.confirm' => RequireRecentAccountAuthentication::class,
         ]);
         $middleware->append([AssignRequestContext::class, RecordRequestMetrics::class, SecurityHeaders::class]);
+        $middleware->appendToPriorityList(StartSession::class, TrackAccountSession::class);
         $middleware->web(append: [TrackAccountSession::class, ResolvePlayerContext::class, RequireCurrentPlayerContextVersion::class, HandleInertiaRequests::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
