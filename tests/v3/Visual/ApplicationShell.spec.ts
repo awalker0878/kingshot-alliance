@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import { expect, test } from '@playwright/test';
+import type { Page } from '@playwright/test';
 
 const publicSurfaces = [
   { path: '/', name: 'home' },
@@ -12,7 +13,7 @@ const changedAuthenticatedShellFingerprints = {
   mobileSelectGovernor: 'eedb026e8c5e6065f59dc2b8cb6e7893e87246ca8abb3847b41f841c521220dd',
 } as const;
 
-async function fullPageFingerprint(page: Parameters<typeof test>[0] extends never ? never : any): Promise<string> {
+async function fullPageFingerprint(page: Page): Promise<string> {
   const screenshot = await page.screenshot({
     animations: 'disabled',
     caret: 'hide',
