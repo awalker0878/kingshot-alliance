@@ -54,7 +54,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'password.confirm' => RequireRecentAccountAuthentication::class,
         ]);
         $middleware->append([AssignRequestContext::class, RecordRequestMetrics::class, SecurityHeaders::class]);
-        $middleware->web(append: [ResolvePlayerContext::class, RequireCurrentPlayerContextVersion::class, TrackAccountSession::class, HandleInertiaRequests::class]);
+        $middleware->web(append: [TrackAccountSession::class, ResolvePlayerContext::class, RequireCurrentPlayerContextVersion::class, HandleInertiaRequests::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->context(static function (): array {

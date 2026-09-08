@@ -5,15 +5,15 @@
 - Program state: In progress.
 - Exact main baseline: `7e780521295e868005ecfee5bd38b33e8215ec49`.
 - Working branch: `astra/codebase-hardening`.
-- Latest pushed durable checkpoint: `51416d5d70c93393a657b232e488788072d63a00`.
+- Latest pushed durable checkpoint: `b1ee5a40f39261a81e51e7a395f40c9da1838d00`.
 - Draft PR: [#163](https://github.com/awalker0878/kingshot-alliance/pull/163).
-- Current item/state: HARD-018 / In progress (canonical recent-authentication proof); HARD-019 session revocation traced and queued. HARD-014–017 are verified Complete.
-- Most recently verified gates: all nine PR workflows pass on `51416d5d70c93393a657b232e488788072d63a00`, including 737 PHP tests / 73,514 assertions, fresh PostgreSQL, frontend, image/staging/recovery, architecture/capabilities, visual and security.
-- Active files: Accounts recent-authentication service/controller, proof boundary and authorized-route tests, Accounts contract and hardening ledger.
-- Remaining current work: verify HARD-018 canonical proof and repair HARD-019 session revocation; continue Accounts identity/credentials/registration/profile/deletion and remaining repository coverage.
-- Known failures: none on verified checkpoint `51416d5d`; HARD-018 changes await service-backed verification.
+- Current item/state: HARD-019 / In progress (durable session revocation, remembered sign-ins and lifecycle enforcement). HARD-018 is verified Complete.
+- Most recently verified gates: all nine PR workflows pass on `b1ee5a40f39261a81e51e7a395f40c9da1838d00`, including 740 PHP tests / 73,530 assertions, fresh PostgreSQL, frontend, image/staging/recovery, architecture/capabilities, visual and security.
+- Active files: Accounts session Actions/middleware/registry, obsolete session route/action cleanup, revocation regressions, Accounts contract and hardening ledger.
+- Remaining current work: verify HARD-019 session revocation; repair the MFA setup/recovery projection under HARD-020 and trace pending MFA proof/credential deletion under HARD-021/022; continue remaining repository coverage.
+- Known failures: none on verified checkpoint `b1ee5a40`; HARD-019 changes await service-backed verification.
 - Blockers: local PostgreSQL/Redis services unavailable; service-backed verification uses GitHub CI. Local PHP 8.5.8 and locked Composer/npm dependencies available. Checkpoints publish via the authorized GitHub connection with exact staged-tree verification and non-forced branch updates.
-- Exact next action: publish HARD-018 with regression coverage, then make revoked session markers durable and enforce them before protected requests under HARD-019.
+- Exact next action: publish HARD-019 after local checks, inspect PostgreSQL regressions, and repair the MFA setup/recovery response contract under HARD-020.
 - Remaining repository-wide gates: final full PHP/architecture/capability and frontend gates on one containing commit; production image/staging/recovery; final security/dependency/visual checks; remaining capability-by-capability audit coverage below.
 
 Checkpoint SHAs are recorded by the following documentation commit; verify that the recorded checkpoint is an ancestor of current branch HEAD. No audit area is complete solely because its paths have been inventoried.
@@ -266,23 +266,65 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: the same canonical Accounts proof used by password, Google and passkey confirmation.
 - Rationale: the fresh deployment has no compatibility requirement; sensitive operations need one proof and expiry boundary.
 - Remediation: remove legacy fallback/dual writes, migrate current route fixtures, and verify old timestamps cannot authorize a sensitive change while real password confirmation can.
-- State: In progress.
+- State: Complete.
 - Verification required: obsolete proof rejection, real confirmation and protected operation, existing Google/passkey and credential mutation behavior, full static/style/CI gates.
-- Verification result: canonical-only proof implemented; two obsolete-key rejection cases and a real password-confirmation-to-MFA-setup case added. Full PHPStan passes with zero errors, changed-file Pint and documentation links pass. PostgreSQL execution pending.
-- Completion evidence: RecentAuthenticationV3Test and reconciled Accounts sign-in-method contract; CI pending.
-- Commit SHA: pending.
+- Verification result: canonical-only proof implemented; two obsolete-key rejection cases and a real password-confirmation-to-MFA-setup case added. Full PHPStan passes with zero errors, changed-file Pint and documentation links pass. All three new regressions pass on `b1ee5a40`: full PostgreSQL suite 740 tests / 73,530 assertions; all nine workflows pass.
+- Completion evidence: RecentAuthenticationV3Test and reconciled Accounts sign-in-method contract; CI `34255437384`, PHP job `102159935512`, Architecture `34255437378` and all other PR workflows pass.
+- Commit SHA: `b1ee5a40f39261a81e51e7a395f40c9da1838d00`.
 
 ### HARD-019 — Request tracking can revive revoked account sessions
 
 - Area: Accounts session registration, revocation and middleware.
-- Finding: RecordAccountSession clears revoked_at on every authenticated request. An in-flight request or a failed raw-session delete can therefore restore revoked metadata, and TrackAccountSession does not reject a retained revoked marker.
+- Finding: RecordAccountSession clears revoked_at on every authenticated request. An in-flight request or a failed raw-session delete can therefore restore revoked metadata, and TrackAccountSession does not reject a retained revoked marker. Unrotated remember-me tokens can recreate deleted sessions; completed login is not registered until the next request. Anonymization deletes the registry, leaving stale session payloads without a terminal lifecycle check. A retired session route still returns an unconditional 404 and an unused password-only revocation Action remains.
 - Current owner: Accounts session Actions and TrackAccountSession; configured session handler stores credentials.
 - Intended authoritative owner: Accounts owns revocation decisions; the session handler continues to own session credentials.
 - Rationale: a stale request must never reactivate revoked access, and storage deletion alone cannot enforce revocation against a concurrent session write.
 - Remediation: trace revocation and session rotation, preserve terminal revoked markers, enforce them before continuing an authenticated request, and cover storage failure/in-flight replay and current/foreign-session isolation.
-- State: Planned.
+- State: In progress.
 - Verification required: revoked sessions remain denied after stale tracking/storage writes; current-session and other-account boundaries; normal registration and credential hardening still pass.
-- Verification result: production session tracking, single/all-other revocation and authenticated middleware traced; remediation pending.
+- Verification result: conditional tracking preserves terminal markers; middleware rejects revoked/anonymized access before game context and registers newly rotated login sessions before returning the response. Revocation decisions, remember-token rotation and audit commit before raw storage cleanup. All-other revocation loads a bounded registered-ID snapshot in batches. Removed the unused password-only Action and retired 404 route/controller stub. Ten regressions cover failed deletion, the read/write race, >100-record batches, password/Google remembered replay, current/foreign isolation, immediate login registration and anonymized stale access. Full PHPStan passes with zero errors; Pint and all 62 Architecture tests pass (66,587 assertions); documentation links pass. PostgreSQL regressions await CI.
+- Completion evidence: pending.
+- Commit SHA: pending.
+
+### HARD-020 — MFA setup and recovery values never reach the profile
+
+- Area: Accounts MFA controllers and profile response.
+- Finding: TwoFactorController flashes camel-case setup/recovery keys while ProfileController reads different snake-case keys. The real profile therefore receives neither the authenticator setup secret nor newly generated recovery codes.
+- Current owner: Accounts MFA mutation controllers and ProfileController projection.
+- Intended authoritative owner: one ephemeral MFA response contract consumed by the existing profile UI.
+- Rationale: successful persistence does not establish a usable enrollment/recovery flow; secret material must be displayed only to the authenticated account and consumed once.
+- Remediation: reconcile the flash/read contract and verify real enrollment, confirmation and recovery-code regeneration through the rendered profile, including single-use delivery.
+- State: Planned.
+- Verification required: enrollment setup and plain recovery codes appear once on the authorized profile; confirmation stores only recovery hashes; later profile responses omit secret material.
+- Verification result: production controller, manager and Vue response contract traced; remediation pending.
+- Completion evidence: pending.
+- Commit SHA: pending.
+
+### HARD-021 — Pending MFA login has no proof expiry or credential binding
+
+- Area: Accounts password/Google login and MFA challenge.
+- Finding: the pending MFA login stores only a User ID, remember flag, invitation and method. The challenge has no independent timeout or binding to the primary credential, so a previously accepted primary factor can survive credential removal/change while the browser session persists.
+- Current owner: password and Google login writers, TwoFactorChallengeController.
+- Intended authoritative owner: one Accounts-owned bounded MFA login challenge.
+- Rationale: second-factor completion must correspond to a current, recent primary-factor proof and must not restore a superseded credential.
+- Remediation: trace all challenge writers/consumers and lifecycle mutations, establish a short-lived single-use proof tied to its primary credential, and reject expired/stale challenges.
+- State: Planned.
+- Verification required: normal password/Google plus TOTP/recovery login, expired/replayed challenges, credential changes/removal and account finalization.
+- Verification result: controller and primary writers identified; complete mutation trace and remediation pending.
+- Completion evidence: pending.
+- Commit SHA: pending.
+
+### HARD-022 — Passkey last-method check is outside the account lock
+
+- Area: Accounts sign-in-method deletion.
+- Finding: AccountPasskey performs a policy check in a model deleting callback, while password/Google removals serialize their checks under the User lock. The passkey callback alone does not make check-and-delete atomic against another method removal.
+- Current owner: AccountPasskey and the package's deletion route.
+- Intended authoritative owner: Accounts credential mutation under the same User lock as other method changes, retaining maintained package verification.
+- Rationale: concurrent removals must not each observe another usable method and leave the account without any.
+- Remediation: inspect the installed package deletion transaction and route boundary, reproduce any missing serialization, then centralize mutation policy/locking without duplicating WebAuthn cryptography.
+- State: Planned.
+- Verification required: current package delete authorization and last-method behavior under concurrent method removal; existing passkey security/credential suites.
+- Verification result: Accounts model callback and password/Google owner locks traced; installed package deletion boundary still to inspect.
 - Completion evidence: pending.
 - Commit SHA: pending.
 

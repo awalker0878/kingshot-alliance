@@ -138,9 +138,4 @@ final class ProfileController extends Controller
 
         return redirect()->route('profile.show')->with('actionReceipt', $this->receipt('password-updated'));
     }
-
-    public function destroyOtherSessions(): never
-    {
-        abort(404);
-    }
 }

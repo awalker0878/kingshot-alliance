@@ -116,8 +116,6 @@ Route::middleware(['auth', 'auth.session'])->group(function (): void {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])
         ->name('profile.password.update');
-    Route::delete('/profile/sessions/other', [ProfileController::class, 'destroyOtherSessions'])
-        ->name('profile.sessions.destroy-other');
 
     Route::get('/verify-email', EmailVerificationPromptController::class)
         ->name('verification.notice');

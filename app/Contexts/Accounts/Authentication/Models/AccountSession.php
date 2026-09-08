@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
- * Privacy-conscious registry for real Laravel sessions. The configured session handler remains authoritative.
+ * Accounts owns revocation; the configured Laravel handler stores session credentials.
  *
  * @property int $id
  * @property string $public_id
