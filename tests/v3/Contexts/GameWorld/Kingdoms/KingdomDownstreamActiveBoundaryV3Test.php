@@ -14,6 +14,7 @@ use App\Contexts\Operations\Events\Enums\EventScope;
 use App\Contexts\Operations\Events\Models\Event;
 use App\Contexts\Operations\Events\Models\EventTypeScope;
 use App\Contexts\Operations\Events\Services\EventTargetResolver;
+use App\Workflows\KingdomGovernance\Actions\BootstrapKingdomAdministrator;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -66,6 +67,13 @@ final class KingdomDownstreamActiveBoundaryV3Test extends TestCase
             DB::transaction(fn () => app(AllianceWriteState::class)->lockActiveScope($actor->playerId, $alliance->allianceId));
             self::fail('Alliance writes under an archived Kingdom must fail closed.');
         } catch (AuthorizationException) {
+            self::assertTrue(true);
+        }
+
+        try {
+            app(BootstrapKingdomAdministrator::class)->handle($kingdom->kingdomId, $actor->playerId);
+            self::fail('Administrator bootstrap must reject an archived Kingdom.');
+        } catch (ValidationException) {
             self::assertTrue(true);
         }
 
