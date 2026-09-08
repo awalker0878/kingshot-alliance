@@ -139,6 +139,8 @@ Security exposes **Sign-in methods** as a first-class surface:
 
 MFA, recovery, sessions, security activity, account email, and lifecycle remain distinct sections.
 
+MFA enrollment delivers the authenticator setup through the next authenticated profile response. Confirmation and recovery-code regeneration deliver plain recovery codes through that same one-time response contract. The profile consumes these flashed values; later responses do not repeat them. The User row retains the encrypted authenticator secret and encrypted recovery-code hashes, never the plain recovery codes.
+
 ## Security activity and notifications
 
 Typed events cover at least Google connect/disconnect, password add/change/remove, passkey register/rename/remove/authenticate, and rejected/failed credential mutations where security relevant. Security Activity remains a projection of the canonical audit trail. Secrets, OAuth tokens, password material, TOTP secrets/recovery codes, and WebAuthn private material are never logged or delivered.

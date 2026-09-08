@@ -58,7 +58,7 @@ final class AccountSessionRevocationV3Test extends TestCase
         self::assertTrue($record->refresh()->revoked_at?->equalTo($revokedAt));
         self::assertSame('Browser', $record->browser_family);
 
-        $this->get('/profile')
+        $this->withCookie((string) config('session.cookie'), $originalSessionId)->get('/profile')
             ->assertRedirect(route('login'))
             ->assertSessionMissing('accounts.recent_authentication_at');
         $this->assertGuest();
@@ -163,7 +163,8 @@ final class AccountSessionRevocationV3Test extends TestCase
         $record = AccountSession::query()->where('user_id', $user->id)->sole();
         $token = $user->getRememberToken();
 
-        $this->delete('/profile/security/sessions/'.$record->public_id)->assertSessionHasErrors('session');
+        $this->withCookie((string) config('session.cookie'), (string) $record->session_id)
+            ->delete('/profile/security/sessions/'.$record->public_id)->assertSessionHasErrors('session');
 
         self::assertNull($record->refresh()->revoked_at);
         self::assertSame($token, $user->refresh()->getRememberToken());

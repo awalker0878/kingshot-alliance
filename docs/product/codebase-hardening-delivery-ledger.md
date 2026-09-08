@@ -5,15 +5,15 @@
 - Program state: In progress.
 - Exact main baseline: `7e780521295e868005ecfee5bd38b33e8215ec49`.
 - Working branch: `astra/codebase-hardening`.
-- Latest pushed durable checkpoint: `b1ee5a40f39261a81e51e7a395f40c9da1838d00`.
+- Latest pushed durable checkpoint: `9f67277d8203075155bcb8a5d35d9e683c2f138c`.
 - Draft PR: [#163](https://github.com/awalker0878/kingshot-alliance/pull/163).
-- Current item/state: HARD-019 / In progress (durable session revocation, remembered sign-ins and lifecycle enforcement). HARD-018 is verified Complete.
+- Current item/state: HARD-020 / In progress (MFA setup/recovery profile contract); HARD-019 CI fixture correction ready. HARD-018 is verified Complete.
 - Most recently verified gates: all nine PR workflows pass on `b1ee5a40f39261a81e51e7a395f40c9da1838d00`, including 740 PHP tests / 73,530 assertions, fresh PostgreSQL, frontend, image/staging/recovery, architecture/capabilities, visual and security.
-- Active files: Accounts session Actions/middleware/registry, obsolete session route/action cleanup, revocation regressions, Accounts contract and hardening ledger.
+- Active files: MFA profile projection/enrollment regression, session browser-cookie fixture correction, Accounts contract and hardening ledger.
 - Remaining current work: verify HARD-019 session revocation; repair the MFA setup/recovery projection under HARD-020 and trace pending MFA proof/credential deletion under HARD-021/022; continue remaining repository coverage.
-- Known failures: none on verified checkpoint `b1ee5a40`; HARD-019 changes await service-backed verification.
+- Known failures: HARD-019 CI has two new fixture failures because successive test requests omit the browser session cookie and acquire different IDs; the eight other new cases pass. Explicit cookie replay now targets the original/current session; containing CI verification pending.
 - Blockers: local PostgreSQL/Redis services unavailable; service-backed verification uses GitHub CI. Local PHP 8.5.8 and locked Composer/npm dependencies available. Checkpoints publish via the authorized GitHub connection with exact staged-tree verification and non-forced branch updates.
-- Exact next action: publish HARD-019 after local checks, inspect PostgreSQL regressions, and repair the MFA setup/recovery response contract under HARD-020.
+- Exact next action: publish HARD-020 and HARD-019 browser-cookie correction, verify the real profile and session cases, then implement HARD-021 bounded MFA challenge.
 - Remaining repository-wide gates: final full PHP/architecture/capability and frontend gates on one containing commit; production image/staging/recovery; final security/dependency/visual checks; remaining capability-by-capability audit coverage below.
 
 Checkpoint SHAs are recorded by the following documentation commit; verify that the recorded checkpoint is an ancestor of current branch HEAD. No audit area is complete solely because its paths have been inventoried.
@@ -282,7 +282,7 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Remediation: trace revocation and session rotation, preserve terminal revoked markers, enforce them before continuing an authenticated request, and cover storage failure/in-flight replay and current/foreign-session isolation.
 - State: In progress.
 - Verification required: revoked sessions remain denied after stale tracking/storage writes; current-session and other-account boundaries; normal registration and credential hardening still pass.
-- Verification result: conditional tracking preserves terminal markers; middleware rejects revoked/anonymized access before game context and registers newly rotated login sessions before returning the response. Revocation decisions, remember-token rotation and audit commit before raw storage cleanup. All-other revocation loads a bounded registered-ID snapshot in batches. Removed the unused password-only Action and retired 404 route/controller stub. Ten regressions cover failed deletion, the read/write race, >100-record batches, password/Google remembered replay, current/foreign isolation, immediate login registration and anonymized stale access. Full PHPStan passes with zero errors; Pint and all 62 Architecture tests pass (66,587 assertions); documentation links pass. PostgreSQL regressions await CI.
+- Verification result: conditional tracking preserves terminal markers; middleware rejects revoked/anonymized access before game context and registers newly rotated login sessions before returning the response. Revocation decisions, remember-token rotation and audit commit before raw storage cleanup. All-other revocation loads a bounded registered-ID snapshot in batches. Removed the unused password-only Action and retired 404 route/controller stub. Ten regressions cover failed deletion, the read/write race, >100-record batches, password/Google remembered replay, current/foreign isolation, immediate login registration and anonymized stale access. Full PHPStan passes with zero errors; Pint and all 62 Architecture tests pass (66,587 assertions); documentation links pass. PostgreSQL CI executes all 750 tests: eight of the ten new session cases pass, including all remembered-sign-in and race cases. Two HTTP fixtures omit the session cookie and acquire different session IDs, so they do not exercise the original/current session. The correction explicitly replays the original browser cookie; all security assertions remain. Containing verification pending.
 - Completion evidence: pending.
 - Commit SHA: pending.
 
@@ -294,9 +294,9 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: one ephemeral MFA response contract consumed by the existing profile UI.
 - Rationale: successful persistence does not establish a usable enrollment/recovery flow; secret material must be displayed only to the authenticated account and consumed once.
 - Remediation: reconcile the flash/read contract and verify real enrollment, confirmation and recovery-code regeneration through the rendered profile, including single-use delivery.
-- State: Planned.
+- State: In progress.
 - Verification required: enrollment setup and plain recovery codes appear once on the authorized profile; confirmation stores only recovery hashes; later profile responses omit secret material.
-- Verification result: production controller, manager and Vue response contract traced; remediation pending.
+- Verification result: profile now consumes the exact camel-case flash keys written by the MFA controller. Two real enrollment/profile cases cover authenticator setup, valid TOTP confirmation, recovery regeneration, single-use display, encrypted secret storage and recovery hash replacement. Full PHPStan, changed-file Pint and documentation links pass; PostgreSQL execution pending.
 - Completion evidence: pending.
 - Commit SHA: pending.
 

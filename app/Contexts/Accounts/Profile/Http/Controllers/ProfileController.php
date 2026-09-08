@@ -92,8 +92,8 @@ final class ProfileController extends Controller
                 && filled(config('services.google.redirect')),
             'sessions' => $sessions,
             'securityActivity' => $securityActivity->forUser((int) $user->id),
-            'twoFactorSetup' => $request->session()->get('two_factor_setup'),
-            'twoFactorRecoveryCodes' => $request->session()->pull('two_factor_recovery_codes'),
+            'twoFactorSetup' => $request->session()->pull('twoFactorSetup'),
+            'twoFactorRecoveryCodes' => $request->session()->pull('twoFactorRecoveryCodes'),
         ]);
     }
 
