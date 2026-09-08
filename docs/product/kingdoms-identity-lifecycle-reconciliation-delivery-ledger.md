@@ -1,6 +1,6 @@
 # Kingdoms identity lifecycle and reconciliation — delivery ledger
 
-Status: Implementation complete; CI verification pending
+Status: Complete; delivery PR verified
 
 - [x] Define lifecycle/canonical identity ADR and context invariants.
 - [x] Add explicit active Kingdom reference queries.
@@ -16,4 +16,4 @@ Status: Implementation complete; CI verification pending
 - [x] Add Kingdoms integrity diagnostics.
 - [x] Add dedicated Kingdoms Architecture V3 behavior tests.
 - [x] Define fresh-deployment schema directly in the create migration; no compatibility layer.
-- [ ] Repository CI/Architecture V3 checks green on delivery PR.
+- [x] Repository CI/Architecture V3 checks green on delivery PR.
