@@ -46,7 +46,15 @@ final readonly class ReconcileKingdomAlliances
             throw ValidationException::withMessages(['confidence_basis_points' => 'Confidence must be between 0 and 10000 basis points.']);
         }
 
-        DB::transaction(function () use ($canonicalKingdomAllianceId, $duplicateKingdomAllianceId, $reason, $source, $sourceReference, $confidenceBasisPoints, $actor): void {
+        DB::transaction(function () use (
+            $canonicalKingdomAllianceId,
+            $duplicateKingdomAllianceId,
+            $reason,
+            $source,
+            $sourceReference,
+            $confidenceBasisPoints,
+            $actor,
+        ): void {
             $ids = [$canonicalKingdomAllianceId, $duplicateKingdomAllianceId];
             sort($ids, SORT_STRING);
             $locked = KingdomAlliance::query()->whereIn('id', $ids)->orderBy('id')->lockForUpdate()->get()->keyBy('id');
