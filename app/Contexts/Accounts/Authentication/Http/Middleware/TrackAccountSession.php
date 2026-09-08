@@ -17,7 +17,7 @@ final readonly class TrackAccountSession
     {
         // Priority places this boundary immediately after StartSession, before
         // authentication, throttling and binding middleware can resolve a user.
-        $initialUserId = $this->restoreAccountSession->handle($request)?->getAuthIdentifier();
+        $initialUserId = $this->restoreAccountSession->handle($request);
         $initialSessionId = $request->hasSession() ? $request->session()->getId() : '';
 
         $response = $next($request);

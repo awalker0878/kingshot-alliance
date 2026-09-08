@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\v3\Contexts\Accounts\Authentication;
 
 use App\Contexts\Accounts\Authentication\Actions\RecordAccountSession;
+use App\Contexts\Accounts\Authentication\Actions\RestoreAccountSession;
 use App\Contexts\Accounts\Authentication\Actions\RevokeOtherAccountSessions;
 use App\Contexts\Accounts\Authentication\Models\AccountSession;
 use App\Contexts\Accounts\Identity\Actions\AnonymizeAccount;
@@ -19,6 +20,7 @@ use Illuminate\Auth\Passwords\PasswordBrokerManager;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Http\Request;
 use Illuminate\Session\ArraySessionHandler;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -32,6 +34,20 @@ use Tests\v3\TestCase;
 final class RememberedAccountSessionV3Test extends TestCase
 {
     use DatabaseMigrations;
+
+    public function test_session_admission_returns_only_a_scalar_account_identity(): void
+    {
+        $request = Request::create('/profile');
+        $request->setLaravelSession(app('session.store'));
+        $request->session()->start();
+        $admit = app(RestoreAccountSession::class);
+        self::assertNull($admit->handle($request));
+
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        self::assertSame((int) $user->id, $admit->handle($request));
+        self::assertSame(1, AccountSession::query()->where('user_id', $user->id)->count());
+    }
 
     /** @return iterable<string,array{string}> */
     public static function accounts(): iterable

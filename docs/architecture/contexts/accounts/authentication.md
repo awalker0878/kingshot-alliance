@@ -10,6 +10,8 @@ Authentication proves which User is operating the application. It does not grant
 
 HTTP adapters remain thin and delegate state-changing authentication behavior to capability-owned Actions/services.
 
+Session admission returns only the admitted account ID (or null for a guest). Eloquent account models remain internal to the owner; tracking middleware compares scalar identities without receiving a mutable model from the Action.
+
 RecordAccountSession registers and updates durable browser state within a short current-active account transaction, taking the account lock before session state. This serializes registration with finalization and revocation. Missing/finalized accounts return false, and the conditional update still refuses revoked sessions. Request middleware checks remain useful early rejection, while the owner recheck protects requests already in flight. Primary credential proof freshness during concurrent login/revocation remains tracked separately as HARD-037.
 
 Password confirmation delegates to ConfirmAccountPassword, which locks the current active account and validates its current password before recording confirmation audit. RecentAuthentication session proof is published only after the outermost commit; rollback leaves prior proof unchanged. The callback rechecks account binding, lifecycle and the password fingerprint, suppressing proof if a later operation in that transaction changed the credential or account.

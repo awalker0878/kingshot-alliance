@@ -30,7 +30,7 @@ final readonly class RestoreAccountSession
         private MfaLoginChallenge $challenges,
     ) {}
 
-    public function handle(Request $request): ?User
+    public function handle(Request $request): ?int
     {
         if (! $request->hasSession()) {
             return null;
@@ -44,10 +44,10 @@ final readonly class RestoreAccountSession
             throw new LogicException('Remembered account restoration must run outside an enclosing database transaction.');
         }
 
-        $restored = null;
+        $restoredUserId = null;
         $committed = false;
         try {
-            Event::defer(function () use ($request, $guard, $alreadyResolved, &$restored, &$committed): void {
+            Event::defer(function () use ($request, $guard, $alreadyResolved, &$restoredUserId, &$committed): void {
                 // The maintained guard validates the recaller and rotates raw
                 // storage before the account completion transaction begins.
                 $user = $guard->user();
@@ -72,14 +72,14 @@ final readonly class RestoreAccountSession
                 } else {
                     $this->record($request, $user);
                 }
-                $restored = $user;
+                $restoredUserId = (int) $user->id;
                 $committed = true;
             }, [Login::class, Authenticated::class]);
         } catch (Throwable $exception) {
             if ($committed) {
                 report($exception);
 
-                return $restored;
+                return $restoredUserId;
             }
             // Do not reload a prepared guard ID while abandoning failed raw
             // rotation or completion, and do not retry failing raw destruction.
@@ -96,7 +96,7 @@ final readonly class RestoreAccountSession
             throw $exception;
         }
 
-        return $restored;
+        return $restoredUserId;
     }
 
     private function record(Request $request, User $user): void

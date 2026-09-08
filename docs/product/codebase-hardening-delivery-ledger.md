@@ -5,15 +5,15 @@
 - Program state: In progress.
 - Exact main baseline: `7e780521295e868005ecfee5bd38b33e8215ec49`.
 - Working branch: `astra/codebase-hardening`.
-- Latest pushed durable checkpoint: `1906269a9f0393799c8fb37b26f9eafa4497cb7d`.
+- Latest pushed durable checkpoint: `89f2c616b16fe1bbe88532bd8dd1a07b59abc2af`.
 - Draft PR: [#163](https://github.com/awalker0878/kingshot-alliance/pull/163).
-- Current item/state: HARD-037 / In progress (containing verification), HARD-041 / In progress (WebAuthn HTTP feedback) and HARD-042 / In progress (MFA remembered-browser invalidation).
+- Current item/state: HARD-043 / In progress (session-admission scalar contract); HARD-037/042 await containing verification and further logout failure-path review.
 - Most recently verified gates: all nine PR workflows pass on `8c6b8a7a29a7d0bc1ecba9a1aa579bc88e828d5e`, including 876 PHP tests / 75,032 assertions, fresh PostgreSQL, frontend, image/staging/recovery, architecture/capabilities, visual and security.
-- Active files: TwoFactorManager, MfaRememberedBrowserInvalidationV3Test and MFA/session owner docs.
-- Remaining current work: inspect CI for checkpoint 1906269a; publish and verify HARD-042; reconcile any containing failures; continue repository audit coverage.
-- Known failures: f3c25909 completes 999 tests / 76,449 assertions with three errors and six failures, all in the new passkey HTTP fixtures. Parsed PublicKeyCredential objects are not browser payloads: generic normalization omits id and leaves binary fields, causing empty JSON/required-field errors. Fixtures now expose the original base64url browser arrays before maintained parsing. All password/MFA/Google/registration and confirmation owner cases pass; actual passkey completion and new remembered-session cases await containing verification.
-- Blockers: the workspace exec-server transport disconnected during HARD-037 remembered-session verification. Production PHPStan and changed-file Pint had passed; the actual booted middleware order was verified. Full-suite discovery/Architecture was launched but its final output could not be retrieved, so it is not claimed. The prepared code/tests were reconstructed from the exact authored source and checkpointed through GitHub; remote file readback verifies publication. Local PostgreSQL/Redis services were already unavailable. Resume with a working checkout, reconcile these committed files before applying any stale scratch diff, and use GitHub CI for service-backed verification.
-- Exact next action: publish HARD-042, inspect its containing CI together with checkpoint 1906269a, reconcile any failures, then continue remaining capability coverage.
+- Active files: RestoreAccountSession, TrackAccountSession, RememberedAccountSessionV3Test and authentication contract.
+- Remaining current work: verify HARD-043, review logout replay/storage/event failures, inspect containing verification for the earlier Accounts fixes, then continue all remaining audit areas.
+- Known failures: decoded Intelligence job 102268265002 on c19fc047 completed 1,014 tests / 76,757 assertions with exactly one failure: RestoreAccountSession.handle returns an Eloquent User in violation of WRITE_CONTRACT_RETURNS_MODEL. All passkey HTTP and remembered-session cases passed on that candidate. Architecture on 89f2c616 reproduces the same single violation (62 tests / 67,659 assertions). Earlier claims that c19fc047 still failed passkey fixtures were not supported by its logs and are superseded by this evidence.
+- Blockers: local PHP/Composer/PostgreSQL are unavailable. Ordinary apt setup was denied by workspace setgroups/setuid permissions and was stopped without changing those restrictions. GitHub connector job-log reads work; use existing PostgreSQL-backed CI for executable verification. Local git write transport lacks credentials; publish atomic trees/commits through the configured GitHub connector, checking tree equality and non-forced branch updates. The local checkout now matches remote 89f2c616; original equivalent local commits are preserved on scratch/local-checkpoints-9e16952f.
+- Exact next action: publish HARD-043 and inspect its Architecture/full-suite results; remediate remaining logout failure paths, then continue capability coverage. Do not mark the whole audit complete from an Accounts-only verification result.
 - Remaining repository-wide gates: final full PHP/architecture/capability and frontend gates on one containing commit; production image/staging/recovery; final security/dependency/visual checks; remaining capability-by-capability audit coverage below.
 
 Checkpoint SHAs are recorded by the following documentation commit; verify that the recorded checkpoint is an ancestor of current branch HEAD. No audit area is complete solely because its paths have been inventoried.
@@ -606,6 +606,20 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Verification required: cookies issued before enable/disable/recovery regeneration cannot restore after the transition; failed MFA persistence preserves prior credentials/token/session policy; current browser behavior is deliberate and tested.
 - Verification result: TwoFactorManager now rotates remember_token in the same account-locked transaction as MFA confirmation, disabling and recovery-code regeneration. The current authenticated session and its durable marker are deliberately preserved. Three real old-cookie HTTP cases cover rejection after each transition while the current browser remains active; CredentialSecurityIntentAtomicityV3Test snapshots the raw account row and therefore verifies token rollback with every injected notification-intent failure. Local diff/whitespace inspection passes; PHP runtime and containing PostgreSQL CI remain pending.
 - Completion evidence: MfaRememberedBrowserInvalidationV3Test and updated MFA/session contracts; containing verification pending.
+- Commit SHA: pending.
+
+### HARD-043 — Session admission exposes a mutable model through its Action contract
+
+- Area: Accounts session admission and request middleware.
+- Finding: RestoreAccountSession.handle returns User to TrackAccountSession even though the caller only compares account identity. Architecture V3 correctly rejects this public write contract; c19fc047 otherwise passes its 1,014-test suite.
+- Current owner: RestoreAccountSession and TrackAccountSession.
+- Intended authoritative owner: same owner, returning nullable integer account identity; maintained guard retains the authenticated model internally.
+- Rationale: expose the minimal stable scalar contract and preserve existing architecture enforcement rather than exempting a new violation.
+- Remediation: return the admitted account ID and update the sole caller; cover both guest null and authenticated integer outcomes while keeping all remembered-login tests.
+- State: In progress.
+- Verification required: scalar contract behavior, remembered-session HTTP/failure/concurrency tests, Architecture V3, PHPStan and Pint.
+- Verification result: failure confirmed in decoded CI logs; sole caller and both completion paths inspected. Source changes and regression test prepared; git diff whitespace passes. Local PHP cannot run; containing CI required.
+- Completion evidence: pending.
 - Commit SHA: pending.
 
 ## Repository audit coverage
