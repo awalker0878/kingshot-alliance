@@ -213,14 +213,6 @@ function activate(playerId: string): void {
       </svg>
     </button>
 
-    <Link
-      href="/governors"
-      class="mt-1 inline-flex text-[0.65rem] font-semibold text-[var(--ks-muted)] hover:text-[var(--ks-gold-bright)]"
-      data-governor-management-link
-    >
-      {{ compact ? t('common.governors') : t('common.manageGovernors') }}
-    </Link>
-
     <div
       v-if="open && canSwitch"
       class="absolute end-0 top-[calc(100%+.55rem)] z-[90] w-[min(27rem,calc(100vw-2rem))] overflow-hidden rounded-[var(--ks-radius-lg)] border border-[var(--ks-border-strong)] bg-[rgba(7,13,13,.985)] shadow-[0_28px_80px_rgba(0,0,0,.65)] backdrop-blur-xl"
