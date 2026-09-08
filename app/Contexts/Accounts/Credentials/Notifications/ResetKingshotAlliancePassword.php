@@ -23,16 +23,8 @@ final class ResetKingshotAlliancePassword extends ResetPassword
 
         return (new MailMessage)
             ->subject((string) __('accounts.mail.reset.subject'))
-            ->view('mail.accounts.security', [
+            ->view(['html' => 'mail.accounts.security', 'text' => 'mail.accounts.security-text'], [
                 'eyebrow' => __('accounts.mail.reset.eyebrow'),
-                'heading' => __('accounts.mail.reset.heading'),
-                'intro' => __('accounts.mail.reset.intro'),
-                'actionText' => __('accounts.mail.reset.action'),
-                'actionUrl' => $url,
-                'expiry' => __('accounts.mail.reset.expiry', ['minutes' => $minutes]),
-                'notice' => __('accounts.mail.reset.notice'),
-            ])
-            ->text('mail.accounts.security-text', [
                 'heading' => __('accounts.mail.reset.heading'),
                 'intro' => __('accounts.mail.reset.intro'),
                 'actionText' => __('accounts.mail.reset.action'),

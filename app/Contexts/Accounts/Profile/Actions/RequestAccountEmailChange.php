@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Contexts\Accounts\Profile\Actions;
 
-use App\Contexts\Accounts\EmailVerification\Notifications\VerifyPendingKingshotAllianceEmail;
+use App\Contexts\Accounts\EmailVerification\Actions\RequestEmailVerification;
+use App\Contexts\Accounts\EmailVerification\Enums\EmailVerificationTarget;
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Accounts\Security\Services\SecurityNotificationService;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -17,13 +17,14 @@ final readonly class RequestAccountEmailChange
 {
     public function __construct(
         private AuditRecorder $audit,
+        private RequestEmailVerification $verification,
         private SecurityNotificationService $securityNotifications,
     ) {}
 
     public function handle(int $userId, string $email): void
     {
         $email = Str::lower(trim($email));
-        $pendingEmail = DB::transaction(function () use ($userId, $email): string {
+        DB::transaction(function () use ($userId, $email): void {
             $user = User::query()->whereKey($userId)->lockForUpdate()->firstOrFail();
 
             if (hash_equals(Str::lower((string) $user->email), $email)) {
@@ -58,13 +59,7 @@ final readonly class RequestAccountEmailChange
                 idempotencyKey: 'auth.email.change_requested:'.$userId.':'.Str::ulid(),
             );
 
-            return $email;
-        });
-
-        DB::afterCommit(static function () use ($userId, $pendingEmail): void {
-            Notification::route('mail', $pendingEmail)->notify(
-                new VerifyPendingKingshotAllianceEmail($userId, sha1($pendingEmail)),
-            );
+            $this->verification->handle($userId, EmailVerificationTarget::Pending);
         });
     }
 }

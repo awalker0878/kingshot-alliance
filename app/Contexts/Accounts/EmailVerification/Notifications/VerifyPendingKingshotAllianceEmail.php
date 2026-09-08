@@ -32,16 +32,8 @@ final class VerifyPendingKingshotAllianceEmail extends Notification
 
         return (new MailMessage)
             ->subject((string) __('accounts.mail.email_change_verify.subject'))
-            ->view('mail.accounts.security', [
+            ->view(['html' => 'mail.accounts.security', 'text' => 'mail.accounts.security-text'], [
                 'eyebrow' => __('accounts.mail.email_change_verify.eyebrow'),
-                'heading' => __('accounts.mail.email_change_verify.heading'),
-                'intro' => __('accounts.mail.email_change_verify.intro'),
-                'actionText' => __('accounts.mail.email_change_verify.action'),
-                'actionUrl' => $url,
-                'expiry' => __('accounts.mail.email_change_verify.expiry', ['minutes' => $minutes]),
-                'notice' => __('accounts.mail.email_change_verify.notice'),
-            ])
-            ->text('mail.accounts.security-text', [
                 'heading' => __('accounts.mail.email_change_verify.heading'),
                 'intro' => __('accounts.mail.email_change_verify.intro'),
                 'actionText' => __('accounts.mail.email_change_verify.action'),

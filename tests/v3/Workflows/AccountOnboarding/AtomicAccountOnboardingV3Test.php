@@ -141,14 +141,16 @@ final class AtomicAccountOnboardingV3Test extends TestCase
     public function test_successful_registration_queues_verification_and_worker_delivers_after_every_owner_commits(): void
     {
         $fixture = $this->invitation();
-        $delivered = false;
-        Notification::shouldReceive('send')->once()->withArgs(static function (User $user, VerifyKingshotAllianceEmail $notification) use ($fixture, &$delivered): bool {
-            $delivered = true;
-            self::assertSame(0, DB::transactionLevel(), 'Mail must not run inside an owner or Workflow transaction.');
-            self::assertSame($fixture['email'], $user->email);
-            self::assertSame((int) $user->id, (int) Player::query()->findOrFail($fixture['playerId'])->user_id);
-            self::assertSame(InvitationStatus::Accepted, Invitation::query()->findOrFail($fixture['invitationId'])->status);
-            self::assertTrue(AllianceMembership::query()->where('player_id', $fixture['playerId'])->where('status', 'active')->exists());
+        $deliveryState = null;
+        Notification::shouldReceive('send')->once()->withArgs(static function (User $user, VerifyKingshotAllianceEmail $notification) use ($fixture, &$deliveryState): bool {
+            $deliveryState = [
+                'transaction_level' => DB::transactionLevel(),
+                'email' => $user->email,
+                'user_id' => (int) $user->id,
+                'player_owner_id' => (int) Player::query()->findOrFail($fixture['playerId'])->user_id,
+                'invitation_status' => Invitation::query()->findOrFail($fixture['invitationId'])->status,
+                'active_membership' => AllianceMembership::query()->where('player_id', $fixture['playerId'])->where('status', 'active')->exists(),
+            ];
 
             return true;
         });
@@ -160,9 +162,16 @@ final class AtomicAccountOnboardingV3Test extends TestCase
         self::assertNotNull($result->membershipId);
         self::assertSame(1, OutboxMessage::query()->where('event_type', 'user.registered')->where('aggregate_id', (string) $result->userId)->count());
         self::assertSame(1, OutboxMessage::query()->where('event_type', 'invitation.accepted')->where('aggregate_id', $fixture['invitationId'])->count());
-        self::assertFalse($delivered, 'Registration returns after durable intent without contacting mail.');
+        self::assertNull($deliveryState, 'Registration returns after durable intent without contacting mail.');
         app(PublishOutboxBatch::class)->handle(100);
-        self::assertTrue($delivered);
+        self::assertSame([
+            'transaction_level' => 0,
+            'email' => $fixture['email'],
+            'user_id' => $result->userId,
+            'player_owner_id' => $result->userId,
+            'invitation_status' => InvitationStatus::Accepted,
+            'active_membership' => true,
+        ], $deliveryState, 'Mail sees every committed owner and runs outside every transaction.');
     }
 
     public function test_existing_account_acceptance_commits_once_and_selects_the_claimed_player(): void

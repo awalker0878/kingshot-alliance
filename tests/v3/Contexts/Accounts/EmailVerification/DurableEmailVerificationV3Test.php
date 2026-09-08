@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\v3\Contexts\Accounts\EmailVerification;
 
 use App\Contexts\Accounts\EmailVerification\Actions\RequestEmailVerification;
+use App\Contexts\Accounts\EmailVerification\Enums\EmailVerificationTarget;
 use App\Contexts\Accounts\EmailVerification\Notifications\VerifyKingshotAllianceEmail;
 use App\Contexts\Accounts\Identity\Actions\AnonymizeAccount;
 use App\Contexts\Accounts\Identity\Models\User;
@@ -33,7 +34,7 @@ final class DurableEmailVerificationV3Test extends TestCase
         $intent = OutboxMessage::query()->where('event_type', RequestEmailVerification::EVENT_TYPE)->sole();
 
         self::assertSame((string) $user->id, $intent->aggregate_id);
-        self::assertSame(['email_hash' => hash('sha256', (string) $user->email)], $intent->payload);
+        self::assertSame(['target' => 'account', 'email_hash' => hash('sha256', (string) $user->email)], $intent->payload);
         self::assertNull($intent->published_at);
         Notification::assertNothingSent();
 
@@ -75,7 +76,7 @@ final class DurableEmailVerificationV3Test extends TestCase
     {
         $this->freezeSecond();
         $user = User::factory()->unverified()->create();
-        app(RequestEmailVerification::class)->handle((int) $user->id);
+        app(RequestEmailVerification::class)->handle((int) $user->id, EmailVerificationTarget::Account);
         $intent = OutboxMessage::query()->sole();
         $attempts = 0;
         Notification::shouldReceive('send')->twice()->andReturnUsing(static function (User $recipient, VerifyKingshotAllianceEmail $notification) use (&$attempts, $user): void {
@@ -117,7 +118,7 @@ final class DurableEmailVerificationV3Test extends TestCase
     {
         Notification::fake();
         $user = User::factory()->unverified()->create();
-        app(RequestEmailVerification::class)->handle((int) $user->id);
+        app(RequestEmailVerification::class)->handle((int) $user->id, EmailVerificationTarget::Account);
         $intent = OutboxMessage::query()->sole();
         match ($change) {
             'verified' => $user->forceFill(['email_verified_at' => now()])->save(),
@@ -141,7 +142,7 @@ final class DurableEmailVerificationV3Test extends TestCase
         self::assertSame(1, OutboxMessage::query()->where('event_type', RequestEmailVerification::EVENT_TYPE)->count());
         Notification::assertNothingSent();
         $user->forceFill(['email_verified_at' => now()])->save();
-        app(RequestEmailVerification::class)->handle((int) $user->id);
+        app(RequestEmailVerification::class)->handle((int) $user->id, EmailVerificationTarget::Account);
         self::assertSame(1, OutboxMessage::query()->where('event_type', RequestEmailVerification::EVENT_TYPE)->count());
     }
 
@@ -149,18 +150,27 @@ final class DurableEmailVerificationV3Test extends TestCase
     {
         $this->freezeSecond();
         $user = User::factory()->unverified()->create();
-        app(RequestEmailVerification::class)->handle((int) $user->id);
+        app(RequestEmailVerification::class)->handle((int) $user->id, EmailVerificationTarget::Account);
         $this->travel(2)->hours();
-        Notification::shouldReceive('send')->once()->andReturnUsing(static function (User $recipient, VerifyKingshotAllianceEmail $notification): void {
+        $mail = null;
+        Notification::shouldReceive('send')->once()->andReturnUsing(static function (User $recipient, VerifyKingshotAllianceEmail $notification) use (&$mail): void {
             $mail = $notification->toMail($recipient);
-            self::assertSame('mail.accounts.security', $mail->view);
-            $url = $mail->viewData['actionUrl'];
-            $request = Request::create($url);
-            self::assertTrue(URL::hasValidSignature($request));
-            self::assertSame(now()->addMinutes((int) config('auth.verification.expire', 60))->timestamp, (int) $request->query('expires'));
-            self::assertStringContainsString('/email/verify/'.$recipient->id.'/'.sha1((string) $recipient->email), $url);
         });
 
-        self::assertSame(1, app(PublishOutboxBatch::class)->handle(1));
+        $intent = OutboxMessage::query()->sole();
+        self::assertSame(1, app(PublishOutboxBatch::class)->handle(1), (string) $intent->refresh()->last_error);
+        self::assertNotNull($mail);
+        self::assertSame(['html' => 'mail.accounts.security', 'text' => 'mail.accounts.security-text'], $mail->view);
+        $url = $mail->viewData['actionUrl'];
+        $request = Request::create($url);
+        self::assertTrue(URL::hasValidSignature($request));
+        self::assertSame(now()->addMinutes((int) config('auth.verification.expire', 60))->timestamp, (int) $request->query('expires'));
+        self::assertStringContainsString('/verify-email/'.$user->id.'/'.sha1((string) $user->email), $url);
+        foreach ($mail->view as $format => $view) {
+            $rendered = view($view, $mail->viewData)->render();
+            self::assertStringContainsString('KINGSHOT ALLIANCE', $rendered);
+            self::assertStringContainsString($format === 'text' ? $url : e($url), $rendered);
+        }
+
     }
 }

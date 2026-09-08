@@ -6,6 +6,7 @@ namespace App\Contexts\Accounts\Identity\Models;
 
 use App\Contexts\Accounts\Credentials\Notifications\ResetKingshotAlliancePassword;
 use App\Contexts\Accounts\EmailVerification\Actions\RequestEmailVerification;
+use App\Contexts\Accounts\EmailVerification\Enums\EmailVerificationTarget;
 use App\Contexts\Accounts\Identity\Contracts\AuthenticatedAccount;
 use App\Shared\Infrastructure\AuditTrail\Contracts\AuditActor;
 use Database\Factories\UserFactory;
@@ -96,7 +97,7 @@ final class User extends Authenticatable implements AuditActor, AuthenticatedAcc
 
     public function sendEmailVerificationNotification(): void
     {
-        app(RequestEmailVerification::class)->handle((int) $this->id);
+        app(RequestEmailVerification::class)->handle((int) $this->id, EmailVerificationTarget::Account);
     }
 
     public function sendPasswordResetNotification($token): void

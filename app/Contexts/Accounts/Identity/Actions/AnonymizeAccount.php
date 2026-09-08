@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Contexts\Accounts\Identity\Actions;
 
 use App\Contexts\Accounts\Authentication\Models\AccountSession;
+use App\Contexts\Accounts\EmailVerification\Services\EmailChangedNoticeOutbox;
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use Illuminate\Session\SessionManager;
@@ -13,7 +14,11 @@ use Illuminate\Support\Str;
 
 final readonly class AnonymizeAccount
 {
-    public function __construct(private AuditRecorder $audit, private SessionManager $sessions) {}
+    public function __construct(
+        private AuditRecorder $audit,
+        private SessionManager $sessions,
+        private EmailChangedNoticeOutbox $emailNotices,
+    ) {}
 
     public function handle(int $userId, string $requestId): void
     {
@@ -31,6 +36,7 @@ final readonly class AnonymizeAccount
 
             AccountSession::query()->where('user_id', $userId)->delete();
             $user->tokens()->delete();
+            $this->emailNotices->forgetAccount($userId);
             $user->accountIdentities()->delete();
             DB::table('passkeys')->where('user_id', $userId)->delete();
             DB::table('password_reset_tokens')->where('email', $originalEmail)->delete();

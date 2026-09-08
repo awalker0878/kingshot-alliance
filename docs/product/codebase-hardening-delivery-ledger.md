@@ -5,15 +5,15 @@
 - Program state: In progress.
 - Exact main baseline: `7e780521295e868005ecfee5bd38b33e8215ec49`.
 - Working branch: `astra/codebase-hardening`.
-- Latest pushed durable checkpoint: `e689bf7a5f829d12e008bf63eb0a5277f2601324`.
+- Latest pushed durable checkpoint: `891f97a3c6cdd2953a0009d36590a2228a1dd741`.
 - Draft PR: [#163](https://github.com/awalker0878/kingshot-alliance/pull/163).
-- Current item/state: HARD-030 / In progress (durable registration/resend verification). HARD-029 is Complete with all nine workflows and 845 PHP tests passing.
+- Current item/state: HARD-030 / In progress (durable email-change delivery and containing verification). HARD-029 is Complete with all nine workflows and 845 PHP tests passing.
 - Most recently verified gates: all nine PR workflows pass on `e689bf7a5f829d12e008bf63eb0a5277f2601324`, including 845 PHP tests / 74,611 assertions, fresh PostgreSQL, frontend, image/staging/recovery, architecture/capabilities, visual and security.
-- Active files: Accounts verification intent/consumer/provider, User hook, registration composition, nine durable mail regressions, onboarding timing regression and current contracts/ledger.
-- Remaining current work: verify the first HARD-030 registration/resend slice, complete pending-address verification and old-address durable notices; then HARD-031 single-use reset serialization, HARD-032 finalized-account mutation guards and HARD-033 finalization session cleanup; continue repository audit coverage.
-- Known failures: none in PostgreSQL CI on `e689bf7a` (845 tests / 74,611 assertions), including every HARD-029 regression and the corrected passkey cookie fixture. New durable registration/resend cases await CI.
+- Active files: account/pending verification targets, encrypted old-address notice intent/consumer, finalization purge, email change Actions, durable mail/rendering regressions, multipart templates, current contracts and ledger.
+- Remaining current work: verify the complete HARD-030 email delivery slice and HARD-035 mail rendering, repair any remaining failures; then HARD-031 single-use reset serialization, HARD-032 finalized-account mutation guards, HARD-033 finalization session cleanup and HARD-034 email-change throttling; continue repository audit coverage.
+- Known failures: `891f97a3` passes 853/854 PHP cases, including registration, rollback, SMTP backoff/retry, resend and stale-account suppression. Its delayed-signature fixture expected a single HTML view and an incorrect route path; the notification actually supplies multipart views and /verify-email. Corrected assertions run outside the publisher error-catching boundary. Email-change/rendering cases await containing CI.
 - Blockers: local PostgreSQL/Redis services unavailable; service-backed verification uses GitHub CI. Local PHP 8.5.8 and locked Composer/npm dependencies available. Checkpoints publish via the authorized GitHub connection with exact staged-tree verification and non-forced branch updates.
-- Exact next action: verify the first HARD-030 slice, then make pending-address verification and old-address notices durable with current-recipient checks and account-finalization cleanup.
+- Exact next action: publish and verify the complete HARD-030/HARD-035 slice, then repair HARD-031 password reset single-use behavior and HARD-032/033 terminal lifecycle boundaries.
 - Remaining repository-wide gates: final full PHP/architecture/capability and frontend gates on one containing commit; production image/staging/recovery; final security/dependency/visual checks; remaining capability-by-capability audit coverage below.
 
 Checkpoint SHAs are recorded by the following documentation commit; verify that the recorded checkpoint is an ancestor of current branch HEAD. No audit area is complete solely because its paths have been inventoried.
@@ -436,7 +436,7 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Remediation: reuse the durable owner/outbox contract for registration verification, preserve branded/signature/expiry behavior and current account checks, cover resend, pending-email verification and old-address notices, and test retry after transport failure plus stale/verified/finalized account suppression.
 - State: In progress.
 - Verification required: registration returns after durable intent commits without SMTP, rollback creates no intent, delivery failure remains retryable, and current recipient/verification state controls later delivery.
-- Verification result: First slice introduces explicit private verification-request intent for registration/resend, independently of the user.registered business event. The existing outbox publisher invokes an Accounts consumer after claim commit; it rechecks lifecycle, verification and an address fingerprint before calling the maintained branded notification. User notification hook and registration now save intent without SMTP. Nine database cases cover real registration/resend, post-insert rollback, durable SMTP backoff/retry, stale recipients and fresh delayed signatures; the onboarding regression retains all committed-owner assertions and explicitly runs the worker. Full PHPStan and Pint pass; database verification pending. Pending-address verification and old-address notices remain after-commit synchronous and must be completed under this item. No additional raw recipient or signed link is stored by this first slice.
+- Verification result: First slice introduces explicit private verification-request intent for registration/resend, independently of the user.registered business event. The existing outbox publisher invokes an Accounts consumer after claim commit; it rechecks lifecycle, verification and an address fingerprint before calling the maintained branded notification. User notification hook and registration now save intent without SMTP. Nine database cases cover real registration/resend, post-insert rollback, durable SMTP backoff/retry, stale recipients and fresh delayed signatures; the onboarding regression retains all committed-owner assertions and explicitly runs the worker. First-slice CI `34269731391`, PHP job `102207964217`, passes eight of nine new cases; full suite 854 tests / 74,797 assertions with one delayed-mail fixture failure. Actual MailMessage uses HTML/text views and the existing route is /verify-email; corrected assertions retain fresh expiry and real signature verification, now outside publisher-caught callbacks. The final slice uses a typed account/pending verification target, queues pending verification and encrypted historical old-address notices atomically, and purges the latter on account finalization. Eight additional database cases cover intent failure, both SMTP retry paths, replaced/promoted pending targets, encrypted recipient scope/finalization and historical delivery. Prior email rollback/onboarding cases now explicitly run the worker and retain their commit assertions outside error-catching callbacks. Full PHPStan, Pint and all 62 Architecture tests pass (66,985 assertions before final mail rendering changes); containing database verification pending. HARD-035 covers the real plain-text link defect found during this validation.
 - Completion evidence: pending.
 - Commit SHA: pending.
 
@@ -479,6 +479,34 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - State: Planned.
 - Verification required: outer rollback preserves raw sessions, successful finalization cleans them only after commit, and failed cleanup cannot restore access or block account processing.
 - Verification result: AnonymizeAccount raw-handler loop traced inside its transaction; implementation pending.
+- Completion evidence: pending.
+- Commit SHA: pending.
+
+### HARD-034 — Email-change verification requests have no route rate limit
+
+- Area: Accounts profile email-change entry point.
+- Finding: The authenticated recent-proof PATCH email route accepts repeated pending-address requests without a rate limiter, unlike verification resend and other credential mutations. An account can request unbounded verification mail to successive addresses during the proof window.
+- Current owner: routes/account.php and RequestAccountEmailChange.
+- Intended authoritative owner: the same thin route adapter applies bounded account-level request throttling; Accounts retains current-state validation and intent writes.
+- Rationale: durable queuing must not turn repeated requests into unbounded mail workload or recipient abuse.
+- Remediation: add a named account-scoped limiter consistent with verification resend and verify actual HTTP rejection before any further owner intent is written.
+- State: Planned.
+- Verification required: accepted requests are bounded per account/time window, excess requests create no additional pending transition or mail intent, and legitimate retries resume after the window.
+- Verification result: the profile email route and existing resend/credential throttles are traced; implementation pending.
+- Completion evidence: pending.
+- Commit SHA: pending.
+
+### HARD-035 — Plain-text security mail HTML-escapes actionable URLs
+
+- Area: Accounts branded verification/reset/email-change mail rendering.
+- Finding: The plain-text Blade template uses HTML escaping, turning signed/reset query separators into &amp; and invalidating links followed from that MIME part. Chaining MailMessage.text also replaces view data and drops the HTML eyebrow configured by the earlier view call.
+- Current owner: four branded account notifications and their shared HTML/text templates.
+- Intended authoritative owner: the same templates with format-correct output and one complete data set shared by both MIME parts.
+- Rationale: valid notification objects and fake sends do not establish that a delivered link works. HTML and plain text require different escaping behavior.
+- Remediation: render literal text/URLs in the text-only view while keeping HTML escaped, supply both views with one complete data set, and validate actual rendered action links in all four messages.
+- State: In progress.
+- Verification required: both rendered parts retain branding/action URLs; extracted plain-text verification URLs satisfy the real signature validator; reset query separators remain literal; containing mail/CI gates pass.
+- Verification result: four database-free rendered-mail cases pass locally (32 assertions), including actual signed-link extraction/validation for account and pending verification. All four notification types render both parts successfully. Formatter passes; containing CI pending.
 - Completion evidence: pending.
 - Commit SHA: pending.
 

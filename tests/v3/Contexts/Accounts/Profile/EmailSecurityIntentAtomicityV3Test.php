@@ -9,6 +9,7 @@ use App\Contexts\Accounts\EmailVerification\Notifications\VerifyPendingKingshotA
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Accounts\Profile\Actions\PromotePendingAccountEmail;
 use App\Contexts\Accounts\Profile\Actions\RequestAccountEmailChange;
+use App\Shared\Infrastructure\Messaging\Outbox\Actions\PublishOutboxBatch;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Notifications\AnonymousNotifiable;
@@ -78,7 +79,7 @@ final class EmailSecurityIntentAtomicityV3Test extends TestCase
     }
 
     #[DataProvider('mutations')]
-    public function test_successful_email_mutation_sends_to_the_correct_recipient_only_after_commit(bool $promote): void
+    public function test_successful_email_mutation_queues_intent_and_worker_sends_to_the_correct_recipient_after_commit(bool $promote): void
     {
         Notification::fake();
         $user = $this->account($promote);
@@ -87,6 +88,9 @@ final class EmailSecurityIntentAtomicityV3Test extends TestCase
             $this->mutate($user, $promote);
             Notification::assertNothingSent();
         });
+
+        Notification::assertNothingSent();
+        app(PublishOutboxBatch::class)->handle(100);
 
         self::assertSame($promote ? 'next@example.test' : 'current@example.test', $user->refresh()->email);
         self::assertSame($promote ? null : 'next@example.test', $user->pending_email);
@@ -137,6 +141,7 @@ final class EmailSecurityIntentAtomicityV3Test extends TestCase
         return [
             'account' => $user->refresh()->getRawOriginal(),
             'audit' => DB::table('audit_events')->count(),
+            'outbox' => DB::table('outbox_messages')->count(),
             'messages' => DB::table('notification_messages')->count(),
             'deliveries' => DB::table('notification_deliveries')->count(),
         ];

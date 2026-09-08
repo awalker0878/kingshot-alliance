@@ -89,7 +89,7 @@ Forgot Password remains enumeration resistant and emits reset credentials only w
 
 ## Account email
 
-The Kingshot Alliance account email is independent from provider email and is managed by the existing signed verified-email-change workflow. Email request/promotion state, audit and account-security intent commit together. Verification and old-address mail wait for the outermost commit, and rolled-back operations send none. Each new change cycle receives new security intent even when an earlier address is reused. Google email updates provider metadata only. Email-change eligibility is based on account ownership/recent authentication, not on which sign-in methods are attached.
+The Kingshot Alliance account email is independent from provider email and is managed by the existing signed verified-email-change workflow. Email request/promotion state, audit and account-security intent commit together. Verification and old-address mail use durable outbox intent in that same transaction, and rolled-back operations send none. The worker rechecks the current verification target and account lifecycle; SMTP failure remains retryable. Historical old-address notice recipients are encrypted and removed on account finalization. Each new change cycle receives new security intent even when an earlier address is reused. Google email updates provider metadata only. Email-change eligibility is based on account ownership/recent authentication, not on which sign-in methods are attached.
 
 ## Sign-in-method policy
 

@@ -16,16 +16,8 @@ final class VerifyKingshotAllianceEmail extends VerifyEmail
 
         return (new MailMessage)
             ->subject((string) __('accounts.mail.verify.subject'))
-            ->view('mail.accounts.security', [
+            ->view(['html' => 'mail.accounts.security', 'text' => 'mail.accounts.security-text'], [
                 'eyebrow' => __('accounts.mail.verify.eyebrow'),
-                'heading' => __('accounts.mail.verify.heading'),
-                'intro' => __('accounts.mail.verify.intro'),
-                'actionText' => __('accounts.mail.verify.action'),
-                'actionUrl' => $url,
-                'expiry' => __('accounts.mail.verify.expiry', ['minutes' => $minutes]),
-                'notice' => __('accounts.mail.verify.notice'),
-            ])
-            ->text('mail.accounts.security-text', [
                 'heading' => __('accounts.mail.verify.heading'),
                 'intro' => __('accounts.mail.verify.intro'),
                 'actionText' => __('accounts.mail.verify.action'),
