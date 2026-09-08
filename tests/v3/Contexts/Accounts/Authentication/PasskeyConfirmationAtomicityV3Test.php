@@ -23,8 +23,6 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use RuntimeException;
 use Tests\v3\Support\WebAuthnAssertionFixture;
 use Tests\v3\TestCase;
-use Webauthn\Exception\AuthenticatorResponseVerificationException;
-use Webauthn\Exception\CounterException;
 use Webauthn\PublicKeyCredentialRequestOptions;
 
 final class PasskeyConfirmationAtomicityV3Test extends TestCase
@@ -51,7 +49,7 @@ final class PasskeyConfirmationAtomicityV3Test extends TestCase
         [$user, $passkey, $fixture, $options, $request] = $this->account();
         $before = $passkey->refresh()->getRawOriginal();
         $prior = ['accounts.recent_authentication_at' => now()->subHour()->timestamp,
-            'accounts.recent_authentication_method' => 'password', 'accounts.passkey_verified_public_id' => 'prior-reference'];
+            'accounts.recent_authentication_method' => 'google', 'accounts.recent_authentication_credential' => 'prior-reference'];
         $request->session()->put($prior);
         $failed = false;
         if (! $outerRollback) {
@@ -94,7 +92,6 @@ final class PasskeyConfirmationAtomicityV3Test extends TestCase
             $verified = app(VerifyPasskey::class)($fixture->assertion($options, $user->getPasskeyUserHandle()), $options, $user);
             self::assertSame(1, $verified->credential['counter']);
             self::assertFalse($request->session()->has('accounts.recent_authentication_at'));
-            self::assertFalse($request->session()->has('accounts.passkey_verified_public_id'));
         });
 
         self::assertSame(1, $passkey->refresh()->credential['counter']);
@@ -102,7 +99,6 @@ final class PasskeyConfirmationAtomicityV3Test extends TestCase
         self::assertSame(now()->timestamp, $request->session()->get('accounts.recent_authentication_at'));
         self::assertSame('passkey', $request->session()->get('accounts.recent_authentication_method'));
         self::assertSame($passkey->public_id, $request->session()->get('accounts.recent_authentication_credential'));
-        self::assertSame($passkey->public_id, $request->session()->get('accounts.passkey_verified_public_id'));
         $this->assertDatabaseHas('audit_events', ['event' => 'auth.passkey.verified', 'actor_user_id' => $user->id]);
     }
 
@@ -133,12 +129,11 @@ final class PasskeyConfirmationAtomicityV3Test extends TestCase
         try {
             app(VerifyPasskey::class)($assertion, $options, $user);
             self::fail('The maintained validator must reject the invalid signed assertion.');
-        } catch (AuthenticatorResponseVerificationException|CounterException $exception) {
-            self::assertSame($invalid === 'counter', $exception instanceof CounterException);
+        } catch (InvalidPasskeyException $exception) {
+            self::assertArrayHasKey('credential', $exception->errors());
             self::assertSame($before, $passkey->refresh()->getRawOriginal());
             self::assertSame($auditBefore, DB::table('audit_events')->count());
             self::assertFalse($request->session()->has('accounts.recent_authentication_at'));
-            self::assertFalse($request->session()->has('accounts.passkey_verified_public_id'));
         }
     }
 
@@ -151,7 +146,7 @@ final class PasskeyConfirmationAtomicityV3Test extends TestCase
     }
 
     #[DataProvider('bindings')]
-    public function test_delayed_reference_and_proof_respect_the_current_request_and_credential(string $binding): void
+    public function test_delayed_proof_respects_the_current_request_and_credential(string $binding): void
     {
         [$user, $passkey, $fixture, $options, $request] = $this->account();
         if ($binding === 'no session') {
@@ -168,7 +163,6 @@ final class PasskeyConfirmationAtomicityV3Test extends TestCase
         });
 
         self::assertFalse($request->session()->has('accounts.recent_authentication_at'));
-        self::assertSame($binding === 'guest' ? $passkey->public_id : null, $request->session()->get('accounts.passkey_verified_public_id'));
         self::assertSame(1, DB::table('audit_events')->where('event', 'auth.passkey.verified')->count());
     }
 

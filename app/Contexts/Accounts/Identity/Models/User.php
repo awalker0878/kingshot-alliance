@@ -105,6 +105,13 @@ final class User extends Authenticatable implements AuditActor, AuthenticatedAcc
         return filled($this->getRawOriginal('password'));
     }
 
+    public function getAuthPassword(): string
+    {
+        // The maintained guard hashes this string into remembered cookies even
+        // for passkey/provider-only accounts; password eligibility stays explicit.
+        return (string) $this->password;
+    }
+
     public function supportsGoogleAuthentication(): bool
     {
         return $this->accountIdentities()->where('provider', 'google')->exists();

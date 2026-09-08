@@ -19,7 +19,6 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use RuntimeException;
 use Tests\v3\Support\WebAuthnRegistrationFixture;
 use Tests\v3\TestCase;
-use Webauthn\Exception\AuthenticatorResponseVerificationException;
 
 final class PasskeySecurityIntentAtomicityV3Test extends TestCase
 {
@@ -87,7 +86,8 @@ final class PasskeySecurityIntentAtomicityV3Test extends TestCase
         try {
             app(StorePasskey::class)($user, 'Rejected key', $credential, $options);
             self::fail('The maintained validator must reject the invalid ceremony.');
-        } catch (AuthenticatorResponseVerificationException) {
+        } catch (InvalidPasskeyException $exception) {
+            self::assertArrayHasKey('credential', $exception->errors());
             self::assertSame($before, $this->state($user));
         }
     }

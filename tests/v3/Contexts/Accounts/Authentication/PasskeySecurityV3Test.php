@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\v3\Contexts\Accounts\Authentication;
 
-use App\Contexts\Accounts\Authentication\Http\Responses\AccountPasskeyLoginResponse;
 use App\Contexts\Accounts\Authentication\Models\AccountPasskey;
 use App\Contexts\Accounts\Authentication\Services\AccountSignInMethodPolicy;
 use App\Contexts\Accounts\Identity\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\ValidationException;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -121,32 +119,6 @@ final class PasskeySecurityV3Test extends TestCase
         app(DeletePasskey::class)($user, $passkey);
         $this->assertDatabaseMissing('passkeys', ['id' => $passkey->id]);
         self::assertSame(1, app(AccountSignInMethodPolicy::class)->usableMethodCount($user));
-    }
-
-    public function test_verified_passkey_response_establishes_generic_recent_proof_without_totp_challenge(): void
-    {
-        $user = User::factory()->withoutPassword()->create();
-        $passkey = $this->passkeyFor($user, 'verified-passkey');
-        $session = app('session')->driver();
-        $session->start();
-        $session->put('accounts.passkey_verified_public_id', (string) $passkey->public_id);
-        $session->put('accounts.mfa_login', ['user_id' => $user->id]);
-
-        $request = Request::create('/passkeys/login', 'POST');
-        $request->setLaravelSession($session);
-        $request->setUserResolver(static fn (): User => $user);
-
-        $response = app(AccountPasskeyLoginResponse::class)->toResponse($request);
-
-        self::assertStringEndsWith('/dashboard', (string) $response->headers->get('Location'));
-        self::assertSame('passkey', $session->get('accounts.recent_authentication_method'));
-        self::assertSame((string) $passkey->public_id, $session->get('accounts.recent_authentication_credential'));
-        self::assertGreaterThan(0, (int) $session->get('accounts.recent_authentication_at'));
-        self::assertFalse($session->has('accounts.mfa_login'));
-        $this->assertDatabaseHas('audit_events', [
-            'event' => 'auth.login',
-            'actor_user_id' => $user->id,
-        ]);
     }
 
     public function test_package_delete_route_uses_locked_accounts_policy_and_preserves_security_effects(): void

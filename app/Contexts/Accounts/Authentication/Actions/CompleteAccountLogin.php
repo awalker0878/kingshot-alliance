@@ -51,7 +51,7 @@ final readonly class CompleteAccountLogin
         }
         abort_if($guard->check(), 409, 'An authenticated account cannot start a new sign-in.');
         $errorKey = $proof->requiresMultiFactor ? 'code' : ($proof->method === 'google' ? 'google' : 'email');
-        $mfaMethod = null;
+        $mfaMethod = $proof->method === 'passkey' ? 'user_verifying_passkey' : null;
         $user = DB::transaction(function () use ($request, $proof, $remember, $code, $recoveryCode, $errorKey, &$mfaMethod): User {
             $user = $this->currentAccount($request, $proof, $errorKey);
             if ($proof->requiresMultiFactor) {
@@ -111,7 +111,6 @@ final readonly class CompleteAccountLogin
                     $guard->forgetUser();
                     $request->session()->forget($guard->getName());
                     $this->recentAuthentication->clear($request);
-                    $request->session()->forget('accounts.passkey_verified_public_id');
                     // Keep a still-valid MFA challenge retryable. The failed
                     // prepared ID never became an authoritative account session.
                     $request->session()->regenerate();
