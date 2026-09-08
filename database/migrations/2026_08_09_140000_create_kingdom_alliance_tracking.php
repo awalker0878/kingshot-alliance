@@ -62,9 +62,9 @@ return new class extends Migration
 
         Schema::create('kingdom_alliance_reconciliations', function (Blueprint $table): void {
             $table->ulid('id')->primary();
-            $table->foreignUlid('kingdom_id')->constrained('kingdoms')->restrictOnDelete();
-            $table->foreignUlid('canonical_kingdom_alliance_id')->constrained('kingdom_alliances')->restrictOnDelete();
-            $table->foreignUlid('duplicate_kingdom_alliance_id')->constrained('kingdom_alliances')->restrictOnDelete();
+            $table->ulid('kingdom_id');
+            $table->ulid('canonical_kingdom_alliance_id');
+            $table->ulid('duplicate_kingdom_alliance_id');
             $table->text('reason');
             $table->string('source_type', 40)->default('system_reconciliation');
             $table->string('source_reference', 191)->nullable();
@@ -72,9 +72,17 @@ return new class extends Migration
             $table->timestampTz('reconciled_at');
             $table->timestamps();
 
-            $table->unique('duplicate_kingdom_alliance_id');
-            $table->index(['kingdom_id', 'reconciled_at']);
-            $table->index(['canonical_kingdom_alliance_id', 'reconciled_at']);
+            // Explicit short names avoid PostgreSQL's 63-character identifier
+            // truncation causing the duplicate FK and UNIQUE names to collide.
+            $table->foreign('kingdom_id', 'ka_recon_kingdom_fk')
+                ->references('id')->on('kingdoms')->restrictOnDelete();
+            $table->foreign('canonical_kingdom_alliance_id', 'ka_recon_canonical_fk')
+                ->references('id')->on('kingdom_alliances')->restrictOnDelete();
+            $table->foreign('duplicate_kingdom_alliance_id', 'ka_recon_duplicate_fk')
+                ->references('id')->on('kingdom_alliances')->restrictOnDelete();
+            $table->unique('duplicate_kingdom_alliance_id', 'ka_recon_duplicate_unique');
+            $table->index(['kingdom_id', 'reconciled_at'], 'ka_recon_kingdom_time_idx');
+            $table->index(['canonical_kingdom_alliance_id', 'reconciled_at'], 'ka_recon_canonical_time_idx');
         });
 
         Schema::create('tracked_kingdom_alliances', function (Blueprint $table): void {
