@@ -68,7 +68,6 @@ final readonly class ReconcileKingdomAlliances
             }
             /** @var KingdomAlliance $canonical */
             /** @var KingdomAlliance $duplicate */
-
             if ((string) $duplicate->canonical_kingdom_alliance_id === $canonicalKingdomAllianceId) {
                 return;
             }
