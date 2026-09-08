@@ -21,7 +21,12 @@ final readonly class ClaimPlayerAccount
         private AuditRecorder $audit,
     ) {}
 
-    public function handle(
+    public function handle(string $playerId, int $userId): PlayerReference
+    {
+        return $this->handleWithProvenance($playerId, $userId);
+    }
+
+    public function handleWithProvenance(
         string $playerId,
         int $userId,
         PlayerIdentitySource $source = PlayerIdentitySource::AccountOnboarding,
