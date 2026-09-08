@@ -54,7 +54,7 @@ final class PasskeyLoginCompletionV3Test extends TestCase
     public function test_real_signed_http_login_completes_the_current_credential_before_redirecting(bool $json, bool $mfa): void
     {
         [$user, $passkey, $fixture] = $this->account($mfa, false);
-        $options = $this->options();
+        $options = $this->verificationOptions();
         $initialSession = session()->getId();
         $loginEvents = 0;
         Event::listen(Login::class, static function (Login $event) use ($user, &$loginEvents): void {
@@ -98,7 +98,7 @@ final class PasskeyLoginCompletionV3Test extends TestCase
     public function test_failed_login_keeps_verified_counter_but_grants_no_session_or_recent_proof(string $failure): void
     {
         [$user, $passkey, $fixture] = $this->account();
-        $options = $this->options();
+        $options = $this->verificationOptions();
         $failed = false;
         $this->observeRotation(static function () use ($failure, &$failed): void {
             self::assertSame(0, DB::transactionLevel());
@@ -145,7 +145,7 @@ final class PasskeyLoginCompletionV3Test extends TestCase
     public function test_invalid_http_ceremony_is_validation_feedback_and_a_fresh_ceremony_can_retry(bool $missing): void
     {
         [$user, $passkey, $fixture] = $this->account();
-        $options = $missing ? app(GenerateVerificationOptions::class)() : $this->options();
+        $options = $missing ? app(GenerateVerificationOptions::class)() : $this->verificationOptions();
         $this->postJson(route('passkey.login'), ['credential' => WebAuthn::toBrowserArray($fixture->assertion($options,
             $user->getPasskeyUserHandle(), challenge: $missing ? null : 'wrong-challenge'))])
             ->assertUnprocessable()->assertJsonValidationErrors('credential');
@@ -155,7 +155,7 @@ final class PasskeyLoginCompletionV3Test extends TestCase
         self::assertSame(0, AccountSession::query()->count());
         self::assertFalse(session()->has('accounts.recent_authentication_at'));
 
-        $options = $this->options();
+        $options = $this->verificationOptions();
         $this->postJson(route('passkey.login'), ['credential' => WebAuthn::toBrowserArray($fixture->assertion($options, $user->getPasskeyUserHandle()))])
             ->assertOk()->assertJsonPath('redirect', route('dashboard'));
         $this->assertAuthenticatedAs($user);
@@ -164,7 +164,7 @@ final class PasskeyLoginCompletionV3Test extends TestCase
     public function test_credential_deleted_after_assertion_during_rotation_cannot_complete_http_login(): void
     {
         [$user, $passkey, $fixture] = $this->account();
-        $options = $this->options();
+        $options = $this->verificationOptions();
         $removed = false;
         $primary = DB::getDefaultConnection();
         config()->set('database.connections.passkey_login_competitor', array_replace(DB::connection()->getConfig(), ['name' => 'passkey_login_competitor']));
@@ -226,7 +226,7 @@ final class PasskeyLoginCompletionV3Test extends TestCase
         return [$user, $passkey, $fixture];
     }
 
-    private function options(): PublicKeyCredentialRequestOptions
+    private function verificationOptions(): PublicKeyCredentialRequestOptions
     {
         $this->getJson(route('passkey.login-options'))->assertOk();
         $this->withCredentials()->withCookie((string) config('session.cookie'), session()->getId());
