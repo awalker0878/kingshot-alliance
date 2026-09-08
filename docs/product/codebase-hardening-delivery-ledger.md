@@ -5,15 +5,15 @@
 - Program state: In progress.
 - Exact main baseline: `7e780521295e868005ecfee5bd38b33e8215ec49`.
 - Working branch: `astra/codebase-hardening`.
-- Latest pushed durable checkpoint: `891f97a3c6cdd2953a0009d36590a2228a1dd741`.
+- Latest pushed durable checkpoint: `594f1ea73cb7fa711ab4251e92e51aacb52a418b`.
 - Draft PR: [#163](https://github.com/awalker0878/kingshot-alliance/pull/163).
-- Current item/state: HARD-030 / In progress (durable email-change delivery and containing verification). HARD-029 is Complete with all nine workflows and 845 PHP tests passing.
-- Most recently verified gates: all nine PR workflows pass on `e689bf7a5f829d12e008bf63eb0a5277f2601324`, including 845 PHP tests / 74,611 assertions, fresh PostgreSQL, frontend, image/staging/recovery, architecture/capabilities, visual and security.
-- Active files: account/pending verification targets, encrypted old-address notice intent/consumer, finalization purge, email change Actions, durable mail/rendering regressions, multipart templates, current contracts and ledger.
-- Remaining current work: verify the complete HARD-030 email delivery slice and HARD-035 mail rendering, repair any remaining failures; then HARD-031 single-use reset serialization, HARD-032 finalized-account mutation guards, HARD-033 finalization session cleanup and HARD-034 email-change throttling; continue repository audit coverage.
-- Known failures: `891f97a3` passes 853/854 PHP cases, including registration, rollback, SMTP backoff/retry, resend and stale-account suppression. Its delayed-signature fixture expected a single HTML view and an incorrect route path; the notification actually supplies multipart views and /verify-email. Corrected assertions run outside the publisher error-catching boundary. Email-change/rendering cases await containing CI.
+- Current item/state: HARD-031 / In progress (password-reset consumption). HARD-030/035 are Complete with all nine containing workflows green.
+- Most recently verified gates: all nine PR workflows pass on `594f1ea73cb7fa711ab4251e92e51aacb52a418b`, including 866 PHP tests / 74,985 assertions, fresh PostgreSQL, frontend, image/staging/recovery, architecture/capabilities, visual and security.
+- Active files: ResetPassword owner transaction, ten reset failure/success/competing-connection regressions, credential contract and ledger.
+- Remaining current work: verify HARD-031 reset consumption and reconcile HARD-030/035 containing gates; HARD-032 finalized-account mutation guards, HARD-033 finalization session cleanup, HARD-034 email-change throttling and HARD-036 password-reset issuance remain; continue repository audit coverage.
+- Known failures: none in PostgreSQL CI on `594f1ea7`; all email-change, delayed-signature and rendered-mail cases pass. Ten new reset-consumption cases await CI.
 - Blockers: local PostgreSQL/Redis services unavailable; service-backed verification uses GitHub CI. Local PHP 8.5.8 and locked Composer/npm dependencies available. Checkpoints publish via the authorized GitHub connection with exact staged-tree verification and non-forced branch updates.
-- Exact next action: publish and verify the complete HARD-030/HARD-035 slice, then repair HARD-031 password reset single-use behavior and HARD-032/033 terminal lifecycle boundaries.
+- Exact next action: publish and verify HARD-031 reset consumption, then enforce current-active Accounts write boundaries under HARD-032 and fix finalization cleanup under HARD-033.
 - Remaining repository-wide gates: final full PHP/architecture/capability and frontend gates on one containing commit; production image/staging/recovery; final security/dependency/visual checks; remaining capability-by-capability audit coverage below.
 
 Checkpoint SHAs are recorded by the following documentation commit; verify that the recorded checkpoint is an ancestor of current branch HEAD. No audit area is complete solely because its paths have been inventoried.
@@ -434,11 +434,11 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: Accounts owns verification delivery intent and current-recipient validation; existing durable transport owns retries after commit.
 - Rationale: after-commit ordering prevents mail for rolled-back users, but does not establish recoverable delivery or keep mail latency/failure out of the registration response.
 - Remediation: reuse the durable owner/outbox contract for registration verification, preserve branded/signature/expiry behavior and current account checks, cover resend, pending-email verification and old-address notices, and test retry after transport failure plus stale/verified/finalized account suppression.
-- State: In progress.
+- State: Complete.
 - Verification required: registration returns after durable intent commits without SMTP, rollback creates no intent, delivery failure remains retryable, and current recipient/verification state controls later delivery.
-- Verification result: First slice introduces explicit private verification-request intent for registration/resend, independently of the user.registered business event. The existing outbox publisher invokes an Accounts consumer after claim commit; it rechecks lifecycle, verification and an address fingerprint before calling the maintained branded notification. User notification hook and registration now save intent without SMTP. Nine database cases cover real registration/resend, post-insert rollback, durable SMTP backoff/retry, stale recipients and fresh delayed signatures; the onboarding regression retains all committed-owner assertions and explicitly runs the worker. First-slice CI `34269731391`, PHP job `102207964217`, passes eight of nine new cases; full suite 854 tests / 74,797 assertions with one delayed-mail fixture failure. Actual MailMessage uses HTML/text views and the existing route is /verify-email; corrected assertions retain fresh expiry and real signature verification, now outside publisher-caught callbacks. The final slice uses a typed account/pending verification target, queues pending verification and encrypted historical old-address notices atomically, and purges the latter on account finalization. Eight additional database cases cover intent failure, both SMTP retry paths, replaced/promoted pending targets, encrypted recipient scope/finalization and historical delivery. Prior email rollback/onboarding cases now explicitly run the worker and retain their commit assertions outside error-catching callbacks. Full PHPStan, Pint and all 62 Architecture tests pass (66,985 assertions before final mail rendering changes); containing database verification pending. HARD-035 covers the real plain-text link defect found during this validation.
-- Completion evidence: pending.
-- Commit SHA: pending.
+- Verification result: First slice introduces explicit private verification-request intent for registration/resend, independently of the user.registered business event. The existing outbox publisher invokes an Accounts consumer after claim commit; it rechecks lifecycle, verification and an address fingerprint before calling the maintained branded notification. User notification hook and registration now save intent without SMTP. Nine database cases cover real registration/resend, post-insert rollback, durable SMTP backoff/retry, stale recipients and fresh delayed signatures; the onboarding regression retains all committed-owner assertions and explicitly runs the worker. First-slice CI `34269731391`, PHP job `102207964217`, passes eight of nine new cases; full suite 854 tests / 74,797 assertions with one delayed-mail fixture failure. Actual MailMessage uses HTML/text views and the existing route is /verify-email; corrected assertions retain fresh expiry and real signature verification, now outside publisher-caught callbacks. The final slice uses a typed account/pending verification target, queues pending verification and encrypted historical old-address notices atomically, and purges the latter on account finalization. Eight additional database cases cover intent failure, both SMTP retry paths, replaced/promoted pending targets, encrypted recipient scope/finalization and historical delivery. Prior email rollback/onboarding cases now explicitly run the worker and retain their commit assertions outside error-catching callbacks. Full PHPStan, Pint and all 62 Architecture tests pass (66,985 assertions before final mail rendering changes); all cases pass in PostgreSQL CI on `594f1ea7` (866 tests / 74,985 assertions), including the corrected delayed signature and complete email delivery behavior. All nine workflows pass. HARD-035 covers the real plain-text link defect found during this validation.
+- Completion evidence: CI `34271255114`, PHP job `102213121398`, Architecture `34271255180`, Intelligence `34271255349` and all other containing workflows pass.
+- Commit SHA: first slice `891f97a3c6cdd2953a0009d36590a2228a1dd741`; verified final slice `594f1ea73cb7fa711ab4251e92e51aacb52a418b`.
 
 ### HARD-031 — Password reset tokens are checked and consumed outside the credential lock
 
@@ -448,9 +448,9 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: Accounts serializes current-account/token revalidation and consumption with the password mutation; the maintained broker owns token hashing, expiry and throttling.
 - Rationale: reset tokens must authorize one successful current credential transition and report accurately when current state no longer permits it.
 - Remediation: move current token validation/consumption within the account serialization boundary without duplicating maintained token cryptography; verify a real competing-connection reset and changed credential state.
-- State: Planned.
+- State: In progress.
 - Verification required: one token cannot authorize two password changes; token failure/expiry/stale credential state return failure; rollback preserves retryable intent and existing successful-reset behavior.
-- Verification result: ResetPassword and installed PasswordBroker reset/validateReset ordering traced; implementation pending.
+- Verification result: ResetPassword now acquires/rechecks the current account before the entire maintained broker check/callback/delete sequence. Password, API/browser/remember revocation, audit/security intent and token consumption commit together; framework event and raw cleanup wait for outermost commit. Ten database cases cover real post-insert and post-token-delete rollback, successful one-use reset, expired/unknown/changed/finalized accounts, and actual competing reset/removal over a second PostgreSQL connection with an independent maintained broker. Full PHPStan and Pint pass; database verification pending. Issuance still writes from ForgotPasswordController without this boundary and is tracked separately as HARD-036.
 - Completion evidence: pending.
 - Commit SHA: pending.
 
@@ -504,9 +504,23 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: the same templates with format-correct output and one complete data set shared by both MIME parts.
 - Rationale: valid notification objects and fake sends do not establish that a delivered link works. HTML and plain text require different escaping behavior.
 - Remediation: render literal text/URLs in the text-only view while keeping HTML escaped, supply both views with one complete data set, and validate actual rendered action links in all four messages.
-- State: In progress.
+- State: Complete.
 - Verification required: both rendered parts retain branding/action URLs; extracted plain-text verification URLs satisfy the real signature validator; reset query separators remain literal; containing mail/CI gates pass.
-- Verification result: four database-free rendered-mail cases pass locally (32 assertions), including actual signed-link extraction/validation for account and pending verification. All four notification types render both parts successfully. Formatter passes; containing CI pending.
+- Verification result: four database-free rendered-mail cases pass locally (32 assertions), including actual signed-link extraction/validation for account and pending verification. All four notification types render both parts successfully. Formatter passes; all four rendering cases and delayed signatures pass in PostgreSQL CI on `594f1ea7` (866 tests / 74,985 assertions). All nine workflows pass.
+- Completion evidence: AccountSecurityMailRenderingV3Test and durable mail tests; CI `34271255114`, PHP job `102213121398`, Architecture `34271255180`, Intelligence `34271255349` and all other workflows pass.
+- Commit SHA: `594f1ea73cb7fa711ab4251e92e51aacb52a418b`.
+
+### HARD-036 — Password-reset issuance bypasses the account owner transaction
+
+- Area: Accounts forgot-password token issuance and reset-link delivery.
+- Finding: ForgotPasswordController reads password availability without locking, then invokes the maintained broker to replace reset tokens and send SMTP directly. Issuance does not serialize with reset/removal/finalization, can replace a token during reset consumption, and has no durable delivery retry after token creation.
+- Current owner: ForgotPasswordController and the maintained broker/token repository.
+- Intended authoritative owner: an Accounts issuance Action coordinates current account eligibility, maintained token generation/throttling and recoverable delivery intent; HTTP remains a generic non-enumerating adapter.
+- Rationale: all token writers must share the credential lifecycle boundary. A generic success response must not conceal partial token writes or expose clear recovery material in transport history.
+- Remediation: serialize issuance account-first, preserve maintained generation/hashing/expiry/throttling, persist protected and bounded delivery intent, and keep SMTP outside the owner transaction. Remove superseded controller-side writes and ensure removal/reset/finalization invalidates pending delivery.
+- State: Planned.
+- Verification required: real competing issuance/reset/removal behavior, no tokens for password-less/finalized accounts, generic HTTP response, bounded repeated issuance, delivery rollback/retry/stale suppression and protected recovery material cleanup.
+- Verification result: ForgotPasswordController, User reset notification hook and installed PasswordBroker/DatabaseTokenRepository creation/deletion paths traced; implementation pending.
 - Completion evidence: pending.
 - Commit SHA: pending.
 
