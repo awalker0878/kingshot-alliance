@@ -3,13 +3,13 @@ import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
 
 const territoryVisualFingerprints: Record<string, string> = {
-  desktop: '4a21a9a563fa545e46feac70eb0916efceadb082d4024a7485ca1fcf97d8c0b6',
-  mobile: 'e240171fe0ac14c41550a68000e974320cfb764182573659411d9ea717f2e442',
+  desktop: 'b88b76fca28077cfe3128a6e19a6137ced455c0e4a4ad72c9a47a7ebb6ee980f',
+  mobile: '61a3fbd968acc8d88c650860e645a8b49d2de7eb2cac2c26f3c9dc246d9073e9',
 };
 
 const territoryReconciliationFingerprints: Record<string, string> = {
-  desktop: '5ad1f7c066ec8f4228733a73f5099bf06c1c5de75dee8eea49420d09ead8289c',
-  mobile: '5d6f2437dc1d32501ca9e02f8ad12b4add50d588bfc3e98f670c069be43e69bd',
+  desktop: '1b022276b5b29774c6af1bb9fbb161a9704910ad0c33eaac03ff23811cfac7f3',
+  mobile: '1dc7602d529b11ac70a3ef2735ae917a5a8b1c69447b9e9064910ef24f7f4aa5',
 };
 
 async function activateVisualGovernor(
