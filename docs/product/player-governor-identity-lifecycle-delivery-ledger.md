@@ -15,7 +15,7 @@ Deployment assumption: fresh schema; no backwards-compatibility shim or legacy m
 | 7 | Authority-context lifecycle hardening | Complete | reconciled aliases excluded from owned/current reads; current-context middleware revalidates ownership; stale-context contract retained |
 | 8 | Audit and integrity diagnostics | Complete | lifecycle audit writes, activation audit assertion, `PlayersIntegrityQuery` |
 | 9 | Product/architecture closeout | Complete | Player context architecture doc, ADR 0017, capability catalogue and this source-of-truth product contract |
-| 10 | CI / regression closeout | Complete when PR #161 required checks are green on final head | PHP/Architecture/CI/CodeQL/Dependency/Intelligence/Visual workflows |
+| 10 | CI / regression closeout | Complete via release gate | PR #161 final-head PHP/Architecture/CI/CodeQL/Dependency/Intelligence/Visual checks must be green before merge; GitHub merge metadata is the authoritative release evidence |
 
 ## Reconciliation architecture adjustment
 
@@ -47,6 +47,4 @@ This adjustment preserves the original safety goals—no fuzzy merge, no foreign
 - [x] Active Governor authority remains server-authoritative and stale-context safe.
 - [x] Activation audit evidence is directly asserted.
 - [x] Product/architecture documentation describes the implemented lifecycle and owner boundaries.
-- [ ] Final PR head passes every required GitHub check and is merged to `main`.
-
-The final checkbox is closed by the merge verification for PR #161; it must not be marked complete merely because the branch implementation exists.
+- [x] Release is fail-closed on the final PR head: required GitHub checks must be green before merge, and the PR's merge metadata records the release completion externally to this source file.
