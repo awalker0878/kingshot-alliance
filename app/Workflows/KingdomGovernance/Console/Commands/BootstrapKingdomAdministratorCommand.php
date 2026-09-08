@@ -34,9 +34,9 @@ final class BootstrapKingdomAdministratorCommand extends Command
             return self::FAILURE;
         }
 
-        $kingdom = $kingdoms->findByNumber((int) $kingdomArgument);
+        $kingdom = $kingdoms->findActiveByNumber((int) $kingdomArgument);
         if ($kingdom === null) {
-            $this->error('No Kingdom exists with that number.');
+            $this->error('No active Kingdom exists with that number.');
 
             return self::FAILURE;
         }
