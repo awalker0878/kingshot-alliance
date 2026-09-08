@@ -8,17 +8,18 @@ use App\Contexts\GameWorld\Kingdoms\Enums\KingdomAllianceIdentitySource;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
  * @property string $kingdom_alliance_id
  * @property string $name
  * @property string|null $tag
  * @property string|null $game_alliance_id
- * @property \Illuminate\Support\Carbon $valid_from
- * @property \Illuminate\Support\Carbon|null $valid_to
+ * @property Carbon $valid_from
+ * @property Carbon|null $valid_to
  * @property KingdomAllianceIdentitySource $source_type
  * @property string|null $source_reference
- * @property \Illuminate\Support\Carbon|null $observed_at
+ * @property Carbon|null $observed_at
  * @property int|null $confidence_basis_points
  * @property string|null $reason
  */
