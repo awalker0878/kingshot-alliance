@@ -50,6 +50,9 @@ final readonly class TransferSelfEligibilityQuery
         if (! $plan instanceof TransferPlan) {
             return null;
         }
+        if ($this->kingdoms->findActive((string) $plan->home_kingdom_id) === null) {
+            return null;
+        }
 
         $participant = TransferParticipant::query()
             ->where('alliance_id', $allianceId)
@@ -67,8 +70,12 @@ final readonly class TransferSelfEligibilityQuery
             : ($participant->destination_kingdom_id === null ? null : (string) $participant->destination_kingdom_id);
         $sourceId = $participant->source_kingdom_id === null ? null : (string) $participant->source_kingdom_id;
 
+        if ($targetId !== null && $this->kingdoms->findActive($targetId) === null) {
+            return null;
+        }
+
         if ($targetKingdomNumber !== null) {
-            $requestedTarget = $this->kingdoms->findByNumber($targetKingdomNumber);
+            $requestedTarget = $this->kingdoms->findActiveByNumber($targetKingdomNumber);
             if ($requestedTarget === null || $targetId === null || $requestedTarget->kingdomId !== $targetId) {
                 return null;
             }
