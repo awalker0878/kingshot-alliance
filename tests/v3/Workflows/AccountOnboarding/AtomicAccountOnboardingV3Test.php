@@ -106,6 +106,7 @@ final class AtomicAccountOnboardingV3Test extends TestCase
         $fixture = $this->invitation();
         $primary = DB::getDefaultConnection();
         config()->set('database.connections.onboarding_competitor', config('database.connections.'.$primary));
+        DB::connection('onboarding_competitor')->statement("SET lock_timeout = '1s'");
         $revoked = false;
         DB::listen(static function (QueryExecuted $query) use ($fixture, &$revoked): void {
             if ($revoked || ! str_starts_with($query->sql, 'insert into "users"')) {

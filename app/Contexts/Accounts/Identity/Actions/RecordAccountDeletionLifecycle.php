@@ -8,6 +8,7 @@ use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Accounts\Security\Services\SecurityNotificationService;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 final readonly class RecordAccountDeletionLifecycle
 {
@@ -27,15 +28,15 @@ final readonly class RecordAccountDeletionLifecycle
                 subject: $user,
                 metadata: ['deletion_request_id' => $requestId],
             );
-        });
 
-        $this->securityNotifications->publish(
-            userId: $userId,
-            event: 'account.deletion_requested',
-            title: (string) __('accounts.security.deletion_requested.title'),
-            body: (string) __('accounts.security.deletion_requested.body'),
-            idempotencyKey: 'account.deletion_requested:'.$requestId,
-        );
+            $this->securityNotifications->publish(
+                userId: $userId,
+                event: 'account.deletion_requested',
+                title: (string) __('accounts.security.deletion_requested.title'),
+                body: (string) __('accounts.security.deletion_requested.body'),
+                idempotencyKey: 'account.deletion_requested:'.$requestId.':'.Str::ulid(),
+            );
+        });
     }
 
     public function cancelled(int $userId, string $requestId): void
@@ -49,14 +50,14 @@ final readonly class RecordAccountDeletionLifecycle
                 subject: $user,
                 metadata: ['deletion_request_id' => $requestId],
             );
-        });
 
-        $this->securityNotifications->publish(
-            userId: $userId,
-            event: 'account.deletion_cancelled',
-            title: (string) __('accounts.security.deletion_cancelled.title'),
-            body: (string) __('accounts.security.deletion_cancelled.body'),
-            idempotencyKey: 'account.deletion_cancelled:'.$requestId.':'.now()->format('Uu'),
-        );
+            $this->securityNotifications->publish(
+                userId: $userId,
+                event: 'account.deletion_cancelled',
+                title: (string) __('accounts.security.deletion_cancelled.title'),
+                body: (string) __('accounts.security.deletion_cancelled.body'),
+                idempotencyKey: 'account.deletion_cancelled:'.$requestId.':'.Str::ulid(),
+            );
+        });
     }
 }

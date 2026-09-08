@@ -202,3 +202,5 @@ This document is the canonical product contract for the current complete capabil
 The profile derives credential-removal availability from one Accounts policy summary. Its credential query count remains constant as the account adds passkeys; listed credentials are account-scoped. These display flags are advisory: each mutation revalidates the current owner and final-method rule under the User lock.
 
 Invitation onboarding commits account registration, Player claiming and Alliance acceptance together. A rejected invitation leaves no partial Player ownership or newly registered credentials, and verification email is delivered only after successful commit. Existing-account acceptance uses the same owner sequence and current account email/lifecycle.
+
+Deletion request, cancellation and processing serialize through the current account and update the Platform request and Accounts lifecycle together. Repeating a request preserves its cooling-off deadline; a new request after cancellation starts a new seven-day period and sends a new security notification. Completed deletion cannot be reopened by replaying request or cancellation.

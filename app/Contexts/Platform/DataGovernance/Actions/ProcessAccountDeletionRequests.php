@@ -43,7 +43,7 @@ final readonly class ProcessAccountDeletionRequests
             ->get();
 
         foreach ($requests as $request) {
-            if ($this->process((string) $request->id)) {
+            if ($this->process((string) $request->id, (int) $request->user_id)) {
                 $processed++;
             }
         }
@@ -51,19 +51,18 @@ final readonly class ProcessAccountDeletionRequests
         return $processed;
     }
 
-    private function process(string $requestId): bool
+    private function process(string $requestId, int $userId): bool
     {
-        return DB::transaction(function () use ($requestId): bool {
-            $request = AccountDeletionRequest::query()->whereKey($requestId)->lockForUpdate()->first();
+        return DB::transaction(function () use ($requestId, $userId): bool {
+            $account = $this->accounts->lockCurrent($userId);
+            $request = AccountDeletionRequest::query()->whereKey($requestId)->where('user_id', $userId)->lockForUpdate()->first();
             if (! $request instanceof AccountDeletionRequest
                 || ! in_array($request->status, ['pending', 'blocked'], true)
                 || $request->eligible_at->isFuture()) {
                 return false;
             }
 
-            $userId = (int) $request->user_id;
-            $account = $this->accounts->find($userId);
-            if ($account === null || $account->anonymized) {
+            if ($account->anonymized) {
                 $request->forceFill([
                     'status' => 'processed',
                     'processed_at' => now(),

@@ -5,15 +5,15 @@
 - Program state: In progress.
 - Exact main baseline: `7e780521295e868005ecfee5bd38b33e8215ec49`.
 - Working branch: `astra/codebase-hardening`.
-- Latest pushed durable checkpoint: `b4bdd283a775549afd85fd97041d5e958cd13bc1`.
+- Latest pushed durable checkpoint: `685ee1c65fdb6b5283dcc8d1deedff37b2a7469a`.
 - Draft PR: [#163](https://github.com/awalker0878/kingshot-alliance/pull/163).
-- Current item/state: HARD-025 / In progress (atomic account onboarding). HARD-021–024 are Complete with all nine containing workflows green.
-- Most recently verified gates: all nine PR workflows pass on `b4bdd283a775549afd85fd97041d5e958cd13bc1`, including 773 PHP tests / 74,178 assertions, fresh PostgreSQL, frontend, image/staging/recovery, architecture/capabilities, visual and security.
-- Active files: AccountOnboarding commands, registration after-commit verification delivery, real rollback/concurrency tests, architecture verifier and ADR-0019/contracts.
-- Remaining current work: verify HARD-025, then repair account deletion lifecycle composition under HARD-026 and continue remaining repository audit coverage.
-- Known failures: none on fully verified `b4bdd283` (773 tests, 74,178 assertions). HARD-025 database regressions await PostgreSQL CI; local static/style/architecture gates pass.
+- Current item/state: HARD-026 / In progress (account deletion lifecycle atomicity). HARD-025 is Complete with all nine workflows green.
+- Most recently verified gates: all nine PR workflows pass on `685ee1c65fdb6b5283dcc8d1deedff37b2a7469a`, including 785 PHP tests / 74,246 assertions, fresh PostgreSQL, frontend, image/staging/recovery, architecture/capabilities, visual and security.
+- Active files: Platform request/cancel/process Actions, Accounts lifecycle intent, six rollback/idempotency/concurrency regressions, DataGovernance contract and ledger.
+- Remaining current work: verify HARD-026 and reconcile HARD-025 final gates; repair Player ownership/finalization coordination under HARD-027 and deletion-worker fairness under HARD-028, then continue repository audit coverage.
+- Known failures: none in PostgreSQL on `685ee1c6` (785 tests, 74,246 assertions); All nine containing workflows pass. HARD-026 database regressions await PostgreSQL CI; local static/style/architecture gates pass.
 - Blockers: local PostgreSQL/Redis services unavailable; service-backed verification uses GitHub CI. Local PHP 8.5.8 and locked Composer/npm dependencies available. Checkpoints publish via the authorized GitHub connection with exact staged-tree verification and non-forced branch updates.
-- Exact next action: publish HARD-025 and verify containing workflows, then implement HARD-026 lifecycle serialization and continue the repository audit.
+- Exact next action: publish HARD-026 and verify containing workflows, then implement the GameWorld ownership/finalization handshake under HARD-027 across claim, create and reconciliation entry points.
 - Remaining repository-wide gates: final full PHP/architecture/capability and frontend gates on one containing commit; production image/staging/recovery; final security/dependency/visual checks; remaining capability-by-capability audit coverage below.
 
 Checkpoint SHAs are recorded by the following documentation commit; verify that the recorded checkpoint is an ancestor of current branch HEAD. No audit area is complete solely because its paths have been inventoried.
@@ -364,23 +364,51 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: owner Actions retain all validation, locking and persistence; the onboarding command must have an explicit atomic composition boundary for its dependent changes and after-commit external effects.
 - Rationale: a failed invitation must not grant Player ownership or leave an unusable partial registration; preflight snapshot checks alone cannot close state-change races. The current blanket prohibition on Workflow transactions conflicts with this dependent command invariant and requires an explicit architecture decision, not a hidden transaction wrapper.
 - Remediation: define and document the narrowly scoped atomic composition rule, implement consistent current-account validation and owner-action rollback, defer verification delivery until commit, and exercise real wrong-email/stale/inactive/claimed invitation failures and success.
-- State: In progress.
+- State: Complete.
 - Verification required: rejected existing-account acceptance leaves ownership/history/audit unchanged; failed registration leaves no account/identity/claim/outbox/mail; successful onboarding commits all owner effects once; current owner checks and architecture remain enforced.
-- Verification result: RegisterAccount and AcceptInvitationForAccount now compose the existing owner Actions atomically under ADR-0019. Registration reuses the existing-account acceptance sequence; acceptance obtains a locked current account snapshot and rejects finalization. Verification mail waits for the outermost commit. Twelve real HTTP/owner cases cover wrong email, inactive Alliance, password/Google rollback after roster/lifecycle/ownership rejection, actual second-connection invitation revocation, successful commit/mail timing, replay and finalized accounts. Full PHPStan, changed-file Pint and all 62 Architecture tests pass (66,719 assertions). PostgreSQL verification pending.
-- Completion evidence: pending.
-- Commit SHA: pending.
+- Verification result: RegisterAccount and AcceptInvitationForAccount now compose the existing owner Actions atomically under ADR-0019. Registration reuses the existing-account acceptance sequence; acceptance obtains a locked current account snapshot and rejects finalization. Verification mail waits for the outermost commit. Twelve real HTTP/owner cases cover wrong email, inactive Alliance, password/Google rollback after roster/lifecycle/ownership rejection, actual second-connection invitation revocation, successful commit/mail timing, replay and finalized accounts. Full PHPStan, changed-file Pint and all 62 Architecture tests pass (66,719 assertions). All 12 new regressions pass in PostgreSQL CI on `685ee1c6`, including the competing connection and mail timing: 785 tests, 74,246 assertions; PHP job `102182181259`. All nine workflows pass, including image/staging/recovery. The competing-connection fixture now also has an explicit one-second lock timeout so unexpected contention fails promptly.
+- Completion evidence: CI `34262055468`, PHP job `102182181259`, Architecture `34262055478`, Intelligence `34262055528` and all other PR workflows pass.
+- Commit SHA: `685ee1c65fdb6b5283dcc8d1deedff37b2a7469a`.
 
 ### HARD-026 — Account deletion request and account lifecycle can diverge
 
 - Area: Platform/DataGovernance and Accounts lifecycle handoff.
-- Finding: RequestAccountDeletion and CancelAccountDeletion commit the Platform transition before invoking the Accounts lifecycle writer. A competing transition or later failure can leave deletion_requested_at/audit inconsistent with the durable request. Processing snapshots account/Player ownership before acquiring the Accounts lock in AnonymizeAccount, while claim callers do not consistently lock or reject finalized accounts.
-- Current owner: Platform deletion request/process Actions; Accounts lifecycle/anonymization; GameWorld Player claiming.
+- Finding: RequestAccountDeletion and CancelAccountDeletion commit the Platform transition before invoking the Accounts lifecycle writer. A competing transition or later failure can leave deletion_requested_at/audit inconsistent with the durable request. Repeated requests reset the cooling-off deadline, processed requests still call the lifecycle writer, and re-requesting after cancellation reuses an already-consumed notification key.
+- Current owner: Platform deletion request/process Actions and Accounts lifecycle.
 - Intended authoritative owner: the same owner APIs with consistent account-first serialization and transactional lifecycle intent.
-- Rationale: request/cancel/process must agree on one current lifecycle, and finalization cannot race a new Player claim or restore account lifecycle metadata after completion.
-- Remediation: trace claim and lifecycle publishers, serialize the current account before dependent request/ownership decisions, compose owner lifecycle writes atomically and verify failures/concurrent handoffs with real database behavior.
+- Rationale: request/cancel/process must agree on one current lifecycle, preserve replay semantics and prevent a late transition from restoring account metadata after completion.
+- Remediation: acquire Accounts then the request in every transition; compose owner lifecycle/audit/Communications intent in one transaction; preserve pending/blocked/processed replays and give genuinely new request cycles new notification intent.
+- State: In progress.
+- Verification required: request/cancel rollback preserves both owners, repeat/processed transitions do not emit contradictory effects, competing transitions share the account lock, and normal release/security notification behavior remains intact.
+- Verification result: all three Platform transitions acquire the current Accounts lock before request state. Request/cancel invoke Accounts inside their transaction; Accounts publishes only transactional Communications intent, with no network delivery under the lock. Replays preserve deadlines and do not duplicate audit/notifications; cancellation followed by a new request produces a new intent. Six real regressions cover injected notification persistence failure on request/cancel, complete lifecycle replay, processed-state protection and cancellation over a second PostgreSQL connection during request/process. Full PHPStan, Pint and all 62 Architecture tests pass (66,719 assertions). PostgreSQL verification pending. Player ownership writers are separately tracked under HARD-027.
+- Completion evidence: pending.
+- Commit SHA: pending.
+
+### HARD-027 — Player claims and reconciliation do not coordinate with account finalization
+
+- Area: GameWorld/Players ownership and Platform account processing.
+- Finding: ClaimPlayerAccount locks only the Player; CreatePlayerForAccount can lock/persist the Player before checking the account; ReconcilePlayers transfers account ownership directly between locked Player rows. These paths do not acquire the Accounts lifecycle lock or reject a finalized account, while finalization must enumerate and release the complete ownership set.
+- Current owner: GameWorld claim/create/reconcile Actions and Platform finalization.
+- Intended authoritative owner: Accounts supplies current lifecycle serialization; GameWorld retains all ownership/history writes; Platform coordinates release through those owner APIs.
+- Rationale: finalization must not miss a concurrent new ownership assignment or leave game identities attached to an anonymized account. Lock order must remain consistent when an operation touches account and Player rows.
+- Remediation: trace all ownership writers and release/reconciliation entry points, require current account lifecycle before assigning/transferring ownership, revalidate any routing snapshot after locks and verify actual competing-connection finalization/claim behavior.
 - State: Planned.
-- Verification required: request/cancel rollback preserves both owners, repeat/processed transitions do not emit contradictory lifecycle effects, finalization excludes competing claims, and normal release/security notification behavior remains intact.
-- Verification result: all deletion request/cancel/process, lifecycle and release implementations traced. Claim entry points and publisher effects require completion before implementation.
+- Verification required: finalized accounts cannot claim/create/receive reconciled ownership; concurrent claims and finalization serialize without missing Players; normal reconciliation and identity provenance remain correct.
+- Verification result: claim/create/reconciliation and bulk release paths traced; single release and enclosing reconciliation callers remain to be traced before implementation.
+- Completion evidence: pending.
+- Commit SHA: pending.
+
+### HARD-028 — Blocked deletion requests can starve later eligible requests
+
+- Area: Platform/DataGovernance bounded deletion worker.
+- Finding: ProcessAccountDeletionRequests selects the oldest pending/blocked eligible rows before applying the batch limit, but blocked rows remain immediately eligible with their original ordering. A full batch of persistent legal holds/admin/leadership blockers prevents later valid requests from ever being selected.
+- Current owner: ProcessAccountDeletionRequests.
+- Intended authoritative owner: the same bounded worker with durable retry scheduling for blocked records.
+- Rationale: a persistent blocker for one account must not halt unrelated deletion work; retry timing must survive worker restart and remain auditable.
+- Remediation: add explicit due-time/retry state and query filtering before the limit, preserve the original cooling-off deadline, and verify bounded progress past a full blocked batch plus eventual retry after a blocker is removed.
+- State: Planned.
+- Verification required: later eligible records progress despite a full blocked batch; blocked requests retry at the defined time; cancellation/re-request/processing correctly reset retry state.
+- Verification result: selection/order/limit and all blockReason branches traced. Implementation pending.
 - Completion evidence: pending.
 - Commit SHA: pending.
 
@@ -390,13 +418,13 @@ All rows below remain Planned until actual production paths have been traced. Th
 
 | Area | Required authority/scalability review | State |
 | --- | --- | --- |
-| Accounts | Identity/provider queries, authentication/credential owners, sessions, MFA, profile/email/reset and account-side deletion traced; repairs under HARD-018–024. Registration/invitation partial writes identified under HARD-025; deletion orchestration handoff review remains | In progress |
+| Accounts | Identity/provider queries, authentication/credential owners, sessions, MFA, profile/email/reset and account-side deletion traced; repairs under HARD-018–024. Registration/invitation atomicity under HARD-025 and deletion lifecycle under HARD-026; finalization ownership coordination remains under HARD-027 | In progress |
 | GameWorld | Progression dataset/topology/prerequisite and Gift Code reminder paths traced (HARD-007/009/011/012); Governors, Kingdoms/transfers/governance, remaining Gift Codes/calculators and KingdomMaps audit remain | In progress |
 | Alliance | Lifecycle, membership/rank/delegation, recruitment, content, territories/hive planning | Planned |
 | Operations | Events, participation, rallies, King Perks, results/Bear Hunt and reminders | Planned |
 | Intelligence | Evidence/Roster structured pipeline and all-family GameEvidence retention/redaction/summary queries verified under HARD-008/010/013–017; observations, other evidence families, ingestion, contributions and projections/signals remain | In progress |
 | Communications | Preferences/recipients, inbox, delivery channels, digests, retry/idempotency and revocation | Planned |
-| Platform | Administration, integrations/API credentials, webhooks, retention and operational controls | Planned |
+| Platform | DataGovernance account request/cancel/process traced with HARD-026–028 findings; administration, integrations/API credentials, webhooks, other retention and operational controls remain | In progress |
 | Workflows/ReadModels | NotificationDelivery authority/mutations verified under HARD-005; progression prerequisite provenance under HARD-012; other orchestration, dashboards and Assistant/API projections remain | In progress |
 | Infrastructure/entry points | Scheduler registration/commands verified by HARD-003; route authorization, shared mechanisms, queues/listeners/outbox and middleware audit remain | In progress |
 | Frontend | Pages, components, composables/stores, server contracts, localization, receipts and accessibility | Planned |
