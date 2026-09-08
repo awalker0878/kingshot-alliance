@@ -40,7 +40,7 @@ final class KingdomAllianceIdentityHistoryQuery
     /** @return list<KingdomAllianceIdentityReference> */
     public function identityHistory(string $kingdomAllianceId): array
     {
-        return KingdomAllianceIdentityHistory::query()
+        $history = KingdomAllianceIdentityHistory::query()
             ->where('kingdom_alliance_id', $kingdomAllianceId)
             ->orderBy('valid_from')
             ->orderBy('id')
@@ -48,6 +48,8 @@ final class KingdomAllianceIdentityHistoryQuery
             ->map(fn (KingdomAllianceIdentityHistory $history): KingdomAllianceIdentityReference => $this->snapshot($history))
             ->values()
             ->all();
+
+        return array_values($history);
     }
 
     private function snapshot(KingdomAllianceIdentityHistory $history): KingdomAllianceIdentityReference
