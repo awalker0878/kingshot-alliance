@@ -1,6 +1,6 @@
 # Screenshot Intake: Governor Progression
 
-Status: In progress — structured screenshot extension under HARD-010; original six-kind release verified 2026-08-30
+Status: In progress — retention hardening under HARD-014–015; nine-kind pipeline verified 2026-09-08
 
 This document is the single implementation source of truth for Screenshot Intake: Governor Progression. The capability is not complete until every requirement and delivery-ledger item below agrees with implementation, tests, UX, architecture/reference/operations documentation and all applicable repository gates on one immutable candidate SHA.
 
@@ -87,7 +87,7 @@ Application validation and database constraints enforce mutual exclusion among B
 
 ## Supported v1 screenshot classes
 
-Nine explicit classes are implemented. The three structured classes added below remain under HARD-010 integration verification. Each has an explicit `EvidenceKind`, schema version, executable fixture corpus, allowlisted fields, confidence thresholds and dedicated Roster destination action.
+Nine explicit classes are implemented. The three structured classes added below passed HARD-010 integration verification. Each has an explicit `EvidenceKind`, schema version, executable fixture corpus, allowlisted fields, confidence thresholds and dedicated Roster destination action.
 
 ### `governor_profile`
 
@@ -119,7 +119,7 @@ May observe explicit screen-local Charm slots and directly visible level. An OCR
 
 Extraction accepts explicit `Building: <name> Level <integer>` or `Technology: <name> Level <integer>` rows (including `Lv.`). Row ordinals, raw OCR, bounds and confidence stay attached. Missing levels stay absent; unrelated power/cost/time numbers and formatted, negative or fractional levels are not inferred. This is a narrow English label contract. Synthetic OCR fixtures exercise these boundaries and do not establish support for arbitrary screenshots, layouts or languages.
 
-Review submits closed `states` rows. The Roster validator resolves reviewed names/IDs to the pinned family and validates level/state identity; unknown names, missing levels, impossible states and duplicate subjects fail. Evidence cannot manufacture canonical subjects. Accepted states use the same append-only history, idempotent receipt, scope/provenance checks and owner authorization as the other kinds. HARD-010 tracks database-backed integration and current documentation reconciliation before completion.
+Review submits closed `states` rows. The Roster validator resolves reviewed names/IDs to the pinned family and validates level/state identity; unknown names, missing levels, impossible states and duplicate subjects fail. Evidence cannot manufacture canonical subjects. Accepted states use the same append-only history, idempotent receipt, scope/provenance checks and owner authorization as the other kinds. HARD-010 records passed database-backed pipeline verification and documentation reconciliation on `5a01bf68930c52cfac3ee77564e2f5a1570ae1ad`.
 
 ### Deferred screenshot families
 
@@ -388,4 +388,4 @@ Status values: `Planned`, `In progress`, `Complete`, `Blocked`. `Complete` requi
 | GP-21 | Unit/feature/fixture/authorization/idempotency/interface/catalogue-bound tests | Complete |
 | GP-22 | Repository-wide release verification on one immutable candidate | Complete |
 
-The six-kind release remains the historical verified baseline. The structured extension is **In progress** under HARD-010 in the [hardening ledger](codebase-hardening-delivery-ledger.md). Its integration verification must pass before the expanded family is Complete.
+The six-kind release remains the historical verified baseline. The nine-kind pipeline and lifecycle guards pass all candidate workflows on `5a01bf68930c52cfac3ee77564e2f5a1570ae1ad` (727 PHP tests, 73,144 assertions). HARD-010 and HARD-013 are Complete in the [hardening ledger](codebase-hardening-delivery-ledger.md). The capability remains In progress until HARD-014 retention and HARD-015 redaction repairs pass verification.

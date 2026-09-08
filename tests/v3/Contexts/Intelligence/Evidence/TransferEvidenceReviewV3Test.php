@@ -14,6 +14,8 @@ use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferSourceType;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferParticipant;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferPlan;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
+use App\Contexts\Intelligence\Evidence\Actions\CommitReviewedTransferEvidence;
+use App\Contexts\Intelligence\Evidence\Actions\EnforceEvidenceRetention;
 use App\Contexts\Intelligence\Evidence\Actions\SaveTransferEvidenceReview;
 use App\Contexts\Intelligence\Evidence\Enums\EvidenceAttemptStatus;
 use App\Contexts\Intelligence\Evidence\Enums\EvidenceKind;
@@ -22,9 +24,11 @@ use App\Contexts\Intelligence\Evidence\Models\EvidenceClassificationAttempt;
 use App\Contexts\Intelligence\Evidence\Models\EvidenceExtractedField;
 use App\Contexts\Intelligence\Evidence\Models\EvidenceExtractionAttempt;
 use App\Contexts\Intelligence\Evidence\Models\GameEvidence;
+use App\Contexts\Intelligence\Evidence\Models\TransferEvidenceCommitAttempt;
 use App\Contexts\Intelligence\Evidence\Models\TransferEvidenceReview;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Tests\v3\Support\ScenarioFactory;
 use Tests\v3\TestCase;
@@ -172,6 +176,44 @@ final class TransferEvidenceReviewV3Test extends TestCase
         self::assertSame(5, (int) $review->target_truegold_level);
         self::assertSame(120, (int) $review->target_character_age_threshold_days);
         self::assertNull($review->kingdom_classification);
+    }
+
+    public function test_retention_preserves_real_transfer_commit_provenance(): void
+    {
+        Storage::fake('local');
+        $scenario = $this->outgoingScenario(7741, 7742);
+        [$evidence, $extraction] = $this->evidence($scenario, EvidenceKind::TransferGovernorStatus, 'transfer-governor-status/1', [
+            ['governor_power', 'Governor Power 70,000,000', '70000000', 'integer', 0.96],
+        ]);
+        $path = (string) $evidence->path;
+        Storage::disk('local')->put($path, 'private-transfer-image');
+        $reviewId = app(SaveTransferEvidenceReview::class)->handle(
+            actorPlayerId: $scenario->actor->playerId,
+            allianceId: $scenario->alliance->allianceId,
+            planId: (string) $scenario->plan->id,
+            participantId: (string) $scenario->participant->id,
+            evidenceId: (string) $evidence->id,
+            extractionAttemptId: (string) $extraction->id,
+            observedAt: $this->now->subMinutes(10)->toIso8601String(),
+            validUntil: $this->now->addHour()->toIso8601String(),
+            governorPower: 70_000_000,
+        );
+        $receipt = app(CommitReviewedTransferEvidence::class)->handle(
+            $scenario->actor->playerId,
+            $scenario->alliance->allianceId,
+            (string) $scenario->plan->id,
+            (string) $scenario->participant->id,
+            $reviewId,
+        );
+        $evidence->forceFill(['created_at' => now()->subDays(200)])->save();
+
+        self::assertSame(1, app(EnforceEvidenceRetention::class)->handle());
+        self::assertSame(EvidenceLifecycleStatus::Committed, $evidence->fresh()->lifecycle_status);
+        self::assertNull($evidence->fresh()->path);
+        Storage::disk('local')->assertMissing($path);
+        self::assertTrue(TransferEvidenceReview::query()->whereKey($reviewId)->exists());
+        self::assertTrue(TransferEvidenceCommitAttempt::query()->where('destination_receipt_id', $receipt->receiptId)->exists());
+        self::assertSame(0, app(EnforceEvidenceRetention::class)->handle());
     }
 
     /**

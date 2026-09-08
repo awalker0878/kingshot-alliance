@@ -1,6 +1,6 @@
 # Screenshot Intake: Governor Progression Operations
 
-Status: In progress — structured extension under HARD-010; original six-kind release verified 2026-08-30
+Status: Current structured intake contracts — pipeline verified 2026-09-08; retention hardening remains In progress under HARD-014–015.
 
 ## Operational boundary
 

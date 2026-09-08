@@ -113,6 +113,47 @@ final class EvidenceRetentionQueueV3Test extends TestCase
         self::assertFalse(GameEvidence::query()->whereKey($evidenceId)->exists());
     }
 
+    public function test_active_and_not_yet_due_rows_do_not_starve_later_expired_work(): void
+    {
+        Storage::fake('local');
+        config(['evidence.retention.committed_binary_days' => 365, 'evidence.retention.failed_days' => 1]);
+        [$actor, $allianceId, $occurrenceId] = $this->bearHunt();
+        $active = $this->evidence($actor, $allianceId, $occurrenceId, EvidenceLifecycleStatus::Extracting, 'evidence/active.png', 'active');
+        $active->forceFill(['created_at' => now()->subDays(300)])->save();
+        $committed = $this->evidence($actor, $allianceId, $occurrenceId, EvidenceLifecycleStatus::Committed, 'evidence/not-due.png', 'not-due');
+        $committed->forceFill(['created_at' => now()->subDays(200)])->save();
+        $this->markCommitted($committed, $actor, $allianceId, $occurrenceId);
+        $expired = $this->evidence($actor, $allianceId, $occurrenceId, EvidenceLifecycleStatus::Failed, 'evidence/expired.png', 'expired');
+        $expired->forceFill(['created_at' => now()->subDay()])->save();
+
+        self::assertSame(1, app(EnforceEvidenceRetention::class)->handle(1));
+        self::assertFalse(GameEvidence::query()->whereKey($expired->id)->exists());
+        self::assertNotNull($active->fresh()->path);
+        self::assertNotNull($committed->fresh()->path);
+        self::assertSame(0, app(EnforceEvidenceRetention::class)->handle(1));
+    }
+
+    public function test_locked_revalidation_preserves_a_new_commit_with_a_later_retention_deadline(): void
+    {
+        Storage::fake('local');
+        config(['evidence.retention.committed_binary_days' => 365, 'evidence.retention.failed_days' => 1]);
+        [$actor, $allianceId, $occurrenceId] = $this->bearHunt();
+        $evidence = $this->evidence($actor, $allianceId, $occurrenceId, EvidenceLifecycleStatus::Failed, 'evidence/new-commit.png', 'new-commit');
+        $evidence->forceFill(['created_at' => now()->subDays(200)])->save();
+        $committed = false;
+        GameEvidence::retrieved(function (GameEvidence $candidate) use ($evidence, $actor, $allianceId, $occurrenceId, &$committed): void {
+            if ((string) $candidate->id === (string) $evidence->id && ! $committed) {
+                $committed = true;
+                $this->markCommitted($candidate, $actor, $allianceId, $occurrenceId);
+            }
+        });
+
+        self::assertSame(0, app(EnforceEvidenceRetention::class)->handle(1));
+        self::assertTrue($committed);
+        self::assertNotNull($evidence->fresh()->path);
+        self::assertTrue(EvidenceCommitAttempt::query()->where('evidence_id', $evidence->id)->where('status', EvidenceCommitStatus::Succeeded->value)->exists());
+    }
+
     /** @return array{0:PlayerReference,1:string,2:string} */
     private function bearHunt(): array
     {

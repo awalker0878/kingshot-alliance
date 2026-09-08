@@ -8,6 +8,7 @@ use App\Contexts\GameWorld\Progression\Queries\ProgressionDatasetQuery;
 use App\Contexts\Intelligence\Evidence\Actions\ClassifyGameEvidence;
 use App\Contexts\Intelligence\Evidence\Actions\CommitReviewedGovernorProgressionEvidence;
 use App\Contexts\Intelligence\Evidence\Actions\DeleteGovernorProgressionEvidence;
+use App\Contexts\Intelligence\Evidence\Actions\EnforceEvidenceRetention;
 use App\Contexts\Intelligence\Evidence\Actions\ExtractGameEvidence;
 use App\Contexts\Intelligence\Evidence\Actions\NormalizeGovernorProgressionEvidence;
 use App\Contexts\Intelligence\Evidence\Actions\SaveGovernorProgressionEvidenceReview;
@@ -21,6 +22,7 @@ use App\Contexts\Intelligence\Evidence\Jobs\ExtractGameEvidenceJob;
 use App\Contexts\Intelligence\Evidence\Models\EvidenceClassificationAttempt;
 use App\Contexts\Intelligence\Evidence\Models\EvidenceExtractionAttempt;
 use App\Contexts\Intelligence\Evidence\Models\GameEvidence;
+use App\Contexts\Intelligence\Evidence\Models\GovernorProgressionEvidenceCommitAttempt;
 use App\Contexts\Intelligence\Evidence\Models\GovernorProgressionEvidenceReview;
 use App\Contexts\Intelligence\Evidence\Models\ProgressionNormalizationAttempt;
 use App\Contexts\Intelligence\Evidence\ValueObjects\OcrDocument;
@@ -243,6 +245,30 @@ final class StructuredGovernorProgressionPipelineV3Test extends TestCase
         }
         self::assertNotNull($evidence->fresh()->path);
         self::assertSame(EvidenceLifecycleStatus::Extracting, $evidence->fresh()->lifecycle_status);
+    }
+
+    public function test_retention_preserves_committed_governor_handoff_and_deleted_tombstone(): void
+    {
+        [$evidence, $normalization] = $this->normalize(EvidenceKind::GovernorBuildings, "Buildings\nBuilding: Academy Level 1");
+        $reviewId = $this->review($evidence, $normalization, ['states' => [['subject_id' => 'academy', 'level' => 1]]]);
+        $receipt = app(CommitReviewedGovernorProgressionEvidence::class)->handle($this->actorId, $this->allianceId, $this->entryId, $reviewId);
+        $path = (string) $evidence->path;
+        $evidence->forceFill(['created_at' => now()->subDays(200)])->save();
+
+        self::assertSame(1, app(EnforceEvidenceRetention::class)->handle(1));
+        self::assertSame(EvidenceLifecycleStatus::Committed, $evidence->fresh()->lifecycle_status);
+        self::assertSame('retention_committed_binary', $evidence->fresh()->deletion_reason);
+        self::assertNull($evidence->fresh()->path);
+        Storage::disk('local')->assertMissing($path);
+        self::assertTrue(GovernorProgressionEvidenceReview::query()->whereKey($reviewId)->exists());
+        self::assertTrue(GovernorProgressionEvidenceCommitAttempt::query()->where('governor_review_id', $reviewId)->exists());
+        self::assertTrue(GovernorProgressionObservation::query()->whereKey($receipt->observationId)->exists());
+        self::assertTrue(GovernorProgressionEvidenceReceipt::query()->whereKey($receipt->receiptId)->exists());
+
+        app(DeleteGovernorProgressionEvidence::class)->handle($this->actorId, $this->allianceId, $this->entryId, (string) $evidence->id);
+        self::assertSame(0, app(EnforceEvidenceRetention::class)->handle(1));
+        self::assertSame(EvidenceLifecycleStatus::Deleted, $evidence->fresh()->lifecycle_status);
+        self::assertTrue(GovernorProgressionEvidenceReview::query()->whereKey($reviewId)->exists());
     }
 
     /** @return iterable<string,array{EvidenceKind,string,string,string,string}> */

@@ -208,6 +208,8 @@ Evidence deletion/redaction and destination correction are separate capabilities
 - failed/unsupported/inactive uncommitted Evidence can be redacted/purged under Evidence retention policy;
 - retention policy belongs to Evidence configuration/operations, not Vue/controllers or destination owners.
 
+The GameEvidence retention worker recognizes successful Bear Hunt, Transfer, Governor Progression and Territory spatial commit ledgers. A successful handoff retains Evidence/review/commit/receipt tombstones even after user deletion. Only the private binary and disposable machine provenance expire. Candidate selection applies policy age and excludes active processing before its batch limit; the worker reacquires the Evidence lock and rechecks commit status and deadline before mutation.
+
 ## Security and privacy
 
 Uploads use private storage only. The pipeline validates allowlisted MIME/size/dimensions, verifies actual MIME, performs the shared upload scan, computes source identity, generates non-user-controlled storage names and removes staged bytes when persistence fails. Diagnostics must not leak screenshot content, raw hashes, Player/Alliance identity or cross-tenant duplicate information.

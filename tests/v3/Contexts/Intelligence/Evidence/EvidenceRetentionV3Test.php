@@ -16,6 +16,8 @@ use App\Contexts\Intelligence\Evidence\Models\EvidenceCommitAttempt;
 use App\Contexts\Intelligence\Evidence\Models\EvidenceExtractionAttempt;
 use App\Contexts\Intelligence\Evidence\Models\EvidenceReview;
 use App\Contexts\Intelligence\Evidence\Models\GameEvidence;
+use App\Contexts\Intelligence\Evidence\Models\SpatialEvidenceCommitAttempt;
+use App\Contexts\Intelligence\Evidence\Models\SpatialEvidenceReview;
 use App\Contexts\Operations\Events\Actions\CreateEvent;
 use App\Contexts\Operations\Events\Enums\EventScope;
 use App\Contexts\Operations\Events\Models\EventTypeScope;
@@ -95,6 +97,76 @@ final class EvidenceRetentionV3Test extends TestCase
 
         self::assertFalse(GameEvidence::query()->whereKey($evidenceId)->exists());
         Storage::disk('local')->assertMissing('evidence/retention/failed.png');
+    }
+
+    public function test_spatial_commit_tombstone_retains_review_and_destination_receipt(): void
+    {
+        Storage::fake('local');
+        $scenario = new ScenarioFactory;
+        $actor = $scenario->player($scenario->account()->userId, 59119);
+        $kingdom = $scenario->kingdom(59119);
+        $alliance = $scenario->alliance($actor);
+        $path = 'evidence/retention/spatial.png';
+        Storage::disk('local')->put($path, 'private-map-image');
+        $evidence = GameEvidence::query()->create([
+            'alliance_id' => $alliance->allianceId,
+            'kingdom_id' => $kingdom->kingdomId,
+            'occurrence_id' => null,
+            'map_dataset_id' => 'retention-map-fixture',
+            'map_dataset_checksum' => hash('sha256', 'map-fixture'),
+            'expected_kind' => EvidenceKind::TerritoryMapObservation,
+            'kind' => EvidenceKind::TerritoryMapObservation,
+            'lifecycle_status' => EvidenceLifecycleStatus::Committed,
+            'original_name' => 'spatial.png',
+            'disk' => 'local',
+            'path' => $path,
+            'mime_type' => 'image/png',
+            'size_bytes' => 100,
+            'width' => 1080,
+            'height' => 1920,
+            'sha256' => hash('sha256', 'spatial-retention'),
+            'uploaded_by_player_id' => $actor->playerId,
+            'scanned_at' => now(),
+        ]);
+        $evidence->forceFill(['created_at' => now()->subDays(200)])->save();
+        $review = SpatialEvidenceReview::query()->create([
+            'evidence_id' => $evidence->id,
+            'alliance_id' => $alliance->allianceId,
+            'kingdom_id' => $kingdom->kingdomId,
+            'schema_version' => 'territory-map-observation/1',
+            'revision_number' => 1,
+            'status' => EvidenceReviewStatus::Approved,
+            'captured_at' => now()->subDays(200),
+            'coverage_kind' => 'single_object',
+            'completeness' => 'partial',
+            'map_dataset_id' => $evidence->map_dataset_id,
+            'map_dataset_checksum' => $evidence->map_dataset_checksum,
+            'payload' => ['objects' => []],
+            'semantic_fingerprint' => hash('sha256', 'spatial-review'),
+            'reviewed_by_player_id' => $actor->playerId,
+            'reviewed_at' => now()->subDays(200),
+        ]);
+        $attempt = SpatialEvidenceCommitAttempt::query()->create([
+            'evidence_id' => $evidence->id,
+            'spatial_review_id' => $review->id,
+            'alliance_id' => $alliance->allianceId,
+            'kingdom_id' => $kingdom->kingdomId,
+            'status' => EvidenceCommitStatus::Succeeded,
+            'idempotency_key' => hash('sha256', 'spatial-commit'),
+            'destination_action' => 'RecordSpatialObservationEvidence',
+            'destination_receipt' => ['observation_id' => 'retained-spatial-observation'],
+            'started_by_player_id' => $actor->playerId,
+            'started_at' => now()->subDays(200),
+            'completed_at' => now()->subDays(200),
+        ]);
+
+        self::assertSame(1, app(EnforceEvidenceRetention::class)->handle(1));
+        self::assertSame(EvidenceLifecycleStatus::Committed, $evidence->fresh()->lifecycle_status);
+        self::assertNull($evidence->fresh()->path);
+        Storage::disk('local')->assertMissing($path);
+        self::assertTrue(SpatialEvidenceReview::query()->whereKey($review->id)->exists());
+        self::assertSame(['observation_id' => 'retained-spatial-observation'], $attempt->fresh()->destination_receipt);
+        self::assertSame(0, app(EnforceEvidenceRetention::class)->handle(1));
     }
 
     /** @return array{0:PlayerReference,1:string,2:string} */
