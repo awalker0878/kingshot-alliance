@@ -130,7 +130,10 @@ final class PlayerReferenceQuery
             ->all());
     }
 
-    /** @param array<int|string, string> $playerIds @return array<string, PlayerReference> */
+    /**
+     * @param  array<int|string, string>  $playerIds
+     * @return array<string, PlayerReference>
+     */
     public function byIds(array $playerIds): array
     {
         $ids = array_values(array_unique(array_filter(array_map(
