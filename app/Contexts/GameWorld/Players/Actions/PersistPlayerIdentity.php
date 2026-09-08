@@ -7,10 +7,11 @@ namespace App\Contexts\GameWorld\Players\Actions;
 use App\Contexts\Alliance\Membership\Queries\PlayerMembershipQuery;
 use App\Contexts\Alliance\Membership\Queries\RosterEntryQuery;
 use App\Contexts\GameWorld\Governance\Queries\KingdomAuthorityFactsQuery;
-use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
+use App\Contexts\GameWorld\Kingdoms\Queries\KingdomReferenceQuery;
 use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -21,6 +22,7 @@ final readonly class PersistPlayerIdentity
         private PlayerMembershipQuery $memberships,
         private RosterEntryQuery $roster,
         private KingdomAuthorityFactsQuery $governance,
+        private KingdomReferenceQuery $kingdoms,
     ) {}
 
     public function handle(string $kingdomId, string $observedName, ?string $gamePlayerId, ?string $expectedPlayerId = null): PlayerReference
@@ -33,7 +35,11 @@ final readonly class PersistPlayerIdentity
         $stableId = $stableId === '' ? null : $stableId;
 
         $playerId = DB::transaction(function () use ($kingdomId, $name, $stableId, $expectedPlayerId): string {
-            Kingdom::query()->whereKey($kingdomId)->sharedLock()->firstOrFail();
+            try {
+                $this->kingdoms->lockActiveShared($kingdomId);
+            } catch (ModelNotFoundException) {
+                throw ValidationException::withMessages(['kingdom' => 'The selected Kingdom is archived or unavailable.']);
+            }
 
             if ($expectedPlayerId !== null) {
                 $player = Player::query()->whereKey($expectedPlayerId)->lockForUpdate()->firstOrFail();
