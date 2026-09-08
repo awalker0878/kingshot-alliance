@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Contexts\GameWorld\Governance\Services;
 
 use App\Contexts\GameWorld\Governance\ValueObjects\KingdomMutationContext;
+use App\Contexts\GameWorld\Kingdoms\Enums\KingdomStatus;
 use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
 use App\Contexts\GameWorld\Players\Models\Player;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -34,6 +35,10 @@ final class KingdomWriteState
         $currentKingdom = $exclusiveKingdom
             ? $query->lockForUpdate()->firstOrFail()
             : $query->sharedLock()->firstOrFail();
+
+        if ($currentKingdom->status !== KingdomStatus::Active) {
+            throw new AuthorizationException;
+        }
 
         $currentActor = Player::query()
             ->whereKey($actorPlayerId)
