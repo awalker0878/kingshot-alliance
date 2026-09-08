@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\KingdomTransfers\Queries;
 
+use App\Contexts\GameWorld\Kingdoms\Queries\KingdomReferenceQuery;
 use App\Contexts\GameWorld\KingdomTransfers\Access\Enums\TransferPermission;
 use App\Contexts\GameWorld\KingdomTransfers\Access\Services\TransferAuthorization;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferPlanState;
@@ -11,6 +12,7 @@ use App\Contexts\GameWorld\KingdomTransfers\Models\TransferParticipant;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferPlan;
 use App\Contexts\GameWorld\KingdomTransfers\Services\TransferWriteState;
 use App\Contexts\GameWorld\KingdomTransfers\ValueObjects\TransferEvidenceTarget;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -19,6 +21,7 @@ final readonly class TransferEvidenceTargetQuery
     public function __construct(
         private TransferWriteState $writeState,
         private TransferAuthorization $authorization,
+        private KingdomReferenceQuery $kingdoms,
     ) {}
 
     public function authorizeAllianceManage(string $actorPlayerId, string $allianceId): void
@@ -63,6 +66,14 @@ final readonly class TransferEvidenceTargetQuery
                 'outgoing' => $participant->destination_kingdom_id === null ? null : (string) $participant->destination_kingdom_id,
                 default => null,
             };
+
+            if ($targetKingdomId !== null) {
+                try {
+                    $this->kingdoms->lockActiveShared($targetKingdomId);
+                } catch (ModelNotFoundException) {
+                    throw ValidationException::withMessages(['participant' => 'The current target Kingdom is archived or unavailable.']);
+                }
+            }
 
             return new TransferEvidenceTarget(
                 allianceId: $allianceId,
