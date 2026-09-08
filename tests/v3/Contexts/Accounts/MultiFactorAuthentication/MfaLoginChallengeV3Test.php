@@ -31,6 +31,15 @@ final class MfaLoginChallengeV3Test extends TestCase
 
     private const RECOVERY_CODE = 'a1b2-c3d4-e5f6-0123';
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // CI uses shared rate-limit storage; each case represents a distinct client.
+        $client = hash('sha256', self::class.'::'.$this->nameWithDataSet());
+        $this->withServerVariables(['REMOTE_ADDR' => '2001:db8::'.substr($client, 0, 4).':'.substr($client, 4, 4)]);
+    }
+
     protected function tearDown(): void
     {
         $this->travelBack();
@@ -164,6 +173,20 @@ final class MfaLoginChallengeV3Test extends TestCase
 
         $this->expectException(ValidationException::class);
         app(CompleteMfaLogin::class)->handle($request, $code, '');
+    }
+
+    public function test_second_factor_attempt_limit_remains_enforced(): void
+    {
+        $user = $this->mfaUser(false);
+        $this->startLogin($user, false);
+
+        for ($attempt = 0; $attempt < 5; $attempt++) {
+            $this->post('/two-factor-challenge', ['code' => 'not-a-code'])->assertSessionHasErrors('code');
+        }
+
+        $this->post('/two-factor-challenge', ['code' => $this->code($user)])->assertStatus(429);
+        $this->assertGuest();
+        self::assertTrue(session()->has('accounts.mfa_login'));
     }
 
     private function mfaUser(bool $google): User

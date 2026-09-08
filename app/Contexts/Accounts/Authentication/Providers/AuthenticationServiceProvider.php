@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Accounts\Authentication\Providers;
 
+use App\Contexts\Accounts\Authentication\Actions\DeleteAccountPasskey;
 use App\Contexts\Accounts\Authentication\Actions\RevokeOtherAccountSessions;
 use App\Contexts\Accounts\Authentication\Http\Responses\AccountPasskeyLoginResponse;
 use App\Contexts\Accounts\Authentication\Models\AccountPasskey;
@@ -17,6 +18,7 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
+use Laravel\Passkeys\Actions\DeletePasskey;
 use Laravel\Passkeys\Contracts\PasskeyLoginResponse;
 use Laravel\Passkeys\Events\PasskeyDeleted;
 use Laravel\Passkeys\Events\PasskeyRegistered;
@@ -28,6 +30,7 @@ final class AuthenticationServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(PasskeyLoginResponse::class, AccountPasskeyLoginResponse::class);
+        $this->app->bind(DeletePasskey::class, DeleteAccountPasskey::class);
     }
 
     public function boot(): void

@@ -5,15 +5,15 @@
 - Program state: In progress.
 - Exact main baseline: `7e780521295e868005ecfee5bd38b33e8215ec49`.
 - Working branch: `astra/codebase-hardening`.
-- Latest pushed durable checkpoint: `94c95511cbf55abc911abd5590c8f75debb553f5`.
+- Latest pushed durable checkpoint: `68f1cb4c38244394be5e2d641a568a849e3b9a40`.
 - Draft PR: [#163](https://github.com/awalker0878/kingshot-alliance/pull/163).
-- Current item/state: HARD-021 / In progress (bounded, credential-bound MFA login). HARD-019–020 are verified Complete.
+- Current item/state: HARD-022 / In progress (passkey last-method mutation serialization); HARD-021 test-client isolation correction and rate-limit regression ready.
 - Most recently verified gates: all nine PR workflows pass on `94c95511cbf55abc911abd5590c8f75debb553f5`, including 752 PHP tests / 73,772 assertions, fresh PostgreSQL, frontend, image/staging/recovery, architecture/capabilities, visual and security.
-- Active files: Accounts MFA challenge/completion owners, password/Google/passkey adapters, challenge route serialization and regression suite; Accounts contract and ledger.
+- Active files: DeleteAccountPasskey adapter, package binding/model policy cleanup, real package route and competing-connection tests, MFA client isolation/rate limit coverage; Accounts contract and ledger.
 - Remaining current work: verify HARD-021 and repair HARD-022 passkey mutation serialization; complete remaining Accounts audit and repository coverage.
-- Known failures: none on verified checkpoint `94c95511`; HARD-021 changes await service-backed verification.
+- Known failures: HARD-021 CI has one Google fixture blocked by the shared CI IP rate limit before callback execution; 12 of 13 new cases pass. Each test now uses a distinct client address and a new case verifies the real second-factor attempt limit. Containing verification pending.
 - Blockers: local PostgreSQL/Redis services unavailable; service-backed verification uses GitHub CI. Local PHP 8.5.8 and locked Composer/npm dependencies available. Checkpoints publish via the authorized GitHub connection with exact staged-tree verification and non-forced branch updates.
-- Exact next action: publish HARD-021, verify its PostgreSQL regressions, then bind passkey deletion to an Accounts Action that holds the same User lock as other credential removals under HARD-022.
+- Exact next action: publish HARD-022 and HARD-021 test-client isolation correction, verify all containing-commit workflows, reconcile the checkpoint evidence, then continue Accounts profile/scalability and registration/deletion handoff audit.
 - Remaining repository-wide gates: final full PHP/architecture/capability and frontend gates on one containing commit; production image/staging/recovery; final security/dependency/visual checks; remaining capability-by-capability audit coverage below.
 
 Checkpoint SHAs are recorded by the following documentation commit; verify that the recorded checkpoint is an ancestor of current branch HEAD. No audit area is complete solely because its paths have been inventoried.
@@ -310,7 +310,7 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Remediation: trace all challenge writers/consumers and lifecycle mutations, establish a short-lived single-use proof tied to its primary credential, and reject expired/stale challenges.
 - State: In progress.
 - Verification required: normal password/Google plus TOTP/recovery login, expired/replayed challenges, credential changes/removal and account finalization.
-- Verification result: one Accounts-owned challenge replaces the four loose session keys with a ten-minute, opaque credential/MFA fingerprint contract. Completion locks the User, revalidates lifecycle/credentials, consumes successful proof, registers the rotated session before releasing the lock and records method provenance. The POST route serializes requests for one session; failed OTP input can retry within the original lifetime/rate limit. Normal password/Google/passkey success clears pending proof. Thirteen regressions cover all primary/second-factor pairs, credential removal/change, MFA replacement, anonymization, expiry without consuming recovery codes, retry and proof replay. Full PHPStan passes; Pint and 62 Architecture tests pass (66,675 assertions). PostgreSQL verification pending.
+- Verification result: one Accounts-owned challenge replaces the four loose session keys with a ten-minute, opaque credential/MFA fingerprint contract. Completion locks the User, revalidates lifecycle/credentials, consumes successful proof, registers the rotated session before releasing the lock and records method provenance. The POST route serializes requests for one session; failed OTP input can retry within the original lifetime/rate limit. Normal password/Google/passkey success clears pending proof. Thirteen regressions cover all primary/second-factor pairs, credential removal/change, MFA replacement, anonymization, expiry without consuming recovery codes, retry and proof replay. Full PHPStan passes; Pint and 62 Architecture tests pass (66,675 assertions). PostgreSQL CI on `68f1cb4c` passes 12 of 13 new cases; one Google callback fixture hits the shared CI IP rate limit before reaching the handler, also leaving its unused mock expectation. The correction gives each test case a distinct client address without changing production throttles; a fourteenth case verifies the actual five-attempt limit. Containing verification pending.
 - Completion evidence: pending.
 - Commit SHA: pending.
 
@@ -322,9 +322,9 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: Accounts credential mutation under the same User lock as other method changes, retaining maintained package verification.
 - Rationale: concurrent removals must not each observe another usable method and leave the account without any.
 - Remediation: inspect the installed package deletion transaction and route boundary, reproduce any missing serialization, then centralize mutation policy/locking without duplicating WebAuthn cryptography.
-- State: Planned.
+- State: In progress.
 - Verification required: current package delete authorization and last-method behavior under concurrent method removal; existing passkey security/credential suites.
-- Verification result: the installed package DeletePasskey Action performs delete/event dispatch without a transaction; its controller checks ownership but adds no User lock. The missing serialization is confirmed. Bind the package Action to an Accounts adapter and move the policy check into its locked mutation boundary; retain package routes/responses/events and verification.
+- Verification result: the installed package DeletePasskey Action performs delete/event dispatch without a transaction; its controller checks ownership but adds no User lock. Accounts now binds that package Action to DeleteAccountPasskey, which locks User then current owned passkey and applies the central last-method policy before deletion. Removed the unlocked model callback. Existing removal tests invoke the package binding; two new HTTP cases preserve ownership, final-method denial, audit, security notifications and response behavior. A separate committed-fixture test invokes RemovePassword over a second PostgreSQL connection while passkey deletion holds the User lock, expects bounded lock contention, then verifies the remaining password cannot be removed. Full PHPStan and Pint pass; 62 Architecture tests pass. PostgreSQL verification pending.
 - Completion evidence: pending.
 - Commit SHA: pending.
 
@@ -334,7 +334,7 @@ All rows below remain Planned until actual production paths have been traced. Th
 
 | Area | Required authority/scalability review | State |
 | --- | --- | --- |
-| Accounts | Recent-authentication ownership and session lifecycle traced under HARD-018/019; identity, credential linking, registration, profile/security and deletion audit remain | In progress |
+| Accounts | Identity/provider queries, authentication/credential owners, sessions, MFA, profile/email/reset and account-side deletion traced; repairs under HARD-018–022. Profile/scalability budgets and registration/deletion orchestration handoff review remain | In progress |
 | GameWorld | Progression dataset/topology/prerequisite and Gift Code reminder paths traced (HARD-007/009/011/012); Governors, Kingdoms/transfers/governance, remaining Gift Codes/calculators and KingdomMaps audit remain | In progress |
 | Alliance | Lifecycle, membership/rank/delegation, recruitment, content, territories/hive planning | Planned |
 | Operations | Events, participation, rallies, King Perks, results/Bear Hunt and reminders | Planned |

@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\ValidationException;
 use Inertia\Testing\AssertableInertia as Assert;
+use Laravel\Passkeys\Actions\DeletePasskey;
 use Tests\v3\TestCase;
 
 final class PasskeySecurityV3Test extends TestCase
@@ -108,7 +109,7 @@ final class PasskeySecurityV3Test extends TestCase
         self::assertSame(1, app(AccountSignInMethodPolicy::class)->usableMethodCount($user));
 
         $this->expectException(ValidationException::class);
-        $passkey->delete();
+        app(DeletePasskey::class)($user, $passkey);
     }
 
     public function test_passkey_can_be_removed_when_password_remains(): void
@@ -117,7 +118,8 @@ final class PasskeySecurityV3Test extends TestCase
         $passkey = $this->passkeyFor($user, 'removable-passkey');
 
         self::assertSame(2, app(AccountSignInMethodPolicy::class)->usableMethodCount($user));
-        self::assertTrue((bool) $passkey->delete());
+        app(DeletePasskey::class)($user, $passkey);
+        $this->assertDatabaseMissing('passkeys', ['id' => $passkey->id]);
         self::assertSame(1, app(AccountSignInMethodPolicy::class)->usableMethodCount($user));
     }
 
@@ -145,6 +147,36 @@ final class PasskeySecurityV3Test extends TestCase
             'event' => 'auth.login',
             'actor_user_id' => $user->id,
         ]);
+    }
+
+    public function test_package_delete_route_uses_locked_accounts_policy_and_preserves_security_effects(): void
+    {
+        $user = User::factory()->create();
+        $passkey = $this->passkeyFor($user, 'http-removal');
+
+        $this->actingAs($user)
+            ->withSession(['accounts.recent_authentication_at' => now()->timestamp])
+            ->deleteJson('/user/passkeys/'.$passkey->public_id)
+            ->assertOk()->assertJsonPath('status', 'passkey-deleted')
+            ->assertSessionMissing('accounts.recent_authentication_at');
+
+        $this->assertDatabaseMissing('passkeys', ['id' => $passkey->id]);
+        $this->assertDatabaseHas('audit_events', ['event' => 'account.passkey.removed', 'actor_user_id' => $user->id]);
+        $this->assertDatabaseHas('notification_messages', ['notification_type' => 'account.security', 'recipient_user_id' => $user->id]);
+    }
+
+    public function test_package_delete_route_rejects_foreign_and_final_passkeys(): void
+    {
+        $user = User::factory()->withoutPassword()->create();
+        $own = $this->passkeyFor($user, 'last-own');
+        $foreign = $this->passkeyFor(User::factory()->create(), 'foreign-key');
+
+        $this->actingAs($user)->withSession(['accounts.recent_authentication_at' => now()->timestamp])
+            ->deleteJson('/user/passkeys/'.$foreign->public_id)->assertForbidden();
+        $this->deleteJson('/user/passkeys/'.$own->public_id)->assertUnprocessable()->assertJsonValidationErrors('passkey');
+
+        $this->assertDatabaseHas('passkeys', ['id' => $own->id]);
+        $this->assertDatabaseHas('passkeys', ['id' => $foreign->id]);
     }
 
     private function passkeyFor(User $user, string $credentialId): AccountPasskey
