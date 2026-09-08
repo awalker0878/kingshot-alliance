@@ -182,7 +182,7 @@ final class ProgressionDatasetQuery
     }
 
     /** @param array<string,mixed> $release
-     *  @return list<string>
+     * @return list<string>
      */
     private function releaseFiles(array $release, int $schemaVersion): array
     {
@@ -315,8 +315,8 @@ final class ProgressionDatasetQuery
     }
 
     /**
-     * @param array<string,mixed> $release
-     * @param array<string,array<string,mixed>> $documents
+     * @param  array<string,mixed>  $release
+     * @param  array<string,array<string,mixed>>  $documents
      */
     private function validateCoverageAssertions(array $release, array $documents): void
     {
@@ -355,8 +355,8 @@ final class ProgressionDatasetQuery
     }
 
     /**
-     * @param array<string,mixed> $release
-     * @param list<array<string,mixed>> $documents
+     * @param  array<string,mixed>  $release
+     * @param  list<array<string,mixed>>  $documents
      * @return array<string,true>
      */
     private function validateSources(array $release, array $documents): array
@@ -389,7 +389,7 @@ final class ProgressionDatasetQuery
     }
 
     /** @param array<mixed> $value
-     *  @param array<string,true> $sourceIds
+     * @param  array<string,true>  $sourceIds
      */
     private function validateSourceReferencesRecursively(array $value, array $sourceIds): void
     {
@@ -398,6 +398,7 @@ final class ProgressionDatasetQuery
                 if (! is_string($child) || ! isset($sourceIds[$child])) {
                     throw new RuntimeException('Progression document references an unknown source_id.');
                 }
+
                 continue;
             }
             if ($key === 'source_ids') {
@@ -409,6 +410,7 @@ final class ProgressionDatasetQuery
                         throw new RuntimeException('Progression document references an unknown source_ids value.');
                     }
                 }
+
                 continue;
             }
             if (is_array($child)) {
@@ -439,7 +441,7 @@ final class ProgressionDatasetQuery
     }
 
     /** @param array<string,mixed> $sourceLock
-     *  @param array<string,true> $sourceIds
+     * @param  array<string,true>  $sourceIds
      */
     private function validateSourceLock(array $sourceLock, array $sourceIds): void
     {
@@ -463,7 +465,7 @@ final class ProgressionDatasetQuery
     }
 
     /** @param array<string,mixed> $release
-     *  @param array<string,true> $sourceIds
+     * @param  array<string,true>  $sourceIds
      */
     private function validateSourceGaps(array $release, array $sourceIds): void
     {

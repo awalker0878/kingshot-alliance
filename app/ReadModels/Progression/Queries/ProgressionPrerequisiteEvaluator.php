@@ -14,8 +14,8 @@ final readonly class ProgressionPrerequisiteEvaluator
     public function __construct(private ProgressionTopologyQuery $topology) {}
 
     /**
-     * @param array<string,mixed> $observationState
-     * @param list<string> $requirements
+     * @param  array<string,mixed>  $observationState
+     * @param  list<string>  $requirements
      * @return list<array<string,mixed>>
      */
     public function evaluate(ProgressionDataset $dataset, array $observationState, array $requirements): array
@@ -33,7 +33,7 @@ final readonly class ProgressionPrerequisiteEvaluator
     }
 
     /** @param array<string,mixed> $observationState
-     *  @return array<string,mixed>
+     * @return array<string,mixed>
      */
     private function evaluateOne(ProgressionDataset $dataset, array $observationState, string $label): array
     {
