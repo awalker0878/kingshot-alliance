@@ -124,6 +124,8 @@ A commit attempt has one stable destination idempotency key. If the destination 
 
 Deleting Evidence does not cascade into committed owner state. Owner correction/removal is a separate audited capability. For Territory spatial facts, correction appends a replacement observation and invalidates/supersedes the prior accepted observation; explicit invalidation records actor/time/reason. Evidence retention may remove binary/OCR/raw sensitive data while retaining minimum handoff provenance/tombstone/review/commit/receipt data.
 
+Redaction removes classification OCR, extracted raw and normalized candidates, bounds/warnings, and Governor normalization payload copies. Dataset/attempt identity, immutable reviewed handoff and destination receipts remain. The summary therefore exposes redacted machine candidates while preserving accepted review meaning. A failed private-storage deletion fails the operation before provenance/path cleanup so an authorized retry can complete deletion.
+
 ## Shared infrastructure
 
 Upload security is a technical concern under `Shared/Infrastructure/Uploads`. Alliance Content and Intelligence Evidence consume the same scanner contract; Intelligence does not depend on Alliance Content merely to inspect a file.

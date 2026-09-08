@@ -80,6 +80,8 @@ Building and technology names remain normalized text candidates until review. Th
 
 Exact, visual, semantic and destination-idempotency checks remain separate. Visual similarity is advisory. A semantic duplicate requires explicit supported resolution. A genuinely newer observation remains importable. Retry after destination success reuses the same owner receipt instead of appending duplicate Roster history.
 
+Redaction removes classification OCR, extracted raw and normalized candidates, bounds/warnings, and Governor normalization payload copies. Dataset/attempt identity, immutable reviewed handoff and destination receipts remain. The summary therefore exposes redacted machine candidates while preserving accepted review meaning. A failed private-storage deletion fails the operation before provenance/path cleanup so an authorized retry can complete deletion.
+
 ## Current-state projection
 
 `GovernorProgressionObservationQuery` composes append-only observations by newest fact while preserving observation IDs, Evidence/review IDs, captured times and dataset pins. Unobserved fields are not cleared by later partial screenshots.

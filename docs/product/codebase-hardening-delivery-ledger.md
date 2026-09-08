@@ -5,15 +5,15 @@
 - Program state: In progress.
 - Exact main baseline: `7e780521295e868005ecfee5bd38b33e8215ec49`.
 - Working branch: `astra/codebase-hardening`.
-- Latest pushed durable checkpoint: `5a01bf68930c52cfac3ee77564e2f5a1570ae1ad`.
+- Latest pushed durable checkpoint: `f6e19117d0dc1de99fe2a158309455e54e281c51`.
 - Draft PR: [#163](https://github.com/awalker0878/kingshot-alliance/pull/163).
-- Current item/state: HARD-014 / In progress (implementation ready for PostgreSQL CI). HARD-010 and HARD-013 Complete on `5a01bf68`; HARD-015 follows.
+- Current item/state: HARD-015 and HARD-016 / In progress (redaction implementation ready for CI); HARD-014 candidate checks are running.
 - Most recently verified gates: all nine PR workflows pass on `5a01bf68930c52cfac3ee77564e2f5a1570ae1ad`, including 727 PHP tests / 73,144 assertions, fresh PostgreSQL, frontend, image/staging/recovery, architecture/capabilities, visual and security. HARD-014 full PHPStan and changed-file Pint pass locally.
-- Active files: Evidence retention owner Action, fresh-schema indexes, family/queue regressions and shared retention contracts; ledger.
-- Remaining current work: verify HARD-014 in CI; implement HARD-015 complete raw/candidate redaction, then continue the remaining capability audit.
-- Known failures: none on pushed `5a01bf68`; HARD-014 database cases and schema/index changes await CI; HARD-015 remains a known production defect.
+- Active files: EvidenceRedactor, pipeline deletion/retention/storage-failure regressions and privacy contracts; ledger.
+- Remaining current work: verify HARD-014–016 in CI, then implement HARD-017 bounded Governor screenshot summary loading and continue repository audit.
+- Known failures: none in completed checks on `f6e19117`; remaining candidate checks are running. HARD-015–016 regression execution pending; HARD-017 query amplification remains.
 - Blockers: local PostgreSQL/Redis services unavailable; service-backed verification uses GitHub CI. Local PHP 8.5.8 and locked Composer/npm dependencies available. Checkpoints publish via the authorized GitHub connection with exact staged-tree verification and non-forced branch updates.
-- Exact next action: publish HARD-014 checkpoint; implement HARD-015 while CI runs; reconcile all containing-commit results and continue capability review.
+- Exact next action: publish HARD-015/HARD-016 checkpoint; implement HARD-017 query-budget repair while CI runs, then reconcile results and continue capability review.
 - Remaining repository-wide gates: final full PHP/architecture/capability and frontend gates on one containing commit; production image/staging/recovery; final security/dependency/visual checks; remaining capability-by-capability audit coverage below.
 
 Checkpoint SHAs are recorded by the following documentation commit; verify that the recorded checkpoint is an ancestor of current branch HEAD. No audit area is complete solely because its paths have been inventoried.
@@ -224,9 +224,37 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: same Evidence redaction service across all copies of machine provenance.
 - Rationale: deletion must purge the promised raw source data while preserving minimum reviewed handoff/receipt provenance and independent accepted owner history.
 - Remediation: clear raw machine payload copies consistently; preserve dataset/attempt/review/receipt identity and accepted observations; verify repeated redaction and summary behavior.
-- State: Planned.
+- State: In progress.
 - Verification required: real normalized evidence loses raw/candidate payload on deletion/retention while pinned identity and committed history remain.
-- Verification result: copied `raw_text` and `bounding_box` fields remain in `normalized_payload`; redactor has no normalization update.
+- Verification result: redaction now clears classification OCR, extracted raw/candidate text, bounds/warnings and all normalization payload copies. Attempt/dataset/review/receipt identities and accepted owner facts remain. Two real-pipeline cases cover user deletion and scheduled retention, repeated execution and the actual summary projection. Full PHPStan passes (zero errors); changed PHP Pint passes. PostgreSQL execution awaits CI.
+- Completion evidence: EvidenceRedactor and real pipeline deletion/retention regressions; containing-commit CI pending.
+- Commit SHA: pending.
+
+### HARD-016 — Failed source deletion is acknowledged as redaction
+
+- Area: Intelligence/Evidence private storage deletion.
+- Finding: EvidenceRedactor ignores the filesystem adapter's false result and clears the source path/marks redaction successful even when the binary remains in storage.
+- Current owner: EvidenceRedactor.
+- Intended authoritative owner: same service with an explicit storage success boundary.
+- Rationale: failed deletion must remain retryable and must not claim privacy cleanup succeeded.
+- Remediation: fail before database redaction if storage reports failure; preserve path/provenance and verify retry through the authorized deletion Action.
+- State: In progress.
+- Verification required: failed adapter result retains the source path, machine provenance and lifecycle; retry deletes successfully without extra owner history.
+- Verification result: explicit failure handling and a real-pipeline regression implemented; only the filesystem delete result is substituted. Full PHPStan and Pint pass; PostgreSQL verification pending.
+- Completion evidence: EvidenceRedactor, StructuredGovernorProgressionPipelineV3Test; CI pending.
+- Commit SHA: pending.
+
+### HARD-017 — Governor screenshot workspace repeats queries per item
+
+- Area: Intelligence/Evidence GovernorProgressionEvidenceSummaryQuery.
+- Finding: a 30-item workspace fetch executes five separate latest-attempt/review/commit reads and one extracted-field query for every Evidence record: up to 181 database queries for one bounded list.
+- Current owner: GovernorProgressionEvidenceSummaryQuery.
+- Intended authoritative owner: same owner query with bounded latest-record loading.
+- Rationale: list cardinality should not multiply database round trips or load unbounded attempt history.
+- Remediation: load only the latest related records and fields in batches, preserve current scope/order/provenance semantics, and enforce a meaningful query budget with multiple attempts and Evidence records.
+- State: Planned.
+- Verification required: query count remains bounded as the list grows; latest revision and deterministic attempt ordering, cross-scope filtering and existing pipeline summaries remain correct.
+- Verification result: production trace confirms six queries inside the per-Evidence mapper; implementation pending.
 - Completion evidence: pending.
 - Commit SHA: pending.
 

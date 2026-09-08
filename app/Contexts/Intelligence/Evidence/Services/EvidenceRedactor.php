@@ -7,7 +7,9 @@ namespace App\Contexts\Intelligence\Evidence\Services;
 use App\Contexts\Intelligence\Evidence\Models\EvidenceClassificationAttempt;
 use App\Contexts\Intelligence\Evidence\Models\EvidenceExtractedField;
 use App\Contexts\Intelligence\Evidence\Models\GameEvidence;
+use App\Contexts\Intelligence\Evidence\Models\ProgressionNormalizationAttempt;
 use Illuminate\Support\Facades\Storage;
+use RuntimeException;
 
 final class EvidenceRedactor
 {
@@ -15,7 +17,9 @@ final class EvidenceRedactor
     {
         $path = $evidence->path;
         if (is_string($path) && $path !== '') {
-            Storage::disk((string) $evidence->disk)->delete($path);
+            if (! Storage::disk((string) $evidence->disk)->delete($path)) {
+                throw new RuntimeException('The private Evidence binary could not be deleted.');
+            }
         }
 
         EvidenceClassificationAttempt::query()
@@ -25,19 +29,21 @@ final class EvidenceRedactor
                 'raw_text' => null,
             ]);
 
-        $attemptIds = $evidence->getConnection()
-            ->table('evidence_extraction_attempts')
-            ->where('evidence_id', $evidence->id)
-            ->pluck('id');
+        EvidenceExtractedField::query()
+            ->whereIn('extraction_attempt_id', $evidence->getConnection()
+                ->table('evidence_extraction_attempts')
+                ->select('id')
+                ->where('evidence_id', $evidence->id))
+            ->update([
+                'raw_text' => '',
+                'normalized_value' => null,
+                'bounding_box' => null,
+                'warnings' => null,
+            ]);
 
-        if ($attemptIds->isNotEmpty()) {
-            EvidenceExtractedField::query()
-                ->whereIn('extraction_attempt_id', $attemptIds)
-                ->update([
-                    'raw_text' => '',
-                    'bounding_box' => null,
-                ]);
-        }
+        ProgressionNormalizationAttempt::query()
+            ->where('evidence_id', $evidence->id)
+            ->update(['normalized_payload' => '[]', 'warnings' => null]);
 
         $evidence->forceFill([
             'path' => null,

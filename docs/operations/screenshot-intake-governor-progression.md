@@ -94,6 +94,8 @@ Evidence deletion/redaction must not cascade into an accepted `GovernorProgressi
 
 If an accepted observation is wrong, use an explicit audited Roster correction/removal capability. Evidence deletion is not correction.
 
+Redaction removes classification OCR, extracted raw and normalized candidates, bounds/warnings, and Governor normalization payload copies. Dataset/attempt identity, immutable reviewed handoff and destination receipts remain. The summary therefore exposes redacted machine candidates while preserving accepted review meaning. A failed private-storage deletion fails the operation before provenance/path cleanup so an authorized retry can complete deletion.
+
 ## Privacy-safe diagnostics
 
 Logs/audit/outbox may identify lifecycle event names, schema/version, attempt/receipt IDs and privacy-safe failure codes. They must not emit screenshot pixels, OCR text, raw content hashes, Governor names, Player identity details or cross-tenant duplicate information.

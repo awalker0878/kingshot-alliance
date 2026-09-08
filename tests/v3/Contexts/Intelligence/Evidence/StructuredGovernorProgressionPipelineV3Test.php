@@ -25,18 +25,21 @@ use App\Contexts\Intelligence\Evidence\Models\GameEvidence;
 use App\Contexts\Intelligence\Evidence\Models\GovernorProgressionEvidenceCommitAttempt;
 use App\Contexts\Intelligence\Evidence\Models\GovernorProgressionEvidenceReview;
 use App\Contexts\Intelligence\Evidence\Models\ProgressionNormalizationAttempt;
+use App\Contexts\Intelligence\Evidence\Queries\GovernorProgressionEvidenceSummaryQuery;
 use App\Contexts\Intelligence\Evidence\ValueObjects\OcrDocument;
 use App\Contexts\Intelligence\Evidence\ValueObjects\OcrToken;
 use App\Contexts\Intelligence\Roster\Models\GovernorProgressionEvidenceReceipt;
 use App\Contexts\Intelligence\Roster\Models\GovernorProgressionObservation;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use PHPUnit\Framework\Attributes\DataProvider;
+use RuntimeException;
 use Tests\v3\Support\ScenarioFactory;
 use Tests\v3\TestCase;
 
@@ -269,6 +272,80 @@ final class StructuredGovernorProgressionPipelineV3Test extends TestCase
         self::assertSame(0, app(EnforceEvidenceRetention::class)->handle(1));
         self::assertSame(EvidenceLifecycleStatus::Deleted, $evidence->fresh()->lifecycle_status);
         self::assertTrue(GovernorProgressionEvidenceReview::query()->whereKey($reviewId)->exists());
+    }
+
+    #[DataProvider('redactionPaths')]
+    public function test_redaction_purges_machine_copies_but_retains_reviewed_handoff(bool $retention): void
+    {
+        [$evidence, $normalization] = $this->normalize(EvidenceKind::GovernorBuildings, "Buildings\nBuilding: Academy Level 1");
+        $reviewId = $this->review($evidence, $normalization, ['states' => [['subject_id' => 'academy', 'level' => 1]]]);
+        $review = GovernorProgressionEvidenceReview::query()->findOrFail($reviewId);
+        $receipt = app(CommitReviewedGovernorProgressionEvidence::class)->handle($this->actorId, $this->allianceId, $this->entryId, $reviewId);
+        $pin = [(string) $normalization->progression_dataset_id, (string) $normalization->progression_dataset_checksum];
+        self::assertNotEmpty($normalization->normalized_payload['fields']);
+
+        if ($retention) {
+            $evidence->forceFill(['created_at' => now()->subDays(200)])->save();
+            self::assertSame(1, app(EnforceEvidenceRetention::class)->handle());
+            self::assertSame(0, app(EnforceEvidenceRetention::class)->handle());
+        } else {
+            $delete = app(DeleteGovernorProgressionEvidence::class);
+            $delete->handle($this->actorId, $this->allianceId, $this->entryId, (string) $evidence->id);
+            $delete->handle($this->actorId, $this->allianceId, $this->entryId, (string) $evidence->id);
+        }
+
+        $classification = EvidenceClassificationAttempt::query()->where('evidence_id', $evidence->id)->sole();
+        self::assertNull($classification->ocr_payload);
+        self::assertNull($classification->raw_text);
+        self::assertSame([], $normalization->fresh()->normalized_payload);
+        self::assertSame($pin, [(string) $normalization->fresh()->progression_dataset_id, (string) $normalization->fresh()->progression_dataset_checksum]);
+        $summaries = app(GovernorProgressionEvidenceSummaryQuery::class)->forRosterEntry($this->allianceId, $this->entryId);
+        self::assertCount(1, $summaries);
+        self::assertFalse($summaries[0]['imageAvailable']);
+        self::assertSame([], $summaries[0]['normalization']['payload']);
+        self::assertNotEmpty($summaries[0]['extraction']['fields']);
+        foreach ($summaries[0]['extraction']['fields'] as $field) {
+            self::assertSame('', $field['rawText']);
+            self::assertNull($field['normalizedValue']);
+            self::assertNull($field['boundingBox']);
+            self::assertSame([], $field['warnings']);
+        }
+        self::assertSame($review->payload, $review->fresh()->payload);
+        self::assertSame($review->payload, GovernorProgressionObservation::query()->findOrFail($receipt->observationId)->payload);
+        self::assertTrue(GovernorProgressionEvidenceReceipt::query()->whereKey($receipt->receiptId)->exists());
+    }
+
+    /** @return iterable<string,array{bool}> */
+    public static function redactionPaths(): iterable
+    {
+        yield 'user deletion' => [false];
+        yield 'scheduled retention' => [true];
+    }
+
+    public function test_failed_binary_deletion_keeps_provenance_and_allows_retry(): void
+    {
+        [$evidence, $normalization] = $this->normalize(EvidenceKind::GovernorBuildings, "Buildings\nBuilding: Academy Level 1");
+        $path = (string) $evidence->path;
+        $storage = Storage::getFacadeRoot();
+        $failingDisk = \Mockery::mock(FilesystemAdapter::class);
+        $failingDisk->shouldReceive('delete')->with($path)->once()->andReturnFalse();
+        Storage::shouldReceive('disk')->with('local')->once()->andReturn($failingDisk);
+        try {
+            app(DeleteGovernorProgressionEvidence::class)->handle($this->actorId, $this->allianceId, $this->entryId, (string) $evidence->id);
+            self::fail('A failed binary deletion must not be acknowledged as successful redaction.');
+        } catch (RuntimeException) {
+            self::assertSame(EvidenceLifecycleStatus::NeedsReview, $evidence->fresh()->lifecycle_status);
+            self::assertSame($path, $evidence->fresh()->path);
+            self::assertNull($evidence->fresh()->redacted_at);
+            self::assertSame($normalization->normalized_payload, $normalization->fresh()->normalized_payload);
+        } finally {
+            Storage::swap($storage);
+        }
+        Storage::disk('local')->assertExists($path);
+        app(DeleteGovernorProgressionEvidence::class)->handle($this->actorId, $this->allianceId, $this->entryId, (string) $evidence->id);
+        self::assertSame(EvidenceLifecycleStatus::Deleted, $evidence->fresh()->lifecycle_status);
+        self::assertSame([], $normalization->fresh()->normalized_payload);
+        Storage::disk('local')->assertMissing($path);
     }
 
     /** @return iterable<string,array{EvidenceKind,string,string,string,string}> */
