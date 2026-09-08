@@ -235,7 +235,7 @@ final class FinalizedAccountMutationV3Test extends TestCase
     private function competingConnection(): string
     {
         $primary = DB::getDefaultConnection();
-        config()->set('database.connections.finalization_competitor', DB::connection()->getConfig());
+        config()->set('database.connections.finalization_competitor', array_replace(DB::connection()->getConfig(), ['name' => 'finalization_competitor']));
         DB::connection('finalization_competitor')->statement("SET lock_timeout = '100ms'");
 
         return $primary;

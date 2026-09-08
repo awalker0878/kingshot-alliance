@@ -31,7 +31,7 @@ final class PasskeyMutationSerializationV3Test extends TestCase
         ])->saveOrFail();
 
         $primaryConnection = DB::getDefaultConnection();
-        config()->set('database.connections.credential_competitor', DB::connection()->getConfig());
+        config()->set('database.connections.credential_competitor', array_replace(DB::connection()->getConfig(), ['name' => 'credential_competitor']));
         $competing = DB::connection('credential_competitor');
         $competing->statement("SET lock_timeout = '100ms'");
         $attempted = false;

@@ -5,15 +5,15 @@
 - Program state: In progress.
 - Exact main baseline: `7e780521295e868005ecfee5bd38b33e8215ec49`.
 - Working branch: `astra/codebase-hardening`.
-- Latest pushed durable checkpoint: `e4d56df7dad3595e6a8c15ee42fd5396443b1621`.
+- Latest pushed durable checkpoint: `f606b14f39347563b289e5a575ec467be720720c`.
 - Draft PR: [#163](https://github.com/awalker0878/kingshot-alliance/pull/163).
-- Current item/state: HARD-033 / In progress (finalization session cleanup). HARD-032 containing gates are running; HARD-031 is Complete.
+- Current item/state: HARD-034 / In progress (email-change throttling). HARD-032/033 containing gates are running; HARD-031 is Complete.
 - Most recently verified gates: all nine PR workflows pass on `8c6b8a7a29a7d0bc1ecba9a1aa579bc88e828d5e`, including 876 PHP tests / 75,032 assertions, fresh PostgreSQL, frontend, image/staging/recovery, architecture/capabilities, visual and security.
-- Active files: AnonymizeAccount raw cleanup, three outer-commit/worker rollback/storage-failure cases, Identity contract and ledger.
-- Remaining current work: verify HARD-032/033 containing gates; HARD-034 email-change throttling, HARD-036 password-reset issuance and HARD-037 login proof freshness remain; continue repository audit coverage.
-- Known failures: none in PostgreSQL PHP CI on `8c6b8a7a` (876 tests / 75,032 assertions). Terminal mutation/verification cases await containing CI.
+- Active files: account-email-change named limiter/provider/route, actual HTTP budget regression, corrected competing-connection names in three fixtures, email contract and ledger.
+- Remaining current work: verify HARD-032/033/034 containing gates; HARD-036 password-reset issuance and HARD-037 login proof freshness remain; continue repository audit coverage.
+- Known failures: containing terminal-state runs stalled in a new competing-connection fixture: copying getConfig retained the primary name, so hydrated competing models saved through the primary connection while the competitor held its lock. Explicit distinct connection names now preserve true isolation; containing verification pending. Last fully green checkpoint remains 8c6b8a7a.
 - Blockers: local PostgreSQL/Redis services unavailable; service-backed verification uses GitHub CI. Local PHP 8.5.8 and locked Composer/npm dependencies available. Checkpoints publish via the authorized GitHub connection with exact staged-tree verification and non-forced branch updates.
-- Exact next action: verify HARD-032/033, bound the email-change route under HARD-034, then implement current-account reset issuance under HARD-036 and login proof freshness under HARD-037.
+- Exact next action: verify HARD-032/033/034, then implement current-account reset issuance under HARD-036 and login proof freshness under HARD-037.
 - Remaining repository-wide gates: final full PHP/architecture/capability and frontend gates on one containing commit; production image/staging/recovery; final security/dependency/visual checks; remaining capability-by-capability audit coverage below.
 
 Checkpoint SHAs are recorded by the following documentation commit; verify that the recorded checkpoint is an ancestor of current branch HEAD. No audit area is complete solely because its paths have been inventoried.
@@ -464,7 +464,7 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Remediation: trace all account-owned writes, establish an explicit current-active owner guard without hiding finalized records globally, and exercise both lock orders with real competing connections.
 - State: In progress.
 - Verification required: finalized accounts cannot regain credentials or personal profile/email data; in-flight writes serialize correctly with finalization; authorized lifecycle/reporting behavior remains intact.
-- Verification result: User.ensureActive centralizes the explicit terminal guard after ordinary account locks across password, profile/email, Google/provider, passkey, MFA, session revocation and deletion lifecycle writers; AccountIdentityQuery.lockActive shares it. RecordAccountSession now takes the same account lock and refuses missing/finalized users, retaining the revoked write predicate. VerifyAccountEmail replaces controller-side fulfillment with current-active/hash revalidation and atomic audit; Verified waits for outer commit. Twenty stale-command cases protect complete terminal state and side-effect counts, six session/provider cases including actual competing connections exercise both finalization lock orders, and seven verification cases cover audit failure, outer rollback, real signed HTTP/replay/tampering and account changes after maintained form authorization. Full PHPStan, Pint, documentation links and 62 Architecture tests (67,029 assertions) pass locally; PostgreSQL/containing verification pending.
+- Verification result: User.ensureActive centralizes the explicit terminal guard after ordinary account locks across password, profile/email, Google/provider, passkey, MFA, session revocation and deletion lifecycle writers; AccountIdentityQuery.lockActive shares it. RecordAccountSession now takes the same account lock and refuses missing/finalized users, retaining the revoked write predicate. VerifyAccountEmail replaces controller-side fulfillment with current-active/hash revalidation and atomic audit; Verified waits for outer commit. Twenty stale-command cases protect complete terminal state and side-effect counts, six session/provider cases including actual competing connections exercise both finalization lock orders, and seven verification cases cover audit failure, outer rollback, real signed HTTP/replay/tampering and account changes after maintained form authorization. Full PHPStan, Pint, documentation links and 62 Architecture tests (67,029 assertions) pass locally; First containing CI/visual runs on e4d56df7 were superseded by the cleanup checkpoint. f606b14f exposed a stalled fixture: Laravel preserves the copied connection name, so a successfully hydrated competitor model saved through the primary connection while holding the competing lock. The fixture now explicitly names its competing connection, preserving real independent writes and both lock-order assertions; the two earlier passkey/provider blocked-writer fixtures receive the same correction. PostgreSQL/containing verification remains pending.
 - Completion evidence: pending.
 - Commit SHA: `e4d56df7dad3595e6a8c15ee42fd5396443b1621`.
 
@@ -480,7 +480,7 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Verification required: outer rollback preserves raw sessions, successful finalization cleans them only after commit, and failed cleanup cannot restore access or block account processing.
 - Verification result: AnonymizeAccount captures session IDs under lock and registers individual cleanup only after the outermost commit. Three database cases cover direct outer commit/replay/missing accounts, a real late Platform processed-outbox failure that rolls back account/request/session/audit state without cleanup, and a failing raw handler while remaining sessions and two deletion requests finish. Callback observations are asserted outside the error-catching boundary. Full PHPStan and Pint pass; PostgreSQL/containing gates pending.
 - Completion evidence: pending.
-- Commit SHA: pending.
+- Commit SHA: `f606b14f39347563b289e5a575ec467be720720c`.
 
 ### HARD-034 — Email-change verification requests have no route rate limit
 
@@ -490,9 +490,9 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: the same thin route adapter applies bounded account-level request throttling; Accounts retains current-state validation and intent writes.
 - Rationale: durable queuing must not turn repeated requests into unbounded mail workload or recipient abuse.
 - Remediation: add a named account-scoped limiter consistent with verification resend and verify actual HTTP rejection before any further owner intent is written.
-- State: Planned.
+- State: In progress.
 - Verification required: accepted requests are bounded per account/time window, excess requests create no additional pending transition or mail intent, and legitimate retries resume after the window.
-- Verification result: the profile email route and existing resend/credential throttles are traced; implementation pending.
+- Verification result: EmailVerification registers the named account-email-change limiter (six attempts per account per minute); the authenticated recent-proof PATCH route applies it. One actual HTTP regression uses the production limiter definition with isolated cache, consumes six requests across distinct IPs, rejects the seventh without changing profile/audit/message/delivery intent, proves another account has its own budget, and retries successfully after 61 seconds. Full PHPStan and Pint pass; PostgreSQL/containing verification pending.
 - Completion evidence: pending.
 - Commit SHA: pending.
 

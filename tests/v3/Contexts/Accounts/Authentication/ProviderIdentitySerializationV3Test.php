@@ -24,7 +24,7 @@ final class ProviderIdentitySerializationV3Test extends TestCase
         $user = User::factory()->create();
         $identityId = app(ConnectGoogleAccount::class)->handle((int) $user->id, 'serialized-subject', 'before@example.test');
         $primary = DB::getDefaultConnection();
-        config()->set('database.connections.provider_competitor', DB::connection()->getConfig());
+        config()->set('database.connections.provider_competitor', array_replace(DB::connection()->getConfig(), ['name' => 'provider_competitor']));
         DB::connection('provider_competitor')->statement("SET lock_timeout = '100ms'");
         $attempted = false;
         $blockedOnAccount = false;

@@ -33,6 +33,7 @@ Route::middleware(['auth', 'auth.session', 'verified', 'password.confirm'])->gro
         ->name('profile.security.')
         ->group(function (): void {
             Route::patch('/email', [EmailChangeController::class, 'update'])
+                ->middleware('throttle:account-email-change')
                 ->name('email.update');
             Route::post('/password', [PasswordSignInMethodController::class, 'store'])
                 ->middleware('throttle:6,1')

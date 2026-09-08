@@ -19,3 +19,5 @@ Email promotion records its old-address notice through EmailChangedNoticeOutbox 
 Branded account mail supplies one shared data set to its HTML and plain-text views. HTML escapes content; the plain-text view emits literal text and URLs so query separators remain valid when the user follows verification/reset links.
 
 Verification completion delegates to VerifyAccountEmail. The route retains the maintained signed request and account/hash authorization; the owner then locks the current active User and revalidates the current address hash before calling Laravel's verification primitive. The verified flag and audit event commit together. The framework Verified event waits for the outermost commit, is discarded on rollback and is not repeated for an already-verified address.
+
+The authenticated recent-proof email-change route uses the named account-email-change limiter: six attempts per account per minute. Changing client IP does not create a new budget. Rejected requests reach neither the pending-address mutation nor its delivery/security intent; another account retains an independent budget, and normal requests resume after the window.
