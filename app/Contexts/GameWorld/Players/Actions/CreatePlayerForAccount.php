@@ -46,7 +46,7 @@ final readonly class CreatePlayerForAccount
                 reason: 'Governor registered by account owner.',
             );
 
-            return $this->claim->handle(
+            return $this->claim->handleWithProvenance(
                 $player->playerId,
                 $userId,
                 PlayerIdentitySource::Manual,
