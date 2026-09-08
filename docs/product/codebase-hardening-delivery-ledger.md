@@ -5,13 +5,13 @@
 - Program state: In progress.
 - Exact main baseline: `7e780521295e868005ecfee5bd38b33e8215ec49`.
 - Working branch: `astra/codebase-hardening`.
-- Latest pushed durable checkpoint: `f6e19117d0dc1de99fe2a158309455e54e281c51`.
+- Latest pushed durable checkpoint: `d006843e46e04f85a30afc578ff49651b5328581`.
 - Draft PR: [#163](https://github.com/awalker0878/kingshot-alliance/pull/163).
 - Current item/state: HARD-015 and HARD-016 / In progress (redaction implementation ready for CI); HARD-014 candidate checks are running.
 - Most recently verified gates: all nine PR workflows pass on `5a01bf68930c52cfac3ee77564e2f5a1570ae1ad`, including 727 PHP tests / 73,144 assertions, fresh PostgreSQL, frontend, image/staging/recovery, architecture/capabilities, visual and security. HARD-014 full PHPStan and changed-file Pint pass locally.
 - Active files: EvidenceRedactor, pipeline deletion/retention/storage-failure regressions and privacy contracts; ledger.
 - Remaining current work: verify HARD-014–016 in CI, then implement HARD-017 bounded Governor screenshot summary loading and continue repository audit.
-- Known failures: none in completed checks on `f6e19117`; remaining candidate checks are running. HARD-015–016 regression execution pending; HARD-017 query amplification remains.
+- Known failures: CI on `d006843e` reports four errors and three downstream retention failures from clearing the required extracted candidate string to null. HARD-015 follow-up uses empty-string redaction, matching the existing raw-text/string contract; regression expectations retain strict content removal. Reverification pending. HARD-017 remains Planned.
 - Blockers: local PostgreSQL/Redis services unavailable; service-backed verification uses GitHub CI. Local PHP 8.5.8 and locked Composer/npm dependencies available. Checkpoints publish via the authorized GitHub connection with exact staged-tree verification and non-forced branch updates.
 - Exact next action: publish HARD-015/HARD-016 checkpoint; implement HARD-017 query-budget repair while CI runs, then reconcile results and continue capability review.
 - Remaining repository-wide gates: final full PHP/architecture/capability and frontend gates on one containing commit; production image/staging/recovery; final security/dependency/visual checks; remaining capability-by-capability audit coverage below.
@@ -226,7 +226,7 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Remediation: clear raw machine payload copies consistently; preserve dataset/attempt/review/receipt identity and accepted observations; verify repeated redaction and summary behavior.
 - State: In progress.
 - Verification required: real normalized evidence loses raw/candidate payload on deletion/retention while pinned identity and committed history remain.
-- Verification result: redaction now clears classification OCR, extracted raw/candidate text, bounds/warnings and all normalization payload copies. Attempt/dataset/review/receipt identities and accepted owner facts remain. Two real-pipeline cases cover user deletion and scheduled retention, repeated execution and the actual summary projection. Full PHPStan passes (zero errors); changed PHP Pint passes. PostgreSQL execution awaits CI.
+- Verification result: redaction now clears classification OCR, extracted raw/candidate text, bounds/warnings and all normalization payload copies. Attempt/dataset/review/receipt identities and accepted owner facts remain. Two real-pipeline cases cover user deletion and scheduled retention, repeated execution and the actual summary projection. CI on `d006843e` catches null-versus-required-string redaction; follow-up clears the candidate to an empty string, matching its persisted contract. Four errors and three downstream failures share that cause; the gate remains unchanged. Full PHPStan and Pint passed; corrected PostgreSQL verification pending.
 - Completion evidence: EvidenceRedactor and real pipeline deletion/retention regressions; containing-commit CI pending.
 - Commit SHA: pending.
 

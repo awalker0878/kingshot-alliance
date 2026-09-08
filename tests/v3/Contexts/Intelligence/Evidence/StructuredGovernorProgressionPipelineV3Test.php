@@ -306,7 +306,7 @@ final class StructuredGovernorProgressionPipelineV3Test extends TestCase
         self::assertNotEmpty($summaries[0]['extraction']['fields']);
         foreach ($summaries[0]['extraction']['fields'] as $field) {
             self::assertSame('', $field['rawText']);
-            self::assertNull($field['normalizedValue']);
+            self::assertSame('', $field['normalizedValue']);
             self::assertNull($field['boundingBox']);
             self::assertSame([], $field['warnings']);
         }

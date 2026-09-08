@@ -36,7 +36,7 @@ final class EvidenceRedactor
                 ->where('evidence_id', $evidence->id))
             ->update([
                 'raw_text' => '',
-                'normalized_value' => null,
+                'normalized_value' => '',
                 'bounding_box' => null,
                 'warnings' => null,
             ]);
