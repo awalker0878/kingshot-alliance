@@ -1,6 +1,6 @@
 # Capability catalogue
 
-Status: Current — 2026-09-04
+Status: Current — 2026-09-08
 
 This is the user/product view of implemented capability groups and explicitly selected extensions. The **Program state** column prevents approved future work from being described as already implemented.
 
@@ -13,7 +13,7 @@ Program states are defined by the [Capability Extension Program](capability-exte
 | Product capability | Program state | Outcome | Architectural owner |
 | --- | --- | --- | --- |
 | Account security | Current complete capability | Maintain one permanent Kingshot Alliance User with attached Password, Google and Passkey sign-in methods; verify/manage account email and profile; enforce method-agnostic recent authentication and last-method lockout protection; manage TOTP/recovery, sessions, Security Activity and account-side lifecycle invalidation. | Accounts; Communications owns outbound security delivery; Platform/DataGovernance owns deletion orchestration |
-| Player context | Current complete capability | Own/claim Players and operate as one active game persona at a time. | GameWorld/Players; workflows coordinate cross-context effects |
+| Player / Governor identity & lifecycle | Current complete capability | Create and manage durable Governors, preserve temporal identity/ownership history, operate as one server-authoritative active Governor at a time, release ownership safely, and explicitly reconcile dormant duplicates without fuzzy name merges or foreign-owner rewrites. | GameWorld/Players; owner contexts resolve live dependencies before reconciliation |
 | Gift Codes | Current complete capability | Derive revisioned global trust/expiry/reward/applicability from append-only governed evidence; moderate and ingest approved sources under platform authority; provide an account-personal actionable workspace with persistent many-code/many-Governor redemption runs, reminders, structured rewards and privacy-gated redemption signals; expose authorized aggregate Alliance coverage and contributor projections without weakening evidence authority; and retain bounded catalogue/API/webhook reads plus the official Century Games handoff boundary. | GameWorld/GiftCodes owns catalogue/source/evidence/personal-workflow/session/redemption policy; Communications owns recipient routing/delivery; Alliance/Access authorizes aggregate coverage; Platform/Integrations owns external contracts; ReadModels composes overview/API/coverage reads |
 | Factual Governor Progression | Current complete capability | Browse immutable, source-labelled KingShot progression releases across Heroes, gear, formations, buildings, research, Pets, Masters and discovered system caps while keeping source conflicts/unknowns visible; normalize observed Governor Heroes and pin saved loadouts to a factual release without introducing recommendations or calculators. | GameWorld/Progression owns catalogue truth; Intelligence/Roster owns observations; Operations/Rallies owns saved loadout intent |
 | Alliance management | Current complete capability | Manage application-owned Alliance name, URL identity, language and timezone while keeping Kingdom association and platform tenant lifecycle outside officer settings. | Alliance/Lifecycle; Platform/AllianceAdministration retains platform lifecycle |
