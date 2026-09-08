@@ -6,6 +6,7 @@ namespace App\Contexts\Accounts\Authentication\Providers;
 
 use App\Contexts\Accounts\Authentication\Actions\DeleteAccountPasskey;
 use App\Contexts\Accounts\Authentication\Actions\RevokeOtherAccountSessions;
+use App\Contexts\Accounts\Authentication\Actions\StoreAccountPasskey;
 use App\Contexts\Accounts\Authentication\Http\Responses\AccountPasskeyLoginResponse;
 use App\Contexts\Accounts\Authentication\Models\AccountPasskey;
 use App\Contexts\Accounts\Authentication\Services\RecentAuthentication;
@@ -14,11 +15,13 @@ use App\Contexts\Accounts\Security\Services\SecurityNotificationService;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Laravel\Passkeys\Actions\DeletePasskey;
+use Laravel\Passkeys\Actions\StorePasskey;
 use Laravel\Passkeys\Contracts\PasskeyLoginResponse;
 use Laravel\Passkeys\Events\PasskeyDeleted;
 use Laravel\Passkeys\Events\PasskeyRegistered;
@@ -31,6 +34,7 @@ final class AuthenticationServiceProvider extends ServiceProvider
     {
         $this->app->singleton(PasskeyLoginResponse::class, AccountPasskeyLoginResponse::class);
         $this->app->bind(DeletePasskey::class, DeleteAccountPasskey::class);
+        $this->app->bind(StorePasskey::class, StoreAccountPasskey::class);
     }
 
     public function boot(): void
@@ -78,12 +82,14 @@ final class AuthenticationServiceProvider extends ServiceProvider
 
             $user = $event->user;
             $request = request();
-            if ($request->user() instanceof User && (int) $request->user()->id === (int) $user->id) {
-                app(RevokeOtherAccountSessions::class)->handle(
-                    (int) $user->id,
-                    $request->session()->getId(),
-                );
-                app(RecentAuthentication::class)->clear($request);
+            $isCurrentAccount = $request->hasSession()
+                && $request->user() instanceof User && (int) $request->user()->id === (int) $user->id;
+            app(RevokeOtherAccountSessions::class)->handle(
+                (int) $user->id,
+                $isCurrentAccount ? $request->session()->getId() : null,
+            );
+            if ($isCurrentAccount) {
+                DB::afterCommit(static fn () => app(RecentAuthentication::class)->clear($request));
             }
 
             app(AuditRecorder::class)->record(

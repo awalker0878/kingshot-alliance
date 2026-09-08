@@ -22,7 +22,7 @@ final class DeleteAccountPasskey extends DeletePasskey
     {
         abort_unless($user instanceof User && $passkey instanceof AccountPasskey, 403);
 
-        $deleted = DB::transaction(function () use ($user, $passkey): AccountPasskey {
+        DB::transaction(function () use ($user, $passkey): void {
             $lockedUser = User::query()->whereKey($user->id)->lockForUpdate()->firstOrFail();
             $lockedPasskey = AccountPasskey::query()->whereKey($passkey->id)
                 ->where('user_id', $lockedUser->id)->lockForUpdate()->firstOrFail();
@@ -35,9 +35,7 @@ final class DeleteAccountPasskey extends DeletePasskey
 
             $lockedPasskey->delete();
 
-            return $lockedPasskey;
+            PasskeyDeleted::dispatch($lockedUser, $lockedPasskey);
         });
-
-        PasskeyDeleted::dispatch($user, $deleted);
     }
 }
