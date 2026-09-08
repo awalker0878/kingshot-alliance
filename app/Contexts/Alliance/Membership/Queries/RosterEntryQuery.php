@@ -96,6 +96,14 @@ final class RosterEntryQuery
         return $query->exists();
     }
 
+    public function hasAnyActiveOrTrackedForPlayer(string $playerId): bool
+    {
+        return AllianceRosterEntry::query()
+            ->where('player_id', $playerId)
+            ->whereIn('state', [RosterState::Active->value, RosterState::Tracked->value])
+            ->exists();
+    }
+
     /** @return list<RosterEntryReference> */
     public function forPlayer(string $allianceId, string $playerId, int $limit = 2): array
     {
