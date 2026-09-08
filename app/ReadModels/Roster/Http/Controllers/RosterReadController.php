@@ -43,7 +43,7 @@ final class RosterReadController extends Controller
         $scope = $context->scope();
         $account = $accounts->require((int) $request->user()?->getAuthIdentifier());
         $alliance = $alliances->require($scope->allianceId);
-        $kingdom = $kingdoms->require($alliance->kingdomId);
+        $kingdom = $kingdoms->requireActive($alliance->kingdomId);
 
         if (! $authorization->allows($scope->playerId, $scope->allianceId, IntelligencePermission::View)) {
             throw new AuthorizationException;
@@ -108,7 +108,7 @@ final class RosterReadController extends Controller
         $scope = $context->scope();
         $account = $accounts->require((int) $request->user()?->getAuthIdentifier());
         $alliance = $alliances->require($scope->allianceId);
-        $kingdom = $kingdoms->require($alliance->kingdomId);
+        $kingdom = $kingdoms->requireActive($alliance->kingdomId);
 
         if (! $authorization->allows($scope->playerId, $scope->allianceId, IntelligencePermission::KingdomManage)) {
             throw new AuthorizationException;
