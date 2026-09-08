@@ -35,7 +35,7 @@ final class RosterIntelligenceController extends Controller
 
         $account = $accounts->require((int) $request->user()?->getAuthIdentifier());
         $alliance = $alliances->require($scope->allianceId);
-        $kingdom = $kingdoms->require($alliance->kingdomId);
+        $kingdom = $kingdoms->requireActive($alliance->kingdomId);
         $canManage = $authorization->allows($scope->playerId, $scope->allianceId, IntelligencePermission::KingdomManage);
         $metrics = $intelligence->forAlliance($alliance->allianceId);
 
