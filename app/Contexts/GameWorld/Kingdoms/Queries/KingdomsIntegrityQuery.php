@@ -31,6 +31,7 @@ final class KingdomsIntegrityQuery
         $missingHistory = [];
         $drift = [];
         $cycles = [];
+        /** @var list<array{left:string,right:string,reasons:list<string>}> $unresolved */
         $unresolved = [];
 
         /** @var array<string, KingdomAlliance> $byId */
@@ -80,6 +81,7 @@ final class KingdomsIntegrityQuery
                 for ($right = $left + 1; $right < $count; $right++) {
                     [$a, $aName, $aTag] = $rows[$left];
                     [$b, $bName, $bTag] = $rows[$right];
+                    /** @var list<string> $reasons */
                     $reasons = [];
                     if ($aName !== '' && $aName === $bName) {
                         $reasons[] = 'same_normalized_name';
@@ -98,7 +100,7 @@ final class KingdomsIntegrityQuery
             }
         }
 
-        $multipleOpen = DB::table('kingdom_alliance_identity_history')
+        $multipleOpen = array_values(DB::table('kingdom_alliance_identity_history')
             ->select('kingdom_alliance_id')
             ->whereNull('valid_to')
             ->groupBy('kingdom_alliance_id')
@@ -106,7 +108,7 @@ final class KingdomsIntegrityQuery
             ->pluck('kingdom_alliance_id')
             ->map(static fn ($id): string => (string) $id)
             ->values()
-            ->all();
+            ->all());
 
         return [
             'active_alliance_under_archived_kingdom' => $activeUnderArchived,
