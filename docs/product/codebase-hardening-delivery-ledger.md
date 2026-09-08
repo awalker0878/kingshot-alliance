@@ -5,13 +5,13 @@
 - Program state: In progress.
 - Exact main baseline: `7e780521295e868005ecfee5bd38b33e8215ec49`.
 - Working branch: `astra/codebase-hardening`.
-- Latest pushed durable checkpoint: `6873e7ed7f96ceb3c13ed8089620ec615213378e`.
+- Latest pushed durable checkpoint: `c043b81e4b10e1594aea0c85ae570a6b4e5342e0`.
 - Draft PR: [#163](https://github.com/awalker0878/kingshot-alliance/pull/163).
-- Current item/state: HARD-038 / In progress (password confirmation slice); HARD-037 login completion remains under design. HARD-032/033/034/036 containing verification is pending after a test import correction.
+- Current item/state: HARD-038 / In progress (Google confirmation slice); HARD-037 login completion remains under design. HARD-039 addresses parallel CI PostgreSQL lock capacity; containing gates remain pending.
 - Most recently verified gates: all nine PR workflows pass on `8c6b8a7a29a7d0bc1ecba9a1aa579bc88e828d5e`, including 876 PHP tests / 75,032 assertions, fresh PostgreSQL, frontend, image/staging/recovery, architecture/capabilities, visual and security.
-- Active files: ConfirmAccountPassword/controller, eight confirmation atomicity/stale-state cases, corrected RequestPasswordReset import in the competing-reset fixture, Authentication contract and ledger.
+- Active files: ConfirmGoogleAccount, thin Google Workflow reauthentication adapter, eight provider metadata/audit/proof/binding regressions, Authentication contract and ledger.
 - Remaining current work: verify HARD-032/033/034/036 containing gates; implement HARD-037 login proof freshness and HARD-038 recent-proof atomicity; continue repository audit coverage.
-- Known failures: 6873e7ed finishes 933 tests / 75,595 assertions with one missing RequestPasswordReset import in the expanded reset-consumption fixture. The import is corrected. All 19 new issuance/delivery cases and corrected cleanup, terminal-state, verification and throttle cases pass; containing verification remains pending.
+- Known failures: c043b81e finishes 941 tests / 75,664 assertions with two PostgreSQL shared-lock exhaustion errors during parallel migrate:fresh and two password confirmation fixture failures caused by Store.only receiving dotted keys. The fixtures now compare each dotted key using Store.get; HARD-039 sizes the parallel CI lock table. All reset issuance/consumption cases and password success/stale/binding cases pass; containing verification remains pending.
 - Blockers: local PostgreSQL/Redis services unavailable; service-backed verification uses GitHub CI. Local PHP 8.5.8 and locked Composer/npm dependencies available. Checkpoints publish via the authorized GitHub connection with exact staged-tree verification and non-forced branch updates.
 - Exact next action: reconcile corrected HARD-032/033/034/036 containing gates, implement explicit current-proof login completion under HARD-037, then repair recent-authentication confirmation under HARD-038.
 - Remaining repository-wide gates: final full PHP/architecture/capability and frontend gates on one containing commit; production image/staging/recovery; final security/dependency/visual checks; remaining capability-by-capability audit coverage below.
@@ -548,7 +548,21 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Remediation: add explicit current-credential confirmation owners, move session proof changes to outer-commit callbacks and preserve maintained password/provider/WebAuthn validation and existing redirects.
 - State: In progress.
 - Verification required: real late audit failure/outer rollback cannot create recent proof; removed/replaced/finalized credentials cannot confirm from stale requests; successful confirmation preserves intended expiry/method/credential reference and account binding.
-- Verification result: First slice moves password confirmation to ConfirmAccountPassword with current-active/password validation and atomic audit under the account lock. Proof publication waits for outer commit and rechecks request account/current credential; audit/outer rollback preserve prior proof. Eight database cases cover late actual audit INSERT failure, outer rollback, successful callback timing, three stale credential/lifecycle states, changed request binding and a later credential transition in the same transaction. Full PHPStan, Pint and documentation links pass; PostgreSQL verification pending. Google confirmation and passkey proof callbacks remain; HARD-037 owns the broader login completion boundary.
+- Verification result: First slice moves password confirmation to ConfirmAccountPassword with current-active/password validation and atomic audit under the account lock. Proof publication waits for outer commit and rechecks request account/current credential; audit/outer rollback preserve prior proof. Eight database cases cover late actual audit INSERT failure, outer rollback, successful callback timing, three stale credential/lifecycle states, changed request binding and a later credential transition in the same transaction. Full PHPStan, Pint and documentation links pass; PostgreSQL verification pending. The password slice and corrected reset import are pushed in c043b81e; success/stale/binding cases pass. Two prior-proof assertions incorrectly used Store.only with dotted keys and now use Store.get per key; parallel CI also hit HARD-039 before two unrelated fixtures ran. Second slice adds ConfirmGoogleAccount: current account/identity locking, exact subject binding, atomic provider-use metadata and authentication audit, and current-identity proof publication after outer commit. Eight cases cover real late audit failure, outer rollback, successful timing, four rejection paths and later identity removal. PHPStan and Pint pass; containing verification pending. Passkey proof callbacks remain; HARD-037 owns the broader login completion boundary.
+- Completion evidence: pending.
+- Commit SHA: first slice `c043b81e4b10e1594aea0c85ae570a6b4e5342e0`; Google slice pending.
+
+### HARD-039 — Parallel schema rebuilds exceed CI PostgreSQL lock capacity
+
+- Area: CI PostgreSQL service sizing for the full parallel PHP gate.
+- Finding: On c043b81e, concurrent migrate:fresh operations fail with PostgreSQL SQLSTATE 53200 and the explicit max_locks_per_transaction hint. Each process owns an isolated database, but all table/index/sequence locks share the same server lock table.
+- Current owner: .github/workflows/ci.yml PostgreSQL service.
+- Intended authoritative owner: the existing CI service with explicit capacity for its parallel fresh-schema workload.
+- Rationale: service resource exhaustion must not be confused with domain failures or worked around by skipping the migration/parallel checks. PostgreSQL documents this as a server-start setting; see [lock management](https://www.postgresql.org/docs/18/runtime-config-locks.html).
+- Remediation: set max_locks_per_transaction to 256 on the ephemeral CI service, restart it before migrations, wait for readiness and verify the effective value. Preserve all existing gates and parallel execution.
+- State: In progress.
+- Verification required: the full parallel PHP gate rebuilds all isolated schemas without lock exhaustion; fresh-schema and container recovery checks remain green.
+- Verification result: diagnosed from CI 34279237528 / PHP 102239722423. The service configuration and password fixture corrections are prepared; runtime verification pending.
 - Completion evidence: pending.
 - Commit SHA: pending.
 

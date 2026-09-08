@@ -55,7 +55,9 @@ final class PasswordConfirmationAtomicityV3Test extends TestCase
         try {
             DB::transaction(static function () use ($request, $prior, $outerRollback): void {
                 app(ConfirmAccountPassword::class)->handle($request, 'password');
-                self::assertSame($prior, $request->session()->only(array_keys($prior)));
+                foreach ($prior as $key => $value) {
+                    self::assertSame($value, $request->session()->get($key));
+                }
                 if ($outerRollback) {
                     throw new RuntimeException('Injected confirmation failure.');
                 }
@@ -66,7 +68,9 @@ final class PasswordConfirmationAtomicityV3Test extends TestCase
         }
 
         self::assertTrue($outerRollback || $failed);
-        self::assertSame($prior, $request->session()->only(array_keys($prior)));
+        foreach ($prior as $key => $value) {
+            self::assertSame($value, $request->session()->get($key));
+        }
         self::assertSame(0, DB::table('audit_events')->where('event', 'auth.password.confirmed')->count());
     }
 

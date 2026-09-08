@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflows\AccountOnboarding\Http\Controllers;
 
+use App\Contexts\Accounts\Authentication\Actions\ConfirmGoogleAccount;
 use App\Contexts\Accounts\Authentication\Actions\ConnectGoogleAccount;
 use App\Contexts\Accounts\Authentication\Actions\RecordAuthenticationAuditEvent;
 use App\Contexts\Accounts\Authentication\Enums\GoogleAuthenticationIntent;
@@ -121,6 +122,7 @@ final class GoogleAuthenticationController extends Controller
         AccountIdentityQuery $accounts,
         ProviderIdentityQuery $providerIdentities,
         ConnectGoogleAccount $connectGoogle,
+        ConfirmGoogleAccount $confirmGoogle,
         RecordAccountIdentityUse $recordIdentityUse,
         GoogleAuthenticationOperation $operations,
         RecentAuthentication $recentAuthentication,
@@ -159,10 +161,7 @@ final class GoogleAuthenticationController extends Controller
                 expectedUserId: $operation['user_id'],
                 subject: $subject,
                 email: $email,
-                providerIdentities: $providerIdentities,
-                recordIdentityUse: $recordIdentityUse,
-                recentAuthentication: $recentAuthentication,
-                authenticationAudit: $authenticationAudit,
+                confirmGoogle: $confirmGoogle,
             );
         }
 
@@ -304,37 +303,9 @@ final class GoogleAuthenticationController extends Controller
         ?int $expectedUserId,
         string $subject,
         string $email,
-        ProviderIdentityQuery $providerIdentities,
-        RecordAccountIdentityUse $recordIdentityUse,
-        RecentAuthentication $recentAuthentication,
-        RecordAuthenticationAuditEvent $authenticationAudit,
+        ConfirmGoogleAccount $confirmGoogle,
     ): RedirectResponse {
-        $user = $request->user();
-        abort_unless($user instanceof AuthenticatedAccount, 403);
-        $userId = (int) $user->getAuthIdentifier();
-        abort_unless($expectedUserId === $userId, 403);
-
-        $identity = $providerIdentities->findForUser($userId, 'google');
-        abort_unless($identity !== null, 403);
-
-        if (! hash_equals($identity->providerSubject, $subject)) {
-            $authenticationAudit->handle(
-                userId: $userId,
-                event: 'auth.google.identity_failed',
-                metadata: ['reason' => 'reauthentication_subject_mismatch'],
-            );
-
-            abort(403, 'Google reauthentication did not match this Kingshot Alliance account.');
-        }
-
-        $recordIdentityUse->handle($identity->identityId, $email, true);
-        $recentAuthentication->mark($request, 'google', (string) $identity->identityId);
-
-        $authenticationAudit->handle(
-            userId: $userId,
-            event: 'auth.reauthenticated',
-            metadata: ['provider' => 'google'],
-        );
+        $confirmGoogle->handle($request, $expectedUserId, $subject, $email);
 
         return redirect()->intended(route('dashboard'));
     }
