@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\Kingdoms\Queries;
 
+use App\Contexts\GameWorld\Kingdoms\Enums\KingdomStatus;
 use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
 use App\Contexts\GameWorld\Kingdoms\ValueObjects\KingdomReference;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 final class KingdomReferenceQuery
 {
@@ -21,6 +23,26 @@ final class KingdomReferenceQuery
         return $this->snapshot(Kingdom::query()->findOrFail($kingdomId));
     }
 
+    public function findActive(string $kingdomId): ?KingdomReference
+    {
+        $kingdom = Kingdom::query()
+            ->whereKey($kingdomId)
+            ->where('status', KingdomStatus::Active->value)
+            ->first();
+
+        return $kingdom instanceof Kingdom ? $this->snapshot($kingdom) : null;
+    }
+
+    public function requireActive(string $kingdomId): KingdomReference
+    {
+        $reference = $this->findActive($kingdomId);
+        if (! $reference instanceof KingdomReference) {
+            throw (new ModelNotFoundException)->setModel(Kingdom::class, [$kingdomId]);
+        }
+
+        return $reference;
+    }
+
     public function lockCurrent(string $kingdomId): KingdomReference
     {
         return $this->snapshot(Kingdom::query()->whereKey($kingdomId)->lockForUpdate()->firstOrFail());
@@ -29,6 +51,16 @@ final class KingdomReferenceQuery
     public function findByNumber(int $number): ?KingdomReference
     {
         $kingdom = Kingdom::query()->where('number', $number)->first();
+
+        return $kingdom instanceof Kingdom ? $this->snapshot($kingdom) : null;
+    }
+
+    public function findActiveByNumber(int $number): ?KingdomReference
+    {
+        $kingdom = Kingdom::query()
+            ->where('number', $number)
+            ->where('status', KingdomStatus::Active->value)
+            ->first();
 
         return $kingdom instanceof Kingdom ? $this->snapshot($kingdom) : null;
     }

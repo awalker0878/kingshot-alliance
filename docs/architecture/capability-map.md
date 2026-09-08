@@ -27,14 +27,14 @@ Capabilities are first-class modules inside the seven bounded contexts. New deli
 ## GameWorld
 
 - **Players** — Player identity/claim, Player ownership references and active Player selection.
-- **Kingdoms** — Kingdom identity and neutral Kingdom/Alliance placement/reference state.
+- **Kingdoms** — canonical Kingdom and neutral game-Alliance identity, active/historical lifecycle, temporal identity history, provenance, explicit alias reconciliation and identity-integrity diagnostics.
 - **KingdomMaps** — immutable/versioned Kingdom-map datasets, coordinate/geometry facts, provenance and sourced game placement rules.
 - **Progression** — immutable/versioned KingShot progression catalogue releases, source registry, reconciliation/conflict metadata, factual Hero/gear/building/research/Pet/Master/system reference data and source-scoped community formation conventions.
 - **Governance** — Kingdom governance policy, system/custom roles, Player-scoped role assignments and bounded delegation, effective-authority interpretation, exact owner-scoped permission reconciliation, administrator handoff/recovery state, and Governance owner-side audit/outbox mutations. Read models compose history, authority and health without becoming persistence owners.
 - **KingdomTransfers** — Player/Kingdom transfer planning and transfer-domain state owned by GameWorld; effective Governance authority must be removed before a Player changes Kingdom.
 - **GiftCodes** — normalized global catalogue, approved-source policy, append-only provenance, revisioned trust/expiry/fact projections, moderation/ingestion operations, lifecycle notification eligibility, provider handoff policy, and per-Player/per-Kingdom redemption state.
 
-`KingdomMaps` owns represented spatial world truth, not Alliance planning preferences or saved layouts. `Progression` owns game-reference catalogue truth, not a Governor's observed roster and not a saved tactical loadout.
+`Kingdoms` owns canonical neutral identity, not Intelligence observations/evidence or Alliance membership. `KingdomMaps` owns represented spatial world truth, not Alliance planning preferences or saved layouts. `Progression` owns game-reference catalogue truth, not a Governor's observed roster and not a saved tactical loadout.
 
 ## Alliance
 
