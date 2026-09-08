@@ -5,12 +5,10 @@ declare(strict_types=1);
 namespace App\Contexts\Accounts\Authentication\Http\Controllers;
 
 use App\Contexts\Accounts\Authentication\Actions\AuthenticateWithPassword;
-use App\Contexts\Accounts\Identity\Models\User;
-use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
+use App\Contexts\Accounts\Authentication\Actions\LogoutAccount;
 use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -51,21 +49,9 @@ final class AuthenticatedSessionController extends Controller
         return redirect()->intended(route('dashboard'));
     }
 
-    public function destroy(Request $request, AuditRecorder $audit): RedirectResponse
+    public function destroy(Request $request, LogoutAccount $logout): RedirectResponse
     {
-        $user = $request->user();
-
-        if ($user instanceof User) {
-            $audit->record(
-                event: 'auth.logout',
-                actor: $user,
-                subject: $user,
-            );
-        }
-
-        Auth::guard('web')->logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        $logout->handle($request);
 
         return redirect()->route('home');
     }
