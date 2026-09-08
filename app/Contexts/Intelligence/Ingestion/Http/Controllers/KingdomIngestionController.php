@@ -47,7 +47,7 @@ final class KingdomIngestionController extends Controller
         }
         $account = $accounts->require((int) $request->user()?->getAuthIdentifier());
         $alliance = $alliances->require($scope->allianceId);
-        $allianceKingdom = $kingdoms->require($alliance->kingdomId);
+        $allianceKingdom = $kingdoms->requireActive($alliance->kingdomId);
         $subscriptions = $ingestion->subscriptionsForAlliance($alliance->allianceId);
         $kingdomRefs = $kingdoms->byIds(array_values($subscriptions->pluck('kingdom_id')->map(static fn ($id): string => (string) $id)->all()));
         $definitions = $adapters->definitions();
