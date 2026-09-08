@@ -7,6 +7,7 @@ namespace Tests\v3\Contexts\Accounts\Credentials;
 use App\Contexts\Accounts\Authentication\Actions\RecordAccountSession;
 use App\Contexts\Accounts\Authentication\Models\AccountSession;
 use App\Contexts\Accounts\Credentials\Actions\RemovePassword;
+use App\Contexts\Accounts\Credentials\Actions\RequestPasswordReset;
 use App\Contexts\Accounts\Credentials\Actions\ResetPassword;
 use App\Contexts\Accounts\Identity\Actions\AnonymizeAccount;
 use App\Contexts\Accounts\Identity\Models\User;
