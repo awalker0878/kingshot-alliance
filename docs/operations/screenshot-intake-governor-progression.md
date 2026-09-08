@@ -1,6 +1,6 @@
 # Screenshot Intake: Governor Progression Operations
 
-Status: Current complete capability — verified 2026-08-30
+Status: In progress — structured extension under HARD-010; original six-kind release verified 2026-08-30
 
 ## Operational boundary
 
@@ -38,6 +38,8 @@ For failed/stuck intake:
 10. Inspect semantic duplicate state before retrying commit.
 11. Inspect destination idempotency key/receipt before assuming an Evidence acknowledgement failure means the Roster write failed.
 
+For Buildings, Academy Research and War Academy Research, verify explicit supported English headings and `Building:`/`Technology:` rows. An absent level must stay unknown; a different or conflicting research heading must stop classification. Current corpora are synthetic OCR examples and do not establish support for arbitrary screenshots or languages. Correct reviewed names/IDs against the pinned family; never fill an unseen level with zero to bypass validation.
+
 ## Processing retry behavior
 
 The first normalization attempt establishes the automatic-processing Progression dataset pin, including when that attempt fails.
@@ -64,6 +66,7 @@ Before a destination write, verify exact Evidence/review, Alliance, roster entry
 - Charm level must fit the pinned Charm ladder.
 - Gear/Charm slot IDs are structural observation keys, not canonical Progression identities.
 - OCR-visible Charm names remain Evidence provenance; do not synthesize or manually enter a `charm_id` in v1.
+- Building/research subjects must resolve to the pinned family's exact IDs/labels. Level/state identity must agree, and each subject may occur once per observation. Missing levels and unknown subjects require explicit human correction before review can be approved.
 
 A directly visible structural/screen value is not permission to modify `GameWorld/Progression`.
 
@@ -99,6 +102,7 @@ Do not mark the family complete until the same immutable candidate passes:
 
 - clean PostgreSQL migration/install;
 - Governor schema/fixture/classification/extraction tests;
+- structured upload-to-commit pipeline checks, including real review provenance, wrong-class stops, missing levels, cross-Alliance rejection and destination replay;
 - dataset-retry pin regression tests;
 - Governor provenance interface/Transfer Evidence regression tests;
 - pinned catalogue-bound validation tests;

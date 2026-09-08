@@ -244,7 +244,7 @@ Narrow screenshot observations use a dedicated append-only Governor Progression 
 
 Each observation retains Alliance ID, Roster entry ID, Player ID, kind, typed payload, captured time, pinned dataset ID/checksum, `source=screenshot_evidence`, Evidence/review provenance, destination idempotency key and acceptance metadata.
 
-Evidence commits through six explicit Roster actions:
+Evidence commits through explicit Roster actions:
 
 - `RecordGovernorProfileEvidence`
 - `RecordHeroRosterEvidence`
@@ -252,6 +252,7 @@ Evidence commits through six explicit Roster actions:
 - `RecordHeroGearEvidence`
 - `RecordGovernorGearEvidence`
 - `RecordGovernorCharmsEvidence`
+- `RecordStructuredProgressionEvidence` for building/Academy/War Academy states
 
 Every action reacquires current authority, re-resolves target scope, validates exact approved-review provenance and pinned dataset, validates canonical IDs/factual bounds, appends owner history atomically, enforces stable destination idempotency and returns a scalar receipt.
 

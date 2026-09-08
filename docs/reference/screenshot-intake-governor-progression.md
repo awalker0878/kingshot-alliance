@@ -1,6 +1,6 @@
 # Screenshot Intake: Governor Progression Reference
 
-Status: Current complete capability — verified 2026-08-30
+Status: In progress — structured extension under HARD-010; original six-kind release verified 2026-08-30
 
 ## Purpose
 
@@ -16,6 +16,9 @@ Governor Progression Screenshot Intake converts supported KingShot screenshots i
 | `governor_hero_gear` | `governor-hero-gear/1` | `RecordHeroGearEvidence` |
 | `governor_gear` | `governor-gear/1` | `RecordGovernorGearEvidence` |
 | `governor_charms` | `governor-charms/1` | `RecordGovernorCharmsEvidence` |
+| `governor_buildings` | `governor-buildings/1` | `RecordStructuredProgressionEvidence` |
+| `governor_academy_research` | `governor-academy-research/1` | `RecordStructuredProgressionEvidence` |
+| `governor_war_academy_research` | `governor-war-academy-research/1` | `RecordStructuredProgressionEvidence` |
 
 Pets and Masters are unsupported until a later explicit schema/fixture release.
 
@@ -39,6 +42,8 @@ Generic Charm inventory/collection text does not count as Governor Charms withou
 
 Extraction is schema-bound. Compound rows keep distinct normalized candidates: Gear quality is separated from level/mastery/star, and Charm observed name is separated from level. The full OCR line remains retained as provenance.
 
+The structured extension recognizes explicit English `Buildings`, `Academy Research` and `War Academy Research` headings with `Building:` or `Technology:` rows. Level extraction requires an explicit `Level`/`Lv.` integer; absent levels remain unknown. Conflicting Academy/War Academy headings fail closed. These are narrow synthetic OCR contracts, not validation of arbitrary game layouts, image quality or languages.
+
 ## Normalization and automatic retry
 
 Every normalization attempt records the exact Progression dataset ID/checksum used. Canonical Hero matching resolves against that immutable release only.
@@ -55,6 +60,9 @@ Moving an existing Evidence record to another Progression release would require 
 - Charm level is bounded by the pinned Charm ladder.
 - Gear/Charm `slot_id` values are screen-local structural keys, not invented Progression entity identities.
 - An OCR-visible Charm name remains Evidence provenance; v1 rejects synthetic `charm_id` destination input.
+- Building and research review accepts only `states` rows. Reviewed subject IDs or exact case-insensitive labels must resolve in the pinned family; level and optional state ID must identify the same published state. Missing levels, unknown subjects and duplicate subjects are rejected.
+
+Building and technology names remain normalized text candidates until review. The Roster validator resolves reviewed subjects to canonical IDs; normalization does not invent an identity or a missing level.
 
 ## Observation semantics
 
@@ -83,6 +91,8 @@ The screenshot remains privately authorized. Error/confidence semantics do not r
 ## Fixture contract
 
 Each schema maps to an executable corpus under `tests/Fixtures/Evidence/GovernorProgression`. Corpora cover canonical, alternate-resolution, safe-crop, numeric-grouping, low-confidence, adjacent-number negative, missing-field, unsupported-UI, wrong-class, visual-duplicate, semantic-equal and semantic-newer cases. A field not fixture-proven/allowlisted cannot enter reviewed destination meaning.
+
+`StructuredGovernorProgressionPipelineV3Test` exercises real upload, independent classification, extraction, pinned normalization, review provenance and Roster commit/replay with only the external OCR result substituted. It also covers missing levels, wrong-class stops and foreign actor/scope rejection. Release verification is tracked under HARD-010 in the hardening delivery ledger.
 
 See also:
 

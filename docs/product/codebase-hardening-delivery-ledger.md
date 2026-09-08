@@ -5,15 +5,15 @@
 - Program state: In progress.
 - Exact main baseline: `7e780521295e868005ecfee5bd38b33e8215ec49`.
 - Working branch: `astra/codebase-hardening`.
-- Latest pushed durable checkpoint: `1591cb5a6c592788f2fafc225ad453f58cfb9d5e`.
+- Latest pushed durable checkpoint: `2bc1b49829b8dafc2bb93ad37f39636ef88efef3`.
 - Draft PR: [#163](https://github.com/awalker0878/kingshot-alliance/pull/163).
-- Current item/state: HARD-009 / In progress (implementation ready for CI behavior verification). HARD-004 integration gates and HARD-010 wider intake verification remain open.
-- Most recently verified gates: local Architecture/Progression 113 tests (67,161 assertions); full PHPStan zero errors; changed PHP Pint; full frontend `npm run check` including build/budgets; documentation links (234 files). CI on `57f383ab`: fresh PostgreSQL, style, PHPStan and frontend checks pass; 703/705 PHP tests pass, with only HARD-011 failures now repaired locally. HARD-005 behavior verified in that full run.
-- Active files: HARD-009 reminder occurrence transaction, PostgreSQL regressions and reminder product contract; ledger.
-- Remaining current work: publish HARD-009 checkpoint and verify its PostgreSQL race/retry cases in CI. Finish HARD-010 structured-intake integration/documentation and remaining repository audit.
-- Known failures: none in the latest completed PHP/frontend runs on `1591cb5a`. CI `34249019123` backend and frontend pass; container/staging/recovery is building. HARD-009 PostgreSQL regressions have not yet executed.
+- Current item/state: HARD-010 / In progress (full pipeline checks and documentation ready for CI). HARD-004 baseline and HARD-009 reminder verification are Complete on `2bc1b498`.
+- Most recently verified gates: all nine pull-request workflows pass on `2bc1b49829b8dafc2bb93ad37f39636ef88efef3`: CI (715 PHP tests, 72,953 assertions; frontend; production image, staging and recovery), Architecture V3, Intelligence, Gift Codes, King Perks, KingdomMaps, Visual Regression, CodeQL and Dependency Review. New HARD-010 test passes syntax/Pint/discovery; documentation links pass (234 files).
+- Active files: structured Governor pipeline test; current product/reference/architecture/operations screenshot contracts; ledger.
+- Remaining current work: verify eight new upload-to-commit pipeline cases in PostgreSQL CI, then close HARD-010 if all applicable gates pass. Repair HARD-013 lifecycle resurrection and continue remaining capability audit.
+- Known failures: none on pushed `2bc1b498`; new HARD-010 pipeline cases await CI. HARD-013 is a newly traced lifecycle defect, not a waived failure.
 - Blockers: local PostgreSQL/Redis services unavailable; service-backed verification uses GitHub CI. Local PHP 8.5.8 and locked Composer/npm dependencies available. Checkpoints publish via the authorized GitHub connection with exact staged-tree verification and non-forced branch updates.
-- Exact next action: publish HARD-009 checkpoint, inspect CI behavior, then finish HARD-010 full intake/review/commit verification and related documentation.
+- Exact next action: publish HARD-010 integration checkpoint; implement HARD-013 terminal lifecycle protection while CI executes; reconcile results and continue audit.
 - Remaining repository-wide gates: final full PHP/architecture/capability and frontend gates on one containing commit; production image/staging/recovery; final security/dependency/visual checks; remaining capability-by-capability audit coverage below.
 
 Checkpoint SHAs are recorded by the following documentation commit; verify that the recorded checkpoint is an ancestor of current branch HEAD. No audit area is complete solely because its paths have been inventoried.
@@ -70,11 +70,11 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: existing gates and corrected package implementations.
 - Rationale: a failing baseline cannot be treated as acceptable completion evidence or used to weaken tests.
 - Remediation: retrieve failure logs, reproduce applicable gates, assign distinct material defects new IDs, resolve them and repeat milestone gates.
-- State: Planned.
+- State: Complete.
 - Verification required: all applicable gates pass on the final containing commit.
-- Verification result: CI run `34239160645` and Architecture V3 run `34239160675` failed; details pending.
-- Completion evidence: pending.
-- Commit SHA: pending.
+- Verification result: baseline failures isolated and repaired through HARD-006–008 and HARD-011–012. All nine pull-request workflows pass on `2bc1b49829b8dafc2bb93ad37f39636ef88efef3`, including full PHP (715 tests, 72,953 assertions), fresh PostgreSQL, frontend, image/staging/recovery, architecture, all capability gates, visual, CodeQL and dependency review. This closes baseline reconciliation; final program verification must repeat on its final containing commit.
+- Completion evidence: CI `34249549762`, Architecture `34249549785`, Intelligence `34249549808`, Gift Codes `34249549756`, King Perks `34249549812`, KingdomMaps `34249549776`, Visual `34249549791`, CodeQL `34249549871`, Dependency Review `34249549769`; all success.
+- Commit SHA: verified candidate `2bc1b49829b8dafc2bb93ad37f39636ef88efef3`.
 
 ### HARD-005 — ReadModel notification orchestration
 
@@ -140,11 +140,11 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: same owner Action with an explicit reminder occurrence/claim boundary.
 - Rationale: stale processing must not erase a newer user intention; retries and parallel runs need stable occurrence identity.
 - Remediation: reproduce the reschedule race, revalidate/lock occurrence state at mutation and preserve new reminders; verify retry/idempotency semantics without network calls under a broad transaction.
-- State: In progress.
+- State: Complete.
 - Verification required: race regression preserving a rescheduled reminder, duplicate sweep/retry behavior and owner authorization.
-- Verification result: per-occurrence transaction, locked timestamp comparison and second-precision stable idempotency implemented. Six PostgreSQL regression cases cover changed/cancelled snapshots, same-minute separate occurrences, rollback/retry and the exact due/no-owner boundary. Changed-file Pint, PHP syntax and full PHPStan pass; documentation links pass (234 files). Local service-backed execution is unavailable; CI verification is required before completion.
+- Verification result: per-occurrence transaction, locked timestamp comparison and second-precision stable idempotency implemented. Six PostgreSQL regression cases cover changed/cancelled snapshots, same-minute separate occurrences, rollback/retry and the exact due/no-owner boundary. Changed-file Pint, PHP syntax and full PHPStan pass; documentation links pass (234 files). Full PostgreSQL CI now passes all 715 tests (72,953 assertions), including all six reminder regressions; Gift Code Verification and all other candidate workflows pass.
 - Completion evidence: QueueDueGiftCodeReminders and GiftCodeReminderOccurrenceV3Test; product reminder contract reconciled. No external network calls occur in Communications intent persistence.
-- Commit SHA: checkpoint recorded after publication; runtime verification pending.
+- Commit SHA: `2bc1b49829b8dafc2bb93ad37f39636ef88efef3`; CI `34249549762`, PHP job `102140300263`, Gift Code run `34249549756` pass.
 
 ### HARD-010 — Structured progression screenshot pipeline is incomplete
 
@@ -156,8 +156,8 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Remediation: complete explicit classifier/extractor contracts with fixtures, trace normalized review through typed destination validation, reconcile current documentation and test production routing/review behavior.
 - State: In progress.
 - Verification required: routed classification/extraction including mismatch/ambiguity/unknown fields; pinned-dataset review and destination behavior; full Intelligence, architecture, style and static analysis.
-- Verification result: narrow English heading/label extraction implemented with three 12-case synthetic OCR corpora. Classifier/extractor versions advanced for provenance. All 22 routing/schema/corpus tests pass (1,017 assertions); three real pinned-state validator cases pass (18 assertions), covering valid names and rejected missing/invalid/duplicate/mismatched states. Roster replay behavior expanded across all three kinds; database-backed verification pending in CI. Full PHPStan passes, changed PHP Pint and architecture verifier pass.
-- Completion evidence: routing/extraction, synthetic fixture corpora, structured pinned-state validation and expanded owner replay tests; screenshot contract now marks this extension In progress. Remaining: database-backed review/normalization/destination/authorization checks and reconcile related reference/architecture/operations contracts.
+- Verification result: narrow English heading/label extraction implemented with three 12-case synthetic OCR corpora. Classifier/extractor versions advanced for provenance. All 22 routing/schema/corpus tests pass (1,017 assertions); three real pinned-state validator cases pass (18 assertions), covering valid names and rejected missing/invalid/duplicate/mismatched states. Roster replay behavior across all three kinds passes PostgreSQL CI on `2bc1b498`. Eight new full upload/classification/extraction/normalization/review/commit cases use real provenance, replacing only external OCR; they cover missing levels, mismatch, cross-Alliance authority/scope and receipt replay. New test syntax, Pint and discovery pass; database execution awaits the containing checkpoint. Full PHPStan passes, changed PHP Pint and architecture verifier pass.
+- Completion evidence: routing/extraction, synthetic fixture corpora, structured pinned-state validation and expanded owner replay tests; screenshot contract now marks this extension In progress. Current reference/architecture/operations contracts now describe all nine schemas, exact reviewed structured-state validation and synthetic OCR limitations. Remaining: execute full pipeline checks and containing-commit gates in CI.
 - Commit SHA: `57f383abc0fb67787724f9cce4f18cdf71cd34de`.
 
 ### HARD-011 — Progression topology and prerequisite contract drift
@@ -188,6 +188,20 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Completion evidence: ProgressionPrerequisiteEvaluatorV3Test; exact level-owned provenance, strict integer semantics and superseded helper removal; current prerequisite contract reconciled.
 - Commit SHA: `1591cb5a6c592788f2fafc225ad453f58cfb9d5e`.
 
+### HARD-013 — Governor evidence terminal lifecycle can be overwritten
+
+- Area: Intelligence/Evidence normalization, review and deletion.
+- Finding: normalization replay unconditionally restores `needs_review`, including when Evidence is already approved, committed or deleted. Review saving does not reject deleted/redacted Evidence. Deletion also omits `normalizing` from its active-processing guard.
+- Current owner: NormalizeGovernorProgressionEvidence, SaveGovernorProgressionEvidenceReview and DeleteGovernorProgressionEvidence.
+- Intended authoritative owner: the same explicit owner Actions with terminal and active lifecycle invariants checked under lock.
+- Rationale: queue redelivery or stale review requests must not revive deleted provenance, reopen committed Evidence or race active normalization.
+- Remediation: protect terminal states, make completed normalization redelivery inert, reject stale reviews after deletion, and verify deletion/commit history remains intact.
+- State: Planned.
+- Verification required: real pipeline lifecycle regressions for deleted/approved/committed Evidence, stale review rejection and active normalization deletion; Intelligence and architecture checks.
+- Verification result: production trace confirms unguarded lifecycle assignments; behavioral reproduction pending.
+- Completion evidence: pending.
+- Commit SHA: pending.
+
 ## Repository audit coverage
 
 All rows below remain Planned until actual production paths have been traced. This table tracks audit scope, not discovered defects.
@@ -198,7 +212,7 @@ All rows below remain Planned until actual production paths have been traced. Th
 | GameWorld | Governors, Kingdoms/transfers/governance, progression facts/calculators, Gift Code facts/trust/evidence/redemption, KingdomMaps | Planned |
 | Alliance | Lifecycle, membership/rank/delegation, recruitment, content, territories/hive planning | Planned |
 | Operations | Events, participation, rallies, King Perks, results/Bear Hunt and reminders | Planned |
-| Intelligence | Observations, evidence, ingestion, contributions, projections/signals and retention | Planned |
+| Intelligence | Evidence/Roster structured pipeline traced under HARD-008/010/013; observations, other evidence families, ingestion, contributions, projections/signals and retention remain | In progress |
 | Communications | Preferences/recipients, inbox, delivery channels, digests, retry/idempotency and revocation | Planned |
 | Platform | Administration, integrations/API credentials, webhooks, retention and operational controls | Planned |
 | Workflows/ReadModels | All cross-context orchestration, authorized dashboards, Assistant/API/notification projections | Planned |

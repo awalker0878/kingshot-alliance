@@ -1,6 +1,6 @@
 # Intelligence / Evidence — Governor Progression Screenshots
 
-Status: Current complete capability — verified 2026-08-30
+Status: In progress — structured extension under HARD-010; original six-kind release verified 2026-08-30
 
 ## Responsibility
 
@@ -49,13 +49,18 @@ The only supported classes are:
 - `governor_hero_detail` — `governor-hero-detail/1`;
 - `governor_hero_gear` — `governor-hero-gear/1`;
 - `governor_gear` — `governor-gear/1`;
-- `governor_charms` — `governor-charms/1`.
+- `governor_charms` — `governor-charms/1`;
+- `governor_buildings` — `governor-buildings/1`;
+- `governor_academy_research` — `governor-academy-research/1`;
+- `governor_war_academy_research` — `governor-war-academy-research/1`.
 
 Pets, Masters and other panels require future explicit schemas/fixtures.
 
 The user-selected expected class is a hint. `GovernorProgressionEvidenceClassifier` independently selects a supported class or `unknown`. Generic Charm inventory/collection wording does not classify as Governor Charms without explicit Governor/Chief structure. Mismatches fail closed rather than blindly routing to the expected extractor.
 
 `GovernorProgressionEvidenceExtractor` is schema-bound and fixture-proven. Adjacent Gear quality/level/mastery/star and Charm name/level values are split into separate candidates while the complete raw OCR line remains provenance.
+
+The structured extension uses explicit English headings and `Building:`/`Technology:` rows with independently captured name and integer level candidates. Name-only rows retain unknown levels. Conflicting Academy/War Academy headings are ambiguous. Synthetic OCR corpora establish this narrow contract; they do not prove arbitrary game image layouts or languages.
 
 ## Progression normalization and retry pinning
 
@@ -78,23 +83,25 @@ Destination validation uses the pinned Progression release only where that relea
 - Charm level is bounded by the pinned Governor Charm ladder.
 - Hero Gear, Governor Gear and Charm `slot_id` values are closed screen-local structural keys, not invented Progression entity identities.
 - OCR-visible Charm names remain Evidence provenance in v1; a synthetic `charm_id` cannot cross into Roster.
+- Building/Academy/War Academy reviews contain only closed `states` rows. Exact reviewed subject IDs/labels resolve within the pinned family and level/state identity must agree with a published state. Unknown subjects, missing levels and duplicate subjects fail closed. Normalization retains name candidates; Roster validation owns canonical resolution of reviewed meaning.
 
 Screenshot Intake cannot create, rename, merge, correct or infer canonical Progression entities/facts.
 
 ## Review and handoff
 
-All six v1 classes require human review. The review surface exposes expected/detected class/confidence, schema/fixture version, raw OCR, normalized candidates, field confidence/warnings, canonical Hero match, pinned dataset, captured time, completeness semantics, duplicate state and destination preview.
+All nine v1 classes require human review. The review surface exposes expected/detected class/confidence, schema/fixture version, raw OCR, normalized candidates, field confidence/warnings, canonical Hero match, pinned dataset, captured time, completeness semantics, duplicate state and destination preview.
 
 Approved meaning is a closed typed union. Unknown keys are rejected. Missing fields remain unobserved.
 
-The six destination Actions are:
+The destination Actions are:
 
 - `RecordGovernorProfileEvidence`;
 - `RecordHeroRosterEvidence`;
 - `RecordHeroDetailEvidence`;
 - `RecordHeroGearEvidence`;
 - `RecordGovernorGearEvidence`;
-- `RecordGovernorCharmsEvidence`.
+- `RecordGovernorCharmsEvidence`;
+- `RecordStructuredProgressionEvidence` for the three structured kinds.
 
 Each action reacquires current Roster authority, validates exact Evidence/review provenance and pinned dataset, and delegates owner persistence/idempotency to the Roster writer.
 
