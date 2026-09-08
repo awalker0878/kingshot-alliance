@@ -106,6 +106,8 @@ Controllers, middleware, Vue components, and workflows consume this policy rathe
 
 Credential removal checks and mutations share the User row lock, including the maintained package's passkey deletion route. Accounts binds that route's deletion Action to `DeleteAccountPasskey`, which resolves the current owned passkey and applies the central last-method policy within the transaction. Package responses and post-deletion security events remain intact; the model no longer hides an unlocked policy callback.
 
+Passkey routes are account operations and do not require an active Governor or game-context version. They retain their own authentication, recent-proof, ownership, WebAuthn verification and rate-limit boundaries. Game mutations still require the current Governor authority context.
+
 ## Recent authentication
 
 Sensitive operations use a generic **Confirm it's you** boundary. Recent proof records the successful method and authentication time. Password, Google, and passkey proof may satisfy the boundary when available. The historical `password.confirm` route/middleware alias may remain as a compatibility name inside the codebase, but it no longer means that the User must possess a password.

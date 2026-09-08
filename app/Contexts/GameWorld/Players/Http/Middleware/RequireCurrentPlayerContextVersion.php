@@ -33,6 +33,7 @@ final readonly class RequireCurrentPlayerContextVersion
         'account.',
         'governors.',
         'login.',
+        'passkey.',
         'password.',
         'platform.',
         'profile.',

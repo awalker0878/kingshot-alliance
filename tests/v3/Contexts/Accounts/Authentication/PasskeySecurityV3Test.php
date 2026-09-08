@@ -179,6 +179,20 @@ final class PasskeySecurityV3Test extends TestCase
         $this->assertDatabaseHas('passkeys', ['id' => $foreign->id]);
     }
 
+    public function test_account_without_governors_can_reach_passkey_registration_and_confirmation_validation(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)->withSession(['accounts.recent_authentication_at' => now()->timestamp])
+            ->postJson('/user/passkeys', [])
+            ->assertUnprocessable()->assertJsonValidationErrors(['name', 'credential']);
+        $this->withCookie((string) config('session.cookie'), session()->getId())
+            ->postJson('/passkeys/confirm', [])
+            ->assertUnprocessable()->assertJsonValidationErrors('credential');
+
+        $this->assertDatabaseMissing('passkeys', ['user_id' => $user->id]);
+    }
+
     private function passkeyFor(User $user, string $credentialId): AccountPasskey
     {
         $passkey = new AccountPasskey;
