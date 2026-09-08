@@ -54,13 +54,13 @@ final class ProfileController extends Controller
             ->where('user_id', $user->id)
             ->latest('created_at')
             ->get()
-            ->map(fn (AccountPasskey $passkey): array => [
+            ->map(static fn (AccountPasskey $passkey): array => [
                 'id' => (string) $passkey->public_id,
                 'name' => (string) $passkey->name,
                 'authenticator' => $passkey->authenticator,
                 'createdAt' => $passkey->created_at?->toIso8601String(),
                 'lastUsedAt' => $passkey->last_used_at?->toIso8601String(),
-                'canRemove' => $signInMethods->canRemovePasskey($user, (int) $passkey->id),
+                'canRemove' => $methodSummary['canRemoveOwnedPasskey'],
             ])
             ->values()
             ->all();
@@ -79,8 +79,8 @@ final class ProfileController extends Controller
                 'passkeyAuthentication' => $methodSummary['passkeys'] > 0,
                 'passkeyCount' => $methodSummary['passkeys'],
                 'signInMethodCount' => $methodSummary['count'],
-                'canRemovePassword' => $signInMethods->canRemovePassword($user),
-                'canDisconnectGoogle' => $signInMethods->canDisconnectGoogle($user),
+                'canRemovePassword' => $methodSummary['canRemovePassword'],
+                'canDisconnectGoogle' => $methodSummary['canDisconnectGoogle'],
                 'providerEmail' => $googleIdentity?->provider_email,
                 'twoFactorEnabled' => $user->two_factor_confirmed_at !== null,
                 'twoFactorPending' => $user->two_factor_secret !== null && $user->two_factor_confirmed_at === null,

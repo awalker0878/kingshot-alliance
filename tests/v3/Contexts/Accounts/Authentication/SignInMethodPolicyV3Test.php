@@ -34,6 +34,9 @@ final class SignInMethodPolicyV3Test extends TestCase
             'google' => false,
             'passkeys' => 0,
             'count' => 1,
+            'canRemovePassword' => false,
+            'canDisconnectGoogle' => false,
+            'canRemoveOwnedPasskey' => false,
         ], $policy->summary($user));
 
         AccountIdentity::query()->create([
@@ -60,6 +63,9 @@ final class SignInMethodPolicyV3Test extends TestCase
             'google' => true,
             'passkeys' => 1,
             'count' => 3,
+            'canRemovePassword' => true,
+            'canDisconnectGoogle' => true,
+            'canRemoveOwnedPasskey' => true,
         ], $policy->summary($user->refresh()));
     }
 

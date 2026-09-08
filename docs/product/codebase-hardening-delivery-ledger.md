@@ -5,15 +5,15 @@
 - Program state: In progress.
 - Exact main baseline: `7e780521295e868005ecfee5bd38b33e8215ec49`.
 - Working branch: `astra/codebase-hardening`.
-- Latest pushed durable checkpoint: `b3b8daf4867f4f1fd07b56d277a3116ce3e01320`.
+- Latest pushed durable checkpoint: `6fb42491d5f998bb57de1ec1c007a36c3c789f61`.
 - Draft PR: [#163](https://github.com/awalker0878/kingshot-alliance/pull/163).
-- Current item/state: HARD-023 / In progress (passkey account/game boundary). HARD-021 and HARD-022 owner behavior pass; containing gates await this route-boundary repair.
+- Current item/state: HARD-024 / In progress (profile credential query budget). HARD-021–023 pass the full PHP suite; remaining containing gates are running.
 - Most recently verified gates: all nine PR workflows pass on `94c95511cbf55abc911abd5590c8f75debb553f5`, including 752 PHP tests / 73,772 assertions, fresh PostgreSQL, frontend, image/staging/recovery, architecture/capabilities, visual and security.
-- Active files: Governor context middleware exemption for account passkey routes, package registration/confirmation regression, Accounts contract and ledger.
-- Remaining current work: verify HARD-023 and reconcile HARD-021/022, then HARD-024 profile query scaling and remaining registration/deletion orchestration handoff audit.
-- Known failures: the two new passkey HTTP cases on `b3b8daf4` receive game-context 409 before reaching Accounts. The real competing-connection serialization test and all 14 MFA cases pass. HARD-023 repairs the misplaced game prerequisite; containing verification pending.
+- Active files: Accounts sign-in-method policy/profile projection, query-budget regression and policy contract tests, Accounts contract and ledger.
+- Remaining current work: verify HARD-024 and reconcile HARD-021–023 containing gates; repair onboarding partial writes under HARD-025, then finish deletion handoff and remaining repository audit.
+- Known failures: none in the full PHP suite on `6fb42491` (770 tests, 74,107 assertions). Other containing workflows are still running; HARD-024 query-budget tests await PostgreSQL CI.
 - Blockers: local PostgreSQL/Redis services unavailable; service-backed verification uses GitHub CI. Local PHP 8.5.8 and locked Composer/npm dependencies available. Checkpoints publish via the authorized GitHub connection with exact staged-tree verification and non-forced branch updates.
-- Exact next action: publish HARD-023 and verify its containing workflows; resume the Accounts profile query-budget remediation under HARD-024, then remaining repository audit coverage.
+- Exact next action: publish HARD-024 and verify containing workflows, then implement the owner-composition transaction repair under HARD-025 with adversarial invitation failure coverage.
 - Remaining repository-wide gates: final full PHP/architecture/capability and frontend gates on one containing commit; production image/staging/recovery; final security/dependency/visual checks; remaining capability-by-capability audit coverage below.
 
 Checkpoint SHAs are recorded by the following documentation commit; verify that the recorded checkpoint is an ancestor of current branch HEAD. No audit area is complete solely because its paths have been inventoried.
@@ -338,7 +338,7 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Remediation: add the explicit account passkey prefix to the existing exemption registry; retain authentication/recent-proof/ownership/WebAuthn/rate-limit checks and game mutation tests.
 - State: In progress.
 - Verification required: real package deletion, foreign/final-method denial, registration/confirmation input validation without any Governor; unchanged stale/missing/current game-context behavior.
-- Verification result: the two HARD-022 HTTP cases reproduce the misplaced 409 gate. The account prefix is now exempt; an additional real HTTP case covers registration and confirmation reaching their own validation without a Governor. Full PHPStan passes with zero errors; changed-file Pint, diff checks and documentation links pass. PostgreSQL verification pending.
+- Verification result: the two HARD-022 HTTP cases reproduce the misplaced 409 gate. The account prefix is now exempt; an additional real HTTP case covers registration and confirmation reaching their own validation without a Governor. Full PHPStan passes with zero errors; changed-file Pint, diff checks and documentation links pass. All package HTTP regressions, existing game-context preconditions and the full PostgreSQL suite pass on `6fb42491` (770 tests, 74,107 assertions); PHP job `102177121125`. Final containing gates are running.
 - Completion evidence: pending.
 - Commit SHA: pending.
 
@@ -350,9 +350,23 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: one read-time Accounts method summary with derived removal eligibility; owner Actions retain locked policy revalidation.
 - Rationale: the number of displayed credentials must not multiply database round trips or introduce a second UI permission authority.
 - Remediation: derive projection eligibility once through the policy, preserve locked mutation checks, and verify a constant query budget with multiple own/foreign credentials and final-method states.
-- State: Planned.
+- State: In progress.
 - Verification required: one versus many passkeys use a constant query count; correct removal flags and account isolation; mutation concurrency/last-method tests remain intact.
-- Verification result: ProfileController and all AccountSignInMethodPolicy methods traced; exact repeated queries identified. Remediation pending.
+- Verification result: The policy summary now derives all removal flags from one current credential count. Profile uses that summary for its already account-scoped passkey list; mutation Actions retain owner locks and current ownership/policy revalidation. Three projection cases cover one versus 40 passkeys, foreign credential isolation, each final-method kind and combined password/Google removal. Full PHPStan and changed-file Pint pass. PostgreSQL query-budget verification pending.
+- Completion evidence: pending.
+- Commit SHA: pending.
+
+### HARD-025 — Failed invitation onboarding leaves Player ownership or registration committed
+
+- Area: AccountOnboarding workflow, Accounts registration and Alliance invitation acceptance.
+- Finding: AcceptInvitationForAccount commits ClaimPlayerAccount before AcceptInvitation checks the account email and current Alliance/roster state. A denied invitation can leave the Player claimed by the rejected account. RegisterAccount separately commits the new account and claim before invitation acceptance, and RegisterUser sends verification mail before any enclosing onboarding operation could finish.
+- Current owner: AccountOnboarding sequences independently transactional Accounts/GameWorld/Alliance Actions.
+- Intended authoritative owner: owner Actions retain all validation, locking and persistence; the onboarding command must have an explicit atomic composition boundary for its dependent changes and after-commit external effects.
+- Rationale: a failed invitation must not grant Player ownership or leave an unusable partial registration; preflight snapshot checks alone cannot close state-change races. The current blanket prohibition on Workflow transactions conflicts with this dependent command invariant and requires an explicit architecture decision, not a hidden transaction wrapper.
+- Remediation: define and document the narrowly scoped atomic composition rule, implement consistent current-account validation and owner-action rollback, defer verification delivery until commit, and exercise real wrong-email/stale/inactive/claimed invitation failures and success.
+- State: Planned.
+- Verification required: rejected existing-account acceptance leaves ownership/history/audit unchanged; failed registration leaves no account/identity/claim/outbox/mail; successful onboarding commits all owner effects once; current owner checks and architecture remain enforced.
+- Verification result: Workflow and all three owner Action implementations traced; deterministic wrong-email partial claim identified. Implementation pending.
 - Completion evidence: pending.
 - Commit SHA: pending.
 
@@ -362,7 +376,7 @@ All rows below remain Planned until actual production paths have been traced. Th
 
 | Area | Required authority/scalability review | State |
 | --- | --- | --- |
-| Accounts | Identity/provider queries, authentication/credential owners, sessions, MFA, profile/email/reset and account-side deletion traced; repairs under HARD-018–022. Profile/scalability budgets and registration/deletion orchestration handoff review remain | In progress |
+| Accounts | Identity/provider queries, authentication/credential owners, sessions, MFA, profile/email/reset and account-side deletion traced; repairs under HARD-018–024. Registration/invitation partial writes identified under HARD-025; deletion orchestration handoff review remains | In progress |
 | GameWorld | Progression dataset/topology/prerequisite and Gift Code reminder paths traced (HARD-007/009/011/012); Governors, Kingdoms/transfers/governance, remaining Gift Codes/calculators and KingdomMaps audit remain | In progress |
 | Alliance | Lifecycle, membership/rank/delegation, recruitment, content, territories/hive planning | Planned |
 | Operations | Events, participation, rallies, King Perks, results/Bear Hunt and reminders | Planned |

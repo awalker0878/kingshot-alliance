@@ -28,41 +28,37 @@ final class AccountSignInMethodPolicy
 
     public function usableMethodCount(int|User $account): int
     {
-        $user = $this->user($account);
-
-        return ($this->hasPassword($user) ? 1 : 0)
-            + ($this->hasGoogle($user) ? 1 : 0)
-            + $this->passkeyCount($user);
+        return $this->summary($account)['count'];
     }
 
-    /** @return array{password:bool,google:bool,passkeys:int,count:int} */
+    /** @return array{password:bool,google:bool,passkeys:int,count:int,canRemovePassword:bool,canDisconnectGoogle:bool,canRemoveOwnedPasskey:bool} */
     public function summary(int|User $account): array
     {
         $user = $this->user($account);
         $password = $this->hasPassword($user);
         $google = $this->hasGoogle($user);
         $passkeys = $this->passkeyCount($user);
+        $count = ($password ? 1 : 0) + ($google ? 1 : 0) + $passkeys;
 
         return [
             'password' => $password,
             'google' => $google,
             'passkeys' => $passkeys,
-            'count' => ($password ? 1 : 0) + ($google ? 1 : 0) + $passkeys,
+            'count' => $count,
+            'canRemovePassword' => $password && $count > 1,
+            'canDisconnectGoogle' => $google && $count > 1,
+            'canRemoveOwnedPasskey' => $passkeys > 0 && $count > 1,
         ];
     }
 
     public function canRemovePassword(int|User $account): bool
     {
-        $user = $this->user($account);
-
-        return $this->hasPassword($user) && $this->usableMethodCount($user) > 1;
+        return $this->summary($account)['canRemovePassword'];
     }
 
     public function canDisconnectGoogle(int|User $account): bool
     {
-        $user = $this->user($account);
-
-        return $this->hasGoogle($user) && $this->usableMethodCount($user) > 1;
+        return $this->summary($account)['canDisconnectGoogle'];
     }
 
     public function canRemovePasskey(int|User $account, int $passkeyId): bool
@@ -73,7 +69,7 @@ final class AccountSignInMethodPolicy
             ->where('id', $passkeyId)
             ->where('user_id', $user->id)
             ->exists()
-            && $this->usableMethodCount($user) > 1;
+            && $this->summary($user)['canRemoveOwnedPasskey'];
     }
 
     private function user(int|User $account): User

@@ -198,3 +198,5 @@ Google operation starts/callbacks, password establishment/removal, passkey regis
 20. Final containing-commit verification and promotion to Current complete capability.
 
 This document is the canonical product contract for the current complete capability. Future credential or recovery changes must preserve these security invariants and ownership boundaries or explicitly supersede them through a new product/architecture decision.
+
+The profile derives credential-removal availability from one Accounts policy summary. Its credential query count remains constant as the account adds passkeys; listed credentials are account-scoped. These display flags are advisory: each mutation revalidates the current owner and final-method rule under the User lock.
