@@ -5,9 +5,9 @@
 - Program state: In progress.
 - Exact main baseline: `7e780521295e868005ecfee5bd38b33e8215ec49`.
 - Working branch: `astra/codebase-hardening`.
-- Latest pushed durable checkpoint: `b3c58f3cc253272f99aac51c2243a9ddbf468104`.
+- Latest pushed durable checkpoint: `c0c65ba998557d79d2d3c27336ee49749befd860`.
 - Draft PR: [#163](https://github.com/awalker0878/kingshot-alliance/pull/163).
-- Current item/state: HARD-037 / In progress (Google and registration login integration). HARD-032/033/034/036/038/039 containing gates are running on the pushed passkey checkpoint.
+- Current item/state: HARD-040 / In progress (patched js-yaml dependency); HARD-037 passkey login and HARD-041 validation feedback are being implemented. HARD-032/033/034/036/038/039 containing gates are running on the pushed passkey checkpoint.
 - Most recently verified gates: all nine PR workflows pass on `8c6b8a7a29a7d0bc1ecba9a1aa579bc88e828d5e`, including 876 PHP tests / 75,032 assertions, fresh PostgreSQL, frontend, image/staging/recovery, architecture/capabilities, visual and security.
 - Active files: AuthenticateWithGoogle, expected-account password auto-login binding, thin Google/registration Workflow adapters, removed detached MFA query/audit/challenge helpers, 11 additional login binding/race/registration cases and owner docs.
 - Remaining current work: verify HARD-032/033/034/036 containing gates; implement HARD-037 login proof freshness and HARD-038 recent-proof atomicity; continue repository audit coverage.
@@ -536,7 +536,7 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Verification required: real competing credential removal/reset/finalization cannot grant new access from stale proof; valid password, Google, MFA, remembered and passkey logins retain their intended assurance; audit/storage failures cannot leave partial authentication.
 - Verification result: Password, Google and registration controllers establish sessions before separately committing login audit/tracking; maintained PasskeyLoginController likewise logs in after VerifyPasskey returns. VerifyPasskey locks the credential first, validates/updates its counter and emits PasskeyVerified inside its package transaction; Accounts must preserve maintained validation while coordinating the account-first lifecycle. CompleteMfaLogin binds current fingerprints and consumes recovery under lock but calls Auth.login within that transaction; SessionGuard.updateSession destroys raw storage through regenerate(true). Maintained Event.defer can buffer Login/Authenticated until an explicit completion succeeds, avoiding a custom event dispatcher. Current-proof owner completion must recheck the selected credential and account/MFA/remember state, keep raw session writes outside database locks, retain recovery-code atomicity, and invalidate prepared authentication on pre-commit failure. The first implementation slice adds immutable VerifiedAccountLogin and AccountLoginProofs over existing authoritative credential/remember/MFA state. AuthenticateWithPassword uses maintained provider validation/rehashing under the active account lock and starts MFA without a transient login. CompleteAccountLogin prepares raw guard rotation outside database transactions, then rechecks proof and atomically commits recovery consumption, initial remember token, session registration and login audit. It rejects enclosing transactions; maintained Login/Authenticated events defer until commit, and failed preparation/commit clears transient authentication while preserving valid MFA retries. CompleteMfaLogin delegates; challenge state uses the same proof contract. Fifteen new database cases cover actual HTTP event/remember/session ordering, six late/storage failure and retry cases, five real competing credential/lifecycle transitions during raw rotation, competing revocation during final registration, MFA guest assurance and enclosing-transaction rejection. Existing 14 MFA HTTP cases now use real commits. Full PHPStan/Pint, documentation links and 62 architecture cases pass locally (67,527 assertions); ADR-0020 records the explicit boundary and consequences. PostgreSQL verification pending. The password/MFA slice and corrected passkey fixtures are pushed in b3c58f3c. PostgreSQL CI runs 979 tests with nine fixture failures: eight absent-token checks incorrectly expect null from the getter that normalizes to an empty string, and one old session integration suite uses an enclosing fixture transaction. Assertions now check the raw persisted token column and the suite uses real commits; all passkey confirmation cases and password/MFA success/concurrency/stale-primary paths pass. Cleanup also clears the prepared guard ID before logout to avoid reloading it and emitting Authenticated on an aborted raw rotation; the six failure cases now observe both authentication events. Containing verification remains pending. The second slice adds AuthenticateWithGoogle with current active account/exact verified subject binding and provider-use writes under the owner lock, then the same challenge/completion path. Google/password registration now complete against current credentials after onboarding commits; password auto-login pins the exact registration account. Google connection delegates current proof to ConfirmGoogleAccount. Detached Workflow login/audit, MFA lookup and the unused MFA query are removed. Eleven additional cases cover five real competing Google transitions, three rejected account/subject/removed-identity bindings, exact registration account binding, actual registration success and failed auto-login after committed onboarding. Existing Google integration fixtures use real commits and per-case client limits. PHPStan, Pint and 62 Architecture cases pass; containing verification pending. Passkey login, recaller and logout integration remain.
 - Completion evidence: pending.
-- Commit SHA: password/MFA slice `b3c58f3cc253272f99aac51c2243a9ddbf468104`; Google/registration slice pending.
+- Commit SHA: password/MFA slice `b3c58f3cc253272f99aac51c2243a9ddbf468104`; Google/registration slice `c0c65ba998557d79d2d3c27336ee49749befd860`; containing gates running.
 
 ### HARD-038 — Recent-authentication proof can survive a failed or stale confirmation
 
@@ -563,6 +563,34 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - State: In progress.
 - Verification required: the full parallel PHP gate rebuilds all isolated schemas without lock exhaustion; fresh-schema and container recovery checks remain green.
 - Verification result: diagnosed from CI 34279237528 / PHP 102239722423. The effective setting/readiness and fresh installation pass in CI 34280724036 / PHP 102244549681. All 949 tests complete without lock exhaustion; one independent reset scenario collides with the shared IP limiter and is corrected with per-scenario clients. Containing verification pending.
+- Completion evidence: pending.
+- Commit SHA: pending.
+
+### HARD-040 — Newly disclosed js-yaml denial-of-service advisory blocks dependency review
+
+- Area: locked frontend development dependency graph.
+- Finding: Dependency Review on c0c65ba9 reports GHSA-2883-xcg3-v3hh (high): js-yaml 4.0.0–4.3.1 does not bound CPU use for empty YAML merge sources. The locked ESLint/eslintrc chain resolves js-yaml 4.3.1.
+- Current owner: package-lock.json and maintained npm resolution.
+- Intended authoritative owner: the existing lockfile with the compatible maintained patch release.
+- Rationale: retain the security gate and reproducible dependency graph when a new advisory appears during execution.
+- Remediation: update only the js-yaml entry to 4.3.2 through npm resolution, preserve unrelated platform constraints, reinstall the exact lockfile and run audit/frontend gates.
+- State: In progress.
+- Verification required: locked audit has no high/critical finding; frontend checks/build and containing dependency/security gates pass.
+- Verification result: Dependency Review 34284534326 / job 102256916304 identifies the precise advisory/range; npm resolves compatible 4.3.2; only its version/resolution/integrity entry changes, preserving unrelated platform constraints. npm ci, npm audit (zero vulnerabilities) and the full npm run check pass locally, including lint, formatting, types, tests, build/localization and performance budgets. Containing verification pending.
+- Completion evidence: pending.
+- Commit SHA: pending.
+
+### HARD-041 — Maintained WebAuthn ceremony rejections surface as server errors
+
+- Area: account passkey registration and assertion HTTP error contract.
+- Finding: Maintained WebAuthn validators throw AuthenticatorResponseVerificationException or CounterException for rejected ceremonies. Current Accounts adapters propagate them through thin package HTTP controllers, and no exception renderer maps them to validation feedback. Invalid challenges/origins/signatures/counters can therefore return HTTP 500.
+- Current owner: account adapters around maintained StorePasskey and VerifyPasskey.
+- Intended authoritative owner: the same adapters translate known ceremony rejections to the maintained InvalidPasskeyException credential-validation contract; cryptographic validation stays maintained.
+- Rationale: invalid browser ceremonies must be actionable validation failures while operational/database failures remain visible and atomic.
+- Remediation: narrowly translate known verifier rejections and exercise actual HTTP validation/retry with real signed assertions.
+- State: Planned.
+- Verification required: invalid assertions and registration ceremonies return bounded credential errors, mutate no successful proof/counter/audit state, and valid fresh ceremonies still succeed; operational exceptions retain rollback/failure behavior.
+- Verification result: maintained action/controller/exception sources traced; implementation pending.
 - Completion evidence: pending.
 - Commit SHA: pending.
 
