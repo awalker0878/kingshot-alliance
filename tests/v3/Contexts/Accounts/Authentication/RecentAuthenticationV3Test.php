@@ -11,6 +11,7 @@ use Laravel\Socialite\Contracts\Provider;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\User as SocialiteUser;
 use Mockery;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\v3\TestCase;
 
 final class RecentAuthenticationV3Test extends TestCase
@@ -40,6 +41,50 @@ final class RecentAuthenticationV3Test extends TestCase
         $this->actingAs($googleUser)
             ->post('/profile/two-factor')
             ->assertRedirect(route('password.confirm'));
+    }
+
+    #[DataProvider('obsoleteProofKeys')]
+    public function test_obsolete_timestamps_cannot_authorize_sensitive_operations(string $key): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->withSession([
+                'accounts.recent_authentication_at' => 0,
+                $key => now()->timestamp,
+            ])
+            ->post('/profile/two-factor')
+            ->assertRedirect(route('password.confirm'));
+
+        self::assertNull($user->refresh()->two_factor_secret);
+    }
+
+    /** @return array<string, array{string}> */
+    public static function obsoleteProofKeys(): array
+    {
+        return [
+            'password timestamp' => ['auth.password_confirmed_at'],
+            'Google timestamp' => ['accounts.google_reauthenticated_at'],
+        ];
+    }
+
+    public function test_password_confirmation_creates_canonical_proof_for_sensitive_operations(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->post('/confirm-password', ['password' => 'password'])
+            ->assertRedirect(route('dashboard'))
+            ->assertSessionHas('accounts.recent_authentication_method', 'password')
+            ->assertSessionHas('accounts.recent_authentication_at')
+            ->assertSessionMissing('auth.password_confirmed_at')
+            ->assertSessionMissing('accounts.google_reauthenticated_at');
+
+        $this->post('/profile/two-factor')
+            ->assertRedirect(route('profile.show'))
+            ->assertSessionHas('twoFactorSetup');
+
+        self::assertNotNull($user->refresh()->two_factor_secret);
     }
 
     public function test_google_reauthentication_marks_generic_recent_proof_only_for_matching_subject(): void

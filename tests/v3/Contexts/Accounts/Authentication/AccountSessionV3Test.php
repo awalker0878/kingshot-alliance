@@ -48,7 +48,7 @@ final class AccountSessionV3Test extends TestCase
         ]);
 
         $this->actingAs($user)
-            ->withSession(['auth.password_confirmed_at' => now()->timestamp])
+            ->withSession(['accounts.recent_authentication_at' => now()->timestamp])
             ->delete('/profile/security/sessions/'.$record->public_id)
             ->assertNotFound();
     }

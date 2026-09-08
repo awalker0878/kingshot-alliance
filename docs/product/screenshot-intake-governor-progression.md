@@ -1,6 +1,6 @@
 # Screenshot Intake: Governor Progression
 
-Status: In progress — retention hardening under HARD-014–015; nine-kind pipeline verified 2026-09-08
+Status: Complete — nine-kind pipeline, lifecycle, retention and query-budget hardening verified 2026-09-08
 
 This document is the single implementation source of truth for Screenshot Intake: Governor Progression. The capability is not complete until every requirement and delivery-ledger item below agrees with implementation, tests, UX, architecture/reference/operations documentation and all applicable repository gates on one immutable candidate SHA.
 
@@ -388,4 +388,4 @@ Status values: `Planned`, `In progress`, `Complete`, `Blocked`. `Complete` requi
 | GP-21 | Unit/feature/fixture/authorization/idempotency/interface/catalogue-bound tests | Complete |
 | GP-22 | Repository-wide release verification on one immutable candidate | Complete |
 
-The six-kind release remains the historical verified baseline. The nine-kind pipeline and lifecycle guards pass all candidate workflows on `5a01bf68930c52cfac3ee77564e2f5a1570ae1ad` (727 PHP tests, 73,144 assertions). HARD-010 and HARD-013 are Complete in the [hardening ledger](codebase-hardening-delivery-ledger.md). The capability remains In progress until HARD-014 retention and HARD-015 redaction repairs pass verification.
+The six-kind release remains the historical verified baseline. The nine-kind pipeline, lifecycle guards, retention/redaction and bounded summary queries pass all nine candidate workflows on `51416d5d70c93393a657b232e488788072d63a00` (737 PHP tests, 73,514 assertions). HARD-010 and HARD-013–017 are Complete in the [hardening ledger](codebase-hardening-delivery-ledger.md). This capability verification does not complete the repository-wide hardening program.

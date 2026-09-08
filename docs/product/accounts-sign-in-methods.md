@@ -108,6 +108,8 @@ Controllers, middleware, Vue components, and workflows consume this policy rathe
 
 Sensitive operations use a generic **Confirm it's you** boundary. Recent proof records the successful method and authentication time. Password, Google, and passkey proof may satisfy the boundary when available. The historical `password.confirm` route/middleware alias may remain as a compatibility name inside the codebase, but it no longer means that the User must possess a password.
 
+`RecentAuthentication` owns the single session proof (`accounts.recent_authentication_at`, method and optional credential reference). Every successful confirmation writes this proof; sensitive operations accept only this proof within the configured timeout. Superseded password/Google timestamps neither grant recent authentication nor receive dual writes.
+
 ## Passkeys
 
 Use the maintained first-party `laravel/passkeys` server package and `@laravel/passkeys` browser client. Do not implement WebAuthn cryptography directly.

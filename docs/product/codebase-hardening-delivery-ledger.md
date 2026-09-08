@@ -5,15 +5,15 @@
 - Program state: In progress.
 - Exact main baseline: `7e780521295e868005ecfee5bd38b33e8215ec49`.
 - Working branch: `astra/codebase-hardening`.
-- Latest pushed durable checkpoint: `cf25fba039e0c123cc30546d9300db31f44a5eca`.
+- Latest pushed durable checkpoint: `51416d5d70c93393a657b232e488788072d63a00`.
 - Draft PR: [#163](https://github.com/awalker0878/kingshot-alliance/pull/163).
-- Current item/state: HARD-017 / In progress (query-budget implementation ready for PostgreSQL CI). HARD-014–016 behavior now passes on `cf25fba0`; containing image/recovery gates are running.
-- Most recently verified gates: all nine PR workflows pass on `5a01bf68930c52cfac3ee77564e2f5a1570ae1ad`, including 727 PHP tests / 73,144 assertions, fresh PostgreSQL, frontend, image/staging/recovery, architecture/capabilities, visual and security. HARD-014 full PHPStan and changed-file Pint pass locally.
-- Active files: Governor screenshot summary batching, bounded-query regression, fresh-schema history indexes and projection contracts; ledger.
-- Remaining current work: verify HARD-017 and all candidate gates; reconcile HARD-014–017 completion evidence, then continue the remaining repository coverage beginning with Accounts authority/lifecycle paths.
-- Known failures: the HARD-015 required-string mismatch is repaired in `cf25fba0`; its full PHP, frontend and Intelligence jobs pass. No known current failing checks; remaining image/recovery and HARD-017 checks must still complete.
+- Current item/state: HARD-018 / In progress (canonical recent-authentication proof); HARD-019 session revocation traced and queued. HARD-014–017 are verified Complete.
+- Most recently verified gates: all nine PR workflows pass on `51416d5d70c93393a657b232e488788072d63a00`, including 737 PHP tests / 73,514 assertions, fresh PostgreSQL, frontend, image/staging/recovery, architecture/capabilities, visual and security.
+- Active files: Accounts recent-authentication service/controller, proof boundary and authorized-route tests, Accounts contract and hardening ledger.
+- Remaining current work: verify HARD-018 canonical proof and repair HARD-019 session revocation; continue Accounts identity/credentials/registration/profile/deletion and remaining repository coverage.
+- Known failures: none on verified checkpoint `51416d5d`; HARD-018 changes await service-backed verification.
 - Blockers: local PostgreSQL/Redis services unavailable; service-backed verification uses GitHub CI. Local PHP 8.5.8 and locked Composer/npm dependencies available. Checkpoints publish via the authorized GitHub connection with exact staged-tree verification and non-forced branch updates.
-- Exact next action: publish HARD-017 checkpoint, inspect query-budget and full CI results, reconcile the durable candidate evidence, then audit Accounts identity/session/credential/registration/profile/deletion ownership and authorization.
+- Exact next action: publish HARD-018 with regression coverage, then make revoked session markers durable and enforce them before protected requests under HARD-019.
 - Remaining repository-wide gates: final full PHP/architecture/capability and frontend gates on one containing commit; production image/staging/recovery; final security/dependency/visual checks; remaining capability-by-capability audit coverage below.
 
 Checkpoint SHAs are recorded by the following documentation commit; verify that the recorded checkpoint is an ancestor of current branch HEAD. No audit area is complete solely because its paths have been inventoried.
@@ -210,11 +210,11 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: same Evidence retention Action across its explicit family commit ledgers.
 - Rationale: retention must preserve completed handoffs and make bounded progress on eligible work for every supported family.
 - Remediation: use one family-complete committed predicate in candidate selection and locked revalidation; filter eligible expiration/status before the batch limit; retain tombstones and receipts.
-- State: In progress.
+- State: Complete.
 - Verification required: all family commit provenance survives binary retention; deleted committed tombstones persist; active/not-yet-due rows do not starve expired records; retry and existing retention suites pass.
-- Verification result: all four GameEvidence family commit ledgers now share one success predicate in candidate filtering and locked revalidation; due/active filtering precedes the batch limit. Five regressions cover real Governor/Transfer commits, spatial handoff tombstones, ineligible-head starvation and a newly committed candidate. Existing Bear Hunt retention remains covered. Full PHPStan zero errors and changed-file Pint pass. Fresh-schema indexes support global age ordering and evidence/status commit lookups; PostgreSQL execution awaits CI. Alliance roster intake uses separate persistence and is outside this four-family worker.
-- Completion evidence: EnforceEvidenceRetention, five regression cases and empty-database migration indexes; CI pending.
-- Commit SHA: pending.
+- Verification result: all four GameEvidence family commit ledgers now share one success predicate in candidate filtering and locked revalidation; due/active filtering precedes the batch limit. Five regressions cover real Governor/Transfer commits, spatial handoff tombstones, ineligible-head starvation and a newly committed candidate. Existing Bear Hunt retention remains covered. Full PHPStan zero errors and changed-file Pint pass. Fresh-schema indexes support global age ordering and evidence/status commit lookups. All five cases and existing retention tests pass in full PostgreSQL CI on `cf25fba0` (735 tests, 73,265 assertions), with all nine workflows successful. Alliance roster intake uses separate persistence and is outside this four-family worker.
+- Completion evidence: EnforceEvidenceRetention, five regression cases and empty-database indexes; CI `34253535376`, PHP job `102153521950`, Intelligence `34253535359` and all other PR workflows pass.
+- Commit SHA: `f6e19117d0dc1de99fe2a158309455e54e281c51`; verified containing commit `cf25fba039e0c123cc30546d9300db31f44a5eca`.
 
 ### HARD-015 — Evidence redaction leaves copied raw normalization content
 
@@ -224,11 +224,11 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: same Evidence redaction service across all copies of machine provenance.
 - Rationale: deletion must purge the promised raw source data while preserving minimum reviewed handoff/receipt provenance and independent accepted owner history.
 - Remediation: clear raw machine payload copies consistently; preserve dataset/attempt/review/receipt identity and accepted observations; verify repeated redaction and summary behavior.
-- State: In progress.
+- State: Complete.
 - Verification required: real normalized evidence loses raw/candidate payload on deletion/retention while pinned identity and committed history remain.
-- Verification result: redaction now clears classification OCR, extracted raw/candidate text, bounds/warnings and all normalization payload copies. Attempt/dataset/review/receipt identities and accepted owner facts remain. Two real-pipeline cases cover user deletion and scheduled retention, repeated execution and the actual summary projection. CI on `d006843e` catches null-versus-required-string redaction; follow-up clears the candidate to an empty string, matching its persisted contract. Four errors and three downstream failures share that cause; the gate remains unchanged. Full PHPStan and Pint passed; corrected PostgreSQL verification pending.
-- Completion evidence: EvidenceRedactor and real pipeline deletion/retention regressions; containing-commit CI pending.
-- Commit SHA: pending.
+- Verification result: redaction now clears classification OCR, extracted raw/candidate text, bounds/warnings and all normalization payload copies. Attempt/dataset/review/receipt identities and accepted owner facts remain. Two real-pipeline cases cover user deletion and scheduled retention, repeated execution and the actual summary projection. CI on `d006843e` catches null-versus-required-string redaction; follow-up clears the candidate to an empty string, matching its persisted contract. Four errors and three downstream failures share that cause; the gate remains unchanged. Full PHPStan and Pint pass; both real-pipeline redaction cases pass in full PostgreSQL CI on `cf25fba0` (735 tests, 73,265 assertions), with all nine workflows successful.
+- Completion evidence: EvidenceRedactor and real pipeline deletion/retention/retry regressions; CI `34253535376`, PHP job `102153521950` and all other PR workflows pass.
+- Commit SHA: `d006843e46e04f85a30afc578ff49651b5328581`; correction and verified containing commit `cf25fba039e0c123cc30546d9300db31f44a5eca`.
 
 ### HARD-016 — Failed source deletion is acknowledged as redaction
 
@@ -238,11 +238,11 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: same service with an explicit storage success boundary.
 - Rationale: failed deletion must remain retryable and must not claim privacy cleanup succeeded.
 - Remediation: fail before database redaction if storage reports failure; preserve path/provenance and verify retry through the authorized deletion Action.
-- State: In progress.
+- State: Complete.
 - Verification required: failed adapter result retains the source path, machine provenance and lifecycle; retry deletes successfully without extra owner history.
-- Verification result: explicit failure handling and a real-pipeline regression implemented; only the filesystem delete result is substituted. Full PHPStan and Pint pass; PostgreSQL verification pending.
-- Completion evidence: EvidenceRedactor, StructuredGovernorProgressionPipelineV3Test; CI pending.
-- Commit SHA: pending.
+- Verification result: explicit failure handling and a real-pipeline regression implemented; only the filesystem delete result is substituted. Full PHPStan and Pint pass; the failed-delete/retry case passes in full PostgreSQL CI on `cf25fba0` (735 tests, 73,265 assertions), with all nine workflows successful.
+- Completion evidence: EvidenceRedactor and real pipeline deletion/retention/retry regressions; CI `34253535376`, PHP job `102153521950` and all other PR workflows pass.
+- Commit SHA: `d006843e46e04f85a30afc578ff49651b5328581`; correction and verified containing commit `cf25fba039e0c123cc30546d9300db31f44a5eca`.
 
 ### HARD-017 — Governor screenshot workspace repeats queries per item
 
@@ -252,10 +252,38 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: same owner query with bounded latest-record loading.
 - Rationale: list cardinality should not multiply database round trips or load unbounded attempt history.
 - Remediation: load only the latest related records and fields in batches, preserve current scope/order/provenance semantics, and enforce a meaningful query budget with multiple attempts and Evidence records.
-- State: In progress.
+- State: Complete.
 - Verification required: query count remains bounded as the list grows; latest revision and deterministic attempt ordering, cross-scope filtering and existing pipeline summaries remain correct.
-- Verification result: PostgreSQL DISTINCT ON batches now load one latest record per Evidence ID for classification, extraction, normalization, review and commit, plus fields for only the selected extractions. The 30-item parent list is ordered deterministically and remains scope-filtered. New query-budget coverage compares one item with a full page backed by three historical attempts/revisions each, checks foreign scope exclusion, latest identities/field ordering and the empty-list path. Full PHPStan passes (zero errors); fresh-schema history indexes support scoped latest reads. PostgreSQL query-budget execution pending CI.
-- Completion evidence: GovernorProgressionEvidenceSummaryBudgetV3Test and owner projection/index changes; containing-commit CI pending.
+- Verification result: PostgreSQL DISTINCT ON batches now load one latest record per Evidence ID for classification, extraction, normalization, review and commit, plus fields for only the selected extractions. The 30-item parent list is ordered deterministically and remains scope-filtered. New query-budget coverage compares one item with a full page backed by three historical attempts/revisions each, checks foreign scope exclusion, latest identities/field ordering and the empty-list path. Full PHPStan passes (zero errors); fresh-schema history indexes support scoped latest reads. Both query-budget tests pass in PostgreSQL CI on `51416d5d`, including latest revision/tied-time ordering, a constant seven queries for one or 30 items, and one query for an empty list. Full suite: 737 tests, 73,514 assertions; all nine workflows pass.
+- Completion evidence: GovernorProgressionEvidenceSummaryBudgetV3Test and owner projection/index changes; CI `34254364446`, PHP job `102156318191`, Intelligence `34254364540`, Architecture `34254364513` and all other PR workflows pass.
+- Commit SHA: `51416d5d70c93393a657b232e488788072d63a00`.
+
+### HARD-018 — Superseded recent-authentication timestamps remain an authority
+
+- Area: Accounts/Authentication and sensitive HTTP operations.
+- Finding: RecentAuthentication accepts two transitional password/Google timestamps after the canonical proof expires, and password confirmation still writes a second timestamp authority. Three test fixtures depend on the superseded contract.
+- Current owner: RecentAuthentication and ConfirmPasswordController.
+- Intended authoritative owner: the same canonical Accounts proof used by password, Google and passkey confirmation.
+- Rationale: the fresh deployment has no compatibility requirement; sensitive operations need one proof and expiry boundary.
+- Remediation: remove legacy fallback/dual writes, migrate current route fixtures, and verify old timestamps cannot authorize a sensitive change while real password confirmation can.
+- State: In progress.
+- Verification required: obsolete proof rejection, real confirmation and protected operation, existing Google/passkey and credential mutation behavior, full static/style/CI gates.
+- Verification result: canonical-only proof implemented; two obsolete-key rejection cases and a real password-confirmation-to-MFA-setup case added. Full PHPStan passes with zero errors, changed-file Pint and documentation links pass. PostgreSQL execution pending.
+- Completion evidence: RecentAuthenticationV3Test and reconciled Accounts sign-in-method contract; CI pending.
+- Commit SHA: pending.
+
+### HARD-019 — Request tracking can revive revoked account sessions
+
+- Area: Accounts session registration, revocation and middleware.
+- Finding: RecordAccountSession clears revoked_at on every authenticated request. An in-flight request or a failed raw-session delete can therefore restore revoked metadata, and TrackAccountSession does not reject a retained revoked marker.
+- Current owner: Accounts session Actions and TrackAccountSession; configured session handler stores credentials.
+- Intended authoritative owner: Accounts owns revocation decisions; the session handler continues to own session credentials.
+- Rationale: a stale request must never reactivate revoked access, and storage deletion alone cannot enforce revocation against a concurrent session write.
+- Remediation: trace revocation and session rotation, preserve terminal revoked markers, enforce them before continuing an authenticated request, and cover storage failure/in-flight replay and current/foreign-session isolation.
+- State: Planned.
+- Verification required: revoked sessions remain denied after stale tracking/storage writes; current-session and other-account boundaries; normal registration and credential hardening still pass.
+- Verification result: production session tracking, single/all-other revocation and authenticated middleware traced; remediation pending.
+- Completion evidence: pending.
 - Commit SHA: pending.
 
 ## Repository audit coverage
@@ -264,11 +292,11 @@ All rows below remain Planned until actual production paths have been traced. Th
 
 | Area | Required authority/scalability review | State |
 | --- | --- | --- |
-| Accounts | Identity, authentication, credential linking, sessions, registration, profile/security, deletion | Planned |
+| Accounts | Recent-authentication ownership and session lifecycle traced under HARD-018/019; identity, credential linking, registration, profile/security and deletion audit remain | In progress |
 | GameWorld | Progression dataset/topology/prerequisite and Gift Code reminder paths traced (HARD-007/009/011/012); Governors, Kingdoms/transfers/governance, remaining Gift Codes/calculators and KingdomMaps audit remain | In progress |
 | Alliance | Lifecycle, membership/rank/delegation, recruitment, content, territories/hive planning | Planned |
 | Operations | Events, participation, rallies, King Perks, results/Bear Hunt and reminders | Planned |
-| Intelligence | Evidence/Roster structured pipeline traced under HARD-008/010/013; observations, other evidence families, ingestion, contributions, projections/signals and retention remain | In progress |
+| Intelligence | Evidence/Roster structured pipeline and all-family GameEvidence retention/redaction/summary queries verified under HARD-008/010/013–017; observations, other evidence families, ingestion, contributions and projections/signals remain | In progress |
 | Communications | Preferences/recipients, inbox, delivery channels, digests, retry/idempotency and revocation | Planned |
 | Platform | Administration, integrations/API credentials, webhooks, retention and operational controls | Planned |
 | Workflows/ReadModels | NotificationDelivery authority/mutations verified under HARD-005; progression prerequisite provenance under HARD-012; other orchestration, dashboards and Assistant/API projections remain | In progress |

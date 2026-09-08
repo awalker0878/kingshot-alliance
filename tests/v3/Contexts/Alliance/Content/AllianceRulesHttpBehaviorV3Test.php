@@ -61,7 +61,7 @@ final class AllianceRulesHttpBehaviorV3Test extends TestCase
         $this->actingAs($memberUser)
             ->withSession([
                 (string) config('game_world.active_player_session_key') => $member->playerId,
-                'auth.password_confirmed_at' => time(),
+                'accounts.recent_authentication_at' => time(),
             ])
             ->withHeader(RequireCurrentPlayerContextVersion::HEADER_NAME, $this->versionFor($member))
             ->put('/alliance/rules', [

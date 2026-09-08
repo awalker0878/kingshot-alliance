@@ -59,7 +59,6 @@ final class ConfirmPasswordController extends Controller
             ]);
         }
 
-        $request->session()->put('auth.password_confirmed_at', time());
         $this->recentAuthentication->mark($request, 'password');
 
         $this->audit->record(

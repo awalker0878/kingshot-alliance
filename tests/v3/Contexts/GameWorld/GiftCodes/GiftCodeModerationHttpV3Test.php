@@ -35,13 +35,13 @@ final class GiftCodeModerationHttpV3Test extends TestCase
 
         config()->set('game_world.gift_codes.moderation', false);
         $this->actingAs($administrator)
-            ->withSession(['auth.password_confirmed_at' => time()])
+            ->withSession(['accounts.recent_authentication_at' => time()])
             ->get(route('platform.gift-codes.index'))
             ->assertNotFound();
 
         config()->set('game_world.gift_codes.moderation', true);
         $this->actingAs($administrator)
-            ->withSession(['auth.password_confirmed_at' => 0])
+            ->withSession(['accounts.recent_authentication_at' => 0])
             ->get(route('platform.gift-codes.index'))
             ->assertRedirect(route('password.confirm'));
 
@@ -52,7 +52,7 @@ final class GiftCodeModerationHttpV3Test extends TestCase
         ])->save();
         $this->flushSession();
         $this->actingAs($unprivileged)
-            ->withSession(['auth.password_confirmed_at' => time()])
+            ->withSession(['accounts.recent_authentication_at' => time()])
             ->get(route('platform.gift-codes.index'))
             ->assertForbidden();
     }
@@ -63,7 +63,7 @@ final class GiftCodeModerationHttpV3Test extends TestCase
         $administrator = $this->administrator();
 
         $this->actingAs($administrator)
-            ->withSession(['auth.password_confirmed_at' => time()])
+            ->withSession(['accounts.recent_authentication_at' => time()])
             ->get(route('platform.gift-codes.index'))
             ->assertOk()
             ->assertInertia(static fn (Assert $page): Assert => $page
@@ -87,7 +87,7 @@ final class GiftCodeModerationHttpV3Test extends TestCase
             [StructuredHtmlGiftCodeSourceAdapter::KEY, 'http-html-feed', '/gift-codes', 'approved_structured_html', 'structured_contract_confirmed'],
         ] as [$adapterKey, $sourceKey, $feedPath, $verificationMethod, $contractFlag]) {
             $this->actingAs($administrator)
-                ->withSession(['auth.password_confirmed_at' => time()])
+                ->withSession(['accounts.recent_authentication_at' => time()])
                 ->post(route('platform.gift-codes.sources.policy'), [
                     'source_key' => $sourceKey,
                     'name' => 'HTTP source '.$sourceKey,
@@ -135,7 +135,7 @@ final class GiftCodeModerationHttpV3Test extends TestCase
         $giftCode = $this->giftCode('HTTP-BULK-STALE');
 
         $this->actingAs($curator)
-            ->withSession(['auth.password_confirmed_at' => time()])
+            ->withSession(['accounts.recent_authentication_at' => time()])
             ->post(route('platform.gift-codes.bulk'), [
                 'gift_code_ids' => [(string) $giftCode->id],
                 'action' => 'quarantine',
@@ -147,7 +147,7 @@ final class GiftCodeModerationHttpV3Test extends TestCase
 
         $giftCode->forceFill(['status_revision' => 2])->save();
         $this->actingAs($curator)
-            ->withSession(['auth.password_confirmed_at' => time()])
+            ->withSession(['accounts.recent_authentication_at' => time()])
             ->post(route('platform.gift-codes.bulk'), [
                 'gift_code_ids' => [(string) $giftCode->id],
                 'expected_status_revisions' => [(string) $giftCode->id => 1],
@@ -160,7 +160,7 @@ final class GiftCodeModerationHttpV3Test extends TestCase
 
         self::assertSame(0, $giftCode->moderationDecisions()->count());
         $this->actingAs($curator)
-            ->withSession(['auth.password_confirmed_at' => time()])
+            ->withSession(['accounts.recent_authentication_at' => time()])
             ->post(route('platform.gift-codes.sources.policy'), [
                 'source_key' => 'curator-cannot-register',
                 'name' => 'Unauthorized source',
