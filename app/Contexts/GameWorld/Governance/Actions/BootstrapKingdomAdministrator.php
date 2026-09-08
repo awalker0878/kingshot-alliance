@@ -9,6 +9,7 @@ use App\Contexts\GameWorld\Governance\Models\KingdomRole;
 use App\Contexts\GameWorld\Governance\Models\KingdomRoleAssignment;
 use App\Contexts\GameWorld\Governance\Services\KingdomRoleProvisioner;
 use App\Contexts\GameWorld\Governance\ValueObjects\KingdomAdministratorBootstrap;
+use App\Contexts\GameWorld\Kingdoms\Enums\KingdomStatus;
 use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
 use App\Contexts\GameWorld\Players\Models\Player;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
@@ -29,6 +30,10 @@ final readonly class BootstrapKingdomAdministrator
     {
         return DB::transaction(function () use ($kingdomId, $targetPlayerId): KingdomAdministratorBootstrap {
             $kingdom = Kingdom::query()->whereKey($kingdomId)->lockForUpdate()->firstOrFail();
+            if ($kingdom->status !== KingdomStatus::Active) {
+                throw ValidationException::withMessages(['kingdom' => 'An archived Kingdom cannot bootstrap an administrator.']);
+            }
+
             $target = Player::query()->whereKey($targetPlayerId)->lockForUpdate()->firstOrFail();
             if ((string) $target->current_kingdom_id !== (string) $kingdom->id) {
                 throw ValidationException::withMessages(['player' => 'The bootstrap Player must currently belong to the target Kingdom.']);

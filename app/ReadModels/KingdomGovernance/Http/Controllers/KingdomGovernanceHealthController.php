@@ -28,7 +28,7 @@ final class KingdomGovernanceHealthController extends Controller
         $user = $request->user();
         abort_unless($user instanceof AuthenticatedAccount, 401);
         $alliance = $alliances->require($scope->allianceId);
-        $kingdom = $kingdoms->require($scope->kingdomId);
+        $kingdom = $kingdoms->requireActive($scope->kingdomId);
 
         return Inertia::render('Kingdom/Governance/Health', ['user' => ['name' => $user->accountName(), 'email' => $user->accountEmail()], 'alliance' => ['id' => $alliance->allianceId, 'name' => $alliance->name], 'kingdom' => ['id' => $kingdom->kingdomId, 'number' => $kingdom->number], 'health' => $health->forKingdom($scope->kingdomId)]);
     }

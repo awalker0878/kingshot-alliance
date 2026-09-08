@@ -9,8 +9,10 @@ use App\Contexts\Alliance\Lifecycle\Enums\AllianceStatus;
 use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
+use App\Contexts\GameWorld\Kingdoms\Queries\KingdomReferenceQuery;
 use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use LogicException;
 
@@ -23,7 +25,10 @@ use LogicException;
  */
 final readonly class AllianceWriteState
 {
-    public function __construct(private PlayerReferenceQuery $players) {}
+    public function __construct(
+        private PlayerReferenceQuery $players,
+        private KingdomReferenceQuery $kingdoms,
+    ) {}
 
     public function lockActiveScope(string $actorPlayerId, string $allianceId): AllianceMutationContext
     {
@@ -47,6 +52,12 @@ final readonly class AllianceWriteState
             : $allianceQuery->sharedLock()->firstOrFail();
 
         if ($alliance->status !== AllianceStatus::Active) {
+            throw new AuthorizationException;
+        }
+
+        try {
+            $this->kingdoms->lockActiveShared((string) $alliance->kingdom_id);
+        } catch (ModelNotFoundException) {
             throw new AuthorizationException;
         }
 

@@ -32,6 +32,11 @@ final readonly class EventCreationContextResolver
      */
     public function forPlayer(PlayerReference $actor): array
     {
+        $kingdom = $this->kingdoms->findActive($actor->kingdomId);
+        if ($kingdom === null) {
+            return [];
+        }
+
         /** @var list<array{scope:string,targetId:string,label:string,allianceId?:string,kingdomId?:string,kingdomNumber?:int|null}> $contexts */
         $contexts = [];
 
@@ -46,7 +51,7 @@ final readonly class EventCreationContextResolver
                 'targetId' => $actor->playerId,
                 'label' => $actor->currentName,
                 'kingdomId' => $actor->kingdomId,
-                'kingdomNumber' => $actor->kingdomNumber,
+                'kingdomNumber' => $kingdom->number,
             ];
         }
 
@@ -74,7 +79,6 @@ final readonly class EventCreationContextResolver
             $actor->kingdomId,
             OperationsPermission::EventKingdomCreate,
         )) {
-            $kingdom = $this->kingdoms->require($actor->kingdomId);
             $contexts[] = [
                 'scope' => EventScope::Kingdom->value,
                 'targetId' => $kingdom->kingdomId,

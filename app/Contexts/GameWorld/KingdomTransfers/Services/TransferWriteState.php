@@ -5,16 +5,21 @@ declare(strict_types=1);
 namespace App\Contexts\GameWorld\KingdomTransfers\Services;
 
 use App\Contexts\Alliance\Access\Queries\AllianceAuthorityFactsQuery;
+use App\Contexts\GameWorld\Kingdoms\Queries\KingdomReferenceQuery;
 use App\Contexts\GameWorld\KingdomTransfers\ValueObjects\TransferMutationContext;
 use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use LogicException;
 
 final readonly class TransferWriteState
 {
-    public function __construct(private AllianceAuthorityFactsQuery $allianceAuthority) {}
+    public function __construct(
+        private AllianceAuthorityFactsQuery $allianceAuthority,
+        private KingdomReferenceQuery $kingdoms,
+    ) {}
 
     public function lockAuthority(string $actorPlayerId, string $allianceId): TransferMutationContext
     {
@@ -24,6 +29,12 @@ final readonly class TransferWriteState
 
         $facts = $this->allianceAuthority->lockCurrent($actorPlayerId, $allianceId);
         if ($facts === null) {
+            throw new AuthorizationException;
+        }
+
+        try {
+            $this->kingdoms->lockActiveShared($facts->kingdomId);
+        } catch (ModelNotFoundException) {
             throw new AuthorizationException;
         }
 

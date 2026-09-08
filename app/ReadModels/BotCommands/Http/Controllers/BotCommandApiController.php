@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\ReadModels\BotCommands\Http\Controllers;
 
 use App\Contexts\Alliance\Content\Enums\ContentType;
+use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
+use App\Contexts\GameWorld\Kingdoms\Queries\KingdomReferenceQuery;
 use App\ReadModels\BotCommands\Queries\AllianceCommandFeedQuery;
 use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Http\JsonResponse;
@@ -13,6 +15,11 @@ use Illuminate\Validation\Rule;
 
 final class BotCommandApiController extends Controller
 {
+    public function __construct(
+        private readonly AllianceReferenceQuery $alliances,
+        private readonly KingdomReferenceQuery $kingdoms,
+    ) {}
+
     public function overview(Request $request, AllianceCommandFeedQuery $commands): JsonResponse
     {
         return $this->response($commands->overview($this->allianceId($request)));
@@ -41,6 +48,8 @@ final class BotCommandApiController extends Controller
     {
         $allianceId = $request->attributes->get('alliance_id');
         abort_unless(is_string($allianceId) && $allianceId !== '', 500, 'API tenant context is missing.');
+        $alliance = $this->alliances->require($allianceId);
+        $this->kingdoms->requireActive($alliance->kingdomId);
 
         return $allianceId;
     }

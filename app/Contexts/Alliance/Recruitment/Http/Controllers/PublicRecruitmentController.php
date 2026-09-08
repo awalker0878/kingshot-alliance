@@ -29,7 +29,7 @@ final class PublicRecruitmentController extends Controller
         string $slug,
     ): Response {
         $alliance = $this->alliance($slug);
-        $kingdom = $kingdoms->find((string) $alliance->kingdom_id);
+        $kingdom = $kingdoms->requireActive((string) $alliance->kingdom_id);
         $settings = RecruitmentSetting::query()->where('alliance_id', $alliance->id)->first();
         $applicationToken = $request->string('token')->toString();
         $tokenValid = false;
@@ -77,7 +77,7 @@ final class PublicRecruitmentController extends Controller
             'alliance' => [
                 'name' => (string) $alliance->name,
                 'slug' => (string) $alliance->slug,
-                'kingdom' => $kingdom?->number,
+                'kingdom' => $kingdom->number,
             ],
             'application' => [
                 'open' => $isOpen,
@@ -102,9 +102,11 @@ final class PublicRecruitmentController extends Controller
     public function store(
         Request $request,
         SubmitRecruitmentApplication $submit,
+        KingdomReferenceQuery $kingdoms,
         string $slug,
     ): RedirectResponse {
         $alliance = $this->alliance($slug);
+        $kingdoms->requireActive((string) $alliance->kingdom_id);
         $validated = $request->validate([
             'full_name' => ['required', 'string', 'max:160'],
             'email' => ['required', 'email:rfc', 'max:320'],

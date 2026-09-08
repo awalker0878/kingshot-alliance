@@ -50,7 +50,7 @@ final class KingdomAllianceIntelligenceController extends Controller
 
         $account = $this->account($request);
         $alliance = $this->alliances->require($scope->allianceId);
-        $kingdom = $this->kingdoms->find($alliance->kingdomId);
+        $kingdom = $this->kingdoms->requireActive($alliance->kingdomId);
         $canManage = $authorization->allows(
             $scope->playerId,
             $scope->allianceId,
@@ -73,7 +73,7 @@ final class KingdomAllianceIntelligenceController extends Controller
             'alliance' => [
                 'id' => $alliance->allianceId,
                 'name' => $alliance->name,
-                'kingdom' => $kingdom === null ? null : (string) $kingdom->number,
+                'kingdom' => (string) $kingdom->number,
             ],
             'canManage' => $canManage,
             'intelligence' => $intelligence->forAlliance($alliance, $canManage, $this->filters($request)),
