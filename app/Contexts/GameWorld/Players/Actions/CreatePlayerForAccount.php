@@ -29,8 +29,10 @@ final readonly class CreatePlayerForAccount
                     ->whereNull('canonical_player_id')
                     ->lockForUpdate()
                     ->first();
-                if ($existing instanceof Player && $existing->user_id !== null && (int) $existing->user_id !== $userId) {
-                    throw ValidationException::withMessages(['game_player_id' => 'That game Player ID belongs to another account.']);
+                if ($existing instanceof Player && ($existing->user_id === null || (int) $existing->user_id !== $userId)) {
+                    throw ValidationException::withMessages([
+                        'game_player_id' => 'That game Player ID already exists. Use an evidence-backed claim or recovery workflow instead of silently taking ownership.',
+                    ]);
                 }
             }
 

@@ -31,6 +31,7 @@ final readonly class RequireCurrentPlayerContextVersion
     /** @var list<string> */
     private const EXEMPT_ROUTE_PREFIXES = [
         'account.',
+        'governors.',
         'login.',
         'password.',
         'platform.',
@@ -65,8 +66,6 @@ final readonly class RequireCurrentPlayerContextVersion
             return $this->stale('active_player_missing');
         }
 
-        // Re-read the Player rather than trusting the request-scoped snapshot so a
-        // different tab changing the selected/owned Player cannot reuse old authority.
         $player = $this->players->findOwnedByUser((int) $user->id, $selected->playerId);
         if ($player === null) {
             return $this->stale('active_player_unavailable');
@@ -84,8 +83,6 @@ final readonly class RequireCurrentPlayerContextVersion
             return $this->stale('authority_context_changed');
         }
 
-        // Observability/debugging only. This attribute is not authority and domain
-        // writes must continue to perform their own transaction-time authorization.
         $request->attributes->set('authority_context_version', $currentVersion);
 
         return $next($request);
