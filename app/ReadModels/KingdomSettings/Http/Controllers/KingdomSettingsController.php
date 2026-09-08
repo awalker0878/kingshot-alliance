@@ -33,7 +33,7 @@ final class KingdomSettingsController extends Controller
 
         $scope = $context->scope();
         $alliance = $alliances->require($scope->allianceId);
-        $kingdom = $kingdoms->require($scope->kingdomId);
+        $kingdom = $kingdoms->requireActive($scope->kingdomId);
 
         if (! $authorization->allows($scope->playerId, $scope->allianceId, AlliancePermission::Manage)) {
             throw new AuthorizationException;
