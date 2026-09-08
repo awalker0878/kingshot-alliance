@@ -46,10 +46,10 @@ final class KingdomAllianceDiplomacyContactController extends Controller
         }
         $account = $accounts->require((int) $request->user()?->getAuthIdentifier());
         $alliance = $alliances->require($scope->allianceId);
-        $allianceKingdom = $kingdoms->require($alliance->kingdomId);
+        $allianceKingdom = $kingdoms->requireActive($alliance->kingdomId);
         $tracked = $contacts->tracking($alliance->allianceId, $tracking);
-        $trackedKingdom = $kingdoms->require((string) $tracked->kingdom_id);
-        $trackedAlliance = $kingdomAlliances->require((string) $tracked->kingdom_alliance_id);
+        $trackedKingdom = $kingdoms->requireActive((string) $tracked->kingdom_id);
+        $trackedAlliance = $kingdomAlliances->requireActiveCanonical((string) $tracked->kingdom_alliance_id);
         $records = $contacts->contacts($alliance->allianceId, $tracking);
         $actorIds = [];
         foreach ($records as $contact) {
