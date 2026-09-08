@@ -19,11 +19,14 @@ final class ProgressionTopologyV3Test extends TestCase
             'governor_gear',
             'governor_charms',
             'hero_level',
+            'hero_widget',
             'hero_gear_level',
             'hero_mastery',
             'academy_research',
             'war_academy_research',
             'buildings',
+            'troop_tier',
+            'vip',
         ], array_column($query->families(), 'id'));
 
         $gear = $query->states($dataset, 'governor_gear', 'hood');

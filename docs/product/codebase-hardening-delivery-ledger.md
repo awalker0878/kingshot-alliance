@@ -5,16 +5,16 @@
 - Program state: In progress.
 - Exact main baseline: `7e780521295e868005ecfee5bd38b33e8215ec49`.
 - Working branch: `astra/codebase-hardening`.
-- Latest pushed durable checkpoint: `2bb70908fea818f704d403614c92617b1ec057fa`.
+- Latest pushed durable checkpoint: `57f383abc0fb67787724f9cce4f18cdf71cd34de`.
 - Draft PR: [#163](https://github.com/awalker0878/kingshot-alliance/pull/163).
-- Current item/state: HARD-005 / In progress (CI behavior verification pending).
-- Most recently verified gates: full local PHPStan (zero errors); full frontend `npm run check` including build/budgets; HARD-008/HARD-010 routing/schema/corpora 22 tests (1,017 assertions), pinned-state validator 3 tests (18 assertions); earlier evidence: scheduler/command ownership (4 tests, 646 assertions); architecture verifier; syntax and Pint on 16 changed PHP files; documentation links (233 files); 35 scheduled commands and 490 routes boot. Full PHPStan finds one unrelated evidence-routing defect (HARD-008).
-- Active files: HARD-008/HARD-010 Evidence routing, classifier/extractor, synthetic corpora, Roster destination contracts and screenshot contract; ledger.
-- Remaining current work: production move complete; verify migrated database-backed notification behavior in CI after HARD-006–008 unblock the baseline gates.
-- Known failures at resumed HEAD `9b39d476`: CI `34242100412` and Intelligence `34242099956` fail formatting (HARD-006); Architecture `34242099981` fails two obsolete dataset diagnostic assertions (HARD-007). Full PHPStan remains blocked by HARD-008. Visual `34242100095`, CodeQL `34242100035`, Dependency Review `34242100043`, Gift Code `34242100200`, King Perks `34242100097`, and KingdomMaps `34242100142` pass.
-- Blockers: local PostgreSQL/Redis services are unavailable for database/queue integration tests; This resumed workspace uses PHP 8.5.8 with locked Composer/frontend dependencies installed; local PostgreSQL/Redis remain unavailable. Use CI for remaining service-dependent gates. Checkpoints are published through the authorized GitHub connection; checkpoint commits are published through the GitHub connection with exact tree verification.
-- Exact next action: publish verified HARD-008/HARD-010 routing/extraction slice; inspect CI behavior, then repair HARD-011 and return to HARD-005 notification verification.
-- Remaining repository-wide gates: PHP syntax/Pint/PSR-4/PHPStan/PHPUnit/Architecture/capability suites; fresh schema/routes/commands/schedules/queues; full frontend checks/build; Playwright/visual; CodeQL/dependency review/advisories; container/staging/recovery.
+- Current item/state: HARD-011/HARD-012 slice verified; HARD-009 is next. HARD-004 integration gate reconciliation and HARD-010 wider intake verification remain open.
+- Most recently verified gates: local Architecture/Progression 113 tests (67,161 assertions); full PHPStan zero errors; changed PHP Pint; full frontend `npm run check` including build/budgets; documentation links (234 files). CI on `57f383ab`: fresh PostgreSQL, style, PHPStan and frontend checks pass; 703/705 PHP tests pass, with only HARD-011 failures now repaired locally. HARD-005 behavior verified in that full run.
+- Active files: HARD-011 topology/planner expectations, HARD-012 prerequisite evaluator/regressions and current product contract; ledger.
+- Remaining current work: publish HARD-011/HARD-012, then recheck CI on the containing commit and implement HARD-009 reminder occurrence claim.
+- Known failures: CI `34246307890` and Intelligence `34246307954` fail only the two HARD-011 test expectations; container/staging/recovery is consequently skipped. New full CI after this slice is pending.
+- Blockers: local PostgreSQL/Redis services unavailable; service-backed verification uses GitHub CI. Local PHP 8.5.8 and locked Composer/npm dependencies available. Checkpoints publish via the authorized GitHub connection with exact staged-tree verification and non-forced branch updates.
+- Exact next action: publish this verified slice, then reproduce/fix HARD-009 stale reminder rescheduling and retry semantics; inspect resulting CI and finish HARD-010 integration/documentation reconciliation.
+- Remaining repository-wide gates: final full PHP/architecture/capability and frontend gates on one containing commit; production image/staging/recovery; final security/dependency/visual checks; remaining capability-by-capability audit coverage below.
 
 Checkpoint SHAs are recorded by the following documentation commit; verify that the recorded checkpoint is an ancestor of current branch HEAD. No audit area is complete solely because its paths have been inventoried.
 
@@ -84,11 +84,11 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: Workflows/NotificationDelivery orchestration; Communications persistence; ReadModel projections.
 - Rationale: Enforce read-only composition without moving source semantics into generic Communications.
 - Remediation: Move orchestration, publishers and CLI adapters/providers; migrate callers/tests/docs and strengthen no-write dependency checks.
-- State: In progress.
+- State: Complete.
 - Verification required: Production notification behavior including duplicate runs, revoked authority, cross-Alliance isolation, command registration, architecture and static analysis.
-- Verification result: architecture verifier passes, scheduler/provider tests pass (4 tests, 642 assertions), no obsolete writer classes/aliases remain. Migrated real notification test cannot run locally: PostgreSQL connection refused at 127.0.0.1:5432. CI behavior verification is required before completion.
-- Completion evidence: ADR-0018, migrated Workflow classes/tests, owner semantic APIs and strengthened ReadModel write-path enforcement; runtime behavioral evidence pending.
-- Commit SHA: `9b39d47609bbf9b7938d32b078106a5e243f394a`; item remains In progress.
+- Verification result: CI backend and Intelligence runs on `57f383abc0fb67787724f9cce4f18cdf71cd34de` execute the full 705-test PostgreSQL suite (72,887 assertions); only the two unrelated HARD-011 expectation cases fail. All migrated NotificationDelivery Workflow behavior, duplicate/revoked/cross-Alliance/recipient/queue tests pass. Pint and PHPStan pass in both runs; fresh PostgreSQL schema passes. Architecture/scheduler enforcement passed locally and in the architecture gate.
+- Completion evidence: ADR-0018 and migrated tests; CI job `102129065161` and Intelligence job `102129065536`, with exact failure lists confined to HARD-011.
+- Commit SHA: `9b39d47609bbf9b7938d32b078106a5e243f394a`; behavior verified on `57f383abc0fb67787724f9cce4f18cdf71cd34de`.
 
 ### HARD-006 — Baseline formatting failures
 
@@ -130,7 +130,7 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Verification required: exhaustive enum/router regression, production progression extraction behavior and full PHPStan.
 - Verification result: reproduced an UnhandledMatchError for GovernorBuildings plus three failed routed classifications before remediation. Complete enum routing and real classifier/extractor/schema corpora now pass (22 tests, 1,017 assertions). Full PHPStan passes with zero errors; changed PHP Pint, architecture verifier and documentation links pass.
 - Completion evidence: RoutedEvidenceExtractorV3Test covers every EvidenceKind, actual extraction, explicit unsupported failures and structured classification independent of expected kind; HARD-010 tracks wider destination/UX verification.
-- Commit SHA: recorded by the next checkpoint after publication.
+- Commit SHA: `57f383abc0fb67787724f9cce4f18cdf71cd34de`.
 
 ### HARD-009 — Personal reminder stale-snapshot race
 
@@ -158,7 +158,7 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Verification required: routed classification/extraction including mismatch/ambiguity/unknown fields; pinned-dataset review and destination behavior; full Intelligence, architecture, style and static analysis.
 - Verification result: narrow English heading/label extraction implemented with three 12-case synthetic OCR corpora. Classifier/extractor versions advanced for provenance. All 22 routing/schema/corpus tests pass (1,017 assertions); three real pinned-state validator cases pass (18 assertions), covering valid names and rejected missing/invalid/duplicate/mismatched states. Roster replay behavior expanded across all three kinds; database-backed verification pending in CI. Full PHPStan passes, changed PHP Pint and architecture verifier pass.
 - Completion evidence: routing/extraction, synthetic fixture corpora, structured pinned-state validation and expanded owner replay tests; screenshot contract now marks this extension In progress. Remaining: database-backed review/normalization/destination/authorization checks and reconcile related reference/architecture/operations contracts.
-- Commit SHA: recorded by the next checkpoint after publication.
+- Commit SHA: `57f383abc0fb67787724f9cce4f18cdf71cd34de`.
 
 ### HARD-011 — Progression topology and prerequisite contract drift
 
@@ -168,11 +168,25 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: GameWorld factual topology and authorized ReadModel prerequisite evaluation.
 - Rationale: current features require evidence of factual ownership and unknown-state semantics; tests must protect behavior without retaining obsolete exact payloads.
 - Remediation: verify new family/state sources and prerequisite evaluation against pinned observations, update valid contracts and add missing behavioral coverage for known/unknown/revoked or stale inputs where relevant.
-- State: Planned.
+- State: Complete.
 - Verification required: complete GameWorld/Progression and ReadModels/Progression suites; architecture and static analysis.
-- Verification result: two failures reproduced in 109-test combined run; other 107 tests pass.
-- Completion evidence: pending.
-- Commit SHA: pending.
+- Verification result: both expectations also fail in the full CI 705-test run. Updated current-family list and unknown-prerequisite semantics now pass with all local Architecture/Progression checks: 113 tests, 67,161 assertions. Full PHPStan passes; changed-file Pint and documentation links pass.
+- Completion evidence: current family catalogue checked against pinned topology sources; planner assertions retain sourced labels and require unknown observed levels with resolved subject identities. HARD-012 separately fixes the material pin defect revealed by this trace.
+- Commit SHA: recorded by the next checkpoint after publication.
+
+### HARD-012 — Prerequisite evaluation borrows another field's dataset pin
+
+- Area: ReadModels/Progression prerequisite evaluation.
+- Finding: The evaluator takes dataset identity/checksum from the first populated fact in a subject and can evaluate a different level fact under that pin. Completely unlabelled numeric levels can also become satisfied prerequisites.
+- Current owner: ProgressionPrerequisiteEvaluator.
+- Intended authoritative owner: same authorized ReadModel projection using the level observation's own provenance.
+- Rationale: one fact's pin cannot authorize another fact's interpretation; missing metadata must not silently become current dataset truth.
+- Remediation: evaluate only an exact pinned level fact; reject missing/mixed pins and invalid numeric level forms; remove the superseded first-fact scan and add behavioral regression coverage.
+- State: Complete.
+- Verification required: mixed/missing pin, matching known/unknown level and satisfied/not-satisfied behavior; Progression/architecture suites and PHPStan.
+- Verification result: three new regressions fail before remediation (borrowed pin, missing pin, unsafe numeric coercion). All four evaluator cases and the complete local Architecture/Progression selection now pass: 113 tests, 67,161 assertions. Full PHPStan passes with zero errors; changed-file Pint and documentation links pass.
+- Completion evidence: ProgressionPrerequisiteEvaluatorV3Test; exact level-owned provenance, strict integer semantics and superseded helper removal; current prerequisite contract reconciled.
+- Commit SHA: recorded by the next checkpoint after publication.
 
 ## Repository audit coverage
 

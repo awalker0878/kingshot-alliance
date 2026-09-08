@@ -137,15 +137,19 @@ Observation freshness never changes a GameWorld fact. Dataset age never changes 
 
 ## Prerequisite contract
 
-Prerequisites are sourced relationships from the pinned dataset. The planner may classify each prerequisite as:
+Prerequisites are sourced relationships from the pinned dataset. The current direct-level evaluator returns:
 
-- `satisfied` — an authorized observation deterministically proves the requirement;
-- `unsatisfied` — an authorized observation deterministically proves a lower/incompatible state;
-- `unknown` — the required observed fact is absent;
-- `conflicting` — the factual prerequisite relationship/value is unresolved;
-- `not_applicable` — the dataset explicitly marks the prerequisite inapplicable for the selected subject/version.
+| Status | Meaning |
+| --- | --- |
+| `satisfied` | The authorized, exactly pinned integer level meets the requirement. |
+| `not_satisfied` | The authorized, exactly pinned integer level is below the requirement. |
+| `unknown_current_state` | The required observation or a valid non-negative integer level is absent. |
+| `dataset_mismatch` | The level fact itself lacks the selected dataset ID/checksum or carries another pin. |
+| `source_conflict` | An unresolved source conflict affects the prerequisite. |
+| `unobservable` | The source subject has no exact canonical ID/label match in the supported observable families. |
+| `unsupported` | The source text is not a supported positive-level requirement. |
 
-Unknown is never treated as unsatisfied or satisfied. Missing prerequisite graph data blocks any calculation that depends on that graph.
+Evaluation uses the level fact's own dataset pin. It never borrows provenance from a sibling state/name fact, coerces fractional/exponential values to integer levels or silently interprets an unlabelled observation as current dataset truth. Unknown is never treated as satisfied or not satisfied. Missing prerequisite graph data blocks any calculation that depends on that graph.
 
 ## Dataset pinning
 
@@ -292,7 +296,7 @@ The canonical entry point is a localized, keyboard-accessible `Goal planner` act
 2. **Target** — selectable only from deterministic factual states in the pinned release.
 3. **Path** — factual steps and prerequisites, with unknown/conflict markers.
 
-Prerequisite behavior is evidence-bounded. A dataset row may expose direct prerequisite text exactly as sourced. The planner may classify satisfaction only when the prerequisite has a canonical identity that can be matched deterministically to an authorized observation. It must not resolve prerequisite names by fuzzy/name matching, infer transitive dependencies from prose, or turn absence into `unsatisfied`. Transitive prerequisite traversal is enabled only for datasets that publish canonical prerequisite identities/edges; otherwise the direct sourced facts remain visible with satisfaction `unknown`.
+Prerequisite behavior is evidence-bounded. A dataset row may expose direct prerequisite text exactly as sourced. The planner may classify satisfaction only when the prerequisite has a canonical identity that can be matched deterministically to an authorized observation. It uses only exact canonical IDs or exact case-insensitive catalogue labels for direct level requirements. It must not use fuzzy name matching, infer transitive dependencies from prose, or turn absence into `unsatisfied`. Transitive prerequisite traversal is enabled only for datasets that publish canonical prerequisite identities/edges; otherwise only supported direct level requirements are evaluated, and unmapped/unsupported source text remains visible without inferred satisfaction.
 4. **Calculator status** — per-family eligibility and reason. Planning remains usable while calculation is unavailable.
 5. **Calculation result** — only when `calculator_ready`, including resource totals, transition count, provenance and calculation version.
 

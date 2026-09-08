@@ -82,32 +82,30 @@ final readonly class ProgressionPrerequisiteEvaluator
                 );
             }
 
-            $datasetId = $this->firstFactString($facts, 'datasetId');
-            $datasetChecksum = $this->firstFactString($facts, 'datasetChecksum');
-            if (($datasetId !== null || $datasetChecksum !== null)
-                && ($datasetId !== $dataset->id || $datasetChecksum !== $dataset->checksum)) {
+            $levelFact = is_array($facts['level'] ?? null) ? $facts['level'] : [];
+            if (($levelFact['datasetId'] ?? null) !== $dataset->id
+                || ($levelFact['datasetChecksum'] ?? null) !== $dataset->checksum) {
                 return $this->result(
                     $label,
                     'dataset_mismatch',
                     $candidate['family'],
                     (string) $subject['id'],
                     $requiredLevel,
-                    reason: 'The observed prerequisite state is pinned to a different factual dataset.',
+                    reason: 'The observed prerequisite level is not pinned to this exact factual dataset.',
                 );
             }
 
-            $observedLevel = $this->factValue($facts['level'] ?? null);
-            if (! is_numeric($observedLevel)) {
+            $observedLevel = $levelFact['value'] ?? null;
+            if (! is_int($observedLevel) || $observedLevel < 0) {
                 return $this->result(
                     $label,
                     'unknown_current_state',
                     $candidate['family'],
                     (string) $subject['id'],
                     $requiredLevel,
-                    reason: 'The prerequisite was observed, but no numeric level can be resolved.',
+                    reason: 'The prerequisite was observed, but no non-negative integer level can be resolved.',
                 );
             }
-            $observedLevel = (int) $observedLevel;
 
             return $this->result(
                 $label,
@@ -155,23 +153,6 @@ final readonly class ProgressionPrerequisiteEvaluator
         }
 
         return false;
-    }
-
-    private function factValue(mixed $fact): mixed
-    {
-        return is_array($fact) && array_key_exists('value', $fact) ? $fact['value'] : null;
-    }
-
-    /** @param array<string,mixed> $facts */
-    private function firstFactString(array $facts, string $key): ?string
-    {
-        foreach ($facts as $fact) {
-            if (is_array($fact) && is_string($fact[$key] ?? null) && $fact[$key] !== '') {
-                return $fact[$key];
-            }
-        }
-
-        return null;
     }
 
     /** @return array<string,mixed> */

@@ -128,13 +128,13 @@ final class ProgressionPlannerQueryV3Test extends TestCase
         self::assertSame('unknown_current', $model['comparison']['status']);
         self::assertSame('source_gap', $model['calculator']['status']);
         self::assertSame($targetState['label'], $model['target']['label']);
-        self::assertSame(
-            array_map(
-                static fn (string $label): array => ['label' => $label, 'status' => 'unknown'],
-                $targetState['prerequisites'],
-            ),
-            $model['prerequisites'],
-        );
+        self::assertSame($targetState['prerequisites'], array_column($model['prerequisites'], 'label'));
+        foreach ($model['prerequisites'] as $prerequisite) {
+            self::assertSame('unknown_current_state', $prerequisite['status']);
+            self::assertNull($prerequisite['observedLevel']);
+            self::assertNotNull($prerequisite['subjectId']);
+            self::assertGreaterThan(0, $prerequisite['requiredLevel']);
+        }
         self::assertNull($model['calculation']);
     }
 
