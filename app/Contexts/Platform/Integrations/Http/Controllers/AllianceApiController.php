@@ -23,14 +23,14 @@ final class AllianceApiController extends Controller
     public function show(Request $request): JsonResponse
     {
         $alliance = $this->alliance($request);
-        $kingdom = $this->kingdoms->find($alliance->kingdomId);
+        $kingdom = $this->kingdoms->requireActive($alliance->kingdomId);
 
         return response()->json([
             'data' => [
                 'id' => $alliance->allianceId,
                 'name' => $alliance->name,
                 'slug' => $alliance->slug,
-                'kingdom' => $kingdom?->number,
+                'kingdom' => $kingdom->number,
                 'language' => $alliance->language,
                 'timezone' => $alliance->timezone,
             ],
@@ -91,7 +91,9 @@ final class AllianceApiController extends Controller
     {
         $allianceId = $request->attributes->get('alliance_id');
         abort_unless(is_string($allianceId) && $allianceId !== '', 500, 'API tenant context is missing.');
+        $alliance = $this->alliances->require($allianceId);
+        $this->kingdoms->requireActive($alliance->kingdomId);
 
-        return $this->alliances->require($allianceId);
+        return $alliance;
     }
 }
