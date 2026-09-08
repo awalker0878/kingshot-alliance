@@ -6,6 +6,7 @@ namespace App\Contexts\Accounts\Authentication\Http\Responses;
 
 use App\Contexts\Accounts\Authentication\Services\RecentAuthentication;
 use App\Contexts\Accounts\Identity\Models\User;
+use App\Contexts\Accounts\MultiFactorAuthentication\Services\MfaLoginChallenge;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -16,6 +17,7 @@ final readonly class AccountPasskeyLoginResponse implements PasskeyLoginResponse
 {
     public function __construct(
         private RecentAuthentication $recentAuthentication,
+        private MfaLoginChallenge $mfaChallenges,
         private AuditRecorder $audit,
     ) {}
 
@@ -26,6 +28,7 @@ final readonly class AccountPasskeyLoginResponse implements PasskeyLoginResponse
         $user = $request->user();
         abort_unless($user instanceof User, 401);
 
+        $this->mfaChallenges->clear($request);
         $passkeyPublicId = trim((string) $request->session()->pull('accounts.passkey_verified_public_id', ''));
         $this->recentAuthentication->mark(
             $request,

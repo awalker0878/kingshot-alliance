@@ -16,6 +16,7 @@ use App\Contexts\Accounts\Identity\Actions\RemoveAccountIdentity;
 use App\Contexts\Accounts\Identity\Contracts\AuthenticatedAccount;
 use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
 use App\Contexts\Accounts\Identity\Queries\ProviderIdentityQuery;
+use App\Contexts\Accounts\MultiFactorAuthentication\Services\MfaLoginChallenge;
 use App\Contexts\Accounts\Registration\Data\RegistrationProviderIdentity;
 use App\Contexts\Accounts\Security\Services\SecurityNotificationService;
 use App\Contexts\Alliance\Membership\Queries\FindPendingInvitation;
@@ -136,6 +137,7 @@ final class GoogleAuthenticationController extends Controller
         GoogleAuthenticationOperation $operations,
         RecentAuthentication $recentAuthentication,
         AccountSignInMethodPolicy $methods,
+        MfaLoginChallenge $mfaChallenges,
         SecurityNotificationService $securityNotifications,
         AuditRecorder $audit,
         RecordAuthenticationAuditEvent $authenticationAudit,
@@ -201,10 +203,12 @@ final class GoogleAuthenticationController extends Controller
             return $this->completeLogin(
                 request: $request,
                 userId: $account->userId,
+                identityId: $providerIdentity->identityId,
                 invitationToken: $invitationToken,
                 accounts: $accounts,
                 recentAuthentication: $recentAuthentication,
                 authenticationAudit: $authenticationAudit,
+                mfaChallenges: $mfaChallenges,
             );
         }
 
@@ -264,6 +268,7 @@ final class GoogleAuthenticationController extends Controller
             ]);
         }
 
+        $mfaChallenges->clear($request);
         abort_unless(Auth::loginUsingId($result->userId) instanceof Authenticatable, 401);
         $request->session()->regenerate();
 
@@ -419,25 +424,23 @@ final class GoogleAuthenticationController extends Controller
     private function completeLogin(
         Request $request,
         int $userId,
+        int $identityId,
         ?string $invitationToken,
         AccountIdentityQuery $accounts,
         RecentAuthentication $recentAuthentication,
         RecordAuthenticationAuditEvent $authenticationAudit,
+        MfaLoginChallenge $mfaChallenges,
     ): RedirectResponse {
         if ($accounts->requiresMultiFactor($userId)) {
-            $request->session()->put([
-                'accounts.two_factor_challenge_user_id' => $userId,
-                'accounts.two_factor_remember' => false,
-                'accounts.two_factor_invitation_token' => $invitationToken ?? '',
-                'accounts.two_factor_primary_method' => 'google',
-            ]);
+            $mfaChallenges->startGoogle($request, $userId, $identityId, $invitationToken);
 
             return redirect()->route('two-factor.login');
         }
 
+        $mfaChallenges->clear($request);
         abort_unless(Auth::loginUsingId($userId) instanceof Authenticatable, 401);
         $request->session()->regenerate();
-        $recentAuthentication->mark($request, 'google');
+        $recentAuthentication->mark($request, 'google', (string) $identityId);
 
         $authenticationAudit->handle(
             userId: $userId,

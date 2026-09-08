@@ -129,6 +129,8 @@ Canonical requirements:
 
 A user-verifying passkey completes authentication without an additional TOTP prompt. Password and Google sign-in continue through TOTP when TOTP is enabled.
 
+Accounts owns one pending MFA login challenge with a ten-minute lifetime. It binds the accepted primary proof to the current password hash or exact Google identity and to the enrolled MFA secret using opaque fingerprints. Completion rechecks these facts and account lifecycle under the User lock, consumes the challenge, registers the final session and records the successful method. Invalid second-factor input may retry within the lifetime and rate limit; expiry or changed credentials require a new sign-in. The challenge route serializes requests for the same session so successful proof cannot be replayed concurrently. Successful sign-in by another allowed method clears any pending MFA challenge.
+
 ## Security Center
 
 Security exposes **Sign-in methods** as a first-class surface:

@@ -5,15 +5,15 @@
 - Program state: In progress.
 - Exact main baseline: `7e780521295e868005ecfee5bd38b33e8215ec49`.
 - Working branch: `astra/codebase-hardening`.
-- Latest pushed durable checkpoint: `9f67277d8203075155bcb8a5d35d9e683c2f138c`.
+- Latest pushed durable checkpoint: `94c95511cbf55abc911abd5590c8f75debb553f5`.
 - Draft PR: [#163](https://github.com/awalker0878/kingshot-alliance/pull/163).
-- Current item/state: HARD-020 / In progress (MFA setup/recovery profile contract); HARD-019 CI fixture correction ready. HARD-018 is verified Complete.
-- Most recently verified gates: all nine PR workflows pass on `b1ee5a40f39261a81e51e7a395f40c9da1838d00`, including 740 PHP tests / 73,530 assertions, fresh PostgreSQL, frontend, image/staging/recovery, architecture/capabilities, visual and security.
-- Active files: MFA profile projection/enrollment regression, session browser-cookie fixture correction, Accounts contract and hardening ledger.
-- Remaining current work: verify HARD-019 session revocation; repair the MFA setup/recovery projection under HARD-020 and trace pending MFA proof/credential deletion under HARD-021/022; continue remaining repository coverage.
-- Known failures: HARD-019 CI has two new fixture failures because successive test requests omit the browser session cookie and acquire different IDs; the eight other new cases pass. Explicit cookie replay now targets the original/current session; containing CI verification pending.
+- Current item/state: HARD-021 / In progress (bounded, credential-bound MFA login). HARD-019–020 are verified Complete.
+- Most recently verified gates: all nine PR workflows pass on `94c95511cbf55abc911abd5590c8f75debb553f5`, including 752 PHP tests / 73,772 assertions, fresh PostgreSQL, frontend, image/staging/recovery, architecture/capabilities, visual and security.
+- Active files: Accounts MFA challenge/completion owners, password/Google/passkey adapters, challenge route serialization and regression suite; Accounts contract and ledger.
+- Remaining current work: verify HARD-021 and repair HARD-022 passkey mutation serialization; complete remaining Accounts audit and repository coverage.
+- Known failures: none on verified checkpoint `94c95511`; HARD-021 changes await service-backed verification.
 - Blockers: local PostgreSQL/Redis services unavailable; service-backed verification uses GitHub CI. Local PHP 8.5.8 and locked Composer/npm dependencies available. Checkpoints publish via the authorized GitHub connection with exact staged-tree verification and non-forced branch updates.
-- Exact next action: publish HARD-020 and HARD-019 browser-cookie correction, verify the real profile and session cases, then implement HARD-021 bounded MFA challenge.
+- Exact next action: publish HARD-021, verify its PostgreSQL regressions, then bind passkey deletion to an Accounts Action that holds the same User lock as other credential removals under HARD-022.
 - Remaining repository-wide gates: final full PHP/architecture/capability and frontend gates on one containing commit; production image/staging/recovery; final security/dependency/visual checks; remaining capability-by-capability audit coverage below.
 
 Checkpoint SHAs are recorded by the following documentation commit; verify that the recorded checkpoint is an ancestor of current branch HEAD. No audit area is complete solely because its paths have been inventoried.
@@ -280,11 +280,11 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: Accounts owns revocation decisions; the session handler continues to own session credentials.
 - Rationale: a stale request must never reactivate revoked access, and storage deletion alone cannot enforce revocation against a concurrent session write.
 - Remediation: trace revocation and session rotation, preserve terminal revoked markers, enforce them before continuing an authenticated request, and cover storage failure/in-flight replay and current/foreign-session isolation.
-- State: In progress.
+- State: Complete.
 - Verification required: revoked sessions remain denied after stale tracking/storage writes; current-session and other-account boundaries; normal registration and credential hardening still pass.
-- Verification result: conditional tracking preserves terminal markers; middleware rejects revoked/anonymized access before game context and registers newly rotated login sessions before returning the response. Revocation decisions, remember-token rotation and audit commit before raw storage cleanup. All-other revocation loads a bounded registered-ID snapshot in batches. Removed the unused password-only Action and retired 404 route/controller stub. Ten regressions cover failed deletion, the read/write race, >100-record batches, password/Google remembered replay, current/foreign isolation, immediate login registration and anonymized stale access. Full PHPStan passes with zero errors; Pint and all 62 Architecture tests pass (66,587 assertions); documentation links pass. PostgreSQL CI executes all 750 tests: eight of the ten new session cases pass, including all remembered-sign-in and race cases. Two HTTP fixtures omit the session cookie and acquire different session IDs, so they do not exercise the original/current session. The correction explicitly replays the original browser cookie; all security assertions remain. Containing verification pending.
-- Completion evidence: pending.
-- Commit SHA: pending.
+- Verification result: conditional tracking preserves terminal markers; middleware rejects revoked/anonymized access before game context and registers newly rotated login sessions before returning the response. Revocation decisions, remember-token rotation and audit commit before raw storage cleanup. All-other revocation loads a bounded registered-ID snapshot in batches. Removed the unused password-only Action and retired 404 route/controller stub. Ten regressions cover failed deletion, the read/write race, >100-record batches, password/Google remembered replay, current/foreign isolation, immediate login registration and anonymized stale access. Full PHPStan passes with zero errors; Pint and all 62 Architecture tests pass (66,587 assertions); documentation links pass. PostgreSQL CI executes all 750 tests: eight of the ten new session cases pass, including all remembered-sign-in and race cases. Two HTTP fixtures omit the session cookie and acquire different session IDs, so they do not exercise the original/current session. The correction explicitly replays the original browser cookie; all security assertions remain. The corrected browser-cookie cases and all ten regressions now pass on `94c95511` (752 tests, 73,772 assertions), with all nine PR workflows successful.
+- Completion evidence: CI `34257205591`, PHP job `102165911270`, Architecture `34257205716`, Intelligence `34257205609` and all other PR workflows pass.
+- Commit SHA: `9f67277d8203075155bcb8a5d35d9e683c2f138c`; fixture correction and containing verification `94c95511cbf55abc911abd5590c8f75debb553f5`.
 
 ### HARD-020 — MFA setup and recovery values never reach the profile
 
@@ -294,11 +294,11 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: one ephemeral MFA response contract consumed by the existing profile UI.
 - Rationale: successful persistence does not establish a usable enrollment/recovery flow; secret material must be displayed only to the authenticated account and consumed once.
 - Remediation: reconcile the flash/read contract and verify real enrollment, confirmation and recovery-code regeneration through the rendered profile, including single-use delivery.
-- State: In progress.
+- State: Complete.
 - Verification required: enrollment setup and plain recovery codes appear once on the authorized profile; confirmation stores only recovery hashes; later profile responses omit secret material.
-- Verification result: profile now consumes the exact camel-case flash keys written by the MFA controller. Two real enrollment/profile cases cover authenticator setup, valid TOTP confirmation, recovery regeneration, single-use display, encrypted secret storage and recovery hash replacement. Full PHPStan, changed-file Pint and documentation links pass; PostgreSQL execution pending.
-- Completion evidence: pending.
-- Commit SHA: pending.
+- Verification result: profile now consumes the exact camel-case flash keys written by the MFA controller. Two real enrollment/profile cases cover authenticator setup, valid TOTP confirmation, recovery regeneration, single-use display, encrypted secret storage and recovery hash replacement. Full PHPStan, changed-file Pint and documentation links pass; Both real profile/enrollment tests pass on `94c95511` (752 tests, 73,772 assertions), with all nine PR workflows successful.
+- Completion evidence: CI `34257205591`, PHP job `102165911270`, Architecture `34257205716`, Intelligence `34257205609` and all other PR workflows pass.
+- Commit SHA: `94c95511cbf55abc911abd5590c8f75debb553f5`.
 
 ### HARD-021 — Pending MFA login has no proof expiry or credential binding
 
@@ -308,9 +308,9 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: one Accounts-owned bounded MFA login challenge.
 - Rationale: second-factor completion must correspond to a current, recent primary-factor proof and must not restore a superseded credential.
 - Remediation: trace all challenge writers/consumers and lifecycle mutations, establish a short-lived single-use proof tied to its primary credential, and reject expired/stale challenges.
-- State: Planned.
+- State: In progress.
 - Verification required: normal password/Google plus TOTP/recovery login, expired/replayed challenges, credential changes/removal and account finalization.
-- Verification result: controller and primary writers identified; complete mutation trace and remediation pending.
+- Verification result: one Accounts-owned challenge replaces the four loose session keys with a ten-minute, opaque credential/MFA fingerprint contract. Completion locks the User, revalidates lifecycle/credentials, consumes successful proof, registers the rotated session before releasing the lock and records method provenance. The POST route serializes requests for one session; failed OTP input can retry within the original lifetime/rate limit. Normal password/Google/passkey success clears pending proof. Thirteen regressions cover all primary/second-factor pairs, credential removal/change, MFA replacement, anonymization, expiry without consuming recovery codes, retry and proof replay. Full PHPStan passes; Pint and 62 Architecture tests pass (66,675 assertions). PostgreSQL verification pending.
 - Completion evidence: pending.
 - Commit SHA: pending.
 
@@ -324,7 +324,7 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Remediation: inspect the installed package deletion transaction and route boundary, reproduce any missing serialization, then centralize mutation policy/locking without duplicating WebAuthn cryptography.
 - State: Planned.
 - Verification required: current package delete authorization and last-method behavior under concurrent method removal; existing passkey security/credential suites.
-- Verification result: Accounts model callback and password/Google owner locks traced; installed package deletion boundary still to inspect.
+- Verification result: the installed package DeletePasskey Action performs delete/event dispatch without a transaction; its controller checks ownership but adds no User lock. The missing serialization is confirmed. Bind the package Action to an Accounts adapter and move the policy check into its locked mutation boundary; retain package routes/responses/events and verification.
 - Completion evidence: pending.
 - Commit SHA: pending.
 

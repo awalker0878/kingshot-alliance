@@ -93,6 +93,7 @@ Route::middleware('guest')->group(function (): void {
     Route::get('/two-factor-challenge', [TwoFactorChallengeController::class, 'create'])
         ->name('two-factor.login');
     Route::post('/two-factor-challenge', [TwoFactorChallengeController::class, 'store'])
+        ->block(10, 10)
         ->middleware('throttle:two-factor-challenge')
         ->name('two-factor.login.store');
 

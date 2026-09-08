@@ -128,6 +128,7 @@ final class PasskeySecurityV3Test extends TestCase
         $session = app('session')->driver();
         $session->start();
         $session->put('accounts.passkey_verified_public_id', (string) $passkey->public_id);
+        $session->put('accounts.mfa_login', ['user_id' => $user->id]);
 
         $request = Request::create('/passkeys/login', 'POST');
         $request->setLaravelSession($session);
@@ -139,7 +140,7 @@ final class PasskeySecurityV3Test extends TestCase
         self::assertSame('passkey', $session->get('accounts.recent_authentication_method'));
         self::assertSame((string) $passkey->public_id, $session->get('accounts.recent_authentication_credential'));
         self::assertGreaterThan(0, (int) $session->get('accounts.recent_authentication_at'));
-        self::assertFalse($session->has('accounts.two_factor_challenge_user_id'));
+        self::assertFalse($session->has('accounts.mfa_login'));
         $this->assertDatabaseHas('audit_events', [
             'event' => 'auth.login',
             'actor_user_id' => $user->id,

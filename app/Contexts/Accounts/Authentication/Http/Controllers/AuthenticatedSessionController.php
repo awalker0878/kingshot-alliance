@@ -6,6 +6,7 @@ namespace App\Contexts\Accounts\Authentication\Http\Controllers;
 
 use App\Contexts\Accounts\Authentication\Services\RecentAuthentication;
 use App\Contexts\Accounts\Identity\Models\User;
+use App\Contexts\Accounts\MultiFactorAuthentication\Services\MfaLoginChallenge;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Http\RedirectResponse;
@@ -33,6 +34,7 @@ final class AuthenticatedSessionController extends Controller
         Request $request,
         AuditRecorder $audit,
         RecentAuthentication $recentAuthentication,
+        MfaLoginChallenge $mfaChallenges,
     ): RedirectResponse {
         $validated = $request->validate([
             'email' => ['required', 'string', 'email', 'max:254'],
@@ -67,12 +69,7 @@ final class AuthenticatedSessionController extends Controller
         $token = trim((string) ($validated['invitation_token'] ?? ''));
 
         if ($user->two_factor_confirmed_at !== null && (string) $user->two_factor_secret !== '') {
-            $request->session()->put([
-                'accounts.two_factor_challenge_user_id' => $user->id,
-                'accounts.two_factor_remember' => $remember,
-                'accounts.two_factor_invitation_token' => $token,
-                'accounts.two_factor_primary_method' => 'password',
-            ]);
+            $mfaChallenges->startPassword($request, $user, $remember, $token === '' ? null : $token);
 
             Auth::guard('web')->logout();
             $request->session()->regenerate();
@@ -80,6 +77,7 @@ final class AuthenticatedSessionController extends Controller
             return redirect()->route('two-factor.login');
         }
 
+        $mfaChallenges->clear($request);
         $recentAuthentication->mark($request, 'password');
         $audit->record(
             event: 'auth.login',
