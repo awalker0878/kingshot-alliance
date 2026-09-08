@@ -25,6 +25,11 @@ return new class extends Migration
             $table->index(['kingdom_id', 'status', 'current_name']);
             $table->index(['kingdom_id', 'current_tag']);
             $table->index('canonical_kingdom_alliance_id');
+        });
+
+        // PostgreSQL must see the completed primary-key constraint before a
+        // self-referencing foreign key can target kingdom_alliances.id.
+        Schema::table('kingdom_alliances', function (Blueprint $table): void {
             $table->foreign('canonical_kingdom_alliance_id')
                 ->references('id')
                 ->on('kingdom_alliances')
