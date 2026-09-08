@@ -148,6 +148,6 @@ final class PlayerIdentityLifecycleExpansionV3Test extends TestCase
         $audit = AuditEvent::query()->where('event', 'player.context_changed')->latest('created_at')->firstOrFail();
         self::assertSame($second->playerId, (string) $audit->subject_id);
         self::assertSame($first->playerId, $audit->metadata['previous_player_id']);
-        self::assertSame($second->playerId, $audit->metadata['current_player_id']);
+        self::assertSame($second->playerId, $audit->metadata['player_id']);
     }
 }
