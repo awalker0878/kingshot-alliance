@@ -6,12 +6,14 @@ namespace App\Contexts\Intelligence\Observations\Actions;
 
 use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
 use App\Contexts\GameWorld\Kingdoms\Actions\UpdateKingdomAllianceIdentity;
+use App\Contexts\GameWorld\Kingdoms\Enums\KingdomAllianceIdentitySource;
 use App\Contexts\GameWorld\Kingdoms\Queries\KingdomAllianceReferenceQuery;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceWriteState;
 use App\Contexts\Intelligence\Observations\Enums\TrackedKingdomAllianceState;
 use App\Contexts\Intelligence\Observations\Models\KingdomAllianceObservation;
 use App\Contexts\Intelligence\Observations\Models\TrackedKingdomAlliance;
+use App\Shared\Infrastructure\AuditTrail\Contracts\AuditActor;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Carbon;
@@ -96,9 +98,7 @@ final readonly class RecordKingdomAllianceObservation
                 ]);
             }
 
-            // Observation-family order is tracking -> neutral reference -> history row.
-            // The reference is also the current-name/tag synchronization anchor.
-            $reference = $this->kingdomAlliances->require((string) $tracking->kingdom_alliance_id);
+            $reference = $this->kingdomAlliances->requireActiveCanonical((string) $tracking->kingdom_alliance_id);
             if ($reference->kingdomId !== (string) $tracking->kingdom_id) {
                 throw ValidationException::withMessages([
                     'observation' => 'The tracked alliance reference no longer matches its captured Kingdom context.',
@@ -162,6 +162,12 @@ final readonly class RecordKingdomAllianceObservation
                     ->lockForUpdate()
                     ->firstOrFail();
 
+                $correctedCanonical = $this->kingdomAlliances->requireCanonical((string) $corrects->kingdom_alliance_id);
+                if ($correctedCanonical->kingdomAllianceId !== $reference->kingdomAllianceId) {
+                    throw ValidationException::withMessages([
+                        'corrects_observation_id' => 'Only an observation for the same canonical Alliance identity can be corrected.',
+                    ]);
+                }
                 if ($corrects->invalidated_at !== null) {
                     throw ValidationException::withMessages([
                         'corrects_observation_id' => 'Only an accepted observation can be corrected.',
@@ -199,7 +205,13 @@ final readonly class RecordKingdomAllianceObservation
                 ])->save();
             }
 
-            $this->syncNeutralIdentity($reference->kingdomAllianceId, $reference->kingdomId, $reference->gameAllianceId);
+            $this->syncNeutralIdentity(
+                (string) $tracking->id,
+                $reference->kingdomAllianceId,
+                $reference->kingdomId,
+                $reference->gameAllianceId,
+                $currentActor,
+            );
 
             $metadata = [
                 'observation_id' => (string) $observation->id,
@@ -249,24 +261,43 @@ final readonly class RecordKingdomAllianceObservation
         });
     }
 
-    private function syncNeutralIdentity(string $kingdomAllianceId, string $kingdomId, ?string $gameAllianceId): void
-    {
+    private function syncNeutralIdentity(
+        string $trackingId,
+        string $kingdomAllianceId,
+        string $kingdomId,
+        ?string $gameAllianceId,
+        ?AuditActor $actor,
+    ): void {
         $latest = KingdomAllianceObservation::query()
-            ->where('kingdom_alliance_id', $kingdomAllianceId)
+            ->where('tracked_kingdom_alliance_id', $trackingId)
             ->whereNull('invalidated_at')
             ->orderByDesc('captured_at')
             ->orderByDesc('id')
             ->first();
 
-        if ($latest instanceof KingdomAllianceObservation) {
-            $this->updateIdentity->handle(
-                $kingdomAllianceId,
-                $kingdomId,
-                (string) $latest->observed_name,
-                $latest->observed_tag === null ? null : (string) $latest->observed_tag,
-                $gameAllianceId,
-            );
+        if (! $latest instanceof KingdomAllianceObservation) {
+            return;
         }
+
+        $latestCanonical = $this->kingdomAlliances->requireCanonical((string) $latest->kingdom_alliance_id);
+        if ($latestCanonical->kingdomAllianceId !== $kingdomAllianceId) {
+            throw ValidationException::withMessages([
+                'observation' => 'Accepted observation history crossed canonical Alliance identities unexpectedly.',
+            ]);
+        }
+
+        $this->updateIdentity->handle(
+            $kingdomAllianceId,
+            $kingdomId,
+            (string) $latest->observed_name,
+            $latest->observed_tag === null ? null : (string) $latest->observed_tag,
+            $gameAllianceId,
+            KingdomAllianceIdentitySource::IntelligenceObservation,
+            'observation:'.$latest->id,
+            $latest->captured_at,
+            actor: $actor,
+            reason: 'Current neutral identity synchronized from the latest accepted Intelligence observation.',
+        );
     }
 
     private function power(?string $value): ?string

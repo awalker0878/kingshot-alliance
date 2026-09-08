@@ -62,7 +62,7 @@ final readonly class TransitionKingdomAllianceDiplomacy
                 ]);
             }
 
-            $reference = $this->kingdomAlliances->require((string) $tracking->kingdom_alliance_id);
+            $reference = $this->kingdomAlliances->requireActiveCanonical((string) $tracking->kingdom_alliance_id);
             if ($reference->kingdomId !== (string) $tracking->kingdom_id) {
                 throw ValidationException::withMessages([
                     'diplomacy' => 'The tracked alliance reference no longer matches its captured Kingdom context.',
@@ -102,7 +102,19 @@ final readonly class TransitionKingdomAllianceDiplomacy
                 ? $relationship->current_state
                 : KingdomAllianceDiplomacyState::Unknown;
 
+            $identityRebound = false;
+            if ($relationship instanceof KingdomAllianceDiplomacy) {
+                $relationshipCanonical = $this->kingdomAlliances->requireCanonical((string) $relationship->kingdom_alliance_id);
+                if ($relationshipCanonical->kingdomAllianceId !== $reference->kingdomAllianceId) {
+                    throw ValidationException::withMessages([
+                        'diplomacy' => 'The diplomacy relationship no longer matches the tracked canonical Alliance identity.',
+                    ]);
+                }
+                $identityRebound = (string) $relationship->kingdom_alliance_id !== $reference->kingdomAllianceId;
+            }
+
             if ($relationship instanceof KingdomAllianceDiplomacy
+                && ! $identityRebound
                 && $relationship->current_state === $target
                 && $relationship->effective_at->equalTo($effectiveAt)
                 && $this->sameDate($relationship->review_at, $reviewAt)
@@ -126,13 +138,8 @@ final readonly class TransitionKingdomAllianceDiplomacy
                     'last_transition_player_id' => $actor->playerId,
                 ]);
             } else {
-                if ($relationship->kingdom_alliance_id !== $reference->kingdomAllianceId) {
-                    throw ValidationException::withMessages([
-                        'diplomacy' => 'The diplomacy relationship no longer matches the tracked neutral alliance reference.',
-                    ]);
-                }
-
                 $relationship->forceFill([
+                    'kingdom_alliance_id' => $reference->kingdomAllianceId,
                     'current_state' => $target,
                     'effective_at' => $effectiveAt,
                     'review_at' => $reviewAt,
@@ -163,12 +170,13 @@ final readonly class TransitionKingdomAllianceDiplomacy
                 'diplomacy_relationship_id' => (string) $relationship->id,
                 'diplomacy_transition_id' => (string) $transition->id,
                 'tracked_kingdom_alliance_id' => (string) $tracking->id,
-                'kingdom_alliance_id' => (string) $reference->kingdomAllianceId,
+                'kingdom_alliance_id' => $reference->kingdomAllianceId,
                 'from_state' => $from->value,
                 'to_state' => $target->value,
                 'effective_at' => $effectiveAt->toIso8601String(),
                 'review_at' => $reviewAt?->toIso8601String(),
                 'expires_at' => $expiresAt?->toIso8601String(),
+                'identity_rebound' => $identityRebound,
             ];
             $event = 'kingdoms.diplomacy_transitioned';
             $this->audit->record($event, $actor, $relationship, $allianceId, $metadata);

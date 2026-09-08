@@ -6,6 +6,7 @@ namespace App\Contexts\Intelligence\Observations\Actions;
 
 use App\Contexts\GameWorld\Kingdoms\Actions\ResolveKingdomAlliance;
 use App\Contexts\GameWorld\Kingdoms\Enums\KingdomAllianceStatus;
+use App\Contexts\GameWorld\Kingdoms\Queries\KingdomAllianceReferenceQuery;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceWriteState;
 use App\Contexts\Intelligence\Observations\Enums\TrackedKingdomAllianceState;
@@ -20,6 +21,7 @@ final readonly class StartTrackingKingdomAlliance
     public function __construct(
         private AllianceIntelligenceWriteState $writeState,
         private ResolveKingdomAlliance $alliances,
+        private KingdomAllianceReferenceQuery $references,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -54,14 +56,17 @@ final readonly class StartTrackingKingdomAlliance
                 ]);
             }
 
-            $alreadyTracked = TrackedKingdomAlliance::query()
+            $activeTrackings = TrackedKingdomAlliance::query()
                 ->where('alliance_id', $allianceId)
-                ->where('kingdom_alliance_id', $reference->kingdomAllianceId)
+                ->where('kingdom_id', $scope->kingdomId)
                 ->where('state', TrackedKingdomAllianceState::Active->value)
                 ->lockForUpdate()
-                ->first();
-            if ($alreadyTracked instanceof TrackedKingdomAlliance) {
-                throw ValidationException::withMessages(['tracking' => 'That game-side alliance is already actively tracked.']);
+                ->get();
+            foreach ($activeTrackings as $activeTracking) {
+                $trackedCanonical = $this->references->requireCanonical((string) $activeTracking->kingdom_alliance_id);
+                if ($trackedCanonical->kingdomAllianceId === $reference->kingdomAllianceId) {
+                    throw ValidationException::withMessages(['tracking' => 'That game-side alliance is already actively tracked through its canonical identity or an earlier alias.']);
+                }
             }
 
             $tracking = TrackedKingdomAlliance::query()->create([

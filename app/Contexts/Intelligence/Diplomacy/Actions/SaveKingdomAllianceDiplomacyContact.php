@@ -52,7 +52,7 @@ final readonly class SaveKingdomAllianceDiplomacyContact
                 ->findOrFail($trackingId);
             $this->assertMutableContext($scope->kingdomId, $tracking);
 
-            $reference = $this->kingdomAlliances->require((string) $tracking->kingdom_alliance_id);
+            $reference = $this->kingdomAlliances->requireActiveCanonical((string) $tracking->kingdom_alliance_id);
             if ($reference->kingdomId !== (string) $tracking->kingdom_id) {
                 throw ValidationException::withMessages([
                     'contact' => 'The tracked alliance reference no longer matches its captured Kingdom context.',
@@ -75,9 +75,10 @@ final readonly class SaveKingdomAllianceDiplomacyContact
                     ->findOrFail($contactId);
 
             if ($contact instanceof KingdomAllianceDiplomacyContact) {
-                if ($contact->kingdom_alliance_id !== $reference->kingdomAllianceId) {
+                $contactCanonical = $this->kingdomAlliances->requireCanonical((string) $contact->kingdom_alliance_id);
+                if ($contactCanonical->kingdomAllianceId !== $reference->kingdomAllianceId) {
                     throw ValidationException::withMessages([
-                        'contact' => 'The diplomacy contact no longer matches the tracked neutral alliance reference.',
+                        'contact' => 'The diplomacy contact no longer matches the tracked canonical Alliance identity.',
                     ]);
                 }
 
@@ -87,7 +88,9 @@ final readonly class SaveKingdomAllianceDiplomacyContact
                     ]);
                 }
 
-                if ($contact->display_name === $displayName
+                $identityRebound = (string) $contact->kingdom_alliance_id !== $reference->kingdomAllianceId;
+                if (! $identityRebound
+                    && $contact->display_name === $displayName
                     && $contact->game_role === $gameRole
                     && $contact->channel_type === $channel
                     && $contact->handle === $handle
@@ -97,6 +100,7 @@ final readonly class SaveKingdomAllianceDiplomacyContact
                 }
 
                 $contact->forceFill([
+                    'kingdom_alliance_id' => $reference->kingdomAllianceId,
                     'display_name' => $displayName,
                     'game_role' => $gameRole,
                     'channel_type' => $channel,
@@ -127,7 +131,7 @@ final readonly class SaveKingdomAllianceDiplomacyContact
             $metadata = [
                 'diplomacy_contact_id' => (string) $contact->id,
                 'tracked_kingdom_alliance_id' => (string) $tracking->id,
-                'kingdom_alliance_id' => (string) $reference->kingdomAllianceId,
+                'kingdom_alliance_id' => $reference->kingdomAllianceId,
                 'state' => $contact->state->value,
                 'last_verified_at' => $lastVerifiedAt?->toIso8601String(),
                 'created' => $created,
