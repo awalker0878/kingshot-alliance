@@ -12,12 +12,14 @@ use App\Contexts\Alliance\Membership\Providers\MembershipServiceProvider;
 use App\Contexts\Alliance\Recruitment\Providers\RecruitmentServiceProvider;
 use App\Contexts\Communications\Delivery\Providers\DeliveryServiceProvider;
 use App\Contexts\GameWorld\GiftCodes\Providers\GiftCodesServiceProvider;
+use App\Contexts\GameWorld\Governance\Providers\GovernanceServiceProvider;
 use App\Contexts\GameWorld\KingdomMaps\Providers\KingdomMapsServiceProvider;
 use App\Contexts\GameWorld\Players\Providers\PlayersServiceProvider;
 use App\Contexts\Intelligence\Contributions\Providers\ContributionsServiceProvider;
 use App\Contexts\Intelligence\Evidence\Providers\EvidenceServiceProvider;
 use App\Contexts\Intelligence\Ingestion\Providers\IngestionServiceProvider;
 use App\Contexts\Intelligence\Sharing\Providers\SharingServiceProvider;
+use App\Contexts\Operations\KingPerks\Providers\KingPerksServiceProvider;
 use App\Contexts\Operations\Participation\Reminders\Providers\RemindersServiceProvider;
 use App\Contexts\Operations\TerritoryPlanning\Providers\TerritoryPlanningServiceProvider;
 use App\Contexts\Platform\Administration\Providers\AdministrationServiceProvider;
@@ -34,6 +36,8 @@ use App\Workflows\KingdomGovernance\Providers\KingdomGovernanceServiceProvider;
 
 return [
     InfrastructureServiceProvider::class,
+    KingPerksServiceProvider::class,
+    GovernanceServiceProvider::class,
     AuthenticationServiceProvider::class,
     RegistrationServiceProvider::class,
     MultiFactorAuthenticationServiceProvider::class,

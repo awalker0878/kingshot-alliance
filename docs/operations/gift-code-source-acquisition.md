@@ -43,7 +43,7 @@ gift-codes:reconcile-sources --limit=25
 gift-codes:backfill-sources --limit=5
 ```
 
-Head ingestion and reconciliation run every 15 minutes; historical backfill runs hourly. `GiftCodesServiceProvider` also schedules `gift-codes:rebuild-acquisition-intelligence` hourly as a bounded projection rebuild. Discord Gateway remains a long-running supervised process rather than a short periodic schedule.
+Head ingestion and reconciliation run every 15 minutes; historical backfill runs hourly. The central `routes/console.php` registry schedules `gift-codes:rebuild-acquisition-intelligence --cluster-limit=500 --source-limit=100` hourly as a bounded projection rebuild. `GiftCodesServiceProvider` registers the owner command adapters and does not add schedules. Discord Gateway remains a long-running supervised process rather than a short periodic schedule.
 
 Use `--source=<source-key>` on the acquisition/reconciliation/backfill commands where supported for a targeted operator run. The runtime applies both observation and provider-page bounds.
 

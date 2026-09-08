@@ -6,6 +6,8 @@ Hosted asynchronous processing uses Redis queues and Laravel Horizon. Durable bu
 
 ## Processing classes
 
+All recurring tasks are registered once in `routes/console.php` and invoke owner commands. Bootstrap and service providers do not add parallel schedules. Use `php artisan schedule:list` to inspect cadence and `php artisan list` / `help <command>` for bounded manual execution. Every task uses shared-cache single-server coordination and overlap protection; owner idempotency remains required for retries and manual runs. See [ADR-0017](../architecture/adr/0017-single-scheduler-registry.md).
+
 Background work includes notification/reminder delivery, webhook delivery/retry, outbox publication, scheduled content/maintenance, retention work and other retryable side effects.
 
 Officer Brief and Intelligence change queue sweeps run every 15 minutes through `notifications:queue-officer-briefs` and `notifications:queue-intelligence-changes`. The sweeps are bounded and cursor-addressable, and scheduled `--cycle` runs advance a shared-cache operational cursor before wrapping after the final page. They reauthorize every recipient, store no brief/signal truth and rely on Communications idempotency before the independent `notifications:deliver` provider worker runs.

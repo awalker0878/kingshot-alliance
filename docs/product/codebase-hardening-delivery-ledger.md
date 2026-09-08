@@ -5,15 +5,15 @@
 - Program state: In progress.
 - Exact main baseline: `7e780521295e868005ecfee5bd38b33e8215ec49`.
 - Working branch: `astra/codebase-hardening`.
-- Latest pushed durable checkpoint: `93782c8d5710b7d6786646679060d7244ddf6e24`.
+- Latest pushed durable checkpoint: `aa8928b0cbf67bddeb252f4692bf5c0b4c59b420`.
 - Draft PR: [#163](https://github.com/awalker0878/kingshot-alliance/pull/163).
-- Current item/state: HARD-003 / In progress.
-- Most recently verified gates: documentation links (231 files) and diff whitespace pass; remote checkpoint and draft PR match baseline.
-- Active files: scheduler/command/provider ownership and regression coverage; [inventory](../architecture/codebase-hardening-inventory.md).
-- Remaining current work: consolidate all three schedule sites, implement missing owner command adapters and verify the booted schedule.
+- Current item/state: HARD-005 / Planned.
+- Most recently verified gates: scheduler/command ownership (4 tests, 646 assertions); architecture verifier; syntax and Pint on 16 changed PHP files; documentation links (233 files); 35 scheduled commands and 490 routes boot. Full PHPStan finds one unrelated evidence-routing defect (HARD-008).
+- Active files: HARD-003 scheduler slice ready for checkpoint; next scope is notification orchestration under ReadModels.
+- Remaining current work: move notification writers/CLI adapters into a Workflow; reconcile ADR-0016 and dependency enforcement, callers, tests and docs.
 - Known failures: baseline CI run `34239160645` and Architecture V3 run `34239160675` failed; failure details pending. Baseline CodeQL run `34239160740` passed. Visual run `34239160758` was still running at initial inspection.
-- Blockers: local PHP 8.5/Composer are not installed yet; preparing runtime before PHP verification.
-- Exact next action: finish HARD-003 and its narrow gates, push a coherent slice, then address HARD-005 notification workflow ownership.
+- Blockers: local PostgreSQL/Redis services are unavailable for database/queue integration tests; PHP 8.5.10, Composer dependencies and frontend dependencies are installed. Use CI for remaining service-dependent gates. Command-line push has no credentials; checkpoint commits are published through the GitHub connection with exact tree verification.
+- Exact next action: publish HARD-003 and record its SHA; implement HARD-005 notification workflow ownership, then address baseline verification defects without weakening gates.
 - Remaining repository-wide gates: PHP syntax/Pint/PSR-4/PHPStan/PHPUnit/Architecture/capability suites; fresh schema/routes/commands/schedules/queues; full frontend checks/build; Playwright/visual; CodeQL/dependency review/advisories; container/staging/recovery.
 
 Checkpoint SHAs are recorded by the following documentation commit; verify that the recorded checkpoint is an ancestor of current branch HEAD. No audit area is complete solely because its paths have been inventoried.
@@ -46,7 +46,7 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Verification required: compare inventory to tracked production directories, routes, provider registration and current workflow definitions; record gaps without claiming behavioral completion.
 - Verification result: tracked directory/provider/route/workflow inventory confirms seven contexts, 43 capabilities, 29 ReadModel packages, three Workflows, 35 command classes, 20 route files and 14 workflow files. All audit areas are retained in the coverage table; concrete defects are HARD-003 and HARD-005–007.
 - Completion evidence: [ownership inventory](../architecture/codebase-hardening-inventory.md). This completes inventory only, not the repository-wide behavioral audit.
-- Commit SHA: recorded at next checkpoint.
+- Commit SHA: `aa8928b0cbf67bddeb252f4692bf5c0b4c59b420`.
 
 ### HARD-003 — Duplicate scheduler authorities
 
@@ -56,11 +56,11 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: one central schedule registry in `routes/console.php`; application behavior remains with its owning package.
 - Rationale: one invocation path per scheduled workload, discoverable command adapters, consistent distributed coordination and no duplicate business orchestration in bootstrap.
 - Remediation: consolidate scheduling, retain unique bounded workloads and cadence, expose missing thin owner commands as needed, add booted-schedule regression checks and update ADR/operations documentation.
-- State: In progress.
+- State: Complete.
 - Verification required: actual booted scheduler contains one registration per workload and valid commands with expected cadence/limits/coordination; owner command behavior, architecture, syntax/style, routes and static analysis for changed code.
-- Verification result: duplicate source registrations confirmed at baseline; runtime verification pending.
-- Completion evidence: `bootstrap/app.php` and `routes/console.php` at baseline.
-- Commit SHA: pending.
+- Verification result: new regression failed both tests before remediation; booted scheduler and command ownership now pass (4 tests, 646 assertions), including actual Symfony argument binding/validation for all 35 workloads. 490 routes boot, architecture verifier passes, changed-file PHP syntax/Pint pass. Full PHPStan reports only unrelated HARD-008. No owner Action business behavior changed; service-dependent capability suites remain part of milestone verification.
+- Completion evidence: `SchedulerOwnershipV3Test`, owner commands/providers, ADR-0017 and updated background/source-acquisition runbooks.
+- Commit SHA: recorded at next checkpoint.
 
 ### HARD-004 — Baseline verification failures
 
@@ -118,6 +118,34 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Completion evidence: pending.
 - Commit SHA: pending.
 
+### HARD-008 — Missing Governor progression evidence routing
+
+- Area: Intelligence/Evidence extraction.
+- Finding: PHPStan reports non-exhaustive match in `RoutedEvidenceExtractor` for `GovernorBuildings`, `GovernorAcademyResearch` and `GovernorWarAcademyResearch`; these evidence kinds can fail at extraction time.
+- Current owner: Intelligence/Evidence routing.
+- Intended authoritative owner: same router and the existing Governor progression extractor.
+- Rationale: one complete evidence-kind dispatch contract; supported intake kinds must reach their authoritative extractor.
+- Remediation: map all supported progression kinds, verify actual extraction behavior and keep unknown/unsupported input semantics explicit.
+- State: Planned.
+- Verification required: exhaustive enum/router regression, production progression extraction behavior and full PHPStan.
+- Verification result: local full PHPStan reports exactly this one error; no suppression added.
+- Completion evidence: pending.
+- Commit SHA: pending.
+
+### HARD-009 — Personal reminder stale-snapshot race
+
+- Area: GameWorld/GiftCodes personal reminders.
+- Finding: `QueueDueGiftCodeReminders` queues from an unlocked account-state snapshot, then clears any current past-due `remind_at` under lock without checking it still matches the reminder processed. Concurrent rescheduling can be cleared by the earlier sweep.
+- Current owner: `QueueDueGiftCodeReminders`.
+- Intended authoritative owner: same owner Action with an explicit reminder occurrence/claim boundary.
+- Rationale: stale processing must not erase a newer user intention; retries and parallel runs need stable occurrence identity.
+- Remediation: reproduce the reschedule race, revalidate/lock occurrence state at mutation and preserve new reminders; verify retry/idempotency semantics without network calls under a broad transaction.
+- State: Planned.
+- Verification required: race regression preserving a rescheduled reminder, duplicate sweep/retry behavior and owner authorization.
+- Verification result: snapshot-to-lock path confirmed by source inspection; behavioral reproduction pending.
+- Completion evidence: pending.
+- Commit SHA: pending.
+
 ## Repository audit coverage
 
 All rows below remain Planned until actual production paths have been traced. This table tracks audit scope, not discovered defects.
@@ -132,6 +160,6 @@ All rows below remain Planned until actual production paths have been traced. Th
 | Communications | Preferences/recipients, inbox, delivery channels, digests, retry/idempotency and revocation | Planned |
 | Platform | Administration, integrations/API credentials, webhooks, retention and operational controls | Planned |
 | Workflows/ReadModels | All cross-context orchestration, authorized dashboards, Assistant/API/notification projections | Planned |
-| Infrastructure/entry points | Shared mechanisms, routes, providers/DI, console/scheduler, queues/listeners/outbox, middleware | Planned |
+| Infrastructure/entry points | Scheduler registration/commands verified by HARD-003; route authorization, shared mechanisms, queues/listeners/outbox and middleware audit remain | In progress |
 | Frontend | Pages, components, composables/stores, server contracts, localization, receipts and accessibility | Planned |
 | Schema/verification/operations/docs | Fresh schema/indexes, concurrency/query budgets, tests, CI, image/recovery, contracts/catalogues/ADRs/ledgers | Planned |

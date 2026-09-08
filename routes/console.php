@@ -65,5 +65,14 @@ Schedule::command('platform:process-account-deletions --limit=100')->hourly()->o
 Schedule::command('platform:capture-usage --limit=2000')->hourly()->onOneServer()->withoutOverlapping(30);
 Schedule::command('platform:enforce-retention')->dailyAt('03:45')->onOneServer()->withoutOverlapping(60);
 Schedule::command('recruitment:purge-expired --limit=250')->dailyAt('03:15')->onOneServer()->withoutOverlapping(30);
-Schedule::command('queue:prune-batches --hours=48')->daily();
-Schedule::command('queue:prune-failed --hours=168')->daily();
+Schedule::command('queue:prune-batches --hours=48')->daily()->onOneServer()->withoutOverlapping(60);
+Schedule::command('queue:prune-failed --hours=168')->daily()->onOneServer()->withoutOverlapping(60);
+
+Schedule::command('king-perks:queue-reminders --limit=100')->everyMinute()->onOneServer()->withoutOverlapping(10);
+Schedule::command('gift-codes:queue-personal-reminders --limit=100')->everyMinute()->onOneServer()->withoutOverlapping(10);
+Schedule::command('gift-codes:queue-workspace-notifications --limit=100')->everyFifteenMinutes()->onOneServer()->withoutOverlapping(30);
+Schedule::command('gift-codes:source-operational-alerts --limit=100')->everyFiveMinutes()->onOneServer()->withoutOverlapping(10);
+Schedule::command('gift-codes:rebuild-contributor-projections --limit=100')->hourly()->onOneServer()->withoutOverlapping(30);
+Schedule::command('gift-codes:rebuild-acquisition-intelligence --cluster-limit=500 --source-limit=100')->hourly()->onOneServer()->withoutOverlapping(30);
+Schedule::command('kingdom-governance:expire-delegations --limit=250')->hourly()->onOneServer()->withoutOverlapping(30);
+Schedule::command('evidence:enforce-retention --limit=250')->dailyAt('03:20')->onOneServer()->withoutOverlapping(60);

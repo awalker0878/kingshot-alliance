@@ -23,6 +23,7 @@ Console commands are application adapters owned by the application package whose
 - A command class may parse CLI arguments and options, perform CLI-specific validation and cursor handling, invoke the owner's Actions, Queries or Services, render output and select an exit code.
 - Domain and application behavior stays in Actions, Queries, Services and workflows; command classes do not become a new business-logic layer.
 - `routes/console.php` remains the centralized location for global scheduling and may contain only deliberately small application-wide closure commands.
+- [ADR-0017](0017-single-scheduler-registry.md) enforces one scheduler registry: bootstrap and providers do not register additional schedules; recurring workloads invoke owner commands.
 - Shared infrastructure commands may live with the infrastructure component that owns them and are registered by its infrastructure provider.
 - Existing command names, options, outputs and schedules are preserved when moving a closure into a class. No compatibility shim is required.
 

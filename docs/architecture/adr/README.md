@@ -20,3 +20,4 @@ Architecture decision records explain material changes to ownership, boundaries,
 - [ADR-0014: Model authentication as sign-in methods attached to Kingshot Alliance Users](0014-account-sign-in-methods.md)
 - [ADR-0015: Separate logical notifications from delivery routes](0015-separate-logical-notifications-from-delivery-routes.md)
 - [ADR-0016: Keep capability console commands with their owning capability](0016-capability-console-command-ownership.md)
+- [ADR-0017: One scheduler registry with owner command adapters](0017-single-scheduler-registry.md)
