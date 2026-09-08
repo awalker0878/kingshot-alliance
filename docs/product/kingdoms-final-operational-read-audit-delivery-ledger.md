@@ -1,6 +1,6 @@
 # Kingdoms final operational-read audit — delivery ledger
 
-Status: Implementation complete; repository verification pending
+Status: Complete; delivery PR verified
 
 - [x] Re-scan current `main` for remaining Kingdom historical lookup consumers.
 - [x] Classify current/operational versus explicit historical surfaces.
@@ -12,4 +12,4 @@ Status: Implementation complete; repository verification pending
 - [x] Preserve explicit Event, Governance, Player snapshot, and observation history semantics.
 - [x] Preserve Transfer Evidence historical identity comparison behind active target authorization.
 - [x] Add architecture and Transfer behavior regression coverage.
-- [ ] CI, Architecture V3 Verification, Intelligence Verification, Visual Regression, CodeQL, and Dependency Review green on the final delivery head.
+- [x] CI, Architecture V3 Verification, Intelligence Verification, Visual Regression, CodeQL, and Dependency Review green on the verified implementation head.
