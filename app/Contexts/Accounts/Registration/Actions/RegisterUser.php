@@ -108,7 +108,9 @@ final readonly class RegisterUser
         });
 
         if (! $emailVerified) {
-            $user->sendEmailVerificationNotification();
+            DB::afterCommit(static function () use ($user): void {
+                $user->sendEmailVerificationNotification();
+            });
         }
 
         return new RegisteredAccount(

@@ -5,15 +5,15 @@
 - Program state: In progress.
 - Exact main baseline: `7e780521295e868005ecfee5bd38b33e8215ec49`.
 - Working branch: `astra/codebase-hardening`.
-- Latest pushed durable checkpoint: `6fb42491d5f998bb57de1ec1c007a36c3c789f61`.
+- Latest pushed durable checkpoint: `b4bdd283a775549afd85fd97041d5e958cd13bc1`.
 - Draft PR: [#163](https://github.com/awalker0878/kingshot-alliance/pull/163).
-- Current item/state: HARD-024 / In progress (profile credential query budget). HARD-021–023 pass the full PHP suite; remaining containing gates are running.
-- Most recently verified gates: all nine PR workflows pass on `94c95511cbf55abc911abd5590c8f75debb553f5`, including 752 PHP tests / 73,772 assertions, fresh PostgreSQL, frontend, image/staging/recovery, architecture/capabilities, visual and security.
-- Active files: Accounts sign-in-method policy/profile projection, query-budget regression and policy contract tests, Accounts contract and ledger.
-- Remaining current work: verify HARD-024 and reconcile HARD-021–023 containing gates; repair onboarding partial writes under HARD-025, then finish deletion handoff and remaining repository audit.
-- Known failures: none in the full PHP suite on `6fb42491` (770 tests, 74,107 assertions). Other containing workflows are still running; HARD-024 query-budget tests await PostgreSQL CI.
+- Current item/state: HARD-025 / In progress (atomic account onboarding). HARD-021–024 are Complete with all nine containing workflows green.
+- Most recently verified gates: all nine PR workflows pass on `b4bdd283a775549afd85fd97041d5e958cd13bc1`, including 773 PHP tests / 74,178 assertions, fresh PostgreSQL, frontend, image/staging/recovery, architecture/capabilities, visual and security.
+- Active files: AccountOnboarding commands, registration after-commit verification delivery, real rollback/concurrency tests, architecture verifier and ADR-0019/contracts.
+- Remaining current work: verify HARD-025, then repair account deletion lifecycle composition under HARD-026 and continue remaining repository audit coverage.
+- Known failures: none on fully verified `b4bdd283` (773 tests, 74,178 assertions). HARD-025 database regressions await PostgreSQL CI; local static/style/architecture gates pass.
 - Blockers: local PostgreSQL/Redis services unavailable; service-backed verification uses GitHub CI. Local PHP 8.5.8 and locked Composer/npm dependencies available. Checkpoints publish via the authorized GitHub connection with exact staged-tree verification and non-forced branch updates.
-- Exact next action: publish HARD-024 and verify containing workflows, then implement the owner-composition transaction repair under HARD-025 with adversarial invitation failure coverage.
+- Exact next action: publish HARD-025 and verify containing workflows, then implement HARD-026 lifecycle serialization and continue the repository audit.
 - Remaining repository-wide gates: final full PHP/architecture/capability and frontend gates on one containing commit; production image/staging/recovery; final security/dependency/visual checks; remaining capability-by-capability audit coverage below.
 
 Checkpoint SHAs are recorded by the following documentation commit; verify that the recorded checkpoint is an ancestor of current branch HEAD. No audit area is complete solely because its paths have been inventoried.
@@ -308,11 +308,11 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: one Accounts-owned bounded MFA login challenge.
 - Rationale: second-factor completion must correspond to a current, recent primary-factor proof and must not restore a superseded credential.
 - Remediation: trace all challenge writers/consumers and lifecycle mutations, establish a short-lived single-use proof tied to its primary credential, and reject expired/stale challenges.
-- State: In progress.
+- State: Complete.
 - Verification required: normal password/Google plus TOTP/recovery login, expired/replayed challenges, credential changes/removal and account finalization.
-- Verification result: one Accounts-owned challenge replaces the four loose session keys with a ten-minute, opaque credential/MFA fingerprint contract. Completion locks the User, revalidates lifecycle/credentials, consumes successful proof, registers the rotated session before releasing the lock and records method provenance. The POST route serializes requests for one session; failed OTP input can retry within the original lifetime/rate limit. Normal password/Google/passkey success clears pending proof. Thirteen regressions cover all primary/second-factor pairs, credential removal/change, MFA replacement, anonymization, expiry without consuming recovery codes, retry and proof replay. Full PHPStan passes; Pint and 62 Architecture tests pass (66,675 assertions). PostgreSQL CI on `68f1cb4c` passes 12 of 13 new cases; one Google callback fixture hits the shared CI IP rate limit before reaching the handler, also leaving its unused mock expectation. The correction gives each test case a distinct client address without changing production throttles; a fourteenth case verifies the actual five-attempt limit. All 14 MFA cases now pass in PostgreSQL CI on `b3b8daf4` (769 total tests); only the two new passkey HTTP cases fail under HARD-023. Containing gates await that route-boundary repair.
-- Completion evidence: pending.
-- Commit SHA: pending.
+- Verification result: one Accounts-owned challenge replaces the four loose session keys with a ten-minute, opaque credential/MFA fingerprint contract. Completion locks the User, revalidates lifecycle/credentials, consumes successful proof, registers the rotated session before releasing the lock and records method provenance. The POST route serializes requests for one session; failed OTP input can retry within the original lifetime/rate limit. Normal password/Google/passkey success clears pending proof. Thirteen regressions cover all primary/second-factor pairs, credential removal/change, MFA replacement, anonymization, expiry without consuming recovery codes, retry and proof replay. Full PHPStan passes; Pint and 62 Architecture tests pass (66,675 assertions). PostgreSQL CI on `68f1cb4c` passes 12 of 13 new cases; one Google callback fixture hits the shared CI IP rate limit before reaching the handler, also leaving its unused mock expectation. The correction gives each test case a distinct client address without changing production throttles; a fourteenth case verifies the actual five-attempt limit. All 14 MFA cases now pass in PostgreSQL CI on `b3b8daf4` (769 total tests); only the two new passkey HTTP cases fail under HARD-023. The route-boundary repair is now fully verified on `6fb42491`, and all nine workflows pass.
+- Completion evidence: CI `34260552271`, PHP job `102177121125`, Architecture `34260552412`, Intelligence `34260552267` and all other workflows pass; 770 tests, 74,107 assertions.
+- Commit SHA: `68f1cb4c38244394be5e2d641a568a849e3b9a40`; fixture correction `b3b8daf4867f4f1fd07b56d277a3116ce3e01320`; containing verification `6fb42491d5f998bb57de1ec1c007a36c3c789f61`.
 
 ### HARD-022 — Passkey last-method check is outside the account lock
 
@@ -322,11 +322,11 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: Accounts credential mutation under the same User lock as other method changes, retaining maintained package verification.
 - Rationale: concurrent removals must not each observe another usable method and leave the account without any.
 - Remediation: inspect the installed package deletion transaction and route boundary, reproduce any missing serialization, then centralize mutation policy/locking without duplicating WebAuthn cryptography.
-- State: In progress.
+- State: Complete.
 - Verification required: current package delete authorization and last-method behavior under concurrent method removal; existing passkey security/credential suites.
-- Verification result: the installed package DeletePasskey Action performs delete/event dispatch without a transaction; its controller checks ownership but adds no User lock. Accounts now binds that package Action to DeleteAccountPasskey, which locks User then current owned passkey and applies the central last-method policy before deletion. Removed the unlocked model callback. Existing removal tests invoke the package binding; two new HTTP cases preserve ownership, final-method denial, audit, security notifications and response behavior. A separate committed-fixture test invokes RemovePassword over a second PostgreSQL connection while passkey deletion holds the User lock, expects bounded lock contention, then verifies the remaining password cannot be removed. Full PHPStan and Pint pass; 62 Architecture tests pass. The competing-connection regression passes in PostgreSQL CI on `b3b8daf4`: RemovePassword receives SQLSTATE 55P03 while the User lock is held, and the final remaining method stays protected. Existing binding/policy cases pass. Two new HTTP cases receive game-context 409 before Accounts; HARD-023 records and repairs this separate production defect. Containing verification pending.
-- Completion evidence: pending.
-- Commit SHA: pending.
+- Verification result: the installed package DeletePasskey Action performs delete/event dispatch without a transaction; its controller checks ownership but adds no User lock. Accounts now binds that package Action to DeleteAccountPasskey, which locks User then current owned passkey and applies the central last-method policy before deletion. Removed the unlocked model callback. Existing removal tests invoke the package binding; two new HTTP cases preserve ownership, final-method denial, audit, security notifications and response behavior. A separate committed-fixture test invokes RemovePassword over a second PostgreSQL connection while passkey deletion holds the User lock, expects bounded lock contention, then verifies the remaining password cannot be removed. Full PHPStan and Pint pass; 62 Architecture tests pass. The competing-connection regression passes in PostgreSQL CI on `b3b8daf4`: RemovePassword receives SQLSTATE 55P03 while the User lock is held, and the final remaining method stays protected. Existing binding/policy cases pass. Two new HTTP cases receive game-context 409 before Accounts; HARD-023 records and repairs this separate production defect. All HTTP, policy and concurrency cases now pass on `6fb42491`, with all nine workflows green.
+- Completion evidence: CI `34260552271`, PHP job `102177121125`, Architecture `34260552412`, Intelligence `34260552267` and all other workflows pass; 770 tests, 74,107 assertions.
+- Commit SHA: `b3b8daf4867f4f1fd07b56d277a3116ce3e01320`; containing verification `6fb42491d5f998bb57de1ec1c007a36c3c789f61`.
 
 ### HARD-023 — Account passkey writes require game authority context
 
@@ -336,11 +336,11 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: Accounts authenticates and authorizes passkey operations; game mutations retain the current Player authority precondition.
 - Rationale: account security must be usable independently of game identity, without requiring or granting game authority.
 - Remediation: add the explicit account passkey prefix to the existing exemption registry; retain authentication/recent-proof/ownership/WebAuthn/rate-limit checks and game mutation tests.
-- State: In progress.
+- State: Complete.
 - Verification required: real package deletion, foreign/final-method denial, registration/confirmation input validation without any Governor; unchanged stale/missing/current game-context behavior.
-- Verification result: the two HARD-022 HTTP cases reproduce the misplaced 409 gate. The account prefix is now exempt; an additional real HTTP case covers registration and confirmation reaching their own validation without a Governor. Full PHPStan passes with zero errors; changed-file Pint, diff checks and documentation links pass. All package HTTP regressions, existing game-context preconditions and the full PostgreSQL suite pass on `6fb42491` (770 tests, 74,107 assertions); PHP job `102177121125`. Final containing gates are running.
-- Completion evidence: pending.
-- Commit SHA: pending.
+- Verification result: the two HARD-022 HTTP cases reproduce the misplaced 409 gate. The account prefix is now exempt; an additional real HTTP case covers registration and confirmation reaching their own validation without a Governor. Full PHPStan passes with zero errors; changed-file Pint, diff checks and documentation links pass. All package HTTP regressions, existing game-context preconditions and the full PostgreSQL suite pass on `6fb42491` (770 tests, 74,107 assertions); PHP job `102177121125`. All nine containing workflows pass.
+- Completion evidence: CI `34260552271`, PHP job `102177121125`, Architecture `34260552412`, Intelligence `34260552267` and all other workflows pass; 770 tests, 74,107 assertions.
+- Commit SHA: `6fb42491d5f998bb57de1ec1c007a36c3c789f61`.
 
 ### HARD-024 — Profile passkey list repeats removal-policy queries
 
@@ -350,11 +350,11 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: one read-time Accounts method summary with derived removal eligibility; owner Actions retain locked policy revalidation.
 - Rationale: the number of displayed credentials must not multiply database round trips or introduce a second UI permission authority.
 - Remediation: derive projection eligibility once through the policy, preserve locked mutation checks, and verify a constant query budget with multiple own/foreign credentials and final-method states.
-- State: In progress.
+- State: Complete.
 - Verification required: one versus many passkeys use a constant query count; correct removal flags and account isolation; mutation concurrency/last-method tests remain intact.
-- Verification result: The policy summary now derives all removal flags from one current credential count. Profile uses that summary for its already account-scoped passkey list; mutation Actions retain owner locks and current ownership/policy revalidation. Three projection cases cover one versus 40 passkeys, foreign credential isolation, each final-method kind and combined password/Google removal. Full PHPStan and changed-file Pint pass. PostgreSQL query-budget verification pending.
-- Completion evidence: pending.
-- Commit SHA: pending.
+- Verification result: The policy summary now derives all removal flags from one current credential count. Profile uses that summary for its already account-scoped passkey list; mutation Actions retain owner locks and current ownership/policy revalidation. Three projection cases cover one versus 40 passkeys, foreign credential isolation, each final-method kind and combined password/Google removal. Full PHPStan and changed-file Pint pass. All three projection cases pass on `b4bdd283`: one and 40 passkeys use the same six queries, with correct scope and removal flags. All nine workflows pass.
+- Completion evidence: CI `34261161981`, PHP job `102179161063`, Architecture `34261161938`, Intelligence `34261161939` and all other workflows pass; 773 tests, 74,178 assertions.
+- Commit SHA: `b4bdd283a775549afd85fd97041d5e958cd13bc1`.
 
 ### HARD-025 — Failed invitation onboarding leaves Player ownership or registration committed
 
@@ -364,9 +364,23 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: owner Actions retain all validation, locking and persistence; the onboarding command must have an explicit atomic composition boundary for its dependent changes and after-commit external effects.
 - Rationale: a failed invitation must not grant Player ownership or leave an unusable partial registration; preflight snapshot checks alone cannot close state-change races. The current blanket prohibition on Workflow transactions conflicts with this dependent command invariant and requires an explicit architecture decision, not a hidden transaction wrapper.
 - Remediation: define and document the narrowly scoped atomic composition rule, implement consistent current-account validation and owner-action rollback, defer verification delivery until commit, and exercise real wrong-email/stale/inactive/claimed invitation failures and success.
-- State: Planned.
+- State: In progress.
 - Verification required: rejected existing-account acceptance leaves ownership/history/audit unchanged; failed registration leaves no account/identity/claim/outbox/mail; successful onboarding commits all owner effects once; current owner checks and architecture remain enforced.
-- Verification result: Workflow and all three owner Action implementations traced; deterministic wrong-email partial claim identified. Implementation pending.
+- Verification result: RegisterAccount and AcceptInvitationForAccount now compose the existing owner Actions atomically under ADR-0019. Registration reuses the existing-account acceptance sequence; acceptance obtains a locked current account snapshot and rejects finalization. Verification mail waits for the outermost commit. Twelve real HTTP/owner cases cover wrong email, inactive Alliance, password/Google rollback after roster/lifecycle/ownership rejection, actual second-connection invitation revocation, successful commit/mail timing, replay and finalized accounts. Full PHPStan, changed-file Pint and all 62 Architecture tests pass (66,719 assertions). PostgreSQL verification pending.
+- Completion evidence: pending.
+- Commit SHA: pending.
+
+### HARD-026 — Account deletion request and account lifecycle can diverge
+
+- Area: Platform/DataGovernance and Accounts lifecycle handoff.
+- Finding: RequestAccountDeletion and CancelAccountDeletion commit the Platform transition before invoking the Accounts lifecycle writer. A competing transition or later failure can leave deletion_requested_at/audit inconsistent with the durable request. Processing snapshots account/Player ownership before acquiring the Accounts lock in AnonymizeAccount, while claim callers do not consistently lock or reject finalized accounts.
+- Current owner: Platform deletion request/process Actions; Accounts lifecycle/anonymization; GameWorld Player claiming.
+- Intended authoritative owner: the same owner APIs with consistent account-first serialization and transactional lifecycle intent.
+- Rationale: request/cancel/process must agree on one current lifecycle, and finalization cannot race a new Player claim or restore account lifecycle metadata after completion.
+- Remediation: trace claim and lifecycle publishers, serialize the current account before dependent request/ownership decisions, compose owner lifecycle writes atomically and verify failures/concurrent handoffs with real database behavior.
+- State: Planned.
+- Verification required: request/cancel rollback preserves both owners, repeat/processed transitions do not emit contradictory lifecycle effects, finalization excludes competing claims, and normal release/security notification behavior remains intact.
+- Verification result: all deletion request/cancel/process, lifecycle and release implementations traced. Claim entry points and publisher effects require completion before implementation.
 - Completion evidence: pending.
 - Commit SHA: pending.
 

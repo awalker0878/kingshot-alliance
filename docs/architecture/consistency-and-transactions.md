@@ -37,6 +37,8 @@ A context does not extend its transaction boundary by reaching through another c
 
 When a process genuinely spans multiple owners, a Workflow coordinates those owner operations. The Workflow does not become persistence owner of participating aggregates.
 
+The two AccountOnboarding commands `RegisterAccount` and `AcceptInvitationForAccount` compose dependent owner Actions inside one bounded database transaction under [ADR-0019](adr/0019-atomic-account-onboarding-owner-composition.md). Failure rolls back registration, Player claiming and invitation acceptance together. Accounts supplies the current locked account snapshot; participating owners keep their business locks, validation and all writes. Verification mail waits for the outermost commit. The architecture verifier permits transactions only for these explicitly reviewed Workflow commands and continues to forbid direct persistence and model access.
+
 Where atomic multi-owner database mutation would create ownership leakage, prefer explicit process state and durable events/outbox coordination.
 
 ## Side effects

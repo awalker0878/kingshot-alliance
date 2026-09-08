@@ -40,7 +40,7 @@ Cross-context collaboration uses owner Actions, Queries, immutable projections, 
 
 ## Workflows and read models
 
-Workflows coordinate owner APIs and own no business persistence, permission vocabulary, aggregate repositories, or foreign transaction state.
+Workflows coordinate owner APIs and own no business persistence, permission vocabulary or aggregate repositories. The two onboarding commands explicitly reviewed in [ADR-0019](adr/0019-atomic-account-onboarding-owner-composition.md) may compose dependent owner Actions inside one transaction; every business lock, current-state validation and write remains behind its owner API. Other Workflows do not own transactions.
 
 ReadModels may compose reads across contexts but own no writes and must never be passed into protected write contracts.
 

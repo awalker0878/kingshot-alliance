@@ -26,7 +26,7 @@ Keep bounded membership pages, cursor cycling, local-day cadence, semantic finge
 
 ## Verification and supersession
 
-The architecture verifier now rejects ReadModel dependencies on owner Actions, Workflows, the delivery writer and the outbox writer, in addition to direct persistence. The allowed Workflow set includes the new owner; existing no-model/no-transaction/no-permission-enum rules remain enforced.
+The architecture verifier rejects ReadModel dependencies on owner Actions, Workflows, the delivery writer and the outbox writer, in addition to direct persistence. The allowed Workflow set includes the new owner; no-model/no-permission-enum rules remain enforced. NotificationDelivery has no transaction exception; the two explicitly reviewed AccountOnboarding exceptions are documented in [ADR-0019](0019-atomic-account-onboarding-owner-composition.md).
 
 Workflow behavior suites cover daily/semantic deduplication, disabled channels, revoked officer/Intelligence authority, cross-Alliance rejection, recipient bounds, current-member selection, retry delivery and command cycling. Projection-only tests remain with ReadModels. Scheduler/provider contracts verify the production command path.
 

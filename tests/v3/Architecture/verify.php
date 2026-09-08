@@ -103,6 +103,11 @@ foreach ($phpFiles($app.'/Contexts') as $file) {
         }
     }
 }
+// ADR-0019: only these dependent onboarding commands may compose owner transactions.
+$atomicWorkflowActions = [
+    $app.'/Workflows/AccountOnboarding/Actions/RegisterAccount.php',
+    $app.'/Workflows/AccountOnboarding/Actions/AcceptInvitationForAccount.php',
+];
 foreach ($phpFiles($app.'/Workflows') as $file) {
     $source = file_get_contents($file) ?: '';
     foreach ($imports($source) as $import) {
@@ -110,8 +115,11 @@ foreach ($phpFiles($app.'/Workflows') as $file) {
             $record('WORKFLOW_IMPORTS_MODEL', $file, $import);
         }
     }
-    if (preg_match('/\b(DB::transaction|lockForUpdate\s*\(|->save\s*\(|->update\s*\(|->delete\s*\(|::create\s*\()/m', $source) === 1) {
-        $record('WORKFLOW_OWNS_WRITE', $file, 'Workflow contains transaction/direct persistence.');
+    if (preg_match('/\bDB::transaction\s*\(/', $source) === 1 && ! in_array($file, $atomicWorkflowActions, true)) {
+        $record('WORKFLOW_OWNS_TRANSACTION', $file, 'Atomic owner composition requires an explicit architecture decision and rollback coverage.');
+    }
+    if (preg_match('/\bDB::(?!transaction\s*\()|->(?:lockForUpdate|sharedLock|forceFill|save|update|delete|insert|upsert)\s*\(|::create\s*\(/m', $source) === 1) {
+        $record('WORKFLOW_OWNS_WRITE', $file, 'Workflow contains direct persistence or business locks.');
     }
 }
 
