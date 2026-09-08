@@ -24,6 +24,7 @@ final readonly class EventTargetResolver
         private PlayerReferenceQuery $players,
     ) {}
 
+    /** Historical/current read resolution; archived targets remain renderable. */
     public function resolve(EventScope $scope, string $targetId): EventTargetReference
     {
         return match ($scope) {
@@ -33,12 +34,13 @@ final readonly class EventTargetResolver
         };
     }
 
+    /** Transaction-time operational resolution; the target's current Kingdom must be active. */
     public function lockCurrent(EventScope $scope, string $targetId): EventTargetReference
     {
         return match ($scope) {
-            EventScope::Alliance => $this->allianceTarget($this->alliances->lockCurrent($targetId)),
-            EventScope::Kingdom => $this->kingdomTarget($this->kingdoms->lockCurrent($targetId)),
-            EventScope::Player => $this->playerTarget($this->players->lockCurrent($targetId)),
+            EventScope::Alliance => $this->allianceTarget($this->alliances->lockCurrent($targetId), true),
+            EventScope::Kingdom => $this->kingdomTarget($this->kingdoms->lockActive($targetId)),
+            EventScope::Player => $this->playerTarget($this->players->lockCurrent($targetId), true),
         };
     }
 
@@ -57,9 +59,11 @@ final readonly class EventTargetResolver
         return $target->displayName;
     }
 
-    private function allianceTarget(AllianceReference $alliance): EventTargetReference
+    private function allianceTarget(AllianceReference $alliance, bool $requireActiveKingdom = false): EventTargetReference
     {
-        $kingdom = $this->kingdoms->require($alliance->kingdomId);
+        $kingdom = $requireActiveKingdom
+            ? $this->kingdoms->lockActiveShared($alliance->kingdomId)
+            : $this->kingdoms->require($alliance->kingdomId);
 
         return new EventTargetReference(
             scope: EventScope::Alliance,
@@ -87,8 +91,12 @@ final readonly class EventTargetResolver
         );
     }
 
-    private function playerTarget(PlayerReference $player): EventTargetReference
+    private function playerTarget(PlayerReference $player, bool $requireActiveKingdom = false): EventTargetReference
     {
+        if ($requireActiveKingdom) {
+            $this->kingdoms->lockActiveShared($player->kingdomId);
+        }
+
         return new EventTargetReference(
             scope: EventScope::Player,
             targetId: $player->playerId,
