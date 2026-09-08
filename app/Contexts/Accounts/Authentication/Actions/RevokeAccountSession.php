@@ -24,6 +24,7 @@ final readonly class RevokeAccountSession
     {
         $sessionId = DB::transaction(function () use ($userId, $publicId, $currentSessionId): string {
             $user = User::query()->whereKey($userId)->lockForUpdate()->firstOrFail();
+            $user->ensureActive();
             $record = AccountSession::query()
                 ->where('user_id', $userId)
                 ->where('public_id', $publicId)

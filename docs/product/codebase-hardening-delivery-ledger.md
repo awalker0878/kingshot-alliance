@@ -5,15 +5,15 @@
 - Program state: In progress.
 - Exact main baseline: `7e780521295e868005ecfee5bd38b33e8215ec49`.
 - Working branch: `astra/codebase-hardening`.
-- Latest pushed durable checkpoint: `594f1ea73cb7fa711ab4251e92e51aacb52a418b`.
+- Latest pushed durable checkpoint: `8c6b8a7a29a7d0bc1ecba9a1aa579bc88e828d5e`.
 - Draft PR: [#163](https://github.com/awalker0878/kingshot-alliance/pull/163).
-- Current item/state: HARD-031 / In progress (password-reset consumption). HARD-030/035 are Complete with all nine containing workflows green.
-- Most recently verified gates: all nine PR workflows pass on `594f1ea73cb7fa711ab4251e92e51aacb52a418b`, including 866 PHP tests / 74,985 assertions, fresh PostgreSQL, frontend, image/staging/recovery, architecture/capabilities, visual and security.
-- Active files: ResetPassword owner transaction, ten reset failure/success/competing-connection regressions, credential contract and ledger.
-- Remaining current work: verify HARD-031 reset consumption and reconcile HARD-030/035 containing gates; HARD-032 finalized-account mutation guards, HARD-033 finalization session cleanup, HARD-034 email-change throttling and HARD-036 password-reset issuance remain; continue repository audit coverage.
-- Known failures: none in PostgreSQL CI on `594f1ea7`; all email-change, delayed-signature and rendered-mail cases pass. Ten new reset-consumption cases await CI.
+- Current item/state: HARD-032 / In progress (terminal account mutation guards). HARD-031 is Complete with all nine containing workflows green.
+- Most recently verified gates: all nine PR workflows pass on `8c6b8a7a29a7d0bc1ecba9a1aa579bc88e828d5e`, including 876 PHP tests / 75,032 assertions, fresh PostgreSQL, frontend, image/staging/recovery, architecture/capabilities, visual and security.
+- Active files: Accounts current-active guards, session tracking transaction, VerifyAccountEmail/controller, 33 terminal-state/concurrency/verification regressions and owner docs.
+- Remaining current work: verify HARD-032 containing gates; HARD-033 finalization session cleanup, HARD-034 email-change throttling, HARD-036 password-reset issuance and HARD-037 login proof freshness remain; continue repository audit coverage.
+- Known failures: none in PostgreSQL PHP CI on `8c6b8a7a` (876 tests / 75,032 assertions). Terminal mutation/verification cases await containing CI.
 - Blockers: local PostgreSQL/Redis services unavailable; service-backed verification uses GitHub CI. Local PHP 8.5.8 and locked Composer/npm dependencies available. Checkpoints publish via the authorized GitHub connection with exact staged-tree verification and non-forced branch updates.
-- Exact next action: publish and verify HARD-031 reset consumption, then enforce current-active Accounts write boundaries under HARD-032 and fix finalization cleanup under HARD-033.
+- Exact next action: publish and verify HARD-032, then fix finalization raw-session cleanup under HARD-033 and continue the Accounts queue.
 - Remaining repository-wide gates: final full PHP/architecture/capability and frontend gates on one containing commit; production image/staging/recovery; final security/dependency/visual checks; remaining capability-by-capability audit coverage below.
 
 Checkpoint SHAs are recorded by the following documentation commit; verify that the recorded checkpoint is an ancestor of current branch HEAD. No audit area is complete solely because its paths have been inventoried.
@@ -448,11 +448,11 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: Accounts serializes current-account/token revalidation and consumption with the password mutation; the maintained broker owns token hashing, expiry and throttling.
 - Rationale: reset tokens must authorize one successful current credential transition and report accurately when current state no longer permits it.
 - Remediation: move current token validation/consumption within the account serialization boundary without duplicating maintained token cryptography; verify a real competing-connection reset and changed credential state.
-- State: In progress.
+- State: Complete.
 - Verification required: one token cannot authorize two password changes; token failure/expiry/stale credential state return failure; rollback preserves retryable intent and existing successful-reset behavior.
-- Verification result: ResetPassword now acquires/rechecks the current account before the entire maintained broker check/callback/delete sequence. Password, API/browser/remember revocation, audit/security intent and token consumption commit together; framework event and raw cleanup wait for outermost commit. Ten database cases cover real post-insert and post-token-delete rollback, successful one-use reset, expired/unknown/changed/finalized accounts, and actual competing reset/removal over a second PostgreSQL connection with an independent maintained broker. Full PHPStan and Pint pass; database verification pending. Issuance still writes from ForgotPasswordController without this boundary and is tracked separately as HARD-036.
-- Completion evidence: pending.
-- Commit SHA: pending.
+- Verification result: ResetPassword now acquires/rechecks the current account before the entire maintained broker check/callback/delete sequence. Password, API/browser/remember revocation, audit/security intent and token consumption commit together; framework event and raw cleanup wait for outermost commit. Ten database cases cover real post-insert and post-token-delete rollback, successful one-use reset, expired/unknown/changed/finalized accounts, and actual competing reset/removal over a second PostgreSQL connection with an independent maintained broker. Full PHPStan and Pint pass. PostgreSQL CI on `8c6b8a7a` passes all ten cases, full suite 876 tests / 75,032 assertions (PHP job `102220339936`); all nine containing workflows pass. Issuance still writes from ForgotPasswordController without this boundary and is tracked separately as HARD-036.
+- Completion evidence: PasswordResetAtomicityV3Test; CI `34273380939`, Architecture `34273380837`, Intelligence `34273380888` and all other workflows pass.
+- Commit SHA: `8c6b8a7a29a7d0bc1ecba9a1aa579bc88e828d5e`.
 
 ### HARD-032 — In-flight account mutations can restore data after finalization
 
@@ -462,9 +462,9 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: Accounts rejects terminal lifecycle state at each ordinary mutation boundary; explicit anonymization/reporting APIs retain access to finalized records.
 - Rationale: request middleware cannot protect an already-running writer waiting behind account finalization; the terminal state must remain durable under concurrent mutation.
 - Remediation: trace all account-owned writes, establish an explicit current-active owner guard without hiding finalized records globally, and exercise both lock orders with real competing connections.
-- State: Planned.
+- State: In progress.
 - Verification required: finalized accounts cannot regain credentials or personal profile/email data; in-flight writes serialize correctly with finalization; authorized lifecycle/reporting behavior remains intact.
-- Verification result: AddPassword, TwoFactorManager.begin and RequestAccountEmailChange expose the missing post-lock check. VerifyEmailController also uses request.fulfill to write email_verified_at without owner serialization, then audits separately; this must move behind the same current-active account boundary with the signature hash revalidated under lock. Remaining owner writers require tracing; implementation pending.
+- Verification result: User.ensureActive centralizes the explicit terminal guard after ordinary account locks across password, profile/email, Google/provider, passkey, MFA, session revocation and deletion lifecycle writers; AccountIdentityQuery.lockActive shares it. RecordAccountSession now takes the same account lock and refuses missing/finalized users, retaining the revoked write predicate. VerifyAccountEmail replaces controller-side fulfillment with current-active/hash revalidation and atomic audit; Verified waits for outer commit. Twenty stale-command cases protect complete terminal state and side-effect counts, six session/provider cases including actual competing connections exercise both finalization lock orders, and seven verification cases cover audit failure, outer rollback, real signed HTTP/replay/tampering and account changes after maintained form authorization. Full PHPStan, Pint, documentation links and 62 Architecture tests (67,029 assertions) pass locally; PostgreSQL/containing verification pending.
 - Completion evidence: pending.
 - Commit SHA: pending.
 
@@ -524,13 +524,27 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Completion evidence: pending.
 - Commit SHA: pending.
 
+### HARD-037 — Login proof and session registration can straddle credential revocation
+
+- Area: Accounts password/provider/remembered/passkey login boundaries.
+- Finding: The password controller validates through Auth.attempt and records login audit before TrackAccountSession registers the rotated session after the controller returns. A concurrent credential change can revoke the currently registered sessions between primary proof validation and registration, allowing an in-flight login to create a new unrevoked row from old proof. Google completion similarly ends its identity-use transaction before session establishment. Middleware lifecycle checking alone does not bind current credential proof to registration.
+- Current owner: login controllers, maintained authentication/passkey integrations, MFA completion and session tracking.
+- Intended authoritative owner: Accounts completes current credential proof, required assurance, login audit and durable session registration under an explicit owner boundary; maintained packages retain password/WebAuthn validation.
+- Rationale: revocation must include sessions whose proof predates the transition, and later failures must not silently leave partially authenticated sessions. Maintained password rehash/remember-token writes also need current lifecycle coordination.
+- Remediation: trace each login/recaller/passkey boundary, reproduce the stale-proof race with competing connections, consolidate owner completion and preserve HTTP/session semantics without holding external session storage inside a database transaction.
+- State: Planned.
+- Verification required: real competing credential removal/reset/finalization cannot grant new access from stale proof; valid password, Google, MFA, remembered and passkey logins retain their intended assurance; audit/storage failures cannot leave partial authentication.
+- Verification result: AuthenticatedSessionController and TrackAccountSession confirm the post-controller registration gap; Google completeLogin has the same separation. MFA currently binds current fingerprints under lock; remaining maintained login/rehash/session storage paths need tracing before implementation.
+- Completion evidence: pending.
+- Commit SHA: pending.
+
 ## Repository audit coverage
 
 All rows below remain Planned until actual production paths have been traced. This table tracks audit scope, not discovered defects.
 
 | Area | Required authority/scalability review | State |
 | --- | --- | --- |
-| Accounts | Identity/provider queries, authentication/credential owners, sessions, MFA, profile/email/reset and account-side deletion traced; repairs under HARD-018–024. Registration/invitation atomicity and deletion/finalization coordination verified under HARD-025–028; credential effects, verification delivery, password reset serialization and terminal account guards remain under HARD-029–032 | In progress |
+| Accounts | Identity/provider queries, authentication/credential owners, sessions, MFA, profile/email/reset and account-side deletion traced; repairs under HARD-018–024. Registration/invitation atomicity and deletion/finalization coordination verified under HARD-025–028; credential effects and verification delivery verified under HARD-029/030/035; reset, terminal guards, cleanup, throttling and login proof freshness remain under HARD-031–037 | In progress |
 | GameWorld | Progression dataset/topology/prerequisite and Gift Code reminder paths traced (HARD-007/009/011/012); Governors, Kingdoms/transfers/governance, remaining Gift Codes/calculators and KingdomMaps audit remain | In progress |
 | Alliance | Lifecycle, membership/rank/delegation, recruitment, content, territories/hive planning | Planned |
 | Operations | Events, participation, rallies, King Perks, results/Bear Hunt and reminders | Planned |

@@ -33,6 +33,7 @@ final readonly class ConnectGoogleAccount
         try {
             return DB::transaction(function () use ($userId, $subject, $email): int {
                 $user = User::query()->whereKey($userId)->lockForUpdate()->firstOrFail();
+                $user->ensureActive();
                 $identity = AccountIdentity::query()->where('user_id', $userId)
                     ->where('provider', 'google')->lockForUpdate()->first();
 

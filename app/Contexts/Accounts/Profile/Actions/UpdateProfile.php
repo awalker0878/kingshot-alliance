@@ -17,6 +17,7 @@ final readonly class UpdateProfile
     {
         DB::transaction(function () use ($userId, $name, $timezone): void {
             $currentUser = User::query()->whereKey($userId)->lockForUpdate()->firstOrFail();
+            $currentUser->ensureActive();
             $values = [
                 'name' => $name,
                 'timezone' => $timezone,

@@ -25,6 +25,7 @@ final readonly class AddPassword
     {
         DB::transaction(function () use ($userId, $password, $currentSessionId): void {
             $user = User::query()->whereKey($userId)->lockForUpdate()->firstOrFail();
+            $user->ensureActive();
 
             if ($user->supportsPasswordAuthentication()) {
                 throw ValidationException::withMessages([

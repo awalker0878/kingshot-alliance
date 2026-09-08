@@ -29,6 +29,7 @@ final readonly class RemoveAccountIdentity
 
         DB::transaction(function () use ($userId, $provider, $currentSessionId): void {
             $user = User::query()->whereKey($userId)->lockForUpdate()->firstOrFail();
+            $user->ensureActive();
 
             if ($provider === 'google' && ! $this->methods->canDisconnectGoogle($user)) {
                 throw ValidationException::withMessages([

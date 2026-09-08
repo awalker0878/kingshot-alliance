@@ -28,7 +28,7 @@ final class SendRequestedEmailVerification
         }
 
         $user = User::query()->find($event->aggregateId);
-        if ($user === null || $user->anonymized_at !== null
+        if ($user === null || ! $user->isActive()
             || ($target === EmailVerificationTarget::Account && $user->hasVerifiedEmail())) {
             return;
         }

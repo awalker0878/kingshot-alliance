@@ -25,6 +25,7 @@ final readonly class TwoFactorManager
         $secret = $this->totp->generateSecret();
         DB::transaction(function () use ($user, $secret): void {
             $locked = User::query()->lockForUpdate()->findOrFail($user->id);
+            $locked->ensureActive();
             if ($locked->two_factor_confirmed_at !== null) {
                 throw ValidationException::withMessages(['two_factor' => 'Two-factor authentication is already enabled.']);
             }
@@ -51,6 +52,7 @@ final readonly class TwoFactorManager
     {
         return DB::transaction(function () use ($user, $code): array {
             $locked = User::query()->lockForUpdate()->findOrFail($user->id);
+            $locked->ensureActive();
             if ($locked->two_factor_confirmed_at !== null) {
                 throw ValidationException::withMessages(['two_factor' => 'Two-factor authentication is already enabled.']);
             }
@@ -86,6 +88,7 @@ final readonly class TwoFactorManager
     {
         return DB::transaction(function () use ($user): array {
             $locked = User::query()->lockForUpdate()->findOrFail($user->id);
+            $locked->ensureActive();
             if ($locked->two_factor_confirmed_at === null || (string) $locked->two_factor_secret === '') {
                 throw ValidationException::withMessages(['two_factor' => 'Two-factor authentication is not enabled.']);
             }
@@ -114,6 +117,7 @@ final readonly class TwoFactorManager
     {
         DB::transaction(function () use ($user): void {
             $locked = User::query()->lockForUpdate()->findOrFail($user->id);
+            $locked->ensureActive();
             $locked->forceFill([
                 'two_factor_secret' => null,
                 'two_factor_recovery_codes' => null,
@@ -147,6 +151,7 @@ final readonly class TwoFactorManager
 
         return DB::transaction(function () use ($user, $normalized): bool {
             $locked = User::query()->lockForUpdate()->findOrFail($user->id);
+            $locked->ensureActive();
             $codes = $locked->two_factor_recovery_codes;
             if (! is_array($codes)) {
                 return false;

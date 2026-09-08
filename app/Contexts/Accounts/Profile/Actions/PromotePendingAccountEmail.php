@@ -24,6 +24,7 @@ final readonly class PromotePendingAccountEmail
     {
         DB::transaction(function () use ($userId, $hash): void {
             $user = User::query()->whereKey($userId)->lockForUpdate()->firstOrFail();
+            $user->ensureActive();
             $pendingEmail = (string) $user->pending_email;
 
             if ($pendingEmail === '' || ! hash_equals(sha1($pendingEmail), $hash)) {

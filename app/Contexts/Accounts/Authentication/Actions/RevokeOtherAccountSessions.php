@@ -23,6 +23,7 @@ final readonly class RevokeOtherAccountSessions
     {
         $sessionIds = DB::transaction(function () use ($userId, $currentSessionId): array {
             $user = User::query()->whereKey($userId)->lockForUpdate()->firstOrFail();
+            $user->ensureActive();
             $lastRegisteredId = AccountSession::query()->where('user_id', $userId)->max('id') ?? 0;
             $records = AccountSession::query()
                 ->where('user_id', $userId)

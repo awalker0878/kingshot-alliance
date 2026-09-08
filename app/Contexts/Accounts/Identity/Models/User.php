@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
+use Illuminate\Validation\ValidationException;
 use Laravel\Passkeys\Contracts\PasskeyUser;
 use Laravel\Passkeys\PasskeyAuthenticatable;
 use Laravel\Sanctum\HasApiTokens;
@@ -83,6 +84,19 @@ final class User extends Authenticatable implements AuditActor, AuthenticatedAcc
     public function accountIdentities(): HasMany
     {
         return $this->hasMany(AccountIdentity::class);
+    }
+
+    public function isActive(): bool
+    {
+        return $this->anonymized_at === null;
+    }
+
+    /** Call on the current account after acquiring its row lock, before ordinary writes. */
+    public function ensureActive(): void
+    {
+        if (! $this->isActive()) {
+            throw ValidationException::withMessages(['account' => 'This account has already been deleted.']);
+        }
     }
 
     public function supportsPasswordAuthentication(): bool

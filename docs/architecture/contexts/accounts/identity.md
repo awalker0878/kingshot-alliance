@@ -11,3 +11,5 @@ Identity owns the durable User account identity used by authentication and accou
 User is the account principal, not the game-domain principal. Player identity belongs to `GameWorld/Players`.
 
 Cross-context consumers use stable User identifiers or explicit Accounts contracts rather than owning Accounts persistence.
+
+Ordinary account mutations acquire the current User row lock and call its explicit ensureActive guard before reading dependent credentials or writing personal state. Anonymization is terminal; stale authenticated model instances are not lifecycle authority. AccountIdentityQuery.lockActive applies the same guard for cross-context owner composition. Reporting and explicit lifecycle queries can still read finalized identities; there is no global query scope or model-save callback hiding them.

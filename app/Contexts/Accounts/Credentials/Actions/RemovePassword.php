@@ -26,6 +26,7 @@ final readonly class RemovePassword
     {
         DB::transaction(function () use ($userId, $currentSessionId): void {
             $user = User::query()->whereKey($userId)->lockForUpdate()->firstOrFail();
+            $user->ensureActive();
 
             if (! $this->methods->canRemovePassword($user)) {
                 throw ValidationException::withMessages([

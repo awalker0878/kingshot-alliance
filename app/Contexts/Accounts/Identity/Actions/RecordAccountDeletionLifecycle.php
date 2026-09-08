@@ -21,6 +21,7 @@ final readonly class RecordAccountDeletionLifecycle
     {
         DB::transaction(function () use ($userId, $requestId): void {
             $user = User::query()->whereKey($userId)->lockForUpdate()->firstOrFail();
+            $user->ensureActive();
             $user->forceFill(['deletion_requested_at' => now()])->save();
             $this->audit->record(
                 event: 'account.deletion_requested',
@@ -43,6 +44,7 @@ final readonly class RecordAccountDeletionLifecycle
     {
         DB::transaction(function () use ($userId, $requestId): void {
             $user = User::query()->whereKey($userId)->lockForUpdate()->firstOrFail();
+            $user->ensureActive();
             $user->forceFill(['deletion_requested_at' => null])->save();
             $this->audit->record(
                 event: 'account.deletion_cancelled',

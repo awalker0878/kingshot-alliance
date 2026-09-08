@@ -24,6 +24,7 @@ final class StoreAccountPasskey extends StorePasskey
 
         return DB::transaction(function () use ($user, $name, $credential, $options): Passkey {
             $lockedUser = User::query()->whereKey($user->id)->lockForUpdate()->firstOrFail();
+            $lockedUser->ensureActive();
 
             // The maintained Action owns WebAuthn validation, creation and its event.
             return parent::__invoke($lockedUser, $name, $credential, $options);

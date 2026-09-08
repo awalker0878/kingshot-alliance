@@ -26,6 +26,7 @@ final readonly class RequestAccountEmailChange
         $email = Str::lower(trim($email));
         DB::transaction(function () use ($userId, $email): void {
             $user = User::query()->whereKey($userId)->lockForUpdate()->firstOrFail();
+            $user->ensureActive();
 
             if (hash_equals(Str::lower((string) $user->email), $email)) {
                 throw ValidationException::withMessages(['email' => 'Choose a different email address.']);

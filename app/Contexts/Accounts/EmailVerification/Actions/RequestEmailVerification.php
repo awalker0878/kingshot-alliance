@@ -19,7 +19,7 @@ final class RequestEmailVerification
         DB::transaction(static function () use ($userId, $target): void {
             $user = User::query()->whereKey($userId)->lockForUpdate()->firstOrFail();
             $email = $target === EmailVerificationTarget::Account ? (string) $user->email : (string) $user->pending_email;
-            if ($user->anonymized_at !== null || $email === ''
+            if (! $user->isActive() || $email === ''
                 || ($target === EmailVerificationTarget::Account && $user->hasVerifiedEmail())) {
                 return;
             }

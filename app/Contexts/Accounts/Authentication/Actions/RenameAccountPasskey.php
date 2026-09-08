@@ -22,6 +22,7 @@ final readonly class RenameAccountPasskey
     {
         DB::transaction(function () use ($userId, $publicId, $name): void {
             $user = User::query()->whereKey($userId)->lockForUpdate()->firstOrFail();
+            $user->ensureActive();
             $passkey = AccountPasskey::query()
                 ->where('user_id', $userId)
                 ->where('public_id', $publicId)

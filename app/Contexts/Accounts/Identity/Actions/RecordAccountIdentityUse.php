@@ -25,6 +25,7 @@ final readonly class RecordAccountIdentityUse
 
         DB::transaction(function () use ($identityId, $userId, $email, $providerEmailVerified): void {
             $user = User::query()->whereKey($userId)->lockForUpdate()->firstOrFail();
+            $user->ensureActive();
             $identity = AccountIdentity::query()->whereKey($identityId)->where('user_id', $userId)
                 ->lockForUpdate()->firstOrFail();
 

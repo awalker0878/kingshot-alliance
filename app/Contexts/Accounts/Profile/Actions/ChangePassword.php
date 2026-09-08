@@ -26,6 +26,7 @@ final readonly class ChangePassword
     {
         DB::transaction(function () use ($userId, $currentPassword, $newPassword, $currentSessionId): void {
             $locked = User::query()->whereKey($userId)->lockForUpdate()->firstOrFail();
+            $locked->ensureActive();
 
             if (! $locked->supportsPasswordAuthentication()) {
                 throw ValidationException::withMessages([

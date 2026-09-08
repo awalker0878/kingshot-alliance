@@ -33,7 +33,7 @@ final readonly class ResetPassword
 
         return DB::transaction(function () use ($normalizedEmail, $password, $passwordConfirmation, $token): string {
             $locked = User::query()->where('email', $normalizedEmail)->lockForUpdate()->first();
-            if ($locked === null || $locked->anonymized_at !== null || ! $locked->supportsPasswordAuthentication()) {
+            if ($locked === null || ! $locked->isActive() || ! $locked->supportsPasswordAuthentication()) {
                 return Password::INVALID_USER;
             }
 

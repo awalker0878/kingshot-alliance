@@ -24,6 +24,7 @@ final class DeleteAccountPasskey extends DeletePasskey
 
         DB::transaction(function () use ($user, $passkey): void {
             $lockedUser = User::query()->whereKey($user->id)->lockForUpdate()->firstOrFail();
+            $lockedUser->ensureActive();
             $lockedPasskey = AccountPasskey::query()->whereKey($passkey->id)
                 ->where('user_id', $lockedUser->id)->lockForUpdate()->firstOrFail();
 
