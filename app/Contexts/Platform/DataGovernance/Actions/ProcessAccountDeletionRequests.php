@@ -19,6 +19,8 @@ use Illuminate\Support\Facades\DB;
 
 final readonly class ProcessAccountDeletionRequests
 {
+    private const BLOCKED_RETRY_MINUTES = 60;
+
     public function __construct(
         private LegalHoldService $legalHolds,
         private AccountIdentityQuery $accounts,
@@ -37,7 +39,8 @@ final readonly class ProcessAccountDeletionRequests
         $requests = AccountDeletionRequest::query()
             ->whereIn('status', ['pending', 'blocked'])
             ->where('eligible_at', '<=', now())
-            ->orderBy('eligible_at')
+            ->whereRaw('COALESCE(next_attempt_at, eligible_at) <= ?', [now()])
+            ->orderByRaw('COALESCE(next_attempt_at, eligible_at)')
             ->orderBy('id')
             ->limit(max(1, min(500, $limit)))
             ->get();
@@ -58,13 +61,15 @@ final readonly class ProcessAccountDeletionRequests
             $request = AccountDeletionRequest::query()->whereKey($requestId)->where('user_id', $userId)->lockForUpdate()->first();
             if (! $request instanceof AccountDeletionRequest
                 || ! in_array($request->status, ['pending', 'blocked'], true)
-                || $request->eligible_at->isFuture()) {
+                || $request->eligible_at->isFuture()
+                || $request->next_attempt_at?->isFuture()) {
                 return false;
             }
 
             if ($account->anonymized) {
                 $request->forceFill([
                     'status' => 'processed',
+                    'next_attempt_at' => null,
                     'processed_at' => now(),
                     'blocked_reason' => null,
                 ])->save();
@@ -83,6 +88,7 @@ final readonly class ProcessAccountDeletionRequests
                 $request->forceFill([
                     'status' => 'blocked',
                     'blocked_reason' => $blockedReason,
+                    'next_attempt_at' => now()->addMinutes(self::BLOCKED_RETRY_MINUTES),
                 ])->save();
 
                 return false;
@@ -94,6 +100,7 @@ final readonly class ProcessAccountDeletionRequests
 
             $request->forceFill([
                 'status' => 'processed',
+                'next_attempt_at' => null,
                 'processed_at' => now(),
                 'blocked_reason' => null,
             ])->save();

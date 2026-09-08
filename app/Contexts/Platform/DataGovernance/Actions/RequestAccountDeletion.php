@@ -38,6 +38,7 @@ final readonly class RequestAccountDeletion
                 'status' => 'pending',
                 'requested_at' => now(),
                 'eligible_at' => now()->addDays(7),
+                'next_attempt_at' => null,
                 'processed_at' => null,
                 'blocked_reason' => null,
             ])->save();

@@ -35,6 +35,7 @@ final readonly class CancelAccountDeletion
 
             $request->forceFill([
                 'status' => 'cancelled',
+                'next_attempt_at' => null,
                 'blocked_reason' => null,
             ])->save();
 

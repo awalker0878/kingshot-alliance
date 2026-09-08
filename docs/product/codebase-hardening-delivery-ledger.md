@@ -5,15 +5,15 @@
 - Program state: In progress.
 - Exact main baseline: `7e780521295e868005ecfee5bd38b33e8215ec49`.
 - Working branch: `astra/codebase-hardening`.
-- Latest pushed durable checkpoint: `26012474ba14f442590bc7bdfa6572309ffaad22`.
+- Latest pushed durable checkpoint: `3139868a09edde1700bd7ebfe2913f1a43d8e608`.
 - Draft PR: [#163](https://github.com/awalker0878/kingshot-alliance/pull/163).
-- Current item/state: HARD-027 / In progress (Player ownership/finalization). HARD-026 owner rollback/concurrency cases pass; one exact-deadline clock fixture needs containing verification.
-- Most recently verified gates: all nine PR workflows pass on `685ee1c65fdb6b5283dcc8d1deedff37b2a7469a`, including 785 PHP tests / 74,246 assertions, fresh PostgreSQL, frontend, image/staging/recovery, architecture/capabilities, visual and security.
-- Active files: Accounts active lifecycle query, GameWorld claim/create/reconcile/release Actions, eight ownership/finalization regressions, precise-second HARD-026 clock fixture and owner contracts.
-- Remaining current work: verify HARD-027 and the corrected HARD-026 deadline fixture; implement deletion-worker fairness under HARD-028, then continue remaining Accounts/GameWorld and repository audit coverage.
-- Known failures: `26012474` has one failure in the HARD-026 exact-deadline fixture because freezeTime retains microseconds while the schema stores whole seconds. The fixture now uses freezeSecond without loosening assertions. Five other deletion regressions pass, including real lock contention and rollback. HARD-027 containing verification is pending.
+- Current item/state: HARD-028 / In progress (deletion worker fairness). HARD-026/027 are Complete with all nine containing workflows green.
+- Most recently verified gates: all nine PR workflows pass on `3139868a09edde1700bd7ebfe2913f1a43d8e608`, including 799 PHP tests / 74,337 assertions, fresh PostgreSQL, frontend, image/staging/recovery, architecture/capabilities, visual and security.
+- Active files: deletion worker due-time ordering/revalidation, request retry state and canonical schema index, four fairness regressions, DataGovernance contract and ledger.
+- Remaining current work: verify HARD-028 and reconcile HARD-026/027 containing gates; repair remaining credential security effects under HARD-029 and durable registration verification under HARD-030, then continue repository audit coverage.
+- Known failures: none in the full PostgreSQL suite on `3139868a` (799 tests, 74,337 assertions). All nine containing workflows pass. HARD-028 database regressions await CI.
 - Blockers: local PostgreSQL/Redis services unavailable; service-backed verification uses GitHub CI. Local PHP 8.5.8 and locked Composer/npm dependencies available. Checkpoints publish via the authorized GitHub connection with exact staged-tree verification and non-forced branch updates.
-- Exact next action: publish HARD-027 with the HARD-026 clock correction and verify containing workflows, then implement HARD-028 durable blocked-request retry scheduling before the worker limit.
+- Exact next action: publish HARD-028 and verify containing workflows, then complete the HARD-029 credential effect trace and implement atomic durable security effects without moving external storage/network work inside owner transactions.
 - Remaining repository-wide gates: final full PHP/architecture/capability and frontend gates on one containing commit; production image/staging/recovery; final security/dependency/visual checks; remaining capability-by-capability audit coverage below.
 
 Checkpoint SHAs are recorded by the following documentation commit; verify that the recorded checkpoint is an ancestor of current branch HEAD. No audit area is complete solely because its paths have been inventoried.
@@ -378,11 +378,11 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: the same owner APIs with consistent account-first serialization and transactional lifecycle intent.
 - Rationale: request/cancel/process must agree on one current lifecycle, preserve replay semantics and prevent a late transition from restoring account metadata after completion.
 - Remediation: acquire Accounts then the request in every transition; compose owner lifecycle/audit/Communications intent in one transaction; preserve pending/blocked/processed replays and give genuinely new request cycles new notification intent.
-- State: In progress.
+- State: Complete.
 - Verification required: request/cancel rollback preserves both owners, repeat/processed transitions do not emit contradictory effects, competing transitions share the account lock, and normal release/security notification behavior remains intact.
-- Verification result: all three Platform transitions acquire the current Accounts lock before request state. Request/cancel invoke Accounts inside their transaction; Accounts publishes only transactional Communications intent, with no network delivery under the lock. Replays preserve deadlines and do not duplicate audit/notifications; cancellation followed by a new request produces a new intent. Six real regressions cover injected notification persistence failure on request/cancel, complete lifecycle replay, processed-state protection and cancellation over a second PostgreSQL connection during request/process. Full PHPStan, Pint and all 62 Architecture tests pass (66,719 assertions). PostgreSQL CI on `26012474` passes five of six new cases, including both failure rollbacks and competing-connection checks. The exact-deadline case compares a microsecond-bearing frozen clock to second-precision persisted timestamps; its fixture now freezes a whole second while retaining the exact seven-day/account-date assertions. Full run: 791 tests / 74,280 assertions, one failure; PHP job `102185431754`. Containing verification pending. Player ownership writers are separately tracked under HARD-027.
-- Completion evidence: pending.
-- Commit SHA: pending.
+- Verification result: all three Platform transitions acquire the current Accounts lock before request state. Request/cancel invoke Accounts inside their transaction; Accounts publishes only transactional Communications intent, with no network delivery under the lock. Replays preserve deadlines and do not duplicate audit/notifications; cancellation followed by a new request produces a new intent. Six real regressions cover injected notification persistence failure on request/cancel, complete lifecycle replay, processed-state protection and cancellation over a second PostgreSQL connection during request/process. Full PHPStan, Pint and all 62 Architecture tests pass (66,719 assertions). PostgreSQL CI on `26012474` passes five of six new cases, including both failure rollbacks and competing-connection checks. The exact-deadline case compares a microsecond-bearing frozen clock to second-precision persisted timestamps; its fixture now freezes a whole second while retaining the exact seven-day/account-date assertions. Full run: 791 tests / 74,280 assertions, one failure; PHP job `102185431754`. The corrected case and all six deletion regressions pass on `3139868a` (799 tests, 74,337 assertions), PHP job `102188173159`. All nine containing workflows pass. Player ownership writers are separately tracked under HARD-027.
+- Completion evidence: CI `34263846408`, PHP job `102188173159`, Architecture `34263846352`, Intelligence `34263846441` and all other workflows pass; 799 tests, 74,337 assertions.
+- Commit SHA: `26012474ba14f442590bc7bdfa6572309ffaad22`; containing verification `3139868a09edde1700bd7ebfe2913f1a43d8e608`.
 
 ### HARD-027 — Player claims and reconciliation do not coordinate with account finalization
 
@@ -392,11 +392,11 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: Accounts supplies current lifecycle serialization; GameWorld retains all ownership/history writes; Platform coordinates release through those owner APIs.
 - Rationale: finalization must not miss a concurrent new ownership assignment or leave game identities attached to an anonymized account. Lock order must remain consistent when an operation touches account and Player rows.
 - Remediation: trace all ownership writers and release/reconciliation entry points, require current account lifecycle before assigning/transferring ownership, revalidate any routing snapshot after locks and verify actual competing-connection finalization/claim behavior.
-- State: In progress.
+- State: Complete.
 - Verification required: finalized accounts cannot claim/create/receive reconciled ownership; concurrent claims and finalization serialize without missing Players; normal reconciliation and identity provenance remain correct.
-- Verification result: All assignment/release writers and callers are traced. Accounts lockActive owns the finalized-account rejection; claim/create/voluntary release acquire it before Player writes, and bulk release retains the current account lock. Reconciliation locks discovered accounts then Players in deterministic order and rejects changed owner snapshots. Eight real database cases cover finalized assignment kinds, both finalization/assignment lock orders, complete released history after claim/create/reconciliation, and a second-connection claim changing the routing snapshot. Full PHPStan, changed-file Pint and all 62 Architecture tests pass (66,719 assertions). PostgreSQL verification pending.
-- Completion evidence: pending.
-- Commit SHA: pending.
+- Verification result: All assignment/release writers and callers are traced. Accounts lockActive owns the finalized-account rejection; claim/create/voluntary release acquire it before Player writes, and bulk release retains the current account lock. Reconciliation locks discovered accounts then Players in deterministic order and rejects changed owner snapshots. Eight real database cases cover finalized assignment kinds, both finalization/assignment lock orders, complete released history after claim/create/reconciliation, and a second-connection claim changing the routing snapshot. Full PHPStan, changed-file Pint and all 62 Architecture tests pass (66,719 assertions). All eight ownership/finalization cases pass on `3139868a`, including actual competing connections in both lock orders and changed-snapshot rejection; full suite 799 tests, 74,337 assertions. All nine containing workflows pass.
+- Completion evidence: CI `34263846408`, PHP job `102188173159`, Architecture `34263846352`, Intelligence `34263846441` and all other workflows pass; 799 tests, 74,337 assertions.
+- Commit SHA: `3139868a09edde1700bd7ebfe2913f1a43d8e608`; containing verification `3139868a09edde1700bd7ebfe2913f1a43d8e608`.
 
 ### HARD-028 — Blocked deletion requests can starve later eligible requests
 
@@ -406,9 +406,37 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: the same bounded worker with durable retry scheduling for blocked records.
 - Rationale: a persistent blocker for one account must not halt unrelated deletion work; retry timing must survive worker restart and remain auditable.
 - Remediation: add explicit due-time/retry state and query filtering before the limit, preserve the original cooling-off deadline, and verify bounded progress past a full blocked batch plus eventual retry after a blocker is removed.
-- State: Planned.
+- State: In progress.
 - Verification required: later eligible records progress despite a full blocked batch; blocked requests retry at the defined time; cancellation/re-request/processing correctly reset retry state.
-- Verification result: selection/order/limit and all blockReason branches traced. Implementation pending.
+- Verification result: Blocked requests now persist a one-hour next_attempt_at while retaining eligible_at. The worker filters and orders by the effective due time before the batch limit and revalidates under lock; fresh schema adds a partial due-time index. Cancellation/re-request/processing clear retry state. Four database cases cover progress past a full blocked batch even when retries are due, exact retry timing after removing a blocker, new-cycle cooling-off and deferral after initial selection. Full PHPStan and changed-file Pint pass; PostgreSQL fresh-schema/behavior verification pending.
+- Completion evidence: pending.
+- Commit SHA: pending.
+
+### HARD-029 — Credential security effects are committed separately from credential changes
+
+- Area: Accounts credential mutations, security notification intent and passkey event adapters.
+- Finding: AddPassword, RemovePassword and ChangePassword commit credential/audit state before persisting Communications security intent. RemovePassword deletes reset tokens after its transaction. Passkey event adapters similarly perform session/audit/notification work after package mutation. A later persistence failure can leave a successful credential change without its promised security effects or a retryable success response.
+- Current owner: Accounts credential Actions and package event adapters, Communications intent owner.
+- Intended authoritative owner: Accounts atomically coordinates credential state and required durable security effects through owner APIs; raw session cleanup and remote delivery run after commit.
+- Rationale: security-effect persistence failures must not silently separate credential changes from their durable revocation/audit/notification contract. Moving external cleanup into a database transaction would create a different failure mode.
+- Remediation: trace all password, MFA, passkey, Google and email effect writers; include required database effects in the owner transaction and preserve after-commit external cleanup; verify real failure/rollback and response behavior.
+- State: Planned.
+- Verification required: failures while recording security intent preserve credential/reset-token/audit consistency, successful changes retain session/proof behavior, package verification remains maintained, and no storage/network calls run under widened transactions.
+- Verification result: AddPassword, RemovePassword, ChangePassword and passkey listener ordering traced. Other affected writers and session cleanup composition require review before implementation.
+- Completion evidence: pending.
+- Commit SHA: pending.
+
+### HARD-030 — Registration verification delivery is synchronous and has no durable retry
+
+- Area: Accounts registration/email verification and outbox consumption.
+- Finding: RegisterUser sends verification mail in an after-commit callback. SMTP failure or process loss can therefore leave a committed registration with a failed request or no delivery. The existing user.registered outbox record has no Accounts verification consumer; current consumers cover recruitment and Platform webhooks only.
+- Current owner: RegisterUser, branded verification notification, email-verification resend adapter and shared outbox transport.
+- Intended authoritative owner: Accounts owns verification delivery intent and current-recipient validation; existing durable transport owns retries after commit.
+- Rationale: after-commit ordering prevents mail for rolled-back users, but does not establish recoverable delivery or keep mail latency/failure out of the registration response.
+- Remediation: reuse the durable owner/outbox contract for registration verification, preserve branded/signature/expiry behavior and current account checks, trace resend behavior, and test retry after transport failure plus stale/verified/finalized account suppression.
+- State: Planned.
+- Verification required: registration returns after durable intent commits without SMTP, rollback creates no intent, delivery failure remains retryable, and current recipient/verification state controls later delivery.
+- Verification result: RegisterUser, User notification hook, branded VerifyKingshotAllianceEmail, PublishOutboxBatch and all current outbox listeners traced. Implementation pending.
 - Completion evidence: pending.
 - Commit SHA: pending.
 

@@ -103,10 +103,13 @@ return new class extends Migration
             $table->string('status', 32)->default('pending')->index();
             $table->timestamp('requested_at');
             $table->timestamp('eligible_at')->index();
+            $table->timestamp('next_attempt_at')->nullable();
             $table->timestamp('processed_at')->nullable();
             $table->string('blocked_reason', 500)->nullable();
             $table->timestamps();
         });
+
+        DB::statement("CREATE INDEX account_deletion_due_attempt_index ON account_deletion_requests ((COALESCE(next_attempt_at, eligible_at)), id) WHERE status IN ('pending', 'blocked')");
 
         Schema::create('alliance_data_exports', function (Blueprint $table): void {
             $table->ulid('id')->primary();
