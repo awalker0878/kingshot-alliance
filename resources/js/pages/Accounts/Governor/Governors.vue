@@ -133,11 +133,7 @@ function releaseGovernor(governor: Governor): void {
             maxlength="160"
             required
           />
-          <p
-            v-if="createForm.errors.name"
-            class="mt-1 text-sm text-[var(--ks-red)]"
-            role="alert"
-          >
+          <p v-if="createForm.errors.name" class="mt-1 text-sm text-[var(--ks-red)]" role="alert">
             {{ createForm.errors.name }}
           </p>
         </div>
@@ -201,16 +197,8 @@ function releaseGovernor(governor: Governor): void {
       </p>
     </section>
 
-    <section
-      v-else
-      class="mt-5 grid gap-5"
-      :aria-label="t('governorLifecycle.ownedGovernors')"
-    >
-      <article
-        v-for="governor in props.governors"
-        :key="governor.id"
-        class="ks-surface p-5 sm:p-6"
-      >
+    <section v-else class="mt-5 grid gap-5" :aria-label="t('governorLifecycle.ownedGovernors')">
+      <article v-for="governor in props.governors" :key="governor.id" class="ks-surface p-5 sm:p-6">
         <header class="flex flex-wrap items-start justify-between gap-4">
           <div>
             <div class="flex flex-wrap items-center gap-2">

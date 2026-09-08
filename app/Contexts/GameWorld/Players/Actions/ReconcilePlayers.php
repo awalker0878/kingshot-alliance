@@ -67,7 +67,6 @@ final readonly class ReconcilePlayers
             }
             /** @var Player $canonical */
             /** @var Player $duplicate */
-
             if ((string) $duplicate->canonical_player_id === $canonicalPlayerId) {
                 return;
             }
