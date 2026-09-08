@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\Progression\Queries;
 
+use App\Contexts\GameWorld\Progression\Enums\ProgressionReleaseStatus;
 use App\Contexts\GameWorld\Progression\Exceptions\NoProgressionDatasetPublished;
 use App\Contexts\GameWorld\Progression\ValueObjects\ProgressionDataset;
 use Illuminate\Validation\ValidationException;
@@ -15,58 +16,7 @@ final class ProgressionDatasetQuery
     private const DIRECTORY = 'resources/data/progression';
 
     /** @var list<string> */
-    private const REQUIRED_FAMILIES = [
-        'heroes',
-        'hero_skills',
-        'hero_star_shards',
-        'hero_exclusive_equipment',
-        'hero_gear',
-        'governor_gear',
-        'governor_charms',
-        'formations',
-        'buildings',
-        'troops',
-        'academy_research',
-        'war_academy',
-        'alliance_tech',
-        'pets',
-        'masters',
-        'max_levels',
-    ];
-
-    /** @var list<string> */
-    private const REQUIRED_V2_FAMILIES = [
-        'hero_xp',
-        'truegold',
-        'vip',
-        'kvk_scoring',
-        'database_reference_tables',
-        'progression_event_tables',
-    ];
-
-    /** @var list<string> */
-    private const REQUIRED_V2_FILES = [
-        'academy_research.json',
-        'alliance_tech_tables.json',
-        'buildings_core.json',
-        'buildings_tables.json',
-        'database_tables.json',
-        'events_tables.json',
-        'governor_charms.json',
-        'governor_gear.json',
-        'hero_shards.json',
-        'hero_xp.json',
-        'heroes_tables.json',
-        'kvk_scoring.json',
-        'masters_open.json',
-        'masters_tables.json',
-        'pets_tables.json',
-        'source-lock.json',
-        'troops.json',
-        'truegold.json',
-        'vip.json',
-        'war_academy.json',
-    ];
+    private const BASE_FILES = ['formations.json', 'heroes.json', 'systems.json'];
 
     /** @var list<string> */
     private const ADVISORY_KEYS = [
@@ -98,9 +48,12 @@ final class ProgressionDatasetQuery
 
     public function latest(): ProgressionDataset
     {
-        $datasets = $this->all();
+        $datasets = array_values(array_filter(
+            $this->all(),
+            static fn (ProgressionDataset $dataset): bool => $dataset->releaseStatus() === ProgressionReleaseStatus::Published,
+        ));
         if ($datasets === []) {
-            throw new NoProgressionDatasetPublished('No factual progression dataset is published.');
+            throw new NoProgressionDatasetPublished('No published factual progression dataset is available.');
         }
 
         usort(
@@ -148,10 +101,6 @@ final class ProgressionDatasetQuery
     private function load(string $directory): ProgressionDataset
     {
         $release = $this->json($directory.'/release.json');
-        $heroFile = $this->json($directory.'/heroes.json');
-        $systems = $this->json($directory.'/systems.json');
-        $formationFile = $this->json($directory.'/formations.json');
-
         $id = basename($directory);
         $schemaVersion = $release['schema_version'] ?? null;
         if (($release['id'] ?? null) !== $id
@@ -160,11 +109,12 @@ final class ProgressionDatasetQuery
             || ! is_string($release['dataset_version'] ?? null)
             || ! is_string($release['observed_at'] ?? null)
             || ! is_array($release['sources'] ?? null)
-            || ! is_array($release['family_dispositions'] ?? null)
-            || ! is_array($heroFile['heroes'] ?? null)
-            || ! is_array($heroFile['provenance'] ?? null)
-            || ! is_array($formationFile['formations'] ?? null)) {
-            throw new RuntimeException('Factual progression dataset does not satisfy a supported schema.');
+            || ! is_array($release['family_dispositions'] ?? null)) {
+            throw new RuntimeException('Factual progression dataset does not satisfy a supported release schema.');
+        }
+        if (isset($release['release_status'])
+            && (! is_string($release['release_status']) || ProgressionReleaseStatus::tryFrom($release['release_status']) === null)) {
+            throw new RuntimeException('Progression release_status is invalid.');
         }
 
         $files = $this->releaseFiles($release, $schemaVersion);
@@ -173,11 +123,23 @@ final class ProgressionDatasetQuery
             $documents[$file] = $this->json($directory.'/'.$file);
         }
 
+        $heroFile = $documents['heroes.json'] ?? null;
+        $systems = $documents['systems.json'] ?? null;
+        $formationFile = $documents['formations.json'] ?? null;
+        if (! is_array($heroFile)
+            || ! is_array($heroFile['heroes'] ?? null)
+            || ! is_array($heroFile['provenance'] ?? null)
+            || ! is_array($systems)
+            || ! is_array($formationFile)
+            || ! is_array($formationFile['formations'] ?? null)) {
+            throw new RuntimeException('Progression release is missing a valid base catalogue document.');
+        }
+
         $heroes = array_values(array_filter($heroFile['heroes'], 'is_array'));
         $formations = array_values(array_filter($formationFile['formations'], 'is_array'));
         $catalogues = [];
         foreach ($documents as $file => $document) {
-            if (in_array($file, ['heroes.json', 'systems.json', 'formations.json', 'source-lock.json'], true)) {
+            if (in_array($file, [...self::BASE_FILES, 'source-lock.json'], true)) {
                 continue;
             }
             $catalogues[substr($file, 0, -5)] = $document;
@@ -185,14 +147,14 @@ final class ProgressionDatasetQuery
 
         $this->validateHeroes($heroes);
         $this->validateFormations($formations);
-        $this->validateDispositions($release, $schemaVersion);
-        $this->validateSources($release, array_values($documents));
+        $this->validateDispositions($release);
+        $this->validateCoverageAssertions($release, $documents);
+        $sourceIds = $this->validateSources($release, array_values($documents));
         $this->validateNoAdvisoryKeys($documents);
-        if ($schemaVersion >= 2) {
-            $this->validateSourceLock($documents['source-lock.json'] ?? null);
-            $this->validateSourceGaps($release);
-            $this->validateDetailedCoverage($catalogues);
+        if (isset($documents['source-lock.json'])) {
+            $this->validateSourceLock($documents['source-lock.json'], $sourceIds);
         }
+        $this->validateSourceGaps($release, $sourceIds);
 
         $checksumFiles = array_values(array_unique(['release.json', ...$files]));
         sort($checksumFiles);
@@ -219,24 +181,22 @@ final class ProgressionDatasetQuery
         );
     }
 
-    /**
-     * @param  array<string,mixed>  $release
-     * @return list<string>
+    /** @param array<string,mixed> $release
+     *  @return list<string>
      */
     private function releaseFiles(array $release, int $schemaVersion): array
     {
         if ($schemaVersion === 1) {
-            return ['formations.json', 'heroes.json', 'systems.json'];
+            return self::BASE_FILES;
         }
 
-        $files = $release['files'] ?? null;
-        if (! is_array($files) || $files === []) {
+        $declared = $release['files'] ?? null;
+        if (! is_array($declared) || $declared === []) {
             throw new RuntimeException('Progression schema v2 release must declare its immutable files.');
         }
 
-        /** @var array<string,true> $normalized */
         $normalized = [];
-        foreach ($files as $file) {
+        foreach ($declared as $file) {
             if (! is_string($file)
                 || preg_match('/^[a-z0-9][a-z0-9._-]*\.json$/', $file) !== 1
                 || $file === 'release.json') {
@@ -247,10 +207,9 @@ final class ProgressionDatasetQuery
             }
             $normalized[$file] = true;
         }
-
-        foreach (['formations.json', 'heroes.json', 'systems.json', ...self::REQUIRED_V2_FILES] as $required) {
+        foreach (self::BASE_FILES as $required) {
             if (! isset($normalized[$required])) {
-                throw new RuntimeException('Progression schema v2 release omitted required file: '.$required);
+                throw new RuntimeException('Progression release omitted base file: '.$required);
             }
         }
 
@@ -273,7 +232,6 @@ final class ProgressionDatasetQuery
         } catch (JsonException $exception) {
             throw new RuntimeException('Factual progression dataset contains invalid JSON: '.basename($path), previous: $exception);
         }
-
         if (! is_array($decoded)) {
             throw new RuntimeException('Factual progression dataset root must be an object.');
         }
@@ -287,7 +245,8 @@ final class ProgressionDatasetQuery
         $ids = [];
         foreach ($heroes as $hero) {
             $id = $hero['id'] ?? null;
-            if (! is_string($id) || $id === '' || ! is_string($hero['name'] ?? null)
+            if (! is_string($id) || $id === ''
+                || ! is_string($hero['name'] ?? null)
                 || ! in_array($hero['rarity'] ?? null, ['Rare', 'Epic', 'Legendary'], true)
                 || ! in_array($hero['troop_class'] ?? null, ['Infantry', 'Cavalry', 'Archer'], true)
                 || ! is_int($hero['generation'] ?? null)
@@ -310,7 +269,8 @@ final class ProgressionDatasetQuery
             $infantry = $formation['infantry'] ?? null;
             $cavalry = $formation['cavalry'] ?? null;
             $archer = $formation['archer'] ?? null;
-            if (! is_string($id) || isset($ids[$id]) || ! is_int($infantry) || ! is_int($cavalry) || ! is_int($archer)
+            if (! is_string($id) || $id === '' || isset($ids[$id])
+                || ! is_int($infantry) || ! is_int($cavalry) || ! is_int($archer)
                 || min($infantry, $cavalry, $archer) < 0 || max($infantry, $cavalry, $archer) > 100
                 || $infantry + $cavalry + $archer !== 100
                 || ($formation['evidence_status'] ?? null) !== 'community_convention'
@@ -328,10 +288,14 @@ final class ProgressionDatasetQuery
     }
 
     /** @param array<string,mixed> $release */
-    private function validateDispositions(array $release, int $schemaVersion): void
+    private function validateDispositions(array $release): void
     {
+        $rows = $release['family_dispositions'];
+        if ($rows === []) {
+            throw new RuntimeException('Progression release must disposition its discovered factual families.');
+        }
         $seen = [];
-        foreach ($release['family_dispositions'] as $row) {
+        foreach ($rows as $row) {
             if (! is_array($row)
                 || ! is_string($row['family'] ?? null)
                 || ! is_string($row['status'] ?? null)
@@ -346,25 +310,56 @@ final class ProgressionDatasetQuery
             if (isset($seen[$row['family']])) {
                 throw new RuntimeException('Progression family dispositions must be unique.');
             }
-            if ($schemaVersion >= 2 && $row['status'] === 'indexed_external_table') {
-                throw new RuntimeException('Schema v2 cannot leave reusable complete data as index-only.');
-            }
             $seen[$row['family']] = true;
         }
+    }
 
-        $required = [...self::REQUIRED_FAMILIES, ...($schemaVersion >= 2 ? self::REQUIRED_V2_FAMILIES : [])];
-        foreach ($required as $family) {
-            if (! isset($seen[$family])) {
-                throw new RuntimeException('Progression release silently omitted required family: '.$family);
+    /**
+     * @param array<string,mixed> $release
+     * @param array<string,array<string,mixed>> $documents
+     */
+    private function validateCoverageAssertions(array $release, array $documents): void
+    {
+        $assertions = $release['coverage_assertions'] ?? $release['family_dispositions'];
+        if (! is_array($assertions) || $assertions === []) {
+            throw new RuntimeException('Progression release must declare machine-readable coverage assertions.');
+        }
+
+        $seen = [];
+        foreach ($assertions as $assertion) {
+            if (! is_array($assertion) || ! is_string($assertion['family'] ?? null) || $assertion['family'] === '') {
+                throw new RuntimeException('Progression coverage assertion is invalid.');
+            }
+            $family = $assertion['family'];
+            if (isset($seen[$family])) {
+                throw new RuntimeException('Progression coverage assertions must be unique by family.');
+            }
+            $seen[$family] = true;
+            foreach (['discovered_entities', 'canonical_entities', 'facts_imported', 'unresolved_level_tables'] as $countKey) {
+                if (array_key_exists($countKey, $assertion)
+                    && (! is_int($assertion[$countKey]) || $assertion[$countKey] < 0)) {
+                    throw new RuntimeException('Progression coverage assertion count is invalid: '.$family.'.'.$countKey);
+                }
+            }
+            if (isset($assertion['discovered_entities'], $assertion['canonical_entities'])
+                && $assertion['canonical_entities'] > $assertion['discovered_entities']) {
+                throw new RuntimeException('Progression coverage assertion canonical count exceeds discovered count: '.$family);
+            }
+            if (isset($assertion['file'])) {
+                $file = $assertion['file'];
+                if (! is_string($file) || ! isset($documents[$file])) {
+                    throw new RuntimeException('Progression coverage assertion references an unavailable release file: '.$family);
+                }
             }
         }
     }
 
     /**
-     * @param  array<string,mixed>  $release
-     * @param  list<array<string,mixed>>  $documents
+     * @param array<string,mixed> $release
+     * @param list<array<string,mixed>> $documents
+     * @return array<string,true>
      */
-    private function validateSources(array $release, array $documents): void
+    private function validateSources(array $release, array $documents): array
     {
         $sourceIds = [];
         foreach ($release['sources'] as $source) {
@@ -389,32 +384,31 @@ final class ProgressionDatasetQuery
         foreach ($documents as $document) {
             $this->validateSourceReferencesRecursively($document, $sourceIds);
         }
+
+        return $sourceIds;
     }
 
-    /**
-     * @param  array<mixed>  $value
-     * @param  array<string,true>  $sourceIds
+    /** @param array<mixed> $value
+     *  @param array<string,true> $sourceIds
      */
     private function validateSourceReferencesRecursively(array $value, array $sourceIds): void
     {
         foreach ($value as $key => $child) {
             if ($key === 'source_id') {
                 if (! is_string($child) || ! isset($sourceIds[$child])) {
-                    throw new RuntimeException('Progression fact references an unregistered source.');
+                    throw new RuntimeException('Progression document references an unknown source_id.');
                 }
-
                 continue;
             }
             if ($key === 'source_ids') {
-                if (! is_array($child) || $child === []) {
-                    throw new RuntimeException('Progression fact source_ids must be a non-empty list.');
+                if (! is_array($child)) {
+                    throw new RuntimeException('Progression source_ids reference must be an array.');
                 }
                 foreach ($child as $sourceId) {
                     if (! is_string($sourceId) || ! isset($sourceIds[$sourceId])) {
-                        throw new RuntimeException('Progression fact references an unregistered source.');
+                        throw new RuntimeException('Progression document references an unknown source_ids value.');
                     }
                 }
-
                 continue;
             }
             if (is_array($child)) {
@@ -426,163 +420,72 @@ final class ProgressionDatasetQuery
     /** @param array<string,array<string,mixed>> $documents */
     private function validateNoAdvisoryKeys(array $documents): void
     {
-        foreach ($documents as $file => $document) {
-            $this->validateNoAdvisoryKeysRecursively($document, $file);
+        foreach ($documents as $document) {
+            $this->assertNoAdvisoryKeys($document);
         }
     }
 
     /** @param array<mixed> $value */
-    private function validateNoAdvisoryKeysRecursively(array $value, string $path): void
+    private function assertNoAdvisoryKeys(array $value): void
     {
         foreach ($value as $key => $child) {
             if (is_string($key) && in_array(mb_strtolower($key), self::ADVISORY_KEYS, true)) {
-                throw new RuntimeException('Advisory field leaked into factual progression release: '.$path.'.'.$key);
+                throw new RuntimeException('Progression factual release contains prohibited recommendation semantics: '.$key);
             }
             if (is_array($child)) {
-                $this->validateNoAdvisoryKeysRecursively($child, $path.'.'.(string) $key);
+                $this->assertNoAdvisoryKeys($child);
             }
         }
     }
 
-    /** @param array<string,mixed>|null $sourceLock */
-    private function validateSourceLock(?array $sourceLock): void
+    /** @param array<string,mixed> $sourceLock
+     *  @param array<string,true> $sourceIds
+     */
+    private function validateSourceLock(array $sourceLock, array $sourceIds): void
     {
-        if ($sourceLock === null || ! is_array($sourceLock['sources'] ?? null) || $sourceLock['sources'] === []) {
-            throw new RuntimeException('Progression schema v2 requires a non-empty source lock.');
+        if (! is_int($sourceLock['schema_version'] ?? null)
+            || ! is_string($sourceLock['observed_at'] ?? null)
+            || ! is_array($sourceLock['sources'] ?? null)
+            || $sourceLock['sources'] === []) {
+            throw new RuntimeException('Progression source-lock document is invalid.');
         }
-
         foreach ($sourceLock['sources'] as $row) {
             if (! is_array($row)
                 || ! is_string($row['source_id'] ?? null)
+                || ! isset($sourceIds[$row['source_id']])
                 || ! is_string($row['url'] ?? null)
                 || filter_var($row['url'], FILTER_VALIDATE_URL) === false
                 || ! is_string($row['sha256'] ?? null)
                 || preg_match('/^[a-f0-9]{64}$/', $row['sha256']) !== 1) {
-                throw new RuntimeException('Progression source lock row is invalid.');
+                throw new RuntimeException('Progression source-lock row is invalid.');
             }
         }
     }
 
-    /** @param array<string,mixed> $release */
-    private function validateSourceGaps(array $release): void
+    /** @param array<string,mixed> $release
+     *  @param array<string,true> $sourceIds
+     */
+    private function validateSourceGaps(array $release, array $sourceIds): void
     {
-        $gaps = $release['source_gaps'] ?? null;
+        $gaps = $release['source_gaps'] ?? [];
         if (! is_array($gaps)) {
-            throw new RuntimeException('Progression schema v2 requires explicit source-gap reporting.');
+            throw new RuntimeException('Progression source_gaps must be an array.');
         }
-
-        if (($release['dataset_version'] ?? null) !== '2026.08.23.2') {
-            return;
-        }
-
-        if (count($gaps) !== 1 || ! is_array($gaps[0] ?? null)) {
-            throw new RuntimeException('Progression 2026.08.23.2 must expose exactly one reviewed source gap.');
-        }
-        $gap = $gaps[0];
-        if (($gap['id'] ?? null) !== 'academy-fortified-mail-vi-level-table'
-            || ($gap['family'] ?? null) !== 'academy_research'
-            || ($gap['source_id'] ?? null) !== 'kingshotdata'
-            || ($gap['entity'] ?? null) !== 'Fortified Mail VI'
-            || ($gap['declared_max_level'] ?? null) !== 6
-            || ($gap['missing_visible_level_rows'] ?? null) !== 6
-            || ($gap['status'] ?? null) !== 'source_table_missing') {
-            throw new RuntimeException('Progression 2026.08.23.2 source gap does not match reviewed source evidence.');
-        }
-    }
-
-    /** @param array<string,array<string,mixed>> $catalogues */
-    private function validateDetailedCoverage(array $catalogues): void
-    {
-        $academy = $catalogues['academy_research'] ?? null;
-        if (! is_array($academy)
-            || ($academy['declared_technologies'] ?? null) !== 191
-            || ($academy['visible_level_rows'] ?? null) !== 714
-            || ($academy['declared_max_level_sum'] ?? null) !== 720
-            || ! is_array($academy['source_table_gaps'] ?? null)
-            || count($academy['source_table_gaps']) !== 1
-            || ! is_array($academy['technologies'] ?? null)
-            || count($academy['technologies']) !== 191) {
-            throw new RuntimeException('Academy progression release is incomplete.');
-        }
-
-        $levels = 0;
-        $ids = [];
-        $fortifiedMail = null;
-        foreach ($academy['technologies'] as $technology) {
-            if (! is_array($technology)
-                || ! is_string($technology['id'] ?? null)
-                || isset($ids[$technology['id']])
-                || ! is_int($technology['max_level'] ?? null)
-                || ! is_string($technology['levels_status'] ?? null)
-                || ! is_array($technology['levels'] ?? null)) {
-                throw new RuntimeException('Academy technology row is invalid.');
+        $seen = [];
+        foreach ($gaps as $gap) {
+            if (! is_array($gap)
+                || ! is_string($gap['id'] ?? null)
+                || ! is_string($gap['family'] ?? null)
+                || ! is_string($gap['source_id'] ?? null)
+                || ! isset($sourceIds[$gap['source_id']])
+                || ! is_string($gap['status'] ?? null)
+                || ! is_string($gap['resolution'] ?? null)) {
+                throw new RuntimeException('Progression source gap is invalid.');
             }
-            $ids[$technology['id']] = true;
-            $levels += count($technology['levels']);
-            if (($technology['name'] ?? null) === 'Fortified Mail VI') {
-                $fortifiedMail = $technology;
+            if (isset($seen[$gap['id']])) {
+                throw new RuntimeException('Progression source gap IDs must be unique.');
             }
-        }
-        if ($levels !== 714
-            || ! is_array($fortifiedMail)
-            || ($fortifiedMail['max_level'] ?? null) !== 6
-            || ($fortifiedMail['levels_status'] ?? null) !== 'source_table_missing'
-            || ($fortifiedMail['levels'] ?? null) !== []) {
-            throw new RuntimeException('Academy level/source-gap coverage is incomplete.');
-        }
-
-        $alliance = $catalogues['alliance_tech_tables'] ?? null;
-        if (! is_array($alliance)
-            || ($alliance['declared_technologies'] ?? null) !== 60
-            || ($alliance['visible_level_rows'] ?? null) !== 279
-            || ! is_array($alliance['technologies'] ?? null)
-            || count($alliance['technologies']) !== 60) {
-            throw new RuntimeException('Alliance Technology progression release is incomplete.');
-        }
-        $allianceLevels = 0;
-        foreach ($alliance['technologies'] as $technology) {
-            if (! is_array($technology) || ! is_array($technology['levels'] ?? null)) {
-                throw new RuntimeException('Alliance Technology row is invalid.');
-            }
-            $allianceLevels += count($technology['levels']);
-        }
-        if ($allianceLevels !== 279) {
-            throw new RuntimeException('Alliance Technology level coverage is incomplete.');
-        }
-
-        foreach ([
-            'buildings_tables' => 12,
-            'pets_tables' => 14,
-            'masters_tables' => 6,
-            'heroes_tables' => 34,
-            'database_tables' => 8,
-            'events_tables' => 33,
-        ] as $family => $expectedPages) {
-            $document = $catalogues[$family] ?? null;
-            if (! is_array($document)
-                || ($document['discovered_pages'] ?? null) !== $expectedPages
-                || ! is_array($document['pages'] ?? null)
-                || count($document['pages']) !== $expectedPages) {
-                throw new RuntimeException('Progression confirmed source page coverage mismatch: '.$family);
-            }
-        }
-
-        foreach (['governor_gear' => 58, 'war_academy' => 30] as $family => $expected) {
-            $document = $catalogues[$family] ?? null;
-            if (! is_array($document)
-                || ! is_array($document['source_meta'] ?? null)
-                || ($document['source_meta']['count'] ?? null) !== $expected) {
-                throw new RuntimeException('Progression detailed family count mismatch: '.$family);
-            }
-        }
-
-        $heroXp = $catalogues['hero_xp'] ?? null;
-        if (! is_array($heroXp) || ! is_array($heroXp['source_meta'] ?? null)) {
-            throw new RuntimeException('Hero XP detailed family is unavailable.');
-        }
-        $heroXpCount = $heroXp['source_meta']['count'] ?? null;
-        if (is_int($heroXpCount) && $heroXpCount < 80) {
-            throw new RuntimeException('Hero XP detailed family is incomplete.');
+            $seen[$gap['id']] = true;
         }
     }
 }
