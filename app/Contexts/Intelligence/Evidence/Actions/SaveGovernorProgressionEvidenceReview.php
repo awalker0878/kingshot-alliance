@@ -81,6 +81,13 @@ final readonly class SaveGovernorProgressionEvidenceReview
                 ->whereNull('transfer_participant_id')
                 ->lockForUpdate()
                 ->firstOrFail();
+            if (! in_array($evidence->lifecycle_status, [
+                EvidenceLifecycleStatus::NeedsReview,
+                EvidenceLifecycleStatus::Approved,
+                EvidenceLifecycleStatus::Failed,
+            ], true) || $evidence->path === null || $evidence->redacted_at !== null) {
+                throw ValidationException::withMessages(['evidence' => 'The screenshot is no longer available for review.']);
+            }
             $kind = EvidenceKind::from((string) $evidence->getRawOriginal('kind'));
             $expected = EvidenceKind::from((string) $evidence->getRawOriginal('expected_kind'));
             if (! $kind->isGovernorProgression() || $kind !== $expected) {

@@ -5,15 +5,15 @@
 - Program state: In progress.
 - Exact main baseline: `7e780521295e868005ecfee5bd38b33e8215ec49`.
 - Working branch: `astra/codebase-hardening`.
-- Latest pushed durable checkpoint: `2bc1b49829b8dafc2bb93ad37f39636ef88efef3`.
+- Latest pushed durable checkpoint: `96e79f18ea2914eb645b8d91f49a1eb1ff32c4e3`.
 - Draft PR: [#163](https://github.com/awalker0878/kingshot-alliance/pull/163).
-- Current item/state: HARD-010 / In progress (full pipeline checks and documentation ready for CI). HARD-004 baseline and HARD-009 reminder verification are Complete on `2bc1b498`.
+- Current item/state: HARD-013 / In progress (implementation ready for CI). HARD-010 full pipeline checks now pass in PostgreSQL CI; its remaining candidate gates are running. HARD-004 baseline and HARD-009 reminder verification are Complete on `2bc1b498`.
 - Most recently verified gates: all nine pull-request workflows pass on `2bc1b49829b8dafc2bb93ad37f39636ef88efef3`: CI (715 PHP tests, 72,953 assertions; frontend; production image, staging and recovery), Architecture V3, Intelligence, Gift Codes, King Perks, KingdomMaps, Visual Regression, CodeQL and Dependency Review. New HARD-010 test passes syntax/Pint/discovery; documentation links pass (234 files).
-- Active files: structured Governor pipeline test; current product/reference/architecture/operations screenshot contracts; ledger.
-- Remaining current work: verify eight new upload-to-commit pipeline cases in PostgreSQL CI, then close HARD-010 if all applicable gates pass. Repair HARD-013 lifecycle resurrection and continue remaining capability audit.
-- Known failures: none on pushed `2bc1b498`; new HARD-010 pipeline cases await CI. HARD-013 is a newly traced lifecycle defect, not a waived failure.
+- Active files: Governor normalization/review lifecycle guards, pipeline regressions and retry/lifecycle documentation; ledger.
+- Remaining current work: verify HARD-013 lifecycle regressions and containing-commit gates. HARD-010 eight upload-to-commit cases pass within the 723-test CI run (73,095 assertions), PHP job `102144249268`. Audit discovered HARD-014 retention family/batch defects and HARD-015 incomplete redaction next.
+- Known failures: none in completed PHP/frontend gates on `96e79f18`; container/staging/recovery is running. HARD-013–015 remain tracked production defects until verification.
 - Blockers: local PostgreSQL/Redis services unavailable; service-backed verification uses GitHub CI. Local PHP 8.5.8 and locked Composer/npm dependencies available. Checkpoints publish via the authorized GitHub connection with exact staged-tree verification and non-forced branch updates.
-- Exact next action: publish HARD-010 integration checkpoint; implement HARD-013 terminal lifecycle protection while CI executes; reconcile results and continue audit.
+- Exact next action: publish HARD-013 checkpoint, implement HARD-014 family-aware bounded retention and HARD-015 raw-provenance redaction, then reconcile CI and continue capability audit.
 - Remaining repository-wide gates: final full PHP/architecture/capability and frontend gates on one containing commit; production image/staging/recovery; final security/dependency/visual checks; remaining capability-by-capability audit coverage below.
 
 Checkpoint SHAs are recorded by the following documentation commit; verify that the recorded checkpoint is an ancestor of current branch HEAD. No audit area is complete solely because its paths have been inventoried.
@@ -156,8 +156,8 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Remediation: complete explicit classifier/extractor contracts with fixtures, trace normalized review through typed destination validation, reconcile current documentation and test production routing/review behavior.
 - State: In progress.
 - Verification required: routed classification/extraction including mismatch/ambiguity/unknown fields; pinned-dataset review and destination behavior; full Intelligence, architecture, style and static analysis.
-- Verification result: narrow English heading/label extraction implemented with three 12-case synthetic OCR corpora. Classifier/extractor versions advanced for provenance. All 22 routing/schema/corpus tests pass (1,017 assertions); three real pinned-state validator cases pass (18 assertions), covering valid names and rejected missing/invalid/duplicate/mismatched states. Roster replay behavior across all three kinds passes PostgreSQL CI on `2bc1b498`. Eight new full upload/classification/extraction/normalization/review/commit cases use real provenance, replacing only external OCR; they cover missing levels, mismatch, cross-Alliance authority/scope and receipt replay. New test syntax, Pint and discovery pass; database execution awaits the containing checkpoint. Full PHPStan passes, changed PHP Pint and architecture verifier pass.
-- Completion evidence: routing/extraction, synthetic fixture corpora, structured pinned-state validation and expanded owner replay tests; screenshot contract now marks this extension In progress. Current reference/architecture/operations contracts now describe all nine schemas, exact reviewed structured-state validation and synthetic OCR limitations. Remaining: execute full pipeline checks and containing-commit gates in CI.
+- Verification result: narrow English heading/label extraction implemented with three 12-case synthetic OCR corpora. Classifier/extractor versions advanced for provenance. All 22 routing/schema/corpus tests pass (1,017 assertions); three real pinned-state validator cases pass (18 assertions), covering valid names and rejected missing/invalid/duplicate/mismatched states. Roster replay behavior across all three kinds passes PostgreSQL CI on `2bc1b498`. Eight new full upload/classification/extraction/normalization/review/commit cases use real provenance, replacing only external OCR; they cover missing levels, mismatch, cross-Alliance authority/scope and receipt replay. All eight pipeline cases pass in PostgreSQL CI on `96e79f18ea2914eb645b8d91f49a1eb1ff32c4e3`: full suite 723 tests, 73,095 assertions (PHP job `102144249268`). Full PHPStan passes, changed PHP Pint and architecture verifier pass.
+- Completion evidence: routing/extraction, synthetic fixture corpora, structured pinned-state validation and expanded owner replay tests; screenshot contract now marks this extension In progress. Current reference/architecture/operations contracts now describe all nine schemas, exact reviewed structured-state validation and synthetic OCR limitations. Remaining: containing-commit container/security/visual gates and HARD-013 lifecycle repair; retain In progress until those pass.
 - Commit SHA: `57f383abc0fb67787724f9cce4f18cdf71cd34de`.
 
 ### HARD-011 — Progression topology and prerequisite contract drift
@@ -191,14 +191,42 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 ### HARD-013 — Governor evidence terminal lifecycle can be overwritten
 
 - Area: Intelligence/Evidence normalization, review and deletion.
-- Finding: normalization replay unconditionally restores `needs_review`, including when Evidence is already approved, committed or deleted. Review saving does not reject deleted/redacted Evidence. Deletion also omits `normalizing` from its active-processing guard.
-- Current owner: NormalizeGovernorProgressionEvidence, SaveGovernorProgressionEvidenceReview and DeleteGovernorProgressionEvidence.
+- Finding: normalization replay unconditionally restores `needs_review`, including when Evidence is already approved, committed or deleted. Review saving does not reject deleted/redacted Evidence. Normalization shares the existing `extracting` lifecycle, so the deletion guard already protects the normal handoff; automatic retries from `failed` must reacquire that active state.
+- Current owner: NormalizeGovernorProgressionEvidence and SaveGovernorProgressionEvidenceReview; the existing deletion guard is retained.
 - Intended authoritative owner: the same explicit owner Actions with terminal and active lifecycle invariants checked under lock.
 - Rationale: queue redelivery or stale review requests must not revive deleted provenance, reopen committed Evidence or race active normalization.
 - Remediation: protect terminal states, make completed normalization redelivery inert, reject stale reviews after deletion, and verify deletion/commit history remains intact.
-- State: Planned.
+- State: In progress.
 - Verification required: real pipeline lifecycle regressions for deleted/approved/committed Evidence, stale review rejection and active normalization deletion; Intelligence and architecture checks.
-- Verification result: production trace confirms unguarded lifecycle assignments; behavioral reproduction pending.
+- Verification result: production guards implemented under the Evidence lock; normalization pins are selected inside the same lock and retries reacquire the existing active state. Four real-pipeline lifecycle cases added for redelivery, stale review, terminal states, retained owner history and the existing deletion guard. Full PHPStan passes (zero errors); changed-file Pint passes. PostgreSQL behavior execution awaits the containing checkpoint.
+- Completion evidence: pending.
+- Commit SHA: pending.
+
+### HARD-014 — Evidence retention omits later commit families and due filtering
+
+- Area: Intelligence/Evidence scheduled retention.
+- Finding: EnforceEvidenceRetention recognizes only Bear Hunt commit attempts. Transfer, Governor and spatial committed Evidence can be purged as uncommitted, cascading away reviewed provenance and commit receipts. Candidate selection limits oldest rows before testing expiration/active status, allowing old ineligible rows to starve later eligible work.
+- Current owner: EnforceEvidenceRetention.
+- Intended authoritative owner: same Evidence retention Action across its explicit family commit ledgers.
+- Rationale: retention must preserve completed handoffs and make bounded progress on eligible work for every supported family.
+- Remediation: use one family-complete committed predicate in candidate selection and locked revalidation; filter eligible expiration/status before the batch limit; retain tombstones and receipts.
+- State: Planned.
+- Verification required: all family commit provenance survives binary retention; deleted committed tombstones persist; active/not-yet-due rows do not starve expired records; retry and existing retention suites pass.
+- Verification result: source trace and foreign-key cascade definitions confirm the defect; implementation pending.
+- Completion evidence: pending.
+- Commit SHA: pending.
+
+### HARD-015 — Evidence redaction leaves copied raw normalization content
+
+- Area: Intelligence/Evidence raw provenance retention.
+- Finding: EvidenceRedactor removes classification OCR and extracted raw text/bounds but leaves raw text, bounds and candidates copied into Governor normalization payloads, which the authorized summary still returns after deletion.
+- Current owner: EvidenceRedactor and Governor normalization persistence.
+- Intended authoritative owner: same Evidence redaction service across all copies of machine provenance.
+- Rationale: deletion must purge the promised raw source data while preserving minimum reviewed handoff/receipt provenance and independent accepted owner history.
+- Remediation: clear raw machine payload copies consistently; preserve dataset/attempt/review/receipt identity and accepted observations; verify repeated redaction and summary behavior.
+- State: Planned.
+- Verification required: real normalized evidence loses raw/candidate payload on deletion/retention while pinned identity and committed history remain.
+- Verification result: copied `raw_text` and `bounding_box` fields remain in `normalized_payload`; redactor has no normalization update.
 - Completion evidence: pending.
 - Commit SHA: pending.
 

@@ -50,6 +50,8 @@ The first normalization attempt establishes the automatic-processing Progression
 - Never substitute `latest()` for a pinned retry.
 - Moving Evidence to a newer dataset is a distinct explicit re-normalization product action; v1 does not provide it.
 
+Normalization redelivery cannot reopen approved, committed, deleted or redacted Evidence. Active normalization uses the existing `extracting` lifecycle; retries from `failed` reacquire that state under lock, and the deletion guard blocks active processing. Review requests are rejected while processing/committing and after commit or redaction. Corrections to accepted observations use the Roster owner's correction workflow.
+
 Commit retry uses the stable destination idempotency key associated with the immutable approved review. If Roster already committed and Evidence acknowledgement failed, retry must receive the existing authorized Roster receipt and mark Evidence acknowledgement; do not delete/re-import the Roster observation.
 
 ## Provenance/interface boundary

@@ -35,13 +35,16 @@ final readonly class NormalizeGovernorProgressionEvidence
 
     public function handle(string $evidenceId, string $extractionAttemptId): void
     {
-        $dataset = $this->datasetForEvidence($evidenceId);
-        $attemptId = DB::transaction(function () use ($evidenceId, $extractionAttemptId, $dataset): string {
+        $prepared = DB::transaction(function () use ($evidenceId, $extractionAttemptId): ?array {
             $evidence = GameEvidence::query()->whereKey($evidenceId)->lockForUpdate()->firstOrFail();
             $kind = EvidenceKind::from((string) $evidence->getRawOriginal('kind'));
             if (! $kind->isGovernorProgression()) {
                 throw new RuntimeException('Only Governor Progression Evidence can be normalized against Progression.');
             }
+            if (! $this->canNormalize($evidence)) {
+                return null;
+            }
+            $dataset = $this->datasetForEvidence($evidenceId);
             $extraction = EvidenceExtractionAttempt::query()
                 ->whereKey($extractionAttemptId)
                 ->where('evidence_id', $evidenceId)
@@ -57,9 +60,7 @@ final readonly class NormalizeGovernorProgressionEvidence
                 ->latest('created_at')
                 ->first();
             if ($existing instanceof ProgressionNormalizationAttempt) {
-                $evidence->forceFill(['lifecycle_status' => EvidenceLifecycleStatus::NeedsReview])->save();
-
-                return '';
+                return null;
             }
 
             $attempt = ProgressionNormalizationAttempt::query()->create([
@@ -74,6 +75,7 @@ final readonly class NormalizeGovernorProgressionEvidence
                 'warnings' => null,
                 'started_at' => now(),
             ]);
+            $evidence->forceFill(['lifecycle_status' => EvidenceLifecycleStatus::Extracting])->save();
             $actor = $this->players->find((string) $evidence->uploaded_by_player_id);
             $metadata = [
                 'evidence_id' => (string) $evidence->id,
@@ -88,11 +90,13 @@ final readonly class NormalizeGovernorProgressionEvidence
             $this->audit->record('evidence.progression_normalization_started', $actor, $evidence, (string) $evidence->alliance_id, $metadata);
             $this->outbox->record('evidence.progression_normalization_started', (string) $evidence->alliance_id, $evidence, $metadata);
 
-            return (string) $attempt->id;
+            return ['attempt_id' => (string) $attempt->id, 'dataset' => $dataset];
         });
-        if ($attemptId === '') {
+        if ($prepared === null) {
             return;
         }
+        $attemptId = $prepared['attempt_id'];
+        $dataset = $prepared['dataset'];
 
         try {
             $evidence = GameEvidence::query()->findOrFail($evidenceId);
@@ -144,7 +148,8 @@ final readonly class NormalizeGovernorProgressionEvidence
             DB::transaction(function () use ($evidenceId, $attemptId, $payload, $warnings, $dataset, $kind): void {
                 $evidence = GameEvidence::query()->whereKey($evidenceId)->lockForUpdate()->firstOrFail();
                 $attempt = ProgressionNormalizationAttempt::query()->whereKey($attemptId)->lockForUpdate()->firstOrFail();
-                if ($attempt->getRawOriginal('status') !== EvidenceAttemptStatus::Running->value) {
+                if (! $this->canNormalize($evidence)
+                    || $attempt->getRawOriginal('status') !== EvidenceAttemptStatus::Running->value) {
                     throw new RuntimeException('Normalization attempt is no longer running.');
                 }
                 $attempt->forceFill([
@@ -179,7 +184,7 @@ final readonly class NormalizeGovernorProgressionEvidence
                         'completed_at' => now(),
                     ])->save();
                 }
-                if ($evidence instanceof GameEvidence) {
+                if ($evidence instanceof GameEvidence && $this->canNormalize($evidence)) {
                     $evidence->forceFill(['lifecycle_status' => EvidenceLifecycleStatus::Failed])->save();
                     $actor = $this->players->find((string) $evidence->uploaded_by_player_id);
                     $metadata = [
@@ -193,6 +198,14 @@ final readonly class NormalizeGovernorProgressionEvidence
             });
             throw $exception;
         }
+    }
+
+    private function canNormalize(GameEvidence $evidence): bool
+    {
+        return in_array($evidence->lifecycle_status, [EvidenceLifecycleStatus::Extracting, EvidenceLifecycleStatus::Failed], true)
+            && $evidence->path !== null
+            && $evidence->redacted_at === null
+            && $evidence->kind === $evidence->expected_kind;
     }
 
     private function datasetForEvidence(string $evidenceId): ProgressionDataset

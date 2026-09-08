@@ -7,6 +7,7 @@ namespace Tests\v3\Contexts\Intelligence\Evidence;
 use App\Contexts\GameWorld\Progression\Queries\ProgressionDatasetQuery;
 use App\Contexts\Intelligence\Evidence\Actions\ClassifyGameEvidence;
 use App\Contexts\Intelligence\Evidence\Actions\CommitReviewedGovernorProgressionEvidence;
+use App\Contexts\Intelligence\Evidence\Actions\DeleteGovernorProgressionEvidence;
 use App\Contexts\Intelligence\Evidence\Actions\ExtractGameEvidence;
 use App\Contexts\Intelligence\Evidence\Actions\NormalizeGovernorProgressionEvidence;
 use App\Contexts\Intelligence\Evidence\Actions\SaveGovernorProgressionEvidenceReview;
@@ -169,6 +170,79 @@ final class StructuredGovernorProgressionPipelineV3Test extends TestCase
             self::assertSame(0, GovernorProgressionObservation::query()->count());
             self::assertSame(0, GovernorProgressionEvidenceReceipt::query()->count());
         }
+    }
+
+    public function test_normalization_redelivery_preserves_review_and_commit_lifecycle(): void
+    {
+        [$evidence, $normalization] = $this->normalize(EvidenceKind::GovernorBuildings, "Buildings\nBuilding: Academy Level 1");
+        $reviewId = $this->review($evidence, $normalization, ['states' => [['subject_id' => 'academy', 'level' => 1]]]);
+        $normalize = app(NormalizeGovernorProgressionEvidence::class);
+        $normalize->handle((string) $evidence->id, (string) $normalization->extraction_attempt_id);
+        self::assertSame(EvidenceLifecycleStatus::Approved, $evidence->fresh()->lifecycle_status);
+
+        $receipt = app(CommitReviewedGovernorProgressionEvidence::class)->handle($this->actorId, $this->allianceId, $this->entryId, $reviewId);
+        $normalize->handle((string) $evidence->id, (string) $normalization->extraction_attempt_id);
+        self::assertSame(EvidenceLifecycleStatus::Committed, $evidence->fresh()->lifecycle_status);
+        self::assertSame(1, ProgressionNormalizationAttempt::query()->count());
+        self::assertSame(1, GovernorProgressionObservation::query()->count());
+        self::assertTrue(GovernorProgressionEvidenceReceipt::query()->whereKey($receipt->receiptId)->exists());
+    }
+
+    public function test_deleted_evidence_cannot_be_revived_by_normalization_or_stale_review(): void
+    {
+        [$evidence, $normalization] = $this->normalize(EvidenceKind::GovernorBuildings, "Buildings\nBuilding: Academy Level 1");
+        app(DeleteGovernorProgressionEvidence::class)->handle($this->actorId, $this->allianceId, $this->entryId, (string) $evidence->id);
+        app(NormalizeGovernorProgressionEvidence::class)->handle((string) $evidence->id, (string) $normalization->extraction_attempt_id);
+
+        self::assertSame(EvidenceLifecycleStatus::Deleted, $evidence->fresh()->lifecycle_status);
+        self::assertNull($evidence->fresh()->path);
+        try {
+            $this->review($evidence, $normalization, ['states' => [['subject_id' => 'academy', 'level' => 1]]]);
+            self::fail('A stale review must not revive deleted evidence.');
+        } catch (ValidationException $exception) {
+            self::assertArrayHasKey('evidence', $exception->errors());
+        }
+        self::assertSame(EvidenceLifecycleStatus::Deleted, $evidence->fresh()->lifecycle_status);
+        self::assertSame(1, ProgressionNormalizationAttempt::query()->count());
+        self::assertSame(0, GovernorProgressionEvidenceReview::query()->count());
+        self::assertSame(0, GovernorProgressionObservation::query()->count());
+    }
+
+    public function test_review_cannot_reopen_committed_evidence_and_deletion_preserves_owner_history(): void
+    {
+        [$evidence, $normalization] = $this->normalize(EvidenceKind::GovernorBuildings, "Buildings\nBuilding: Academy Level 1");
+        $payload = ['states' => [['subject_id' => 'academy', 'level' => 1]]];
+        $reviewId = $this->review($evidence, $normalization, $payload);
+        $receipt = app(CommitReviewedGovernorProgressionEvidence::class)->handle($this->actorId, $this->allianceId, $this->entryId, $reviewId);
+        try {
+            $this->review($evidence, $normalization, $payload);
+            self::fail('Corrections after commit belong to the owner observation workflow.');
+        } catch (ValidationException $exception) {
+            self::assertArrayHasKey('evidence', $exception->errors());
+        }
+        app(DeleteGovernorProgressionEvidence::class)->handle($this->actorId, $this->allianceId, $this->entryId, (string) $evidence->id);
+        app(NormalizeGovernorProgressionEvidence::class)->handle((string) $evidence->id, (string) $normalization->extraction_attempt_id);
+        self::assertSame(EvidenceLifecycleStatus::Deleted, $evidence->fresh()->lifecycle_status);
+        self::assertTrue(GovernorProgressionObservation::query()->whereKey($receipt->observationId)->exists());
+        self::assertTrue(GovernorProgressionEvidenceReceipt::query()->whereKey($receipt->receiptId)->exists());
+        self::assertSame(1, GovernorProgressionEvidenceReview::query()->count());
+    }
+
+    public function test_deletion_is_blocked_between_extraction_and_normalization(): void
+    {
+        $evidence = $this->upload(EvidenceKind::GovernorBuildings, "Buildings\nBuilding: Academy Level 1");
+        app(ClassifyGameEvidence::class)->handle((string) $evidence->id);
+        $classification = EvidenceClassificationAttempt::query()->where('evidence_id', $evidence->id)->sole();
+        app(ExtractGameEvidence::class)->handle((string) $evidence->id, (string) $classification->id);
+        self::assertSame(EvidenceLifecycleStatus::Extracting, $evidence->fresh()->lifecycle_status);
+        try {
+            app(DeleteGovernorProgressionEvidence::class)->handle($this->actorId, $this->allianceId, $this->entryId, (string) $evidence->id);
+            self::fail('The normalization handoff is still active processing.');
+        } catch (ValidationException $exception) {
+            self::assertArrayHasKey('evidence', $exception->errors());
+        }
+        self::assertNotNull($evidence->fresh()->path);
+        self::assertSame(EvidenceLifecycleStatus::Extracting, $evidence->fresh()->lifecycle_status);
     }
 
     /** @return iterable<string,array{EvidenceKind,string,string,string,string}> */

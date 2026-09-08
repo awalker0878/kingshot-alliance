@@ -50,6 +50,8 @@ Every normalization attempt records the exact Progression dataset ID/checksum us
 
 The earliest normalization attempt becomes the automatic-processing pin for the Evidence record, even if that attempt failed. All subsequent processing retries, queue redeliveries or process restarts reuse that same ID/checksum and fail closed if the pinned release cannot be loaded exactly. Automatic retry never silently uses a newer `latest()` release.
 
+Normalization redelivery cannot reopen approved, committed, deleted or redacted Evidence. Active normalization uses the existing `extracting` lifecycle; retries from `failed` reacquire that state under lock, and the deletion guard blocks active processing. Review requests are rejected while processing/committing and after commit or redaction. Corrections to accepted observations use the Roster owner's correction workflow.
+
 Moving an existing Evidence record to another Progression release would require an explicit re-normalization action; v1 does not provide one.
 
 ## Catalogue-backed validation

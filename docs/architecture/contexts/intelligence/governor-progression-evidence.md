@@ -68,6 +68,8 @@ Each normalization attempt records Progression dataset ID/checksum, normalizer k
 
 The first normalization attempt establishes the automatic-processing dataset pin even when it fails. Subsequent processing retry, queue redelivery or process restart reuses the earliest attempt's dataset ID/checksum and must load that exact immutable release. Automatic retry never falls forward to `latest()` after normalization history exists.
 
+Normalization redelivery cannot reopen approved, committed, deleted or redacted Evidence. Active normalization uses the existing `extracting` lifecycle; retries from `failed` reacquire that state under lock, and the deletion guard blocks active processing. Review requests are rejected while processing/committing and after commit or redaction. Corrections to accepted observations use the Roster owner's correction workflow.
+
 Moving Evidence to a newer dataset would be a distinct explicit re-normalization action; v1 does not provide one. Existing attempts and accepted Roster observations remain pinned to their original release.
 
 Machine OCR/extraction output is immutable attempt history. Human corrections create new reviewed meaning and never rewrite machine output/confidence.
