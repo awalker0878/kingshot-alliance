@@ -60,6 +60,7 @@ final class SchedulerOwnershipV3Test extends TestCase
             'gift-codes:rebuild-acquisition-intelligence' => ['0 * * * *', '--cluster-limit=500 --source-limit=100'],
             'kingdom-governance:expire-delegations' => ['0 * * * *', '--limit=250'],
             'evidence:enforce-retention' => ['20 3 * * *', '--limit=250'],
+            'auth:clear-resets' => ['0 * * * *', 'auth:clear-resets'],
         ] as $workload => [$expression, $options]) {
             self::assertArrayHasKey($workload, $workloads, 'Required scheduled workload is missing: '.$workload);
             self::assertSame($expression, $workloads[$workload]->expression, $workload);

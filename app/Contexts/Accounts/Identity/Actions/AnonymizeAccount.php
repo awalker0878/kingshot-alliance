@@ -10,6 +10,7 @@ use App\Contexts\Accounts\Identity\Models\User;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use Illuminate\Session\SessionManager;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Throwable;
 
@@ -29,7 +30,6 @@ final readonly class AnonymizeAccount
                 return;
             }
 
-            $originalEmail = (string) $user->email;
             $sessionIds = AccountSession::query()->where('user_id', $userId)->lockForUpdate()->pluck('session_id')->all();
 
             AccountSession::query()->where('user_id', $userId)->delete();
@@ -37,7 +37,7 @@ final readonly class AnonymizeAccount
             $this->emailNotices->forgetAccount($userId);
             $user->accountIdentities()->delete();
             DB::table('passkeys')->where('user_id', $userId)->delete();
-            DB::table('password_reset_tokens')->where('email', $originalEmail)->delete();
+            Password::deleteToken($user);
 
             $user->forceFill([
                 'name' => 'Deleted User',

@@ -11,6 +11,7 @@ use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Models\OutboxMessage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -40,6 +41,7 @@ final readonly class ChangePassword
                 ]);
             }
 
+            Password::deleteToken($locked);
             $locked->forceFill([
                 'password' => Hash::make($newPassword),
                 'remember_token' => Str::random(60),

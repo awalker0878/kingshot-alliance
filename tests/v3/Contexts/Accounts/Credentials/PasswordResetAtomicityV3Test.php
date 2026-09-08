@@ -86,26 +86,27 @@ final class PasswordResetAtomicityV3Test extends TestCase
         Event::assertDispatchedTimes(PasswordResetEvent::class, 1);
     }
 
-    /** @return iterable<string,array{bool}> */
+    /** @return iterable<string,array{string}> */
     public static function competitors(): iterable
     {
-        yield 'second reset' => [false];
-        yield 'password removal' => [true];
+        yield 'second reset' => ['reset'];
+        yield 'password removal' => ['removal'];
+        yield 'token issuance' => ['issuance'];
     }
 
     #[DataProvider('competitors')]
-    public function test_competing_credential_change_cannot_run_between_token_check_and_reset(bool $remove): void
+    public function test_competing_credential_change_cannot_run_between_token_check_and_reset(string $operation): void
     {
         $user = $this->account();
         $token = Password::broker()->createToken($user);
         $primary = DB::getDefaultConnection();
         $primaryBroker = Password::getFacadeRoot();
-        config()->set('database.connections.reset_competitor', DB::connection()->getConfig());
+        config()->set('database.connections.reset_competitor', array_replace(DB::connection()->getConfig(), ['name' => 'reset_competitor']));
         DB::connection('reset_competitor')->statement("SET lock_timeout = '100ms'");
         $attempted = false;
         $blocked = false;
 
-        DB::listen(function (QueryExecuted $query) use ($user, $token, $remove, $primary, $primaryBroker, &$attempted, &$blocked): void {
+        DB::listen(function (QueryExecuted $query) use ($user, $token, $operation, $primary, $primaryBroker, &$attempted, &$blocked): void {
             if ($attempted || $query->connectionName !== $primary || ! str_starts_with($query->sql, 'select')
                 || ! str_contains($query->sql, '"password_reset_tokens"')) {
                 return;
@@ -114,7 +115,9 @@ final class PasswordResetAtomicityV3Test extends TestCase
             DB::setDefaultConnection('reset_competitor');
             Password::swap(new PasswordBrokerManager($this->app));
             try {
-                if ($remove) {
+                if ($operation === 'issuance') {
+                    app(RequestPasswordReset::class)->handle((string) $user->email);
+                } elseif ($operation === 'removal') {
                     app(RemovePassword::class)->handle((int) $user->id, null);
                 } else {
                     app(ResetPassword::class)->handle((string) $user->email, 'Competing-Password-123!', 'Competing-Password-123!', $token);
@@ -137,10 +140,10 @@ final class PasswordResetAtomicityV3Test extends TestCase
             self::assertTrue(Hash::check('Primary-Reset-Password-123!', (string) $user->refresh()->password));
             self::assertSame(1, DB::table('audit_events')->where('event', 'auth.password.reset')->count());
 
-            if ($remove) {
+            if ($operation === 'removal') {
                 app(RemovePassword::class)->handle((int) $user->id, null);
             }
-            self::assertSame($remove ? Password::INVALID_USER : Password::INVALID_TOKEN, $this->reset($user, $token));
+            self::assertSame($operation === 'removal' ? Password::INVALID_USER : Password::INVALID_TOKEN, $this->reset($user, $token));
         } finally {
             DB::setDefaultConnection($primary);
             Password::swap($primaryBroker);

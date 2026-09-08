@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Contexts\Accounts\Authentication\Providers\AuthenticationServiceProvider;
+use App\Contexts\Accounts\Credentials\Providers\CredentialsServiceProvider;
 use App\Contexts\Accounts\EmailVerification\Providers\EmailVerificationServiceProvider;
 use App\Contexts\Accounts\MultiFactorAuthentication\Providers\MultiFactorAuthenticationServiceProvider;
 use App\Contexts\Accounts\Registration\Providers\RegistrationServiceProvider;
@@ -40,6 +41,7 @@ return [
     KingPerksServiceProvider::class,
     GovernanceServiceProvider::class,
     AuthenticationServiceProvider::class,
+    CredentialsServiceProvider::class,
     EmailVerificationServiceProvider::class,
     RegistrationServiceProvider::class,
     MultiFactorAuthenticationServiceProvider::class,

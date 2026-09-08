@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\v3\Contexts\Accounts\Identity;
 
 use App\Contexts\Accounts\Authentication\Actions\RecordAccountSession;
+use App\Contexts\Accounts\Authentication\Models\AccountSession;
 use App\Contexts\Accounts\Identity\Actions\AnonymizeAccount;
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Platform\DataGovernance\Actions\ProcessAccountDeletionRequests;
@@ -89,7 +90,8 @@ final class AccountFinalizationSessionCommitV3Test extends TestCase
         self::assertSame($requestBefore, $request->refresh()->getRawOriginal());
         self::assertSame($auditBefore, DB::table('audit_events')->count());
         self::assertSame($outboxBefore, DB::table('outbox_messages')->count());
-        $this->assertDatabaseHas('account_sessions', ['user_id' => $user->id, 'session_id' => 'rollback-browser', 'revoked_at' => null]);
+        $this->assertDatabaseHas('account_sessions', ['user_id' => $user->id, 'session_id_hash' => hash('sha256', 'rollback-browser'), 'revoked_at' => null]);
+        self::assertSame('rollback-browser', AccountSession::query()->where('user_id', $user->id)->sole()->session_id);
     }
 
     public function test_failed_raw_cleanup_does_not_block_later_sessions_or_accounts_and_cannot_restore_access(): void
@@ -122,7 +124,8 @@ final class AccountFinalizationSessionCommitV3Test extends TestCase
         self::assertNotNull($second->refresh()->anonymized_at);
         self::assertNull($foreign->refresh()->anonymized_at);
         self::assertSame(1, DB::table('account_sessions')->count());
-        $this->assertDatabaseHas('account_sessions', ['user_id' => $foreign->id, 'session_id' => 'foreign-browser']);
+        $this->assertDatabaseHas('account_sessions', ['user_id' => $foreign->id, 'session_id_hash' => hash('sha256', 'foreign-browser')]);
+        self::assertSame('foreign-browser', AccountSession::query()->where('user_id', $foreign->id)->sole()->session_id);
         self::assertFalse(app(RecordAccountSession::class)->handle((int) $first->id, 'first-browser', 'Chrome/'));
         self::assertSame(0, app(ProcessAccountDeletionRequests::class)->handle());
     }

@@ -9,6 +9,7 @@ use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Accounts\Security\Services\SecurityNotificationService;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -38,6 +39,7 @@ final readonly class PromotePendingAccountEmail
             }
 
             $previousEmail = (string) $user->email;
+            Password::deleteToken($user);
             $user->forceFill([
                 'email' => $pendingEmail,
                 'email_verified_at' => now(),

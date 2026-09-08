@@ -67,6 +67,7 @@ Schedule::command('platform:enforce-retention')->dailyAt('03:45')->onOneServer()
 Schedule::command('recruitment:purge-expired --limit=250')->dailyAt('03:15')->onOneServer()->withoutOverlapping(30);
 Schedule::command('queue:prune-batches --hours=48')->daily()->onOneServer()->withoutOverlapping(60);
 Schedule::command('queue:prune-failed --hours=168')->daily()->onOneServer()->withoutOverlapping(60);
+Schedule::command('auth:clear-resets')->hourly()->onOneServer()->withoutOverlapping(10);
 
 Schedule::command('king-perks:queue-reminders --limit=100')->everyMinute()->onOneServer()->withoutOverlapping(10);
 Schedule::command('gift-codes:queue-personal-reminders --limit=100')->everyMinute()->onOneServer()->withoutOverlapping(10);

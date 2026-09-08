@@ -10,6 +10,7 @@ use App\Contexts\Accounts\Security\Services\SecurityNotificationService;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -33,6 +34,7 @@ final readonly class AddPassword
                 ]);
             }
 
+            Password::deleteToken($user);
             $user->forceFill([
                 'password' => Hash::make($password),
                 'remember_token' => Str::random(60),

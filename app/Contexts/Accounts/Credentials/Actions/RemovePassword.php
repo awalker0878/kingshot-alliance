@@ -10,6 +10,7 @@ use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Accounts\Security\Services\SecurityNotificationService;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -46,7 +47,7 @@ final readonly class RemovePassword
                 subject: $user,
             );
 
-            DB::table('password_reset_tokens')->where('email', (string) $user->email)->delete();
+            Password::deleteToken($user);
             $this->revokeOtherSessions->handle($userId, $currentSessionId);
             $this->securityNotifications->publish(
                 userId: $userId,
