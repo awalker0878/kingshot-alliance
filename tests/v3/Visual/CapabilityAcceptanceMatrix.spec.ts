@@ -13,22 +13,22 @@ type Surface =
 
 const fingerprints: Record<string, Record<Surface, string>> = {
   desktop: {
-    rallyBuilder: 'cdb85d962ede7f68b9ee078625b46aa19f2f25fdcf3237db79fd60a6bb887601',
-    memberProfile: '2dedf685fd738cd117460c8b22431299f89a3a5355f466756c4b41c3e645782a',
-    transferCampaign: '108d65aedb6e80d979d220b44ef2b66490b9a0b0c9ff6064bb23be75fcab7e43',
-    intelligenceTimeline: 'e2e727d74fd513e2479ca1730bd79c7117743cf9f44003c05e8e919096c78a50',
-    allianceCommand: 'de7aab8f5eee1fde41a164f08ec9c881fa91f56f8650394b9463123a8d70aa01',
-    officerBriefs: 'd15773bc8c382aeff5ab4453b076cd9868009b57af972f0df017c70025c88143',
-    assistant: '8cc124ee1ba262b0eaf5e6ca56b4b764bb52d078eaa408cf26b5390ddd4cf163',
+    rallyBuilder: 'c469721788f54d5c21c8a91deaee742340d9d64a96204cc757a6f82101253d8d',
+    memberProfile: '55d91b84c52af11c7535843c5643f522c917a0ab138697e8da7e91102c978be3',
+    transferCampaign: 'c882ea931c07d53c82830fbeecbabb29673e2f388e17ccf21a78636eed38654c',
+    intelligenceTimeline: '6eb2cb411808b90ef39ff7224d38514ee6dbe394a8187ef576254a0c0774cd1e',
+    allianceCommand: '0f4da284a29f90f42bfa3cf4db1d11100565d7669b02a0965993578facf200c6',
+    officerBriefs: '32625fa3bb1c92568eac9f2b8cc4994439ab05218e41c308e94045e481cbe209',
+    assistant: '8e846a2c36a8616ce1862b4aa304e782d4e0ae4e3eaf5b1a6776a13504487c5d',
   },
   mobile: {
-    rallyBuilder: '83c0f81ab893ae413016045bd4e64144fc1e00731b58a5a84e39769f8fd67d8a',
-    memberProfile: '9c21deec081a27886e38d3825b309d807a3235519c786b27f3eaf01678bff76e',
-    transferCampaign: '2ff40faaae87d4ee51f359cdc8562fdf44b035f86a1e52296409457349edf132',
-    intelligenceTimeline: '23da633df74ceeb3e68a3e688b6d58ad34f22ffe2fec3fd08c2cd7ce77edd46e',
-    allianceCommand: 'cc53e997be8fb9c6762df3590b17a0518455d180307adb283567eaaa83f1f970',
-    officerBriefs: 'c9a7c40fb325092bd7349918b555c7f2e8610e90399e69ff7584c5738343529d',
-    assistant: 'b7069af6767de075ff6b625732f904a08938826361e58f898f802b7c15ddcc90',
+    rallyBuilder: 'f4308b63a7aaddc01198c9a031991d4f23e8fadd9949a9cfc6bec46925f3c693',
+    memberProfile: '2b6a8ada865dec79dba58863197e4baeb98a1a758e6d81807da04c568f900560',
+    transferCampaign: 'e921c31301627dc71b87c97e8d7c883f6e31394dc788ca349c196eaa2d13605d',
+    intelligenceTimeline: 'dd76b380e395deee7662c44879c0ee7b794ea0eb6d6cf5aefbee4c68db55b0ff',
+    allianceCommand: '8691b3ae207fcacd252acb45bc1b8ad0f7549bcf863ff33bb34a04a24d67829d',
+    officerBriefs: '3ba052ab7c02ad6806868e1e166bbb8283f62e517ae9fbc9220cedc646e7fb91',
+    assistant: '5a5b5a4ab893debea3d19e9deb01f4326dd5a0df8829b16c814ba750af7db25a',
   },
 };
 
