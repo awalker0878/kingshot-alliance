@@ -134,6 +134,9 @@ export type GovernorProgressionState = {
     heroes: Record<string, GovernorProgressionHeroState>;
     governorGear: Record<string, Record<string, GovernorProgressionFact>>;
     charms: Record<string, Record<string, GovernorProgressionFact>>;
+    buildings: Record<string, Record<string, GovernorProgressionFact>>;
+    academyResearch: Record<string, Record<string, GovernorProgressionFact>>;
+    warAcademyResearch: Record<string, Record<string, GovernorProgressionFact>>;
     completeRosterCapture: GovernorProgressionFact | null;
   };
   last_updated_at: string | null;

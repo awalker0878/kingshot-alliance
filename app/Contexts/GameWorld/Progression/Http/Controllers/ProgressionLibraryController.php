@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Contexts\GameWorld\Progression\Http\Controllers;
 
 use App\Contexts\GameWorld\Players\Services\PlayerContext;
+use App\Contexts\GameWorld\Progression\Exceptions\NoProgressionDatasetPublished;
 use App\Contexts\GameWorld\Progression\Queries\ProgressionDatasetQuery;
 use App\Contexts\GameWorld\Progression\Queries\ProgressionFamilyQuery;
 use App\Shared\Infrastructure\Http\Controller;
@@ -21,7 +22,16 @@ final class ProgressionLibraryController extends Controller
         ProgressionFamilyQuery $families,
     ): Response {
         $context->player();
-        $dataset = $datasets->latest();
+        try {
+            $dataset = $datasets->latest();
+        } catch (NoProgressionDatasetPublished) {
+            $user = $request->user();
+
+            return Inertia::render('Kingdom/Progression/NoDataset', [
+                'user' => ['name' => (string) $user?->name, 'email' => (string) $user?->email],
+            ]);
+        }
+
         $query = mb_strtolower(trim((string) $request->query('q', '')));
         $generation = $request->integer('generation');
         $troopClass = trim((string) $request->query('troop_class', ''));
@@ -65,6 +75,7 @@ final class ProgressionLibraryController extends Controller
                 'schemaVersion' => $dataset->schemaVersion,
                 'observed_at' => $dataset->observedAt,
                 'checksum' => $dataset->checksum,
+                'release_status' => $dataset->releaseStatus()->value,
                 'review_status' => $dataset->release['review_status'] ?? 'unknown',
             ],
             'filters' => [

@@ -36,6 +36,11 @@ type ReviewCharmRow = {
   level: string;
 };
 
+type ReviewStructuredStateRow = {
+  subject_id: string;
+  level: string;
+};
+
 type ReviewPayloadValue =
   | string
   | number
@@ -64,6 +69,7 @@ type ReviewDraft = {
   widget_level: string;
   gear: ReviewGearRow[];
   charms: ReviewCharmRow[];
+  states: ReviewStructuredStateRow[];
 };
 
 const props = defineProps<{
@@ -96,6 +102,9 @@ const classLabels = computed<Record<string, string>>(() => ({
   governor_hero_gear: t('progression.heroGearScreenshot'),
   governor_gear: t('progression.governorGearScreenshot'),
   governor_charms: t('progression.governorCharmsScreenshot'),
+  governor_buildings: t('progression.governorBuildingsScreenshot'),
+  governor_academy_research: t('progression.governorAcademyResearchScreenshot'),
+  governor_war_academy_research: t('progression.governorWarAcademyResearchScreenshot'),
 }));
 
 const factLabels = computed<Record<string, string>>(() => ({
@@ -120,6 +129,11 @@ const factLabels = computed<Record<string, string>>(() => ({
   charm_slot: t('progression.charmSlot'),
   charm_name: t('progression.observedCharmName'),
   charm_level: t('progression.level'),
+  building_name: t('progression.buildingName'),
+  building_level: t('progression.level'),
+  technology_name: t('progression.technologyName'),
+  research_level: t('progression.level'),
+  state_id: t('progression.factualState'),
   complete_roster_capture: t('progression.completeRosterCapture'),
 }));
 
@@ -146,6 +160,7 @@ function emptyDraft(kind: string): ReviewDraft {
     widget_level: '',
     gear: [],
     charms: [],
+    states: [],
   };
 }
 
@@ -293,6 +308,20 @@ function startReview(item: GovernorProgressionEvidenceSummary): void {
       slot_id: value(item, 'charm_slot', ordinal),
       level: value(item, 'charm_level', ordinal),
     }));
+  } else if (
+    item.detectedKind === 'governor_buildings' ||
+    item.detectedKind === 'governor_academy_research' ||
+    item.detectedKind === 'governor_war_academy_research'
+  ) {
+    const subjectField = item.detectedKind === 'governor_buildings' ? 'building_name' : 'technology_name';
+    const levelField = item.detectedKind === 'governor_buildings' ? 'building_level' : 'research_level';
+    draft.states = ordinals(item, subjectField).map((ordinal) => ({
+      subject_id: value(item, subjectField, ordinal),
+      level: value(item, levelField, ordinal),
+    }));
+    if (draft.states.length === 0) {
+      draft.states.push({ subject_id: '', level: '' });
+    }
   }
 
   reviewDraft.value = draft;
@@ -389,6 +418,21 @@ function reviewPayload(): ReviewPayload {
         if (star !== undefined) row.star = star;
         return row;
       }),
+    };
+  }
+
+  if (
+    draft.kind === 'governor_buildings' ||
+    draft.kind === 'governor_academy_research' ||
+    draft.kind === 'governor_war_academy_research'
+  ) {
+    return {
+      states: draft.states
+        .filter((state) => state.subject_id.trim() !== '' && state.level.trim() !== '')
+        .map((state) => ({
+          subject_id: state.subject_id.trim(),
+          level: optionalNumber(state.level),
+        })),
     };
   }
 
@@ -505,6 +549,16 @@ function addGearRow(): void {
 
 function addCharmRow(): void {
   reviewDraft.value.charms.push({ slot_id: '', level: '' });
+}
+
+function addStructuredStateRow(): void {
+  reviewDraft.value.states.push({ subject_id: '', level: '' });
+}
+
+function structuredSubjectLabel(): string {
+  return reviewDraft.value.kind === 'governor_buildings'
+    ? t('progression.buildingName')
+    : t('progression.technologyName');
 }
 
 function confidenceLabel(confidence: number): string {
@@ -736,6 +790,41 @@ function evidenceStatus(item: GovernorProgressionEvidenceSummary): string {
                 class="rounded border border-[var(--ks-border)] p-3 text-xs"
               >
                 <p class="font-semibold">{{ slot }}</p>
+                <p class="mt-1 text-[var(--ks-muted)]">
+                  <span v-for="(fact, key) in facts" :key="key" class="me-2">
+                    {{ labelForFact(String(key)) }}: {{ factValue(fact) }}
+                  </span>
+                </p>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <div
+          v-if="
+            Object.keys(progressionState.current.buildings).length ||
+            Object.keys(progressionState.current.academyResearch).length ||
+            Object.keys(progressionState.current.warAcademyResearch).length
+          "
+          class="grid gap-4 lg:grid-cols-3"
+        >
+          <article
+            v-for="group in [
+              { label: t('progression.governorBuildingsScreenshot'), facts: progressionState.current.buildings },
+              { label: t('progression.governorAcademyResearchScreenshot'), facts: progressionState.current.academyResearch },
+              { label: t('progression.governorWarAcademyResearchScreenshot'), facts: progressionState.current.warAcademyResearch },
+            ]"
+            :key="group.label"
+            class="rounded border border-[var(--ks-border)] p-4"
+          >
+            <h3 class="font-semibold">{{ group.label }}</h3>
+            <div class="mt-3 space-y-2">
+              <div
+                v-for="(facts, subject) in group.facts"
+                :key="String(subject)"
+                class="rounded border border-[var(--ks-border)] p-3 text-xs"
+              >
+                <p class="font-semibold">{{ subject }}</p>
                 <p class="mt-1 text-[var(--ks-muted)]">
                   <span v-for="(fact, key) in facts" :key="key" class="me-2">
                     {{ labelForFact(String(key)) }}: {{ factValue(fact) }}
@@ -1221,6 +1310,54 @@ function evidenceStatus(item: GovernorProgressionEvidenceSummary): string {
                   @click="addGearRow"
                 >
                   + {{ t('progression.addGearSlot') }}
+                </button>
+              </fieldset>
+
+              <fieldset
+                v-else-if="
+                  reviewDraft.kind === 'governor_buildings' ||
+                  reviewDraft.kind === 'governor_academy_research' ||
+                  reviewDraft.kind === 'governor_war_academy_research'
+                "
+                class="space-y-3"
+              >
+                <legend class="font-semibold">{{ labelForClass(reviewDraft.kind) }}</legend>
+                <div
+                  v-for="(state, index) in reviewDraft.states"
+                  :key="index"
+                  class="grid gap-3 rounded border border-[var(--ks-border)] p-3 sm:grid-cols-[minmax(0,1fr)_8rem_auto] sm:items-end"
+                >
+                  <label class="text-xs text-[var(--ks-muted)]">
+                    <span>{{ structuredSubjectLabel() }}</span>
+                    <input
+                      v-model="state.subject_id"
+                      required
+                      class="mt-1 min-h-11 w-full rounded border border-[var(--ks-border)] bg-black/20 px-3 text-sm"
+                    />
+                  </label>
+                  <label class="text-xs text-[var(--ks-muted)]">
+                    <span>{{ t('progression.level') }}</span>
+                    <input
+                      v-model="state.level"
+                      required
+                      inputmode="numeric"
+                      class="mt-1 min-h-11 w-full rounded border border-[var(--ks-border)] bg-black/20 px-3 text-sm"
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    class="min-h-11 rounded border border-[var(--ks-border)] px-3 text-sm"
+                    @click="reviewDraft.states.splice(index, 1)"
+                  >
+                    {{ t('progression.removeRow') }}
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  class="min-h-11 rounded border border-[var(--ks-border)] px-3 text-sm"
+                  @click="addStructuredStateRow"
+                >
+                  {{ t('progression.addProgressionState') }}
                 </button>
               </fieldset>
 

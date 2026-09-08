@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\Progression\ValueObjects;
 
+use App\Contexts\GameWorld\Progression\Enums\ProgressionReleaseStatus;
+
 final readonly class ProgressionDataset
 {
     /**
@@ -26,6 +28,16 @@ final readonly class ProgressionDataset
         public array $catalogues = [],
     ) {}
 
+    public function releaseStatus(): ProgressionReleaseStatus
+    {
+        return ProgressionReleaseStatus::fromRelease($this->release);
+    }
+
+    public function isPublished(): bool
+    {
+        return $this->releaseStatus() === ProgressionReleaseStatus::Published;
+    }
+
     /** @return list<array<string,mixed>> */
     public function sources(): array
     {
@@ -40,6 +52,20 @@ final readonly class ProgressionDataset
         $items = $this->release['family_dispositions'] ?? [];
 
         return is_array($items) ? array_values(array_filter($items, 'is_array')) : [];
+    }
+
+    /** @return list<array<string,mixed>> */
+    public function coverageAssertions(): array
+    {
+        $items = $this->release['coverage_assertions'] ?? null;
+        if (is_array($items)) {
+            return array_values(array_filter($items, 'is_array'));
+        }
+
+        // The existing immutable corpus already records discovered/canonical/fact
+        // counts in family_dispositions. Treat those rows as the release-owned
+        // assertions until a later release emits coverage_assertions explicitly.
+        return $this->dispositions();
     }
 
     /** @return list<array<string,mixed>> */

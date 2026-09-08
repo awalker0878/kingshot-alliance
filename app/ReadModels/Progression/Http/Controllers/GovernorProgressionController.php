@@ -60,7 +60,7 @@ final class GovernorProgressionController extends Controller
 
         $progressionObservationState = $entry !== null && $canViewObservations
             ? $progressionObservations->forRosterEntry((string) $allianceId, $entry->rosterEntryId)
-            : ['history' => [], 'current' => ['profile' => [], 'heroes' => [], 'governorGear' => [], 'charms' => [], 'completeRosterCapture' => null], 'last_updated_at' => null];
+            : ['history' => [], 'current' => ['profile' => [], 'heroes' => [], 'governorGear' => [], 'charms' => [], 'buildings' => [], 'academyResearch' => [], 'warAcademyResearch' => [], 'completeRosterCapture' => null], 'last_updated_at' => null];
         $evidenceWorkspace = $entry !== null && $canManageObservations
             ? [
                 'schemas' => array_map(static function (EvidenceKind $kind) use ($evidenceSchemas): array {

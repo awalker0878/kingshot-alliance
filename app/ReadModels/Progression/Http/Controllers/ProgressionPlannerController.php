@@ -58,7 +58,7 @@ final class ProgressionPlannerController extends Controller
             ? $observations->forRosterEntry((string) $allianceId, $entry->rosterEntryId)
             : [
                 'history' => [],
-                'current' => ['profile' => [], 'heroes' => [], 'governorGear' => [], 'charms' => [], 'completeRosterCapture' => null],
+                'current' => ['profile' => [], 'heroes' => [], 'governorGear' => [], 'charms' => [], 'buildings' => [], 'academyResearch' => [], 'warAcademyResearch' => [], 'completeRosterCapture' => null],
                 'last_updated_at' => null,
             ];
 

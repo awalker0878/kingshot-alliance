@@ -16,6 +16,7 @@ final class ProgressionPlannerQuery
         private readonly ProgressionTopologyQuery $topology,
         private readonly CalculatorEligibilityQuery $eligibility,
         private readonly ProgressionCalculator $calculator,
+        private readonly ProgressionPrerequisiteEvaluator $prerequisiteEvaluator,
     ) {}
 
     /**
@@ -70,12 +71,14 @@ final class ProgressionPlannerQuery
             )
             : null;
 
-        $prerequisites = [];
-        foreach (is_array($target['prerequisites'] ?? null) ? $target['prerequisites'] : [] as $requirement) {
-            if (is_string($requirement) && trim($requirement) !== '') {
-                $prerequisites[] = ['label' => $requirement, 'status' => 'unknown'];
-            }
-        }
+        $prerequisites = $this->prerequisiteEvaluator->evaluate(
+            $dataset,
+            $observationState,
+            array_values(array_filter(
+                is_array($target['prerequisites'] ?? null) ? $target['prerequisites'] : [],
+                'is_string',
+            )),
+        );
 
         $calculatorFamily = is_string($selectedFamily['calculatorFamily'] ?? null)
             ? $selectedFamily['calculatorFamily']
@@ -289,11 +292,12 @@ final class ProgressionPlannerQuery
             if (is_numeric($level)) {
                 $stateId = 'level:'.(int) $level;
             }
-        } elseif ($family === 'hero_level') {
+        } elseif (in_array($family, ['hero_level', 'hero_widget'], true)) {
             $hero = is_array($current['heroes'][$subject['id']] ?? null) ? $current['heroes'][$subject['id']] : [];
             $heroFacts = is_array($hero['facts'] ?? null) ? $hero['facts'] : [];
             $facts = $heroFacts;
-            $level = $this->factValue($heroFacts['level'] ?? null);
+            $factKey = $family === 'hero_widget' ? 'widget_level' : 'level';
+            $level = $this->factValue($heroFacts[$factKey] ?? null);
             if (is_numeric($level)) {
                 $stateId = 'level:'.(int) $level;
             }
@@ -309,6 +313,22 @@ final class ProgressionPlannerQuery
             $value = $this->factValue($slot[$family === 'hero_mastery' ? 'mastery_level' : 'level'] ?? null);
             if (is_numeric($value)) {
                 $stateId = 'level:'.(int) $value;
+            }
+        } elseif (in_array($family, ['buildings', 'academy_research', 'war_academy_research'], true)) {
+            $projection = match ($family) {
+                'buildings' => 'buildings',
+                'academy_research' => 'academyResearch',
+                'war_academy_research' => 'warAcademyResearch',
+            };
+            $facts = is_array($current[$projection][$subject['id']] ?? null)
+                ? $current[$projection][$subject['id']]
+                : [];
+            $observedStateId = $this->factValue($facts['state_id'] ?? null);
+            $observedLevel = $this->factValue($facts['level'] ?? null);
+            if (is_string($observedStateId) && $observedStateId !== '') {
+                $stateId = $observedStateId;
+            } elseif (is_numeric($observedLevel)) {
+                $stateId = 'level:'.(int) $observedLevel;
             }
         }
 
