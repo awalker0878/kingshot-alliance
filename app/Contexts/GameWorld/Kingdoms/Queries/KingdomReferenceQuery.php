@@ -43,9 +43,30 @@ final class KingdomReferenceQuery
         return $reference;
     }
 
+    /** Historical/current-state lock that does not filter lifecycle status. */
     public function lockCurrent(string $kingdomId): KingdomReference
     {
         return $this->snapshot(Kingdom::query()->whereKey($kingdomId)->lockForUpdate()->firstOrFail());
+    }
+
+    /** Exclusive active lock for authoritative Kingdom operations. */
+    public function lockActive(string $kingdomId): KingdomReference
+    {
+        return $this->snapshot(Kingdom::query()
+            ->whereKey($kingdomId)
+            ->where('status', KingdomStatus::Active->value)
+            ->lockForUpdate()
+            ->firstOrFail());
+    }
+
+    /** Shared active lock for operations that must not race Kingdom archival. */
+    public function lockActiveShared(string $kingdomId): KingdomReference
+    {
+        return $this->snapshot(Kingdom::query()
+            ->whereKey($kingdomId)
+            ->where('status', KingdomStatus::Active->value)
+            ->sharedLock()
+            ->firstOrFail());
     }
 
     public function findByNumber(int $number): ?KingdomReference
