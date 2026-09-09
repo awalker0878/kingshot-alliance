@@ -7,9 +7,12 @@ namespace App\Contexts\GameWorld\KingdomTransfers\Actions;
 use App\Contexts\Alliance\Membership\Queries\PlayerMembershipQuery;
 use App\Contexts\Alliance\Membership\Queries\RosterEntryQuery;
 use App\Contexts\GameWorld\Governance\Queries\KingdomAuthorityFactsQuery;
+use App\Contexts\GameWorld\Kingdoms\Queries\KingdomReferenceQuery;
 use App\Contexts\GameWorld\Players\Actions\PersistPlayerIdentity;
 use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 final readonly class ResolveTransferPlayer
@@ -19,40 +22,50 @@ final readonly class ResolveTransferPlayer
         private PlayerMembershipQuery $memberships,
         private RosterEntryQuery $roster,
         private KingdomAuthorityFactsQuery $governance,
+        private KingdomReferenceQuery $kingdoms,
     ) {}
 
     public function handle(string $sourceKingdomId, string $name, ?string $gamePlayerId, ?string $currentPlayerId = null): PlayerReference
     {
         $stableId = $gamePlayerId === null ? null : trim($gamePlayerId);
         $stableId = $stableId === '' ? null : $stableId;
-        $current = $currentPlayerId === null ? null : Player::query()->lockForUpdate()->findOrFail($currentPlayerId);
-
-        $player = null;
-        if ($stableId !== null) {
-            $player = Player::query()->where('game_player_id', $stableId)->lockForUpdate()->first();
-            if ($current instanceof Player && $player instanceof Player && $player->id !== $current->id) {
-                throw ValidationException::withMessages(['game_player_id' => 'That game Player ID belongs to a different Player. Withdraw and recreate the participant to change identity.']);
+        return DB::transaction(function () use ($sourceKingdomId, $name, $stableId, $currentPlayerId): PlayerReference {
+            try {
+                $this->kingdoms->lockActiveShared($sourceKingdomId);
+            } catch (ModelNotFoundException) {
+                throw ValidationException::withMessages(['source_kingdom' => 'The selected source Kingdom is archived or unavailable.']);
             }
-            if ($current instanceof Player && ! $player instanceof Player) {
+            $current = $currentPlayerId === null ? null : Player::query()
+                ->whereKey($currentPlayerId)
+                ->whereNull('canonical_player_id')
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            $player = $current;
+            if ($stableId !== null && $current instanceof Player) {
                 if ($current->game_player_id !== null && $current->game_player_id !== $stableId) {
                     throw ValidationException::withMessages(['game_player_id' => 'Withdraw and recreate the participant to change the Player identity.']);
                 }
-                $player = $current;
+                // A conflicting identity is only a rejection witness. Locking
+                // it after the current Player creates opposing edit cycles.
+                if (Player::query()->where('game_player_id', $stableId)->whereNull('canonical_player_id')->where('id', '<>', $current->id)->exists()) {
+                    throw ValidationException::withMessages(['game_player_id' => 'That game Player ID belongs to a different Player. Withdraw and recreate the participant to change identity.']);
+                }
+            } elseif ($stableId !== null) {
+                $player = Player::query()->where('game_player_id', $stableId)->whereNull('canonical_player_id')->lockForUpdate()->first();
             }
-        } elseif ($current instanceof Player) {
-            $player = $current;
-        }
 
-        if ($player instanceof Player) {
-            $this->assertKingdomCanBeObserved((string) $player->id, (string) $player->current_kingdom_id, $sourceKingdomId);
-        }
+            if ($player instanceof Player) {
+                $this->assertKingdomCanBeObserved((string) $player->id, (string) $player->current_kingdom_id, $sourceKingdomId);
+            }
 
-        return $this->playerIdentity->handle(
-            $sourceKingdomId,
-            trim($name),
-            $stableId,
-            $player instanceof Player ? (string) $player->id : null,
-        );
+            return $this->playerIdentity->handle(
+                $sourceKingdomId,
+                trim($name),
+                $stableId,
+                $player instanceof Player ? (string) $player->id : null,
+            );
+        });
     }
 
     private function assertKingdomCanBeObserved(string $playerId, string $currentKingdomId, string $sourceKingdomId): void

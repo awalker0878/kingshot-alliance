@@ -24,14 +24,12 @@ final class AccountIdentityQuery
 
     public function lockCurrent(int $userId): AccountIdentity
     {
-        // Lifecycle writers remain mutually exclusive while audit foreign keys
-        // can reference the stable account ID without reversing owner lock order.
-        return $this->snapshot(User::query()->whereKey($userId)->lock('for no key update')->firstOrFail());
+        return $this->snapshot(User::query()->whereKey($userId)->lockForUpdate()->firstOrFail());
     }
 
     public function lockActive(int $userId): AccountIdentity
     {
-        $user = User::query()->whereKey($userId)->lock('for no key update')->firstOrFail();
+        $user = User::query()->whereKey($userId)->lockForUpdate()->firstOrFail();
         $user->ensureActive();
 
         return $this->snapshot($user);

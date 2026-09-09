@@ -39,7 +39,7 @@ final class AccountAuditReferenceLockV3Test extends TestCase
     }
 
     #[DataProvider('cleanupOrders')]
-    public function test_current_actor_audit_references_do_not_reverse_account_cleanup_order(bool $accountFirst, bool $failCleanup): void
+    public function test_player_actor_audits_and_account_cleanup_preserve_current_authority(bool $accountFirst, bool $failCleanup): void
     {
         $factory = app(ScenarioFactory::class);
         $owner = $factory->player($factory->account()->userId, 59276);
@@ -66,7 +66,7 @@ final class AccountAuditReferenceLockV3Test extends TestCase
                 throw new RuntimeException('Injected account cleanup audit failure.');
             }
             $barrier = $accountFirst
-                ? str_starts_with($query->sql, 'select * from "users"') && str_contains($query->sql, 'for no key update') && in_array((string) $account->userId, array_map('strval', $query->bindings), true)
+                ? str_starts_with($query->sql, 'select * from "users"') && str_contains($query->sql, 'for update') && in_array((string) $account->userId, array_map('strval', $query->bindings), true)
                 : str_starts_with($query->sql, 'select * from "alliance_memberships"') && str_contains($query->sql, 'for update');
             if ($attempted || $query->connectionName !== $primary || ! $barrier) {
                 return;
@@ -75,8 +75,8 @@ final class AccountAuditReferenceLockV3Test extends TestCase
             DB::setDefaultConnection('account_reference_writer');
             try {
                 if ($accountFirst) {
-                    // The real audit insert takes a User KEY SHARE foreign-key
-                    // lock while cleanup retains its account lifecycle barrier.
+                    // Alliance audits reference the Player actor, so the write can
+                    // finish before cleanup takes its Alliance scope.
                     $write();
                     $afterWrite = $this->state();
                 } else {
@@ -106,7 +106,7 @@ final class AccountAuditReferenceLockV3Test extends TestCase
             self::assertTrue($attempted);
             self::assertSame($failCleanup, $failed);
             self::assertSame('Committed officer observation', AllianceRosterEntry::query()->findOrFail($entry->rosterEntryId)->observed_name);
-            self::assertSame(1, DB::table('audit_events')->where('event', 'membership.roster_entry_updated')->where('actor_user_id', $account->userId)->count());
+            self::assertSame(1, DB::table('audit_events')->where('event', 'membership.roster_entry_updated')->where('actor_player_id', $manager->playerId)->whereNull('actor_user_id')->count());
             if ($failCleanup) {
                 self::assertSame($afterWrite, $this->state());
                 self::assertSame(MembershipStatus::Active, $membership->fresh()?->status);
@@ -138,7 +138,7 @@ final class AccountAuditReferenceLockV3Test extends TestCase
     }
 
     #[DataProvider('barriers')]
-    public function test_reference_compatible_barriers_still_exclude_account_and_ownership_writers(bool $active): void
+    public function test_account_barriers_exclude_account_and_ownership_writers(bool $active): void
     {
         $factory = app(ScenarioFactory::class);
         $account = $factory->account();

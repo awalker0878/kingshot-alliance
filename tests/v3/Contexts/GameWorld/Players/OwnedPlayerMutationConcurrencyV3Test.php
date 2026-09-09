@@ -74,7 +74,7 @@ final class OwnedPlayerMutationConcurrencyV3Test extends TestCase
         $attempted = false;
         DB::listen(static function (QueryExecuted $query) use ($primary, $account, $mutationFirst, $mutate, $revoke, &$attempted): void {
             if ($attempted || $query->connectionName !== $primary || ! str_starts_with($query->sql, 'select * from "users"')
-                || preg_match('/for (?:no key )?update/', $query->sql) !== 1 || ! in_array((string) $account->userId, array_map('strval', $query->bindings), true)) {
+                || ! str_contains($query->sql, 'for update') || ! in_array((string) $account->userId, array_map('strval', $query->bindings), true)) {
                 return;
             }
             $attempted = true;

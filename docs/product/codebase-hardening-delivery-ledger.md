@@ -5,16 +5,16 @@
 - Program state: In progress.
 - Exact main baseline: `7e780521295e868005ecfee5bd38b33e8215ec49`.
 - Working branch: `astra/codebase-hardening`.
-- Latest pushed durable checkpoint: `2f7042d5b635171a08a610016425dced1657fa01`.
+- Latest pushed durable checkpoint: `ee943b7f7202a3ec9600499167e63d1ae7a18c1d`.
 - Draft PR: [#163](https://github.com/awalker0878/kingshot-alliance/pull/163).
-- Current item/state: HARD-072/073 / In progress; account audit-reference compatibility and transfer Kingdom/Player ordering are implemented with twenty-one additional PostgreSQL cases. HARD-066/068/069/070 are complete. HARD-071 is in containing verification.
+- Current item/state: HARD-074/076/077 / In progress; planning identity ordering, stable-ID conflict recovery and current account registration preconditions are implemented with twenty-six new PostgreSQL cases. HARD-071/072/073/075 remain in containing verification.
 - Most recently verified gates: all nine PR workflows pass on `802f1a6b91b597e9e34af4d77482ce75f5781ba1`, including 1,205 PHP tests / 80,125 assertions in parallel PHP and both complete serial suites, fresh PostgreSQL, frontend, image/staging/recovery, architecture/capabilities, all 50 visual cases and security.
-- Active files: AccountIdentityQuery and lifecycle regression hooks, transfer authority/completion and roster handoff owners, twenty-one new concurrency/rollback cases, ADR-0032/0033 and current owner contracts.
-- Current CI result: All nine workflows pass on 802f1a6b. Current 2f7042d5 passes full Pint/PHPStan, fresh schema and all 1,218 parallel PHP tests / 80,223 assertions. Its job reaches the 20-minute limit just as the test result is emitted (job 102336847932), so the container gate is skipped. Frontend, all 50 visual cases and five security/capability workflows pass; complete serial suites are running. HARD-075 increases the measured parallel job budget to 30 minutes. New HARD-072/073 code has not executed yet.
-- Remaining current work: Verify HARD-071, publish/verify HARD-072/073, repair the separately discovered transfer planning identity adapter ordering under HARD-074, then continue the remaining capability-by-capability repository audit.
-- Known failures: Parallel PHP 2f7042d5 passes all tests but its enclosing job times out at 20 minutes and skips the container dependency. HARD-075 sets a 30-minute budget without removing checks. Both complete serial suites passed on 802f1a6b under their measured 45-minute budgets. Twenty-one new account/transfer cases have not executed.
+- Active files: ResolveTransferPlayer, PersistPlayerIdentity and CreatePlayerForAccount, twenty-six new planning/stable identity/registration cases, ADR-0034, owner contracts and delivery ledger.
+- Current CI result: All nine workflows pass on 802f1a6b. On 2f7042d5, parallel PHP and both full serial suites pass 1,218 tests / 80,223 assertions, but the parallel job expires at its former 20-minute budget and skips deployment. On ee943b7f, Pint/PHPStan/fresh schema pass and parallel PHP runs 1,239 tests / 80,325 assertions in 19:48 with four failures, all from incorrect User attribution assertions in HARD-073. All fifteen HARD-072 cases pass. The restored account lock and corrected assertions, plus twenty-six planning/identity cases, await execution.
+- Remaining current work: Verify the restored account barrier, corrected actor tests and planning/stable identity/registration; continue Membership/Recruitment and the remaining capability-by-capability repository audit.
+- Known failures: Four HARD-073 tests on ee943b7f incorrectly expect User-based Alliance audit attribution. The hypothesis is withdrawn and tests corrected to the actual Player actor contract; containing CI must rerun. The previous parallel timeout is addressed by HARD-075 without removing checks.
 - Blockers: local PHP/Composer/PostgreSQL are unavailable. Ordinary apt setup was denied by workspace setgroups/setuid permissions and was stopped without changing those restrictions. Use the authorized GitHub job-log reader and existing PostgreSQL-backed CI for executable verification. Local git write transport lacks credentials; publish atomic trees/commits through the configured GitHub connector, checking exact tree equality and non-forced branch updates. The checkout tracks the latest remote checkpoint; older equivalent local commits remain preserved on scratch/local-checkpoints-9e16952f.
-- Exact next action: Finish current issuance gate inspection, publish account-reference and completion ordering, then audit and repair ResolveTransferPlayer planning identity before continuing remaining Membership/Recruitment operations.
+- Exact next action: Publish the account correction with the coherent planning/identity slice, inspect containing gates, then finish Membership and Recruitment owner review.
 - Remaining repository-wide gates: final full PHP/architecture/capability and frontend gates on one containing commit; production image/staging/recovery; final security/dependency/visual checks; remaining capability-by-capability audit coverage below.
 
 Checkpoint SHAs are recorded by the following documentation commit; verify that the recorded checkpoint is an ancestor of current branch HEAD. No audit area is complete solely because its paths have been inventoried.
@@ -1022,7 +1022,7 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Remediation: Stabilize current target identity in the agreed scope order, use nonlocking foreign membership facts and audit bounded supersession/capacity behavior through all issuance callers.
 - State: In progress.
 - Verification required: Opposing Alliance invitations do not wait on foreign membership rows; stale canonical/placement/ownership facts, current capacity, supersession and late event rollback.
-- Verification result: Initial issuance and resend share InvitationEligibility under their exclusive Alliance scope. It locks current canonical Player identity shared, validates roster/Kingdom and recipient ownership, and observes active membership without foreign locks. Recruitment conversion reuses the issuer. Thirteen PostgreSQL cases cover opposing Alliance attempts, both ownership commit orders, reconciled identities, live versus expired capacity reservations, supersession/token validity and late delivery rollback. Initial issuance supersedes matching pending records under its exclusive scope; expired status is only a read projection and production renewal preserves the existing pending record. On 2f7042d5 all 1,218 parallel PHP tests / 80,223 assertions pass, including all thirteen cases; full Pint/PHPStan/fresh schema pass. The enclosing job times out as results finish, tracked under HARD-075. Complete serial and containing deployment gates remain pending.
+- Verification result: Initial issuance and resend share InvitationEligibility under their exclusive Alliance scope. It locks current canonical Player identity shared, validates roster/Kingdom and recipient ownership, and observes active membership without foreign locks. Recruitment conversion reuses the issuer. Thirteen PostgreSQL cases cover opposing Alliance attempts, both ownership commit orders, reconciled identities, live versus expired capacity reservations, supersession/token validity and late delivery rollback. Initial issuance supersedes matching pending records under its exclusive scope; expired status is only a read projection and production renewal preserves the existing pending record. On 2f7042d5 all 1,218 parallel PHP tests / 80,223 assertions pass, including all thirteen cases; full Pint/PHPStan/fresh schema pass. Both complete serial suites also pass 1,218 tests / 80,223 assertions (Architecture job 102336847964, Intelligence job 102336847760; runtimes 35:39 and 36:00). The parallel enclosing job times out as results finish, tracked under HARD-075, so the containing deployment gate remains pending.
 - Completion evidence: pending.
 - Commit SHA: pending.
 
@@ -1036,22 +1036,22 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Remediation: Discover and revalidate outgoing routing, acquire current home/destination Kingdom scope in stable order before target Player locks without an unnecessary actor identity lock, and make the roster activation owner stabilize current identity. Trace every TransferWriteState consumer before changing its contract.
 - State: In progress.
 - Verification required: Incoming/outgoing/staying completion, destination archival and identity mutation in both commit orders, changed routing, independent scopes, retries and complete handoff/history/event rollback.
-- Verification result: Completion now locks home/outgoing destination Kingdoms shared in stable ID order before canonical target Player, then revalidates current participant routing. TransferWriteState retains exclusive Alliance/current membership authority while removing the unnecessary actor Player lock; its consumers were traced for actor identity writes. Both roster handoff owners acquire current Player before roster. Fifteen PostgreSQL cases cover all directions and archival orders, independent Alliances, opposing officer targets, changed routing, archived-destination completed retry, direct roster admission versus movement and full late rollback. ADR-0033 accepted; executable verification pending.
+- Verification result: Completion now locks home/outgoing destination Kingdoms shared in stable ID order before canonical target Player, then revalidates current participant routing. TransferWriteState retains exclusive Alliance/current membership authority while removing the unnecessary actor Player lock; its consumers were traced for actor identity writes. Both roster handoff owners acquire current Player before roster. Fifteen PostgreSQL cases cover all directions and archival orders, independent Alliances, opposing officer targets, changed routing, archived-destination completed retry, direct roster admission versus movement and full late rollback. ADR-0033 accepted; all fifteen cases pass in the ee943b7f parallel suite. Its unrelated four account attribution test failures prevent containing verification.
 - Completion evidence: pending.
 - Commit SHA: pending.
 
-### HARD-073 — Account lifecycle locks block audit foreign-key references in reverse order
+### HARD-073 — Withdraw unsupported account audit-reference lock change
 
-- Area: AccountIdentityQuery lifecycle barriers, GameWorld ownership writes, account deletion and audited Alliance operations.
-- Finding: Account owner queries acquire User FOR UPDATE before Player or Alliance cleanup. Alliance writers hold their own scope/Player rows before inserting audit events whose actor_user_id foreign key requires User KEY SHARE. A current R4 writer and same-account deletion/ownership operation can therefore wait on each other's User and Alliance/Player resources even though audit only references the immutable User ID.
-- Current owner: Accounts owner reference locks and PostgreSQL audit foreign-key enforcement.
-- Intended authoritative owner: Exclusive account lifecycle serialization that permits immutable foreign-key references, with actual account-key changes retained inside their owning transactions.
-- Rationale: Stable actor references must not reverse lifecycle lock order; the account barrier must still exclude competing ownership and finalization changes.
-- Remediation: Evaluate FOR NO KEY UPDATE for AccountIdentityQuery's lifecycle barrier, preserve actual key-update/finalization locks after dependent cleanup, and prove current authority/exclusivity against both actor writes and deletion. Do not remove the audit foreign key or relax account lifecycle serialization.
+- Area: AccountIdentityQuery lifecycle barriers, account deletion and audited Alliance operations.
+- Finding: The proposed User foreign-key wait cycle was disproved. AllianceWriteState uses PlayerReference: auditUserId is null and auditPlayerId identifies the Player. The added tests incorrectly asserted account-based attribution and did not establish the claimed User lock dependency.
+- Current owner: Accounts lifecycle barriers and Player-based Alliance audit attribution.
+- Intended authoritative owner: Existing exclusive account lifecycle serialization and explicit domain actor references.
+- Rationale: Preserve the actual owner contract and remove a lock change unsupported by the executed path.
+- Remediation: Restore AccountIdentityQuery FOR UPDATE and the original existing test hooks; withdraw ADR-0032; correct the six new regression cases to assert Player attribution, actual cleanup ordering, rollback and account/ownership exclusivity.
 - State: In progress.
-- Verification required: Audited Alliance writes complete under a competing account-reference barrier; both cleanup/writer orders, exclusive account/ownership contenders, complete audit/cleanup rollback and existing account terminal-state/concurrency suites.
-- Verification result: AccountIdentityQuery lifecycle barriers now use FOR NO KEY UPDATE; AnonymizeAccount retains FOR UPDATE after dependent cleanup. Six PostgreSQL cases cover both cleanup/writer orders, success and late rollback, actor audit attribution, terminal authority and exclusive claim/profile competitors. Existing account ownership concurrency hooks retain their blocking assertions with both exclusive lock spellings. ADR-0032 accepted; executable verification pending.
-- Completion evidence: pending.
+- Verification required: Both cleanup/writer orders, complete rollback and terminal authority, exclusive account/ownership contenders and the containing suite under the restored account lock.
+- Verification result: On ee943b7f, parallel PHP executed 1,239 tests / 80,325 assertions with four failures, all at the incorrect actor_user_id assertion in AccountAuditReferenceLockV3Test line 109. The two exclusivity cases and all fifteen HARD-072 cases passed. The four cleanup cases reached the intended interleaving, but assertions after the bad attribution assertion did not execute. The production change is reverted and all six corrected cases await execution; this item is not a confirmed production deadlock fix.
+- Completion evidence: pending corrected regression execution and containing gates.
 - Commit SHA: pending.
 
 ### HARD-074 — Transfer planning identity resolution locks Player before source Kingdom
@@ -1062,9 +1062,9 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: Explicit planning identity validation under a source Kingdom barrier with deterministic current canonical Player routing and preserved owner history.
 - Rationale: Planning observation must preserve identity and current lifecycle without acquiring locks in an order opposite the underlying owner.
 - Remediation: Stabilize active source Kingdom before Player, avoid locking an unrelated conflicting identity merely to reject it, revalidate current canonical identity and preserve transactional planning/history/audit behavior.
-- State: Planned.
+- State: In progress.
 - Verification required: Both source archival/identity commit orders, conflicting identity edits in both directions, reconciled aliases, current placement/roster/membership guards and complete late planning rollback.
-- Verification result: ResolveTransferPlayer, SaveTransferParticipant, ResolveKingdom and PlayerLifecyclePolicy traced; implementation pending.
+- Verification result: ResolveTransferPlayer now owns a transaction, locks active source Kingdom before canonical Player, rejects stable-ID replacement without foreign identity locks and retains placement guards before delegating owner history. Eleven new PostgreSQL cases cover new/edit planning against both archival orders, opposing edits, movement orders, reconciled aliases and complete late planning rollback. ADR-0034 accepted; executable verification pending.
 - Completion evidence: pending.
 - Commit SHA: pending.
 
@@ -1079,6 +1079,104 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - State: In progress.
 - Verification required: Full PHP job completes successfully and its container/staging/recovery dependency executes and passes on a containing checkpoint.
 - Verification result: Job 102336847932 records the complete passing test summary at 04:43:39 UTC and cancellation immediately afterward; its services started at 04:23. The earlier 802f1a6b suite took 16:35 before setup. The budget change is prepared; containing execution pending.
+- Completion evidence: pending.
+- Commit SHA: pending.
+
+### HARD-076 — Stable Player identity conflicts lock foreign rows and escape as database errors
+
+- Area: PersistPlayerIdentity current stable-ID edits, attachment and identity creation.
+- Finding: An expected-Player edit locks its current identity and then a different Player owning the submitted game ID before rejecting replacement. Opposing edits can wait on each other's identity. Concurrent absent stable-ID attachment/creation can also reach the unique index with no owner-level validation recovery.
+- Current owner: GameWorld Players identity persistence and the existing stable-ID unique constraint.
+- Intended authoritative owner: Current canonical identity mutation with nonlocking conflict witnesses and exact recoverable uniqueness validation.
+- Rationale: Rejecting a foreign identity requires no mutation lock on it; absent identity uniqueness must remain database-enforced without poisoning caller transactions or committing partial history.
+- Remediation: Validate immutable current stable IDs before foreign lookup, observe conflicts without foreign locks and translate only the actual stable-ID constraint after transaction rollback.
+- State: In progress.
+- Verification required: Opposing edits in both directions, simultaneous absent-ID attachment and creation in both orders, usable enclosing transactions, unrelated unique errors retained, safe retries and full history/audit rollback.
+- Verification result: Persistence validates the locked stable ID before nonlocking foreign conflict lookup. Exact players_game_player_id_unique failures become game-ID validation only after owner transaction/savepoint rollback; unrelated integrity errors propagate. Seven new PostgreSQL cases exercise opposing edits, both absent creation/attachment winners, usable caller transactions, retry behavior and real unrelated primary-key failures. ADR-0034 accepted; executable verification pending.
+- Completion evidence: pending.
+- Commit SHA: pending.
+
+### HARD-077 — Account Player creation can claim an identity that appeared after its precheck
+
+- Area: CreatePlayerForAccount composed with PersistPlayerIdentity and ClaimPlayerAccount.
+- Finding: Account creation checks existing game identity before the persistence owner's Kingdom lock. An unclaimed identity can appear after the absence check; the generic persistence call then reuses it and the claim silently assigns it to the caller, contrary to this Action's explicit claim/recovery rule. The early existing Player lock also reverses Kingdom/Player ordering.
+- Current owner: GameWorld Players account registration composition and identity persistence.
+- Intended authoritative owner: Current existing-owner precondition enforced on the identity actually locked by the persistence owner, after current account and Kingdom scope.
+- Rationale: A stale absence check cannot authorize adopting another durable identity; an ordinary repeated registration may reuse only an identity currently owned by the same account.
+- Remediation: Remove the early duplicate lookup and carry an explicit expected existing account-owner precondition into the single authoritative persistence transaction before identity changes. Keep claim/history atomic and preserve trusted unclaimed persistence behavior.
+- State: In progress.
+- Verification required: Concurrent unclaimed/foreign-owned identity arrival, creation collisions across accounts, same-owner reuse, source archival orders, current account finalization and complete late rollback.
+- Verification result: CreatePlayerForAccount removes its early duplicate lookup and passes the expected existing account owner to persistence. Persistence checks the actual locked identity before mutation, preserving current account/Kingdom/Player order and atomic claim/history/audit. Eight new PostgreSQL cases cover unclaimed/other-account arrival in both caller orders, current same-owner reuse versus both archival orders and new/existing late registration rollback. Existing terminal-account/ownership cases remain required. ADR-0034 accepted; executable verification pending.
+- Completion evidence: pending.
+- Commit SHA: pending.
+
+### HARD-078 — Membership and Recruitment bulk selections are bounded only by HTTP
+
+- Area: Membership status and Recruitment stage bulk preview, execution and aggregate receipts.
+- Finding: Both PreviewMembershipStatusBulkChange and PreviewRecruitmentStageBulkChange accept arbitrary or empty direct-owner selections and retain duplicates; their bulk execution actions record the original unnormalized IDs in audit. HTTP enforces 50 distinct selections but direct callers do not share that owner contract.
+- Current owner: Membership status and Recruitment stage bulk owner actions.
+- Intended authoritative owner: Bounded canonical selection shared by preview outcomes, execution and audit receipts.
+- Rationale: The owner must enforce the existing 50-item product limit and avoid duplicate work or oversized aggregate metadata independently of one adapter.
+- Remediation: Normalize concrete selections at preview, reject empty or more than 50 distinct IDs before scope queries, and derive execution/audit IDs from canonical preview results.
+- State: Planned.
+- Verification required: Direct preview/execution boundaries, duplicate normalization, 50-item acceptance, authority, real per-item transitions and canonical audit receipts.
+- Verification result: Production owner, caller and related lifecycle paths traced; implementation pending.
+- Completion evidence: pending.
+- Commit SHA: pending.
+
+### HARD-079 — Public Recruitment submission uses stale account and Kingdom facts
+
+- Area: SubmitRecruitmentApplication and its public HTTP adapter.
+- Finding: The controller checks active Kingdom before the owner transaction, while the owner only locks Alliance/settings. Direct submission can therefore admit an archived Kingdom. Optional applicant identity is read without active-account serialization, so finalized identity or a changing account email can be accepted from stale facts.
+- Current owner: Recruitment intake composed with Accounts and GameWorld owner references.
+- Intended authoritative owner: Current optional active account followed by Alliance and active Kingdom scope, then Recruitment intake policy.
+- Rationale: Account-backed applicant attribution and operating Kingdom must remain current through application creation, invitation consumption and delivery records.
+- Remediation: Acquire current optional active account before Alliance scope, hold the active Kingdom barrier in the owner, and compare current account email before candidate creation. Preserve anonymous public intake.
+- State: Planned.
+- Verification required: Both archival/email/finalization commit orders, anonymous intake, current invitation/settings policy, independent scopes and full candidate/answer/invitation/event rollback.
+- Verification result: Production owner, caller and related lifecycle paths traced; implementation pending.
+- Completion evidence: pending.
+- Commit SHA: pending.
+
+### HARD-080 — Anonymized Recruitment candidates remain mutable through owner actions
+
+- Area: Recruitment candidate stage, notes, tags, reviewer, communication, onboarding, merge and conversion paths.
+- Finding: The management listing, bulk preview and re-entry owner exclude anonymized candidates, but most direct mutation actions check only merged_into_id. After purge, a candidate can be reopened and receive new notes, tags or communications, recreating data on a terminal retained record.
+- Current owner: Recruitment candidate lifecycle and mutation owners.
+- Intended authoritative owner: An explicit current terminal-state guard enforced by every candidate mutation after acquiring its row lock.
+- Rationale: A retained anonymized record must not regain personal data or operational authority through a stale ID.
+- Remediation: Centralize the candidate mutability invariant, apply it to all direct mutation/merge inputs and align management detail/action projections without hiding historical rows globally.
+- State: Planned.
+- Verification required: Every candidate mutation rejects terminal records without effects; both purge/write orders, mutable retries, merge source/target protection, current projections and complete rollback.
+- Verification result: Production owner, caller and related lifecycle paths traced; implementation pending.
+- Completion evidence: pending.
+- Commit SHA: pending.
+
+### HARD-081 — Reviewer assignment and direct transfer handoff reverse membership locks
+
+- Area: AssignRecruitmentReviewer and EndMembershipForTransfer independent owner boundaries.
+- Finding: Both acquire a shared Alliance scope and their actor membership before exclusively locking another target membership. Opposing officer operations can acquire inverse actor/target dependencies before eligibility or hierarchy rejection. Transfer completion currently supplies an exclusive outer scope, but the handoff action itself does not.
+- Current owner: Recruitment reviewer assignment and Membership transfer handoff owners.
+- Intended authoritative owner: Exclusive current Alliance coordination before actor/target membership authority for these protected target writes.
+- Rationale: Current target validation must not require a lock sequence that can wait on another actor in the same Alliance.
+- Remediation: Acquire the established exclusive Alliance owner scope for reviewer assignment and standalone transfer membership handoff while preserving permissions, hierarchy, membership and idempotency.
+- State: Planned.
+- Verification required: Opposing officer operations and authority revocation in both orders, direct handoff independent of completion, unrelated Alliance progress and full rollback.
+- Verification result: Production owner, caller and related lifecycle paths traced; implementation pending.
+- Completion evidence: pending.
+- Commit SHA: pending.
+
+### HARD-082 — Recruitment child updates lock communication or onboarding before candidate
+
+- Area: MarkRecruitmentCommunicationSent and UpdateRecruitmentOnboardingStatus versus candidate purge.
+- Finding: These child writers lock their child row before shared-locking candidate. Purge locks candidate before deleting communications/onboarding rows, creating an inverse parent/child dependency under shared Alliance scope.
+- Current owner: Recruitment candidate child writers and retention purge.
+- Intended authoritative owner: Candidate-first lifecycle coordination with revalidated discovered child routing.
+- Rationale: Terminal candidate checks must serialize with child updates before retention removes dependent rows.
+- Remediation: Discover child routing without locking, acquire scoped current candidate before the child lock, revalidate candidate binding and preserve sent/complete retry semantics.
+- State: Planned.
+- Verification required: Both child-update/purge orders for communication and onboarding, changed routing, terminal rejections, independent candidates and late event rollback.
+- Verification result: Production owner, caller and related lifecycle paths traced; implementation pending.
 - Completion evidence: pending.
 - Commit SHA: pending.
 

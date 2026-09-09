@@ -125,6 +125,8 @@ Capacity observation and planning commitment Actions remain explicit owner Actio
 
 ## Idempotency/concurrency
 
+Planning identity resolution owns its transaction and locks the active source Kingdom shared before current canonical Player identity. Conflicting game IDs reject without foreign Player locks; reconciled aliases require explicit participant replacement. Transfer placement guards remain in the planning adapter, while current identity/history writes remain with PersistPlayerIdentity. [ADR-0034](../../adr/0034-current-stable-player-identity-and-registration.md) defines current identity conflicts and registration preconditions.
+
 Completion discovers scoped participant routing and acquires its current Alliance authority followed by shared home/destination Kingdom locks in sorted ID order before locking the canonical target Player. It revalidates the locked participant's routing before new handoff. Existing completion is an idempotent return even if the outgoing destination has since archived; new movement still requires an active destination. Transfer authority stabilizes the actor's active membership under the Alliance barrier and reads actor identity without taking an early Player lock. Each roster handoff owner locks its current Player before its roster row. [ADR-0033](../../adr/0033-transfer-kingdom-and-player-lock-order.md) records the lifecycle ordering and verification contract.
 
 - observation writes use deterministic fingerprints;

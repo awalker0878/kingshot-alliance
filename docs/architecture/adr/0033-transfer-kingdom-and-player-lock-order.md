@@ -20,4 +20,4 @@ Alliances can complete independent Players in the same Kingdoms concurrently. Ar
 
 Fifteen PostgreSQL cases cover all three directions against archival in both orders, sorted outgoing Kingdom locks, independent Alliances, opposing officer targets, changed routing, completed retry after destination archival, direct roster admission versus identity movement in both orders, and late delivery rollback for every direction. Existing planning, completion-capacity and Evidence suites remain required. Execution evidence is recorded separately in the delivery ledger.
 
-The separate ResolveTransferPlayer planning adapter also requires its own Kingdom-before-Player audit; this decision does not claim all planning writers have completed their behavioral review.
+The separate ResolveTransferPlayer planning adapter is addressed by [ADR-0034](0034-current-stable-player-identity-and-registration.md); completion verification alone does not establish planning coverage.
