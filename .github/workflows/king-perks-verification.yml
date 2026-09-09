@@ -9,7 +9,7 @@ on:
       - 'database/migrations/*king_perk*'
       - 'resources/js/pages/Kingdom/PositionPerks/**'
       - 'routes/king-perks.php'
-      - 'tests/Feature/Contexts/Operations/KingPerks/**'
+      - 'tests/Unit/Contexts/Operations/KingPerks/**'
       - 'tsconfig.king-perks.json'
       - 'vite.king-perks.config.ts'
       - '.github/workflows/king-perks-verification.yml'
@@ -44,7 +44,7 @@ jobs:
           set -euo pipefail
           test ! -d app/Domain/KingPerks
           test ! -d tests/Feature/KingPerks
-          matches=$(grep -R -n -E --include='*.php' 'App\\Domain\\KingPerks\\' app routes bootstrap config database tests/Feature/Contexts/Operations/KingPerks 2>/dev/null || true)
+          matches=$(grep -R -n -E --include='*.php' 'App\\Domain\\KingPerks\\' app routes bootstrap config database tests/Unit/Contexts/Operations/KingPerks 2>/dev/null || true)
           if [ -n "$matches" ]; then
             echo "$matches"
             exit 1
@@ -72,7 +72,7 @@ jobs:
           config/operations.php
           database/migrations/2026_08_15_083000_create_king_perk_tables.php
           routes/king-perks.php
-          tests/Feature/Contexts/Operations/KingPerks
+          tests/Unit/Contexts/Operations/KingPerks
 
       - name: Larastan King Perks V3
         run: >-
@@ -85,7 +85,7 @@ jobs:
       - name: King Perks V3 backend tests
         run: >-
           vendor/bin/phpunit --configuration phpunit.xml --fail-on-empty-test-suite
-          tests/Feature/Contexts/Operations/KingPerks
+          tests/Unit/Contexts/Operations/KingPerks
 
   frontend:
     name: Position Perks frontend contracts

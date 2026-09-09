@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Contexts\Operations\KingPerks;
+namespace Tests\Unit\Contexts\Operations\KingPerks;
 
 use App\Contexts\Operations\KingPerks\Services\KingPerkPreparationPresetCatalog;
 use Carbon\CarbonImmutable;
-use Tests\TestCase;
+use PHPUnit\Framework\TestCase;
 
 final class KingPerkPolicyBehaviorV3Test extends TestCase
 {
@@ -14,7 +14,7 @@ final class KingPerkPolicyBehaviorV3Test extends TestCase
     {
         $start = CarbonImmutable::parse('2026-08-16 00:00:00', 'UTC');
         $end = $start->addDays(6);
-        $days = app(KingPerkPreparationPresetCatalog::class)->forWindow($start, $end);
+        $days = (new KingPerkPreparationPresetCatalog)->forWindow($start, $end);
 
         self::assertCount(6, $days);
         self::assertSame('construction', $days[0]['focus']);

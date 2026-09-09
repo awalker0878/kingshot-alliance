@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Contexts\Operations\Events;
+namespace Tests\Unit\Contexts\Operations\Events;
 
 use App\Contexts\Operations\Events\Enums\RecurrenceFrequency;
 use App\Contexts\Operations\Events\Services\RecurrenceCalculator;
 use Carbon\CarbonImmutable;
 use InvalidArgumentException;
-use Tests\TestCase;
+use PHPUnit\Framework\TestCase;
 
 final class RecurrencePolicyBehaviorV3Test extends TestCase
 {
     public function test_recurrence_calculation_preserves_local_start_and_interval(): void
     {
         $first = CarbonImmutable::parse('2026-08-16 18:00:00', 'America/Toronto');
-        $occurrences = app(RecurrenceCalculator::class)->calculate(
+        $occurrences = (new RecurrenceCalculator)->calculate(
             $first,
             RecurrenceFrequency::Weekly,
             2,
@@ -31,7 +31,7 @@ final class RecurrencePolicyBehaviorV3Test extends TestCase
     public function test_invalid_recurrence_interval_is_rejected(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        app(RecurrenceCalculator::class)->calculate(
+        (new RecurrenceCalculator)->calculate(
             CarbonImmutable::parse('2026-08-16 18:00:00', 'UTC'),
             RecurrenceFrequency::Daily,
             0,
