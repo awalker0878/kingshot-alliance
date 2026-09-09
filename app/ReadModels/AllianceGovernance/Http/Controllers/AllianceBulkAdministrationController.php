@@ -6,7 +6,6 @@ namespace App\ReadModels\AllianceGovernance\Http\Controllers;
 
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
-use App\Contexts\Alliance\Access\Models\Role;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
 use App\Contexts\Alliance\Lifecycle\Services\AllianceContext;
@@ -53,24 +52,10 @@ final class AllianceBulkAdministrationController extends Controller
             ];
         })->values()->all();
 
-        $roles = Role::query()
-            ->where('alliance_id', $scope->allianceId)
-            ->whereNull('archived_at')
-            ->orderByDesc('is_system')
-            ->orderBy('name')
-            ->get(['id', 'key', 'name', 'is_system'])
-            ->map(static fn (Role $role): array => [
-                'id' => (string) $role->id,
-                'key' => (string) $role->key,
-                'name' => (string) $role->name,
-                'system' => (bool) $role->is_system,
-            ])->values()->all();
-
         return Inertia::render('Alliance/Members/Bulk', [
             'user' => ['name' => (string) $user->name, 'email' => (string) $user->email],
             'alliance' => ['id' => $alliance->allianceId, 'name' => $alliance->name],
             'members' => $members,
-            'roles' => $roles,
             'rankOptions' => array_values(array_map(
                 static fn (AllianceRank $rank): string => $rank->value,
                 array_filter(AllianceRank::cases(), static fn (AllianceRank $rank): bool => $rank !== AllianceRank::R5),

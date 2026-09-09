@@ -29,6 +29,9 @@ Status: Current complete capability
 - Self-escalation and cross-Alliance role mutation/assignment are rejected.
 - Inactive/archived roles cannot receive new assignments.
 - Role-definition changes and archives serialize with protected Alliance writes; an operation admitted after revocation cannot use the previous permission definition, while another Alliance remains independent.
+- Management and assignment catalogs are bounded to 25 rows with usable name-prefix search and paging; cursors cannot cross Alliances or filters. Archived roles are excluded from assignment choices, and management counts do not query once per role.
+- Create then edit works on the retained page without a reload. Row errors remain visible and preserve the draft; successful edits and archives reflect current server state.
+- Missing/malformed permission replacement and oversized generated keys fail with validation feedback, without partial role/audit/outbox changes. An explicit empty permission list remains valid.
 
 ## ACE-04 Membership governance history
 

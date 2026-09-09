@@ -72,8 +72,13 @@ const english: MessageCatalogue = {
     updateRole: 'Update role',
     archiveRole: 'Archive role',
     archiveRoleHelp:
-      'Archived roles cannot be assigned again. Existing assignments remain visible until explicitly removed.',
+      'Archiving removes existing assignments immediately. Archived roles cannot be assigned again.',
     noRoles: 'No specialist roles are available.',
+    roleSearch: 'Role name starts with',
+    findRoles: 'Find roles',
+    roleLookupFailed: 'Roles could not be loaded. Try again.',
+    rolesOnPage: '{count} roles on this page',
+    roleStatus: 'Role status',
     permissionLabels: {
       'alliance.view': 'View Alliance',
       'alliance.manage': 'Manage Alliance settings',
@@ -82,6 +87,7 @@ const english: MessageCatalogue = {
       'invitations.manage': 'Manage invitations',
       'content.manage': 'Manage Alliance content',
       'recruitment.manage': 'Manage recruitment',
+      'gift_codes.coverage': 'View Alliance Gift Code coverage',
     },
     bulkEyebrow: 'Bounded officer changes',
     bulkTitle: 'Bulk member administration',

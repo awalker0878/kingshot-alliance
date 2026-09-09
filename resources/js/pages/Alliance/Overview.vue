@@ -2,6 +2,7 @@
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { computed, reactive, ref, watch } from 'vue';
 
+import AllianceRolePicker from '@/components/alliance/AllianceRolePicker.vue';
 import RoomBanner from '@/components/game/RoomBanner.vue';
 import StatSeal from '@/components/game/StatSeal.vue';
 import AppButton from '@/components/ui/AppButton.vue';
@@ -115,7 +116,6 @@ const props = defineProps<{
       isFirstPage: boolean;
     };
     total: number;
-    roleCatalog: Array<{ id: string; key: string; name: string }>;
     currentPlayerId: string;
     leadershipTransferAllowed: boolean;
   };
@@ -873,23 +873,18 @@ function formatInZone(value: string, timeZone: string): string {
                         </AppButton>
                       </div>
 
-                      <div
-                        v-if="membershipManagement.rolesAllowed"
-                        class="mt-2 grid grid-cols-[1fr_auto] gap-2"
-                      >
-                        <select v-model="roleSelections[member.id]" class="ks-input">
-                          <option value="">
-                            {{ t('allianceOperations.overview.selectRole') }}
-                          </option>
-                          <option
-                            v-for="role in membershipManagement.roleCatalog"
-                            :key="role.id"
-                            :value="role.id"
-                          >
-                            {{ role.name }}
-                          </option>
-                        </select>
-                        <AppButton variant="ghost" @click="assignRole(member.id)">
+                      <div v-if="membershipManagement.rolesAllowed" class="mt-2 space-y-2">
+                        <AllianceRolePicker
+                          :id="'member-role-' + member.id"
+                          :key="alliance.id + ':' + member.id"
+                          v-model="roleSelections[member.id]"
+                          :label="t('allianceExpansion.targetRole')"
+                        />
+                        <AppButton
+                          variant="ghost"
+                          :disabled="!roleSelections[member.id]"
+                          @click="assignRole(member.id)"
+                        >
                           {{ t('allianceOperations.overview.assign') }}
                         </AppButton>
                       </div>

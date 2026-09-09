@@ -17,6 +17,9 @@ final class AccessServiceProvider extends ServiceProvider
             ->group(function (): void {
                 Route::get('/alliance/roles', [AllianceRoleController::class, 'index'])
                     ->name('alliance.roles.index');
+                Route::get('/alliance/roles/options', [AllianceRoleController::class, 'options'])
+                    ->middleware('throttle:60,1,alliance-role-lookup:')
+                    ->name('alliance.roles.options');
                 Route::middleware('password.confirm')->group(function (): void {
                     Route::post('/alliance/roles', [AllianceRoleController::class, 'store'])
                         ->name('alliance.roles.store');

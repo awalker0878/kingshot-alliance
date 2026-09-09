@@ -36,6 +36,9 @@ final readonly class UpdateAllianceRole
         if ($name === '') {
             throw ValidationException::withMessages(['name' => 'Role name is required.']);
         }
+        if (mb_strlen($name) > 100) {
+            throw ValidationException::withMessages(['name' => 'Use a shorter role name.']);
+        }
 
         return DB::transaction(function () use ($allianceId, $actorPlayerId, $roleId, $name, $permissions): string {
             // A definition change affects every holder, including writers that

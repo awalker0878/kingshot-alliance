@@ -19,6 +19,7 @@ Source: `app/Contexts/Alliance/Access/Enums/AlliancePermission.php`
 | `invitations.manage` | Manage invitations. |
 | `content.manage` | Manage Alliance content. |
 | `recruitment.manage` | Manage recruitment. |
+| `gift_codes.coverage` | View explicitly delegated Alliance Gift Code coverage; R4/R5 rank alone does not grant this access. |
 
 ## GameWorld / Kingdom Governance
 

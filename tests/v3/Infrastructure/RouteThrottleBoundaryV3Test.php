@@ -50,6 +50,17 @@ final class RouteThrottleBoundaryV3Test extends TestCase
             ->postJson('/forgot-password')->assertUnprocessable()->assertJsonValidationErrors('email');
     }
 
+    public function test_package_upload_admission_keeps_signature_checks_and_a_separate_budget(): void
+    {
+        for ($attempt = 0; $attempt < 60; $attempt++) {
+            $this->postJson(route('livewire.upload-file'))->assertUnauthorized();
+        }
+        $this->postJson(route('livewire.upload-file'))->assertStatus(429)->assertHeader('Retry-After');
+        $this->postJson('/forgot-password')->assertUnprocessable();
+        $this->withServerVariables(['REMOTE_ADDR' => '192.0.2.52'])
+            ->postJson(route('livewire.upload-file'))->assertUnauthorized();
+    }
+
     public function test_provider_ingress_retains_one_shared_budget_across_providers_and_source_ids(): void
     {
         config(['game_world.gift_codes.approved_source_ingestion' => false]);

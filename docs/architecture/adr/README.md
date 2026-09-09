@@ -28,3 +28,4 @@ Architecture decision records explain material changes to ownership, boundaries,
 - [ADR-0022: Enforce bounded Alliance delegation at every grant](0022-bounded-alliance-delegation.md)
 - [ADR-0023: Serialize role-definition revocation with Alliance writes](0023-alliance-role-revocation-serialization.md)
 - [ADR-0024: Give HTTP rate limits explicit workload budgets](0024-explicit-http-rate-limit-budgets.md)
+- [ADR-0025: Bound role catalogs and keep editors aligned with current roles](0025-bounded-role-catalogs-and-current-editors.md)
