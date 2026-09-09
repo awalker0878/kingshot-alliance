@@ -82,9 +82,6 @@ jobs:
       - name: Install locked PHP dependencies
         run: composer install --no-interaction --no-progress --prefer-dist
 
-      - name: Fresh PostgreSQL schema
-        run: php artisan migrate:fresh --force
-
       - name: Verify Contributions V1 hard cut
         shell: bash
         run: |
@@ -124,8 +121,8 @@ jobs:
         shell: bash
         run: |
           set +e
-          # Keep PostgreSQL and serial execution for these transaction-sensitive contracts.
-          # Do not rerun unrelated application tests already covered by the full CI suite.
+          # Database-using selected tests own schema initialization through their
+          # reset traits; source/pure contracts require no database schema.
           vendor/bin/phpunit --configuration phpunit.xml \
             --fail-on-empty-test-suite \
             --log-junit "${RUNNER_TEMP}/intelligence-v3-junit.xml" \
