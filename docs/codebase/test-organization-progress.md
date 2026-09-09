@@ -71,9 +71,11 @@ The separately recorded baseline in `test-performance-baseline-2026-09-09.md` us
 
 That evidence establishes the comparison point and the value of narrow feedback lanes. It does **not** establish an after-optimization speedup for the current standard-layout revision. Comparable post-change measurements remain required once test execution is permitted.
 
-## CI queue isolation
+## CI queue and trigger isolation
 
-Commit `84277345faea41dedbbaf63e8818b320e4522c3b` adds a per-ref concurrency group to Intelligence Verification and cancels superseded runs. The job names, triggers and complete existing behavior command remain unchanged in that slice. Local YAML/concurrency validation passed for that historical slice.
+Commit `84277345faea41dedbbaf63e8818b320e4522c3b` adds a per-ref concurrency group to Intelligence Verification and cancels superseded runs. The job names, triggers and complete existing behavior command remained unchanged in that historical slice.
+
+Commit `bb33c3600476769bb34d53e9edcf986fc1dd3809` narrows the Intelligence workflow's broad `tests/**` pull-request trigger to the exact organized Intelligence and Intelligence-read-model test directories that its backend job executes. Gift Code, King Perks and KingdomMaps workflows already use ownership-specific test triggers. The main `CI` workflow remains unfiltered for pull requests and continues to own the complete PHP regression, so this change removes unrelated specialized-job fan-out rather than weakening application-wide verification.
 
 ## Remaining work
 
