@@ -62,7 +62,7 @@ Recent redemption signals aggregate observed Governor outcomes only after config
 
 ## Alliance coverage and contributor projections
 
-Alliance Gift Code coverage requires the explicit `gift_codes.coverage` permission. The default `Gift Code Coordinator` specialist role carries that permission and is delegated/revoked through existing Alliance role management; R4/R5 rank alone does not grant coverage. Coverage is aggregate-only: the projection reports the number of active Governors with a usable in-game Player ID plus, per currently valid Gift Code, completed, incomplete, retry-ready and unknown counts. `unknown` represents active members whose Governor lacks a usable in-game Player ID. The surface does not expose member names, Player IDs or individual redemption history.
+Alliance Gift Code coverage requires the explicit `gift_codes.coverage` permission. The default `Gift Code Coordinator` specialist role carries that permission and is delegated/revoked through existing Alliance role management; R4/R5 rank alone does not grant coverage. R5 may commission this system role on another member without acquiring coverage access; self-assignment still requires existing coverage authority. Coverage is aggregate-only: the projection reports the number of active Governors with a usable in-game Player ID plus, per currently valid Gift Code, completed, incomplete, retry-ready and unknown counts. `unknown` represents active members whose Governor lacks a usable in-game Player ID. The surface does not expose member names, Player IDs or individual redemption history.
 
 Alliance coverage never grants platform Gift Code moderation, curator or approved-source administration authority.
 

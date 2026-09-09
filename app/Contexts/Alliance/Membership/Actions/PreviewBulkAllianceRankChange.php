@@ -30,6 +30,15 @@ final readonly class PreviewBulkAllianceRankChange
         }
         $this->authorization->authorize($actorPlayerId, $allianceId, AlliancePermission::RoleManage);
 
+        $actor = AllianceMembership::query()
+            ->where('alliance_id', $allianceId)
+            ->where('player_id', $actorPlayerId)
+            ->where('status', MembershipStatus::Active->value)
+            ->firstOrFail();
+        if (! $actor->rank->canDelegate($rank)) {
+            throw ValidationException::withMessages(['rank' => 'You cannot assign a rank above your current rank.']);
+        }
+
         $rows = AllianceMembership::query()->where('alliance_id', $allianceId)->whereIn('id', $membershipIds)->get()->keyBy('id');
         $items = [];
         foreach ($membershipIds as $membershipId) {

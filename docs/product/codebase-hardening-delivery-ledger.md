@@ -5,15 +5,16 @@
 - Program state: In progress.
 - Exact main baseline: `7e780521295e868005ecfee5bd38b33e8215ec49`.
 - Working branch: `astra/codebase-hardening`.
-- Latest pushed durable checkpoint: `7f454af876b150e2da20454955aa75cbb43711c1`.
+- Latest pushed durable checkpoint: `7ae4489c49d99871d8c418829480c571f7367b77`.
 - Draft PR: [#163](https://github.com/awalker0878/kingshot-alliance/pull/163).
-- Current item/state: HARD-044 / In progress (logout replay and failure cleanup); HARD-037/042/043 await containing verification.
+- Current item/state: HARD-045/047 / In progress (bounded role/rank and system-role delegation); HARD-044's eight cases pass, with containing CI blocked by HARD-048.
 - Most recently verified gates: all nine PR workflows pass on `8c6b8a7a29a7d0bc1ecba9a1aa579bc88e828d5e`, including 876 PHP tests / 75,032 assertions, fresh PostgreSQL, frontend, image/staging/recovery, architecture/capabilities, visual and security.
-- Active files: LogoutAccount, AccountLogoutV3Test, ADR-0021 and authentication/session contracts.
-- Remaining current work: verify HARD-043, review logout replay/storage/event failures, inspect containing verification for the earlier Accounts fixes, then continue all remaining audit areas.
+- Active files: Alliance role/rank mutation and preview owners, AllianceDelegationBoundaryV3Test, ADR-0022 and delegation contracts.
+- Current CI result: 7ae4489c passes full Pint/PHPStan, fresh PostgreSQL and all 1,026 parallel test cases except the shared-cache email-verification 429 (HARD-048); 76,911 assertions execute. All eight logout cases pass. Architecture/Intelligence containing runs are still pending. The earlier architecture and logout-cookie failures below are superseded by these fixes/results.
+- Remaining current work: verify the prepared delegation slice; isolate parallel cache state (HARD-048), serialize role-definition revocation (HARD-046), and continue remaining audit areas.
 - Known failures: decoded Intelligence job 102268265002 on c19fc047 completed 1,014 tests / 76,757 assertions with exactly one failure: RestoreAccountSession.handle returns an Eloquent User in violation of WRITE_CONTRACT_RETURNS_MODEL. All passkey HTTP and remembered-session cases passed on that candidate. Architecture on 89f2c616 reproduces the same single violation (62 tests / 67,659 assertions). Earlier claims that c19fc047 still failed passkey fixtures were not supported by its logs and are superseded by this evidence.
 - Blockers: local PHP/Composer/PostgreSQL are unavailable. Ordinary apt setup was denied by workspace setgroups/setuid permissions and was stopped without changing those restrictions. GitHub connector job-log reads work; use existing PostgreSQL-backed CI for executable verification. Local git write transport lacks credentials; publish atomic trees/commits through the configured GitHub connector, checking tree equality and non-forced branch updates. The local checkout now matches remote 89f2c616; original equivalent local commits are preserved on scratch/local-checkpoints-9e16952f.
-- Exact next action: inspect HARD-043's containing full-suite results (Architecture V3 and PHPStan steps pass on 7f454af8); publish/verify HARD-044's logout replay and failure-cleanup tests, then continue capability coverage. Do not mark the whole audit complete from an Accounts-only verification result.
+- Exact next action: publish the coherent HARD-045/047 delegation slice and inspect its gates; then repair HARD-048's shared parallel-cache collision and continue HARD-046 and remaining audit coverage. Do not mark the whole audit complete from an Accounts-only verification result.
 - Remaining repository-wide gates: final full PHP/architecture/capability and frontend gates on one containing commit; production image/staging/recovery; final security/dependency/visual checks; remaining capability-by-capability audit coverage below.
 
 Checkpoint SHAs are recorded by the following documentation commit; verify that the recorded checkpoint is an ancestor of current branch HEAD. No audit area is complete solely because its paths have been inventoried.
@@ -618,7 +619,7 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Remediation: return the admitted account ID and update the sole caller; cover both guest null and authenticated integer outcomes while keeping all remembered-login tests.
 - State: In progress.
 - Verification required: scalar contract behavior, remembered-session HTTP/failure/concurrency tests, Architecture V3, PHPStan and Pint.
-- Verification result: failure confirmed in decoded CI logs; sole caller and both completion paths inspected. Scalar return and regression test published in 7f454af8. Architecture job 102279743876 passes syntax, strict PSR-4, routes, Architecture V3, fresh schema and PHPStan; full PHPUnit is still running. Local PHP cannot run; containing behavior verification remains required.
+- Verification result: scalar return and regression test published in 7f454af8. Architecture job 102279743876 passes syntax, strict PSR-4, routes, Architecture V3, fresh schema and PHPStan. Its full 1,020-test / 76,846-assertion run has only the two old logout-cookie fixture failures corrected in HARD-044; scalar/remembered-session cases pass. 7ae4489c's full parallel run passes them again; remaining containing failure is HARD-048.
 - Completion evidence: pending.
 - Commit SHA: `7f454af876b150e2da20454955aa75cbb43711c1`.
 
@@ -632,9 +633,9 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Remediation: rotate existing token with revocation/audit; defer CurrentDeviceLogout through cleanup, suppress success on persistence failure, always forget/flush/regenerate, and report bounded raw cleanup failures; preserve other active sessions. ADR-0021 supersedes the prior remember-preserving policy.
 - State: In progress.
 - Verification required: current/other session policy, password/provider cookie replay, audit/token rollback with no success event, false/throwing raw storage with stale replay, throwing listener, enclosing transaction rejection, PHPStan/Pint/Architecture and containing suite.
-- Verification result: exact locked Laravel framework 718d17db source confirms event-before-user-clear and destroy-before-ID-generation behavior. Eight HTTP/owner cases prepared, including strengthened existing tests; local whitespace/source checks pass. PostgreSQL verification pending.
+- Verification result: exact locked Laravel framework 718d17db source confirms event-before-user-clear and destroy-before-ID-generation behavior. All eight HTTP/owner cases pass in the full PostgreSQL parallel run on 7ae4489c (CI job 102282433482: 1,026 tests / 76,911 assertions), with only an unrelated email-verification throttle collision under HARD-048. Full Pint/PHPStan and fresh installation pass before tests; latest Architecture static/invariant steps also pass. Containing all-workflow verification remains pending.
 - Completion evidence: pending.
-- Commit SHA: pending.
+- Commit SHA: `7ae4489c49d99871d8c418829480c571f7367b77`.
 
 ### HARD-045 — Direct role assignment bypasses bounded permission delegation
 
@@ -644,9 +645,9 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: the existing authoritative mutation boundaries, with consistent current permission delegation and separate revocation semantics.
 - Rationale: direct HTTP requests and each item after a stale bulk preview must enforce the same bounded delegation rule; restricting only self-assignment permits indirect escalation.
 - Remediation: enforce delegation for every grant, recheck each bulk item, preserve R5/self-rank protections, and align preview/remove behavior without making previews authorization authorities.
-- State: Planned.
+- State: In progress.
 - Verification required: direct and HTTP cross-member rejection, permitted subsets, self/cross-Alliance cases, stale bulk authority, rank grants and removal parity with no audit/outbox on rejected writes.
-- Verification result: owner/controller/preview/caller and product acceptance source trace confirms the inconsistent checks; no implementation or passing regression claimed.
+- Verification result: shared AllianceRoleDelegation enforces custom permission ceilings for every recipient, with explicit system-role semantics tracked separately under HARD-047. Membership owns a rank ceiling shared by preview and locked commits; removing a role no longer requires removed permissions. Seventeen combined database/HTTP cases cover isolation, subsets, rollback, rank grants, changing bulk authority, system-role/Operations outcomes and constant preview query count. ADR-0022 records the policy. Local source/whitespace and documentation links pass; executable PostgreSQL/static/style checks remain pending.
 - Completion evidence: pending.
 - Commit SHA: pending.
 
@@ -664,6 +665,48 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Completion evidence: pending.
 - Commit SHA: pending.
 
+### HARD-047 — System-role grant authority is incomplete and conflicts with Gift Code commissioning
+
+- Area: Alliance system roles, Operations role interpretation and Gift Code coverage.
+- Finding: Event Coordinator has no Alliance permissions but carries Operations authority, so the old assignment loop allows an ordinary role administrator to grant that authority. Conversely, blindly enforcing held Alliance permissions breaks the first Gift Code Coordinator grant: R5 deliberately lacks coverage access while the product requires explicit delegation to another member.
+- Current owner: Alliance role grants, default role provisioning, Operations permission interpretation and Gift Code coverage authorization.
+- Intended authoritative owner: AllianceRoleDelegation defines explicit commissioning/grant authority; consumers continue to interpret their own capabilities from owner facts.
+- Rationale: delegation authority and automatic data access must remain distinct where the existing product requires it; an empty local permission list cannot establish authority over another context.
+- Remediation: allow R5 to commission provisioned system roles on other members without self/custom-role bypass; require R5 or current holding of Event Coordinator for its grants. Share policy between recipient-specific preview and locked owner actions, retaining Gift Code's explicit coverage gate and existing regression.
+- State: In progress.
+- Verification required: R5 commissioning gives access only to the selected member; self/ordinary unauthorized grants fail; held Event Coordinator plus role management can delegate; real Operations outcomes and current Gift Code behavior remain correct; preview query count is independent of selected recipient count.
+- Verification result: code and four system-role cases plus one query-budget case prepared alongside HARD-045; ADR-0022 reconciles formerly contradictory contracts. No passing runtime result claimed.
+- Completion evidence: pending.
+- Commit SHA: pending.
+
+### HARD-048 — Parallel PHP tests share rate-limit cache state across isolated databases
+
+- Area: PostgreSQL/Redis-backed CI test isolation.
+- Finding: CI 34292661039 / PHP job 102282433482 completes 1,026 tests with only AccountsSecurityCloseoutV3Test's signed email-verification request receiving 429. CI exports CACHE_STORE=redis, overriding PHPUnit's non-forced array default; parallel databases recreate the same numeric account identities while cache.prefix stays common. Distinct tests can therefore consume each other's authenticated throttle budgets.
+- Current owner: tests/v3/TestCase and CI cache configuration.
+- Intended authoritative owner: test-only cache namespacing established before application/provider boot, preserving the real Redis-backed gate and production rate limits.
+- Rationale: database isolation without cache isolation makes valid tests order/process dependent. Disabling throttles, raising limits or replacing the Redis-backed gate is not a fix.
+- Remediation: establish per-test cache namespaces that survive application recreation within that test; verify the failing scenario and full parallel suite without weakening gates.
+- State: Planned.
+- Verification required: separate tests/processes cannot share limiter or cached authority state; one test retains state across its intended application reboots; full parallel PHP and container/recovery checks pass.
+- Verification result: failure log, CI environment, PHPUnit configuration and cache prefix source traced; implementation pending. The same run passes all eight HARD-044 logout cases and every other Accounts case.
+- Completion evidence: pending.
+- Commit SHA: pending.
+
+### HARD-049 — Unnamed route throttles unintentionally share counters across unrelated operations
+
+- Area: HTTP/API route rate-limit ownership and operation boundaries.
+- Finding: dozens of routes use numeric throttle middleware with no prefix. The exact locked Laravel ThrottleRequests implementation builds an authenticated key from account ID only (guest key: route domain plus IP); the limit value and route name are not part of the key. A request to a high-volume endpoint therefore consumes the same counter used by low-volume credential/verification endpoints, and conversely unrelated operations with different limits inherit each other's attempts.
+- Current owner: route adapters across Accounts, Integrations, Gift Codes, API, Contributions and Platform.
+- Intended authoritative owner: explicit operation or deliberate shared-budget definitions with stable account/client scope; maintained middleware continues enforcing counters.
+- Rationale: limits must protect the intended workload without accidental cross-capability denial or silently losing deliberate aggregate budgets.
+- Remediation: trace each unnamed route's intended budget and consumers; define explicit namespaces/shared limiter groups with unchanged safety limits, then exercise cross-operation isolation and deliberate aggregate throttling in real HTTP tests.
+- State: Planned.
+- Verification required: unrelated operations do not exhaust each other's limits; related/aggregate workloads retain deliberate shared budgets; account/client isolation, retry timing and route boot remain correct.
+- Verification result: routes and maintained framework 718d17db ThrottleRequests.handle/resolveRequestSignature source confirm shared keys. Scope/design and executable remediation remain pending; this production concern is distinct from HARD-048's parallel test-cache isolation.
+- Completion evidence: pending.
+- Commit SHA: pending.
+
 ## Repository audit coverage
 
 All rows below remain Planned until actual production paths have been traced. This table tracks audit scope, not discovered defects.
@@ -672,7 +715,7 @@ All rows below remain Planned until actual production paths have been traced. Th
 | --- | --- | --- |
 | Accounts | Identity/provider queries, authentication/credential owners, sessions, MFA, profile/email/reset and account-side deletion traced; repairs under HARD-018–024. Registration/invitation atomicity and deletion/finalization coordination verified under HARD-025–028; credential effects and verification delivery verified under HARD-029/030/035; reset, terminal guards, cleanup, throttling and login proof freshness remain under HARD-031–037 | In progress |
 | GameWorld | Progression dataset/topology/prerequisite and Gift Code reminder paths traced (HARD-007/009/011/012); Governors, Kingdoms/transfers/governance, remaining Gift Codes/calculators and KingdomMaps audit remain | In progress |
-| Alliance | Access authority/write-state, role lifecycle, direct/bulk role adapters and rank delegation traced; defects HARD-045/046. Remaining lifecycle, membership/recruitment/content and consumer projections still require audit | In progress |
+| Alliance | Access authority/write-state, role lifecycle, direct/bulk role adapters, rank delegation and system-role consumers traced; defects HARD-045/046/047. Remaining lifecycle, membership/recruitment/content and consumer projections still require audit | In progress |
 | Operations | Events, participation, rallies, King Perks, results/Bear Hunt and reminders | Planned |
 | Intelligence | Evidence/Roster structured pipeline and all-family GameEvidence retention/redaction/summary queries verified under HARD-008/010/013–017; observations, other evidence families, ingestion, contributions and projections/signals remain | In progress |
 | Communications | Preferences/recipients, inbox, delivery channels, digests, retry/idempotency and revocation | Planned |

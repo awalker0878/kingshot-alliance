@@ -43,7 +43,9 @@ Slugs are normalized, unique and protected from application-reserved paths. Lang
 
 Specialist roles remain Alliance-local. System roles cannot be archived or have their protected semantics mutated. User-created roles have stable keys, editable names, an archive state and permissions chosen only from the existing closed Alliance permission vocabulary.
 
-An actor may delegate only permissions that the actor currently possesses. A role mutation or assignment may not be used for self-escalation. R5 can be transferred only through the Membership leadership-transfer workflow.
+Custom-role permissions may be delegated only when the actor currently possesses them. A role mutation or assignment may not be used for self-escalation. R5 can be transferred only through the Membership leadership-transfer workflow.
+
+The delegation ceiling applies to every recipient, not just self-assignment, and is rechecked by the authoritative action for each bulk item. As an explicit leadership responsibility, R5 may commission an immutable system specialist role on another member without receiving its data access; R5 still has no implicit Gift Code coverage access or self-assignment exception. Event Coordinator grants require R5 or a current assignment of that role, as well as role-management authority. Role removal revokes authority and does not require the permissions being removed. Rank administrators must also keep the target rank at or below their own current rank; a delegated role does not allow an ordinary member to create higher-rank officers.
 
 ## History contract
 

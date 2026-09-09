@@ -22,7 +22,10 @@ Status: Current complete capability
 - Authorized officers can create, rename, change permissions and archive Alliance-local non-system roles.
 - System roles cannot be archived or have protected semantics changed.
 - Role keys remain stable after creation.
-- Permission delegation is limited to the actor's current effective Alliance permissions.
+- Custom permission delegation is limited to the actor's current effective Alliance permissions.
+- R5 may commission a provisioned system role on another member without acquiring its data access; this exception does not authorize custom-role grants or self-assignment. Event Coordinator grants require R5 or current holding of that role, plus role management.
+- Direct and bulk grants apply that ceiling to every recipient and recheck each mutation; role removal requires role-management authority, not the removed permissions.
+- Rank grants cannot exceed the actor's current rank; self-rank and R5 leadership protections remain enforced.
 - Self-escalation and cross-Alliance role mutation/assignment are rejected.
 - Inactive/archived roles cannot receive new assignments.
 

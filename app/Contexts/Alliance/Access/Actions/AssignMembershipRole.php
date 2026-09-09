@@ -7,6 +7,7 @@ namespace App\Contexts\Alliance\Access\Actions;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Models\Role;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
+use App\Contexts\Alliance\Access\Services\AllianceRoleDelegation;
 use App\Contexts\Alliance\Access\Services\AllianceWriteState;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
@@ -21,6 +22,7 @@ final readonly class AssignMembershipRole
     public function __construct(
         private AllianceWriteState $allianceWriteState,
         private AllianceAuthorization $authority,
+        private AllianceRoleDelegation $delegation,
         private AuditRecorder $audit,
     ) {}
 
@@ -51,13 +53,8 @@ final readonly class AssignMembershipRole
                 throw ValidationException::withMessages(['role' => 'Archived specialist roles cannot be assigned.']);
             }
 
-            if ((string) $membership->player_id === (string) $context->actor->playerId) {
-                foreach ($role->permissions as $permissionModel) {
-                    $permission = AlliancePermission::tryFrom((string) $permissionModel->key);
-                    if ($permission === null || ! $this->authority->allowsContext($context, $permission)) {
-                        throw ValidationException::withMessages(['role' => 'A specialist role cannot be used to increase your own authority.']);
-                    }
-                }
+            if (! $this->delegation->allows($context->membership, $context->alliance, $role, (string) $membership->player_id === $actorPlayerId)) {
+                throw ValidationException::withMessages(['role' => 'You cannot delegate this specialist role to this member.']);
             }
 
             if (! $membership->roles()->where('roles.id', $role->id)->exists()) {

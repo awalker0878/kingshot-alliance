@@ -33,6 +33,12 @@ enum AllianceRank: string
         return $this === self::R5;
     }
 
+    /** Rank ceiling only; current role-management authority is also required. */
+    public function canDelegate(self $rank): bool
+    {
+        return $rank !== self::R5 && $rank->level() <= $this->level();
+    }
+
     public function isOfficer(): bool
     {
         return $this === self::R4;
