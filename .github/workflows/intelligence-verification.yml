@@ -14,7 +14,13 @@ on:
       - 'resources/js/pages/Intelligence/Contributions/History.vue'
       - 'routes/event-history.php'
       - 'routes/contributions.php'
-      - 'tests/**'
+      - 'tests/Architecture/Contexts/Intelligence/**'
+      - 'tests/Feature/Contexts/Intelligence/**'
+      - 'tests/Integration/Contexts/Intelligence/**'
+      - 'tests/Unit/Contexts/Intelligence/**'
+      - 'tests/Feature/ReadModels/EventAnalysis/**'
+      - 'tests/Feature/ReadModels/KingdomIntelligence/**'
+      - 'tests/Feature/ReadModels/IntelligenceSignals/**'
       - '.github/workflows/intelligence-verification.yml'
   workflow_dispatch:
 
