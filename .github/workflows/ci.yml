@@ -27,6 +27,7 @@ jobs:
           POSTGRES_DB: kingshot_test
           POSTGRES_USER: kingshot
           POSTGRES_PASSWORD: kingshot
+          POSTGRES_INITDB_ARGS: --set=max_locks_per_transaction=256
         ports:
           - 5432:5432
         options: >-
@@ -91,21 +92,12 @@ jobs:
         env:
           POSTGRES_CONTAINER: ${{ job.services.postgres.id }}
         run: |
-          # Parallel migrate:fresh operations lock tables, indexes and sequences
-          # in separate test databases but share one PostgreSQL lock table.
-          docker exec "$POSTGRES_CONTAINER" psql -U kingshot -d kingshot_test -v ON_ERROR_STOP=1 \
-            -c 'ALTER SYSTEM SET max_locks_per_transaction = 256'
-          docker restart "$POSTGRES_CONTAINER"
-          ready=false
-          for attempt in $(seq 1 30); do
-            if docker exec "$POSTGRES_CONTAINER" pg_isready -U kingshot -d kingshot_test; then
-              ready=true
-              break
-            fi
-            sleep 2
-          done
-          test "$ready" = true
+          # Parallel test databases share one PostgreSQL lock table, so start the
+          # service with the required lock capacity instead of restarting it here.
           test "$(docker exec "$POSTGRES_CONTAINER" psql -U kingshot -d kingshot_test -Atc 'SHOW max_locks_per_transaction')" = 256
+          for setting in fsync synchronous_commit full_page_writes; do
+            test "$(docker exec "$POSTGRES_CONTAINER" psql -U kingshot -d kingshot_test -Atc "SHOW $setting")" = on
+          done
           php artisan migrate:fresh --force
           php artisan migrate:status --no-interaction
 
