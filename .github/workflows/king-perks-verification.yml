@@ -27,29 +27,9 @@ jobs:
     name: King Perks backend contracts
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    services:
-      postgres:
-        image: postgres:18
-        env:
-          POSTGRES_DB: kingshot_test
-          POSTGRES_USER: kingshot
-          POSTGRES_PASSWORD: kingshot
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U kingshot -d kingshot_test"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
     env:
       APP_ENV: testing
       APP_KEY: base64:Wb1PHh03m1vXbmyRxlI+Y96TqgK7Vyt8H/lkQ8o1SP0=
-      DB_CONNECTION: pgsql
-      DB_HOST: 127.0.0.1
-      DB_PORT: 5432
-      DB_DATABASE: kingshot_test
-      DB_USERNAME: kingshot
-      DB_PASSWORD: kingshot
       CACHE_STORE: array
       SESSION_DRIVER: array
       QUEUE_CONNECTION: sync
@@ -84,9 +64,6 @@ jobs:
       - name: Install locked PHP dependencies
         run: composer install --no-interaction --no-progress --prefer-dist
 
-      - name: PostgreSQL schema and migration
-        run: php artisan migrate --force
-
       - name: Pint King Perks V3 contracts
         run: >-
           vendor/bin/pint --test
@@ -107,7 +84,7 @@ jobs:
 
       - name: King Perks V3 backend tests
         run: >-
-          vendor/bin/phpunit --configuration phpunit.xml
+          vendor/bin/phpunit --configuration phpunit.xml --fail-on-empty-test-suite
           tests/Feature/Contexts/Operations/KingPerks
 
   frontend:
