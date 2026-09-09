@@ -2,7 +2,7 @@
 
 Status: In progress — PR #163 only — 2026-09-09
 
-This records completed slices of the [test organization and performance plan](test-organization-and-performance-plan.md). The standard directory migration, developer command surface, committed-state reset optimization and first CI setup reductions are implemented. Comparable post-change timing, isolation/order verification, conservative changed-code selection and final containing verification remain open.
+This records completed slices of the [test organization and performance plan](test-organization-and-performance-plan.md). The standard directory migration, developer command surface, committed-state reset optimization and first CI setup reductions are implemented. Comparable post-change timing, isolation/order verification, conservative changed-code selection and final containing verification remain open. An existing CI artifact subsequently exposed lost migration reference data in the truncation change; the repair below is authored but not behavior-verified.
 
 ## Browser directory migration
 
@@ -82,7 +82,7 @@ The optimized reset strategy uses Laravel `DatabaseTruncation` for those schema-
 - `97aae76e15f6ed891ee68e033a2e1f24f0e273b2` and `4707a766e3602c439a35e512d31c3e11e35f47bc` convert the two HTTP Feature exceptions after direct review confirmed they are also schema-stable.
 - `62d9db86f1d1d55a5df62d78a71eae2387104f3c` prevents ordinary tests from reintroducing `DatabaseMigrations`; future intentional schema-lifecycle tests must live under `tests/Integration/Schema/`.
 
-Thus all 50 classes that previously paid per-test schema rebuild cost now use truncation-based committed-state cleanup. This is an implementation claim only. No post-change test run, order-isolation run or speedup percentage is claimed yet.
+Thus all 50 classes that previously paid per-test schema rebuild cost now use truncation-based committed-state cleanup. This is an implementation claim only. No passing post-change test run, successful order-isolation run or speedup percentage is claimed.
 
 ## CI queue, trigger and setup optimization
 
@@ -102,9 +102,32 @@ Gift Code, King Perks and KingdomMaps keep ownership-specific backend/unique-con
 
 `playwright.config.ts` remains `workers: 1` with `fullyParallel: false`; PHPUnit/ParaTest worker count has not been increased. No parallelism increase will be made until database, cache, queue, session, file, port, browser-profile and global-state isolation are measured/repeated. Existing retries were not increased to mask failures.
 
+## No-test continuation: pure scheduling and reference-data recovery
+
+Commit `b4ca56cf423be81dce5bb5e938a92ea47f3c7b3d` moves `RecurrencePolicyBehaviorV3Test` and `KingPerkPolicyBehaviorV3Test` from Feature to Unit. Both now construct their dependency-free service directly and use the pure PHPUnit base. Test methods, provider data and assertions are preserved. The required behavior-path registry and King Perks workflow paths were updated atomically. This removes unnecessary Laravel bootstraps; elapsed savings have not been measured.
+
+Commit `46cd5dad19eb2112cafda34a80ed637fac855b7c` also moves `AssistantQuestionInterpreterV3Test` and `TransferEligibilityEvaluatorV3Test` to their matching Unit domain paths with direct service construction. Across all four moves, the prior JUnit report contains 55 cases. An inverse source transformation reproduces each original file exactly, proving that only namespace/base-class/object-construction changes were made; this is not a new runtime/discovery result. The complete follow-up mapping and source/result blob hashes are retained in [test-pure-bootstrap-migration.json](test-pure-bootstrap-migration.json). Real HTTP, persistence and container-binding tests remain in their existing suites.
+
+An **already-completed** main CI run, `34387606165`, on `9951bcbbec4e5c1416ec80f9cae15f2f82572bd1` was inspected without launching a new run. Its `phpunit-results` artifact `10118771307` contains 1,482 case nodes and 647 error/failure nodes: 644 contain the missing `standard` plan foreign-key error, and three cannot find a migration-created `EventType`. This failing run is not valid speedup evidence.
+
+Commit `75a5ce533c1558ef857d0ff8a472520dfbcf23fe` implements the reference-data repair and adds its six regression cases. The cause is that truncation clears reference rows inserted by migrations, while the shared migrated flag prevents later cases from rebuilding them. Merely exempting those mutable tables from cleanup would let test mutations leak. The repair instead retains committed-state truncation and restores the real post-migration reference rows:
+
+- `Tests\Support\MigrationReferenceData` captures the six populated reference tables only after a worker's complete fresh migration, in foreign-key insertion order. It never constructs a second hardcoded business catalogue. An unclassified populated migration table fails closed for review.
+- The shared test base establishes a fresh snapshot when needed, restores it after truncation and at teardown, and preserves the existing schema-reuse strategy. A worker that already has Laravel's migrated flag but lacks a snapshot performs one fresh migration rather than learning from possibly dirty data.
+- Restoration is transactional, refuses nonempty target tables and open test transactions, preserves exact reference IDs and advances the PostgreSQL entitlement sequence. Test query listeners are suppressed during restoration and restored even on failure.
+- Framework teardown and cache-environment restoration execute even when database cleanup fails. A failed reset invalidates Laravel's migrated flag. The reset remains restricted to the existing worker-isolated default PostgreSQL database.
+
+`tests/Integration/Shared/Testing/MigrationReferenceDataIsolationTest.php` adds six unexecuted regression cases covering initial catalogue/plan availability, exact restoration after mutation/deletion, committed fixture removal, repeated reset/identity behavior, refusal to merge dirty reference rows, event-dispatcher restoration and rollback boundaries. Existing tests and database constraints are not removed or relaxed.
+
+Source-only checks: PHP 8.5 syntax checks and targeted Pint formatting pass; the standalone layout guard reports **284 source test files** (14 Unit, 190 Feature, 53 Integration, 24 Architecture, 3 Frontend), with the extra class explained by the six authored regressions. No PHPUnit discovery, PHPUnit test execution or browser execution was performed in this continuation. Commits use `[skip ci]` to honor the execution hold without weakening permanent CI gates. The repaired reset still requires targeted, mixed-order and full containing execution before it can be accepted.
+
+## Temporary checkout archive removed
+
+The PR-only `pr163-checkout-evidence.yml` forensic workflow is removed after the source, dependency and runtime snapshot was retrieved. Its existing run `34387605857` produced a 318,945,715-byte archive (`10118350344`) and repeated both Composer and npm installation. It did not execute product checks; retaining it would add avoidable setup and archive work on later PR updates. Main CI, domain contracts, JUnit diagnostics, visual checks, security and staging/recovery gates remain intact.
+
 ## Remaining work
 
-The next optimization work must use execution evidence rather than assumption:
+The next validation steps, once the execution hold is lifted, must use runtime evidence rather than treating source checks as a pass:
 
 - run the current layout/discovery guards and reconcile the final PHP/browser inventory;
 - measure the new committed-state reset strategy under the same PHP/PostgreSQL/two-worker conditions as the baseline;

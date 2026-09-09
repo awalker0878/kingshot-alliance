@@ -26,7 +26,7 @@ Those baseline versions and timings are evidence from the recorded baseline; the
 | `tests/Browser` | End-to-end and visual user journeys | Playwright/browser/runtime assets only when a browser is genuinely required |
 | `tests/Fixtures`, `tests/Support`, `tests/TestCase.php` | Shared test infrastructure | Not independent PHPUnit suites |
 
-The standard-layout migration records the exact old-to-new file mapping in `docs/codebase/test-layout-migration.json`. At migration time the 283 PHP test classes were assigned as 10 Unit, 194 Feature, 52 Integration, 24 Architecture and 3 Frontend classes.
+The standard-layout migration records the exact old-to-new file mapping in `docs/codebase/test-layout-migration.json`. At migration time the 283 PHP test classes were assigned as 10 Unit, 194 Feature, 52 Integration, 24 Architecture and 3 Frontend classes. A later source-only pass moves four pure classes to Unit, recorded in [test-pure-bootstrap-migration.json](test-pure-bootstrap-migration.json), and adds one reference-reset regression class. The resulting 284 source files are 14 Unit, 190 Feature, 53 Integration, 24 Architecture and 3 Frontend; execution/discovery reconciliation remains pending.
 
 ## Database reset contracts
 
@@ -38,6 +38,16 @@ Choose database cleanup by the semantics the test must observe, not by whichever
 - Never substitute SQLite or another engine for PostgreSQL where PostgreSQL constraints, locking, transaction or concurrency behavior is under test.
 
 The 2026-09-09 optimization converted all 50 classes that previously used `DatabaseMigrations` only for data cleanup to `DatabaseTruncation`. The 47-class deterministic batch is recorded in `docs/codebase/test-database-reset-migration.json`; the measured first hot spot and two HTTP Feature exceptions were reviewed and converted separately. This is a source-state fact, not a performance or passing-test claim until containing execution is completed.
+
+### Migration-created reference rows
+
+Committed-state tests using `DatabaseTruncation` must extend `Tests\TestCase`. Its shared setup restores migration-created plans, entitlements and event catalogue rows from `Tests\Support\MigrationReferenceData`; teardown restores the same baseline before the next case can start an ordinary rollback transaction. The reference tables are **not** excluded from truncation: their mutations and inserted test rows must be discarded too.
+
+The snapshot is process-local and keyed by the PostgreSQL connection target, including the actual worker database. It is established only after a fresh migration, not from a database with unknown fixture history. The shared setup may perform one additional fresh migration when an earlier transactional test has set Laravel's migrated flag without creating this snapshot. Database fixtures belong in the case's `setUp()` after `parent::setUp()`; all current committed-state classes use only the framework database-reset trait. Do not add fixture-mutating helper-trait setup ahead of baseline capture/restoration.
+
+A future migration that populates an additional table requires explicit review of the reference-table order and identity sequence handling. Snapshot capture rejects an unclassified populated table instead of silently erasing it on later resets. Do not work around that failure by exempting a mutable table, disabling a constraint or capturing test data as the new baseline.
+
+The initial repair and its six regression cases are source-checked only; execution remains required, including mixed `DatabaseTruncation`/`RefreshDatabase` order and the full two-worker suite.
 
 ## Development commands
 
