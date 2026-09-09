@@ -38,6 +38,7 @@ final class CapabilityAcceptanceVisualFixture
             'current_name' => 'Acceptance Marshal',
         ]);
         $allianceId = app(CreateAlliance::class)->handle(
+            (int) $player->user_id,
             (string) $player->id,
             'Acceptance Vanguard',
             'acceptance-vanguard',

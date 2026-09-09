@@ -68,6 +68,7 @@ final class BearHuntDebriefVisualFixture
         ]);
 
         $allianceId = app(CreateAlliance::class)->handle(
+            (int) $actor->user_id,
             (string) $actor->id,
             'Aurora Vanguard',
             'aurora-vanguard',

@@ -74,6 +74,7 @@ final class ScenarioFactory
     {
         $id = ++self::$sequence;
         $allianceId = app(CreateAlliance::class)->handle(
+            $owner->userId ?? throw new RuntimeException('Expected a claimed Alliance owner.'),
             $owner->playerId,
             'V3 Alliance '.$id,
             'v3-alliance-'.$id,

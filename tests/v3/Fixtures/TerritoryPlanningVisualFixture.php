@@ -31,6 +31,7 @@ final class TerritoryPlanningVisualFixture
             'current_name' => 'Map Warden',
         ]);
         $allianceId = app(CreateAlliance::class)->handle(
+            (int) $player->user_id,
             (string) $player->id,
             'Dawn Guard',
             'dawn-guard',

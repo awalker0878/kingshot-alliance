@@ -77,6 +77,7 @@ final class KingdomTransferVisualFixture
         ]);
 
         $allianceId = app(CreateAlliance::class)->handle(
+            (int) $actor->user_id,
             (string) $actor->id,
             'Northern Crown',
             'northern-crown',

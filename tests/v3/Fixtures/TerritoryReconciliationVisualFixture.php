@@ -42,6 +42,7 @@ final class TerritoryReconciliationVisualFixture
             'current_name' => 'Hive Marshal',
         ]);
         $allianceId = app(CreateAlliance::class)->handle(
+            (int) $player->user_id,
             (string) $player->id,
             'Dawn Recon',
             'dawn-recon',

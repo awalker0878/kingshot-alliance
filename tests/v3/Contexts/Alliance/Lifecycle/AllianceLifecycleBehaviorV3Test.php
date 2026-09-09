@@ -35,14 +35,15 @@ final class AllianceLifecycleBehaviorV3Test extends TestCase
         self::assertTrue(OutboxMessage::query()->where('event_type', 'alliance.created')->where('aggregate_id', $alliance->allianceId)->exists());
 
         $this->expectException(ValidationException::class);
-        app(CreateAlliance::class)->handle($player->playerId, 'Second Alliance', 'second-alliance');
+        app(CreateAlliance::class)->handle($user->userId, $player->playerId, 'Second Alliance', 'second-alliance');
     }
 
     public function test_unclaimed_player_cannot_create_alliance(): void
     {
+        $account = (new ScenarioFactory)->account();
         $player = (new ScenarioFactory)->unclaimedPlayer(14002);
 
         $this->expectException(ValidationException::class);
-        app(CreateAlliance::class)->handle($player->playerId, 'Invalid Alliance', 'invalid-alliance');
+        app(CreateAlliance::class)->handle($account->userId, $player->playerId, 'Invalid Alliance', 'invalid-alliance');
     }
 }

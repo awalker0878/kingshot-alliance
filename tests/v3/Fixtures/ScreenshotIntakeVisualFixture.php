@@ -45,6 +45,7 @@ final class ScreenshotIntakeVisualFixture
             'current_name' => 'Report Warden',
         ]);
         $allianceId = app(CreateAlliance::class)->handle(
+            (int) $player->user_id,
             (string) $player->id,
             'Ember Watch',
             'ember-watch',

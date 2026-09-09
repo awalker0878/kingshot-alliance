@@ -48,6 +48,7 @@ final class EventCommandVisualFixture
             'current_name' => 'Command Marshal',
         ]);
         $allianceId = app(CreateAlliance::class)->handle(
+            (int) $player->user_id,
             (string) $player->id,
             'Event Vanguard',
             'event-vanguard',

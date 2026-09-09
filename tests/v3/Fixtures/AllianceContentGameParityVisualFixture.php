@@ -61,6 +61,7 @@ final class AllianceContentGameParityVisualFixture
         ]);
 
         $allianceId = app(CreateAlliance::class)->handle(
+            (int) $actor->user_id,
             (string) $actor->id,
             'Winter Vanguard',
             'winter-vanguard',
@@ -135,6 +136,7 @@ final class AllianceContentGameParityVisualFixture
         ]);
 
         app(CreateAlliance::class)->handle(
+            (int) $actor->user_id,
             (string) $actor->id,
             'Quiet Harbor',
             'quiet-harbor',

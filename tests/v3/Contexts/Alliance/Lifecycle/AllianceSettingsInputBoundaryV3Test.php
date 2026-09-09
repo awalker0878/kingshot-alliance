@@ -45,7 +45,7 @@ final class AllianceSettingsInputBoundaryV3Test extends TestCase
         foreach (['create', 'update'] as $operation) {
             try {
                 if ($operation === 'create') {
-                    app(CreateAlliance::class)->handle($player->playerId, $name, $slug, 'en', $timezone);
+                    app(CreateAlliance::class)->handle((int) $account->id, $player->playerId, $name, $slug, 'en', $timezone);
                 } else {
                     app(UpdateAllianceSettings::class)->handle($alliance->allianceId, $player->playerId, $name, $slug, SupportedAllianceLocale::English, $timezone);
                 }
@@ -64,7 +64,7 @@ final class AllianceSettingsInputBoundaryV3Test extends TestCase
         $player = $factory->player((int) $account->id, 59259);
         $name = str_repeat('N', 120);
         $slug = str_repeat('s', 120);
-        $id = app(CreateAlliance::class)->handle($player->playerId, ' '.$name.' ', $slug, 'fr', 'America/Toronto');
+        $id = app(CreateAlliance::class)->handle((int) $account->id, $player->playerId, ' '.$name.' ', $slug, 'fr', 'America/Toronto');
         $record = Alliance::query()->findOrFail($id);
         self::assertSame($name, $record->name);
         self::assertSame($slug, $record->slug);
@@ -93,7 +93,7 @@ final class AllianceSettingsInputBoundaryV3Test extends TestCase
             self::assertSame($before, $this->state());
         }
         try {
-            app(CreateAlliance::class)->handle($player->playerId, 'New Alliance', 'new-alliance', 'unsupported');
+            app(CreateAlliance::class)->handle((int) $account->id, $player->playerId, 'New Alliance', 'new-alliance', 'unsupported');
             self::fail('Direct creation must use the same supported-language vocabulary.');
         } catch (ValidationException $exception) {
             self::assertArrayHasKey('language', $exception->errors());

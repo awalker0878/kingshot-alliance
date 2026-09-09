@@ -89,7 +89,7 @@ $contracts = [
         'public function player(): PlayerReference',
     ],
     'app/Contexts/Alliance/Lifecycle/Actions/CreateAlliance.php' => [
-        'public function handle(string $ownerPlayerId, string $name, string $slug, string $language = \'en\', string $timezone = \'UTC\'): string',
+        'public function handle(int $actorUserId, string $ownerPlayerId, string $name, string $slug, string $language = \'en\', string $timezone = \'UTC\'): string',
     ],
     'app/Contexts/GameWorld/Governance/Actions/BootstrapKingdomAdministrator.php' => [
         'public function handle(string $kingdomId, string $targetPlayerId): KingdomAdministratorBootstrap',

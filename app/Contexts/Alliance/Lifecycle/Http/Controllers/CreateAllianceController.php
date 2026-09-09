@@ -27,7 +27,7 @@ final class CreateAllianceController extends Controller
             'language' => ['required', Rule::enum(SupportedAllianceLocale::class)],
             'timezone' => ['required', 'string', 'timezone'],
         ]);
-        $createAlliance->handle($player->playerId, $validated['name'], $validated['slug'], $validated['language'], $validated['timezone']);
+        $createAlliance->handle((int) $user->getAuthIdentifier(), $player->playerId, $validated['name'], $validated['slug'], $validated['language'], $validated['timezone']);
 
         return redirect()->route('alliance.overview');
     }

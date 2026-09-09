@@ -12,6 +12,7 @@ use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Lifecycle\ValueObjects\AllianceSettingsInput;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -38,14 +39,6 @@ final readonly class UpdateAllianceSettings
             $context = $this->writeState->lockExclusiveScope($actorPlayerId, $allianceId);
             $this->authorization->authorizeContext($context, AlliancePermission::Manage);
 
-            if (Alliance::query()
-                ->where('slug', $settings->slug)
-                ->where('id', '<>', (string) $context->alliance->id)
-                ->lockForUpdate()
-                ->exists()) {
-                throw ValidationException::withMessages(['slug' => 'This Alliance URL name is already in use.']);
-            }
-
             $before = [
                 'name' => (string) $context->alliance->name,
                 'slug' => (string) $context->alliance->slug,
@@ -58,7 +51,14 @@ final readonly class UpdateAllianceSettings
                 return (string) $context->alliance->id;
             }
 
-            $context->alliance->forceFill($after)->save();
+            try {
+                DB::transaction(static fn (): bool => $context->alliance->forceFill($after)->save());
+            } catch (UniqueConstraintViolationException $exception) {
+                if (! Alliance::query()->where('slug', $settings->slug)->where('id', '<>', (string) $context->alliance->id)->exists()) {
+                    throw $exception;
+                }
+                throw ValidationException::withMessages(['slug' => 'This Alliance URL name is already in use.']);
+            }
             $changes = [];
             foreach ($after as $key => $value) {
                 if ($before[$key] !== $value) {
