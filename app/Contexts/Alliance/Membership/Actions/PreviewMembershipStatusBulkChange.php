@@ -27,7 +27,7 @@ final readonly class PreviewMembershipStatusBulkChange
     ) {}
 
     /**
-     * @param  non-empty-list<string>  $membershipIds
+     * @param  list<string>  $membershipIds
      * @return array{
      *   targetStatus: string,
      *   items: non-empty-list<array{itemId: string, label: string, fromStatus: string|null, outcome: string, code: string}>,
@@ -42,6 +42,10 @@ final readonly class PreviewMembershipStatusBulkChange
         array $membershipIds,
         MembershipStatus $target,
     ): array {
+        $membershipIds = array_values(array_unique($membershipIds));
+        if ($membershipIds === [] || count($membershipIds) > 50) {
+            throw ValidationException::withMessages(['membership_ids' => 'Select between 1 and 50 Alliance memberships.']);
+        }
         if (! in_array($target, [MembershipStatus::Active, MembershipStatus::Suspended, MembershipStatus::Removed], true)) {
             throw ValidationException::withMessages([
                 'status' => 'This membership state is not available through administration.',

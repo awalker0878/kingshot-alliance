@@ -10,6 +10,7 @@ use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Http\BulkActionResult;
 use App\Shared\Infrastructure\Http\BulkItemResult;
 use Carbon\CarbonImmutable;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
 
@@ -22,7 +23,7 @@ final readonly class BulkChangeRecruitmentStage
         private AuditRecorder $audit,
     ) {}
 
-    /** @param non-empty-list<string> $candidateIds */
+    /** @param list<string> $candidateIds */
     public function handle(
         string $actorPlayerId,
         string $allianceId,
@@ -62,6 +63,8 @@ final readonly class BulkChangeRecruitmentStage
                     $item['label'],
                     'candidate-unavailable',
                 );
+            } catch (AuthorizationException) {
+                $items[] = BulkItemResult::failed($item['itemId'], $item['label'], 'permission-denied');
             } catch (ValidationException $exception) {
                 $items[] = BulkItemResult::failed(
                     $item['itemId'],
@@ -83,7 +86,7 @@ final readonly class BulkChangeRecruitmentStage
             $allianceId,
             [
                 'target_stage' => $target->value,
-                'candidate_ids' => $candidateIds,
+                'candidate_ids' => array_column($preview['items'], 'itemId'),
                 'succeeded' => $payload['succeeded'],
                 'failed' => $payload['failed'],
                 'skipped' => $payload['skipped'],

@@ -58,6 +58,7 @@ const messages = {
     failedItemsSelected:
       'Candidates that could not be updated remain selected so you can review them.',
     bulkOutcome: {
+      'permission-denied': 'Permission denied',
       ready: 'Ready',
       'candidate-unavailable': 'Unavailable',
       'already-in-target-stage': 'Already in stage',

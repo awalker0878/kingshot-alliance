@@ -22,7 +22,7 @@ final readonly class BulkChangeMembershipStatus
         private AuditRecorder $audit,
     ) {}
 
-    /** @param non-empty-list<string> $membershipIds */
+    /** @param list<string> $membershipIds */
     public function handle(
         string $actorPlayerId,
         string $allianceId,
@@ -71,7 +71,7 @@ final readonly class BulkChangeMembershipStatus
             $allianceId,
             [
                 'target_status' => $target->value,
-                'membership_ids' => $membershipIds,
+                'membership_ids' => array_column($preview['items'], 'itemId'),
                 'succeeded' => $payload['succeeded'],
                 'failed' => $payload['failed'],
                 'skipped' => $payload['skipped'],

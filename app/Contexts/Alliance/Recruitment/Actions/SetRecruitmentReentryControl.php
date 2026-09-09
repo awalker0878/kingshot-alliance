@@ -51,7 +51,9 @@ final readonly class SetRecruitmentReentryControl
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            if ($candidate->merged_into_id !== null || $candidate->anonymized_at !== null) {
+            $candidate->ensureNotAnonymized();
+
+            if ($candidate->merged_into_id !== null) {
                 throw ValidationException::withMessages(['candidate' => 'This recruitment record cannot receive a re-entry control.']);
             }
 

@@ -45,6 +45,8 @@ final class TagRecruitmentCandidate
                 ->sharedLock()
                 ->firstOrFail();
 
+            $currentCandidate->ensureNotAnonymized();
+
             if ($currentCandidate->merged_into_id !== null) {
                 throw ValidationException::withMessages([
                     'candidate' => 'Tags must be changed on the current merged candidate record.',

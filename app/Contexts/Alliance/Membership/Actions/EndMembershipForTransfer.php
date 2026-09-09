@@ -27,7 +27,7 @@ final readonly class EndMembershipForTransfer
     public function handle(string $allianceId, string $actorPlayerId, string $targetPlayerId): void
     {
         DB::transaction(function () use ($allianceId, $actorPlayerId, $targetPlayerId): void {
-            $context = $this->writeState->lockActiveScope($actorPlayerId, $allianceId);
+            $context = $this->writeState->lockExclusiveScope($actorPlayerId, $allianceId);
             $this->authorization->authorizeContext($context, AlliancePermission::MembershipManage);
             $membership = AllianceMembership::query()
                 ->where('alliance_id', $allianceId)

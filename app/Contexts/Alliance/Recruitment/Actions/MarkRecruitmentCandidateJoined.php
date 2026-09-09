@@ -51,6 +51,7 @@ final class MarkRecruitmentCandidateJoined
                 ->where('alliance_id', $alliance->id)
                 ->where('membership_invitation_id', $invitationId)
                 ->whereNull('merged_into_id')
+                ->whereNull('anonymized_at')
                 ->lockForUpdate()
                 ->first();
 

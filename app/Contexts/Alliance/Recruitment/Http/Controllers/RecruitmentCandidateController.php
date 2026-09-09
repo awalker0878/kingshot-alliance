@@ -459,6 +459,7 @@ final class RecruitmentCandidateController extends Controller
     {
         return RecruitmentCandidate::query()
             ->where('alliance_id', $allianceId)
+            ->whereNull('anonymized_at')
             ->whereKey($candidate)
             ->firstOrFail();
     }

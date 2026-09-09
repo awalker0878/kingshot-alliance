@@ -34,6 +34,10 @@ final class ChangeRecruitmentStage
         ?string $reason = null,
         ?CarbonImmutable $nextActionAt = null,
     ): string {
+        if ($target === RecruitmentStage::Joined) {
+            throw ValidationException::withMessages(['stage' => 'Joined is recorded when the candidate accepts the Alliance invitation.']);
+        }
+
         return DB::transaction(function () use ($actorPlayerId, $allianceId, $candidateId, $target, $reason, $nextActionAt): string {
             $context = $this->allianceWriteState->lockActiveScope($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, AlliancePermission::RecruitmentManage);
@@ -43,6 +47,8 @@ final class ChangeRecruitmentStage
                 ->whereKey($candidateId)
                 ->lockForUpdate()
                 ->firstOrFail();
+
+            $locked->ensureNotAnonymized();
 
             if ($locked->merged_into_id !== null) {
                 throw ValidationException::withMessages([
@@ -58,12 +64,6 @@ final class ChangeRecruitmentStage
             if (! $from->canTransitionTo($target)) {
                 throw ValidationException::withMessages([
                     'stage' => sprintf('A candidate cannot move directly from %s to %s.', $from->value, $target->value),
-                ]);
-            }
-
-            if ($target === RecruitmentStage::Joined && $locked->membership_invitation_id === null) {
-                throw ValidationException::withMessages([
-                    'stage' => 'A candidate must be converted to an alliance invitation before being marked joined.',
                 ]);
             }
 

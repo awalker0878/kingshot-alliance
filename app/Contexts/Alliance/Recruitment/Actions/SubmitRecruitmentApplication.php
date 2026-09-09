@@ -17,8 +17,10 @@ use App\Contexts\Alliance\Recruitment\Models\RecruitmentQuestion;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentSetting;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentStageHistory;
 use App\Contexts\Alliance\Recruitment\Services\RecruitmentApplicationTokenService;
+use App\Contexts\GameWorld\Kingdoms\Queries\KingdomReferenceQuery;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -29,6 +31,7 @@ final class SubmitRecruitmentApplication
     public function __construct(
         private RecruitmentApplicationTokenService $tokens,
         private AccountIdentityQuery $accounts,
+        private KingdomReferenceQuery $kingdoms,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -65,6 +68,10 @@ final class SubmitRecruitmentApplication
             $applicationToken,
             $applicantUserId,
         ): string {
+            $currentApplicant = $applicantUserId === null
+                ? null
+                : $this->accounts->lockActive($applicantUserId);
+
             // Public submission has no game-domain actor. Use the Alliance only as a
             // lifecycle barrier; Recruitment's singleton settings row is the natural
             // exclusive intake/policy anchor and serializes duplicate-email decisions.
@@ -79,6 +86,12 @@ final class SubmitRecruitmentApplication
                 ]);
             }
 
+            try {
+                $this->kingdoms->lockActiveShared((string) $currentAlliance->kingdom_id);
+            } catch (ModelNotFoundException) {
+                throw ValidationException::withMessages(['application' => 'Recruitment applications are unavailable while the Kingdom is not active.']);
+            }
+
             $settings = RecruitmentSetting::query()
                 ->where('alliance_id', $currentAlliance->id)
                 ->lockForUpdate()
@@ -89,10 +102,6 @@ final class SubmitRecruitmentApplication
                 || $settings->application_mode === RecruitmentApplicationMode::Closed) {
                 throw ValidationException::withMessages(['application' => 'Recruitment applications are currently closed.']);
             }
-
-            $currentApplicant = $applicantUserId === null
-                ? null
-                : $this->accounts->require($applicantUserId);
 
             if ($currentApplicant !== null && Str::lower($currentApplicant->email) !== $normalizedEmail) {
                 throw ValidationException::withMessages(['email' => 'Use the email address associated with your account.']);

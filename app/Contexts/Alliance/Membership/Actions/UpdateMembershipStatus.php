@@ -40,9 +40,7 @@ final readonly class UpdateMembershipStatus
         }
 
         return DB::transaction(function () use ($allianceId, $actorPlayerId, $membershipId, $status): string {
-            $context = $status === MembershipStatus::Active
-                ? $this->allianceWriteState->lockExclusiveScope($actorPlayerId, $allianceId)
-                : $this->allianceWriteState->lockActiveScope($actorPlayerId, $allianceId);
+            $context = $this->allianceWriteState->lockExclusiveScope($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, AlliancePermission::MembershipManage);
 
             $membership = AllianceMembership::query()

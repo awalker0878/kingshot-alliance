@@ -2,6 +2,9 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   recruitment: {
+    bulkOutcome: {
+      'permission-denied': 'Izin ditolak',
+    },
     eyebrow: 'Rekrutmen aliansi',
     title: 'Rekrutmen',
     candidates: 'Kandidat',

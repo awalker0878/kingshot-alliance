@@ -41,3 +41,17 @@ Application links may attach one of the bounded sources `recruitment-board`, `al
 Recruitment does not create a parallel membership model. Once membership is created, `Alliance/Membership` is the authoritative Alliance relationship. Cross-Alliance discovery remains read-only; applications still enter through the Recruitment-owned intake action.
 
 Bulk stage triage accepts at most 50 concrete candidate IDs. Preview authorization and transition checks are repeated by owner actions at commit time. Eligible candidates proceed independently, blocked or stale candidates receive stable result codes, and an aggregate audit receipt complements each successful candidate's stage-history, audit, and outbox evidence. The `joined` transition remains outside bulk triage because it requires the controlled Membership invitation handoff.
+
+## Current lifecycle and write ordering
+
+Public intake stabilizes optional active account identity before Alliance, active Kingdom and current Recruitment settings. Account email, invitation consumption, required answers and candidate/history/delivery records share the owning transaction. Anonymous intake remains supported.
+
+Anonymized candidates are terminal. All candidate mutation owners validate this invariant under the candidate lock, both merge inputs are checked, and management detail and duplicate projections exclude terminal rows. Event-driven joined projection ignores terminal candidates. No global query scope conceals historical records from retention owners.
+
+Communication/onboarding updates discover routing, lock the current scoped candidate, then lock and revalidate the child binding. Retention uses the same candidate-before-child order. Reviewer assignment takes exclusive Alliance scope before actor and target memberships. [ADR-0035](../../adr/0035-current-recruitment-lifecycle-and-target-authority.md) records these boundaries.
+
+Bulk preview and execution enforce one to fifty distinct IDs at the owner boundary. Repeated IDs yield one outcome and one canonical audit selection; current authorization and per-candidate independent commits are retained.
+
+Joined is recorded by the existing `invitation.accepted` projection after matching the candidate's current Accepted stage and captured Player. Manual and bulk owner entrypoints reject Joined even when a pending invitation exists. Delayed events do not reopen Declined, Withdrawn or anonymized candidates, and replay does not duplicate history or delivery.
+
+If current recruiter permission is revoked during bulk execution, each remaining actionable candidate receives a permission-denied failure. Earlier committed changes and the aggregate receipt remain visible; selective retry uses only failed candidate IDs after authority is restored.

@@ -38,3 +38,5 @@ Architecture decision records explain material changes to ownership, boundaries,
 - [ADR-0032: Withdrawn account audit-reference lock change](0032-account-lifecycle-locks-and-audit-references.md)
 - [ADR-0033: Stabilize transfer Kingdom scope before Player handoff](0033-transfer-kingdom-and-player-lock-order.md)
 - [ADR-0034: Enforce stable Player identity and registration on current owner facts](0034-current-stable-player-identity-and-registration.md)
+
+- [ADR-0035: Current Recruitment lifecycle and protected target authority](0035-current-recruitment-lifecycle-and-target-authority.md)

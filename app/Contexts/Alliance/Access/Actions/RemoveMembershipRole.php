@@ -25,7 +25,7 @@ final readonly class RemoveMembershipRole
     public function handle(string $allianceId, string $actorPlayerId, string $membershipId, string $roleId): string
     {
         return DB::transaction(function () use ($allianceId, $actorPlayerId, $membershipId, $roleId): string {
-            $context = $this->allianceWriteState->lockActiveScope($actorPlayerId, $allianceId);
+            $context = $this->allianceWriteState->lockExclusiveScope($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, AlliancePermission::RoleManage);
 
             $membership = AllianceMembership::query()->whereKey($membershipId)->where('alliance_id', $context->alliance->id)->lockForUpdate()->firstOrFail();

@@ -13,7 +13,7 @@ final class RecruitmentDuplicateFinder
     /** @return Collection<int, RecruitmentCandidate> */
     public function forCandidate(string $allianceId, RecruitmentCandidate $candidate): Collection
     {
-        if ((string) $candidate->alliance_id !== $allianceId) {
+        if ((string) $candidate->alliance_id !== $allianceId || $candidate->anonymized_at !== null) {
             return new Collection;
         }
 
@@ -26,6 +26,7 @@ final class RecruitmentDuplicateFinder
             ->where('alliance_id', $allianceId)
             ->where('id', '!=', $candidate->id)
             ->whereNull('merged_into_id')
+            ->whereNull('anonymized_at')
             ->where(function ($query) use ($email, $contactHandle): void {
                 $query->whereRaw('LOWER(email) = ?', [$email]);
 

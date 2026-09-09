@@ -53,6 +53,8 @@ final class ConvertAcceptedRecruitmentCandidate
                 ->lockForUpdate()
                 ->firstOrFail();
 
+            $locked->ensureNotAnonymized();
+
             if ($locked->merged_into_id !== null) {
                 throw ValidationException::withMessages(['candidate' => 'A merged recruitment record cannot be converted.']);
             }
