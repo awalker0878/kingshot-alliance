@@ -8,14 +8,14 @@ use App\Contexts\Accounts\Identity\Models\User;
 use Illuminate\Cache\ArrayStore;
 use Illuminate\Cache\RateLimiter as LaravelRateLimiter;
 use Illuminate\Cache\Repository;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
 use Tests\TestCase;
 
 final class PasswordProofThrottleV3Test extends TestCase
 {
-    use DatabaseMigrations;
+    use DatabaseTruncation;
 
     public function test_confirmation_and_password_changes_share_a_per_account_attempt_budget(): void
     {
