@@ -44,7 +44,9 @@ jobs:
         uses: ./.github/actions/composer-package-cache
 
       - name: Install PHP dependencies
-        run: composer install --no-interaction --no-progress --prefer-dist
+        # The next step generates the autoloader and runs package discovery once.
+        # Keep scripts enabled and retain the strict PSR-4 failure exit code.
+        run: composer install --no-interaction --no-progress --prefer-dist --no-autoloader
 
       - name: Validate optimized PSR-4 autoload
         run: composer dump-autoload --optimize --strict-psr
