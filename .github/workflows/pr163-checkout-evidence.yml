@@ -1,0 +1,35 @@
+name: PR 163 checkout evidence
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/pr163-checkout-evidence.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  checkout-evidence:
+    if: github.event.pull_request.number == 163 && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'astra/codebase-hardening'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Archive tracked source and provenance
+        shell: bash
+        run: |
+          set -euo pipefail
+          git archive --format=tar.gz HEAD > "$RUNNER_TEMP/pr163-source.tar.gz"
+          git rev-parse HEAD > "$RUNNER_TEMP/pr163-source.sha"
+          git ls-tree -r HEAD > "$RUNNER_TEMP/pr163-source-tree.txt"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pr163-checkout-evidence
+          retention-days: 1
+          if-no-files-found: error
+          path: |
+            ${{ runner.temp }}/pr163-source.tar.gz
+            ${{ runner.temp }}/pr163-source.sha
+            ${{ runner.temp }}/pr163-source-tree.txt
