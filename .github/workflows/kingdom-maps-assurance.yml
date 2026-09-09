@@ -10,8 +10,8 @@ on:
       - 'bootstrap/providers.php'
       - 'resources/data/kingdom-maps/**'
       - 'resources/js/features/territory-planner/engine/**'
-      - 'tests/v3/Contexts/GameWorld/KingdomMaps/**'
-      - 'tests/v3/Fixtures/territory-geometry.json'
+      - 'tests/Feature/Contexts/GameWorld/KingdomMaps/**'
+      - 'tests/Fixtures/territory-geometry.json'
       - 'scripts/check-territory-geometry-parity.mjs'
       - '.github/workflows/kingdom-maps-assurance.yml'
   push:
@@ -21,8 +21,8 @@ on:
       - 'app/Contexts/GameWorld/KingdomMaps/**'
       - 'resources/data/kingdom-maps/**'
       - 'resources/js/features/territory-planner/engine/**'
-      - 'tests/v3/Contexts/GameWorld/KingdomMaps/**'
-      - 'tests/v3/Fixtures/territory-geometry.json'
+      - 'tests/Feature/Contexts/GameWorld/KingdomMaps/**'
+      - 'tests/Fixtures/territory-geometry.json'
       - 'scripts/check-territory-geometry-parity.mjs'
       - '.github/workflows/kingdom-maps-assurance.yml'
   workflow_dispatch:
@@ -76,7 +76,7 @@ jobs:
         run: php artisan kingdom-maps:list
 
       - name: Run KingdomMaps PHP tests
-        run: php artisan test tests/v3/Contexts/GameWorld/KingdomMaps
+        run: php artisan test tests/Feature/Contexts/GameWorld/KingdomMaps
 
       - name: Configure Node.js
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0

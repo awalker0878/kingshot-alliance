@@ -12,7 +12,7 @@ on:
       - 'resources/js/localization/gift-code-workspace-labels.ts'
       - 'routes/api.php'
       - 'routes/gift-codes.php'
-      - 'tests/v3/Contexts/GameWorld/GiftCodes/**'
+      - 'tests/Feature/Contexts/GameWorld/GiftCodes/**'
       - '.github/workflows/gift-code-verification.yml'
   workflow_dispatch:
 
@@ -80,7 +80,7 @@ jobs:
           app/ReadModels/GiftCodes
           config/game_world.php
           routes/gift-codes.php
-          tests/v3/Contexts/GameWorld/GiftCodes
+          tests/Feature/Contexts/GameWorld/GiftCodes
 
       - name: Larastan Gift Code contracts
         run: >-
@@ -92,7 +92,7 @@ jobs:
       - name: Gift Code V3 backend tests
         run: >-
           vendor/bin/phpunit --configuration phpunit.xml
-          tests/v3/Contexts/GameWorld/GiftCodes
+          tests/Feature/Contexts/GameWorld/GiftCodes
 
   frontend:
     name: Gift Code frontend contracts

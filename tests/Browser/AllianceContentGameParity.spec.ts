@@ -30,7 +30,7 @@ test.beforeAll(() => {
     [
       'artisan',
       'tinker',
-      '--execute=\\Tests\\v3\\Fixtures\\AllianceContentGameParityVisualFixture::seed();',
+      '--execute=\\Tests\\Fixtures\\AllianceContentGameParityVisualFixture::seed();',
     ],
     { stdio: 'inherit' },
   );

@@ -74,6 +74,7 @@
             "@php artisan test"
         ],
         "check": [
+            "@php scripts/verify-test-layout.php",
             "@lint:check",
             "@types:check",
             "@test:parallel"

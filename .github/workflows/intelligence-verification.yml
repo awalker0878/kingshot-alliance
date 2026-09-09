@@ -14,7 +14,7 @@ on:
       - 'resources/js/pages/Intelligence/Contributions/History.vue'
       - 'routes/event-history.php'
       - 'routes/contributions.php'
-      - 'tests/v3/**'
+      - 'tests/**'
       - '.github/workflows/intelligence-verification.yml'
   workflow_dispatch:
 
@@ -122,10 +122,13 @@ jobs:
           vendor/bin/phpunit --configuration phpunit.xml \
             --fail-on-empty-test-suite \
             --log-junit "${RUNNER_TEMP}/intelligence-v3-junit.xml" \
-            tests/v3/Contexts/Intelligence \
-            tests/v3/ReadModels/EventAnalysis \
-            tests/v3/ReadModels/KingdomIntelligence \
-            tests/v3/ReadModels/IntelligenceSignals \
+            tests/Architecture/Contexts/Intelligence \
+            tests/Feature/Contexts/Intelligence \
+            tests/Integration/Contexts/Intelligence \
+            tests/Unit/Contexts/Intelligence \
+            tests/Feature/ReadModels/EventAnalysis \
+            tests/Feature/ReadModels/KingdomIntelligence \
+            tests/Feature/ReadModels/IntelligenceSignals \
             2>&1 | tee "${RUNNER_TEMP}/intelligence-v3-behavior.log"
           status=${PIPESTATUS[0]}
           set -e
