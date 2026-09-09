@@ -5,16 +5,16 @@
 - Program state: In progress.
 - Exact main baseline: `7e780521295e868005ecfee5bd38b33e8215ec49`.
 - Working branch: `astra/codebase-hardening`.
-- Latest pushed durable checkpoint: `db969f2372be221c10c2b69213333fed2664064f`.
+- Latest pushed durable checkpoint: `f3f4cc7e87de70a521d009dd3072548bd6abba2d`.
 - Draft PR: [#163](https://github.com/awalker0878/kingshot-alliance/pull/163).
-- Current item/state: HARD-091/092 / In progress; private-retention clearing/redaction and current governance Recruitment visibility are implemented with thirteen new cases. HARD-087 also corrects the composed communication summary to count in SQL and load only its latest record. The db969f23 PHP gate completed with six failures; the communication hydration fix and current-context HTTP test correction address all six.
+- Current item/state: HARD-094 / In progress; member history now filters supported target facts in SQL before bounded timestamp/ID paging, checks current viewer and target scope, and supplies HTTP/profile consumers. Twelve PHP and two browser cases are authored; full local frontend checks pass. Containing PHP/browser execution remains required.
 - Most recently verified gates: all nine PR workflows pass on `abda37b1b3093c8cde37026eb19fccc8b9d097eb`, including 1,267 PHP tests / 80,498 assertions in parallel PHP and both complete serial suites, fresh PostgreSQL, frontend, container/staging/recovery, all fifty visual cases and security/capabilities.
-- Active files: Recruitment retention and AuditRecorder, governance timeline/HTTP/Assistant authority, thirteen privacy cases, composed communication summary/history regression, ADR-0037/0038 and current contracts.
+- Active files: shared governance read access, member-history query/controllers, fresh audit indexes, member/profile pages and localized preview, twelve PHP cases, two browser cases and fixture, ADR-0039 and acceptance contract.
 - Current CI result: All nine workflows pass on abda37b1. Parallel PHP job 102348335586 passes 1,267 tests / 80,498 assertions in 20:28 plus Pint (1,929 files), PHPStan and fresh schema. Architecture job 102348335670 passes static 63 / 69,236 and full 1,267 / 80,498 in 40:16; Intelligence job 102348335749 passes full 1,267 / 80,498 in 41:31. Container/staging/recovery job 102352927089 passes. The following 4de40440 static-analysis failure is fixed on 0709f9bc. That PHP job passes Pint (1,935 files), PHPStan and fresh schema, and executes 1,349 tests / 80,893 assertions in 16:40; five new intake cases fail due to fixture/exception-contract errors, corrected in the current slice.
 - Remaining current work: Verify the newer Membership/Recruitment and candidate-history changes; continue Recruitment collection/input bounds and the remaining capability-by-capability repository audit.
 - Known failures: db969f23 PHP job 102362936452 passes Pint (1,940 files), PHPStan, fresh schema and executes 1,381 tests / 81,261 assertions in 23:26. Six failures remain: five HTTP text-boundary cases omit the required current-context version and receive 409 before validation, and communications hydrate 76 models against the 27 budget because of the composed latest-50 summary. The HTTP cases now issue the real current version, and the summary counts in SQL plus loads one model. Earlier intake fixture corrections and all other history/text cases pass. All 52 visual cases and frontend pass; serial suites still run.
 - Blockers: local PHP/Composer/PostgreSQL are unavailable. Ordinary apt setup was denied by workspace setgroups/setuid permissions and was stopped without changing those restrictions. Use the authorized GitHub job-log reader and existing PostgreSQL-backed CI for executable verification. Local git write transport lacks credentials; publish atomic trees/commits through the configured GitHub connector, checking exact tree equality and non-forced branch updates. The checkout tracks the latest remote checkpoint; older equivalent local commits remain preserved on scratch/local-checkpoints-9e16952f.
-- Exact next action: Publish privacy and current gate corrections; finish the underway HARD-094 member-history query, continuation and regression coverage, then HARD-088/090/093 and the remaining capability audit.
+- Exact next action: Publish HARD-094, verify containing PHP/browser gates and review the changed profile preview fingerprint; continue HARD-088/090/093 and the remaining capability audit.
 - Remaining repository-wide gates: final full PHP/architecture/capability and frontend gates on one containing commit; production image/staging/recovery; final security/dependency/visual checks; remaining capability-by-capability audit coverage below.
 
 Checkpoint SHAs are recorded by the following documentation commit; verify that the recorded checkpoint is an ancestor of current branch HEAD. No audit area is complete solely because its paths have been inventoried.
@@ -1342,11 +1342,11 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Current owner: AllianceGovernance Membership history projection.
 - Intended authoritative owner: Scoped Player-history query with bounded visible continuation.
 - Rationale: Bounded materialization must preserve the user's requested subject and history reachability.
-- Remediation: Apply supported Player metadata predicates in SQL before limits, reconcile indexes and scoped cursors, and preserve HTTP/Assistant consumers with a single response contract.
-- State: Planned.
+- Remediation: Apply supported Player metadata predicates in SQL before limits, reconcile indexes and scoped cursors, and migrate the HTTP page and Member Capability Profile preview to the same authorized PageSlice contract.
+- State: In progress.
 - Verification required: More than 500 unrelated entries, multiple Player reference keys, deterministic ties, complete scoped continuation and current governance authority.
-- Verification result: Current limit/filter ordering traced; implementation pending.
-- Completion evidence: pending.
+- Verification result: SQL target filtering, stable scoped continuation, current read admission and target relationship guard are implemented. Twelve PHP cases cover five keys, large unrelated history, tied/deleted/new boundaries, wrong scopes, revocation and HTTP/profile consumers; two browser cases cover complete navigation. Full local frontend checks and 255 documentation-link checks pass. Containing PHP and browser gates remain pending.
+- Completion evidence: MembershipHistoryPaginationV3Test, MembershipHistoryPagination.spec.ts, extended RecruitmentHistoryVisualFixture and ADR-0039.
 - Commit SHA: pending.
 
 ## Repository audit coverage

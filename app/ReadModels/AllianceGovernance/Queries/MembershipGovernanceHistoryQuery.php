@@ -4,8 +4,15 @@ declare(strict_types=1);
 
 namespace App\ReadModels\AllianceGovernance\Queries;
 
+use App\Contexts\Alliance\Membership\Models\AllianceMembership;
+use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
 use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
+use App\ReadModels\AllianceGovernance\Services\GovernanceHistoryAccess;
 use App\Shared\Infrastructure\AuditTrail\Models\AuditEvent;
+use App\Shared\Infrastructure\Pagination\PageSlice;
+use App\Shared\Infrastructure\Pagination\ScopedCursorCodec;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Validation\ValidationException;
 
 final readonly class MembershipGovernanceHistoryQuery
 {
@@ -20,20 +27,61 @@ final readonly class MembershipGovernanceHistoryQuery
         'alliance.leadership_transferred',
     ];
 
-    public function __construct(private PlayerReferenceQuery $players) {}
+    private const PLAYER_KEYS = [
+        'player_id',
+        'target_player_id',
+        'owner_player_id',
+        'previous_r5_player_id',
+        'new_r5_player_id',
+    ];
 
-    /** @return list<array<string,mixed>> */
-    public function forPlayer(string $allianceId, string $playerId, int $limit = 100): array
+    public function __construct(
+        private PlayerReferenceQuery $players,
+        private GovernanceHistoryAccess $access,
+        private ScopedCursorCodec $cursors,
+    ) {}
+
+    /** @return PageSlice<array<string,mixed>> */
+    public function forPlayer(string $viewerPlayerId, string $allianceId, string $playerId, ?string $cursor = null, int $limit = 50): PageSlice
     {
-        $rows = AuditEvent::query()
+        $this->access->authorize($viewerPlayerId, $allianceId);
+        $limit = max(1, min(100, $limit));
+        $scope = 'membership-governance|'.$allianceId.'|'.$playerId;
+        $query = AuditEvent::query()
             ->where('alliance_id', $allianceId)
             ->whereIn('event', self::EVENTS)
-            ->latest('created_at')
-            ->limit(500)
-            ->get()
-            ->filter(fn (AuditEvent $event): bool => $this->touchesPlayer($event, $playerId))
-            ->take(max(1, min(100, $limit)))
-            ->values();
+            ->where(static function (Builder $targets) use ($playerId): void {
+                foreach (self::PLAYER_KEYS as $key) {
+                    $targets->orWhereRaw("metadata->>'{$key}' = ?", [$playerId]);
+                }
+            });
+        // A current or former member/roster entry, or an explicit owner history
+        // fact, establishes the target's relationship to this Alliance.
+        abort_unless(
+            AllianceMembership::query()->where('alliance_id', $allianceId)->where('player_id', $playerId)->exists()
+                || AllianceRosterEntry::query()->where('alliance_id', $allianceId)->where('player_id', $playerId)->exists()
+                || (clone $query)->exists(),
+            404,
+        );
+        if ($cursor !== null && $cursor !== '') {
+            $position = $this->cursors->decode($cursor, $scope);
+            $at = $position['at'] ?? null;
+            $id = $position['id'] ?? null;
+            if (! is_string($at) || ! is_string($id)) {
+                throw ValidationException::withMessages(['cursor' => 'The member history cursor is incomplete.']);
+            }
+            $query->where(static function (Builder $row) use ($at, $id): void {
+                $row->where('created_at', '<', $at)->orWhere(static function (Builder $tie) use ($at, $id): void {
+                    $tie->where('created_at', $at)->where('id', '<', $id);
+                });
+            });
+        }
+        $found = $query->orderByDesc('created_at')->orderByDesc('id')->limit($limit + 1)->get();
+        $rows = $found->take($limit)->values();
+        $last = $rows->last();
+        $nextCursor = $found->count() > $limit && $last instanceof AuditEvent
+            ? $this->cursors->encode($scope, ['at' => (string) $last->getRawOriginal('created_at'), 'id' => (string) $last->id])
+            : null;
 
         $actorIds = $rows->pluck('actor_player_id')
             ->filter()
@@ -43,7 +91,7 @@ final readonly class MembershipGovernanceHistoryQuery
             ->all();
         $actorRefs = $this->players->byIds($actorIds);
 
-        return array_values($rows->map(static function (AuditEvent $event) use ($actorRefs): array {
+        $items = array_values($rows->map(static function (AuditEvent $event) use ($actorRefs): array {
             $actorId = $event->actor_player_id;
             $actor = $actorId === null ? null : ($actorRefs[$actorId] ?? null);
 
@@ -59,23 +107,7 @@ final readonly class MembershipGovernanceHistoryQuery
                 'source' => 'audit',
             ];
         })->all());
-    }
 
-    private function touchesPlayer(AuditEvent $event, string $playerId): bool
-    {
-        $metadata = $event->metadata;
-        foreach ([
-            'player_id',
-            'target_player_id',
-            'owner_player_id',
-            'previous_r5_player_id',
-            'new_r5_player_id',
-        ] as $key) {
-            if (isset($metadata[$key]) && (string) $metadata[$key] === $playerId) {
-                return true;
-            }
-        }
-
-        return false;
+        return new PageSlice($items, $nextCursor, $limit, $cursor === null || $cursor === '');
     }
 }

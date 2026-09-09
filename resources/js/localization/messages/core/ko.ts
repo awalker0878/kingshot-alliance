@@ -2,6 +2,7 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   common: {
+    historyItemsOnPage: '이 페이지에 {count}개 기록(최대 {pageSize}개).',
     all: '전체',
     language: '언어',
     signIn: '로그인',

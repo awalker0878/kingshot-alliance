@@ -2,6 +2,7 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   common: {
+    historyItemsOnPage: 'Bu sayfada {count} kayıt (en fazla {pageSize}).',
     all: 'Tümü',
     language: 'Dil',
     signIn: 'Giriş yap',

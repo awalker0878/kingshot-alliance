@@ -2,6 +2,7 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   common: {
+    historyItemsOnPage: '{count} bản ghi trên trang này (tối đa {pageSize}).',
     all: 'Tất cả',
     language: 'Ngôn ngữ',
     signIn: 'Đăng nhập',

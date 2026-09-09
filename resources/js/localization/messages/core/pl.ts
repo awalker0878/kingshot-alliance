@@ -2,6 +2,7 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   common: {
+    historyItemsOnPage: '{count} rekordów na tej stronie (maksymalnie {pageSize}).',
     all: 'Wszystkie',
     language: 'Język',
     signIn: 'Zaloguj się',

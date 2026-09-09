@@ -2,6 +2,7 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   common: {
+    historyItemsOnPage: 'このページに{count}件（最大{pageSize}件）。',
     all: 'すべて',
     language: '言語',
     signIn: 'サインイン',

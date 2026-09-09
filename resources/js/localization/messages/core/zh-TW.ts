@@ -2,6 +2,7 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   common: {
+    historyItemsOnPage: '此頁有 {count} 筆記錄（最多 {pageSize} 筆）。',
     all: '全部',
     language: '語言',
     signIn: '登入',

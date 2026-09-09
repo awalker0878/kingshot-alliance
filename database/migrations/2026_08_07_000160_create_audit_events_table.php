@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -28,7 +29,9 @@ return new class extends Migration
             $table->index(['actor_player_id', 'created_at']);
             $table->index(['actor_user_id', 'created_at']);
         });
-
+        foreach (['player_id', 'target_player_id', 'owner_player_id', 'previous_r5_player_id', 'new_r5_player_id'] as $key) {
+            DB::statement("CREATE INDEX audit_events_{$key}_history_idx ON audit_events (alliance_id, (metadata->>'{$key}'), created_at, id) WHERE metadata->>'{$key}' IS NOT NULL");
+        }
     }
 
     public function down(): void

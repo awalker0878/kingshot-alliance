@@ -35,7 +35,7 @@ Status: Current complete capability
 
 ## ACE-04 Membership governance history
 
-- Authorized officers can view bounded chronological membership/invitation/rank/role/leadership facts for a member.
+- Authorized officers can view bounded chronological membership/invitation/rank/role/leadership facts for a member. The query checks current viewer access, filters all supported target keys before limiting, and provides scope-bound timestamp/ID continuation; unrelated Alliance activity cannot hide older relevant facts.
 - History is composed from owner audit/outbox evidence and does not create a second authoritative state machine.
 - Actor, target, timestamp, old/new values and owner source are shown when present.
 - Cross-Alliance history is not retrievable.
@@ -79,7 +79,7 @@ Status: Current complete capability
 ## ACE-09 Composition integration
 
 - Alliance Hall links/settings/actions are permission aware.
-- Member Capability Profile exposes factual membership governance history.
+- Member Capability Profile exposes a labeled twelve-record preview of factual membership governance history with a handoff to the complete paginated history.
 - Command Overview adds only actionable reconciliation/recruitment reason codes backed by concrete owner state.
 - Alliance Assistant may answer bounded factual settings/history/reconciliation questions and remains read-only; mutations return owner-workflow handoff only.
 

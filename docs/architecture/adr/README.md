@@ -46,3 +46,5 @@ Architecture decision records explain material changes to ownership, boundaries,
 - [ADR-0037: Recruitment private retention and audit metadata](0037-recruitment-private-retention-and-audit-metadata.md)
 
 - [ADR-0038: Current Recruitment visibility in governance history](0038-current-governance-recruitment-visibility.md)
+
+- [ADR-0039: Complete bounded member governance history](0039-complete-bounded-member-governance-history.md)

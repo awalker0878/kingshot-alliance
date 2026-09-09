@@ -2,6 +2,7 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   common: {
+    historyItemsOnPage: '{count} รายการในหน้านี้ (สูงสุด {pageSize} รายการ)',
     all: 'ทั้งหมด',
     language: 'ภาษา',
     signIn: 'เข้าสู่ระบบ',

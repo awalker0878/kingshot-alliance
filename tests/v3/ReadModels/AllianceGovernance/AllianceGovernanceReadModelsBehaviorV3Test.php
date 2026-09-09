@@ -109,9 +109,10 @@ final class AllianceGovernanceReadModelsBehaviorV3Test extends TestCase
         );
 
         $history = app(MembershipGovernanceHistoryQuery::class)->forPlayer(
+            $owner->playerId,
             $alliance->allianceId,
             $owner->playerId,
-        );
+        )->items;
 
         self::assertCount(1, $history);
         self::assertSame($included->id, $history[0]['id']);

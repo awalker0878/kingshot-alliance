@@ -2,6 +2,7 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   common: {
+    historyItemsOnPage: '{count} catatan di halaman ini (maksimal {pageSize}).',
     all: 'Semua',
     language: 'Bahasa',
     signIn: 'Masuk',

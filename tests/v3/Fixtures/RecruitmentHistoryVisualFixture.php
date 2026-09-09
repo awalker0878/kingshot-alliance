@@ -6,6 +6,8 @@ namespace Tests\v3\Fixtures;
 
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Alliance\Lifecycle\Actions\CreateAlliance;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
+use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
 use App\Contexts\Alliance\Recruitment\Enums\RecruitmentStage;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentCandidate;
 use Illuminate\Support\Facades\DB;
@@ -21,6 +23,20 @@ final class RecruitmentHistoryVisualFixture
         $owner = $factory->player((int) $user->id, 59354, 'visual-recruitment-history-owner');
         $allianceId = app(CreateAlliance::class)->handle((int) $user->id, $owner->playerId, 'Recruitment History Alliance', 'recruitment-history-visual', 'en', 'UTC');
         $at = now()->subDay()->format('Y-m-d H:i:s');
+        $factory->roster($owner, app(AllianceReferenceQuery::class)->require($allianceId));
+        $unrelated = $factory->unclaimedPlayer(59354, 'visual-member-history-unrelated');
+        $events = [];
+        foreach ([[$owner->playerId, 55, $at], [$unrelated->playerId, 501, now()->format('Y-m-d H:i:s')]] as [$targetId, $count, $createdAt]) {
+            for ($index = 0; $index < $count; $index++) {
+                $events[] = [
+                    'id' => (string) Str::ulid(), 'alliance_id' => $allianceId, 'actor_player_id' => $owner->playerId,
+                    'event' => 'membership.rank_changed', 'subject_type' => Alliance::class, 'subject_id' => $allianceId,
+                    'metadata' => json_encode(['target_player_id' => $targetId, 'new_rank' => 'r3'], JSON_THROW_ON_ERROR),
+                    'created_at' => $createdAt,
+                ];
+            }
+        }
+        DB::table('audit_events')->insert($events);
         foreach (['desktop', 'mobile'] as $project) {
             $candidate = RecruitmentCandidate::query()->create([
                 'alliance_id' => $allianceId, 'full_name' => 'History candidate '.$project,

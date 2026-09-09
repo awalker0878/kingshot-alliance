@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
+import { ref } from 'vue';
 
 import RoomBanner from '@/components/game/RoomBanner.vue';
+import CursorPagination from '@/components/ui/CursorPagination.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
@@ -14,14 +16,35 @@ type HistoryItem = {
   source: string;
 };
 
-defineProps<{
+const props = defineProps<{
   user: { name: string; email: string };
   alliance: { id: string; name: string };
   player: { id: string; name: string; gamePlayerId: string | null };
-  history: HistoryItem[];
+  historyPage: {
+    items: HistoryItem[];
+    nextCursor: string | null;
+    hasMore: boolean;
+    pageSize: number;
+    isFirstPage: boolean;
+  };
 }>();
 
 const { t, formatDate } = useLocale();
+const loading = ref(false);
+function nextPage() {
+  if (!props.historyPage.nextCursor || loading.value) return;
+  loading.value = true;
+  router.get(
+    `/alliance/members/${props.player.id}/history`,
+    { cursor: props.historyPage.nextCursor },
+    {
+      preserveScroll: true,
+      onFinish: () => {
+        loading.value = false;
+      },
+    },
+  );
+}
 </script>
 
 <template>
@@ -64,7 +87,7 @@ const { t, formatDate } = useLocale();
       <h2 id="member-history-list" class="sr-only">
         {{ t('allianceExpansion.memberHistoryTitle', { name: player.name }) }}
       </h2>
-      <article v-for="item in history" :key="item.id" class="ks-surface p-5">
+      <article v-for="item in historyPage.items" :key="item.id" class="ks-surface p-5">
         <div class="flex flex-wrap items-start justify-between gap-3">
           <div>
             <p class="ks-kicker">{{ t('allianceExpansion.event') }}</p>
@@ -86,9 +109,22 @@ const { t, formatDate } = useLocale();
           }}</pre>
         </details>
       </article>
-      <div v-if="history.length === 0" class="ks-fantasy-empty">
+      <div v-if="historyPage.items.length === 0" class="ks-fantasy-empty">
         {{ t('allianceExpansion.noHistory') }}
       </div>
+      <CursorPagination
+        :summary="
+          t('common.historyItemsOnPage', {
+            count: historyPage.items.length,
+            pageSize: historyPage.pageSize,
+          })
+        "
+        :is-first-page="historyPage.isFirstPage"
+        :first-page-href="`/alliance/members/${player.id}/history`"
+        :has-more="historyPage.hasMore"
+        :busy="loading"
+        @next="nextPage"
+      />
     </section>
   </AppLayout>
 </template>

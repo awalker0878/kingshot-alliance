@@ -7,8 +7,8 @@ namespace App\ReadModels\AllianceGovernance\Queries;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
+use App\ReadModels\AllianceGovernance\Services\GovernanceHistoryAccess;
 use App\Shared\Infrastructure\AuditTrail\Models\AuditEvent;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\Builder;
 
 final readonly class AllianceGovernanceTimelineQuery
@@ -24,6 +24,7 @@ final readonly class AllianceGovernanceTimelineQuery
 
     public function __construct(
         private PlayerReferenceQuery $players,
+        private GovernanceHistoryAccess $access,
         private AllianceAuthorization $authorization,
     ) {}
 
@@ -36,11 +37,7 @@ final readonly class AllianceGovernanceTimelineQuery
         ?string $beforeId = null,
         int $limit = 50,
     ): array {
-        if (! $this->authorization->allows($viewerPlayerId, $allianceId, AlliancePermission::MembershipManage)
-            && ! $this->authorization->allows($viewerPlayerId, $allianceId, AlliancePermission::RoleManage)
-            && ! $this->authorization->allows($viewerPlayerId, $allianceId, AlliancePermission::Manage)) {
-            throw new AuthorizationException;
-        }
+        $this->access->authorize($viewerPlayerId, $allianceId);
         $canReadRecruitment = $this->authorization->allows($viewerPlayerId, $allianceId, AlliancePermission::RecruitmentManage);
         $limit = max(1, min(100, $limit));
         $query = AuditEvent::query()->where('alliance_id', $allianceId);
