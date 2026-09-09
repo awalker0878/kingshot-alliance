@@ -5,16 +5,16 @@
 - Program state: In progress.
 - Exact main baseline: `7e780521295e868005ecfee5bd38b33e8215ec49`.
 - Working branch: `astra/codebase-hardening`.
-- Latest pushed durable checkpoint: `8814c59ac1d72f590a3ab48f4e2bec0d8b97f2b8`.
+- Latest pushed durable checkpoint: `69bf4440d829952d04fc8d5781e0d51f9a06219b`.
 - Draft PR: [#163](https://github.com/awalker0878/kingshot-alliance/pull/163).
-- Current item/state: HARD-054/055/057 / In progress; recoverable role creation, bounded archival records and readable permission labels are prepared with containing catalog type corrections.
+- Current item/state: HARD-052/058 / In progress; isolated catalog HTTP actor sessions and truthful retry-safe role-removal events.
 - Most recently verified gates: all nine PR workflows pass on `8c6b8a7a29a7d0bc1ecba9a1aa579bc88e828d5e`, including 876 PHP tests / 75,032 assertions, fresh PostgreSQL, frontend, image/staging/recovery, architecture/capabilities, visual and security.
-- Active files: CreateAllianceRole, ArchiveAllianceRole, AllianceRoleCatalogQuery, permission catalogue, database/browser regressions, ADR-0026 and current Access contracts.
-- Current CI result: 8814c59a passes full Pint, fresh PostgreSQL and Architecture rules/routes, frontend, dependency review, CodeQL, Gift Code, King Perks and KingdomMaps. Full PHPStan reports three list-type errors in the new catalog; array_values now preserves and proves the list contract. Visual executes 50 cases: 48 pass, including both new picker cases; both editor cases expose HARD-057's raw permission label before mutation. The existing browser scenario now checks all eight readable labels. Intelligence serial behavior remains running. Earlier 533275da completes 1,063 tests / 77,589 assertions with only the package upload budget failure; all Accounts, cache and delegation/revocation behavior passes there.
-- Remaining current work: execute the corrected catalog/editor/upload slice and new creation/archival cases, reconcile final parallel/container evidence, then continue remaining capability audit.
-- Known failures: 8814c59a catalog list typing and permission-label rendering are corrected locally. Current role/upload cases and the extended serial gate still require containing executable evidence; no pending gate is claimed green.
+- Active files: RemoveMembershipRole, AllianceRoleRemovalRetryV3Test, AllianceRoleCatalogV3Test and Access/ledger contracts.
+- Current CI result: 69bf4440 completes 1,087 PostgreSQL/Redis parallel tests / 78,054 assertions with exactly one failure: the combined catalog HTTP test retains the previous account's browser session and receives 401 before its expected permission denial. Full PHPStan/Pint, fresh installation, frontend, all 50 visual cases and five security/capability workflows pass. All role creation/archival/input/upload cases pass. 8814c59a's 1,079-test serial job completes normally in 27 minutes and reports the same fixture failure. Item-specific verified findings are closed below; final containing gates remain.
+- Remaining current work: Verify isolated catalog actor sessions and four removal retry/rollback cases; finish pending parallel/container evidence; continue lifecycle, membership, recruitment, content and the remaining repository audit.
+- Known failures: The catalog fixture now rotates and clears session state before each actor; its original HTTP authority expectations and all middleware are preserved. HARD-058 behavior is implemented but not yet executed in CI.
 - Blockers: local PHP/Composer/PostgreSQL are unavailable. Ordinary apt setup was denied by workspace setgroups/setuid permissions and was stopped without changing those restrictions. Use the authorized GitHub job-log reader and existing PostgreSQL-backed CI for executable verification. Local git write transport lacks credentials; publish atomic trees/commits through the configured GitHub connector, checking exact tree equality and non-forced branch updates. The checkout tracks the latest remote checkpoint; older equivalent local commits remain preserved on scratch/local-checkpoints-9e16952f.
-- Exact next action: publish/verify the role mutation and containing type/label corrections. Inspect the current serial result and new containing PostgreSQL/browser results; continue Alliance lifecycle/membership/recruitment/content tracing while gates run.
+- Exact next action: Publish/verify this retry/fixture checkpoint, then continue Alliance lifecycle/membership boundary tracing while its full gates run.
 - Remaining repository-wide gates: final full PHP/architecture/capability and frontend gates on one containing commit; production image/staging/recovery; final security/dependency/visual checks; remaining capability-by-capability audit coverage below.
 
 Checkpoint SHAs are recorded by the following documentation commit; verify that the recorded checkpoint is an ancestor of current branch HEAD. No audit area is complete solely because its paths have been inventoried.
@@ -624,11 +624,11 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: same owner, returning nullable integer account identity; maintained guard retains the authenticated model internally.
 - Rationale: expose the minimal stable scalar contract and preserve existing architecture enforcement rather than exempting a new violation.
 - Remediation: return the admitted account ID and update the sole caller; cover both guest null and authenticated integer outcomes while keeping all remembered-login tests.
-- State: In progress.
+- State: Complete.
 - Verification required: scalar contract behavior, remembered-session HTTP/failure/concurrency tests, Architecture V3, PHPStan and Pint.
-- Verification result: scalar return and regression test published in 7f454af8. Architecture job 102279743876 passes syntax, strict PSR-4, routes, Architecture V3, fresh schema and PHPStan. Its full 1,020-test / 76,846-assertion run has only the two old logout-cookie fixture failures corrected in HARD-044; scalar/remembered-session cases pass. 7ae4489c's full parallel run passes them again; remaining containing failure is HARD-048.
-- Completion evidence: pending.
-- Commit SHA: `7f454af876b150e2da20454955aa75cbb43711c1`.
+- Verification result: Scalar and remembered-session cases pass; full PHPStan/Pint and Architecture rules/routes pass. Full PHP CI job 102305914972: 1,087 tests / 78,054 assertions, with only the unrelated catalog session-switch fixture failure. Full PHPStan/Pint and fresh PostgreSQL pass.
+- Completion evidence: Full PHP CI job 102305914972: 1,087 tests / 78,054 assertions, with only the unrelated catalog session-switch fixture failure. Full PHPStan/Pint and fresh PostgreSQL pass.
+- Commit SHA: verified containing candidate `69bf4440d829952d04fc8d5781e0d51f9a06219b`.
 
 ### HARD-044 — Logout preserves replayable remembered credentials and can interrupt cleanup
 
@@ -711,11 +711,11 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: explicit operation or deliberate shared-budget definitions with stable account/client scope; maintained middleware continues enforcing counters.
 - Rationale: limits must protect the intended workload without accidental cross-capability denial or silently losing deliberate aggregate budgets.
 - Remediation: trace each unnamed route's intended budget and consumers; define explicit namespaces/shared limiter groups with unchanged safety limits, then exercise cross-operation isolation and deliberate aggregate throttling in real HTTP tests.
-- State: In progress.
+- State: Complete.
 - Verification required: unrelated operations do not exhaust each other's limits; related/aggregate workloads retain deliberate shared budgets; account/client isolation, retry timing and route boot remain correct.
-- Verification result: 533275da runs 1,063 tests / 77,589 assertions with all HTTP budget behavior passing and exactly one booted-route failure: Livewire's indirect Pulse dependency adds its own unnamed upload throttle. Exact locked Livewire 7ef4b2a source confirms the supported temporary_file_upload.middleware setting and 60/minute default. Configuration now sets livewire-upload while preserving upload defaults/signature checks; a new HTTP case exercises its separate client budget. Complete route/PHP verification pending.
-- Completion evidence: pending.
-- Commit SHA: pending.
+- Verification result: All eight route/HTTP budget cases pass, including the package upload signature check, exact 60/minute ceiling and independent workload/client counters. Full PHP CI job 102305914972: 1,087 tests / 78,054 assertions, with only the unrelated catalog session-switch fixture failure. Full PHPStan/Pint and fresh PostgreSQL pass.
+- Completion evidence: Full PHP CI job 102305914972: 1,087 tests / 78,054 assertions, with only the unrelated catalog session-switch fixture failure. Full PHPStan/Pint and fresh PostgreSQL pass.
+- Commit SHA: verified containing candidate `69bf4440d829952d04fc8d5781e0d51f9a06219b`.
 
 ### HARD-050 — Authenticated password-proof endpoints have no attempt limit
 
@@ -740,11 +740,11 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: Explicit permission replacement at the HTTP boundary and current owner name/storage bounds.
 - Rationale: Missing permission input must not implicitly clear authority or crash, and valid-looking names must not escape as database errors.
 - Remediation: Require an explicit list of distinct known permissions, including a valid empty list; reject names/keys exceeding storage bounds before persistence.
-- State: In progress.
+- State: Complete.
 - Verification required: Real HTTP create/update rejection leaves role/permission/audit/outbox state unchanged; explicit empty permissions work; direct owner calls enforce name/key bounds.
-- Verification result: Explicit list/distinct/vocabulary validation and owner name/key bounds are implemented. Eight database/HTTP cases cover malformed create/update payloads, valid empty replacement and storage-bound rejection without partial writes. Local source/whitespace and full frontend checks pass; PostgreSQL/style/static execution pending.
-- Completion evidence: pending.
-- Commit SHA: pending.
+- Verification result: All eight input/storage-bound HTTP and owner cases pass without partial role/permission/audit/outbox writes. Full PHP CI job 102305914972: 1,087 tests / 78,054 assertions, with only the unrelated catalog session-switch fixture failure. Full PHPStan/Pint and fresh PostgreSQL pass.
+- Completion evidence: Full PHP CI job 102305914972: 1,087 tests / 78,054 assertions, with only the unrelated catalog session-switch fixture failure. Full PHPStan/Pint and fresh PostgreSQL pass.
+- Commit SHA: verified containing candidate `69bf4440d829952d04fc8d5781e0d51f9a06219b`.
 
 ### HARD-052 — Role catalogs and management counts grow without bounds
 
@@ -756,7 +756,7 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Remediation: Introduce bounded scoped role reads and appropriate indexes, migrate all catalog consumers and maintain accessible selection/navigation.
 - State: In progress.
 - Verification required: Large same-/cross-Alliance role sets, stable page traversal, invalid/cross-scope cursors, archived-role selection exclusion, constant query count and real frontend navigation.
-- Verification result: AllianceRoleCatalogQuery returns 25-row management/options pages using scope/filter-bound stable-key cursors, literal case-insensitive prefix search and indexed counts. All three unbounded catalog consumers were migrated; lazy searchable pickers keep every active role reachable without a new role-creation quota. Seven database/HTTP cases cover traversal, constant queries, counts, renamed rows, cursor boundaries, literal matching, archival and current authority. ADR-0025 and fresh-schema indexes are prepared. Full local npm check passes; PHP/browser execution pending.
+- Verification result: Catalog traversal/filter/count cases and desktop/mobile pickers pass after explicit list normalization. The combined HTTP fixture switches accounts without rotating the first browser's credential/session identity and receives 401 before the intended 403 permission assertion. It now invalidates its session before each actor, retaining authentication middleware and original expectations. Containing HTTP verification pending.
 - Completion evidence: pending.
 - Commit SHA: pending.
 
@@ -768,11 +768,11 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: Role editor form state keyed to current server roles with visible per-row validation feedback.
 - Rationale: Successful creation must remain usable without a hard reload; rejected owner edits need actionable feedback while preserving the user's draft.
 - Remediation: Initialize/refresh editor state as roles change, preserve in-progress drafts safely, and expose save errors/processing through maintained form behavior.
-- State: In progress.
+- State: Complete.
 - Verification required: Create then edit newly returned role in one retained page, server validation feedback, successful refresh, archive and pagination transitions; frontend type/style and browser behavior.
-- Verification result: Each role now owns a keyed Inertia form with draft preservation, current success values, visible validation errors and processing state; management filters follow current props. Two Playwright scenarios per desktop/mobile cover create/edit/reject/rename/archive and paged/searchable role selection. Full local npm check (lint, format, types, accessibility, localization, receipts, build, performance) passes. Browser/PostgreSQL execution remains pending.
-- Completion evidence: pending.
-- Commit SHA: pending.
+- Verification result: All 50 desktop/mobile visual cases pass, including creation, immediate retained-page editing, rejected empty name with preserved draft, rename, archive and paged selection. Visual workflow 34300410434 and frontend job 102305914739.
+- Completion evidence: Visual workflow 34300410434 and frontend job 102305914739.
+- Commit SHA: verified containing candidate `69bf4440d829952d04fc8d5781e0d51f9a06219b`.
 
 ### HARD-054 — Concurrent creation of the same role key escapes as a database error
 
@@ -782,11 +782,11 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: Owner-controlled collision handling using the maintained transaction/unique-key mechanism.
 - Rationale: Same-key contention must produce one complete role and ordinary validation feedback without overwriting the winner or aborting unrelated caller work.
 - Remediation: Retain the database uniqueness authority and translate only the expected creation collision at a recoverable transaction boundary.
-- State: In progress.
+- State: Complete.
 - Verification required: Separate-connection competing creation, one role/permission/audit/outbox outcome, safe retry and unrelated database errors still propagated.
-- Verification result: Maintained firstOrCreate/createOrFirst savepoint behavior traced against locked Laravel source. Owner uses exact Alliance/key recovery and rejects an existing winner before changing permissions or events. Four prepared PostgreSQL cases cover real competing connections, independent keys, retries, caller transaction usability, unrelated primary-key failure and late audit rollback. Executable PHP verification pending.
-- Completion evidence: pending.
-- Commit SHA: pending.
+- Verification result: All four creation cases pass: real competing connections on same/different keys, preserved winner, usable caller transactions, safe retries, unrelated unique failures and late audit rollback. Full PHP CI job 102305914972: 1,087 tests / 78,054 assertions, with only the unrelated catalog session-switch fixture failure. Full PHPStan/Pint and fresh PostgreSQL pass.
+- Completion evidence: Full PHP CI job 102305914972: 1,087 tests / 78,054 assertions, with only the unrelated catalog session-switch fixture failure. Full PHPStan/Pint and fresh PostgreSQL pass.
+- Commit SHA: verified containing candidate `69bf4440d829952d04fc8d5781e0d51f9a06219b`.
 
 ### HARD-055 — Role archival copies every assignment into audit and outbox payloads
 
@@ -796,11 +796,11 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: Atomic owner revocation with bounded summary metadata and indexed set-based assignment removal.
 - Rationale: A single archival should not materialize unbounded historical membership lists or create oversized delivery/audit payloads.
 - Remediation: Preserve immediate atomic revocation while recording a bounded assignment count and using Alliance-scoped indexed SQL removal.
-- State: In progress.
+- State: Complete.
 - Verification required: Large assignment sets, exact bounded count, tenant isolation, no per-assignment reads, idempotent archival and late audit rollback.
-- Verification result: Archival now uses one scoped indexed DELETE and its affected-row count; removed_membership_ids has no remaining production producer or consumer. Four prepared PostgreSQL cases cover zero/one/1,000 assignments, constant queries, exact bounded metadata, tenant isolation, retries and full rollback after audit failure. ADR-0026 records both role mutation contracts. Executable PHP verification pending.
-- Completion evidence: pending.
-- Commit SHA: pending.
+- Verification result: All four archival cases pass: zero/one/1,000 historical assignments, one scoped deletion, exact bounded metadata, no population reads, tenant isolation, idempotency and late rollback. Existing revocation concurrency cases also pass. Full PHP CI job 102305914972: 1,087 tests / 78,054 assertions, with only the unrelated catalog session-switch fixture failure. Full PHPStan/Pint and fresh PostgreSQL pass.
+- Completion evidence: Full PHP CI job 102305914972: 1,087 tests / 78,054 assertions, with only the unrelated catalog session-switch fixture failure. Full PHPStan/Pint and fresh PostgreSQL pass.
+- Commit SHA: verified containing candidate `69bf4440d829952d04fc8d5781e0d51f9a06219b`.
 
 ### HARD-056 — Serial verification job reaches its deadline before reporting completion
 
@@ -810,11 +810,11 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: the existing complete serial gate with an explicit bounded runtime allowance.
 - Rationale: verification must complete and report its actual outcome; a deadline cancellation is not passing evidence and must not be hidden by reducing test scope.
 - Remediation: allow 35 minutes for the serial Intelligence backend job; retain every command, test, failure condition and diagnostics step.
-- State: In progress.
+- State: Complete.
 - Verification required: the containing serial job completes with test output and normal success/failure reporting; all required tests and static/style gates remain unchanged.
-- Verification result: exact job timestamps and decoded cancellation line substantiate the deadline failure; the 35-minute allowance is prepared. Runtime verification pending.
-- Completion evidence: pending.
-- Commit SHA: pending.
+- Verification result: Serial backend job 102302658390 completes normally in approximately 27 minutes, reports 1,079 tests / 77,947 assertions and uploads diagnostics. Its single catalog fixture failure is reported normally, with no deadline cancellation. Complete serial scope and static/style commands are preserved. Intelligence workflow 34299315784, backend job 102302658390.
+- Completion evidence: Intelligence workflow 34299315784, backend job 102302658390.
+- Commit SHA: verified containing candidate `8814c59ac1d72f590a3ab48f4e2bec0d8b97f2b8`.
 
 ### HARD-057 — Specialist role permission labels do not resolve
 
@@ -824,9 +824,23 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: The existing catalogue/resolver contract, with correctly nested permission entries.
 - Rationale: Administrators must understand the permission being granted; untranslated identifiers are not usable feedback.
 - Remediation: Structure all eight labels as nested catalogue paths and assert their readable browser labels before the existing create/edit/archive scenario.
-- State: In progress.
+- State: Complete.
 - Verification required: All permission labels resolve in real desktop/mobile role creation and the full retained-page edit/archive flow passes; frontend style/types/localization remain passing.
-- Verification result: Production resolver and catalogue traced; these eight entries are the only dotted literal keys in the localization catalogues. Nested entries preserve existing public translation paths without an alternate resolver. Source formatting passes; containing browser verification pending.
+- Verification result: All eight readable permission labels and the create/edit/archive flow pass on desktop and mobile; all 50 visual cases and full frontend checks pass. Visual workflow 34300410434 and frontend job 102305914739.
+- Completion evidence: Visual workflow 34300410434 and frontend job 102305914739.
+- Commit SHA: verified containing candidate `69bf4440d829952d04fc8d5781e0d51f9a06219b`.
+
+### HARD-058 — Role-removal retries create false events and timestamp collisions
+
+- Area: Alliance Access assignment removal and governance history.
+- Finding: RemoveMembershipRole records audit/outbox removal even when no assignment exists. Every retry produces false governance history; the microsecond timestamp delivery key also collides if distinct assignment/removal cycles share a clock instant.
+- Current owner: RemoveMembershipRole, membership_roles and existing audit/outbox records.
+- Intended authoritative owner: The same locked owner mutation, deriving event creation from an actual affected assignment.
+- Rationale: Retrying a completed mutation must not manufacture a new business fact; a genuinely later transition must remain independently deliverable.
+- Remediation: Return after a zero-row detach only after current authority/tenant checks; use a ULID delivery key for each actual removal.
+- State: In progress.
+- Verification required: Absent/repeated removal, distinct same-time transitions, current authority on retries and late outbox rollback followed by successful retry.
+- Verification result: Direct/bulk owners and governance history consumer traced. Four PostgreSQL regression cases are prepared; full executable verification pending.
 - Completion evidence: pending.
 - Commit SHA: pending.
 

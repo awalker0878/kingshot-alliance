@@ -27,3 +27,5 @@ AllianceRoleCatalogQuery owns bounded management and assignment-option reads. It
 Role creation recovers an exact Alliance/key insertion collision through the maintained framework savepoint and returns name validation without modifying the winner. Archival deletes assignments in one indexed Alliance/role statement and records its affected-row count as removed_membership_count; audit/outbox payloads contain no unbounded membership IDs. These mutations retain current owner authorization and atomic durable records. See [ADR-0026](../../adr/0026-recoverable-role-creation-and-bounded-archival.md).
 
 Role permission labels use nested localization catalogue paths matching the dot-separated permission vocabulary. Creation, editing and read-only role displays resolve the same labels through the existing catalogue resolver.
+
+RemoveMembershipRole records a removal only when its scoped detach affects an assignment. Missing/repeated removals still validate current actor and tenant authority but emit no false history or outbox event. A later assignment/removal is a new transition with a unique delivery key, independent of timestamp precision.

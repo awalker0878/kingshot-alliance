@@ -165,6 +165,8 @@ final class AllianceRoleCatalogV3Test extends TestCase
 
     private function asPlayer(User $user, PlayerReference $player): void
     {
+        // Each actor uses a separate browser session, including its credential hash.
+        session()->invalidate();
         $this->actingAs($user)->withSession([(string) config('game_world.active_player_session_key') => $player->playerId]);
     }
 }

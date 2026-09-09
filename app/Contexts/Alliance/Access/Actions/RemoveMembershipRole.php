@@ -12,6 +12,7 @@ use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Models\OutboxMessage;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 final readonly class RemoveMembershipRole
 {
@@ -29,7 +30,9 @@ final readonly class RemoveMembershipRole
 
             $membership = AllianceMembership::query()->whereKey($membershipId)->where('alliance_id', $context->alliance->id)->lockForUpdate()->firstOrFail();
             $role = Role::query()->whereKey($roleId)->where('alliance_id', $context->alliance->id)->sharedLock()->firstOrFail();
-            $membership->roles()->detach($role->id);
+            if ($membership->roles()->detach($role->id) === 0) {
+                return (string) $membership->id;
+            }
 
             $metadata = ['role_id' => $role->id, 'role_key' => $role->key, 'player_id' => $membership->player_id];
             $this->audit->record('membership.role_removed', $context->actor, $membership, $context->alliance, $metadata);
@@ -39,7 +42,7 @@ final readonly class RemoveMembershipRole
                 'event_type' => 'membership.role_removed',
                 'aggregate_type' => AllianceMembership::class,
                 'aggregate_id' => $membership->id,
-                'idempotency_key' => 'membership.role_removed:'.$membership->id.':'.$role->id.':'.now()->format('Uu'),
+                'idempotency_key' => 'membership.role_removed:'.$membership->id.':'.$role->id.':'.Str::ulid(),
                 'payload' => ['alliance_id' => $context->alliance->id, 'membership_id' => $membership->id, 'player_id' => $membership->player_id, 'role_id' => $role->id, 'role_key' => $role->key],
                 'occurred_at' => now(), 'available_at' => now(), 'attempts' => 0,
             ]);
