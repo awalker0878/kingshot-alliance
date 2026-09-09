@@ -71,34 +71,40 @@
         ],
         "test": [
             "@php artisan config:clear --ansi",
-            "@php artisan test"
+            "@php artisan test --fail-on-empty-test-suite"
         ],
         "test:unit": [
-            "@php vendor/bin/phpunit --testsuite Unit"
+            "@php vendor/bin/phpunit --fail-on-empty-test-suite --testsuite Unit"
         ],
         "test:architecture": [
-            "@php vendor/bin/phpunit --testsuite Architecture"
+            "@php vendor/bin/phpunit --fail-on-empty-test-suite --testsuite Architecture"
         ],
         "test:frontend-contracts": [
-            "@php vendor/bin/phpunit --testsuite Frontend"
+            "@php vendor/bin/phpunit --fail-on-empty-test-suite --testsuite Frontend"
         ],
         "test:fast": [
             "@php artisan config:clear --ansi",
-            "@php vendor/bin/phpunit --testsuite Unit,Architecture,Frontend"
+            "@php vendor/bin/phpunit --fail-on-empty-test-suite --testsuite Unit,Architecture,Frontend"
         ],
         "test:feature": [
             "@php artisan config:clear --ansi",
-            "@php vendor/bin/phpunit --testsuite Feature"
+            "@php vendor/bin/phpunit --fail-on-empty-test-suite --testsuite Feature"
         ],
         "test:integration": [
             "@php artisan config:clear --ansi",
-            "@php vendor/bin/phpunit --testsuite Integration"
+            "@php vendor/bin/phpunit --fail-on-empty-test-suite --testsuite Integration"
         ],
         "check": [
             "@php scripts/verify-test-layout.php",
             "@lint:check",
             "@types:check",
             "@test:parallel"
+        ],
+        "check:ci": [
+            "@php scripts/verify-test-layout.php",
+            "@lint:check",
+            "@types:check",
+            "@test:ci"
         ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
@@ -115,7 +121,11 @@
         ],
         "test:parallel": [
             "@php artisan config:clear --ansi",
-            "@php artisan test --parallel"
+            "@php artisan test --parallel --fail-on-empty-test-suite"
+        ],
+        "test:ci": [
+            "@php artisan config:clear --ansi",
+            "@php artisan test --parallel --fail-on-empty-test-suite --log-junit storage/logs/phpunit-junit.xml"
         ]
     },
     "extra": {
