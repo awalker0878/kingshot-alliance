@@ -6,7 +6,7 @@ namespace Tests\Feature\Contexts\Accounts\Authentication;
 
 use App\Contexts\Accounts\Identity\Models\AccountIdentity;
 use App\Contexts\Accounts\Identity\Models\User;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Laravel\Socialite\Contracts\Provider;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\User as SocialiteUser;
@@ -15,7 +15,7 @@ use Tests\TestCase;
 
 final class GoogleAuthenticationV3Test extends TestCase
 {
-    use DatabaseMigrations;
+    use DatabaseTruncation;
 
     protected function setUp(): void
     {
