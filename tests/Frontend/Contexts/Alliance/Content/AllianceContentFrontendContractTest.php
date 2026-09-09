@@ -2,15 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Tests\Frontend;
+namespace Tests\Frontend\Contexts\Alliance\Content;
 
 use PHPUnit\Framework\TestCase;
+use Tests\Support\RepositoryPath;
 
-final class AllianceContentGameParityFrontendContractV3Test extends TestCase
+final class AllianceContentFrontendContractTest extends TestCase
 {
     public function test_alliance_rules_pages_load_the_content_localization_domain(): void
     {
-        $root = dirname(__DIR__, 2);
+        $root = rtrim(RepositoryPath::fromRoot(''), '/');
         $registry = $this->source($root.'/resources/js/localization/registry.ts');
         $rules = $this->source($root.'/resources/js/pages/Alliance/Rules/Index.vue');
 
@@ -26,7 +27,7 @@ final class AllianceContentGameParityFrontendContractV3Test extends TestCase
 
     public function test_notice_reaction_controls_expose_toggle_off_busy_and_retryable_failure_semantics(): void
     {
-        $root = dirname(__DIR__, 2);
+        $root = rtrim(RepositoryPath::fromRoot(''), '/');
         $controls = $this->source($root.'/resources/js/components/alliance/NoticeReactionControls.vue');
 
         foreach ([

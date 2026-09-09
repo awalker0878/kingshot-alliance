@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Tests\Integration\Infrastructure;
+namespace Tests\Integration\Shared\Testing;
 
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\RateLimiter;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
-final class CacheNamespaceIsolationV3Test extends TestCase
+final class CacheNamespaceIsolationTest extends TestCase
 {
     private static ?string $previousNamespace = null;
 

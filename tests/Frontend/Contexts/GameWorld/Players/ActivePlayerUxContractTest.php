@@ -2,15 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Tests\Frontend;
+namespace Tests\Frontend\Contexts\GameWorld\Players;
 
 use PHPUnit\Framework\TestCase;
+use Tests\Support\RepositoryPath;
 
-final class ActivePlayerUxContractV3Test extends TestCase
+final class ActivePlayerUxContractTest extends TestCase
 {
     public function test_shell_uses_one_shared_active_player_contract(): void
     {
-        $root = dirname(__DIR__, 2);
+        $root = rtrim(RepositoryPath::fromRoot(''), '/');
         $types = $this->source($root.'/resources/js/types/player-context.ts');
         $layout = $this->source($root.'/resources/js/layouts/AppLayout.vue');
         $switcher = $this->source($root.'/resources/js/components/navigation/IdentitySwitcher.vue');
@@ -27,7 +28,7 @@ final class ActivePlayerUxContractV3Test extends TestCase
 
     public function test_switcher_requests_only_player_activation_and_a_non_authoritative_route_hint(): void
     {
-        $root = dirname(__DIR__, 2);
+        $root = rtrim(RepositoryPath::fromRoot(''), '/');
         $switcher = $this->source($root.'/resources/js/components/navigation/IdentitySwitcher.vue');
 
         self::assertStringContainsString('`/players/${playerId}/activate`', $switcher);
@@ -42,7 +43,7 @@ final class ActivePlayerUxContractV3Test extends TestCase
 
     public function test_switcher_exposes_identity_context_and_keyboard_accessibility(): void
     {
-        $root = dirname(__DIR__, 2);
+        $root = rtrim(RepositoryPath::fromRoot(''), '/');
         $switcher = $this->source($root.'/resources/js/components/navigation/IdentitySwitcher.vue');
 
         foreach ([
@@ -63,7 +64,7 @@ final class ActivePlayerUxContractV3Test extends TestCase
 
     public function test_switch_transition_freezes_and_invalidates_old_context_state(): void
     {
-        $root = dirname(__DIR__, 2);
+        $root = rtrim(RepositoryPath::fromRoot(''), '/');
         $switcher = $this->source($root.'/resources/js/components/navigation/IdentitySwitcher.vue');
         $isolation = $this->source($root.'/resources/js/identity/context-isolation.ts');
 
@@ -93,7 +94,7 @@ final class ActivePlayerUxContractV3Test extends TestCase
 
     public function test_stale_authority_context_is_transported_and_recovered_centrally(): void
     {
-        $root = dirname(__DIR__, 2);
+        $root = rtrim(RepositoryPath::fromRoot(''), '/');
         $app = $this->source($root.'/resources/js/app.ts');
         $authority = $this->source($root.'/resources/js/identity/authority-context.ts');
         $guard = $this->source($root.'/app/Contexts/GameWorld/Players/Http/Middleware/RequireCurrentPlayerContextVersion.php');
@@ -134,7 +135,7 @@ final class ActivePlayerUxContractV3Test extends TestCase
 
     public function test_server_projects_display_context_but_remains_authoritative_for_activation(): void
     {
-        $root = dirname(__DIR__, 2);
+        $root = rtrim(RepositoryPath::fromRoot(''), '/');
         $middleware = $this->source($root.'/app/Contexts/GameWorld/Players/Http/Middleware/HandleInertiaRequests.php');
         $activation = $this->source($root.'/app/Contexts/GameWorld/Players/Actions/ActivatePlayer.php');
         $controller = $this->source($root.'/app/Contexts/GameWorld/Players/Http/Controllers/ActivatePlayerController.php');

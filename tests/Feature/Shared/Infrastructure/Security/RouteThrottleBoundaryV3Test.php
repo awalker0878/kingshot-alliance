@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Infrastructure;
+namespace Tests\Feature\Shared\Infrastructure\Security;
 
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Alliance\Membership\Queries\PlayerIdentityContextQuery;
