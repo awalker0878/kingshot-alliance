@@ -29,7 +29,7 @@ jobs:
   backend:
     name: Intelligence backend contracts
     runs-on: ubuntu-24.04
-    # Full serial coverage includes transaction/lock contention cases.
+    # The complete suite remains mandatory in CI; this gate owns Intelligence contracts.
     timeout-minutes: 90
     services:
       postgres:
@@ -117,17 +117,28 @@ jobs:
         shell: bash
         run: |
           set +e
-          vendor/bin/phpunit --configuration phpunit.xml --testsuite "Architecture V3" 2>&1 | tee "${RUNNER_TEMP}/intelligence-v3-behavior.log"
+          # Keep PostgreSQL and serial execution for these transaction-sensitive contracts.
+          # Do not rerun unrelated application tests already covered by the full CI suite.
+          vendor/bin/phpunit --configuration phpunit.xml \
+            --fail-on-empty-test-suite \
+            --log-junit "${RUNNER_TEMP}/intelligence-v3-junit.xml" \
+            tests/v3/Contexts/Intelligence \
+            tests/v3/ReadModels/EventAnalysis \
+            tests/v3/ReadModels/KingdomIntelligence \
+            tests/v3/ReadModels/IntelligenceSignals \
+            2>&1 | tee "${RUNNER_TEMP}/intelligence-v3-behavior.log"
           status=${PIPESTATUS[0]}
           set -e
           exit "$status"
 
       - name: Upload behavior-contract diagnostics
-        if: failure()
+        if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: intelligence-v3-behavior
-          path: ${{ runner.temp }}/intelligence-v3-behavior.log
+          path: |
+            ${{ runner.temp }}/intelligence-v3-behavior.log
+            ${{ runner.temp }}/intelligence-v3-junit.xml
           if-no-files-found: ignore
           retention-days: 7
 
