@@ -5,16 +5,16 @@
 - Program state: In progress.
 - Exact main baseline: `7e780521295e868005ecfee5bd38b33e8215ec49`.
 - Working branch: `astra/codebase-hardening`.
-- Latest pushed durable checkpoint: `7ae4489c49d99871d8c418829480c571f7367b77`.
+- Latest pushed durable checkpoint: `2ad8dfaf6e797ab51a2f76e7e19f8384742f9520`.
 - Draft PR: [#163](https://github.com/awalker0878/kingshot-alliance/pull/163).
-- Current item/state: HARD-045/047 / In progress (bounded role/rank and system-role delegation); HARD-044's eight cases pass, with containing CI blocked by HARD-048.
+- Current item/state: HARD-048 / In progress (parallel cache isolation); HARD-045/047 delegation slice is published and in verification.
 - Most recently verified gates: all nine PR workflows pass on `8c6b8a7a29a7d0bc1ecba9a1aa579bc88e828d5e`, including 876 PHP tests / 75,032 assertions, fresh PostgreSQL, frontend, image/staging/recovery, architecture/capabilities, visual and security.
-- Active files: Alliance role/rank mutation and preview owners, AllianceDelegationBoundaryV3Test, ADR-0022 and delegation contracts.
-- Current CI result: 7ae4489c passes full Pint/PHPStan, fresh PostgreSQL and all 1,026 parallel test cases except the shared-cache email-verification 429 (HARD-048); 76,911 assertions execute. All eight logout cases pass. Architecture/Intelligence containing runs are still pending. The earlier architecture and logout-cookie failures below are superseded by these fixes/results.
+- Active files: tests/v3/TestCase, CacheNamespaceIsolationV3Test and local-development verification documentation.
+- Current CI result: 7ae4489c's entire Architecture workflow passes, including 1,026 tests / 76,916 assertions (job 102282372512). Full Pint/PHPStan, fresh PostgreSQL and the parallel suite pass except the shared-cache email-verification 429 (HARD-048; 76,911 assertions). All eight logout cases pass. Intelligence's earlier run was cancelled; the delegation candidate's containing runs are in progress.
 - Remaining current work: verify the prepared delegation slice; isolate parallel cache state (HARD-048), serialize role-definition revocation (HARD-046), and continue remaining audit areas.
-- Known failures: decoded Intelligence job 102268265002 on c19fc047 completed 1,014 tests / 76,757 assertions with exactly one failure: RestoreAccountSession.handle returns an Eloquent User in violation of WRITE_CONTRACT_RETURNS_MODEL. All passkey HTTP and remembered-session cases passed on that candidate. Architecture on 89f2c616 reproduces the same single violation (62 tests / 67,659 assertions). Earlier claims that c19fc047 still failed passkey fixtures were not supported by its logs and are superseded by this evidence.
-- Blockers: local PHP/Composer/PostgreSQL are unavailable. Ordinary apt setup was denied by workspace setgroups/setuid permissions and was stopped without changing those restrictions. GitHub connector job-log reads work; use existing PostgreSQL-backed CI for executable verification. Local git write transport lacks credentials; publish atomic trees/commits through the configured GitHub connector, checking tree equality and non-forced branch updates. The local checkout now matches remote 89f2c616; original equivalent local commits are preserved on scratch/local-checkpoints-9e16952f.
-- Exact next action: publish the coherent HARD-045/047 delegation slice and inspect its gates; then repair HARD-048's shared parallel-cache collision and continue HARD-046 and remaining audit coverage. Do not mark the whole audit complete from an Accounts-only verification result.
+- Known failures: the latest completed parallel run has only HARD-048's email-verification 429. The former session-admission architecture violation and two missing-cookie logout fixtures are corrected and pass in the full sequential suite. Earlier unsupported passkey-failure claims are superseded by decoded logs recorded in the relevant items.
+- Blockers: local PHP/Composer/PostgreSQL are unavailable. Ordinary apt setup was denied by workspace setgroups/setuid permissions and was stopped without changing those restrictions. Use the authorized GitHub job-log reader and existing PostgreSQL-backed CI for executable verification. Local git write transport lacks credentials; publish atomic trees/commits through the configured GitHub connector, checking exact tree equality and non-forced branch updates. The checkout now tracks remote 2ad8dfaf; older equivalent local commits remain preserved on scratch/local-checkpoints-9e16952f.
+- Exact next action: publish/verify HARD-048's cache-isolation slice; continue HARD-046 role-definition serialization, HARD-049 explicit route budgets and remaining audit coverage. Do not mark the whole audit complete from an Accounts-only verification result.
 - Remaining repository-wide gates: final full PHP/architecture/capability and frontend gates on one containing commit; production image/staging/recovery; final security/dependency/visual checks; remaining capability-by-capability audit coverage below.
 
 Checkpoint SHAs are recorded by the following documentation commit; verify that the recorded checkpoint is an ancestor of current branch HEAD. No audit area is complete solely because its paths have been inventoried.
@@ -649,7 +649,7 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Verification required: direct and HTTP cross-member rejection, permitted subsets, self/cross-Alliance cases, stale bulk authority, rank grants and removal parity with no audit/outbox on rejected writes.
 - Verification result: shared AllianceRoleDelegation enforces custom permission ceilings for every recipient, with explicit system-role semantics tracked separately under HARD-047. Membership owns a rank ceiling shared by preview and locked commits; removing a role no longer requires removed permissions. Seventeen combined database/HTTP cases cover isolation, subsets, rollback, rank grants, changing bulk authority, system-role/Operations outcomes and constant preview query count. ADR-0022 records the policy. Local source/whitespace and documentation links pass; executable PostgreSQL/static/style checks remain pending.
 - Completion evidence: pending.
-- Commit SHA: pending.
+- Commit SHA: `2ad8dfaf6e797ab51a2f76e7e19f8384742f9520`.
 
 ### HARD-046 — Role-definition revocation does not serialize with protected Alliance writes
 
@@ -675,9 +675,9 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Remediation: allow R5 to commission provisioned system roles on other members without self/custom-role bypass; require R5 or current holding of Event Coordinator for its grants. Share policy between recipient-specific preview and locked owner actions, retaining Gift Code's explicit coverage gate and existing regression.
 - State: In progress.
 - Verification required: R5 commissioning gives access only to the selected member; self/ordinary unauthorized grants fail; held Event Coordinator plus role management can delegate; real Operations outcomes and current Gift Code behavior remain correct; preview query count is independent of selected recipient count.
-- Verification result: code and four system-role cases plus one query-budget case prepared alongside HARD-045; ADR-0022 reconciles formerly contradictory contracts. No passing runtime result claimed.
+- Verification result: code and four system-role cases plus one query-budget case published alongside HARD-045; ADR-0022 reconciles formerly contradictory contracts. No passing runtime result claimed.
 - Completion evidence: pending.
-- Commit SHA: pending.
+- Commit SHA: `2ad8dfaf6e797ab51a2f76e7e19f8384742f9520`.
 
 ### HARD-048 — Parallel PHP tests share rate-limit cache state across isolated databases
 
@@ -687,9 +687,9 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: test-only cache namespacing established before application/provider boot, preserving the real Redis-backed gate and production rate limits.
 - Rationale: database isolation without cache isolation makes valid tests order/process dependent. Disabling throttles, raising limits or replacing the Redis-backed gate is not a fix.
 - Remediation: establish per-test cache namespaces that survive application recreation within that test; verify the failing scenario and full parallel suite without weakening gates.
-- State: Planned.
+- State: In progress.
 - Verification required: separate tests/processes cannot share limiter or cached authority state; one test retains state across its intended application reboots; full parallel PHP and container/recovery checks pass.
-- Verification result: failure log, CI environment, PHPUnit configuration and cache prefix source traced; implementation pending. The same run passes all eight HARD-044 logout cases and every other Accounts case.
+- Verification result: TestCase now sets a unique cache prefix in the maintained environment adapters before parent application/provider boot, preserves it for in-test app reboots, and restores prior environment state on teardown/setup failure. Three behavioral cases exercise independent cached values/limiter attempts and reboot persistence with the configured Redis/array driver. Production configuration, rate limits and Redis-backed CI are retained. Source/whitespace and documentation checks pass; executable containing verification pending. The prior failing run passes all eight HARD-044 cases and every other Accounts case.
 - Completion evidence: pending.
 - Commit SHA: pending.
 
