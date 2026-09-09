@@ -36,10 +36,8 @@ jobs:
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version: '24'
-          cache: npm
 
-      - name: Install and audit locked frontend dependencies
+      - name: Audit locked frontend dependencies
         run: |
           test -f package-lock.json
-          npm ci --no-audit --no-fund
-          npm audit --audit-level=high
+          npm audit --audit-level=high --package-lock-only
