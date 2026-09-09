@@ -80,7 +80,7 @@ foreach ([
 
 require $root.'/scripts/verify-test-layout.php';
 
-$visualSpec = $root.'/tests/Browser/ApplicationShell.spec.ts';
+$visualSpec = $root.'/tests/Browser/Shared/ApplicationShell.spec.ts';
 if (! is_file($visualSpec)) {
     $record('CURRENT_VISUAL_SUITE_MISSING', 'The current application-shell visual contract must remain under tests/Browser.');
 }
