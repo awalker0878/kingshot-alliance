@@ -57,6 +57,10 @@ declare(strict_types=1);
             if ($kind === 'Unit' && ! str_contains($source, 'use PHPUnit\\Framework\\TestCase;')) {
                 $errors[] = 'Unit test must use the pure PHPUnit base: '.$relative;
             }
+            if (str_contains($source, 'Illuminate\\Foundation\\Testing\\DatabaseMigrations')
+                && ! str_starts_with($relative, 'tests/Integration/Schema/')) {
+                $errors[] = 'DatabaseMigrations rebuilds schema per test; reserve it for explicit schema lifecycle contracts under tests/Integration/Schema: '.$relative;
+            }
         }
         if (preg_match('/^namespace ([^;]+);/m', $source, $namespace)) {
             $expected = 'Tests'.str_replace('/', '\\', substr(dirname($relative), 5));
