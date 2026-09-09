@@ -21,6 +21,8 @@ use App\Contexts\GameWorld\Governance\Queries\KingdomAuthorityFactsQuery;
 use App\Contexts\GameWorld\Players\Http\Middleware\RequireCurrentPlayerContextVersion;
 use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Contexts\GameWorld\Players\Services\PlayerAuthorityContextVersion;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
@@ -139,7 +141,7 @@ final class RecruitmentConfigurationCapacityV3Test extends TestCase
         try {
             app(SetRecruitmentOnboardingItemActive::class)->handle($fixture['actorId'], $fixture['allianceId'], $foreign, false);
             self::fail('An item from another Alliance is outside the owner scope.');
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
+        } catch (ModelNotFoundException) {
             self::assertSame($before, $this->state());
         }
         $this->activate('onboarding', $fixture, $item, false);
@@ -147,7 +149,7 @@ final class RecruitmentConfigurationCapacityV3Test extends TestCase
         $this->activate('onboarding', $fixture, $item, false);
         self::assertSame($beforeRetry, $this->state());
         DB::table('alliance_memberships')->where('alliance_id', $fixture['allianceId'])->where('player_id', $fixture['actorId'])->update(['status' => 'suspended']);
-        $this->expectException(\Illuminate\Auth\Access\AuthorizationException::class);
+        $this->expectException(AuthorizationException::class);
         $this->activate('onboarding', $fixture, $item, true);
     }
 

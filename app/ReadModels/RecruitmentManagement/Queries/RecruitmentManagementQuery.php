@@ -209,10 +209,11 @@ final readonly class RecruitmentManagementQuery
                 });
             });
         }
-        $rows = $query->orderBy($column)->orderBy('id')->limit(26)->get();
-        $items = array_values($rows->take(25)->all());
+        /** @var list<T> $rows */
+        $rows = array_values($query->orderBy($column)->orderBy('id')->limit(26)->get()->all());
+        $items = array_slice($rows, 0, 25);
         $last = $items === [] ? null : $items[array_key_last($items)];
-        $next = $rows->count() > 25 && $last instanceof Model
+        $next = count($rows) > 25 && $last instanceof Model
             ? $this->cursors->encode($scope, ['value' => $column === 'position' ? (int) $last->getAttribute($column) : (string) $last->getAttribute($column), 'id' => (string) $last->getKey()])
             : null;
 
