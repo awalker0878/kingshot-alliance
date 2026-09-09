@@ -5,15 +5,23 @@ declare(strict_types=1);
 namespace Tests;
 
 use Illuminate\Foundation\Application;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Foundation\Testing\DatabaseTruncation;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\RefreshDatabaseState;
 use Illuminate\Foundation\Testing\TestCase as LaravelTestCase;
 use Illuminate\Support\Facades\ParallelTesting;
+use LogicException;
+use Tests\Support\MigrationReferenceData;
 use Throwable;
 
 abstract class TestCase extends LaravelTestCase
 {
     /** @var array{process:string|false,env:mixed,server:mixed}|null */
     private ?array $originalCachePrefix = null;
+
+    private bool $committedDatabaseReady = false;
 
     public function createApplication(): Application
     {
@@ -52,22 +60,82 @@ abstract class TestCase extends LaravelTestCase
         }
     }
 
+    /** @return array<class-string, class-string> */
+    protected function setUpTraits(): array
+    {
+        $uses = $this->traitsUsedByTest ?? class_uses_recursive(static::class);
+        if (! isset($uses[DatabaseTruncation::class])) {
+            return parent::setUpTraits();
+        }
+        foreach ([RefreshDatabase::class, DatabaseMigrations::class, DatabaseTransactions::class] as $other) {
+            if (isset($uses[$other])) {
+                throw new LogicException('DatabaseTruncation must not be combined with another database reset trait.');
+            }
+        }
+        if ($this->connectionsToTruncate() !== [null]) {
+            throw new LogicException('Committed-state tests must use the worker-isolated default database.');
+        }
+
+        $connection = $this->app->make('db')->connection();
+        $fresh = ! RefreshDatabaseState::$migrated || ! MigrationReferenceData::captured($connection);
+        if ($fresh) {
+            // A previous transactional test may own the migrated flag without
+            // owning a reference snapshot. Rebuild once, never snapshot its
+            // potentially mutated data. Later tests reuse this worker's schema.
+            RefreshDatabaseState::$migrated = false;
+        }
+
+        try {
+            $uses = parent::setUpTraits();
+            if ($fresh) {
+                MigrationReferenceData::captureFresh($connection);
+            } else {
+                MigrationReferenceData::restore($connection);
+            }
+            $this->committedDatabaseReady = true;
+        } catch (Throwable $exception) {
+            RefreshDatabaseState::$migrated = false;
+            throw $exception;
+        }
+
+        return $uses;
+    }
+
     protected function tearDown(): void
     {
         try {
-            // Laravel truncates at the start of DatabaseTruncation tests. A
-            // later RefreshDatabase test in the same worker would otherwise
-            // inherit committed rows because both traits share the migrated
-            // schema state. Clean again before destroying this application's
-            // container so test order cannot change the starting database.
-            if ($this->app !== null && in_array(DatabaseTruncation::class, class_uses_recursive(static::class), true)) {
-                $this->truncateTablesForAllConnections();
+            if ($this->app !== null && $this->committedDatabaseReady) {
+                $this->resetCommittedDatabase();
             }
-
-            parent::tearDown();
         } finally {
-            $this->restoreCacheEnvironment();
+            $this->committedDatabaseReady = false;
+            try {
+                // Framework callbacks and mock cleanup must run even if the
+                // database cleanup above fails. Never leave a dirty migrated
+                // flag available to the next test in this worker.
+                parent::tearDown();
+            } finally {
+                $this->restoreCacheEnvironment();
+            }
         }
+    }
+
+    /** Clean committed fixtures and restore migration data before a trait handoff. */
+    protected function resetCommittedDatabase(): void
+    {
+        try {
+            $this->truncateTablesForAllConnections();
+            MigrationReferenceData::restore($this->app->make('db')->connection());
+        } catch (Throwable $exception) {
+            RefreshDatabaseState::$migrated = false;
+            throw $exception;
+        }
+    }
+
+    /** @return list<string|null> Overridden by the framework truncation trait. */
+    protected function connectionsToTruncate(): array
+    {
+        return [null];
     }
 
     /**
