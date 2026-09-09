@@ -1,203 +1,126 @@
 # Testing
 
-Status: Current — standard test layout — 2026-09-09
+Status: Current — owner-organized execution tiers — 2026-09-09
 
-The test system is organized by **execution semantics first** and by domain ownership underneath those roots. A targeted or fast run is a development accelerator; it is never evidence that the complete application passes.
+Tests are organized by **execution semantics first**, then by the owner of the behavior. A targeted run is a development accelerator, never proof that the whole application passes. [Test navigation and naming](../../tests/README.md) explains where to place, rename, consolidate or split a test.
 
-The authoritative PHP inventory is split into five disjoint PHPUnit suites in `phpunit.xml`. Browser tests remain a separate Playwright surface. `scripts/verify-test-layout.php` guards the suite topology, namespace/path alignment, legacy `tests/v3` references, accidental undiscovered PHP test files and reintroduction of per-test schema rebuilds outside explicit schema-lifecycle contracts.
+## Toolchain and verification status
 
-## Observed toolchain
+The repository requires PHP 8.5. The inspected dependency artifact contains Laravel 13.30.1, PHPUnit 12.5.33, ParaTest 7.20.0 and Pint 1.30.4; the browser package is Playwright 1.62.1. Inspect installed versions before choosing commands; a lockfile or historical artifact is not evidence of a developer machine's runtime version.
 
-The repository requires PHP 8.5 and currently declares PHPUnit `^12.5.23` plus ParaTest `7.20.0`. The measured 2026-09-09 baseline used PHP 8.5.10, PHPUnit 12.5.33, ParaTest 7.20.0 and PostgreSQL 18.6. Browser verification uses Playwright 1.62.1 from `package.json`.
+The current ownership pass starts at `4252615d77044b94b02b3cf0937566628313e858`. Commits `57fe1189`, `417f0b3e` and `c06229f9` move 13 existing classes and split one mixed class into two. The resulting 15 PHP files preserve all 59 affected test methods, their assertions, fixtures and provider bodies. The split adds one source class, not new or duplicated scenarios. Thirteen inverse source comparisons reproduce their originals after reversing only namespace/class/path changes; the split's two method bodies are unchanged. Connector blob/subtree hashes match the prepared sources.
 
-Those baseline versions and timings are evidence from the recorded baseline; they are not a claim that every developer machine or later CI image has identical patch versions.
+The reconciled source inventory is **285 PHP test files**: 15 Unit, 189 Feature, 53 Integration, 25 Architecture and 3 Frontend. This follows the prior 284-file inventory plus the one class split; it is **not runtime discovery**. No runner configuration, test-selection filter, production behavior, database reset implementation, retry count, coverage threshold or worker count changed in this ownership pass.
 
-## Suite structure
+Only source inspection, source equivalence and host PHP 8.4.23 syntax checks were performed for these changes. PHP 8.5 target-runtime validation, PHPUnit discovery/execution, browser execution, order/isolation checks and after-change timing remain pending. No tests, migrations, benchmarks or CI dispatch were run. Commits carry `[skip ci]` during the explicit execution hold; that does not satisfy or permanently disable the required gates.
 
-| Path / suite | Purpose | Resource expectations |
+## Suite structure and ownership
+
+`phpunit.xml` defines five disjoint recursive roots. Every PHP test belongs to exactly one; domain folders are not extra overlapping suites.
+
+| Suite | What belongs here | Resources |
 | --- | --- | --- |
-| `tests/Unit` / `Unit` | Isolated PHP logic and inert contracts | Pure PHPUnit; no Laravel application bootstrap or database requirement |
-| `tests/Feature` / `Feature` | HTTP, authorization, application behavior, persistence and read-model interactions | Laravel application; ordinary test isolation |
-| `tests/Integration` / `Integration` | Committed-state persistence, lifecycle, after-commit, real infrastructure and transaction semantics | Real PostgreSQL semantics where required; do not replace with a different engine for speed |
-| `tests/Integration/Concurrency` | Multi-connection locking, ordering and concurrency contracts | Real independent PostgreSQL connections; parallelize only after isolation is proven |
-| `tests/Integration/Schema` | Explicit migration/schema lifecycle contracts, if introduced | The only ordinary test location where per-test schema rebuilds may be justified |
-| `tests/Architecture` / `Architecture` | Source, reflection, route, dependency and boundary contracts | Primarily source/application-structure checks; should not rerun the full database-backed suite |
-| `tests/Frontend` / `Frontend` | PHP-side frontend/source contracts that do not need a browser | No Playwright browser startup |
-| `tests/Browser` | End-to-end and visual user journeys | Playwright/browser/runtime assets only when a browser is genuinely required |
-| `tests/Fixtures`, `tests/Support`, `tests/TestCase.php` | Shared test infrastructure | Not independent PHPUnit suites |
+| Unit | Isolated logic and inert value/interface contracts | Pure PHPUnit; no application bootstrap or database |
+| Feature | HTTP, authorization, application behavior, persistence and composed reads | Laravel application and appropriate ordinary isolation |
+| Integration | Committed-state, after-commit, infrastructure and transaction behavior | Real PostgreSQL/independent connections where semantics require them |
+| Architecture | Ownership, dependencies, source boundaries, reflection and actual application registration | Pure PHPUnit for source/reflection; Laravel for real wiring/routes/scheduler |
+| Frontend | PHP-side frontend source contracts | No browser startup; not a substitute for browser journeys |
 
-The standard-layout migration records the exact old-to-new file mapping in `docs/codebase/test-layout-migration.json`. At migration time the 283 PHP test classes were assigned as 10 Unit, 194 Feature, 52 Integration, 24 Architecture and 3 Frontend classes. Subsequent source-only passes move five pure classes to Unit and add one reference-reset regression class. The first four moves are recorded in [test-pure-bootstrap-migration.json](test-pure-bootstrap-migration.json); the fifth and the source-only Architecture conversions are recorded below. The resulting 284 source files are 15 Unit, 189 Feature, 53 Integration, 24 Architecture and 3 Frontend; execution/discovery reconciliation remains pending.
+`tests/Browser` contains Playwright journeys. `tests/Fixtures`, `tests/Support` and `tests/TestCase.php` are support, not execution suites.
 
-## Source-only architecture contracts
+Use `Contexts/<Context>/<Capability>`, `ReadModels/<Composition>`, `Workflows/<Workflow>` and `Shared/Infrastructure/<Concern>` below the appropriate tier. The read-model boundary classes now live under [Architecture/ReadModels](../../tests/Architecture/ReadModels/README.md); capability boundaries live under [Architecture/Contexts](../../tests/Architecture/Contexts/README.md). Repository-wide rules and cross-application acceptance matrices remain explicitly cross-cutting instead of being assigned to an arbitrary context.
 
-Use `PHPUnit\Framework\TestCase` for tests that only inspect repository files or independent value objects. `Tests\Support\RepositoryPath::fromRoot()` resolves repository-relative paths without constructing Laravel. It does not cache file contents: each source assertion still reads the current file. Keep architecture contracts in `tests/Architecture`, even when they no longer need the application; execution cost must not create a second, overlapping discovery suite.
+Frontend contracts are grouped under GameWorld/Players, Alliance/Content and GameWorld/KingdomTransfers. Cross-route throttle behavior is under `Feature/Shared/Infrastructure/Security`; cache namespace and migration-reference harness checks are under `Integration/Shared/Testing`. The separate top-level Feature/Infrastructure and Integration/Infrastructure buckets are gone.
 
-Keep `Tests\TestCase` when the assertion depends on the actual application container, registered routes/middleware, booted scheduler, encryption or persistence. In particular, the Scheduler ownership, Published Integration, Alliance Content HTTP and Governor Progression Evidence Reference boundary classes still verify booted application contracts. Replacing their runtime checks with source strings or direct construction would change what they protect.
+The existing `Integration/Concurrency/Contexts` and `Integration/Concurrency/Workflows` paths remain part of the Integration inventory. Include them in domain selections. `Integration/Schema` is reserved for genuine schema-lifecycle contracts if introduced. Neither label is permission to change engines, mocks, isolation or scheduling.
 
-### No-test bootstrap continuation
+### Separate source contracts from real wiring
 
-Source parent: `19374960a38733162b2cbda870808441e0c55b05`. Code checkpoint: `8ec6b376ebfc41611bd28fe74e1de185dde7fea4`.
+`Tests\Support\RepositoryPath::fromRoot()` locates source files independently of test nesting and does not cache their contents. Source-only classes use `PHPUnit\Framework\TestCase`. Real container, route, middleware, scheduler, encryption and persistence contracts keep `Tests\TestCase`.
 
-Commits `53d60114` and `d5e9495a` remove unnecessary Laravel startup from these existing classes. The nine Architecture classes keep their paths and names; only the value-object class moves from `tests/Feature/ReadModels/AllianceAssistant/AllianceAssistantEvidenceV3Test.php` to the matching `tests/Unit/ReadModels/AllianceAssistant/` path.
+Within `Architecture/Contexts/Intelligence/Evidence`, `EvidenceReferenceContractTest` now owns the unchanged family-neutral interface reflection method. `GovernorProgressionEvidenceBindingTest` owns the unchanged real container-resolution method. Both remain in Architecture and the existing Intelligence path selection; only the reflection case stops paying for a Laravel bootstrap. The split is not permission to replace the binding assertion with a mock or source string.
 
-| Existing class | Suite after change | Preserved source test methods |
-| --- | --- | ---: |
-| `ProgressionDatasetAbsenceBoundaryV3Test` | Architecture | 1 |
-| `KingdomOperationalReadBoundaryV3Test` | Architecture | 3 |
-| `EventTypeOnboardingArchitectureV3Test` | Architecture | 3 |
-| `PwaContractV3Test` | Architecture | 1 |
-| `EventCommandArchitectureV3Test` | Architecture | 5 |
-| `ProgressionPlannerArchitectureV3Test` | Architecture | 7 |
-| `IntelligenceChangeDetectionArchitectureV3Test` | Architecture | 5 |
-| `AllianceAssistantArchitectureV3Test` | Architecture | 6 |
-| `TransferEvidenceBoundaryV3Test` | Architecture | 7 |
-| `AllianceAssistantEvidenceV3Test` | Unit | 3 |
-| **Total** | **10 existing classes** | **41** |
+`scripts/verify-test-layout.php` guards suite topology, namespace/file alignment, duplicate declarations, undiscovered PHP test files, stale versioned root references and ordinary per-test schema rebuilds. Source guards do not replace runtime discovery or behavioral verification.
 
-Inverse source transformations reproduce all ten original files exactly after reversing the base imports, repository-path calls and the one namespace move. Remote Git blob reconciliation caught one omitted Event Type source assertion in the connector payload; `8ec6b37` restores it before this checkpoint. The final source assertions, method bodies and traversal logic are unchanged. The small repository-path helper is shared support, not a new test suite.
+## Exact development commands
 
-Validation used the previously completed source/dependency artifact from `b50e9869`, reconciled against the complete connector comparison to the source parent. Its installed packages are Laravel 13.30.1, PHPUnit 12.5.33, ParaTest 7.20.0 and Pint 1.30.4. PHP 8.5.10 syntax checks and Pint formatting checks pass for all eleven changed PHP files. Git metadata and the explicit moves reconcile 284 PHP test source files; this is not runner discovery. No PHPUnit discovery, test execution, benchmark, browser command, migration or new CI dispatch was performed for this continuation. Commits use `[skip ci]` during the explicit execution hold; no required gate is marked as passed or permanently disabled. Wall-clock savings, final discovery and behavioral verification remain unmeasured.
-
-## Database reset contracts
-
-Choose database cleanup by the semantics the test must observe, not by whichever trait is fastest in isolation.
-
-- Use transaction-based reset only when the behavior is valid inside the test transaction and no competing connection, committed-state visibility or after-commit behavior is part of the contract.
-- Use Laravel `DatabaseTruncation` for schema-stable tests that need committed rows, independent connections, real locks, durable transaction boundaries or after-commit behavior. The schema is reused within the test process while data is cleared between cases.
-- Reserve `DatabaseMigrations` for a genuine schema/migration lifecycle test under `tests/Integration/Schema/`. `scripts/verify-test-layout.php` rejects it elsewhere because rebuilding the complete schema for every method is both expensive and unnecessary for ordinary data isolation.
-- Never substitute SQLite or another engine for PostgreSQL where PostgreSQL constraints, locking, transaction or concurrency behavior is under test.
-
-The 2026-09-09 optimization converted all 50 classes that previously used `DatabaseMigrations` only for data cleanup to `DatabaseTruncation`. The 47-class deterministic batch is recorded in `docs/codebase/test-database-reset-migration.json`; the measured first hot spot and two HTTP Feature exceptions were reviewed and converted separately. This is a source-state fact, not a performance or passing-test claim until containing execution is completed.
-
-### Migration-created reference rows
-
-Committed-state tests using `DatabaseTruncation` must extend `Tests\TestCase`. Its shared setup restores migration-created plans, entitlements and event catalogue rows from `Tests\Support\MigrationReferenceData`; teardown restores the same baseline before the next case can start an ordinary rollback transaction. The reference tables are **not** excluded from truncation: their mutations and inserted test rows must be discarded too.
-
-The snapshot is process-local and keyed by the PostgreSQL connection target, including the actual worker database. It is established only after a fresh migration, not from a database with unknown fixture history. The shared setup may perform one additional fresh migration when an earlier transactional test has set Laravel's migrated flag without creating this snapshot. Database fixtures belong in the case's `setUp()` after `parent::setUp()`; all current committed-state classes use only the framework database-reset trait. Do not add fixture-mutating helper-trait setup ahead of baseline capture/restoration.
-
-A future migration that populates an additional table requires explicit review of the reference-table order and identity sequence handling. Snapshot capture rejects an unclassified populated table instead of silently erasing it on later resets. Do not work around that failure by exempting a mutable table, disabling a constraint or capturing test data as the new baseline.
-
-The initial repair and its six regression cases are source-checked only; execution remains required, including mixed `DatabaseTruncation`/`RefreshDatabase` order and the full two-worker suite.
-
-## Development commands
-
-Use the smallest trustworthy scope while editing:
+Run commands from the repository root in a prepared PHP 8.5 environment. During an explicit no-test hold, these are documented commands, not executed checks.
 
 ```sh
-# Fast feedback: isolated + architecture + non-browser frontend contracts
+# Fast feedback: Unit + Architecture + non-browser Frontend
 composer test:fast
 
-# Individual PHP suites
+# One execution tier
 composer test:unit
 composer test:feature
 composer test:integration
 composer test:architecture
 composer test:frontend-contracts
 
-# One file or a known domain subtree
-vendor/bin/phpunit tests/Feature/path/to/SpecificTest.php
-vendor/bin/phpunit tests/Feature/Contexts/<Domain>
+# One owner across complementary tiers
+vendor/bin/phpunit --fail-on-empty-test-suite \
+  tests/Architecture/ReadModels/Progression \
+  tests/Feature/ReadModels/Progression
 
-# Complete PHP regression
+# One real application-binding contract
+vendor/bin/phpunit --fail-on-empty-test-suite \
+  tests/Architecture/Contexts/Intelligence/Evidence/GovernorProgressionEvidenceBindingTest.php
+
+# Full PHP regression: serial, existing local parallel, or fixed two-worker CI
 composer test
-
-# Complete PHP regression using the repository's existing parallel runner
 composer test:parallel
+composer test:ci
 
-# Browser / visual verification
+# Full browser/visual verification
 npm run test:visual
 ```
 
-Named suite commands use PHPUnit's empty-suite failure mode so an unexpectedly empty selection does not silently report success. A domain can span more than one execution root. When a change touches both pure logic and persistence, run the relevant `Unit`, `Feature` and/or `Integration` paths rather than assuming one directory represents the complete domain.
+Suite commands fail on an unexpectedly empty suite. Verify that explicitly selected directories exist and include all relevant owner tiers; do not assume one folder represents every domain dependency. There is no authoritative changed-code selector yet. Do not treat a filename match, a zero selection or a narrow passing run as full verification.
 
-There is currently no dedicated repository coverage command. Do not add coverage instrumentation to ordinary development runs; when coverage verification is required, use the explicitly configured coverage environment/CI path rather than silently changing the normal test command.
+There is no dedicated repository coverage command. Keep ordinary feedback runs free of unnecessary coverage instrumentation. When coverage is required, use the explicitly configured coverage environment and preserve required thresholds.
 
-## Staged validation workflow
+## Staged validation and selection fallback
 
-1. **During editing:** run the directly relevant test file(s), domain path(s), or `composer test:fast` when the change affects shared pure/source contracts.
-2. **After a coherent change:** run the affected domain across every relevant suite plus shared dependencies it relies on.
-3. **Before declaring completion:** run the repository-required complete verification, including full PHP regression and browser/security/acceptance gates that apply to the change.
+While editing, run directly relevant tests. After a coherent change, include the affected owner across its relevant tiers and shared dependencies. Before completion, run the required complete PHP, frontend, browser, security, acceptance and deployment checks. Do not launch duplicate full suites after every edit or have contributors contend for the same resources.
 
-Do not rerun the entire suite after every small edit. Conversely, do not describe a targeted run as application-wide verification.
+Broaden to full verification for changes to base tests/support/fixtures, providers, authentication/authorization infrastructure, migrations, transaction helpers, shared persistence, dependencies, runner configuration, CI or selection logic. When mapping is uncertain, use broader verification. A future selector must include application and test changes, reason about dependencies, print its selected tests and reasons, fail safely on unexpected emptiness and have its fallback/failure behavior tested before adoption.
 
-## Changed-code selection
+## Database reset and reference data
 
-Automated changed-code selection is **not yet authoritative**. Until a conservative dependency-aware selector is implemented and its zero-selection, fallback and shared-infrastructure behavior are verified, select affected tests explicitly.
+Choose reset strategy by the semantics being verified. Transaction-based reset is appropriate only when an outer test transaction does not invalidate committed visibility, independent connections, real locks or after-commit behavior. Schema-stable committed-state tests use Laravel `DatabaseTruncation`; intentional migration-lifecycle tests may use `DatabaseMigrations` only under `tests/Integration/Schema`. Never substitute another database engine or weaken constraints/durability/security to make a test faster.
 
-Always broaden validation when changing shared infrastructure such as:
+Committed-state truncation tests must extend `Tests\TestCase`. The shared setup captures migration-created plans, entitlements and event catalogue rows through `Tests\Support\MigrationReferenceData` only after a fresh migration. It restores those actual rows after cleanup and at teardown so a following transactional test sees the proper baseline. Mutable reference tables are not exempted from truncation.
 
-- `tests/TestCase.php`, `tests/Support` or common fixtures;
-- application providers, middleware, authentication or authorization infrastructure;
-- migrations, database configuration, transaction helpers or shared persistence code;
-- Composer/npm dependencies or test-runner configuration;
-- `phpunit.xml`, Playwright configuration, CI workflows or test-selection scripts.
+Snapshots are process-local and keyed by the actual PostgreSQL connection target, including the worker database. A transactional predecessor that set Laravel's migrated flag without creating a snapshot can require one additional fresh migration; never capture unknown fixture history as a baseline. Create case fixtures after `parent::setUp()`, not in a fixture-mutating trait hook ahead of capture/restoration.
 
-A future selector must print what it selected and why, include test-file changes, understand shared dependencies, fail safely when selection is unexpectedly empty, and fall back to broader verification when mapping is uncertain.
+A migration that populates another table requires review of reference-table insertion order and identity-sequence handling. Unclassified populated tables fail closed for review. Do not bypass that failure by excluding mutable tables, disabling constraints or recording test data as reference truth. Cleanup must preserve failing exit behavior, framework teardown and cache-environment restoration.
+
+The earlier migration-reference repair and its six authored regression cases still require execution. Validate mixed `DatabaseTruncation`/`RefreshDatabase` ordering, schema reuse, committed fixture removal, reference mutations, identity handling and failure cleanup before accepting it. The ownership pass does not validate or modify that repair.
 
 ## Parallelism and isolation
 
-The repository already supports ParaTest through `composer test:parallel`, but worker count must be measured rather than maximized automatically. Before increasing parallelism, verify isolation for databases, caches, queues, sessions, temporary files, storage paths, ports, browser profiles and global state.
+The existing full CI path uses two PHP workers; the developer parallel command retains its local default. Do not increase either on an assumption of safety. Check databases, caches, queues, sessions, files, temporary directories, object-storage prefixes, ports, browser profiles, external identifiers, static/global state and fixtures. Keep cases serial or independently isolated where competing execution would invalidate their purpose.
 
-Keep transaction/concurrency tests effectively isolated where concurrent execution would alter the behavior being verified. Production-equivalent PostgreSQL constraints, locks, transactions, authentication and security boundaries must not be weakened to improve timing.
+Playwright remains `workers: 1` and `fullyParallel: false`. Neither workers nor retries were increased. Repeat isolation-sensitive cases in different orders and under bounded worker counts before claiming reliable parallelism. Report wall-clock improvement separately from aggregate compute cost.
 
-The recorded baseline used two workers with PostgreSQL durability settings enabled. CI comparison runs are explicitly pinned to two workers through `composer test:ci`; the ordinary developer `composer test:parallel` command still uses the local runner default. Use comparable worker counts and environment settings for before/after performance claims, and report wall-clock time separately from aggregate worker/test time.
+## Profiling and budgets
 
-Playwright remains `workers: 1` with `fullyParallel: false`. Do not raise it until database state, ports, browser profiles, fixtures and global visual state have been shown to be isolated under repeated execution.
-
-## Profiling and performance baseline
-
-The existing reproducible PHP baseline command was:
+The recorded baseline in [Performance baseline](test-performance-baseline-2026-09-09.md) used PHP 8.5.10, PHPUnit 12.5.33, ParaTest 7.20.0, PostgreSQL 18.6 and two workers. It recorded 1,482 tests / 82,984 assertions, 9:35.23 wall time and 1,131.400 seconds aggregate JUnit duration. The historical Architecture lane separately recorded 63 tests in approximately 1.53 seconds. These are historical results, not current inventory or passing-test claims.
 
 ```sh
-php artisan test --parallel --processes=2 --log-junit /path/to/baseline-junit.xml
+php artisan test --parallel --processes=2 --log-junit /path/to/profile-junit.xml
 ```
 
-At the recorded source revision it completed 1,482 tests / 82,984 assertions in 9:35.23 wall time. Aggregate JUnit test duration was 1,131.400 seconds. The architecture-only lane separately completed 63 tests in approximately 1.53 seconds, demonstrating the cost of making a narrow architecture gate rerun unrelated database-backed behavior.
+Main CI writes `storage/logs/phpunit-junit.xml` and retains `phpunit-results` on success or failure when the test phase is reached. Profile slow files/classes/cases from those artifacts. Record immutable revision, exact commands, environment, worker count, failures/skips, cold/warm conditions and repetition count. Separate installation, migrations/fixtures/bootstrap and browser/assets from test execution where measurable. Distinguish cheaper tests, smaller development selections and extra workers.
 
-Main CI now writes `storage/logs/phpunit-junit.xml` from its two-worker full regression and retains it as the `phpunit-results` artifact on success or failure when the test phase is reached. Use that artifact to compare class/case aggregate duration against the baseline; do not infer a speedup from configuration changes alone.
+No comparable after-optimization run is recorded. Do not invent a new performance budget or speedup from directory moves, schema reuse, startup removal or a failing run. Use the baseline as a comparison point until reliable repeated measurements support a budget.
 
-Until an equivalent post-optimization run is recorded, treat the baseline as the comparison point rather than inventing a new performance budget. When profiling, retain JUnit/timing artifacts, identify slow classes/files and separate setup cost from actual test execution where possible. Record revision, environment, worker count and cold/warm conditions with every timing claim.
+## CI and complete certification
 
-## CI dependency and specialized-gate policy
+Cache Composer download archives keyed by the lockfile, not vendor trees, generated configuration, databases or test results. Every PHP job still performs locked installation. Architecture CI defers autoload generation with `composer install --no-interaction --no-progress --prefer-dist --no-autoloader`, followed immediately by `composer dump-autoload --optimize --strict-psr`. Normal hooks, package discovery and platform checks remain enabled; review ordering before adding an install hook that requires autoloading. This previously authored optimization still needs runtime/timing verification.
 
-PHP workflows may reuse Composer's **download archive cache** keyed by `composer.lock`, but they must still execute a normal locked `composer install`. Do not cache `vendor/`, generated application configuration, database state or test outputs as a substitute for installation/isolation.
+Main CI owns complete PHP and frontend regression, fresh PostgreSQL installation and downstream container/staging/recovery. Keep required security, acceptance, browser and critical integration checks blocking where already required. Specialized gates should supply early owner-specific or unique-configuration checks rather than duplicate entire main-CI lanes. King Perks' targeted build and KingdomMaps' geometry/source checks remain distinct; Gift Code and Intelligence duplicate frontend lanes were removed in earlier work.
 
-Architecture Verification deliberately separates locked dependency installation from its mandatory strict autoload generation: `composer install --no-interaction --no-progress --prefer-dist --no-autoloader`, then `composer dump-autoload --optimize --strict-psr`. Commit `a829f2f0` removes the duplicate initial autoload generation and post-autoload package discovery. The final dump still executes the normal hooks and fails on PSR-4 violations; neither scripts nor platform requirements are disabled. Keep these steps adjacent. Adding an install hook that needs application autoloading requires reviewing this ordering. The changed YAML was structurally checked, but the revised installation path has not yet executed and has no measured duration.
+PostgreSQL certification must retain the configured parallel lock capacity and verify `fsync`, `synchronous_commit` and `full_page_writes` are enabled before the fresh-install check. Preserve failing exit codes through wrappers/report generation and retain useful diagnostics. Cancellation of superseded work does not replace checks on the final revision.
 
-The mandatory main CI remains authoritative for full PHP, full frontend, fresh PostgreSQL installation, security and downstream container/staging/recovery coverage. Specialized workflows should add earlier domain-specific signal or unique contracts, not repeat an entire main-CI lane. Exact subset frontend lanes for Gift Code and Intelligence were removed for this reason; King Perks' targeted build and KingdomMaps' geometry/source checks remain because they exercise distinct configurations/contracts.
-
-## Architecture and behavior verification
-
-Architecture tests must continue deriving rules from the architecture rather than maintaining a second hardcoded capability registry. Important boundaries include context ownership, cross-context imports, write/read separation, HTTP adapter responsibilities, transaction ownership, authorization and persistence rules.
-
-Behavior verification must continue protecting identity, authority, scope, transactions, concurrency, retry/idempotency and business invariants. Moving a test between suites or changing its cleanup strategy changes execution ownership, not the behavior it is expected to protect.
-
-## Visual regression baselines
-
-Playwright visual baselines may be refreshed only when the rendered change is intentional and has been visually reviewed. Do not delete cases, relax tolerances or blindly regenerate snapshots to obtain a green run. Dynamic values may be normalized only where the semantic assertions still verify the underlying behavior.
-
-## Fresh-install and full certification
-
-The primary backend verification must continue proving a clean PostgreSQL installation with the repository migrations. Main CI initializes PostgreSQL with the required parallel lock capacity while verifying `fsync`, `synchronous_commit` and `full_page_writes` remain enabled before the fresh-install check. A standard folder layout or faster cleanup strategy does not replace fresh-install, security, acceptance, static-analysis or browser verification.
-
-Final architecture certification must inspect more than tests named `Architecture*`:
-
-```text
-directories
-namespaces
-imports
-Eloquent relationships
-database ownership
-controllers
-routes
-actions
-permissions
-transactions
-events
-listeners
-tests
-documentation
-CI
-```
-
-Any change to a context boundary, cross-context contract, route ownership or persistence rule must update the relevant tests and documentation in the same pull request.
+Review intentional visual changes before updating Playwright snapshots. Never remove scenarios, relax tolerances or regenerate baselines blindly. Dynamic-value normalization must preserve semantic assertions. Final architecture review includes source directories, namespaces, imports, relationships, database ownership, controllers/routes/actions, permissions, transactions, events/listeners, tests, documentation and CI—not merely classes whose names contain Architecture.
