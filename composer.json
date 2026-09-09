@@ -70,12 +70,12 @@
             "phpstan analyse --memory-limit=1G"
         ],
         "test": [
-            "@test:full"
+            "@php artisan config:clear --ansi",
+            "@php artisan test"
         ],
         "check": [
             "@lint:check",
             "@types:check",
-            "@test:tooling",
             "@test:parallel"
         ],
         "post-autoload-dump": [
@@ -92,35 +92,9 @@
             "Illuminate\\Foundation\\ComposerScripts::prePackageUninstall"
         ],
         "test:parallel": [
-            "Composer\\Config::disableProcessTimeout",
-            "@php scripts/testing/runner.php parallel"
-        ],
-        "test:full": [
-            "Composer\\Config::disableProcessTimeout",
-            "@php scripts/testing/runner.php full"
-        ],
-        "test:fast": [
-            "Composer\\Config::disableProcessTimeout",
-            "@php scripts/testing/runner.php fast"
-        ],
-        "test:domain": [
-            "Composer\\Config::disableProcessTimeout",
-            "@php scripts/testing/runner.php domain"
-        ],
-        "test:target": [
-            "Composer\\Config::disableProcessTimeout",
-            "@php scripts/testing/runner.php path"
-        ],
-        "test:changed": [
-            "Composer\\Config::disableProcessTimeout",
-            "@php scripts/testing/runner.php changed"
-        ],
-        "test:profile": [
-            "Composer\\Config::disableProcessTimeout",
-            "@php scripts/testing/runner.php profile"
-        ],
-        "test:inventory": "@php scripts/testing/runner.php inventory",
-        "test:tooling": "@php scripts/testing/self-test.php"
+            "@php artisan config:clear --ansi",
+            "@php artisan test --parallel"
+        ]
     },
     "extra": {
         "laravel": {
