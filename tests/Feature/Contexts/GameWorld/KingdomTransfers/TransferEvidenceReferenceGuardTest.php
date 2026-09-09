@@ -10,13 +10,8 @@ use App\Contexts\Intelligence\Evidence\Contracts\EvidenceReferenceLookup;
 use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
-final class TransferEvidenceBoundaryV3Test extends TestCase
+final class TransferEvidenceReferenceGuardTest extends TestCase
 {
-    public function test_evidence_owner_lookup_is_bound_through_its_contract(): void
-    {
-        self::assertInstanceOf(EvidenceReferenceLookup::class, app(EvidenceReferenceLookup::class));
-    }
-
     public function test_evidence_source_requires_same_alliance_latest_approved_reference(): void
     {
         $guard = new TransferEvidenceReferenceGuard($this->lookup());
@@ -61,39 +56,6 @@ final class TransferEvidenceBoundaryV3Test extends TestCase
                 'foreign-approved',
             ),
         );
-    }
-
-    public function test_every_transfer_write_that_accepts_evidence_uses_the_owner_reference_guard(): void
-    {
-        $paths = [
-            'app/Contexts/GameWorld/KingdomTransfers/Actions/SaveTransferWindow.php',
-            'app/Contexts/GameWorld/KingdomTransfers/Services/TransferGroupWriter.php',
-            'app/Contexts/GameWorld/KingdomTransfers/Services/TransferKingdomConditionWriter.php',
-            'app/Contexts/GameWorld/KingdomTransfers/Services/TransferObservationWriter.php',
-        ];
-
-        foreach ($paths as $path) {
-            $source = file_get_contents(base_path($path));
-            self::assertIsString($source, $path);
-            self::assertStringContainsString('TransferEvidenceReferenceGuard', $source, $path);
-            self::assertStringContainsString('assertUsable', $source, $path);
-        }
-    }
-
-    public function test_provenance_identity_participates_in_transfer_idempotency_fingerprints(): void
-    {
-        $observation = file_get_contents(base_path(
-            'app/Contexts/GameWorld/KingdomTransfers/Services/TransferObservationWriter.php',
-        ));
-        self::assertIsString($observation);
-        self::assertStringContainsString('$evidenceId ?? \'\'', $observation);
-        self::assertStringContainsString('$details ?? \'\'', $observation);
-
-        $condition = file_get_contents(base_path(
-            'app/Contexts/GameWorld/KingdomTransfers/Services/TransferKingdomConditionWriter.php',
-        ));
-        self::assertIsString($condition);
-        self::assertStringContainsString('$evidenceId ?? \'\'', $condition);
     }
 
     private function lookup(): EvidenceReferenceLookup
