@@ -41,14 +41,13 @@ final readonly class ArchiveAllianceRole
                 return (string) $role->id;
             }
 
-            $assignedMembershipIds = $role->memberships()->pluck('alliance_memberships.id')->map(static fn ($id): string => (string) $id)->all();
-            $role->memberships()->detach();
+            $removedMembershipCount = $role->memberships()->wherePivot('alliance_id', $allianceId)->detach();
             $role->forceFill(['archived_at' => now()])->save();
 
             $metadata = [
                 'role_id' => (string) $role->id,
                 'role_key' => (string) $role->key,
-                'removed_membership_ids' => $assignedMembershipIds,
+                'removed_membership_count' => $removedMembershipCount,
             ];
             $this->audit->record('alliance.role_archived', $context->actor, $role, $context->alliance, $metadata);
             $this->outbox->record('alliance.role_archived', $allianceId, $role, $metadata);

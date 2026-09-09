@@ -32,6 +32,16 @@ test('new role stays editable with validation feedback through retained page upd
   const original = 'AAA Live Role ' + testInfo.project.name;
   const renamed = 'AAA Renamed Role ' + testInfo.project.name;
   await page.locator('#new-role-name').fill(original);
+  await expect(page.locator('aside fieldset label')).toHaveText([
+    'View Alliance',
+    'Manage Alliance settings',
+    'Manage membership',
+    'Manage ranks and specialist roles',
+    'Manage invitations',
+    'Manage Alliance content',
+    'Manage recruitment',
+    'View Alliance Gift Code coverage',
+  ]);
   await page.locator('aside form').getByLabel('Manage Alliance content', { exact: true }).check();
   await page.getByRole('button', { name: 'Create specialist role', exact: true }).click();
   const role = page

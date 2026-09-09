@@ -47,17 +47,19 @@ final readonly class CreateAllianceRole
                 $this->authorization->authorizeContext($context, $permission);
             }
 
-            if (Role::query()->where('alliance_id', $allianceId)->where('key', $key)->lockForUpdate()->exists()) {
-                throw ValidationException::withMessages(['name' => 'A specialist role with this key already exists.']);
-            }
-
-            $role = Role::query()->create([
+            // firstOrCreate uses a savepoint for a competing unique-key insert.
+            // An existing winner is validation feedback, never an update target.
+            $role = Role::query()->firstOrCreate([
                 'alliance_id' => $allianceId,
                 'key' => $key,
+            ], [
                 'name' => $name,
                 'is_system' => false,
                 'archived_at' => null,
             ]);
+            if (! $role->wasRecentlyCreated) {
+                throw ValidationException::withMessages(['name' => 'A specialist role with this key already exists.']);
+            }
 
             $permissionIds = [];
             foreach ($permissions as $permission) {

@@ -25,15 +25,15 @@ final readonly class AllianceRoleCatalogQuery
             ->withCount(['memberships' => static function (Builder $memberships) use ($allianceId): void {
                 $memberships->where('membership_roles.alliance_id', $allianceId);
             }])->get();
-        $items = $rows->take(self::PAGE_SIZE)->map(static fn (Role $role): array => [
+        $items = array_values($rows->take(self::PAGE_SIZE)->map(static fn (Role $role): array => [
             'id' => (string) $role->id,
             'key' => (string) $role->key,
             'name' => (string) $role->name,
             'system' => (bool) $role->is_system,
             'archivedAt' => $role->archived_at?->toIso8601String(),
-            'permissions' => $role->permissions->pluck('key')->map(static fn ($key): string => (string) $key)->sort()->values()->all(),
+            'permissions' => array_values($role->permissions->pluck('key')->map(static fn ($key): string => (string) $key)->sort()->all()),
             'memberCount' => (int) $role->getAttribute('memberships_count'),
-        ])->values()->all();
+        ])->all());
 
         return new PageSlice($items, $this->nextCursor($rows, $allianceId, $archived, $search), self::PAGE_SIZE, $cursor === null || $cursor === '');
     }
@@ -42,12 +42,12 @@ final readonly class AllianceRoleCatalogQuery
     public function options(string $allianceId, string $search = '', ?string $cursor = null): PageSlice
     {
         $rows = $this->query($allianceId, false, $search, $cursor)->get(['id', 'key', 'name', 'is_system']);
-        $items = $rows->take(self::PAGE_SIZE)->map(static fn (Role $role): array => [
+        $items = array_values($rows->take(self::PAGE_SIZE)->map(static fn (Role $role): array => [
             'id' => (string) $role->id,
             'key' => (string) $role->key,
             'name' => (string) $role->name,
             'system' => (bool) $role->is_system,
-        ])->values()->all();
+        ])->all());
 
         return new PageSlice($items, $this->nextCursor($rows, $allianceId, false, $search), self::PAGE_SIZE, $cursor === null || $cursor === '');
     }

@@ -5,16 +5,16 @@
 - Program state: In progress.
 - Exact main baseline: `7e780521295e868005ecfee5bd38b33e8215ec49`.
 - Working branch: `astra/codebase-hardening`.
-- Latest pushed durable checkpoint: `533275da4e708f2c039411751bc8d99fcd594512`.
+- Latest pushed durable checkpoint: `8814c59ac1d72f590a3ab48f4e2bec0d8b97f2b8`.
 - Draft PR: [#163](https://github.com/awalker0878/kingshot-alliance/pull/163).
-- Current item/state: HARD-049/051/052/053/056 / In progress; role input/catalog/editor, package upload budget and serial CI runtime repairs are prepared.
+- Current item/state: HARD-054/055/057 / In progress; recoverable role creation, bounded archival records and readable permission labels are prepared with containing catalog type corrections.
 - Most recently verified gates: all nine PR workflows pass on `8c6b8a7a29a7d0bc1ecba9a1aa579bc88e828d5e`, including 876 PHP tests / 75,032 assertions, fresh PostgreSQL, frontend, image/staging/recovery, architecture/capabilities, visual and security.
-- Active files: Alliance role owners/query/controllers/pages/editors/picker, fresh-schema indexes, Livewire configuration, regression/visual fixtures, ADR-0025, CI runtime budget and related contracts.
-- Current CI result: 533275da completes 1,063 PHP tests / 77,589 assertions (job 102296839479), with exactly one failure: the booted-route invariant detects Livewire's package-registered throttle without a workload prefix. All cache, Accounts, delegation, revocation and throttle HTTP cases pass; full Pint/PHPStan/fresh installation and frontend/six other workflows pass. Supported Livewire configuration now preserves its 60/minute limit and upload defaults with an explicit namespace and a signed-upload admission regression. The new role slice passes the full local npm check, including build and performance budgets; PHP/browser execution is pending.
-- Remaining current work: verify the prepared role/catalog/editor and upload budget slice, finish role creation collision/archival payload work (HARD-054/055), and continue the remaining capability audit.
-- Known failures: HARD-049's newly discovered package upload budget is corrected locally and needs containing verification. HARD-056 records serial suite cancellation at its former 25-minute job deadline. New role PHP/browser cases need executable verification; no pending gate is claimed green.
+- Active files: CreateAllianceRole, ArchiveAllianceRole, AllianceRoleCatalogQuery, permission catalogue, database/browser regressions, ADR-0026 and current Access contracts.
+- Current CI result: 8814c59a passes full Pint, fresh PostgreSQL and Architecture rules/routes, frontend, dependency review, CodeQL, Gift Code, King Perks and KingdomMaps. Full PHPStan reports three list-type errors in the new catalog; array_values now preserves and proves the list contract. Visual executes 50 cases: 48 pass, including both new picker cases; both editor cases expose HARD-057's raw permission label before mutation. The existing browser scenario now checks all eight readable labels. Intelligence serial behavior remains running. Earlier 533275da completes 1,063 tests / 77,589 assertions with only the package upload budget failure; all Accounts, cache and delegation/revocation behavior passes there.
+- Remaining current work: execute the corrected catalog/editor/upload slice and new creation/archival cases, reconcile final parallel/container evidence, then continue remaining capability audit.
+- Known failures: 8814c59a catalog list typing and permission-label rendering are corrected locally. Current role/upload cases and the extended serial gate still require containing executable evidence; no pending gate is claimed green.
 - Blockers: local PHP/Composer/PostgreSQL are unavailable. Ordinary apt setup was denied by workspace setgroups/setuid permissions and was stopped without changing those restrictions. Use the authorized GitHub job-log reader and existing PostgreSQL-backed CI for executable verification. Local git write transport lacks credentials; publish atomic trees/commits through the configured GitHub connector, checking exact tree equality and non-forced branch updates. The checkout tracks the latest remote checkpoint; older equivalent local commits remain preserved on scratch/local-checkpoints-9e16952f.
-- Exact next action: publish/verify this coherent role/HTTP/CI slice, then remediate HARD-054/055 while its gates run. Reconcile final container/parallel evidence for HARD-039/048 and continue the whole coverage table.
+- Exact next action: publish/verify the role mutation and containing type/label corrections. Inspect the current serial result and new containing PostgreSQL/browser results; continue Alliance lifecycle/membership/recruitment/content tracing while gates run.
 - Remaining repository-wide gates: final full PHP/architecture/capability and frontend gates on one containing commit; production image/staging/recovery; final security/dependency/visual checks; remaining capability-by-capability audit coverage below.
 
 Checkpoint SHAs are recorded by the following documentation commit; verify that the recorded checkpoint is an ancestor of current branch HEAD. No audit area is complete solely because its paths have been inventoried.
@@ -782,9 +782,9 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: Owner-controlled collision handling using the maintained transaction/unique-key mechanism.
 - Rationale: Same-key contention must produce one complete role and ordinary validation feedback without overwriting the winner or aborting unrelated caller work.
 - Remediation: Retain the database uniqueness authority and translate only the expected creation collision at a recoverable transaction boundary.
-- State: Planned.
+- State: In progress.
 - Verification required: Separate-connection competing creation, one role/permission/audit/outbox outcome, safe retry and unrelated database errors still propagated.
-- Verification result: Shared scope, absent-row existence query and exact roles(alliance_id,key) constraint traced. Implementation pending.
+- Verification result: Maintained firstOrCreate/createOrFirst savepoint behavior traced against locked Laravel source. Owner uses exact Alliance/key recovery and rejects an existing winner before changing permissions or events. Four prepared PostgreSQL cases cover real competing connections, independent keys, retries, caller transaction usability, unrelated primary-key failure and late audit rollback. Executable PHP verification pending.
 - Completion evidence: pending.
 - Commit SHA: pending.
 
@@ -796,9 +796,9 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: Atomic owner revocation with bounded summary metadata and indexed set-based assignment removal.
 - Rationale: A single archival should not materialize unbounded historical membership lists or create oversized delivery/audit payloads.
 - Remediation: Preserve immediate atomic revocation while recording a bounded assignment count and using Alliance-scoped indexed SQL removal.
-- State: Planned.
+- State: In progress.
 - Verification required: Large assignment sets, exact bounded count, tenant isolation, no per-assignment reads, idempotent archival and late audit rollback.
-- Verification result: Assignment lifecycle, capacity policy and metadata consumers traced. Implementation pending.
+- Verification result: Archival now uses one scoped indexed DELETE and its affected-row count; removed_membership_ids has no remaining production producer or consumer. Four prepared PostgreSQL cases cover zero/one/1,000 assignments, constant queries, exact bounded metadata, tenant isolation, retries and full rollback after audit failure. ADR-0026 records both role mutation contracts. Executable PHP verification pending.
 - Completion evidence: pending.
 - Commit SHA: pending.
 
@@ -813,6 +813,20 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - State: In progress.
 - Verification required: the containing serial job completes with test output and normal success/failure reporting; all required tests and static/style gates remain unchanged.
 - Verification result: exact job timestamps and decoded cancellation line substantiate the deadline failure; the 35-minute allowance is prepared. Runtime verification pending.
+- Completion evidence: pending.
+- Commit SHA: pending.
+
+### HARD-057 — Specialist role permission labels do not resolve
+
+- Area: Alliance role creation, editing and read-only permission presentation.
+- Finding: Browser job 102302658631 cannot find the readable content-management checkbox in either desktop or mobile. The catalogue stores literal dotted permission keys while the production resolver splits paths into nested segments, so every role permission displays a raw translation key.
+- Current owner: Alliance capability localization catalogue and the existing nested-path resolver.
+- Intended authoritative owner: The existing catalogue/resolver contract, with correctly nested permission entries.
+- Rationale: Administrators must understand the permission being granted; untranslated identifiers are not usable feedback.
+- Remediation: Structure all eight labels as nested catalogue paths and assert their readable browser labels before the existing create/edit/archive scenario.
+- State: In progress.
+- Verification required: All permission labels resolve in real desktop/mobile role creation and the full retained-page edit/archive flow passes; frontend style/types/localization remain passing.
+- Verification result: Production resolver and catalogue traced; these eight entries are the only dotted literal keys in the localization catalogues. Nested entries preserve existing public translation paths without an alternate resolver. Source formatting passes; containing browser verification pending.
 - Completion evidence: pending.
 - Commit SHA: pending.
 
