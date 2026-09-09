@@ -32,6 +32,8 @@ final class RecruitmentConfigurationInputV3Test extends TestCase
 {
     use RefreshDatabase;
 
+    private int $publicRequestNumber = 0;
+
     /** @return iterable<string,array{string,bool}> */
     public static function entryPoints(): iterable
     {
@@ -51,7 +53,7 @@ final class RecruitmentConfigurationInputV3Test extends TestCase
             if ($http) {
                 [$method, $url] = $this->endpoint($operation, $fixture['slug']);
                 if ($operation === 'application') {
-                    $this->travel(61)->seconds();
+                    $this->usePublicClient($fixture['slug']);
                 }
                 $this->json($method, $url, $data + ($operation === 'question-update' ? ['question_id' => $fixture['questionId']] : []))
                     ->assertUnprocessable()->assertJsonValidationErrors($field);
@@ -70,7 +72,7 @@ final class RecruitmentConfigurationInputV3Test extends TestCase
         if ($http) {
             [$method, $url] = $this->endpoint($operation, $fixture['slug']);
             if ($operation === 'application') {
-                $this->travel(61)->seconds();
+                $this->usePublicClient($fixture['slug']);
             }
             $this->json($method, $url, $valid + ($operation === 'question-update' ? ['question_id' => $fixture['questionId']] : []))->assertRedirect();
         } else {
@@ -249,5 +251,10 @@ final class RecruitmentConfigurationInputV3Test extends TestCase
         }
 
         return $state;
+    }
+    private function usePublicClient(string $slug): void
+    {
+        $prefix = hash('sha256', $slug);
+        $this->withServerVariables(['REMOTE_ADDR' => sprintf('2001:db8:%s:%s::%x', substr($prefix, 0, 4), substr($prefix, 4, 4), ++$this->publicRequestNumber)]);
     }
 }

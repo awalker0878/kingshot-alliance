@@ -245,7 +245,7 @@ final class TransferEligibilityEvidenceBoundsV3Test extends TestCase
         for ($i = 0; $i < 101; $i++) {
             $this->condition($f, ['observed_at' => $at->copy()->subMinutes($i)]);
             if ($observed) {
-                $id = (string) Str::ulid();
+                $id = strtolower((string) Str::ulid());
                 DB::table('transfer_kingdom_capacity_observations')->insert([
                     'id' => $id, 'alliance_id' => $f['alliance']->allianceId, 'transfer_window_id' => $f['plan']->transfer_window_id,
                     'kingdom_id' => $target, 'ordinary_invites_used' => 3, 'transfer_opens_used' => 4, 'special_invites_available' => 9,
@@ -367,7 +367,7 @@ final class TransferEligibilityEvidenceBoundsV3Test extends TestCase
      */
     private function observation(array $f, array $overrides = []): string
     {
-        $id = (string) Str::ulid();
+        $id = strtolower((string) Str::ulid());
         DB::table('transfer_observations')->insert(array_replace([
             'id' => $id, 'alliance_id' => $f['alliance']->allianceId, 'transfer_window_id' => $f['plan']->transfer_window_id,
             'transfer_plan_id' => $f['plan']->id, 'transfer_participant_id' => $f['participant']->id, 'target_kingdom_id' => null,
@@ -385,7 +385,7 @@ final class TransferEligibilityEvidenceBoundsV3Test extends TestCase
      */
     private function condition(array $f, array $overrides = []): void
     {
-        $id = (string) Str::ulid();
+        $id = strtolower((string) Str::ulid());
         DB::table('transfer_kingdom_condition_observations')->insert(array_replace([
             'id' => $id, 'alliance_id' => $f['alliance']->allianceId, 'transfer_window_id' => $f['plan']->transfer_window_id,
             'kingdom_id' => $f['participant']->destination_kingdom_id, 'power_cap' => 10, 'hero_generation' => 10,

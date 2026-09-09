@@ -197,7 +197,7 @@ final class RecruitmentPrivateRetentionV3Test extends TestCase
         $candidateId = app(SubmitRecruitmentApplication::class)->handle($alliance->allianceId, 'Applicant', 'applicant@example.test', [], source: 'Private source detail');
         app(TagRecruitmentCandidate::class)->handle($owner->playerId, $alliance->allianceId, $candidateId, 'Private applicant label');
         self::assertSame('Private source detail', AuditEvent::query()->where('event', 'recruitment.application.submitted')->sole()->metadata['source']);
-        self::assertSame('Private applicant label', AuditEvent::query()->where('event', 'recruitment.candidate.tagged')->sole()->metadata['tag']);
+        self::assertSame('private applicant label', AuditEvent::query()->where('event', 'recruitment.candidate.tagged')->sole()->metadata['tag']);
         $delivery = OutboxMessage::query()->where('event_type', 'recruitment.application.submitted')->sole();
         self::assertTrue($delivery->payload['has_source']);
         self::assertArrayNotHasKey('source', $delivery->payload);

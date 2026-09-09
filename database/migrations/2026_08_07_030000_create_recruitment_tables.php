@@ -40,7 +40,7 @@ return new class extends Migration
             $table->string('question_type', 24)->default('short_text');
             $table->json('options')->nullable();
             $table->boolean('is_required')->default(false);
-            $table->unsignedSmallInteger('position')->default(0);
+            $table->unsignedInteger('position')->default(0);
             $table->boolean('is_active')->default(true)->index();
             $table->foreignUlid('created_by_player_id')->constrained('players')->restrictOnDelete();
             $table->foreignUlid('updated_by_player_id')->constrained('players')->restrictOnDelete();
@@ -279,7 +279,7 @@ return new class extends Migration
             $table->ulid('alliance_id');
             $table->string('name', 160);
             $table->text('description')->nullable();
-            $table->unsignedSmallInteger('position')->default(0);
+            $table->unsignedInteger('position')->default(0);
             $table->boolean('is_required')->default(true);
             $table->boolean('is_active')->default(true)->index();
             $table->foreignUlid('created_by_player_id')->constrained('players')->restrictOnDelete();

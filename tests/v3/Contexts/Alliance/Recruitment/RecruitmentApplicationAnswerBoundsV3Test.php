@@ -21,6 +21,8 @@ final class RecruitmentApplicationAnswerBoundsV3Test extends TestCase
 {
     use RefreshDatabase;
 
+    private int $publicRequestNumber = 0;
+
     /** @return iterable<string,array{RecruitmentQuestionType,int,bool}> */
     public static function textBoundaries(): iterable
     {
@@ -101,11 +103,21 @@ final class RecruitmentApplicationAnswerBoundsV3Test extends TestCase
         return [$alliance->allianceId, $alliance->slug, $questionId, $owner->playerId];
     }
 
+    public function test_public_application_rate_limit_remains_enforced_for_repeated_requests_from_one_client(): void
+    {
+        [, $slug] = $this->fixture(RecruitmentQuestionType::ShortText, false);
+        $this->usePublicClient($slug);
+        for ($i = 0; $i < 3; $i++) {
+            $this->postJson('/alliances/'.$slug.'/apply', ['email' => 'throttled@example.test'])->assertUnprocessable();
+        }
+        $this->postJson('/alliances/'.$slug.'/apply', ['email' => 'throttled@example.test'])->assertTooManyRequests();
+    }
+
     private function reject(bool $http, string $allianceId, string $slug, string $questionId, mixed $value): void
     {
         $before = $this->state();
         if ($http) {
-            $this->travel(61)->seconds();
+            $this->usePublicClient($slug);
             $this->postJson('/alliances/'.$slug.'/apply', ['full_name' => 'Applicant', 'email' => 'applicant@example.test', 'answers' => [$questionId => $value]])
                 ->assertUnprocessable()->assertJsonValidationErrors('answers.'.$questionId);
         } else {
@@ -123,7 +135,7 @@ final class RecruitmentApplicationAnswerBoundsV3Test extends TestCase
     private function submit(bool $http, string $allianceId, string $slug, array $answers): void
     {
         if ($http) {
-            $this->travel(61)->seconds();
+            $this->usePublicClient($slug);
             $this->postJson('/alliances/'.$slug.'/apply', ['full_name' => 'Applicant', 'email' => 'applicant@example.test', 'answers' => $answers])->assertRedirect();
         } else {
             app(SubmitRecruitmentApplication::class)->handle($allianceId, 'Applicant', 'applicant@example.test', $answers);
@@ -139,5 +151,10 @@ final class RecruitmentApplicationAnswerBoundsV3Test extends TestCase
         }
 
         return $state;
+    }
+    private function usePublicClient(string $slug): void
+    {
+        $prefix = hash('sha256', $slug);
+        $this->withServerVariables(['REMOTE_ADDR' => sprintf('2001:db8:%s:%s::%x', substr($prefix, 0, 4), substr($prefix, 4, 4), ++$this->publicRequestNumber)]);
     }
 }
