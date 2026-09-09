@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Architecture;
+namespace Tests\Architecture\ReadModels\AllianceAssistant;
 
 use PHPUnit\Framework\TestCase;
 use RecursiveDirectoryIterator;
@@ -10,7 +10,7 @@ use RecursiveIteratorIterator;
 use SplFileInfo;
 use Tests\Support\RepositoryPath;
 
-final class AllianceAssistantArchitectureV3Test extends TestCase
+final class AllianceAssistantBoundaryTest extends TestCase
 {
     public function test_assistant_read_model_has_no_persistence_or_domain_write_path(): void
     {

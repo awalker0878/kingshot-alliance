@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Architecture;
+namespace Tests\Architecture\ReadModels\IntelligenceSignals;
 
 use PHPUnit\Framework\TestCase;
 use RecursiveDirectoryIterator;

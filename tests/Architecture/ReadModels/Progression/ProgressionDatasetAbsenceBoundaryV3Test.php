@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Architecture;
+namespace Tests\Architecture\ReadModels\Progression;
 
 use PHPUnit\Framework\TestCase;
 use Tests\Support\RepositoryPath;

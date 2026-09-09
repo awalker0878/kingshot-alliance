@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Architecture;
+namespace Tests\Architecture\ReadModels\Progression;
 
 use PHPUnit\Framework\TestCase;
 use RecursiveDirectoryIterator;
@@ -10,7 +10,7 @@ use RecursiveIteratorIterator;
 use SplFileInfo;
 use Tests\Support\RepositoryPath;
 
-final class ProgressionPlannerArchitectureV3Test extends TestCase
+final class ProgressionPlannerBoundaryTest extends TestCase
 {
     public function test_progression_calculators_remain_inside_gameworld_progression(): void
     {

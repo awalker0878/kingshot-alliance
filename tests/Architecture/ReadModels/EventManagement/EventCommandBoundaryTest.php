@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Architecture;
+namespace Tests\Architecture\ReadModels\EventManagement;
 
 use PHPUnit\Framework\TestCase;
 use RecursiveDirectoryIterator;
@@ -10,7 +10,7 @@ use RecursiveIteratorIterator;
 use SplFileInfo;
 use Tests\Support\RepositoryPath;
 
-final class EventCommandArchitectureV3Test extends TestCase
+final class EventCommandBoundaryTest extends TestCase
 {
     public function test_event_command_is_a_read_only_composition_without_new_bounded_context(): void
     {
