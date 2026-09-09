@@ -21,7 +21,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git archive --format=tar.gz HEAD > "$RUNNER_TEMP/pr163-source.tar.gz"
+          git ls-files -z | tar --null -T - -czf "$RUNNER_TEMP/pr163-source.tar.gz"
           git rev-parse HEAD > "$RUNNER_TEMP/pr163-source.sha"
           git ls-tree -r HEAD > "$RUNNER_TEMP/pr163-source-tree.txt"
       - uses: actions/upload-artifact@v4
