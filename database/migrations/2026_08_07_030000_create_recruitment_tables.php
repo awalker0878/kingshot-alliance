@@ -49,6 +49,7 @@ return new class extends Migration
             $table->foreign('alliance_id')->references('id')->on('alliances')->cascadeOnDelete();
             $table->unique(['id', 'alliance_id']);
             $table->index(['alliance_id', 'is_active', 'position']);
+            $table->index(['alliance_id', 'position', 'id'], 'recruitment_questions_catalogue_idx');
         });
 
         Schema::create('recruitment_application_invites', function (Blueprint $table): void {
@@ -244,6 +245,7 @@ return new class extends Migration
             $table->foreign('alliance_id')->references('id')->on('alliances')->cascadeOnDelete();
             $table->unique(['id', 'alliance_id']);
             $table->unique(['alliance_id', 'name']);
+            $table->index(['alliance_id', 'name', 'id'], 'recruitment_templates_catalogue_idx');
         });
 
         Schema::create('recruitment_communications', function (Blueprint $table): void {
@@ -290,6 +292,7 @@ return new class extends Migration
             $table->unique(['id', 'alliance_id']);
             $table->unique(['alliance_id', 'name']);
             $table->index(['alliance_id', 'is_active', 'position', 'id'], 'recruitment_onboarding_active_idx');
+            $table->index(['alliance_id', 'position', 'id'], 'recruitment_onboarding_catalogue_idx');
         });
 
         Schema::create('recruitment_candidate_onboarding', function (Blueprint $table): void {

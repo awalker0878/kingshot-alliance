@@ -35,7 +35,7 @@ final class RecruitmentManagementQueryBehaviorV3Test extends TestCase
         }
 
         $query = app(RecruitmentManagementQuery::class);
-        $first = $query->forAlliance($alliance->allianceId)['candidatePage'];
+        $first = $query->forAlliance($player->playerId, $alliance->allianceId)['candidatePage'];
 
         self::assertCount(50, $first['items']);
         self::assertTrue($first['hasMore']);
@@ -44,6 +44,7 @@ final class RecruitmentManagementQueryBehaviorV3Test extends TestCase
         self::assertIsString($first['nextCursor']);
 
         $second = $query->forAlliance(
+            $player->playerId,
             $alliance->allianceId,
             cursor: $first['nextCursor'],
         )['candidatePage'];
@@ -53,7 +54,7 @@ final class RecruitmentManagementQueryBehaviorV3Test extends TestCase
         self::assertFalse($second['isFirstPage']);
         self::assertSame('Candidate 50', $second['items'][0]['name']);
 
-        $filtered = $query->forAlliance($alliance->allianceId, ['source' => 'event'])['candidatePage'];
+        $filtered = $query->forAlliance($player->playerId, $alliance->allianceId, ['source' => 'event'])['candidatePage'];
         self::assertCount(28, $filtered['items']);
         self::assertSame([], array_values(array_filter(
             $filtered['items'],
@@ -79,11 +80,12 @@ final class RecruitmentManagementQueryBehaviorV3Test extends TestCase
         }
 
         $query = app(RecruitmentManagementQuery::class);
-        $cursor = $query->forAlliance($alliance->allianceId)['candidatePage']['nextCursor'];
+        $cursor = $query->forAlliance($player->playerId, $alliance->allianceId)['candidatePage']['nextCursor'];
         self::assertIsString($cursor);
 
         $this->expectException(ValidationException::class);
         $query->forAlliance(
+            $player->playerId,
             $alliance->allianceId,
             ['stage' => RecruitmentStage::Accepted->value],
             $cursor,

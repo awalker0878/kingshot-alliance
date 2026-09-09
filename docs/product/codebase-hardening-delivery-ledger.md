@@ -1264,7 +1264,7 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Remediation: Trace each collection's product contract, use paginated/searchable selectors or justified owner cardinality constraints, and preserve complete current form/assignment semantics without silently truncating results.
 - State: In progress.
 - Verification required: Large catalogues/rosters/attachments, scoped continuation, selected-item preservation, complete required intake answers, current authorization and frontend behavior.
-- Verification result: First slice implements owner limits of 30 active questions/onboarding items, exclusive configuration serialization, complete current-answer validation and an authorized idempotent onboarding activation owner/UI. Fourteen PostgreSQL cases are authored, including competing create/activation and intake orders, complete snapshots, tenant/current permission, HTTP and rollback; desktop/mobile management coverage extends to persisted activation. Local full `npm run check` passes, final changed-page/browser lint passes, 258 documentation links and diff whitespace pass. Runtime PHP/browser verification and remaining catalogue/selector/attachment pagination are pending.
+- Verification result: First slice implements owner limits of 30 active questions/onboarding items, exclusive configuration serialization, complete current-answer validation and an authorized idempotent onboarding activation owner/UI. Fourteen PostgreSQL cases are authored, including competing create/activation and intake orders, complete snapshots, tenant/current permission, HTTP and rollback; desktop/mobile management coverage extends to persisted activation. Local full `npm run check` passes, final changed-page/browser lint passes, 258 documentation links and diff whitespace pass. Runtime PHP/browser verification is pending. A second slice implements three independently scoped 25-record catalogue pages, current read-owner authorization, removal of the unused full member query, indexed stable continuation and full-catalogue position defaults. Four PHP and two additional browser cases are authored. Full local frontend checks, final changed-page/browser lint, 258 documentation links and diff whitespace pass for the catalogue slice. Selector/attachment pagination remains.
 - Completion evidence: pending.
 - Commit SHA: pending.
 
@@ -1352,6 +1352,20 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Verification required: More than 500 unrelated entries, multiple Player reference keys, deterministic ties, complete scoped continuation and current governance authority.
 - Verification result: SQL target filtering, stable scoped continuation, current read admission and target relationship guard are implemented. Twelve PHP cases cover five keys, large unrelated history, tied/deleted/new boundaries, wrong scopes, revocation and HTTP/profile consumers; two browser cases cover complete navigation. Full local frontend checks and 255 documentation-link checks pass. Containing PHP and browser gates remain pending.
 - Completion evidence: MembershipHistoryPaginationV3Test, MembershipHistoryPagination.spec.ts, extended RecruitmentHistoryVisualFixture and ADR-0039.
+- Commit SHA: pending.
+
+### HARD-095 — Transfer workspaces and member profiles expand complete participant histories
+
+- Area: TransferParticipantQuery, Readiness/Manage/Completion, MemberCapabilityProfileQuery and AllianceCommandQuery.
+- Finding: forPlan loads the complete participant set; includeWithdrawn also eagerly loads all blockers and readiness transitions with actors. MemberCapabilityProfileQuery calls the full-plan query before selecting one Player in PHP. CommandOverview also loads the full plan before aggregate evaluation. HARD-093 bounds evidence per requested participant but does not bound these participant or workflow-history collections.
+- Current owner: GameWorld Transfer participant queries and consuming ReadModels/HTTP workspaces.
+- Intended authoritative owner: Scoped participant facts and explicit bounded workspace/history/aggregate projections.
+- Rationale: A member profile must not hydrate unrelated participants, and current workflow state must remain complete without returning every historical child row.
+- Remediation: Trace writer cardinality and each consumer, introduce precise single-participant reads and bounded workspace/history navigation or aggregate evaluation without clipping meaningful facts.
+- State: Planned.
+- Verification required: Large plans and child histories, complete current blocker/state semantics, scoped continuation, current authority and profile/dashboard query budgets.
+- Verification result: Readiness, Manage and Completion pass includeWithdrawn=true; profile selects the Player only after forPlan; CommandOverview consumes the complete plan. Implementation pending.
+- Completion evidence: pending.
 - Commit SHA: pending.
 
 ## Repository audit coverage

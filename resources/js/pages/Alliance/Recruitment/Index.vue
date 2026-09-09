@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 import { computed, reactive, ref, watch } from 'vue';
 
 import RoomBanner from '@/components/game/RoomBanner.vue';
@@ -11,6 +11,14 @@ import FormError from '@/components/ui/FormError.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 import type { RecruitmentInputLimits } from '@/types/recruitment';
+
+type PageSlice<T> = {
+  items: T[];
+  nextCursor: string | null;
+  hasMore: boolean;
+  pageSize: number;
+  isFirstPage: boolean;
+};
 
 type Candidate = {
   id: string;
@@ -99,7 +107,7 @@ const props = defineProps<{
   applicationModes: string[];
   questionTypes: string[];
   candidateStages: string[];
-  questions: Array<{
+  questionPage: PageSlice<{
     id: string;
     prompt: string;
     helpText: string | null;
@@ -117,8 +125,8 @@ const props = defineProps<{
     isFirstPage: boolean;
   };
   candidateFilters: { q: string; stage: string; source: string };
-  members: Array<{ id: string; name: string; rank: string }>;
-  decisionTemplates: Array<{
+  nextPositions: { questions: number; onboarding: number };
+  templatePage: PageSlice<{
     id: string;
     name: string;
     decisionStage: string;
@@ -126,7 +134,7 @@ const props = defineProps<{
     body: string;
     active: boolean;
   }>;
-  onboardingItems: Array<{
+  onboardingPage: PageSlice<{
     id: string;
     name: string;
     description: string | null;
@@ -142,14 +150,13 @@ const props = defineProps<{
 }>();
 
 const { t, formatDate, formatNumber } = useLocale();
+const page = usePage();
+const questions = computed(() => props.questionPage.items);
+const decisionTemplates = computed(() => props.templatePage.items);
+const onboardingItems = computed(() => props.onboardingPage.items);
 const candidates = computed(() => props.candidatePage.items);
 const candidateFilters = reactive({ ...props.candidateFilters });
-const firstCandidatePageUrl = computed(() => {
-  const query = new URLSearchParams(
-    Object.fromEntries(Object.entries(candidateFilters).filter(([, value]) => value !== '')),
-  ).toString();
-  return query === '' ? '/alliance/recruitment' : `/alliance/recruitment?${query}`;
-});
+const firstCandidatePageUrl = computed(() => workspaceUrl({ ...candidateFilters, cursor: null }));
 const selectedCandidateIds = ref<string[]>(props.bulkResult?.failedItemIds ?? []);
 const bulkStageOptions = computed(() =>
   props.candidateStages.filter((stage) => stage !== 'joined'),
@@ -196,7 +203,7 @@ const questionForm = useForm({
   type: 'short_text',
   options: [] as string[],
   required: false,
-  position: props.questions.length,
+  position: props.nextPositions.questions,
   active: true,
 });
 const questionOptions = ref('');
@@ -204,7 +211,7 @@ const applicationLinkCopied = ref(false);
 const questionEdits = reactive<Record<string, QuestionEdit>>({});
 const questionErrors = reactive<Record<string, string | undefined>>({});
 watch(
-  () => props.questions,
+  () => props.questionPage.items,
   (questions) => {
     for (const question of questions) {
       if (questionEdits[question.id]) continue;
@@ -235,7 +242,7 @@ const decisionForm = useForm({
 const onboardingForm = useForm({
   name: '',
   description: '',
-  position: props.onboardingItems.length,
+  position: props.nextPositions.onboarding,
   required: true,
   active: true,
 });
@@ -270,7 +277,7 @@ function createQuestion(): void {
     onSuccess: () => {
       questionForm.reset();
       questionForm.type = 'short_text';
-      questionForm.position = props.questions.length + 1;
+      questionForm.position = props.nextPositions.questions;
       questionForm.active = true;
       questionOptions.value = '';
     },
@@ -348,17 +355,41 @@ function createOnboardingItem(): void {
     preserveScroll: true,
     onSuccess: () => {
       onboardingForm.reset();
-      onboardingForm.position = props.onboardingItems.length + 1;
+      onboardingForm.position = props.nextPositions.onboarding;
       onboardingForm.required = true;
       onboardingForm.active = true;
     },
   });
 }
 
+function workspaceUrl(changes: Record<string, string | null>): string {
+  const url = new URL(page.url, 'https://workspace.invalid');
+  for (const [key, value] of Object.entries(changes)) {
+    if (value) url.searchParams.set(key, value);
+    else url.searchParams.delete(key);
+  }
+  return `${url.pathname}${url.search}`;
+}
+
+function catalogueUrl(
+  kind: 'questions' | 'templates' | 'onboarding',
+  cursor: string | null,
+): string {
+  return workspaceUrl({ [`${kind}_cursor`]: cursor });
+}
+
+function nextCataloguePage(
+  kind: 'questions' | 'templates' | 'onboarding',
+  cursor: string | null,
+): void {
+  if (!cursor) return;
+  router.get(catalogueUrl(kind, cursor), {}, { preserveScroll: true, preserveState: true });
+}
+
 function applyCandidateFilters(): void {
   router.get(
-    '/alliance/recruitment',
-    Object.fromEntries(Object.entries(candidateFilters).filter(([, value]) => value !== '')),
+    workspaceUrl({ ...candidateFilters, cursor: null }),
+    {},
     { preserveScroll: true, preserveState: true, replace: true },
   );
 }
@@ -444,13 +475,9 @@ function bulkOutcomeLabel(code: string): string {
 
 function nextCandidatePage(): void {
   if (!props.candidatePage.nextCursor) return;
-
   router.get(
-    '/alliance/recruitment',
-    {
-      ...Object.fromEntries(Object.entries(candidateFilters).filter(([, value]) => value !== '')),
-      cursor: props.candidatePage.nextCursor,
-    },
+    workspaceUrl({ ...candidateFilters, cursor: props.candidatePage.nextCursor }),
+    {},
     { preserveScroll: true, preserveState: true },
   );
 }
@@ -948,6 +975,8 @@ function humanize(value: string): string {
         :is-first-page="candidatePage.isFirstPage"
         :first-page-href="firstCandidatePageUrl"
         :has-more="candidatePage.hasMore"
+        preserve-state
+        preserve-scroll
         @next="nextCandidatePage"
       />
     </section>
@@ -1295,6 +1324,20 @@ function humanize(value: string): string {
             </AppButton>
           </details>
         </div>
+        <CursorPagination
+          :summary="
+            t('recruitment.historyItemsOnPage', {
+              count: formatNumber(questionPage.items.length),
+              pageSize: formatNumber(questionPage.pageSize),
+            })
+          "
+          :is-first-page="questionPage.isFirstPage"
+          :first-page-href="catalogueUrl('questions', null)"
+          :has-more="questionPage.hasMore"
+          preserve-state
+          preserve-scroll
+          @next="nextCataloguePage('questions', questionPage.nextCursor)"
+        />
       </section>
 
       <section class="ks-surface p-5 sm:p-6" aria-labelledby="templates-heading">
@@ -1364,6 +1407,20 @@ function humanize(value: string): string {
             <p class="mt-1 text-[var(--ks-text-secondary)]">{{ template.subject }}</p>
           </article>
         </div>
+        <CursorPagination
+          :summary="
+            t('recruitment.historyItemsOnPage', {
+              count: formatNumber(templatePage.items.length),
+              pageSize: formatNumber(templatePage.pageSize),
+            })
+          "
+          :is-first-page="templatePage.isFirstPage"
+          :first-page-href="catalogueUrl('templates', null)"
+          :has-more="templatePage.hasMore"
+          preserve-state
+          preserve-scroll
+          @next="nextCataloguePage('templates', templatePage.nextCursor)"
+        />
       </section>
 
       <section class="ks-surface p-5 sm:p-6" aria-labelledby="onboarding-heading">
@@ -1445,6 +1502,20 @@ function humanize(value: string): string {
             <FormError :message="onboardingUpdates[item.id]?.error" />
           </article>
         </div>
+        <CursorPagination
+          :summary="
+            t('recruitment.historyItemsOnPage', {
+              count: formatNumber(onboardingPage.items.length),
+              pageSize: formatNumber(onboardingPage.pageSize),
+            })
+          "
+          :is-first-page="onboardingPage.isFirstPage"
+          :first-page-href="catalogueUrl('onboarding', null)"
+          :has-more="onboardingPage.hasMore"
+          preserve-state
+          preserve-scroll
+          @next="nextCataloguePage('onboarding', onboardingPage.nextCursor)"
+        />
       </section>
     </div>
   </AppLayout>

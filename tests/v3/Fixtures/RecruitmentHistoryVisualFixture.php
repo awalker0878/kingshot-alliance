@@ -54,5 +54,33 @@ final class RecruitmentHistoryVisualFixture
                 ]);
             }
         }
+        self::seedCatalogues();
+    }
+
+    private static function seedCatalogues(): void
+    {
+        $factory = app(ScenarioFactory::class);
+        $user = User::factory()->create(['name' => 'Recruitment Catalogue Visual', 'email' => 'recruitment-catalogue-visual@example.test']);
+        $owner = $factory->player((int) $user->id, 59355, 'visual-recruitment-catalogue-owner');
+        $alliance = $factory->alliance($owner);
+        for ($index = 0; $index < 55; $index++) {
+            $base = [
+                'alliance_id' => $alliance->allianceId, 'is_active' => false,
+                'created_by_player_id' => $owner->playerId, 'updated_by_player_id' => $owner->playerId,
+                'created_at' => now(), 'updated_at' => now(),
+            ];
+            DB::table('recruitment_questions')->insert($base + [
+                'id' => strtolower((string) Str::ulid()), 'prompt' => sprintf('Catalogue question %03d', $index),
+                'question_type' => 'short_text', 'position' => $index, 'is_required' => false,
+            ]);
+            DB::table('recruitment_decision_templates')->insert($base + [
+                'id' => strtolower((string) Str::ulid()), 'name' => sprintf('Catalogue template %03d', $index),
+                'decision_stage' => 'accepted', 'subject' => 'Complete decision', 'body' => 'Complete retained template body.',
+            ]);
+            DB::table('recruitment_onboarding_items')->insert($base + [
+                'id' => strtolower((string) Str::ulid()), 'name' => sprintf('Catalogue onboarding %03d', $index),
+                'description' => 'Complete retained task.', 'position' => $index, 'is_required' => false,
+            ]);
+        }
     }
 }
