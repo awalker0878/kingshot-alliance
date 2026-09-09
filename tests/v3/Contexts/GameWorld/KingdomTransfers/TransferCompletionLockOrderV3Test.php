@@ -59,7 +59,7 @@ final class TransferCompletionLockOrderV3Test extends TestCase
         $kingdomLocks = [];
         $playerLocks = [];
         DB::listen(static function (QueryExecuted $query) use ($primary, $target, $owner, $kingdomId, $direction, $completionFirst, $complete, $archive, &$attempted, &$kingdomLocks, &$playerLocks): void {
-            if (str_starts_with($query->sql, 'select * from "players"') && str_contains($query->sql, 'for update')) {
+            if (str_starts_with($query->sql, 'select * from "players"') && (str_contains($query->sql, 'for update') || str_contains($query->sql, 'for share'))) {
                 $playerLocks[] = $query->connectionName;
             }
             if ($query->connectionName === $primary && str_starts_with($query->sql, 'select * from "kingdoms"') && str_contains($query->sql, 'for share')) {
@@ -70,7 +70,7 @@ final class TransferCompletionLockOrderV3Test extends TestCase
                 }
             }
             $barrier = $completionFirst
-                ? str_starts_with($query->sql, 'select * from "players"') && str_contains($query->sql, 'for update') && in_array($target->playerId, $query->bindings, true)
+                ? str_starts_with($query->sql, 'select * from "players"') && (str_contains($query->sql, 'for update') || str_contains($query->sql, 'for share')) && in_array($target->playerId, $query->bindings, true)
                 : str_starts_with($query->sql, 'select * from "kingdoms"') && str_contains($query->sql, 'for update') && in_array($kingdomId, $query->bindings, true);
             if ($attempted || $query->connectionName !== $primary || ! $barrier) {
                 return;
@@ -228,6 +228,59 @@ final class TransferCompletionLockOrderV3Test extends TestCase
             }
             self::assertTrue($attempted);
             self::assertSame($before, $this->state());
+        } finally {
+            DB::setDefaultConnection($primary);
+            DB::purge('completion_writer');
+        }
+    }
+
+    #[DataProvider('opposingOrders')]
+    public function test_staying_completions_preserve_player_actor_references_across_opposing_alliances(bool $reverse): void
+    {
+        $factory = app(ScenarioFactory::class);
+        [$firstOwner, $firstAlliance, , $firstParticipant] = $this->fixture(TransferDirection::Staying);
+        [$secondOwner, $secondAlliance, , $secondParticipant] = $this->fixture(TransferDirection::Staying);
+        $firstEntry = $factory->roster($firstOwner, $firstAlliance, $secondOwner);
+        $secondEntry = $factory->roster($secondOwner, $secondAlliance, $firstOwner);
+        $firstParticipant->forceFill(['player_id' => $secondOwner->playerId, 'roster_entry_id' => $firstEntry->rosterEntryId, 'observed_name' => $secondOwner->currentName, 'game_player_id' => $secondOwner->gamePlayerId])->save();
+        $secondParticipant->forceFill(['player_id' => $firstOwner->playerId, 'roster_entry_id' => $secondEntry->rosterEntryId, 'observed_name' => $firstOwner->currentName, 'game_player_id' => $firstOwner->gamePlayerId])->save();
+        [$owner, $alliance, $participant, $otherOwner, $otherAlliance, $otherParticipant] = $reverse
+            ? [$secondOwner, $secondAlliance, $secondParticipant, $firstOwner, $firstAlliance, $firstParticipant]
+            : [$firstOwner, $firstAlliance, $firstParticipant, $secondOwner, $secondAlliance, $secondParticipant];
+        $primary = $this->competitor();
+        $attempted = false;
+        $playersBefore = DB::table('players')->orderBy('id')->get()->toJson();
+        $historyBefore = DB::table('player_identity_history')->orderBy('id')->get()->toJson();
+        $complete = static fn () => app(CompleteTransferParticipant::class)->handle($alliance->allianceId, $owner->playerId, (string) $participant->transfer_plan_id, (string) $participant->id);
+        $otherComplete = static fn () => app(CompleteTransferParticipant::class)->handle($otherAlliance->allianceId, $otherOwner->playerId, (string) $otherParticipant->transfer_plan_id, (string) $otherParticipant->id);
+        DB::listen(static function (QueryExecuted $query) use ($primary, $otherOwner, $otherComplete, &$attempted): void {
+            if ($attempted || $query->connectionName !== $primary || ! str_starts_with($query->sql, 'select * from "players"') || ! str_contains($query->sql, 'for ') || ! in_array($otherOwner->playerId, $query->bindings, true)) {
+                return;
+            }
+            $attempted = true;
+            DB::setDefaultConnection('completion_writer');
+            try {
+                // The competing completion references its actor, who is the
+                // first completion's target. Staying does not mutate identity.
+                $otherComplete();
+            } finally {
+                DB::setDefaultConnection($primary);
+            }
+        });
+        try {
+            $complete();
+            self::assertTrue($attempted);
+            self::assertSame(2, TransferCompletion::query()->count());
+            foreach ([$owner, $otherOwner] as $actor) {
+                self::assertSame(1, DB::table('audit_events')->where('event', 'kingdoms.transfer_participant_completed')->where('actor_player_id', $actor->playerId)->whereNull('actor_user_id')->count());
+                self::assertSame(1, TransferCompletion::query()->where('completed_by_player_id', $actor->playerId)->count());
+            }
+            self::assertSame($playersBefore, DB::table('players')->orderBy('id')->get()->toJson());
+            self::assertSame($historyBefore, DB::table('player_identity_history')->orderBy('id')->get()->toJson());
+            $beforeRetry = $this->state();
+            $complete();
+            $otherComplete();
+            self::assertSame($beforeRetry, $this->state());
         } finally {
             DB::setDefaultConnection($primary);
             DB::purge('completion_writer');

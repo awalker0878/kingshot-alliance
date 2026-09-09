@@ -113,7 +113,7 @@ final readonly class CompleteTransferParticipant
             $player = Player::query()
                 ->whereKey($participant->player_id)
                 ->whereNull('canonical_player_id')
-                ->lockForUpdate()
+                ->lock($participant->direction === TransferDirection::Staying ? 'for share' : 'for update')
                 ->firstOrFail();
 
             $this->assertPlayerCanMoveKingdom(

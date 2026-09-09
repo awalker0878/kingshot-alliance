@@ -29,6 +29,7 @@ final readonly class ResolveTransferPlayer
     {
         $stableId = $gamePlayerId === null ? null : trim($gamePlayerId);
         $stableId = $stableId === '' ? null : $stableId;
+
         return DB::transaction(function () use ($sourceKingdomId, $name, $stableId, $currentPlayerId): PlayerReference {
             try {
                 $this->kingdoms->lockActiveShared($sourceKingdomId);

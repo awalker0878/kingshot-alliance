@@ -5,16 +5,16 @@
 - Program state: In progress.
 - Exact main baseline: `7e780521295e868005ecfee5bd38b33e8215ec49`.
 - Working branch: `astra/codebase-hardening`.
-- Latest pushed durable checkpoint: `ee943b7f7202a3ec9600499167e63d1ae7a18c1d`.
+- Latest pushed durable checkpoint: `5080705eb8a2bb3603fc782763f4327481ef7c33`.
 - Draft PR: [#163](https://github.com/awalker0878/kingshot-alliance/pull/163).
 - Current item/state: HARD-074/076/077 / In progress; planning identity ordering, stable-ID conflict recovery and current account registration preconditions are implemented with twenty-six new PostgreSQL cases. HARD-071/072/073/075 remain in containing verification.
 - Most recently verified gates: all nine PR workflows pass on `802f1a6b91b597e9e34af4d77482ce75f5781ba1`, including 1,205 PHP tests / 80,125 assertions in parallel PHP and both complete serial suites, fresh PostgreSQL, frontend, image/staging/recovery, architecture/capabilities, all 50 visual cases and security.
 - Active files: ResolveTransferPlayer, PersistPlayerIdentity and CreatePlayerForAccount, twenty-six new planning/stable identity/registration cases, ADR-0034, owner contracts and delivery ledger.
 - Current CI result: All nine workflows pass on 802f1a6b. On 2f7042d5, parallel PHP and both full serial suites pass 1,218 tests / 80,223 assertions, but the parallel job expires at its former 20-minute budget and skips deployment. On ee943b7f, Pint/PHPStan/fresh schema pass and parallel PHP runs 1,239 tests / 80,325 assertions in 19:48 with four failures, all from incorrect User attribution assertions in HARD-073. All fifteen HARD-072 cases pass. The restored account lock and corrected assertions, plus twenty-six planning/identity cases, await execution.
 - Remaining current work: Verify the restored account barrier, corrected actor tests and planning/stable identity/registration; continue Membership/Recruitment and the remaining capability-by-capability repository audit.
-- Known failures: Four HARD-073 tests on ee943b7f incorrectly expect User-based Alliance audit attribution. The hypothesis is withdrawn and tests corrected to the actual Player actor contract; containing CI must rerun. The previous parallel timeout is addressed by HARD-075 without removing checks.
+- Known failures: The 5080705e parallel job stops at Pint with one ResolveTransferPlayer style issue (braces_position, single_line_empty_body, blank_line_before_statement; job 102347427770). Tests do not execute in that job. The missing blank line before return is corrected; the containing style/test gate must rerun. Four earlier HARD-073 assertions are corrected and their account-lock hypothesis is withdrawn. The previous parallel timeout is addressed by HARD-075 without removing checks.
 - Blockers: local PHP/Composer/PostgreSQL are unavailable. Ordinary apt setup was denied by workspace setgroups/setuid permissions and was stopped without changing those restrictions. Use the authorized GitHub job-log reader and existing PostgreSQL-backed CI for executable verification. Local git write transport lacks credentials; publish atomic trees/commits through the configured GitHub connector, checking exact tree equality and non-forced branch updates. The checkout tracks the latest remote checkpoint; older equivalent local commits remain preserved on scratch/local-checkpoints-9e16952f.
-- Exact next action: Publish the account correction with the coherent planning/identity slice, inspect containing gates, then finish Membership and Recruitment owner review.
+- Exact next action: Correct the reported ResolveTransferPlayer Pint formatting and verify the account/identity slice with the HARD-083 Staying completion cases; finish Membership and Recruitment owner review.
 - Remaining repository-wide gates: final full PHP/architecture/capability and frontend gates on one containing commit; production image/staging/recovery; final security/dependency/visual checks; remaining capability-by-capability audit coverage below.
 
 Checkpoint SHAs are recorded by the following documentation commit; verify that the recorded checkpoint is an ancestor of current branch HEAD. No audit area is complete solely because its paths have been inventoried.
@@ -1203,3 +1203,17 @@ All rows below remain Planned until actual production paths have been traced. Th
 - After HARD-003, HARD-005 implements the ownership move but remains In progress until database-backed behavior passes. Local PHP/architecture/command checks are available; local PostgreSQL is not. HARD-006–008 are processed next because baseline formatter/architecture/static-analysis failures prevent CI from reaching those behavior tests. No gate is skipped or weakened; return to HARD-005 verification after these prerequisite repairs.
 
 - Workspace interruption checkpoint: after local PHPStan/Pint and sorted middleware inspection, exec-server disconnected. Prepared remembered-session source/tests were reconstructed from authored text against exact remote parent f3c25909; the GitHub tree/commit is read back before the non-forced branch update. Browser-payload fixture correction was made from locked maintained package sources and CI failure evidence. No post-disconnection local gate or clean-checkout status is claimed. On resume, compare any retained scratch changes with the committed files before resetting or reapplying them.
+
+### HARD-083 — Staying transfer completion blocks another Player actor reference
+
+- Area: CompleteTransferParticipant and Player foreign keys in completion/audit records.
+- Finding: Staying completion acquires target Player FOR UPDATE even though it does not mutate identity. Two Alliances in the same Kingdom can track each other's officers as Staying roster targets. Each completion can then hold the other actor's Player while inserting its own actor reference, reversing the actual Player foreign-key dependency.
+- Current owner: Transfer completion target identity stabilization.
+- Intended authoritative owner: Shared canonical Player stabilization for Staying observation; exclusive Player ownership for incoming/outgoing identity mutation.
+- Rationale: Preserve current identity without blocking compatible Player actor references across independent Alliance scopes.
+- Remediation: Use FOR SHARE for Staying target identity and retain FOR UPDATE for actual incoming/outgoing movement. Keep Kingdom-before-Player order and all current authority, roster and completion checks.
+- State: In progress.
+- Verification required: Real opposing Staying completions in both initiating orders, unchanged identity/history, correct Player attribution, idempotent retry, archival serialization and late rollback for every direction.
+- Verification result: Two new connection cases construct legitimate cross-Alliance roster targets and attempt the opposing completion while the first holds its target identity. Existing archival cases recognize shared or exclusive target locks and retain Kingdom-first and no-competing-Player assertions. Executable verification pending.
+- Completion evidence: pending.
+- Commit SHA: pending.
