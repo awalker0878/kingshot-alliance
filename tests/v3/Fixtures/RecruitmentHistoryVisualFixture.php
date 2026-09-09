@@ -12,6 +12,7 @@ use App\Contexts\Alliance\Recruitment\Enums\RecruitmentStage;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentCandidate;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Tests\v3\Support\RecruitmentCollectionFactory;
 use Tests\v3\Support\ScenarioFactory;
 
 final class RecruitmentHistoryVisualFixture
@@ -55,6 +56,22 @@ final class RecruitmentHistoryVisualFixture
             }
         }
         self::seedCatalogues();
+        self::seedCollections();
+    }
+
+    private static function seedCollections(): void
+    {
+        $factory = app(ScenarioFactory::class);
+        foreach (['desktop', 'mobile'] as $project) {
+            $user = User::factory()->create(['name' => 'Recruitment Collections Visual', 'email' => 'recruitment-collections-'.$project.'@example.test']);
+            $owner = $factory->player((int) $user->id, 59356, 'visual-recruitment-collections-'.$project);
+            $alliance = $factory->alliance($owner);
+            $candidate = RecruitmentCandidate::query()->create([
+                'alliance_id' => $alliance->allianceId, 'full_name' => 'Collection candidate '.$project,
+                'email' => 'collection-'.$project.'@example.test', 'stage' => RecruitmentStage::Accepted, 'submitted_at' => now(),
+            ]);
+            app(RecruitmentCollectionFactory::class)->seed($alliance, $owner->playerId, $candidate);
+        }
     }
 
     private static function seedCatalogues(): void

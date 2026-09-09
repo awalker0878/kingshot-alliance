@@ -2,6 +2,10 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   recruitment: {
+    searchChoices: 'Rechercher des options',
+    findChoices: 'Rechercher',
+    noChoices: 'Aucune option correspondante.',
+    choiceLookupFailed: 'Impossible de charger les options. Réessayez.',
     activeConfigurationLimit:
       'Jusqu’à {limit} éléments actifs. Désactivez un élément pour en ajouter un autre.',
     historyItemsOnPage: '{count} éléments sur cette page (jusqu’à {pageSize}).',

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 
+import RecruitmentOptionPicker from '@/components/alliance/RecruitmentOptionPicker.vue';
 import RoomBanner from '@/components/game/RoomBanner.vue';
 import StatSeal from '@/components/game/StatSeal.vue';
 import AppButton from '@/components/ui/AppButton.vue';
@@ -18,7 +19,7 @@ type DetailPage<T> = {
   pageSize: number;
   isFirstPage: boolean;
 };
-type HistorySection = 'notes' | 'history' | 'communications' | 'duplicates';
+type HistorySection = 'notes' | 'history' | 'communications' | 'duplicates' | 'tags' | 'reviewers';
 
 const props = defineProps<{
   user: { name: string; email: string };
@@ -43,9 +44,9 @@ const props = defineProps<{
   };
   inputLimits: { note: number; reason: number };
   answers: Array<{ id: string; prompt: string; type: string; answer: Record<string, unknown> }>;
-  reviewers: Array<{ id: string; name: string }>;
+  reviewersPage: DetailPage<{ id: string; name: string }>;
   notesPage: DetailPage<{ id: string; body: string; author: string; createdAt: string | null }>;
-  tags: Array<{ id: string; name: string }>;
+  tagsPage: DetailPage<{ id: string; name: string }>;
   historyPage: DetailPage<{
     id: string;
     from: string | null;
@@ -77,9 +78,7 @@ const props = defineProps<{
     stage: string;
     submittedAt: string;
   }>;
-  members: Array<{ id: string; name: string; rank: string }>;
-  conversionPlayers: Array<{ id: string; name: string; claimed: boolean }>;
-  decisionTemplates: Array<{ id: string; name: string; decisionStage: string; subject: string }>;
+  selectionBaseUrl: string;
   stageOptions: string[];
   onboardingStatusOptions: string[];
   issuedMembershipInvitationLink: string | null;
@@ -376,13 +375,14 @@ function humanize(value: string): string {
           <div class="ks-divider my-5" />
 
           <form class="space-y-3" @submit.prevent="assignReviewer">
-            <p class="ks-kicker">{{ t('recruitment.reviewers') }}</p>
-            <select v-model="reviewerForm.player_id" class="ks-input">
-              <option value="">{{ t('recruitment.selectReviewer') }}</option>
-              <option v-for="member in members" :key="member.id" :value="member.id">
-                {{ member.name }} · {{ member.rank.toUpperCase() }}
-              </option>
-            </select>
+            <p id="reviewers-heading" class="ks-kicker">{{ t('recruitment.reviewers') }}</p>
+            <RecruitmentOptionPicker
+              id="reviewer-picker"
+              :key="candidate.id + candidate.stage + 'members'"
+              v-model="reviewerForm.player_id"
+              :endpoint="selectionBaseUrl + '/members'"
+              :label="t('recruitment.selectReviewer')"
+            />
             <AppButton
               class="w-full"
               variant="ghost"
@@ -391,23 +391,38 @@ function humanize(value: string): string {
             >
               {{ t('recruitment.assignReviewer') }}
             </AppButton>
-            <div v-if="reviewers.length" class="flex flex-wrap gap-2">
-              <span v-for="reviewer in reviewers" :key="reviewer.id" class="ks-chip">{{
+            <div v-if="reviewersPage.items.length" class="flex flex-wrap gap-2">
+              <span v-for="reviewer in reviewersPage.items" :key="reviewer.id" class="ks-chip">{{
                 reviewer.name
               }}</span>
             </div>
+            <CursorPagination
+              :summary="
+                t('recruitment.historyItemsOnPage', {
+                  count: formatNumber(reviewersPage.items.length),
+                  pageSize: formatNumber(reviewersPage.pageSize),
+                })
+              "
+              :is-first-page="reviewersPage.isFirstPage"
+              :first-page-href="historyUrl('reviewers', null)"
+              :has-more="reviewersPage.hasMore"
+              preserve-state
+              preserve-scroll
+              @next="nextHistoryPage('reviewers')"
+            />
           </form>
 
-          <template v-if="conversionPlayers.length">
+          <template v-if="candidate.stage === 'accepted' && !candidate.membershipInvitationId">
             <div class="ks-divider my-5" />
             <form class="space-y-3" @submit.prevent="convertCandidate">
               <p class="ks-kicker">{{ t('recruitment.convertCandidate') }}</p>
-              <select v-model="conversionForm.player_id" class="ks-input">
-                <option value="">{{ t('recruitment.selectPlayer') }}</option>
-                <option v-for="player in conversionPlayers" :key="player.id" :value="player.id">
-                  {{ player.name }}{{ player.claimed ? ` · ${t('recruitment.claimed')}` : '' }}
-                </option>
-              </select>
+              <RecruitmentOptionPicker
+                id="conversion-player-picker"
+                :key="candidate.id + candidate.stage + 'roster'"
+                v-model="conversionForm.player_id"
+                :endpoint="selectionBaseUrl + '/roster'"
+                :label="t('recruitment.selectPlayer')"
+              />
               <AppButton
                 class="w-full"
                 type="submit"
@@ -661,10 +676,26 @@ function humanize(value: string): string {
                 t('recruitment.addTag')
               }}</AppButton>
             </form>
-            <div v-if="tags.length" class="mt-4 flex flex-wrap gap-2">
-              <span v-for="tag in tags" :key="tag.id" class="ks-chip">{{ tag.name }}</span>
+            <div v-if="tagsPage.items.length" class="mt-4 flex flex-wrap gap-2">
+              <span v-for="tag in tagsPage.items" :key="tag.id" class="ks-chip">{{
+                tag.name
+              }}</span>
             </div>
             <div v-else class="ks-fantasy-empty mt-4">{{ t('recruitment.noTags') }}</div>
+            <CursorPagination
+              :summary="
+                t('recruitment.historyItemsOnPage', {
+                  count: formatNumber(tagsPage.items.length),
+                  pageSize: formatNumber(tagsPage.pageSize),
+                })
+              "
+              :is-first-page="tagsPage.isFirstPage"
+              :first-page-href="historyUrl('tags', null)"
+              :has-more="tagsPage.hasMore"
+              preserve-state
+              preserve-scroll
+              @next="nextHistoryPage('tags')"
+            />
           </section>
         </div>
 
@@ -679,16 +710,16 @@ function humanize(value: string): string {
             <span class="ks-chip">{{ communicationsPage.items.length }}</span>
           </div>
           <form
-            v-if="decisionTemplates.length"
             class="mt-4 grid gap-2 sm:grid-cols-[1fr_auto]"
             @submit.prevent="prepareCommunication"
           >
-            <select v-model="communicationForm.template_id" class="ks-input">
-              <option value="">{{ t('recruitment.selectTemplate') }}</option>
-              <option v-for="template in decisionTemplates" :key="template.id" :value="template.id">
-                {{ template.name }} · {{ humanize(template.decisionStage) }}
-              </option>
-            </select>
+            <RecruitmentOptionPicker
+              id="decision-template-picker"
+              :key="candidate.id + candidate.stage + 'templates'"
+              v-model="communicationForm.template_id"
+              :endpoint="selectionBaseUrl + '/templates'"
+              :label="t('recruitment.selectTemplate')"
+            />
             <AppButton
               type="submit"
               :disabled="communicationForm.processing || !communicationForm.template_id"

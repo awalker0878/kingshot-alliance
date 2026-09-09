@@ -13,6 +13,7 @@ use App\Contexts\Alliance\Recruitment\Services\RecruitmentReentryPolicy;
 use App\Contexts\Alliance\Recruitment\Services\RecruitmentTextInput;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -115,24 +116,34 @@ final class MergeRecruitmentCandidates
 
     private function copyReviewers(string $allianceId, RecruitmentCandidate $source, RecruitmentCandidate $target, string $actorPlayerId): void
     {
-        $reviewerIds = DB::table('recruitment_candidate_reviewers')->where('candidate_id', $source->id)->orderBy('reviewer_player_id')->pluck('reviewer_player_id');
-        foreach ($reviewerIds as $reviewerPlayerId) {
-            DB::table('recruitment_candidate_reviewers')->insertOrIgnore([
-                'id' => (string) Str::ulid(), 'alliance_id' => $allianceId, 'candidate_id' => $target->id,
-                'reviewer_player_id' => $reviewerPlayerId, 'assigned_by_player_id' => $actorPlayerId,
-                'created_at' => now(), 'updated_at' => now(),
-            ]);
-        }
+        DB::table('recruitment_candidate_reviewers')->where('alliance_id', $allianceId)->where('candidate_id', $source->id)
+            ->chunkById(100, static function (Collection $rows) use ($allianceId, $target, $actorPlayerId): void {
+                $at = now();
+                $copies = [];
+                foreach ($rows as $row) {
+                    $copies[] = [
+                        'id' => strtolower((string) Str::ulid()), 'alliance_id' => $allianceId, 'candidate_id' => $target->id,
+                        'reviewer_player_id' => $row->reviewer_player_id, 'assigned_by_player_id' => $actorPlayerId,
+                        'created_at' => $at, 'updated_at' => $at,
+                    ];
+                }
+                DB::table('recruitment_candidate_reviewers')->insertOrIgnore($copies);
+            }, 'reviewer_player_id');
     }
 
     private function copyTags(string $allianceId, RecruitmentCandidate $source, RecruitmentCandidate $target): void
     {
-        $tagIds = DB::table('recruitment_candidate_tags')->where('candidate_id', $source->id)->orderBy('tag_id')->pluck('tag_id');
-        foreach ($tagIds as $tagId) {
-            DB::table('recruitment_candidate_tags')->insertOrIgnore([
-                'alliance_id' => $allianceId, 'candidate_id' => $target->id, 'tag_id' => $tagId,
-                'created_at' => now(), 'updated_at' => now(),
-            ]);
-        }
+        DB::table('recruitment_candidate_tags')->where('alliance_id', $allianceId)->where('candidate_id', $source->id)
+            ->chunkById(100, static function (Collection $rows) use ($allianceId, $target): void {
+                $at = now();
+                $copies = [];
+                foreach ($rows as $row) {
+                    $copies[] = [
+                        'alliance_id' => $allianceId, 'candidate_id' => $target->id, 'tag_id' => $row->tag_id,
+                        'created_at' => $at, 'updated_at' => $at,
+                    ];
+                }
+                DB::table('recruitment_candidate_tags')->insertOrIgnore($copies);
+            }, 'tag_id');
     }
 }

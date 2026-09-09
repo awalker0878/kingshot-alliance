@@ -16,6 +16,8 @@ The canonical extension requirements, ownership/provenance rules and acceptance 
 
 Do not use `planned`, `MVP`, `partial`, or `future enhancement` to obscure these states.
 
+Recruitment hardening adds complete 30-item active forms/onboarding, independent 25-record catalogues and candidate attachments, and searchable scoped selectors with current-selection validation. HARD-088 remains open until its containing PHP/browser verification passes; this does not establish completion of the repository-wide hardening audit.
+
 ## Discovery sources
 
 Community/open-source projects remain discovery evidence only. They can reveal useful product workflows but do not become authoritative game truth by being implemented elsewhere.

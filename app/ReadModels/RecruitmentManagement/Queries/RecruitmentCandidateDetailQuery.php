@@ -7,19 +7,13 @@ namespace App\ReadModels\RecruitmentManagement\Queries;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
-use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
-use App\Contexts\Alliance\Membership\Enums\RosterState;
-use App\Contexts\Alliance\Membership\Models\AllianceMembership;
-use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
 use App\Contexts\Alliance\Recruitment\Enums\RecruitmentOnboardingStatus;
 use App\Contexts\Alliance\Recruitment\Enums\RecruitmentStage;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentCandidate;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentCandidateOnboarding;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentCommunication;
-use App\Contexts\Alliance\Recruitment\Models\RecruitmentDecisionTemplate;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentNote;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentStageHistory;
-use App\Contexts\Alliance\Recruitment\Models\RecruitmentTag;
 use App\Contexts\Alliance\Recruitment\Queries\RecruitmentDuplicateFinder;
 use App\Contexts\Alliance\Recruitment\Services\RecruitmentTextInput;
 use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
@@ -27,6 +21,7 @@ use App\Shared\Infrastructure\Pagination\PageSlice;
 use App\Shared\Infrastructure\Pagination\ScopedCursorCodec;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -44,7 +39,7 @@ final readonly class RecruitmentCandidateDetailQuery
     ) {}
 
     /**
-     * @param  array{notes?:string|null,history?:string|null,communications?:string|null,duplicates?:string|null}  $cursors
+     * @param  array{notes?:string|null,history?:string|null,communications?:string|null,duplicates?:string|null,tags?:string|null,reviewers?:string|null}  $cursors
      * @return array<string,mixed>
      */
     public function forCandidate(string $actorPlayerId, string $allianceId, string $candidateId, array $cursors = []): array
@@ -54,7 +49,6 @@ final readonly class RecruitmentCandidateDetailQuery
         $record = RecruitmentCandidate::query()->where('alliance_id', $allianceId)->whereNull('anonymized_at')->whereKey($candidateId)->firstOrFail();
         $record->load([
             'answers',
-            'tags',
             'onboarding.item',
         ]);
 
@@ -63,25 +57,14 @@ final readonly class RecruitmentCandidateDetailQuery
         $communications = $this->historyPage(RecruitmentCommunication::query()->where('alliance_id', $allianceId)->where('candidate_id', $candidateId), "recruitment-communications|{$allianceId}|{$candidateId}", 'created_at', $cursors['communications'] ?? null);
         $duplicates = $this->duplicates->forCandidate($allianceId, $record, $cursors['duplicates'] ?? null);
 
-        $memberships = AllianceMembership::query()
-            ->where('alliance_id', $allianceId)
-            ->where('status', MembershipStatus::Active->value)
-            ->orderBy('created_at')
-            ->get();
-        $activeMemberPlayerIds = $memberships->pluck('player_id')->map(static fn ($id): string => (string) $id)->all();
-        $conversionPlayers = AllianceRosterEntry::query()
-            ->where('alliance_id', $allianceId)
-            ->where('state', RosterState::Active->value)
-            ->when($activeMemberPlayerIds !== [], static fn ($query) => $query->whereNotIn('player_id', $activeMemberPlayerIds))
-            ->orderBy('observed_name')
-            ->get();
-
-        $templates = RecruitmentDecisionTemplate::query()
-            ->where('alliance_id', $allianceId)
-            ->where('is_active', true)
-            ->where('decision_stage', $record->recruitmentStage()->value)
-            ->orderBy('name')
-            ->get();
+        $tags = $this->namedPage(DB::table('recruitment_tags as tag')
+            ->join('recruitment_candidate_tags as attachment', 'attachment.tag_id', '=', 'tag.id')
+            ->where('tag.alliance_id', $allianceId)->where('attachment.alliance_id', $allianceId)->where('attachment.candidate_id', $candidateId)
+            ->selectRaw('tag.id AS id, tag.name AS name'), 'recruitment-tags|'.$allianceId.'|'.$candidateId, $cursors['tags'] ?? null);
+        $reviewers = $this->namedPage(DB::table('recruitment_candidate_reviewers as attachment')
+            ->join('players as player', 'player.id', '=', 'attachment.reviewer_player_id')
+            ->where('attachment.alliance_id', $allianceId)->where('attachment.candidate_id', $candidateId)
+            ->selectRaw('player.id AS id, player.current_name AS name'), 'recruitment-reviewers|'.$allianceId.'|'.$candidateId, $cursors['reviewers'] ?? null);
 
         $answerData = [];
         foreach ($record->answers as $answer) {
@@ -93,32 +76,9 @@ final readonly class RecruitmentCandidateDetailQuery
             ];
         }
 
-        $reviewerIds = DB::table('recruitment_candidate_reviewers')
-            ->where('candidate_id', $record->id)
-            ->orderBy('reviewer_player_id')
-            ->pluck('reviewer_player_id')
-            ->map(static fn ($id): string => (string) $id)
-            ->all();
-        $playerIds = array_values(array_unique(array_merge(
-            $reviewerIds,
-            array_map(static fn (RecruitmentNote $note): string => (string) $note->author_player_id, $notes->items),
-            $memberships->pluck('player_id')->map(static fn ($id): string => (string) $id)->all(),
-            $conversionPlayers->pluck('player_id')->map(static fn ($id): string => (string) $id)->all(),
-        )));
-        $playerReferences = $this->players->byIds($playerIds);
-
-        $reviewerData = [];
-        foreach ($reviewerIds as $reviewerPlayerId) {
-            $reviewer = $playerReferences[$reviewerPlayerId] ?? null;
-            if ($reviewer === null) {
-                continue;
-            }
-
-            $reviewerData[] = [
-                'id' => $reviewer->playerId,
-                'name' => $reviewer->currentName,
-            ];
-        }
+        $playerReferences = $this->players->byIds(array_values(array_unique(array_map(
+            static fn (RecruitmentNote $note): string => (string) $note->author_player_id, $notes->items,
+        ))));
 
         $noteData = [];
         foreach ($notes->items as $note) {
@@ -131,16 +91,6 @@ final readonly class RecruitmentCandidateDetailQuery
                 'author' => $author->currentName ?? '—',
                 'createdAt' => $note->created_at?->toIso8601String(),
             ];
-        }
-
-        $tagData = [];
-        foreach ($record->tags->sortBy('name') as $tag) {
-            if ($tag instanceof RecruitmentTag) {
-                $tagData[] = [
-                    'id' => (string) $tag->id,
-                    'name' => (string) $tag->name,
-                ];
-            }
         }
 
         $historyData = [];
@@ -206,44 +156,6 @@ final readonly class RecruitmentCandidateDetailQuery
             ];
         }
 
-        $memberData = [];
-        foreach ($memberships as $membership) {
-            $player = $playerReferences[(string) $membership->player_id] ?? null;
-            if ($player === null) {
-                continue;
-            }
-
-            $memberData[] = [
-                'id' => $player->playerId,
-                'name' => $player->currentName,
-                'rank' => $membership->rank->value,
-            ];
-        }
-
-        $conversionPlayerData = [];
-        foreach ($conversionPlayers as $entry) {
-            $player = $playerReferences[(string) $entry->player_id] ?? null;
-            if ($player === null) {
-                continue;
-            }
-
-            $conversionPlayerData[] = [
-                'id' => $player->playerId,
-                'name' => $player->currentName,
-                'claimed' => $player->claimed(),
-            ];
-        }
-
-        $templateData = [];
-        foreach ($templates as $template) {
-            $templateData[] = [
-                'id' => (string) $template->id,
-                'name' => (string) $template->name,
-                'decisionStage' => $template->decisionStage()->value,
-                'subject' => (string) $template->subject,
-            ];
-        }
-
         return [
             'alliance' => [
                 'id' => $alliance->allianceId,
@@ -269,16 +181,14 @@ final readonly class RecruitmentCandidateDetailQuery
             ],
             'inputLimits' => ['note' => RecruitmentTextInput::NOTE_MAX_LENGTH, 'reason' => RecruitmentTextInput::REASON_MAX_LENGTH],
             'answers' => $answerData,
-            'reviewers' => $reviewerData,
+            'reviewersPage' => $reviewers->toArray(),
             'notesPage' => (new PageSlice($noteData, $notes->nextCursor, $notes->pageSize, $notes->isFirstPage))->toArray(),
-            'tags' => $tagData,
+            'tagsPage' => $tags->toArray(),
             'historyPage' => (new PageSlice($historyData, $historyPage->nextCursor, $historyPage->pageSize, $historyPage->isFirstPage))->toArray(),
             'communicationsPage' => (new PageSlice($communicationData, $communications->nextCursor, $communications->pageSize, $communications->isFirstPage))->toArray(),
             'onboarding' => $onboardingData,
             'duplicatesPage' => (new PageSlice($duplicateData, $duplicates->nextCursor, $duplicates->pageSize, $duplicates->isFirstPage))->toArray(),
-            'members' => $memberData,
-            'conversionPlayers' => $conversionPlayerData,
-            'decisionTemplates' => $templateData,
+            'selectionBaseUrl' => '/alliance/recruitment/'.$candidateId.'/options',
             'stageOptions' => $this->manualStageOptions($record->recruitmentStage()),
             'onboardingStatusOptions' => array_map(
                 static fn (RecruitmentOnboardingStatus $status): string => $status->value,
@@ -286,6 +196,30 @@ final readonly class RecruitmentCandidateDetailQuery
             ),
             'transferCampaign' => $this->transferCampaign->forCandidate($actorPlayerId, $allianceId, $record),
         ];
+    }
+
+    /** @return PageSlice<array{id:string,name:string}> */
+    private function namedPage(QueryBuilder $base, string $scope, ?string $cursor): PageSlice
+    {
+        $query = DB::query()->fromSub($base, 'candidate_attachments');
+        if ($cursor !== null) {
+            $position = $this->cursors->decode($cursor, $scope);
+            $name = $position['name'] ?? null;
+            $id = $position['id'] ?? null;
+            if (! is_string($name) || mb_strlen($name) > 255 || ! is_string($id) || ! preg_match('/^[0-9A-HJKMNP-TV-Z]{26}$/Di', $id)) {
+                throw ValidationException::withMessages(['cursor' => 'The candidate attachment cursor is invalid.']);
+            }
+            $query->where(static function (QueryBuilder $after) use ($name, $id): void {
+                $after->where('name', '>', $name)->orWhere(static function (QueryBuilder $tie) use ($name, $id): void {
+                    $tie->where('name', $name)->where('id', '>', $id);
+                });
+            });
+        }
+        $rows = $query->orderBy('name')->orderBy('id')->limit(26)->get();
+        $items = array_values($rows->take(25)->map(static fn ($row): array => ['id' => (string) $row->id, 'name' => (string) $row->name])->all());
+        $last = $items === [] ? null : $items[array_key_last($items)];
+
+        return new PageSlice($items, $rows->count() > 25 && $last !== null ? $this->cursors->encode($scope, $last) : null, 25, $cursor === null);
     }
 
     /**

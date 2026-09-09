@@ -330,6 +330,9 @@ Route::middleware(['auth', 'auth.session'])->group(function (): void {
             Route::get('/alliance/recruitment/{candidate}', RecruitmentCandidateReadController::class)
                 ->whereUlid('candidate')
                 ->name('alliance.recruitment.candidates.show');
+            Route::get('/alliance/recruitment/{candidate}/options/{kind}', [RecruitmentCandidateReadController::class, 'options'])
+                ->whereUlid('candidate')->whereIn('kind', ['members', 'roster', 'templates'])
+                ->name('alliance.recruitment.candidates.options');
 
             Route::get('/alliance/content', [MemberContentController::class, 'index'])
                 ->name('alliance.content.index');

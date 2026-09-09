@@ -3,23 +3,19 @@
 ## Resume header
 
 - Program state: In progress.
-- Exact main baseline: `7e780521295e868005ecfee5bd38b33e8215ec49`.
+- Exact main baseline: `7e780521295e868005ecfee5bd38b33e8215ec49` (freshly fetched unchanged).
 - Working branch: `astra/codebase-hardening`.
-- Latest pushed durable checkpoint: `98c9384f6757f33fb9af4674700a278d4a76f93c`.
+- Latest pushed durable checkpoint: `460f0f9ae47081b7e30f330eb636dbdddc57875a`.
 - Draft PR: [#163](https://github.com/awalker0878/kingshot-alliance/pull/163).
-- Previous item/state: HARD-093 / In progress; bounded conflict-preserving observation/condition witnesses, scoped group facts, SQL capacity commitment counts, truthful campaign totals and independently paginated observation history are implemented. Twenty-two PHP and two browser cases are authored; containing verification is required.
-- Current item/state: HARD-088 / In progress; complete active configuration bounds are implemented; remaining catalogue, selector and attachment pagination continues.
-- Most recently verified gates: all nine PR workflows pass on `abda37b1b3093c8cde37026eb19fccc8b9d097eb`, including 1,267 PHP tests / 80,498 assertions in parallel PHP and both complete serial suites, fresh PostgreSQL, frontend, container/staging/recovery, all fifty visual cases and security/capabilities.
-- Active files: Recruitment active-configuration owners, catalogue and candidate selection/attachment projections, management adapters/pages, fresh indexes, focused PHP/browser coverage, ADR-0042 and current contracts; HARD-093 fixture correction.
-- Previous CI result: On 0a958e2d, Pint (1,947 files), PHPStan, fresh schema, frontend and all 56 visual cases pass. Main PHP job 102379154182 completes 1,431 tests / 82,019 assertions in 23:19 with three errors and nine failures: six position-storage boundaries, five real-cache throttle collisions in input fixtures and one normalized-tag expectation. The current slice fixes all three causes; containing execution is required. Earlier history, note/reason HTTP, governance privacy and member-history cases pass.
-- Previous gate result: b8442c4b fresh installation and complete frontend checks pass. Main PHP stops at two missing test-method blank lines; Architecture reports three redundant nullsafe aggregate reads and a PageSlice list type. Current corrections address those exact diagnostics. Visual job 102387550413 passes 56 of 58 cases, including both new history navigation/retry cases; only the two expected history-label fingerprints differ. Actual desktop/mobile failure screenshots, full screenshots and error contexts were reviewed; fingerprint expectations are updated without weakening behavioral assertions. Full PHP execution remains required.
-- Previous containing PHP result: 14a6bc4d Pint (1,950 files), PHPStan, fresh installation, full frontend and all 58 visual cases pass. Main PHP job 102391286419 completes 1,454 tests / 82,456 assertions in 24:22 with six errors, all caused by HARD-093 fixture participants missing required Player IDs. All earlier Recruitment, privacy and member-history cases pass. The fixture now creates a distinct current Player and source/destination facts for every extra participant; containing rerun is required.
-- Current CI result: 98c9384f fresh installation and full frontend pass. Main PHP stops at two fully qualified test exceptions requiring imports; Architecture flags loss of the generic catalogue model type through an Eloquent collection. The current correction uses the same explicit list<T> array selection as the verified candidate-history paginator and applies the exact formatter imports. Visual job 102400372824 passes all 60 cases, including catalogue navigation and persisted onboarding activation. Containing full PHP remains pending.
-- Remaining current work: Verify current Membership/Recruitment privacy, input and history changes; finish HARD-088/093 and continue the remaining capability-by-capability repository audit.
-- Known failures: six HARD-093 fixture errors on 14a6bc4d are corrected with real Player identities, preserving schema constraints and the tested assertions. Eighteen new HARD-088 PHP cases and catalogue/activation browser changes require containing execution. Candidate selection/attachment pagination remains in progress.
-- Blockers: local PHP/Composer/PostgreSQL are unavailable. Ordinary apt setup was denied by workspace setgroups/setuid permissions and was stopped without changing those restrictions. Use the authorized GitHub job-log reader and existing PostgreSQL-backed CI for executable verification. Local git write transport lacks credentials; publish atomic trees/commits through the configured GitHub connector, checking exact tree equality and non-forced branch updates. The checkout tracks the latest remote checkpoint; older equivalent local commits remain preserved on scratch/local-checkpoints-9e16952f.
-- Exact next action: Verify the HARD-090/093 gate corrections, finish HARD-088, then continue the remaining capability-by-capability audit.
-- Remaining repository-wide gates: final full PHP/architecture/capability and frontend gates on one containing commit; production image/staging/recovery; final security/dependency/visual checks; remaining capability-by-capability audit coverage below.
+- Current item/state: HARD-088 / In progress; candidate attachment pagination and searchable member/roster/template choices implemented, with ten new PHP and two desktop/mobile browser cases. Containing runtime verification remains required.
+- Most recently verified gates: on `460f0f9a`, main PHP job 102402657713 passes 1,472 tests / 82,752 assertions in 24:40; fresh PostgreSQL, full frontend, all 60 visual cases, container/staging/recovery, CodeQL, dependency review and capability workflows pass. Architecture passes all 63 architecture tests and PHPStan before its full serial suite times out at 45 minutes. Intelligence's full serial suite also reaches its 45-minute timeout. HARD-096 tracks the gate runtime defect.
+- Local current checks: recovered PHP 8.5.8 and matching locked dependencies support passing PHPStan and 63 Architecture tests / 69,609 assertions. Changed-file Pint, ten-case test discovery, full `npm run check` (including production build/budgets), final browser lint/format and all 258 documentation links pass. Local PostgreSQL execution fails before assertions with connection refused at 127.0.0.1:5432; no local database pass is claimed.
+- Active files: Recruitment candidate projections/controller/route, option picker and 17 locales, merge attachment batching, focused PHP/browser fixtures and current Recruitment architecture/product/frontend contracts.
+- Remaining current work: containing HARD-088 PHP/browser verification; finish transfer participant/history bounds under HARD-095 and the remaining capability-by-capability audit. HARD-093's implementation and its tests now pass the containing main PHP and visual suites.
+- Known failures: two complete serial gate runs time out at 45 minutes; new selector/attachment tests need PostgreSQL/browser execution.
+- Blockers: no local PostgreSQL server; use existing PostgreSQL-backed CI. Local Git write transport lacks credentials; publish exact atomic trees/commits through the configured GitHub connector, validate tree equality and use non-forced branch updates. Earlier unrelated scratch workspaces are preserved.
+- Exact next action: publish the coherent HARD-088 selector/attachment slice after local gates, correct HARD-096's demonstrated CI budget, then continue HARD-095 and remaining audit coverage while containing CI executes.
+- Remaining repository-wide gates: final full PHP/architecture/capability/frontend, production image/staging/recovery, security/dependency/visual checks and the remaining capability-by-capability audit on one final containing commit.
 
 Checkpoint SHAs are recorded by the following documentation commit; verify that the recorded checkpoint is an ancestor of current branch HEAD. No audit area is complete solely because its paths have been inventoried.
 
@@ -1266,7 +1262,8 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - State: In progress.
 - Verification required: Large catalogues/rosters/attachments, scoped continuation, selected-item preservation, complete required intake answers, current authorization and frontend behavior.
 - Verification result: First slice implements owner limits of 30 active questions/onboarding items, exclusive configuration serialization, complete current-answer validation and an authorized idempotent onboarding activation owner/UI. Fourteen PostgreSQL cases are authored, including competing create/activation and intake orders, complete snapshots, tenant/current permission, HTTP and rollback; desktop/mobile management coverage extends to persisted activation. Local full `npm run check` passes, final changed-page/browser lint passes, 258 documentation links and diff whitespace pass. Runtime PHP/browser verification is pending. A second slice implements three independently scoped 25-record catalogue pages, current read-owner authorization, removal of the unused full member query, indexed stable continuation and full-catalogue position defaults. Four PHP and two additional browser cases are authored. Full local frontend checks, final changed-page/browser lint, 258 documentation links and diff whitespace pass for the catalogue slice. Selector/attachment pagination remains.
-- Completion evidence: pending.
+- Additional verification: the active-configuration and catalogue PHP cases pass in the 1,472-test containing run on `460f0f9a`, with all 60 visual cases. The recovered candidate slice adds independent tags/reviewers pages, lazy scoped searchable choices, current selected-item validation and batches of 100 for complete merge associations. Ten new PHP and two desktop/mobile cases are authored; local PHPStan, architecture and changed-file Pint pass. Containing database/browser execution is still required.
+- Completion evidence: ADR-0042, RecruitmentCandidateCollectionsV3Test, RecruitmentCandidateCollections.spec.ts and current contracts; runtime pending.
 - Commit SHA: pending.
 
 ### HARD-089 — Recruitment free-text owner limits depend on HTTP adapters
@@ -1343,11 +1340,11 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Intended authoritative owner: Bounded current-fact selection with truthful visible history summaries.
 - Rationale: A nominally bounded page must neither omit active blockers through pre-filter limits nor load unrelated historical evidence for a single participant.
 - Remediation: Trace factual selector semantics and consumers, select only relevant latest/valid evidence with stable provenance, filter active blockers before bounded presentation and expose continuation/true summaries as required.
-- State: In progress.
+- State: Complete.
 - Verification required: Older active blockers behind resolved entries, multiple observation kinds/targets, stale/missing facts, unrelated participant/Kingdom volume and current source authority.
-- Verification result: Shared bounded witness selection preserves the existing observation/condition selectors, and groups are restricted to relevant Kingdom membership. Capacity observations are selected in SQL and commitments aggregated without model hydration. Campaign counts cover all matching records. History has an independently authorized 25-record cursor endpoint and lazy first/next/retry UI. Twenty-two PHP cases and two desktop/mobile cases cover semantics, scope, volume and continuation. Full local frontend checks pass; the final browser additions pass targeted formatting/lint. Containing PHP/browser checks remain required.
-- Completion evidence: ADR-0041, TransferEligibilityEvidenceBoundsV3Test, KingdomTransferPlanning browser cases and current contracts; runtime gates pending.
-- Commit SHA: pending.
+- Verification result: Shared bounded witness selection preserves the existing observation/condition selectors, and groups are restricted to relevant Kingdom membership. Capacity observations are selected in SQL and commitments aggregated without model hydration. Campaign counts cover all matching records. History has an independently authorized 25-record cursor endpoint and lazy first/next/retry UI. Twenty-two PHP cases and two desktop/mobile cases cover semantics, scope, volume and continuation. Full local frontend checks pass; the final browser additions pass targeted formatting/lint. All 22 PHP cases pass within main CI job 102402657713 on `460f0f9a` (1,472 tests / 82,752 assertions); all 60 visual cases, including both new Transfer history cases, pass in Visual run 34332044023. PHPStan and fresh PostgreSQL also pass.
+- Completion evidence: ADR-0041, TransferEligibilityEvidenceBoundsV3Test, KingdomTransferPlanning browser cases and current contracts; containing main PHP, visual, PHPStan and fresh-schema evidence above.
+- Commit SHA: verified containing candidate `460f0f9ae47081b7e30f330eb636dbdddc57875a`.
 
 ### HARD-094 — Membership governance history filters after an unrelated global limit
 
@@ -1376,6 +1373,20 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - State: Planned.
 - Verification required: Large plans and child histories, complete current blocker/state semantics, scoped continuation, current authority and profile/dashboard query budgets.
 - Verification result: Readiness, Manage and Completion pass includeWithdrawn=true; profile selects the Player only after forPlan; CommandOverview consumes the complete plan. Implementation pending.
+- Completion evidence: pending.
+- Commit SHA: pending.
+
+### HARD-096 — Full serial verification exceeds the CI job budget
+
+- Area: Architecture V3 Verification and Intelligence Verification workflows.
+- Finding: Both full serial suites on `460f0f9a` reach their 45-minute job timeouts after passing preparation/static/architecture checks. The expanded main parallel suite passes 1,472 tests in 24:40; complete serial execution needs more time than the inherited job budget.
+- Current owner: GitHub Actions workflow definitions.
+- Intended authoritative owner: the same complete verification gates with an explicit sufficient bounded runtime budget.
+- Rationale: cancellation is not passing evidence, and deleting tests or narrowing the existing full gates would conceal verification gaps.
+- Remediation: allow sufficient bounded runtime for full serial suites and retain their exact test selection and failure semantics; verify a containing complete run.
+- State: Planned.
+- Verification required: both complete serial suites finish successfully on a containing commit.
+- Verification result: Architecture run 34332043959/job 102402657607 passes 63 architecture cases and PHPStan, then cancels after 45 minutes; Intelligence run 34332044046 likewise times out. Main PHP, visual and container/staging/recovery succeed on the same candidate.
 - Completion evidence: pending.
 - Commit SHA: pending.
 

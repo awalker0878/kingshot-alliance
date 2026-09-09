@@ -2,6 +2,10 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   recruitment: {
+    searchChoices: '選択肢を検索',
+    findChoices: '検索',
+    noChoices: '一致する選択肢はありません。',
+    choiceLookupFailed: '選択肢を読み込めませんでした。再試行してください。',
     activeConfigurationLimit:
       '有効な項目は最大{limit}件です。別の項目を追加するには、既存の項目を無効にしてください。',
     historyItemsOnPage: 'このページに{count}件（最大{pageSize}件）。',

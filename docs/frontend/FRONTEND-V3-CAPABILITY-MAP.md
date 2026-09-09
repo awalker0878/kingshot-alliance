@@ -102,7 +102,7 @@ Governance History is an officer-authorized `ReadModels/AllianceGovernance` view
 
 ## Recruitment Hall
 
-Backed by Alliance Recruitment: modes/questions, Governor applications, stages, assigned reviewers, notes, tags, duplicate merge, decisions, invitation conversion, onboarding items and private Alliance-local re-entry controls. Re-entry restrictions are recruiter-private and never presented as a global blacklist.
+Backed by Alliance Recruitment: modes/questions, Governor applications, stages, assigned reviewers, notes, tags, duplicate merge, decisions, invitation conversion, onboarding items and private Alliance-local re-entry controls. Re-entry restrictions are recruiter-private and never presented as a global blacklist. Configuration catalogues and candidate histories/tags/reviewers have independent 25-record navigation with retained drafts. RecruitmentOptionPicker loads scoped member, roster and decision-template choices with search, current off-page selection validation, failure recovery and explicit continuation. Active application questions and onboarding assignments remain complete under the owner limit of 30.
 
 ## Noticeboard
 
